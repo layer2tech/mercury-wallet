@@ -14,7 +14,7 @@ Of course, labels can be mostly assigned automatically by the wallet, such as al
 
 ### Address reuse
 
-Mercury wallet is sure to not allow address reuse by efficiently storing a list of all addresses which have ever been generated and quering it before presenting a newly generated address to the user.
+Mercury wallet is sure to not allow address reuse by efficiently storing a list of all addresses which have ever been generated and querying it before presenting a newly generated address to the user. Any address which has been used on the blockchain is also stored and this list is checked before including an input to a transaction, this is to stop an attack in which Bitcoin is sent to an address which has already been used in hope that it will be automatically included in a new transaction and thus reveal more UTXOs owned by that wallet.
 
 
 
