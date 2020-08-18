@@ -15,3 +15,27 @@ Of course, labels can be mostly assigned automatically by the wallet, such as al
 ### Address reuse
 
 Mercury wallet is sure to not allow address reuse by efficiently storing a list of all addresses which have ever been generated and quering it before presenting a newly generated address to the user.
+
+
+
+### SPV mode
+
+By default Mercury wallet will connect to an Electrum Server ran by Mercury.io for blockchain information. All requests are performed via Tor and the Tor identity is refreshed regularly, however we stronlgy advise users to run their own full node and Electrum Personal Server to be sure that absolutely none of their transaction and UTXO information can be leaked. 
+
+
+### Wallet fingerprinting
+
+Information can be leaked about a transaction based on its structure, such as which output is change and which type of wallet was used to create the transaction. To mitigate against fingerprinting of Mercury wallet transactions are constructed under the following conditions:
+
+- If an output is a non-standard address type then any change output will also be non-standard
+- Addresses generated are of different types
+- Coin selection involves randomness
+- Input and output ordering involves randomness
+- If unused, variable fields such as nLocktime and version number can be set at random times and with random but commonly used values
+- Fee selection involves some randomness
+
+Some extra options are availble to the user but are  disabled by default since they may increase the transaction fee significantly:
+
+- Use a mixture of  compressed and  uncompressed public keys 
+- Randomly include inputs and ouputs which are not needed, for example spreading change out over a random number of outputs
+
