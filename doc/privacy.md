@@ -42,7 +42,7 @@ Some extra options are availble to the user but are  disabled by default since t
 
 
 
-### Swaps
+### Off-chain Transfers
 
 We have discussed some ways in which Mercury Wallet helps its user follow general Bitcoin privacy practices and provides protections against unintentionally revealing purchases to others. However no matter how many wallet privacy tools are implemented a users' coins can be followed through the public blockchain by the sender (or any other party who knows which UTXOs the  user onws). A user whose salary is paid to them in Bitcoin is at risk of their employer, and collegues,  seeing how much they are paid, how much they have saved, how they like to spend their money, etc via simple blockchain queries. 
 
