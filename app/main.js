@@ -38,13 +38,6 @@ function createWindow() {
     mainWindow = null;
   });
 
-  const neon = require('neon-lib');
-
-  console.log("Can access Rust basic fn hello_world(): ");
-  console.log(neon.helloWorld());
-
-  console.log("Can access Rust crypto fn crypto_lib(). Random private key: ");
-  console.log(neon.cryptoLib());
   }
 
 // This method will be called when Electron has finished

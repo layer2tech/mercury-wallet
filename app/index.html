@@ -7,13 +7,16 @@
   <body>
     <script>
       try {
-        console.log(require('neon-lib'))
-        document.write(`<h1>${require('neon-lib').helloWorld()}</h1>`);
+        console.log(require('client'))
+        document.write(`<h1>${require('client').makeServer()}</h1>`);
       } catch (e) {
         document.write(`<pre>${e.stack}</pre>`);
       }
     </script>
 
-    <p>Title is output from Rust lib fn hello_world() &uarr;</p>
+    <p>Title is output from Rust lib fn make_server() &uarr;</p>
+
+    <input type="button" id="btnEd" value="Send UnixServer Request" onclick="require('client').makeServerRequest()" />
+
   </body>
 </html>
