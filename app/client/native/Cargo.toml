@@ -7,29 +7,36 @@ edition = "2018"
 [lib]
 name = "server_lib"
 crate-type = ["cdylib"]
-path = "src/server.rs"
+path = "src/lib.rs"
 
-# [[bin]]
-# name = "rustd-client"
-# path = "src/client.rs"
-#
-# [[bin]]
-# name = "rustd-server"
-# path = "src/server.rs"
 
 [dependencies]
 neon = "0.3.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.24"
-
-
+serde_derive = "1.0"
 clap = "2.32"
+log = "0.4"
 tokio = { version = "0.1.18" }
 daemon-engine = "0.6.0"
+bitcoin = { version = "0.20", features = [ "use-serde" ] }
+reqwest = { version = "0.9.5", features = ["socks"] }
+electrumx_client = { git = "https://github.com/commerceblock/rust-electrumx-client", tag="v0.1.0" }
+uuid = { version = "0.5", features = ["v4", "serde"] }
+config = "0.9"
+
 
 [build-dependencies]
 neon-build = "0.3.3"
 
+[dependencies.curv]
+git = "https://github.com/KZen-networks/curv"
+tag = "v0.2.2"
+features =  ["ec_secp256k1"]
+
 [target.'cfg(unix)'.dependencies]
 tokio-uds = "0.2.0"
 users = "0.7"
+
+[dependencies.shared]
+path = "../shared"

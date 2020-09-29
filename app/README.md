@@ -1,6 +1,6 @@
 # electron-app
 
-A simple Electron app using a Neon package.
+A simple Electron app using a Neon package node module which creates a UnixServer and sends a test request.
 
 ## Setup
 ```bash

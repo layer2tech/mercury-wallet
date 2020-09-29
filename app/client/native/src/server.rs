@@ -1,10 +1,3 @@
-/**
- * rust-daemon
- * Server example
- *
- * https://github.com/ryankurte/rust-daemon
- * Copyright 2018 Ryan Kurte
- */
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -23,10 +16,11 @@ extern crate serde;
 use serde::{Serialize, Deserialize};
 
 extern crate daemon_engine;
-use daemon_engine::{UnixServer, JsonCodec};
+use daemon_engine::{UnixServer, UnixConnection, DaemonError, JsonCodec};
 
 use std::thread;
 
+const unix_server_addr: &str = "/tmp/rustd.sock";
 
 /// Example request object
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -42,14 +36,10 @@ pub enum Response {
     Value(String),
 }
 
-fn main() {}
-
 /// Start Client UnixServer process
 pub fn make_server(mut cx: FunctionContext) -> JsResult<JsString> {
-    let addr = "/tmp/rustd.sock";
-
     let server = future::lazy(move || {
-        let mut s = UnixServer::<JsonCodec<Response, Request>>::new(&addr, JsonCodec::new()).unwrap();
+        let mut s = UnixServer::<JsonCodec<Response, Request>>::new(unix_server_addr, JsonCodec::new()).unwrap();
         let m = Mutex::new(HashMap::<String, String>::new());
 
         let server_handle = s
@@ -91,14 +81,12 @@ pub fn make_server(mut cx: FunctionContext) -> JsResult<JsString> {
     Ok(cx.string("Server started!"))
 }
 
-use daemon_engine::{UnixConnection,DaemonError};
+
 
 /// Create UnixConnection and make request to UnixServer
 pub fn make_server_request(mut cx: FunctionContext) -> JsResult<JsString> {
-    let addr = "/tmp/rustd.sock";
-
     // Create client connector
-    let client = UnixConnection::<JsonCodec<Request, Response>>::new(&addr, JsonCodec::new()).wait().unwrap();
+    let client = UnixConnection::<JsonCodec<Request, Response>>::new(unix_server_addr, JsonCodec::new()).wait().unwrap();
     let (tx, rx) = client.split();
 
     tx.send(Request::Set("key".to_string(), "value".to_string())).wait().unwrap();
