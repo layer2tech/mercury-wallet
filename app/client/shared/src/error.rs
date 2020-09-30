@@ -3,7 +3,6 @@ use bitcoin::secp256k1::Error as SecpError;
 use bitcoin::util::address::Error as AddressError;
 use monotree::Errors as MonotreeErrors;
 use reqwest::Error as ReqwestError;
-use reqwest::UrlError;
 use serde_json::Error as SerdeJSONError;
 use std::error;
 
@@ -46,12 +45,6 @@ impl From<SecpError> for SharedLibError {
 
 impl From<MonotreeErrors> for SharedLibError {
     fn from(e: MonotreeErrors) -> SharedLibError {
-        SharedLibError::Generic(e.to_string())
-    }
-}
-
-impl From<UrlError> for SharedLibError {
-    fn from(e: UrlError) -> SharedLibError {
         SharedLibError::Generic(e.to_string())
     }
 }

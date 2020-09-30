@@ -15,8 +15,11 @@ extern crate log;
 extern crate shared_lib;
 
 pub mod error;
-pub mod wallet;
 pub mod daemon;
+pub mod wallet;
+pub mod state_entity;
+pub mod ecdsa;
+pub mod utilities;
 
 use config::Config as ConfigRs;
 use error::CError;
@@ -81,7 +84,7 @@ pub fn get_config() -> Result<ConfigRs> {
 
 #[derive(Debug, Clone)]
 pub struct ClientShim {
-    pub client: reqwest::Client,
+    pub client: reqwest::blocking::Client,
     // pub tor: Option<Tor>,
     pub auth_token: Option<String>,
     pub endpoint: String,
@@ -110,18 +113,18 @@ impl ClientShim {
         cs
     }
 
-    pub fn new_client() -> reqwest::Client {
-    // pub fn new_client(tor: Option<&Tor>) -> reqwest::Client {
+    pub fn new_client() -> reqwest::blocking::Client {
+    // pub fn new_client(tor: Option<&Tor>) -> reqwest::blocking::Client {
         // match tor {
-        //     None => reqwest::Client::new(),
+        //     None => reqwest::blocking::Client::new(),
         //     Some(t) => match t.enable {
-        //         true => reqwest::Client::builder()
+        //         true => reqwest::blocking::Client::builder()
         //                 .proxy(reqwest::Proxy::all(&t.proxy).unwrap())
         //                 .build().unwrap(),
-        //         false => reqwest::Client::new(),
+        //         false => reqwest::blocking::Client::new(),
         //     }
         // }
-        reqwest::Client::new()
+        reqwest::blocking::Client::new()
     }
 
     // pub fn new_tor_id(&mut self) -> Result<()> {

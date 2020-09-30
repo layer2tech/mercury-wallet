@@ -1,7 +1,7 @@
 // Electrum server http RESTful API interface
 
 use bitcoin::consensus;
-use bitcoin::{util::misc::hex_bytes, Transaction};
+use bitcoin::Transaction;
 use electrumx_client::interface::Electrumx;
 use electrumx_client::response::{
     GetBalanceResponse, GetBlockHeadersResponse, GetHistoryResponse, GetListUnspentResponse,
@@ -55,7 +55,7 @@ impl Electrumx for MockElectrum {
         &mut self,
         raw_tx: String,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        let tx: Transaction = consensus::deserialize(&hex_bytes(&raw_tx).unwrap()).unwrap();
+        let tx: Transaction = consensus::deserialize(&hex::decode(&raw_tx).unwrap()).unwrap();
         Ok(tx.txid().to_string())
     }
     fn get_transaction(

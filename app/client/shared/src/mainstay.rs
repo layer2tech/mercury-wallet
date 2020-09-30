@@ -219,7 +219,7 @@ impl FromStr for Commitment {
     }
 }
 
-pub struct Request(reqwest::RequestBuilder);
+pub struct Request(reqwest::blocking::RequestBuilder);
 
 impl Request {
     //Construct a request from the give payload and config
@@ -230,7 +230,7 @@ impl Request {
         signature: Option<String>,
     ) -> Result<Self> {
         //Build request
-        let client = reqwest::Client::new();
+        let client = reqwest::blocking::Client::new();
         let url = reqwest::Url::parse(&format!("{}/{}", config.url(), command))?;
 
         //If there is a payload this is a 'POST' request, otherwise a 'GET' request
@@ -258,14 +258,14 @@ impl Request {
         Ok(Self(req))
     }
 
-    pub fn send(self) -> std::result::Result<reqwest::Response, reqwest::Error> {
+    pub fn send(self) -> std::result::Result<reqwest::blocking::Response, reqwest::Error> {
         self.0.send()
     }
 }
 
 fn get(command: &str, config: &MainstayConfig) -> Result<serde_json::Value> {
     let url = reqwest::Url::parse(&format!("{}/{}", config.url(), command))?;
-    let mut resp = reqwest::get(url)?;
+    let resp = reqwest::blocking::get(url)?;
     let resp_json = resp.json()?;
     Ok(resp_json)
 }
@@ -294,7 +294,7 @@ pub trait Attestable {
             signature,
         )?
         .0;
-        let mut res = req.send()?;
+        let res = req.send()?;
         let err_base = "commitment failed";
 
         if res.status().is_success() {
@@ -306,16 +306,16 @@ pub trait Attestable {
                             true => return Ok(()),
                             false => {
                                 return Err(MainstayError::Generic(format!(
-                                    "{} - expected \"Commitment added\" in response: {:?}",
-                                    err_base, res
+                                    "{} - expected \"Commitment added\" in response",
+                                    err_base
                                 ))
                                 .into())
                             }
                         },
                         None => {
                             return Err(MainstayError::Generic(format!(
-                                "{} - response: {:?}",
-                                err_base, res
+                                "{} - response",
+                                err_base
                             ))
                             .into())
                         }

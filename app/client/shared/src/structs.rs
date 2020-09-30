@@ -114,16 +114,16 @@ impl Default for PrepareSignTxMsg {
 
     fn default() -> Self {
         let default_tx = Transaction{
-            version: u32::default(), 
-            lock_time: u32::default(), 
-            input: Vec::<TxIn>::default(), 
+            version: i32::default(), 
+            lock_time: u32::default(),
+            input: Vec::<TxIn>::default(),
             output: Vec::<TxOut>::default()
         };
 
         Self{
             shared_key_id: Uuid::default(),
             protocol: Protocol::Transfer,
-            tx: default_tx, 
+            tx: default_tx,
             input_addrs: Vec::<PK>::default(),
             input_amounts: Vec::<u64>::default(),
             proof_key: None,
@@ -327,7 +327,7 @@ impl Default for TransferMsg5 {
 
 use curv::elliptic::curves::secp256_k1::SK;
 impl SelfEncryptable for SK {
-    fn encrypt_with_pubkey(&mut self, pubkey: &ecies::PublicKey) 
+    fn encrypt_with_pubkey(&mut self, pubkey: &ecies::PublicKey)
         -> ecies::Result<()>{
         let ss = self.to_string();
         let esb = ecies::ecies::encrypt(&pubkey.to_bytes(), ss.as_bytes())?;
@@ -336,7 +336,7 @@ impl SelfEncryptable for SK {
         Ok(())
     }
 
-    fn decrypt(&mut self, privkey: &ecies::PrivateKey) 
+    fn decrypt(&mut self, privkey: &ecies::PrivateKey)
         -> ecies::Result<()>{
         let ess = self.to_string();
         let sb = ecies::ecies::decrypt(&privkey.to_bytes(), ess.as_bytes())?;
@@ -350,14 +350,14 @@ use curv::elliptic::curves::traits::ECScalar;
 impl Encryptable for FESer {}
 impl SelfEncryptable for FESer{
 
-    fn decrypt(&mut self, privkey: &crate::ecies::PrivateKey) 
+    fn decrypt(&mut self, privkey: &crate::ecies::PrivateKey)
     -> ecies::Result<()>{
         let sb_plain = ecies::ecies::decrypt(&privkey.to_bytes(), &self.secret_bytes[..])?;
         self.secret_bytes = sb_plain;
         Ok(())
-     } 
- 
-     fn encrypt_with_pubkey(&mut self, pubkey: &crate::ecies::PublicKey) 
+     }
+
+     fn encrypt_with_pubkey(&mut self, pubkey: &crate::ecies::PublicKey)
      -> ecies::Result<()>{
         let sb_enc = ecies::ecies::encrypt(&pubkey.to_bytes(), &self.secret_bytes[..])?;
         self.secret_bytes = sb_enc;
@@ -369,31 +369,31 @@ impl Encryptable for TransferMsg2{}
 impl SelfEncryptable for TransferMsg2 {
         fn decrypt(&mut self, privkey: &crate::ecies::PrivateKey) -> crate::ecies::Result<()>{
             self.x1.decrypt(privkey)
-        } 
-    
+        }
+
         fn encrypt_with_pubkey(&mut self, pubkey: &crate::ecies::PublicKey) -> crate::ecies::Result<()>{
             self.x1.encrypt_with_pubkey(pubkey)
         }
 }
 use std::str::FromStr;
 impl WalletDecryptable for TransferMsg2 {
-    fn get_public_key(&self) 
+    fn get_public_key(&self)
         -> crate::ecies::Result<Option<crate::ecies::PublicKey>> {
         Ok(Some(self.proof_key))
     }
 }
 
 impl SelfEncryptable for &mut TransferMsg2 {
-    fn decrypt(&mut self, privkey: &crate::ecies::PrivateKey) 
+    fn decrypt(&mut self, privkey: &crate::ecies::PrivateKey)
     -> crate::ecies::Result<()>{
         (**self).decrypt(privkey)
-    } 
+    }
     fn encrypt_with_pubkey(&mut self, pubkey: &crate::ecies::PublicKey) -> crate::ecies::Result<()>{
         (**self).encrypt_with_pubkey(pubkey)
     }
 }
 impl WalletDecryptable for &mut TransferMsg2 {
-    fn get_public_key(&self) 
+    fn get_public_key(&self)
         -> crate::ecies::Result<Option<crate::ecies::PublicKey>> {
             (**self).get_public_key()
     }
@@ -403,31 +403,31 @@ impl Encryptable for TransferMsg3{}
 impl SelfEncryptable for TransferMsg3 {
         fn decrypt(&mut self, privkey: &crate::ecies::PrivateKey) -> crate::ecies::Result<()>{
             self.t1.decrypt(privkey)
-        } 
-    
+        }
+
         fn encrypt_with_pubkey(&mut self, pubkey: &crate::ecies::PublicKey) -> crate::ecies::Result<()>{
             self.t1.encrypt_with_pubkey(pubkey)
         }
 }
 
 impl WalletDecryptable for TransferMsg3 {
-    fn get_public_key(&self) 
+    fn get_public_key(&self)
         -> crate::ecies::Result<Option<crate::ecies::PublicKey>> {
         Ok(Some(crate::ecies::PublicKey::from_str(&self.state_chain_sig.data)?))
     }
 }
 
 impl SelfEncryptable for &mut TransferMsg3 {
-    fn decrypt(&mut self, privkey: &crate::ecies::PrivateKey) 
+    fn decrypt(&mut self, privkey: &crate::ecies::PrivateKey)
     -> crate::ecies::Result<()>{
         (**self).decrypt(privkey)
-    } 
+    }
     fn encrypt_with_pubkey(&mut self, pubkey: &crate::ecies::PublicKey) -> crate::ecies::Result<()>{
         (**self).encrypt_with_pubkey(pubkey)
     }
 }
 impl WalletDecryptable for &mut TransferMsg3 {
-    fn get_public_key(&self) 
+    fn get_public_key(&self)
         -> crate::ecies::Result<Option<crate::ecies::PublicKey>> {
             (**self).get_public_key()
     }
@@ -439,7 +439,7 @@ mod tests{
     use crate::util::keygen::generate_keypair;
     use bitcoin::secp256k1::{SecretKey, Secp256k1};
     use rand::rngs::OsRng;
-    
+
     #[test]
     fn test_encrypt_fe_ser(){
         let mut fe_ser = FESer::new_random();
@@ -461,7 +461,7 @@ mod tests{
         let _ = fe_ser.get_fe().expect("failed to get fe");
     }
 
-    
+
     #[test]
     fn test_encrypt_transfer_msg3(){
         let mut rng = OsRng::new().expect("OsRng");
@@ -472,10 +472,10 @@ mod tests{
             state_chain_sig: StateChainSig::default(),
             state_chain_id: Uuid::new_v4(),
             tx_backup_psm: PrepareSignTxMsg::default(),
-            rec_addr: SCEAddress{tx_backup_addr: Address::from_str("1DTFRJ2XFb4AGP1Tfk54iZK1q2pPfK4n3h").unwrap(), 
+            rec_addr: SCEAddress{tx_backup_addr: Address::from_str("1DTFRJ2XFb4AGP1Tfk54iZK1q2pPfK4n3h").unwrap(),
             proof_key: PublicKey::from_secret_key(&secp, &SecretKey::new(&mut rng))}
         };
-        
+
         let msg_clone = msg.clone();
         assert_eq!(msg, msg_clone);
         let (priv_k, pub_k) = generate_keypair();
@@ -499,12 +499,12 @@ mod tests{
         let (priv_k, proof_key) = generate_keypair();
 
         let mut msg = TransferMsg2{
-            x1, 
+            x1,
             proof_key,
         };
 
         let msg_clone = msg.clone();
-        
+
         assert_eq!(msg, msg_clone);
         msg.encrypt().unwrap();
 
@@ -520,7 +520,6 @@ mod tests{
         assert_eq!(msg_ref, &msg_clone);
 
     }
-    
+
 
 }
-

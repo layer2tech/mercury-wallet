@@ -67,7 +67,7 @@ impl KeyPathWithAddresses {
         let address = bitcoin::Address::p2wpkh(
             &to_bitcoin_public_key(new_ext_pub_key.public_key.key),
             self.ext_priv_key.network,
-        );
+        )?;
 
         self.last_derived_pos += 1;
 
@@ -104,7 +104,7 @@ impl KeyPathWithAddresses {
         let address = bitcoin::Address::p2wpkh(
             &to_bitcoin_public_key(new_ext_pub_key.public_key.key),
             self.ext_priv_key.network,
-        );
+        )?;
 
         self.addresses_derivation_map.insert(
             address.to_string(),

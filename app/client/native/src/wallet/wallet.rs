@@ -151,7 +151,7 @@ impl Wallet {
     pub fn from_json(
         json: serde_json::Value,
         client_shim: ClientShim,
-        electrumx_client: Box<dyn Electrumx>,
+        // electrumx_client: Box<dyn Electrumx>,
     ) -> Result<Self> {
         let secp = Secp256k1::new();
         let network = json["network"].as_str().unwrap().to_string();
@@ -271,19 +271,23 @@ impl Wallet {
     pub fn load_from(
         filepath: &str,
         client_shim: ClientShim,
-        electrumx_client: Box<dyn Electrumx>,
+        // electrumx_client: Box<dyn Electrumx>,
     ) -> Result<Wallet> {
         let data = fs::read_to_string(filepath).expect("Unable to load wallet!");
         let serde_json_data = serde_json::from_str(&data).unwrap();
-        let wallet: Wallet = Wallet::from_json(serde_json_data, client_shim, electrumx_client)?;
+        let wallet: Wallet = Wallet::from_json(serde_json_data, client_shim)?;
+        // let wallet: Wallet = Wallet::from_json(serde_json_data, client_shim, electrumx_client)?;
         debug!("(wallet id: {}) Loaded wallet to memory", wallet.id);
         Ok(wallet)
     }
-    pub fn load(client_shim: ClientShim, electrumx_client: Box<dyn Electrumx>) -> Result<Wallet> {
+    pub fn load(
+        client_shim: ClientShim,
+        // electrumx_client: Box<dyn Electrumx>
+    ) -> Result<Wallet> {
         Ok(Wallet::load_from(
             WALLET_FILENAME,
             client_shim,
-            electrumx_client,
+            // electrumx_client,
         )?)
     }
 
@@ -393,168 +397,168 @@ impl Wallet {
     }
 
     /// create new 2P-ECDSA key with state entity
-    // pub fn gen_shared_key(&mut self, id: &Uuid, value: &u64) -> Result<&SharedKey> {
-    //     let key_share_pub = self.se_key_shares.get_new_key()?;
-    //     let key_share_priv = self
-    //         .se_key_shares
-    //         .get_key_derivation(&key_share_pub)
-    //         .unwrap()
-    //         .private_key
-    //         .key;
-    //
-    //     let shared_key = SharedKey::new(
-    //         id,
-    //         &self.client_shim,
-    //         &key_share_priv,
-    //         value,
-    //         Protocol::Deposit,
-    //     )?;
-    //     self.shared_keys.push(shared_key);
-    //     Ok(self.shared_keys.last().unwrap())
-    // }
+    pub fn gen_shared_key(&mut self, id: &Uuid, value: &u64) -> Result<&SharedKey> {
+        let key_share_pub = self.se_key_shares.get_new_key()?;
+        let key_share_priv = self
+            .se_key_shares
+            .get_key_derivation(&key_share_pub)
+            .unwrap()
+            .private_key
+            .key;
+
+        let shared_key = SharedKey::new(
+            id,
+            &self.client_shim,
+            &key_share_priv,
+            value,
+            Protocol::Deposit,
+        )?;
+        self.shared_keys.push(shared_key);
+        Ok(self.shared_keys.last().unwrap())
+    }
 
     /// create new 2P-ECDSA key with pre-definfed private key
-    // pub fn gen_shared_key_fixed_secret_key(
-    //     &mut self,
-    //     id: &Uuid,
-    //     secret_key: &SecretKey,
-    //     value: &u64,
-    // ) -> Result<()> {
-    //     self.shared_keys.push(SharedKey::new(
-    //         id,
-    //         &self.client_shim,
-    //         secret_key,
-    //         value,
-    //         Protocol::Transfer,
-    //     )?);
-    //     Ok(())
-    // }
+    pub fn gen_shared_key_fixed_secret_key(
+        &mut self,
+        id: &Uuid,
+        secret_key: &SecretKey,
+        value: &u64,
+    ) -> Result<()> {
+        self.shared_keys.push(SharedKey::new(
+            id,
+            &self.client_shim,
+            secret_key,
+            value,
+            Protocol::Transfer,
+        )?);
+        Ok(())
+    }
 
     /// Get shared key by id. Return None if no shared key with given id.
-    // pub fn get_shared_key(&self, id: &Uuid) -> Result<&SharedKey> {
-    //     for shared in &self.shared_keys {
-    //         if shared.id == *id {
-    //             return Ok(shared);
-    //         }
-    //     }
-    //     Err(CError::WalletError(WalletErrorType::SharedKeyNotFound))
-    // }
-
-    /// Get unspent shared key by state chain id. Return Err if no shared key with given state chain id.
-    // pub fn get_shared_key_by_state_chain_id(&self, state_chain_id: &Uuid) -> Result<&SharedKey> {
-    //     for shared in &self.shared_keys {
-    //         if shared.state_chain_id == Some(state_chain_id.to_owned()) {
-    //             if shared.unspent == true {
-    //                 return Ok(shared);
-    //             }
-    //         }
-    //     }
-    //     // If not found return shared key marked as spent.
-    //     // This is temporary until we get smarter shared_key.unspent implemented with arrival
-    //     // of watcher to check transfer status of StateChains.
-    //     // At the moment wallet marks shared_keys as spent when transfer_sender() completes so we
-    //     // cannot test for 'StateChain locked/spent' error messages without below code
-    //     for shared in &self.shared_keys {
-    //         if shared.state_chain_id == Some(state_chain_id.to_owned()) {
-    //             return Ok(shared);
-    //         }
-    //     }
-    //     Err(CError::WalletError(WalletErrorType::StateChainNotFound))
-    // }
-
-    /// Return Shared key info: StateChain ID, Funding Txid, proof key, value, unspent
-    // pub fn get_shared_key_info(&self, id: &Uuid) -> Result<(Uuid, String, String, u64, bool)> {
-    //     let shared_key = self.get_shared_key(id)?;
-    //     Ok((
-    //         shared_key.state_chain_id.clone().unwrap(),
-    //         shared_key
-    //             .tx_backup_psm
-    //             .clone()
-    //             .unwrap()
-    //             .tx
-    //             .input
-    //             .get(0)
-    //             .unwrap()
-    //             .previous_output
-    //             .txid
-    //             .to_string(),
-    //         shared_key.proof_key.clone().unwrap(),
-    //         shared_key.value.clone(),
-    //         shared_key.unspent,
-    //     ))
-    // }
-
-    /// Get mutable reference to shared key by id. Return None if no shared key with given id.
-    // pub fn get_shared_key_mut(&mut self, id: &Uuid) -> Result<&mut SharedKey> {
-    //     for shared in &mut self.shared_keys {
-    //         if shared.id == *id {
-    //             return Ok(shared);
-    //         }
-    //     }
-    //     Err(CError::WalletError(WalletErrorType::SharedKeyNotFound))
-    // }
-
-    /// return balance of address
-    fn get_address_balance(&mut self, address: &bitcoin::Address) -> GetBalanceResponse {
-        // self.electrumx_client
-        //     .get_balance(&address.to_string())
-        //     .unwrap()
-        GetBalanceResponse{
-            confirmed: 1,
-            unconfirmed: 1
-        }
-    }
-
-    fn zero_balance(&self, addr: &GetBalanceResponse) -> bool {
-        if addr.confirmed == 0 {
-            if addr.unconfirmed == 0 {
-                return true;
+    pub fn get_shared_key(&self, id: &Uuid) -> Result<&SharedKey> {
+        for shared in &self.shared_keys {
+            if shared.id == *id {
+                return Ok(shared);
             }
         }
-        return false;
+        Err(CError::WalletError(WalletErrorType::SharedKeyNotFound))
     }
 
+    /// Get unspent shared key by state chain id. Return Err if no shared key with given state chain id.
+    pub fn get_shared_key_by_state_chain_id(&self, state_chain_id: &Uuid) -> Result<&SharedKey> {
+        for shared in &self.shared_keys {
+            if shared.state_chain_id == Some(state_chain_id.to_owned()) {
+                if shared.unspent == true {
+                    return Ok(shared);
+                }
+            }
+        }
+        // If not found return shared key marked as spent.
+        // This is temporary until we get smarter shared_key.unspent implemented with arrival
+        // of watcher to check transfer status of StateChains.
+        // At the moment wallet marks shared_keys as spent when transfer_sender() completes so we
+        // cannot test for 'StateChain locked/spent' error messages without below code
+        for shared in &self.shared_keys {
+            if shared.state_chain_id == Some(state_chain_id.to_owned()) {
+                return Ok(shared);
+            }
+        }
+        Err(CError::WalletError(WalletErrorType::StateChainNotFound))
+    }
+
+    /// Return Shared key info: StateChain ID, Funding Txid, proof key, value, unspent
+    pub fn get_shared_key_info(&self, id: &Uuid) -> Result<(Uuid, String, String, u64, bool)> {
+        let shared_key = self.get_shared_key(id)?;
+        Ok((
+            shared_key.state_chain_id.clone().unwrap(),
+            shared_key
+                .tx_backup_psm
+                .clone()
+                .unwrap()
+                .tx
+                .input
+                .get(0)
+                .unwrap()
+                .previous_output
+                .txid
+                .to_string(),
+            shared_key.proof_key.clone().unwrap(),
+            shared_key.value.clone(),
+            shared_key.unspent,
+        ))
+    }
+
+    /// Get mutable reference to shared key by id. Return None if no shared key with given id.
+    pub fn get_shared_key_mut(&mut self, id: &Uuid) -> Result<&mut SharedKey> {
+        for shared in &mut self.shared_keys {
+            if shared.id == *id {
+                return Ok(shared);
+            }
+        }
+        Err(CError::WalletError(WalletErrorType::SharedKeyNotFound))
+    }
+
+    /// return balance of address
+    // fn get_address_balance(&mut self, address: &bitcoin::Address) -> GetBalanceResponse {
+    //     // self.electrumx_client
+    //     //     .get_balance(&address.to_string())
+    //     //     .unwrap()
+    //     GetBalanceResponse{
+    //         confirmed: 1,
+    //         unconfirmed: 1
+    //     }
+    // }
+
+    // fn zero_balance(&self, addr: &GetBalanceResponse) -> bool {
+    //     if addr.confirmed == 0 {
+    //         if addr.unconfirmed == 0 {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
+
     /// return list of all addresses derived from keys in wallet
-    fn get_all_wallet_addresses(&self) -> Vec<bitcoin::Address> {
+    pub fn get_all_wallet_addresses(&self) -> Vec<bitcoin::Address> {
         let mut addresses = self.keys.get_all_addresses();
         addresses.append(&mut self.se_backup_keys.get_all_addresses());
         addresses
     }
 
-    pub fn get_all_addresses_balance(
-        &mut self,
-    ) -> (Vec<bitcoin::Address>, Vec<GetBalanceResponse>) {
-        let all_addrs = self.get_all_wallet_addresses();
-        let all_bals: Vec<GetBalanceResponse> = all_addrs
-            .clone()
-            .into_iter()
-            .map(|a| self.get_address_balance(&a))
-            .collect();
-
-        // return non-0 balances
-        let mut addrs: Vec<bitcoin::Address> = vec![];
-        let mut bals: Vec<GetBalanceResponse> = vec![];
-        for (i, balance) in all_bals.into_iter().enumerate() {
-            if !self.zero_balance(&balance) {
-                addrs.push(all_addrs.get(i).unwrap().clone());
-                bals.push(balance);
-            }
-        }
-        (addrs, bals)
-    }
+    // pub fn get_all_addresses_balance(
+    //     &mut self,
+    // ) -> (Vec<bitcoin::Address>, Vec<GetBalanceResponse>) {
+    //     let all_addrs = self.get_all_wallet_addresses();
+    //     let all_bals: Vec<GetBalanceResponse> = all_addrs
+    //         .clone()
+    //         .into_iter()
+    //         .map(|a| self.get_address_balance(&a))
+    //         .collect();
+    //
+    //     // return non-0 balances
+    //     let mut addrs: Vec<bitcoin::Address> = vec![];
+    //     let mut bals: Vec<GetBalanceResponse> = vec![];
+    //     for (i, balance) in all_bals.into_iter().enumerate() {
+    //         if !self.zero_balance(&balance) {
+    //             addrs.push(all_addrs.get(i).unwrap().clone());
+    //             bals.push(balance);
+    //         }
+    //     }
+    //     (addrs, bals)
+    // }
 
     /// Return total balance of addresses in wallet.
-    pub fn get_balance(&mut self) -> GetBalanceResponse {
-        let mut aggregated_balance = GetBalanceResponse {
-            confirmed: 0,
-            unconfirmed: 0,
-        };
-        for b in self.get_all_addresses_balance().1 {
-            aggregated_balance.unconfirmed += b.unconfirmed;
-            aggregated_balance.confirmed += b.confirmed;
-        }
-        aggregated_balance
-    }
+    // pub fn get_balance(&mut self) -> GetBalanceResponse {
+    //     let mut aggregated_balance = GetBalanceResponse {
+    //         confirmed: 0,
+    //         unconfirmed: 0,
+    //     };
+    //     for b in self.get_all_addresses_balance().1 {
+    //         aggregated_balance.unconfirmed += b.unconfirmed;
+    //         aggregated_balance.confirmed += b.confirmed;
+    //     }
+    //     aggregated_balance
+    // }
 
     /// Return balances of unspent state chains
     // pub fn get_state_chains_info(&self) -> (Vec<Uuid>, Vec<Uuid>, Vec<GetBalanceResponse>) {
@@ -592,11 +596,11 @@ impl Wallet {
     //     resp
     // }
 
-    pub fn to_p2wpkh_address(&self, pub_key: &PublicKey) -> bitcoin::Address {
+    pub fn to_p2wpkh_address(&self, pub_key: &PublicKey) -> Result<bitcoin::Address> {
         bitcoin::Address::p2wpkh(
             &to_bitcoin_public_key(pub_key.key),
             self.get_bitcoin_network(),
-        )
+         ).map_err(|e| e.into())
     }
 
     pub fn get_bitcoin_network(&self) -> Network {
@@ -604,17 +608,17 @@ impl Wallet {
     }
 }
 
-fn basic_input(txid: &String, vout: &u32) -> TxIn {
-    TxIn {
-        previous_output: OutPoint {
-            txid: sha256d::Hash::from_str(txid).unwrap(),
-            vout: *vout,
-        },
-        sequence: 0xFFFFFFFF,
-        witness: Vec::new(),
-        script_sig: bitcoin::Script::default(),
-    }
-}
+// fn basic_input(txid: &String, vout: &u32) -> TxIn {
+//     TxIn {
+//         previous_output: OutPoint {
+//             txid: bitcoin::Txid::from_str(txid).unwrap(),
+//             vout: *vout,
+//         },
+//         sequence: 0xFFFFFFFF,
+//         witness: Vec::new(),
+//         script_sig: bitcoin::Script::default(),
+//     }
+// }
 
 // type conversion
 pub fn to_bitcoin_public_key(pk: curv::PK) -> bitcoin::util::key::PublicKey {
@@ -629,7 +633,7 @@ pub fn to_bitcoin_public_key(pk: curv::PK) -> bitcoin::util::key::PublicKey {
 mod tests {
     use super::*;
     extern crate shared_lib;
-    use shared_lib::mocks::mock_electrum::MockElectrum;
+    // use shared_lib::mocks::mock_electrum::MockElectrum;
 
     fn gen_wallet() -> Wallet {
         // let electrum = ElectrumxClient::new("dummy").unwrap();
@@ -667,7 +671,7 @@ mod tests {
             wallet_json,
             ClientShim::new("http://localhost:8000".to_string(), None),
             // ClientShim::new("http://localhost:8000".to_string(), None, None),
-            Box::new(MockElectrum::new()),
+            // Box::new(MockElectrum::new()),
         )
         .unwrap();
 
