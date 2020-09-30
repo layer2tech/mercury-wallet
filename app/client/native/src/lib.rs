@@ -16,12 +16,11 @@ extern crate shared_lib;
 
 pub mod error;
 pub mod wallet;
+pub mod daemon;
 
 use config::Config as ConfigRs;
 use error::CError;
 
-use neon::prelude::*;
-use neon::register_module;
 
 type Result<T> = std::result::Result<T, CError>;
 
@@ -142,114 +141,3 @@ impl ClientShim {
     //     Ok(value)
     // }
 }
-
-
-// Server
-
-use tokio::prelude::*;
-use tokio::{spawn, run};
-use serde::{Serialize, Deserialize};
-use daemon_engine::{UnixServer, UnixConnection, JsonCodec};
-
-use std::thread;
-use std::collections::HashMap;
-use std::sync::Mutex;
-
-const unix_server_addr: &str = "/tmp/rustd.sock";
-
-use shared_lib::mocks::mock_electrum::MockElectrum;
-use electrumx_client::interface::Electrumx;
-
-
-/// Example request object
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum Request {
-    Get(String),
-    Set(String, String),
-}
-
-/// Example response object
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum Response {
-    None,
-    Value(String),
-}
-
-/// Start Client UnixServer process
-pub fn make_server(mut cx: FunctionContext) -> JsResult<JsString> {
-    let server = future::lazy(move || {
-        let mut s = UnixServer::<JsonCodec<Response, Request>>::new(unix_server_addr, JsonCodec::new()).unwrap();
-        let m = Mutex::new(HashMap::<String, String>::new());
-
-        let seed = [0xcd; 32];
-        let client_shim = ClientShim::new("localhost".to_string(), None);
-
-        let network = "testnet".to_string();
-        let mut wallet = wallet::wallet::Wallet::new(&seed, &network, client_shim);
-
-        let server_handle = s
-            .incoming()
-            .unwrap()
-            .for_each(move |r| {
-                println!("UnixServer: Request received: {:?}", r.data());
-                let data = r.data();
-                match data {
-                    Request::Get(k) => match m.lock().unwrap().get(&k) {
-                        Some(v) => {
-                            println!("Requested key: '{}' value: '{}", k, v);
-                            r.send(Response::Value(v.to_string()))
-                        },
-                        None => {
-                            println!("Requested key: '{}' no value found", k);
-                            r.send(Response::None)
-                        },
-                    },
-                    Request::Set(k, v) => {
-                        println!("Set key: '{}' value: '{}'", k, v);
-                        println!("also operate on wallet..");
-                        let address = wallet.keys.get_new_address().unwrap();
-                        println!("address: {:?}", address);
-                        m.lock().unwrap().insert(k, v.clone());
-                        r.send(Response::Value(v.to_string()))
-                    }
-                }.wait()
-                .unwrap();
-
-                Ok(())
-            }).map_err(|_e| ());
-        spawn(server_handle);
-        Ok(())
-
-    });
-
-    let handle = thread::spawn(||{
-        run(server);
-    });
-
-    Ok(cx.string("Server started!"))
-}
-
-
-
-/// Create UnixConnection and make request to UnixServer
-pub fn make_server_request(mut cx: FunctionContext) -> JsResult<JsString> {
-    // Create client connector
-    let client = UnixConnection::<JsonCodec<Request, Response>>::new(unix_server_addr, JsonCodec::new()).wait().unwrap();
-    let (tx, rx) = client.split();
-
-    tx.send(Request::Set("key".to_string(), "value".to_string())).wait().unwrap();
-
-    rx.map(|resp| -> Result<()> {
-        println!("UnixConection: Response: {:?}", resp);
-        Ok(())
-    }).wait()
-    .next();
-    Ok(cx.string("Client setup!"))
-}
-
-register_module!(mut m, {
-        m.export_function("makeServer", make_server)?;
-        m.export_function("makeServerRequest", make_server_request)?;
-        Ok(())
-    }
-);

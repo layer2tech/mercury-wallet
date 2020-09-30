@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Electron, meet Neon!</title>
+    <title>Test Rust code can be called from Electron.</title>
   </head>
   <body>
     <script>
@@ -14,9 +14,10 @@
       }
     </script>
 
-    <p>Title is output from Rust lib fn make_server() &uarr;</p>
+    <p>Title is output from Rust lib fn make_server(). Server running in background at /tmp/rustd.sock</p>
 
-    <input type="button" id="btnEd" value="Send UnixServer Request" onclick="require('client').makeServerRequest()" />
+    <input type="button" id="btnSet" value="Send UnixServer Set Request" onclick="require('client').makeServerRequest()" />
+    <input type="button" id="btnGenAddr" value="Send UnixServer GenAddr Request" onclick="require('client').makeServerRequest()" />
 
   </body>
 </html>
