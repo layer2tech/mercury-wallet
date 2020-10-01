@@ -67,7 +67,7 @@ pub fn deposit(
 
     // Create funding tx
     let pk = shared_key.share.public.q.get_element(); // co-owned key address to send funds to (P_addr)
-    let p_addr = bitcoin::Address::p2wpkh(&to_bitcoin_public_key(pk), wallet.get_bitcoin_network())?;
+    // let p_addr = bitcoin::Address::p2wpkh(&to_bitcoin_public_key(pk), wallet.get_bitcoin_network())?;
     // let change_addr = wallet.keys.get_new_address()?.to_string();
     // let change_amount = amounts.iter().sum::<u64>() - amount - se_fee_info.deposit - FEE;
     // let tx_0 = tx_funding_build(

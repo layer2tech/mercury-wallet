@@ -16,16 +16,15 @@ use crate::wallet::shared_key::SharedKey;
 use crate::ClientShim;
 
 use bitcoin::{
-    hashes::sha256d,
     secp256k1::{key::SecretKey, All, Message, Secp256k1},
     util::bip32::{ChildNumber, ExtendedPrivKey},
-    {Address, Network, OutPoint, PublicKey, TxIn},
+    {Network, PublicKey},
 };
 
-use electrumx_client::{
-    interface::Electrumx,
-    response::{GetBalanceResponse, GetListUnspentResponse},
-};
+// use electrumx_client::{
+//     interface::Electrumx,
+//     response::{GetBalanceResponse, GetListUnspentResponse},
+// };
 
 use serde_json::json;
 use std::fs;
@@ -247,11 +246,11 @@ impl Wallet {
         }
 
         let shared_keys_str = &json["shared_keys"].as_str().unwrap();
-        // if shared_keys_str.len() != 2 {
-        //     // is not empty
-        //     let shared_keys: Vec<SharedKey> = serde_json::from_str(shared_keys_str).unwrap();
-        //     wallet.shared_keys = shared_keys;
-        // }
+        if shared_keys_str.len() != 2 {
+            // is not empty
+            let shared_keys: Vec<SharedKey> = serde_json::from_str(shared_keys_str).unwrap();
+            wallet.shared_keys = shared_keys;
+        }
 
         debug!("(wallet id: {}) Loaded wallet to memory", wallet.id);
         Ok(wallet)

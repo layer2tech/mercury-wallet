@@ -20,6 +20,8 @@ function createWindow() {
       nodeIntegration: true
     }
   });
+    // Open the DevTools.
+   mainWindow.webContents.openDevTools()
 
   // and load the index.html of the app.
   mainWindow.loadURL(
@@ -37,6 +39,12 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+  // setTimeout(function() {
+  //   console.log("acting on client")
+  //   console.log(require('client').apiGenBTCAddr())
+  //   console.log(require('client').apiGetSEfees())
+  // }, 500);
 
   }
 

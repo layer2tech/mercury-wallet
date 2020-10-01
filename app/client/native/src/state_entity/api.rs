@@ -62,7 +62,8 @@ pub fn get_transfer_batch_status(
 mod tests {
     use super::*;
     use mockito::mock;
-
+    
+    #[allow(dead_code)]
     fn mock_url() -> String {
         String::from(&mockito::server_url())
     }

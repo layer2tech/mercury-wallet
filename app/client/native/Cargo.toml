@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 path = "src/lib.rs"
 
 [dependencies]
-neon = "0.3.3"
+neon = "0.4.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.24"
 serde_derive = "1.0"
@@ -29,12 +29,14 @@ hex = "0.4.2"
 failure = "0.1.8"
 base64 = "0.12.3"
 # pyo3 = "0.12.1"
+num-bigint = "0.2"
+num-traits = "0.2"
 
 [dev-dependencies]
 mockito = "0.27.0"
 
 [build-dependencies]
-neon-build = "0.3.3"
+neon-build = "0.4.2"
 
 [dependencies.zk-paillier]
 git = "https://github.com/KZen-networks/zk-paillier"

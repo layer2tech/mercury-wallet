@@ -9,6 +9,7 @@
       try {
         console.log(require('client'))
         document.write(`<h1>${require('client').makeServer()}</h1>`);
+
       } catch (e) {
         document.write(`<pre>${e.stack}</pre>`);
       }
@@ -16,8 +17,8 @@
 
     <p>Title is output from Rust lib fn make_server(). Server running in background at /tmp/rustd.sock</p>
 
-    <input type="button" id="btnSet" value="Send UnixServer Set Request" onclick="require('client').makeServerRequest()" />
-    <input type="button" id="btnGenAddr" value="Send UnixServer GenAddr Request" onclick="require('client').makeServerRequest()" />
+    <input type="button" id="btnGenAddr" value="Send UnixServer GenAddr Request" onclick="console.log(require('client').apiGenBTCAddr())" />
+    <input type="button" id="btnGetFees" value="Send UnixServer GetFees Request" onclick="console.log(require('client').apiGetSEfees())" />
 
   </body>
 </html>
