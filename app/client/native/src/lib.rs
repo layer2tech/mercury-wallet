@@ -17,6 +17,7 @@ extern crate shared_lib;
 
 pub mod error;
 pub mod daemon;
+pub mod js_wrappers;
 pub mod wallet;
 pub mod state_entity;
 pub mod ecdsa;

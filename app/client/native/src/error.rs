@@ -93,6 +93,7 @@ impl From<DaemonError> for CError {
     }
 }
 
+
 impl From<()> for CError {
     fn from(_e: ()) -> CError {
         CError::Generic(String::default())

@@ -11,7 +11,7 @@ function do_some_api_calls() {
 
   client_lib.callRustAsAsync((err, result) => {
     console.log('async result:');
-    console.log(client_lib.apiGetSEfees());
+    console.log(client_lib.apiDeposit(10000));
   });
 
   console.log("Some other code on main thread.");
