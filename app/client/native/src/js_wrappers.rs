@@ -54,7 +54,7 @@ pub fn js_wrap_api_deposit(mut cx: FunctionContext) -> JsResult<JsValue> {
 }
 
 /// Generic neon::Task implementation allows any Rust function to be called as from JS as async.
-/// Values and Errors serialized to string for passßing to JS. This is because of restrictions on
+/// Values and Errors serialized to string for passing to JS. This is because of restrictions on
 /// Errors in neon::Task Trait.
 struct JsAsyncTask;
 impl Task for JsAsyncTask {

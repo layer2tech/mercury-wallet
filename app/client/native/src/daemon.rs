@@ -46,7 +46,7 @@ impl DaemonResponse {
     }
 }
 
-/// Start Wallets UnixServer process
+/// Start Wallet's UnixServer process
 pub fn make_server() -> Result<()> {
     let server = future::lazy(move || {
         let mut s = UnixServer::<JsonCodec<DaemonResponse, DaemonRequest>>::new(UNIX_SERVER_ADDR, JsonCodec::new()).unwrap();
