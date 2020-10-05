@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "main": "main.js",
   "scripts": {
-    "build": "electron-build-env neon build neon-lib --release",
-    "install": "yarn build",
-    "start": "electron ."
+    "build": "electron-build-env neon build client --release",
+    "start": "electron .",
+    "rebuild": "yarn upgrade && yarn build"
   },
   "devDependencies": {
     "electron-build-env": "^0.2.0",
@@ -13,8 +13,8 @@
     "neon-cli": "^0.3.3"
   },
   "dependencies": {
-    "electron": "^7.1.11",
-    "neon-lib": "file:neon-lib"
+    "client": "file:client",
+    "electron": "^7.1.11"
   },
   "eslintConfig": {
     "rules": {

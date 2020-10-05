@@ -2,18 +2,21 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Electron, meet Neon!</title>
+    <title>Test Rust code can be called from Electron.</title>
   </head>
   <body>
     <script>
       try {
-        console.log(require('neon-lib'))
-        document.write(`<h1>${require('neon-lib').helloWorld()}</h1>`);
+        // Build UnixServer
+        require('client').makeServer();
       } catch (e) {
         document.write(`<pre>${e.stack}</pre>`);
       }
     </script>
 
-    <p>Title is output from Rust lib fn hello_world() &uarr;</p>
+    <input type="button" id="btnGenAddr" value="Send UnixServer GenAddr Request" onclick="console.log(require('client').apiGenBTCAddr())" />
+    <input type="button" id="btnGetFees" value="Send UnixServer GetFees Request" onclick="console.log(require('client').apiGetSEfees())" />
+    <input type="button" id="btnGetFees" value="Run deposit() with local Mercury Server" onclick="console.log(require('client').apiDeposit(10000))" />
+
   </body>
 </html>
