@@ -11,3 +11,9 @@ yarn start
 # Rebuild with changes since previous build
 yarn rebuild
 ```
+
+
+# Run dev
+
+`npm install`
+`npm run dev`

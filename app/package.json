@@ -1,24 +1,27 @@
 {
   "name": "wallet-app",
   "version": "0.1.0",
-  "main": "main.js",
+  "homepage": "./",
+  "main": "src/electron-starter.js",
   "scripts": {
-    "build": "electron-build-env neon build client --release",
-    "start": "electron .",
-    "rebuild": "yarn upgrade && yarn build"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "dev": "nf start -p 3000",
+    "build-neon": "electron-build-env neon build client --release"
   },
   "devDependencies": {
     "electron-build-env": "^0.2.0",
-    "eslint": "^6.8.0",
-    "neon-cli": "^0.3.3"
+    "neon-cli": "^0.3.3",
+    "react-scripts": "0.8.5",
+    "foreman": "^2.0.0"
   },
   "dependencies": {
     "client": "file:client",
-    "electron": "^7.1.11"
-  },
-  "eslintConfig": {
-    "rules": {
-      "import/no-unresolved": "off"
-    }
+    "electron": "^7.1.11",
+    "react": "^16.1.1",
+    "react-dom": "^16.1.1"
   }
 }
