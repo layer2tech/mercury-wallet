@@ -16,8 +16,8 @@
   "devDependencies": {
     "electron-build-env": "^0.2.0",
     "neon-cli": "^0.3.3",
-    "react-scripts": "0.8.5",
-    "foreman": "^2.0.0"
+    "react-scripts": "^3.4.3",
+    "foreman": "^3.0.1"
   },
   "dependencies": {
     "client": "file:client",
@@ -26,5 +26,17 @@
     "hello_world": "file:hello_world",
     "react": "^16.1.1",
     "react-dom": "^16.1.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

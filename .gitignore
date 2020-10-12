@@ -1,2 +1,4 @@
-/app/node_modules
 .DS_Store
+/app/node_modules
+/app/package-lock.json
+/app/build

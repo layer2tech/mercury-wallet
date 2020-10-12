@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
+import React from 'react';
 
-class Toggle extends React.Component {
+class Button extends React.Component {
   constructor(props) {
     super(props);
+    this.label = props.label;
     this.state = {isToggleOn: true};
 
     // This binding is necessary to make `this` work in the callback
@@ -10,18 +11,16 @@ class Toggle extends React.Component {
   }
 
   handleClick() {
-    this.setState(prevState => ({
-      isToggleOn: !prevState.isToggleOn
-    }));
+    console.log(this.label,"button clicked.");
   }
 
   render() {
     return (
-      <button onClick={this.handleClick}>
-        {this.state.isToggleOn ? 'ON' : 'OFF'}
+      <button onClick={this.handleClick} className={this.props.className}>
+        {this.label}
       </button>
     );
   }
 }
 
-export default Toggle;
+export default Button;
