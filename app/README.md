@@ -14,6 +14,6 @@ yarn rebuild
 
 
 # Run dev
-
+`npm run build-neon`
 `npm install`
 `npm run dev`

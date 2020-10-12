@@ -1,4 +1,4 @@
-const client_lib = require('../native');
+const client_lib = require('../native/index.node');
 
 // client_lib.makeServer();
 //
