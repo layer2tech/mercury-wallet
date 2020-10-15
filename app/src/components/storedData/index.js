@@ -1,12 +1,11 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { nanoid } from '@reduxjs/toolkit'
-import { addItem, addDefault } from '../../reducers/storedData'
+import { addItem, addDefault } from '../../features/StoredDataSlice'
 
 import './index.css';
 
-export const StoreText = () => {
-  // Init state
+export const StoredData = () => {
   const [value, setValue] = useState('')
 
   const onInputChanged = e => {
@@ -27,6 +26,10 @@ export const StoreText = () => {
     }
   }
 
+  const onDefaultClicked = () => {
+    dispatch(addDefault())
+  }
+
   return (
     <section>
       <form>
@@ -39,7 +42,12 @@ export const StoreText = () => {
         <button type="button"
           onClick={onSavePostClicked}
         >
-          Print text button
+          Store
+        </button>
+        <button type="button"
+          onClick={onDefaultClicked}
+        >
+          Default
         </button>
       </form>
     </section>
