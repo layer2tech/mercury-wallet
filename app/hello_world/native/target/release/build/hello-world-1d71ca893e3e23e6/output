@@ -1,0 +1,2 @@
+cargo:rustc-cdylib-link-arg=-undefined
+cargo:rustc-cdylib-link-arg=dynamic_lookup

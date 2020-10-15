@@ -37,6 +37,9 @@ function createWindow() {
         mainWindow = null
     })
 
+    const addon = require("hello_world");
+    console.log("hello world lib: " + addon);
+    console.log(addon.helloWorld());
 }
 
 // This method will be called when Electron has finished

@@ -1,0 +1,28 @@
+Skipping node-gyp installation as part of npm install.
+added 96 packages from 70 contributors and audited 96 packages in 1.498s
+found 7 vulnerabilities (3 low, 1 moderate, 3 high)
+  run `npm audit fix` to fix them, or `npm audit` for details
+
+> @ build-release /Users/tomos/mercury-wallet/app/hello_world/native/target/release/build/neon-sys-4eeae009929e9ce6/out/native
+> node-gyp build
+
+  CXX(target) Release/obj.target/neon/src/neon.o
+  SOLINK_MODULE(target) Release/neon.node
+TARGET = Some("x86_64-apple-darwin")
+HOST = Some("x86_64-apple-darwin")
+AR_x86_64-apple-darwin = None
+AR_x86_64_apple_darwin = None
+HOST_AR = None
+AR = None
+running: "ar" "crs" "/Users/tomos/mercury-wallet/app/hello_world/native/target/release/build/neon-sys-4eeae009929e9ce6/out/libneon.a" "/Users/tomos/mercury-wallet/app/hello_world/native/target/release/build/neon-sys-4eeae009929e9ce6/out/native/build/Release/obj.target/neon/src/neon.o"
+exit code: 0
+cargo:rustc-link-lib=static=neon
+cargo:rustc-link-search=native=/Users/tomos/mercury-wallet/app/hello_world/native/target/release/build/neon-sys-4eeae009929e9ce6/out
+CXXSTDLIB_x86_64-apple-darwin = None
+CXXSTDLIB_x86_64_apple_darwin = None
+HOST_CXXSTDLIB = None
+CXXSTDLIB = None
+cargo:rustc-link-lib=c++
+cargo:rerun-if-env-changed=npm_config_target
+cargo:rerun-if-env-changed=npm_config_arch
+cargo:rerun-if-env-changed=npm_config_target_arch
