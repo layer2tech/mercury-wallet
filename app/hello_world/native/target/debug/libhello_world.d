@@ -1,1 +1,0 @@
-/Users/tomos/mercury-wallet/app/hello_world/native/target/debug/libhello_world.dylib: /Users/tomos/mercury-wallet/app/hello_world/native/build.rs /Users/tomos/mercury-wallet/app/hello_world/native/src/lib.rs

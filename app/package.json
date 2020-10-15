@@ -22,8 +22,6 @@
   "dependencies": {
     "client": "file:client",
     "electron": "^7.1.11",
-    "ffi": "^2.3.0",
-    "hello_world": "file:hello_world",
     "@reduxjs/toolkit": "^1.4.0",
     "react": "^16.1.1",
     "react-dom": "^16.1.1",

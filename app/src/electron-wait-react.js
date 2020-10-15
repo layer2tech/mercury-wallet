@@ -1,7 +1,3 @@
-// const addon = require("hello_world");
-// console.log(addon);
-// console.log(addon.helloWorld());
-
 const net = require('net');
 const port = process.env.PORT ? (process.env.PORT - 100) : 3000;
 
