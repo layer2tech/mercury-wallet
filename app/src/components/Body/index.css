@@ -1,10 +1,11 @@
 .Body {
-  background-color: #FFFFFF;
+  background-color: #DDDDDD;
   border-color: #000;
   height: 240px;
   padding: 10px;
 }
 
 .Body-button {
+  background-color: #CCCCCC;
   height: 40px;
 }

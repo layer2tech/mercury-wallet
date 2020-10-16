@@ -4,19 +4,18 @@ class Button extends React.Component {
   constructor(props) {
     super(props);
     this.label = props.label;
+    if (!props.onClick) {
+      this.onClick = () => { console.log(this.label, " button clicked!") };
+    } else {
+      this.onClick = props.onClick;
+    }
+
     this.state = {isToggleOn: true};
-
-    // This binding is necessary to make `this` work in the callback
-    this.handleClick = this.handleClick.bind(this);
-  }
-
-  handleClick() {
-    console.log(this.label,"button clicked.");
   }
 
   render() {
     return (
-      <button onClick={this.handleClick} className={this.props.className}>
+      <button onClick={this.onClick} className={this.props.className}>
         {this.label}
       </button>
     );

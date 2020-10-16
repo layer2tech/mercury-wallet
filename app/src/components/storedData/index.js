@@ -33,7 +33,7 @@ export const StoredData = () => {
   return (
     <section>
       <form>
-        <label>Store some data in state:</label>
+        <label>Store data in state:</label>
         <input
           type="text"
           value={value}
@@ -41,11 +41,13 @@ export const StoredData = () => {
         />
         <button type="button"
           onClick={onSavePostClicked}
+          className="StoredData-button"
         >
           Store
         </button>
         <button type="button"
           onClick={onDefaultClicked}
+          className="StoredData-button"
         >
           Default
         </button>
