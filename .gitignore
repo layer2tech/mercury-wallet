@@ -1,4 +1,6 @@
 .DS_Store
+/app/yarn.lock
+/app/yarn-error.lock
 /app/node_modules
 /app/package-lock.json
 /app/build

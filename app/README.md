@@ -4,6 +4,6 @@ A simple Electron app using a Neon package node module which creates a UnixServe
 
 
 # Run dev
-`npm install`
-`npm run build-neon`
-`npm run dev`
+`yarn install`
+`yarn run build-neon`
+`yarn run dev`
