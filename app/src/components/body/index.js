@@ -3,10 +3,11 @@ import './index.css';
 import Button from '../buttons/standardButton';
 import { StoredData } from '../storedData'
 import { DisplayItem } from '../displayItem'
-const client_lib = window.require("client");
-
+// const client_lib = window.require("client");
+//
 const getNewAddress = () => {
-  console.log(client_lib.apiGenBTCAddr());
+  // console.log(client_lib.apiGenBTCAddr());
+  console.log("Call Client code here.");
 }
 
 class Body extends React.Component {

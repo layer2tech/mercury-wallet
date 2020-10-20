@@ -11,9 +11,8 @@
     "electron": "electron .",
     "dev": "BROWSER=none nf start -p 3000",
     "build-neon": "electron-build-env neon build client --release",
-    "build-neon-ex": "electron-build-env neon build hello_world --release",
     "postinstall": "electron-builder install-app-deps",
-    "preelectron-pack": "yarn build && yarn install && yarn run build-neon",
+    "preelectron-pack": "yarn build && yarn install",
     "electron-pack": "electron-builder",
     "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },
@@ -30,7 +29,6 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.4.0",
-    "client": "file:client",
     "electron-is-dev": "^1.2.0",
     "react": "^16.1.1",
     "react-dom": "^16.1.1",

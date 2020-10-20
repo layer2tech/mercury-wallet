@@ -7,9 +7,9 @@ import App from './containers/App';
 import rootReducer from './reducers'
 import './index.css';
 
-const client_lib = window.require("client");
-client_lib.makeServer();
-console.log(client_lib.apiGenBTCAddr());
+// const client_lib = window.require("client");
+// client_lib.makeServer();
+// console.log(client_lib.apiGenBTCAddr());
 
 // Store is the global wallet GUI data structure.
 // Non-state data shared between components is stored here.
