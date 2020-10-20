@@ -6,3 +6,4 @@
 /app/build
 /app/client/native/artifacts.json
 /app/client/native/index.node
+/app/dist/*
