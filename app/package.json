@@ -12,9 +12,9 @@
     "dev": "BROWSER=none nf start -p 3000",
     "build-neon": "electron-build-env neon build client --release",
     "postinstall": "electron-builder install-app-deps",
-    "app-windows": "yarn build && yarn install && electron-builder -w",
-    "app-linux": "yarn build && yarn install && electron-builder -l",
-    "app-macos": "yarn build && yarn install && electron-builder -m",
+    "app-windows": "yarn install && yarn build && electron-builder -w",
+    "app-linux": "yarn install && yarn build && electron-builder -l",
+    "app-macos": "yarn install && yarn build && electron-builder -m",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "devDependencies": {
