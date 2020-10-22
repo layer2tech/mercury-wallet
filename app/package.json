@@ -14,7 +14,7 @@
     "build-neon": "electron-build-env neon build client --release",
     "postinstall": "electron-builder install-app-deps",
     "app-windows": "yarn install && yarn build && electron-builder -w",
-    "app-linux": "yarn install && yarn build && electron-builder -l -p always",
+    "app-linux": "yarn install && yarn build && electron-builder -l AppImage -p always",
     "app-macos": "yarn install && yarn build && electron-builder -m -p always",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },
