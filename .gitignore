@@ -5,5 +5,5 @@
 /app/package-lock.json
 /app/client/native/artifacts.json
 /app/client/native/index.node
-/app/build/*
-/app/dist/*
+/app/build
+/app/dist

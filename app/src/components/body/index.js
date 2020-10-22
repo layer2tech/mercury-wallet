@@ -3,11 +3,12 @@ import './index.css';
 import Button from '../buttons/standardButton';
 import { StoredData } from '../storedData'
 import { DisplayItem } from '../displayItem'
-// const client_lib = window.require("client");
-//
-const getNewAddress = () => {
-  // console.log(client_lib.apiGenBTCAddr());
-  console.log("Call Client code here.");
+
+const wasmFn = () => {
+  import('wasm-temp').then(module => {
+    console.log(module.greet());
+    console.log(module.greet_wo_alert());
+  })
 }
 
 class Body extends React.Component {
@@ -16,7 +17,7 @@ class Body extends React.Component {
       <div className="Body">
         <Button
           label="Access Rust!"
-          onClick={getNewAddress}
+          onClick={wasmFn}
           className="Body-button"/>
         <StoredData />
         <DisplayItem />
