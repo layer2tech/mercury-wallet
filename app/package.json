@@ -13,7 +13,8 @@
     "build-neon": "electron-build-env neon build client --release",
     "postinstall": "electron-builder install-app-deps",
     "preelectron-pack": "yarn build && yarn install",
-    "electron-pack": "electron-builder",
+    "electron-pack": "electron-builder -wl",
+    "electron-macos": "electron-builder -m",
     "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "devDependencies": {
