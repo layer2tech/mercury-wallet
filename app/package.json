@@ -1,5 +1,6 @@
 {
   "name": "wallet-app",
+  "repository": "github:commerceblock/mercury-wallet",
   "version": "0.1.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
