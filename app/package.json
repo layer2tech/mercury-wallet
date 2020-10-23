@@ -23,6 +23,7 @@
     "electron": "^10.1.4",
     "electron-build-env": "^0.2.0",
     "electron-builder": "^22.9.1",
+    "electron-builder-notarize": "^1.2.0",
     "foreman": "^3.0.1",
     "neon-cli": "^0.5.0",
     "react-scripts": "^3.4.3",
@@ -57,8 +58,11 @@
     "appId": "com.mercurywallet.wallet",
     "productName": "mercurywallet",
     "copyright": "Copyright © 2020 ${author}",
+   	"afterSign": "electron-builder-notarize",
     "mac": {
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": true,
+      "entitlements": "./node_modules/electron-builder-notarize/entitlements.mac.inherit.plist"
     },
     "files": [
       "build/**/*",
