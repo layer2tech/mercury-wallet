@@ -58,7 +58,7 @@
     "appId": "com.mercurywallet.wallet",
     "productName": "mercurywallet",
     "copyright": "Copyright © 2020 ${author}",
-   	"afterSign": "electron-builder-notarize",
+    "afterSign": "electron-builder-notarize",
     "mac": {
       "category": "public.app-category.utilities",
       "hardenedRuntime": true,

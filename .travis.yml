@@ -33,8 +33,13 @@ script:
         -v ~/.cache/electron-builder:/root/.cache/electron-builder \
         electronuserland/builder:wine \
         /bin/bash -c "yarn app-linux && yarn app-windows && ls -la dist"
+    elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      yarn app-macos
+      ls -la dist
+      sudo spctl --status
+      spctl --assess -vvvv --type install dist/*.dmg
     else
-      yarn app-macos && ls -la dist
+      echo "No jobs for me, exiting"
     fi
 before_cache:
   - rm -rf $HOME/.cache/electron-builder/wine
