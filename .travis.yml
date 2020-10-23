@@ -35,8 +35,15 @@ script:
         /bin/bash -c "yarn app-linux && yarn app-windows && ls -la dist"
     elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
       yarn app-macos
+      echo "ls dist"
       ls -la dist
+      echo "ls dist/mac"
+      ls -la dist/mac
+      echo "spctl status"
       sudo spctl --status
+      echo "assess app"
+      spctl --assess -vvvv --type install dist/mac/*.app
+      echo "assess dmg"
       spctl --assess -vvvv --type install dist/*.dmg
     else
       echo "No jobs for me, exiting"
