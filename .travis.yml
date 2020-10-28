@@ -43,6 +43,8 @@ script:
       sudo spctl --status
       echo "assess app"
       spctl --assess -vvvv --type install dist/mac/*.app
+      echo "manually sign"
+      codesign --force --sign "Developer ID Application: COMMERCEBLOCK LIMITED (6P492YTRYB)" dist/mercurywallet-\*.dmg
       echo "assess dmg"
       spctl --assess -vvvv --type install dist/*.dmg
     else
