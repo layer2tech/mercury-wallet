@@ -34,7 +34,6 @@ script:
         electronuserland/builder:wine \
         /bin/bash -c "yarn app-linux && yarn app-windows && ls -la dist"
     elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      set -x
       yarn app-macos
       echo "ls dist"
       ls -la dist
@@ -45,7 +44,7 @@ script:
       echo "assess app"
       spctl --assess -vvvv --type install dist/mac/*.app
       export APP_VER=$(node -e "console.log(require('./package.json').version)")
-      spctl -a -t open --context context:primary-signature -v dist/mercurywallet-$APP_VER.dmg
+      #spctl -a -t open --context context:primary-signature -v dist/mercurywallet-$APP_VER.dmg
     else
       echo "No jobs for me, exiting"
     fi
