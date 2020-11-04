@@ -10,8 +10,8 @@
   float: left;
 }
 
-.Header-button {
-  background-color: #CCCCCC;
+.nav-item {
+  padding: 10px;
   height: 40px;
   float: right;
 }

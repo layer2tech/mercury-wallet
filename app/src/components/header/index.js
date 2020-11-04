@@ -2,18 +2,38 @@
 import React from 'react';
 import './index.css';
 import logo from '../../images/tri-color - negative@4x.png';
-import Button from '../buttons/standardButton';
+import { Link, withRouter } from "react-router-dom";
 
-class Header extends React.Component {
-  render() {
-    return (
-      <div className="Header">
+const Header = (props) =>  {
+  return (
+    <div className="Header">
+
+      <Link class="navbar-brand" to="/">
         <img src={logo} className="Header-logo" alt="logo" />
-        <Button label="Settings" className="Header-button"/>
-        <Button label="About" className="Header-button"/>
+      </Link>
+
+      <div
+        class={`nav-item  ${
+          props.location.pathname === "/" ? "active" : ""
+        }`}
+      >
+        <Link class="nav-link" to="/about">
+          About
+        </Link>
       </div>
-    );
-  }
+      
+      <div
+        class={`nav-item  ${
+          props.location.pathname === "/settings" ? "active" : ""
+        }`}
+      >
+        <Link class="nav-link" to="/settings">
+          Settings
+        </Link>
+      </div>
+
+    </div>
+  );
 }
 
-export default Header;
+export default withRouter(Header);

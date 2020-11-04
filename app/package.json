@@ -33,7 +33,8 @@
     "electron-is-dev": "^1.2.0",
     "react": "^16.1.1",
     "react-dom": "^16.1.1",
-    "react-redux": "^7.2.0"
+    "react-redux": "^7.2.0",
+    "react-router-dom": "^5.2.0"
   },
   "browserslist": {
     "production": [
