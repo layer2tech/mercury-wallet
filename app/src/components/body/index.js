@@ -4,12 +4,14 @@ import Button from '../buttons/standardButton';
 import { StoredData } from '../storedData'
 import { DisplayItem } from '../displayItem'
 
+
 const wasmFn = () => {
-  import('wasm-temp').then(module => {
-    console.log(module.greet());
-    console.log(module.greet_wo_alert());
+  import('client-wasm').then(module => {
+    module.call_curv_fn()
+    // console.log("Rust string: ", module.greet_wo_alert());
   })
 }
+
 
 class Body extends React.Component {
   render() {

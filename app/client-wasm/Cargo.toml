@@ -1,82 +1,34 @@
 [package]
-name = "client"
-version = "0.2.0"
-authors = []
-edition = "2018"
+name = "client-wasm"
+version = "0.1.0"
+description = "A sample project with wasm-pack"
+license = "MIT/Apache-2.0"
 
 [lib]
-name = "server_lib"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+wasm-bindgen = "0.2.68"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.24"
 serde_derive = "1.0"
-clap = { version = "2.33.3", features = ["yaml"] }
-log = "0.4"
-tokio = { version = "0.1.18" }
-daemon-engine = "0.6.0"
 bitcoin = { version = "0.25", features = [ "use-serde" ] }
-reqwest = { version = "0.10", features = ["socks", "blocking", "json"] }
-electrumx_client = { git = "https://github.com/commerceblock/rust-electrumx-client", tag="v0.1.2" }
-uuid = { version = "0.5", features = ["v4", "serde"] }
-config = "0.10"
-floating-duration = "0.1.2"
-itertools = "0.9.0"
-hex = "0.4.2"
-failure = "0.1.8"
-base64 = "0.12.3"
-# pyo3 = "0.12.1"
-num-bigint = "0.2"
-num-traits = "0.2"
-wasm-bindgen = "0.2.68"
+curv = { path = "./curv", features =  ["ec_secp256k1"]}
 web-sys = { version = "0.3.45", features = ['console'] }
-wee_alloc = { version = "0.4.5", optional = true }
 
 
 [dev-dependencies]
 mockito = "0.27.0"
 wasm-bindgen-test = "0.3.13"
 
-[dependencies.zk-paillier]
-git = "https://github.com/KZen-networks/zk-paillier"
-tag = "v0.2.4"
-
-[dependencies.kms]
-git = "https://github.com/commerceblock/kms-secp256k1"
-tag = "v0.1.2"
-default-features = false
-
-[dependencies.multi-party-ecdsa]
-git = "https://github.com/commerceblock/multi-party-ecdsa"
-tag = "v0.2.7"
-
-[dependencies.curv]
-git = "https://github.com/commerceblock/curv"
-features =  ["ec_secp256k1"]
-tag = "v0.2.7"
-
-[dependencies.centipede]
-git = "https://github.com/commerceblock/centipede"
-tag = "v0.2.7"
-
-[dependencies.monotree]
-git = "https://github.com/commerceblock/monotree"
-tag = "0.1.3.1"
-default-features = false
-features=["hasher-blake3"]
 
 [target.'cfg(unix)'.dependencies]
 tokio-uds = "0.2.0"
 users = "0.7"
 
-[dependencies.shared]
-path = "../shared"
-
-
 [profile.release]
 # Tell `rustc` to optimize for small code size.
 opt-level = "s"
 
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = false
+# [dependencies.shared]
+# path = "../shared"

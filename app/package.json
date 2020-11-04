@@ -10,7 +10,6 @@
     "eject": "react-scripts eject",
     "electron": "electron .",
     "dev": "BROWSER=none nf start -p 3000",
-    "build-neon": "electron-build-env neon build client --release",
     "postinstall": "electron-builder install-app-deps",
     "preelectron-pack": "yarn build && yarn install",
     "electron-pack": "electron-builder",
@@ -22,7 +21,6 @@
     "electron-build-env": "^0.2.0",
     "electron-builder": "^22.9.1",
     "foreman": "^3.0.1",
-    "neon-cli": "^0.5.0",
     "react-app-rewired": "^2.1.6",
     "react-scripts": "^3.4.3",
     "typescript": "^4.0.3",
@@ -31,11 +29,11 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.4.0",
+    "client-wasm": "file:client-wasm/pkg",
     "electron-is-dev": "^1.2.0",
     "react": "^16.1.1",
     "react-dom": "^16.1.1",
-    "react-redux": "^7.2.0",
-    "wasm-temp": "file:wasm-pack-template/pkg"
+    "react-redux": "^7.2.0"
   },
   "browserslist": {
     "production": [

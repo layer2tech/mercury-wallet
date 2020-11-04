@@ -7,7 +7,7 @@ import App from './containers/App';
 import rootReducer from './reducers'
 import './index.css';
 
-
+// Access Neon module
 // const client_lib = window.require("client");
 // client_lib.makeServer();
 // console.log(client_lib.apiGenBTCAddr());

@@ -1,6 +1,0 @@
-endpoint = "http://localhost:8000"
-electrum_server = "127.0.0.1:60401"
-testing_mode = "true"
-[tor]
-enable = false
-proxy = "socks5h://127.0.0.1:9050"
