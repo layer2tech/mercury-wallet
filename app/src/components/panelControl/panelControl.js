@@ -1,24 +1,17 @@
 import React from 'react';
+import { useDispatch } from 'react-redux'
+import { nanoid } from '@reduxjs/toolkit'
+
+import { addCoin, removeCoin } from '../../features/CoinDataSlice'
+
 import StdButton from '../buttons/standardButton';
 
 import './panelControl.css';
 import '../index.css';
 
-const createButtonAction = () => {
-  import('client-wasm').then(module => {
-    module.deposit()
-  })
-}
-
 const swapButtonAction = () => {
   import('client-wasm').then(module => {
     module.swap()
-  })
-}
-
-const withdrawButtonAction = () => {
-  import('client-wasm').then(module => {
-    module.withdraw()
   })
 }
 
@@ -36,6 +29,32 @@ const receiveButtonAction = () => {
 
 
 const PanelControl = () => {
+  const dispatch = useDispatch()
+
+  const createButtonAction = () => {
+    import('client-wasm').then(module => {
+      module.deposit()
+    })
+    dispatch(
+      addCoin({
+        id: nanoid(),
+        amount: "0.01",
+        time_left: "11",
+        address: "bc5f...1lp4",
+      })
+    )
+  }
+
+  const withdrawButtonAction = () => {
+    import('client-wasm').then(module => {
+      module.withdraw()
+    })
+    dispatch(
+      removeCoin()
+    )
+  }
+
+
   return (
     <div className="Body">
       <h2 className="WalletAmount">0 Statecoins</h2>

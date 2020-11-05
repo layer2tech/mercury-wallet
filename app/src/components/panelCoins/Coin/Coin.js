@@ -3,13 +3,13 @@ import React from 'react';
 import './Coin.css';
 import '../../index.css';
 
-const Coin = () => {
+const Coin = (props) => {
   return (
     <div className="Body">
       <div className="CoinPanel">
-        <b className="CoinAmount">0.1 BTC</b>
-        <small className="CoinTimeLeft">11.5 months</small>
-        <b className="CoinAddress">15ke...0933d</b>
+        <b className="CoinAmount">{props.amount} BTC</b>
+        <small className="CoinTimeLeft">{props.time_left} months</small>
+        <b className="CoinAddress">{props.address}</b>
       </div>
     </div>
   );
