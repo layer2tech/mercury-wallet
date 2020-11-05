@@ -1,0 +1,12 @@
+.CoinsPanel {
+  margin: 5px;
+  overflow:hidden;
+}
+
+.ConnectionStateChain {
+  float: left;
+}
+
+.ConnectionSwaps {
+  float: right;
+}

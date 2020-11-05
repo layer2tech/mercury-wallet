@@ -1,0 +1,23 @@
+.Header {
+  background-color: #0000ff;
+  height: 40px;
+  padding: 5px;
+  margin: 8px;
+  box-shadow: 0 0 8px #999;
+}
+
+.Header-logo {
+  height: 40px;
+  float: left;
+}
+
+.nav-item {
+  padding: 10px;
+  height: 40px;
+  float: right;
+}
+
+.nav-link {
+  color: grey;
+  font-size: 15px;
+}

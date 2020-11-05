@@ -1,0 +1,17 @@
+.CoinPanel {
+  margin: 5px;
+  overflow:hidden;
+  height: 20px;
+}
+
+.CoinAmount {
+  float: left;
+}
+
+.CoinTimeLeft {
+  font-size: 10px
+}
+
+.CoinAddress {
+  float: right;
+}

@@ -1,0 +1,10 @@
+.Settings-panel {
+    margin: 5px;
+    overflow:hidden;
+}
+
+.Settings-button {
+  background-color: #CCCCCC;
+  height: 40px;
+  padding: 5px;
+}

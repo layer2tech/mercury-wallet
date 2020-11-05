@@ -1,9 +1,10 @@
 # electron-app
 
-A simple Electron app using a Neon package node module which creates a UnixServer and sends a test request.
+A simple Electron app accessing Rust crypto crates.
 
 
 # Run dev
+
 `yarn install`
-`yarn run build-neon`
+
 `yarn run dev`
