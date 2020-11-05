@@ -1,5 +1,5 @@
 {
-  "name": "wallet-app",
+  "name": "Mercury Wallet",
   "version": "0.1.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
