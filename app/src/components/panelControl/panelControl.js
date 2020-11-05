@@ -5,43 +5,33 @@ import './panelControl.css';
 import '../index.css';
 
 const createButtonAction = () => {
-  // import('client-wasm').then(module => {
-  //   module.call_curv_fn()
-  //   // console.log("Rust string: ", module.greet_wo_alert());
-  // })
-  console.log("Create button pressed.");
+  import('client-wasm').then(module => {
+    module.deposit()
+  })
 }
 
 const swapButtonAction = () => {
-  // import('client-wasm').then(module => {
-  //   module.call_curv_fn()
-  //   // console.log("Rust string: ", module.greet_wo_alert());
-  // })
-  console.log("Swap button pressed.");
+  import('client-wasm').then(module => {
+    module.swap()
+  })
 }
 
 const withdrawButtonAction = () => {
-  // import('client-wasm').then(module => {
-  //   module.call_curv_fn()
-  //   // console.log("Rust string: ", module.greet_wo_alert());
-  // })
-  console.log("Withdraw button pressed.");
+  import('client-wasm').then(module => {
+    module.withdraw()
+  })
 }
 
 const sendButtonAction = () => {
-  // import('client-wasm').then(module => {
-  //   module.call_curv_fn()
-  //   // console.log("Rust string: ", module.greet_wo_alert());
-  // })
-  console.log("Send button pressed.");
+  import('client-wasm').then(module => {
+    module.transfer_sender()
+  })
 }
 
 const receiveButtonAction = () => {
-  // import('client-wasm').then(module => {
-  //   module.call_curv_fn()
-  //   // console.log("Rust string: ", module.greet_wo_alert());
-  // })
-  console.log("Receive button pressed.");
+  import('client-wasm').then(module => {
+    module.gen_se_addr()
+  })
 }
 
 

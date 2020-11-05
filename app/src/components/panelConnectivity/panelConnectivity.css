@@ -1,14 +1,16 @@
 .ConnectionsPanel {
   margin: 5px;
   overflow:hidden;
-  height: 20px;
+  height: 10px;
 }
 
 .ConnectionStateChain {
   float: left;
+  font-size: 10px;
 }
 
 
 .ConnectionSwaps {
   float: right;
+  font-size: 10px;
 }

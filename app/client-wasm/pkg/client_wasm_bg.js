@@ -118,6 +118,60 @@ export function call_curv_fn() {
     wasm.call_curv_fn();
 }
 
+/**
+*/
+export function get_se_fees() {
+    wasm.get_se_fees();
+}
+
+/**
+*/
+export function get_statechain() {
+    wasm.get_statechain();
+}
+
+/**
+*/
+export function gen_btc_addr() {
+    wasm.gen_btc_addr();
+}
+
+/**
+*/
+export function gen_se_addr() {
+    wasm.gen_se_addr();
+}
+
+/**
+*/
+export function deposit() {
+    wasm.deposit();
+}
+
+/**
+*/
+export function transfer_sender() {
+    wasm.transfer_sender();
+}
+
+/**
+*/
+export function transfer_receiver() {
+    wasm.transfer_receiver();
+}
+
+/**
+*/
+export function withdraw() {
+    wasm.withdraw();
+}
+
+/**
+*/
+export function swap() {
+    wasm.swap();
+}
+
 export const __wbg_alert_64b458d28f84119d = function(arg0, arg1) {
     alert(getStringFromWasm0(arg0, arg1));
 };

@@ -3,6 +3,15 @@
 export const memory: WebAssembly.Memory;
 export function greet(a: number, b: number): void;
 export function call_curv_fn(): void;
+export function get_se_fees(): void;
+export function get_statechain(): void;
+export function gen_btc_addr(): void;
+export function gen_se_addr(): void;
+export function deposit(): void;
+export function transfer_sender(): void;
+export function transfer_receiver(): void;
+export function withdraw(): void;
+export function swap(): void;
 export function rustsecp256k1_v0_2_0_context_create(a: number): number;
 export function rustsecp256k1_v0_2_0_context_destroy(a: number): void;
 export function rustsecp256k1_v0_2_0_default_illegal_callback_fn(a: number, b: number): void;
