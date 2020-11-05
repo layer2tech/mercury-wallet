@@ -12,9 +12,10 @@
     "dev": "BROWSER=none nf start -p 3000",
     "postinstall": "electron-builder install-app-deps",
     "build-wasm": "wasm-pack build --dev client-wasm",
-    "preelectron-pack": "yarn build && yarn install",
-    "electron-pack": "electron-builder",
-    "electron-dev": "concurrently \"BROWSER=none yarn run start\" \"wait-on http://localhost:3000 && electron .\""
+    "app-windows": "yarn install && yarn build && electron-builder -w -p always",
+    "app-linux": "yarn install && yarn build && electron-builder -l AppImage -p always",
+    "app-macos": "yarn install && yarn build && DEBUG=electron-builder electron-builder -m -p always",
+    "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "devDependencies": {
     "concurrently": "^5.3.0",

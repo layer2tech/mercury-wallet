@@ -5,6 +5,8 @@ import './panelCoins.css';
 import '../index.css';
 
 const PanelCoins = () => {
+  // const [value, setValue] = useState('')
+
   return (
     <div className="Body">
       <div className="CoinsPanel">
