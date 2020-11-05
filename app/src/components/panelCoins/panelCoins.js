@@ -13,19 +13,17 @@ const wasmFn = () => {
 }
 
 
-class Body extends React.Component {
-  render() {
-    return (
-      <div className="Body">
-        <Button
-          label="Access Rust!"
-          onClick={wasmFn}
-          className="Body-button"/>
-        <StoredData />
-        <DisplayItem />
-      </div>
-    );
-  }
+const Body = () => {
+  return (
+    <div className="Body">
+      <Button
+        label="Access Rust!"
+        onClick={wasmFn}
+        className="Body-button"/>
+      <StoredData />
+      <DisplayItem />
+    </div>
+  );
 }
 
 export default Body;

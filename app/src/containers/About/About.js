@@ -1,11 +1,11 @@
 import React from 'react';
-import Body from '../../components/body'
+import './About.css';
 
 import { withRouter } from "react-router-dom";
 
 const AboutPage = () => {
   return (
-    <div className="about-page">
+    <div className="About-page">
       <h5>Version v0.1.0</h5>
     </div>
   )

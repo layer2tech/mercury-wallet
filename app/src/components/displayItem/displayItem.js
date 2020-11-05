@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 
-export const DisplayItem = () => {
+const DisplayItem = () => {
   const storedData = useSelector(state => state.storedData)
 
   const printStoredData = storedData.map(item => (
@@ -17,3 +17,4 @@ export const DisplayItem = () => {
     </section>
   )
 }
+export default DisplayItem;

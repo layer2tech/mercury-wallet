@@ -1,5 +1,5 @@
 import React from 'react';
-import Body from '../../components/body'
+import { Body } from '../../components'
 
 import { withRouter } from "react-router-dom";
 

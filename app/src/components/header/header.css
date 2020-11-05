@@ -15,3 +15,8 @@
   height: 40px;
   float: right;
 }
+
+.nav-link {
+  color: grey;
+  font-size: 15px;
+}

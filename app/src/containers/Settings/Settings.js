@@ -1,5 +1,5 @@
 import React from 'react';
-import Button from '../../components/buttons/standardButton'
+import { StdButton } from '../../components/'
 import './Settings.css';
 
 import { withRouter } from "react-router-dom";
@@ -13,14 +13,14 @@ const SettingsPage = () => {
   return (
     <div className="Settings-page">
       <div>
-        <Button
+        <StdButton
           label="Settings1"
           onClick={change_setting}
           className="Settings-button"
         />
       </div>
       <div>
-        <Button
+        <StdButton
           label="Settings2"
           onClick={change_setting}
           className="Settings-button"

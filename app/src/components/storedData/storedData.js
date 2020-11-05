@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux'
 import { nanoid } from '@reduxjs/toolkit'
 import { addItem, addDefault } from '../../features/StoredDataSlice'
 
-import './index.css';
+import './storedData.css';
 
 export const StoredData = () => {
   const [value, setValue] = useState('')
@@ -55,3 +55,5 @@ export const StoredData = () => {
     </section>
   )
 }
+
+export default StoredData;
