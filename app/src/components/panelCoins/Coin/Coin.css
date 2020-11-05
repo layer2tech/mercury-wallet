@@ -1,14 +1,17 @@
-.ConnectionsPanel {
+.CoinPanel {
   margin: 5px;
   overflow:hidden;
   height: 20px;
 }
 
-.ConnectionStateChain {
+.CoinAmount {
   float: left;
 }
 
+.CoinTimeLeft {
+  font-size: 10px
+}
 
-.ConnectionSwaps {
+.CoinAddress {
   float: right;
 }

@@ -1,8 +1,9 @@
 .Header {
-  background-color: #444;
+  background-color: #0000ff;
   height: 40px;
-  padding: 10px;
-  color: white;
+  padding: 5px;
+  margin: 8px;
+  box-shadow: 0 0 8px #999;
 }
 
 .Header-logo {

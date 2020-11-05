@@ -1,11 +1,23 @@
-.Body {
-  background-color: #DDDDDD;
-  border-color: #000;
-  height: 240px;
-  padding: 10px;
+.PanelControl-button {
+  background-color: #CCCCCC;
+  height: 30px;
 }
 
-.Body-button {
-  background-color: #CCCCCC;
-  height: 40px;
+.ButtonsPanel {
+  margin: 5px;
+  overflow:hidden;
+}
+
+.WalletAmount {
+  text-align: left;
+  margin: 5px;
+  padding-left: 15px;
+}
+
+.ActionGroupLeft {
+  float: left;
+}
+
+.ActionGroupRight {
+  float: right;
 }

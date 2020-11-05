@@ -1,5 +1,5 @@
 import React from 'react';
-import { Body } from '../../components'
+import { PanelControl, PanelConnectivity, PanelCoins } from '../../components'
 
 import { withRouter } from "react-router-dom";
 
@@ -7,7 +7,9 @@ import { withRouter } from "react-router-dom";
 const HomePage = () => {
   return (
     <div className="home-page">
-      <Body />
+      <PanelControl />
+      <PanelConnectivity />
+      <PanelCoins />
     </div>
   )
 }

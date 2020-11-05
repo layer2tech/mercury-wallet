@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../../images/tri-color - negative@4x.png';
+import logo from '../../images/monochrome - white@4x.png';
 import { Link, withRouter } from "react-router-dom";
 
 import './header.css';

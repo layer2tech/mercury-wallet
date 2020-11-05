@@ -1,29 +1,17 @@
 import React from 'react';
-import './index.css';
-import Button from '../buttons/standardButton';
-import { StoredData } from '../storedData'
-import { DisplayItem } from '../displayItem'
 
+import './panelConnectivity.css';
+import '../index.css';
 
-const wasmFn = () => {
-  import('client-wasm').then(module => {
-    module.call_curv_fn()
-    // console.log("Rust string: ", module.greet_wo_alert());
-  })
-}
-
-
-const Body = () => {
+const PanelConnectivity = () => {
   return (
     <div className="Body">
-      <Button
-        label="Access Rust!"
-        onClick={wasmFn}
-        className="Body-button"/>
-      <StoredData />
-      <DisplayItem />
+      <div className="ConnectionsPanel">
+        <b className="ConnectionStateChain">Connected to StateChain</b>
+        <b className="ConnectionSwaps">Connected to Swaps</b>
+      </div>
     </div>
   );
 }
 
-export default Body;
+export default PanelConnectivity;

@@ -1,11 +1,12 @@
-.Body {
-  background-color: #DDDDDD;
-  border-color: #000;
-  height: 240px;
-  padding: 10px;
+.CoinsPanel {
+  margin: 5px;
+  overflow:hidden;
 }
 
-.Body-button {
-  background-color: #CCCCCC;
-  height: 40px;
+.ConnectionStateChain {
+  float: left;
+}
+
+.ConnectionSwaps {
+  float: right;
 }

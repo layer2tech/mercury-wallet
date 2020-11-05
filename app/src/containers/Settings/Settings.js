@@ -11,8 +11,8 @@ const change_setting = () => {
 
 const SettingsPage = () => {
   return (
-    <div className="Settings-page">
-      <div>
+    <div className="Body">
+      <div className="Settings-panel">
         <StdButton
           label="Settings1"
           onClick={change_setting}
