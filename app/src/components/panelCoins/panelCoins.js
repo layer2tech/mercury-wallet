@@ -9,7 +9,7 @@ import '../index.css';
 const PanelCoins = () => {
   const coinData = useSelector(state => state.coinData)
 
-  const printCoinData = coinData.map(item => (
+  const printCoinData = coinData.coins.map(item => (
     <article key={item.id}>
       <Coin amount={item.amount} time_left={item.time_left} funding_txid={item.funding_txid.slice(0,10) + "..."}/>
     </article>

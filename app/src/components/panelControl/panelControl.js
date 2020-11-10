@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { nanoid } from '@reduxjs/toolkit'
 
 import { addCoin, removeCoin } from '../../features/CoinDataSlice'
@@ -12,6 +13,7 @@ import '../index.css';
 
 const PanelControl = () => {
   const dispatch = useDispatch()
+  const totalAmount = useSelector(state => state.coinData.total_amount)
 
   const createButtonAction = () => {
     let amount = 0.1; // value should be provided via props
@@ -82,7 +84,7 @@ const PanelControl = () => {
 
   return (
     <div className="Body">
-      <h2 className="WalletAmount">0 Statecoins</h2>
+      <h2 className="WalletAmount">{totalAmount} Statecoins</h2>
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
           <StdButton
