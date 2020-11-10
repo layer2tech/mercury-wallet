@@ -11,7 +11,7 @@ const PanelCoins = () => {
 
   const printCoinData = coinData.map(item => (
     <article key={item.id}>
-      <Coin amount={item.amount} time_left={item.time_left} address={item.address}/>
+      <Coin amount={item.amount} time_left={item.time_left} funding_txid={item.funding_txid.slice(0,10) + "..."}/>
     </article>
   ))
   return (

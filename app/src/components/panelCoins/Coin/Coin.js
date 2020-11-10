@@ -9,7 +9,7 @@ const Coin = (props) => {
       <div className="CoinPanel">
         <b className="CoinAmount">{props.amount} BTC</b>
         <small className="CoinTimeLeft">{props.time_left} months</small>
-        <b className="CoinAddress">{props.address}</b>
+        <b className="CoinFundingTxid">{props.funding_txid}</b>
       </div>
     </div>
   );
