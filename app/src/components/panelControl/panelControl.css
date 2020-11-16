@@ -9,9 +9,18 @@
 }
 
 .WalletAmount {
+  display: flex;
   text-align: left;
-  margin: 5px;
   padding-left: 15px;
+}
+.no-wallet {
+  color: #666666;
+  text-align: left;
+  font-size: 20px;
+  padding-left: 15px;
+}
+.WalletAmount img {
+  margin-right: 10px;
 }
 
 .ActionGroupLeft {

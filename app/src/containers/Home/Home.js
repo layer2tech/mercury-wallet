@@ -6,7 +6,7 @@ import { withRouter } from "react-router-dom";
 
 const HomePage = () => {
   return (
-    <div className="home-page">
+    <div className="container home-page">
       <PanelControl />
       <PanelConnectivity />
       <PanelCoins />

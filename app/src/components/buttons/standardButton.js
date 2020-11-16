@@ -4,6 +4,7 @@ class StdButton extends React.Component {
   constructor(props) {
     super(props);
     this.label = props.label;
+    this.icon = props.icon;
     if (!props.onClick) {
       this.onClick = () => { console.log(this.label, " button clicked!") };
     } else {
@@ -16,7 +17,7 @@ class StdButton extends React.Component {
   render() {
     return (
       <button onClick={this.onClick} className={this.props.className}>
-        {this.label}
+        {this.icon ? <img src={this.icon} alt="icon"/>  : ' '}  {this.label}
       </button>
     );
   }

@@ -1,16 +1,84 @@
 .ConnectionsPanel {
-  margin: 5px;
-  overflow:hidden;
-  height: 10px;
+
+
 }
 
 .ConnectionStateChain {
-  float: left;
-  font-size: 10px;
+
 }
 
 
 .ConnectionSwaps {
-  float: right;
-  font-size: 10px;
+
+}
+
+.Collapse {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 5px 25px;
+}
+
+.hide {
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+}
+.show {
+  opacity: 1;
+  visibility: visible;
+  height: auto;
+  padding: 30px 10px;
+}
+
+.image  {
+  cursor: pointer;
+}
+
+label {
+display: block;
+position: relative;
+padding-left: 25px;
+cursor: pointer;
+font-size: 14px;
+color: #666666;
+-webkit-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
+}
+input {
+position: absolute;
+opacity: 0;
+cursor: pointer;
+}
+.checkmark {
+position: absolute;
+top: 4px;
+left: 0;
+height: 15px;
+width: 15px;
+background-color: #ffffff;
+border: 2px solid #388E3C;
+border-radius: 50%;
+}
+
+
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+input:checked ~ .checkmark:after {
+  display: block;
+}
+.checkmark:after {
+  top: 1.5px;
+  left: 2.1px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #388E3C;
 }
