@@ -1,23 +1,32 @@
 .Header {
-  background-color: #0000ff;
-  height: 40px;
-  padding: 5px;
-  margin: 8px;
-  box-shadow: 0 0 8px #999;
+    background-color: #0054F4;
+    height: 56px;
+    padding: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 8px #999;
+    color: #FFFFFF;
+}
+
+.Header .block {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
 }
 
 .Header-logo {
-  height: 40px;
-  float: left;
+    height: 40px;
+    float: left;
+}
+
+.menu {
+    display: flex;
 }
 
 .nav-item {
-  padding: 10px;
-  height: 40px;
-  float: right;
+    color: #ffffff;
 }
 
 .nav-link {
-  color: grey;
-  font-size: 15px;
+    color: #ffffff;
 }
