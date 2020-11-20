@@ -1,10 +1,10 @@
 import React from 'react';
 import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
-import { nanoid } from '@reduxjs/toolkit'
 
 import { addCoin, removeCoin } from '../../features/CoinDataSlice'
-import { Swap, TransferSender, TransferReceiver, Deposit, Withdraw } from '../../wallet'
+import { Swap, TransferSender, TransferReceiver, Deposit, Withdraw, deposit,
+  GET_ROUTE, POST_ROUTE, post, get } from '../../wallet'
 
 import StdButton from '../buttons/standardButton';
 
@@ -16,6 +16,9 @@ const PanelControl = () => {
   const totalAmount = useSelector(state => state.coinData.total_amount)
 
   const createButtonAction = () => {
+    // despoitInit("02851ad2219901fc72ea97b4d21e803c625a339f07da8c7069ea33ddd0125da84f");
+    // deposit();
+
     let amount = 0.1; // value should be provided via props
     let deposit_data = Deposit(amount);
     console.log(deposit_data);

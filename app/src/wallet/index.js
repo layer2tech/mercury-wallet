@@ -1,4 +1,6 @@
 /// API for GUI with dummy return values.
+export { deposit } from "./deposit"
+export { GET_ROUTE, POST_ROUTE, post, get } from "./request";
 
 // StateEntity fee info.
 export const GetSEFeeInfo = () => {

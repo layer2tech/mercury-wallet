@@ -34,12 +34,14 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.4.0",
+    "axios": "^0.21.0",
     "client-wasm": "file:client-wasm/pkg",
     "electron-is-dev": "^1.2.0",
     "react": "^16.1.1",
     "react-dom": "^16.1.1",
     "react-redux": "^7.2.0",
-    "react-router-dom": "^5.2.0"
+    "react-router-dom": "^5.2.0",
+    "superagent": "^6.1.0"
   },
   "browserslist": {
     "production": [
