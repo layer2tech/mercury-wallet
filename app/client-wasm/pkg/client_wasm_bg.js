@@ -1,25 +1,5 @@
 import * as wasm from './client_wasm_bg.wasm';
 
-const heap = new Array(32).fill(undefined);
-
-heap.push(undefined, null, true, false);
-
-function getObject(idx) { return heap[idx]; }
-
-let heap_next = heap.length;
-
-function dropObject(idx) {
-    if (idx < 36) return;
-    heap[idx] = heap_next;
-    heap_next = idx;
-}
-
-function takeObject(idx) {
-    const ret = getObject(idx);
-    dropObject(idx);
-    return ret;
-}
-
 const lTextDecoder = typeof TextDecoder === 'undefined' ? (0, module.require)('util').TextDecoder : TextDecoder;
 
 let cachedTextDecoder = new lTextDecoder('utf-8', { ignoreBOM: true, fatal: true });
@@ -38,6 +18,12 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
+const heap = new Array(32).fill(undefined);
+
+heap.push(undefined, null, true, false);
+
+let heap_next = heap.length;
+
 function addHeapObject(obj) {
     if (heap_next === heap.length) heap.push(heap.length + 1);
     const idx = heap_next;
@@ -45,6 +31,20 @@ function addHeapObject(obj) {
 
     heap[idx] = obj;
     return idx;
+}
+
+function getObject(idx) { return heap[idx]; }
+
+function dropObject(idx) {
+    if (idx < 36) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
+}
+
+function takeObject(idx) {
+    const ret = getObject(idx);
+    dropObject(idx);
+    return ret;
 }
 
 let WASM_VECTOR_LEN = 0;
@@ -103,73 +103,12 @@ function passStringToWasm0(arg, malloc, realloc) {
     WASM_VECTOR_LEN = offset;
     return ptr;
 }
-/**
-* @param {string} name
-*/
-export function greet(name) {
-    var ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    wasm.greet(ptr0, len0);
-}
-
-/**
-*/
-export function call_curv_fn() {
-    wasm.call_curv_fn();
-}
-
-/**
-*/
-export function get_statechain() {
-    wasm.get_statechain();
-}
-
-/**
-*/
-export function gen_btc_addr() {
-    wasm.gen_btc_addr();
-}
-
-/**
-*/
-export function gen_se_addr() {
-    wasm.gen_se_addr();
-}
-
-/**
-*/
-export function deposit() {
-    wasm.deposit();
-}
-
-/**
-*/
-export function transfer_sender() {
-    wasm.transfer_sender();
-}
-
-/**
-*/
-export function transfer_receiver() {
-    wasm.transfer_receiver();
-}
-
-/**
-*/
-export function withdraw() {
-    wasm.withdraw();
-}
-
-/**
-*/
-export function swap() {
-    wasm.swap();
-}
 
 function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 /**
+* Provides wrappers for kms-secp256k1 MasterKey2 KeyGen methods
 */
 export class KeyGen {
 
@@ -202,19 +141,72 @@ export class KeyGen {
         var ret = wasm.keygen_second_message(ptr0, len0, ptr1, len1);
         return takeObject(ret);
     }
+    /**
+    * @param {string} kg_ec_key_pair_party2
+    * @param {string} public_share
+    * @param {string} party_two_paillier
+    * @returns {any}
+    */
+    static set_master_key(kg_ec_key_pair_party2, public_share, party_two_paillier) {
+        var ptr0 = passStringToWasm0(kg_ec_key_pair_party2, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(public_share, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ptr2 = passStringToWasm0(party_two_paillier, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len2 = WASM_VECTOR_LEN;
+        var ret = wasm.keygen_set_master_key(ptr0, len0, ptr1, len1, ptr2, len2);
+        return takeObject(ret);
+    }
 }
+/**
+* Provides wrappers for kms-secp256k1 MasterKey2 Sign methods
+*/
+export class Sign {
 
-export const __wbg_alert_0aeaf7ff63a42847 = function(arg0, arg1) {
-    alert(getStringFromWasm0(arg0, arg1));
-};
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
 
-export const __wbindgen_object_drop_ref = function(arg0) {
-    takeObject(arg0);
-};
+        wasm.__wbg_sign_free(ptr);
+    }
+    /**
+    * @returns {any}
+    */
+    static first_message() {
+        var ret = wasm.sign_first_message();
+        return takeObject(ret);
+    }
+    /**
+    * @param {string} master_key
+    * @param {string} eph_ec_key_pair_party2
+    * @param {string} eph_comm_witness
+    * @param {string} eph_party1_first_message
+    * @param {string} message
+    * @returns {any}
+    */
+    static second_message(master_key, eph_ec_key_pair_party2, eph_comm_witness, eph_party1_first_message, message) {
+        var ptr0 = passStringToWasm0(master_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(eph_ec_key_pair_party2, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ptr2 = passStringToWasm0(eph_comm_witness, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len2 = WASM_VECTOR_LEN;
+        var ptr3 = passStringToWasm0(eph_party1_first_message, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len3 = WASM_VECTOR_LEN;
+        var ptr4 = passStringToWasm0(message, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len4 = WASM_VECTOR_LEN;
+        var ret = wasm.sign_second_message(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4);
+        return takeObject(ret);
+    }
+}
 
 export const __wbindgen_string_new = function(arg0, arg1) {
     var ret = getStringFromWasm0(arg0, arg1);
     return addHeapObject(ret);
+};
+
+export const __wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
 };
 
 export const __wbg_new_3a746f2619705add = function(arg0, arg1) {
@@ -263,10 +255,6 @@ export const __wbg_getRandomValues_1ef11e888e5228e9 = function(arg0, arg1, arg2)
 
 export const __wbg_randomFillSync_1b52c8482374c55b = function(arg0, arg1, arg2) {
     getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
-};
-
-export const __wbg_log_3bafd82835c6de6d = function(arg0) {
-    console.log(getObject(arg0));
 };
 
 export const __wbindgen_throw = function(arg0, arg1) {
