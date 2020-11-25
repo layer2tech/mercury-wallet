@@ -2,7 +2,9 @@ let bitcoin = require('bitcoinjs-lib')
 let bip32utils = require('bip32-utils')
 let bip32 = require('bip32')
 let bip39 = require('bip39')
+const fsLibrary  = require('fs')
 
+const WALLET_LOC = "wallet.json";
 
 // Address generation fn
 function segwitAddr (node) {
@@ -36,27 +38,38 @@ const mnemonic_to_bip32_root_account = (mnemonic) => {
 // Convert bip32utils.Account to json and write to file.
 const save_account = (account) => {
   let json_acc = account.toJSON()
+
   // Store in file
-  return json_acc
+  fsLibrary.writeFile(WALLET_LOC, JSON.stringify(json_acc), (error) => {
+    if (error) throw err;
+  })
 }
 
 // Read storage file and parse bip32utils.Account from json.
 // Copied from bip32-utils. Library version not compatible with newer bitcoinjs-lib versions.
-const load_account = (json, network, addressFunction) => {
+const load_account = async (network, addressFunction) => {
+  // Fetch raw json
+  let json = await new Promise((resolve,reject) => {
+        fsLibrary.readFile(WALLET_LOC, (error, txtString) => {
+          if (error) throw err;
+          resolve(txtString.toString())
+        });
+    });
+  json = JSON.parse(json);
+
+  // Re-derive Account from JSON
   const chains = json.map(function (j) {
     const node = bip32.fromBase58(j.node, network)
 
     const chain = new bip32utils.Chain(node, j.k, addressFunction)
     chain.map = j.map
 
-    // derive from k map
     chain.addresses = Object.keys(chain.map).sort(function (a, b) {
       return chain.map[a] - chain.map[b]
     })
 
     return chain
   })
-
   return new bip32utils.Account(chains)
 }
 
@@ -70,8 +83,9 @@ console.log(account.getChainAddress(0))
 console.log(account.getChainAddress(1))
 
 console.log(JSON.stringify(account))
-let json_acc = save_account(account)
-console.log(JSON.stringify(load_account(json_acc)))
+save_account(account)
 
-
+let json = load_account().then(json => {
+  console.log("json: ",json)
+});
 // console.log(account.derive('bc1qdqvr0xn0qqdv7ru86tvr0lh56txyh4pktrrm9q'))
