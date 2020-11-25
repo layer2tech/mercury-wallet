@@ -21,7 +21,6 @@ extern {
 }
 
 
-
 /// Provides wrappers for kms-secp256k1 MasterKey2 KeyGen methods
 #[wasm_bindgen]
 pub struct KeyGen;
