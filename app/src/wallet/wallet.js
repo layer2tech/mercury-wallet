@@ -6,17 +6,18 @@ const fsLibrary  = require('fs')
 
 const WALLET_LOC = "wallet.json";
 
-// Address generation fn
-function segwitAddr (node) {
-  const p2wpkh = bitcoin.payments.p2wpkh({
-    pubkey: node.publicKey,
-    network: bitcoin.networks.bitcoin
-  })
-  return p2wpkh.address
+function Wallet(mnemonic, account) {
+  this.mnemonic = mnemonic
+  this.account = account
+}
+
+// Constructors
+Wallet.fromMnemonic = function (mnemonic) {
+  return new Wallet(mnemonic, Wallet.mnemonic_to_bip32_root_account(mnemonic))
 }
 
 // Take mnemonic phrase String and return bip32utils.Account Object.
-const mnemonic_to_bip32_root_account = (mnemonic) => {
+Wallet.mnemonic_to_bip32_root_account = function (mnemonic) {
   if (!bip39.validateMnemonic(mnemonic)) {
     return "Invalid mnemonic"
   }
@@ -36,29 +37,28 @@ const mnemonic_to_bip32_root_account = (mnemonic) => {
 }
 
 // Convert bip32utils.Account to json and write to file.
-const save_account = (account) => {
-  let json_acc = account.toJSON()
-
-  // Store in file
-  fsLibrary.writeFile(WALLET_LOC, JSON.stringify(json_acc), (error) => {
+Wallet.prototype.save = function (file_path) {
+  // Store in file as JSON string
+  fsLibrary.writeFile(file_path, JSON.stringify(this), (error) => {
     if (error) throw err;
   })
-}
+};
 
 // Read storage file and parse bip32utils.Account from json.
 // Copied from bip32-utils. Library version not compatible with newer bitcoinjs-lib versions.
-const load_account = async (network, addressFunction) => {
+Wallet.load = async (file_path, network, addressFunction) => {
+
   // Fetch raw json
-  let json = await new Promise((resolve,reject) => {
-        fsLibrary.readFile(WALLET_LOC, (error, txtString) => {
+  let json_wallet = await new Promise((resolve,reject) => {
+        fsLibrary.readFile(file_path, (error, txtString) => {
           if (error) throw err;
           resolve(txtString.toString())
         });
     });
-  json = JSON.parse(json);
+  json_wallet = JSON.parse(json_wallet);
 
   // Re-derive Account from JSON
-  const chains = json.map(function (j) {
+  const chains = json_wallet.account.map(function (j) {
     const node = bip32.fromBase58(j.node, network)
 
     const chain = new bip32utils.Chain(node, j.k, addressFunction)
@@ -70,22 +70,34 @@ const load_account = async (network, addressFunction) => {
 
     return chain
   })
-  return new bip32utils.Account(chains)
+
+  let account = new bip32utils.Account(chains)
+  return new Wallet(json_wallet.mnemonic, account)
 }
 
+// Getters
+Wallet.prototype.displayAccount = function () {
+  console.log(this.account)
+}
+
+// Address generation fn
+const segwitAddr = (node) => {
+  const p2wpkh = bitcoin.payments.p2wpkh({
+    pubkey: node.publicKey,
+    network: bitcoin.networks.bitcoin
+  })
+  return p2wpkh.address
+}
 
 
 const mnemonic =
   'praise you muffin lion enable neck grocery crumble super myself license ghost';
 
-let account = mnemonic_to_bip32_root_account(mnemonic);
-console.log(account.getChainAddress(0))
-console.log(account.getChainAddress(1))
+var wallet = Wallet.fromMnemonic(mnemonic);
+console.log("Wallet: ", wallet)
 
-console.log(JSON.stringify(account))
-save_account(account)
+wallet.save(WALLET_LOC)
 
-let json = load_account().then(json => {
+let json = Wallet.load(WALLET_LOC).then(json => {
   console.log("json: ",json)
 });
-// console.log(account.derive('bc1qdqvr0xn0qqdv7ru86tvr0lh56txyh4pktrrm9q'))
