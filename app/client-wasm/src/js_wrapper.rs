@@ -2,7 +2,6 @@ use wasm_bindgen::prelude::*;
 use web_sys::console;
 use crate::error::CError;
 
-use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use curv::{elliptic::curves::traits::ECScalar, FE, GE, BigInt};
 use curv::arithmetic::big_num::Num;
@@ -10,6 +9,7 @@ use kms::ecdsa::two_party::MasterKey2;
 use kms::ecdsa::two_party::party1::KeyGenParty1Message2;
 use multi_party_ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::{PaillierPublic, EphCommWitness, EcKeyPair, EphEcKeyPair};
 use multi_party_ecdsa::protocols::two_party_ecdsa::lindell_2017::party_one::{EphKeyGenFirstMsg, KeyGenFirstMsg};
+use curv::arithmetic::traits::Converter;
 
 use std::collections::HashMap;
 
@@ -246,10 +246,6 @@ pub fn convert_key_gen_party1_msg_2_to_client_deserializable(json_str: &String) 
 
     serde_json::to_string(&json).unwrap()
 }
-
-
-use std::str::FromStr;
-use curv::arithmetic::traits::Converter;
 
 // convert into client curv library bigint
 pub fn convert_big_int_to_server_deserializable(json_str: &String, field_name: String) -> String {
