@@ -12,6 +12,7 @@
     "electron": "electron .",
     "dev": "BROWSER=none nf start -p 3000",
     "postinstall": "electron-builder install-app-deps",
+    "build-wallet": "tsc",
     "build-wasm": "wasm-pack build --dev client-wasm",
     "app-windows": "yarn install && yarn build && electron-builder -w -p always",
     "app-linux": "yarn install && yarn build && electron-builder -l AppImage -p always",

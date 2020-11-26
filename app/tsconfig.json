@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "outDir": "./src/wallet",
+    "target": "es5",
+    "allowJs": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "esModuleInterop": false,
+    "noUnusedParameters": false,
+    "noUnusedLocals": false
+  },
+  "include": ["./src/ts_wallet/*"]
+}
