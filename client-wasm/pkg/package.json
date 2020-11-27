@@ -1,6 +1,5 @@
 {
   "name": "client_wasm",
-  "description": "A sample project with wasm-pack",
   "version": "0.1.0",
   "license": "MIT/Apache-2.0",
   "files": [

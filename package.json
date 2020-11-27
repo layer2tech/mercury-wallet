@@ -2,6 +2,7 @@
   "name": "MercuryWallet",
   "repository": "github:commerceblock/mercury-wallet",
   "version": "0.1.0",
+  "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
   "scripts": {
@@ -35,12 +36,12 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.4.0",
-    "bootstrap": "^4.5.3",
     "axios": "^0.21.0",
     "bip32": "^2.0.6",
     "bip32-utils": "^0.11.1",
     "bip39": "^3.0.3",
     "bitcoinjs-lib": "^5.2.0",
+    "bootstrap": "^4.5.3",
     "client-wasm": "file:client-wasm/pkg",
     "electron-is-dev": "^1.2.0",
     "react": "^16.1.1",

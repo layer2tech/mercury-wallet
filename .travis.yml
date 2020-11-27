@@ -23,7 +23,6 @@ before_install:
   - export PATH="$HOME/.yarn/bin:$PATH"
 
 script:
-  - cd app
   - |
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       docker run --rm \
