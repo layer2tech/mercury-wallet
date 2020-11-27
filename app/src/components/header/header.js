@@ -1,39 +1,36 @@
 import React from 'react';
 import logo from '../../images/monochrome - white@4x.png';
-import { Link, withRouter } from "react-router-dom";
+import question from '../../images/question-mark.png';
+import settings from '../../images/settings-icon.png';
+import {Link, withRouter} from "react-router-dom";
 
 import './header.css';
 
-const Header = (props) =>  {
-  return (
-    <div className="Header">
+const Header = (props) => {
+    return (
+        <div className="Header">
 
-      <Link className="navbar-brand" to="/">
-        <img src={logo} className="Header-logo" alt="logo" />
-      </Link>
+            <div className="container block">
+                <Link className="navbar-brand" to="/">
+                    <img src={logo} className="Header-logo" alt="logo"/>
+                </Link>
 
-      <div
-        className={`nav-item  ${
-          props.location.pathname === "/" ? "active" : ""
-        }`}
-      >
-        <Link className="nav-link" to="/about">
-          About
-        </Link>
-      </div>
+                <div className="menu">
+                    <div className={`nav-item  ${props.location.pathname === "/" ? "active" : ""}`}>
+                        <Link className="nav-link" to="/about">
+                            <img src={question} alt="question"/>
+                        </Link>
+                    </div>
 
-      <div
-        className={`nav-item  ${
-          props.location.pathname === "/settings" ? "active" : ""
-        }`}
-      >
-        <Link className="nav-link" to="/settings">
-          Settings
-        </Link>
-      </div>
-
-    </div>
-  );
+                    <div className={`nav-item  ${props.location.pathname === "/settings" ? "active" : ""}`}>
+                        <Link className="nav-link" to="/settings">
+                            <img src={settings} alt="settings"/>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default withRouter(Header);

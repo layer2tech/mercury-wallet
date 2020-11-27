@@ -1,12 +1,40 @@
 .Body {
-  background-color: #DDDDDD;
-  border-color: #000;
-  padding: 5px;
-  margin: 8px;
-  box-shadow: 0 0 8px #999;
+  background-color: #ffffff;
+  border: none;
+  padding: 30px;
+  margin-bottom: 15px;
+  box-shadow: 0px 2px 12px -7px #222;
+}
+
+.Body.small{
+  padding: 10px;
 }
 
 .Body-button {
-  background-color: #CCCCCC;
-  margin: 2px;
+  background-color: #ffffff;
+  color: #0F54F4;
+  font-size: 14px;
+  height: 36px;
+  line-height: 36px;
+  padding: 0 15px;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  margin: 20px 5px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
+.Body-button.blue {
+  background-color:#0F54F4;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 6px -6px #222;
+}
+
+.Body-button.yellow {
+  background-color:#F79325;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 6px -6px #222;
+}
+
+

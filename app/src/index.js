@@ -5,6 +5,7 @@ import { configureStore } from '@reduxjs/toolkit'
 
 import App from './containers/App/App';
 import rootReducer from './reducers'
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 
 // Access Neon module

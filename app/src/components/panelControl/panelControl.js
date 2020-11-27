@@ -4,6 +4,12 @@ import { useSelector } from 'react-redux'
 
 import { addCoin, removeCoin } from '../../features/CoinDataSlice'
 import { Swap, TransferSender, TransferReceiver, Deposit, Withdraw } from '../../wallet'
+import walletIcon from '../../images/walletIcon.svg';
+import walletIconSmall from '../../images/walletIconsmallIcon.svg';
+import pluseIcon from '../../images/pluseIcon.svg';
+import swapIcon from '../../images/swap-icon.svg';
+import arrowUp from '../../images/arrow-up.svg';
+import arrowDown from '../../images/arrow-down.svg';
 
 import StdButton from '../buttons/standardButton';
 
@@ -83,29 +89,35 @@ const PanelControl = () => {
 
   return (
     <div className="Body">
-      <h2 className="WalletAmount">{totalAmount} Statecoins</h2>
+      <h2 className="WalletAmount">
+          <img src={walletIcon} alt="walletIcon"/>
+          {totalAmount} BTC
+      </h2>
+        <div className="no-wallet">
+            <span>No Statecoins in Wallet</span>
+        </div>
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
           <StdButton
-            label="Create"
+            label="Deposit"  icon={pluseIcon}
             onClick={createButtonAction}
-            className="Body-button"/>
+            className="Body-button blue"/>
           <StdButton
-            label="Swap"
+            label="Swap" icon={swapIcon}
             onClick={swapButtonAction}
-            className="Body-button"/>
+            className="Body-button blue"/>
           <StdButton
-            label="Withdraw"
+            label="Withdraw" icon={walletIconSmall}
             onClick={withdrawButtonAction}
-            className="Body-button"/>
+            className="Body-button yellow"/>
         </div>
         <div className="ActionGroupRight">
           <StdButton
-            label="Send"
+            label="Send" icon={arrowUp}
             onClick={sendButtonAction}
-            className="Body-button"/>
+            className="Body-button "/>
           <StdButton
-            label="Receive"
+            label="Receive" icon={arrowDown}
             onClick={receiveButtonAction}
             className="Body-button"/>
         </div>
