@@ -1,19 +1,13 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export function greet(a: number, b: number): void;
-export function call_curv_fn(): void;
-export function get_statechain(): void;
-export function gen_btc_addr(): void;
-export function gen_se_addr(): void;
-export function deposit(): void;
-export function transfer_sender(): void;
-export function transfer_receiver(): void;
-export function withdraw(): void;
-export function swap(): void;
 export function __wbg_keygen_free(a: number): void;
 export function keygen_first_message(a: number, b: number): number;
 export function keygen_second_message(a: number, b: number, c: number, d: number): number;
+export function keygen_set_master_key(a: number, b: number, c: number, d: number, e: number, f: number): number;
+export function __wbg_sign_free(a: number): void;
+export function sign_first_message(): number;
+export function sign_second_message(a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number): number;
 export function rustsecp256k1_v0_2_0_ec_pubkey_serialize(a: number, b: number, c: number, d: number, e: number): number;
 export function rustsecp256k1_v0_2_0_ec_seckey_verify(a: number, b: number): number;
 export function rustsecp256k1_v0_2_0_ecdsa_recoverable_signature_serialize_compact(a: number, b: number, c: number, d: number): number;

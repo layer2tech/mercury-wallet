@@ -52,6 +52,14 @@ git = "https://github.com/commerceblock/kms-secp256k1"
 default-features = false
 branch = "client_version"
 
+[dependencies.paillier]
+git = "https://github.com/commerceblock/rust-paillier"
+branch = "client_version"
+
+[dependencies.zk-paillier]
+git = "https://github.com/commerceblock/zk-paillier"
+branch = "client_version"
+
 [target.'cfg(unix)'.dependencies]
 tokio-uds = "0.2.0"
 users = "0.7"

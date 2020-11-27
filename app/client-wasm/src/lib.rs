@@ -9,11 +9,8 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
-pub mod requests;
 pub mod js_wrapper;
 mod error;
-
-// mod ecdsa;
 
 use error::CError;
 
