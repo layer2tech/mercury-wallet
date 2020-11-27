@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./src/wallet",
+    "outDir": "../wallet",
     "target": "es5",
     "allowJs": true,
     "strict": true,
@@ -15,5 +15,5 @@
     "noUnusedParameters": false,
     "noUnusedLocals": false
   },
-  "include": ["./src/ts_wallet/*"]
+  "include": ["./*"]
 }

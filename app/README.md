@@ -3,10 +3,11 @@
 GUI Client Mercury implementation.
 
 
-
 # Run dev
 
 `yarn install`
+
+`yarn build-wallet`
 
 `yarn run dev`
 

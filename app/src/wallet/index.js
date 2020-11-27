@@ -1,10 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Swap = exports.Withdraw = exports.TransferReceiver = exports.TransferSender = exports.Deposit = exports.GetSEAddr = exports.GetBtcAddr = exports.GetSEFeeInfo = exports.get = exports.post = exports.POST_ROUTE = exports.GET_ROUTE = exports.despoitInit = exports.deposit = void 0;
+exports.Swap = exports.Withdraw = exports.TransferReceiver = exports.TransferSender = exports.Deposit = exports.GetSEAddr = exports.GetBtcAddr = exports.GetSEFeeInfo = exports.get = exports.post = exports.POST_ROUTE = exports.GET_ROUTE = void 0;
 /// API for GUI with dummy return values.
-var deposit_1 = require("./deposit");
-Object.defineProperty(exports, "deposit", { enumerable: true, get: function () { return deposit_1.deposit; } });
-Object.defineProperty(exports, "despoitInit", { enumerable: true, get: function () { return deposit_1.despoitInit; } });
+// export { deposit, despoitInit } from "./deposit"
 var request_1 = require("./request");
 Object.defineProperty(exports, "GET_ROUTE", { enumerable: true, get: function () { return request_1.GET_ROUTE; } });
 Object.defineProperty(exports, "POST_ROUTE", { enumerable: true, get: function () { return request_1.POST_ROUTE; } });

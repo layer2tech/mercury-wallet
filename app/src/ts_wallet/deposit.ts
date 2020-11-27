@@ -33,7 +33,7 @@ export const keyGen = async (
     shared_key_id: string,
     secret_key: string,
     _proof_key: string,
-    value: number,
+    _value: number,
     protocol: string
   ) => {
   // Import Rust functions
@@ -44,10 +44,11 @@ export const keyGen = async (
       protocol: protocol,
   };
   // server first
-  let [id, kg_party_one_first_message] = await post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
+  let server_resp_key_gen_first = await post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
+  let kg_party_one_first_message = server_resp_key_gen_first[1];
 
-  //client first
-  let {kg_party_two_first_message, kg_ec_key_pair_party2} =
+  // client first
+  let client_resp_key_gen_first: ClientKeyGenFirstMsg =
     JSON.parse(
       wasm.KeyGen.first_message(secret_key)
     );
@@ -55,12 +56,12 @@ export const keyGen = async (
   // server second
   let key_gen_msg2 = {
     shared_key_id: shared_key_id,
-    dlog_proof:kg_party_two_first_message.d_log_proof,
+    dlog_proof:client_resp_key_gen_first.kg_party_two_first_message.d_log_proof,
   }
   let kg_party_one_second_message = await post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
 
   // client second
-  let {party_two_second_message, party_two_paillier} =
+  let client_resp_key_gen_second: ClientKeyGenSecondMsg =
     JSON.parse(
       wasm.KeyGen.second_message(
         JSON.stringify(kg_party_one_first_message),
@@ -72,16 +73,66 @@ export const keyGen = async (
   let master_key =
     JSON.parse(
       wasm.KeyGen.set_master_key(
-        JSON.stringify(kg_ec_key_pair_party2),
+        JSON.stringify(client_resp_key_gen_first.kg_ec_key_pair_party2),
         JSON.stringify(kg_party_one_second_message
                 .ecdh_second_message
                 .comm_witness
                 .public_share),
-        JSON.stringify(party_two_paillier)
+        JSON.stringify(client_resp_key_gen_second.party_two_paillier)
     ));
 
     return master_key
 }
+
+interface ClientKeyGenFirstMsg {
+  kg_party_two_first_message: KeyGenFirstMsg,
+  kg_ec_key_pair_party2: EcKeyPair
+}
+
+// multi-party-ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::KeyGenFirstMsg
+interface KeyGenFirstMsg {
+  d_log_proof: string,
+  public_share: string
+}
+// multi-party-ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::EcKeyPair
+interface EcKeyPair {
+  public_share: string,
+  secret_share: string,
+}
+
+interface ClientKeyGenSecondMsg {
+  party_two_second_message: Party2SecondMessage,
+  party_two_paillier: PaillierPublic
+}
+
+interface Party2SecondMessage {
+  key_gen_second_message: KeyGenSecondMsg,
+  pdl_first_message: PDLFirstMessage,
+}
+// multi-party-ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::KeyGenSecondMsg
+interface KeyGenSecondMsg {
+  comm_witness: string,
+}
+
+// multi-party-ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::PDLFirstMessage
+interface PDLFirstMessage {
+  c_tag: string,
+  c_tag_tag: string,
+}
+// multi-party-ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::PaillierPublic
+interface PaillierPublic {
+    ek: string,
+    encrypted_secret_share: string,
+}
+
+
+
+interface ClientSignFirstMsg {
+  eph_key_gen_first_message_party_two: any,
+  eph_comm_witness: any,
+  eph_ec_key_pair_party2: any
+}
+
 
 // message should be hex string
 export const sign = async (
@@ -94,7 +145,7 @@ export const sign = async (
   let wasm = await import('client-wasm');
 
   //client first
-  let {eph_key_gen_first_message_party_two, eph_comm_witness, eph_ec_key_pair_party2} =
+  let client_resp_sign_first: ClientSignFirstMsg =
     JSON.parse(
       wasm.Sign.first_message()
     );
@@ -102,7 +153,7 @@ export const sign = async (
   // server first
   let sign_msg1 = {
       shared_key_id: shared_key_id,
-      eph_key_gen_first_message_party_two,
+      eph_key_gen_first_message_party_two: client_resp_sign_first.eph_key_gen_first_message_party_two,
   };
   let sign_party_one_first_message = await post(POST_ROUTE.SIGN_FIRST, sign_msg1);
 
@@ -111,8 +162,8 @@ export const sign = async (
     JSON.parse(
       wasm.Sign.second_message(
         JSON.stringify(master_key),
-        JSON.stringify(eph_ec_key_pair_party2),
-        JSON.stringify(eph_comm_witness),
+        JSON.stringify(client_resp_sign_first.eph_ec_key_pair_party2),
+        JSON.stringify(client_resp_sign_first.eph_comm_witness),
         JSON.stringify(sign_party_one_first_message),
         message
       )

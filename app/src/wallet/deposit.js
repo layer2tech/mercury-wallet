@@ -80,33 +80,34 @@ var despoitInit = function (proof_key) { return __awaiter(void 0, void 0, void 0
     });
 }); };
 exports.despoitInit = despoitInit;
-var keyGen = function (shared_key_id, secret_key, _proof_key, value, protocol) { return __awaiter(void 0, void 0, void 0, function () {
-    var wasm, keygen_msg1, _a, id, kg_party_one_first_message, _b, kg_party_two_first_message, kg_ec_key_pair_party2, key_gen_msg2, kg_party_one_second_message, _c, party_two_second_message, party_two_paillier, master_key;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+var keyGen = function (shared_key_id, secret_key, _proof_key, _value, protocol) { return __awaiter(void 0, void 0, void 0, function () {
+    var wasm, keygen_msg1, server_resp_key_gen_first, kg_party_one_first_message, client_resp_key_gen_first, key_gen_msg2, kg_party_one_second_message, client_resp_key_gen_second, master_key;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0: return [4 /*yield*/, Promise.resolve().then(function () { return require('client-wasm'); })];
             case 1:
-                wasm = _d.sent();
+                wasm = _a.sent();
                 keygen_msg1 = {
                     shared_key_id: shared_key_id,
                     protocol: protocol,
                 };
                 return [4 /*yield*/, request_1.post(request_1.POST_ROUTE.KEYGEN_FIRST, keygen_msg1)];
             case 2:
-                _a = _d.sent(), id = _a[0], kg_party_one_first_message = _a[1];
-                _b = JSON.parse(wasm.KeyGen.first_message(secret_key)), kg_party_two_first_message = _b.kg_party_two_first_message, kg_ec_key_pair_party2 = _b.kg_ec_key_pair_party2;
+                server_resp_key_gen_first = _a.sent();
+                kg_party_one_first_message = server_resp_key_gen_first[1];
+                client_resp_key_gen_first = JSON.parse(wasm.KeyGen.first_message(secret_key));
                 key_gen_msg2 = {
                     shared_key_id: shared_key_id,
-                    dlog_proof: kg_party_two_first_message.d_log_proof,
+                    dlog_proof: client_resp_key_gen_first.kg_party_two_first_message.d_log_proof,
                 };
                 return [4 /*yield*/, request_1.post(request_1.POST_ROUTE.KEYGEN_SECOND, key_gen_msg2)];
             case 3:
-                kg_party_one_second_message = _d.sent();
-                _c = JSON.parse(wasm.KeyGen.second_message(JSON.stringify(kg_party_one_first_message), JSON.stringify(kg_party_one_second_message))), party_two_second_message = _c.party_two_second_message, party_two_paillier = _c.party_two_paillier;
-                master_key = JSON.parse(wasm.KeyGen.set_master_key(JSON.stringify(kg_ec_key_pair_party2), JSON.stringify(kg_party_one_second_message
+                kg_party_one_second_message = _a.sent();
+                client_resp_key_gen_second = JSON.parse(wasm.KeyGen.second_message(JSON.stringify(kg_party_one_first_message), JSON.stringify(kg_party_one_second_message)));
+                master_key = JSON.parse(wasm.KeyGen.set_master_key(JSON.stringify(client_resp_key_gen_first.kg_ec_key_pair_party2), JSON.stringify(kg_party_one_second_message
                     .ecdh_second_message
                     .comm_witness
-                    .public_share), JSON.stringify(party_two_paillier)));
+                    .public_share), JSON.stringify(client_resp_key_gen_second.party_two_paillier)));
                 return [2 /*return*/, master_key];
         }
     });
@@ -114,21 +115,21 @@ var keyGen = function (shared_key_id, secret_key, _proof_key, value, protocol) {
 exports.keyGen = keyGen;
 // message should be hex string
 var sign = function (shared_key_id, master_key, message, protocol) { return __awaiter(void 0, void 0, void 0, function () {
-    var wasm, _a, eph_key_gen_first_message_party_two, eph_comm_witness, eph_ec_key_pair_party2, sign_msg1, sign_party_one_first_message, party_two_sign_message, sign_msg2, signature;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var wasm, client_resp_sign_first, sign_msg1, sign_party_one_first_message, party_two_sign_message, sign_msg2, signature;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0: return [4 /*yield*/, Promise.resolve().then(function () { return require('client-wasm'); })];
             case 1:
-                wasm = _b.sent();
-                _a = JSON.parse(wasm.Sign.first_message()), eph_key_gen_first_message_party_two = _a.eph_key_gen_first_message_party_two, eph_comm_witness = _a.eph_comm_witness, eph_ec_key_pair_party2 = _a.eph_ec_key_pair_party2;
+                wasm = _a.sent();
+                client_resp_sign_first = JSON.parse(wasm.Sign.first_message());
                 sign_msg1 = {
                     shared_key_id: shared_key_id,
-                    eph_key_gen_first_message_party_two: eph_key_gen_first_message_party_two,
+                    eph_key_gen_first_message_party_two: client_resp_sign_first.eph_key_gen_first_message_party_two,
                 };
                 return [4 /*yield*/, request_1.post(request_1.POST_ROUTE.SIGN_FIRST, sign_msg1)];
             case 2:
-                sign_party_one_first_message = _b.sent();
-                party_two_sign_message = JSON.parse(wasm.Sign.second_message(JSON.stringify(master_key), JSON.stringify(eph_ec_key_pair_party2), JSON.stringify(eph_comm_witness), JSON.stringify(sign_party_one_first_message), message));
+                sign_party_one_first_message = _a.sent();
+                party_two_sign_message = JSON.parse(wasm.Sign.second_message(JSON.stringify(master_key), JSON.stringify(client_resp_sign_first.eph_ec_key_pair_party2), JSON.stringify(client_resp_sign_first.eph_comm_witness), JSON.stringify(sign_party_one_first_message), message));
                 sign_msg2 = {
                     shared_key_id: shared_key_id,
                     sign_second_msg_request: {
@@ -139,7 +140,7 @@ var sign = function (shared_key_id, master_key, message, protocol) { return __aw
                 };
                 return [4 /*yield*/, request_1.post(request_1.POST_ROUTE.SIGN_SECOND, sign_msg2)];
             case 3:
-                signature = _b.sent();
+                signature = _a.sent();
                 return [2 /*return*/, signature];
         }
     });

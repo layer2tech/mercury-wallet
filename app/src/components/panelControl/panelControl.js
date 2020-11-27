@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
 
 import { addCoin, removeCoin } from '../../features/CoinDataSlice'
-import { Swap, TransferSender, TransferReceiver, Deposit, Withdraw, deposit } from '../../wallet'
+import { Swap, TransferSender, TransferReceiver, Deposit, Withdraw } from '../../wallet'
 
 import StdButton from '../buttons/standardButton';
 
