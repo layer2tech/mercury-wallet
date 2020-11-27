@@ -3,7 +3,7 @@
 GUI Client Mercury implementation.
 
 
-# Run dev
+# Run development
 
 `yarn install`
 
@@ -45,11 +45,11 @@ There is a DockerFile in `client-wasm/`, first build the image
 
 `cd client-wasm`
 
-`docker build -t tomos/rustwasm .`
+`docker build -t rustwasm .`
 
 Run container with
 
-`docker run --rm -it -v ${PWD}:/code tomos/rustwasm bash`
+`docker run --rm -it -v ${PWD}:/code rustwasm bash`
 
 To build wasm:
 
