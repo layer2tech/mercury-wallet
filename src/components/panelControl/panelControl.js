@@ -3,7 +3,8 @@ import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
 
 import { addCoin, removeCoin } from '../../features/CoinDataSlice'
-import { Swap, TransferSender, TransferReceiver, Deposit, Withdraw } from '../../wallet'
+import { Swap, TransferSender, TransferReceiver, Deposit, Withdraw, deposit } from '../../wallet'
+import { Wallet } from '../../wallet'
 import walletIcon from '../../images/walletIcon.svg';
 import walletIconSmall from '../../images/walletIconsmallIcon.svg';
 import pluseIcon from '../../images/pluseIcon.svg';
@@ -21,6 +22,14 @@ const PanelControl = () => {
   const totalAmount = useSelector(state => state.coinData.total_amount)
 
   const createButtonAction = async () => {
+    const mnemonic =
+      'praise you muffin lion enable neck grocery crumble super myself license ghost';
+
+    var wallet = Wallet.fromMnemonic(mnemonic);
+
+    console.log("wallet: ", wallet);
+
+
     let amount = 0.1; // value should be provided via props
     let deposit_data = Deposit(amount);
     console.log(deposit_data);

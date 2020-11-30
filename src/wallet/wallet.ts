@@ -1,15 +1,16 @@
+import { Network } from 'bitcoinjs-lib';
+
 let bitcoin = require('bitcoinjs-lib')
 let bip32utils = require('bip32-utils')
 let bip32 = require('bip32')
 let bip39 = require('bip39')
 let fsLibrary  = require('fs')
 
-import { Network } from 'bitcoinjs-lib';
 
 const WALLET_LOC = "wallet.json";
 
 // Wallet holds BIP32 key root and derivation progress information.
-class Wallet {
+export class Wallet {
   mnemonic: string;
   account: any;
 
@@ -93,15 +94,3 @@ const segwitAddr = (node: any) => {
   })
   return p2wpkh.address
 }
-
-
-const mnemonic =
-  'praise you muffin lion enable neck grocery crumble super myself license ghost';
-
-var wallet = Wallet.fromMnemonic(mnemonic);
-
-wallet.save(WALLET_LOC)
-
-Wallet.load(WALLET_LOC, bitcoin.networks.bitcoin, segwitAddr).then(json => {
-  console.log("json: ",json)
-});

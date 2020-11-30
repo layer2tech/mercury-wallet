@@ -7,20 +7,10 @@ GUI Client Mercury implementation.
 
 `yarn install`
 
-`yarn build-wallet`
-
 `yarn run dev`
 
 
 # Development instructions
-
-## Wallet logic (typescript)
-
-Our wallet logic is written in Typescript and Built to Javascript.
-
-Wallet logic can be found in `src/wallet`. To work on code make changes to `src/ts_wallet`
-and build to Javascript with `yarn run build-wallet`.
-
 
 ## Rust bindings
 

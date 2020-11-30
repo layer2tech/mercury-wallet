@@ -9,3 +9,5 @@ yarn.lock
 
 wallet.json
 yarn.lock
+
+src/react-app-env.d.ts

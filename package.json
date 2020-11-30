@@ -7,17 +7,17 @@
   "main": "src/electron-starter.js",
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "yarn run build-wallet && react-app-rewired build",
+    "build": "react-app-rewired build",
     "test": "react-app-rewired test --env=jsdom",
     "eject": "react-scripts eject",
     "electron": "electron .",
     "dev": "BROWSER=none nf start -p 3000",
     "postinstall": "electron-builder install-app-deps",
-    "build-wallet": "cd src/ts_wallet && tsc",
     "build-wasm": "wasm-pack build --dev client-wasm",
     "app-windows": "yarn install && yarn build && electron-builder -w -p always",
     "app-linux": "yarn install && yarn build && electron-builder -l AppImage -p always",
     "app-macos": "yarn install && yarn build && DEBUG=electron-builder electron-builder -m -p always",
+    "app-macos-local-test": "yarn install && yarn build && DEBUG=electron-builder electron-builder -m -p never",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "devDependencies": {
