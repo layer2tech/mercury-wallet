@@ -14,6 +14,4 @@ mod error;
 
 use error::CError;
 
-use serde::{Deserialize, Serialize};
-
 pub type Result<T> = std::result::Result<T, CError>;

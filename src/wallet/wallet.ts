@@ -24,7 +24,10 @@ export class Wallet {
     return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic))
   }
 
-  static load = async (file_path: string, network: Network, addressFunction: Function) => {
+  static load = async (
+    {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr}:
+    {file_path?: string, network?: Network, addressFunction?: Function}
+  ) => {
     // Fetch raw json
     let str_wallet: string = await new Promise((resolve,_reject) => {
           fsLibrary.readFile(file_path, (error: any, txtString: String) => {
@@ -52,7 +55,7 @@ export class Wallet {
     return new Wallet(json_wallet.mnemonic, account)
   }
 
-  save = (file_path: string) => {
+  save = ({file_path = WALLET_LOC}: {file_path?: string}={}) => {
     // Store in file as JSON string
     fsLibrary.writeFile(file_path, JSON.stringify(this), (error: any) => {
       if (error) throw error;
@@ -94,3 +97,16 @@ const segwitAddr = (node: any) => {
   })
   return p2wpkh.address
 }
+
+
+
+// const mnemonic =
+//   'praise you muffin lion enable neck grocery crumble super myself license ghost';
+//
+// var wallet = Wallet.fromMnemonic(mnemonic);
+//
+// wallet.save(WALLET_LOC)
+//
+// Wallet.load(WALLET_LOC, bitcoin.networks.bitcoin, segwitAddr).then(json => {
+//   console.log("json: ",json)
+// });

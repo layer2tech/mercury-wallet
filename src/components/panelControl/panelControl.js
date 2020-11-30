@@ -22,14 +22,7 @@ const PanelControl = () => {
   const totalAmount = useSelector(state => state.coinData.total_amount)
 
   const createButtonAction = async () => {
-    const mnemonic =
-      'praise you muffin lion enable neck grocery crumble super myself license ghost';
-
-    var wallet = Wallet.fromMnemonic(mnemonic);
-
-    console.log("wallet: ", wallet);
-
-
+    deposit();
     let amount = 0.1; // value should be provided via props
     let deposit_data = Deposit(amount);
     console.log(deposit_data);
