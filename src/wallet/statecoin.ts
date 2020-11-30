@@ -4,13 +4,13 @@ import { MasterKey2 } from "./mercury/ecdsa";
 
 export class Statecoin {
   id: string;
-  shared_key: any; // Should be MasterKey2. Left as any for ease in testing.
+  shared_key: MasterKey2;
   value: number;
   txid: string;
   timestamp: number;
   swap_rounds: number
 
-  constructor(id: string, shared_key: any, value: number, txid: string) {
+  constructor(id: string, shared_key: MasterKey2, value: number, txid: string) {
     this.id = id;
     this.shared_key = shared_key;
     this.value = value;
