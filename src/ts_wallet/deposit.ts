@@ -70,7 +70,7 @@ export const keyGen = async (
     );
 
   // Construct Rust MasterKey struct
-  let master_key =
+  let master_key: MasterKey2 =
     JSON.parse(
       wasm.KeyGen.set_master_key(
         JSON.stringify(client_resp_key_gen_first.kg_ec_key_pair_party2),
@@ -81,8 +81,27 @@ export const keyGen = async (
         JSON.stringify(client_resp_key_gen_second.party_two_paillier)
     ));
 
+    console.log("MasterKey2: ", master_key)
+
     return master_key
 }
+
+// kms::ecdsa:two_party::MasterKey2
+interface MasterKey2 {
+  public: Party2Public,
+  private: any, // Leave as Object since we dont need these items in Wallet.
+  chain_code: string,
+}
+
+// kms::ecdsa:two_party::Party2Public
+interface Party2Public {
+  q: string,
+  p2: string,
+  p1: string,
+  paillier_pub: any,
+  c_key: string,
+}
+
 
 interface ClientKeyGenFirstMsg {
   kg_party_two_first_message: KeyGenFirstMsg,
