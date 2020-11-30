@@ -3,7 +3,7 @@
 import { keyGen, sign } from "./ecdsa";
 import { POST_ROUTE, post } from "../request";
 
-export const deposit = async () => {
+export const deposit = async (message: string) => {
   let secret_key = "12345";
   let proof_key = "02851ad2219901fc72ea97b4d21e803c625a339f07da8c7069ea33ddd0125da84f";
   let value = 10;
@@ -13,10 +13,9 @@ export const deposit = async () => {
 
   let master_key = await keyGen(shared_key_id, secret_key, proof_key, value, protocol);
 
-  let message = "1111";
   let sign_msg = await sign(shared_key_id, master_key, message, protocol);
 
-  console.log("signature: ", sign_msg)
+  return sign_msg
 }
 
 

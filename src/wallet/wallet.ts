@@ -1,4 +1,7 @@
+// Main wallet struct storing Keys derivation material and Mercury Statecoins.
+
 import { Network } from 'bitcoinjs-lib';
+import { Statecoin } from './statecoin';
 
 let bitcoin = require('bitcoinjs-lib')
 let bip32utils = require('bip32-utils')
@@ -13,15 +16,28 @@ const WALLET_LOC = "wallet.json";
 export class Wallet {
   mnemonic: string;
   account: any;
+  statecoins: Statecoin[]
 
   constructor(mnemonic: string, account: any) {
     this.mnemonic = mnemonic
     this.account = account
+    this.statecoins = []
   }
 
   // Constructors
   static fromMnemonic = function (mnemonic: string) {
     return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic))
+  }
+
+  static buildMock = function () {
+    var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost');
+    wallet.statecoins.push(
+      new Statecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", {a: 12}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41")
+    )
+    wallet.statecoins.push(
+      new Statecoin("223861d2-7d84-44f1-ba3e-4cd7dd418560", {a: 12}, 0.2, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41")
+    )
+    return wallet
   }
 
   static load = async (
@@ -64,10 +80,27 @@ export class Wallet {
 
 
   // Getters
-  displayAccount = () => {
-    console.log(this.account)
+  getMnemonic() {
+    return this.mnemonic
+  }
+  getStatecoinsInfo() {
+    this.statecoins.map((item: Statecoin) => {
+      return item.getInfo()
+    })
+  }
+
+
+  // Add Statecoin
+  addStatecoin(statecoin: Statecoin) {
+    this.statecoins.push(statecoin)
+  }
+
+  // New BTC address
+  genBtcAddress() {
+    return this.account.nextChainAddress(0)
   }
 }
+
 
 // BIP39 mnemonic -> BIP32 Account
 const mnemonic_to_bip32_root_account = (mnemonic: string) => {
@@ -97,16 +130,3 @@ const segwitAddr = (node: any) => {
   })
   return p2wpkh.address
 }
-
-
-
-// const mnemonic =
-//   'praise you muffin lion enable neck grocery crumble super myself license ghost';
-//
-// var wallet = Wallet.fromMnemonic(mnemonic);
-//
-// wallet.save(WALLET_LOC)
-//
-// Wallet.load(WALLET_LOC, bitcoin.networks.bitcoin, segwitAddr).then(json => {
-//   console.log("json: ",json)
-// });

@@ -1,8 +1,9 @@
 /// API for GUI with dummy return values.
 export { GET_ROUTE, POST_ROUTE, post, get } from "./request";
 export { Wallet } from "./wallet"
+export { Statecoin } from "./statecoin"
 
-export { deposit } from "./protocol/deposit"
+export { deposit } from "./mercury/deposit"
 
 // StateEntity fee info.
 export const GetSEFeeInfo = () => {
@@ -37,7 +38,7 @@ export const Deposit = (amount) => {
     funding_txid: "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
     backuptx: "3c06e118b822772c024aac3d840fbad3cef62c9f62c9b74e276843a5d0fe0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
     proof_key: "441874303fd1524b9660afb44a7edfee49cd9b243db99ea400e876aa15c2983ee7dcf5dc7aec2ae27260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
-    anon_score: 0,
+    swap_rounds: 0,
     time_left: "12"
   }
 }
@@ -62,7 +63,7 @@ export const TransferReceiver = (transfer_message) => {
     funding_txid: "74e2e118b822772c024aac3d840fbad3cf76843a5d0fe0d3d0f3d73c0662c9be",
     backuptx: "22772c024aac3d840fbad3cef62c93c06e118b8f62c9b74e276843a5d0fe0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
     proof_key: "fd1524b9660afb44a7edfee49cd9b243db99ea404418743030e876aa15c2983ee7dcf5dc7aec2ae27260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
-    anon_score: 0,
+    swap_rounds: 0,
     time_left: "11"
   }
 }
@@ -79,9 +80,9 @@ export const Withdraw = (state_chain_id) => {
 
 
 // Perform swap
-// Args: state_chain_id of coin to swap and swap size parameter. Also provide current coin anon_score for GUI demos.
+// Args: state_chain_id of coin to swap and swap size parameter. Also provide current coin swap_rounds for GUI demos.
 // Return: New wallet coin data
-export const Swap = (state_chain_id, swap_size, anon_score) => {
+export const Swap = (state_chain_id, swap_size, swap_rounds) => {
   return {
     amount: 0.1,
     shared_key_id: "h46w1ueui-438c-87dc-d06054277a5d",
@@ -89,7 +90,7 @@ export const Swap = (state_chain_id, swap_size, anon_score) => {
     funding_txid: "4aac3d840fbad3cf76843a5d74e2e118b822772c020fe0d3d0f3d73c0662c9be",
     backuptx: "40fbad3cef62c93c06e118b8f62c9b74e276843a5d0f22772c024aac3d8e0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
     proof_key: "43030ed1524b9660afb44a7ed876aa15c2983ee7dcf5dc7aec2aeffee49cd9b243db99ea404418727260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
-    anon_score: anon_score + 10,
+    swap_rounds: swap_rounds + 10,
     time_left: "10"
   }
 }
