@@ -1,7 +1,7 @@
 // Main wallet struct storing Keys derivation material and Mercury Statecoins.
 
 import { Network } from 'bitcoinjs-lib';
-import { ActivityLog, ActivityLogItem } from './activity_log';
+import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { MasterKey2 } from './mercury/ecdsa';
 import { Statecoins } from './statecoin';
 
@@ -35,8 +35,8 @@ export class Wallet {
 
   static buildMock = function () {
     var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost');
-    wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", "D")
-    wallet.addStatecoin("223861d2-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.2, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", "D")
+    wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
+    wallet.addStatecoin("223861d2-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.2, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
     wallet.activity.addItem("223861d2-7d84-44f1-ba3e-4cd7dd418560", "T");
     return wallet
   }

@@ -28,5 +28,12 @@ export class ActivityLogItem {
     this.action = action;
     this.date = new Date().getTime();
   }
-
 }
+
+export const ACTION = {
+   DEPOSIT: "D",
+   TRANSFER: "T",
+   WITHDRAW: "W",
+   SWAP: "S",
+};
+Object.freeze(ACTION);

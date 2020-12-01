@@ -36,6 +36,8 @@ export class Statecoins {
     let coin = this.getCoin(id)
     if (coin) {
       coin.spent = true
+    } else {
+      throw "No coin found with id " + id
     }
   }
 }
