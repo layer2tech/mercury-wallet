@@ -16,6 +16,8 @@ import StdButton from '../buttons/standardButton';
 
 import './panelControl.css';
 import '../index.css';
+import {Link} from "react-router-dom";
+import settings from "../../images/settings-icon.png";
 
 const PanelControl = () => {
   const dispatch = useDispatch()
@@ -105,10 +107,17 @@ const PanelControl = () => {
         </div>
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
-          <StdButton
-            label="Deposit"  icon={pluseIcon}
-            onClick={createButtonAction}
-            className="Body-button blue"/>
+
+
+                <Link className="nav-link" to="/deposit">
+                    <StdButton
+                        label="Deposit"  icon={pluseIcon}
+                        onClick={createButtonAction}
+                        className="Body-button blue"/>
+                </Link>
+
+
+
           <StdButton
             label="Swap" icon={swapIcon}
             onClick={swapButtonAction}

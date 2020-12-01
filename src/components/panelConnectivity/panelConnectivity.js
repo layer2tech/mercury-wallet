@@ -2,7 +2,8 @@ import React, {Component} from "react";
 import './panelConnectivity.css';
 import arrow from '../../images/arrow-accordion.svg';
 import '../index.css';
-import StdButton from "../buttons/standardButton";
+
+
 
 
 class PanelConnectivity extends Component {
@@ -30,7 +31,7 @@ class PanelConnectivity extends Component {
     render() {
 
         return (
-            <div className="Body small">
+            <div className="Body small accordion">
                 <div className="Collapse">
                     <div className="ConnectionStateChain">
 
@@ -57,13 +58,35 @@ class PanelConnectivity extends Component {
                             <span className="checkmark"></span>
                         </label>
                     </div>
-                    <div onClick={this.toggleContent} className="image">
+                    <div onClick={this.toggleContent} className={this.state.isToggleOn ? "image rotate"  : ' image '} >
                         <img src={arrow} alt="arrowIcon"/>
                     </div>
                 </div>
 
                 <div className={this.state.isToggleOn ? "show" : ' hide'}>
-                    <p>Body Here</p>
+                    <div className="collapse-content">
+                        <div className="collapse-content-item">
+                            <span>xxx.xxx.x.xx</span>
+                            <div>
+                                <span className="txt">Deposit Fee: <b>1000</b></span>
+                                <span className="txt">Withdraw Fee: <b>1000</b></span>
+                            </div>
+
+                        </div>
+
+
+                        <div className="collapse-content-item">
+                            <span>xxx.xxx.x.xx</span>
+                            <div>
+                                <span className="txt">Pending Swaps: <b>13</b></span>
+                                <span className="txt">Participants: <b>56</b></span>
+                                <span className="txt">Total pooled BTC: <b>34.3</b></span>
+                            </div>
+
+                        </div>
+
+
+                    </div>
                 </div>
             </div>
         );

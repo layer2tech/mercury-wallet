@@ -19,22 +19,30 @@
   padding: 5px 25px;
 }
 
-.hide {
-  opacity: 0;
-  visibility: hidden;
+
+
+.accordion .hide {
+  transition: all .5s ease-in-out;
   height: 0;
+  overflow:hidden;
+
+
 }
-.show {
-  opacity: 1;
-  visibility: visible;
-  height: auto;
+.accordion .show {
+  transition: all .5s ease-in-out;
+  height: 8em;
+  overflow: auto;
   padding: 30px 10px;
+
 }
 
 .image  {
   cursor: pointer;
 }
-
+.image.rotate img {
+    transform: rotate(180deg);
+   transition: all .5s ease-in-out;
+}
 label {
 display: block;
 position: relative;
@@ -81,4 +89,28 @@ input:checked ~ .checkmark:after {
   height: 7px;
   border-radius: 50%;
   background: #388E3C;
+}
+
+.collapse-content {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.collapse-content-item {
+  display: flex;
+  flex-direction: column;
+  align-items: baseline;
+  font-size: 16px;
+  color: #666666;
+  width: 50%;
+}
+
+.collapse-content-item .txt {
+  margin-right: 20px;
+  font-size: 16px;
+  color: #666666;
+}
+.collapse-content-item .txt b {
+  color: #000000;
 }

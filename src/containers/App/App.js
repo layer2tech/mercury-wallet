@@ -1,5 +1,5 @@
 import React from 'react';
-import { HomePage, SettingsPage, AboutPage } from '../index'
+import { HomePage, SettingsPage, AboutPage, DepositePage } from '../index'
 import { Header } from '../../components'
 
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
@@ -15,6 +15,7 @@ const App = () => {
          <Route path="/" exact component={() => <HomePage />} />
          <Route path="/settings" exact component={() => <SettingsPage />} />
          <Route path="/about" exact component={() => <AboutPage />} />
+         <Route path="/deposit" exact component={() => <DepositePage />} />
          <Route component={() => <HomePage />} />
        </Switch>
      </Router>

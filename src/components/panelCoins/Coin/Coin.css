@@ -1,17 +1,126 @@
-.CoinPanel {
-  margin: 5px;
-  overflow:hidden;
-  height: 20px;
+
+.sub {
+  color: #757575;
+  display: flex;
+  flex-direction: column;
+  padding-left: 10px;
+}
+.CoinTimeLeft {
+  display: flex;
+  color: #757575;
+}
+.CoinTimeLeft img {
+  margin-right: 5px;
+
+}
+.CoinAmount-block {
+  text-align: left;
+  display: flex;
+
 }
 
 .CoinAmount {
-  float: left;
+  color: #000000;
+}
+.sub .progress {
+  height: 5px;
 }
 
-.CoinTimeLeft {
-  font-size: 10px
+.progress .bg-danger {
+  background-color: #E64A1A !important;
+
+}
+.progress .bg-warning {
+  background-color: #000000 !important;
+
+}
+.progress .bg-success {
+  background-color: #646464 !important;
 }
 
-.CoinFundingTxid {
-  float: right;
+.scoreAmount {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.scoreAmount .tooltip {
+  visibility: hidden;
+  width: 350px;
+  background-color: #E0E0E0;
+  color: #000000;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.scoreAmount .tooltip:after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #E0E0E0 transparent transparent transparent;
+}
+.scoreAmount:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.modal .item {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  padding: 20px 0;
+  border-bottom :1px solid #E0E0E0;
+}
+.question-icon  {
+  position: absolute;
+  right: 0;
+  top: 18px;
+}
+.modal .item .block {
+  display: flex;
+  flex-direction: column;
+  margin-left: 20px;
+}
+
+.modal .item .block span {
+  word-break: break-all;
+}
+.modal .item  .block span:first-child {
+  font-size: 16px;
+  display: block;
+  color: #000000;
+
+}
+.modal .item  .block span:nth-child(2) {
+  font-size: 14px;
+  display: block;
+  color: #666666;
+
+}
+.modal .modal-footer {
+  border-top: none;
+
+}
+
+.modal .modal-footer  button {
+  text-align: center;
+  margin: 0 auto;
+  margin-bottom: 15px;
+  color: #0054F4;
+  background-color: #ffffff;
+  border :1px solid #E0E0E0;
+  font-size: 14px;
+  text-transform: uppercase;
 }

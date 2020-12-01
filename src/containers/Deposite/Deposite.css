@@ -1,0 +1,255 @@
+.deposit .subtitle {
+    display: block;
+    font-size: 20px;
+    color: #666666;
+    text-align: left;
+    margin-left: 62px;
+    font-weight: 400;
+
+}
+
+.deposit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.deposit-header img {
+    cursor: pointer;
+}
+
+.deposit-txt {
+    display: flex;
+    margin-left: 62px;
+    margin-top: 20px;
+}
+
+.deposit-txt .item  {
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+    position: relative;
+    width: 40%;
+}
+
+.deposit-txt .item span:first-child {
+    display: block;
+    font-size: 16px;
+    background-color: #707070;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
+.deposit-txt .item:after {
+    content: "";
+    display: block;
+    width: 94%;
+    height: 1px;
+    left: 24px;
+    background-color: #707070;
+    position: absolute;
+    top: 11px;
+    z-index: 0;
+}
+.deposit-txt .item:nth-child(2):after {
+    display: none;
+}
+
+.deposit-txt .item span:nth-child(2) {
+    font-size: 20px;
+    display: block;
+    color: #666666;
+    font-weight: 400;
+}
+.deposit-txt .item.active span:first-child {
+    background-color: #0F54F4;
+}
+.deposit-txt .item.active span:nth-child(2) {
+    color: #0F54F4;
+
+}
+
+.deposit-main {
+    display: flex;
+    align-items: center;
+}
+.deposit-main .numbers {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.deposit-main .numbers-item {
+    width: 25%;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+.deposit-main .numbers-item span:first-child:after {
+    content: "";
+    background-color: #0F54F4;
+    display: block;
+    width: 55%;
+    height: 4px;
+    text-align: center;
+    margin: 0 auto;
+
+}
+.deposit-main .numbers span {
+    display: block;
+}
+.deposit-main .numbers span:nth-child(2) {
+    color: #757575;
+}
+
+
+.deposit-statecoins {
+    margin-left: 40px;
+
+}
+
+.go3147146168:before {
+    background-color: #707070 !important;
+    border-radius: 50% !important;
+}
+.go579888598 span {
+    position: relative;
+    top: 40px;
+    left: 4px;
+    color: #Ffffff;
+}
+.go3147146168 span {
+    position: relative;
+    top: 40px;
+    left: 4px;
+    color: #Ffffff;
+}
+.go3163795179 span {
+    display: none;
+}
+.go579888598:before,
+.go3147146168:before {
+    width: 24px !important;
+    height: 24px;
+    color: transparent !important;
+}
+.go3163795179:hover, .go3163795179::before {
+    left: 0;
+}
+.go2441762052 li {
+    width: 30%;
+}
+ol.go2441762052 {
+    text-align: left;
+
+}
+.wizard button {
+    background-color: #0F54F4;
+    color: #Ffffff;
+    border: none;
+    padding: 6px 20px;
+    font-size: 14px;
+    text-transform: uppercase;
+    border-radius: 6px;
+    margin-top: 30px;
+}
+
+.create-title {
+    font-size: 14px;
+    display: block;
+    font-weight: bold;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+
+}
+.create-title img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.selected-item span {
+    display: block;
+    color: #212121;
+    font-size: 16px;
+
+}
+.modal-header {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.modal-body {
+    padding-top: 0;
+}
+
+.modal-header h6 {
+    font-size: 20px;
+    color: #000000;
+    padding-top: 15px;
+    font-weight: 400;
+}
+.selected-item {
+    margin: 20px auto;
+}
+.selected-item select {
+    font-size: 14px;
+    color: #212121;
+    box-shadow: 0px 2px 12px -7px #222;
+    padding: 8px 15px;
+    border: none;
+    width: 100%;
+    margin-top: 15px;
+
+}
+.add.show {
+    display: block;
+}
+.add.hide {
+    display: none;
+}
+.deposit-scan {
+    display: flex;
+    align-items: center;
+}
+
+.deposit-scan-subtxt {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.deposit-scan-subtxt span {
+    display: block;
+    font-size: 14px;
+}
+.deposit-scan-subtxt span:nth-child(2) {
+    background-color: #E4E4E4;
+    padding: 5px 20px;
+    border-radius: 20px;
+
+ }
+.deposit-scan-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.deposit-scan-main span {
+    font-size: 20px;
+
+}
+.deposit-scan-content {
+    width: 100%;
+    padding: 20px;
+}
+.deposit-scan-main-item {
+    display: flex;
+    align-items: center;
+    background-color: #ECF2FF;
+    padding: 20px 30px;
+    margin-top: 10px;
+
+}
+.deposit-scan-main-item img  {
+    margin-right: 10px;
+}

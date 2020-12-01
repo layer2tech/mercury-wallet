@@ -4,6 +4,8 @@
 }
 
 .ButtonsPanel {
+  display: flex;
+  justify-content: space-between;
   margin: 5px;
   overflow:hidden;
 }
@@ -24,9 +26,10 @@
 }
 
 .ActionGroupLeft {
-  float: left;
+  display: flex;
+  align-items: center;
 }
 
 .ActionGroupRight {
-  float: right;
+  display: flex;
 }

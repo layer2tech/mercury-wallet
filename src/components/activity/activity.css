@@ -1,0 +1,45 @@
+table {
+   display: flex;
+   width: 100%;
+   justify-content: space-between;
+}
+table thead th {
+   display: none;
+}
+
+table tbody tr {
+   display: flex;
+   flex-wrap: wrap;
+   width: 100%;
+   justify-content: center;
+
+}
+table tbody {
+   width: 100%;
+}
+table tbody tr td:first-child {
+   width: 100%;
+   border-top: none;
+   font-weight: bold;
+   margin: 10px auto;
+}
+table tbody tr td:nth-child(2) {
+   width: 32%;
+   text-align: left;
+}
+table tbody tr td:nth-child(3) {
+   width: 32%;
+}
+
+table tbody tr td:nth-child(4)  {
+   width: 32%;
+   text-align: right;
+}
+
+table tbody tr td .red {
+   color:#E64A19 ;
+}
+
+table tbody tr td .green {
+   color:#388E3C ;
+}
