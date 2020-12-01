@@ -26,6 +26,7 @@ const PanelControl = () => {
 
     console.log(wallet)
     console.log(wallet.getHistory(10))
+    console.log(wallet.getStatecoinsBalance())
 
     // let amount = 0.1; // value should be provided via props
     // let deposit_data = Deposit(amount);

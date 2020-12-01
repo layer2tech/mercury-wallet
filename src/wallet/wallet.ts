@@ -1,8 +1,9 @@
 // Main wallet struct storing Keys derivation material and Mercury Statecoins.
 
 import { Network } from 'bitcoinjs-lib';
-import { ActionLog } from './action_log';
-import { Statecoin } from './statecoin';
+import { ActivityLog, ActivityLogItem } from './activity_log';
+import { MasterKey2 } from './mercury/ecdsa';
+import { Statecoins } from './statecoin';
 
 let bitcoin = require('bitcoinjs-lib')
 let bip32utils = require('bip32-utils')
@@ -17,14 +18,14 @@ const WALLET_LOC = "wallet.json";
 export class Wallet {
   mnemonic: string;
   account: any;
-  statecoins: Statecoin[]
-  history: ActionLog
+  statecoins: Statecoins
+  activity: ActivityLog
 
   constructor(mnemonic: string, account: any) {
     this.mnemonic = mnemonic
     this.account = account
-    this.statecoins = []
-    this.history = new ActionLog;
+    this.statecoins = new Statecoins
+    this.activity = new ActivityLog;
   }
 
   // Constructors
@@ -34,15 +35,9 @@ export class Wallet {
 
   static buildMock = function () {
     var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost');
-    wallet.statecoins.push(
-      new Statecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41")
-    )
-    wallet.statecoins.push(
-      new Statecoin("223861d2-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.2, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41")
-    )
-    wallet.history.addItem("861d2223-7d84-44f1-ba3e-4cd7dd418560", "D");
-    wallet.history.addItem("223861d2-7d84-44f1-ba3e-4cd7dd418560", "D");
-    wallet.history.addItem("223861d2-7d84-44f1-ba3e-4cd7dd418560", "T");
+    wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", "D")
+    wallet.addStatecoin("223861d2-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.2, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", "D")
+    wallet.activity.addItem("223861d2-7d84-44f1-ba3e-4cd7dd418560", "T");
     return wallet
   }
 
@@ -89,25 +84,28 @@ export class Wallet {
   getMnemonic() {
     return this.mnemonic
   }
-  getStatecoinsInfo() {
-    return this.statecoins.map((item: Statecoin) => {
-      return item.getInfo()
-    })
+  getStatecoinsBalance() {
+    return this.statecoins.getUnspentCoins()
   }
-
+  // ActivityLog data with relevant Coin data
   getHistory(depth: number) {
-    let history = this.history.getItems(depth);
-    console.log("history: ", history)
-    return history.map((item) => {
+    return this.activity.getItems(depth).map((item: ActivityLogItem) => {
       {
-        return item
+        let coin = this.statecoins.getCoin(item.statecoin_id) // should err here if no coin found
+        return {
+          date: item.date,
+          action: item.action,
+          value: coin ? coin.value : "",
+          txid: coin? coin.txid: ""
+        }
       }
     })
   }
 
-  // Add Statecoin
-  addStatecoin(statecoin: Statecoin) {
-    this.statecoins.push(statecoin)
+  // Add Statecoin to wallet
+  addStatecoin(id: string, shared_key: MasterKey2, value: number, txid: string, action: string) {
+    this.statecoins.addItem(id, shared_key, value, txid)
+    this.activity.addItem(id, action);
   }
 
   // New BTC address

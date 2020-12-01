@@ -1,7 +1,7 @@
 // History is a log of all Mercury protocol actions taken by the wallet.
 
-export class ActionLog {
-  items: ActionLogItem[];
+export class ActivityLog {
+  items: ActivityLogItem[];
 
   constructor() {
     this.items = []
@@ -13,12 +13,12 @@ export class ActionLog {
   }
 
   addItem = (statecoin_id: string, action: string) => {
-    this.items.push(new ActionLogItem(statecoin_id, action))
+    this.items.push(new ActivityLogItem(statecoin_id, action))
   };
 }
 
 
-class ActionLogItem {
+export class ActivityLogItem {
   statecoin_id: string;
   action: string;
   date: number;

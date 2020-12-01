@@ -2,13 +2,52 @@
 
 import { MasterKey2 } from "./mercury/ecdsa";
 
-export class Statecoin {
+export class Statecoins {
+  coins: Coin[]
+
+  constructor() {
+    this.coins = [];
+  }
+
+  getAllCoins = () => {
+    return this.coins.map((item: Coin) => {
+      return item.getInfo()
+    })
+  };
+
+  getUnspentCoins = () => {
+    return this.coins.map((item: Coin) => {
+      if (!item.spent) {
+        return item.getInfo()
+      }
+    })
+  };
+
+  getCoin = (id: string) => {
+    return this.coins.reverse().find(coin => coin.id == id)
+  }
+
+
+  addItem = (id: string, shared_key: MasterKey2, value: number, txid: string) => {
+    this.coins.push(new Coin(id, shared_key, value, txid))
+  };
+
+  setCoinSpent = (id: string) => {
+    let coin = this.getCoin(id)
+    if (coin) {
+      coin.spent = true
+    }
+  }
+}
+
+export class Coin {
   id: string;
   shared_key: MasterKey2;
   value: number;
   txid: string;
   timestamp: number;
-  swap_rounds: number
+  swap_rounds: number;
+  spent: boolean;
 
   constructor(id: string, shared_key: MasterKey2, value: number, txid: string) {
     this.id = id;
@@ -17,6 +56,7 @@ export class Statecoin {
     this.txid = txid;
     this.timestamp = new Date().getTime();
     this.swap_rounds = 0
+    this.spent = false
   }
 
   getInfo = () => {
