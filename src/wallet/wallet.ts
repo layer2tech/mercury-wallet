@@ -1,6 +1,7 @@
 // Main wallet struct storing Keys derivation material and Mercury Statecoins.
 
 import { Network } from 'bitcoinjs-lib';
+import { ActionLog } from './action_log';
 import { Statecoin } from './statecoin';
 
 let bitcoin = require('bitcoinjs-lib')
@@ -17,11 +18,13 @@ export class Wallet {
   mnemonic: string;
   account: any;
   statecoins: Statecoin[]
+  history: ActionLog
 
   constructor(mnemonic: string, account: any) {
     this.mnemonic = mnemonic
     this.account = account
     this.statecoins = []
+    this.history = new ActionLog;
   }
 
   // Constructors
@@ -37,6 +40,9 @@ export class Wallet {
     wallet.statecoins.push(
       new Statecoin("223861d2-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.2, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41")
     )
+    wallet.history.addItem("861d2223-7d84-44f1-ba3e-4cd7dd418560", "D");
+    wallet.history.addItem("223861d2-7d84-44f1-ba3e-4cd7dd418560", "D");
+    wallet.history.addItem("223861d2-7d84-44f1-ba3e-4cd7dd418560", "T");
     return wallet
   }
 
@@ -89,6 +95,15 @@ export class Wallet {
     })
   }
 
+  getHistory(depth: number) {
+    let history = this.history.getItems(depth);
+    console.log("history: ", history)
+    return history.map((item) => {
+      {
+        return item
+      }
+    })
+  }
 
   // Add Statecoin
   addStatecoin(statecoin: Statecoin) {
