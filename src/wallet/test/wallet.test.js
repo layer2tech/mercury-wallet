@@ -1,6 +1,6 @@
 let bitcoin = require('bitcoinjs-lib')
-import { Wallet, Statecoins, ACTION } from './';
-import { segwitAddr } from './wallet';
+import { Wallet, Statecoins, ACTION } from '../';
+import { segwitAddr } from '../wallet';
 
 
 describe('Wallet', function() {
