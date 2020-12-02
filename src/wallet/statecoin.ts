@@ -9,30 +9,39 @@ export class Statecoins {
     this.coins = [];
   }
 
-  getAllCoins = () => {
+  static fromJSON(json: any) {
+    let statecoins = new Statecoins()
+    JSON.parse(json).coins.forEach((item: Coin) => {
+      let coin = new Coin(item.id, item.shared_key, item.value, item.txid);
+      statecoins.coins.push(Object.assign(coin, item))
+    })
+    return statecoins
+  }
+
+  getAllCoins() {
     return this.coins.map((item: Coin) => {
       return item.getInfo()
     })
   };
 
-  getUnspentCoins = () => {
-    return this.coins.map((item: Coin) => {
+  getUnspentCoins() {
+    return this.coins.filter((item: Coin) => {
       if (!item.spent) {
         return item.getInfo()
       }
     })
   };
 
-  getCoin = (id: string) => {
+  getCoin(id: string) {
     return this.coins.reverse().find(coin => coin.id == id)
   }
 
-
-  addItem = (id: string, shared_key: MasterKey2, value: number, txid: string) => {
+  // adds coin with Date.now()
+  addCoin(id: string, shared_key: MasterKey2, value: number, txid: string) {
     this.coins.push(new Coin(id, shared_key, value, txid))
   };
 
-  setCoinSpent = (id: string) => {
+  setCoinSpent(id: string) {
     let coin = this.getCoin(id)
     if (coin) {
       coin.spent = true
@@ -61,7 +70,7 @@ export class Coin {
     this.spent = false
   }
 
-  getInfo = () => {
+  getInfo() {
     return {
       id: this.id,
       value: this.value,

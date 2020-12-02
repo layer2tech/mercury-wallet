@@ -29,11 +29,11 @@ export class Wallet {
   }
 
   // Constructors
-  static fromMnemonic = function (mnemonic: string) {
+  static fromMnemonic(mnemonic: string) {
     return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic))
   }
 
-  static buildMock = function () {
+  static buildMock() {
     var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost');
     wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
     wallet.addStatecoin("223861d2-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.2, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
@@ -41,18 +41,13 @@ export class Wallet {
     return wallet
   }
 
-  static load = async (
-    {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr}:
-    {file_path?: string, network?: Network, addressFunction?: Function}
-  ) => {
-    // Fetch raw json
-    let str_wallet: string = await new Promise((resolve,_reject) => {
-          fsLibrary.readFile(file_path, (error: any, txtString: String) => {
-            if (error) throw error;
-            resolve(txtString.toString())
-          });
-      });
+
+  static fromJSON(str_wallet: string, network: Network, addressFunction: Function) {
     let json_wallet: Wallet = JSON.parse(str_wallet);
+
+    let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account);
+    new_wallet.statecoins = Statecoins.fromJSON(JSON.stringify(json_wallet.statecoins))
+    new_wallet.activity = ActivityLog.fromJSON(JSON.stringify(json_wallet.activity))
 
     // Re-derive Account from JSON
     const chains = json_wallet.account.map(function (j: any) {
@@ -68,11 +63,25 @@ export class Wallet {
       return chain
     })
 
-    let account = new bip32utils.Account(chains)
-    return new Wallet(json_wallet.mnemonic, account)
+    new_wallet.account = new bip32utils.Account(chains)
+    return new_wallet
   }
 
-  save = ({file_path = WALLET_LOC}: {file_path?: string}={}) => {
+  static async load(
+    {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr}:
+    {file_path?: string, network?: Network, addressFunction?: Function}
+  ) {
+    // Fetch raw json
+    let str_wallet: string = await new Promise((resolve,_reject) => {
+          fsLibrary.readFile(file_path, (error: any, txtString: String) => {
+            if (error) throw error;
+            resolve(txtString.toString())
+          });
+      });
+    return Wallet.fromJSON(str_wallet, network, addressFunction)
+  }
+
+  save({file_path = WALLET_LOC}: {file_path?: string}={}) {
     // Store in file as JSON string
     fsLibrary.writeFile(file_path, JSON.stringify(this), (error: any) => {
       if (error) throw error;
@@ -84,11 +93,11 @@ export class Wallet {
   getMnemonic() {
     return this.mnemonic
   }
-  getStatecoinsBalance() {
+  getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins()
   }
   // ActivityLog data with relevant Coin data
-  getHistory(depth: number) {
+  getActivityLog(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
       {
         let coin = this.statecoins.getCoin(item.statecoin_id) // should err here if no coin found
@@ -104,7 +113,7 @@ export class Wallet {
 
   // Add Statecoin to wallet
   addStatecoin(id: string, shared_key: MasterKey2, value: number, txid: string, action: string) {
-    this.statecoins.addItem(id, shared_key, value, txid)
+    this.statecoins.addCoin(id, shared_key, value, txid)
     this.activity.addItem(id, action);
   }
 
@@ -207,7 +216,7 @@ const mnemonic_to_bip32_root_account = (mnemonic: string) => {
 }
 
 // Address generation fn
-const segwitAddr = (node: any) => {
+export const segwitAddr = (node: any) => {
   const p2wpkh = bitcoin.payments.p2wpkh({
     pubkey: node.publicKey,
     network: bitcoin.networks.bitcoin
@@ -227,24 +236,3 @@ const dummy_master_key = {
   private: "",
   chain_code: "",
 }
-
-
-// const mnemonic =
-//   'praise you muffin lion enable neck grocery crumble super myself license ghost';
-//
-// var wallet = Wallet.fromMnemonic(mnemonic);
-//
-// wallet.statecoins.push(
-//   new Statecoin({a: 12}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41")
-// )
-//
-// console.log(wallet)
-// console.log(wallet.getStatecoinsInfo())
-
-
-//
-// wallet.save(WALLET_LOC)
-//
-// Wallet.load(WALLET_LOC, bitcoin.networks.bitcoin, segwitAddr).then(json => {
-//   console.log("json: ",json)
-// });

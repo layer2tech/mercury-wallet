@@ -10,6 +10,11 @@ GUI Client Mercury implementation.
 `yarn run dev`
 
 
+# Run tests
+
+`yarn run test`
+
+
 # Development instructions
 
 ## Rust bindings

@@ -7,12 +7,21 @@ export class ActivityLog {
     this.items = []
   }
 
+  static fromJSON(json: any) {
+    let activity_log = new ActivityLog()
+    JSON.parse(json).items.forEach((item: ActivityLogItem) => {
+      let log_item = new ActivityLogItem(item.statecoin_id, item.action);
+      activity_log.items.push(Object.assign(log_item, item))
+    })
+    return activity_log
+  }
+
   // Return most recent items up to given depth
-  getItems = (depth: number) => {
+  getItems(depth: number) {
     return this.items.reverse().slice(0,depth)
   }
 
-  addItem = (statecoin_id: string, action: string) => {
+  addItem(statecoin_id: string, action: string) {
     this.items.push(new ActivityLogItem(statecoin_id, action))
   };
 }

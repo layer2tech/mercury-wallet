@@ -25,8 +25,8 @@ const PanelControl = () => {
     var wallet = Wallet.buildMock();
 
     console.log(wallet)
-    console.log(wallet.getHistory(10))
-    console.log(wallet.getStatecoinsBalance())
+    console.log(wallet.getActivityLog(10))
+    console.log(wallet.getUnspentStatecoins())
 
     // let amount = 0.1; // value should be provided via props
     // let deposit_data = Deposit(amount);
