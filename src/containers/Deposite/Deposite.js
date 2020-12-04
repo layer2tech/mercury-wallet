@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import './Deposite.css';
 
-import { withRouter } from "react-router-dom";
+import {Link, withRouter} from "react-router-dom";
 import plus from "../../images/plus-deposit.svg";
 import points from "../../images/points.svg";
 import StdButton from "../../components/buttons/standardButton";
@@ -16,6 +16,7 @@ import calendar from "../../images/calendar.svg";
 import privacy from "../../images/privacy.svg";
 import question from "../../images/question-grey.svg";
 import swapNumber from "../../images/swap-number.svg";
+import pluseIcon from "../../images/pluseIcon.svg";
 
 const DepositePage = () => {
 
@@ -39,10 +40,15 @@ const DepositePage = () => {
                        Deposit BTC
                    </h2>
                    <div>
-                       <StdButton
-                           label="Back"
-                           className="Body-button transparent"/>
-                       <img onClick={handleShow} src={points} alt="points"/>
+                       <Link className="nav-link" to="/">
+                           <StdButton
+                               label="Back"
+                               className="Body-button transparent"/>
+                           <img onClick={handleShow} src={points} alt="points"/>
+                       </Link>
+
+
+
                    </div>
                </div>
                 <h3 className="subtitle">Deposite BTC to create new Statecoins</h3>
