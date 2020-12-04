@@ -35,8 +35,8 @@ const Coin = (props) => {
     const handleShow = () => setShow(true);
 
     const wallet = Wallet.buildMock();
-    const data = wallet.getStatecoinsBalance()
-    console.log(wallet.getStatecoinsBalance())
+    const data = wallet.getUnspentStatecoins()
+    console.log(wallet.getUnspentStatecoins())
 
     const statecoinData = data.map(item => (
 

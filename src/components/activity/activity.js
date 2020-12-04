@@ -13,7 +13,7 @@ import swapIcon from '../../images/swap-icon-grey.png';
 function Activity() {
 
     const wallet = Wallet.buildMock()
-    const activities = wallet.getHistory(10)
+    const activities = wallet.getActivityLog(10)
 
     console.log(activities)
 

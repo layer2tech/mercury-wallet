@@ -85,5 +85,4 @@ describe("Statecoins/Coin", () => {
       expect(coins.length).toBe(statecoins.coins.length)
     });
   })
-
 })
