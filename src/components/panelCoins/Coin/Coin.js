@@ -2,21 +2,21 @@ import React, {Component, useState} from 'react';
 
 import './Coin.css';
 import '../../index.css';
-import icon1 from "../../../images/table-icon.svg";
-import icon2 from "../../../images/table-icon-grey.svg";
+import icon1 from "../../../images/table-icon.png";
+import icon2 from "../../../images/table-icon-grey.png";
 
-import medium from "../../../images/table-icon-medium.svg";
+import medium from "../../../images/table-icon-medium.png";
 
-import utx from "../../../images/UTX.svg";
-import time from "../../../images/time-grey.svg";
-import calendar from "../../../images/calendar.svg";
-import privacy from "../../../images/privacy.svg";
-import swapNumber from "../../../images/swap-number.svg";
-import walleticon from "../../../images/walletIcon.svg";
-import close from "../../../images/close-grey.svg";
-import txidIcon from "../../../images/txid-icon.svg";
-import timeIcon from "../../../images/time.svg";
-import check from "../../../images/check-grey.svg";
+import utx from "../../../images/UTX.png";
+import time from "../../../images/time-grey.png";
+import calendar from "../../../images/calendar.png";
+import privacy from "../../../images/privacy.png";
+import swapNumber from "../../../images/swap-number.png";
+import walleticon from "../../../images/walletIcon.png";
+import close from "../../../images/close-grey.png";
+import txidIcon from "../../../images/txid-icon.png";
+import timeIcon from "../../../images/time.png";
+import check from "../../../images/check-grey.png";
 
 import {Wallet} from '../../../wallet/wallet'
 
@@ -25,7 +25,7 @@ import {Button, Modal} from 'react-bootstrap';
 import Moment from "react-moment";
 
 
-import question from "../../../images/question-mark.svg";
+import question from "../../../images/question-mark.png";
 
 
 const Coin = (props) => {

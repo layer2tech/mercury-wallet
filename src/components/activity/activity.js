@@ -2,12 +2,12 @@ import React from 'react';
 import { useTable } from 'react-table'
 import './activity.css';
 import { Wallet } from '../../wallet/wallet'
-import txidIcon from '../../images/txid-icon.svg';
+import txidIcon from '../../images/txid-icon.png';
 import Moment from 'react-moment';
-import createIcon from '../../images/create-icon-dep.svg';
-import transferIcon from '../../images/transfer-icon.svg';
-import withrowIcon from '../../images/withrow-icon.svg';
-import swapIcon from '../../images/swap-icon-grey.svg';
+import createIcon from '../../images/create-icon-dep.png';
+import transferIcon from '../../images/transfer-icon.png';
+import withrowIcon from '../../images/withrow-icon.png';
+import swapIcon from '../../images/swap-icon-grey.png';
 
 
 function Activity() {

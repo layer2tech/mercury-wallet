@@ -5,12 +5,12 @@ import { useSelector } from 'react-redux'
 import { addCoin, removeCoin } from '../../features/CoinDataSlice'
 import { deposit } from '../../wallet'
 import { Wallet, Statecoin } from '../../wallet'
-import walletIcon from '../../images/walletIcon.svg';
-import walletIconSmall from '../../images/walletIconsmallIcon.svg';
-import pluseIcon from '../../images/pluseIcon.svg';
-import swapIcon from '../../images/swap-icon.svg';
-import arrowUp from '../../images/arrow-up.svg';
-import arrowDown from '../../images/arrow-down.svg';
+import walletIcon from '../../images/walletIcon.png';
+import walletIconSmall from '../../images/walletIconsmallIcon.png';
+import pluseIcon from '../../images/pluseIcon.png';
+import swapIcon from '../../images/swap-icon.png';
+import arrowUp from '../../images/arrow-up.png';
+import arrowDown from '../../images/arrow-down.png';
 
 import StdButton from '../buttons/standardButton';
 

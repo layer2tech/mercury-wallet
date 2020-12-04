@@ -7,6 +7,7 @@
 }
 .CoinTimeLeft {
   display: flex;
+  align-items: center;
   color: #757575;
 }
 .CoinTimeLeft img {
@@ -18,7 +19,15 @@
   display: flex;
 
 }
-
+.CoinAmount-block img {
+  width:36px;
+  height:36px
+}
+.scoreAmount img,
+.CoinTimeLeft img {
+  width:18px;
+  height:18px
+}
 .CoinAmount {
   color: #000000;
 }

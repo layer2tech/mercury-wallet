@@ -1,9 +1,9 @@
 import React from 'react';
 import '../../containers/Deposite/Deposite.css';
-import scan from "../../images/scan-icon.svg";
-import icon1 from "../../images/icon1.svg";
-import icon2 from "../../images/icon2.svg";
-import arrow from "../../images/scan-arrow.svg";
+import scan from "../../images/scan-deposite.png";
+import icon1 from "../../images/icon1.png";
+import icon2 from "../../images/icon2.png";
+import arrow from "../../images/scan-arrow.png";
 
 const TransactionsBTC = () => {
     return (

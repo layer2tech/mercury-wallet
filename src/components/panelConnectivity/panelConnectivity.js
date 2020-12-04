@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import './panelConnectivity.css';
-import arrow from '../../images/arrow-accordion.svg';
+import arrow from '../../images/arrow-accordion.png';
 import '../index.css';
 
 

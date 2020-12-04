@@ -2,16 +2,16 @@ import React, {useState} from 'react';
 import './Swap.css';
 
 import {Link, withRouter} from "react-router-dom";
-import swapIcon from '../../images/swap_icon-blue.svg';
+import swapIcon from '../../images/swap_icon-blue.png';
 import StdButton from "../../components/buttons/standardButton";
 
-import close from "../../images/close-icon.svg";
-import number from "../../images/number-icon.svg";
-import cyrcle from "../../images/cyrcle-icon.svg";
-import coin from "../../images/table-icon1.svg";
-import user from "../../images/table-icon-user.svg";
-import time from "../../images/table-icon-time.svg";
-import points from "../../images/points.svg";
+import close from "../../images/close-icon.png";
+import number from "../../images/number-icon.png";
+import cyrcle from "../../images/cyrcle-icon.png";
+import coin from "../../images/table-icon1.png";
+import user from "../../images/table-icon-user.png";
+import time from "../../images/table-icon-time.png";
+import points from "../../images/points.png";
 
 
 const SwapPage = () => {

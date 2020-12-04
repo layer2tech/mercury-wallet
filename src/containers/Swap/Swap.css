@@ -151,6 +151,10 @@ input:checked ~ .checkmark:after {
     color: #757575;
     font-weight: 300;
 }
+.swap table tbody tr td .content .line img {
+    width:18px;
+    height:18px
+}
 .swap table tbody tr td .content span {
     display: block;
 }
@@ -173,4 +177,7 @@ input:checked ~ .checkmark:after {
 }
 .swap table.second thead  tr td {
    padding-right: 40px;
+}
+.swap table.second thead  tr {
+    border-bottom: none;
 }

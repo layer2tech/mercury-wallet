@@ -2,21 +2,21 @@ import React, {useState} from 'react';
 import './Deposite.css';
 
 import {Link, withRouter} from "react-router-dom";
-import plus from "../../images/plus-deposit.svg";
-import points from "../../images/points.svg";
+import plus from "../../images/plus-deposit.png";
+import points from "../../images/points.png";
 import StdButton from "../../components/buttons/standardButton";
 import MultiStep from "react-multistep";
 import CreateStatecoin from "../../components/createStatecoin/createStatecoin";
 import TransactionsBTC from "../../components/transactionsBTC/transactionsBTC";
 import {Button, Modal} from "react-bootstrap";
-import walleticon from "../../images/walletIcon.svg";
-import utx from "../../images/UTX.svg";
-import time from "../../images/time-grey.svg";
-import calendar from "../../images/calendar.svg";
-import privacy from "../../images/privacy.svg";
-import question from "../../images/question-grey.svg";
-import swapNumber from "../../images/swap-number.svg";
-import pluseIcon from "../../images/pluseIcon.svg";
+import walleticon from "../../images/walletIcon.png";
+import utx from "../../images/UTX.png";
+import time from "../../images/time-grey.png";
+import calendar from "../../images/calendar.png";
+import privacy from "../../images/privacy.png";
+import question from "../../images/question-grey.png";
+import swapNumber from "../../images/swap-number.png";
+import pluseIcon from "../../images/pluseIcon.png";
 
 const DepositePage = () => {
 

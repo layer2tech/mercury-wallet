@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import '../../containers/Deposite/Deposite.css';
-import plus from "../../images/plus-deposit.svg";
+import plus from "../../images/plus-deposit.png";
 
 
 class CreateStatecoin extends Component {
