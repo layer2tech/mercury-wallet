@@ -5,17 +5,19 @@ import { useSelector } from 'react-redux'
 import { addCoin, removeCoin } from '../../features/CoinDataSlice'
 import { deposit } from '../../wallet'
 import { Wallet, Statecoin } from '../../wallet'
-import walletIcon from '../../images/walletIcon.svg';
-import walletIconSmall from '../../images/walletIconsmallIcon.svg';
-import pluseIcon from '../../images/pluseIcon.svg';
-import swapIcon from '../../images/swap-icon.svg';
-import arrowUp from '../../images/arrow-up.svg';
-import arrowDown from '../../images/arrow-down.svg';
+import walletIcon from '../../images/walletIcon.png';
+import walletIconSmall from '../../images/walletIconsmallIcon.png';
+import pluseIcon from '../../images/pluseIcon.png';
+import swapIcon from '../../images/swap-icon.png';
+import arrowUp from '../../images/arrow-up.png';
+import arrowDown from '../../images/arrow-down.png';
 
 import StdButton from '../buttons/standardButton';
 
 import './panelControl.css';
 import '../index.css';
+import {Link} from "react-router-dom";
+import settings from "../../images/settings-icon.png";
 
 const PanelControl = () => {
   const dispatch = useDispatch()
@@ -105,14 +107,25 @@ const PanelControl = () => {
         </div>
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
-          <StdButton
-            label="Deposit"  icon={pluseIcon}
-            onClick={createButtonAction}
-            className="Body-button blue"/>
-          <StdButton
-            label="Swap" icon={swapIcon}
-            onClick={swapButtonAction}
-            className="Body-button blue"/>
+
+
+                <Link className="nav-link" to="/deposit">
+                    <StdButton
+                        label="Deposit"  icon={pluseIcon}
+                        onClick={createButtonAction}
+                        className="Body-button blue"/>
+                </Link>
+
+
+
+          <Link className="nav-link" to="/swap_statecoin">
+
+            <StdButton
+                label="Swap" icon={swapIcon}
+                onClick={swapButtonAction}
+                className="Body-button blue"/>
+          </Link>
+
           <StdButton
             label="Withdraw" icon={walletIconSmall}
             onClick={withdrawButtonAction}

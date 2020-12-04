@@ -1,0 +1,183 @@
+.swap .subtitle{
+    text-align: left;
+    margin-left: 55px;
+    font-size: 20px;
+    font-weight: 400;
+
+}
+
+
+label {
+    display: block;
+    position: relative;
+    padding-left: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666666;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.checkmark {
+    position: absolute;
+    top: 4px;
+    left: 0;
+    height: 15px;
+    width: 15px;
+    background-color: #ffffff;
+    border: 2px solid #388E3C;
+    border-radius: 50%;
+}
+
+.ConnectionSwaps {
+    text-align: left;
+}
+.collapse-content-item {
+    margin-left: 23px;
+
+}
+.swap-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+input:checked ~ .checkmark:after {
+    display: block;
+}
+.checkmark:after {
+    top: 1.5px;
+    left: 2.1px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #388E3C;
+}
+
+.swap-header-txt {
+    margin-left: 30px;
+}
+
+.swap.content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.swap.content .right {
+    width: 49%;
+}
+.swap.content .left .sub,
+.swap.content .left h3,
+.swap.content .right h3 {
+    text-align: left;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.swap.content .left {
+    width: 49%;
+}
+.swap table  {
+    display: block;
+    margin-top: 30px;
+}
+.swap table tbody {
+    display: block;
+}
+.swap table thead tr{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+}
+.swap table thead tr td {
+    display: flex;
+    align-items: center;
+}
+.swap table thead tr td img {
+    margin-right: 10px;
+}
+.swap table thead tr td {
+    color: #757575;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+.swap table  tr {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    align-items: center;
+    padding-bottom: 20px;
+    margin: 10px auto;
+    border-bottom: 1px solid #E0E0E0;
+
+}
+.swap table tbody  tr td ,
+.swap table thead  tr td {
+    width: 50%;
+
+
+}
+
+.swap table tbody tr td .content {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+
+}
+.swap table tbody tr td .content .txt {
+    margin-left: 10px;
+}
+.swap table tbody tr td .content .line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.swap table tbody tr td .content .line span {
+    font-size: 14px;
+    color: #757575;
+    font-weight: 300;
+}
+.swap table tbody tr td .content .line img {
+    width:18px;
+    height:18px
+}
+.swap table tbody tr td .content span {
+    display: block;
+}
+.swap table tbody tr td:first-child {
+    text-align: left;
+}
+.swap table tbody tr td:nth-child(2) {
+    text-align: right;
+}
+.swap table tbody tr .status {
+    display: block;
+    background-color: #E4E4E4;
+    text-align: center;
+    padding: 15px 20px;
+    border-radius: 30px;
+}
+.swap table.second tbody tr td,
+.swap table.second thead tr td  {
+    text-align: center;
+}
+.swap table.second thead  tr td {
+   padding-right: 40px;
+}
+.swap table.second thead  tr {
+    border-bottom: none;
+}
