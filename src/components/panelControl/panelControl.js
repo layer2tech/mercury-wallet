@@ -118,10 +118,14 @@ const PanelControl = () => {
 
 
 
-          <StdButton
-            label="Swap" icon={swapIcon}
-            onClick={swapButtonAction}
-            className="Body-button blue"/>
+          <Link className="nav-link" to="/swap_statecoin">
+
+            <StdButton
+                label="Swap" icon={swapIcon}
+                onClick={swapButtonAction}
+                className="Body-button blue"/>
+          </Link>
+
           <StdButton
             label="Withdraw" icon={walletIconSmall}
             onClick={withdrawButtonAction}

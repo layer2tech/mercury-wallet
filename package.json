@@ -47,14 +47,16 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "html-react-parser": "^0.14.2",
     "install": "^0.13.0",
+    "moment": "^2.29.1",
     "react": "^16.1.1",
     "react-bootstrap": "^1.4.0",
     "react-dom": "^16.1.1",
+    "react-moment": "^1.0.0",
     "react-multistep": "^5.1.0",
     "react-redux": "^7.2.0",
     "react-router-dom": "^5.2.0",
-    "superagent": "^6.1.0",
-    "react-table": "^7.6.2"
+    "react-table": "^7.6.2",
+    "superagent": "^6.1.0"
   },
   "browserslist": {
     "production": [

@@ -42,8 +42,12 @@
   position: relative;
   display: inline-block;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
-
+.scoreAmount img {
+  margin-right: 10px;
+}
 .scoreAmount .tooltip {
   visibility: hidden;
   width: 350px;

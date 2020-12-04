@@ -18,9 +18,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 10px;
+  border-bottom: 1px solid #dee2e6;
 }
 .CoinFundingTxid {
   color: #BDBDBD;
+  display: block;
+  width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
 }
 .CoinFundingTxid img {
