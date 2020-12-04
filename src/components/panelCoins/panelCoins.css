@@ -1,12 +1,76 @@
 .CoinsPanel {
-  margin: 5px;
-  overflow:hidden;
+  padding: 10px 0;
+}
+.table {
+  margin-bottom: 15px;
+  box-shadow: 0px 2px 12px -7px #222;
+  padding: 10px 0;
 }
 
-.ConnectionStateChain {
-  float: left;
+.tab-content {
+  padding: 10px;
+}
+.tab-content article {
+  border-bottom: 1px solid #dee2e6;
+}
+.tab-content .CoinPanel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+.CoinFundingTxid {
+  color: #BDBDBD;
+  display: block;
+  width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+}
+.CoinFundingTxid img {
+  margin-right: 5px;
 }
 
-.ConnectionSwaps {
-  float: right;
+.nav-tabs {
+  display: flex;
+ justify-content: center;
+  width: 100%;
+
 }
+.nav-tabs a {
+  position: relative;
+  color: #666666;
+  font-size: 14px;
+  width: 50%;
+}
+.nav-tabs .nav-link {
+  border: none;
+}
+.nav-tabs .nav-link {
+  border: none !important;
+}
+.nav-tabs a.nav-item.active {
+  color: #0054F4;
+}
+.nav-tabs a.nav-item.active:after {
+  content: "";
+  display: block;
+  background-color:  #0054F4;
+  height: 2px;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active,
+.nav-tabs .nav-link:focus, .nav-tabs .nav-link:hover {
+  border-top: transparent;
+  border-left: transparent;
+  border-right: transparent;
+
+}
+

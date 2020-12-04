@@ -1,6 +1,5 @@
 use wasm_bindgen::prelude::*;
-use web_sys::console;
-use crate::error::CError;
+// use web_sys::console;
 
 use serde_json::{json, Value};
 use curv::{elliptic::curves::traits::ECScalar, FE, GE, BigInt};
@@ -75,7 +74,7 @@ impl KeyGen {
                 &kg_party_one_second_message,
             ) {
             Ok(val) => val,
-            Err(err) => return Err("key_gen_second_message panic.".into())
+            Err(_) => return Err("key_gen_second_message panic.".into())
         };
 
         // convert to strings and place into JSON for return to JS
