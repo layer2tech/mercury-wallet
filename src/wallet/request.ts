@@ -7,6 +7,8 @@ export const GET_ROUTE = {
    FEES: "info/fee",
    ROOT: "info/root",
    STATECHAIN: "info/statechain",
+   SMT_PROOF: "info/proof",
+   TRANSFER_BATCH: "info/transfer-batch"
 };
 Object.freeze(GET_ROUTE);
 
@@ -21,7 +23,8 @@ Object.freeze(POST_ROUTE);
 
 export const get = async (path: string, params: any) => {
   try {
-    const url = state_entity_addr + "/" + path + "/" + (params == undefined ? "" : params);
+    const url = state_entity_addr + "/" + path + "/" + (Object.entries(params).length == 0 ? "" : params);
+
     const config = {
         method: 'get',
         url: url,
@@ -54,6 +57,14 @@ export const get = async (path: string, params: any) => {
           utxo: { txid: "0158f2978e5c2cf407970d7213f2b4289993b2fe3ef6aca531316cdcf347cc41", vout: 1},
           amount: 100,
           chain: [{ data: "026ff25fd651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e", next_state: null }]
+        }
+      case GET_ROUTE.SMT_PROOF:
+        return {
+          proof: "t1qhf5rpn7nuxtbcrky0xtjwk2rkky0sdhjr4sdhj6c79ts93x"
+        }
+      case GET_ROUTE.TRANSFER_BATCH:
+        return {
+          status: true
         }
     }
   }

@@ -4,6 +4,7 @@ export { Statecoins } from "./statecoin"
 export { ACTION } from "./activity_log"
 
 export { deposit } from "./mercury/deposit"
+export { getFeeInfo, getRoot, getStateChain, getSmtProot, getTransferBatchStatus } from "./mercury/util"
 
 // StateEntity fee info.
 export const GetSEFeeInfo = () => {
