@@ -1,5 +1,4 @@
 use wasm_bindgen::prelude::*;
-// use web_sys::console;
 
 use serde_json::{json, Value};
 use curv::{elliptic::curves::traits::ECScalar, FE, GE, BigInt};
@@ -12,12 +11,6 @@ use curv::arithmetic::traits::Converter;
 
 use std::collections::HashMap;
 
-
-// can call JS functions whose fn signatures are here
-#[wasm_bindgen]
-extern {
-    pub fn alert(s: &str);
-}
 
 
 /// Provides wrappers for kms-secp256k1 MasterKey2 KeyGen methods
