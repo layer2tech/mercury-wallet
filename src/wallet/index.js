@@ -1,6 +1,6 @@
 export { GET_ROUTE, POST_ROUTE, post, get } from "./request";
 export { Wallet } from "./wallet"
-export { Statecoins } from "./statecoin"
+export { StateCoinList } from "./statecoin"
 export { ACTION } from "./activity_log"
 
 export { deposit } from "./mercury/deposit"

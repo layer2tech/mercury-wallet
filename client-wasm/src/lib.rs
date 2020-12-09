@@ -10,6 +10,7 @@ extern crate serde_json;
 
 pub mod kms_secp256k1_js_wrapper;
 pub mod monotree_js_wrapper;
+pub mod util_js_wrapper;
 mod error;
 
 use error::CError;

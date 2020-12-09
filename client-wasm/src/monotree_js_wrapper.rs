@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use monotree::{
-    hasher::Blake3,
+    hasher::{Hasher, Blake3},
     tree::verify_proof,
     Proof,
 };

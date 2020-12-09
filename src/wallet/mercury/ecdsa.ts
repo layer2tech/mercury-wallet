@@ -1,6 +1,7 @@
 // Mercury 2P-ECDSA KeyGen and Sign protocols
 
 import { post, POST_ROUTE } from '../request';
+import { StateCoin } from '../statecoin';
 
 export const PROTOCOL = {
    DEPOSIT: "Deposit",
@@ -9,12 +10,12 @@ export const PROTOCOL = {
 };
 Object.freeze(PROTOCOL);
 
-// 2P-ECDSA Key generation. Output MasterKey2 struct.
+// 2P-ECDSA Key generation. Output SharedKey struct.
 export const keyGen = async (
     shared_key_id: string,
     secret_key: string,
     _proof_key: string,
-    _value: number,
+    value: number,
     protocol: string
   ) => {
   // Import Rust functions
@@ -26,6 +27,7 @@ export const keyGen = async (
   };
   // server first
   let server_resp_key_gen_first = await post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
+  let id = server_resp_key_gen_first[0];
   let kg_party_one_first_message = server_resp_key_gen_first[1];
 
   // client first
@@ -62,7 +64,7 @@ export const keyGen = async (
         JSON.stringify(client_resp_key_gen_second.party_two_paillier)
     ));
 
-    return master_key
+    return new StateCoin(id, master_key, value)
 }
 
 // 2P-ECDSA Sign.
@@ -128,9 +130,18 @@ export interface MasterKey2 {
 
 // kms::ecdsa:two_party::Party2Public
 export interface Party2Public {
-  q: string,
-  p2: string,
-  p1: string,
+  q: {
+    x: string,
+    y: string
+  },
+  p2: {
+    x: string,
+    y: string
+  },
+  p1: {
+    x: string,
+    y: string
+  },
   paillier_pub: any,
   c_key: string,
 }
