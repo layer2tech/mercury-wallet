@@ -2,6 +2,13 @@
 
 import { post, POST_ROUTE } from '../request';
 
+export const PROTOCOL = {
+   DEPOSIT: "Deposit",
+   TRANSFER: "Transfer",
+   WITHDRAW: "Withdraw"
+};
+Object.freeze(PROTOCOL);
+
 // 2P-ECDSA Key generation. Output MasterKey2 struct.
 export const keyGen = async (
     shared_key_id: string,

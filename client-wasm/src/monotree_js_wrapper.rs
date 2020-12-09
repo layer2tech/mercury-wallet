@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use monotree::{
-    hasher::{Blake3, Hasher},
+    hasher::Blake3,
     tree::verify_proof,
     Proof,
 };
@@ -26,12 +26,4 @@ pub fn verify_statechain_smt(
     let entry: &monotree::Hash = proof_key[..32].as_bytes().try_into().unwrap();
     let hasher = Blake3::new();
     Ok(verify_proof(&hasher, root.as_ref(), &entry, proof.as_ref()).into())
-}
-
-
-use wasm_bindgen_test::*;
-
-#[wasm_bindgen_test]
-fn tester_trying() {
-    println!("gothere");
 }
