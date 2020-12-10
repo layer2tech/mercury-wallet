@@ -2,14 +2,14 @@
 
 import { Network } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
-import { MasterKey2 } from './mercury/ecdsa';
-import { StateCoinList } from './statecoin';
+import { MockElectrum, StateCoinList } from './';
+import { MasterKey2 } from "./mercury/ecdsa"
 
-let bitcoin = require('bitcoinjs-lib')
-let bip32utils = require('bip32-utils')
-let bip32 = require('bip32')
-let bip39 = require('bip39')
-let fsLibrary  = require('fs')
+let bitcoin = require('bitcoinjs-lib');
+let bip32utils = require('bip32-utils');
+let bip32 = require('bip32');
+let bip39 = require('bip39');
+let fsLibrary  = require('fs');
 
 
 const WALLET_LOC = "wallet.json";
@@ -18,14 +18,18 @@ const WALLET_LOC = "wallet.json";
 export class Wallet {
   mnemonic: string;
   account: any;
-  statecoins: StateCoinList
-  activity: ActivityLog
+  statecoins: StateCoinList;
+  activity: ActivityLog;
+  electrum_client: MockElectrum;
+  network: Network;
 
   constructor(mnemonic: string, account: any) {
-    this.mnemonic = mnemonic
-    this.account = account
-    this.statecoins = new StateCoinList
+    this.mnemonic = mnemonic;
+    this.account = account;
+    this.statecoins = new StateCoinList;
     this.activity = new ActivityLog;
+    this.electrum_client = new MockElectrum;
+    this.network = bitcoin.networks.bitcoin;
   }
 
   // Constructors

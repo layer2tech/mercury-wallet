@@ -1,6 +1,6 @@
 // Statecoin is a Mercury shared key along with all deposit information.
 
-import { MasterKey2 } from "./mercury/ecdsa";
+import { MasterKey2 } from "./mercury/ecdsa"
 
 let bitcoin = require('bitcoinjs-lib')
 

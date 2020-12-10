@@ -1,7 +1,7 @@
 // Mercury 2P-ECDSA KeyGen and Sign protocols
 
 import { post, POST_ROUTE } from '../request';
-import { StateCoin } from '../statecoin';
+import { StateCoin } from '../';
 
 export const PROTOCOL = {
    DEPOSIT: "Deposit",

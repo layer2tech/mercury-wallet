@@ -4,20 +4,21 @@ const state_entity_addr = "http://0.0.0.0:8000";
 // const state_entity_addr = "https://fakeapi.mercurywallet.io";
 
 export const GET_ROUTE = {
-   FEES: "info/fee",
-   ROOT: "info/root",
-   STATECHAIN: "info/statechain",
-   SMT_PROOF: "info/proof",
-   TRANSFER_BATCH: "info/transfer-batch"
+  FEES: "info/fee",
+  ROOT: "info/root",
+  STATECHAIN: "info/statechain",
+  SMT_PROOF: "info/proof",
+  TRANSFER_BATCH: "info/transfer-batch"
 };
 Object.freeze(GET_ROUTE);
 
 export const POST_ROUTE = {
-   DEPOSIT_INIT: "deposit/init",
-   KEYGEN_FIRST: "ecdsa/keygen/first",
-   KEYGEN_SECOND: "ecdsa/keygen/second",
-   SIGN_FIRST: "ecdsa/sign/first",
-   SIGN_SECOND: "ecdsa/sign/second"
+  DEPOSIT_INIT: "deposit/init",
+  DEPOSIT_CONFIRM: "deposit/confirm",
+  KEYGEN_FIRST: "ecdsa/keygen/first",
+  KEYGEN_SECOND: "ecdsa/keygen/second",
+  SIGN_FIRST: "ecdsa/sign/first",
+  SIGN_SECOND: "ecdsa/sign/second"
 };
 Object.freeze(POST_ROUTE);
 
@@ -95,6 +96,8 @@ export const post = async (path: string, body: any) => {
     switch(path) {
       case POST_ROUTE.DEPOSIT_INIT:
         return "861d2223-7d84-44f1-ba3e-4cd7dd418560";
+      case POST_ROUTE.DEPOSIT_CONFIRM:
+        return "21d28236-d874-f0f4-ba3e-d4184cd7d560";
       case POST_ROUTE.KEYGEN_FIRST:
         return ["861d2223-7d84-44f1-ba3e-4cd7dd418560",{"pk_commitment":"fa11dbc7bc21f4bf7dd5ae4fee73d5919734c6cd144328798ae93908e47732aa","zk_pok_commitment":"fcffc8bee0287bd75005f21612f94107796de03cbff9b4041bd0bd76c86eaa57"}];
       case POST_ROUTE.KEYGEN_SECOND:

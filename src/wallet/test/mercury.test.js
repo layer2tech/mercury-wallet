@@ -1,6 +1,6 @@
 let bitcoin = require('bitcoinjs-lib')
 
-import { verifySmtProof } from '../mercury/util';
+import { verifySmtProof } from '../util';
 
 
 // describe('wasm', function() {

@@ -1,18 +1,11 @@
 export { GET_ROUTE, POST_ROUTE, post, get } from "./request";
+export { MockElectrum } from './electrum/mock_electrum'
+
 export { Wallet } from "./wallet"
-export { StateCoinList } from "./statecoin"
+export { StateCoin, StateCoinList } from "./statecoin"
 export { ACTION } from "./activity_log"
+export { txBackupBuild, verifySmtProof } from "./util"
 
 export { deposit } from "./mercury/deposit"
-export { getFeeInfo, getRoot, getStateChain, getSmtProot, getTransferBatchStatus, verifySmtProof } from "./mercury/util"
-
-// StateEntity fee info.
-export const GetSEFeeInfo = () => {
-  return {
-    addr: "bcrt1qjjwk2rk7nuxt6c79tsxthf5rpnky0sdhjr493x",
-    deposit_fee: 300,
-    withdraw_fee: 300,
-    interval: 100,
-    init_lock: 10000
-  }
-}
+// export { MasterKey2 } from "./mercury/ecdsa";
+export { getFeeInfo, getRoot, getStateChain, getSmtProot, getTransferBatchStatus } from "./mercury/info_api"
