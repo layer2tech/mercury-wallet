@@ -115,9 +115,9 @@ export class Wallet {
     })
   }
 
-  // Add Statecoin to wallet
+  // Add confirmed Statecoin to wallet
   addStatecoin(id: string, shared_key: MasterKey2, value: number, txid: string, action: string) {
-    this.statecoins.addCoin(id, shared_key, value)
+    this.statecoins.addNewCoin(id, shared_key, value)
     this.statecoins.setCoinFundingTxid(id, txid)
     this.activity.addItem(id, action);
   }

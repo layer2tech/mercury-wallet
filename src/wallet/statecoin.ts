@@ -1,5 +1,6 @@
 // Statecoin is a Mercury shared key along with all deposit information.
 
+import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { MasterKey2 } from "./mercury/ecdsa"
 
 let bitcoin = require('bitcoinjs-lib')
@@ -38,10 +39,15 @@ export class StateCoinList {
     return this.coins.reverse().find(coin => coin.id == id)
   }
 
-  // adds coin with Date.now()
-  addCoin(id: string, shared_key: MasterKey2, value: number) {
+  // creates new coin with Date.now()
+  addNewCoin(id: string, shared_key: MasterKey2, value: number) {
     this.coins.push(new StateCoin(id, shared_key, value))
   };
+
+  addCoin(statecoin: StateCoin) {
+    this.coins.push(statecoin)
+  };
+
 
   setCoinFundingTxid(id: string, txid: string) {
     let coin = this.getCoin(id)
@@ -68,12 +74,12 @@ export class StateCoin {
   id: string;               // SharedKeyId
   state_chain_id: String;   // StateChainId
   shared_key: MasterKey2;
-  proof_key: string;
+  proof_key: string | null;
   value: number;
-  funding_txid: string;
+  funding_txid: string | null;
   timestamp: number;
-  tx_backup_psm: PrepareSignTxMsg;
-  smt_proof: InclusionProofSMT;
+  tx_backup: BTCTransaction | null;
+  smt_proof: InclusionProofSMT | null;
   swap_rounds: number;
   confirmed: boolean;
   spent: boolean;
@@ -82,14 +88,14 @@ export class StateCoin {
     this.id = id;
     this.state_chain_id = "";
     this.shared_key = shared_key;
-    this.proof_key = "";
+    this.proof_key = null;
     this.value = value;
     this.timestamp = new Date().getTime();
 
-    this.funding_txid = "";
+    this.funding_txid = null;
     this.swap_rounds = 0
-    this.tx_backup_psm = "";
-    this.smt_proof = "";
+    this.tx_backup = null;
+    this.smt_proof = null;
     this.confirmed = false
     this.spent = false
   }

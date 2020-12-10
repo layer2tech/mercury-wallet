@@ -8,4 +8,4 @@ export { txBackupBuild, verifySmtProof } from "./util"
 
 export { deposit } from "./mercury/deposit"
 // export { MasterKey2 } from "./mercury/ecdsa";
-export { getFeeInfo, getRoot, getStateChain, getSmtProot, getTransferBatchStatus } from "./mercury/info_api"
+export { getFeeInfo, getRoot, getStateChain, getSmtProof, getTransferBatchStatus } from "./mercury/info_api"

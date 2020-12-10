@@ -2,7 +2,7 @@
 
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { POST_ROUTE, post } from "../request";
-import { Wallet, getFeeInfo, txBackupBuild, getRoot, verifySmtProof, getSmtProot } from "../";
+import { Wallet, getFeeInfo, txBackupBuild, getRoot, verifySmtProof, getSmtProof } from "../";
 import { Transaction } from 'bitcoinjs-lib';
 
 
@@ -21,10 +21,10 @@ export const deposit = async (wallet: Wallet) => {
   // Init. session - Receive shared wallet ID
   let shared_key_id = await despoitInit(proof_key);
   // 2P-ECDSA with state entity to create a Shared key
-  let state_coin = await keyGen(shared_key_id, secret_key, proof_key, value, PROTOCOL.DEPOSIT);
+  let statecoin = await keyGen(shared_key_id, secret_key, proof_key, value, PROTOCOL.DEPOSIT);
 
   // Co-owned key address to send funds to (P_addr)
-  let p_addr = await state_coin.getBtcAddress();
+  let p_addr = await statecoin.getBtcAddress();
 
 
   // Function will be split here to allow for user to send funds to p_addr, or to receive
@@ -44,22 +44,26 @@ export const deposit = async (wallet: Wallet) => {
 
   //co sign funding tx input signatureHash
   let signatureHash = tx_backup_unsigned.hashForSignature(0, tx_backup_unsigned.ins[0].script, Transaction.SIGHASH_ALL);
-  let signature = await sign(shared_key_id, state_coin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
+  let signature = await sign(shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
   // set witness data with signature
   let tx_backup_signed = tx_backup_unsigned;
   tx_backup_signed.ins[0].witness = [Buffer.from(signature)];
 
   // Wait for server confirmation of funding tx and receive new StateChain's id
   let state_chain_id = await despoitConfirm(shared_key_id);
-  console.log("state_chain_id: ", state_chain_id);
 
   // Verify proof key inclusion in SE sparse merkle tree
   let root = await getRoot();
-  let proof = await getSmtProot(root, funding_txid);
+  let proof = await getSmtProof(root, funding_txid);
   if (!verifySmtProof(root, proof_key, proof)) throw "SMT verification failed."
 
   // Add proof and state chain id to Shared key
-  
+  statecoin.smt_proof = proof;
+  statecoin.state_chain_id = state_chain_id;
+  statecoin.tx_backup = tx_backup_signed;
+
+  // Add to wallet
+  wallet.statecoins.addCoin(statecoin);
 
   return [tx_backup_signed, p_addr]
 }
