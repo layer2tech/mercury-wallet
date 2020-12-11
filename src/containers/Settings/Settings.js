@@ -2,7 +2,9 @@ import React from 'react';
 import { StdButton } from '../../components/'
 import './Settings.css';
 
-import { withRouter } from "react-router-dom";
+import {Link, withRouter} from "react-router-dom";
+import arrow from "../../images/arrow-up.png";
+import question from "../../images/question-blue.png";
 
 
 const change_setting = () => {
@@ -11,20 +13,9 @@ const change_setting = () => {
 
 const SettingsPage = () => {
   return (
-    <div className="Body">
-      <div className="Settings-panel">
-        <StdButton
-          label="Settings1"
-          onClick={change_setting}
-          className="Settings-button"
-        />
-      </div>
-      <div>
-        <StdButton
-          label="Settings2"
-          onClick={change_setting}
-          className="Settings-button"
-        />
+    <div className="container">
+
+      <div className="Body settings">
       </div>
     </div>
   )

@@ -41,23 +41,23 @@ const Coin = (props) => {
     const statecoinData = data.map(item => (
 
 
-
-        <div>
+        <div key={item.id}>
             <div>
                 {item.swap_rounds === 0 ? <div className="CoinPanel">
                     <div className="CoinAmount-block">
                         <img src={icon2} alt="icon"/>
                         <span className="sub">
-                <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC </b>
-                <div className="scoreAmount">
-                    <img src={close} alt="icon"/>
-                    No Privacy Score
+                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <div className="scoreAmount">
+                                <img src={close} alt="icon"/>
+                                No Privacy Score
 
-                    <span className="tooltip">
-                        <b> No Privacy Score: </b> Withdrawn BTC wille private
-                    </span>
-                </div>
-            </span>
+                                <span className="tooltip">
+                                    <b>No Privacy Score:</b>
+                                    Withdrawn BTC wille private
+                                </span>
+                            </div>
+                        </span>
                     </div>
                     <div>
                         <div className="sub">
@@ -83,16 +83,17 @@ const Coin = (props) => {
                     <div className="CoinAmount-block">
                         <img src={icon2} alt="icon"/>
                         <span className="sub">
-                <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC </b>
-                <div className="scoreAmount">
-                    <img src={question} alt="icon"/>
-                     Low Privacy Score
+                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <div className="scoreAmount">
+                                <img src={question} alt="icon"/>
+                                Low Privacy Score
 
-                    <span className="tooltip">
-                        <b> High Privacy Score: </b> Withdrawn BTC wille private
-                    </span>
-                </div>
-            </span>
+                                <span className="tooltip">
+                                    <b>High Privacy Score:</b>
+                                    Withdrawn BTC wille private
+                                </span>
+                            </div>
+                        </span>
                     </div>
                     <div>
                         <div className="sub">
@@ -118,16 +119,17 @@ const Coin = (props) => {
                     <div className="CoinAmount-block">
                         <img src={medium} alt="icon"/>
                         <span className="sub">
-                <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC </b>
-                <div className="scoreAmount">
-                    <img src={question} alt="icon"/>
-                     Medium Privacy Score
+                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <div className="scoreAmount">
+                                <img src={question} alt="icon"/>
+                                Medium Privacy Score
 
-                    <span className="tooltip">
-                        <b> Medium Privacy Score: </b> Withdrawn BTC wille private
-                    </span>
-                </div>
-            </span>
+                                <span className="tooltip">
+                                    <b>Medium Privacy Score:</b>
+                                    Withdrawn BTC wille private
+                                </span>
+                            </div>
+                        </span>
                     </div>
                     <div>
                         <div className="sub">
@@ -153,16 +155,17 @@ const Coin = (props) => {
                     <div className="CoinAmount-block">
                         <img src={icon1} alt="icon"/>
                         <span className="sub">
-                <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC </b>
-                <div className="scoreAmount">
-                    <img src={check} alt="icon"/>
-                     High Privacy Score
+                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <div className="scoreAmount">
+                                <img src={check} alt="icon"/>
+                                High Privacy Score
 
-                    <span className="tooltip">
-                        <b> High Privacy Score: </b> Withdrawn BTC wille private
-                    </span>
-                </div>
-            </span>
+                                <span className="tooltip">
+                                    <b>High Privacy Score:</b>
+                                    Withdrawn BTC wille private
+                                </span>
+                            </div>
+                        </span>
                     </div>
                     <div>
                         <div className="sub">
@@ -184,12 +187,8 @@ const Coin = (props) => {
                         {item.txid}
                     </b>
                 </div> : null}
-
             </div>
-
-
         </div>
-
 
     ))
 
@@ -205,8 +204,10 @@ const Coin = (props) => {
                         <div className="item">
                             <img src={walleticon} alt="icon"/>
                             <div className="block">
-                                <span> Statecoin Value</span>
-                                <span><b>{props.amount} BTC</b> </span>
+                                <span>Statecoin Value</span>
+                                <span>
+                                    <b>{props.amount} BTC</b>
+                                </span>
                             </div>
                         </div>
                         <div className="item">
@@ -228,7 +229,10 @@ const Coin = (props) => {
                             <img src={calendar} alt="icon"/>
                             <div className="block">
                                 <span>Date Created</span>
-                                <span>412.10.2020  <br/> 13:30:12PM </span>
+                                <span>412.10.2020
+                                    <br/>
+                                    13:30:12PM
+                                </span>
                             </div>
                         </div>
                         <div className="item">
@@ -236,7 +240,7 @@ const Coin = (props) => {
 
                             <div className="block">
                                 <span>Privacy Score</span>
-                                <span>Low: 10 </span>
+                                <span>Low: 10</span>
 
                             </div>
                             <img className="question-icon" src={question} alt="icon"/>
@@ -245,7 +249,10 @@ const Coin = (props) => {
                             <img src={swapNumber} alt="icon"/>
                             <div className="block">
                                 <span>Number of Swaps Rounds</span>
-                                <span>SwapId: 10 <br/>  Number of Participants: 10  </span>
+                                <span>SwapId: 10
+                                    <br/>
+                                    Number of Participants: 10
+                                </span>
                             </div>
 
                         </div>

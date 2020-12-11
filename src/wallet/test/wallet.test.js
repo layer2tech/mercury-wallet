@@ -1,5 +1,5 @@
 let bitcoin = require('bitcoinjs-lib')
-import { Wallet, Statecoins, ACTION } from '../';
+import { Wallet, StateCoinList, ACTION } from '../';
 import { segwitAddr } from '../wallet';
 
 
@@ -34,7 +34,7 @@ describe('Wallet', function() {
           date: expect.any(Number),
           action: expect.any(String),
           value: expect.any(Number),
-          txid: expect.any(String)
+          funding_txid: expect.any(String)
         }))
     }
   });
@@ -55,7 +55,7 @@ describe("Statecoins/Coin", () => {
 
   it('to/from JSON', () => {
     var json = JSON.stringify(statecoins)
-    let from_json = Statecoins.fromJSON(json)
+    let from_json = StateCoinList.fromJSON(json)
     expect(statecoins).toEqual(from_json)
   });
 
@@ -68,7 +68,7 @@ describe("Statecoins/Coin", () => {
           {
             id: expect.any(String),
             value: expect.any(Number),
-            txid: expect.any(String),
+            funding_txid: expect.any(String),
             timestamp: expect.any(Number),
             swap_rounds: expect.any(Number),
           }))

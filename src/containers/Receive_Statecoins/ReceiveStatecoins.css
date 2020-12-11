@@ -1,0 +1,49 @@
+.receiveStatecoin .subtitle {
+    color: #676767;
+    font-size: 20px;
+    text-align: left;
+    font-weight: 400;
+    padding-left: 62px;
+
+}
+
+.receiveStatecoin-scan {
+    display: flex;
+    align-items: flex-start;
+}
+.receiveStatecoin-scan img {
+    position: relative;
+    bottom: 5px;
+}
+.receiveStatecoin-scan-txid {
+    display: flex;
+    background-color: #ECF2FF;
+    padding: 20px;
+    align-items: baseline;
+    border-radius: 6px;
+}
+.receiveStatecoin-scan-content  {
+    margin-left: 20px;
+}
+
+.receiveStatecoin-scan-txid span {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    line-break: anywhere;
+    text-align: left;
+    margin-left: 10px;
+}
+.receiveStatecoin-scan-txid img {
+    width: 16px;
+    height: 16px;
+}
+.receiveStatecoin-scan-ft-txt {
+    display: block;
+    text-align: center;
+    margin-top: 30px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 14px;
+    color: #0054F4;
+}

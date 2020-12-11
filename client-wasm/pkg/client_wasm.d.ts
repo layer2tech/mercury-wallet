@@ -1,6 +1,21 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+* @param {string} root
+* @param {string} proof_key
+* @param {string} proof
+* @returns {any}
+*/
+export function verify_statechain_smt(root: string, proof_key: string, proof: string): any;
+/**
+*/
+export function test_wasm(): void;
+/**
+* @param {string} pk
+* @returns {any}
+*/
+export function curv_pk_to_bitcoin_public_key(pk: string): any;
+/**
 * Provides wrappers for kms-secp256k1 MasterKey2 KeyGen methods
 */
 export class KeyGen {

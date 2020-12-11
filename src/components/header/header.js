@@ -1,6 +1,6 @@
 import React from 'react';
 import logo from '../../images/monochrome - white@4x.png';
-import question from '../../images/question-mark.png';
+import question from '../../images/header-question.png';
 import settings from '../../images/settings-icon.png';
 import {Link, withRouter} from "react-router-dom";
 
@@ -17,7 +17,7 @@ const Header = (props) => {
 
                 <div className="menu">
                     <div className={`nav-item  ${props.location.pathname === "/" ? "active" : ""}`}>
-                        <Link className="nav-link" to="/about">
+                        <Link className="nav-link" to="/help">
                             <img src={question} alt="question"/>
                         </Link>
                     </div>

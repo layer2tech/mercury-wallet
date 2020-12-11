@@ -1,10 +1,8 @@
-.Settings-panel {
-    margin: 5px;
-    overflow:hidden;
-}
+.settings .subtitle {
+    color: #676767;
+    font-size: 20px;
+    text-align: left;
+    font-weight: 400;
+    padding-left: 62px;
 
-.Settings-button {
-  background-color: #CCCCCC;
-  height: 40px;
-  padding: 5px;
 }

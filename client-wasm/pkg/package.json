@@ -1,5 +1,6 @@
 {
   "name": "client_wasm",
+  "description": "Rust bindings for Mercury Wallet",
   "version": "0.1.0",
   "license": "MIT/Apache-2.0",
   "files": [

@@ -23,6 +23,7 @@
 }
 .WalletAmount img {
   margin-right: 10px;
+  width: 38px;
 }
 
 .ActionGroupLeft {
@@ -32,4 +33,8 @@
 
 .ActionGroupRight {
   display: flex;
+}
+
+.ActionGroupRight a {
+  padding: 0;
 }

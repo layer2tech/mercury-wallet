@@ -53,10 +53,12 @@
     "react-dom": "^16.1.1",
     "react-moment": "^1.0.0",
     "react-multistep": "^5.1.0",
+    "react-quantity-picker": "^1.0.3",
     "react-redux": "^7.2.0",
     "react-router-dom": "^5.2.0",
     "react-table": "^7.6.2",
-    "superagent": "^6.1.0"
+    "superagent": "^6.1.0",
+    "typeforce": "^1.11.3"
   },
   "browserslist": {
     "production": [
