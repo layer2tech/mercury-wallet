@@ -1,5 +1,7 @@
-import { GET_ROUTE, get } from "../request";
+import { GET_ROUTE, POST_ROUTE, get, post } from "../request";
 
+let types = require("../types")
+let typeforce = require('typeforce');
 
 export const getFeeInfo = async () => {
   return await get(GET_ROUTE.FEES, {})
@@ -11,13 +13,18 @@ export const getStateChain = async (statechain_id: string) => {
 
 export const getRoot = async () => {
   let root = await get(GET_ROUTE.ROOT, {});
-  // assert types
+  typeforce(types.Root, root);
   return root
 }
 
-export const getSmtProof = async (root: string, funding_txid: string) => {
-  let proof = await get(GET_ROUTE.SMT_PROOF, {});
-  // assert types
+export const getSmtProof = async (root: Root, funding_txid: string) => {
+  typeforce(types.Root, root);
+  let smt_proof_msg_api = {
+    root: root,
+    funding_txid: funding_txid
+  };
+  let proof = await post(POST_ROUTE.SMT_PROOF, smt_proof_msg_api);
+  typeforce(typeforce.Array, proof);
   return proof
 }
 
@@ -27,5 +34,7 @@ export const getTransferBatchStatus = async (batch_id: string) => {
 
 
 export interface Root {
-
+  id: number,
+  value: number[],
+  commitment_info: any
 }

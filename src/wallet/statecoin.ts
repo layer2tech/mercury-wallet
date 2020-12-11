@@ -3,7 +3,7 @@
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { MasterKey2 } from "./mercury/ecdsa"
 
-let bitcoin = require('bitcoinjs-lib')
+// let bitcoin = require('bitcoinjs-lib')
 
 export class StateCoinList {
   coins: StateCoin[]

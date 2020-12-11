@@ -1,15 +1,20 @@
 // wallet utilities
+
 import { Network, TransactionBuilder } from 'bitcoinjs-lib';
-// import { TransactionBuilder } from 'bitcoinjs-lib/types/transaction_builder';
+import { Root } from './mercury/info_api';
+
+let typeforce = require('typeforce');
+let types = require("./types")
 
 /// Temporary - fees should be calculated dynamically
 const FEE = 300;
 
 
 // Verify Spase Merkle Tree proof of inclusion
-export const verifySmtProof = async (root: string, proof_key: string, proof: string) => {
+export const verifySmtProof = async (root: Root, proof_key: string, proof: any) => {
+  typeforce(types.Root, root);
   let wasm = await import('client-wasm');
-  return wasm.verify_statechain_smt(root, proof_key, proof);
+  return wasm.verify_statechain_smt(JSON.stringify(root.value), proof_key, JSON.stringify(proof));
 }
 
 

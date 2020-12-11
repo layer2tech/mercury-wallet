@@ -11,7 +11,6 @@ import { Transaction } from 'bitcoinjs-lib';
 export const deposit = async (wallet: Wallet) => {
   // gen these from Wallet
   let secret_key = "12345";
-  let message = "12345";
   let proof_key = "02851ad2219901fc72ea97b4d21e803c625a339f07da8c7069ea33ddd0125da84f";
   let value = 1000;
 
