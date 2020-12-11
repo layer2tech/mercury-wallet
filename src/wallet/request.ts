@@ -43,11 +43,11 @@ export const get = async (path: string, params: any) => {
     switch(path) {
       case GET_ROUTE.FEES:
         return {
-          addr: "bcrt1qjjwk2rk7nuxt6c79tsxthf5rpnky0sdhjr493x",
-          deposit_fee: 300,
-          withdraw_fee: 300,
+          address: "bcrt1qjjwk2rk7nuxt6c79tsxthf5rpnky0sdhjr493x",
+          deposit: 300,
+          withdraw: 300,
           interval: 100,
-          init_lock: 10000
+          initlock: 10000
         }
       case GET_ROUTE.ROOT:
         return {
@@ -73,7 +73,6 @@ export const get = async (path: string, params: any) => {
 export const post = async (path: string, body: any) => {
   try {
     let url = state_entity_addr + "/" + path;
-
     const config = {
         method: 'post',
         url: url,

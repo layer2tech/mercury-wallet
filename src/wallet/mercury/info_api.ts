@@ -4,7 +4,9 @@ let types = require("../types")
 let typeforce = require('typeforce');
 
 export const getFeeInfo = async () => {
-  return await get(GET_ROUTE.FEES, {})
+  let fee_info = await get(GET_ROUTE.FEES, {});
+  typeforce(types.FeeInfo, fee_info);
+  return fee_info
 }
 
 export const getStateChain = async (statechain_id: string) => {
@@ -13,18 +15,18 @@ export const getStateChain = async (statechain_id: string) => {
 
 export const getRoot = async () => {
   let root = await get(GET_ROUTE.ROOT, {});
-  typeforce(types.Root, root);
+  typeforce(typeforce.oneOf(types.Root, typeforce.Null), root);
   return root
 }
 
-export const getSmtProof = async (root: Root, funding_txid: string) => {
-  typeforce(types.Root, root);
+export const getSmtProof = async (root: Root | null, funding_txid: string) => {
+  typeforce(typeforce.oneOf(types.Root, typeforce.Null), root);
   let smt_proof_msg_api = {
     root: root,
     funding_txid: funding_txid
   };
   let proof = await post(POST_ROUTE.SMT_PROOF, smt_proof_msg_api);
-  typeforce(typeforce.Array, proof);
+  typeforce(types.Array, proof);
   return proof
 }
 

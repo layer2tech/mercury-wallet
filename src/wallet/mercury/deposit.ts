@@ -5,6 +5,7 @@ import { POST_ROUTE, post } from "../request";
 import { Wallet, getFeeInfo, txBackupBuild, getRoot, verifySmtProof, getSmtProof } from "../";
 import { Transaction } from 'bitcoinjs-lib';
 
+let typeforce = require('typeforce');
 
 // Deposit coins into state entity. Returns shared_key_id, state_chain_id, funding txid,
 // signed backup tx, back up transacion data and proof_key
@@ -33,7 +34,7 @@ export const deposit = async (wallet: Wallet) => {
 
   // Calculate initial locktime
   let chaintip = wallet.electrum_client.get_tip_header();
-  let init_locktime = (chaintip.height) + (fee_info.init_lock);
+  let init_locktime = (chaintip.height) + (fee_info.initlock);
 
   // Build unsigned backup tx
   let backup_receive_addr = wallet.genBtcAddress();
@@ -74,7 +75,7 @@ const despoitInit = async (proof_key: string) => {
         proof_key: String(proof_key)
     }
     let shared_key_id = await post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
-
+    typeforce(typeforce.String, shared_key_id)
     return shared_key_id
 }
 
@@ -83,6 +84,6 @@ const despoitConfirm = async (shared_key_id: string) => {
         shared_key_id: shared_key_id,
     }
     let state_chain_id = await post(POST_ROUTE.DEPOSIT_CONFIRM, deposit_msg2);
-
+    typeforce(typeforce.String, shared_key_id)
     return state_chain_id
 }

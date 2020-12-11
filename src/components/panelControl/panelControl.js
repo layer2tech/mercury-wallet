@@ -25,13 +25,15 @@ const PanelControl = () => {
 
   const createButtonAction = async () => {
     var wallet = Wallet.buildMock();
+    deposit(wallet)
+    // console.log(wallet)
+    // console.log(wallet.getActivityLog(10))
+    // console.log(wallet.getUnspentStatecoins())
+    let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
+    let funding_txid = "64ec6bc7f794343a0c3651c0578f25df5134322b959ece99795dccfffe8a87e9"
 
-    console.log(wallet)
-    console.log(wallet.getActivityLog(10))
-    console.log(wallet.getUnspentStatecoins())
 
   }
-
 
 
   return (

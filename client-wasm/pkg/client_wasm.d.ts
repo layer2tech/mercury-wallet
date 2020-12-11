@@ -14,7 +14,7 @@ export function test_wasm(): void;
 * @param {string} pk
 * @returns {any}
 */
-export function curv_pk_to_bitcoin_public_key(pk: string): any;
+export function curv_ge_to_bitcoin_public_key(pk: string): any;
 /**
 * Provides wrappers for kms-secp256k1 MasterKey2 KeyGen methods
 */

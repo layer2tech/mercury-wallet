@@ -130,10 +130,10 @@ export function test_wasm() {
 * @param {string} pk
 * @returns {any}
 */
-export function curv_pk_to_bitcoin_public_key(pk) {
+export function curv_ge_to_bitcoin_public_key(pk) {
     var ptr0 = passStringToWasm0(pk, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len0 = WASM_VECTOR_LEN;
-    var ret = wasm.curv_pk_to_bitcoin_public_key(ptr0, len0);
+    var ret = wasm.curv_ge_to_bitcoin_public_key(ptr0, len0);
     return takeObject(ret);
 }
 

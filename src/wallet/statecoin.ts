@@ -114,7 +114,7 @@ export class StateCoin {
   // Generate BTC address from SharedKey
   async getBtcAddress() {
     let wasm = await import('client-wasm');
-    return wasm.curv_pk_to_bitcoin_public_key(
+    return wasm.curv_ge_to_bitcoin_public_key(
       JSON.stringify(
         this.shared_key.public.q
       )
