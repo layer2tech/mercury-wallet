@@ -30,70 +30,8 @@ const PanelControl = () => {
     console.log(wallet.getHistory(10))
     console.log(wallet.getStatecoinsBalance())
 
-    // let amount = 0.1; // value should be provided via props
-    // let deposit_data = Deposit(amount);
-    // console.log(deposit_data);
-    // dispatch(
-    //   addCoin({
-    //     id: deposit_data.state_chain_id,
-    //     amount: amount,
-    //     time_left: deposit_data.time_left,
-    //     funding_txid: deposit_data.funding_txid,
-    //   })
-    // )
   }
 
-  const withdrawButtonAction = () => {
-    let state_chain_id = "57307393-d35c-438c-87dc-d06054277a5d";
-    // let withdraw_data = Withdraw(state_chain_id);
-    // console.log(withdraw_data);
-    // dispatch(
-    //   removeCoin()
-    // )
-  }
-
-  const swapButtonAction = () => {
-    let state_chain_id = "57307393-d35c-438c-87dc-d06054277a5d";
-    let swap_size = 10;
-    let anon_score = 0;
-    // let swap_data = Swap(state_chain_id, swap_size, anon_score);
-    // console.log(swap_data)
-    // dispatch( // rm old coin
-    //   removeCoin()
-    // )
-    // dispatch( // replace with new
-    //   addCoin({
-    //     id: swap_data.state_chain_id,
-    //     amount: swap_data.amount,
-    //     time_left: swap_data.time_left,
-    //     funding_txid: swap_data.funding_txid,
-    //   })
-    // )
-  }
-
-  const sendButtonAction = () => {
-    let state_chain_id = "57307393-d35c-438c-87dc-d06054277a5d";
-    let receiver_addr = "026ff25fd651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0ebcrt1qq0znj64a5zukv7yew52zjzmdndch3r0vxu8668";
-    // let transfer_data = TransferSender(state_chain_id, receiver_addr);
-    // console.log(transfer_data);
-    dispatch(
-      removeCoin()
-    )
-  }
-
-  const receiveButtonAction = () => {
-    let receiver_msg = "receivermessage3fd1524b966044187430afb44a7edfee4";
-    // let transfer_data = TransferReceiver(receiver_msg);
-    // console.log(transfer_data)
-    // dispatch(
-    //   addCoin({
-    //     id: transfer_data.state_chain_id,
-    //     amount: transfer_data.amount,
-    //     time_left: transfer_data.time_left,
-    //     funding_txid: transfer_data.funding_txid,
-    //   })
-    // )
-  }
 
 
   return (
@@ -122,24 +60,34 @@ const PanelControl = () => {
 
             <StdButton
                 label="Swap" icon={swapIcon}
-                onClick={swapButtonAction}
+
                 className="Body-button blue"/>
           </Link>
 
-          <StdButton
-            label="Withdraw" icon={walletIconSmall}
-            onClick={withdrawButtonAction}
-            className="Body-button yellow"/>
+          <Link className="nav-link" to="/withdraw">
+            <StdButton
+                label="Withdraw" icon={walletIconSmall}
+                className="Body-button yellow"/>
+          </Link>
+
+
         </div>
         <div className="ActionGroupRight">
-          <StdButton
-            label="Send" icon={arrowUp}
-            onClick={sendButtonAction}
-            className="Body-button "/>
-          <StdButton
-            label="Receive" icon={arrowDown}
-            onClick={receiveButtonAction}
-            className="Body-button"/>
+
+          <Link className="nav-link" to="/send_statecoin">
+            <StdButton
+                label="Send" icon={arrowUp}
+
+                className="Body-button "/>
+          </Link>
+          <Link className="nav-link" to="/receive_statecoin">
+            <StdButton
+                label="Receive" icon={arrowDown}
+
+                className="Body-button"/>
+          </Link>
+
+
         </div>
       </div>
     </div>

@@ -19,9 +19,9 @@ function Activity() {
 
 
 
-    const activitiesTableData = activities.map(item => (
+    const activitiesTableData = activities.map((item, index) => (
 
-        <div>
+        <div key={index}>
             <div className="date">
 
                 <Moment format="MMMM D, YYYY">{item.date}</Moment>
