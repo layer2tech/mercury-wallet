@@ -7,11 +7,11 @@ import './panelCoins.css';
 import '../index.css';
 
 const PanelCoins = () => {
-    const coinData = useSelector(state => state.coinData)
+    const walletData = useSelector(state => state.walletData)
 
-    const printCoinData = coinData.coins.map(item => (
+    const printCoinData = walletData.wallet.getUnspentStatecoins().map(item => (
         <article key={item.id}>
-            <Coin amount={item.amount} time_left={item.time_left}
+            <Coin amount={item.value} time_left={item.timestamp}
                   funding_txid={item.funding_txid.slice(0, 10) + "..."}/>
         </article>
     ))

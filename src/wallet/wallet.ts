@@ -2,7 +2,7 @@
 
 import { Network } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
-import { MockElectrum, StateCoinList } from './';
+import { Electrum, MockElectrum, StateCoinList } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 
 let bitcoin = require('bitcoinjs-lib');
@@ -20,7 +20,7 @@ export class Wallet {
   account: any;
   statecoins: StateCoinList;
   activity: ActivityLog;
-  electrum_client: MockElectrum;
+  electrum_client: Electrum | MockElectrum;
   network: Network;
   testing_mode: boolean;
 
@@ -29,9 +29,13 @@ export class Wallet {
     this.account = account;
     this.statecoins = new StateCoinList;
     this.activity = new ActivityLog;
-    this.electrum_client = new MockElectrum;
     this.network = bitcoin.networks.bitcoin;
     this.testing_mode = testing_mode;
+    if (testing_mode) {
+      this.electrum_client = new MockElectrum;
+    } else {
+      this.electrum_client = new Electrum;
+    }
   }
 
   // Constructors
