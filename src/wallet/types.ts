@@ -1,7 +1,5 @@
 let typeforce = require('typeforce');
 
-
-
 // re-export some basic types
 export const Buffer256bit = typeforce.BufferN(32);
 export const Hash160bit = typeforce.BufferN(20);

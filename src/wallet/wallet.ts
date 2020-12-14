@@ -22,23 +22,26 @@ export class Wallet {
   activity: ActivityLog;
   electrum_client: MockElectrum;
   network: Network;
+  testing_mode: boolean;
 
-  constructor(mnemonic: string, account: any) {
+  constructor(mnemonic: string, account: any, testing_mode: boolean) {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList;
     this.activity = new ActivityLog;
     this.electrum_client = new MockElectrum;
     this.network = bitcoin.networks.bitcoin;
+    this.testing_mode = testing_mode;
   }
 
   // Constructors
-  static fromMnemonic(mnemonic: string) {
-    return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic))
+  static fromMnemonic(mnemonic: string, testing_mode: boolean) {
+    return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic), testing_mode)
   }
 
   static buildMock() {
-    var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost');
+    var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', true);
+    // add some statecoins
     wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
     wallet.addStatecoin("223861d2-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.2, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
     wallet.activity.addItem("223861d2-7d84-44f1-ba3e-4cd7dd418560", "T");
@@ -46,10 +49,10 @@ export class Wallet {
   }
 
 
-  static fromJSON(str_wallet: string, network: Network, addressFunction: Function) {
+  static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean) {
     let json_wallet: Wallet = JSON.parse(str_wallet);
 
-    let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account);
+    let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, testing_mode);
     new_wallet.statecoins = StateCoinList.fromJSON(JSON.stringify(json_wallet.statecoins))
     new_wallet.activity = ActivityLog.fromJSON(JSON.stringify(json_wallet.activity))
 
@@ -72,8 +75,8 @@ export class Wallet {
   }
 
   static async load(
-    {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr}:
-    {file_path?: string, network?: Network, addressFunction?: Function}
+    {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr, testing_mode}:
+    {file_path?: string, network?: Network, addressFunction?: Function, testing_mode: boolean}
   ) {
     // Fetch raw json
     let str_wallet: string = await new Promise((resolve,_reject) => {
@@ -82,7 +85,7 @@ export class Wallet {
             resolve(txtString.toString())
           });
       });
-    return Wallet.fromJSON(str_wallet, network, addressFunction)
+    return Wallet.fromJSON(str_wallet, network, addressFunction, testing_mode)
   }
 
   save({file_path = WALLET_LOC}: {file_path?: string}={}) {

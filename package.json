@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.4.0",
+    "@types/node": "^14.14.13",
     "axios": "^0.21.0",
     "bip32": "^2.0.6",
     "bip32-utils": "^0.11.1",
