@@ -2,8 +2,9 @@
 
 import { Network } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
-import { Electrum, MockElectrum, StateCoinList } from './';
+import { Electrum, getFeeInfo, MockElectrum, StateCoinList } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
+import { depositConfirm, depositInit } from './mercury/deposit';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -124,8 +125,8 @@ export class Wallet {
 
   // Add confirmed Statecoin to wallet
   addStatecoin(id: string, shared_key: MasterKey2, value: number, txid: string, action: string) {
-    this.statecoins.addNewCoin(id, shared_key, value)
-    this.statecoins.setCoinFundingTxid(id, txid)
+    this.statecoins.addNewCoin(id, shared_key)
+    this.statecoins.setCoinFundingTxidAndValue(id, txid, value)
     this.activity.addItem(id, action);
   }
 
@@ -142,16 +143,53 @@ export class Wallet {
   }
 
   // Perform deposit
-  deposit(_amount: number) {
-    return {
-      shared_key_id: "73935730-d35c-438c-87dc-d06054277a5d",
-      state_chain_id: "56ee06ea-88b4-415d-b1e9-62b308889d29",
-      funding_txid: "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
-      backuptx: "3c06e118b822772c024aac3d840fbad3cef62c9f62c9b74e276843a5d0fe0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
-      proof_key: "441874303fd1524b9660afb44a7edfee49cd9b243db99ea400e876aa15c2983ee7dcf5dc7aec2ae27260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
-      swap_rounds: 0,
-      time_left: "12"
+  async deposit(_amount: number) {
+    if (this.testing_mode) {
+      return {
+        shared_key_id: "73935730-d35c-438c-87dc-d06054277a5d",
+        state_chain_id: "56ee06ea-88b4-415d-b1e9-62b308889d29",
+        funding_txid: "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
+        backuptx: "3c06e118b822772c024aac3d840fbad3cef62c9f62c9b74e276843a5d0fe0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
+        proof_key: "441874303fd1524b9660afb44a7edfee49cd9b243db99ea400e876aa15c2983ee7dcf5dc7aec2ae27260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
+        swap_rounds: 0,
+        time_left: "12"
+      }
     }
+    // gen these from Wallet
+    let secret_key = "12345";
+    let proof_key = "02851ad2219901fc72ea97b4d21e803c625a339f07da8c7069ea33ddd0125da84f";
+    let value = 1000;
+
+    // Get state entity fee info
+    let fee_info = await getFeeInfo();
+
+    // Initisalise deposit - gen shared keys and create statecoin
+    let [statecoin, p_addr] = await depositInit(proof_key, secret_key);
+    this.statecoins.addCoin(statecoin);
+
+
+    // Allow for user to send funds to p_addr, or to receive funds for wallet to hadnle building of funding_tx.
+    let funding_txid = "ae0093c55f0446e5cab54539cd65f3fc1a86932eebcad9c71a291e1c928530d0"
+
+    // add value and funding_txid
+    this.statecoins.setCoinFundingTxidAndValue(statecoin.shared_key_id, funding_txid, value)
+
+
+    // Finish deposit protocol
+    let chaintip_height = this.electrum_client.get_tip_header().height;
+    let backup_receive_addr = this.genBtcAddress();
+
+    let statecoin_finalized = await depositConfirm(
+      chaintip_height,
+      fee_info,
+      backup_receive_addr,
+      this.network,
+      statecoin
+    );
+
+    // update in wallet
+    this.statecoins.setCoinFinalized(statecoin_finalized);
+
   }
 
   // Perform transfer_sender

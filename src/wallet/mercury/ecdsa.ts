@@ -18,7 +18,6 @@ export const keyGen = async (
     shared_key_id: string,
     secret_key: string,
     _proof_key: string,
-    value: number,
     protocol: string
   ) => {
   // Import Rust functions
@@ -74,7 +73,7 @@ export const keyGen = async (
     ));
   typeforce(types.MasterKey2, master_key);
 
-  return new StateCoin(id, master_key, value)
+  return new StateCoin(id, master_key)
 }
 
 // 2P-ECDSA Sign.

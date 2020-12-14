@@ -13,10 +13,8 @@ import swapIcon from '../../images/swap-icon-grey.png';
 
 
 function Activity() {
-    const walletData = useSelector(state => state.walletData)
-
-    const activities = walletData.wallet.getActivityLog(10)
-    console.log(activities)
+    const wallet = useSelector(state => state.walletData).wallet
+    const activities = wallet.getActivityLog(10)
 
     const activitiesTableData = activities.map((item, index) => (
 
