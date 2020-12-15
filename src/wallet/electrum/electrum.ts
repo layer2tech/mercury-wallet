@@ -1,5 +1,3 @@
-let bitcoin = require('bitcoinjs-lib')
-
 let ElectrumClient = require('@keep-network/electrum-client-js')
 
 const config = {
@@ -45,16 +43,26 @@ export class Electrum {
     return header.height
   }
 
-  broadcast_transaction(raw_tx: string) {
-    let tx = bitcoin.Transaction.fromHex(raw_tx);
-    return tx.getId()
+  async getTransaction(txHash: string): Promise<any> {
+    await this.connect()
+    const tx = await this.client
+      .blockchain_transaction_get(txHash, true)
+        .catch((err: any) => {
+          throw new Error(`failed to get transaction ${txHash}: [${err}]`)
+        }
+      )
+    await this.close()
+    return tx
   }
 
-  get_transaction_conf_status(_tx_hash: string, _merkle: string) {
-    return {
-      in_active_chain: true,
-      confirmations: 2,
-      blocktime: 123456789,
-    }
+  async broadcastTransaction(rawTX: string): Promise<string> {
+    await this.connect()
+    const txHash = await this.client
+      .blockchain_transaction_broadcast(rawTX)
+      .catch((err: any) => {
+        throw new Error(`failed to broadcast transaction: [${err}]`)
+      })
+    await this.close()
+    return txHash
   }
 }

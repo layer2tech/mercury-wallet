@@ -6,16 +6,22 @@ export class MockElectrum {
       return 12345
     }
 
-    broadcast_transaction(raw_tx: string) {
+    broadcastTransaction(raw_tx: string) {
       let tx = bitcoin.Transaction.fromHex(raw_tx);
       return tx.getId()
     }
 
-    get_transaction_conf_status(_tx_hash: string, _merkle: boolean) {
+    getTransaction(txHash: string) {
       return {
-        in_active_chain: true,
-        confirmations: 2,
-        blocktime: 123456789,
+        txid: txHash,
+        hash: txHash,
+        size: 1223,
+        vsize: 8774,
+        version: 1,
+        confirmations: 10,
+        vin: [],
+        vout: [],
+        etc: "etc"
       }
     }
 }
