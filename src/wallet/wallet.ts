@@ -169,14 +169,14 @@ export class Wallet {
 
 
     // Allow for user to send funds to p_addr, or to receive funds for wallet to hadnle building of funding_tx.
-    let funding_txid = "ae0093c55f0446e5cab54539cd65f3fc1a86932eebcad9c71a291e1c928530d0"
+    let funding_txid = "ae0093c55f0446e5cab54539cd65f3fc1a86932eebcad9c71a291e1c928530d0";
 
     // add value and funding_txid
-    this.statecoins.setCoinFundingTxidAndValue(statecoin.shared_key_id, funding_txid, value)
+    this.statecoins.setCoinFundingTxidAndValue(statecoin.shared_key_id, funding_txid, value);
 
 
     // Finish deposit protocol
-    let chaintip_height = this.electrum_client.get_tip_header().height;
+    let chaintip_height: number = await this.electrum_client.latestBlockHeight();
     let backup_receive_addr = this.genBtcAddress();
 
     let statecoin_finalized = await depositConfirm(

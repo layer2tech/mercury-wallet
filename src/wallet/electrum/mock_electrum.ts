@@ -2,11 +2,8 @@ let bitcoin = require('bitcoinjs-lib')
 
 export class MockElectrum {
 
-    get_tip_header() {
-      return {
-            height: 12345,
-            hex: "AA",
-        };
+    latestBlockHeight() {
+      return 12345
     }
 
     broadcast_transaction(raw_tx: string) {
