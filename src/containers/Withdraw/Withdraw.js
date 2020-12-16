@@ -90,7 +90,7 @@ const WithdrawPage = () => {
                            <span className="smalltxt">Your Bitcoin Address</span>
                        </div>
                         <div className="inputs">
-                           <Quantity />
+                           <Quantity label="Value (BTC)" />
                         </div>
                     </div>
                     <div>
