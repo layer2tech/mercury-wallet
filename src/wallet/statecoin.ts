@@ -35,13 +35,13 @@ export class StateCoinList {
     })
   };
 
-  getCoin(id: string) {
-    return this.coins.reverse().find(coin => coin.shared_key_id == id)
+  getCoin(shared_key_id: string) {
+    return this.coins.reverse().find(coin => coin.shared_key_id == shared_key_id)
   }
 
   // creates new coin with Date.now()
-  addNewCoin(id: string, shared_key: MasterKey2) {
-    this.coins.push(new StateCoin(id, shared_key))
+  addNewCoin(shared_key_id: string, shared_key: MasterKey2) {
+    this.coins.push(new StateCoin(shared_key_id, shared_key))
   };
 
   addCoin(statecoin: StateCoin) {
@@ -49,22 +49,22 @@ export class StateCoinList {
   };
 
 
-  setCoinFundingTxidAndValue(id: string, txid: string, value: number) {
-    let coin = this.getCoin(id)
+  setCoinFundingTxidAndValue(shared_key_id: string, txid: string, value: number) {
+    let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.funding_txid = txid
       coin.value = value
     } else {
-      throw "No coin found with id " + id
+      throw "No coin found with shared_key_id " + shared_key_id
     }
   }
 
-  setCoinSpent(id: string) {
-    let coin = this.getCoin(id)
+  setCoinSpent(shared_key_id: string) {
+    let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.spent = true
     } else {
-      throw "No coin found with id " + id
+      throw "No coin found with shared_key_id " + shared_key_id
     }
   }
 
@@ -74,7 +74,16 @@ export class StateCoinList {
     if (statecoin) {
       statecoin = finalized_statecoin
     } else {
-      throw "No coin found with id " + finalized_statecoin.shared_key_id
+      throw "No coin found with shared_key_id " + finalized_statecoin.shared_key_id
+    }
+  }
+
+  setCoinWithdrawTx(shared_key_id: string, tx_withdraw: BTCTransaction) {
+    let coin = this.getCoin(shared_key_id)
+    if (coin) {
+      coin.tx_withdraw = tx_withdraw
+    } else {
+      throw "No coin found with shared_key_id " + shared_key_id
     }
   }
 }
@@ -83,13 +92,14 @@ export class StateCoinList {
 // Each individual StateCoin
 export class StateCoin {
   shared_key_id: string;               // SharedKeyId
-  state_chain_id: String;   // StateChainId
+  state_chain_id: string;   // StateChainId
   shared_key: MasterKey2;
   proof_key: string;
   value: number;
   funding_txid: string;
   timestamp: number;
   tx_backup: BTCTransaction | null;
+  tx_withdraw: BTCTransaction | null;
   smt_proof: InclusionProofSMT | null;
   swap_rounds: number;
   confirmed: boolean;
@@ -106,6 +116,7 @@ export class StateCoin {
     this.funding_txid = "";
     this.swap_rounds = 0
     this.tx_backup = null;
+    this.tx_withdraw = null;
     this.smt_proof = null;
     this.confirmed = false
     this.spent = false
@@ -114,7 +125,7 @@ export class StateCoin {
   // Get data to display in GUI
   getDisplayInfo() {
     return {
-      id: this.shared_key_id,
+      shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid,
       timestamp: this.timestamp,

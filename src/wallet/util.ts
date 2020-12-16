@@ -1,7 +1,7 @@
 // wallet utilities
 
 import { Network, TransactionBuilder } from 'bitcoinjs-lib';
-import { Root } from './mercury/info_api';
+import { FeeInfo, Root } from './mercury/info_api';
 
 let typeforce = require('typeforce');
 let types = require("./types")
@@ -26,7 +26,18 @@ export const txBackupBuild = (network: Network, funding_txid: string, backup_rec
   txb.setLockTime(init_locktime);
   txb.addInput(funding_txid, 0);
   txb.addOutput(backup_receive_addr, value - FEE);
+  return txb
+}
 
-  // let backup_txid = txb.buildIncomplete().getId()
+// Withdraw tx builder spending funding tx to:
+//     - amount-fee to receive address, and
+//     - amount 'fee' to State Entity fee address
+export const txWithdrawBuild = (network: Network, funding_txid: string, rec_address: string, value: number, fee_info: FeeInfo) => {
+  if (fee_info.withdraw + FEE >= value) throw "Not enough value to cover fee.";
+
+  let txb = new TransactionBuilder(network);
+  txb.addInput(funding_txid, 0);
+  txb.addOutput(rec_address, value - fee_info.withdraw - FEE);
+  txb.addOutput(fee_info.address, fee_info.withdraw);
   return txb
 }

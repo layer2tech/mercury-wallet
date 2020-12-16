@@ -1,11 +1,21 @@
 // Mercury deposit protocol.
 
+// deposit():
+// 0. Initiate session - generate ID and perform authorisation
+// 1. Generate shared wallet
+// 2. Co-op sign back-up tx
+// 3. Broadcast funding tx and wait for SE verification
+// 4. Verify funding txid and proof key in SM
+
+
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { POST_ROUTE, post } from "../request";
-import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin } from "../";
+import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo } from "../";
 import { Network, Transaction } from 'bitcoinjs-lib';
+import { FeeInfo } from "./info_api";
 
 let typeforce = require('typeforce');
+
 
 // Deposit Init. Generate shared key with stateChain Entity.
 // Return Shared_key_id, statecoin and address to send funds to.
@@ -28,20 +38,21 @@ export const depositInit = async (proof_key: string, secret_key: string) => {
 }
 
 // After funds are sent to p_addr sign backup tx and verify SMT.
-// Return smt_proot, state_chain_id, tx_backup_signed, p_addr.
+// Return statecoin with smt_proot, state_chain_id, tx_backup_signed, p_addr.
 export const depositConfirm = async (
-  chaintip_height: number,
-  fee_info: any,
-  backup_receive_addr: string,
   network: Network,
-  statecoin: StateCoin
+  statecoin: StateCoin,
+  chaintip_height: number,
+  backup_receive_addr: string
 ) => {
+  // Get state entity fee info
+  let fee_info: FeeInfo = await getFeeInfo();
+
   // Calculate initial locktime
   let init_locktime = (chaintip_height) + (fee_info.initlock);
 
   // Build unsigned backup tx
   let txb_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, backup_receive_addr, statecoin.value, init_locktime);
-
   let tx_backup_unsigned = txb_backup_unsigned.buildIncomplete();
 
   //co sign funding tx input signatureHash

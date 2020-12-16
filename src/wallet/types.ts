@@ -13,16 +13,22 @@ export const UInt64 = typeforce.UInt64;
 export const Object = typeforce.Object;
 export const Null = typeforce.Null;
 
-
+export const OutPoint = Object;
+export const Chain = Array;
 
 // StateChain Entity API
+export const StateChainDataAPI = typeforce.compile({
+    utxo: OutPoint,
+    amount: UInt64,
+    chain: Chain,
+    locktime: UInt32,
+})
 
 export const Root = typeforce.compile({
   id: UInt32,
   value: Array,
   commitment_info: typeforce.oneOf(typeforce.Any, typeforce.Null),
 });
-
 
 export const FeeInfo = typeforce.compile({
   address: String,

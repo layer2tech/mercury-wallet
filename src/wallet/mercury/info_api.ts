@@ -10,7 +10,9 @@ export const getFeeInfo = async () => {
 }
 
 export const getStateChain = async (statechain_id: string) => {
-  return await get(GET_ROUTE.STATECHAIN, statechain_id);
+  let statechain = await get(GET_ROUTE.STATECHAIN, statechain_id);
+  typeforce(types.StateChainDataAPI, statechain);
+  return statechain
 }
 
 export const getRoot = async () => {
@@ -35,8 +37,23 @@ export const getTransferBatchStatus = async (batch_id: string) => {
 }
 
 
+export interface StateChainDataAPI {
+    utxo: any,
+    amount: number,
+    chain: any[],
+    locktime: number,
+}
+
 export interface Root {
   id: number,
   value: number[],
   commitment_info: any
+}
+
+export interface FeeInfo {
+  address: string,
+  deposit: number,
+  withdraw: number,
+  interval: number,
+  initlock: number
 }

@@ -66,7 +66,7 @@ describe("Statecoins/Coin", () => {
       for (let i = 0; i < coins.length; i++) {
         expect(coins[i]).toEqual(expect.objectContaining(
           {
-            id: expect.any(String),
+            shared_key_id: expect.any(String),
             value: expect.any(Number),
             funding_txid: expect.any(String),
             timestamp: expect.any(Number),

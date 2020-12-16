@@ -2,9 +2,10 @@
 
 import { Network } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
-import { Electrum, getFeeInfo, MockElectrum, StateCoinList } from './';
+import { Electrum, MockElectrum, StateCoin, StateCoinList } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
+import { withdraw } from './mercury/withdraw';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -160,9 +161,6 @@ export class Wallet {
     let proof_key = "02851ad2219901fc72ea97b4d21e803c625a339f07da8c7069ea33ddd0125da84f";
     let value = 1000;
 
-    // Get state entity fee info
-    let fee_info = await getFeeInfo();
-
     // Initisalise deposit - gen shared keys and create statecoin
     let [statecoin, p_addr] = await depositInit(proof_key, secret_key);
     this.statecoins.addCoin(statecoin);
@@ -180,11 +178,10 @@ export class Wallet {
     let backup_receive_addr = this.genBtcAddress();
 
     let statecoin_finalized = await depositConfirm(
-      chaintip_height,
-      fee_info,
-      backup_receive_addr,
       this.network,
-      statecoin
+      statecoin,
+      chaintip_height,
+      backup_receive_addr
     );
 
     // update in wallet
@@ -220,11 +217,28 @@ export class Wallet {
   // Perform withdraw
   // Args: state_chain_id of coin to withdraw
   // Return: Txid of withdraw and onchain amount (To be displayed to user)
-  withdraw(_state_chain_id: string) {
-    return {
-      withdraw_txid: "fbad3cf76843a5d0fe0d3d0f3d73c066274e2e118b822772c024aac3d840c9be",
-      withdraw_onchain_amount: 0.0999700,
+  async withdraw(shared_key_id: string) {
+    if (this.testing_mode) {
+      return {
+        withdraw_txid: "fbad3cf76843a5d0fe0d3d0f3d73c066274e2e118b822772c024aac3d840c9be",
+        withdraw_onchain_amount: 0.0999700,
+      }
     }
+
+    let statecoin = this.statecoins.getCoin(shared_key_id);
+    if (!statecoin) throw "No coin found with id " + shared_key_id
+
+    let rec_address = this.genBtcAddress();
+
+    // Perform withdraw with server
+    let withdraw_tx = await withdraw(this.network, statecoin, rec_address);
+
+    // Mark funds as withdrawn in wallet
+    this.statecoins.setCoinSpent(shared_key_id)
+    this.statecoins.setCoinWithdrawTx(shared_key_id, withdraw_tx)
+
+    // Broadcast transcation
+    
   }
 
   // Perform swap
