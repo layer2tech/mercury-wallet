@@ -3,6 +3,9 @@
 import { post, POST_ROUTE } from '../request';
 import { StateCoin } from '../';
 
+let types = require("../types")
+let typeforce = require('typeforce');
+
 export const PROTOCOL = {
    DEPOSIT: "Deposit",
    TRANSFER: "Transfer",
@@ -15,7 +18,6 @@ export const keyGen = async (
     shared_key_id: string,
     secret_key: string,
     _proof_key: string,
-    value: number,
     protocol: string
   ) => {
   // Import Rust functions
@@ -29,12 +31,15 @@ export const keyGen = async (
   let server_resp_key_gen_first = await post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
   let id = server_resp_key_gen_first[0];
   let kg_party_one_first_message = server_resp_key_gen_first[1];
+  typeforce(types.String, id);
+  typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
 
   // client first
   let client_resp_key_gen_first: ClientKeyGenFirstMsg =
     JSON.parse(
       wasm.KeyGen.first_message(secret_key)
     );
+  typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
 
   // server second
   let key_gen_msg2 = {
@@ -42,6 +47,7 @@ export const keyGen = async (
     dlog_proof:client_resp_key_gen_first.kg_party_two_first_message.d_log_proof,
   }
   let kg_party_one_second_message = await post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
+  typeforce(types.KeyGenParty1Message2, kg_party_one_second_message);
 
   // client second
   let client_resp_key_gen_second: ClientKeyGenSecondMsg =
@@ -51,6 +57,8 @@ export const keyGen = async (
         JSON.stringify(kg_party_one_second_message)
       )
     );
+  typeforce(types.ClientKeyGenSecondMsg, client_resp_key_gen_second);
+
 
   // Construct Rust MasterKey struct
   let master_key: MasterKey2 =
@@ -63,8 +71,9 @@ export const keyGen = async (
                 .public_share),
         JSON.stringify(client_resp_key_gen_second.party_two_paillier)
     ));
+  typeforce(types.MasterKey2, master_key);
 
-    return new StateCoin(id, master_key, value)
+  return new StateCoin(id, master_key)
 }
 
 // 2P-ECDSA Sign.
@@ -79,36 +88,39 @@ export const sign = async (
   let wasm = await import('client-wasm');
 
   //client first
-  let client_resp_sign_first: ClientSignFirstMsg =
+  let client_sign_first: ClientSignFirstMsg =
     JSON.parse(
       wasm.Sign.first_message()
     );
+  typeforce(types.ClientSignFirstMsg, client_sign_first);
 
   // server first
   let sign_msg1 = {
       shared_key_id: shared_key_id,
-      eph_key_gen_first_message_party_two: client_resp_sign_first.eph_key_gen_first_message_party_two,
+      eph_key_gen_first_message_party_two: client_sign_first.eph_key_gen_first_message_party_two,
   };
-  let sign_party_one_first_message = await post(POST_ROUTE.SIGN_FIRST, sign_msg1);
+  let server_sign_first = await post(POST_ROUTE.SIGN_FIRST, sign_msg1);
+  typeforce(types.ServerSignfirstMsg, server_sign_first);
 
   //client second
-  let party_two_sign_message =
+  let client_sign_second =
     JSON.parse(
       wasm.Sign.second_message(
         JSON.stringify(master_key),
-        JSON.stringify(client_resp_sign_first.eph_ec_key_pair_party2),
-        JSON.stringify(client_resp_sign_first.eph_comm_witness),
-        JSON.stringify(sign_party_one_first_message),
+        JSON.stringify(client_sign_first.eph_ec_key_pair_party2),
+        JSON.stringify(client_sign_first.eph_comm_witness),
+        JSON.stringify(server_sign_first),
         message
       )
     );
+  typeforce(types.ClientSignSecondMsg, client_sign_second);
 
   let sign_msg2 = {
       shared_key_id: shared_key_id,
       sign_second_msg_request: {
           protocol,
           message,
-          party_two_sign_message,
+          client_sign_second,
       },
   };
 

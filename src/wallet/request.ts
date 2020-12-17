@@ -12,13 +12,14 @@ export const GET_ROUTE = {
 Object.freeze(GET_ROUTE);
 
 export const POST_ROUTE = {
-  DEPOSIT_INIT: "deposit/init",
-  DEPOSIT_CONFIRM: "deposit/confirm",
   KEYGEN_FIRST: "ecdsa/keygen/first",
   KEYGEN_SECOND: "ecdsa/keygen/second",
   SIGN_FIRST: "ecdsa/sign/first",
   SIGN_SECOND: "ecdsa/sign/second",
   SMT_PROOF: "info/proof",
+  DEPOSIT_INIT: "deposit/init",
+  DEPOSIT_CONFIRM: "deposit/confirm",
+  WITHDRAW_INIT: "withdraw/init",
 };
 Object.freeze(POST_ROUTE);
 
@@ -43,11 +44,11 @@ export const get = async (path: string, params: any) => {
     switch(path) {
       case GET_ROUTE.FEES:
         return {
-          addr: "bcrt1qjjwk2rk7nuxt6c79tsxthf5rpnky0sdhjr493x",
-          deposit_fee: 300,
-          withdraw_fee: 300,
+          address: "bcrt1qjjwk2rk7nuxt6c79tsxthf5rpnky0sdhjr493x",
+          deposit: 300,
+          withdraw: 300,
           interval: 100,
-          init_lock: 10000
+          initlock: 10000
         }
       case GET_ROUTE.ROOT:
         return {
@@ -73,7 +74,6 @@ export const get = async (path: string, params: any) => {
 export const post = async (path: string, body: any) => {
   try {
     let url = state_entity_addr + "/" + path;
-
     const config = {
         method: 'post',
         url: url,
@@ -92,10 +92,6 @@ export const post = async (path: string, body: any) => {
     console.log("Error connecting to StateEntity. Dummy values returned.")
 
     switch(path) {
-      case POST_ROUTE.DEPOSIT_INIT:
-        return "861d2223-7d84-44f1-ba3e-4cd7dd418560";
-      case POST_ROUTE.DEPOSIT_CONFIRM:
-        return "21d28236-d874-f0f4-ba3e-d4184cd7d560";
       case POST_ROUTE.KEYGEN_FIRST:
         return ["861d2223-7d84-44f1-ba3e-4cd7dd418560",{"pk_commitment":"fa11dbc7bc21f4bf7dd5ae4fee73d5919734c6cd144328798ae93908e47732aa","zk_pok_commitment":"fcffc8bee0287bd75005f21612f94107796de03cbff9b4041bd0bd76c86eaa57"}];
       case POST_ROUTE.KEYGEN_SECOND:
@@ -106,6 +102,13 @@ export const post = async (path: string, body: any) => {
           return "12345signature54321"
         case POST_ROUTE.SMT_PROOF:
           return  [[false,[0,0,0,1,99,0]],[false,[0,1,0,4,56,0,1,0,17,99,102,51,145,151,173,227,83,241,55,101,214,218,110,154,125,84,143,167,234,38,94,112,110,9,156,250,106,115,98,17,180,31,205,253,1]],[false,[0,4,0,5,51,0,4,1,0,56,53,101,100,57,52,55,53,49,54,57,50,100,57,100,102,101,97,55,52,102,50,97,100,57,55,57,54,57,57,52,57,48,50,50,100,55,101,97,51,100,50,56,54,53,52,49,101,100,53,57,51,101,48,49,53,56,101,51,49,53,100,55,51,1]],[true,[48,50,99,54,57,100,97,100,56,55,50,53,48,98,48,51,50,102,101,52,48,53,50,50,52,48,101,97,102,53,98,56,0,5,1,0,51,52,57,49,100,54,57,51,57,100,55,99,101,52,54,98,102,55,48,51,97,51,98,49,54,57,57,55,99,99,57,54,0,5,1,0,54,52,101,99,54,98,99,55,102,55,57,52,51,52,51,97,48,99,51,54,53,49,99,48,53,55,56,102,50,53,100,102,1]]]
+        case POST_ROUTE.DEPOSIT_INIT:
+          return "861d2223-7d84-44f1-ba3e-4cd7dd418560";
+        case POST_ROUTE.DEPOSIT_CONFIRM:
+          return "21d28236-d874-f0f4-ba3e-d4184cd7d560";
+        case POST_ROUTE.WITHDRAW_INIT:
+          return
+
     }
   }
 };

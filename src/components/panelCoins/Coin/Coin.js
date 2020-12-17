@@ -36,11 +36,8 @@ const Coin = (props) => {
 
     const wallet = Wallet.buildMock();
     const data = wallet.getUnspentStatecoins()
-    console.log(wallet.getUnspentStatecoins())
 
     const statecoinData = data.map(item => (
-
-
         <div key={item.id}>
             <div>
                 {item.swap_rounds === 0 ? <div className="CoinPanel">

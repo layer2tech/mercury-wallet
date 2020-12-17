@@ -15,7 +15,7 @@ export class StateCoinList {
   static fromJSON(json: any) {
     let statecoins = new StateCoinList()
     JSON.parse(json).coins.forEach((item: StateCoin) => {
-      let coin = new StateCoin(item.id, item.shared_key, item.value);
+      let coin = new StateCoin(item.shared_key_id, item.shared_key);
       statecoins.coins.push(Object.assign(coin, item))
     })
     return statecoins
@@ -35,13 +35,13 @@ export class StateCoinList {
     })
   };
 
-  getCoin(id: string) {
-    return this.coins.reverse().find(coin => coin.id == id)
+  getCoin(shared_key_id: string) {
+    return this.coins.reverse().find(coin => coin.shared_key_id == shared_key_id)
   }
 
   // creates new coin with Date.now()
-  addNewCoin(id: string, shared_key: MasterKey2, value: number) {
-    this.coins.push(new StateCoin(id, shared_key, value))
+  addNewCoin(shared_key_id: string, shared_key: MasterKey2) {
+    this.coins.push(new StateCoin(shared_key_id, shared_key))
   };
 
   addCoin(statecoin: StateCoin) {
@@ -49,21 +49,41 @@ export class StateCoinList {
   };
 
 
-  setCoinFundingTxid(id: string, txid: string) {
-    let coin = this.getCoin(id)
+  setCoinFundingTxidAndValue(shared_key_id: string, txid: string, value: number) {
+    let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.funding_txid = txid
+      coin.value = value
     } else {
-      throw "No coin found with id " + id
+      throw "No coin found with shared_key_id " + shared_key_id
     }
   }
 
-  setCoinSpent(id: string) {
-    let coin = this.getCoin(id)
+  setCoinSpent(shared_key_id: string) {
+    let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.spent = true
     } else {
-      throw "No coin found with id " + id
+      throw "No coin found with shared_key_id " + shared_key_id
+    }
+  }
+
+  setCoinFinalized(finalized_statecoin: StateCoin) {
+    let statecoin = this.getCoin(finalized_statecoin.shared_key_id)
+    // TODO: do some checks here
+    if (statecoin) {
+      statecoin = finalized_statecoin
+    } else {
+      throw "No coin found with shared_key_id " + finalized_statecoin.shared_key_id
+    }
+  }
+
+  setCoinWithdrawTx(shared_key_id: string, tx_withdraw: BTCTransaction) {
+    let coin = this.getCoin(shared_key_id)
+    if (coin) {
+      coin.tx_withdraw = tx_withdraw
+    } else {
+      throw "No coin found with shared_key_id " + shared_key_id
     }
   }
 }
@@ -71,30 +91,32 @@ export class StateCoinList {
 
 // Each individual StateCoin
 export class StateCoin {
-  id: string;               // SharedKeyId
-  state_chain_id: String;   // StateChainId
+  shared_key_id: string;               // SharedKeyId
+  state_chain_id: string;   // StateChainId
   shared_key: MasterKey2;
-  proof_key: string | null;
+  proof_key: string;
   value: number;
-  funding_txid: string | null;
+  funding_txid: string;
   timestamp: number;
   tx_backup: BTCTransaction | null;
+  tx_withdraw: BTCTransaction | null;
   smt_proof: InclusionProofSMT | null;
   swap_rounds: number;
   confirmed: boolean;
   spent: boolean;
 
-  constructor(id: string, shared_key: MasterKey2, value: number) {
-    this.id = id;
+  constructor(shared_key_id: string, shared_key: MasterKey2) {
+    this.shared_key_id = shared_key_id;
     this.state_chain_id = "";
     this.shared_key = shared_key;
-    this.proof_key = null;
-    this.value = value;
+    this.proof_key = "";
+    this.value = 0;
     this.timestamp = new Date().getTime();
 
-    this.funding_txid = null;
+    this.funding_txid = "";
     this.swap_rounds = 0
     this.tx_backup = null;
+    this.tx_withdraw = null;
     this.smt_proof = null;
     this.confirmed = false
     this.spent = false
@@ -103,7 +125,7 @@ export class StateCoin {
   // Get data to display in GUI
   getDisplayInfo() {
     return {
-      id: this.id,
+      shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid,
       timestamp: this.timestamp,
@@ -114,7 +136,7 @@ export class StateCoin {
   // Generate BTC address from SharedKey
   async getBtcAddress() {
     let wasm = await import('client-wasm');
-    return wasm.curv_pk_to_bitcoin_public_key(
+    return wasm.curv_ge_to_bitcoin_public_key(
       JSON.stringify(
         this.shared_key.public.q
       )

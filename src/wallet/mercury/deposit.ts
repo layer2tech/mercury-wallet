@@ -1,88 +1,83 @@
 // Mercury deposit protocol.
 
+// deposit():
+// 0. Initiate session - generate ID and perform authorisation
+// 1. Generate shared wallet
+// 2. Co-op sign back-up tx
+// 3. Broadcast funding tx and wait for SE verification
+// 4. Verify funding txid and proof key in SM
+
+
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { POST_ROUTE, post } from "../request";
-import { Wallet, getFeeInfo, txBackupBuild, getRoot, verifySmtProof, getSmtProof } from "../";
-import { Transaction } from 'bitcoinjs-lib';
+import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo } from "../";
+import { Network, Transaction } from 'bitcoinjs-lib';
+import { FeeInfo } from "./info_api";
+
+let typeforce = require('typeforce');
 
 
-// Deposit coins into state entity. Returns shared_key_id, state_chain_id, funding txid,
-// signed backup tx, back up transacion data and proof_key
-export const deposit = async (wallet: Wallet) => {
-  // gen these from Wallet
-  let secret_key = "12345";
-  let proof_key = "02851ad2219901fc72ea97b4d21e803c625a339f07da8c7069ea33ddd0125da84f";
-  let value = 1000;
-
-  // Get state entity fee info
-  let fee_info = await getFeeInfo();
-
+// Deposit Init. Generate shared key with stateChain Entity.
+// Return Shared_key_id, statecoin and address to send funds to.
+export const depositInit = async (proof_key: string, secret_key: string) => {
   // Init. session - Receive shared wallet ID
-  let shared_key_id = await despoitInit(proof_key);
+  let deposit_msg1 = {
+      auth: "authstr",
+      proof_key: String(proof_key)
+  }
+  let shared_key_id = await post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
+  typeforce(typeforce.String, shared_key_id)
+
   // 2P-ECDSA with state entity to create a Shared key
-  let statecoin = await keyGen(shared_key_id, secret_key, proof_key, value, PROTOCOL.DEPOSIT);
+  let statecoin = await keyGen(shared_key_id, secret_key, proof_key, PROTOCOL.DEPOSIT);
 
   // Co-owned key address to send funds to (P_addr)
   let p_addr = await statecoin.getBtcAddress();
 
+  return [shared_key_id, statecoin, p_addr]
+}
 
-  // Function will be split here to allow for user to send funds to p_addr, or to receive
-  // funds for wallet to hadnle building of funding_tx.
-  let funding_txid = "ae0093c55f0446e5cab54539cd65f3fc1a86932eebcad9c71a291e1c928530d0"
-
+// After funds are sent to p_addr sign backup tx and verify SMT.
+// Return statecoin with smt_proot, state_chain_id, tx_backup_signed, p_addr.
+export const depositConfirm = async (
+  network: Network,
+  statecoin: StateCoin,
+  chaintip_height: number,
+  backup_receive_addr: string
+) => {
+  // Get state entity fee info
+  let fee_info: FeeInfo = await getFeeInfo();
 
   // Calculate initial locktime
-  let chaintip = wallet.electrum_client.get_tip_header();
-  let init_locktime = (chaintip.height) + (fee_info.init_lock);
+  let init_locktime = (chaintip_height) + (fee_info.initlock);
 
   // Build unsigned backup tx
-  let backup_receive_addr = wallet.genBtcAddress();
-  let txb_backup_unsigned = txBackupBuild(wallet.network, funding_txid, backup_receive_addr, value, init_locktime);
-
+  let txb_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, backup_receive_addr, statecoin.value, init_locktime);
   let tx_backup_unsigned = txb_backup_unsigned.buildIncomplete();
 
   //co sign funding tx input signatureHash
   let signatureHash = tx_backup_unsigned.hashForSignature(0, tx_backup_unsigned.ins[0].script, Transaction.SIGHASH_ALL);
-  let signature = await sign(shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
+  let signature = await sign(statecoin.shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
   // set witness data with signature
   let tx_backup_signed = tx_backup_unsigned;
   tx_backup_signed.ins[0].witness = [Buffer.from(signature)];
 
   // Wait for server confirmation of funding tx and receive new StateChain's id
-  let state_chain_id = await despoitConfirm(shared_key_id);
+  let deposit_msg2 = {
+      shared_key_id: statecoin.shared_key_id,
+  }
+  let state_chain_id = await post(POST_ROUTE.DEPOSIT_CONFIRM, deposit_msg2);
+  typeforce(typeforce.String, statecoin.shared_key_id)
 
   // Verify proof key inclusion in SE sparse merkle tree
   let root = await getRoot();
-  let proof = await getSmtProof(root, funding_txid);
-  if (!verifySmtProof(root, proof_key, proof)) throw "SMT verification failed."
+  let proof = await getSmtProof(root, statecoin.funding_txid);
+  if (!verifySmtProof(root, statecoin.proof_key, proof)) throw "SMT verification failed."
 
   // Add proof and state chain id to Shared key
   statecoin.smt_proof = proof;
   statecoin.state_chain_id = state_chain_id;
   statecoin.tx_backup = tx_backup_signed;
 
-  // Add to wallet
-  wallet.statecoins.addCoin(statecoin);
-
-  return [tx_backup_signed, p_addr]
-}
-
-
-const despoitInit = async (proof_key: string) => {
-    let deposit_msg1 = {
-        auth: "authstr",
-        proof_key: String(proof_key)
-    }
-    let shared_key_id = await post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
-
-    return shared_key_id
-}
-
-const despoitConfirm = async (shared_key_id: string) => {
-    let deposit_msg2 = {
-        shared_key_id: shared_key_id,
-    }
-    let state_chain_id = await post(POST_ROUTE.DEPOSIT_CONFIRM, deposit_msg2);
-
-    return state_chain_id
+  return statecoin
 }

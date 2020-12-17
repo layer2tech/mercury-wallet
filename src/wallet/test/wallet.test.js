@@ -1,14 +1,14 @@
 let bitcoin = require('bitcoinjs-lib')
 import { Wallet, StateCoinList, ACTION } from '../';
 import { segwitAddr } from '../wallet';
-
+import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 
 describe('Wallet', function() {
   let wallet = Wallet.buildMock();
 
   describe('toJSON', function() {
     let json_wallet = JSON.stringify(wallet)
-    let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr)
+    let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true)
     // check wallets serialize to same values (since deep equal on recursive objects is messy)
     expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet))
   });
@@ -19,6 +19,13 @@ describe('Wallet', function() {
     expect(addr1).not.toEqual(addr2)
     expect(wallet.account.containsAddress(addr1))
     expect(wallet.account.containsAddress(addr2))
+  });
+
+  describe('genProofKey', function() {
+    let proof_key = wallet.genProofKey();
+    let bip32 = wallet.getBIP32forProofKey(proof_key)
+    // Ensure BIP32 is correclty returned
+    expect(proof_key).toEqual(bip32.publicKey.toString('hex'))
   });
 
   describe('getActivityLog', function() {
@@ -66,7 +73,7 @@ describe("Statecoins/Coin", () => {
       for (let i = 0; i < coins.length; i++) {
         expect(coins[i]).toEqual(expect.objectContaining(
           {
-            id: expect.any(String),
+            shared_key_id: expect.any(String),
             value: expect.any(Number),
             funding_txid: expect.any(String),
             timestamp: expect.any(Number),
@@ -80,7 +87,7 @@ describe("Statecoins/Coin", () => {
     it('Returns only unspent coins with correct data', () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
-      statecoins.setCoinSpent(coins[0].id) // set one spent
+      statecoins.setCoinSpent(coins[0].shared_key_id) // set one spent
       expect(statecoins.getUnspentCoins().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });

@@ -2,8 +2,10 @@
 
 import { Network } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
-import { MockElectrum, StateCoinList } from './';
+import { Electrum, MockElectrum, StateCoin, StateCoinList } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
+import { depositConfirm, depositInit } from './mercury/deposit';
+import { withdraw } from './mercury/withdraw';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -20,25 +22,32 @@ export class Wallet {
   account: any;
   statecoins: StateCoinList;
   activity: ActivityLog;
-  electrum_client: MockElectrum;
+  electrum_client: Electrum | MockElectrum;
   network: Network;
+  testing_mode: boolean;
 
-  constructor(mnemonic: string, account: any) {
+  constructor(mnemonic: string, account: any, testing_mode: boolean) {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList;
     this.activity = new ActivityLog;
-    this.electrum_client = new MockElectrum;
     this.network = bitcoin.networks.bitcoin;
+    this.testing_mode = testing_mode;
+    if (testing_mode) {
+      this.electrum_client = new MockElectrum;
+    } else {
+      this.electrum_client = new Electrum;
+    }
   }
 
   // Constructors
-  static fromMnemonic(mnemonic: string) {
-    return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic))
+  static fromMnemonic(mnemonic: string, testing_mode: boolean) {
+    return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic), testing_mode)
   }
 
   static buildMock() {
-    var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost');
+    var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', true);
+    // add some statecoins
     wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
     wallet.addStatecoin("223861d2-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.2, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
     wallet.activity.addItem("223861d2-7d84-44f1-ba3e-4cd7dd418560", "T");
@@ -46,10 +55,10 @@ export class Wallet {
   }
 
 
-  static fromJSON(str_wallet: string, network: Network, addressFunction: Function) {
+  static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean) {
     let json_wallet: Wallet = JSON.parse(str_wallet);
 
-    let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account);
+    let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, testing_mode);
     new_wallet.statecoins = StateCoinList.fromJSON(JSON.stringify(json_wallet.statecoins))
     new_wallet.activity = ActivityLog.fromJSON(JSON.stringify(json_wallet.activity))
 
@@ -72,8 +81,8 @@ export class Wallet {
   }
 
   static async load(
-    {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr}:
-    {file_path?: string, network?: Network, addressFunction?: Function}
+    {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr, testing_mode}:
+    {file_path?: string, network?: Network, addressFunction?: Function, testing_mode: boolean}
   ) {
     // Fetch raw json
     let str_wallet: string = await new Promise((resolve,_reject) => {
@@ -82,7 +91,7 @@ export class Wallet {
             resolve(txtString.toString())
           });
       });
-    return Wallet.fromJSON(str_wallet, network, addressFunction)
+    return Wallet.fromJSON(str_wallet, network, addressFunction, testing_mode)
   }
 
   save({file_path = WALLET_LOC}: {file_path?: string}={}) {
@@ -117,14 +126,26 @@ export class Wallet {
 
   // Add confirmed Statecoin to wallet
   addStatecoin(id: string, shared_key: MasterKey2, value: number, txid: string, action: string) {
-    this.statecoins.addNewCoin(id, shared_key, value)
-    this.statecoins.setCoinFundingTxid(id, txid)
+    this.statecoins.addNewCoin(id, shared_key)
+    this.statecoins.setCoinFundingTxidAndValue(id, txid, value)
     this.activity.addItem(id, action);
   }
 
   // New BTC address
   genBtcAddress() {
     return this.account.nextChainAddress(0)
+  }
+
+  // New Proof Key
+  genProofKey() {
+    let addr = this.account.nextChainAddress(0);
+    return this.account.derive(addr).publicKey.toString('hex')
+  }
+
+  getBIP32forProofKey(proof_key: string) {
+    const p2wpkh = segwitAddr({publicKey: Buffer.from(proof_key, "hex")})
+    return this.account.derive(p2wpkh)
+
   }
 
   // New Mercury address
@@ -134,17 +155,51 @@ export class Wallet {
     }
   }
 
+
   // Perform deposit
-  deposit(_amount: number) {
-    return {
-      shared_key_id: "73935730-d35c-438c-87dc-d06054277a5d",
-      state_chain_id: "56ee06ea-88b4-415d-b1e9-62b308889d29",
-      funding_txid: "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
-      backuptx: "3c06e118b822772c024aac3d840fbad3cef62c9f62c9b74e276843a5d0fe0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
-      proof_key: "441874303fd1524b9660afb44a7edfee49cd9b243db99ea400e876aa15c2983ee7dcf5dc7aec2ae27260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
-      swap_rounds: 0,
-      time_left: "12"
+  async deposit(_amount: number) {
+    if (this.testing_mode) {
+      return {
+        shared_key_id: "73935730-d35c-438c-87dc-d06054277a5d",
+        state_chain_id: "56ee06ea-88b4-415d-b1e9-62b308889d29",
+        funding_txid: "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
+        backuptx: "3c06e118b822772c024aac3d840fbad3cef62c9f62c9b74e276843a5d0fe0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
+        proof_key: "441874303fd1524b9660afb44a7edfee49cd9b243db99ea400e876aa15c2983ee7dcf5dc7aec2ae27260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
+        swap_rounds: 0,
+        time_left: "12"
+      }
     }
+    // gen these from Wallet
+    let secret_key = "12345";
+    let proof_key = "02851ad2219901fc72ea97b4d21e803c625a339f07da8c7069ea33ddd0125da84f";
+    let value = 1000;
+
+    // Initisalise deposit - gen shared keys and create statecoin
+    let [statecoin, p_addr] = await depositInit(proof_key, secret_key);
+    this.statecoins.addCoin(statecoin);
+
+
+    // Allow for user to send funds to p_addr, or to receive funds for wallet to hadnle building of funding_tx.
+    let funding_txid = "ae0093c55f0446e5cab54539cd65f3fc1a86932eebcad9c71a291e1c928530d0";
+
+    // add value and funding_txid
+    this.statecoins.setCoinFundingTxidAndValue(statecoin.shared_key_id, funding_txid, value);
+
+
+    // Finish deposit protocol
+    let chaintip_height: number = await this.electrum_client.latestBlockHeight();
+    let backup_receive_addr = this.genBtcAddress();
+
+    let statecoin_finalized = await depositConfirm(
+      this.network,
+      statecoin,
+      chaintip_height,
+      backup_receive_addr
+    );
+
+    // update in wallet
+    this.statecoins.setCoinFinalized(statecoin_finalized);
+
   }
 
   // Perform transfer_sender
@@ -175,11 +230,30 @@ export class Wallet {
   // Perform withdraw
   // Args: state_chain_id of coin to withdraw
   // Return: Txid of withdraw and onchain amount (To be displayed to user)
-  withdraw(_state_chain_id: string) {
-    return {
-      withdraw_txid: "fbad3cf76843a5d0fe0d3d0f3d73c066274e2e118b822772c024aac3d840c9be",
-      withdraw_onchain_amount: 0.0999700,
+  async withdraw(shared_key_id: string) {
+    if (this.testing_mode) {
+      return {
+        withdraw_txid: "fbad3cf76843a5d0fe0d3d0f3d73c066274e2e118b822772c024aac3d840c9be",
+        withdraw_onchain_amount: 0.0999700,
+      }
     }
+
+    let statecoin = this.statecoins.getCoin(shared_key_id);
+    if (!statecoin) throw "No coin found with id " + shared_key_id
+
+    let proof_key_der = this.getBIP32forProofKey(statecoin.proof_key);
+
+    let rec_address = this.genBtcAddress();
+
+    // Perform withdraw with server
+    let withdraw_tx = await withdraw(this.network, statecoin, proof_key_der, rec_address);
+
+    // Mark funds as withdrawn in wallet
+    this.statecoins.setCoinSpent(shared_key_id)
+    this.statecoins.setCoinWithdrawTx(shared_key_id, withdraw_tx)
+
+    // Broadcast transcation
+
   }
 
   // Perform swap

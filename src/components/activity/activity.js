@@ -1,5 +1,7 @@
 import React from 'react';
+import { useSelector } from 'react-redux'
 import { useTable } from 'react-table'
+
 import './activity.css';
 import { Wallet } from '../../wallet/wallet'
 import txidIcon from '../../images/txid-icon.png';
@@ -11,13 +13,8 @@ import swapIcon from '../../images/swap-icon-grey.png';
 
 
 function Activity() {
-
-    const wallet = Wallet.buildMock()
+    const wallet = useSelector(state => state.walletData).wallet
     const activities = wallet.getActivityLog(10)
-
-    console.log(activities)
-
-
 
     const activitiesTableData = activities.map((item, index) => (
 
