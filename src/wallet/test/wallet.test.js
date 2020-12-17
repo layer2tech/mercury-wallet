@@ -1,7 +1,7 @@
 let bitcoin = require('bitcoinjs-lib')
 import { Wallet, StateCoinList, ACTION } from '../';
 import { segwitAddr } from '../wallet';
-
+import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 
 describe('Wallet', function() {
   let wallet = Wallet.buildMock();
@@ -19,6 +19,13 @@ describe('Wallet', function() {
     expect(addr1).not.toEqual(addr2)
     expect(wallet.account.containsAddress(addr1))
     expect(wallet.account.containsAddress(addr2))
+  });
+
+  describe('genProofKey', function() {
+    let proof_key = wallet.genProofKey();
+    let bip32 = wallet.getBIP32forProofKey(proof_key)
+    // Ensure BIP32 is correclty returned
+    expect(proof_key).toEqual(bip32.publicKey.toString('hex'))
   });
 
   describe('getActivityLog', function() {

@@ -136,12 +136,25 @@ export class Wallet {
     return this.account.nextChainAddress(0)
   }
 
+  // New Proof Key
+  genProofKey() {
+    let addr = this.account.nextChainAddress(0);
+    return this.account.derive(addr).publicKey.toString('hex')
+  }
+
+  getBIP32forProofKey(proof_key: string) {
+    const p2wpkh = segwitAddr({publicKey: Buffer.from(proof_key, "hex")})
+    return this.account.derive(p2wpkh)
+
+  }
+
   // New Mercury address
   genSEAddress() {
     return {
       se_addr: "026ff25fd651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0ebcrt1qq0znj64a5zukv7yew52zjzmdndch3r0vxu8668",
     }
   }
+
 
   // Perform deposit
   async deposit(_amount: number) {
@@ -228,17 +241,19 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw "No coin found with id " + shared_key_id
 
+    let proof_key_der = this.getBIP32forProofKey(statecoin.proof_key);
+
     let rec_address = this.genBtcAddress();
 
     // Perform withdraw with server
-    let withdraw_tx = await withdraw(this.network, statecoin, rec_address);
+    let withdraw_tx = await withdraw(this.network, statecoin, proof_key_der, rec_address);
 
     // Mark funds as withdrawn in wallet
     this.statecoins.setCoinSpent(shared_key_id)
     this.statecoins.setCoinWithdrawTx(shared_key_id, withdraw_tx)
 
     // Broadcast transcation
-    
+
   }
 
   // Perform swap

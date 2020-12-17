@@ -16,21 +16,18 @@ import { FeeInfo, StateChainDataAPI } from "./info_api";
 
 
 // Withdraw coins from state entity. Returns signed withdraw transaction
-export const withdraw = async (network: Network, statecoin: StateCoin, rec_address: string) => {
+export const withdraw = async (network: Network, statecoin: StateCoin, proof_key_der: any, rec_address: string) => {
   // Sign state chain
   let state_chain_data: StateChainDataAPI = await getStateChain(statecoin.state_chain_id);
   if (state_chain_data.amount == 0)  throw "Withdraw: StateChain is already withdrawn."
 
   let state_chain = state_chain_data.chain;
-  // get proof key for signing
-  // let proof_key_derivation = wallet
-  //     .se_proof_keys
-  //     .get_key_derivation(&PublicKey::from_str(&state_chain.last().unwrap().data).unwrap())
-  //     .ok_or(CError::WalletError(WalletErrorType::KeyNotFound));
+
+  // get proof key derivation for signing
   // let state_chain_sig = StateChainSig::new(
-  //     &proof_key_derivation.unwrap().private_key.key,
-  //     &String::from("WITHDRAW"),
-  //     &rec_address.to_string(),
+  //     proof_key_der.privateKey,
+  //     "WITHDRAW",
+  //     rec_address,
   // )?;
 
   // Alert SE of desire to withdraw and receive authorisation if state chain signature verifies
