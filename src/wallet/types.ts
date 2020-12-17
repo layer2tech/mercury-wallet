@@ -10,10 +10,9 @@ export const Boolean = typeforce.Boolean; // tslint:disable-line variable-name
 export const String = typeforce.String; // tslint:disable-line variable-name
 export const UInt32 = typeforce.UInt32;
 export const UInt64 = typeforce.UInt64;
-export const Object = typeforce.Object;
 export const Null = typeforce.Null;
 
-export const OutPoint = Object;
+export const OutPoint = typeforce.Any;
 export const Chain = Array;
 
 // StateChain Entity API

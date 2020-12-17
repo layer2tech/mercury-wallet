@@ -8,7 +8,7 @@ describe('Wallet', function() {
 
   describe('toJSON', function() {
     let json_wallet = JSON.stringify(wallet)
-    let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr)
+    let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true)
     // check wallets serialize to same values (since deep equal on recursive objects is messy)
     expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet))
   });
@@ -80,7 +80,7 @@ describe("Statecoins/Coin", () => {
     it('Returns only unspent coins with correct data', () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
-      statecoins.setCoinSpent(coins[0].id) // set one spent
+      statecoins.setCoinSpent(coins[0].shared_key_id) // set one spent
       expect(statecoins.getUnspentCoins().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
