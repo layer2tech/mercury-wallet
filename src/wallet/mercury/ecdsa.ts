@@ -1,7 +1,6 @@
 // Mercury 2P-ECDSA KeyGen and Sign protocols
 
-import { post, POST_ROUTE } from '../request';
-import { StateCoin } from '../';
+import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE } from '../';
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -15,11 +14,11 @@ Object.freeze(PROTOCOL);
 
 // 2P-ECDSA Key generation. Output SharedKey struct.
 export const keyGen = async (
-    shared_key_id: string,
-    secret_key: string,
-    _proof_key: string,
-    protocol: string
-  ) => {
+  http_client: HttpClient | MockHttpClient,
+  shared_key_id: string,
+  secret_key: string,
+  protocol: string
+) => {
   // Import Rust functions
   let wasm = await import('client-wasm');
 
@@ -28,7 +27,7 @@ export const keyGen = async (
       protocol: protocol,
   };
   // server first
-  let server_resp_key_gen_first = await post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
+  let server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
   let id = server_resp_key_gen_first[0];
   let kg_party_one_first_message = server_resp_key_gen_first[1];
   typeforce(types.String, id);
@@ -46,7 +45,7 @@ export const keyGen = async (
     shared_key_id: shared_key_id,
     dlog_proof:client_resp_key_gen_first.kg_party_two_first_message.d_log_proof,
   }
-  let kg_party_one_second_message = await post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
+  let kg_party_one_second_message = await http_client.post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
   typeforce(types.KeyGenParty1Message2, kg_party_one_second_message);
 
   // client second
@@ -79,6 +78,7 @@ export const keyGen = async (
 // 2P-ECDSA Sign.
 // message should be hex string
 export const sign = async (
+  http_client: HttpClient | MockHttpClient,
   shared_key_id: string,
   master_key: any,
   message: string,
@@ -99,7 +99,7 @@ export const sign = async (
       shared_key_id: shared_key_id,
       eph_key_gen_first_message_party_two: client_sign_first.eph_key_gen_first_message_party_two,
   };
-  let server_sign_first = await post(POST_ROUTE.SIGN_FIRST, sign_msg1);
+  let server_sign_first = await http_client.post(POST_ROUTE.SIGN_FIRST, sign_msg1);
   typeforce(types.ServerSignfirstMsg, server_sign_first);
 
   //client second
@@ -124,7 +124,7 @@ export const sign = async (
       },
   };
 
-  let signature = await post(POST_ROUTE.SIGN_SECOND, sign_msg2);
+  let signature = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
 
   return signature
 }

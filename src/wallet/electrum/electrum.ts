@@ -1,4 +1,4 @@
-let ElectrumClient = require('@keep-network/electrum-client-js')
+let ElectrumClientLib = require('@keep-network/electrum-client-js')
 
 const config = {
   host: 'electrumx-server.tbtc.network',
@@ -6,14 +6,14 @@ const config = {
   protocol: 'wss',
 }
 
-export class Electrum {
-  client = ElectrumClient;
+export class ElectrumClient {
+  client = ElectrumClientLib;
 
   constructor() {
-    this.client = new ElectrumClient(config.host, config.port, config.protocol)
+    this.client = new ElectrumClientLib(config.host, config.port, config.protocol)
   }
 
-  // Connect to ElectrumServer
+  // Connect to Electrum Server
   async connect() {
     // console.log("Connecting to electrum server...")
     await this.client.connect(
@@ -24,7 +24,7 @@ export class Electrum {
     })
   }
 
-  // Disconnect from the ElectrumServer.
+  // Disconnect from the ElectrumClientServer.
   async close() {
     // console.log("Closing connection to electrum server...")
     this.client.close()

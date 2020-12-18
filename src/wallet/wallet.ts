@@ -2,7 +2,7 @@
 
 import { Network } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
-import { Electrum, MockElectrum, StateCoinList } from './';
+import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -22,7 +22,8 @@ export class Wallet {
   account: any;
   statecoins: StateCoinList;
   activity: ActivityLog;
-  electrum_client: Electrum | MockElectrum;
+  http_client: HttpClient | MockHttpClient;
+  electrum_client: ElectrumClient | MockElectrumClient;
   network: Network;
   testing_mode: boolean;
 
@@ -34,9 +35,11 @@ export class Wallet {
     this.network = bitcoin.networks.bitcoin;
     this.testing_mode = testing_mode;
     if (testing_mode) {
-      this.electrum_client = new MockElectrum();
+      this.electrum_client = new MockElectrumClient();
+      this.http_client = new MockHttpClient();
     } else {
-      this.electrum_client = new Electrum();
+      this.electrum_client = new ElectrumClient();
+      this.http_client = new HttpClient();
     }
   }
 
@@ -173,7 +176,11 @@ export class Wallet {
     let value = 1000;
 
     // Initisalise deposit - gen shared keys and create statecoin
-    let [statecoin, p_addr] = await depositInit(proof_key, secret_key);
+    let [statecoin, p_addr] = await depositInit(
+      this.http_client,
+      proof_key,
+      secret_key
+    );
     this.statecoins.addCoin(statecoin);
 
 
@@ -189,6 +196,7 @@ export class Wallet {
     let backup_receive_addr = this.genBtcAddress();
 
     let statecoin_finalized = await depositConfirm(
+      this.http_client,
       this.network,
       statecoin,
       chaintip_height,
@@ -244,7 +252,7 @@ export class Wallet {
     let rec_address = this.genBtcAddress();
 
     // Perform withdraw with server
-    let withdraw_tx = await withdraw(this.network, statecoin, proof_key_der, rec_address);
+    let withdraw_tx = await withdraw(this.http_client, this.network, statecoin, proof_key_der, rec_address);
 
     // Mark funds as withdrawn in wallet
     this.statecoins.setCoinSpent(shared_key_id)

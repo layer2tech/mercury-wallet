@@ -1,7 +1,7 @@
 // Withdraw
 
 import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
-import { getFeeInfo, post, POST_ROUTE, StateCoin } from "..";
+import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
 import { signStateChain, txWithdrawBuild } from "../util";
 import { PROTOCOL, sign } from "./ecdsa";
 import { FeeInfo } from "./info_api";
@@ -13,10 +13,14 @@ import { FeeInfo } from "./info_api";
 // 3. Broadcast withdraw tx
 
 
-
-
 // Withdraw coins from state entity. Returns signed withdraw transaction
-export const withdraw = async (network: Network, statecoin: StateCoin, proof_key_der: BIP32Interface, rec_address: string) => {
+export const withdraw = async (
+  http_client: HttpClient | MockHttpClient,
+  network: Network,
+  statecoin: StateCoin,
+  proof_key_der: BIP32Interface,
+  rec_address: string
+) => {
   // Sign statecoin to signal desire to Withdraw
   let state_chain_sig = signStateChain(proof_key_der, "WITHDRAW", rec_address);
 
@@ -25,10 +29,10 @@ export const withdraw = async (network: Network, statecoin: StateCoin, proof_key
       shared_key_id: statecoin.shared_key_id,
       statechain_sig: state_chain_sig
   }
-  await post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
+  await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
 
   // Get state entity fee info
-  let fee_info: FeeInfo = await getFeeInfo();
+  let fee_info: FeeInfo = await getFeeInfo(http_client);
 
   // Construct withdraw tx
   let txb_withdraw_unsigned = txWithdrawBuild(
@@ -42,7 +46,7 @@ export const withdraw = async (network: Network, statecoin: StateCoin, proof_key
 
   // tx_withdraw_unsigned
   let signatureHash = tx_withdraw_unsigned.hashForSignature(0, tx_withdraw_unsigned.ins[0].script, Transaction.SIGHASH_ALL);
-  let signature = await sign(statecoin.shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
+  let signature = await sign(http_client, statecoin.shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
   // set witness data with signature
   let tx_backup_signed = tx_withdraw_unsigned;
   tx_backup_signed.ins[0].witness = [Buffer.from(signature)];

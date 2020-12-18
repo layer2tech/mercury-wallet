@@ -1,6 +1,6 @@
 let bitcoin = require('bitcoinjs-lib')
 
-export class MockElectrum {
+export class MockElectrumClient {
 
     latestBlockHeight() {
       return 12345

@@ -1,46 +1,7 @@
-const axios = require('axios').default;
+import { GET_ROUTE, POST_ROUTE } from "./http_client"
 
-const state_entity_addr = "http://0.0.0.0:8000";
-// const state_entity_addr = "https://fakeapi.mercurywallet.io";
-
-export const GET_ROUTE = {
-  FEES: "info/fee",
-  ROOT: "info/root",
-  STATECHAIN: "info/statechain",
-  TRANSFER_BATCH: "info/transfer-batch"
-};
-Object.freeze(GET_ROUTE);
-
-export const POST_ROUTE = {
-  KEYGEN_FIRST: "ecdsa/keygen/first",
-  KEYGEN_SECOND: "ecdsa/keygen/second",
-  SIGN_FIRST: "ecdsa/sign/first",
-  SIGN_SECOND: "ecdsa/sign/second",
-  SMT_PROOF: "info/proof",
-  DEPOSIT_INIT: "deposit/init",
-  DEPOSIT_CONFIRM: "deposit/confirm",
-  WITHDRAW_INIT: "withdraw/init",
-};
-Object.freeze(POST_ROUTE);
-
-export const get = async (path: string, params: any) => {
-  try {
-    const url = state_entity_addr + "/" + path + "/" + (Object.entries(params).length == 0 ? "" : params);
-
-    const config = {
-        method: 'get',
-        url: url,
-        headers: { 'Accept': 'application/json' }
-    };
-
-    let res = await axios(config);
-
-    return res.data
-
-  } catch (err) {
-    console.log(err);
-    console.log("Error connecting to StateEntity. Dummy values returned.")
-
+export class MockHttpClient {
+  get = async (path: string, _params: any) => {
     switch(path) {
       case GET_ROUTE.FEES:
         return {
@@ -68,29 +29,8 @@ export const get = async (path: string, params: any) => {
         }
     }
   }
-};
 
-
-export const post = async (path: string, body: any) => {
-  try {
-    let url = state_entity_addr + "/" + path;
-    const config = {
-        method: 'post',
-        url: url,
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        data: body,
-    };
-    let res = await axios(config);
-
-    return res.data
-
-  } catch (err) {
-    console.log(err);
-    console.log("Error connecting to StateEntity. Dummy values returned.")
-
+  post = async (path: string, _body: any) => {
     switch(path) {
       case POST_ROUTE.KEYGEN_FIRST:
         return ["861d2223-7d84-44f1-ba3e-4cd7dd418560",{"pk_commitment":"fa11dbc7bc21f4bf7dd5ae4fee73d5919734c6cd144328798ae93908e47732aa","zk_pok_commitment":"fcffc8bee0287bd75005f21612f94107796de03cbff9b4041bd0bd76c86eaa57"}];
@@ -108,7 +48,6 @@ export const post = async (path: string, body: any) => {
           return "21d28236-d874-f0f4-ba3e-d4184cd7d560";
         case POST_ROUTE.WITHDRAW_INIT:
           return
-
+      }
     }
-  }
-};
+}
