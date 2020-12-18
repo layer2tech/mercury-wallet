@@ -5,7 +5,7 @@ export { Electrum } from './electrum/electrum'
 export { Wallet } from "./wallet"
 export { StateCoin, StateCoinList } from "./statecoin"
 export { ACTION } from "./activity_log"
-export { txBackupBuild, verifySmtProof } from "./util"
+export { txBackupBuild, verifySmtProof, signStateChain } from "./util"
 
 export { depositInit, depositConfirm } from "./mercury/deposit"
 // export { MasterKey2 } from "./mercury/ecdsa";

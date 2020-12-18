@@ -1,10 +1,10 @@
 // Withdraw
 
-import { Network, Transaction } from "bitcoinjs-lib";
-import { getFeeInfo, getStateChain, post, POST_ROUTE, StateCoin } from "..";
-import { txWithdrawBuild } from "../util";
+import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
+import { getFeeInfo, post, POST_ROUTE, StateCoin } from "..";
+import { signStateChain, txWithdrawBuild } from "../util";
 import { PROTOCOL, sign } from "./ecdsa";
-import { FeeInfo, StateChainDataAPI } from "./info_api";
+import { FeeInfo } from "./info_api";
 
 // withdraw() messages:
 // 0. request withdraw and provide withdraw tx data
@@ -16,29 +16,17 @@ import { FeeInfo, StateChainDataAPI } from "./info_api";
 
 
 // Withdraw coins from state entity. Returns signed withdraw transaction
-export const withdraw = async (network: Network, statecoin: StateCoin, proof_key_der: any, rec_address: string) => {
-  // Sign state chain
-  let state_chain_data: StateChainDataAPI = await getStateChain(statecoin.state_chain_id);
-  if (state_chain_data.amount == 0)  throw "Withdraw: StateChain is already withdrawn."
-
-  let state_chain = state_chain_data.chain;
-
-  // get proof key derivation for signing
-  // let state_chain_sig = StateChainSig::new(
-  //     proof_key_der.privateKey,
-  //     "WITHDRAW",
-  //     rec_address,
-  // )?;
+export const withdraw = async (network: Network, statecoin: StateCoin, proof_key_der: BIP32Interface, rec_address: string) => {
+  // Sign statecoin to signal desire to Withdraw
+  let state_chain_sig = signStateChain(proof_key_der, "WITHDRAW", rec_address);
 
   // Alert SE of desire to withdraw and receive authorisation if state chain signature verifies
   let withdraw_msg_1 = {
       shared_key_id: statecoin.shared_key_id,
-      // statechain_sig: state_chain_sig
+      statechain_sig: state_chain_sig
   }
   await post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
 
-  // Get state chain info
-  let sc_info: StateChainDataAPI = await getStateChain(statecoin.state_chain_id);
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo();
 

@@ -2,7 +2,7 @@
 
 import { Network } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
-import { Electrum, MockElectrum, StateCoin, StateCoinList } from './';
+import { Electrum, MockElectrum, StateCoinList } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -29,14 +29,14 @@ export class Wallet {
   constructor(mnemonic: string, account: any, testing_mode: boolean) {
     this.mnemonic = mnemonic;
     this.account = account;
-    this.statecoins = new StateCoinList;
-    this.activity = new ActivityLog;
+    this.statecoins = new StateCoinList();
+    this.activity = new ActivityLog();
     this.network = bitcoin.networks.bitcoin;
     this.testing_mode = testing_mode;
     if (testing_mode) {
-      this.electrum_client = new MockElectrum;
+      this.electrum_client = new MockElectrum();
     } else {
-      this.electrum_client = new Electrum;
+      this.electrum_client = new Electrum();
     }
   }
 
@@ -141,11 +141,9 @@ export class Wallet {
     let addr = this.account.nextChainAddress(0);
     return this.account.derive(addr).publicKey.toString('hex')
   }
-
   getBIP32forProofKey(proof_key: string) {
     const p2wpkh = segwitAddr({publicKey: Buffer.from(proof_key, "hex")})
     return this.account.derive(p2wpkh)
-
   }
 
   // New Mercury address

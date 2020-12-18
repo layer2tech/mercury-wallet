@@ -32,11 +32,12 @@ export class StateCoinList {
       if (!item.spent) {
         return item.getDisplayInfo()
       }
+      return
     })
   };
 
   getCoin(shared_key_id: string) {
-    return this.coins.reverse().find(coin => coin.shared_key_id == shared_key_id)
+    return this.coins.reverse().find(coin => coin.shared_key_id === shared_key_id)
   }
 
   // creates new coin with Date.now()
