@@ -2,7 +2,7 @@
 
 import { Network } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
-import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList } from './';
+import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList, MockWasm } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -26,6 +26,7 @@ export class Wallet {
   electrum_client: ElectrumClient | MockElectrumClient;
   network: Network;
   testing_mode: boolean;
+  jest_testing_mode: boolean;
 
   constructor(mnemonic: string, account: any, testing_mode: boolean) {
     this.mnemonic = mnemonic;
@@ -41,6 +42,7 @@ export class Wallet {
       this.electrum_client = new ElectrumClient();
       this.http_client = new HttpClient();
     }
+    this.jest_testing_mode = false;
   }
 
   // Constructors
@@ -105,9 +107,15 @@ export class Wallet {
   };
 
   // Initialise and return Wasm object.
-  // Wasm contains all wallet Rust functionality
+  // Wasm contains all wallet Rust functionality.
+  // MockWasm is for Jest testing since we cannot run wasbAssembly with browser target in Jest's Node environment
   async getWasm() {
-    let wasm = await import('client-wasm');
+    let wasm;
+    if (this.jest_testing_mode) {
+      wasm = new MockWasm()
+    } else {
+      wasm = await import('client-wasm');
+    }
 
     // Setup
     wasm.init();
@@ -170,26 +178,26 @@ export class Wallet {
 
   // Perform deposit
   async deposit(_amount: number) {
-    if (this.testing_mode) {
-      return {
-        shared_key_id: "73935730-d35c-438c-87dc-d06054277a5d",
-        state_chain_id: "56ee06ea-88b4-415d-b1e9-62b308889d29",
-        funding_txid: "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
-        backuptx: "3c06e118b822772c024aac3d840fbad3cef62c9f62c9b74e276843a5d0fe0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
-        proof_key: "441874303fd1524b9660afb44a7edfee49cd9b243db99ea400e876aa15c2983ee7dcf5dc7aec2ae27260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
-        swap_rounds: 0,
-        time_left: "12"
-      }
-    }
+    // if (this.testing_mode) {
+    //   return {
+    //     shared_key_id: "73935730-d35c-438c-87dc-d06054277a5d",
+    //     state_chain_id: "56ee06ea-88b4-415d-b1e9-62b308889d29",
+    //     funding_txid: "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
+    //     backuptx: "3c06e118b822772c024aac3d840fbad3cef62c9f62c9b74e276843a5d0fe0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
+    //     proof_key: "441874303fd1524b9660afb44a7edfee49cd9b243db99ea400e876aa15c2983ee7dcf5dc7aec2ae27260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
+    //     swap_rounds: 0,
+    //     time_left: "12"
+    //   }
+    // }
     // gen these from Wallet
     let secret_key = "12345";
     let proof_key = "02851ad2219901fc72ea97b4d21e803c625a339f07da8c7069ea33ddd0125da84f";
     let value = 1000;
 
     // Initisalise deposit - gen shared keys and create statecoin
-    let [statecoin, p_addr] = await depositInit(
+    let [shared_key_id, statecoin, p_addr] = await depositInit(
       this.http_client,
-      this.getWasm(),
+      await this.getWasm(),
       proof_key,
       secret_key
     );
@@ -209,7 +217,7 @@ export class Wallet {
 
     let statecoin_finalized = await depositConfirm(
       this.http_client,
-      this.getWasm(),
+      await this.getWasm(),
       this.network,
       statecoin,
       chaintip_height,
@@ -265,7 +273,8 @@ export class Wallet {
     let rec_address = this.genBtcAddress();
 
     // Perform withdraw with server
-    let withdraw_tx = await withdraw(this.http_client, this.network, statecoin, proof_key_der, rec_address);
+
+    let withdraw_tx = await withdraw(this.http_client, await this.getWasm(), this.network, statecoin, proof_key_der, rec_address);
 
     // Mark funds as withdrawn in wallet
     this.statecoins.setCoinSpent(shared_key_id)

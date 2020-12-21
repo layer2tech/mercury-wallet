@@ -1,8 +1,9 @@
-export { HttpClient, GET_ROUTE, POST_ROUTE } from "./http_client/http_client";
-export { ElectrumClient } from './electrum/electrum'
-export { MockHttpClient } from "./http_client/mock_http_client";
-export { MockElectrumClient } from './electrum/mock_electrum'
-export { getWasm } from './wasm/wasm'
+export { HttpClient, GET_ROUTE, POST_ROUTE } from "./http_client";
+export { ElectrumClient } from './electrum'
+
+export { MockHttpClient } from "./mocks/mock_http_client";
+export { MockElectrumClient } from './mocks/mock_electrum';
+export { MockWasm } from './mocks/mock_wasm';
 
 
 export { Wallet } from "./wallet"

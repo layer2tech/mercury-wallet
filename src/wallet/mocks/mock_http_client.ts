@@ -1,4 +1,4 @@
-import { GET_ROUTE, POST_ROUTE } from "./http_client"
+import { GET_ROUTE, POST_ROUTE } from "../http_client"
 
 export class MockHttpClient {
   get = async (path: string, _params: any) => {

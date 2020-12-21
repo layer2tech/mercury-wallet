@@ -16,6 +16,7 @@ import { FeeInfo } from "./info_api";
 // Withdraw coins from state entity. Returns signed withdraw transaction
 export const withdraw = async (
   http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
   network: Network,
   statecoin: StateCoin,
   proof_key_der: BIP32Interface,
@@ -46,7 +47,7 @@ export const withdraw = async (
 
   // tx_withdraw_unsigned
   let signatureHash = tx_withdraw_unsigned.hashForSignature(0, tx_withdraw_unsigned.ins[0].script, Transaction.SIGHASH_ALL);
-  let signature = await sign(http_client, statecoin.shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
+  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
   // set witness data with signature
   let tx_backup_signed = tx_withdraw_unsigned;
   tx_backup_signed.ins[0].witness = [Buffer.from(signature)];
