@@ -1,5 +1,27 @@
 {
   "name": "MercuryWallet",
+  "jest": {
+    "moduleDirectories": [
+      "node_modules",
+      "src",
+      "client-wasm/pkg"
+    ],
+    "modulePaths": [
+      "src",
+      "node_modules",
+      "client-wasm/pkg"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "ts",
+      "d.ts",
+      "wasm"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    }
+  },
   "repository": "github:commerceblock/mercury-wallet",
   "version": "0.1.0",
   "license": "MIT/Apache-2.0",
@@ -60,6 +82,7 @@
     "react-router-dom": "^5.2.0",
     "react-table": "^7.6.2",
     "superagent": "^6.1.0",
+    "ts-jest": "^26.4.4",
     "typeforce": "^1.11.3"
   },
   "browserslist": {

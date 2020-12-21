@@ -20,6 +20,7 @@ let typeforce = require('typeforce');
 // Return Shared_key_id, statecoin and address to send funds to.
 export const depositInit = async (
   http_client: HttpClient | MockHttpClient,
+  wasm_client: any, 
   proof_key: string,
   secret_key: string
 ) => {
@@ -32,7 +33,7 @@ export const depositInit = async (
   typeforce(typeforce.String, shared_key_id)
 
   // 2P-ECDSA with state entity to create a Shared key
-  let statecoin = await keyGen(http_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
+  let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
 
   // Co-owned key address to send funds to (P_addr)
   let p_addr = await statecoin.getBtcAddress();
@@ -44,6 +45,7 @@ export const depositInit = async (
 // Return statecoin with smt_proot, state_chain_id, tx_backup_signed, p_addr.
 export const depositConfirm = async (
   http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
   network: Network,
   statecoin: StateCoin,
   chaintip_height: number,
@@ -61,7 +63,7 @@ export const depositConfirm = async (
 
   //co sign funding tx input signatureHash
   let signatureHash = tx_backup_unsigned.hashForSignature(0, tx_backup_unsigned.ins[0].script, Transaction.SIGHASH_ALL);
-  let signature = await sign(http_client, statecoin.shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
+  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
   // set witness data with signature
   let tx_backup_signed = tx_backup_unsigned;
   tx_backup_signed.ins[0].witness = [Buffer.from(signature)];

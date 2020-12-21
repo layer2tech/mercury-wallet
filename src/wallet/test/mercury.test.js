@@ -1,17 +1,29 @@
 let bitcoin = require('bitcoinjs-lib')
 
 import { verifySmtProof } from '../util';
+import { MockHttpClient } from '../';
+import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
 
 
-// describe('wasm', function() {
-//   describe('Verify SMT proof', async function() {
-//     let root = "[149,77,135,96,114,71,131,121,205,171,129,110,105,245,141,41,213,54,72,34,212,10,180,230,59,61,166,28,80,68,2,188]"
-//     let proof_key = "03b971d624567214a2e9a53995ee7d4858d6355eb4e3863d9ac540085c8b2d12b3"
-//     let sc_smt_proof1 = "[[false,[0,0,1,0,99,49,53,54,50,102,55,102,49,53,100,54,98,56,97,53,49,101,97,50,101,55,48,51,53,98,57,99,100,98,56,99,0]]]"
-//     let res = await verifySmtProof(root, proof_key, sc_smt_proof1)
-//     expect(res).toBe(true);
-//   });
-//
-// })
 
-test.skip('skip', () => {});
+describe('2P-ECDSA', function() {
+  let http_client = new MockHttpClient();
+
+  test('KeyGen', async function() {
+    // let wasm = require('client-wasm');
+    let wasm = await import('client-wasm');
+    // console.log("wasm: ", wasm)
+    let shared_key_id = "861d2223-7d84-44f1-ba3e-4cd7dd418560"
+    let secret_key = "ff2f08aab2bf90f1ce47cf2859ceb0d6453efeca232e17e4be545cb60f4d977d";
+    // // let proof_key = "02851ad2219901fc72ea97b4d21e803c625a339f07da8c7069ea33ddd0125da84f";
+    // // let value = 10;
+    let protocol = "Deposit";
+    //
+    let [id, statecoin] = await keyGen(http_client, shared_key_id, secret_key, protocol);
+    //
+    console.log("statecoin: ", statecoin);
+    // expect(statecoin.shared_key_id).toBe(shared_key_id);
+    // expect(statecoin.value).toBe(0);
+  });
+
+})

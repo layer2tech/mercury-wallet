@@ -8,10 +8,7 @@ use kms::ecdsa::two_party::party1::KeyGenParty1Message2;
 use multi_party_ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::{PaillierPublic, EphCommWitness, EcKeyPair, EphEcKeyPair};
 use multi_party_ecdsa::protocols::two_party_ecdsa::lindell_2017::party_one::{EphKeyGenFirstMsg, KeyGenFirstMsg};
 use curv::arithmetic::traits::Converter;
-
 use std::collections::HashMap;
-
-
 
 /// Provides wrappers for kms-secp256k1 MasterKey2 KeyGen methods
 #[wasm_bindgen]
@@ -20,6 +17,7 @@ pub struct KeyGen;
 #[wasm_bindgen]
 impl KeyGen {
     pub fn first_message(secret_key: String) -> Result<JsValue, JsValue> {
+
         // Convert into Rust FE type
         let secret_key_bigint = match BigInt::from_str_radix(&secret_key, 16) {
             Ok(val) => val,

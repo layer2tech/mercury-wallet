@@ -6,6 +6,7 @@ import { addCoin, removeCoin } from '../../features/CoinDataSlice'
 import { disp, getActivityLog } from '../../features/WalletDataSlice'
 import { deposit, getRoot, getFeeInfo, getSmtProof, getStateChain } from '../../wallet'
 import { Wallet, Statecoin, verifySmtProof, ACTION } from '../../wallet'
+import { getWasm } from '../../wallet/wasm/wasm'
 import walletIcon from '../../images/walletIcon.png';
 import walletIconSmall from '../../images/walletIconsmallIcon.png';
 import pluseIcon from '../../images/pluseIcon.png';
@@ -26,6 +27,9 @@ const PanelControl = () => {
   const wallet = useSelector(state => state.walletData).wallet
 
   const createButtonAction = async () => {
+    let wasm = await getWasm();
+    console.log("wasm: ", wasm)
+
     wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
 
     let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"

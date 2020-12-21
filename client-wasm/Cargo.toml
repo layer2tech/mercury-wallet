@@ -28,6 +28,7 @@ web-sys = { version = "0.3.45", features = [
   'Response',
   'RequestDestination',
   'Window']}
+console_error_panic_hook = "0.1.6"
 
 [dev-dependencies]
 mockito = "0.27.0"
@@ -36,12 +37,12 @@ wasm-bindgen-test = "0.3.13"
 [dependencies.multi-party-ecdsa]
 git = "https://github.com/commerceblock/multi-party-ecdsa"
 branch = "client_version"
-#
+
 [dependencies.curv]
 git = "https://github.com/commerceblock/curv"
 features =  ["ec_secp256k1"]
 branch = "client_version"
-#
+
 [dependencies.kms]
 git = "https://github.com/commerceblock/kms-secp256k1"
 default-features = false

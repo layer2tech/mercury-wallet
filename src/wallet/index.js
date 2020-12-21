@@ -1,7 +1,9 @@
-export { HttpClient, GET_ROUTE, POST_ROUTE } from "./http/http_client";
+export { HttpClient, GET_ROUTE, POST_ROUTE } from "./http_client/http_client";
 export { ElectrumClient } from './electrum/electrum'
-export { MockHttpClient } from "./http/mock_http_client";
+export { MockHttpClient } from "./http_client/mock_http_client";
 export { MockElectrumClient } from './electrum/mock_electrum'
+export { getWasm } from './wasm/wasm'
+
 
 export { Wallet } from "./wallet"
 export { StateCoin, StateCoinList } from "./statecoin"

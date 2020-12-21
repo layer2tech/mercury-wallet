@@ -16,3 +16,13 @@ mod error;
 use error::CError;
 
 pub type Result<T> = std::result::Result<T, CError>;
+
+
+use wasm_bindgen::prelude::*;
+extern crate console_error_panic_hook;
+
+#[wasm_bindgen]
+pub fn init() {
+    // Return rust error trace to javascript upon panic 
+    console_error_panic_hook::set_once();
+}

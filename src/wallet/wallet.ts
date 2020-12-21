@@ -104,6 +104,17 @@ export class Wallet {
     })
   };
 
+  // Initialise and return Wasm object.
+  // Wasm contains all wallet Rust functionality
+  async getWasm() {
+    let wasm = await import('client-wasm');
+
+    // Setup
+    wasm.init();
+
+    return wasm
+  }
+
 
   // Getters
   getMnemonic() {
@@ -178,6 +189,7 @@ export class Wallet {
     // Initisalise deposit - gen shared keys and create statecoin
     let [statecoin, p_addr] = await depositInit(
       this.http_client,
+      this.getWasm(),
       proof_key,
       secret_key
     );
@@ -197,6 +209,7 @@ export class Wallet {
 
     let statecoin_finalized = await depositConfirm(
       this.http_client,
+      this.getWasm(),
       this.network,
       statecoin,
       chaintip_height,
