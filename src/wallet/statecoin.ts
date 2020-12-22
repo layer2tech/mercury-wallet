@@ -2,8 +2,7 @@
 
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { MasterKey2 } from "./mercury/ecdsa"
-
-// let bitcoin = require('bitcoinjs-lib')
+import { pubKeyTobtcAddr } from "./wallet";
 
 export class StateCoinList {
   coins: StateCoin[]
@@ -135,13 +134,13 @@ export class StateCoin {
   };
 
   // Generate BTC address from SharedKey
-  async getBtcAddress() {
-    let wasm = await import('client-wasm');
-    return wasm.curv_ge_to_bitcoin_public_key(
+  async getBtcAddress(wasm_client: any) {
+    let pub_key = wasm_client.curv_ge_to_bitcoin_public_key(
       JSON.stringify(
         this.shared_key.public.q
       )
     );
+    return pubKeyTobtcAddr(pub_key)
   }
 }
 

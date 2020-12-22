@@ -1,6 +1,6 @@
 // Mercury 2P-ECDSA KeyGen and Sign protocols
 
-import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE, getWasm } from '../';
+import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE } from '../';
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -11,6 +11,7 @@ export const PROTOCOL = {
    WITHDRAW: "Withdraw"
 };
 Object.freeze(PROTOCOL);
+
 
 // 2P-ECDSA Key generation. Output SharedKey struct.
 export const keyGen = async (
@@ -54,7 +55,6 @@ export const keyGen = async (
       )
     );
   typeforce(types.ClientKeyGenSecondMsg, client_resp_key_gen_second);
-
 
   // Construct Rust MasterKey struct
   let master_key: MasterKey2 =

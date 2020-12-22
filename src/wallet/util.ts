@@ -7,26 +7,25 @@ let typeforce = require('typeforce');
 let types = require("./types")
 
 /// Temporary - fees should be calculated dynamically
-const FEE = 300;
+export const FEE = 300;
 
 
 // Verify Spase Merkle Tree proof of inclusion
-export const verifySmtProof = async (root: Root, proof_key: string, proof: any) => {
+export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {
   typeforce(typeforce.oneOf(types.Root, typeforce.Null), root);
-  let wasm = await import('client-wasm');
-  return wasm.verify_statechain_smt(JSON.stringify(root.value), proof_key, JSON.stringify(proof));
+  return wasm_client.verify_statechain_smt(JSON.stringify(root.value), proof_key, JSON.stringify(proof));
 }
 
 // Make StateChainSig message
 export const signStateChain = (proof_key_der: BIP32Interface, purpose: string, data: string) => {
   let str = purpose + data;
-  console.log("str: ", str);
+  // console.log("str: ", str);
   let buf = Buffer.from(str)
-  console.log("buf: ", buf);
+  // console.log("buf: ", buf);
   let hash = crypto.sha256(buf)
-  console.log("hash: ", hash);
+  // console.log("hash: ", hash);
   let sig = proof_key_der.sign(hash)
-  console.log("sig: ", sig);
+  // console.log("sig: ", sig);
   return sig
 }
 

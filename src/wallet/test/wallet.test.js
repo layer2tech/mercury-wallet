@@ -22,10 +22,10 @@ describe('Wallet', function() {
   });
 
   test('genProofKey', function() {
-    let proof_key = wallet.genProofKey();
-    let bip32 = wallet.getBIP32forProofKey(proof_key)
+    let proof_key_bip32 = wallet.genProofKey();
+    let bip32 = wallet.getBIP32forProofKeyPubKey(proof_key_bip32.publicKey)
     // Ensure BIP32 is correclty returned
-    expect(proof_key).toEqual(bip32.publicKey.toString('hex'))
+    expect(proof_key_bip32.privateKey).toEqual(bip32.privateKey)
   });
 
   test('getActivityLog', function() {

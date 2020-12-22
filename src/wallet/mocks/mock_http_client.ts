@@ -4,25 +4,11 @@ export class MockHttpClient {
   get = async (path: string, _params: any) => {
     switch(path) {
       case GET_ROUTE.FEES:
-        return {
-          address: "bcrt1qjjwk2rk7nuxt6c79tsxthf5rpnky0sdhjr493x",
-          deposit: 300,
-          withdraw: 300,
-          interval: 100,
-          initlock: 10000
-        }
+        return FEE_INFO
       case GET_ROUTE.ROOT:
-        return {
-          id:5,
-          value:[154,53,38,46,29,91,126,195,142,244,188,68,180,174,33,99,89,117,11,239,187,250,220,78,240,130,228,20,23,113,225,113],
-          commitment_info:null
-        }
+        return ROOT_INFO
       case GET_ROUTE.STATECHAIN:
-        return {
-          utxo: { txid: "0158f2978e5c2cf407970d7213f2b4289993b2fe3ef6aca531316cdcf347cc41", vout: 1},
-          amount: 100,
-          chain: [{ data: "026ff25fd651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e", next_state: null }]
-        }
+        return STATECHAIN_INFO
       case GET_ROUTE.TRANSFER_BATCH:
         return {
           status: true
@@ -50,4 +36,25 @@ export class MockHttpClient {
           return
       }
     }
+}
+
+
+export const FEE_INFO = {
+  address: "bc1qdxx0p56wjmu3va7c4cq8dydfcx0vm7ak67klk8",
+  deposit: 300,
+  withdraw: 300,
+  interval: 100,
+  initlock: 10000
+}
+
+const ROOT_INFO = {
+  id:5,
+  value:[154,53,38,46,29,91,126,195,142,244,188,68,180,174,33,99,89,117,11,239,187,250,220,78,240,130,228,20,23,113,225,113],
+  commitment_info:null
+}
+
+const STATECHAIN_INFO = {
+  utxo: { txid: "0158f2978e5c2cf407970d7213f2b4289993b2fe3ef6aca531316cdcf347cc41", vout: 1},
+  amount: 100,
+  chain: [{ data: "026ff25fd651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e", next_state: null }]
 }

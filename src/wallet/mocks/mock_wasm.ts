@@ -8,6 +8,14 @@ export class MockWasm {
   }
 
   init() {}
+
+  verify_statechain_smt() {
+    return true
+  }
+
+  curv_ge_to_bitcoin_public_key(_input: string) {
+    return "0226a18285602f45cbb9a2b6c45b87971c9280daa6a342185a59afa9eb6e226bea"
+  }
 }
 
 

@@ -20,7 +20,7 @@ let typeforce = require('typeforce');
 // Return Shared_key_id, statecoin and address to send funds to.
 export const depositInit = async (
   http_client: HttpClient | MockHttpClient,
-  wasm_client: any, 
+  wasm_client: any,
   proof_key: string,
   secret_key: string
 ) => {
@@ -36,7 +36,7 @@ export const depositInit = async (
   let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
 
   // Co-owned key address to send funds to (P_addr)
-  let p_addr = await statecoin.getBtcAddress();
+  let p_addr = await statecoin.getBtcAddress(wasm_client);
 
   return [shared_key_id, statecoin, p_addr]
 }
@@ -78,7 +78,7 @@ export const depositConfirm = async (
   // Verify proof key inclusion in SE sparse merkle tree
   let root = await getRoot(http_client);
   let proof = await getSmtProof(http_client, root, statecoin.funding_txid);
-  if (!verifySmtProof(root, statecoin.proof_key, proof)) throw "SMT verification failed."
+  if (!verifySmtProof(wasm_client, root, statecoin.proof_key, proof)) throw "SMT verification failed."
 
   // Add proof and state chain id to Shared key
   statecoin.smt_proof = proof;
