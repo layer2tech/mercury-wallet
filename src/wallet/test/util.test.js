@@ -1,19 +1,27 @@
 import { TransactionBuilder, crypto, networks } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, signStateChain, txBackupBuild, txWithdrawBuild } from '../util';
-import { FUNDING_TXID, BTC_ADDR } from './test_data.js'
+import { FUNDING_TXID, BTC_ADDR, SIGNSTATECHAIN_DATA } from './test_data.js'
 
 let bip32 = require('bip32');
+let bitcoin = require('bitcoinjs-lib');
+
+function hexToBytes(hex) {
+    for (var bytes = [], c = 0; c < hex.length; c += 2)
+    bytes.push(parseInt(hex.substr(c, 2), 16));
+    return bytes;
+}
 
 
 describe('signStateChain', function() {
   let proof_key_der = bip32.fromSeed(Buffer.from("0123456789abcdef"), networks.bitcoin)
 
   test('Gen and Verify', async function() {
-    let sig = signStateChain(proof_key_der, "WITHDRAW", "aaa10")
-    expect(sig.toString("hex")).toBe("a28a572a4aa572a101dcd51b23f87b57e05cf45dabe69156d84afaa2833922f1008b1e7b098842645d39e4c5d1a4bfa683dfd0080b90cde2072f75ee255843a4");
+    SIGNSTATECHAIN_DATA.forEach(data => {
+      let sig = signStateChain(proof_key_der, data.protocol, data.msg);
+      expect(sig.toString("hex")).toBe(data.sig);
+    })
   });
-
 })
 
 describe('txBackupBuild', function() {
@@ -46,7 +54,7 @@ describe('txWithdrawBuild', function() {
   let value = 10000;
   let fee_info = FEE_INFO
 
-  test('throw on invalid value', async function() {
+  test('Throw on invalid value', async function() {
     expect(() => {  // not enough value
       txWithdrawBuild(network, funding_txid, rec_address, 0, fee_info);
     }).toThrowError('Not enough value to cover fee.');

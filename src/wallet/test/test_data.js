@@ -12,3 +12,13 @@ export const FUNDING_TXID = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aa
 export const STATE_CHAIN_ID = "56ee06ea-88b4-415d-b1e9-62b308889d29";
 
 export const BTC_ADDR = "bc1qdxx0p56wjmu3va7c4cq8dydfcx0vm7ak67klk8";
+
+
+
+// sigs generated from Mercury server StateChainSig.
+export const SIGNSTATECHAIN_DATA =
+  [
+    {protocol: "TRANSFER", msg: "03b971d624567214a2e9a53995ee7d4858d6355eb4e3863d9ac540085c8b2d12b3", sig: "304402205bb830138dc807cad3c34a674e9c5804eb1a6d9a75dc4043d35c72b704b587420220299b6d09455e438d871e4c35b9a369f3ab3ec2c7196da8179db1a5b43d0c2fdc"},
+    {protocol: "WITHDRAW", msg: "somedata", sig: "3045022100ba1e538a64d0c8754db93b539d622bdd9f0128e5fe9a54c64946f6db154e033f022043f68ab073cb247c807c90d33d22fc2e22470a6b1358d328fa3c4537181f834e"},
+    {protocol: "DEPOSIT", msg: "somedata222", sig: "30440220524821f37eac1a6d7bd3fda54d01c0db309301aeaa5d499007191e8889b5c42a02200f5e538154c1b39ba4733eb28124fade124c21f7a7def080aabd2afab418a09c"}
+  ]

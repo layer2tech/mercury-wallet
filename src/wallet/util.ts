@@ -1,6 +1,7 @@
 // wallet utilities
 
-import { BIP32Interface, Network, TransactionBuilder, crypto } from 'bitcoinjs-lib';
+import { BIP32Interface, Network, TransactionBuilder, crypto, script } from 'bitcoinjs-lib';
+import { bitcoin } from 'bitcoinjs-lib/types/networks';
 import { FeeInfo, Root } from './mercury/info_api';
 
 let typeforce = require('typeforce');
@@ -9,24 +10,29 @@ let types = require("./types")
 /// Temporary - fees should be calculated dynamically
 export const FEE = 300;
 
-
 // Verify Spase Merkle Tree proof of inclusion
 export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {
   typeforce(typeforce.oneOf(types.Root, typeforce.Null), root);
   return wasm_client.verify_statechain_smt(JSON.stringify(root.value), proof_key, JSON.stringify(proof));
 }
 
+function hexToBytes(hex: string) {
+    for (var bytes = [], c = 0; c < hex.length; c += 2)
+    bytes.push(parseInt(hex.substr(c, 2), 16));
+    return bytes;
+}
+
 // Make StateChainSig message
 export const signStateChain = (proof_key_der: BIP32Interface, purpose: string, data: string) => {
-  let str = purpose + data;
-  // console.log("str: ", str);
-  let buf = Buffer.from(str)
-  // console.log("buf: ", buf);
+  let buf = Buffer.from(purpose + data, "utf8")
   let hash = crypto.sha256(buf)
-  // console.log("hash: ", hash);
-  let sig = proof_key_der.sign(hash)
-  // console.log("sig: ", sig);
-  return sig
+  let sig = proof_key_der.sign(hash, false);
+
+  // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
+  let encoded = script.signature.encode(sig,1);
+  encoded = encoded.slice(0, encoded.length-1);
+
+  return encoded
 }
 
 // Backup Tx builder
