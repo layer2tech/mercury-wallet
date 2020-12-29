@@ -12,13 +12,13 @@ export const UInt32 = typeforce.UInt32;
 export const UInt64 = typeforce.UInt64;
 export const Null = typeforce.Null;
 
-export const OutPoint = typeforce.Any;
+export const OutPoint = typeforce.Object;
 export const Chain = Array;
 
 // StateChain Entity API
 export const StateChainDataAPI = typeforce.compile({
     utxo: OutPoint,
-    amount: UInt64,
+    amount: UInt32,
     chain: Chain,
     locktime: UInt32,
 })

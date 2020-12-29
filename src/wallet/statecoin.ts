@@ -91,7 +91,7 @@ export class StateCoinList {
 
 // Each individual StateCoin
 export class StateCoin {
-  shared_key_id: string;               // SharedKeyId
+  shared_key_id: string;    // SharedKeyId
   state_chain_id: string;   // StateChainId
   shared_key: MasterKey2;
   proof_key: string;
