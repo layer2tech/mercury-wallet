@@ -1,6 +1,6 @@
 import { TransactionBuilder, crypto, networks } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
-import { FEE, signStateChain, txBackupBuild, txWithdrawBuild } from '../util';
+import { FEE, signStateChain, txBackupBuild, txWithdrawBuild, encodeSCEAddress, decodeSCEAddress } from '../util';
 import { FUNDING_TXID, BTC_ADDR, SIGNSTATECHAIN_DATA } from './test_data.js'
 
 let bip32 = require('bip32');
@@ -65,4 +65,12 @@ describe('txWithdrawBuild', function() {
     expect(tx_backup.outs[0].value).toBe(value-Number(fee_info.withdraw)-FEE);
     expect(tx_backup.outs[1].value).toBe(Number(fee_info.withdraw));
   });
+});
+
+test('bech32', function() {
+  let proof_key = BTC_ADDR;
+  let encode = encodeSCEAddress(proof_key);
+  expect(encode.slice(0,2)).toBe("sc");
+  let decode = decodeSCEAddress(encode);
+  expect(proof_key).toBe(decode);
 });

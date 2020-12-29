@@ -43,6 +43,7 @@
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "devDependencies": {
+    "@types/uuid": "^8.3.0",
     "concurrently": "^5.3.0",
     "electron": "^10.1.4",
     "electron-build-env": "^0.2.0",
@@ -61,6 +62,7 @@
     "@reduxjs/toolkit": "^1.4.0",
     "@types/node": "^14.14.13",
     "axios": "^0.21.0",
+    "bech32": "^1.1.4",
     "bip32": "^2.0.6",
     "bip32-utils": "^0.11.1",
     "bip39": "^3.0.3",

@@ -4,6 +4,7 @@ import { BIP32Interface, Network, TransactionBuilder, crypto, script } from 'bit
 import { bitcoin } from 'bitcoinjs-lib/types/networks';
 import { FeeInfo, Root } from './mercury/info_api';
 
+let bech32 = require('bech32')
 let typeforce = require('typeforce');
 let types = require("./types")
 
@@ -57,4 +58,17 @@ export const txWithdrawBuild = (network: Network, funding_txid: string, rec_addr
   txb.addOutput(rec_address, value - fee_info.withdraw - FEE);
   txb.addOutput(fee_info.address, fee_info.withdraw);
   return txb
+}
+
+
+// Bech32 encode SCEAddress (StateChain Entity Address)
+export const encodeSCEAddress = (proof_key: string) => {
+  let words = bech32.toWords(Buffer.from(proof_key, 'utf8'))
+  return bech32.encode('sc', words)
+}
+
+// Bech32 decode SCEAddress
+export const decodeSCEAddress = (sce_address: string) => {
+  let decode =  bech32.decode(sce_address)
+  return Buffer.from(bech32.fromWords(decode.words)).toString()
 }
