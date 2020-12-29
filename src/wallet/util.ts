@@ -16,7 +16,7 @@ export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: st
   return wasm_client.verify_statechain_smt(JSON.stringify(root.value), proof_key, JSON.stringify(proof));
 }
 
-function hexToBytes(hex: string) {
+const hexToBytes = (hex: string) => {
     for (var bytes = [], c = 0; c < hex.length; c += 2)
     bytes.push(parseInt(hex.substr(c, 2), 16));
     return bytes;

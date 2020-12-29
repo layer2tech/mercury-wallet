@@ -6,12 +6,6 @@ import { FUNDING_TXID, BTC_ADDR, SIGNSTATECHAIN_DATA } from './test_data.js'
 let bip32 = require('bip32');
 let bitcoin = require('bitcoinjs-lib');
 
-function hexToBytes(hex) {
-    for (var bytes = [], c = 0; c < hex.length; c += 2)
-    bytes.push(parseInt(hex.substr(c, 2), 16));
-    return bytes;
-}
-
 
 describe('signStateChain', function() {
   let proof_key_der = bip32.fromSeed(Buffer.from("0123456789abcdef"), networks.bitcoin)

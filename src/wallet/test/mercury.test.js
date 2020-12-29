@@ -32,12 +32,13 @@ describe('2P-ECDSA', function() {
 
 describe('StateChain Entity', function() {
   let wallet = Wallet.buildMock();
-  wallet.jest_testing_mode = true;
+  wallet.jest_testing_mode = true; // Call mock wasm
 
   let value = 10000
 
   test('Deposit', async function() {
     let statecoin = await wallet.deposit(value)
+
     expect(statecoin.state_chain_id.length).toBeGreaterThan(0);
     expect(statecoin.proof_key.length).toBeGreaterThan(0);
     expect(statecoin.funding_txid.length).toBeGreaterThan(0);
@@ -46,15 +47,30 @@ describe('StateChain Entity', function() {
     expect(statecoin.smt_proof).not.toBeNull();
     expect(statecoin.confirmed).toBe(false);
     expect(statecoin.spent).toBe(false);
+    expect(wallet.statecoins.getCoin(statecoin.shared_key_id)).toBe(statecoin)
   });
 
+  test('Withdraw', async function() {
+    let shared_key_id = wallet.statecoins.coins[0].shared_key_id;
+    let num_unspent_statecoins_before = wallet.getUnspentStatecoins().length;
+    let num_statecoins_before = wallet.statecoins.length;
 
+    let tx_withdraw = await wallet.withdraw(shared_key_id);
 
-  // test('Withdraw', async function() {
-  //
-  //   let withdraw_res = await wallet.withdraw(KEYGEN_SIGN_DATA.shared_key_id);
-  //   console.log("withdraw_res: ", withdraw_res);
-  //
-  //   // expect(typeof signature).toBe('string');
-  // });
+    // check statecoin
+    let statecoin = wallet.statecoins.getCoin(shared_key_id);
+    expect(statecoin.spent).toBe(true);
+    expect(statecoin.tx_withdraw).toBe(tx_withdraw);
+
+    // check wallet.statecoins
+    expect(wallet.getUnspentStatecoins().length).toBe(num_unspent_statecoins_before-1);
+    expect(wallet.statecoins.length).toBe(num_statecoins_before);
+
+    // check withdraw tx
+    expect(tx_withdraw.ins.length).toBe(1);
+    expect(tx_withdraw.ins[0].hash.reverse().toString("hex")).toBe(statecoin.funding_txid);
+    expect(tx_withdraw.outs.length).toBe(2);
+    expect(tx_withdraw.outs[0].value).toBeLessThan(value);
+    expect(tx_withdraw.locktime).toBe(0);
+  });
 })

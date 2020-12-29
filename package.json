@@ -83,7 +83,8 @@
     "react-table": "^7.6.2",
     "superagent": "^6.1.0",
     "ts-jest": "^26.4.4",
-    "typeforce": "^1.11.3"
+    "typeforce": "^1.11.3",
+    "uuid": "^8.3.2"
   },
   "browserslist": {
     "production": [

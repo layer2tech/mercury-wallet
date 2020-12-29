@@ -28,7 +28,7 @@ export const depositInit = async (
   let deposit_msg1 = {
       auth: "authstr",
       proof_key: String(proof_key)
-  }
+  };
   let shared_key_id = await http_client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
   typeforce(typeforce.String, shared_key_id)
 
