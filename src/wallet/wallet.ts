@@ -196,6 +196,7 @@ export class Wallet {
     let [statecoin, p_addr] = await depositInit(
       this.http_client,
       await this.getWasm(),
+      this.network,
       proof_key_pub,
       proof_key_priv
     );
@@ -244,7 +245,12 @@ export class Wallet {
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
 
-    let transfer_sender = await transferSender(this.http_client, this.getWasm(), this.network, statecoin, proof_key_der, receiver_se_addr)
+    let transfer_sender =  await transferSender(this.http_client, this.getWasm(), this.network, statecoin, proof_key_der, receiver_se_addr)
+
+    // Mark funds as spent in wallet
+    this.statecoins.setCoinSpent(shared_key_id);
+
+    return transfer_sender;
 
   }
 

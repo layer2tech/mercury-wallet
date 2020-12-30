@@ -1,7 +1,7 @@
 let bitcoin = require('bitcoinjs-lib')
 
 import { verifySmtProof } from '../util';
-import { Wallet, MockHttpClient, MockWasm } from '../';
+import { Wallet, MockHttpClient, MockWasm, pubKeyTobtcAddr } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
 
 import { KEYGEN_SIGN_DATA } from './test_data.js'
@@ -72,5 +72,29 @@ describe('StateChain Entity', function() {
     expect(tx_withdraw.outs.length).toBe(2);
     expect(tx_withdraw.outs[0].value).toBeLessThan(value);
     expect(tx_withdraw.locktime).toBe(0);
+  });
+
+  test('TransferSender', async function() {
+    let shared_key_id = wallet.statecoins.coins[0].shared_key_id;
+    let receiver_se_addr = wallet.statecoins.coins[0].proof_key;
+
+    let psm = await wallet.transfer_sender(shared_key_id, receiver_se_addr);
+
+    // check statecoin
+    let statecoin = wallet.statecoins.getCoin(shared_key_id);
+    expect(statecoin.spent).toBe(true);
+
+    // check new backup tx
+    expect(psm.tx.ins.length).toBe(1);
+    expect(psm.tx.ins[0].hash.reverse().toString("hex")).toBe(statecoin.funding_txid);
+    expect(psm.tx.outs.length).toBe(1);
+    expect(psm.tx.outs[0].value).toBeLessThan(statecoin.value);
+    expect(psm.tx.locktime).toBeLessThan(statecoin.tx_backup.locktime);
+    // Check backuptx sends to new proof key
+    expect(
+      bitcoin.address.fromOutputScript(psm.tx.outs[0].script, statecoin.network)
+    ).toBe(
+      pubKeyTobtcAddr(receiver_se_addr)
+    );
   });
 })

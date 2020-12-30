@@ -20,6 +20,10 @@ export const POST_ROUTE = {
   DEPOSIT_INIT: "deposit/init",
   DEPOSIT_CONFIRM: "deposit/confirm",
   WITHDRAW_INIT: "withdraw/init",
+  TRANSFER_SENDER: "transfer/sender",
+  TRANSFER_RECEIVER: "transfer/receiver",
+  TRANSFER_UPDATE_MSG: "transfer/update_msg",
+  TRANSFER_GET_MSG: "transfer/get_msg"
 };
 Object.freeze(POST_ROUTE);
 

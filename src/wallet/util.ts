@@ -1,7 +1,6 @@
 // wallet utilities
 
 import { BIP32Interface, Network, TransactionBuilder, crypto, script } from 'bitcoinjs-lib';
-import { bitcoin } from 'bitcoinjs-lib/types/networks';
 import { FeeInfo, Root } from './mercury/info_api';
 
 let bech32 = require('bech32')
@@ -17,7 +16,7 @@ export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: st
   return wasm_client.verify_statechain_smt(JSON.stringify(root.value), proof_key, JSON.stringify(proof));
 }
 
-const hexToBytes = (hex: string) => {
+export const hexToBytes = (hex: string) => {
     for (var bytes = [], c = 0; c < hex.length; c += 2)
     bytes.push(parseInt(hex.substr(c, 2), 16));
     return bytes;

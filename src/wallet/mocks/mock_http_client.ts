@@ -1,14 +1,16 @@
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
 
+let lodash = require('lodash');
+
 export class MockHttpClient {
   get = async (path: string, _params: any) => {
     switch(path) {
       case GET_ROUTE.FEES:
-        return FEE_INFO
+        return lodash.cloneDeep(FEE_INFO)
       case GET_ROUTE.ROOT:
-        return ROOT_INFO
+        return lodash.cloneDeep(ROOT_INFO)
       case GET_ROUTE.STATECHAIN:
-        return STATECHAIN_INFO
+        return lodash.cloneDeep(STATECHAIN_INFO)
       case GET_ROUTE.TRANSFER_BATCH:
         return {
           status: true
@@ -33,6 +35,14 @@ export class MockHttpClient {
         case POST_ROUTE.DEPOSIT_CONFIRM:
           return "21d28236-d874-f0f4-ba3e-d4184cd7d560";
         case POST_ROUTE.WITHDRAW_INIT:
+          return
+        case POST_ROUTE.TRANSFER_SENDER:
+          return
+        case POST_ROUTE.TRANSFER_RECEIVER:
+          return
+        case POST_ROUTE.TRANSFER_UPDATE_MSG:
+          return
+        case POST_ROUTE.TRANSFER_GET_MSG:
           return
       }
     }

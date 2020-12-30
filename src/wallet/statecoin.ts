@@ -1,5 +1,6 @@
 // Statecoin is a Mercury shared key along with all deposit information.
 
+import { Network } from "bitcoinjs-lib";
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { pubKeyTobtcAddr } from "./wallet";
@@ -134,13 +135,13 @@ export class StateCoin {
   };
 
   // Generate BTC address from SharedKey
-  async getBtcAddress(wasm_client: any) {
+  async getBtcAddress(wasm_client: any, network: Network) {
     let pub_key = wasm_client.curv_ge_to_bitcoin_public_key(
       JSON.stringify(
         this.shared_key.public.q
       )
     );
-    return pubKeyTobtcAddr(pub_key)
+    return pubKeyTobtcAddr(pub_key, network)
   }
 }
 

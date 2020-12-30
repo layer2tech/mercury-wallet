@@ -9,10 +9,10 @@
 
 
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
-import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
-import { Network, Transaction } from 'bitcoinjs-lib';
+import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, pubKeyTobtcAddr } from "../";
 import { FeeInfo } from "./info_api";
 
+import { Network, Transaction } from 'bitcoinjs-lib';
 let typeforce = require('typeforce');
 
 
@@ -21,6 +21,7 @@ let typeforce = require('typeforce');
 export const depositInit = async (
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
+  network: Network,
   proof_key: string,
   secret_key: string
 ) => {
@@ -36,9 +37,9 @@ export const depositInit = async (
   let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
 
   // Co-owned key address to send funds to (P_addr)
-  let p_addr = await statecoin.getBtcAddress(wasm_client);
+  let p_addr = await statecoin.getBtcAddress(wasm_client, network);
 
-  return [shared_key_id, statecoin, p_addr]
+  return [statecoin, p_addr]
 }
 
 // After funds are sent to p_addr sign backup tx and verify SMT.
@@ -49,7 +50,6 @@ export const depositConfirm = async (
   network: Network,
   statecoin: StateCoin,
   chaintip_height: number,
-  backup_receive_addr: string
 ) => {
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
@@ -58,6 +58,7 @@ export const depositConfirm = async (
   let init_locktime = (chaintip_height) + (fee_info.initlock);
 
   // Build unsigned backup tx
+  let backup_receive_addr = pubKeyTobtcAddr(statecoin.proof_key, network);
   let txb_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, backup_receive_addr, statecoin.value, init_locktime);
   let tx_backup_unsigned = txb_backup_unsigned.buildIncomplete();
 
