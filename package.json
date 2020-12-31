@@ -68,6 +68,7 @@
     "bip39": "^3.0.3",
     "bitcoinjs-lib": "^5.2.0",
     "bootstrap": "^4.5.3",
+    "buffer-json": "^2.0.0",
     "client-wasm": "file:client-wasm/pkg",
     "electron-is-dev": "^1.2.0",
     "eslint-plugin-react-hooks": "^4.2.0",

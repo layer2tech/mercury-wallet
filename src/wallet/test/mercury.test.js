@@ -1,11 +1,12 @@
-let bitcoin = require('bitcoinjs-lib')
-
 import { verifySmtProof, verifyStateChainSig } from '../util';
-import { Wallet, MockHttpClient, MockWasm, pubKeyTobtcAddr } from '../';
+import { Wallet, MockHttpClient, MockWasm, pubKeyTobtcAddr, pubKeyToScriptPubKey } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
+import { TransferMsg3 } from "../mercury/transfer";
+import { KEYGEN_SIGN_DATA, TRANSFER_MSG3 } from './test_data.js'
 
-import { KEYGEN_SIGN_DATA } from './test_data.js'
-
+let bitcoin = require('bitcoinjs-lib')
+let lodash = require('lodash');
+const BJSON = require('buffer-json')
 
 describe('2P-ECDSA', function() {
   let http_client = new MockHttpClient();
@@ -103,5 +104,23 @@ describe('StateChain Entity', function() {
     ).toBe(
       pubKeyTobtcAddr(rec_se_addr)
     );
+  });
+
+  test('TransferReceiver incorrect backup receive addr', async function() {
+    let transfer_msg3: TransferMsg3 = BJSON.parse(lodash.cloneDeep(TRANSFER_MSG3));
+
+    // set backuptx receive address to wrong proof_key addr
+    let wrong_proof_key = "028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd42";
+    transfer_msg3.tx_backup_psm.tx.outs[0].script = pubKeyToScriptPubKey(wrong_proof_key, wallet.network);
+
+    expect(() => {
+      wallet.transfer_receiver(transfer_msg3).then();
+    }).toThrowError("Transfer not made to this wallet.");
+  });
+
+  test('TransferReceiver', async function() {
+    let transfer_msg3: TransferMsg3 = BJSON.parse(lodash.cloneDeep(TRANSFER_MSG3));
+
+    let transfer_rec = await wallet.transfer_receiver(transfer_msg3);
   });
 })

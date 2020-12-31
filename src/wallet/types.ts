@@ -192,9 +192,27 @@ export const ClientSignSecondMsg = typeforce.compile({
 
 ///////////// TRANSFER /////////////
 
+export const PrepareSignTxMsg = typeforce.compile({
+  shared_key_id: String,
+  protocol: String,
+  tx: Object,
+  input_addrs: Array,
+  input_amounts: Array,
+  proof_key: String,
+});
+
 export const TransferMsg2 = typeforce.compile({
     x1: {
       secret_bytes: Array
     },
     proof_key: String
+})
+
+export const TransferMsg3 = typeforce.compile({
+  shared_key_id: String,
+  t1: String,
+  state_chain_sig: Buffer,
+  state_chain_id: String,
+  tx_backup_psm: PrepareSignTxMsg,
+  rec_addr: String,
 })

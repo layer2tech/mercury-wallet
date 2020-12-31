@@ -6,7 +6,7 @@ export { MockElectrumClient } from './mocks/mock_electrum';
 export { MockWasm } from './mocks/mock_wasm';
 
 
-export { Wallet, pubKeyTobtcAddr } from "./wallet"
+export { Wallet, pubKeyTobtcAddr, pubKeyToScriptPubKey } from "./wallet"
 export { StateCoin, StateCoinList } from "./statecoin"
 export { ACTION } from "./activity_log"
 export { txBackupBuild, verifySmtProof, signStateChainSig, verifyStateChainSig } from "./util"

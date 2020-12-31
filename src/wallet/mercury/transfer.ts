@@ -1,11 +1,12 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
 import { BIP32Interface, Network, TransactionBuilder, Transaction } from "bitcoinjs-lib";
-import { HttpClient, MockHttpClient, POST_ROUTE, signStateChainSig, StateCoin } from ".."
+import { HttpClient, MockHttpClient, POST_ROUTE, signStateChainSig, StateCoin, verifyStateChainSig } from ".."
 import { FeeInfo, getFeeInfo, getStateChain } from "./info_api";
 import { pubKeyToScriptPubKey } from "../wallet";
 import { PROTOCOL, sign } from "./ecdsa";
 
+let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -45,9 +46,9 @@ export const transferSender = async (
   let fee_info: FeeInfo = await getFeeInfo(http_client);
 
   // Get statechain from SE and check ownership
-  let statechain = await getStateChain(http_client, statecoin.state_chain_id);
-  if (statechain.amoumt == 0) throw "StateChain " + statecoin.state_chain_id + " already withdrawn."
-  if (statechain.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Statecoin. Incorrect proof key."
+  let statechain_data = await getStateChain(http_client, statecoin.state_chain_id);
+  if (statechain_data.amoumt == 0) throw "StateChain " + statecoin.state_chain_id + " already withdrawn."
+  if (statechain_data.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Statecoin. Incorrect proof key."
 
   // Sign statecoin to signal desire to Withdraw
   let state_chain_sig = signStateChainSig(proof_key_der, "TRANSFER", receiver_addr);
@@ -64,7 +65,7 @@ export const transferSender = async (
 
   // Edit backup tx with new owners proof-key address and sign
   new_tx_backup.outs[0].script = pubKeyToScriptPubKey(receiver_addr, network);
-  new_tx_backup.locktime = statechain.locktime - fee_info.interval;
+  new_tx_backup.locktime = statechain_data.locktime - fee_info.interval;
 
   // Sign new back up tx
   let signatureHash = new_tx_backup.hashForSignature(0, new_tx_backup.ins[0].script, Transaction.SIGHASH_ALL);
@@ -87,7 +88,7 @@ export const transferSender = async (
   // Get o1 priv key
   let o1 = statecoin.shared_key.private.x2;
   let o1_bn = BigInt("0x" + o1);
-
+  // Get SE's x1
   let x1 = transfer_msg2.x1.secret_bytes;
   let x1_bn = BigInt("0x" + Buffer.from(x1).toString("hex"))
 
@@ -97,12 +98,14 @@ export const transferSender = async (
 
   let transfer_msg3 = {
     shared_key_id: statecoin.shared_key_id,
-    t1: t1,
+    t1: t1.toString(16),
     state_chain_sig: state_chain_sig,
     state_chain_id: statecoin.state_chain_id,
     tx_backup_psm: prepare_sign_msg,
     rec_addr: receiver_addr,
   };
+  typeforce(types.TransferMsg3, transfer_msg3);
+
 
   // //encrypt then make immutable
   // transfer_msg3.encrypt()?;
@@ -118,9 +121,21 @@ export const transferSender = async (
 
 
 
-export const transferReceiver = async (_transfer_msg_3: any, _batch_data: any) => {
+export const transferReceiver = async (
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
+  network: Network,
+  transfer_msg3: TransferMsg3,
+  _batch_data: any
+) => {
+  // Get statechain data (will Err if statechain not yet finalized)
+  let statechain_data = await getStateChain(http_client, transfer_msg3.state_chain_id);
 
-
+  // Verify state chain represents this address as new owner
+  let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
+  let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
+  if (!verifyStateChainSig(prev_owner_proof_key_der, "TRANSFER", transfer_msg3.rec_addr, transfer_msg3.state_chain_sig))
+    throw "Invalid StateChainSig."
 
 }
 
@@ -133,4 +148,13 @@ interface PrepareSignTxMsg {
     input_addrs: string[], // keys being spent from
     input_amounts: number[],
     proof_key: string | null,
+}
+
+export interface TransferMsg3 {
+  shared_key_id: string,
+  t1: string,
+  state_chain_sig: Buffer,
+  state_chain_id: string,
+  tx_backup_psm: PrepareSignTxMsg,
+  rec_addr: string,
 }

@@ -6,8 +6,8 @@ import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCo
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
+import { TransferMsg3, transferSender, transferReceiver } from './mercury/transfer';
 import { v4 as uuidv4 } from 'uuid';
-import { transferSender } from './mercury/transfer';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -165,6 +165,9 @@ export class Wallet {
   genBtcAddress() {
     return this.account.nextChainAddress(0)
   }
+  getBIP32forBtcAddress(addr: string) {
+    return this.account.derive(addr)
+  }
 
   // New Proof Key
   genProofKey() {
@@ -235,10 +238,6 @@ export class Wallet {
   // Args: shared_key_id of coin to send and receivers se_addr.
   // Return: transfer_message String to be sent to receiver.
   async transfer_sender(shared_key_id: string, receiver_se_addr: string) {
-    // return {
-    //   transfer_message: "441874303fd1524b9660afb44a7edfee49cd9b243db99ea400e876aa15c2983ee7dcf5dc7aec2ae27260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
-    // }
-
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw "No coin found with id " + shared_key_id
 
@@ -255,17 +254,21 @@ export class Wallet {
   // Perform transfer_receiver
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
-  transfer_receiver(_transfer_message: string) {
-    return {
-      amount: 0.1,
-      shared_key_id: "57307393-d35c-438c-87dc-d06054277a5d",
-      state_chain_id: "6e56ee0a-88b4-415d-b1e9-62b308889d29",
-      funding_txid: "74e2e118b822772c024aac3d840fbad3cf76843a5d0fe0d3d0f3d73c0662c9be",
-      backuptx: "22772c024aac3d840fbad3cef62c93c06e118b8f62c9b74e276843a5d0fe0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
-      proof_key: "fd1524b9660afb44a7edfee49cd9b243db99ea404418743030e876aa15c2983ee7dcf5dc7aec2ae27260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
-      swap_rounds: 0,
-      time_left: "11"
-    }
+  async transfer_receiver(transfer_msg3: TransferMsg3) {
+    //Decrypt the message on receipt
+    // let transfer_msg3 = wallet.decrypt(transfer_msg3)
+
+    let tx_backup = transfer_msg3.tx_backup_psm.tx;
+
+    // Ensure backup tx funds are sent to address owned by this wallet
+    let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, this.network);
+    let bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
+    if (bip32 == undefined) throw "Cannot find backup receive address. Transfer not made to this wallet.";
+    if (bip32.publicKey.toString("hex") != transfer_msg3.rec_addr) throw "Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet."
+
+    let transfer_receiver = await transferReceiver(this.http_client, await this.getWasm(), this.network, transfer_msg3, "")
+
+
   }
 
   // Perform withdraw
