@@ -37,7 +37,7 @@ export class MockHttpClient {
         case POST_ROUTE.WITHDRAW_INIT:
           return
         case POST_ROUTE.TRANSFER_SENDER:
-          return
+          return {x1:{secret_bytes:[173,34,59,92,186,127,154,151,39,114,73,78,245,54,18,129,143,46,179,133,105,243,173,91,37,50,113,243,115,37,12,82]},proof_key:"026ff25fd651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e"};
         case POST_ROUTE.TRANSFER_RECEIVER:
           return
         case POST_ROUTE.TRANSFER_UPDATE_MSG:

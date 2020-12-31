@@ -2,7 +2,7 @@
 
 import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
-import { signStateChain, txWithdrawBuild } from "../util";
+import { signStateChainSig, txWithdrawBuild } from "../util";
 import { PROTOCOL, sign } from "./ecdsa";
 import { FeeInfo, getStateChain } from "./info_api";
 
@@ -28,7 +28,7 @@ export const withdraw = async (
   if (statechain.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Statecoin. Incorrect proof key."
 
   // Sign statecoin to signal desire to Withdraw
-  let state_chain_sig = signStateChain(proof_key_der, "WITHDRAW", rec_address);
+  let state_chain_sig = signStateChainSig(proof_key_der, "WITHDRAW", rec_address);
 
   // Alert SE of desire to withdraw and receive authorisation if state chain signature verifies
   let withdraw_msg_1 = {

@@ -184,3 +184,17 @@ export const ClientSignSecondMsg = typeforce.compile({
   },
   second_message: KeyGenSecondMsg
 })
+
+
+
+////////// MERCURY structs/////////////
+
+
+///////////// TRANSFER /////////////
+
+export const TransferMsg2 = typeforce.compile({
+    x1: {
+      secret_bytes: Array
+    },
+    proof_key: String
+})

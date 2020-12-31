@@ -22,10 +22,14 @@ export const hexToBytes = (hex: string) => {
     return bytes;
 }
 
-// Make StateChainSig message
-export const signStateChain = (proof_key_der: BIP32Interface, purpose: string, data: string) => {
+// Make StateChainSig message. Concat purpose string + data and sha256 hash.
+const stateChainSigMessage = (purpose: string, data: string) => {
   let buf = Buffer.from(purpose + data, "utf8")
-  let hash = crypto.sha256(buf)
+  return crypto.sha256(buf)
+}
+
+export const signStateChainSig = (proof_key_der: BIP32Interface, purpose: string, data: string) => {
+  let hash = stateChainSigMessage(purpose, data);
   let sig = proof_key_der.sign(hash, false);
 
   // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
@@ -34,6 +38,17 @@ export const signStateChain = (proof_key_der: BIP32Interface, purpose: string, d
 
   return encoded
 }
+
+export const verifyStateChainSig = (proof_key_der: BIP32Interface, purpose: string, data: string, proof: Buffer) => {
+  // Re-insert hashType marker ("01" suffix) and decode from bip66
+  proof = Buffer.concat([proof, Buffer.from("01", "hex")]);
+  let decoded = script.signature.decode(proof);
+
+  let hash = stateChainSigMessage(purpose, data);
+  return proof_key_der.verify(hash, decoded.signature);
+}
+
+
 
 // Backup Tx builder
 export const txBackupBuild = (network: Network, funding_txid: string, backup_receive_addr: string, value: number, init_locktime: number) => {

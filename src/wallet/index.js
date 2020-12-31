@@ -9,7 +9,7 @@ export { MockWasm } from './mocks/mock_wasm';
 export { Wallet, pubKeyTobtcAddr } from "./wallet"
 export { StateCoin, StateCoinList } from "./statecoin"
 export { ACTION } from "./activity_log"
-export { txBackupBuild, verifySmtProof, signStateChain } from "./util"
+export { txBackupBuild, verifySmtProof, signStateChainSig, verifyStateChainSig } from "./util"
 
 export { depositInit, depositConfirm } from "./mercury/deposit"
 // export { MasterKey2 } from "./mercury/ecdsa";

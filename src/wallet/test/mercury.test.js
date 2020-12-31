@@ -1,6 +1,6 @@
 let bitcoin = require('bitcoinjs-lib')
 
-import { verifySmtProof } from '../util';
+import { verifySmtProof, verifyStateChainSig } from '../util';
 import { Wallet, MockHttpClient, MockWasm, pubKeyTobtcAddr } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
 
@@ -76,15 +76,22 @@ describe('StateChain Entity', function() {
 
   test('TransferSender', async function() {
     let shared_key_id = wallet.statecoins.coins[0].shared_key_id;
-    let receiver_se_addr = wallet.statecoins.coins[0].proof_key;
+    let rec_se_addr = wallet.statecoins.coins[0].proof_key;
 
-    let psm = await wallet.transfer_sender(shared_key_id, receiver_se_addr);
+    let transfer_msg3 = await wallet.transfer_sender(shared_key_id, rec_se_addr);
 
     // check statecoin
     let statecoin = wallet.statecoins.getCoin(shared_key_id);
     expect(statecoin.spent).toBe(true);
 
+    // check transfer_msg data
+    expect(transfer_msg3.shared_key_id).toBe(shared_key_id);
+    expect(transfer_msg3.rec_addr).toBe(rec_se_addr);
+    let proof_key_der = wallet.getBIP32forProofKeyPubKey(statecoin.proof_key);
+    expect(verifyStateChainSig(proof_key_der, "TRANSFER", rec_se_addr, transfer_msg3.state_chain_sig)).toBe(true)
+
     // check new backup tx
+    let psm = transfer_msg3.tx_backup_psm;
     expect(psm.tx.ins.length).toBe(1);
     expect(psm.tx.ins[0].hash.reverse().toString("hex")).toBe(statecoin.funding_txid);
     expect(psm.tx.outs.length).toBe(1);
@@ -94,7 +101,7 @@ describe('StateChain Entity', function() {
     expect(
       bitcoin.address.fromOutputScript(psm.tx.outs[0].script, statecoin.network)
     ).toBe(
-      pubKeyTobtcAddr(receiver_se_addr)
+      pubKeyTobtcAddr(rec_se_addr)
     );
   });
 })
