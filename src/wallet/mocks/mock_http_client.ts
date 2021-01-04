@@ -39,7 +39,7 @@ export class MockHttpClient {
         case POST_ROUTE.TRANSFER_SENDER:
           return {x1:{secret_bytes:[173,34,59,92,186,127,154,151,39,114,73,78,245,54,18,129,143,46,179,133,105,243,173,91,37,50,113,243,115,37,12,82]},proof_key:"026ff25fd651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e"};
         case POST_ROUTE.TRANSFER_RECEIVER:
-          return
+          return {new_shared_key_id:"07387798-ae2b-4d40-b3cd-e2c56e06b821",s2_pub:{x:"ccde29a6592798b5e66bb9ffdd4de1256d3b823be465b371011afe78a4e271b3","y":"68bc529d833c9b13ab24271ec664b164db47673006303ef89902e92cfa7f7138"},theta:"cc7bef84aa30100c4d4e82fb4ca67f503dd42e2fce4501d307295ef140e9c81"};
         case POST_ROUTE.TRANSFER_UPDATE_MSG:
           return
         case POST_ROUTE.TRANSFER_GET_MSG:

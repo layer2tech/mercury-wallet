@@ -216,3 +216,30 @@ export const TransferMsg3 = typeforce.compile({
   tx_backup_psm: PrepareSignTxMsg,
   rec_addr: String,
 })
+
+export const TransferMsg4 = typeforce.compile({
+  shared_key_id: String,
+  state_chain_id: String,
+  t2: String, // t2 = t1*o2_inv = o1*x1*o2_inv
+  state_chain_sig: Buffer,
+  o2_pub: String,
+  tx_backup: Object,
+  batch_data: Object,
+})
+
+export const TransferMsg5 = typeforce.compile({
+  new_shared_key_id: String,
+  s2_pub: Secp256k1Point,
+  theta: String,
+})
+
+export const TransferFinalizeData = typeforce.compile({
+    new_shared_key_id: String,
+    o2: String,
+    s2_pub: Secp256k1Point,
+    theta: String,
+    state_chain_data: StateChainDataAPI,
+    proof_key: String,
+    state_chain_id: String,
+    tx_backup_psm: PrepareSignTxMsg,
+})

@@ -113,14 +113,17 @@ describe('StateChain Entity', function() {
     let wrong_proof_key = "028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd42";
     transfer_msg3.tx_backup_psm.tx.outs[0].script = pubKeyToScriptPubKey(wrong_proof_key, wallet.network);
 
-    expect(() => {
-      wallet.transfer_receiver(transfer_msg3).then();
-    }).toThrowError("Transfer not made to this wallet.");
+    await expect(wallet.transfer_receiver(transfer_msg3))
+      .rejects
+      .toThrowError("Transfer not made to this wallet.");
   });
 
   test('TransferReceiver', async function() {
     let transfer_msg3: TransferMsg3 = BJSON.parse(lodash.cloneDeep(TRANSFER_MSG3));
 
     let transfer_rec = await wallet.transfer_receiver(transfer_msg3);
+
+    expect(transfer_rec.shared_key_id).not.toBe(transfer_msg3.shared_key_id);
+    
   });
 })

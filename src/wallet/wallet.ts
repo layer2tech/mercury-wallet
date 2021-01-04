@@ -263,12 +263,12 @@ export class Wallet {
     // Ensure backup tx funds are sent to address owned by this wallet
     let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, this.network);
     let bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
-    if (bip32 == undefined) throw "Cannot find backup receive address. Transfer not made to this wallet.";
-    if (bip32.publicKey.toString("hex") != transfer_msg3.rec_addr) throw "Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet."
+    if (bip32 == undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
+    if (bip32.publicKey.toString("hex") != transfer_msg3.rec_addr) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
 
-    let transfer_receiver = await transferReceiver(this.http_client, await this.getWasm(), this.network, transfer_msg3, "")
+    let finalize_data = await transferReceiver(this.http_client, transfer_msg3, "")
 
-
+    return finalize_data
   }
 
   // Perform withdraw

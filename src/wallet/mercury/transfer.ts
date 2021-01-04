@@ -5,11 +5,17 @@ import { HttpClient, MockHttpClient, POST_ROUTE, signStateChainSig, StateCoin, v
 import { FeeInfo, getFeeInfo, getStateChain } from "./info_api";
 import { pubKeyToScriptPubKey } from "../wallet";
 import { PROTOCOL, sign } from "./ecdsa";
+import { TransferMsg4 } from "../types";
 
 let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
 let types = require("../types")
 let typeforce = require('typeforce');
+let bigintModArith = require('bigint-mod-arith')
+
+let EC = require('elliptic').ec
+let secp256k1 = new EC('secp256k1')
+const n = secp256k1.curve.n
 
 // transfer() messages:
 // 0. Receiver communicates address to Sender (B2 and C2)
@@ -119,12 +125,8 @@ export const transferSender = async (
 }
 
 
-
-
 export const transferReceiver = async (
   http_client: HttpClient | MockHttpClient,
-  wasm_client: any,
-  network: Network,
   transfer_msg3: TransferMsg3,
   _batch_data: any
 ) => {
@@ -137,6 +139,61 @@ export const transferReceiver = async (
   if (!verifyStateChainSig(prev_owner_proof_key_der, "TRANSFER", transfer_msg3.rec_addr, transfer_msg3.state_chain_sig))
     throw "Invalid StateChainSig."
 
+  // decrypt transfer msg 3 and t1
+
+  // calculate t2
+  let t1 = transfer_msg3.t1;
+  let t1_bn = BigInt("0x" + t1);
+
+  // generate o2 private key and corresponding 02 public key
+  let o2_keypair = bitcoin.ECPair.makeRandom();
+  let o2 = o2_keypair.privateKey.toString("hex");
+  let O2 = o2_keypair.publicKey.toString("hex");
+
+  let o2_bn = BigInt("0x" + o2);
+  let o2_inv_bn = bigintModArith.modInv(o2_bn, BigInt(n));
+
+  // t2 = t1*o2_inv = o1*x1*o2_inv
+  let t2 = t1_bn * o2_inv_bn;
+
+  let transfer_msg4 = {
+    shared_key_id: transfer_msg3.shared_key_id,
+    state_chain_id: transfer_msg3.state_chain_id,
+    t2: t2.toString(),
+    state_chain_sig: transfer_msg3.state_chain_sig,
+    o2_pub: O2,
+    tx_backup: transfer_msg3.tx_backup_psm.tx,
+    batch_data: null,
+  };
+  typeforce(types.TransferMsg4, transfer_msg4);
+
+  let transfer_msg5: TransferMsg5 = await http_client.post(POST_ROUTE.TRANSFER_RECEIVER, transfer_msg4);
+  typeforce(types.TransferMsg5, transfer_msg5);
+
+  // Update tx_backup_psm shared_key_id with new one
+  let tx_backup_psm = transfer_msg3.tx_backup_psm;
+  tx_backup_psm.shared_key_id = transfer_msg5.new_shared_key_id;
+
+  // Data to update wallet with transfer. Should only be applied after StateEntity has finalized.
+  let finalize_data = {
+      new_shared_key_id: transfer_msg5.new_shared_key_id,
+      o2: o2,
+      s2_pub: transfer_msg5.s2_pub,
+      theta: transfer_msg5.theta,
+      state_chain_data: statechain_data,
+      proof_key: transfer_msg3.rec_addr,
+      state_chain_id: transfer_msg3.state_chain_id,
+      tx_backup_psm: tx_backup_psm,
+  };
+  typeforce(types.TransferFinalizeData, finalize_data);
+
+  // In batch case this step is performed once all other transfers in the batch are complete.
+  // if batch_data.is_none() {
+  //     // Finalize protocol run by generating new shared key and updating wallet.
+  //     transfer_receiver_finalize(wallet, finalize_data.clone())?;
+  // }
+
+  return finalize_data
 }
 
 
@@ -152,9 +209,36 @@ interface PrepareSignTxMsg {
 
 export interface TransferMsg3 {
   shared_key_id: string,
+  state_chain_id: string,
   t1: string,
   state_chain_sig: Buffer,
-  state_chain_id: string,
   tx_backup_psm: PrepareSignTxMsg,
   rec_addr: string,
+}
+
+export interface TransferMsg4 {
+  shared_key_id: string,
+  state_chain_id: string,
+  t2: string, // t2 = t1*o2_inv = o1*x1*o2_inv
+  state_chain_sig: Buffer,
+  o2_pub: string,
+  tx_backup: Transaction,
+  batch_data: any,
+}
+
+export interface TransferMsg5 {
+  new_shared_key_id: string,
+  s2_pub: any,
+  theta: string,
+}
+
+export interface  TransferFinalizeData {
+    new_shared_key_id: string,
+    o2: string,
+    s2_pub: any,
+    theta: string,
+    state_chain_data: Buffer,
+    proof_key: string,
+    state_chain_id: string,
+    tx_backup_psm: PrepareSignTxMsg,
 }
