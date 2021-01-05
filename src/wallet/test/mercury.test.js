@@ -1,8 +1,8 @@
 import { verifySmtProof, verifyStateChainSig } from '../util';
 import { Wallet, MockHttpClient, MockWasm, pubKeyTobtcAddr, pubKeyToScriptPubKey } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
-import { TransferMsg3 } from "../mercury/transfer";
-import { KEYGEN_SIGN_DATA, TRANSFER_MSG3 } from './test_data.js'
+import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
+import { KEYGEN_SIGN_DATA, TRANSFER_MSG3, FINALIZE_DATA } from './test_data.js'
 
 let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
@@ -121,9 +121,23 @@ describe('StateChain Entity', function() {
   test('TransferReceiver', async function() {
     let transfer_msg3: TransferMsg3 = BJSON.parse(lodash.cloneDeep(TRANSFER_MSG3));
 
-    let transfer_rec = await wallet.transfer_receiver(transfer_msg3);
+    let finalize_data = await wallet.transfer_receiver(transfer_msg3);
 
-    expect(transfer_rec.shared_key_id).not.toBe(transfer_msg3.shared_key_id);
-    
+    expect(finalize_data.shared_key_id).not.toBe(transfer_msg3.shared_key_id);
+  });
+
+  test('TransferReceiverFinalize', async function() {
+    let finalize_data: TransferFinalizeData = BJSON.parse(lodash.cloneDeep(FINALIZE_DATA));
+
+    let statecoin = await wallet.transfer_receiver_finalize(finalize_data);
+
+    expect(statecoin.state_chain_id).toBe(finalize_data.state_chain_id);
+    expect(statecoin.value).toBe(0);
+    expect(statecoin.shared_key).toStrictEqual(KEYGEN_SIGN_DATA.shared_key);
+    expect(statecoin.tx_backup).not.toBe(null);
+    expect(statecoin.tx_withdraw).toBe(null);
+    expect(statecoin.smt_proof).not.toBe(null);
+    expect(statecoin.confirmed).toBe(false);
+    expect(statecoin.spent).toBe(false);
   });
 })

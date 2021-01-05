@@ -1,10 +1,10 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
 import { BIP32Interface, Network, TransactionBuilder, Transaction } from "bitcoinjs-lib";
-import { HttpClient, MockHttpClient, POST_ROUTE, signStateChainSig, StateCoin, verifyStateChainSig } from ".."
-import { FeeInfo, getFeeInfo, getStateChain } from "./info_api";
+import { HttpClient, MockHttpClient, POST_ROUTE, signStateChainSig, StateCoin, verifySmtProof, verifyStateChainSig } from ".."
+import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { pubKeyToScriptPubKey } from "../wallet";
-import { PROTOCOL, sign } from "./ecdsa";
+import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { TransferMsg4 } from "../types";
 
 let bitcoin = require('bitcoinjs-lib')
@@ -128,6 +128,7 @@ export const transferSender = async (
 export const transferReceiver = async (
   http_client: HttpClient | MockHttpClient,
   transfer_msg3: TransferMsg3,
+  se_rec_addr_bip32: any,
   _batch_data: any
 ) => {
   // Get statechain data (will Err if statechain not yet finalized)
@@ -145,8 +146,8 @@ export const transferReceiver = async (
   let t1 = transfer_msg3.t1;
   let t1_bn = BigInt("0x" + t1);
 
-  // generate o2 private key and corresponding 02 public key
-  let o2_keypair = bitcoin.ECPair.makeRandom();
+  // get o2 private key and corresponding 02 public key
+  let o2_keypair = se_rec_addr_bip32;
   let o2 = o2_keypair.privateKey.toString("hex");
   let O2 = o2_keypair.publicKey.toString("hex");
 
@@ -187,15 +188,43 @@ export const transferReceiver = async (
   };
   typeforce(types.TransferFinalizeData, finalize_data);
 
-  // In batch case this step is performed once all other transfers in the batch are complete.
-  // if batch_data.is_none() {
-  //     // Finalize protocol run by generating new shared key and updating wallet.
-  //     transfer_receiver_finalize(wallet, finalize_data.clone())?;
-  // }
-
   return finalize_data
 }
 
+export const transferReceiverFinalize = async (
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
+  finalize_data: TransferFinalizeData,
+) => {
+  // Make shared key with new private share
+  // 2P-ECDSA with state entity to create a Shared key
+  let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER);
+
+  // Check shared key master public key == private share * SE public share
+  // let P = BigInt("0x" + finalize_data.s2_pub) * BigInt("0x" + finalize_data.o2) * BigInt("0x" + finalize_data.theta)
+  // if (P
+  //     != wallet
+  //         .get_shared_key(&finalize_data.new_shared_key_id)?
+  //         .share
+  //         .public
+  //         .q
+  //         .get_element()
+
+
+  // Verify proof key inclusion in SE sparse merkle tree
+  let root = await getRoot(http_client);
+  let proof = await getSmtProof(http_client, root, statecoin.funding_txid);
+  if (!verifySmtProof(wasm_client, root, statecoin.proof_key, proof)) throw "SMT verification failed.";
+
+
+  // Add state chain id, proof key and SMT inclusion proofs to local SharedKey data
+  // Add proof and state chain id to Shared key
+  statecoin.smt_proof = proof;
+  statecoin.state_chain_id = finalize_data.state_chain_id;
+  statecoin.tx_backup = finalize_data.tx_backup_psm.tx;
+
+  return statecoin
+}
 
 
 interface PrepareSignTxMsg {

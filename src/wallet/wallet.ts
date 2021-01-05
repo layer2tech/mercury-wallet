@@ -6,7 +6,7 @@ import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCo
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
-import { TransferMsg3, transferSender, transferReceiver } from './mercury/transfer';
+import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
 import { v4 as uuidv4 } from 'uuid';
 
 let bitcoin = require('bitcoinjs-lib');
@@ -260,15 +260,32 @@ export class Wallet {
 
     let tx_backup = transfer_msg3.tx_backup_psm.tx;
 
-    // Ensure backup tx funds are sent to address owned by this wallet
+    // Get SE address that funds are being sent to.
     let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, this.network);
-    let bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
-    if (bip32 == undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
-    if (bip32.publicKey.toString("hex") != transfer_msg3.rec_addr) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
+    let se_rec_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
+    // Ensure backup tx funds are sent to address owned by this wallet
+    if (se_rec_addr_bip32 == undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
+    if (se_rec_addr_bip32.publicKey.toString("hex") != transfer_msg3.rec_addr) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
 
-    let finalize_data = await transferReceiver(this.http_client, transfer_msg3, "")
+    let batch_data = {};
+    let finalize_data = await transferReceiver(this.http_client, transfer_msg3, se_rec_addr_bip32, batch_data)
+
+    // In batch case this step is performed once all other transfers in the batch are complete.
+    if (batch_data = {}) {
+        // Finalize protocol run by generating new shared key and updating wallet.
+        this.transfer_receiver_finalize(finalize_data);
+    }
 
     return finalize_data
+  }
+
+  async transfer_receiver_finalize(finalize_data: TransferFinalizeData) {
+    let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
+
+    // update in wallet
+    this.statecoins.addCoin(statecoin_finalized);
+
+    return statecoin_finalized
   }
 
   // Perform withdraw
