@@ -26,32 +26,49 @@ export const hexToBytes = (hex: string) => {
     return bytes;
 }
 
-// Make StateChainSig message. Concat purpose string + data and sha256 hash.
-const stateChainSigMessage = (purpose: string, data: string) => {
-  let buf = Buffer.from(purpose + data, "utf8")
-  return crypto.sha256(buf)
+
+export class StateChainSig {
+    purpose: string; // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
+    data: string;    // proof key, state chain id or address
+    sig: string;
+
+    constructor(purpose: string, data: string, sig: string) {
+      this.purpose = purpose;
+      this.data = data;
+      this.sig = sig;
+    }
+
+    static create(proof_key_der: BIP32Interface, purpose: string, data: string) {
+      let statechain_sig = new StateChainSig(purpose, data, "");
+      let hash = statechain_sig.to_message();
+      let sig = proof_key_der.sign(hash, false);
+
+      // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
+      let encoded_sig = script.signature.encode(sig,1);
+      encoded_sig = encoded_sig.slice(0, encoded_sig.length-1);
+      statechain_sig.sig = encoded_sig.toString("hex");
+
+      return statechain_sig
+    }
+
+    // Make StateChainSig message. Concat purpose string + data and sha256 hash.
+    to_message() {
+      let buf = Buffer.from(this.purpose + this.data, "utf8")
+      return crypto.sha256(buf)
+    }
+
+    // Verify self's signature for transfer or withdraw
+    verify(proof_key_der: BIP32Interface) {
+      let proof = Buffer.from(this.sig, "hex");
+      // Re-insert hashType marker ("01" suffix) and decode from bip66
+      proof = Buffer.concat([proof, Buffer.from("01", "hex")]);
+      let decoded = script.signature.decode(proof);
+
+      let hash = this.to_message();
+      return proof_key_der.verify(hash, decoded.signature);
+    }
+
 }
-
-export const signStateChainSig = (proof_key_der: BIP32Interface, purpose: string, data: string) => {
-  let hash = stateChainSigMessage(purpose, data);
-  let sig = proof_key_der.sign(hash, false);
-
-  // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
-  let encoded = script.signature.encode(sig,1);
-  encoded = encoded.slice(0, encoded.length-1);
-
-  return encoded
-}
-
-export const verifyStateChainSig = (proof_key_der: BIP32Interface, purpose: string, data: string, proof: Buffer) => {
-  // Re-insert hashType marker ("01" suffix) and decode from bip66
-  proof = Buffer.concat([proof, Buffer.from("01", "hex")]);
-  let decoded = script.signature.decode(proof);
-
-  let hash = stateChainSigMessage(purpose, data);
-  return proof_key_der.verify(hash, decoded.signature);
-}
-
 
 
 // Backup Tx builder

@@ -1,6 +1,6 @@
 import { TransactionBuilder, crypto, networks } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
-import { FEE, signStateChainSig, verifyStateChainSig, txBackupBuild, txWithdrawBuild,
+import { FEE, txBackupBuild, txWithdrawBuild, StateChainSig,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point } from '../util';
 import { FUNDING_TXID, BTC_ADDR, SIGNSTATECHAIN_DATA } from './test_data.js'
 
@@ -13,9 +13,9 @@ describe('signStateChain', function() {
 
   test('Gen and Verify', async function() {
     SIGNSTATECHAIN_DATA.forEach(data => {
-      let sig = signStateChainSig(proof_key_der, data.protocol, data.msg);
-      expect(sig.toString("hex")).toBe(data.sig);
-      expect(verifyStateChainSig(proof_key_der, data.protocol, data.msg, sig)).toBe(true)
+      let statechain_sig = StateChainSig.create(proof_key_der, data.purpose, data.data);
+      expect(statechain_sig.sig).toBe(data.sig);
+      expect(statechain_sig.verify(proof_key_der)).toBe(true)
     })
   });
 })

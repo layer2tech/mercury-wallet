@@ -1,11 +1,12 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
 import { BIP32Interface, Network, TransactionBuilder, Transaction } from "bitcoinjs-lib";
-import { HttpClient, MockHttpClient, POST_ROUTE, signStateChainSig, StateCoin, verifySmtProof, verifyStateChainSig } from ".."
+import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { pubKeyToScriptPubKey } from "../wallet";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { TransferMsg4 } from "../types";
+import { encodeSecp256k1Point, StateChainSig } from "../util";
 
 let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
@@ -57,12 +58,12 @@ export const transferSender = async (
   if (statechain_data.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Statecoin. Incorrect proof key."
 
   // Sign statecoin to signal desire to Withdraw
-  let state_chain_sig = signStateChainSig(proof_key_der, "TRANSFER", receiver_addr);
+  let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
 
   // Init transfer: Send statechain signature or batch data
   let transfer_msg1 = {
       shared_key_id: statecoin.shared_key_id,
-      statechain_sig: state_chain_sig
+      statechain_sig: statechain_sig
   }
   let transfer_msg2 = await http_client.post(POST_ROUTE.TRANSFER_SENDER, transfer_msg1);
   typeforce(types.TransferMsg2, transfer_msg2);
@@ -105,7 +106,7 @@ export const transferSender = async (
   let transfer_msg3 = {
     shared_key_id: statecoin.shared_key_id,
     t1: t1.toString(16),
-    state_chain_sig: state_chain_sig,
+    statechain_sig: statechain_sig,
     state_chain_id: statecoin.state_chain_id,
     tx_backup_psm: prepare_sign_msg,
     rec_addr: receiver_addr,
@@ -124,7 +125,6 @@ export const transferSender = async (
   return transfer_msg3
 }
 
-
 export const transferReceiver = async (
   http_client: HttpClient | MockHttpClient,
   transfer_msg3: TransferMsg3,
@@ -137,8 +137,8 @@ export const transferReceiver = async (
   // Verify state chain represents this address as new owner
   let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
   let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
-  if (!verifyStateChainSig(prev_owner_proof_key_der, "TRANSFER", transfer_msg3.rec_addr, transfer_msg3.state_chain_sig))
-    throw "Invalid StateChainSig."
+  let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
+  if (!statechain_sig.verify(prev_owner_proof_key_der)) throw "Invalid StateChainSig."
 
   // decrypt transfer msg 3 and t1
 
@@ -149,7 +149,6 @@ export const transferReceiver = async (
   // get o2 private key and corresponding 02 public key
   let o2_keypair = se_rec_addr_bip32;
   let o2 = o2_keypair.privateKey.toString("hex");
-  let O2 = o2_keypair.publicKey.toString("hex");
 
   let o2_bn = BigInt("0x" + o2);
   let o2_inv_bn = bigintModArith.modInv(o2_bn, BigInt(n));
@@ -161,8 +160,8 @@ export const transferReceiver = async (
     shared_key_id: transfer_msg3.shared_key_id,
     state_chain_id: transfer_msg3.state_chain_id,
     t2: t2.toString(),
-    state_chain_sig: transfer_msg3.state_chain_sig,
-    o2_pub: O2,
+    statechain_sig: transfer_msg3.statechain_sig,
+    o2_pub: encodeSecp256k1Point(o2_keypair.publicKey),        // decode into {x,y}
     tx_backup: transfer_msg3.tx_backup_psm.tx,
     batch_data: null,
   };
@@ -226,6 +225,10 @@ export const transferReceiverFinalize = async (
   return statecoin
 }
 
+export interface Secp256k1Point {
+  x: string,
+  y: string
+}
 
 interface PrepareSignTxMsg {
     shared_key_id: string,
@@ -236,11 +239,12 @@ interface PrepareSignTxMsg {
     proof_key: string | null,
 }
 
+
 export interface TransferMsg3 {
   shared_key_id: string,
   state_chain_id: string,
   t1: string,
-  state_chain_sig: Buffer,
+  statechain_sig: StateChainSig,
   tx_backup_psm: PrepareSignTxMsg,
   rec_addr: string,
 }
@@ -249,7 +253,7 @@ export interface TransferMsg4 {
   shared_key_id: string,
   state_chain_id: string,
   t2: string, // t2 = t1*o2_inv = o1*x1*o2_inv
-  state_chain_sig: Buffer,
+  statechain_sig: StateChainSig,
   o2_pub: string,
   tx_backup: Transaction,
   batch_data: any,
