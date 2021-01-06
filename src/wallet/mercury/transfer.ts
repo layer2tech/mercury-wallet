@@ -109,7 +109,7 @@ export const transferSender = async (
     statechain_sig: statechain_sig,
     statechain_id: statecoin.statechain_id,
     tx_backup_psm: prepare_sign_msg,
-    rec_addr: receiver_addr,
+    rec_se_addr: receiver_addr,
   };
   typeforce(types.TransferMsg3, transfer_msg3);
 
@@ -181,7 +181,7 @@ export const transferReceiver = async (
       s2_pub: transfer_msg5.s2_pub,
       theta: transfer_msg5.theta,
       state_chain_data: statechain_data,
-      proof_key: transfer_msg3.rec_addr,
+      proof_key: transfer_msg3.rec_se_addr,
       statechain_id: transfer_msg3.statechain_id,
       tx_backup_psm: tx_backup_psm,
   };
@@ -246,7 +246,7 @@ export interface TransferMsg3 {
   t1: string,
   statechain_sig: StateChainSig,
   tx_backup_psm: PrepareSignTxMsg,
-  rec_addr: string,
+  rec_se_addr: string,
 }
 
 export interface TransferMsg4 {

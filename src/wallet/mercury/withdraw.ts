@@ -20,7 +20,7 @@ export const withdraw = async (
   network: Network,
   statecoin: StateCoin,
   proof_key_der: BIP32Interface,
-  rec_address: string
+  rec_addr: string
 ) => {
   // Get statechain from SE and check ownership
   let statechain = await getStateChain(http_client, statecoin.statechain_id);
@@ -28,7 +28,7 @@ export const withdraw = async (
   if (statechain.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Statecoin. Incorrect proof key."
 
   // Sign statecoin to signal desire to Withdraw
-  let statechain_sig = new StateChainSig(proof_key_der, "TRANSFER", rec_address);
+  let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", rec_addr);
 
   // Alert SE of desire to withdraw and receive authorisation if state chain signature verifies
   let withdraw_msg_1 = {
@@ -44,7 +44,7 @@ export const withdraw = async (
   let txb_withdraw_unsigned = txWithdrawBuild(
     network,
     statecoin.funding_txid,
-    rec_address,
+    rec_addr,
     (statecoin.value + fee_info.deposit),
     fee_info
   );

@@ -214,7 +214,7 @@ export const TransferMsg3 = typeforce.compile({
   statechain_sig: Object,
   statechain_id: String,
   tx_backup_psm: PrepareSignTxMsg,
-  rec_addr: String,
+  rec_se_addr: String,
 })
 
 export const TransferMsg4 = typeforce.compile({

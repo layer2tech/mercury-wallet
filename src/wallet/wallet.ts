@@ -262,13 +262,13 @@ export class Wallet {
 
     // Get SE address that funds are being sent to.
     let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, this.network);
-    let se_rec_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
+    let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
     // Ensure backup tx funds are sent to address owned by this wallet
-    if (se_rec_addr_bip32 == undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
-    if (se_rec_addr_bip32.publicKey.toString("hex") != transfer_msg3.rec_addr) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
+    if (rec_se_addr_bip32 == undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
+    if (rec_se_addr_bip32.publicKey.toString("hex") != transfer_msg3.rec_se_addr) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
 
     let batch_data = {};
-    let finalize_data = await transferReceiver(this.http_client, transfer_msg3, se_rec_addr_bip32, batch_data)
+    let finalize_data = await transferReceiver(this.http_client, transfer_msg3, rec_se_addr_bip32, batch_data)
 
     // In batch case this step is performed once all other transfers in the batch are complete.
     if (batch_data = {}) {
@@ -296,10 +296,10 @@ export class Wallet {
     if (!statecoin) throw "No coin found with id " + shared_key_id
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-    let rec_address = this.genBtcAddress();
+    let rec_add = this.genBtcAddress();
 
     // Perform withdraw with server
-    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.network, statecoin, proof_key_der, rec_address);
+    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.network, statecoin, proof_key_der, rec_add);
 
     // Mark funds as withdrawn in wallet
     this.statecoins.setCoinSpent(shared_key_id)
