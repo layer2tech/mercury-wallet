@@ -1,6 +1,7 @@
 import { TransactionBuilder, crypto, networks } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
-import { FEE, signStateChainSig, verifyStateChainSig, txBackupBuild, txWithdrawBuild, encodeSCEAddress, decodeSCEAddress } from '../util';
+import { FEE, signStateChainSig, verifyStateChainSig, txBackupBuild, txWithdrawBuild,
+  encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point } from '../util';
 import { FUNDING_TXID, BTC_ADDR, SIGNSTATECHAIN_DATA } from './test_data.js'
 
 let bip32 = require('bip32');
@@ -68,10 +69,19 @@ describe('txWithdrawBuild', function() {
   });
 });
 
-test('bech32', function() {
+test('bech32 encode/decode', function() {
   let proof_key = BTC_ADDR;
   let encode = encodeSCEAddress(proof_key);
   expect(encode.slice(0,2)).toBe("sc");
   let decode = decodeSCEAddress(encode);
   expect(proof_key).toBe(decode);
+});
+
+test('Secp256k Point encode/decode', async function() {
+  let bip32 = bitcoin.ECPair.makeRandom({compressed: false});
+  let publicKey = bip32.publicKey;
+
+  let encoded = encodeSecp256k1Point(publicKey);
+  let decoded = decodeSecp256k1Point(encoded);
+  expect(publicKey).toStrictEqual(decoded);
 });

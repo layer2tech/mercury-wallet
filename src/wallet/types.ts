@@ -222,7 +222,7 @@ export const TransferMsg4 = typeforce.compile({
   state_chain_id: String,
   t2: String, // t2 = t1*o2_inv = o1*x1*o2_inv
   state_chain_sig: Buffer,
-  o2_pub: String,
+  o2_pub: Secp256k1Point,
   tx_backup: Object,
   batch_data: Object,
 })

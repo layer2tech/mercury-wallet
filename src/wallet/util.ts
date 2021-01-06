@@ -2,10 +2,14 @@
 
 import { BIP32Interface, Network, TransactionBuilder, crypto, script } from 'bitcoinjs-lib';
 import { FeeInfo, Root } from './mercury/info_api';
+import { Secp256k1Point } from './mercury/transfer';
 
 let bech32 = require('bech32')
 let typeforce = require('typeforce');
 let types = require("./types")
+
+let EC = require('elliptic').ec
+let secp256k1 = new EC('secp256k1')
 
 /// Temporary - fees should be calculated dynamically
 export const FEE = 300;
@@ -85,4 +89,16 @@ export const encodeSCEAddress = (proof_key: string) => {
 export const decodeSCEAddress = (sce_address: string) => {
   let decode =  bech32.decode(sce_address)
   return Buffer.from(bech32.fromWords(decode.words)).toString()
+}
+
+// encode Secp256k1Point to {x: string, y: string}
+export const encodeSecp256k1Point = (publicKey: Buffer) => {
+  let decoded_pub = secp256k1.curve.decodePoint(publicKey);
+  return { x: decoded_pub.x.toString("hex"), y: decoded_pub.y.toString("hex") }
+}
+
+// decode Secp256k1Point to secp256k1.curve.point Buffer
+export const decodeSecp256k1Point = (point: Secp256k1Point) => {
+  let p = secp256k1.curve.point(point.x, point.y);
+  return Buffer.from(p.encode());
 }
