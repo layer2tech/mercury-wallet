@@ -1,6 +1,6 @@
 // Main wallet struct storing Keys derivation material and Mercury Statecoins.
 
-import { Network } from 'bitcoinjs-lib';
+import { Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList, MockWasm, StateCoin } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
@@ -258,7 +258,7 @@ export class Wallet {
     //Decrypt the message on receipt
     // let transfer_msg3 = wallet.decrypt(transfer_msg3)
 
-    let tx_backup = transfer_msg3.tx_backup_psm.tx;
+    let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
 
     // Get SE address that funds are being sent to.
     let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, this.network);
@@ -289,7 +289,7 @@ export class Wallet {
   }
 
   // Perform withdraw
-  // Args: state_chain_id of coin to withdraw
+  // Args: statechain_id of coin to withdraw
   // Return: Withdraw Tx  (Details to be displayed to user - amount, txid, expect conf time...)
   async withdraw(shared_key_id: string) {
     let statecoin = this.statecoins.getCoin(shared_key_id);
@@ -310,13 +310,13 @@ export class Wallet {
   }
 
   // Perform swap
-  // Args: state_chain_id of coin to swap and swap size parameter. Also provide current coin swap_rounds for GUI demos.
+  // Args: statechain_id of coin to swap and swap size parameter. Also provide current coin swap_rounds for GUI demos.
   // Return: New wallet coin data
-  swap(state_chain_id: string, _swap_size: number, swap_rounds: number) {
+  swap(statechain_id: string, _swap_size: number, swap_rounds: number) {
     return {
       amount: 0.1,
       shared_key_id: "h46w1ueui-438c-87dc-d06054277a5d",
-      state_chain_id: state_chain_id,
+      statechain_id: statechain_id,
       funding_txid: "4aac3d840fbad3cf76843a5d74e2e118b822772c020fe0d3d0f3d73c0662c9be",
       backuptx: "40fbad3cef62c93c06e118b8f62c9b74e276843a5d0f22772c024aac3d8e0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
       proof_key: "43030ed1524b9660afb44a7ed876aa15c2983ee7dcf5dc7aec2aeffee49cd9b243db99ea404418727260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",

@@ -43,7 +43,7 @@ export const depositInit = async (
 }
 
 // After funds are sent to p_addr sign backup tx and verify SMT.
-// Return statecoin with smt_proot, state_chain_id, tx_backup_signed, p_addr.
+// Return statecoin with smt_proot, statechain_id, tx_backup_signed, p_addr.
 export const depositConfirm = async (
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
@@ -73,7 +73,7 @@ export const depositConfirm = async (
   let deposit_msg2 = {
       shared_key_id: statecoin.shared_key_id,
   }
-  let state_chain_id = await http_client.post(POST_ROUTE.DEPOSIT_CONFIRM, deposit_msg2);
+  let statechain_id = await http_client.post(POST_ROUTE.DEPOSIT_CONFIRM, deposit_msg2);
   typeforce(typeforce.String, statecoin.shared_key_id)
 
   // Verify proof key inclusion in SE sparse merkle tree
@@ -83,7 +83,7 @@ export const depositConfirm = async (
 
   // Add proof and state chain id to Shared key
   statecoin.smt_proof = proof;
-  statecoin.state_chain_id = state_chain_id;
+  statecoin.statechain_id = statechain_id;
   statecoin.tx_backup = tx_backup_signed;
 
   return statecoin

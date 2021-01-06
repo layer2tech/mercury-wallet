@@ -53,8 +53,8 @@ export const transferSender = async (
   let fee_info: FeeInfo = await getFeeInfo(http_client);
 
   // Get statechain from SE and check ownership
-  let statechain_data = await getStateChain(http_client, statecoin.state_chain_id);
-  if (statechain_data.amoumt == 0) throw "StateChain " + statecoin.state_chain_id + " already withdrawn."
+  let statechain_data = await getStateChain(http_client, statecoin.statechain_id);
+  if (statechain_data.amoumt == 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
   if (statechain_data.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Statecoin. Incorrect proof key."
 
   // Sign statecoin to signal desire to Withdraw
@@ -86,7 +86,7 @@ export const transferSender = async (
   let prepare_sign_msg: PrepareSignTxMsg = {
     shared_key_id: statecoin.shared_key_id,
     protocol: "TRANSFER",
-    tx: new_tx_backup_signed,
+    tx_hex: new_tx_backup_signed.toHex(),
     input_addrs: [],
     input_amounts: [],
     proof_key: statecoin.proof_key,
@@ -107,7 +107,7 @@ export const transferSender = async (
     shared_key_id: statecoin.shared_key_id,
     t1: t1.toString(16),
     statechain_sig: statechain_sig,
-    state_chain_id: statecoin.state_chain_id,
+    statechain_id: statecoin.statechain_id,
     tx_backup_psm: prepare_sign_msg,
     rec_addr: receiver_addr,
   };
@@ -132,7 +132,7 @@ export const transferReceiver = async (
   _batch_data: any
 ) => {
   // Get statechain data (will Err if statechain not yet finalized)
-  let statechain_data = await getStateChain(http_client, transfer_msg3.state_chain_id);
+  let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
 
   // Verify state chain represents this address as new owner
   let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
@@ -158,11 +158,11 @@ export const transferReceiver = async (
 
   let transfer_msg4 = {
     shared_key_id: transfer_msg3.shared_key_id,
-    state_chain_id: transfer_msg3.state_chain_id,
+    statechain_id: transfer_msg3.statechain_id,
     t2: t2.toString(),
     statechain_sig: transfer_msg3.statechain_sig,
     o2_pub: encodeSecp256k1Point(o2_keypair.publicKey),        // decode into {x,y}
-    tx_backup: transfer_msg3.tx_backup_psm.tx,
+    tx_backup_hex: transfer_msg3.tx_backup_psm.tx_hex,
     batch_data: null,
   };
   typeforce(types.TransferMsg4, transfer_msg4);
@@ -182,7 +182,7 @@ export const transferReceiver = async (
       theta: transfer_msg5.theta,
       state_chain_data: statechain_data,
       proof_key: transfer_msg3.rec_addr,
-      state_chain_id: transfer_msg3.state_chain_id,
+      statechain_id: transfer_msg3.statechain_id,
       tx_backup_psm: tx_backup_psm,
   };
   typeforce(types.TransferFinalizeData, finalize_data);
@@ -219,8 +219,8 @@ export const transferReceiverFinalize = async (
   // Add state chain id, proof key and SMT inclusion proofs to local SharedKey data
   // Add proof and state chain id to Shared key
   statecoin.smt_proof = proof;
-  statecoin.state_chain_id = finalize_data.state_chain_id;
-  statecoin.tx_backup = finalize_data.tx_backup_psm.tx;
+  statecoin.statechain_id = finalize_data.statechain_id;
+  statecoin.tx_backup = Transaction.fromHex(finalize_data.tx_backup_psm.tx_hex);
 
   return statecoin
 }
@@ -233,7 +233,7 @@ export interface Secp256k1Point {
 interface PrepareSignTxMsg {
     shared_key_id: string,
     protocol: string,
-    tx: Transaction,
+    tx_hex: string,
     input_addrs: string[], // keys being spent from
     input_amounts: number[],
     proof_key: string | null,
@@ -242,7 +242,7 @@ interface PrepareSignTxMsg {
 
 export interface TransferMsg3 {
   shared_key_id: string,
-  state_chain_id: string,
+  statechain_id: string,
   t1: string,
   statechain_sig: StateChainSig,
   tx_backup_psm: PrepareSignTxMsg,
@@ -251,11 +251,11 @@ export interface TransferMsg3 {
 
 export interface TransferMsg4 {
   shared_key_id: string,
-  state_chain_id: string,
+  statechain_id: string,
   t2: string, // t2 = t1*o2_inv = o1*x1*o2_inv
   statechain_sig: StateChainSig,
   o2_pub: string,
-  tx_backup: Transaction,
+  tx_backup_hex: string,
   batch_data: any,
 }
 
@@ -272,6 +272,6 @@ export interface  TransferFinalizeData {
     theta: string,
     state_chain_data: Buffer,
     proof_key: string,
-    state_chain_id: string,
+    statechain_id: string,
     tx_backup_psm: PrepareSignTxMsg,
 }

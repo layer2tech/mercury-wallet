@@ -195,7 +195,7 @@ export const ClientSignSecondMsg = typeforce.compile({
 export const PrepareSignTxMsg = typeforce.compile({
   shared_key_id: String,
   protocol: String,
-  tx: Object,
+  tx_hex: String,
   input_addrs: Array,
   input_amounts: Array,
   proof_key: String,
@@ -212,18 +212,18 @@ export const TransferMsg3 = typeforce.compile({
   shared_key_id: String,
   t1: String,
   statechain_sig: Object,
-  state_chain_id: String,
+  statechain_id: String,
   tx_backup_psm: PrepareSignTxMsg,
   rec_addr: String,
 })
 
 export const TransferMsg4 = typeforce.compile({
   shared_key_id: String,
-  state_chain_id: String,
+  statechain_id: String,
   t2: String, // t2 = t1*o2_inv = o1*x1*o2_inv
   statechain_sig: Object,
   o2_pub: Secp256k1Point,
-  tx_backup: Object,
+  tx_backup_hex: String,
   batch_data: Object,
 })
 
@@ -240,6 +240,6 @@ export const TransferFinalizeData = typeforce.compile({
     theta: String,
     state_chain_data: StateChainDataAPI,
     proof_key: String,
-    state_chain_id: String,
+    statechain_id: String,
     tx_backup_psm: PrepareSignTxMsg,
 })

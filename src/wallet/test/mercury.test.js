@@ -40,7 +40,7 @@ describe('StateChain Entity', function() {
   test('Deposit', async function() {
     let statecoin = await wallet.deposit(value)
 
-    expect(statecoin.state_chain_id.length).toBeGreaterThan(0);
+    expect(statecoin.statechain_id.length).toBeGreaterThan(0);
     expect(statecoin.proof_key.length).toBeGreaterThan(0);
     expect(statecoin.funding_txid.length).toBeGreaterThan(0);
     expect(statecoin.tx_backup).not.toBeNull();
@@ -93,15 +93,15 @@ describe('StateChain Entity', function() {
     expect(statechain_sig.verify(proof_key_der)).toBe(true)
 
     // check new backup tx
-    let psm = transfer_msg3.tx_backup_psm;
-    expect(psm.tx.ins.length).toBe(1);
-    expect(psm.tx.ins[0].hash.reverse().toString("hex")).toBe(statecoin.funding_txid);
-    expect(psm.tx.outs.length).toBe(1);
-    expect(psm.tx.outs[0].value).toBeLessThan(statecoin.value);
-    expect(psm.tx.locktime).toBeLessThan(statecoin.tx_backup.locktime);
+    let tx_backup = bitcoin.Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
+    expect(tx_backup.ins.length).toBe(1);
+    expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(statecoin.funding_txid);
+    expect(tx_backup.outs.length).toBe(1);
+    expect(tx_backup.outs[0].value).toBeLessThan(statecoin.value);
+    expect(tx_backup.locktime).toBeLessThan(statecoin.tx_backup.locktime);
     // Check backuptx sends to new proof key
     expect(
-      bitcoin.address.fromOutputScript(psm.tx.outs[0].script, statecoin.network)
+      bitcoin.address.fromOutputScript(tx_backup.outs[0].script, statecoin.network)
     ).toBe(
       pubKeyTobtcAddr(rec_se_addr)
     );
@@ -112,7 +112,9 @@ describe('StateChain Entity', function() {
 
     // set backuptx receive address to wrong proof_key addr
     let wrong_proof_key = "028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd42";
-    transfer_msg3.tx_backup_psm.tx.outs[0].script = pubKeyToScriptPubKey(wrong_proof_key, wallet.network);
+    let tx_backup = bitcoin.Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
+    tx_backup.outs[0].script = pubKeyToScriptPubKey(wrong_proof_key, wallet.network);
+    transfer_msg3.tx_backup_psm.tx_hex = tx_backup.toHex();
 
     await expect(wallet.transfer_receiver(transfer_msg3))
       .rejects
@@ -129,10 +131,9 @@ describe('StateChain Entity', function() {
 
   test('TransferReceiverFinalize', async function() {
     let finalize_data: TransferFinalizeData = BJSON.parse(lodash.cloneDeep(FINALIZE_DATA));
-
     let statecoin = await wallet.transfer_receiver_finalize(finalize_data);
 
-    expect(statecoin.state_chain_id).toBe(finalize_data.state_chain_id);
+    expect(statecoin.statechain_id).toBe(finalize_data.statechain_id);
     expect(statecoin.value).toBe(0);
     expect(statecoin.shared_key).toStrictEqual(KEYGEN_SIGN_DATA.shared_key);
     expect(statecoin.tx_backup).not.toBe(null);

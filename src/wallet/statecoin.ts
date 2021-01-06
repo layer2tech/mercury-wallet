@@ -93,7 +93,7 @@ export class StateCoinList {
 // Each individual StateCoin
 export class StateCoin {
   shared_key_id: string;    // SharedKeyId
-  state_chain_id: string;   // StateChainId
+  statechain_id: string;   // StateChainId
   shared_key: MasterKey2;
   proof_key: string;
   value: number;
@@ -108,7 +108,7 @@ export class StateCoin {
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
     this.shared_key_id = shared_key_id;
-    this.state_chain_id = "";
+    this.statechain_id = "";
     this.shared_key = shared_key;
     this.proof_key = "";
     this.value = 0;
