@@ -71,6 +71,7 @@
     "bootstrap": "^4.5.3",
     "buffer-json": "^2.0.0",
     "client-wasm": "file:client-wasm/pkg",
+    "eciesjs": "^0.3.9",
     "electron-is-dev": "^1.2.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "html-react-parser": "^0.14.2",

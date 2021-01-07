@@ -4,6 +4,7 @@ import { BIP32Interface, Network, TransactionBuilder, crypto, script } from 'bit
 import { FeeInfo, Root } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 
+import { encrypt, decrypt } from 'eciesjs'
 let bech32 = require('bech32')
 let typeforce = require('typeforce');
 let types = require("./types")
@@ -109,8 +110,8 @@ export const decodeSCEAddress = (sce_address: string) => {
 }
 
 // encode Secp256k1Point to {x: string, y: string}
-export const encodeSecp256k1Point = (publicKey: Buffer) => {
-  let decoded_pub = secp256k1.curve.decodePoint(publicKey);
+export const encodeSecp256k1Point = (publicKey: string) => {
+  let decoded_pub = secp256k1.curve.decodePoint(Buffer.from(publicKey, 'hex'));
   return { x: decoded_pub.x.toString("hex"), y: decoded_pub.y.toString("hex") }
 }
 
@@ -118,4 +119,17 @@ export const encodeSecp256k1Point = (publicKey: Buffer) => {
 export const decodeSecp256k1Point = (point: Secp256k1Point) => {
   let p = secp256k1.curve.point(point.x, point.y);
   return Buffer.from(p.encode());
+}
+
+// ECIES encrypt string
+export const encryptECIES = (publicKey: string, data: string) => {
+  let data_arr = new Uint32Array(Buffer.from(JSON.stringify(data))) // JSONify to match Mercury ECIES
+  return encrypt(publicKey, Buffer.from(data_arr)).toString("hex");
+}
+
+// ECIES decrypt string
+export const decryptECIES = (secret_key: string, encryption: string) => {
+  let enc = new Uint32Array(Buffer.from(encryption, "hex"))
+  let dec = decrypt(secret_key, Buffer.from(enc)).toString();
+  return JSON.parse(dec)  // un-JSONify
 }

@@ -161,7 +161,7 @@ export const transferReceiver = async (
     statechain_id: transfer_msg3.statechain_id,
     t2: t2.toString(),
     statechain_sig: transfer_msg3.statechain_sig,
-    o2_pub: encodeSecp256k1Point(o2_keypair.publicKey),        // decode into {x,y}
+    o2_pub: encodeSecp256k1Point(o2_keypair.publicKey.toString("hex")),        // decode into {x,y}
     tx_backup_hex: transfer_msg3.tx_backup_psm.tx_hex,
     batch_data: null,
   };
