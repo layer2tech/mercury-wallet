@@ -266,3 +266,21 @@ input.quantity {
 .withdraw .right  .btn  img {
     margin-right: 10px;
 }
+@media only screen and (max-width: 768px)  {
+    .withdraw .subtitle {
+        padding-left: 0;
+        text-align: center;
+    }
+    .WalletAmount {
+        font-size: 26px;
+    }
+    .withdraw.content {
+        display: block;
+    }
+    .withdraw.content .left {
+        width: 100%;
+    }
+    .withdraw.content .right {
+        width: 100%;
+    }
+}
