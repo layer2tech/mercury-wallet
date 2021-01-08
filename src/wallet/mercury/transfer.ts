@@ -229,6 +229,11 @@ export interface Secp256k1Point {
   y: string
 }
 
+export interface SCEAddress {
+  tx_backup_addr: string,
+  proof_key: string
+}
+
 interface PrepareSignTxMsg {
     shared_key_id: string,
     protocol: string,

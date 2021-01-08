@@ -3,7 +3,7 @@
 import { Network } from "bitcoinjs-lib";
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { MasterKey2 } from "./mercury/ecdsa"
-import { pubKeyTobtcAddr } from "./wallet";
+import { pubKeyTobtcAddr } from "./util";
 
 export class StateCoinList {
   coins: StateCoin[]

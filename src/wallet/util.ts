@@ -32,7 +32,7 @@ export const pubKeyToScriptPubKey = (pub_key: string, network: Network) => {
   return bitcoin.address.toOutputScript(pubKeyTobtcAddr(pub_key, network), network)
 }
 
-export const proofKeyToSCEAddress = async (proof_key: string, network: Network) => {
+export const proofKeyToSCEAddress = (proof_key: string, network: Network) => {
   return {
     tx_backup_addr: pubKeyTobtcAddr(proof_key, network),
     proof_key: proof_key

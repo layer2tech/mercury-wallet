@@ -9,8 +9,9 @@
 
 
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
-import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, pubKeyTobtcAddr } from "../";
+import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
 import { FeeInfo } from "./info_api";
+import { pubKeyTobtcAddr } from "../util";
 
 import { Network, Transaction } from 'bitcoinjs-lib';
 let typeforce = require('typeforce');

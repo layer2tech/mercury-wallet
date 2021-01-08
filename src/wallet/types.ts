@@ -201,6 +201,11 @@ export const PrepareSignTxMsg = typeforce.compile({
   proof_key: String,
 });
 
+export const SCEAddress = typeforce.compile({
+  tx_backup_addr: String,
+  proof_key: String
+})
+
 export const TransferMsg2 = typeforce.compile({
     x1: {
       secret_bytes: Array
@@ -214,7 +219,7 @@ export const TransferMsg3 = typeforce.compile({
   statechain_sig: Object,
   statechain_id: String,
   tx_backup_psm: PrepareSignTxMsg,
-  rec_se_addr: String,
+  rec_se_addr: SCEAddress,
 })
 
 export const TransferMsg4 = typeforce.compile({

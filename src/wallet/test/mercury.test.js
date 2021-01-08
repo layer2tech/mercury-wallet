@@ -1,5 +1,5 @@
-import { verifySmtProof, StateChainSig } from '../util';
-import { Wallet, MockHttpClient, MockWasm, pubKeyTobtcAddr, pubKeyToScriptPubKey } from '../';
+import { verifySmtProof, StateChainSig, proofKeyToSCEAddress, pubKeyTobtcAddr, pubKeyToScriptPubKey } from '../util';
+import { Wallet, MockHttpClient, MockWasm } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
 import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
 import { KEYGEN_SIGN_DATA, TRANSFER_MSG3, FINALIZE_DATA } from './test_data.js'
@@ -87,7 +87,7 @@ describe('StateChain Entity', function() {
 
     // check transfer_msg data
     expect(transfer_msg3.shared_key_id).toBe(shared_key_id);
-    expect(transfer_msg3.rec_se_addr).toBe(rec_se_addr);
+    expect(transfer_msg3.rec_se_addr.proof_key).toBe(rec_se_addr);
     let proof_key_der = wallet.getBIP32forProofKeyPubKey(statecoin.proof_key);
     let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
     expect(statechain_sig.verify(proof_key_der)).toBe(true)
