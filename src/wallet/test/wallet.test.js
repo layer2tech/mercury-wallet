@@ -6,14 +6,14 @@ import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 describe('Wallet', function() {
   let wallet = Wallet.buildMock();
 
-  describe('toJSON', function() {
+  test('toJSON', function() {
     let json_wallet = JSON.stringify(wallet)
     let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true)
     // check wallets serialize to same values (since deep equal on recursive objects is messy)
     expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet))
   });
 
-  describe('genBtcAddress', function() {
+  test('genBtcAddress', function() {
     let addr1 = wallet.genBtcAddress();
     let addr2 = wallet.genBtcAddress();
     expect(addr1).not.toEqual(addr2)
@@ -21,14 +21,14 @@ describe('Wallet', function() {
     expect(wallet.account.containsAddress(addr2))
   });
 
-  describe('genProofKey', function() {
-    let proof_key = wallet.genProofKey();
-    let bip32 = wallet.getBIP32forProofKey(proof_key)
+  test('genProofKey', function() {
+    let proof_key_bip32 = wallet.genProofKey();
+    let bip32 = wallet.getBIP32forProofKeyPubKey(proof_key_bip32.publicKey)
     // Ensure BIP32 is correclty returned
-    expect(proof_key).toEqual(bip32.publicKey.toString('hex'))
+    expect(proof_key_bip32.privateKey).toEqual(bip32.privateKey)
   });
 
-  describe('getActivityLog', function() {
+  test('getActivityLog', function() {
     let activity_log = wallet.getActivityLog(0);
     expect(activity_log.length).toBe(0)
     activity_log = wallet.getActivityLog(2);
@@ -46,7 +46,7 @@ describe('Wallet', function() {
     }
   });
 
-  describe('addStatecoin', function() {
+  test('addStatecoin', function() {
     let coins_before_add = wallet.getUnspentStatecoins()
     let activity_log_before_add = wallet.getActivityLog(100)
     wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
@@ -60,7 +60,7 @@ describe('Wallet', function() {
 describe("Statecoins/Coin", () => {
   var statecoins = Wallet.buildMock().statecoins;
 
-  it('to/from JSON', () => {
+  test('to/from JSON', () => {
     var json = JSON.stringify(statecoins)
     let from_json = StateCoinList.fromJSON(json)
     expect(statecoins).toEqual(from_json)

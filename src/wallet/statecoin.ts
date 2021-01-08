@@ -1,9 +1,9 @@
 // Statecoin is a Mercury shared key along with all deposit information.
 
+import { Network } from "bitcoinjs-lib";
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { MasterKey2 } from "./mercury/ecdsa"
-
-// let bitcoin = require('bitcoinjs-lib')
+import { pubKeyTobtcAddr } from "./util";
 
 export class StateCoinList {
   coins: StateCoin[]
@@ -32,11 +32,12 @@ export class StateCoinList {
       if (!item.spent) {
         return item.getDisplayInfo()
       }
+      return
     })
   };
 
   getCoin(shared_key_id: string) {
-    return this.coins.reverse().find(coin => coin.shared_key_id == shared_key_id)
+    return this.coins.reverse().find(coin => coin.shared_key_id === shared_key_id)
   }
 
   // creates new coin with Date.now()
@@ -91,8 +92,8 @@ export class StateCoinList {
 
 // Each individual StateCoin
 export class StateCoin {
-  shared_key_id: string;               // SharedKeyId
-  state_chain_id: string;   // StateChainId
+  shared_key_id: string;    // SharedKeyId
+  statechain_id: string;   // StateChainId
   shared_key: MasterKey2;
   proof_key: string;
   value: number;
@@ -107,7 +108,7 @@ export class StateCoin {
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
     this.shared_key_id = shared_key_id;
-    this.state_chain_id = "";
+    this.statechain_id = "";
     this.shared_key = shared_key;
     this.proof_key = "";
     this.value = 0;
@@ -134,13 +135,13 @@ export class StateCoin {
   };
 
   // Generate BTC address from SharedKey
-  async getBtcAddress() {
-    let wasm = await import('client-wasm');
-    return wasm.curv_ge_to_bitcoin_public_key(
+  async getBtcAddress(wasm_client: any, network: Network) {
+    let pub_key = wasm_client.curv_ge_to_bitcoin_public_key(
       JSON.stringify(
         this.shared_key.public.q
       )
     );
+    return pubKeyTobtcAddr(pub_key, network)
   }
 }
 

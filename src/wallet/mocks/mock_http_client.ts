@@ -1,96 +1,24 @@
-const axios = require('axios').default;
+import { GET_ROUTE, POST_ROUTE } from "../http_client"
 
-const state_entity_addr = "http://0.0.0.0:8000";
-// const state_entity_addr = "https://fakeapi.mercurywallet.io";
+let lodash = require('lodash');
 
-export const GET_ROUTE = {
-  FEES: "info/fee",
-  ROOT: "info/root",
-  STATECHAIN: "info/statechain",
-  TRANSFER_BATCH: "info/transfer-batch"
-};
-Object.freeze(GET_ROUTE);
-
-export const POST_ROUTE = {
-  KEYGEN_FIRST: "ecdsa/keygen/first",
-  KEYGEN_SECOND: "ecdsa/keygen/second",
-  SIGN_FIRST: "ecdsa/sign/first",
-  SIGN_SECOND: "ecdsa/sign/second",
-  SMT_PROOF: "info/proof",
-  DEPOSIT_INIT: "deposit/init",
-  DEPOSIT_CONFIRM: "deposit/confirm",
-  WITHDRAW_INIT: "withdraw/init",
-};
-Object.freeze(POST_ROUTE);
-
-export const get = async (path: string, params: any) => {
-  try {
-    const url = state_entity_addr + "/" + path + "/" + (Object.entries(params).length == 0 ? "" : params);
-
-    const config = {
-        method: 'get',
-        url: url,
-        headers: { 'Accept': 'application/json' }
-    };
-
-    let res = await axios(config);
-
-    return res.data
-
-  } catch (err) {
-    console.log(err);
-    console.log("Error connecting to StateEntity. Dummy values returned.")
-
+export class MockHttpClient {
+  get = async (path: string, _params: any) => {
     switch(path) {
       case GET_ROUTE.FEES:
-        return {
-          address: "bcrt1qjjwk2rk7nuxt6c79tsxthf5rpnky0sdhjr493x",
-          deposit: 300,
-          withdraw: 300,
-          interval: 100,
-          initlock: 10000
-        }
+        return lodash.cloneDeep(FEE_INFO)
       case GET_ROUTE.ROOT:
-        return {
-          id:5,
-          value:[154,53,38,46,29,91,126,195,142,244,188,68,180,174,33,99,89,117,11,239,187,250,220,78,240,130,228,20,23,113,225,113],
-          commitment_info:null
-        }
+        return lodash.cloneDeep(ROOT_INFO)
       case GET_ROUTE.STATECHAIN:
-        return {
-          utxo: { txid: "0158f2978e5c2cf407970d7213f2b4289993b2fe3ef6aca531316cdcf347cc41", vout: 1},
-          amount: 100,
-          chain: [{ data: "026ff25fd651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e", next_state: null }]
-        }
+        return lodash.cloneDeep(STATECHAIN_INFO)
       case GET_ROUTE.TRANSFER_BATCH:
         return {
           status: true
         }
     }
   }
-};
 
-
-export const post = async (path: string, body: any) => {
-  try {
-    let url = state_entity_addr + "/" + path;
-    const config = {
-        method: 'post',
-        url: url,
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        data: body,
-    };
-    let res = await axios(config);
-
-    return res.data
-
-  } catch (err) {
-    console.log(err);
-    console.log("Error connecting to StateEntity. Dummy values returned.")
-
+  post = async (path: string, _body: any) => {
     switch(path) {
       case POST_ROUTE.KEYGEN_FIRST:
         return ["861d2223-7d84-44f1-ba3e-4cd7dd418560",{"pk_commitment":"fa11dbc7bc21f4bf7dd5ae4fee73d5919734c6cd144328798ae93908e47732aa","zk_pok_commitment":"fcffc8bee0287bd75005f21612f94107796de03cbff9b4041bd0bd76c86eaa57"}];
@@ -108,7 +36,36 @@ export const post = async (path: string, body: any) => {
           return "21d28236-d874-f0f4-ba3e-d4184cd7d560";
         case POST_ROUTE.WITHDRAW_INIT:
           return
-
+        case POST_ROUTE.TRANSFER_SENDER:
+          return {x1:{secret_bytes:[173,34,59,92,186,127,154,151,39,114,73,78,245,54,18,129,143,46,179,133,105,243,173,91,37,50,113,243,115,37,12,82]},proof_key:"026ff25fd651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e"};
+        case POST_ROUTE.TRANSFER_RECEIVER:
+          return {new_shared_key_id:"07387798-ae2b-4d40-b3cd-e2c56e06b821",s2_pub:{x:"ccde29a6592798b5e66bb9ffdd4de1256d3b823be465b371011afe78a4e271b3","y":"68bc529d833c9b13ab24271ec664b164db47673006303ef89902e92cfa7f7138"},theta:"cc7bef84aa30100c4d4e82fb4ca67f503dd42e2fce4501d307295ef140e9c81"};
+        case POST_ROUTE.TRANSFER_UPDATE_MSG:
+          return
+        case POST_ROUTE.TRANSFER_GET_MSG:
+          return
+      }
     }
-  }
-};
+}
+
+
+export const FEE_INFO = {
+  address: "bc1qdxx0p56wjmu3va7c4cq8dydfcx0vm7ak67klk8",
+  deposit: 300,
+  withdraw: 300,
+  interval: 100,
+  initlock: 10000
+}
+
+const ROOT_INFO = {
+  id:5,
+  value:[154,53,38,46,29,91,126,195,142,244,188,68,180,174,33,99,89,117,11,239,187,250,220,78,240,130,228,20,23,113,225,113],
+  commitment_info:null
+}
+
+const STATECHAIN_INFO = {
+  utxo: { txid: "0158f2978e5c2cf407970d7213f2b4289993b2fe3ef6aca531316cdcf347cc41", vout: 1},
+  amount: 100,
+  chain: [{ data: "028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41", next_state: null }],
+  locktime: 1000
+}

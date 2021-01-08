@@ -12,13 +12,13 @@ export const UInt32 = typeforce.UInt32;
 export const UInt64 = typeforce.UInt64;
 export const Null = typeforce.Null;
 
-export const OutPoint = typeforce.Any;
+export const OutPoint = typeforce.Object;
 export const Chain = Array;
 
 // StateChain Entity API
 export const StateChainDataAPI = typeforce.compile({
     utxo: OutPoint,
-    amount: UInt64,
+    amount: UInt32,
     chain: Chain,
     locktime: UInt32,
 })
@@ -183,4 +183,68 @@ export const ClientSignSecondMsg = typeforce.compile({
     c3: String
   },
   second_message: KeyGenSecondMsg
+})
+
+
+
+////////// MERCURY structs/////////////
+
+
+///////////// TRANSFER /////////////
+
+export const PrepareSignTxMsg = typeforce.compile({
+  shared_key_id: String,
+  protocol: String,
+  tx_hex: String,
+  input_addrs: Array,
+  input_amounts: Array,
+  proof_key: String,
+});
+
+export const SCEAddress = typeforce.compile({
+  tx_backup_addr: String,
+  proof_key: String
+})
+
+export const TransferMsg2 = typeforce.compile({
+    x1: {
+      secret_bytes: Array
+    },
+    proof_key: String
+})
+
+export const TransferMsg3 = typeforce.compile({
+  shared_key_id: String,
+  t1: String,
+  statechain_sig: Object,
+  statechain_id: String,
+  tx_backup_psm: PrepareSignTxMsg,
+  rec_se_addr: SCEAddress,
+})
+
+export const TransferMsg4 = typeforce.compile({
+  shared_key_id: String,
+  statechain_id: String,
+  t2: String, // t2 = t1*o2_inv = o1*x1*o2_inv
+  statechain_sig: Object,
+  o2_pub: Secp256k1Point,
+  tx_backup_hex: String,
+  batch_data: Object,
+})
+
+export const TransferMsg5 = typeforce.compile({
+  new_shared_key_id: String,
+  s2_pub: Secp256k1Point,
+  theta: String,
+})
+
+export const TransferFinalizeData = typeforce.compile({
+    new_shared_key_id: String,
+    o2: String,
+    s2_pub: Secp256k1Point,
+    theta: String,
+    state_chain_data: StateChainDataAPI,
+    proof_key: String,
+    statechain_id: String,
+    tx_backup_psm: PrepareSignTxMsg,
 })

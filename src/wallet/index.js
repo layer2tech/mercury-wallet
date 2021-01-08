@@ -1,11 +1,15 @@
-export { GET_ROUTE, POST_ROUTE, post, get } from "./request";
-export { MockElectrum } from './electrum/mock_electrum'
-export { Electrum } from './electrum/electrum'
+export { HttpClient, GET_ROUTE, POST_ROUTE } from "./http_client";
+export { ElectrumClient } from './electrum'
+
+export { MockHttpClient } from "./mocks/mock_http_client";
+export { MockElectrumClient } from './mocks/mock_electrum';
+export { MockWasm } from './mocks/mock_wasm';
+
 
 export { Wallet } from "./wallet"
 export { StateCoin, StateCoinList } from "./statecoin"
 export { ACTION } from "./activity_log"
-export { txBackupBuild, verifySmtProof } from "./util"
+export { txBackupBuild, verifySmtProof, pubKeyToScriptPubKey, pubKeyTobtcAddr } from "./util"
 
 export { depositInit, depositConfirm } from "./mercury/deposit"
 // export { MasterKey2 } from "./mercury/ecdsa";

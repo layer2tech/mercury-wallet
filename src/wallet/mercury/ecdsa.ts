@@ -1,7 +1,6 @@
 // Mercury 2P-ECDSA KeyGen and Sign protocols
 
-import { post, POST_ROUTE } from '../request';
-import { StateCoin } from '../';
+import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE } from '../';
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -13,31 +12,29 @@ export const PROTOCOL = {
 };
 Object.freeze(PROTOCOL);
 
+
 // 2P-ECDSA Key generation. Output SharedKey struct.
 export const keyGen = async (
-    shared_key_id: string,
-    secret_key: string,
-    _proof_key: string,
-    protocol: string
-  ) => {
-  // Import Rust functions
-  let wasm = await import('client-wasm');
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
+  shared_key_id: string,
+  secret_key: string,
+  protocol: string
+) => {
 
   let keygen_msg1 = {
       shared_key_id: shared_key_id,
       protocol: protocol,
   };
   // server first
-  let server_resp_key_gen_first = await post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
-  let id = server_resp_key_gen_first[0];
+  let server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
   let kg_party_one_first_message = server_resp_key_gen_first[1];
-  typeforce(types.String, id);
   typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
 
   // client first
   let client_resp_key_gen_first: ClientKeyGenFirstMsg =
     JSON.parse(
-      wasm.KeyGen.first_message(secret_key)
+      wasm_client.KeyGen.first_message(secret_key)
     );
   typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
 
@@ -46,24 +43,23 @@ export const keyGen = async (
     shared_key_id: shared_key_id,
     dlog_proof:client_resp_key_gen_first.kg_party_two_first_message.d_log_proof,
   }
-  let kg_party_one_second_message = await post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
+  let kg_party_one_second_message = await http_client.post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
   typeforce(types.KeyGenParty1Message2, kg_party_one_second_message);
 
   // client second
   let client_resp_key_gen_second: ClientKeyGenSecondMsg =
     JSON.parse(
-      wasm.KeyGen.second_message(
+      wasm_client.KeyGen.second_message(
         JSON.stringify(kg_party_one_first_message),
         JSON.stringify(kg_party_one_second_message)
       )
     );
   typeforce(types.ClientKeyGenSecondMsg, client_resp_key_gen_second);
 
-
   // Construct Rust MasterKey struct
   let master_key: MasterKey2 =
     JSON.parse(
-      wasm.KeyGen.set_master_key(
+      wasm_client.KeyGen.set_master_key(
         JSON.stringify(client_resp_key_gen_first.kg_ec_key_pair_party2),
         JSON.stringify(kg_party_one_second_message
                 .ecdh_second_message
@@ -73,24 +69,23 @@ export const keyGen = async (
     ));
   typeforce(types.MasterKey2, master_key);
 
-  return new StateCoin(id, master_key)
+  return new StateCoin(shared_key_id, master_key)
 }
 
 // 2P-ECDSA Sign.
 // message should be hex string
 export const sign = async (
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
   shared_key_id: string,
   master_key: any,
   message: string,
   protocol: string
 ) => {
-  // Import Rust functions
-  let wasm = await import('client-wasm');
-
   //client first
   let client_sign_first: ClientSignFirstMsg =
     JSON.parse(
-      wasm.Sign.first_message()
+      wasm_client.Sign.first_message()
     );
   typeforce(types.ClientSignFirstMsg, client_sign_first);
 
@@ -99,13 +94,13 @@ export const sign = async (
       shared_key_id: shared_key_id,
       eph_key_gen_first_message_party_two: client_sign_first.eph_key_gen_first_message_party_two,
   };
-  let server_sign_first = await post(POST_ROUTE.SIGN_FIRST, sign_msg1);
+  let server_sign_first = await http_client.post(POST_ROUTE.SIGN_FIRST, sign_msg1);
   typeforce(types.ServerSignfirstMsg, server_sign_first);
 
   //client second
   let client_sign_second =
     JSON.parse(
-      wasm.Sign.second_message(
+      wasm_client.Sign.second_message(
         JSON.stringify(master_key),
         JSON.stringify(client_sign_first.eph_ec_key_pair_party2),
         JSON.stringify(client_sign_first.eph_comm_witness),
@@ -124,7 +119,7 @@ export const sign = async (
       },
   };
 
-  let signature = await post(POST_ROUTE.SIGN_SECOND, sign_msg2);
+  let signature = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
 
   return signature
 }

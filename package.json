@@ -1,7 +1,29 @@
 {
   "name": "MercuryWallet",
+  "jest": {
+    "moduleDirectories": [
+      "node_modules",
+      "src",
+      "client-wasm/pkg"
+    ],
+    "modulePaths": [
+      "src",
+      "node_modules",
+      "client-wasm/pkg"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "ts",
+      "d.ts",
+      "wasm"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    }
+  },
   "repository": "github:commerceblock/mercury-wallet",
-  "version": "0.2.0",
+  "version": "20.08.01",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
@@ -21,6 +43,7 @@
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "devDependencies": {
+    "@types/uuid": "^8.3.0",
     "concurrently": "^5.3.0",
     "electron": "^10.1.4",
     "electron-build-env": "^0.2.0",
@@ -39,16 +62,21 @@
     "@reduxjs/toolkit": "^1.4.0",
     "@types/node": "^14.14.13",
     "axios": "^0.21.0",
+    "bech32": "^1.1.4",
+    "bigint-mod-arith": "^2.0.8",
     "bip32": "^2.0.6",
     "bip32-utils": "^0.11.1",
     "bip39": "^3.0.3",
     "bitcoinjs-lib": "^5.2.0",
     "bootstrap": "^4.5.3",
+    "buffer-json": "^2.0.0",
     "client-wasm": "file:client-wasm/pkg",
+    "eciesjs": "^0.3.9",
     "electron-is-dev": "^1.2.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "html-react-parser": "^0.14.2",
     "install": "^0.13.0",
+    "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "react": "^16.1.1",
     "react-bootstrap": "^1.4.0",
@@ -60,7 +88,9 @@
     "react-router-dom": "^5.2.0",
     "react-table": "^7.6.2",
     "superagent": "^6.1.0",
-    "typeforce": "^1.11.3"
+    "ts-jest": "^26.4.4",
+    "typeforce": "^1.11.3",
+    "uuid": "^8.3.2"
   },
   "browserslist": {
     "production": [

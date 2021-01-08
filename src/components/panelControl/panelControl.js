@@ -6,6 +6,7 @@ import { addCoin, removeCoin } from '../../features/CoinDataSlice'
 import { disp, getActivityLog } from '../../features/WalletDataSlice'
 import { deposit, getRoot, getFeeInfo, getSmtProof, getStateChain } from '../../wallet'
 import { Wallet, Statecoin, verifySmtProof, ACTION } from '../../wallet'
+import { keyGen } from '../../wallet/mercury/ecdsa'
 import walletIcon from '../../images/walletIcon.png';
 import walletIconSmall from '../../images/walletIconsmallIcon.png';
 import pluseIcon from '../../images/pluseIcon.png';
