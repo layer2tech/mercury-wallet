@@ -13,6 +13,7 @@
 .Body-button {
   background-color: #ffffff;
   color: #0F54F4;
+  text-align: center;
   font-size: 14px;
   height: 36px;
   line-height: 36px;
@@ -35,6 +36,12 @@
   color: #ffffff;
   border: none;
   box-shadow: 0 4px 6px -6px #222;
+}
+
+@media only screen and (max-width: 768px)  {
+  .Body {
+    padding: 15px;
+  }
 }
 
 

@@ -69,3 +69,11 @@ table span.grey {
    font-size: 14px;
    font-weight: 400;
 }
+@media only screen and (max-width: 768px) {
+   table tbody tr {
+      display: block;
+   }
+   .table td, .table th {
+      width: 100%;
+   }
+}

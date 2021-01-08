@@ -8,6 +8,7 @@
   justify-content: space-between;
   margin: 5px;
   overflow:hidden;
+  align-items: center;
 }
 
 .WalletAmount {
@@ -41,4 +42,36 @@
 
 .ActionGroupRight a {
   padding: 0;
+}
+
+
+@media only screen and (max-width: 768px) {
+  .ButtonsPanel {
+    display: block;
+    margin: 0 auto;
+  }
+  .ActionGroupLeft .nav-link {
+    padding: 0;
+  }
+  .ActionGroupLeft .nav-link button img {
+    width: 15px;
+  }
+  .ActionGroupLeft .nav-link  button {
+    padding: 10px;
+    height: auto;
+    line-height: 0;
+    font-size: 12px;
+  }
+  .ActionGroupLeft  {
+    justify-content: center;
+  }
+  .ActionGroupRight {
+    justify-content: center;
+  }
+  .WalletAmount {
+    justify-content: center;
+  }
+  .no-wallet {
+    text-align: center;
+  }
 }

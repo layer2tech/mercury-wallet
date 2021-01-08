@@ -253,3 +253,106 @@ ol.go2441762052 {
 .deposit-scan-main-item img  {
     margin-right: 10px;
 }
+
+.nav-item {
+    display: flex;
+    align-items: center;
+}
+.nav-item .nav-link img {
+    width: 24px;
+    height: 24px;
+}
+
+.go2067797667:before {
+    color: #ffffff !important;
+    height: 20px;
+    width: 20px !important;
+    background-color: #757575 !important;
+    border-radius: 50% !important;
+    content: "2" !important;
+
+}
+.go2478912419:before {
+    background-color: #0F54F4 !important;
+    height: 20px;
+    width: 20px !important;
+    color: #0F54F4 !important;
+}
+.go2478912419, .go767851704 {
+    border-bottom: 4px solid #0F54F4 !important;
+}
+.go767851704:before {
+    background-color: #0F54F4 !important;
+    color:#ffffff !important;
+    width: 20px !important;
+    height: 20px;
+}
+.go767851704 span, .go2478912419 span, .go2067797667 span {
+    display: none;
+}
+.go2478912419:before {
+    content: "1" !important;
+    color: #ffffff !important;
+}
+.go2441762052 .go2478912419:nth-child(2):before {
+    content: "2" !important;
+    color: #ffffff !important;
+}
+
+@media only screen and (max-width: 768px)  {
+    .deposit-main {
+        display: block;
+        margin: 0 auto;
+        text-align: center;
+    }
+    .deposit-statecoins {
+        margin-left: 0;
+    }
+    .deposit-main .numbers-item {
+        width: 50%;
+    }
+    .deposit-header {
+        flex-wrap: wrap;
+        flex-direction: column-reverse;
+    }
+    .deposit .subtitle {
+        text-align: center;
+        margin-left: 0;
+    }
+    .deposit .nav-link {
+        padding: 0;
+    }
+    .deposit-scan {
+        align-items: end;
+    }
+    .deposit-scan img:first-child {
+        width: 50px;
+        height: 50px;
+    }
+    .deposit-scan-content {
+        padding: 0;
+    }
+    .deposit-scan-main span {
+        font-size: 12px;
+    }
+    .deposit-scan-main-item {
+    padding: 10px;
+        }
+    .deposit-scan .deposit-scan-main-item img {
+        width: auto;
+        height: auto;
+    }
+    .long {
+        display: block;
+        width: 130px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .deposit-scan-subtxt {
+        display: block;
+    }
+    .deposit-scan-subtxt span {
+        margin-bottom: 10px;
+    }
+}

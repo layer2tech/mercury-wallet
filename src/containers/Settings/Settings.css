@@ -78,7 +78,6 @@ input.quantity {
 }
 .Body-button.blue {
     display: block;
-    text-align: left;
 }
 
 
@@ -279,3 +278,27 @@ input.quantity {
     }
 }
 
+@media only screen and (max-width: 768px)  {
+    .settings .buttons {
+        display: block;
+    }
+    .settings .buttons button {
+        margin: 10px auto;
+    }
+    .settings .content {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column-reverse;
+
+    }
+    .settings .content .inputs {
+        width: 100%;
+    }
+    .inputs h2 {
+        margin-top: 20px;
+        font-size: 25px;
+    }
+    .settings .content .inputs:first-child input {
+        width: 100%;
+    }
+}

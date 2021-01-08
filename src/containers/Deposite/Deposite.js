@@ -39,14 +39,14 @@ const DepositePage = () => {
                        <img src={plus} alt="plus"/>
                        Deposit BTC
                    </h2>
-                   <div>
+                   <div className="nav-item">
                        <Link className="nav-link" to="/">
                            <StdButton
                                label="Back"
                                className="Body-button transparent"/>
-                           <img onClick={handleShow} src={points} alt="points"/>
-                       </Link>
 
+                       </Link>
+                       <img onClick={handleShow} src={points} alt="points"/>
 
 
                    </div>

@@ -47,3 +47,19 @@
     font-size: 14px;
     color: #0054F4;
 }
+@media only screen and (max-width: 768px) {
+    .receiveStatecoin .subtitle {
+        padding-left: 0;
+        text-align: center;
+    }
+    .receiveStatecoin-scan {
+        display: block;
+
+    }
+    .receiveStatecoin-scan img {
+        margin-bottom: 20px;
+    }
+    .receiveStatecoin-scan-content {
+        margin-left: 0;
+    }
+}

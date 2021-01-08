@@ -25,7 +25,7 @@ const TransactionsBTC = () => {
                             <img src={arrow} alt="arrow"/>
                             <div className="deposit-scan-main-item">
                                 <img src={icon2} alt="icon"/>
-                                <span><b>32eigCK8QkB4Khe7nE6wHkxMbqke5EkxtB</b></span>
+                                <span className="long"><b>32eigCK8QkB4Khe7nE6wHkxMbqke5EkxtB</b></span>
                             </div>
                         </div>
                     </div>
@@ -47,7 +47,7 @@ const TransactionsBTC = () => {
                             <img src={arrow} alt="arrow"/>
                             <div className="deposit-scan-main-item">
                                 <img src={icon2} alt="icon"/>
-                                <span><b>32eigCK8QkB4Khe7nE6wHkxMbqke5EkxtB</b></span>
+                                <span className="long"><b>32eigCK8QkB4Khe7nE6wHkxMbqke5EkxtB</b></span>
                             </div>
                         </div>
                     </div>

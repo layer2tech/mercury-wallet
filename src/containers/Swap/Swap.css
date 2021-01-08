@@ -181,3 +181,52 @@ input:checked ~ .checkmark:after {
 .swap table.second thead  tr {
     border-bottom: none;
 }
+
+@media only screen and (max-width: 768px)  {
+    .swap-header {
+    flex-direction: column-reverse;
+    }
+    .WalletAmount {
+        padding-left: 0;
+    }
+    .swap .subtitle {
+        margin-left: 0;
+        text-align: center;
+    }
+    .swap-header-txt,
+    .collapse-content-item {
+        margin-left: 0;
+    }
+    .collapse-content-item {
+        width: 100%;
+        display: block;
+    }
+    .collapse-content-item .txt {
+        display: block;
+    }
+    .ConnectionSwaps {
+        text-align: center;
+    }
+
+    .ConnectionSwaps label input[type='radio']:not(.switch) {
+        width: 0;
+    }
+    .collapse-content-item .txt {
+        margin-right: 0;
+    }
+    .swap.content {
+        display: block;
+
+    }
+    .swap.content .left {
+        width: 100%;
+    }
+    .swap.content .right {
+        width: 100%;
+    }
+    .swap table thead tr {
+        flex-wrap: wrap;
+        justify-content: start;
+
+    }
+}

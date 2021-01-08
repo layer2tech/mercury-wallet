@@ -267,3 +267,23 @@ input.quantity {
 .sendStatecoin .right  .btn  img {
     margin-right: 10px;
 }
+
+
+@media only screen and (max-width: 768px) {
+    .sendStatecoin .subtitle {
+        padding-left: 0;
+        text-align: center;
+    }
+    .sendStatecoin.content {
+        display: block;
+    }
+    .sendStatecoin.content .left {
+        width: 100%;
+    }
+    .sendStatecoin.content .right {
+        width: 100%;
+    }
+    .content .inputs .def-number-input {
+    width: 100%;
+         }
+}

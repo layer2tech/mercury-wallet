@@ -114,3 +114,26 @@ input:checked ~ .checkmark:after {
 .collapse-content-item .txt b {
   color: #000000;
 }
+@media only screen and (max-width: 768px)  {
+  .Collapse {
+    flex-wrap: wrap;
+  }
+  .collapse-content {
+    display: block;
+  }
+  .collapse-content .collapse-content-item {
+    display: block;
+    margin-left: 0;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .collapse-content .collapse-content-item .txt {
+    display: block;
+
+  }
+  .accordion .show {
+    height: 13em;
+    padding: 0;
+  }
+}
