@@ -27,15 +27,6 @@ const PanelControl = () => {
   const wallet = useSelector(state => state.walletData).wallet
 
   const createButtonAction = async () => {
-    wallet.deposit()
-    // let shared_key_id = "861d2223-7d84-44f1-ba3e-4cd7dd418560"
-    // let secret_key = "ff2f08aab2bf90f1ce47cf2859ceb0d6453efeca232e17e4be545cb60f4d977d";
-    // // // let proof_key = "02851ad2219901fc72ea97b4d21e803c625a339f07da8c7069ea33ddd0125da84f";
-    // // // let value = 10;
-    // let protocol = "Deposit";
-    //
-    // let [id, statecoin] = await keyGen(wallet.http_client, wasm, shared_key_id, secret_key, protocol);
-
     wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", dummy_master_key, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
 
     let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
