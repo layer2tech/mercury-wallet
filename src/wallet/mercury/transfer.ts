@@ -1,12 +1,11 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
-import { BIP32Interface, Network, TransactionBuilder, Transaction } from "bitcoinjs-lib";
+import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
-import { pubKeyToScriptPubKey } from "../wallet";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { TransferMsg4 } from "../types";
-import { encodeSecp256k1Point, StateChainSig } from "../util";
+import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey } from "../util";
 
 let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
@@ -109,7 +108,7 @@ export const transferSender = async (
     statechain_sig: statechain_sig,
     statechain_id: statecoin.statechain_id,
     tx_backup_psm: prepare_sign_msg,
-    rec_se_addr: receiver_addr,
+    rec_se_addr: proofKeyToSCEAddress(receiver_addr, network),
   };
   typeforce(types.TransferMsg3, transfer_msg3);
 

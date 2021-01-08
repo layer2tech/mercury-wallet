@@ -5,7 +5,10 @@ import { FeeInfo, Root } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 
 import { encrypt, decrypt } from 'eciesjs'
+import { segwitAddr } from './wallet';
+
 let bech32 = require('bech32')
+let bitcoin = require('bitcoinjs-lib')
 let typeforce = require('typeforce');
 let types = require("./types")
 
@@ -19,6 +22,21 @@ export const FEE = 300;
 export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {
   typeforce(typeforce.oneOf(types.Root, typeforce.Null), root);
   return wasm_client.verify_statechain_smt(JSON.stringify(root.value), proof_key, JSON.stringify(proof));
+}
+
+export const pubKeyTobtcAddr = (pub_key: string, network: Network) => {
+  return segwitAddr({publicKey: Buffer.from(pub_key, "hex")}, network)
+}
+
+export const pubKeyToScriptPubKey = (pub_key: string, network: Network) => {
+  return bitcoin.address.toOutputScript(pubKeyTobtcAddr(pub_key, network), network)
+}
+
+export const proofKeyToSCEAddress = async (proof_key: string, network: Network) => {
+  return {
+    tx_backup_addr: pubKeyTobtcAddr(proof_key, network),
+    proof_key: proof_key
+  }
 }
 
 export const hexToBytes = (hex: string) => {
