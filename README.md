@@ -54,3 +54,5 @@ To build wasm:
 
 You can edit files outside of container with your normal text editor and then
 issue cargo/wasm build in container again.
+
+# License 
