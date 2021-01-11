@@ -215,7 +215,7 @@ export const TransferMsg2 = typeforce.compile({
 
 export const TransferMsg3 = typeforce.compile({
   shared_key_id: String,
-  t1: String,
+  t1: {secret_bytes: Buffer},
   statechain_sig: Object,
   statechain_id: String,
   tx_backup_psm: PrepareSignTxMsg,

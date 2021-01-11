@@ -1,4 +1,4 @@
-import { verifySmtProof, StateChainSig, proofKeyToSCEAddress, pubKeyTobtcAddr, pubKeyToScriptPubKey } from '../util';
+import { verifySmtProof, StateChainSig, proofKeyToSCEAddress, pubKeyTobtcAddr, pubKeyToScriptPubKey, decryptECIES } from '../util';
 import { Wallet, MockHttpClient, MockWasm } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
 import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
@@ -88,9 +88,11 @@ describe('StateChain Entity', function() {
     // check transfer_msg data
     expect(transfer_msg3.shared_key_id).toBe(shared_key_id);
     expect(transfer_msg3.rec_se_addr.proof_key).toBe(rec_se_addr);
+    // statechain sig verifies
     let proof_key_der = wallet.getBIP32forProofKeyPubKey(statecoin.proof_key);
-    let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
-    expect(statechain_sig.verify(proof_key_der)).toBe(true)
+    expect(transfer_msg3.statechain_sig.verify(proof_key_der)).toBe(true)
+    // t1 decryptable by proof key
+    expect(decryptECIES(proof_key_der.privateKey.toString("hex"), transfer_msg3.t1.secret_bytes)).toBeTruthy()
 
     // check new backup tx
     let tx_backup = bitcoin.Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);

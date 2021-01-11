@@ -246,9 +246,6 @@ export class Wallet {
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
   async transfer_receiver(transfer_msg3: TransferMsg3) {
-    //Decrypt the message on receipt
-    // let transfer_msg3 = wallet.decrypt(transfer_msg3)
-
     let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
 
     // Get SE address that funds are being sent to.
@@ -256,7 +253,7 @@ export class Wallet {
     let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
     // Ensure backup tx funds are sent to address owned by this wallet
     if (rec_se_addr_bip32 == undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
-    if (rec_se_addr_bip32.publicKey.toString("hex") != transfer_msg3.rec_se_addr) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
+    if (rec_se_addr_bip32.publicKey.toString("hex") != transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
 
     let batch_data = {};
     let finalize_data = await transferReceiver(this.http_client, transfer_msg3, rec_se_addr_bip32, batch_data)

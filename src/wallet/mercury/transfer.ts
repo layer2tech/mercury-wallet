@@ -5,13 +5,13 @@ import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } fro
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { TransferMsg4 } from "../types";
-import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey } from "../util";
+import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES } from "../util";
 
 let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
 let types = require("../types")
 let typeforce = require('typeforce');
-let bigintModArith = require('bigint-mod-arith')
+let BN = require('bn.js');
 
 let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
@@ -93,29 +93,29 @@ export const transferSender = async (
 
   // Get o1 priv key
   let o1 = statecoin.shared_key.private.x2;
-  let o1_bn = BigInt("0x" + o1);
+
   // Get SE's x1
   let x1 = transfer_msg2.x1.secret_bytes;
-  let x1_bn = BigInt("0x" + Buffer.from(x1).toString("hex"))
+
+  let o1_bn = new BN(o1, 16);
+  let x1_bn = new BN(x1, 16);
 
   // t1 = o1x1
-  let t1 = o1_bn * x1_bn;
-  // let t1_encryptable = FESer::from_fe(&t1);
+  let t1 = o1_bn.mul(x1_bn).mod(n);
+
+  let t1_enc = {
+    secret_bytes: encryptECIES(receiver_addr,t1)
+  }
 
   let transfer_msg3 = {
     shared_key_id: statecoin.shared_key_id,
-    t1: t1.toString(16),
+    t1: t1_enc,
     statechain_sig: statechain_sig,
     statechain_id: statecoin.statechain_id,
     tx_backup_psm: prepare_sign_msg,
     rec_se_addr: proofKeyToSCEAddress(receiver_addr, network),
   };
   typeforce(types.TransferMsg3, transfer_msg3);
-
-
-  // //encrypt then make immutable
-  // transfer_msg3.encrypt()?;
-  // let transfer_msg3 = transfer_msg3;
 
   // Update server database with transfer message 3 so that
   // the receiver can get the message
@@ -139,21 +139,21 @@ export const transferReceiver = async (
   let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
   if (!statechain_sig.verify(prev_owner_proof_key_der)) throw "Invalid StateChainSig."
 
-  // decrypt transfer msg 3 and t1
+  // decrypt t1
+  let t1 = decryptECIES(se_rec_addr_bip32.privateKey.toString("hex"), transfer_msg3.t1.secret_bytes.toString("hex"))
 
   // calculate t2
-  let t1 = transfer_msg3.t1;
-  let t1_bn = BigInt("0x" + t1);
+  let t1_bn = new BN(t1, 16);
 
   // get o2 private key and corresponding 02 public key
   let o2_keypair = se_rec_addr_bip32;
   let o2 = o2_keypair.privateKey.toString("hex");
 
-  let o2_bn = BigInt("0x" + o2);
-  let o2_inv_bn = bigintModArith.modInv(o2_bn, BigInt(n));
+  let o2_bn = new BN(o2, 16);
+  let o2_inv_bn = o2_bn.invm(n);
 
   // t2 = t1*o2_inv = o1*x1*o2_inv
-  let t2 = t1_bn * o2_inv_bn;
+  let t2 = t1_bn.mul(o2_inv_bn).mod(n);
 
   let transfer_msg4 = {
     shared_key_id: transfer_msg3.shared_key_id,
@@ -180,7 +180,7 @@ export const transferReceiver = async (
       s2_pub: transfer_msg5.s2_pub,
       theta: transfer_msg5.theta,
       state_chain_data: statechain_data,
-      proof_key: transfer_msg3.rec_se_addr,
+      proof_key: transfer_msg3.rec_se_addr.proof_key,
       statechain_id: transfer_msg3.statechain_id,
       tx_backup_psm: tx_backup_psm,
   };
@@ -243,14 +243,18 @@ interface PrepareSignTxMsg {
     proof_key: string | null,
 }
 
+export interface SCEAddress {
+  tx_backup_addr: string,
+  proof_key: string
+}
 
 export interface TransferMsg3 {
   shared_key_id: string,
   statechain_id: string,
-  t1: string,
+  t1: {secret_bytes: Buffer},
   statechain_sig: StateChainSig,
   tx_backup_psm: PrepareSignTxMsg,
-  rec_se_addr: string,
+  rec_se_addr: SCEAddress,
 }
 
 export interface TransferMsg4 {
