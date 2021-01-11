@@ -1,6 +1,6 @@
 # Mercury Wallet
 
-GUI Client Mercury implementation.
+A cross-platform GUI for Mercury written in node.js using Electron.
 
 
 # Run development
