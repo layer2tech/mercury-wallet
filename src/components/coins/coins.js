@@ -17,6 +17,7 @@ import React, {Component, useState} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
 import Moment from "react-moment";
+import { useSelector } from 'react-redux'
 
 import { Wallet } from '../../wallet/wallet'
 import { fromSatoshi } from '../../wallet/util'
@@ -25,22 +26,38 @@ import './coins.css';
 import '../index.css';
 
 const Coins = (props) => {
-    const [show, setShow] = useState(false);
+    const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
 
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+    const [showCoinDetails, setShowCoinDetails] = useState(false);  // Display details of Coin in Modal
+    const openCoinDetails = () => setShowCoinDetails(true);
+    const closeCoinDetails = () => {
+      setSelectedCoin(null);
+      setShowCoinDetails(false);
+    }
 
-    const wallet = Wallet.buildMock();
-    const data = wallet.getUnspentStatecoins()
+    // Set selected coin
+    const selectCoin = (shared_key_id) => {
+      shared_key_id == selectedCoin ? setSelectedCoin(null) : setSelectedCoin(shared_key_id);
+      if (props.displayDetailsOnClick) {
+        openCoinDetails()
+      }
+    }
 
+    // Check if coin is selected. If so return CSS.
+    const isSelectedStyle = (shared_key_id) => {return selectedCoin == shared_key_id ? {backgroundColor: "#b8b8b8"} : {}}
+
+    const wallet = useSelector(state => state.walletData).wallet
+    const data = wallet.getUnspentStatecoins();
     const statecoinData = data.map(item => (
-        <div key={item.id}>
-            <div>
+        <div key={item.shared_key_id}>
+            <div
+              onClick={() => selectCoin(item.shared_key_id)}
+              style={isSelectedStyle(item.shared_key_id)}>
                 {item.swap_rounds === 0 ? <div className="CoinPanel">
                     <div className="CoinAmount-block">
                         <img src={icon2} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {fromSatoshi(item.value)} BTC</b>
+                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={close} alt="icon"/>
                                 No Privacy Score
@@ -76,7 +93,7 @@ const Coins = (props) => {
                     <div className="CoinAmount-block">
                         <img src={icon2} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {fromSatoshi(item.value)} BTC</b>
+                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={question} alt="icon"/>
                                 Low Privacy Score
@@ -112,7 +129,7 @@ const Coins = (props) => {
                     <div className="CoinAmount-block">
                         <img src={medium} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {fromSatoshi(item.value)} BTC</b>
+                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={question} alt="icon"/>
                                 Medium Privacy Score
@@ -148,7 +165,7 @@ const Coins = (props) => {
                     <div className="CoinAmount-block">
                         <img src={icon1} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {fromSatoshi(item.value)} BTC</b>
+                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={check} alt="icon"/>
                                 High Privacy Score
@@ -190,7 +207,7 @@ const Coins = (props) => {
         <div>
             {statecoinData}
 
-            <Modal show={show} onHide={handleClose} className="modal">
+            <Modal show={showCoinDetails} onHide={closeCoinDetails} className="modal">
 
                 <Modal.Body>
                     <div>
@@ -256,7 +273,7 @@ const Coins = (props) => {
 
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={handleClose}>
+                    <Button variant="secondary" onClick={closeCoinDetails}>
                         Close
                     </Button>
 

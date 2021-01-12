@@ -15,7 +15,7 @@ const PanelCoins = () => {
             <div className="CoinsPanel">
                 <Tabs defaultActiveKey="STATECOIN UTXO'S">
                     <Tab eventKey="STATECOIN UTXO'S" title="STATECOIN UTXO'S">
-                        <Coins />
+                        <Coins displayDetailsOnClick="true"/>
                     </Tab>
                     <Tab eventKey="ACTIVITY" title="ACTIVITY">
                         <Activity/>
