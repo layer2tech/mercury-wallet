@@ -62,3 +62,5 @@ If you have any further questions you can find us at:
 # Issue Tracker
 
 # License 
+
+Mercury Wallet is released under the terms of the GNU General Public License. See for more information https://opensource.org/licenses/GPL-3.0
