@@ -36,7 +36,7 @@ export const keyGen = async (
     JSON.parse(
       wasm_client.KeyGen.first_message(secret_key)
     );
-  typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
+  // typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
 
   // server second
   let key_gen_msg2 = {
@@ -54,7 +54,7 @@ export const keyGen = async (
         JSON.stringify(kg_party_one_second_message)
       )
     );
-  typeforce(types.ClientKeyGenSecondMsg, client_resp_key_gen_second);
+  // typeforce(types.ClientKeyGenSecondMsg, client_resp_key_gen_second);
 
   // Construct Rust MasterKey struct
   let master_key: MasterKey2 =
@@ -67,7 +67,7 @@ export const keyGen = async (
                 .public_share),
         JSON.stringify(client_resp_key_gen_second.party_two_paillier)
     ));
-  typeforce(types.MasterKey2, master_key);
+  // typeforce(types.MasterKey2, master_key);
 
   return new StateCoin(shared_key_id, master_key)
 }
@@ -87,7 +87,7 @@ export const sign = async (
     JSON.parse(
       wasm_client.Sign.first_message()
     );
-  typeforce(types.ClientSignFirstMsg, client_sign_first);
+  // typeforce(types.ClientSignFirstMsg, client_sign_first);
 
   // server first
   let sign_msg1 = {
@@ -108,7 +108,7 @@ export const sign = async (
         message
       )
     );
-  typeforce(types.ClientSignSecondMsg, client_sign_second);
+  // typeforce(types.ClientSignSecondMsg, client_sign_second);
 
   let sign_msg2 = {
       shared_key_id: shared_key_id,

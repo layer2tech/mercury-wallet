@@ -65,6 +65,7 @@ export interface Root {
 }
 
 export interface FeeInfo {
+  type: "feeinfo",
   address: string,
   deposit: number,
   withdraw: number,
