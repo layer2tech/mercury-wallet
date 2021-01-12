@@ -60,9 +60,9 @@ export class Wallet {
     let proof_key2 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
     let uuid1 = uuidv4();
     let uuid2 = uuidv4();
-    wallet.addStatecoin(uuid1, dummy_master_key, 10000, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", proof_key1, ACTION.DEPOSIT)
-    wallet.addStatecoin(uuid2, dummy_master_key, 20000, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", proof_key2, ACTION.DEPOSIT)
-    wallet.activity.addItem(uuid2, "T");
+    wallet.addStatecoinFromValues(uuid1, dummy_master_key, 10000, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", proof_key1, ACTION.DEPOSIT)
+    wallet.addStatecoinFromValues(uuid2, dummy_master_key, 20000, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", proof_key2, ACTION.DEPOSIT)
+    wallet.activity.addItem(uuid2, ACTION.TRANSFER);
     return wallet
   }
 
@@ -154,11 +154,20 @@ export class Wallet {
   }
 
   // Add confirmed Statecoin to wallet
-  addStatecoin(id: string, shared_key: MasterKey2, value: number, txid: string, proof_key: string, action: string) {
+  addStatecoin(statecoin: StateCoin, action: string) {
+    this.statecoins.addCoin(statecoin);
+    this.activity.addItem(statecoin.shared_key_id, action);
+  }
+  addStatecoinFromValues(id: string, shared_key: MasterKey2, value: number, txid: string, proof_key: string, action: string) {
     let statecoin = new StateCoin(id, shared_key);
     statecoin.proof_key = proof_key;
     this.statecoins.addCoin(statecoin)
     this.statecoins.setCoinFundingTxidAndValue(id, txid, value)
+    this.activity.addItem(id, action);
+  }
+  // Mark statecoin as spent after transfer or withdraw
+  setStateCoinSpent(id: string, action: string) {
+    this.statecoins.setCoinSpent(id)
     this.activity.addItem(id, action);
   }
 
@@ -196,8 +205,7 @@ export class Wallet {
     );
     // add proof key bip32 derivation to statecoin
     statecoin.proof_key = proof_key_pub;
-    this.statecoins.addCoin(statecoin);
-
+    this.addStatecoin(statecoin, ACTION.DEPOSIT);
 
 
     // Allow for user to send funds to p_addr, or to receive funds for wallet to hadnle building of funding_tx.
@@ -237,7 +245,7 @@ export class Wallet {
     let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.network, statecoin, proof_key_der, receiver_se_addr)
 
     // Mark funds as spent in wallet
-    this.statecoins.setCoinSpent(shared_key_id);
+    this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
 
     return transfer_sender;
   }
@@ -290,7 +298,7 @@ export class Wallet {
     let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.network, statecoin, proof_key_der, rec_add);
 
     // Mark funds as withdrawn in wallet
-    this.statecoins.setCoinSpent(shared_key_id)
+    this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
     this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
 
     // Broadcast transcation

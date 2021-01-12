@@ -49,7 +49,7 @@ describe('Wallet', function() {
   test('addStatecoin', function() {
     let coins_before_add = wallet.getUnspentStatecoins()
     let activity_log_before_add = wallet.getActivityLog(100)
-    wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
+    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
     let coins_after_add = wallet.getUnspentStatecoins()
     let activity_log_after_add = wallet.getActivityLog(100)
     expect(coins_before_add.length).toEqual(coins_after_add.length - 1)

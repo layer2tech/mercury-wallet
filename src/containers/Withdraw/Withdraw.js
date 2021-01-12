@@ -62,12 +62,8 @@ const WithdrawPage = () => {
                     <div>
                        <div className="inputs">
                            <input type="text" placeholder="Destination Address for withdrawal"/>
-
                            <span className="smalltxt">Your Bitcoin Address</span>
                        </div>
-                        <div className="inputs">
-                           <Quantity label="Value (BTC)" />
-                        </div>
                     </div>
                     <div>
                         <p className="table-title">Use Only:</p>
