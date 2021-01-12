@@ -1,12 +1,8 @@
-import React, {Component, useState} from 'react';
-
 import './Coin.css';
 import '../../index.css';
 import icon1 from "../../../images/table-icon.png";
 import icon2 from "../../../images/table-icon-grey.png";
-
 import medium from "../../../images/table-icon-medium.png";
-
 import utx from "../../../images/UTX.png";
 import time from "../../../images/time-grey.png";
 import calendar from "../../../images/calendar.png";
@@ -17,15 +13,16 @@ import close from "../../../images/close-grey.png";
 import txidIcon from "../../../images/txid-icon.png";
 import timeIcon from "../../../images/time.png";
 import check from "../../../images/check-grey.png";
+import question from "../../../images/question-mark.png";
 
-import {Wallet} from '../../../wallet/wallet'
+import { Wallet } from '../../../wallet/wallet'
+import { fromSatoshi } from '../../../wallet/util'
 
+import React, {Component, useState} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
 import Moment from "react-moment";
 
-
-import question from "../../../images/question-mark.png";
 
 
 const Coin = (props) => {
@@ -44,7 +41,7 @@ const Coin = (props) => {
                     <div className="CoinAmount-block">
                         <img src={icon2} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <b className="CoinAmount" onClick={handleShow}>  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={close} alt="icon"/>
                                 No Privacy Score
@@ -80,7 +77,7 @@ const Coin = (props) => {
                     <div className="CoinAmount-block">
                         <img src={icon2} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <b className="CoinAmount" onClick={handleShow}>  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={question} alt="icon"/>
                                 Low Privacy Score
@@ -116,7 +113,7 @@ const Coin = (props) => {
                     <div className="CoinAmount-block">
                         <img src={medium} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <b className="CoinAmount" onClick={handleShow}>  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={question} alt="icon"/>
                                 Medium Privacy Score
@@ -152,7 +149,7 @@ const Coin = (props) => {
                     <div className="CoinAmount-block">
                         <img src={icon1} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <b className="CoinAmount" onClick={handleShow}>  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={check} alt="icon"/>
                                 High Privacy Score

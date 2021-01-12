@@ -1,6 +1,6 @@
 import { TransactionBuilder, crypto, networks } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
-import { FEE, txBackupBuild, txWithdrawBuild, StateChainSig,
+import { FEE, txBackupBuild, txWithdrawBuild, StateChainSig, toSatoshi, fromSatoshi,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point, encryptECIES, decryptECIES } from '../util';
 import { FUNDING_TXID, BTC_ADDR, SIGNSTATECHAIN_DATA } from './test_data.js'
 
@@ -8,6 +8,14 @@ import { encrypt, decrypt, PrivateKey } from 'eciesjs'
 
 let bip32 = require('bip32');
 let bitcoin = require('bitcoinjs-lib');
+
+
+test('to/from Satoshi', async function() {
+  let btc = 1;
+  let sat = toSatoshi(1);
+  expect(sat).toBe(100000000);
+  expect(fromSatoshi(sat)).toBe(btc);
+});
 
 
 describe('signStateChain', function() {

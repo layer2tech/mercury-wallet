@@ -45,6 +45,10 @@ export const hexToBytes = (hex: string) => {
     return bytes;
 }
 
+// BTC value -> Satoshi value
+export const toSatoshi = (btc: number) => { return btc * 10e7 }
+// Satoshi value -> BTC value
+export const fromSatoshi = (sat: number) => { return sat / 10e7 }
 
 export class StateChainSig {
     purpose: string; // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
