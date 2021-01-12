@@ -28,12 +28,15 @@ export class StateCoinList {
   };
 
   getUnspentCoins() {
-    return this.coins.filter((item: StateCoin) => {
+    let total = 0
+    let coins = this.coins.filter((item: StateCoin) => {
       if (!item.spent) {
-        return item.getDisplayInfo()
+        total += item.value
+        return item
       }
       return
     })
+    return [coins.map(item => item.getDisplayInfo()), total]
   };
 
   getCoin(shared_key_id: string) {
@@ -44,7 +47,7 @@ export class StateCoinList {
   addNewCoin(shared_key_id: string, shared_key: MasterKey2) {
     this.coins.push(new StateCoin(shared_key_id, shared_key))
   };
-
+  // Add already constructed statecoin
   addCoin(statecoin: StateCoin) {
     this.coins.push(statecoin)
   };

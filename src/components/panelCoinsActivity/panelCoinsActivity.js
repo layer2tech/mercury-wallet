@@ -7,9 +7,7 @@ import { Coins, Activity } from "..";
 import './panelCoinsActivity.css';
 import '../index.css';
 
-const PanelCoins = () => {
-    const wallet = useSelector(state => state.walletData).wallet
-
+const PanelCoins = (props) => {
     return (
         <div className="table">
             <div className="CoinsPanel">

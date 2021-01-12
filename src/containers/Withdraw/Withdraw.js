@@ -8,12 +8,16 @@ import withdrowIcon from "../../images/withdrow-icon.png";
 
 import {Link, withRouter} from "react-router-dom";
 import React, {useState} from 'react';
+import { useSelector } from 'react-redux'
 
 import { Coins, Quantity, StdButton } from "../../components";
 
 import './Withdraw.css';
 
 const WithdrawPage = () => {
+    // const wallet = useSelector(state => state.walletData).wallet
+    // const data = wallet.getUnspentStatecoins();
+
 
     return (
         <div className="container ">

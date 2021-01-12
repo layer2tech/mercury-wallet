@@ -46,9 +46,8 @@ const Coins = (props) => {
     // Check if coin is selected. If so return CSS.
     const isSelectedStyle = (shared_key_id) => {return selectedCoin == shared_key_id ? {backgroundColor: "#b8b8b8"} : {}}
 
-    const wallet = useSelector(state => state.walletData).wallet
-    const data = wallet.getUnspentStatecoins();
-    const statecoinData = data.map(item => (
+    const coins_data = useSelector(state => state.walletData).coins_data;
+    const statecoinData = coins_data.map(item => (
         <div key={item.shared_key_id}>
             <div
               onClick={() => selectCoin(item.shared_key_id)}
