@@ -1,11 +1,12 @@
-import React from 'react';
-import { StdButton } from '../../components/'
-import './Help.css';
-
-import {Link, withRouter} from "react-router-dom";
 import question from "../../images/question-blue.png";
+
+import React from 'react';
+import {Link, withRouter} from "react-router-dom";
 import {Tab, Tabs} from "react-bootstrap";
 
+import { StdButton } from '../../components/'
+
+import './Help.css';
 
 
 const HelpPage = () => {

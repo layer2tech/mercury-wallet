@@ -24,7 +24,6 @@
 .CoinAmount-block {
   text-align: left;
   display: flex;
-
 }
 .CoinAmount-block img {
   width:36px;
@@ -94,6 +93,18 @@
 .scoreAmount:hover .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+.CoinFundingTxid {
+  color: #BDBDBD;
+  display: block;
+  width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.CoinFundingTxid img {
+  margin-right: 5px;
 }
 
 .modal .item {

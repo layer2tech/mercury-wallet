@@ -1,31 +1,30 @@
-import './Coin.css';
-import '../../index.css';
-import icon1 from "../../../images/table-icon.png";
-import icon2 from "../../../images/table-icon-grey.png";
-import medium from "../../../images/table-icon-medium.png";
-import utx from "../../../images/UTX.png";
-import time from "../../../images/time-grey.png";
-import calendar from "../../../images/calendar.png";
-import privacy from "../../../images/privacy.png";
-import swapNumber from "../../../images/swap-number.png";
-import walleticon from "../../../images/walletIcon.png";
-import close from "../../../images/close-grey.png";
-import txidIcon from "../../../images/txid-icon.png";
-import timeIcon from "../../../images/time.png";
-import check from "../../../images/check-grey.png";
-import question from "../../../images/question-mark.png";
-
-import { Wallet } from '../../../wallet/wallet'
-import { fromSatoshi } from '../../../wallet/util'
+import icon1 from "../../images/table-icon.png";
+import icon2 from "../../images/table-icon-grey.png";
+import medium from "../../images/table-icon-medium.png";
+import utx from "../../images/UTX.png";
+import time from "../../images/time-grey.png";
+import calendar from "../../images/calendar.png";
+import privacy from "../../images/privacy.png";
+import swapNumber from "../../images/swap-number.png";
+import walleticon from "../../images/walletIcon.png";
+import close from "../../images/close-grey.png";
+import txidIcon from "../../images/txid-icon.png";
+import timeIcon from "../../images/time.png";
+import check from "../../images/check-grey.png";
+import question from "../../images/question-mark.png";
 
 import React, {Component, useState} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
 import Moment from "react-moment";
 
+import { Wallet } from '../../wallet/wallet'
+import { fromSatoshi } from '../../wallet/util'
 
+import './coins.css';
+import '../index.css';
 
-const Coin = (props) => {
+const Coins = (props) => {
     const [show, setShow] = useState(false);
 
     const handleClose = () => setShow(false);
@@ -267,4 +266,4 @@ const Coin = (props) => {
     );
 }
 
-export default Coin;
+export default Coins;

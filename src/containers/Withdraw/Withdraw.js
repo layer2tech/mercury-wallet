@@ -1,19 +1,17 @@
-import React, {useState} from 'react';
-import './Withdraw.css';
-
-import {Link, withRouter} from "react-router-dom";
 import swapIcon from '../../images/swap_icon-blue.png';
-import StdButton from "../../components/buttons/standardButton";
 import walletIcon from '../../images/walletIcon.png';
 import cyrcle from "../../images/cyrcle-icon.png";
 import close from "../../images/close-icon.png";
 import number from "../../images/number-icon.png";
-import Quantity from "../../components/Quantity/quantity"
 import orange from "../../images/wallet-orange.png";
 import withdrowIcon from "../../images/withdrow-icon.png";
 
+import {Link, withRouter} from "react-router-dom";
+import React, {useState} from 'react';
 
+import { Coins, Quantity, StdButton } from "../../components";
 
+import './Withdraw.css';
 
 const WithdrawPage = () => {
 
@@ -46,29 +44,7 @@ const WithdrawPage = () => {
                     <div>
                         <h3 className="subtitle">Select Statecoin UTXO’s to withdraw</h3>
                         <span className="sub">Click to select UTXO’s below</span>
-                        <table>
-                            <tbody>
-                            <tr>
-                                <td>
-                                    <div className="content">
-                                        <img src={cyrcle} alt="swapIcon"/>
-
-                                        <div className="txt">
-                                            <span className="">0.0005 BTC</span>
-                                            <div className="line">
-                                                <img src={close} alt="swapIcon"/>
-                                                <span>No Privacy Score</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <img src={number} alt="swapIcon"/>
-                                    <span>15kje…398hj</span>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                        <Coins />
                     </div>
 
                 </div>

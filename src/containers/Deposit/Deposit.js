@@ -1,14 +1,5 @@
-import React, {useState} from 'react';
-import './Deposite.css';
-
-import {Link, withRouter} from "react-router-dom";
 import plus from "../../images/plus-deposit.png";
 import points from "../../images/points.png";
-import StdButton from "../../components/buttons/standardButton";
-import MultiStep from "react-multistep";
-import CreateStatecoin from "../../components/createStatecoin/createStatecoin";
-import TransactionsBTC from "../../components/transactionsBTC/transactionsBTC";
-import {Button, Modal} from "react-bootstrap";
 import walleticon from "../../images/walletIcon.png";
 import utx from "../../images/UTX.png";
 import time from "../../images/time-grey.png";
@@ -18,7 +9,17 @@ import question from "../../images/question-grey.png";
 import swapNumber from "../../images/swap-number.png";
 import pluseIcon from "../../images/pluseIcon.png";
 
-const DepositePage = () => {
+import React, {useState} from 'react';
+import {Link, withRouter} from "react-router-dom";
+import MultiStep from "react-multistep";
+import {Button, Modal} from "react-bootstrap";
+
+import { CreateStatecoin, TransactionsBTC, StdButton} from "../../components";
+
+import './Deposit.css';
+
+
+const DepositPage = () => {
 
     const steps = [
         { component: <CreateStatecoin /> },
@@ -51,7 +52,7 @@ const DepositePage = () => {
 
                    </div>
                </div>
-                <h3 className="subtitle">Deposite BTC to create new Statecoins</h3>
+                <h3 className="subtitle">Deposit BTC to create new Statecoins</h3>
             </div>
             <div className="wizard">
                 <MultiStep steps={steps} />
@@ -97,4 +98,4 @@ const DepositePage = () => {
     )
 }
 
-export default withRouter(DepositePage);
+export default withRouter(DepositPage);

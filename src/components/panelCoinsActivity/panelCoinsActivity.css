@@ -20,18 +20,6 @@
   padding: 20px 10px;
   border-bottom: 1px solid #dee2e6;
 }
-.CoinFundingTxid {
-  color: #BDBDBD;
-  display: block;
-  width: 130px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-}
-.CoinFundingTxid img {
-  margin-right: 5px;
-}
 
 .nav-tabs {
   display: flex;
@@ -72,20 +60,4 @@
   border-left: transparent;
   border-right: transparent;
 
-}
-
-@media only screen and (max-width: 768px) {
-  .CoinPanel {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .CoinAmount-block {
-    margin-bottom: 20px;
-  }
-  .CoinFundingTxid {
-    margin-top: 20px;
-  }
-  .tab-content .CoinPanel {
-    display: block;
-  }
 }

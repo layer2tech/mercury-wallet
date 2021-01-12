@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../containers/Deposite/Deposite.css';
+import '../../containers/Deposit/Deposit.css';
 import scan from "../../images/scan-deposite.png";
 import icon1 from "../../images/icon1.png";
 import icon2 from "../../images/icon2.png";

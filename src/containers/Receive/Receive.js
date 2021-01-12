@@ -1,18 +1,17 @@
-import React, {useState} from 'react';
-import './ReceiveStatecoins.css';
-
-import {Link, withRouter} from "react-router-dom";
-import StdButton from "../../components/buttons/standardButton";
 import cyrcle from "../../images/cyrcle-icon.png";
 import close from "../../images/close-icon.png";
 import number from "../../images/number-icon.png";
-import Quantity from "../../components/Quantity/quantity"
 import orange from "../../images/wallet-orange.png";
 import arrow from "../../images/arrow-up.png"
 import scan from "../../images/scan-deposite.png";
 import icon2 from "../../images/icon2.png";
 
+import React, {useState} from 'react';
+import {Link, withRouter} from "react-router-dom";
 
+import { StdButton, Quantity } from "../../components";
+
+import './Receive.css';
 
 
 const ReceiveStatecoinPage = () => {

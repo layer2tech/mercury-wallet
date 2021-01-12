@@ -1,8 +1,7 @@
 import React from 'react';
-import { PanelControl, PanelConnectivity, PanelCoins } from '../../components'
-
 import { withRouter } from "react-router-dom";
 
+import { PanelControl, PanelConnectivity, PanelCoins } from '../../components'
 
 const HomePage = () => {
   return (
