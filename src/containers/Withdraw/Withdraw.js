@@ -9,14 +9,36 @@ import withdrowIcon from "../../images/withdrow-icon.png";
 import {Link, withRouter} from "react-router-dom";
 import React, {useState} from 'react';
 import { useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 
+import { callWithdraw } from '../../features/WalletDataSlice'
 import { Coins, Quantity, StdButton } from "../../components";
 
 import './Withdraw.css';
 
 const WithdrawPage = () => {
-    // const wallet = useSelector(state => state.walletData).wallet
-    // const data = wallet.getUnspentStatecoins();
+    const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+    const [inputAddr, setInputAddr] = useState('');
+
+    const onInputAddrChange = (event) => {
+      setInputAddr(event.target.value);
+    };
+    const dispatch = useDispatch();
+
+    const withdrawButtonAction = async () => {
+
+      // check statechain is chosen
+      if (!selectedCoin) {
+        alert("Please choose a StateCoin to withdraw.");
+        return
+      }
+      if (!inputAddr) {
+        alert("Please enter an address to withdraw to.");
+        return
+      }
+
+      dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr}))
+    }
 
 
     return (
@@ -48,7 +70,10 @@ const WithdrawPage = () => {
                     <div>
                         <h3 className="subtitle">Select Statecoin UTXO’s to withdraw</h3>
                         <span className="sub">Click to select UTXO’s below</span>
-                        <Coins />
+                        <Coins
+                          displayDetailsOnClick={false}
+                          selectedCoin={selectedCoin}
+                          setSelectedCoin={setSelectedCoin}/>
                     </div>
 
                 </div>
@@ -65,7 +90,10 @@ const WithdrawPage = () => {
                     </div>
                     <div>
                        <div className="inputs">
-                           <input type="text" placeholder="Destination Address for withdrawal"/>
+                           <input
+                            type="text"
+                            placeholder="Destination Address for withdrawal"
+                            onChange={onInputAddrChange}/>
                            <span className="smalltxt">Your Bitcoin Address</span>
                        </div>
                     </div>
@@ -87,7 +115,7 @@ const WithdrawPage = () => {
                             </tr>
                             </tbody>
                         </table>
-                        <button type="button" className="btn">
+                        <button type="button" className="btn" onClick={withdrawButtonAction}>
                              <img src={withdrowIcon} alt="withdrowIcon"/>
                             Withdraw btc</button>
                     </div>

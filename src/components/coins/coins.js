@@ -26,25 +26,23 @@ import './coins.css';
 import '../index.css';
 
 const Coins = (props) => {
-    const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
-
     const [showCoinDetails, setShowCoinDetails] = useState(false);  // Display details of Coin in Modal
-    const openCoinDetails = () => setShowCoinDetails(true);
-    const closeCoinDetails = () => {
-      setSelectedCoin(null);
+    const handleOpenCoinDetails = () => setShowCoinDetails(true);
+    const handleCloseCoinDetails = () => {
+      props.setSelectedCoin(null);
       setShowCoinDetails(false);
     }
 
     // Set selected coin
     const selectCoin = (shared_key_id) => {
-      shared_key_id == selectedCoin ? setSelectedCoin(null) : setSelectedCoin(shared_key_id);
+      shared_key_id == props.selectedCoin ? props.setSelectedCoin(null) : props.setSelectedCoin(shared_key_id);
       if (props.displayDetailsOnClick) {
-        openCoinDetails()
+        handleOpenCoinDetails()
       }
     }
 
     // Check if coin is selected. If so return CSS.
-    const isSelectedStyle = (shared_key_id) => {return selectedCoin == shared_key_id ? {backgroundColor: "#b8b8b8"} : {}}
+    const isSelectedStyle = (shared_key_id) => {return props.selectedCoin == shared_key_id ? {backgroundColor: "#f4f4f4"} : {}}
 
     const coins_data = useSelector(state => state.walletData).coins_data;
     const statecoinData = coins_data.map(item => (
@@ -206,7 +204,7 @@ const Coins = (props) => {
         <div>
             {statecoinData}
 
-            <Modal show={showCoinDetails} onHide={closeCoinDetails} className="modal">
+            <Modal show={showCoinDetails} onHide={handleCloseCoinDetails} className="modal">
 
                 <Modal.Body>
                     <div>
@@ -272,7 +270,7 @@ const Coins = (props) => {
 
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={closeCoinDetails}>
+                    <Button variant="secondary" onClick={handleCloseCoinDetails}>
                         Close
                     </Button>
 

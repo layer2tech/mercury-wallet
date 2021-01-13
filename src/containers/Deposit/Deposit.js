@@ -49,7 +49,6 @@ const DepositPage = () => {
                        </Link>
                        <img onClick={handleShow} src={points} alt="points"/>
 
-
                    </div>
                </div>
                 <h3 className="subtitle">Deposit BTC to create new Statecoins</h3>
@@ -83,8 +82,6 @@ const DepositPage = () => {
                             <option value="2">2 options</option>
                         </select>
                     </div>
-
-
 
                 </Modal.Body>
                 <Modal.Footer>

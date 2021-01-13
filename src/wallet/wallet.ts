@@ -287,15 +287,18 @@ export class Wallet {
   // Perform withdraw
   // Args: statechain_id of coin to withdraw
   // Return: Withdraw Tx  (Details to be displayed to user - amount, txid, expect conf time...)
-  async withdraw(shared_key_id: string) {
+  async withdraw(shared_key_id: string, rec_addr: string) {
+    // Check address format
+    try { bitcoin.address.toOutputScript(rec_addr, this.network) }
+      catch (e) { throw "Invalid Bitcoin address entered." }
+
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw "No coin found with id " + shared_key_id
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-    let rec_add = this.genBtcAddress();
 
     // Perform withdraw with server
-    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.network, statecoin, proof_key_der, rec_add);
+    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.network, statecoin, proof_key_der, rec_addr);
 
     // Mark funds as withdrawn in wallet
     this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)

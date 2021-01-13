@@ -3,13 +3,13 @@ import { Wallet, Statecoin, verifySmtProof, ACTION } from '../wallet'
 import { v4 as uuidv4 } from 'uuid';
 
 let wallet = Wallet.buildMock();
+
 let [coins_data, total] = wallet.getUnspentStatecoins()
-let activity_data =  wallet.getActivityLog(10)
 
 const initialState = {
   coins_data: coins_data,
   total_balance: total,
-  activity_data: activity_data
+  activity_data: wallet.getActivityLog(10)
 }
 
 const WalletSlice = createSlice({
@@ -30,16 +30,15 @@ const WalletSlice = createSlice({
       let funding_txid = "64ec6bc7f794343a0c3651c0578f25df5134322b959ece99795dccfffe8a87e9"
       wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, proof_key, ACTION.DEPOSIT)
     },
-    // // Withdraw
-    // callWithdraw(state, actions) {
-    //   let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
-    //   let funding_txid = "64ec6bc7f794343a0c3651c0578f25df5134322b959ece99795dccfffe8a87e9"
-    //   wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, proof_key, ACTION.DEPOSIT)
-    // },
+    // Withdraw
+    callWithdraw(state, action) {
+      try { wallet.withdraw(action.payload.shared_key_id, action.payload.rec_addr) }
+        catch (e) { alert(e) };
+    },
   }
 })
 
-export const { refreshCoinData, callDeposit } = WalletSlice.actions
+export const { refreshCoinData, callDeposit, callWithdraw } = WalletSlice.actions
 export default WalletSlice.reducer
 
 

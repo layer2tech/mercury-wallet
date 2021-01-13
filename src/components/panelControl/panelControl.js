@@ -24,14 +24,9 @@ import { Link } from "react-router-dom";
 import settings from "../../images/settings-icon.png";
 
 const PanelControl = () => {
-  const dispatch = useDispatch();
   const state = useSelector(state => state.walletData);
   const total_balance = fromSatoshi(state.total_balance);
 
-
-  const createButtonAction = async () => {
-    dispatch(callDeposit())
-  }
 
   return (
     <div className="Body">
@@ -49,7 +44,6 @@ const PanelControl = () => {
                 <Link className="nav-link" to="/deposit">
                     <StdButton
                         label="Deposit"  icon={pluseIcon}
-                        onClick={createButtonAction}
                         className="Body-button blue"/>
                 </Link>
 
