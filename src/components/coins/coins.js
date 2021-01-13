@@ -194,9 +194,7 @@ const Coins = (props) => {
                 </div> : null}
             </div>
         </div>
-
     ))
-
 
     return (
         <div>

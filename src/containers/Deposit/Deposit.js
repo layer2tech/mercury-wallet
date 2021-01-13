@@ -19,17 +19,23 @@ import { CreateStatecoin, TransactionsBTC, StdButton} from "../../components";
 import './Deposit.css';
 
 const DepositPage = () => {
-
-    const steps = [
-        { component: <CreateStatecoin /> },
-        { component: <TransactionsBTC /> }
-    ];
-
+    // Show settings
     const [show, setShow] = useState(false);
-
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
+    const [selectedValues, setSelectedValues] = useState([]);
+
+    const addValue = (value) => {
+      setSelectedValues(selectedValues.push(value))
+    }
+
+    console.log("selectedValues; ", selectedValues)
+
+    const steps = [
+      { component: <CreateStatecoin selectedValues={selectedValues}/> },
+      { component: <TransactionsBTC /> }
+    ];
 
     return (
         <div className="container deposit">

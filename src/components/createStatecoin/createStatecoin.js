@@ -1,82 +1,89 @@
-import React, {Component} from 'react';
-import '../../containers/Deposit/Deposit.css';
 import plus from "../../images/plus-deposit.png";
 
+import React, {useState} from 'react';
 
-class CreateStatecoin extends Component {
+import '../../containers/Deposit/Deposit.css';
 
-    constructor() {
-        super();
-        this.state = {
-            name: "React"
-        };
-        this.state = {isToggleOn: false};
+const CreateStatecoin = (props) => {
 
-        this.toggleContent = this.toggleContent.bind(this);
-    }
-    toggleContent(event) {
-        this.setState({isToggleOn: !this.state.isToggleOn})
-    }
+    const [state, setState] = useState({isToggleOn: false});
+    const toggleContent = (event) => {
+      console.log("toggel")
+      setState({isToggleOn: !state.isToggleOn})}
 
-
-    render() {
-        return (
-            <div>
-                <div className={this.state.isToggleOn ? "Body add show" : ' Body add hide'}>
-                    test
-                </div>
-                <div className="Body">
-                    <div className="deposit-main">
-                        <span>Select Statecoin Value</span>
-                        <div className="deposit-statecoins">
-                            <div className="numbers">
-                                <div className="numbers-item">
-                                    <span><b>0.0005</b> BTC</span>
-                                    <span>Liquidity: <b>High</b></span>
-                                </div>
-                                <div className="numbers-item">
-                                    <span><b>0.0005</b> BTC</span>
-                                    <span>Liquidity: <b>High</b></span>
-                                </div>
-                                <div className="numbers-item">
-                                    <span><b>0.0005</b> BTC</span>
-                                    <span>Liquidity: <b>High</b></span>
-                                </div>
-                                <div className="numbers-item">
-                                    <span><b>0.0005</b> BTC</span>
-                                    <span>Liquidity: <b>High</b></span>
-                                </div>
-                                <div className="numbers-item">
-                                    <span><b>0.0005</b> BTC</span>
-                                    <span>Liquidity: <b>High</b></span>
-                                </div>
-                                <div className="numbers-item">
-                                    <span><b>0.0005</b> BTC</span>
-                                    <span>Liquidity: <b>High</b></span>
-                                </div>
-                                <div className="numbers-item">
-                                    <span><b>0.0005</b> BTC</span>
-                                    <span>Liquidity: <b>High</b></span>
-                                </div>
-                                <div className="numbers-item">
-                                    <span><b>0.0005</b> BTC</span>
-                                    <span>Liquidity: <b>High</b></span>
-                                </div>
-
-                            </div>
+    const chosenSelectionPanel = (
+          <div className="Body">
+              <div className="deposit-main">
+                  <span>Selected Statecoin Value</span>
+                  <div className="deposit-statecoins">
+                      <div className="numbers">
+                          <div className="numbers-item">
+                              <span><b>0.001</b> BTC</span>
+                              <span>Liquidity: <b>High</b></span>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      )
+      
+    const newSelectionPanel = (
+        <div className="Body">
+            <div className="deposit-main">
+                <span>Select Statecoin Value</span>
+                <div className="deposit-statecoins">
+                    <div className="numbers">
+                        <div className="numbers-item">
+                            <span><b>0.001</b> BTC</span>
+                            <span>Liquidity: <b>High</b></span>
                         </div>
-                    </div>
+                        <div className="numbers-item">
+                            <span><b>0.0025</b> BTC</span>
+                            <span>Liquidity: <b>High</b></span>
+                        </div>
+                        <div className="numbers-item">
+                            <span><b>0.005</b> BTC</span>
+                            <span>Liquidity: <b>High</b></span>
+                        </div>
+                        <div className="numbers-item">
+                            <span><b>0.01</b> BTC</span>
+                            <span>Liquidity: <b>High</b></span>
+                        </div>
+                        <div className="numbers-item">
+                            <span><b>0.1</b> BTC</span>
+                            <span>Liquidity: <b>High</b></span>
+                        </div>
+                        <div className="numbers-item">
+                            <span><b>0.25</b> BTC</span>
+                            <span>Liquidity: <b>High</b></span>
+                        </div>
+                        <div className="numbers-item">
+                            <span><b>0.5</b> BTC</span>
+                            <span>Liquidity: <b>High</b></span>
+                        </div>
+                        <div className="numbers-item">
+                            <span><b>1</b> BTC</span>
+                            <span>Liquidity: <b>High</b></span>
+                        </div>
 
-                </div>
-                <div className="Body">
-                <span className={this.state.isToggleOn ? "create-title"  : ' create-title '} onClick={this.toggleContent}>
-                    <img src={plus} alt="plus"/>
-                    CREATE ANOTHER STATECOIN
-                </span>
+                    </div>
                 </div>
             </div>
-        )
-    }
+        </div>
+    )
+
+    return (
+        <div>
+            {chosenSelectionPanel}
+            {newSelectionPanel}
+            <div className="Body">
+            <span className={state.isToggleOn ? "create-title"  : ' create-title '} onClick={toggleContent}>
+                <img src={plus} alt="plus"/>
+                CREATE ANOTHER STATECOIN
+            </span>
+            </div>
+        </div>
+    )
 }
 
 export default CreateStatecoin;

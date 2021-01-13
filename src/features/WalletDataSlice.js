@@ -20,9 +20,9 @@ const WalletSlice = createSlice({
     // Get list of coins from wallet
     refreshCoinData(state, action) {
       let [coins_data, total] = wallet.getUnspentStatecoins();
-      let activity_data =  wallet.getActivityLog(10)
       state.coins_data = coins_data;
       state.total = total;
+      state.activity_data =  wallet.getActivityLog(10)
     },
     // Deposit
     dummyDeposit() {

@@ -11,10 +11,9 @@ import { useSelector } from 'react-redux'
 
 import { fromSatoshi } from '../../wallet/util'
 
-function Activity() {
+const Activity = () => {
     const activity_data = useSelector(state => state.walletData).activity_data;
     const activitiesTableData = activity_data.map((item, index) => (
-
         <div key={index}>
             <div className="date">
 
