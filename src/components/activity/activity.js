@@ -1,5 +1,4 @@
 import './activity.css';
-import { Wallet } from '../../wallet/wallet'
 import txidIcon from '../../images/txid-icon.png';
 import Moment from 'react-moment';
 import createIcon from '../../images/create-icon-dep.png';
@@ -9,7 +8,6 @@ import swapIcon from '../../images/swap-icon-grey.png';
 
 import React from 'react';
 import { useSelector } from 'react-redux'
-import { useTable } from 'react-table'
 
 import { fromSatoshi } from '../../wallet/util'
 
@@ -22,7 +20,8 @@ function Activity() {
 
                 <Moment format="MMMM D, YYYY">{item.date}</Moment>
             </div>
-            {item.action == 'D' ?
+            {item.action === 'D' ?
+            <table>
             <tbody>
               <tr >
                   <td>
@@ -42,8 +41,10 @@ function Activity() {
                   </td>
               </tr>
             </tbody>
+            </table>
             : null }
-            {item.action == 'T' ?
+            {item.action === 'T' ?
+            <table>
             <tbody>
               <tr >
                   <td>
@@ -62,8 +63,10 @@ function Activity() {
                   </td>
               </tr>
             </tbody>
+            </table>
             : null }
-            {item.action == 'W' ?
+            {item.action === 'W' ?
+            <table>
             <tbody>
               <tr >
 
@@ -84,8 +87,10 @@ function Activity() {
                   </td>
               </tr>
             </tbody>
+            </table>
             : null }
-            {item.action == 'S' ?
+            {item.action === 'S' ?
+            <table>
             <tbody>
               <tr >
                   <td>
@@ -105,6 +110,7 @@ function Activity() {
                   </td>
               </tr>
             </tbody>
+            </table>
             : null }
         </div>
     ))

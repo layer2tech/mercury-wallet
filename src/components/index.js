@@ -7,7 +7,7 @@ export { default as ToggleButton } from "./buttons/toggleButton";
 
 export { default as PanelControl } from "./panelControl/panelControl";
 export { default as PanelConnectivity } from "./panelConnectivity/panelConnectivity";
-export { default as PanelCoins } from "./panelCoinsActivity/panelCoinsActivity";
+export { default as PanelCoinsActivity } from "./panelCoinsActivity/panelCoinsActivity";
 
 export { default as Coins } from "./coins/coins";
 export { default as Activity } from "./activity/activity";

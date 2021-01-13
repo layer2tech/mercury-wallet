@@ -18,7 +18,6 @@ import { CreateStatecoin, TransactionsBTC, StdButton} from "../../components";
 
 import './Deposit.css';
 
-
 const DepositPage = () => {
 
     const steps = [

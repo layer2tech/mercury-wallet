@@ -1,7 +1,3 @@
-import cyrcle from "../../images/cyrcle-icon.png";
-import close from "../../images/close-icon.png";
-import number from "../../images/number-icon.png";
-import orange from "../../images/wallet-orange.png";
 import arrow from "../../images/arrow-up.png"
 import scan from "../../images/scan-deposite.png";
 import icon2 from "../../images/icon2.png";

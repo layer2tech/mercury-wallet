@@ -141,14 +141,12 @@ export class Wallet {
   // ActivityLog data with relevant Coin data
   getActivityLog(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
-      {
-        let coin = this.statecoins.getCoin(item.statecoin_id) // should err here if no coin found
-        return {
-          date: item.date,
-          action: item.action,
-          value: coin ? coin.value : "",
-          funding_txid: coin? coin.funding_txid: ""
-        }
+      let coin = this.statecoins.getCoin(item.statecoin_id) // should err here if no coin found
+      return {
+        date: item.date,
+        action: item.action,
+        value: coin ? coin.value : "",
+        funding_txid: coin? coin.funding_txid: ""
       }
     })
   }
@@ -191,6 +189,7 @@ export class Wallet {
 
   // Perform deposit
   async deposit(value: number) {
+    console.log("Depositing ",value, "BTC...");
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey.toString("hex")
@@ -230,6 +229,8 @@ export class Wallet {
     // update in wallet
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
+    console.log("Deposite Done.");
+
     return statecoin_finalized
   }
 
@@ -260,8 +261,8 @@ export class Wallet {
     let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, this.network);
     let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
     // Ensure backup tx funds are sent to address owned by this wallet
-    if (rec_se_addr_bip32 == undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
-    if (rec_se_addr_bip32.publicKey.toString("hex") != transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
+    if (rec_se_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
+    if (rec_se_addr_bip32.publicKey.toString("hex") !== transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
 
     let batch_data = {};
     let finalize_data = await transferReceiver(this.http_client, transfer_msg3, rec_se_addr_bip32, batch_data)
@@ -288,6 +289,7 @@ export class Wallet {
   // Args: statechain_id of coin to withdraw
   // Return: Withdraw Tx  (Details to be displayed to user - amount, txid, expect conf time...)
   async withdraw(shared_key_id: string, rec_addr: string) {
+    console.log("Withdrawing ",shared_key_id, " to ", rec_addr);
     // Check address format
     try { bitcoin.address.toOutputScript(rec_addr, this.network) }
       catch (e) { throw "Invalid Bitcoin address entered." }
@@ -303,6 +305,8 @@ export class Wallet {
     // Mark funds as withdrawn in wallet
     this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
     this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
+
+    console.log("Withdrawing finished.");
 
     // Broadcast transcation
     return tx_withdraw

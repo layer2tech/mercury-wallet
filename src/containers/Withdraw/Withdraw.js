@@ -1,6 +1,4 @@
-import swapIcon from '../../images/swap_icon-blue.png';
 import walletIcon from '../../images/walletIcon.png';
-import cyrcle from "../../images/cyrcle-icon.png";
 import close from "../../images/close-icon.png";
 import number from "../../images/number-icon.png";
 import orange from "../../images/wallet-orange.png";
@@ -26,7 +24,6 @@ const WithdrawPage = () => {
     const dispatch = useDispatch();
 
     const withdrawButtonAction = async () => {
-
       // check statechain is chosen
       if (!selectedCoin) {
         alert("Please choose a StateCoin to withdraw.");

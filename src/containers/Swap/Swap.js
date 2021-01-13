@@ -11,13 +11,12 @@ import cyrcle from "../../images/cyrcle-icon.png";
 import coin from "../../images/table-icon1.png";
 import user from "../../images/table-icon-user.png";
 import time from "../../images/table-icon-time.png";
-import points from "../../images/points.png";
 
 
 const SwapPage = () => {
 
     const [setShow] = useState(false);
-    const handleShow = () => setShow(true);
+
     return (
         <div className="container ">
             <div className="Body swap">

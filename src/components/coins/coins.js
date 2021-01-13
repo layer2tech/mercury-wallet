@@ -13,13 +13,11 @@ import timeIcon from "../../images/time.png";
 import check from "../../images/check-grey.png";
 import question from "../../images/question-mark.png";
 
-import React, {Component, useState} from 'react';
+import React, {useState} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
-import Moment from "react-moment";
 import { useSelector } from 'react-redux'
 
-import { Wallet } from '../../wallet/wallet'
 import { fromSatoshi } from '../../wallet/util'
 
 import './coins.css';
@@ -35,14 +33,14 @@ const Coins = (props) => {
 
     // Set selected coin
     const selectCoin = (shared_key_id) => {
-      shared_key_id == props.selectedCoin ? props.setSelectedCoin(null) : props.setSelectedCoin(shared_key_id);
+      shared_key_id === props.selectedCoin ? props.setSelectedCoin(null) : props.setSelectedCoin(shared_key_id);
       if (props.displayDetailsOnClick) {
         handleOpenCoinDetails()
       }
     }
 
     // Check if coin is selected. If so return CSS.
-    const isSelectedStyle = (shared_key_id) => {return props.selectedCoin == shared_key_id ? {backgroundColor: "#f4f4f4"} : {}}
+    const isSelectedStyle = (shared_key_id) => {return props.selectedCoin === shared_key_id ? {backgroundColor: "#f4f4f4"} : {}}
 
     const coins_data = useSelector(state => state.walletData).coins_data;
     const statecoinData = coins_data.map(item => (

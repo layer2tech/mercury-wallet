@@ -7,7 +7,7 @@ import { Coins, Activity } from "..";
 import './panelCoinsActivity.css';
 import '../index.css';
 
-const PanelCoins = (props) => {
+const PanelCoinsActivity = (props) => {
     const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
 
     return (
@@ -29,4 +29,4 @@ const PanelCoins = (props) => {
     );
 }
 
-export default PanelCoins;
+export default PanelCoinsActivity;

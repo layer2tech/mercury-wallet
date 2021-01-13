@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { Wallet, Statecoin, verifySmtProof, ACTION } from '../wallet'
+import { Wallet, ACTION } from '../wallet'
 import { v4 as uuidv4 } from 'uuid';
 
 let wallet = Wallet.buildMock();
@@ -9,7 +9,8 @@ let [coins_data, total] = wallet.getUnspentStatecoins()
 const initialState = {
   coins_data: coins_data,
   total_balance: total,
-  activity_data: wallet.getActivityLog(10)
+  activity_data: wallet.getActivityLog(10),
+  update_made: false
 }
 
 const WalletSlice = createSlice({
@@ -22,13 +23,16 @@ const WalletSlice = createSlice({
       let activity_data =  wallet.getActivityLog(10)
       state.coins_data = coins_data;
       state.total = total;
-      state.activity_data = activity_data;
     },
     // Deposit
-    callDeposit() {
+    dummyDeposit() {
       let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
       let funding_txid = "64ec6bc7f794343a0c3651c0578f25df5134322b959ece99795dccfffe8a87e9"
       wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, proof_key, ACTION.DEPOSIT)
+    },
+    // Deposit
+    callDeposit(state, action) {
+      wallet.deposit(action.payload.value)
     },
     // Withdraw
     callWithdraw(state, action) {
