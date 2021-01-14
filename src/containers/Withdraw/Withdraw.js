@@ -6,8 +6,7 @@ import withdrowIcon from "../../images/withdrow-icon.png";
 
 import {Link, withRouter} from "react-router-dom";
 import React, {useState} from 'react';
-import { useSelector } from 'react-redux'
-import { useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 
 import { callWithdraw } from '../../features/WalletDataSlice'
 import { Coins, Quantity, StdButton } from "../../components";

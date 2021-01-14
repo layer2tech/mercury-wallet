@@ -2,6 +2,8 @@ import plus from "../../../images/plus-deposit.png";
 
 import React, {useState} from 'react';
 
+import { fromSatoshi } from '../../../wallet/util'
+
 import '../../../containers/Deposit/Deposit.css';
 
 const ValueSelectionPanel = (props) => {
@@ -25,21 +27,21 @@ const ValueSelectionPanel = (props) => {
               <div className="deposit-statecoins">
                   <div className="numbers">
                       <ValueSelection
-                        value={0.001} selected={selected} selectValue={selectValue} />
+                        value={1000000} selected={selected} selectValue={selectValue} />
                       <ValueSelection
-                        value={0.005} selected={selected} selectValue={selectValue} />
+                        value={5000000} selected={selected} selectValue={selectValue} />
                       <ValueSelection
-                        value={0.01} selected={selected} selectValue={selectValue} />
+                        value={10000000} selected={selected} selectValue={selectValue} />
                       <ValueSelection
-                        value={0.05} selected={selected} selectValue={selectValue} />
+                        value={50000000} selected={selected} selectValue={selectValue} />
                       <ValueSelection
-                        value={0.1} selected={selected} selectValue={selectValue} />
+                        value={100000000} selected={selected} selectValue={selectValue} />
                       <ValueSelection
-                        value={0.25} selected={selected} selectValue={selectValue} />
+                        value={250000000} selected={selected} selectValue={selectValue} />
                       <ValueSelection
-                        value={0.5} selected={selected} selectValue={selectValue} />
+                        value={500000000} selected={selected} selectValue={selectValue} />
                       <ValueSelection
-                        value={1} selected={selected} selectValue={selectValue} />
+                        value={1000000000} selected={selected} selectValue={selectValue} />
                   </div>
               </div>
           </div>
@@ -56,7 +58,7 @@ const ValueSelection = (props) => {
         className="numbers-item"
         onClick={() => props.selectValue(props.value)}
         style={isSelectedStyle()}>
-          <span><b>{props.value}</b> BTC</span>
+          <span><b>{fromSatoshi(props.value)}</b> BTC</span>
           <span>Liquidity: <b>High</b></span>
       </div>
     )

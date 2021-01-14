@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+
 import { Wallet, ACTION } from '../wallet'
 import { v4 as uuidv4 } from 'uuid';
 
@@ -10,7 +11,7 @@ const initialState = {
   coins_data: coins_data,
   total_balance: total,
   activity_data: wallet.getActivityLog(10),
-  update_made: false
+  deposits_initialised: []
 }
 
 const WalletSlice = createSlice({
@@ -31,8 +32,20 @@ const WalletSlice = createSlice({
       wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, proof_key, ACTION.DEPOSIT)
     },
     // Deposit
-    callDeposit(state, action) {
-      wallet.deposit(action.payload.value)
+    callDepositInit(state, action) {
+      try {
+        let res = wallet.depositInit(action.payload.value);
+        let deposits_initialised = state.deposits_initialised;
+        // deposits_initialised.push({
+        deposits_initialised = [(res)]
+        state.deposits_initialised = deposits_initialised
+       } catch (e) { console.log(e) };
+    },
+    // Deposit
+    callDepositConfirm(state, action) {
+      try {
+        wallet.depositConfirm(action.payload.funding_txid, action.payload.statecoin);
+       } catch (e) { console.log(e) };
     },
     // Withdraw
     callWithdraw(state, action) {
@@ -42,7 +55,9 @@ const WalletSlice = createSlice({
   }
 })
 
-export const { refreshCoinData, callDeposit, callWithdraw } = WalletSlice.actions
+
+
+export const { refreshCoinData, callDepositInit, callWithdraw, callDepositConfirm } = WalletSlice.actions
 export default WalletSlice.reducer
 
 

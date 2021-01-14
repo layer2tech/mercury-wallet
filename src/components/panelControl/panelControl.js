@@ -12,7 +12,6 @@ import { useDispatch } from 'react-redux'
 
 import StdButton from '../buttons/standardButton';
 import { fromSatoshi } from '../../wallet/util'
-import { callDeposit } from '../../features/WalletDataSlice'
 
 import './panelControl.css';
 import '../index.css';
@@ -24,7 +23,7 @@ const PanelControl = () => {
   const dispatch = useDispatch();
 
   const createButtonAction = async () => {
-    dispatch(callDeposit({"value": 10000}))
+    // dispatch(callDeposit({"value": 10000}))
   }
 
   return (

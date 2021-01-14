@@ -190,7 +190,7 @@ export class Wallet {
 
   // Initialise deposit
   async depositInit(value: number) {
-    console.log("Depositing ", fromSatoshi(value), "BTC...");
+    console.log("Depositing Init. ", fromSatoshi(value), "BTC");
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey.toString("hex")
@@ -208,12 +208,15 @@ export class Wallet {
     statecoin.value = value;
     this.addStatecoin(statecoin, ACTION.DEPOSIT);
 
+    console.log("Deposite Init done.");
+
     return [p_addr, statecoin]
   }
 
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
   // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
   async depositConfirm(funding_txid: string, statecoin: StateCoin) {
+    console.log("Depositing Confirm shared_key_id: ", statecoin.shared_key_id);
 
     // Add funding_txid to statecoin
     statecoin.funding_txid = funding_txid;
@@ -233,7 +236,7 @@ export class Wallet {
     statecoin_finalized.confirmed = true;
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
-    console.log("Deposite Done.");
+    console.log("Deposite Confirm done.");
 
     return statecoin_finalized
   }
