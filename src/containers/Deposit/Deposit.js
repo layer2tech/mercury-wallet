@@ -24,17 +24,31 @@ const DepositPage = () => {
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
-    const [selectedValues, setSelectedValues] = useState([]);
+    const [selectedValues, setSelectedValues] = useState([null]);
 
-    const addValue = (value) => {
-      setSelectedValues(selectedValues.push(value))
+    // Value in some SelectionPanel has been chosen
+    const addValueSelection = (id, value) => {
+      let current_values = selectedValues;
+      current_values[id] = value;
+      setSelectedValues(current_values);
     }
 
-    console.log("selectedValues; ", selectedValues)
+    // Add SelectionPanel to form
+    const addSelectionPanel = (id, value) => {
+      let current_values = selectedValues;
+      current_values.push(null);
+      setSelectedValues(current_values);
+    }
 
     const steps = [
-      { component: <CreateStatecoin selectedValues={selectedValues}/> },
-      { component: <TransactionsBTC /> }
+      { component: <CreateStatecoin
+          selectedValues={selectedValues}
+          addValueSelection={addValueSelection}
+          addSelectionPanel={addSelectionPanel}
+      /> },
+      { component: <TransactionsBTC
+        selectedValues={selectedValues}
+      /> }
     ];
 
     return (

@@ -8,7 +8,7 @@ import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
 import { v4 as uuidv4 } from 'uuid';
-import { pubKeyTobtcAddr } from './util';
+import { pubKeyTobtcAddr, fromSatoshi } from './util';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -189,7 +189,7 @@ export class Wallet {
 
   // Perform deposit
   async deposit(value: number) {
-    console.log("Depositing ",value, "BTC...");
+    console.log("Depositing ", fromSatoshi(value), "BTC...");
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey.toString("hex")
