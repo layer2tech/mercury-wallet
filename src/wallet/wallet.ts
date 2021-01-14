@@ -159,8 +159,9 @@ export class Wallet {
   addStatecoinFromValues(id: string, shared_key: MasterKey2, value: number, txid: string, proof_key: string, action: string) {
     let statecoin = new StateCoin(id, shared_key);
     statecoin.proof_key = proof_key;
+    statecoin.value = value;
+    statecoin.funding_txid = txid;
     this.statecoins.addCoin(statecoin)
-    this.statecoins.setCoinFundingTxidAndValue(id, txid, value)
     this.activity.addItem(id, action);
   }
   // Mark statecoin as spent after transfer or withdraw
@@ -187,8 +188,8 @@ export class Wallet {
     return this.account.derive(p2wpkh)
   }
 
-  // Perform deposit
-  async deposit(value: number) {
+  // Initialise deposit
+  async depositInit(value: number) {
     console.log("Depositing ", fromSatoshi(value), "BTC...");
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
@@ -204,16 +205,18 @@ export class Wallet {
     );
     // add proof key bip32 derivation to statecoin
     statecoin.proof_key = proof_key_pub;
+    statecoin.value = value;
     this.addStatecoin(statecoin, ACTION.DEPOSIT);
 
+    return [p_addr, statecoin]
+  }
 
-    // Allow for user to send funds to p_addr, or to receive funds for wallet to hadnle building of funding_tx.
-    let funding_txid = "ae0093c55f0446e5cab54539cd65f3fc1a86932eebcad9c71a291e1c928530d0";
+  // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
+  // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
+  async depositConfirm(funding_txid: string, statecoin: StateCoin) {
 
-    // Add value and funding_txid
-    this.statecoins.setCoinFundingTxidAndValue(statecoin.shared_key_id, funding_txid, value);
-
-
+    // Add funding_txid to statecoin
+    statecoin.funding_txid = funding_txid;
 
     // Finish deposit protocol
     let chaintip_height: number = await this.electrum_client.latestBlockHeight();
@@ -227,6 +230,7 @@ export class Wallet {
     );
 
     // update in wallet
+    statecoin_finalized.confirmed = true;
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
     console.log("Deposite Done.");

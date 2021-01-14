@@ -1,8 +1,8 @@
 import { verifySmtProof, StateChainSig, proofKeyToSCEAddress, pubKeyTobtcAddr, pubKeyToScriptPubKey, decryptECIES } from '../util';
-import { Wallet, MockHttpClient, MockWasm } from '../';
+import { Wallet, StateCoin, MockHttpClient, MockWasm, StateCoinList } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
 import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
-import { KEYGEN_SIGN_DATA, TRANSFER_MSG3, FINALIZE_DATA } from './test_data.js'
+import { BTC_ADDR, KEYGEN_SIGN_DATA, TRANSFER_MSG3, FINALIZE_DATA, FUNDING_TXID, STATECOIN_INIT, STATECOIN_CONFIRMED, STATECOIN_CONFERMED_BACKUPTX_HEX } from './test_data.js'
 
 let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
@@ -37,26 +37,36 @@ describe('StateChain Entity', function() {
 
   let value = 10000
 
-  test('Deposit', async function() {
-    let statecoin = await wallet.deposit(value)
+  test('Deposit init', async function() {
+    let [p_addr, statecoin] = await wallet.depositInit(value)
 
-    expect(statecoin.statechain_id.length).toBeGreaterThan(0);
-    expect(statecoin.proof_key.length).toBeGreaterThan(0);
-    expect(statecoin.funding_txid.length).toBeGreaterThan(0);
-    expect(statecoin.tx_backup).not.toBeNull();
+    expect(statecoin.tx_backup).toBeNull();
     expect(statecoin.tx_withdraw).toBeNull();
-    expect(statecoin.smt_proof).not.toBeNull();
     expect(statecoin.confirmed).toBe(false);
     expect(statecoin.spent).toBe(false);
     expect(wallet.statecoins.getCoin(statecoin.shared_key_id)).toBe(statecoin)
   });
 
+  test('Deposit confirm', async function() {
+    let statecoin = BJSON.parse(lodash.cloneDeep(STATECOIN_INIT));
+    let statecoin_finalized = await wallet.depositConfirm(FUNDING_TXID, statecoin)
+
+    expect(statecoin_finalized.statechain_id.length).toBeGreaterThan(0);
+    expect(statecoin_finalized.proof_key.length).toBeGreaterThan(0);
+    expect(statecoin_finalized.funding_txid.length).toBeGreaterThan(0);
+    expect(statecoin_finalized.smt_proof).not.toBeNull();
+    expect(statecoin_finalized.confirmed).toBe(true);
+  });
+
+
   test('Withdraw', async function() {
-    let shared_key_id = wallet.statecoins.coins[0].shared_key_id;
-    let num_unspent_statecoins_before = wallet.getUnspentStatecoins().length;
+    let statecoin_finalized = run_deposit(wallet, 10000);
+    let shared_key_id = statecoin_finalized.shared_key_id;
+
+    let num_unspent_statecoins_before = wallet.getUnspentStatecoins()[0].length;
     let num_statecoins_before = wallet.statecoins.length;
 
-    let tx_withdraw = await wallet.withdraw(shared_key_id);
+    let tx_withdraw = await wallet.withdraw(shared_key_id, BTC_ADDR);
 
     // check statecoin
     let statecoin = wallet.statecoins.getCoin(shared_key_id);
@@ -64,7 +74,7 @@ describe('StateChain Entity', function() {
     expect(statecoin.tx_withdraw).toBe(tx_withdraw);
 
     // check wallet.statecoins
-    expect(wallet.getUnspentStatecoins().length).toBe(num_unspent_statecoins_before-1);
+    expect(wallet.getUnspentStatecoins()[0].length).toBe(num_unspent_statecoins_before-1);
     expect(wallet.statecoins.length).toBe(num_statecoins_before);
 
     // check withdraw tx
@@ -76,8 +86,9 @@ describe('StateChain Entity', function() {
   });
 
   test('TransferSender', async function() {
-    let shared_key_id = wallet.statecoins.coins[0].shared_key_id;
-    let rec_se_addr = wallet.statecoins.coins[0].proof_key;
+    let statecoin_finalized = run_deposit(wallet, 10000);
+    let shared_key_id = statecoin_finalized.shared_key_id;
+    let rec_se_addr = statecoin_finalized.proof_key;
 
     let transfer_msg3 = await wallet.transfer_sender(shared_key_id, rec_se_addr);
 
@@ -145,3 +156,16 @@ describe('StateChain Entity', function() {
     expect(statecoin.spent).toBe(false);
   });
 })
+
+
+const run_deposit = (wallet, value) => {
+  let statecoin = BJSON.parse(lodash.cloneDeep(STATECOIN_CONFIRMED))
+  wallet.statecoins = new StateCoinList();
+  wallet.statecoins.addCoin(new StateCoin(statecoin.shared_key_id, statecoin.shared_key))
+  wallet.statecoins.coins[0].tx_backup = bitcoin.Transaction.fromHex(STATECOIN_CONFERMED_BACKUPTX_HEX)
+  wallet.statecoins.coins[0].proof_key = statecoin.proof_key
+  wallet.statecoins.coins[0].value = statecoin.value
+  wallet.statecoins.coins[0].funding_txid = statecoin.funding_txid
+  wallet.statecoins.coins[0].statechain_id = statecoin.statechain_id
+  return statecoin
+}

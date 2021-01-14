@@ -53,16 +53,6 @@ export class StateCoinList {
   };
 
 
-  setCoinFundingTxidAndValue(shared_key_id: string, txid: string, value: number) {
-    let coin = this.getCoin(shared_key_id)
-    if (coin) {
-      coin.funding_txid = txid
-      coin.value = value
-    } else {
-      throw "No coin found with shared_key_id " + shared_key_id
-    }
-  }
-
   setCoinSpent(shared_key_id: string) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
