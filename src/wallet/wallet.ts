@@ -209,7 +209,6 @@ export class Wallet {
     this.addStatecoin(statecoin, ACTION.DEPOSIT);
 
     console.log("Deposite Init done.");
-
     return [p_addr, statecoin]
   }
 
@@ -217,7 +216,6 @@ export class Wallet {
   // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
   async depositConfirm(funding_txid: string, statecoin: StateCoin) {
     console.log("Depositing Confirm shared_key_id: ", statecoin.shared_key_id);
-
     // Add funding_txid to statecoin
     statecoin.funding_txid = funding_txid;
 
@@ -237,7 +235,6 @@ export class Wallet {
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
     console.log("Deposite Confirm done.");
-
     return statecoin_finalized
   }
 

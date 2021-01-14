@@ -5,11 +5,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 let wallet = Wallet.buildMock();
 
-let [coins_data, total] = wallet.getUnspentStatecoins()
+let [coins_data, total_balance] = wallet.getUnspentStatecoins()
 
 const initialState = {
   coins_data: coins_data,
-  total_balance: total,
+  total_balance: total_balance,
   activity_data: wallet.getActivityLog(10),
   deposits_initialised: []
 }
@@ -20,9 +20,9 @@ const WalletSlice = createSlice({
   reducers: {
     // Get list of coins from wallet
     refreshCoinData(state, action) {
-      let [coins_data, total] = wallet.getUnspentStatecoins();
+      let [coins_data, total_balance] = wallet.getUnspentStatecoins();
       state.coins_data = coins_data;
-      state.total = total;
+      state.total_balance = total_balance;
       state.activity_data =  wallet.getActivityLog(10)
     },
     // Deposit
@@ -45,7 +45,17 @@ const WalletSlice = createSlice({
     callDepositConfirm(state, action) {
       try {
         wallet.depositConfirm(action.payload.funding_txid, action.payload.statecoin);
-       } catch (e) { console.log(e) };
+
+        // remove confirmed statecoin from despoit_initialised list
+        let new_deposits_initialised = state.deposits_initialised.filter((deposit_promise) => {
+          deposit_promise.then((deposit) => {
+            if (deposit[1].shared_key_id !== action.payload.statecoin.shared_key_id) {
+              return deposit;
+            }
+          })
+        });
+        state.deposits_initialised = new_deposits_initialised
+      } catch (e) { console.log(e) };
     },
     // Withdraw
     callWithdraw(state, action) {

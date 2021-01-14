@@ -17,28 +17,21 @@ const TransactionsBTC = (props) => {
 
   const [initiated, setInitiated] = useState(false); // store selected coins shared_key_id
 
-  const despositInit = () => {
-    console.log("deposits_initialised: ", deposits_initialised)
-    props.selectedValues.forEach(value => {
-      dispatch(callDepositInit({value: value}))
-    })
-    setInitiated(true)
-    console.log("deposits_initialised: ", deposits_initialised)
-  }
+  // run depositInit for selected deposit amount if not already complete
+  props.selectedValues.forEach((item, id) => {
+    if (!item.initialised) {
+      dispatch(callDepositInit({value: item.value}))
+      props.setValueSelectionInitialised(id)
+    }
+  })
 
   const despositConfirm = () => {
     let funding_txid = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce";
-    console.log("deposits_initialised: ", deposits_initialised)
-    console.log("state: ", state)
     deposits_initialised.forEach(deposit_promise => {
       deposit_promise.then((deposit) => {
-        console.log("deposit: ", deposit)
         dispatch(callDepositConfirm({funding_txid: funding_txid, statecoin: deposit[1]}))
-
       })
     })
-    // setInitiated(true)
-    // console.log("deposits_initialised: ", deposits_initialised)
   }
 
   const populateWithTransactionDisplayPanels = props.selectedValues.map((item, index) => {
@@ -46,25 +39,21 @@ const TransactionsBTC = (props) => {
       return (
         <div key={index}>
           <div>
-            <TransactionDisplay amount={item} confirmations={0} address={"fdjle"}/>
+            <TransactionDisplay amount={item.value} confirmations={0} address={"fdjle"}/>
           </div>
-          <div className="Body">
-            <span className={"create-title"} onClick={despositConfirm}>
-                FINALIZE DEPOSITS
-            </span>
-          </div>
-        </div>
+      </div>
       )
     }
   })
 
-  if (!initiated) {
-    despositInit()
-  }
   return (
     <div className=" deposit">
-
       {populateWithTransactionDisplayPanels}
+      <div className="Body">
+        <span className={"create-title"} onClick={despositConfirm}>
+        FINALIZE DEPOSITS
+        </span>
+      </div>
     </div>
   )
 }

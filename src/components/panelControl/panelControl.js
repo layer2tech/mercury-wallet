@@ -17,20 +17,14 @@ import './panelControl.css';
 import '../index.css';
 
 const PanelControl = () => {
-  const state = useSelector(state => state.walletData);
-  const total_balance = fromSatoshi(state.total_balance);
-
+  const total_balance = useSelector(state => state.walletData).total_balance;
   const dispatch = useDispatch();
-
-  const createButtonAction = async () => {
-    // dispatch(callDeposit({"value": 10000}))
-  }
 
   return (
     <div className="Body">
       <h2 className="WalletAmount">
           <img src={walletIcon} alt="walletIcon"/>
-          {total_balance} BTC
+          {fromSatoshi(total_balance)} BTC
       </h2>
         <div className="no-wallet">
             <span>No Statecoins in Wallet</span>
@@ -42,7 +36,6 @@ const PanelControl = () => {
                 <Link className="nav-link" to="/deposit">
                     <StdButton
                         label="Deposit"  icon={pluseIcon}
-                        onClick={createButtonAction}
                         className="Body-button blue"/>
                 </Link>
 

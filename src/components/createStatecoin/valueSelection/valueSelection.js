@@ -8,7 +8,7 @@ import '../../../containers/Deposit/Deposit.css';
 
 const ValueSelectionPanel = (props) => {
 
-    const [selected, setSelected] = useState(null);
+    const [selected, setSelected] = useState(props.selectedValue);
 
     const selectValue = (value) => {
       if (value !== selected) {
@@ -51,7 +51,8 @@ const ValueSelectionPanel = (props) => {
 
 const ValueSelection = (props) => {
     // Check if coin is selected. If so return CSS.
-    const isSelectedStyle = () => {return props.value === props.selected ? {backgroundColor: "#e6e6e6"} : {}}
+    const isSelectedStyle = () => {
+      return props.value === props.selected ? {backgroundColor: "#e6e6e6"} : {}}
 
     return (
       <div

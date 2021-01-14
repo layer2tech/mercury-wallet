@@ -26,10 +26,17 @@ const DepositPage = () => {
 
     const [selectedValues, setSelectedValues] = useState([null]);
 
-    // Value in some SelectionPanel has been chosen
+    // Value in some SelectionPanel that has been chosen
     const addValueSelection = (id, value) => {
       let current_values = selectedValues;
-      current_values[id] = value;
+      current_values[id] = {value: value, initialised: false};
+      setSelectedValues(current_values);
+    }
+
+    // Store value chosen and whether statecoin has been initialised yet
+    const setValueSelectionInitialised = (id) => {
+      let current_values = selectedValues;
+      selectedValues[id].initialised = true;
       setSelectedValues(current_values);
     }
 
@@ -48,6 +55,7 @@ const DepositPage = () => {
       /> },
       { component: <TransactionsBTC
         selectedValues={selectedValues}
+        setValueSelectionInitialised={setValueSelectionInitialised}
       /> }
     ];
 
