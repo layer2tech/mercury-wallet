@@ -53,8 +53,8 @@ export const transferSender = async (
 
   // Get statechain from SE and check ownership
   let statechain_data = await getStateChain(http_client, statecoin.statechain_id);
-  if (statechain_data.amoumt == 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
-  if (statechain_data.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Wallet. Incorrect proof key."
+  // if (statechain_data.amoumt == 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
+  // if (statechain_data.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Wallet. Incorrect proof key."
 
   // Sign statecoin to signal desire to Withdraw
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);

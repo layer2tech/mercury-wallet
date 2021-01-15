@@ -1,5 +1,3 @@
-import plus from "../../../images/plus-deposit.png";
-
 import React, {useState} from 'react';
 
 import { fromSatoshi } from '../../../wallet/util'

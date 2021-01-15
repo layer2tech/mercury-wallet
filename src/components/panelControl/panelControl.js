@@ -8,7 +8,6 @@ import arrowDown from '../../images/arrow-down.png';
 import { useSelector } from 'react-redux'
 import React from 'react';
 import { Link } from "react-router-dom";
-import { useDispatch } from 'react-redux'
 
 import StdButton from '../buttons/standardButton';
 import { fromSatoshi } from '../../wallet/util'
@@ -18,7 +17,7 @@ import '../index.css';
 
 const PanelControl = () => {
   const total_balance = useSelector(state => state.walletData).total_balance;
-  const dispatch = useDispatch();
+  const num_statecoins = useSelector(state => state.walletData).coins_data.length;
 
   return (
     <div className="Body">
@@ -27,11 +26,10 @@ const PanelControl = () => {
           {fromSatoshi(total_balance)} BTC
       </h2>
         <div className="no-wallet">
-            <span>No Statecoins in Wallet</span>
+            <span>{num_statecoins} Statecoins in Wallet</span>
         </div>
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
-
 
                 <Link className="nav-link" to="/deposit">
                     <StdButton

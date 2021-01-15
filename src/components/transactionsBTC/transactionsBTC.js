@@ -12,10 +12,7 @@ import { fromSatoshi } from '../../wallet/util'
 
 const TransactionsBTC = (props) => {
   const deposits_initialised = useSelector(state => state.walletData).deposits_initialised;
-  const state = useSelector(state => state.walletData);
   const dispatch = useDispatch();
-
-  const [initiated, setInitiated] = useState(false); // store selected coins shared_key_id
 
   // run depositInit for selected deposit amount if not already complete
   props.selectedValues.forEach((item, id) => {

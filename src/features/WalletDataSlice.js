@@ -1,9 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-import { Wallet, ACTION } from '../wallet'
+import { Wallet, ACTION, StateCoinList } from '../wallet'
+
 import { v4 as uuidv4 } from 'uuid';
 
-let wallet = Wallet.buildMock();
+var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', true);
 
 let [coins_data, total_balance] = wallet.getUnspentStatecoins()
 
@@ -11,7 +12,8 @@ const initialState = {
   coins_data: coins_data,
   total_balance: total_balance,
   activity_data: wallet.getActivityLog(10),
-  deposits_initialised: []
+  deposits_initialised: [],
+  transfer_sender_msgs: [],
 }
 
 const WalletSlice = createSlice({
@@ -36,8 +38,7 @@ const WalletSlice = createSlice({
       try {
         let res = wallet.depositInit(action.payload.value);
         let deposits_initialised = state.deposits_initialised;
-        // deposits_initialised.push({
-        deposits_initialised = [(res)]
+        deposits_initialised.push(res);
         state.deposits_initialised = deposits_initialised
        } catch (e) { console.log(e) };
     },
@@ -62,12 +63,23 @@ const WalletSlice = createSlice({
       try { wallet.withdraw(action.payload.shared_key_id, action.payload.rec_addr) }
         catch (e) { alert(e) };
     },
+    // Withdraw
+    callTransferSender(state, action) {
+      try {
+        let res = wallet.transfer_sender(action.payload.shared_key_id, action.payload.rec_addr)
+        let transfer_sender_msgs = state.transfer_sender_msgs;
+        transfer_sender_msgs.push(res);
+        state.transfer_sender_msgs = transfer_sender_msgs
+        res.then((item) => console.log("TransferMsg3 for transfer: ", JSON.stringify(item)))
+      }
+        catch (e) { alert(e) };
+    },
   }
 })
 
 
 
-export const { refreshCoinData, callDepositInit, callWithdraw, callDepositConfirm } = WalletSlice.actions
+export const { refreshCoinData, callDepositInit, callWithdraw, callDepositConfirm, callTransferSender } = WalletSlice.actions
 export default WalletSlice.reducer
 
 

@@ -242,6 +242,11 @@ export class Wallet {
   // Args: shared_key_id of coin to send and receivers se_addr.
   // Return: transfer_message String to be sent to receiver.
   async transfer_sender(shared_key_id: string, receiver_se_addr: string) {
+    console.log("Transfer Sender for ", shared_key_id)
+    // ensure receiver se address is valid
+    try { pubKeyTobtcAddr(receiver_se_addr, this.network) }
+      catch (e) { throw "Invlaid receiver address - Should be hexadecimal public key." }
+
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw "No coin found with id " + shared_key_id
 
@@ -252,6 +257,7 @@ export class Wallet {
     // Mark funds as spent in wallet
     this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
 
+    console.log("Transfer Sender complete.")
     return transfer_sender;
   }
 
