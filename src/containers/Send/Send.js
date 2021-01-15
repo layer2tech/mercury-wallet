@@ -12,17 +12,23 @@ import { callTransferSender } from '../../features/WalletDataSlice'
 import './Send.css';
 
 const SendStatecoinPage = () => {
-  const total_balance = useSelector(state => state.walletData).total_balance;
-  const num_statecoins = useSelector(state => state.walletData).coins_data.length;
-
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState('');
+  const [transferMsg3, setTransferMsg3] = useState("null");
+
+  const total_balance = useSelector(state => state.walletData).total_balance;
+  const num_statecoins = useSelector(state => state.walletData).coins_data.length;
+  const transfer_msg3_promise = useSelector(state => state.walletData).transfer_msg3;
+  transfer_msg3_promise.then((transfer_msg3) => {
+    setTransferMsg3(JSON.stringify(transfer_msg3))
+  })
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
-  const dispatch = useDispatch();
 
+
+  const dispatch = useDispatch();
   const sendButtonAction = async () => {
     // check statechain is chosen
     if (!selectedCoin) {
@@ -114,6 +120,12 @@ const SendStatecoinPage = () => {
                       </button>
                   </div>
               </div>
+          </div>
+          <div className="Body">
+            <div>
+              TransferMsg3:
+            </div>
+            {transferMsg3}
           </div>
       </div>
     )

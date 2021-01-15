@@ -114,11 +114,9 @@ const Activity = () => {
         </div>
     ))
     return (
-        <table >
-            <tbody >
+        <div >
               {activitiesTableData}
-            </tbody>
-        </table>
+        </div>
     )
 }
 export default Activity

@@ -66,7 +66,6 @@ export class Wallet {
     return wallet
   }
 
-
   static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean) {
     let json_wallet: Wallet = JSON.parse(str_wallet);
 
@@ -265,6 +264,7 @@ export class Wallet {
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
   async transfer_receiver(transfer_msg3: TransferMsg3) {
+    console.log("Transfer Receiver for statechain ", transfer_msg3.statechain_id)
     let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
 
     // Get SE address that funds are being sent to.
@@ -283,6 +283,7 @@ export class Wallet {
         this.transfer_receiver_finalize(finalize_data);
     }
 
+    console.log("Transfer Receiver complete.")
     return finalize_data
   }
 

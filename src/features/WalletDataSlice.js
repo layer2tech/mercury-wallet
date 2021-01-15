@@ -4,7 +4,12 @@ import { Wallet, ACTION, StateCoinList } from '../wallet'
 
 import { v4 as uuidv4 } from 'uuid';
 
-var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', true);
+let wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', true);
+// Perform a deposit right away
+wallet.depositInit(10000).then((res) => {
+  let funding_txid = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce";
+  wallet.depositConfirm(funding_txid, res[1]);
+});
 
 let [coins_data, total_balance] = wallet.getUnspentStatecoins()
 
@@ -13,13 +18,18 @@ const initialState = {
   total_balance: total_balance,
   activity_data: wallet.getActivityLog(10),
   deposits_initialised: [],
-  transfer_sender_msgs: [],
+  transfer_msg3: Promise.resolve(),
+  rec_se_addr: wallet.genProofKey().publicKey.toString('hex')
 }
 
 const WalletSlice = createSlice({
   name: 'walletData',
   initialState,
   reducers: {
+    // Gen new SE Address
+    callGenSeAddr(state) {
+      state.rec_se_addr = wallet.genProofKey().publicKey.toString('hex');
+    },
     // Get list of coins from wallet
     refreshCoinData(state, action) {
       let [coins_data, total_balance] = wallet.getUnspentStatecoins();
@@ -63,14 +73,18 @@ const WalletSlice = createSlice({
       try { wallet.withdraw(action.payload.shared_key_id, action.payload.rec_addr) }
         catch (e) { alert(e) };
     },
-    // Withdraw
+    // TransferSender
     callTransferSender(state, action) {
       try {
-        let res = wallet.transfer_sender(action.payload.shared_key_id, action.payload.rec_addr)
-        let transfer_sender_msgs = state.transfer_sender_msgs;
-        transfer_sender_msgs.push(res);
-        state.transfer_sender_msgs = transfer_sender_msgs
-        res.then((item) => console.log("TransferMsg3 for transfer: ", JSON.stringify(item)))
+        let transfer_msg3 = wallet.transfer_sender(action.payload.shared_key_id, action.payload.rec_addr)
+        state.transfer_msg3 = transfer_msg3
+      }
+        catch (e) { alert(e) };
+    },
+    // TransferReceiver
+    callTransferReceiver(state, action) {
+      try {
+        wallet.transfer_receiver(JSON.parse(action.payload))
       }
         catch (e) { alert(e) };
     },
@@ -79,7 +93,7 @@ const WalletSlice = createSlice({
 
 
 
-export const { refreshCoinData, callDepositInit, callWithdraw, callDepositConfirm, callTransferSender } = WalletSlice.actions
+export const { callGenSeAddr, refreshCoinData, callDepositInit, callWithdraw, callDepositConfirm, callTransferSender, callTransferReceiver } = WalletSlice.actions
 export default WalletSlice.reducer
 
 

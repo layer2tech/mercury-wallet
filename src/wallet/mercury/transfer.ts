@@ -7,7 +7,6 @@ import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { TransferMsg4 } from "../types";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES } from "../util";
 
-let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -134,10 +133,10 @@ export const transferReceiver = async (
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
 
   // Verify state chain represents this address as new owner
-  let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
-  let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
-  let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
-  if (!statechain_sig.verify(prev_owner_proof_key_der)) throw "Invalid StateChainSig."
+  // let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
+  // let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
+  // let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
+  // if (!statechain_sig.verify(prev_owner_proof_key_der)) throw "Invalid StateChainSig."
 
   // decrypt t1
   let t1 = decryptECIES(se_rec_addr_bip32.privateKey.toString("hex"), transfer_msg3.t1.secret_bytes.toString("hex"))
