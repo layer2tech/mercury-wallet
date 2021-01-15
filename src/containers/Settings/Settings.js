@@ -62,7 +62,7 @@ const SettingsPage = () => {
                        </div>
                    </form>
                    <Quantity label="Minimum Anonymity Set Size" />
-                   <StdButton label="PubliSh black-out transaction"
+                   <StdButton label="Publish back-out transaction"
                               className="Body-button blue"/>
                </div>
                <div className="inputs">

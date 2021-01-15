@@ -22,6 +22,7 @@ function createWindow() {
       }
     );
 
+    // Open links in systems default browser  
     mainWindow.webContents.on('new-window', function(e, url) {
       e.preventDefault();
       electron.shell.openExternal(url);

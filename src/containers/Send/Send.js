@@ -1,5 +1,6 @@
 import orange from "../../images/wallet-orange.png";
 import arrow from "../../images/arrow-up.png"
+import icon2 from "../../images/icon2.png";
 
 import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
@@ -39,8 +40,11 @@ const SendStatecoinPage = () => {
       alert("Please enter an StateCoin address to send to.");
       return
     }
-
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": inputAddr}))
+  }
+
+  const copyTransferMsgToClipboard = () => {
+    navigator.clipboard.writeText(transferMsg3);
   }
 
   return (
@@ -121,12 +125,14 @@ const SendStatecoinPage = () => {
                   </div>
               </div>
           </div>
-          <div className="Body">
-            <div>
-              TransferMsg3:
+
+          <div className="sendStatecoin content">
+            <div className="Body">
+              <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
+              <h3 className="subtitle">Transfer Message:</h3>
             </div>
-            {transferMsg3}
-          </div>
+              {transferMsg3}
+        </div>
       </div>
     )
 }
