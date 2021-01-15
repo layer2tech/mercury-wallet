@@ -1,50 +1,58 @@
-import React, {Component, useState} from 'react';
+import icon1 from "../../images/table-icon.png";
+import icon2 from "../../images/table-icon-grey.png";
+import medium from "../../images/table-icon-medium.png";
+import utx from "../../images/UTX.png";
+import time from "../../images/time-grey.png";
+import calendar from "../../images/calendar.png";
+import privacy from "../../images/privacy.png";
+import swapNumber from "../../images/swap-number.png";
+import walleticon from "../../images/walletIcon.png";
+import close from "../../images/close-grey.png";
+import txidIcon from "../../images/txid-icon.png";
+import timeIcon from "../../images/time.png";
+import check from "../../images/check-grey.png";
+import question from "../../images/question-mark.png";
 
-import './Coin.css';
-import '../../index.css';
-import icon1 from "../../../images/table-icon.png";
-import icon2 from "../../../images/table-icon-grey.png";
-
-import medium from "../../../images/table-icon-medium.png";
-
-import utx from "../../../images/UTX.png";
-import time from "../../../images/time-grey.png";
-import calendar from "../../../images/calendar.png";
-import privacy from "../../../images/privacy.png";
-import swapNumber from "../../../images/swap-number.png";
-import walleticon from "../../../images/walletIcon.png";
-import close from "../../../images/close-grey.png";
-import txidIcon from "../../../images/txid-icon.png";
-import timeIcon from "../../../images/time.png";
-import check from "../../../images/check-grey.png";
-
-import {Wallet} from '../../../wallet/wallet'
-
+import React, {useState} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
-import Moment from "react-moment";
+import { useSelector } from 'react-redux'
 
+import { fromSatoshi } from '../../wallet/util'
 
-import question from "../../../images/question-mark.png";
+import './coins.css';
+import '../index.css';
 
+const Coins = (props) => {
+    const [showCoinDetails, setShowCoinDetails] = useState(false);  // Display details of Coin in Modal
+    const handleOpenCoinDetails = () => setShowCoinDetails(true);
+    const handleCloseCoinDetails = () => {
+      props.setSelectedCoin(null);
+      setShowCoinDetails(false);
+    }
 
-const Coin = (props) => {
-    const [show, setShow] = useState(false);
+    // Set selected coin
+    const selectCoin = (shared_key_id) => {
+      shared_key_id === props.selectedCoin ? props.setSelectedCoin(null) : props.setSelectedCoin(shared_key_id);
+      if (props.displayDetailsOnClick) {
+        handleOpenCoinDetails()
+      }
+    }
 
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+    // Check if coin is selected. If so return CSS.
+    const isSelectedStyle = (shared_key_id) => {return props.selectedCoin === shared_key_id ? {backgroundColor: "#e6e6e6"} : {}}
 
-    const wallet = Wallet.buildMock();
-    const data = wallet.getUnspentStatecoins()
-
-    const statecoinData = data.map(item => (
-        <div key={item.id}>
-            <div>
+    const coins_data = useSelector(state => state.walletData).coins_data;
+    const statecoinData = coins_data.map(item => (
+        <div key={item.shared_key_id}>
+            <div
+              onClick={() => selectCoin(item.shared_key_id)}
+              style={isSelectedStyle(item.shared_key_id)}>
                 {item.swap_rounds === 0 ? <div className="CoinPanel">
                     <div className="CoinAmount-block">
                         <img src={icon2} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={close} alt="icon"/>
                                 No Privacy Score
@@ -80,7 +88,7 @@ const Coin = (props) => {
                     <div className="CoinAmount-block">
                         <img src={icon2} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={question} alt="icon"/>
                                 Low Privacy Score
@@ -116,7 +124,7 @@ const Coin = (props) => {
                     <div className="CoinAmount-block">
                         <img src={medium} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={question} alt="icon"/>
                                 Medium Privacy Score
@@ -152,7 +160,7 @@ const Coin = (props) => {
                     <div className="CoinAmount-block">
                         <img src={icon1} alt="icon"/>
                         <span className="sub">
-                            <b className="CoinAmount" onClick={handleShow}>  {item.value} BTC</b>
+                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
                                 <img src={check} alt="icon"/>
                                 High Privacy Score
@@ -186,15 +194,13 @@ const Coin = (props) => {
                 </div> : null}
             </div>
         </div>
-
     ))
-
 
     return (
         <div>
             {statecoinData}
 
-            <Modal show={show} onHide={handleClose} className="modal">
+            <Modal show={showCoinDetails} onHide={handleCloseCoinDetails} className="modal">
 
                 <Modal.Body>
                     <div>
@@ -260,7 +266,7 @@ const Coin = (props) => {
 
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={handleClose}>
+                    <Button variant="secondary" onClick={handleCloseCoinDetails}>
                         Close
                     </Button>
 
@@ -270,4 +276,4 @@ const Coin = (props) => {
     );
 }
 
-export default Coin;
+export default Coins;

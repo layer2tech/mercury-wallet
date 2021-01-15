@@ -1,11 +1,11 @@
+import settings from "../../images/settings.png";
+
 import React from 'react';
 import {Link, withRouter} from "react-router-dom";
 
-import StdButton from "../../components/buttons/standardButton";
-import './Settings.css';
-import settings from "../../images/settings.png";
+import { StdButton, Quantity } from "../../components";
 
-import Quantity from "../../components/Quantity/quantity";
+import './Settings.css';
 
 const SettingsPage = () => {
   return (
@@ -62,7 +62,7 @@ const SettingsPage = () => {
                        </div>
                    </form>
                    <Quantity label="Minimum Anonymity Set Size" />
-                   <StdButton label="PubliSh black-out transaction"
+                   <StdButton label="Publish back-out transaction"
                               className="Body-button blue"/>
                </div>
                <div className="inputs">

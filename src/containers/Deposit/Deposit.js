@@ -1,14 +1,5 @@
-import React, {useState} from 'react';
-import './Deposite.css';
-
-import {Link, withRouter} from "react-router-dom";
 import plus from "../../images/plus-deposit.png";
 import points from "../../images/points.png";
-import StdButton from "../../components/buttons/standardButton";
-import MultiStep from "react-multistep";
-import CreateStatecoin from "../../components/createStatecoin/createStatecoin";
-import TransactionsBTC from "../../components/transactionsBTC/transactionsBTC";
-import {Button, Modal} from "react-bootstrap";
 import walleticon from "../../images/walletIcon.png";
 import utx from "../../images/UTX.png";
 import time from "../../images/time-grey.png";
@@ -18,18 +9,55 @@ import question from "../../images/question-grey.png";
 import swapNumber from "../../images/swap-number.png";
 import pluseIcon from "../../images/pluseIcon.png";
 
-const DepositePage = () => {
+import React, {useState} from 'react';
+import {Link, withRouter} from "react-router-dom";
+import MultiStep from "react-multistep";
+import {Button, Modal} from "react-bootstrap";
 
-    const steps = [
-        { component: <CreateStatecoin /> },
-        { component: <TransactionsBTC /> }
-    ];
+import { CreateStatecoin, TransactionsBTC, StdButton} from "../../components";
 
+import './Deposit.css';
+
+const DepositPage = () => {
+    // Show settings
     const [show, setShow] = useState(false);
-
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
+    const [selectedValues, setSelectedValues] = useState([null]);
+
+    // Value in some SelectionPanel that has been chosen
+    const addValueSelection = (id, value) => {
+      let current_values = selectedValues;
+      current_values[id] = {value: value, initialised: false};
+      setSelectedValues(current_values);
+    }
+
+    // Store value chosen and whether statecoin has been initialised yet
+    const setValueSelectionInitialised = (id) => {
+      let current_values = selectedValues;
+      selectedValues[id].initialised = true;
+      setSelectedValues(current_values);
+    }
+
+    // Add SelectionPanel to form
+    const addSelectionPanel = (id, value) => {
+      let current_values = selectedValues;
+      current_values.push(null);
+      setSelectedValues(current_values);
+    }
+
+    const steps = [
+      { component: <CreateStatecoin
+          selectedValues={selectedValues}
+          addValueSelection={addValueSelection}
+          addSelectionPanel={addSelectionPanel}
+      /> },
+      { component: <TransactionsBTC
+        selectedValues={selectedValues}
+        setValueSelectionInitialised={setValueSelectionInitialised}
+      /> }
+    ];
 
     return (
         <div className="container deposit">
@@ -48,10 +76,9 @@ const DepositePage = () => {
                        </Link>
                        <img onClick={handleShow} src={points} alt="points"/>
 
-
                    </div>
                </div>
-                <h3 className="subtitle">Deposite BTC to create new Statecoins</h3>
+                <h3 className="subtitle">Deposit BTC to create new Statecoins</h3>
             </div>
             <div className="wizard">
                 <MultiStep steps={steps} />
@@ -83,8 +110,6 @@ const DepositePage = () => {
                         </select>
                     </div>
 
-
-
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleClose}>
@@ -97,4 +122,4 @@ const DepositePage = () => {
     )
 }
 
-export default withRouter(DepositePage);
+export default withRouter(DepositPage);

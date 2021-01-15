@@ -5,11 +5,9 @@ class StdButton extends React.Component {
     super(props);
     this.label = props.label;
     this.icon = props.icon;
-    if (!props.onClick) {
-      this.onClick = () => { console.log(this.label, " button clicked!") };
-    } else {
+    if (props.onClick) {
       this.onClick = props.onClick;
-    }
+    } 
 
     this.state = {isToggleOn: true};
   }

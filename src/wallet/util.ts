@@ -45,6 +45,10 @@ export const hexToBytes = (hex: string) => {
     return bytes;
 }
 
+// BTC value -> Satoshi value
+export const toSatoshi = (btc: number) => { return btc * 10e7 }
+// Satoshi value -> BTC value
+export const fromSatoshi = (sat: number) => { return sat / 10e7 }
 
 export class StateChainSig {
     purpose: string; // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
@@ -142,7 +146,7 @@ export const decodeSecp256k1Point = (point: Secp256k1Point) => {
 // ECIES encrypt string
 export const encryptECIES = (publicKey: string, data: string) => {
   let data_arr = new Uint32Array(Buffer.from(JSON.stringify(data))) // JSONify to match Mercury ECIES
-  return encrypt(publicKey, Buffer.from(data_arr)).toString("hex");
+  return encrypt(publicKey, Buffer.from(data_arr));
 }
 
 // ECIES decrypt string

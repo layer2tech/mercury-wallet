@@ -47,10 +47,10 @@ describe('Wallet', function() {
   });
 
   test('addStatecoin', function() {
-    let coins_before_add = wallet.getUnspentStatecoins()
+    let [coins_before_add, total_before] = wallet.getUnspentStatecoins()
     let activity_log_before_add = wallet.getActivityLog(100)
-    wallet.addStatecoin("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
-    let coins_after_add = wallet.getUnspentStatecoins()
+    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
+    let [coins_after_add, total_after] = wallet.getUnspentStatecoins()
     let activity_log_after_add = wallet.getActivityLog(100)
     expect(coins_before_add.length).toEqual(coins_after_add.length - 1)
     expect(activity_log_before_add.length).toEqual(activity_log_after_add.length - 1)
@@ -88,7 +88,7 @@ describe("Statecoins/Coin", () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
       statecoins.setCoinSpent(coins[0].shared_key_id) // set one spent
-      expect(statecoins.getUnspentCoins().length).toBe(num_coins-1)
+      expect(statecoins.getUnspentCoins()[0].length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
   })
