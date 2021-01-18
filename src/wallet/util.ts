@@ -1,6 +1,6 @@
 // wallet utilities
 
-import { BIP32Interface, Network, TransactionBuilder, crypto, script } from 'bitcoinjs-lib';
+import { BIP32Interface, Network, TransactionBuilder, crypto, script, Transaction } from 'bitcoinjs-lib';
 import { FeeInfo, Root } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 
@@ -93,15 +93,26 @@ export class StateChainSig {
 
 }
 
+export const getSigHash = (tx: Transaction, index: number, pk: string, amount: number, network: Network) => {
+  let addr_p2pkh = bitcoin.payments.p2wpkh({
+    pubkey: Buffer.from(pk, "hex"),
+    network: network
+  }).address;
+  let script = bitcoin.address.toOutputScript(addr_p2pkh, network);
+
+  return tx.hashForWitnessV0(index, script, amount, Transaction.SIGHASH_ALL).toString("hex");
+
+}
 
 // Backup Tx builder
-export const txBackupBuild = (network: Network, funding_txid: string, backup_receive_addr: string, value: number, init_locktime: number) => {
+export const txBackupBuild = (network: Network, funding_txid: string, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number) => {
   if (FEE >= value) throw "Not enough value to cover fee.";
 
   let txb = new TransactionBuilder(network);
   txb.setLockTime(init_locktime);
   txb.addInput(funding_txid, 0);
-  txb.addOutput(backup_receive_addr, value - FEE);
+  txb.addOutput(backup_receive_addr, value - FEE - withdraw_fee);
+  txb.addOutput(fee_address, withdraw_fee);
   return txb
 }
 

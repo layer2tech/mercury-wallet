@@ -36,7 +36,7 @@ export class Wallet {
     this.account = account;
     this.statecoins = new StateCoinList();
     this.activity = new ActivityLog();
-    this.network = bitcoin.networks.bitcoin;
+    this.network = bitcoin.networks.regtest;
     this.testing_mode = testing_mode;
     if (testing_mode) {
       this.electrum_client = new MockElectrumClient();
@@ -66,6 +66,13 @@ export class Wallet {
     return wallet
   }
 
+  // generate wallet with random mnemonic
+  static buildFresh(testing_mode: true) {
+    const mnemonic = bip39.generateMnemonic();
+    return Wallet.fromMnemonic(mnemonic, testing_mode);
+  }
+
+  // Load wallet from JSON
   static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean) {
     let json_wallet: Wallet = JSON.parse(str_wallet);
 
@@ -91,6 +98,7 @@ export class Wallet {
     return new_wallet
   }
 
+  // Load wallet from storage
   static async load(
     {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr, testing_mode}:
     {file_path?: string, network?: Network, addressFunction?: Function, testing_mode: boolean}
@@ -105,6 +113,7 @@ export class Wallet {
     return Wallet.fromJSON(str_wallet, network, addressFunction, testing_mode)
   }
 
+  // Load wallet to storage
   save({file_path = WALLET_LOC}: {file_path?: string}={}) {
     // Store in file as JSON string
     fsLibrary.writeFile(file_path, JSON.stringify(this), (error: any) => {
@@ -114,7 +123,7 @@ export class Wallet {
 
   // Initialise and return Wasm object.
   // Wasm contains all wallet Rust functionality.
-  // MockWasm is for Jest testing since we cannot run wasbAssembly with browser target in Jest's Node environment
+  // MockWasm is for Jest testing since we cannot run webAssembly with browser target in Jest's Node environment
   async getWasm() {
     let wasm;
     if (this.jest_testing_mode) {

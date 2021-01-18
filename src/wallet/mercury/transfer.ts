@@ -72,23 +72,25 @@ export const transferSender = async (
   new_tx_backup.outs[0].script = pubKeyToScriptPubKey(receiver_addr, network);
   new_tx_backup.locktime = statechain_data.locktime - fee_info.interval;
 
-  // Sign new back up tx
   let signatureHash = new_tx_backup.hashForSignature(0, new_tx_backup.ins[0].script, Transaction.SIGHASH_ALL);
-  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.TRANSFER);
-  // Set witness data as signature
-  let new_tx_backup_signed = new_tx_backup;
-  new_tx_backup_signed.ins[0].witness = [Buffer.from(signature)];
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
   // Create PrepareSignTxMsg to send funding tx data to receiver
   let prepare_sign_msg: PrepareSignTxMsg = {
     shared_key_id: statecoin.shared_key_id,
     protocol: "TRANSFER",
-    tx_hex: new_tx_backup_signed.toHex(),
+    tx_hex: new_tx_backup.toHex(),
     input_addrs: [],
     input_amounts: [],
     proof_key: statecoin.proof_key,
   };
+
+  // Sign new back up tx
+  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash.toString('hex'), PROTOCOL.TRANSFER);
+  // Set witness data as signature
+  let new_tx_backup_signed = new_tx_backup;
+  new_tx_backup_signed.ins[0].witness = [Buffer.from(signature)];
+  prepare_sign_msg.tx_hex = new_tx_backup_signed.toHex();
 
   // Get o1 priv key
   let o1 = statecoin.shared_key.private.x2;

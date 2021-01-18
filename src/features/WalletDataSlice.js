@@ -1,10 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 import { Wallet, ACTION, StateCoinList } from '../wallet'
+import { getFeeInfo, getSmtProof } from '../wallet/mercury/info_api'
 
 import { v4 as uuidv4 } from 'uuid';
 
-let wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', true);
+let wallet = Wallet.buildFresh(false);
 // Perform a deposit right away
 wallet.depositInit(10000).then((res) => {
   let funding_txid = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce";
@@ -14,6 +15,7 @@ wallet.depositInit(10000).then((res) => {
 let [coins_data, total_balance] = wallet.getUnspentStatecoins()
 
 const initialState = {
+  fee_info: {},
   coins_data: coins_data,
   total_balance: total_balance,
   activity_data: wallet.getActivityLog(10),
@@ -36,6 +38,10 @@ const WalletSlice = createSlice({
       state.coins_data = coins_data;
       state.total_balance = total_balance;
       state.activity_data =  wallet.getActivityLog(10)
+    },
+    // Get Server Fee info
+    callGetFeeInto(state, action) {
+      state.fee_info = getFeeInfo(wallet.http_client);
     },
     // Deposit
     dummyDeposit() {
@@ -93,7 +99,7 @@ const WalletSlice = createSlice({
 
 
 
-export const { callGenSeAddr, refreshCoinData, callDepositInit, callWithdraw, callDepositConfirm, callTransferSender, callTransferReceiver } = WalletSlice.actions
+export const { callGenSeAddr, callGetFeeInto, refreshCoinData, callDepositInit, callWithdraw, callDepositConfirm, callTransferSender, callTransferReceiver } = WalletSlice.actions
 export default WalletSlice.reducer
 
 

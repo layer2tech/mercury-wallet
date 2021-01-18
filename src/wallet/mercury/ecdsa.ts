@@ -79,15 +79,19 @@ export const sign = async (
   wasm_client: any,
   shared_key_id: string,
   master_key: any,
+  prepare_sign_msg: PrepareSignTxMsg,
   message: string,
   protocol: string
 ) => {
+  // prepare-sign step. Allow server to check backup_tx.
+  let prepare_sign = await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
+
   //client first
   let client_sign_first: ClientSignFirstMsg =
     JSON.parse(
       wasm_client.Sign.first_message()
     );
-  // typeforce(types.ClientSignFirstMsg, client_sign_first);
+  typeforce(types.ClientSignFirstMsg, client_sign_first);
 
   // server first
   let sign_msg1 = {
@@ -98,7 +102,7 @@ export const sign = async (
   typeforce(types.ServerSignfirstMsg, server_sign_first);
 
   //client second
-  let client_sign_second =
+  let party_two_sign_message =
     JSON.parse(
       wasm_client.Sign.second_message(
         JSON.stringify(master_key),
@@ -108,14 +112,14 @@ export const sign = async (
         message
       )
     );
-  // typeforce(types.ClientSignSecondMsg, client_sign_second);
+  typeforce(types.ClientSignSecondMsg, party_two_sign_message);
 
   let sign_msg2 = {
       shared_key_id: shared_key_id,
       sign_second_msg_request: {
           protocol,
           message,
-          client_sign_second,
+          party_two_sign_message,
       },
   };
 
@@ -127,6 +131,15 @@ export const sign = async (
 
 
 // Types involved in 2P-ECDSA and Mercury protocols.
+
+export interface PrepareSignTxMsg {
+    shared_key_id: string,
+    protocol: string,
+    tx_hex: string,
+    input_addrs: string[], // keys being spent from
+    input_amounts: number[],
+    proof_key: string | null,
+}
 
 // kms::ecdsa:two_party::MasterKey2
 export interface MasterKey2 {

@@ -127,14 +127,20 @@ export class StateCoin {
     }
   };
 
-  // Generate BTC address from SharedKey
+  // Get BTC address from SharedKey
   async getBtcAddress(wasm_client: any, network: Network) {
-    let pub_key = wasm_client.curv_ge_to_bitcoin_public_key(
+    let pub_key = await this.getsharedPubKey(wasm_client)
+    return pubKeyTobtcAddr(pub_key, network)
+  }
+
+  // Get public key from SharedKey
+  async getsharedPubKey(wasm_client: any) {
+    let pub_key = await wasm_client.curv_ge_to_bitcoin_public_key(
       JSON.stringify(
         this.shared_key.public.q
       )
     );
-    return pubKeyTobtcAddr(pub_key, network)
+    return pub_key
   }
 }
 
