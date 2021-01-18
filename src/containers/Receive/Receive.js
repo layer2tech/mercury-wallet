@@ -83,7 +83,7 @@ const ReceiveStatecoinPage = () => {
         </div>
 
         <div className="sendStatecoin content">
-            <div className="Body right">
+            <div className="Body center">
                 <div>
                    <div className="inputs">
                        <input

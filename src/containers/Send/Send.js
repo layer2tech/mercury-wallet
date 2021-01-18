@@ -110,6 +110,7 @@ const SendStatecoinPage = () => {
                                   <input
                                       name="isGoing"
                                       type="checkbox"
+                                      className="checkbox"
                                       />
                               </td>
                               <td>
@@ -127,11 +128,16 @@ const SendStatecoinPage = () => {
           </div>
 
           <div className="sendStatecoin content">
-            <div className="Body">
-              <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
-              <h3 className="subtitle">Transfer Message:</h3>
+            <div className="Body left transfer">
+                <h3 className="subtitle">Transfer Message:</h3>
+                <div  className="msg">
+
+                    <span>test {transferMsg3}</span>
+                    <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
+                </div>
+
             </div>
-              {transferMsg3}
+
         </div>
       </div>
     )

@@ -47,6 +47,16 @@
     font-size: 14px;
     color: #0054F4;
 }
+
+.sendStatecoin.content .center {
+    width:100%;
+}
+.sendStatecoin.content .center button {
+    margin-top: 20px;
+    background: #0054F4;
+    color: #ffffff;
+}
+
 @media only screen and (max-width: 768px) {
     .receiveStatecoin .subtitle {
         padding-left: 0;
