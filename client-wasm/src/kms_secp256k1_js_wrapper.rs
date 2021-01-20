@@ -7,7 +7,6 @@ use kms::ecdsa::two_party::MasterKey2;
 use kms::ecdsa::two_party::party1::KeyGenParty1Message2;
 use multi_party_ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::{PaillierPublic, EphCommWitness, EcKeyPair, EphEcKeyPair};
 use multi_party_ecdsa::protocols::two_party_ecdsa::lindell_2017::party_one::{EphKeyGenFirstMsg, KeyGenFirstMsg};
-use curv::arithmetic::traits::Converter;
 use std::collections::HashMap;
 
 /// Provides wrappers for kms-secp256k1 MasterKey2 KeyGen methods
@@ -168,6 +167,7 @@ impl Sign {
             Err(err) => return Err(err.to_string().into())
         };
 
+
         let party_two_sign_message = master_key.sign_second_message(
             &eph_ec_key_pair_party2,
             eph_comm_witness,
@@ -299,13 +299,10 @@ pub fn convert_big_int_to_server_deserializable(json_str: &String, field_name: S
     let mut json: HashMap<String, Value> =
         serde_json::from_str(json_str).expect("unable to parse JSON");
 
-    let big_int_str = json[&field_name].as_array();
-    let big_int_str2 = serde_json::to_string(&big_int_str).unwrap();
-    let big_int_vec = Vec::from(big_int_str2);
-        // .ok_or(format!("None or invalid type at field {:?}", field_name)).unwrap();
-    let big_int = BigInt::from_vec(&big_int_vec);
+    let big_int_str = serde_json::to_string(&json[&field_name].as_array().unwrap()).unwrap();
+    let bit_int: BigInt = serde_json::from_str(&big_int_str).unwrap();
 
-    json.insert(field_name, Value::String(big_int.to_str_radix(16)));
+    json.insert(field_name, Value::String(bit_int.to_str_radix(16)));
 
     serde_json::to_string(&json).unwrap()
 }

@@ -2,7 +2,8 @@
 
 import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
-import { StateChainSig, txWithdrawBuild } from "../util";
+import { PrepareSignTxMsg } from "./ecdsa";
+import { getSigHash, StateChainSig, txWithdrawBuild } from "../util";
 import { PROTOCOL, sign } from "./ecdsa";
 import { FeeInfo, getStateChain } from "./info_api";
 
@@ -51,8 +52,22 @@ export const withdraw = async (
   let tx_withdraw_unsigned = txb_withdraw_unsigned.buildIncomplete();
 
   // tx_withdraw_unsigned
-  let signatureHash = tx_withdraw_unsigned.hashForSignature(0, tx_withdraw_unsigned.ins[0].script, Transaction.SIGHASH_ALL);
-  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
+  let pk = await statecoin.getsharedPubKey(wasm_client);
+  let signatureHash = getSigHash(tx_withdraw_unsigned, 0, pk, statecoin.value, network);
+
+  // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
+  // Create PrepareSignTxMsg to send funding tx data to receiver
+  let prepare_sign_msg: PrepareSignTxMsg = {
+    shared_key_id: statecoin.shared_key_id,
+    protocol: PROTOCOL.WITHDRAW,
+    tx_hex: tx_withdraw_unsigned.toHex(),
+    input_addrs: [pk],
+    input_amounts: [statecoin.value],
+    proof_key: statecoin.proof_key,
+  };
+
+  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.DEPOSIT);
+
   // set witness data with signature
   let tx_backup_signed = tx_withdraw_unsigned;
   tx_backup_signed.ins[0].witness = [Buffer.from(signature)];
