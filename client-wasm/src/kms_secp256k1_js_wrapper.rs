@@ -43,7 +43,9 @@ impl KeyGen {
     pub fn second_message(kg_party_one_first_message: String, kg_party_one_second_message: String) -> Result<JsValue, JsValue> {
         // Convert messages's BigInts into correct serialization format
         let mut kg_party_one_first_message = convert_big_int_to_client_deserializable(&kg_party_one_first_message, "pk_commitment".to_string());
+
         kg_party_one_first_message = convert_big_int_to_client_deserializable(&kg_party_one_first_message, "zk_pok_commitment".to_string());
+
         // Deserialize into Rust type
         let kg_party_one_first_message = match serde_json::from_str::<KeyGenFirstMsg>(&kg_party_one_first_message) {
             Ok(val) => val,
@@ -52,6 +54,7 @@ impl KeyGen {
 
         // Convert messages's BigInts into correct serialization format
         let kg_party_one_second_message = convert_key_gen_party1_msg_2_to_client_deserializable(&kg_party_one_second_message);
+
         // Deserialize into Rust type
         let kg_party_one_second_message: KeyGenParty1Message2 = match serde_json::from_str(&kg_party_one_second_message) {
             Ok(val) => val,
@@ -59,7 +62,7 @@ impl KeyGen {
         };
 
         // Run Rust kms-secp256k1 method
-        let (party_two_second_message, party_two_paillier, _party_two_pdl_chal)
+        let key_gen_second_message
             =  match MasterKey2::key_gen_second_message(
                 &kg_party_one_first_message,
                 &kg_party_one_second_message,
@@ -67,12 +70,12 @@ impl KeyGen {
             Ok(val) => val,
             Err(_) => return Err("key_gen_second_message panic.".into())
         };
+        let (_, party_two_paillier) = key_gen_second_message;
 
         // convert to strings and place into JSON for return to JS
         Ok(
             json!(
                 {
-                    "party_two_second_message": party_two_second_message,
                     "party_two_paillier": party_two_paillier
                 }
             ).to_string().into()
@@ -195,7 +198,7 @@ pub fn convert_big_int_to_client_deserializable(json_str: &String, field_name: S
 
 /// specialised fn for taking apart serialized KeyGenParty1Message2 and converting BigInt types
 /// into client deserializable
-pub fn convert_key_gen_party1_msg_2_to_client_deserializable(json_str: &String) -> String {
+fn convert_key_gen_party1_msg_2_to_client_deserializable(json_str: &String) -> String {
     // convert c_key
     let json_str = convert_big_int_to_client_deserializable(json_str, "c_key".to_string());
 
@@ -203,9 +206,6 @@ pub fn convert_key_gen_party1_msg_2_to_client_deserializable(json_str: &String) 
     let mut json: HashMap<String, Value> =
         serde_json::from_str(&json_str).expect("unable to parse JSON");
 
-    // Need to null out corrcet_proof_key and range_proof for now
-    json.insert("correct_key_proof".to_string(), Value::Null);
-    json.insert("range_proof".to_string(), Value::Null);
 
     // pull out ecdh_second_message object and translate to key -> item hashmap
     let field_ecdh_second_message = "ecdh_second_message".to_string();
@@ -233,6 +233,63 @@ pub fn convert_key_gen_party1_msg_2_to_client_deserializable(json_str: &String) 
 
     // Insert ecdh_second_message back into full Json Object
     json.insert(field_ecdh_second_message, serde_json::to_value(&ecdh_second_message_json).unwrap());
+
+
+    // pull out composite_dlog_proof object and translate to key -> item hashmap
+    let field_composite_dlog_proof = "composite_dlog_proof".to_string();
+    let composite_dlog_proof_obj = json[&field_composite_dlog_proof].as_object()
+        .ok_or(format!("None or invalid type at field {:?}", field_composite_dlog_proof)).unwrap();
+    let composite_dlog_proof_str = serde_json::to_string(&composite_dlog_proof_obj).unwrap();
+
+    // convert bigints pk_commitment_blind_factor and zk_pok_blind_factor
+    let composite_dlog_proof_str = &convert_big_int_to_client_deserializable(&composite_dlog_proof_str.to_string(), "x".to_string());
+    let composite_dlog_proof_str = &convert_big_int_to_client_deserializable(&composite_dlog_proof_str.to_string(), "y".to_string());
+
+    // Insert back into json Object
+    let composite_dlog_proof_json: HashMap<String, Value> =
+        serde_json::from_str(&composite_dlog_proof_str).expect("unable to parse JSON");
+    json.insert(field_composite_dlog_proof, serde_json::to_value(&composite_dlog_proof_json).unwrap());
+
+
+
+    // pull out pdl_statement object and translate to key -> item hashmap
+    let field_pdl_statement = "pdl_statement".to_string();
+    let pdl_statement_obj = json[&field_pdl_statement].as_object()
+        .ok_or(format!("None or invalid type at field {:?}", field_pdl_statement)).unwrap();
+    let pdl_statement_str = serde_json::to_string(&pdl_statement_obj).unwrap();
+
+    // convert bigints ciphertext, h1, h2 and N_tilde
+    let pdl_statement_str = &convert_big_int_to_client_deserializable(&pdl_statement_str.to_string(), "ciphertext".to_string());
+    let pdl_statement_str = &convert_big_int_to_client_deserializable(&pdl_statement_str.to_string(), "h1".to_string());
+    let pdl_statement_str = &convert_big_int_to_client_deserializable(&pdl_statement_str.to_string(), "h2".to_string());
+    let pdl_statement_str = &convert_big_int_to_client_deserializable(&pdl_statement_str.to_string(), "N_tilde".to_string());
+
+    // Insert back into json Object
+    let pdl_statement_json: HashMap<String, Value> =
+        serde_json::from_str(&pdl_statement_str).expect("unable to parse JSON");
+    json.insert(field_pdl_statement, serde_json::to_value(&pdl_statement_json).unwrap());
+
+
+
+    // pull out pdl_proof object and translate to key -> item hashmap
+    let field_pdl_proof = "pdl_proof".to_string();
+    let pdl_proof_obj = json[&field_pdl_proof].as_object()
+        .ok_or(format!("None or invalid type at field {:?}", field_pdl_proof)).unwrap();
+    let pdl_proof_str = serde_json::to_string(&pdl_proof_obj).unwrap();
+
+    // convert bigints z, u2, u3, s1, s2, s3
+    let pdl_proof_str = &convert_big_int_to_client_deserializable(&pdl_proof_str.to_string(), "z".to_string());
+    let pdl_proof_str = &convert_big_int_to_client_deserializable(&pdl_proof_str.to_string(), "u2".to_string());
+    let pdl_proof_str = &convert_big_int_to_client_deserializable(&pdl_proof_str.to_string(), "u3".to_string());
+    let pdl_proof_str = &convert_big_int_to_client_deserializable(&pdl_proof_str.to_string(), "s1".to_string());
+    let pdl_proof_str = &convert_big_int_to_client_deserializable(&pdl_proof_str.to_string(), "s2".to_string());
+    let pdl_proof_str = &convert_big_int_to_client_deserializable(&pdl_proof_str.to_string(), "s3".to_string());
+
+    // Insert back into json Object
+    let pdl_proof_json: HashMap<String, Value> =
+        serde_json::from_str(&pdl_proof_str).expect("unable to parse JSON");
+    json.insert(field_pdl_proof, serde_json::to_value(&pdl_proof_json).unwrap());
+
 
     serde_json::to_string(&json).unwrap()
 }

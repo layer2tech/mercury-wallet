@@ -36,7 +36,7 @@ export const keyGen = async (
     JSON.parse(
       wasm_client.KeyGen.first_message(secret_key)
     );
-  // typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
+  typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
 
   // server second
   let key_gen_msg2 = {
@@ -47,14 +47,14 @@ export const keyGen = async (
   typeforce(types.KeyGenParty1Message2, kg_party_one_second_message);
 
   // client second
-  let client_resp_key_gen_second: ClientKeyGenSecondMsg =
+  let key_gen_second_message =
     JSON.parse(
       wasm_client.KeyGen.second_message(
         JSON.stringify(kg_party_one_first_message),
         JSON.stringify(kg_party_one_second_message)
       )
     );
-  // typeforce(types.ClientKeyGenSecondMsg, client_resp_key_gen_second);
+  typeforce(types.ClientKeyGenSecondMsg, key_gen_second_message);
 
   // Construct Rust MasterKey struct
   let master_key: MasterKey2 =
@@ -65,9 +65,9 @@ export const keyGen = async (
                 .ecdh_second_message
                 .comm_witness
                 .public_share),
-        JSON.stringify(client_resp_key_gen_second.party_two_paillier)
+        JSON.stringify(key_gen_second_message.party_two_paillier)
     ));
-  // typeforce(types.MasterKey2, master_key);
+  typeforce(types.MasterKey2, master_key);
 
   return new StateCoin(shared_key_id, master_key)
 }

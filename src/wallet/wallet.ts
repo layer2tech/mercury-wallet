@@ -42,7 +42,8 @@ export class Wallet {
       this.electrum_client = new MockElectrumClient();
       this.http_client = new MockHttpClient();
     } else {
-      this.electrum_client = new ElectrumClient();
+      // this.electrum_client = new ElectrumClient();
+      this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient();
     }
     this.jest_testing_mode = false;
