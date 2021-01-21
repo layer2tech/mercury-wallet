@@ -24,7 +24,7 @@ const DepositPage = () => {
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
-    const [selectedValues, setSelectedValues] = useState([null]);
+    const [selectedValues, setSelectedValues] = useState([{value: null, initialised: false}]);
 
     // Value in some SelectionPanel that has been chosen
     const addValueSelection = (id, value) => {
@@ -43,7 +43,7 @@ const DepositPage = () => {
     // Add SelectionPanel to form
     const addSelectionPanel = (id, value) => {
       let current_values = selectedValues;
-      current_values.push(null);
+      current_values.push({value: null, initialised: false});
       setSelectedValues(current_values);
     }
 
