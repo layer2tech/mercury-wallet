@@ -1,25 +1,5 @@
 import * as wasm from './client_wasm_bg.wasm';
 
-const heap = new Array(32).fill(undefined);
-
-heap.push(undefined, null, true, false);
-
-function getObject(idx) { return heap[idx]; }
-
-let heap_next = heap.length;
-
-function dropObject(idx) {
-    if (idx < 36) return;
-    heap[idx] = heap_next;
-    heap_next = idx;
-}
-
-function takeObject(idx) {
-    const ret = getObject(idx);
-    dropObject(idx);
-    return ret;
-}
-
 const lTextDecoder = typeof TextDecoder === 'undefined' ? (0, module.require)('util').TextDecoder : TextDecoder;
 
 let cachedTextDecoder = new lTextDecoder('utf-8', { ignoreBOM: true, fatal: true });
@@ -38,6 +18,12 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
+const heap = new Array(32).fill(undefined);
+
+heap.push(undefined, null, true, false);
+
+let heap_next = heap.length;
+
 function addHeapObject(obj) {
     if (heap_next === heap.length) heap.push(heap.length + 1);
     const idx = heap_next;
@@ -45,6 +31,20 @@ function addHeapObject(obj) {
 
     heap[idx] = obj;
     return idx;
+}
+
+function getObject(idx) { return heap[idx]; }
+
+function dropObject(idx) {
+    if (idx < 36) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
+}
+
+function takeObject(idx) {
+    const ret = getObject(idx);
+    dropObject(idx);
+    return ret;
 }
 
 let WASM_VECTOR_LEN = 0;
@@ -104,6 +104,23 @@ function passStringToWasm0(arg, malloc, realloc) {
     return ptr;
 }
 /**
+*/
+export function test_wasm() {
+    wasm.test_wasm();
+}
+
+/**
+* @param {string} pk
+* @returns {any}
+*/
+export function curv_ge_to_bitcoin_public_key(pk) {
+    var ptr0 = passStringToWasm0(pk, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ret = wasm.curv_ge_to_bitcoin_public_key(ptr0, len0);
+    return takeObject(ret);
+}
+
+/**
 * @param {string} root
 * @param {string} proof_key
 * @param {string} proof
@@ -124,23 +141,6 @@ export function verify_statechain_smt(root, proof_key, proof) {
 */
 export function init() {
     wasm.init();
-}
-
-/**
-*/
-export function test_wasm() {
-    wasm.test_wasm();
-}
-
-/**
-* @param {string} pk
-* @returns {any}
-*/
-export function curv_ge_to_bitcoin_public_key(pk) {
-    var ptr0 = passStringToWasm0(pk, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    var ret = wasm.curv_ge_to_bitcoin_public_key(ptr0, len0);
-    return takeObject(ret);
 }
 
 let cachegetInt32Memory0 = null;
@@ -247,13 +247,13 @@ export class Sign {
     }
 }
 
-export const __wbindgen_object_drop_ref = function(arg0) {
-    takeObject(arg0);
-};
-
 export const __wbindgen_string_new = function(arg0, arg1) {
     var ret = getStringFromWasm0(arg0, arg1);
     return addHeapObject(ret);
+};
+
+export const __wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
 };
 
 export const __wbg_new_59cb74e423758ede = function() {
