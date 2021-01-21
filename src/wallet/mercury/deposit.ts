@@ -69,7 +69,7 @@ export const depositConfirm = async (
   let tx_backup_unsigned = txb_backup_unsigned.buildIncomplete();
 
   //co sign funding tx input signatureHash
-  let pk = await statecoin.getsharedPubKey(wasm_client);
+  let pk = await statecoin.getSharedPubKey(wasm_client);
   let signatureHash = getSigHash(tx_backup_unsigned, 0, pk, statecoin.value, network);
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?

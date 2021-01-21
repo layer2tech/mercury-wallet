@@ -107,7 +107,7 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
 // Backup Tx builder
 export const txBackupBuild = (network: Network, funding_txid: string, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number) => {
   if (FEE >= value) throw "Not enough value to cover fee.";
-
+  
   let txb = new TransactionBuilder(network);
   txb.setLockTime(init_locktime);
   txb.addInput(funding_txid, 0);

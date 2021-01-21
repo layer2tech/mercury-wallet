@@ -16,7 +16,6 @@ let bip32 = require('bip32');
 let bip39 = require('bip39');
 let fsLibrary  = require('fs');
 
-
 const WALLET_LOC = "wallet.json";
 
 // Wallet holds BIP32 key root and derivation progress information.
@@ -31,12 +30,12 @@ export class Wallet {
   testing_mode: boolean;
   jest_testing_mode: boolean;
 
-  constructor(mnemonic: string, account: any, testing_mode: boolean) {
+  constructor(mnemonic: string, account: any, network: Network, testing_mode: boolean) {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
     this.activity = new ActivityLog();
-    this.network = bitcoin.networks.regtest;
+    this.network = network;
     this.testing_mode = testing_mode;
     if (testing_mode) {
       this.electrum_client = new MockElectrumClient();
@@ -50,12 +49,12 @@ export class Wallet {
   }
 
   // Constructors
-  static fromMnemonic(mnemonic: string, testing_mode: boolean) {
-    return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic), testing_mode)
+  static fromMnemonic(mnemonic: string, network: Network, testing_mode: boolean) {
+    return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
   }
 
-  static buildMock() {
-    var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', true);
+  static buildMock(network: Network) {
+    var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
     // add some statecoins
     let proof_key1 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
@@ -68,16 +67,16 @@ export class Wallet {
   }
 
   // generate wallet with random mnemonic
-  static buildFresh(testing_mode: true) {
+  static buildFresh(testing_mode: true, network: Network) {
     const mnemonic = bip39.generateMnemonic();
-    return Wallet.fromMnemonic(mnemonic, testing_mode);
+    return Wallet.fromMnemonic(mnemonic, network, testing_mode);
   }
 
   // Load wallet from JSON
   static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean) {
     let json_wallet: Wallet = JSON.parse(str_wallet);
 
-    let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, testing_mode);
+    let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, network, testing_mode);
     new_wallet.statecoins = StateCoinList.fromJSON(JSON.stringify(json_wallet.statecoins))
     new_wallet.activity = ActivityLog.fromJSON(JSON.stringify(json_wallet.activity))
 
@@ -194,7 +193,7 @@ export class Wallet {
   }
   getBIP32forProofKeyPubKey(proof_key: string) {
     const p2wpkh = pubKeyTobtcAddr(proof_key, this.network)
-    return this.account.derive(p2wpkh)
+    return this.getBIP32forBtcAddress(p2wpkh)
   }
 
   // Initialise deposit
@@ -214,6 +213,7 @@ export class Wallet {
     );
     // add proof key bip32 derivation to statecoin
     statecoin.proof_key = proof_key_pub;
+
     statecoin.value = value;
     this.addStatecoin(statecoin, ACTION.DEPOSIT);
 
@@ -352,12 +352,12 @@ export class Wallet {
 
 
 // BIP39 mnemonic -> BIP32 Account
-const mnemonic_to_bip32_root_account = (mnemonic: string) => {
+const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
   if (!bip39.validateMnemonic(mnemonic)) {
     return "Invalid mnemonic"
   }
   const seed = bip39.mnemonicToSeedSync(mnemonic);
-  const root = bip32.fromSeed(seed);
+  const root = bip32.fromSeed(seed, network);
 
   let i = root.deriveHardened(0)
   let external = i.derive(0)

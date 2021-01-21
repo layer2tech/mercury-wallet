@@ -39,15 +39,15 @@ describe('txBackupBuild', function() {
 
   test('txBackupBuild throw on value < fee', async function() {
     expect(() => {  // not enough value
-      txBackupBuild(network, funding_txid, backup_receive_addr, 100, locktime);
+      txBackupBuild(network, funding_txid, backup_receive_addr, 100, backup_receive_addr, 100, locktime);
     }).toThrowError('Not enough value to cover fee.');
   });
 
   test('Check built tx correct', async function() {
-    let tx_backup = txBackupBuild(network, funding_txid, backup_receive_addr, value, locktime).buildIncomplete();
+    let tx_backup = txBackupBuild(network, funding_txid, backup_receive_addr, value, backup_receive_addr, 100, locktime).buildIncomplete();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
-    expect(tx_backup.outs.length).toBe(1);
+    expect(tx_backup.outs.length).toBe(2);
     expect(tx_backup.outs[0].value).toBeLessThan(value);
     expect(tx_backup.locktime).toBe(locktime);
   });

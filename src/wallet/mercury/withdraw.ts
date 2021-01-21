@@ -1,6 +1,6 @@
 // Withdraw
 
-import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
+import { BIP32Interface, Network } from "bitcoinjs-lib";
 import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
 import { PrepareSignTxMsg } from "./ecdsa";
 import { getSigHash, StateChainSig, txWithdrawBuild } from "../util";
@@ -24,12 +24,12 @@ export const withdraw = async (
   rec_addr: string
 ) => {
   // Get statechain from SE and check ownership
-  // let statechain = await getStateChain(http_client, statecoin.statechain_id);
-  // if (statechain.amoumt === 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
-  // if (statechain.chain.pop().data !== statecoin.proof_key) throw "StateChain not owned by this Wallet. Incorrect proof key."
+  let statechain = await getStateChain(http_client, statecoin.statechain_id);
+  if (statechain.amoumt === 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
+  if (statechain.chain.pop().data !== statecoin.proof_key) throw "StateChain not owned by this Wallet. Incorrect proof key."
 
   // Sign statecoin to signal desire to Withdraw
-  let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", rec_addr);
+  let statechain_sig = StateChainSig.create(proof_key_der, "WITHDRAW", rec_addr);
 
   // Alert SE of desire to withdraw and receive authorisation if state chain signature verifies
   let withdraw_msg_1 = {
@@ -52,7 +52,7 @@ export const withdraw = async (
   let tx_withdraw_unsigned = txb_withdraw_unsigned.buildIncomplete();
 
   // tx_withdraw_unsigned
-  let pk = await statecoin.getsharedPubKey(wasm_client);
+  let pk = await statecoin.getSharedPubKey(wasm_client);
   let signatureHash = getSigHash(tx_withdraw_unsigned, 0, pk, statecoin.value, network);
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
@@ -66,7 +66,7 @@ export const withdraw = async (
     proof_key: statecoin.proof_key,
   };
 
-  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.DEPOSIT);
+  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
 
   // set witness data with signature
   let tx_backup_signed = tx_withdraw_unsigned;
