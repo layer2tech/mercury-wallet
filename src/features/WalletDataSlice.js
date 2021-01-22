@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import * as bitcoin from 'bitcoinjs-lib';
 
-let wallet = Wallet.buildFresh(false, bitcoin.networks.regtest);
+let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
 // Perform a deposit right away
 // wallet.depositInit(10000).then((res) => {
 //   console.log("res: ", res)

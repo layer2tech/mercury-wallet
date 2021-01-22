@@ -217,7 +217,7 @@ export class Wallet {
     statecoin.value = value;
     this.addStatecoin(statecoin, ACTION.DEPOSIT);
 
-    console.log("Deposite Init done.");
+    console.log("Deposite Init done. Send coins to ", p_addr);
     return [p_addr, statecoin]
   }
 
@@ -360,14 +360,19 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
   const root = bip32.fromSeed(seed, network);
 
   let i = root.deriveHardened(0)
+
   let external = i.derive(0)
   let internal = i.derive(1)
+
+  external.keyPair = { network: network };
+  internal.keyPair = { network: network };
 
   // BIP32 Account is made up of two BIP32 Chains.
   let account = new bip32utils.Account([
     new bip32utils.Chain(external, null, segwitAddr),
     new bip32utils.Chain(internal, null, segwitAddr)
-  ])
+  ]);
+
   return account
 }
 
@@ -375,7 +380,7 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
 export const segwitAddr = (node: any, network: Network) => {
   const p2wpkh = bitcoin.payments.p2wpkh({
     pubkey: node.publicKey,
-    network: network
+    network: bitcoin.networks.testnet
   });
   return p2wpkh.address
 }

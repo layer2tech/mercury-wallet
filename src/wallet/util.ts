@@ -64,6 +64,8 @@ export class StateChainSig {
     static create(proof_key_der: BIP32Interface, purpose: string, data: string) {
       let statechain_sig = new StateChainSig(purpose, data, "");
       let hash = statechain_sig.to_message();
+      console.log("hash: ", hash)
+      console.log("hash: ", hash.toString("hex"))
       let sig = proof_key_der.sign(hash, false);
 
       // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
@@ -107,7 +109,7 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
 // Backup Tx builder
 export const txBackupBuild = (network: Network, funding_txid: string, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number) => {
   if (FEE >= value) throw "Not enough value to cover fee.";
-  
+
   let txb = new TransactionBuilder(network);
   txb.setLockTime(init_locktime);
   txb.addInput(funding_txid, 0);
@@ -119,13 +121,13 @@ export const txBackupBuild = (network: Network, funding_txid: string, backup_rec
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-export const txWithdrawBuild = (network: Network, funding_txid: string, rec_address: string, value: number, fee_info: FeeInfo) => {
-  if (fee_info.withdraw + FEE >= value) throw "Not enough value to cover fee.";
+export const txWithdrawBuild = (network: Network, funding_txid: string, rec_address: string, value: number, fee_address: string, withdraw_fee: number) => {
+  if (withdraw_fee + FEE >= value) throw "Not enough value to cover fee.";
 
   let txb = new TransactionBuilder(network);
   txb.addInput(funding_txid, 0);
-  txb.addOutput(rec_address, value - fee_info.withdraw - FEE);
-  txb.addOutput(fee_info.address, fee_info.withdraw);
+  txb.addOutput(rec_address, value - FEE - withdraw_fee);
+  txb.addOutput(fee_address, withdraw_fee);
   return txb
 }
 

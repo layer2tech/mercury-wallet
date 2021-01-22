@@ -85,8 +85,8 @@ export const sign = async (
 ) => {
   // prepare-sign step. Allow server to check backup_tx.
   let prepare_sign = await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
-
   // Check for error in prepare_sign
+  console.log("prepare_sign: ", prepare_sign)
 
   //client first
   let client_sign_first: ClientSignFirstMsg =

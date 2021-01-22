@@ -36,18 +36,23 @@ export const withdraw = async (
       shared_key_id: statecoin.shared_key_id,
       statechain_sig: statechain_sig
   }
-  await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
+  let withdraw_init = await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
+  // Check for error in withdraw_init
+  console.log("withdraw_init: ", withdraw_init)
 
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
+
+  let withdraw_fee = (statecoin.value * fee_info.withdraw) / 10000;
 
   // Construct withdraw tx
   let txb_withdraw_unsigned = txWithdrawBuild(
     network,
     statecoin.funding_txid,
     rec_addr,
-    (statecoin.value + fee_info.deposit),
-    fee_info
+    statecoin.value,
+    fee_info.address,
+    withdraw_fee
   );
   let tx_withdraw_unsigned = txb_withdraw_unsigned.buildIncomplete();
 
