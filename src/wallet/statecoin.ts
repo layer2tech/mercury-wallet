@@ -3,7 +3,7 @@
 import { Network } from "bitcoinjs-lib";
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { MasterKey2 } from "./mercury/ecdsa"
-import { pubKeyTobtcAddr } from "./util";
+import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
 
 export class StateCoinList {
   coins: StateCoin[]
@@ -12,7 +12,7 @@ export class StateCoinList {
     this.coins = [];
   }
 
-  static fromJSON(json: any) {
+  static fromJSON(json: any): StateCoinList {
     let statecoins = new StateCoinList()
     JSON.parse(json).coins.forEach((item: StateCoin) => {
       let coin = new StateCoin(item.shared_key_id, item.shared_key);
@@ -39,7 +39,7 @@ export class StateCoinList {
     return [coins.map(item => item.getDisplayInfo()), total]
   };
 
-  getCoin(shared_key_id: string) {
+  getCoin(shared_key_id: string): StateCoin | undefined {
     return this.coins.reverse().find(coin => coin.shared_key_id === shared_key_id)
   }
 
@@ -117,7 +117,7 @@ export class StateCoin {
   }
 
   // Get data to display in GUI
-  getDisplayInfo() {
+  getDisplayInfo(): StateCoinDisplayData {
     return {
       shared_key_id: this.shared_key_id,
       value: this.value,
@@ -128,22 +128,24 @@ export class StateCoin {
   };
 
   // Get BTC address from SharedKey
-  async getBtcAddress(wasm_client: any, network: Network) {
-    let pub_key = await this.getSharedPubKey(wasm_client)
+  getBtcAddress(network: Network): string {
+    let pub_key = this.getSharedPubKey()
     return pubKeyTobtcAddr(pub_key, network)
   }
 
   // Get public key from SharedKey
-  async getSharedPubKey(wasm_client: any) {
-    let pub_key = await wasm_client.curv_ge_to_bitcoin_public_key(
-      JSON.stringify(
-        this.shared_key.public.q
-      )
-    );
-    return pub_key
+  getSharedPubKey(): string {
+    return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed();
   }
 }
 
+export interface StateCoinDisplayData {
+  shared_key_id: string,
+  value: number,
+  funding_txid: string,
+  timestamp: number,
+  swap_rounds: number
+}
 
 export interface PrepareSignTxMsg {
 

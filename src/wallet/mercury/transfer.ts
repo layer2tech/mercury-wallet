@@ -5,7 +5,7 @@ import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } fro
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { TransferMsg4 } from "../types";
-import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1, decodeSecp256k1Point } from "../util";
+import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1 } from "../util";
 
 let bitcoin = require("bitcoinjs-lib");
 let lodash = require('lodash');
@@ -39,7 +39,7 @@ export const transferSender = async (
   statecoin: StateCoin,
   proof_key_der: any,
   receiver_addr: string
-) => {
+): Promise<TransferMsg3> => {
   // Checks for spent, owned etc here
   let new_tx_backup;
   if (statecoin.tx_backup) {
@@ -73,7 +73,7 @@ export const transferSender = async (
   new_tx_backup.outs[0].script = pubKeyToScriptPubKey(receiver_addr, network);
   new_tx_backup.locktime = statechain_data.locktime - fee_info.interval;
 
-  let pk = await statecoin.getSharedPubKey(wasm_client);
+  let pk = statecoin.getSharedPubKey();
   let signatureHash = getSigHash(new_tx_backup, 0, pk, statecoin.value, network);
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
@@ -134,7 +134,7 @@ export const transferReceiver = async (
   transfer_msg3: any,
   se_rec_addr_bip32: any,
   _batch_data: any
-) => {
+): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
 
@@ -198,7 +198,7 @@ export const transferReceiverFinalize = async (
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   finalize_data: TransferFinalizeData,
-) => {
+): Promise<StateCoin> => {
   // Make shared key with new private share
   // 2P-ECDSA with state entity to create a Shared key
   let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER);
@@ -220,10 +220,11 @@ export const transferReceiverFinalize = async (
   let proof = await getSmtProof(http_client, root, statecoin.funding_txid);
   if (!verifySmtProof(wasm_client, root, finalize_data.proof_key, proof)) throw "SMT verification failed.";
 
-  // Add state chain id, proof key and SMT inclusion proofs to local SharedKey data
+  // Add state chain id, value, proof key and SMT inclusion proofs to local SharedKey data
   // Add proof and state chain id to Shared key
-  statecoin.smt_proof = proof;
   statecoin.statechain_id = finalize_data.statechain_id;
+  statecoin.value = finalize_data.state_chain_data.amount;
+  statecoin.smt_proof = proof;
   statecoin.tx_backup = Transaction.fromHex(finalize_data.tx_backup_psm.tx_hex);
 
   return statecoin
@@ -256,7 +257,7 @@ export interface SCEAddress {
 export interface TransferMsg3 {
   shared_key_id: string,
   statechain_id: string,
-  t1: {secret_bytes: Buffer},
+  t1: {secret_bytes: number[]},
   statechain_sig: StateChainSig,
   tx_backup_psm: PrepareSignTxMsg,
   rec_se_addr: SCEAddress,

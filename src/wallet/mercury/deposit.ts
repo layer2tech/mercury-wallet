@@ -26,7 +26,7 @@ export const depositInit = async (
   network: Network,
   proof_key: string,
   secret_key: string
-) => {
+): Promise<[statecoin: StateCoin, p_addr: string]> => {
   // Init. session - Receive shared wallet ID
   let deposit_msg1 = {
       auth: "authstr",
@@ -39,7 +39,7 @@ export const depositInit = async (
   let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
 
   // Co-owned key address to send funds to (P_addr)
-  let p_addr = await statecoin.getBtcAddress(wasm_client, network);
+  let p_addr = statecoin.getBtcAddress(network);
 
   return [statecoin, p_addr]
 }
@@ -52,7 +52,7 @@ export const depositConfirm = async (
   network: Network,
   statecoin: StateCoin,
   chaintip_height: number,
-) => {
+): Promise<StateCoin> => {
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
 
@@ -68,7 +68,7 @@ export const depositConfirm = async (
   let tx_backup_unsigned = txb_backup_unsigned.buildIncomplete();
 
   //co sign funding tx input signatureHash
-  let pk = await statecoin.getSharedPubKey(wasm_client);
+  let pk = statecoin.getSharedPubKey();
   let signatureHash = getSigHash(tx_backup_unsigned, 0, pk, statecoin.value, network);
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?

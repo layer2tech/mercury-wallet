@@ -48,7 +48,12 @@ describe('StateChain Entity', function() {
   });
 
   test('Deposit confirm', async function() {
-    let statecoin = BJSON.parse(lodash.cloneDeep(STATECOIN_INIT));
+    let statecoin_json = BJSON.parse(lodash.cloneDeep(STATECOIN_INIT));
+    let statecoin = new StateCoin(statecoin_json.shared_key_id, statecoin_json.shared_key)
+    statecoin.network = statecoin_json.network;
+    statecoin.proof_key = statecoin_json.proof_key;
+    statecoin.value = statecoin_json.value;
+
     let statecoin_finalized = await wallet.depositConfirm(FUNDING_TXID, statecoin)
 
     expect(statecoin_finalized.statechain_id.length).toBeGreaterThan(0);
@@ -148,7 +153,7 @@ describe('StateChain Entity', function() {
     let statecoin = await wallet.transfer_receiver_finalize(finalize_data);
 
     expect(statecoin.statechain_id).toBe(finalize_data.statechain_id);
-    expect(statecoin.value).toBe(0);
+    expect(statecoin.value).toBe(finalize_data.state_chain_data.amount);
     expect(statecoin.shared_key).toStrictEqual(KEYGEN_SIGN_DATA.shared_key);
     expect(statecoin.tx_backup).not.toBe(null);
     expect(statecoin.tx_withdraw).toBe(null);

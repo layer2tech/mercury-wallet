@@ -1,6 +1,6 @@
 // Withdraw
 
-import { BIP32Interface, Network } from "bitcoinjs-lib";
+import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
 import { PrepareSignTxMsg } from "./ecdsa";
 import { getSigHash, StateChainSig, txWithdrawBuild } from "../util";
@@ -22,7 +22,7 @@ export const withdraw = async (
   statecoin: StateCoin,
   proof_key_der: BIP32Interface,
   rec_addr: string
-) => {
+): Promise<Transaction> => {
   // Get statechain from SE and check ownership
   let statechain = await getStateChain(http_client, statecoin.statechain_id);
   if (statechain.amount === 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
@@ -57,7 +57,7 @@ export const withdraw = async (
   let tx_withdraw_unsigned = txb_withdraw_unsigned.buildIncomplete();
 
   // tx_withdraw_unsigned
-  let pk = await statecoin.getSharedPubKey(wasm_client);
+  let pk = statecoin.getSharedPubKey();
   let signatureHash = getSigHash(tx_withdraw_unsigned, 0, pk, statecoin.value, network);
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?

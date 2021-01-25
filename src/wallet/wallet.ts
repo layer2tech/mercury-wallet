@@ -49,11 +49,11 @@ export class Wallet {
   }
 
   // Constructors
-  static fromMnemonic(mnemonic: string, network: Network, testing_mode: boolean) {
+  static fromMnemonic(mnemonic: string, network: Network, testing_mode: boolean): Wallet {
     return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
   }
 
-  static buildMock(network: Network) {
+  static buildMock(network: Network): Wallet {
     var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
     // add some statecoins
     let proof_key1 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
@@ -67,13 +67,13 @@ export class Wallet {
   }
 
   // generate wallet with random mnemonic
-  static buildFresh(testing_mode: true, network: Network) {
+  static buildFresh(testing_mode: true, network: Network): Wallet {
     const mnemonic = bip39.generateMnemonic();
     return Wallet.fromMnemonic(mnemonic, network, testing_mode);
   }
 
   // Load wallet from JSON
-  static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean) {
+  static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean): Wallet {
     let json_wallet: Wallet = JSON.parse(str_wallet);
 
     let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, network, testing_mode);
@@ -140,7 +140,7 @@ export class Wallet {
 
 
   // Getters
-  getMnemonic() {
+  getMnemonic(): string {
     return this.mnemonic
   }
   getUnspentStatecoins() {
@@ -179,15 +179,15 @@ export class Wallet {
   }
 
   // New BTC address
-  genBtcAddress() {
+  genBtcAddress(): string {
     return this.account.nextChainAddress(0)
   }
-  getBIP32forBtcAddress(addr: string) {
+  getBIP32forBtcAddress(addr: string): BIP32Interface {
     return this.account.derive(addr)
   }
 
   // New Proof Key
-  genProofKey() {
+  genProofKey(): BIP32Interface {
     let addr = this.account.nextChainAddress(0);
     return this.account.derive(addr)
   }
@@ -197,11 +197,11 @@ export class Wallet {
   }
 
   // Initialise deposit
-  async depositInit(value: number) {
+  async depositInit(value: number): Promise<[p_addr: string, statecoin: StateCoin]> {
     console.log("Depositing Init. ", fromSatoshi(value), "BTC");
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
-    let proof_key_priv = proof_key_bip32.privateKey.toString("hex")
+    let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
 
     // Initisalise deposit - gen shared keys and create statecoin
     let [statecoin, p_addr] = await depositInit(
@@ -209,7 +209,7 @@ export class Wallet {
       await this.getWasm(),
       this.network,
       proof_key_pub,
-      proof_key_priv
+      proof_key_priv!
     );
     // add proof key bip32 derivation to statecoin
     statecoin.proof_key = proof_key_pub;
@@ -223,7 +223,10 @@ export class Wallet {
 
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
   // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
-  async depositConfirm(funding_txid: string, statecoin: StateCoin) {
+  async depositConfirm(
+    funding_txid: string,
+    statecoin: StateCoin
+  ): Promise<StateCoin> {
     console.log("Depositing Confirm shared_key_id: ", statecoin.shared_key_id);
     // Add funding_txid to statecoin
     statecoin.funding_txid = funding_txid;
@@ -250,7 +253,10 @@ export class Wallet {
   // Perform transfer_sender
   // Args: shared_key_id of coin to send and receivers se_addr.
   // Return: transfer_message String to be sent to receiver.
-  async transfer_sender(shared_key_id: string, receiver_se_addr: string) {
+  async transfer_sender(
+    shared_key_id: string,
+    receiver_se_addr: string
+  ): Promise<TransferMsg3> {
     console.log("Transfer Sender for ", shared_key_id)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.network) }
@@ -273,7 +279,7 @@ export class Wallet {
   // Perform transfer_receiver
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
-  async transfer_receiver(transfer_msg3: TransferMsg3) {
+  async transfer_receiver(transfer_msg3: TransferMsg3): Promise<TransferFinalizeData> {
     console.log("Transfer Receiver for statechain ", transfer_msg3.statechain_id)
     let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
 
@@ -297,7 +303,9 @@ export class Wallet {
     return finalize_data
   }
 
-  async transfer_receiver_finalize(finalize_data: TransferFinalizeData) {
+  async transfer_receiver_finalize(
+    finalize_data: TransferFinalizeData
+  ): Promise<StateCoin> {
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
 
     // update in wallet
@@ -309,7 +317,10 @@ export class Wallet {
   // Perform withdraw
   // Args: statechain_id of coin to withdraw
   // Return: Withdraw Tx  (Details to be displayed to user - amount, txid, expect conf time...)
-  async withdraw(shared_key_id: string, rec_addr: string) {
+  async withdraw(
+    shared_key_id: string,
+    rec_addr: string
+  ): Promise<Transaction> {
     console.log("Withdrawing ",shared_key_id, " to ", rec_addr);
     // Check address format
     try { bitcoin.address.toOutputScript(rec_addr, this.network) }
@@ -377,7 +388,7 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
 }
 
 // Address generation fn
-export const segwitAddr = (node: any, network: Network) => {
+export const segwitAddr = (node: any, _network: Network) => {
   const p2wpkh = bitcoin.payments.p2wpkh({
     pubkey: node.publicKey,
     network: bitcoin.networks.testnet

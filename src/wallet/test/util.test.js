@@ -92,7 +92,7 @@ test('Secp256k Point encode/decode', async function() {
 
   let encoded = encodeSecp256k1Point(publicKey.toString("hex"));
   let decoded = decodeSecp256k1Point(encoded);
-  expect(publicKey).toStrictEqual(decoded);
+  expect(publicKey).toStrictEqual(Buffer.from(decoded.encode()));
 });
 
 
