@@ -1,6 +1,6 @@
 // Main wallet struct storing Keys derivation material and Mercury Statecoins.
 
-import { Network, Transaction } from 'bitcoinjs-lib';
+import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList, MockWasm, StateCoin } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
@@ -16,7 +16,6 @@ let bip32 = require('bip32');
 let bip39 = require('bip39');
 let fsLibrary  = require('fs');
 
-
 const WALLET_LOC = "wallet.json";
 
 // Wallet holds BIP32 key root and derivation progress information.
@@ -31,30 +30,31 @@ export class Wallet {
   testing_mode: boolean;
   jest_testing_mode: boolean;
 
-  constructor(mnemonic: string, account: any, testing_mode: boolean) {
+  constructor(mnemonic: string, account: any, network: Network, testing_mode: boolean) {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
     this.activity = new ActivityLog();
-    this.network = bitcoin.networks.bitcoin;
+    this.network = network;
     this.testing_mode = testing_mode;
     if (testing_mode) {
       this.electrum_client = new MockElectrumClient();
       this.http_client = new MockHttpClient();
     } else {
-      this.electrum_client = new ElectrumClient();
+      // this.electrum_client = new ElectrumClient();
+      this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient();
     }
     this.jest_testing_mode = false;
   }
 
   // Constructors
-  static fromMnemonic(mnemonic: string, testing_mode: boolean) {
-    return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic), testing_mode)
+  static fromMnemonic(mnemonic: string, network: Network, testing_mode: boolean): Wallet {
+    return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
   }
 
-  static buildMock() {
-    var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', true);
+  static buildMock(network: Network): Wallet {
+    var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
     // add some statecoins
     let proof_key1 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
@@ -66,10 +66,17 @@ export class Wallet {
     return wallet
   }
 
-  static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean) {
+  // generate wallet with random mnemonic
+  static buildFresh(testing_mode: true, network: Network): Wallet {
+    const mnemonic = bip39.generateMnemonic();
+    return Wallet.fromMnemonic(mnemonic, network, testing_mode);
+  }
+
+  // Load wallet from JSON
+  static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean): Wallet {
     let json_wallet: Wallet = JSON.parse(str_wallet);
 
-    let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, testing_mode);
+    let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, network, testing_mode);
     new_wallet.statecoins = StateCoinList.fromJSON(JSON.stringify(json_wallet.statecoins))
     new_wallet.activity = ActivityLog.fromJSON(JSON.stringify(json_wallet.activity))
 
@@ -91,6 +98,7 @@ export class Wallet {
     return new_wallet
   }
 
+  // Load wallet from storage
   static async load(
     {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr, testing_mode}:
     {file_path?: string, network?: Network, addressFunction?: Function, testing_mode: boolean}
@@ -105,6 +113,7 @@ export class Wallet {
     return Wallet.fromJSON(str_wallet, network, addressFunction, testing_mode)
   }
 
+  // Load wallet to storage
   save({file_path = WALLET_LOC}: {file_path?: string}={}) {
     // Store in file as JSON string
     fsLibrary.writeFile(file_path, JSON.stringify(this), (error: any) => {
@@ -114,7 +123,7 @@ export class Wallet {
 
   // Initialise and return Wasm object.
   // Wasm contains all wallet Rust functionality.
-  // MockWasm is for Jest testing since we cannot run wasbAssembly with browser target in Jest's Node environment
+  // MockWasm is for Jest testing since we cannot run webAssembly with browser target in Jest's Node environment
   async getWasm() {
     let wasm;
     if (this.jest_testing_mode) {
@@ -131,7 +140,7 @@ export class Wallet {
 
 
   // Getters
-  getMnemonic() {
+  getMnemonic(): string {
     return this.mnemonic
   }
   getUnspentStatecoins() {
@@ -170,29 +179,29 @@ export class Wallet {
   }
 
   // New BTC address
-  genBtcAddress() {
+  genBtcAddress(): string {
     return this.account.nextChainAddress(0)
   }
-  getBIP32forBtcAddress(addr: string) {
+  getBIP32forBtcAddress(addr: string): BIP32Interface {
     return this.account.derive(addr)
   }
 
   // New Proof Key
-  genProofKey() {
+  genProofKey(): BIP32Interface {
     let addr = this.account.nextChainAddress(0);
     return this.account.derive(addr)
   }
-  getBIP32forProofKeyPubKey(proof_key: string) {
+  getBIP32forProofKeyPubKey(proof_key: string): BIP32Interface {
     const p2wpkh = pubKeyTobtcAddr(proof_key, this.network)
-    return this.account.derive(p2wpkh)
+    return this.getBIP32forBtcAddress(p2wpkh)
   }
 
   // Initialise deposit
-  async depositInit(value: number) {
+  async depositInit(value: number): Promise<[p_addr: string, statecoin: StateCoin]> {
     console.log("Depositing Init. ", fromSatoshi(value), "BTC");
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
-    let proof_key_priv = proof_key_bip32.privateKey.toString("hex")
+    let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
 
     // Initisalise deposit - gen shared keys and create statecoin
     let [statecoin, p_addr] = await depositInit(
@@ -200,20 +209,24 @@ export class Wallet {
       await this.getWasm(),
       this.network,
       proof_key_pub,
-      proof_key_priv
+      proof_key_priv!
     );
     // add proof key bip32 derivation to statecoin
     statecoin.proof_key = proof_key_pub;
+
     statecoin.value = value;
     this.addStatecoin(statecoin, ACTION.DEPOSIT);
 
-    console.log("Deposite Init done.");
+    console.log("Deposite Init done. Send coins to ", p_addr);
     return [p_addr, statecoin]
   }
 
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
   // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
-  async depositConfirm(funding_txid: string, statecoin: StateCoin) {
+  async depositConfirm(
+    funding_txid: string,
+    statecoin: StateCoin
+  ): Promise<StateCoin> {
     console.log("Depositing Confirm shared_key_id: ", statecoin.shared_key_id);
     // Add funding_txid to statecoin
     statecoin.funding_txid = funding_txid;
@@ -240,7 +253,10 @@ export class Wallet {
   // Perform transfer_sender
   // Args: shared_key_id of coin to send and receivers se_addr.
   // Return: transfer_message String to be sent to receiver.
-  async transfer_sender(shared_key_id: string, receiver_se_addr: string) {
+  async transfer_sender(
+    shared_key_id: string,
+    receiver_se_addr: string
+  ): Promise<TransferMsg3> {
     console.log("Transfer Sender for ", shared_key_id)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.network) }
@@ -263,7 +279,7 @@ export class Wallet {
   // Perform transfer_receiver
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
-  async transfer_receiver(transfer_msg3: TransferMsg3) {
+  async transfer_receiver(transfer_msg3: TransferMsg3): Promise<TransferFinalizeData> {
     console.log("Transfer Receiver for statechain ", transfer_msg3.statechain_id)
     let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
 
@@ -287,7 +303,9 @@ export class Wallet {
     return finalize_data
   }
 
-  async transfer_receiver_finalize(finalize_data: TransferFinalizeData) {
+  async transfer_receiver_finalize(
+    finalize_data: TransferFinalizeData
+  ): Promise<StateCoin> {
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
 
     // update in wallet
@@ -299,7 +317,10 @@ export class Wallet {
   // Perform withdraw
   // Args: statechain_id of coin to withdraw
   // Return: Withdraw Tx  (Details to be displayed to user - amount, txid, expect conf time...)
-  async withdraw(shared_key_id: string, rec_addr: string) {
+  async withdraw(
+    shared_key_id: string,
+    rec_addr: string
+  ): Promise<Transaction> {
     console.log("Withdrawing ",shared_key_id, " to ", rec_addr);
     // Check address format
     try { bitcoin.address.toOutputScript(rec_addr, this.network) }
@@ -342,30 +363,35 @@ export class Wallet {
 
 
 // BIP39 mnemonic -> BIP32 Account
-const mnemonic_to_bip32_root_account = (mnemonic: string) => {
+const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
   if (!bip39.validateMnemonic(mnemonic)) {
     return "Invalid mnemonic"
   }
   const seed = bip39.mnemonicToSeedSync(mnemonic);
-  const root = bip32.fromSeed(seed);
+  const root = bip32.fromSeed(seed, network);
 
   let i = root.deriveHardened(0)
+
   let external = i.derive(0)
   let internal = i.derive(1)
+
+  external.keyPair = { network: network };
+  internal.keyPair = { network: network };
 
   // BIP32 Account is made up of two BIP32 Chains.
   let account = new bip32utils.Account([
     new bip32utils.Chain(external, null, segwitAddr),
     new bip32utils.Chain(internal, null, segwitAddr)
-  ])
+  ]);
+
   return account
 }
 
 // Address generation fn
-export const segwitAddr = (node: any, network: Network) => {
+export const segwitAddr = (node: any, _network: Network) => {
   const p2wpkh = bitcoin.payments.p2wpkh({
     pubkey: node.publicKey,
-    network: network
+    network: bitcoin.networks.testnet
   });
   return p2wpkh.address
 }

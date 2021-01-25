@@ -8,9 +8,9 @@ export function keygen_set_master_key(a: number, b: number, c: number, d: number
 export function __wbg_sign_free(a: number): void;
 export function sign_first_message(): number;
 export function sign_second_message(a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number): number;
-export function verify_statechain_smt(a: number, b: number, c: number, d: number, e: number, f: number): number;
 export function test_wasm(): void;
 export function curv_ge_to_bitcoin_public_key(a: number, b: number): number;
+export function verify_statechain_smt(a: number, b: number, c: number, d: number, e: number, f: number): number;
 export function init(): void;
 export function rustsecp256k1_v0_2_0_ec_pubkey_serialize(a: number, b: number, c: number, d: number, e: number): number;
 export function rustsecp256k1_v0_2_0_ec_seckey_verify(a: number, b: number): number;

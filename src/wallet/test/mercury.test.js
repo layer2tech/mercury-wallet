@@ -32,7 +32,7 @@ describe('2P-ECDSA', function() {
 
 
 describe('StateChain Entity', function() {
-  let wallet = Wallet.buildMock();
+  let wallet = Wallet.buildMock(bitcoin.networks.testnet);
   wallet.jest_testing_mode = true; // Call mock wasm
 
   let value = 10000
@@ -48,7 +48,12 @@ describe('StateChain Entity', function() {
   });
 
   test('Deposit confirm', async function() {
-    let statecoin = BJSON.parse(lodash.cloneDeep(STATECOIN_INIT));
+    let statecoin_json = BJSON.parse(lodash.cloneDeep(STATECOIN_INIT));
+    let statecoin = new StateCoin(statecoin_json.shared_key_id, statecoin_json.shared_key)
+    statecoin.network = statecoin_json.network;
+    statecoin.proof_key = statecoin_json.proof_key;
+    statecoin.value = statecoin_json.value;
+
     let statecoin_finalized = await wallet.depositConfirm(FUNDING_TXID, statecoin)
 
     expect(statecoin_finalized.statechain_id.length).toBeGreaterThan(0);
@@ -99,6 +104,7 @@ describe('StateChain Entity', function() {
     // check transfer_msg data
     expect(transfer_msg3.shared_key_id).toBe(shared_key_id);
     expect(transfer_msg3.rec_se_addr.proof_key).toBe(rec_se_addr);
+
     // statechain sig verifies
     let proof_key_der = wallet.getBIP32forProofKeyPubKey(statecoin.proof_key);
     expect(transfer_msg3.statechain_sig.verify(proof_key_der)).toBe(true)
@@ -114,7 +120,7 @@ describe('StateChain Entity', function() {
     expect(tx_backup.locktime).toBeLessThan(statecoin.tx_backup.locktime);
     // Check backuptx sends to new proof key
     expect(
-      bitcoin.address.fromOutputScript(tx_backup.outs[0].script, statecoin.network)
+      bitcoin.address.fromOutputScript(tx_backup.outs[0].script, wallet.network)
     ).toBe(
       pubKeyTobtcAddr(rec_se_addr)
     );
@@ -147,7 +153,7 @@ describe('StateChain Entity', function() {
     let statecoin = await wallet.transfer_receiver_finalize(finalize_data);
 
     expect(statecoin.statechain_id).toBe(finalize_data.statechain_id);
-    expect(statecoin.value).toBe(0);
+    expect(statecoin.value).toBe(finalize_data.state_chain_data.amount);
     expect(statecoin.shared_key).toStrictEqual(KEYGEN_SIGN_DATA.shared_key);
     expect(statecoin.tx_backup).not.toBe(null);
     expect(statecoin.tx_withdraw).toBe(null);

@@ -36,7 +36,7 @@ export const keyGen = async (
     JSON.parse(
       wasm_client.KeyGen.first_message(secret_key)
     );
-  // typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
+  typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
 
   // server second
   let key_gen_msg2 = {
@@ -47,14 +47,14 @@ export const keyGen = async (
   typeforce(types.KeyGenParty1Message2, kg_party_one_second_message);
 
   // client second
-  let client_resp_key_gen_second: ClientKeyGenSecondMsg =
+  let key_gen_second_message =
     JSON.parse(
       wasm_client.KeyGen.second_message(
         JSON.stringify(kg_party_one_first_message),
         JSON.stringify(kg_party_one_second_message)
       )
     );
-  // typeforce(types.ClientKeyGenSecondMsg, client_resp_key_gen_second);
+  typeforce(types.ClientKeyGenSecondMsg, key_gen_second_message);
 
   // Construct Rust MasterKey struct
   let master_key: MasterKey2 =
@@ -65,9 +65,9 @@ export const keyGen = async (
                 .ecdh_second_message
                 .comm_witness
                 .public_share),
-        JSON.stringify(client_resp_key_gen_second.party_two_paillier)
+        JSON.stringify(key_gen_second_message.party_two_paillier)
     ));
-  // typeforce(types.MasterKey2, master_key);
+  typeforce(types.MasterKey2, master_key);
 
   return new StateCoin(shared_key_id, master_key)
 }
@@ -79,15 +79,21 @@ export const sign = async (
   wasm_client: any,
   shared_key_id: string,
   master_key: any,
+  prepare_sign_msg: PrepareSignTxMsg,
   message: string,
   protocol: string
 ) => {
+  // prepare-sign step. Allow server to check backup_tx.
+  let prepare_sign = await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
+  // Check for error in prepare_sign
+  console.log("prepare_sign: ", prepare_sign)
+
   //client first
   let client_sign_first: ClientSignFirstMsg =
     JSON.parse(
       wasm_client.Sign.first_message()
     );
-  // typeforce(types.ClientSignFirstMsg, client_sign_first);
+  typeforce(types.ClientSignFirstMsg, client_sign_first);
 
   // server first
   let sign_msg1 = {
@@ -98,7 +104,7 @@ export const sign = async (
   typeforce(types.ServerSignfirstMsg, server_sign_first);
 
   //client second
-  let client_sign_second =
+  let party_two_sign_message =
     JSON.parse(
       wasm_client.Sign.second_message(
         JSON.stringify(master_key),
@@ -108,25 +114,33 @@ export const sign = async (
         message
       )
     );
-  // typeforce(types.ClientSignSecondMsg, client_sign_second);
+  typeforce(types.ClientSignSecondMsg, party_two_sign_message);
 
   let sign_msg2 = {
       shared_key_id: shared_key_id,
       sign_second_msg_request: {
           protocol,
           message,
-          client_sign_second,
+          party_two_sign_message,
       },
   };
 
   let signature = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
-
+  console.log("signature: ", signature)
   return signature
 }
 
 
 
 // Types involved in 2P-ECDSA and Mercury protocols.
+export interface PrepareSignTxMsg {
+    shared_key_id: string,
+    protocol: string,
+    tx_hex: string,
+    input_addrs: string[], // keys being spent from
+    input_amounts: number[],
+    proof_key: string | null,
+}
 
 // kms::ecdsa:two_party::MasterKey2
 export interface MasterKey2 {

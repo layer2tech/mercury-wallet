@@ -104,23 +104,6 @@ function passStringToWasm0(arg, malloc, realloc) {
     return ptr;
 }
 /**
-* @param {string} root
-* @param {string} proof_key
-* @param {string} proof
-* @returns {any}
-*/
-export function verify_statechain_smt(root, proof_key, proof) {
-    var ptr0 = passStringToWasm0(root, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    var ptr1 = passStringToWasm0(proof_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len1 = WASM_VECTOR_LEN;
-    var ptr2 = passStringToWasm0(proof, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len2 = WASM_VECTOR_LEN;
-    var ret = wasm.verify_statechain_smt(ptr0, len0, ptr1, len1, ptr2, len2);
-    return takeObject(ret);
-}
-
-/**
 */
 export function test_wasm() {
     wasm.test_wasm();
@@ -134,6 +117,23 @@ export function curv_ge_to_bitcoin_public_key(pk) {
     var ptr0 = passStringToWasm0(pk, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len0 = WASM_VECTOR_LEN;
     var ret = wasm.curv_ge_to_bitcoin_public_key(ptr0, len0);
+    return takeObject(ret);
+}
+
+/**
+* @param {string} root
+* @param {string} proof_key
+* @param {string} proof
+* @returns {any}
+*/
+export function verify_statechain_smt(root, proof_key, proof) {
+    var ptr0 = passStringToWasm0(root, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ptr1 = passStringToWasm0(proof_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len1 = WASM_VECTOR_LEN;
+    var ptr2 = passStringToWasm0(proof, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len2 = WASM_VECTOR_LEN;
+    var ret = wasm.verify_statechain_smt(ptr0, len0, ptr1, len1, ptr2, len2);
     return takeObject(ret);
 }
 
@@ -325,7 +325,7 @@ export const __wbg_randomFillSync_1b52c8482374c55b = function(arg0, arg1, arg2) 
     getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
 };
 
-export const __wbg_log_3bafd82835c6de6d = function(arg0) {
+export const __wbg_log_f2e13ca55da8bad3 = function(arg0) {
     console.log(getObject(arg0));
 };
 

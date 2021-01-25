@@ -1,7 +1,7 @@
 const axios = require('axios').default;
 
-const state_entity_addr = "http://0.0.0.0:8000";
-// const state_entity_addr = "https://fakeapi.mercurywallet.io";
+// const state_entity_addr = "http://0.0.0.0:8000";
+const state_entity_addr = "https://fakeapi.mercurywallet.io";
 
 export const GET_ROUTE = {
   FEES: "info/fee",
@@ -14,6 +14,7 @@ Object.freeze(GET_ROUTE);
 export const POST_ROUTE = {
   KEYGEN_FIRST: "ecdsa/keygen/first",
   KEYGEN_SECOND: "ecdsa/keygen/second",
+  PREPARE_SIGN: "prepare-sign",
   SIGN_FIRST: "ecdsa/sign/first",
   SIGN_SECOND: "ecdsa/sign/second",
   SMT_PROOF: "info/proof",
@@ -36,8 +37,10 @@ export class HttpClient {
           url: url,
           headers: { 'Accept': 'application/json' }
       };
+      let res = await axios(config)
+      let return_data = res.data
 
-      return await axios(config).data
+      return return_data
 
     } catch (err) {
       return err;
@@ -56,8 +59,10 @@ export class HttpClient {
           },
           data: body,
       };
+      let res = await axios(config)
+      let return_data = res.data
 
-      return await axios(config).data
+      return return_data
 
     } catch (err) {
       return err;

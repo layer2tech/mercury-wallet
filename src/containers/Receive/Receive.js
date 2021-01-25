@@ -39,6 +39,10 @@ const ReceiveStatecoinPage = () => {
     dispatch(callTransferReceiver(transfer_msg3))
   }
 
+  const copySEAddressToClipboard = () => {
+    navigator.clipboard.writeText(rec_se_addr);
+  }
+
   return (
     <div className="container ">
         <div className="Body receiveStatecoin">
@@ -66,7 +70,7 @@ const ReceiveStatecoinPage = () => {
                     <img src={scan} alt="image"/>
                     <div className="receiveStatecoin-scan-content">
                         <div className="receiveStatecoin-scan-txid">
-                            <img src={icon2} alt="icon"/>
+                          <img type="button" src={icon2} alt="icon" onClick={copySEAddressToClipboard}/>
                             <span>
                               {rec_se_addr}
                             </span>
@@ -83,7 +87,7 @@ const ReceiveStatecoinPage = () => {
         </div>
 
         <div className="sendStatecoin content">
-            <div className="Body right">
+            <div className="Body center">
                 <div>
                    <div className="inputs">
                        <input

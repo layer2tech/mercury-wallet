@@ -11,9 +11,10 @@
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
 import { FeeInfo } from "./info_api";
-import { pubKeyTobtcAddr } from "../util";
+import { getSigHash, pubKeyTobtcAddr } from "../util";
 
-import { Network, Transaction } from 'bitcoinjs-lib';
+import { Network } from 'bitcoinjs-lib';
+import { PrepareSignTxMsg } from "./ecdsa";
 let typeforce = require('typeforce');
 
 
@@ -25,7 +26,7 @@ export const depositInit = async (
   network: Network,
   proof_key: string,
   secret_key: string
-) => {
+): Promise<[statecoin: StateCoin, p_addr: string]> => {
   // Init. session - Receive shared wallet ID
   let deposit_msg1 = {
       auth: "authstr",
@@ -38,7 +39,7 @@ export const depositInit = async (
   let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
 
   // Co-owned key address to send funds to (P_addr)
-  let p_addr = await statecoin.getBtcAddress(wasm_client, network);
+  let p_addr = statecoin.getBtcAddress(network);
 
   return [statecoin, p_addr]
 }
@@ -51,24 +52,42 @@ export const depositConfirm = async (
   network: Network,
   statecoin: StateCoin,
   chaintip_height: number,
-) => {
+): Promise<StateCoin> => {
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
+
+  // let deposit_fee = (amount * se_fee_info.deposit) / 10000 as u64;
+  let withdraw_fee = (statecoin.value * fee_info.withdraw) / 10000;
 
   // Calculate initial locktime
   let init_locktime = (chaintip_height) + (fee_info.initlock);
 
   // Build unsigned backup tx
   let backup_receive_addr = pubKeyTobtcAddr(statecoin.proof_key, network);
-  let txb_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, backup_receive_addr, statecoin.value, init_locktime);
+  let txb_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, backup_receive_addr, statecoin.value, fee_info.address, withdraw_fee, init_locktime);
   let tx_backup_unsigned = txb_backup_unsigned.buildIncomplete();
 
   //co sign funding tx input signatureHash
-  let signatureHash = tx_backup_unsigned.hashForSignature(0, tx_backup_unsigned.ins[0].script, Transaction.SIGHASH_ALL);
-  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, signatureHash.toString('hex'), PROTOCOL.DEPOSIT);
+  let pk = statecoin.getSharedPubKey();
+  let signatureHash = getSigHash(tx_backup_unsigned, 0, pk, statecoin.value, network);
+
+  // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
+  // Create PrepareSignTxMsg to send funding tx data to receiver
+  let prepare_sign_msg: PrepareSignTxMsg = {
+    shared_key_id: statecoin.shared_key_id,
+    protocol: PROTOCOL.DEPOSIT,
+    tx_hex: tx_backup_unsigned.toHex(),
+    input_addrs: [pk],
+    input_amounts: [statecoin.value],
+    proof_key: statecoin.proof_key,
+  };
+
+  // construct shared signature
+  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.DEPOSIT);
   // set witness data with signature
   let tx_backup_signed = tx_backup_unsigned;
   tx_backup_signed.ins[0].witness = [Buffer.from(signature)];
+  prepare_sign_msg.tx_hex = tx_backup_signed.toHex();
 
   // Wait for server confirmation of funding tx and receive new StateChain's id
   let deposit_msg2 = {

@@ -17,7 +17,7 @@ export const Chain = Array;
 
 // StateChain Entity API
 export const StateChainDataAPI = typeforce.compile({
-    utxo: OutPoint,
+    utxo: typeforce.anyOf(String, Object),
     amount: UInt32,
     chain: Chain,
     locktime: UInt32,
@@ -131,7 +131,6 @@ export const PaillierPublic = typeforce.compile({
     encrypted_secret_share: Array,
 })
 export const ClientKeyGenSecondMsg = typeforce.compile({
-  party_two_second_message: Party2SecondMessage,
   party_two_paillier: PaillierPublic
 })
 

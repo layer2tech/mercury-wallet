@@ -1,7 +1,7 @@
 // wallet utilities
 
-import { BIP32Interface, Network, TransactionBuilder, crypto, script } from 'bitcoinjs-lib';
-import { FeeInfo, Root } from './mercury/info_api';
+import { BIP32Interface, Network, TransactionBuilder, crypto, script, Transaction } from 'bitcoinjs-lib';
+import { Root } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 
 import { encrypt, decrypt } from 'eciesjs'
@@ -61,7 +61,11 @@ export class StateChainSig {
       this.sig = sig;
     }
 
-    static create(proof_key_der: BIP32Interface, purpose: string, data: string) {
+    static create(
+      proof_key_der: BIP32Interface,
+      purpose: string,
+      data: string
+    ): StateChainSig {
       let statechain_sig = new StateChainSig(purpose, data, "");
       let hash = statechain_sig.to_message();
       let sig = proof_key_der.sign(hash, false);
@@ -75,13 +79,13 @@ export class StateChainSig {
     }
 
     // Make StateChainSig message. Concat purpose string + data and sha256 hash.
-    to_message() {
+    to_message(): Buffer {
       let buf = Buffer.from(this.purpose + this.data, "utf8")
       return crypto.sha256(buf)
     }
 
     // Verify self's signature for transfer or withdraw
-    verify(proof_key_der: BIP32Interface) {
+    verify(proof_key_der: BIP32Interface): boolean {
       let proof = Buffer.from(this.sig, "hex");
       // Re-insert hashType marker ("01" suffix) and decode from bip66
       proof = Buffer.concat([proof, Buffer.from("01", "hex")]);
@@ -93,46 +97,57 @@ export class StateChainSig {
 
 }
 
+export const getSigHash = (tx: Transaction, index: number, pk: string, amount: number, network: Network): string => {
+  let addr_p2pkh = bitcoin.payments.p2wpkh({
+    pubkey: Buffer.from(pk, "hex"),
+    network: network
+  }).address;
+  let script = bitcoin.address.toOutputScript(addr_p2pkh, network);
+
+  return tx.hashForWitnessV0(index, script, amount, Transaction.SIGHASH_ALL).toString("hex");
+
+}
 
 // Backup Tx builder
-export const txBackupBuild = (network: Network, funding_txid: string, backup_receive_addr: string, value: number, init_locktime: number) => {
+export const txBackupBuild = (network: Network, funding_txid: string, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number): TransactionBuilder => {
   if (FEE >= value) throw "Not enough value to cover fee.";
 
   let txb = new TransactionBuilder(network);
   txb.setLockTime(init_locktime);
   txb.addInput(funding_txid, 0);
-  txb.addOutput(backup_receive_addr, value - FEE);
+  txb.addOutput(backup_receive_addr, value - FEE - withdraw_fee);
+  txb.addOutput(fee_address, withdraw_fee);
   return txb
 }
 
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-export const txWithdrawBuild = (network: Network, funding_txid: string, rec_address: string, value: number, fee_info: FeeInfo) => {
-  if (fee_info.withdraw + FEE >= value) throw "Not enough value to cover fee.";
+export const txWithdrawBuild = (network: Network, funding_txid: string, rec_address: string, value: number, fee_address: string, withdraw_fee: number): TransactionBuilder => {
+  if (withdraw_fee + FEE >= value) throw "Not enough value to cover fee.";
 
   let txb = new TransactionBuilder(network);
   txb.addInput(funding_txid, 0);
-  txb.addOutput(rec_address, value - fee_info.withdraw - FEE);
-  txb.addOutput(fee_info.address, fee_info.withdraw);
+  txb.addOutput(rec_address, value - FEE - withdraw_fee);
+  txb.addOutput(fee_address, withdraw_fee);
   return txb
 }
 
 
 // Bech32 encode SCEAddress (StateChain Entity Address)
-export const encodeSCEAddress = (proof_key: string) => {
+export const encodeSCEAddress = (proof_key: string): string => {
   let words = bech32.toWords(Buffer.from(proof_key, 'utf8'))
   return bech32.encode('sc', words)
 }
 
 // Bech32 decode SCEAddress
-export const decodeSCEAddress = (sce_address: string) => {
+export const decodeSCEAddress = (sce_address: string): string => {
   let decode =  bech32.decode(sce_address)
   return Buffer.from(bech32.fromWords(decode.words)).toString()
 }
 
 // encode Secp256k1Point to {x: string, y: string}
-export const encodeSecp256k1Point = (publicKey: string) => {
+export const encodeSecp256k1Point = (publicKey: string): {x: string, y: string} => {
   let decoded_pub = secp256k1.curve.decodePoint(Buffer.from(publicKey, 'hex'));
   return { x: decoded_pub.x.toString("hex"), y: decoded_pub.y.toString("hex") }
 }
@@ -140,18 +155,25 @@ export const encodeSecp256k1Point = (publicKey: string) => {
 // decode Secp256k1Point to secp256k1.curve.point Buffer
 export const decodeSecp256k1Point = (point: Secp256k1Point) => {
   let p = secp256k1.curve.point(point.x, point.y);
-  return Buffer.from(p.encode());
+  return p;
 }
 
 // ECIES encrypt string
-export const encryptECIES = (publicKey: string, data: string) => {
+export const encryptECIES = (publicKey: string, data: string): Buffer => {
   let data_arr = new Uint32Array(Buffer.from(JSON.stringify(data))) // JSONify to match Mercury ECIES
   return encrypt(publicKey, Buffer.from(data_arr));
 }
 
 // ECIES decrypt string
-export const decryptECIES = (secret_key: string, encryption: string) => {
+export const decryptECIES = (secret_key: string, encryption: string): {} => {
   let enc = new Uint32Array(Buffer.from(encryption, "hex"))
   let dec = decrypt(secret_key, Buffer.from(enc)).toString();
   return JSON.parse(dec)  // un-JSONify
+}
+
+// ECIES decrypt string x1 from Server.
+export const decryptECIESx1 = (secret_key: string, encryption: string) => {
+  let enc = new Uint32Array(Buffer.from(encryption, "hex"))
+  let dec = decrypt(secret_key, Buffer.from(enc)).toString("hex");
+  return dec  // un-JSONify
 }
