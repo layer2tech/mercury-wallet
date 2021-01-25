@@ -52,7 +52,7 @@ export class MockHttpClient {
 
 
 export const FEE_INFO = {
-  address: "bc1qdxx0p56wjmu3va7c4cq8dydfcx0vm7ak67klk8",
+  address: "tb1q6xwt00hnwcrtlunvnz8u0xrtdxv5ztx7pj44cp",
   deposit: 300,
   withdraw: 300,
   interval: 100,

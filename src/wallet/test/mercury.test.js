@@ -32,7 +32,7 @@ describe('2P-ECDSA', function() {
 
 
 describe('StateChain Entity', function() {
-  let wallet = Wallet.buildMock();
+  let wallet = Wallet.buildMock(bitcoin.networks.testnet);
   wallet.jest_testing_mode = true; // Call mock wasm
 
   let value = 10000
@@ -99,6 +99,7 @@ describe('StateChain Entity', function() {
     // check transfer_msg data
     expect(transfer_msg3.shared_key_id).toBe(shared_key_id);
     expect(transfer_msg3.rec_se_addr.proof_key).toBe(rec_se_addr);
+
     // statechain sig verifies
     let proof_key_der = wallet.getBIP32forProofKeyPubKey(statecoin.proof_key);
     expect(transfer_msg3.statechain_sig.verify(proof_key_der)).toBe(true)
@@ -114,7 +115,7 @@ describe('StateChain Entity', function() {
     expect(tx_backup.locktime).toBeLessThan(statecoin.tx_backup.locktime);
     // Check backuptx sends to new proof key
     expect(
-      bitcoin.address.fromOutputScript(tx_backup.outs[0].script, statecoin.network)
+      bitcoin.address.fromOutputScript(tx_backup.outs[0].script, wallet.network)
     ).toBe(
       pubKeyTobtcAddr(rec_se_addr)
     );

@@ -1,12 +1,13 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
-import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
+import { Network, Transaction } from "bitcoinjs-lib";
 import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { TransferMsg4 } from "../types";
-import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES } from "../util";
+import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1, decodeSecp256k1Point } from "../util";
 
+let bitcoin = require("bitcoinjs-lib");
 let lodash = require('lodash');
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -36,7 +37,7 @@ export const transferSender = async (
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,
-  proof_key_der: BIP32Interface,
+  proof_key_der: any,
   receiver_addr: string
 ) => {
   // Checks for spent, owned etc here
@@ -52,10 +53,10 @@ export const transferSender = async (
 
   // Get statechain from SE and check ownership
   let statechain_data = await getStateChain(http_client, statecoin.statechain_id);
-  // if (statechain_data.amoumt == 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
-  // if (statechain_data.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Wallet. Incorrect proof key."
+  if (statechain_data.amount == 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
+  if (statechain_data.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Wallet. Incorrect proof key."
 
-  // Sign statecoin to signal desire to Withdraw
+  // Sign statecoin to signal desire to Transfer
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
 
   // Init transfer: Send statechain signature or batch data
@@ -72,21 +73,23 @@ export const transferSender = async (
   new_tx_backup.outs[0].script = pubKeyToScriptPubKey(receiver_addr, network);
   new_tx_backup.locktime = statechain_data.locktime - fee_info.interval;
 
-  let signatureHash = new_tx_backup.hashForSignature(0, new_tx_backup.ins[0].script, Transaction.SIGHASH_ALL);
+  let pk = await statecoin.getSharedPubKey(wasm_client);
+  let signatureHash = getSigHash(new_tx_backup, 0, pk, statecoin.value, network);
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
   // Create PrepareSignTxMsg to send funding tx data to receiver
   let prepare_sign_msg: PrepareSignTxMsg = {
     shared_key_id: statecoin.shared_key_id,
-    protocol: "TRANSFER",
+    protocol: PROTOCOL.TRANSFER,
     tx_hex: new_tx_backup.toHex(),
-    input_addrs: [],
-    input_amounts: [],
+    input_addrs: [pk],
+    input_amounts: [statecoin.value],
     proof_key: statecoin.proof_key,
   };
 
   // Sign new back up tx
-  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash.toString('hex'), PROTOCOL.TRANSFER);
+  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
+
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;
   new_tx_backup_signed.ins[0].witness = [Buffer.from(signature)];
@@ -97,15 +100,16 @@ export const transferSender = async (
 
   // Get SE's x1
   let x1 = transfer_msg2.x1.secret_bytes;
+  let x1_dec = decryptECIESx1(proof_key_der.privateKey.toString("hex"), Buffer.from(x1).toString("hex"));
 
   let o1_bn = new BN(o1, 16);
-  let x1_bn = new BN(x1, 16);
+  let x1_bn = new BN(x1_dec, 16);
 
   // t1 = o1x1
-  let t1 = o1_bn.mul(x1_bn).mod(n);
+  let t1 = o1_bn.mul(x1_bn).umod(n);
 
   let t1_enc = {
-    secret_bytes: encryptECIES(receiver_addr,t1)
+    secret_bytes: Array.from(encryptECIES(receiver_addr,t1.toString("hex")))
   }
 
   let transfer_msg3 = {
@@ -127,7 +131,7 @@ export const transferSender = async (
 
 export const transferReceiver = async (
   http_client: HttpClient | MockHttpClient,
-  transfer_msg3: TransferMsg3,
+  transfer_msg3: any,
   se_rec_addr_bip32: any,
   _batch_data: any
 ) => {
@@ -135,13 +139,13 @@ export const transferReceiver = async (
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
 
   // Verify state chain represents this address as new owner
-  // let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
-  // let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
-  // let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
-  // if (!statechain_sig.verify(prev_owner_proof_key_der)) throw "Invalid StateChainSig."
+  let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
+  let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
+  let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
+  if (!statechain_sig.verify(prev_owner_proof_key_der)) throw "Invalid StateChainSig."
 
   // decrypt t1
-  let t1 = decryptECIES(se_rec_addr_bip32.privateKey.toString("hex"), transfer_msg3.t1.secret_bytes.toString("hex"))
+  let t1 = decryptECIES(se_rec_addr_bip32.privateKey.toString("hex"), transfer_msg3.t1.secret_bytes)
 
   // calculate t2
   let t1_bn = new BN(t1, 16);
@@ -159,7 +163,7 @@ export const transferReceiver = async (
   let transfer_msg4 = {
     shared_key_id: transfer_msg3.shared_key_id,
     statechain_id: transfer_msg3.statechain_id,
-    t2: t2.toString(),
+    t2: t2.toString("hex"),
     statechain_sig: transfer_msg3.statechain_sig,
     o2_pub: encodeSecp256k1Point(o2_keypair.publicKey.toString("hex")),        // decode into {x,y}
     tx_backup_hex: transfer_msg3.tx_backup_psm.tx_hex,
@@ -198,6 +202,7 @@ export const transferReceiverFinalize = async (
   // Make shared key with new private share
   // 2P-ECDSA with state entity to create a Shared key
   let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER);
+  statecoin.funding_txid = finalize_data.state_chain_data.utxo;
 
   // Check shared key master public key == private share * SE public share
   // let P = BigInt("0x" + finalize_data.s2_pub) * BigInt("0x" + finalize_data.o2) * BigInt("0x" + finalize_data.theta)
@@ -213,8 +218,7 @@ export const transferReceiverFinalize = async (
   // Verify proof key inclusion in SE sparse merkle tree
   let root = await getRoot(http_client);
   let proof = await getSmtProof(http_client, root, statecoin.funding_txid);
-  if (!verifySmtProof(wasm_client, root, statecoin.proof_key, proof)) throw "SMT verification failed.";
-
+  if (!verifySmtProof(wasm_client, root, finalize_data.proof_key, proof)) throw "SMT verification failed.";
 
   // Add state chain id, proof key and SMT inclusion proofs to local SharedKey data
   // Add proof and state chain id to Shared key
@@ -274,12 +278,19 @@ export interface TransferMsg5 {
   theta: string,
 }
 
+export interface StateChainDataAPI {
+    utxo: string,
+    amount: number,
+    chain: any,
+    locktime: number,
+}
+
 export interface  TransferFinalizeData {
     new_shared_key_id: string,
     o2: string,
     s2_pub: any,
     theta: string,
-    state_chain_data: Buffer,
+    state_chain_data: any,
     proof_key: string,
     statechain_id: string,
     tx_backup_psm: PrepareSignTxMsg,

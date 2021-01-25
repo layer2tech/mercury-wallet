@@ -13,9 +13,8 @@ import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeI
 import { FeeInfo } from "./info_api";
 import { getSigHash, pubKeyTobtcAddr } from "../util";
 
-import { Network, Transaction } from 'bitcoinjs-lib';
+import { Network } from 'bitcoinjs-lib';
 import { PrepareSignTxMsg } from "./ecdsa";
-let bitcoin = require('bitcoinjs-lib');
 let typeforce = require('typeforce');
 
 

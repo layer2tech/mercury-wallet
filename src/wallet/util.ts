@@ -64,8 +64,6 @@ export class StateChainSig {
     static create(proof_key_der: BIP32Interface, purpose: string, data: string) {
       let statechain_sig = new StateChainSig(purpose, data, "");
       let hash = statechain_sig.to_message();
-      console.log("hash: ", hash)
-      console.log("hash: ", hash.toString("hex"))
       let sig = proof_key_der.sign(hash, false);
 
       // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
@@ -167,4 +165,11 @@ export const decryptECIES = (secret_key: string, encryption: string) => {
   let enc = new Uint32Array(Buffer.from(encryption, "hex"))
   let dec = decrypt(secret_key, Buffer.from(enc)).toString();
   return JSON.parse(dec)  // un-JSONify
+}
+
+// ECIES decrypt string x1 from Server.
+export const decryptECIESx1 = (secret_key: string, encryption: string) => {
+  let enc = new Uint32Array(Buffer.from(encryption, "hex"))
+  let dec = decrypt(secret_key, Buffer.from(enc)).toString("hex");
+  return dec  // un-JSONify
 }

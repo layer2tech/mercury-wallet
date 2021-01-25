@@ -1,14 +1,15 @@
-import { TransactionBuilder, crypto, networks } from 'bitcoinjs-lib';
+import { TransactionBuilder, crypto, networks, ECPair } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, txBackupBuild, txWithdrawBuild, StateChainSig, toSatoshi, fromSatoshi,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point, encryptECIES, decryptECIES } from '../util';
 import { FUNDING_TXID, BTC_ADDR, SIGNSTATECHAIN_DATA } from './test_data.js'
+import { Wallet } from '../';
 
 import { encrypt, decrypt, PrivateKey } from 'eciesjs'
 
 let bip32 = require('bip32');
-let bitcoin = require('bitcoinjs-lib');
 
+let network = networks.testnet;
 
 test('to/from Satoshi', async function() {
   let btc = 1;
@@ -19,7 +20,7 @@ test('to/from Satoshi', async function() {
 
 
 describe('signStateChain', function() {
-  let proof_key_der = bip32.fromSeed(Buffer.from("0123456789abcdef"), networks.bitcoin)
+  let proof_key_der = bip32.fromSeed(Buffer.from("0123456789abcdef"), network)
 
   test('Gen and Verify', async function() {
     SIGNSTATECHAIN_DATA.forEach(data => {
@@ -31,7 +32,6 @@ describe('signStateChain', function() {
 })
 
 describe('txBackupBuild', function() {
-    let network = networks.bitcoin;
     let funding_txid = FUNDING_TXID;
     let backup_receive_addr = BTC_ADDR
     let value = 10000;
@@ -54,7 +54,6 @@ describe('txBackupBuild', function() {
 });
 
 describe('txWithdrawBuild', function() {
-  let network = networks.bitcoin;
   let funding_txid = FUNDING_TXID;
   let rec_address = BTC_ADDR
   let value = 10000;
@@ -62,19 +61,19 @@ describe('txWithdrawBuild', function() {
 
   test('Throw on invalid value', async function() {
     expect(() => {  // not enough value
-      txWithdrawBuild(network, funding_txid, rec_address, 0, fee_info);
+      txWithdrawBuild(network, funding_txid, rec_address, 0, fee_info.address, Number(fee_info.withdraw));
     }).toThrowError('Not enough value to cover fee.');
     expect(() => {  // not enough value
-      txWithdrawBuild(network, funding_txid, rec_address, Number(fee_info.withdraw), fee_info); // should be atleast + value of network FEE also
+      txWithdrawBuild(network, funding_txid, rec_address, 100, fee_info.address, Number(fee_info.withdraw)); // should be atleast + value of network FEE also
     }).toThrowError('Not enough value to cover fee.');
   });
 
   test('Check built tx correct', async function() {
-    let tx_backup = txWithdrawBuild(network, funding_txid, rec_address, value, fee_info).buildIncomplete();
+    let tx_backup = txWithdrawBuild(network, funding_txid, rec_address, value, rec_address, Number(fee_info.withdraw)).buildIncomplete();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
     expect(tx_backup.outs.length).toBe(2);
-    expect(tx_backup.outs[0].value).toBe(value-Number(fee_info.withdraw)-FEE);
+    expect(tx_backup.outs[0].value).toBeLessThan(value);
     expect(tx_backup.outs[1].value).toBe(Number(fee_info.withdraw));
   });
 });
@@ -88,7 +87,7 @@ test('bech32 encode/decode', function() {
 });
 
 test('Secp256k Point encode/decode', async function() {
-  let bip32 = bitcoin.ECPair.makeRandom({compressed: false});
+  let bip32 = ECPair.makeRandom({compressed: false});
   let publicKey = bip32.publicKey;
 
   let encoded = encodeSecp256k1Point(publicKey.toString("hex"));

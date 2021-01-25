@@ -1,6 +1,6 @@
 // Main wallet struct storing Keys derivation material and Mercury Statecoins.
 
-import { Network, Transaction } from 'bitcoinjs-lib';
+import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList, MockWasm, StateCoin } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
@@ -191,7 +191,7 @@ export class Wallet {
     let addr = this.account.nextChainAddress(0);
     return this.account.derive(addr)
   }
-  getBIP32forProofKeyPubKey(proof_key: string) {
+  getBIP32forProofKeyPubKey(proof_key: string): BIP32Interface {
     const p2wpkh = pubKeyTobtcAddr(proof_key, this.network)
     return this.getBIP32forBtcAddress(p2wpkh)
   }

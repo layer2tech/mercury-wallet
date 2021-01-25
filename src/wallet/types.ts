@@ -17,7 +17,7 @@ export const Chain = Array;
 
 // StateChain Entity API
 export const StateChainDataAPI = typeforce.compile({
-    utxo: String,
+    utxo: typeforce.anyOf(String, Object),
     amount: UInt32,
     chain: Chain,
     locktime: UInt32,
