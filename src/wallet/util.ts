@@ -172,8 +172,8 @@ export const decryptECIES = (secret_key: string, encryption: string): {} => {
 }
 
 // ECIES decrypt string x1 from Server.
-export const decryptECIESx1 = (secret_key: string, encryption: string) => {
+export const decryptECIESx1 = (secret_key: string, encryption: string): string => {
   let enc = new Uint32Array(Buffer.from(encryption, "hex"))
-  let dec = decrypt(secret_key, Buffer.from(enc)).toString("hex");
-  return dec  // un-JSONify
+  let dec = decrypt(secret_key, Buffer.from(enc));
+  return dec.toString("hex")  // un-JSONify
 }
