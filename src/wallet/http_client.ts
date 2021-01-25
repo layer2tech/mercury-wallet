@@ -31,7 +31,7 @@ Object.freeze(POST_ROUTE);
 export class HttpClient {
   get = async (path: string, params: any) => {
     try {
-      const url = state_entity_addr + "/" + path + "/" + (Object.entries(params).length == 0 ? "" : params);
+      const url = state_entity_addr + "/" + path + "/" + (Object.entries(params).length === 0 ? "" : params);
       const config = {
           method: 'get',
           url: url,

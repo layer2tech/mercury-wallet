@@ -134,8 +134,8 @@ export class StateCoin {
   }
 
   // Get public key from SharedKey
-  getSharedPubKey() {
-    return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed();
+  getSharedPubKey(): string {
+    return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed("hex");
   }
 }
 

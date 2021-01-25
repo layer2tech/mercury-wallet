@@ -38,7 +38,7 @@ const SwapPage = () => {
                             <input
                                 type="radio"
                                 value="Swaps"
-                                checked
+                                // {/*checked*/}
                             />
                             Connected to Swaps
                             <span className="checkmark"></span>

@@ -23,10 +23,9 @@ let typeforce = require('typeforce');
 export const depositInit = async (
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
-  network: Network,
   proof_key: string,
   secret_key: string
-): Promise<[statecoin: StateCoin, p_addr: string]> => {
+): Promise<StateCoin> => {
   // Init. session - Receive shared wallet ID
   let deposit_msg1 = {
       auth: "authstr",
@@ -38,10 +37,7 @@ export const depositInit = async (
   // 2P-ECDSA with state entity to create a Shared key
   let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
 
-  // Co-owned key address to send funds to (P_addr)
-  let p_addr = statecoin.getBtcAddress(network);
-
-  return [statecoin, p_addr]
+  return statecoin
 }
 
 // After funds are sent to p_addr sign backup tx and verify SMT.

@@ -197,17 +197,16 @@ export class Wallet {
   }
 
   // Initialise deposit
-  async depositInit(value: number): Promise<[p_addr: string, statecoin: StateCoin]> {
+  async depositInit(value: number) {
     console.log("Depositing Init. ", fromSatoshi(value), "BTC");
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
 
     // Initisalise deposit - gen shared keys and create statecoin
-    let [statecoin, p_addr] = await depositInit(
+    let statecoin = await depositInit(
       this.http_client,
       await this.getWasm(),
-      this.network,
       proof_key_pub,
       proof_key_priv!
     );
@@ -216,6 +215,9 @@ export class Wallet {
 
     statecoin.value = value;
     this.addStatecoin(statecoin, ACTION.DEPOSIT);
+
+    // Co-owned key address to send funds to (P_addr)
+    let p_addr = statecoin.getBtcAddress(this.network);
 
     console.log("Deposite Init done. Send coins to ", p_addr);
     return [p_addr, statecoin]
