@@ -5,6 +5,8 @@ let lodash = require('lodash');
 export class MockHttpClient {
   get = async (path: string, _params: any) => {
     switch(path) {
+      case GET_ROUTE.PING:
+        return true
       case GET_ROUTE.FEES:
         return lodash.cloneDeep(FEE_INFO)
       case GET_ROUTE.ROOT:

@@ -38,10 +38,18 @@
   box-shadow: 0 4px 6px -6px #222;
 }
 
+.std-button {
+    padding: 20px;
+    border: none;
+    background-color: #757575;
+    font-size: 14px;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin-top: 0px;
+}
+
 @media only screen and (max-width: 768px)  {
   .Body {
     padding: 15px;
   }
 }
-
-

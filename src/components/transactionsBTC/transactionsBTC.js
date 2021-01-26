@@ -6,9 +6,11 @@ import arrow from "../../images/scan-arrow.png";
 import React, {useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 
-import '../../containers/Deposit/Deposit.css';
 import { callDepositInit, callDepositConfirm } from '../../features/WalletDataSlice'
 import { fromSatoshi } from '../../wallet/util'
+
+import '../../containers/Deposit/Deposit.css';
+import '../index.css';
 
 const TransactionsBTC = (props) => {
   const deposits_initialised = useSelector(state => state.walletData).deposits_initialised;
@@ -47,9 +49,9 @@ const TransactionsBTC = (props) => {
     <div className=" deposit">
       {populateWithTransactionDisplayPanels}
       <div className="Body">
-        <span className={"create-title"} onClick={despositConfirm}>
-        FINALIZE DEPOSITS
-        </span>
+          <button type="button" className="std-button" onClick={despositConfirm}>
+              PERFORM TRANSFER RECEIVER
+          </button>
       </div>
     </div>
   )

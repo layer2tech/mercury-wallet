@@ -127,15 +127,14 @@ const SendStatecoinPage = () => {
               </div>
           </div>
 
-          <div className="sendStatecoin content">
-            <div className="Body left transfer">
+            <div className="Body transferMsg">
                 <h3 className="subtitle">Transfer Message:</h3>
-                <div  className="msg">
-                    <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
-                    <span>{transferMsg3}</span>
+                <div className="transferMsg scan-trasfermsg">
+                  <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
+                    <span>
+                      {transferMsg3}
+                    </span>
                 </div>
-
-            </div>
 
         </div>
       </div>

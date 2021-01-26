@@ -119,7 +119,11 @@
     "mac": {
       "category": "public.app-category.utilities",
       "hardenedRuntime": true,
-      "entitlements": "./node_modules/electron-builder-notarize/entitlements.mac.inherit.plist"
+      "entitlements": "./node_modules/electron-builder-notarize/entitlements.mac.inherit.plist",
+      "icon": "./public/icons/mercury-symbol-tri-color.icns"
+    },
+    "win": {
+      "icon": "./public/icons/mercury-symbol-tri-color.png"
     },
     "files": [
       "build/**/*",
