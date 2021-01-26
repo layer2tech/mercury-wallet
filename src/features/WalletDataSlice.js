@@ -1,11 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 import { Wallet, ACTION, StateCoinList } from '../wallet'
-import { getFeeInfo, getSmtProof } from '../wallet/mercury/info_api'
+import { getFeeInfo, getSmtProof, pingServer } from '../wallet/mercury/info_api'
 
 import { v4 as uuidv4 } from 'uuid';
 
 import * as bitcoin from 'bitcoinjs-lib';
+
 
 let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
 // Perform a deposit right away
@@ -13,6 +14,10 @@ let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
 //   let funding_txid = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce";
 //   wallet.depositConfirm(funding_txid, res[1]);
 // });
+
+pingServer(wallet.http_client).then((res) => {
+  if (typeof(res) == "object") throw Error("No connection to Server.")
+});
 
 let [coins_data, total_balance] = wallet.getUnspentStatecoins()
 

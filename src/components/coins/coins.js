@@ -26,7 +26,7 @@ import '../index.css';
 const Coins = (props) => {
     const [showCoinDetails, setShowCoinDetails] = useState({show: false,  coin: {value: 0}});  // Display details of Coin in Modal
     const handleOpenCoinDetails = (shared_key_id) => {
-      let coin = coins_data.find((coin) => {return coin.shared_key_id==shared_key_id})
+      let coin = coins_data.find((coin) => {return coin.shared_key_id===shared_key_id})
       setShowCoinDetails({show: true, coin: coin});
     }
     const handleCloseCoinDetails = () => {

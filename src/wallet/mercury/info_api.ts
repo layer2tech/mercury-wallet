@@ -3,6 +3,14 @@ import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE } from "..";
 let types = require("../types")
 let typeforce = require('typeforce');
 
+export const pingServer = async (
+  http_client: HttpClient | MockHttpClient,
+) => {
+  let res = await http_client.get(GET_ROUTE.PING, {});
+  console.log("res; ", res)
+  return res
+}
+
 export const getFeeInfo = async (
   http_client: HttpClient | MockHttpClient,
 ) => {
