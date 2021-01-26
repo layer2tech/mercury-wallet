@@ -29,7 +29,6 @@ const ReceiveStatecoinPage = () => {
   }
 
   const receiveButtonAction =() => {
-    console.log("transfer_msg3: ", transfer_msg3)
     // check statechain is chosen
     if (!transfer_msg3) {
       alert("Paste TransferMsg3 to perform transfer receiver.");

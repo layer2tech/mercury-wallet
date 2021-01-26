@@ -16,7 +16,7 @@ const TransactionsBTC = (props) => {
 
   // run depositInit for selected deposit amount if not already complete
   props.selectedValues.forEach((item, id) => {
-    if (!item.initialised) {
+    if (!item.initialised && item.value !== null) {
       dispatch(callDepositInit({value: item.value}))
       props.setValueSelectionInitialised(id)
     }
@@ -32,11 +32,11 @@ const TransactionsBTC = (props) => {
   }
 
   const populateWithTransactionDisplayPanels = props.selectedValues.map((item, index) => {
-    if (item != null) {
+    if (item.value != null) {
       return (
         <div key={index}>
           <div>
-            <TransactionDisplay amount={item.value} confirmations={0} address={"fdjle"}/>
+            <TransactionDisplay amount={item.value} confirmations={0} address={"tb1qxak9urlhzrvp3842c0m7f7ql67qaw8d2t7ntnt"}/>
           </div>
       </div>
       )

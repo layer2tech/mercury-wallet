@@ -1,6 +1,6 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
-import { Network, Transaction } from "bitcoinjs-lib";
+import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
@@ -37,7 +37,7 @@ export const transferSender = async (
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,
-  proof_key_der: any,
+  proof_key_der: BIP32Interface,
   receiver_addr: string
 ): Promise<TransferMsg3> => {
   // Checks for spent, owned etc here
@@ -100,7 +100,7 @@ export const transferSender = async (
 
   // Get SE's x1
   let x1 = transfer_msg2.x1.secret_bytes;
-  let x1_dec = decryptECIESx1(proof_key_der.privateKey.toString("hex"), Buffer.from(x1).toString("hex"));
+  let x1_dec = decryptECIESx1(proof_key_der.privateKey!.toString("hex"), Buffer.from(x1).toString("hex"));
 
   let o1_bn = new BN(o1, 16);
   let x1_bn = new BN(x1_dec, 16);
@@ -132,7 +132,7 @@ export const transferSender = async (
 export const transferReceiver = async (
   http_client: HttpClient | MockHttpClient,
   transfer_msg3: any,
-  se_rec_addr_bip32: any,
+  se_rec_addr_bip32: BIP32Interface,
   _batch_data: any
 ): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
@@ -145,14 +145,14 @@ export const transferReceiver = async (
   if (!statechain_sig.verify(prev_owner_proof_key_der)) throw "Invalid StateChainSig."
 
   // decrypt t1
-  let t1 = decryptECIES(se_rec_addr_bip32.privateKey.toString("hex"), transfer_msg3.t1.secret_bytes)
+  let t1 = decryptECIES(se_rec_addr_bip32.privateKey!.toString("hex"), transfer_msg3.t1.secret_bytes)
 
   // calculate t2
   let t1_bn = new BN(t1, 16);
 
   // get o2 private key and corresponding 02 public key
   let o2_keypair = se_rec_addr_bip32;
-  let o2 = o2_keypair.privateKey.toString("hex");
+  let o2 = o2_keypair.privateKey!.toString("hex");
 
   let o2_bn = new BN(o2, 16);
   let o2_inv_bn = o2_bn.invm(n);

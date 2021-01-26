@@ -36,7 +36,7 @@ export class StateCoinList {
       }
       return
     })
-    return [coins.map(item => item.getDisplayInfo()), total]
+    return [coins.map((item: StateCoin) => item.getDisplayInfo()), total]
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
@@ -135,7 +135,7 @@ export class StateCoin {
 
   // Get public key from SharedKey
   getSharedPubKey(): string {
-    return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed();
+    return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed("hex");
   }
 }
 
