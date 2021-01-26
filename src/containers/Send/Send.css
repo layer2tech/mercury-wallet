@@ -4,7 +4,6 @@
     text-align: left;
     font-weight: 400;
     padding-left: 62px;
-
 }
 
 
@@ -271,14 +270,33 @@ input.quantity {
 .sendStatecoin input.checkbox {
     border: 1px solid #757575;
 }
-.sendStatecoin.content .transfer {
 
-
-}
 .sendStatecoin.content .transfer .msg {
     display:flex;
-    align-items: center;
     justify-content:space-between;
+
+}
+
+.transferMsg.content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.transferMsg .scan-trasfermsg {
+    display: flex;
+    background-color: #ECF2FF;
+    padding: 20px;
+    align-items: baseline;
+    border-radius: 6px;
+}
+
+
+.transferMsg .subtitle {
+    color: #676767;
+    font-size: 20px;
+    text-align: left;
+    font-weight: 400;
 
 }
 

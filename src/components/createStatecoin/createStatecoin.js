@@ -18,7 +18,7 @@ const CreateStatecoin = (props) => {
     const populateWithSelectionPanels = props.selectedValues.map((item, index) => (
         <div key={index}>
           <div>
-            <ValueSelectionPanel id={index} selectedValue={item} addValueSelection={props.addValueSelection}/>
+            <ValueSelectionPanel id={index} selectedValue={item.value} addValueSelection={props.addValueSelection}/>
           </div>
         </div>
       ));
