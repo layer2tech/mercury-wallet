@@ -10,7 +10,6 @@ import * as bitcoin from 'bitcoinjs-lib';
 let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
 // Perform a deposit right away
 // wallet.depositInit(10000).then((res) => {
-//   console.log("res: ", res)
 //   let funding_txid = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce";
 //   wallet.depositConfirm(funding_txid, res[1]);
 // });

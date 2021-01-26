@@ -24,18 +24,21 @@ import './coins.css';
 import '../index.css';
 
 const Coins = (props) => {
-    const [showCoinDetails, setShowCoinDetails] = useState(false);  // Display details of Coin in Modal
-    const handleOpenCoinDetails = () => setShowCoinDetails(true);
+    const [showCoinDetails, setShowCoinDetails] = useState({show: false,  coin: {value: 0}});  // Display details of Coin in Modal
+    const handleOpenCoinDetails = (shared_key_id) => {
+      let coin = coins_data.find((coin) => {return coin.shared_key_id==shared_key_id})
+      setShowCoinDetails({show: true, coin: coin});
+    }
     const handleCloseCoinDetails = () => {
       props.setSelectedCoin(null);
-      setShowCoinDetails(false);
+      setShowCoinDetails({show: false,  coin: {value: 0}});
     }
 
     // Set selected coin
     const selectCoin = (shared_key_id) => {
       shared_key_id === props.selectedCoin ? props.setSelectedCoin(null) : props.setSelectedCoin(shared_key_id);
       if (props.displayDetailsOnClick) {
-        handleOpenCoinDetails()
+        handleOpenCoinDetails(shared_key_id)
       }
     }
 
@@ -147,7 +150,6 @@ const Coins = (props) => {
                         <div className="CoinTimeLeft">
                             <img src={timeIcon} alt="icon"/>
                             <span>Time Until Expiry: 12 months</span>
-
                         </div>
 
                     </div>
@@ -189,7 +191,7 @@ const Coins = (props) => {
                     </div>
                     <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
-                        {item.txid}
+                        {item.funding_txid}
                     </b>
                 </div> : null}
             </div>
@@ -200,7 +202,7 @@ const Coins = (props) => {
         <div>
             {statecoinData}
 
-            <Modal show={showCoinDetails} onHide={handleCloseCoinDetails} className="modal">
+            <Modal show={showCoinDetails.show} onHide={handleCloseCoinDetails} className="modal">
 
                 <Modal.Body>
                     <div>
@@ -209,7 +211,7 @@ const Coins = (props) => {
                             <div className="block">
                                 <span>Statecoin Value</span>
                                 <span>
-                                    <b>{props.amount} BTC</b>
+                                    <b>{fromSatoshi(showCoinDetails.coin.value)} BTC</b>
                                 </span>
                             </div>
                         </div>
@@ -217,22 +219,22 @@ const Coins = (props) => {
                             <img src={utx} alt="icon"/>
                             <div className="block">
                                 <span>UTXO ID:</span>
-                                <span>4ef47f6eb681d5d94ef47f6eb681d5d94ef47f6eb681d5d94ef47f6eb681d5d94ef47f6eb6</span>
+                                <span>{showCoinDetails.coin.funding_txid}</span>
                             </div>
                         </div>
                         <div className="item">
                             <img src={time} alt="icon"/>
                             <div className="block">
                                 <span>Time Left Until Expiry</span>
-                                <span>411.8 Months</span>
-                                <span>bar</span>
+                                <span>12 Months</span>
+                                <span></span>
                             </div>
                         </div>
                         <div className="item">
                             <img src={calendar} alt="icon"/>
                             <div className="block">
                                 <span>Date Created</span>
-                                <span>412.10.2020
+                                <span>{showCoinDetails.coin.timestamp}
                                     <br/>
                                     13:30:12PM
                                 </span>
@@ -243,7 +245,7 @@ const Coins = (props) => {
 
                             <div className="block">
                                 <span>Privacy Score</span>
-                                <span>Low: 10</span>
+                                <span>Low: 0</span>
 
                             </div>
                             <img className="question-icon" src={question} alt="icon"/>
@@ -252,17 +254,13 @@ const Coins = (props) => {
                             <img src={swapNumber} alt="icon"/>
                             <div className="block">
                                 <span>Number of Swaps Rounds</span>
-                                <span>SwapId: 10
+                                <span>Swaps: {showCoinDetails.coin.swap_rounds}
                                     <br/>
-                                    Number of Participants: 10
+                                    Number of Participants: 0
                                 </span>
                             </div>
-
                         </div>
-
-
                     </div>
-
 
                 </Modal.Body>
                 <Modal.Footer>
