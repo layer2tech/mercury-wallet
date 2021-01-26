@@ -18,7 +18,7 @@ let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
 let [coins_data, total_balance] = wallet.getUnspentStatecoins()
 
 const initialState = {
-  fee_info: {},
+  fee_info: getFeeInfo(wallet.http_client),
   coins_data: coins_data,
   total_balance: total_balance,
   activity_data: wallet.getActivityLog(10),
@@ -43,8 +43,8 @@ const WalletSlice = createSlice({
       state.activity_data =  wallet.getActivityLog(10)
     },
     // Get Server Fee info
-    callGetFeeInto(state, action) {
-      state.fee_info = getFeeInfo(wallet.http_client);
+    callGetFeeInfo(state, action) {
+      state.fee_info = getFeeInfo(wallet.http_client)
     },
     // Deposit
     dummyDeposit() {
@@ -102,7 +102,7 @@ const WalletSlice = createSlice({
 
 
 
-export const { callGenSeAddr, callGetFeeInto, refreshCoinData, callDepositInit, callWithdraw, callDepositConfirm, callTransferSender, callTransferReceiver } = WalletSlice.actions
+export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, callDepositInit, callWithdraw, callDepositConfirm, callTransferSender, callTransferReceiver } = WalletSlice.actions
 export default WalletSlice.reducer
 
 

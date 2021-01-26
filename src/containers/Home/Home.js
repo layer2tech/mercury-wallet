@@ -3,7 +3,7 @@ import { withRouter } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux'
 
 import { PanelControl, PanelConnectivity, PanelCoinsActivity } from '../../components'
-import { refreshCoinData, callDeposit } from '../../features/WalletDataSlice'
+import { refreshCoinData, callGetFeeInfo } from '../../features/WalletDataSlice'
 
 const HomePage = () => {
   const dispatch = useDispatch();
