@@ -23,7 +23,7 @@
     }
   },
   "repository": "github:commerceblock/mercury-wallet",
-  "version": "21.27.01a",
+  "version": "21.27.01b",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
