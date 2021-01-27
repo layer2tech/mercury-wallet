@@ -1,6 +1,6 @@
 # Mercury Wallet
 
-GUI Client Mercury implementation.
+A cross-platform GUI for Mercury written in node.js using Electron.
 
 
 # Run development
@@ -54,3 +54,13 @@ To build wasm:
 
 You can edit files outside of container with your normal text editor and then
 issue cargo/wasm build in container again.
+
+# Contact
+
+If you have any further questions you can find us at:
+
+# Issue Tracker
+
+# License 
+
+Mercury Wallet is released under the terms of the GNU General Public License. See for more information https://opensource.org/licenses/GPL-3.0
