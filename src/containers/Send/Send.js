@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import { Coins, Quantity, StdButton } from "../../components";
 import { fromSatoshi } from '../../wallet/util'
+import { decodeSCEAddress, encodeMessage } from '../../wallet/util'
 import { callTransferSender } from '../../features/WalletDataSlice'
 
 import './Send.css';
@@ -21,7 +22,7 @@ const SendStatecoinPage = () => {
   const num_statecoins = useSelector(state => state.walletData).coins_data.length;
   const transfer_msg3_promise = useSelector(state => state.walletData).transfer_msg3;
   transfer_msg3_promise.then((transfer_msg3) => {
-    setTransferMsg3(JSON.stringify(transfer_msg3))
+    setTransferMsg3(encodeMessage(transfer_msg3))
   })
 
   const onInputAddrChange = (event) => {
@@ -40,7 +41,28 @@ const SendStatecoinPage = () => {
       alert("Please enter an StateCoin address to send to.");
       return
     }
-    dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": inputAddr}))
+
+    var input_pubkey = "";
+
+    try {
+      input_pubkey = decodeSCEAddress(inputAddr);
+    } catch (e) {
+      alert("Error: " + e.message);
+      return      
+    }
+
+    if (!(input_pubkey.slice(0,2) == '02' || input_pubkey.slice(0,2) == '03')) {
+      alert("Error: invalid proof public key");
+      return
+    }
+
+    if (input_pubkey.length != 66) {
+      alert("Error: invalid proof public key");
+      return
+    }
+
+    dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
+
   }
 
   const copyTransferMsgToClipboard = () => {
@@ -83,13 +105,6 @@ const SendStatecoinPage = () => {
               <div className="Body right">
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>
-                      <div>
-                          <select name="1" id="1">
-                              <option value="1">Low 7sat/B</option>
-                          </select>
-                          <span className="small">Transaction Fee</span>
-                      </div>
-
                   </div>
                   <div>
                      <div className="inputs">
@@ -127,15 +142,14 @@ const SendStatecoinPage = () => {
               </div>
           </div>
 
-          <div className="sendStatecoin content">
-            <div className="Body left transfer">
+            <div className="Body transferMsg">
                 <h3 className="subtitle">Transfer Message:</h3>
-                <div  className="msg">
-                    <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
-                    <span>{transferMsg3}</span>
+                <div className="transferMsg scan-trasfermsg">
+                  <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
+                    <span>
+                      {transferMsg3}
+                    </span>
                 </div>
-
-            </div>
 
         </div>
       </div>

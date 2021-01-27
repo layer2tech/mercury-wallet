@@ -18,13 +18,15 @@ import { CreateStatecoin, TransactionsBTC, StdButton} from "../../components";
 
 import './Deposit.css';
 
+const DEFUALT_VALUE_SELECTION = 1000000;
+
 const DepositPage = () => {
     // Show settings
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
-    const [selectedValues, setSelectedValues] = useState([{value: null, initialised: false}]);
+    const [selectedValues, setSelectedValues] = useState([{value: DEFUALT_VALUE_SELECTION, initialised: false}]);
 
     // Value in some SelectionPanel that has been chosen
     const addValueSelection = (id, value) => {
@@ -43,7 +45,7 @@ const DepositPage = () => {
     // Add SelectionPanel to form
     const addSelectionPanel = (id, value) => {
       let current_values = selectedValues;
-      current_values.push({value: null, initialised: false});
+      current_values.push({value: DEFUALT_VALUE_SELECTION, initialised: false});
       setSelectedValues(current_values);
     }
 
