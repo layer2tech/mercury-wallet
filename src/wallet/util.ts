@@ -3,6 +3,8 @@
 import { BIP32Interface, Network, TransactionBuilder, crypto, script, Transaction } from 'bitcoinjs-lib';
 import { Root } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
+import { TransferMsg3 } from './mercury/transfer';
+
 
 import { encrypt, decrypt } from 'eciesjs'
 import { segwitAddr } from './wallet';
@@ -14,9 +16,10 @@ let types = require("./types")
 
 let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
+var msgpack = require("msgpack-lite");
 
 /// Temporary - fees should be calculated dynamically
-export const FEE = 300;
+export const FEE = 1000;
 
 // Verify Spase Merkle Tree proof of inclusion
 export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {
@@ -135,15 +138,31 @@ export const txWithdrawBuild = (network: Network, funding_txid: string, rec_addr
 
 
 // Bech32 encode SCEAddress (StateChain Entity Address)
-export const encodeSCEAddress = (proof_key: string): string => {
-  let words = bech32.toWords(Buffer.from(proof_key, 'utf8'))
+export const encodeSCEAddress = (proof_key: string) => {
+  let words = bech32.toWords(Buffer.from(proof_key, 'hex'))
   return bech32.encode('sc', words)
 }
 
 // Bech32 decode SCEAddress
 export const decodeSCEAddress = (sce_address: string): string => {
   let decode =  bech32.decode(sce_address)
-  return Buffer.from(bech32.fromWords(decode.words)).toString()
+  return Buffer.from(bech32.fromWords(decode.words)).toString('hex')
+}
+
+// Bech32 encode transfer message
+export const encodeMessage = (message: TransferMsg3) => {
+  let buffer = msgpack.encode(message);
+  console.log(buffer.length)
+  let words = bech32.toWords(buffer)
+  console.log(words.length)
+  return bech32.encode('mm', words, 6000)
+}
+
+// Bech32 decode transfer message
+export const decodeMessage = (enc_message: string): TransferMsg3 => {
+  let decode =  bech32.decode(enc_message, 6000);
+  let buf = Buffer.from(bech32.fromWords(decode.words))
+  return msgpack.decode(buf)
 }
 
 // encode Secp256k1Point to {x: string, y: string}

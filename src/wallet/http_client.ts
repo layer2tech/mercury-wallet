@@ -1,7 +1,7 @@
 const axios = require('axios').default;
 
-// const state_entity_addr = "http://0.0.0.0:8000";
-const state_entity_addr = "https://fakeapi.mercurywallet.io";
+const state_entity_addr = "http://0.0.0.0:8000";
+// const state_entity_addr = "https://fakeapi.mercurywallet.io";
 
 export const GET_ROUTE = {
   PING: "ping",

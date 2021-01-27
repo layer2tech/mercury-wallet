@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 import { Wallet, ACTION, StateCoinList } from '../wallet'
 import { getFeeInfo, getSmtProof, pingServer } from '../wallet/mercury/info_api'
+import { decodeMessage } from '../wallet/util'
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -97,7 +98,7 @@ const WalletSlice = createSlice({
     // TransferReceiver
     callTransferReceiver(state, action) {
       try {
-        wallet.transfer_receiver(JSON.parse(action.payload))
+        wallet.transfer_receiver(decodeMessage(action.payload))
       }
         catch (e) { alert(e) };
     },
