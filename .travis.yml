@@ -40,7 +40,6 @@ script:
       ls -la dist/mac
       echo "spctl status"
       sudo spctl --status
-      #echo "assess app"
       #spctl --assess -vvvv --type install dist/mac/*.app
       export APP_VER=$(node -e "console.log(require('./package.json').version)")
       #spctl -a -t open --context context:primary-signature -v dist/mercurywallet-$APP_VER.dmg
