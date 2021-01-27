@@ -92,7 +92,8 @@
     "superagent": "^6.1.0",
     "ts-jest": "^26.4.4",
     "typeforce": "^1.11.3",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "msgpack-lite": "^0.1.26"
   },
   "browserslist": {
     "production": [
