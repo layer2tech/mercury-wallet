@@ -126,6 +126,9 @@
     "win": {
       "icon": "./public/icons/mercury-symbol-tri-color.png"
     },
+    "linux": {
+      "icon": "./public/icons/mercury-symbol-tri-color.png"
+    },
     "files": [
       "build/**/*",
       "node_modules/**/*"
