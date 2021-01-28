@@ -23,6 +23,7 @@ pingServer(wallet.http_client).then((res) => {
 let [coins_data, total_balance] = wallet.getUnspentStatecoins()
 
 const initialState = {
+  version: wallet.version,
   fee_info: getFeeInfo(wallet.http_client),
   coins_data: coins_data,
   total_balance: total_balance,

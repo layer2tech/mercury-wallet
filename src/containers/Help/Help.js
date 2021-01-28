@@ -3,6 +3,7 @@ import question from "../../images/question-blue.png";
 import React from 'react';
 import {Link, withRouter} from "react-router-dom";
 import {Tab, Tabs} from "react-bootstrap";
+import { useSelector } from 'react-redux'
 
 import { StdButton } from '../../components/'
 
@@ -10,6 +11,8 @@ import './Help.css';
 
 
 const HelpPage = () => {
+  const version = useSelector(state => state.walletData).version;
+
   return (
     <div className="container">
 
@@ -37,7 +40,7 @@ const HelpPage = () => {
             <Tabs defaultActiveKey="About">
                 <Tab eventKey="About" title="About">
                     <div className="content">
-                        <span className="title">Title</span>
+                        <span className="title">v. {version} </span>
                         <p>About content here ...</p>
                     </div>
                 </Tab>

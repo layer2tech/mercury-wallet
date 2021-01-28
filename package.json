@@ -123,6 +123,9 @@
       "entitlements": "./node_modules/electron-builder-notarize/entitlements.mac.inherit.plist",
       "icon": "./public/icons/mercury-symbol-tri-color.icns"
     },
+    "linux": {
+      "icon": "./public/icons/mercury-symbol-tri-color.icns"
+    },
     "win": {
       "icon": "./public/icons/mercury-symbol-tri-color.png"
     },

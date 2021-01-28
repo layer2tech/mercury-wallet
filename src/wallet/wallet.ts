@@ -18,6 +18,7 @@ let fsLibrary  = require('fs');
 
 const WALLET_LOC = "wallet.json";
 
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   mnemonic: string;
@@ -29,6 +30,7 @@ export class Wallet {
   network: Network;
   testing_mode: boolean;
   jest_testing_mode: boolean;
+  version: string;
 
   constructor(mnemonic: string, account: any, network: Network, testing_mode: boolean) {
     this.mnemonic = mnemonic;
@@ -37,6 +39,7 @@ export class Wallet {
     this.activity = new ActivityLog();
     this.network = network;
     this.testing_mode = testing_mode;
+    this.version = require("../../package.json").version
     if (testing_mode) {
       this.electrum_client = new MockElectrumClient();
       this.http_client = new MockHttpClient();
