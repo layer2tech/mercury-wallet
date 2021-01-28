@@ -12,5 +12,4 @@ export { ACTION } from "./activity_log"
 export { txBackupBuild, verifySmtProof, pubKeyToScriptPubKey, pubKeyTobtcAddr } from "./util"
 
 export { depositInit, depositConfirm } from "./mercury/deposit"
-// export { MasterKey2 } from "./mercury/ecdsa";
 export { getFeeInfo, getRoot, getStateChain, getSmtProof, getTransferBatchStatus } from "./mercury/info_api"
