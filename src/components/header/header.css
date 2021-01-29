@@ -23,6 +23,12 @@
     display: flex;
 }
 
+.modal-dialog {
+    transform: translate(0, -50%) !important;
+    top: 50%;
+    margin: 0 auto !important;
+}
+
 .nav-item {
     color: #ffffff;
 }
