@@ -53,8 +53,8 @@ export const transferSender = async (
 
   // Get statechain from SE and check ownership
   let statechain_data = await getStateChain(http_client, statecoin.statechain_id);
-  if (statechain_data.amount == 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
-  if (statechain_data.chain.pop().data != statecoin.proof_key) throw "StateChain not owned by this Wallet. Incorrect proof key."
+  if (statechain_data.amount === 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
+  if (statechain_data.chain.pop().data !== statecoin.proof_key) throw "StateChain not owned by this Wallet. Incorrect proof key."
 
   // Sign statecoin to signal desire to Transfer
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
@@ -203,7 +203,7 @@ export const transferReceiverFinalize = async (
   let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER);
   statecoin.funding_txid = finalize_data.state_chain_data.utxo;
 
-  // Check shared key master public key == private share * SE public share
+  // Check shared key master public key === private share * SE public share
   // let P = BigInt("0x" + finalize_data.s2_pub) * BigInt("0x" + finalize_data.o2) * BigInt("0x" + finalize_data.theta)
   // if (P
   //     != wallet

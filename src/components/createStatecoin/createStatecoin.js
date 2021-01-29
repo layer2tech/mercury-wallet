@@ -1,6 +1,6 @@
 import plus from "../../images/plus-deposit.png";
 
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 
 import ValueSelectionPanel from "./valueSelection/valueSelection";
 

@@ -152,9 +152,7 @@ export const decodeSCEAddress = (sce_address: string): string => {
 // Bech32 encode transfer message
 export const encodeMessage = (message: TransferMsg3) => {
   let buffer = msgpack.encode(message);
-  console.log(buffer.length)
   let words = bech32.toWords(buffer)
-  console.log(words.length)
   return bech32.encode('mm', words, 6000)
 }
 

@@ -1,9 +1,7 @@
 import arrow from '../../images/arrow-accordion.png';
 
-import { callGetFeeInfo } from '../../features/WalletDataSlice'
-
-import React, {useState, useEffect} from "react";
-import { useSelector, useDispatch } from 'react-redux'
+import React, {useState} from "react";
+import { useSelector } from 'react-redux'
 
 import './panelConnectivity.css';
 import '../index.css';
@@ -16,7 +14,7 @@ const PanelConnectivity = (props) => {
 
   // Fee info state
   const [stateFeeInfo, setStateFeeInfo] = useState({deposit: "NA", withdraw: "NA"});
-  const dispatch = useDispatch();
+
   const fee_info_promise = useSelector(state => state.walletData).fee_info;
   const config = useSelector(state => state.walletData).config;
 
