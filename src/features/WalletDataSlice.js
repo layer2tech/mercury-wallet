@@ -35,7 +35,7 @@ const WalletSlice = createSlice({
   reducers: {
     // Gen new SE Address
     callGenSeAddr(state) {
-      state.rec_se_addr = wallet.genProofKey().publicKey.toString('hex');
+      state.rec_se_addr = encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'));
     },
     // Get list of coins from wallet
     refreshCoinData(state, action) {

@@ -66,7 +66,9 @@ const ReceiveStatecoinPage = () => {
         <div className="receiveStatecoin content">
             <div className="Body">
                 <div className="receiveStatecoin-scan">
+                    {/*
                     <img src={scan} alt="image"/>
+                    */}
                     <div className="receiveStatecoin-scan-content">
                         <div className="receiveStatecoin-scan-txid">
                           <img type="button" src={icon2} alt="icon" onClick={copySEAddressToClipboard}/>
