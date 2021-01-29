@@ -3,6 +3,7 @@ import question from "../../images/question-blue.png";
 import React from 'react';
 import {Link, withRouter} from "react-router-dom";
 import {Tab, Tabs} from "react-bootstrap";
+import { useSelector } from 'react-redux'
 
 import { StdButton } from '../../components/'
 
@@ -10,8 +11,11 @@ import './Help.css';
 
 
 const HelpPage = () => {
+  const config = useSelector(state => state.walletData).config;
+
   return (
     <div className="container">
+    <p> Help page is under construction. </p>
 
       <div className="Body help">
           <div className="swap-header">
@@ -37,7 +41,7 @@ const HelpPage = () => {
             <Tabs defaultActiveKey="About">
                 <Tab eventKey="About" title="About">
                     <div className="content">
-                        <span className="title">Title</span>
+                        <span className="title">v. {config.version} </span>
                         <p>About content here ...</p>
                     </div>
                 </Tab>

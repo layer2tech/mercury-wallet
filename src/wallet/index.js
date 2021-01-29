@@ -9,8 +9,8 @@ export { MockWasm } from './mocks/mock_wasm';
 export { Wallet } from "./wallet"
 export { StateCoin, StateCoinList } from "./statecoin"
 export { ACTION } from "./activity_log"
-export { txBackupBuild, verifySmtProof, pubKeyToScriptPubKey, pubKeyTobtcAddr } from "./util"
+export { txBackupBuild, verifySmtProof, pubKeyToScriptPubKey, pubKeyTobtcAddr, fromSatoshi } from "./util"
+export { Logger } from "./logger"
 
 export { depositInit, depositConfirm } from "./mercury/deposit"
-// export { MasterKey2 } from "./mercury/ecdsa";
 export { getFeeInfo, getRoot, getStateChain, getSmtProof, getTransferBatchStatus } from "./mercury/info_api"

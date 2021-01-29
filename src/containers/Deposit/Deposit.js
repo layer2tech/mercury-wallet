@@ -1,13 +1,5 @@
 import plus from "../../images/plus-deposit.png";
 import points from "../../images/points.png";
-import walleticon from "../../images/walletIcon.png";
-import utx from "../../images/UTX.png";
-import time from "../../images/time-grey.png";
-import calendar from "../../images/calendar.png";
-import privacy from "../../images/privacy.png";
-import question from "../../images/question-grey.png";
-import swapNumber from "../../images/swap-number.png";
-import pluseIcon from "../../images/pluseIcon.png";
 
 import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";

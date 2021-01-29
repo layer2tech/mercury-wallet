@@ -31,16 +31,13 @@ const PanelControl = () => {
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
 
-                <Link className="nav-link" to="/deposit">
-                    <StdButton
-                        label="Deposit"  icon={pluseIcon}
-                        className="Body-button blue"/>
-                </Link>
-
-
+          <Link className="nav-link" to="/deposit">
+              <StdButton
+                  label="Deposit"  icon={pluseIcon}
+                  className="Body-button blue"/>
+          </Link>
 
           <Link className="nav-link" to="/swap_statecoin">
-
             <StdButton
                 label="Swap" icon={swapIcon}
 
@@ -52,7 +49,6 @@ const PanelControl = () => {
                 label="Withdraw" icon={walletIconSmall}
                 className="Body-button yellow"/>
           </Link>
-
 
         </div>
         <div className="ActionGroupRight">

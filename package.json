@@ -23,7 +23,7 @@
     }
   },
   "repository": "github:commerceblock/mercury-wallet",
-  "version": "21.27.01a",
+  "version": "21.29.01",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
@@ -38,7 +38,7 @@
     "build-wasm": "wasm-pack build --dev client-wasm",
     "app-windows": "yarn install && yarn build && electron-builder -w -p always",
     "app-linux": "yarn install && yarn build && electron-builder -l AppImage -p always",
-    "app-macos": "yarn install && yarn build && DEBUG=electron-builder electron-builder -m -p always",
+    "app-macos": "yarn install && yarn build && electron-builder -m -p always",
     "app-macos-local-test": "yarn install && yarn build && DEBUG=electron-builder electron-builder -m -p never",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },
@@ -123,12 +123,22 @@
       "entitlements": "./node_modules/electron-builder-notarize/entitlements.mac.inherit.plist",
       "icon": "./public/icons/mercury-symbol-tri-color.icns"
     },
+    "linux": {
+      "icon": "./public/icons/mercury-symbol-tri-color.icns"
+    },
     "win": {
       "icon": "./public/icons/mercury-symbol-tri-color.png"
     },
     "files": [
       "build/**/*",
       "node_modules/**/*"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "commerceblock",
+        "repo": "mercury-wallet"
+      }
     ],
     "directories": {
       "buildResources": "assets"

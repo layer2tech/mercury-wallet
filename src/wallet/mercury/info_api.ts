@@ -6,9 +6,7 @@ let typeforce = require('typeforce');
 export const pingServer = async (
   http_client: HttpClient | MockHttpClient,
 ) => {
-  let res = await http_client.get(GET_ROUTE.PING, {});
-  console.log("res; ", res)
-  return res
+  return await http_client.get(GET_ROUTE.PING, {})
 }
 
 export const getFeeInfo = async (

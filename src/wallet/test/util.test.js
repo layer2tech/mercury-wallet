@@ -2,7 +2,7 @@ import { TransactionBuilder, crypto, networks, ECPair } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, txBackupBuild, txWithdrawBuild, StateChainSig, toSatoshi, fromSatoshi,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point, encryptECIES, decryptECIES } from '../util';
-import { FUNDING_TXID, BTC_ADDR, SIGNSTATECHAIN_DATA } from './test_data.js'
+import { FUNDING_TXID, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY } from './test_data.js'
 import { Wallet } from '../';
 
 import { encrypt, decrypt, PrivateKey } from 'eciesjs'
@@ -79,7 +79,7 @@ describe('txWithdrawBuild', function() {
 });
 
 test('bech32 encode/decode', function() {
-  let proof_key = BTC_ADDR;
+  let proof_key = PROOF_KEY;
   let encode = encodeSCEAddress(proof_key);
   expect(encode.slice(0,2)).toBe("sc");
   let decode = decodeSCEAddress(encode);

@@ -3,7 +3,7 @@ import icon1 from "../../images/icon1.png";
 import icon2 from "../../images/icon2.png";
 import arrow from "../../images/scan-arrow.png";
 
-import React, {useState} from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 
 import { callDepositInit, callDepositConfirm } from '../../features/WalletDataSlice'

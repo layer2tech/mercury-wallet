@@ -2,13 +2,14 @@
 
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
-import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList, MockWasm, StateCoin } from './';
+import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
+  MockWasm, StateCoin, Logger, pubKeyTobtcAddr, fromSatoshi } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
 import { v4 as uuidv4 } from 'uuid';
-import { pubKeyTobtcAddr, fromSatoshi } from './util';
+
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -18,8 +19,10 @@ let fsLibrary  = require('fs');
 
 const WALLET_LOC = "wallet.json";
 
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
+  logger: Logger;
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
@@ -29,14 +32,17 @@ export class Wallet {
   network: Network;
   testing_mode: boolean;
   jest_testing_mode: boolean;
+  version: string;
 
   constructor(mnemonic: string, account: any, network: Network, testing_mode: boolean) {
+    this.logger = new Logger(4, false);
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
     this.activity = new ActivityLog();
     this.network = network;
     this.testing_mode = testing_mode;
+    this.version = require("../../package.json").version
     if (testing_mode) {
       this.electrum_client = new MockElectrumClient();
       this.http_client = new MockHttpClient();
@@ -198,7 +204,7 @@ export class Wallet {
 
   // Initialise deposit
   async depositInit(value: number) {
-    console.log("Depositing Init. ", fromSatoshi(value), "BTC");
+    this.logger.info("Depositing Init. "+fromSatoshi(value) + " BTC");
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
@@ -219,7 +225,7 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.network);
 
-    console.log("Deposite Init done. Send coins to ", p_addr);
+    this.logger.info("Deposite Init done. Send coins to "+p_addr);
     return [p_addr, statecoin]
   }
 
@@ -229,7 +235,7 @@ export class Wallet {
     funding_txid: string,
     statecoin: StateCoin
   ): Promise<StateCoin> {
-    console.log("Depositing Confirm shared_key_id: ", statecoin.shared_key_id);
+    this.logger.info("Depositing Confirm shared_key_id: "+statecoin.shared_key_id);
     // Add funding_txid to statecoin
     statecoin.funding_txid = funding_txid;
 
@@ -248,7 +254,7 @@ export class Wallet {
     statecoin_finalized.confirmed = true;
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
-    console.log("Deposite Confirm done.");
+    this.logger.info("Deposite Confirm done.");
     return statecoin_finalized
   }
 
@@ -259,7 +265,7 @@ export class Wallet {
     shared_key_id: string,
     receiver_se_addr: string
   ): Promise<TransferMsg3> {
-    console.log("Transfer Sender for ", shared_key_id)
+    this.logger.info("Transfer Sender for "+shared_key_id)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.network) }
       catch (e) { throw "Invlaid receiver address - Should be hexadecimal public key." }
@@ -274,7 +280,7 @@ export class Wallet {
     // Mark funds as spent in wallet
     this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
 
-    console.log("Transfer Sender complete.")
+    this.logger.info("Transfer Sender complete.")
     return transfer_sender;
   }
 
@@ -282,7 +288,7 @@ export class Wallet {
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
   async transfer_receiver(transfer_msg3: TransferMsg3): Promise<TransferFinalizeData> {
-    console.log("Transfer Receiver for statechain ", transfer_msg3.statechain_id)
+    this.logger.info("Transfer Receiver for statechain "+transfer_msg3.statechain_id)
     let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
 
     // Get SE address that funds are being sent to.
@@ -301,18 +307,19 @@ export class Wallet {
         this.transfer_receiver_finalize(finalize_data);
     }
 
-    console.log("Transfer Receiver complete.")
     return finalize_data
   }
 
   async transfer_receiver_finalize(
     finalize_data: TransferFinalizeData
   ): Promise<StateCoin> {
+    this.logger.info("Transfer Finalize for: "+finalize_data.new_shared_key_id)
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
 
     // update in wallet
     this.statecoins.addCoin(statecoin_finalized);
 
+    this.logger.info("Transfer Finalize complete.")
     return statecoin_finalized
   }
 
@@ -323,7 +330,7 @@ export class Wallet {
     shared_key_id: string,
     rec_addr: string
   ): Promise<Transaction> {
-    console.log("Withdrawing ",shared_key_id, " to ", rec_addr);
+    this.logger.info("Withdrawing "+shared_key_id+" to "+rec_addr);
     // Check address format
     try { bitcoin.address.toOutputScript(rec_addr, this.network) }
       catch (e) { throw "Invalid Bitcoin address entered." }
@@ -340,7 +347,7 @@ export class Wallet {
     this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
     this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
 
-    console.log("Withdrawing finished.");
+    this.logger.info("Withdrawing finished.");
 
     // Broadcast transcation
     return tx_withdraw

@@ -48,15 +48,15 @@ const SendStatecoinPage = () => {
       input_pubkey = decodeSCEAddress(inputAddr);
     } catch (e) {
       alert("Error: " + e.message);
-      return      
+      return
     }
 
-    if (!(input_pubkey.slice(0,2) == '02' || input_pubkey.slice(0,2) == '03')) {
+    if (!(input_pubkey.slice(0,2) === '02' || input_pubkey.slice(0,2) === '03')) {
       alert("Error: invalid proof public key");
       return
     }
 
-    if (input_pubkey.length != 66) {
+    if (input_pubkey.length !== 66) {
       alert("Error: invalid proof public key");
       return
     }
