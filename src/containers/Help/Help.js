@@ -11,7 +11,7 @@ import './Help.css';
 
 
 const HelpPage = () => {
-  const version = useSelector(state => state.walletData).version;
+  const config = useSelector(state => state.walletData).config;
 
   return (
     <div className="container">
@@ -41,7 +41,7 @@ const HelpPage = () => {
             <Tabs defaultActiveKey="About">
                 <Tab eventKey="About" title="About">
                     <div className="content">
-                        <span className="title">v. {version} </span>
+                        <span className="title">v. {config.version} </span>
                         <p>About content here ...</p>
                     </div>
                 </Tab>

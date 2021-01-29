@@ -16,10 +16,11 @@ pingServer(wallet.http_client).then((res) => {
 });
 
 let [coins_data, total_balance] = wallet.getUnspentStatecoins()
+let fee_info = getFeeInfo(wallet.http_client);
 
 const initialState = {
-  version: wallet.version,
-  fee_info: getFeeInfo(wallet.http_client),
+  config: {version: wallet.version, endpoint: wallet.http_client.endpoint},
+  fee_info: fee_info,
   coins_data: coins_data,
   total_balance: total_balance,
   activity_data: wallet.getActivityLog(10),

@@ -18,10 +18,12 @@ const PanelConnectivity = (props) => {
   const [stateFeeInfo, setStateFeeInfo] = useState({deposit: "NA", withdraw: "NA"});
   const dispatch = useDispatch();
   const fee_info_promise = useSelector(state => state.walletData).fee_info;
+  const config = useSelector(state => state.walletData).config;
 
   // Check if fee info is present and store in state
   const checkFeeInfo = () => {
     fee_info_promise.then((fee_info) => {
+      fee_info.endpoint = config.endpoint
       setStateFeeInfo(fee_info)
     })
   }
@@ -60,7 +62,7 @@ const PanelConnectivity = (props) => {
           <div className={state.isToggleOn ? "show" : ' hide'}>
               <div className="collapse-content">
                   <div className="collapse-content-item">
-                      <span>xxx.xxx.x.xx</span>
+                      <span>{stateFeeInfo.endpoint}</span>
                       <div>
                           <span className="txt">Deposit Fee: <b>{stateFeeInfo.deposit /10000}%</b></span>
                           <span className="txt">Withdraw Fee: <b>{stateFeeInfo.withdraw/10000}%</b></span>
