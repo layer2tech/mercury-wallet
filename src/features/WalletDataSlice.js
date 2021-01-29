@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 import { Wallet, ACTION, StateCoinList } from '../wallet'
 import { getFeeInfo, getSmtProof, pingServer } from '../wallet/mercury/info_api'
-import { decodeMessage } from '../wallet/util'
+import { decodeMessage, encodeSCEAddress } from '../wallet/util'
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -10,11 +10,6 @@ import * as bitcoin from 'bitcoinjs-lib';
 
 
 let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
-// Perform a deposit right away
-// wallet.depositInit(10000).then((res) => {
-//   let funding_txid = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce";
-//   wallet.depositConfirm(funding_txid, res[1]);
-// });
 
 pingServer(wallet.http_client).then((res) => {
   if (typeof(res) == "object") throw Error("No connection to Server.")
@@ -30,7 +25,7 @@ const initialState = {
   activity_data: wallet.getActivityLog(10),
   deposits_initialised: [],
   transfer_msg3: Promise.resolve(),
-  rec_se_addr: wallet.genProofKey().publicKey.toString('hex')
+  rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'))
 }
 
 const WalletSlice = createSlice({

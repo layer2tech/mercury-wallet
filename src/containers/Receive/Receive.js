@@ -8,7 +8,6 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import { StdButton, Quantity } from "../../components";
 import { callGenSeAddr, callTransferReceiver } from '../../features/WalletDataSlice'
-import { encodeSCEAddress } from '../../wallet/util'
 
 import './Receive.css';
 import '../Send/Send.css';
@@ -72,7 +71,7 @@ const ReceiveStatecoinPage = () => {
                         <div className="receiveStatecoin-scan-txid">
                           <img type="button" src={icon2} alt="icon" onClick={copySEAddressToClipboard}/>
                             <span>
-                              {encodeSCEAddress(rec_se_addr)}
+                              {rec_se_addr}
                             </span>
                         </div>
                         <span

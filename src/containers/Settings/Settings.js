@@ -10,7 +10,7 @@ import './Settings.css';
 const SettingsPage = () => {
   return (
     <div className="container">
-
+      <p> Settings page is under construction. </p>
       <div className="Body settings">
           <div className="swap-header">
               <h2 className="WalletAmount">

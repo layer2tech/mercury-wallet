@@ -15,6 +15,7 @@ const HelpPage = () => {
 
   return (
     <div className="container">
+    <p> Help page is under construction. </p>
 
       <div className="Body help">
           <div className="swap-header">
