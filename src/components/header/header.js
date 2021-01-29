@@ -33,11 +33,6 @@ const Header = (props) => {
                             <img src={settings} alt="settings"/>
                         </Link>
                     </div>
-                    <div className="nav-item" onClick={handleShow}>
-
-                       Alert
-
-                    </div>
                 </div>
             </div>
 
