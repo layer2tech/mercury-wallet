@@ -183,7 +183,6 @@ export const transferReceiver = async (
       new_shared_key_id: transfer_msg5.new_shared_key_id,
       o2: o2,
       s2_pub: transfer_msg5.s2_pub,
-      theta: transfer_msg5.theta,
       state_chain_data: statechain_data,
       proof_key: transfer_msg3.rec_se_addr.proof_key,
       statechain_id: transfer_msg3.statechain_id,
@@ -276,7 +275,6 @@ export interface TransferMsg4 {
 export interface TransferMsg5 {
   new_shared_key_id: string,
   s2_pub: any,
-  theta: string,
 }
 
 export interface StateChainDataAPI {
@@ -290,7 +288,6 @@ export interface  TransferFinalizeData {
     new_shared_key_id: string,
     o2: string,
     s2_pub: any,
-    theta: string,
     state_chain_data: any,
     proof_key: string,
     statechain_id: string,
