@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import * as bitcoin from 'bitcoinjs-lib';
 
-
 let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
 
 pingServer(wallet.http_client).then((res) => {

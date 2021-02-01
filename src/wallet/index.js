@@ -10,7 +10,6 @@ export { Wallet } from "./wallet"
 export { StateCoin, StateCoinList } from "./statecoin"
 export { ACTION } from "./activity_log"
 export { txBackupBuild, verifySmtProof, pubKeyToScriptPubKey, pubKeyTobtcAddr, fromSatoshi } from "./util"
-export { Logger } from "./logger"
 
 export { depositInit, depositConfirm } from "./mercury/deposit"
 export { getFeeInfo, getRoot, getStateChain, getSmtProof, getTransferBatchStatus } from "./mercury/info_api"

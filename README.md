@@ -55,12 +55,21 @@ To build wasm:
 You can edit files outside of container with your normal text editor and then
 issue cargo/wasm build in container again.
 
+
+### Logs
+
+Logs are written to console and file at the following locations:
+
+- on Linux: ~/.config/{app name}/logs/{process type}.log
+- on macOS: ~/Library/Logs/{app name}/{process type}.log
+- on Windows: %USERPROFILE%\AppData\Roaming\{app name}\logs\{process type}.log
+
 # Contact
 
 If you have any further questions you can find us at:
 
 # Issue Tracker
 
-# License 
+# License
 
 Mercury Wallet is released under the terms of the GNU General Public License. See for more information https://opensource.org/licenses/GPL-3.0
