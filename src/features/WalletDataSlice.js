@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
 
 import { Wallet, ACTION, StateCoinList } from '../wallet'
@@ -28,6 +28,18 @@ const initialState = {
   rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'))
 }
 
+
+
+export const callDepositInitThunk = createAsyncThunk(
+  'depositInit',
+  async (value, thunkAPI) => {
+    return await wallet.depositInit(value)
+  }
+)
+
+
+
+
 const WalletSlice = createSlice({
   name: 'walletData',
   initialState,
@@ -54,24 +66,18 @@ const WalletSlice = createSlice({
       wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, proof_key, ACTION.DEPOSIT)
     },
     // Deposit
-    callDepositInit(state, action) {
-      if (!state.connected) {
-        state.error_dialogue = { seen: false, msg: "No connection to server." }
-        return
-      }
+    async callDepositInit(state, action) {
       try {
         let res = wallet.depositInit(action.payload.value);
         let deposits_initialised = state.deposits_initialised;
         deposits_initialised.push(res);
         state.deposits_initialised = deposits_initialised;
-       } catch (e) { console.log(e) };
+       } catch (e) {
+         console.log(e)
+       };
     },
     // Deposit
     callDepositConfirm(state, action) {
-      if (!state.connected) {
-        state.error_dialogue = { seen: false, msg: "No connection to server." }
-        return
-      }
       try {
         wallet.depositConfirm(action.payload.funding_txid, action.payload.statecoin);
 
@@ -88,19 +94,11 @@ const WalletSlice = createSlice({
     },
     // Withdraw
     callWithdraw(state, action) {
-      if (!state.connected) {
-        state.error_dialogue = { seen: false, msg: "No connection to server." }
-        return
-      }
       try { wallet.withdraw(action.payload.shared_key_id, action.payload.rec_addr) }
         catch (e) { alert(e) };
     },
     // TransferSender
     callTransferSender(state, action) {
-      if (!state.connected) {
-        state.error_dialogue = { seen: false, msg: "No connection to server." }
-        return
-      }
       try {
         let transfer_msg3 = wallet.transfer_sender(action.payload.shared_key_id, action.payload.rec_addr)
         state.transfer_msg3 = transfer_msg3
@@ -109,10 +107,6 @@ const WalletSlice = createSlice({
     },
     // TransferReceiver
     callTransferReceiver(state, action) {
-      if (!state.connected) {
-        state.error_dialogue = { seen: false, msg: "No connection to server." }
-        return
-      }
       try {
         wallet.transfer_receiver(decodeMessage(action.payload))
       }
@@ -125,9 +119,14 @@ const WalletSlice = createSlice({
       state.error_dialogue = {seen: false, msg: action.payload.msg};
       log.error(action.payload.msg)
     },
-  }
+  },
+  extraReducers: {
+  // Add reducers for additional action types here, and handle loading state as needed
+    [callDepositInitThunk.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    }
+}
 })
-
 
 
 export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, callDepositInit, callWithdraw,

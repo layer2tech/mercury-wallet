@@ -6,7 +6,7 @@ import arrow from "../../images/scan-arrow.png";
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 
-import { callDepositInit, callDepositConfirm } from '../../features/WalletDataSlice'
+import { callDepositInit, callDepositConfirm, setError, callDepositInitThunk } from '../../features/WalletDataSlice'
 import { fromSatoshi } from '../../wallet/util'
 
 import '../../containers/Deposit/Deposit.css';
@@ -19,9 +19,11 @@ const TransactionsBTC = (props) => {
   // run depositInit for selected deposit amount if not already complete
   props.selectedValues.forEach((item, id) => {
     if (!item.initialised && item.value !== null) {
-      dispatch(callDepositInit({value: item.value}))
+      let deposit_res = dispatch(callDepositInitThunk(123))
+      console.log("deposit_res: ", deposit_res)
       props.setValueSelectionInitialised(id)
     }
+
   })
 
   const despositConfirm = () => {
@@ -30,8 +32,12 @@ const TransactionsBTC = (props) => {
       deposit_promise.then((deposit) => {
         dispatch(callDepositConfirm({funding_txid: funding_txid, statecoin: deposit[1]}))
       })
+      .catch((err => {
+        dispatch(setError({msg: err.toString()}))
+      }))
     })
   }
+
 
   const populateWithTransactionDisplayPanels = props.selectedValues.map((item, index) => {
     if (item.value != null) {
