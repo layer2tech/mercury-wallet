@@ -13,8 +13,9 @@ import './Receive.css';
 import '../Send/Send.css';
 
 
-
 const ReceiveStatecoinPage = () => {
+  const dispatch = useDispatch();
+  
   const rec_se_addr = useSelector(state => state.walletData).rec_se_addr;
 
   const [transfer_msg3, setTransferMsg3] = useState();
@@ -23,7 +24,6 @@ const ReceiveStatecoinPage = () => {
     setTransferMsg3(event.target.value);
   };
 
-  const dispatch = useDispatch();
   const genAddrButtonAction = async () => {
     dispatch(callGenSeAddr())
   }

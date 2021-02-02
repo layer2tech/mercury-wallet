@@ -30,7 +30,7 @@ export class StateCoinList {
   getUnspentCoins() {
     let total = 0
     let coins = this.coins.filter((item: StateCoin) => {
-      if (!item.spent) {
+      if (item.confirmed && !item.spent) {
         total += item.value
         return item
       }

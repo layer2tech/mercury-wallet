@@ -13,16 +13,10 @@ import './header.css';
 
 const Header = (props) => {
   const dispatch = useDispatch();
-
   const error_dialogue = useSelector(state => state.walletData).error_dialogue;
-  console.log("error_dialogue: ", error_dialogue)
 
   const handleClose = () => {
     dispatch(setErrorSeen())
-  }
-
-  const showAlert = () => {
-    dispatch(setError({msg: "msg"}))
   }
 
   return (
@@ -44,10 +38,6 @@ const Header = (props) => {
                       <Link className="nav-link" to="/settings">
                           <img src={settings} alt="settings"/>
                       </Link>
-                  </div>
-
-                  <div className="nav-item" onClick={showAlert}>
-                     Alert
                   </div>
 
               </div>

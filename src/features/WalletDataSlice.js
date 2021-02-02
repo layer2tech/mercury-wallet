@@ -55,14 +55,18 @@ export const callWithdraw = createAsyncThunk(
     return wallet.withdraw(action.shared_key_id, action.rec_addr)
   }
 )
-// export const callTransferSender = createAsyncThunk(
-//   'TransferSender',
-//   async (action, thunkAPI) => {
-//     return wallet.withdraw(action.shared_key_id, action.rec_addr)
-//   }
-// )
-
-
+export const callTransferSender = createAsyncThunk(
+  'TransferSender',
+  async (action, thunkAPI) => {
+    return wallet.transfer_sender(action.shared_key_id, action.rec_addr)
+  }
+)
+export const callTransferReceiver = createAsyncThunk(
+  'TransferReceiver',
+  async (action, thunkAPI) => {
+    return wallet.transfer_receiver(decodeMessage(action))
+  }
+)
 
 
 
@@ -91,21 +95,6 @@ const WalletSlice = createSlice({
       let funding_txid = "64ec6bc7f794343a0c3651c0578f25df5134322b959ece99795dccfffe8a87e9"
       wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, proof_key, ACTION.DEPOSIT)
     },
-    // TransferSender
-    callTransferSender(state, action) {
-      try {
-        let transfer_msg3 = wallet.transfer_sender(action.payload.shared_key_id, action.payload.rec_addr)
-        state.transfer_msg3 = transfer_msg3
-      }
-        catch (e) { alert(e) };
-    },
-    // TransferReceiver
-    callTransferReceiver(state, action) {
-      try {
-        wallet.transfer_receiver(decodeMessage(action.payload))
-      }
-        catch (e) { alert(e) };
-    },
     setErrorSeen(state) {
       state.error_dialogue.seen = true;
     },
@@ -115,7 +104,7 @@ const WalletSlice = createSlice({
     },
   },
   extraReducers: {
-  // Add reducers for additional action types here, and handle loading state as needed
+    // Pass rejects through to error_dialogue for display to user.
     [callDepositInit.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
@@ -127,12 +116,18 @@ const WalletSlice = createSlice({
     },
     [callWithdraw.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callTransferSender.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callTransferReceiver.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
 }
 })
 
 
-export const { callTransferSender, callTransferReceiver, callGenSeAddr, callGetFeeInfo, refreshCoinData, setErrorSeen, setError,
+export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, setErrorSeen, setError,
   callPingServer } = WalletSlice.actions
 export default WalletSlice.reducer
 

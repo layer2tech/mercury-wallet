@@ -15,15 +15,11 @@ import './Send.css';
 
 const SendStatecoinPage = () => {
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
-  const [inputAddr, setInputAddr] = useState('');
-  const [transferMsg3, setTransferMsg3] = useState("null");
+  const [inputAddr, setInputAddr] = useState("Destination Address");
+  const [transferMsg3, setTransferMsg3] = useState('');
 
   const total_balance = useSelector(state => state.walletData).total_balance;
   const num_statecoins = useSelector(state => state.walletData).coins_data.length;
-  const transfer_msg3_promise = useSelector(state => state.walletData).transfer_msg3;
-  transfer_msg3_promise.then((transfer_msg3) => {
-    setTransferMsg3(encodeMessage(transfer_msg3))
-  })
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -62,6 +58,13 @@ const SendStatecoinPage = () => {
     }
 
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
+    .then(res => {
+      if (res.error==undefined) {
+        setTransferMsg3(encodeMessage(res.payload))
+        setInputAddr("Destination Address")
+        setSelectedCoin('')
+      }
+    })
   }
 
   const copyTransferMsgToClipboard = () => {
@@ -109,7 +112,7 @@ const SendStatecoinPage = () => {
                      <div className="inputs">
                          <input
                           type="text"
-                          placeholder="Destination Address"
+                          placeholder={inputAddr}
                           onChange={onInputAddrChange}/>
 
                          <span className="smalltxt">Recipients Statechain Address</span>
