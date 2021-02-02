@@ -4,55 +4,72 @@ import question from '../../images/header-question.png';
 import settings from '../../images/settings-icon.png';
 import {Link, withRouter} from "react-router-dom";
 
-import './header.css';
 import {Button, Modal} from "react-bootstrap";
+import { useDispatch, useSelector } from 'react-redux'
+
+import { setErrorSeen, setError } from '../../features/WalletDataSlice'
+
+import './header.css';
 
 const Header = (props) => {
+  const dispatch = useDispatch();
 
-    const [show, setShow] = useState(false);
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+  const error_dialogue = useSelector(state => state.walletData).error_dialogue;
+  console.log("error_dialogue: ", error_dialogue)
 
-    return (
-        <div className="Header">
+  const handleClose = () => {
+    dispatch(setErrorSeen())
+  }
 
-            <div className="container block">
-                <Link className="navbar-brand" to="/">
-                    <img src={logo} className="Header-logo" alt="logo"/>
-                </Link>
+  const showAlert = () => {
+    dispatch(setError({msg: "msg"}))
+  }
 
-                <div className="menu">
-                    <div className={`nav-item  ${props.location.pathname === "/" ? "active" : ""}`}>
-                        <Link className="nav-link" to="/help">
-                            <img src={question} alt="question"/>
-                        </Link>
-                    </div>
+  return (
+      <div className="Header">
 
-                    <div className={`nav-item  ${props.location.pathname === "/settings" ? "active" : ""}`}>
-                        <Link className="nav-link" to="/settings">
-                            <img src={settings} alt="settings"/>
-                        </Link>
-                    </div>
-                </div>
-            </div>
+          <div className="container block">
+              <Link className="navbar-brand" to="/">
+                  <img src={logo} className="Header-logo" alt="logo"/>
+              </Link>
 
-            <Modal show={show} onHide={handleClose} className="modal">
+              <div className="menu">
+                  <div className={`nav-item  ${props.location.pathname === "/" ? "active" : ""}`}>
+                      <Link className="nav-link" to="/help">
+                          <img src={question} alt="question"/>
+                      </Link>
+                  </div>
 
-                <Modal.Body>
-                    <div className="alert alert-danger" role="alert">
-                        This is a danger alert—check it out!
-                    </div>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleClose}>
-                        Close
-                    </Button>
+                  <div className={`nav-item  ${props.location.pathname === "/settings" ? "active" : ""}`}>
+                      <Link className="nav-link" to="/settings">
+                          <img src={settings} alt="settings"/>
+                      </Link>
+                  </div>
 
-                </Modal.Footer>
-            </Modal>
+                  <div className="nav-item" onClick={showAlert}>
+                     Alert
+                  </div>
 
-        </div>
-    );
+              </div>
+          </div>
+
+          <Modal show={!error_dialogue.seen} onHide={handleClose} className="modal">
+
+              <Modal.Body>
+                  <div className="alert alert-danger" role="alert">
+                      {error_dialogue.msg}
+                  </div>
+              </Modal.Body>
+              <Modal.Footer>
+                  <Button variant="secondary" onClick={handleClose}>
+                      Close
+                  </Button>
+
+              </Modal.Footer>
+          </Modal>
+
+      </div>
+  );
 }
 
 export default withRouter(Header);

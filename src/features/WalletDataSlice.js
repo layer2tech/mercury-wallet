@@ -1,24 +1,22 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
 
 import { Wallet, ACTION, StateCoinList } from '../wallet'
 import { getFeeInfo, getSmtProof, pingServer } from '../wallet/mercury/info_api'
 import { decodeMessage, encodeSCEAddress } from '../wallet/util'
 
 import { v4 as uuidv4 } from 'uuid';
-
 import * as bitcoin from 'bitcoinjs-lib';
 
 let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
-
-pingServer(wallet.http_client).then((res) => {
-  if (typeof(res) == "object") throw Error("No connection to Server.")
-});
 
 let [coins_data, total_balance] = wallet.getUnspentStatecoins()
 let fee_info = getFeeInfo(wallet.http_client);
 
 const initialState = {
   config: {version: wallet.version, endpoint: wallet.http_client.endpoint},
+  error_dialogue: { seen: true, msg: "" },
+  connected: false,
   fee_info: fee_info,
   coins_data: coins_data,
   total_balance: total_balance,
@@ -41,11 +39,11 @@ const WalletSlice = createSlice({
       let [coins_data, total_balance] = wallet.getUnspentStatecoins();
       state.coins_data = coins_data;
       state.total_balance = total_balance;
-      state.activity_data =  wallet.getActivityLog(10)
+      state.activity_data =  wallet.getActivityLog(10);
     },
     // Get Server Fee info
     callGetFeeInfo(state, action) {
-      state.fee_info = getFeeInfo(wallet.http_client)
+      state.fee_info = getFeeInfo(wallet.http_client);
     },
     // Deposit
     dummyDeposit() {
@@ -55,15 +53,23 @@ const WalletSlice = createSlice({
     },
     // Deposit
     callDepositInit(state, action) {
+      if (!state.connected) {
+        state.error_dialogue = { seen: false, msg: "No connection to server." }
+        return
+      }
       try {
         let res = wallet.depositInit(action.payload.value);
         let deposits_initialised = state.deposits_initialised;
         deposits_initialised.push(res);
-        state.deposits_initialised = deposits_initialised
+        state.deposits_initialised = deposits_initialised;
        } catch (e) { console.log(e) };
     },
     // Deposit
     callDepositConfirm(state, action) {
+      if (!state.connected) {
+        state.error_dialogue = { seen: false, msg: "No connection to server." }
+        return
+      }
       try {
         wallet.depositConfirm(action.payload.funding_txid, action.payload.statecoin);
 
@@ -80,11 +86,19 @@ const WalletSlice = createSlice({
     },
     // Withdraw
     callWithdraw(state, action) {
+      if (!state.connected) {
+        state.error_dialogue = { seen: false, msg: "No connection to server." }
+        return
+      }
       try { wallet.withdraw(action.payload.shared_key_id, action.payload.rec_addr) }
         catch (e) { alert(e) };
     },
     // TransferSender
     callTransferSender(state, action) {
+      if (!state.connected) {
+        state.error_dialogue = { seen: false, msg: "No connection to server." }
+        return
+      }
       try {
         let transfer_msg3 = wallet.transfer_sender(action.payload.shared_key_id, action.payload.rec_addr)
         state.transfer_msg3 = transfer_msg3
@@ -93,17 +107,29 @@ const WalletSlice = createSlice({
     },
     // TransferReceiver
     callTransferReceiver(state, action) {
+      if (!state.connected) {
+        state.error_dialogue = { seen: false, msg: "No connection to server." }
+        return
+      }
       try {
         wallet.transfer_receiver(decodeMessage(action.payload))
       }
         catch (e) { alert(e) };
+    },
+    setErrorSeen(state) {
+      state.error_dialogue.seen = true;
+    },
+    setError(state, action) {
+      state.error_dialogue = {seen: false, msg: action.payload.msg};
     },
   }
 })
 
 
 
-export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, callDepositInit, callWithdraw, callDepositConfirm, callTransferSender, callTransferReceiver } = WalletSlice.actions
+export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, callDepositInit, callWithdraw,
+  callDepositConfirm, callTransferSender, callTransferReceiver, setErrorSeen, setError,
+  callPingServer } = WalletSlice.actions
 export default WalletSlice.reducer
 
 

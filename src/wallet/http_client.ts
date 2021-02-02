@@ -1,7 +1,7 @@
 const axios = require('axios').default;
 
-// const DEFAULT_ENPOINT = "http://0.0.0.0:8000";
- const DEFAULT_ENPOINT = "https://fakeapi.mercurywallet.io";
+const DEFAULT_ENPOINT = "http://0.0.0.0:8000";
+ // const DEFAULT_ENPOINT = "https://fakeapi.mercurywallet.io";
 
 export const GET_ROUTE = {
   PING: "ping",
@@ -50,7 +50,7 @@ export class HttpClient {
       return return_data
 
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -72,7 +72,7 @@ export class HttpClient {
       return return_data
 
     } catch (err) {
-      return err;
+      throw err;
     }
   };
 }
