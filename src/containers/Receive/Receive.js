@@ -7,7 +7,7 @@ import {Link, withRouter} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 
 import { StdButton, Quantity } from "../../components";
-import { callGenSeAddr, callTransferReceiver } from '../../features/WalletDataSlice'
+import { callGenSeAddr, callTransferReceiver, setError } from '../../features/WalletDataSlice'
 
 import './Receive.css';
 import '../Send/Send.css';
@@ -31,7 +31,7 @@ const ReceiveStatecoinPage = () => {
   const receiveButtonAction =() => {
     // check statechain is chosen
     if (!transfer_msg3) {
-      alert("Paste TransferMsg3 to perform transfer receiver.");
+      dispatch(setError({msg: "Paste TransferMsg3 to perform transfer receiver."}))
       return
     }
 

@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { Coins, Quantity, StdButton } from "../../components";
 import { fromSatoshi } from '../../wallet/util'
 import { decodeSCEAddress, encodeMessage } from '../../wallet/util'
-import { callTransferSender } from '../../features/WalletDataSlice'
+import { callTransferSender, setError } from '../../features/WalletDataSlice'
 
 import './Send.css';
 
@@ -34,11 +34,11 @@ const SendStatecoinPage = () => {
   const sendButtonAction = async () => {
     // check statechain is chosen
     if (!selectedCoin) {
-      alert("Please choose a StateCoin to send.");
+      dispatch(setError({msg: "Please choose a StateCoin to send."}))
       return
     }
     if (!inputAddr) {
-      alert("Please enter an StateCoin address to send to.");
+      dispatch(setError({msg: "Please enter an StateCoin address to send to."}))
       return
     }
 
@@ -47,22 +47,21 @@ const SendStatecoinPage = () => {
     try {
       input_pubkey = decodeSCEAddress(inputAddr);
     } catch (e) {
-      alert("Error: " + e.message);
+      dispatch(setError({msg: "Error: " + e.message}))
       return
     }
 
     if (!(input_pubkey.slice(0,2) === '02' || input_pubkey.slice(0,2) === '03')) {
-      alert("Error: invalid proof public key");
+      dispatch(setError({msg: "Error: invalid proof public key."}));
       return
     }
 
     if (input_pubkey.length !== 66) {
-      alert("Error: invalid proof public key");
+      dispatch(setError({msg: "Error: invalid proof public key"}))
       return
     }
 
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
-
   }
 
   const copyTransferMsgToClipboard = () => {

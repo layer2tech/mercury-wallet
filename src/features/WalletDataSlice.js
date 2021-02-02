@@ -8,6 +8,8 @@ import { decodeMessage, encodeSCEAddress } from '../wallet/util'
 import { v4 as uuidv4 } from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 
+const log = window.require('electron-log');
+
 let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
 
 let [coins_data, total_balance] = wallet.getUnspentStatecoins()
@@ -121,6 +123,7 @@ const WalletSlice = createSlice({
     },
     setError(state, action) {
       state.error_dialogue = {seen: false, msg: action.payload.msg};
+      log.error(action.payload.msg)
     },
   }
 })

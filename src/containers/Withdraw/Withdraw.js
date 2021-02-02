@@ -6,7 +6,7 @@ import {Link, withRouter} from "react-router-dom";
 import React, {useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 
-import { callWithdraw } from '../../features/WalletDataSlice'
+import { callWithdraw, setError } from '../../features/WalletDataSlice'
 import { Coins, StdButton } from "../../components";
 import { fromSatoshi } from '../../wallet/util'
 
@@ -27,11 +27,11 @@ const WithdrawPage = () => {
   const withdrawButtonAction = async () => {
     // check statechain is chosen
     if (!selectedCoin) {
-      alert("Please choose a StateCoin to withdraw.");
+      dispatch(setError({msg: "Please choose a StateCoin to withdraw."}))
       return
     }
     if (!inputAddr) {
-      alert("Please enter an address to withdraw to.");
+      dispatch(setError({msg: "Please enter an address to withdraw to."}))
       return
     }
 
