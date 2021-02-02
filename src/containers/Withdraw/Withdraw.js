@@ -18,6 +18,8 @@ const WithdrawPage = () => {
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState('');
+  const [state, setState] = useState({}); // store selected coins shared_key_id
+
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -35,7 +37,11 @@ const WithdrawPage = () => {
       return
     }
 
-    dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr}))
+    dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr})).then((res => {
+      if (res.error==undefined) {
+        setInputAddr(null) //update state to refresh TransactionDisplay render
+      }
+    }))
   }
 
 

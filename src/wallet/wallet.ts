@@ -21,7 +21,7 @@ const WALLET_LOC = "wallet.json";
 
 // Logger
 declare const window: any;
-const log = require('electron-log');
+const log = window.require('electron-log');
 
 // Store
 // const Store = window.require('electron-store');

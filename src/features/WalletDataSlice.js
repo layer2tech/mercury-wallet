@@ -29,13 +29,39 @@ const initialState = {
 }
 
 
-
-export const callDepositInitThunk = createAsyncThunk(
+// Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
+// state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
+export const callDepositInit = createAsyncThunk(
   'depositInit',
   async (value, thunkAPI) => {
-    return await wallet.depositInit(value)
+    return wallet.depositInit(value)
   }
 )
+export const callGetUnspentStatecoins = createAsyncThunk(
+  'getUnspentStatecoins',
+  async (value, thunkAPI) => {
+    return wallet.getUnconfirmedStatecoins(value)
+  }
+)
+export const callDepositConfirm = createAsyncThunk(
+  'depositConfirm',
+  async (action, thunkAPI) => {
+    return wallet.depositConfirm(action.shared_key_id, action.funding_txid)
+  }
+)
+export const callWithdraw = createAsyncThunk(
+  'depositWithdraw',
+  async (action, thunkAPI) => {
+    return wallet.withdraw(action.shared_key_id, action.rec_addr)
+  }
+)
+// export const callTransferSender = createAsyncThunk(
+//   'TransferSender',
+//   async (action, thunkAPI) => {
+//     return wallet.withdraw(action.shared_key_id, action.rec_addr)
+//   }
+// )
+
 
 
 
@@ -65,38 +91,6 @@ const WalletSlice = createSlice({
       let funding_txid = "64ec6bc7f794343a0c3651c0578f25df5134322b959ece99795dccfffe8a87e9"
       wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, proof_key, ACTION.DEPOSIT)
     },
-    // Deposit
-    async callDepositInit(state, action) {
-      try {
-        let res = wallet.depositInit(action.payload.value);
-        let deposits_initialised = state.deposits_initialised;
-        deposits_initialised.push(res);
-        state.deposits_initialised = deposits_initialised;
-       } catch (e) {
-         console.log(e)
-       };
-    },
-    // Deposit
-    callDepositConfirm(state, action) {
-      try {
-        wallet.depositConfirm(action.payload.funding_txid, action.payload.statecoin);
-
-        // remove confirmed statecoin from despoit_initialised list
-        let new_deposits_initialised = state.deposits_initialised.filter((deposit_promise) => {
-          deposit_promise.then((deposit) => {
-            if (deposit[1].shared_key_id !== action.payload.statecoin.shared_key_id) {
-              return deposit;
-            }
-          })
-        });
-        state.deposits_initialised = new_deposits_initialised
-      } catch (e) { console.log(e) };
-    },
-    // Withdraw
-    callWithdraw(state, action) {
-      try { wallet.withdraw(action.payload.shared_key_id, action.payload.rec_addr) }
-        catch (e) { alert(e) };
-    },
     // TransferSender
     callTransferSender(state, action) {
       try {
@@ -122,15 +116,23 @@ const WalletSlice = createSlice({
   },
   extraReducers: {
   // Add reducers for additional action types here, and handle loading state as needed
-    [callDepositInitThunk.rejected]: (state, action) => {
+    [callDepositInit.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callDepositConfirm.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callGetUnspentStatecoins.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callWithdraw.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
 }
 })
 
 
-export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, callDepositInit, callWithdraw,
-  callDepositConfirm, callTransferSender, callTransferReceiver, setErrorSeen, setError,
+export const { callTransferSender, callTransferReceiver, callGenSeAddr, callGetFeeInfo, refreshCoinData, setErrorSeen, setError,
   callPingServer } = WalletSlice.actions
 export default WalletSlice.reducer
 
