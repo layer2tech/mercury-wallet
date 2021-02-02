@@ -39,6 +39,16 @@ export class StateCoinList {
     return [coins.map((item: StateCoin) => item.getDisplayInfo()), total]
   };
 
+  getUnconfirmedCoins() {
+    let coins = this.coins.filter((item: StateCoin) => {
+      if (!item.confirmed) {
+        return item
+      }
+      return
+    })
+    return coins.map((item: StateCoin) => item.getDisplayInfo())
+  };
+
   getCoin(shared_key_id: string): StateCoin | undefined {
     return this.coins.reverse().find(coin => coin.shared_key_id === shared_key_id)
   }

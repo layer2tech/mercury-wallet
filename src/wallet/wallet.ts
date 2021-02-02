@@ -21,11 +21,11 @@ const WALLET_LOC = "wallet.json";
 
 // Logger
 declare const window: any;
-const log = window.require('electron-log');
+const log = require('electron-log');
 
 // Store
-const Store = window.require('electron-store');
-const store = new Store();
+// const Store = window.require('electron-store');
+// const store = new Store();
 
 
 // Wallet holds BIP32 key root and derivation progress information.
@@ -159,6 +159,9 @@ export class Wallet {
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins()
   }
+  getUnconfirmedStatecoins() {
+    return this.statecoins.getUnconfirmedCoins()
+  }
   // ActivityLog data with relevant Coin data
   getActivityLog(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
@@ -241,16 +244,21 @@ export class Wallet {
     let p_addr = statecoin.getBtcAddress(this.network);
 
     log.info("Deposite Init done. Send coins to "+p_addr);
-    return [p_addr, statecoin]
+    return [statecoin.shared_key_id, p_addr]
   }
 
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
   // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
   async depositConfirm(
+    shared_key_id: string,
     funding_txid: string,
-    statecoin: StateCoin
   ): Promise<StateCoin> {
-    log.info("Depositing Confirm shared_key_id: "+statecoin.shared_key_id);
+    log.info("Depositing Confirm shared_key_id: "+shared_key_id);
+
+    let statecoin = this.statecoins.getCoin(shared_key_id);
+    if (statecoin == undefined) throw Error("Coin "+shared_key_id+" does not exist.");
+    if (statecoin.confirmed) throw Error("Coin "+shared_key_id+" already confirmed.");
+
     // Add funding_txid to statecoin
     statecoin.funding_txid = funding_txid;
 
