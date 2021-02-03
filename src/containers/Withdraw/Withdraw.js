@@ -13,6 +13,7 @@ import { fromSatoshi } from '../../wallet/util'
 import './Withdraw.css';
 
 const WithdrawPage = () => {
+  const dispatch = useDispatch();
   const total_balance = useSelector(state => state.walletData).total_balance;
   const num_statecoins = useSelector(state => state.walletData).coins_data.length;
 
@@ -28,7 +29,6 @@ const WithdrawPage = () => {
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
-  const dispatch = useDispatch();
 
 
   const withdrawButtonAction = async () => {

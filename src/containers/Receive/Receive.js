@@ -6,7 +6,8 @@ import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 
-import { StdButton, Quantity } from "../../components";
+import { StdButton, Quantity, AddressInput } from "../../components";
+
 import { callGenSeAddr, callTransferReceiver, setError } from '../../features/WalletDataSlice'
 
 import './Receive.css';
@@ -15,10 +16,10 @@ import '../Send/Send.css';
 
 const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
-  
+
   const rec_se_addr = useSelector(state => state.walletData).rec_se_addr;
 
-  const [transfer_msg3, setTransferMsg3] = useState();
+  const [transfer_msg3, setTransferMsg3] = useState("");
 
   const onTransferMsg3Change = (event) => {
     setTransferMsg3(event.target.value);
@@ -35,7 +36,11 @@ const ReceiveStatecoinPage = () => {
       return
     }
 
-    dispatch(callTransferReceiver(transfer_msg3))
+    dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
+      if (res.error==undefined) {
+        setTransferMsg3("")
+      }
+    })
   }
 
   const copySEAddressToClipboard = () => {
@@ -90,14 +95,11 @@ const ReceiveStatecoinPage = () => {
         <div className="sendStatecoin content">
             <div className="Body center">
                 <div>
-                   <div className="inputs">
-                       <input
-                        type="text"
-                        placeholder="msg"
-                        onChange={onTransferMsg3Change}/>
-
-                       <span className="smalltxt">TransferMsg3</span>
-                   </div>
+                    <AddressInput
+                      inputAddr={transfer_msg3}
+                      onChange={onTransferMsg3Change}
+                      placeholder='msg'
+                      smallTxtMsg='TransferMsg3'/>
                 </div>
                 <div>
 
