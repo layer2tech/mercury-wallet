@@ -84,9 +84,7 @@ export const sign = async (
   protocol: string
 ) => {
   // prepare-sign step. Allow server to check backup_tx.
-  let prepare_sign = await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
-  // Check for error in prepare_sign
-  console.log("prepare_sign: ", prepare_sign)
+  await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
 
   //client first
   let client_sign_first: ClientSignFirstMsg =
@@ -125,9 +123,7 @@ export const sign = async (
       },
   };
 
-  let signature = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
-  console.log("signature: ", signature)
-  return signature
+  return await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
 }
 
 

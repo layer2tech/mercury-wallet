@@ -6,7 +6,7 @@ import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 
-import { Coins, Quantity, StdButton } from "../../components";
+import { Coins, Quantity, StdButton, AddressInput } from "../../components";
 import { fromSatoshi } from '../../wallet/util'
 import { decodeSCEAddress, encodeMessage } from '../../wallet/util'
 import { callTransferSender, setError } from '../../features/WalletDataSlice'
@@ -15,7 +15,7 @@ import './Send.css';
 
 const SendStatecoinPage = () => {
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
-  const [inputAddr, setInputAddr] = useState("Destination Address");
+  const [inputAddr, setInputAddr] = useState("");
   const [transferMsg3, setTransferMsg3] = useState('');
 
   const total_balance = useSelector(state => state.walletData).total_balance;
@@ -61,7 +61,7 @@ const SendStatecoinPage = () => {
     .then(res => {
       if (res.error==undefined) {
         setTransferMsg3(encodeMessage(res.payload))
-        setInputAddr("Destination Address")
+        setInputAddr("")
         setSelectedCoin('')
       }
     })
@@ -109,14 +109,11 @@ const SendStatecoinPage = () => {
                       <h3 className="subtitle">Transaction Details</h3>
                   </div>
                   <div>
-                     <div className="inputs">
-                         <input
-                          type="text"
-                          placeholder={inputAddr}
-                          onChange={onInputAddrChange}/>
-
-                         <span className="smalltxt">Recipients Statechain Address</span>
-                     </div>
+                     <AddressInput
+                       inputAddr={inputAddr}
+                       onChange={onInputAddrChange}
+                       placeholder='Destination Address for withdrawal'
+                       smallTxtMsg='Recipients Statechain Address'/>
                   </div>
                   <div>
                       <p className="table-title">Use Only:</p>
