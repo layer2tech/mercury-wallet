@@ -1,15 +1,16 @@
 let ElectrumClientLib = require('@keep-network/electrum-client-js')
 
-const config = {
-  host: 'electrumx-server.tbtc.network',
-  port: 8443,
-  protocol: 'wss',
+export interface ElectrumClientConfig {
+  host: string,
+  port: number,
+  protocol: string
 }
+
 
 export class ElectrumClient {
   client = ElectrumClientLib;
 
-  constructor() {
+  constructor(config: ElectrumClientConfig) {
     this.client = new ElectrumClientLib(config.host, config.port, config.protocol)
   }
 

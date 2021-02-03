@@ -1,7 +1,5 @@
 const axios = require('axios').default;
 
-// const DEFAULT_ENPOINT = "http://0.0.0.0:8000";
- const DEFAULT_ENPOINT = "https://fakeapi.mercurywallet.io";
 
 export const GET_ROUTE = {
   PING: "ping",
@@ -32,8 +30,8 @@ Object.freeze(POST_ROUTE);
 export class HttpClient {
   endpoint: string
 
-  constructor(endpoint?: string) {
-    this.endpoint = endpoint==undefined ? DEFAULT_ENPOINT : endpoint;
+  constructor(endpoint: string) {
+    this.endpoint = endpoint;
   }
 
   get = async (path: string, params: any) => {
