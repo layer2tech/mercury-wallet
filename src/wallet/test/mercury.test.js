@@ -2,7 +2,7 @@ import { verifySmtProof, StateChainSig, proofKeyToSCEAddress, pubKeyTobtcAddr, p
 import { Wallet, StateCoin, MockHttpClient, MockWasm, StateCoinList } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
 import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
-import { BTC_ADDR, KEYGEN_SIGN_DATA, TRANSFER_MSG3, FINALIZE_DATA, FUNDING_TXID, STATECOIN_INIT, STATECOIN_CONFIRMED, STATECOIN_CONFERMED_BACKUPTX_HEX } from './test_data.js'
+import { BTC_ADDR, KEYGEN_SIGN_DATA, TRANSFER_MSG3, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID, STATECOIN_CONFIRMED, STATECOIN_CONFERMED_BACKUPTX_HEX } from './test_data.js'
 
 let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
@@ -38,23 +38,19 @@ describe('StateChain Entity', function() {
   let value = 10000
 
   test('Deposit init', async function() {
-    let [p_addr, statecoin] = await wallet.depositInit(value)
+    let [shared_key_id, p_addr] = await wallet.depositInit(value)
+    let statecoin = wallet.statecoins.getCoin(shared_key_id);
 
+    expect(statecoin.confirmed).toBe(false);
     expect(statecoin.tx_backup).toBeNull();
     expect(statecoin.tx_withdraw).toBeNull();
-    expect(statecoin.confirmed).toBe(false);
     expect(statecoin.spent).toBe(false);
     expect(wallet.statecoins.getCoin(statecoin.shared_key_id)).toBe(statecoin)
   });
 
   test('Deposit confirm', async function() {
-    let statecoin_json = BJSON.parse(lodash.cloneDeep(STATECOIN_INIT));
-    let statecoin = new StateCoin(statecoin_json.shared_key_id, statecoin_json.shared_key)
-    statecoin.network = statecoin_json.network;
-    statecoin.proof_key = statecoin_json.proof_key;
-    statecoin.value = statecoin_json.value;
-
-    let statecoin_finalized = await wallet.depositConfirm(FUNDING_TXID, statecoin)
+    let shared_key_id = SHARED_KEY_ID;
+    let statecoin_finalized = await wallet.depositConfirm(shared_key_id, FUNDING_TXID)
 
     expect(statecoin_finalized.statechain_id.length).toBeGreaterThan(0);
     expect(statecoin_finalized.proof_key.length).toBeGreaterThan(0);

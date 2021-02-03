@@ -3,34 +3,45 @@ import icon1 from "../../images/icon1.png";
 import icon2 from "../../images/icon2.png";
 import arrow from "../../images/scan-arrow.png";
 
-import React from 'react';
+import React, {useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 
-import { callDepositInit, callDepositConfirm } from '../../features/WalletDataSlice'
+import { callDepositInit, callDepositConfirm, setError,
+  callGetUnspentStatecoins  } from '../../features/WalletDataSlice'
 import { fromSatoshi } from '../../wallet/util'
 
 import '../../containers/Deposit/Deposit.css';
 import '../index.css';
 
 const TransactionsBTC = (props) => {
+  const [state, setState] = useState({}); // store selected coins shared_key_id
+
   const deposits_initialised = useSelector(state => state.walletData).deposits_initialised;
   const dispatch = useDispatch();
 
   // run depositInit for selected deposit amount if not already complete
   props.selectedValues.forEach((item, id) => {
     if (!item.initialised && item.value !== null) {
-      dispatch(callDepositInit({value: item.value}))
-      props.setValueSelectionInitialised(id)
+      dispatch(callDepositInit(item.value))
+      .then((res => {  // when finished update p_addr in GUI
+        if (res.error==undefined) {
+          props.setValueSelectionAddr(id, res.payload[1])
+          setState({}) //update state to refresh TransactionDisplay render
+        }
+      }))
+      props.setValueSelectionInitialised(id, true)
     }
   })
 
+  // Force confirm all outstanding depositInit's.
+  // Get all unconfirmed coins and call depositConfirm with dummy txid value.
   const despositConfirm = () => {
     let funding_txid = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce";
-    deposits_initialised.forEach(deposit_promise => {
-      deposit_promise.then((deposit) => {
-        dispatch(callDepositConfirm({funding_txid: funding_txid, statecoin: deposit[1]}))
+    dispatch(callGetUnspentStatecoins()).then((statecoin => {
+      statecoin.payload.forEach(deposit_ret => {
+        dispatch(callDepositConfirm({shared_key_id: deposit_ret.shared_key_id, funding_txid: funding_txid}))
       })
-    })
+    }));
   }
 
   const populateWithTransactionDisplayPanels = props.selectedValues.map((item, index) => {
@@ -38,7 +49,7 @@ const TransactionsBTC = (props) => {
       return (
         <div key={index}>
           <div>
-            <TransactionDisplay amount={item.value} confirmations={0} address={"tb1qxak9urlhzrvp3842c0m7f7ql67qaw8d2t7ntnt"}/>
+            <TransactionDisplay amount={item.value} confirmations={0} address={item.p_addr}/>
           </div>
       </div>
       )

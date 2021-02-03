@@ -50,7 +50,7 @@ export class HttpClient {
       return return_data
 
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -72,7 +72,7 @@ export class HttpClient {
       return return_data
 
     } catch (err) {
-      return err;
+      throw err;
     }
   };
 }

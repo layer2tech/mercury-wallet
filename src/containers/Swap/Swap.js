@@ -19,7 +19,7 @@ const SwapPage = () => {
 
   return (
       <div className="container ">
-      {disabled==false ?
+      {disabled===false ?
           <p> Swapping is currenlty not available. </p>
           :
 

@@ -7,14 +7,15 @@ import {Link, withRouter} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 
 import { StdButton, Quantity } from "../../components";
-import { callGenSeAddr, callTransferReceiver } from '../../features/WalletDataSlice'
+import { callGenSeAddr, callTransferReceiver, setError } from '../../features/WalletDataSlice'
 
 import './Receive.css';
 import '../Send/Send.css';
 
 
-
 const ReceiveStatecoinPage = () => {
+  const dispatch = useDispatch();
+  
   const rec_se_addr = useSelector(state => state.walletData).rec_se_addr;
 
   const [transfer_msg3, setTransferMsg3] = useState();
@@ -23,7 +24,6 @@ const ReceiveStatecoinPage = () => {
     setTransferMsg3(event.target.value);
   };
 
-  const dispatch = useDispatch();
   const genAddrButtonAction = async () => {
     dispatch(callGenSeAddr())
   }
@@ -31,7 +31,7 @@ const ReceiveStatecoinPage = () => {
   const receiveButtonAction =() => {
     // check statechain is chosen
     if (!transfer_msg3) {
-      alert("Paste TransferMsg3 to perform transfer receiver.");
+      dispatch(setError({msg: "Paste TransferMsg3 to perform transfer receiver."}))
       return
     }
 

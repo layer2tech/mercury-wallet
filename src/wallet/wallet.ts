@@ -3,7 +3,7 @@
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
-  MockWasm, StateCoin, Logger, pubKeyTobtcAddr, fromSatoshi } from './';
+  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -19,10 +19,17 @@ let fsLibrary  = require('fs');
 
 const WALLET_LOC = "wallet.json";
 
+// Logger
+declare const window: any;
+const log = window.require('electron-log');
+
+// Store
+// const Store = window.require('electron-store');
+// const store = new Store();
+
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
-  logger: Logger;
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
@@ -35,7 +42,6 @@ export class Wallet {
   version: string;
 
   constructor(mnemonic: string, account: any, network: Network, testing_mode: boolean) {
-    this.logger = new Logger(4, false);
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
@@ -56,6 +62,7 @@ export class Wallet {
 
   // Constructors
   static fromMnemonic(mnemonic: string, network: Network, testing_mode: boolean): Wallet {
+    log.debug("New wallet. Mnemonic: "+mnemonic+". Testing mode: "+testing_mode+".");
     return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
   }
 
@@ -152,6 +159,9 @@ export class Wallet {
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins()
   }
+  getUnconfirmedStatecoins() {
+    return this.statecoins.getUnconfirmedCoins()
+  }
   // ActivityLog data with relevant Coin data
   getActivityLog(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
@@ -169,6 +179,7 @@ export class Wallet {
   addStatecoin(statecoin: StateCoin, action: string) {
     this.statecoins.addCoin(statecoin);
     this.activity.addItem(statecoin.shared_key_id, action);
+    log.debug("Added Statecoin: "+statecoin.shared_key_id);
   }
   addStatecoinFromValues(id: string, shared_key: MasterKey2, value: number, txid: string, proof_key: string, action: string) {
     let statecoin = new StateCoin(id, shared_key);
@@ -177,16 +188,21 @@ export class Wallet {
     statecoin.funding_txid = txid;
     this.statecoins.addCoin(statecoin)
     this.activity.addItem(id, action);
+    log.debug("Added Statecoin: "+statecoin.shared_key_id);
   }
   // Mark statecoin as spent after transfer or withdraw
   setStateCoinSpent(id: string, action: string) {
     this.statecoins.setCoinSpent(id)
     this.activity.addItem(id, action);
+    log.debug("Set Statecoin spent: "+id);
+
   }
 
   // New BTC address
   genBtcAddress(): string {
-    return this.account.nextChainAddress(0)
+    let addr = this.account.nextChainAddress(0);
+    log.debug("Gen BTC address: "+addr);
+    return addr
   }
   getBIP32forBtcAddress(addr: string): BIP32Interface {
     return this.account.derive(addr)
@@ -195,7 +211,9 @@ export class Wallet {
   // New Proof Key
   genProofKey(): BIP32Interface {
     let addr = this.account.nextChainAddress(0);
-    return this.account.derive(addr)
+    let proof_key = this.account.derive(addr);
+    log.debug("Gen proof key. Address: "+addr+". Proof key: "+proof_key.publicKey.toString("hex"));
+    return proof_key
   }
   getBIP32forProofKeyPubKey(proof_key: string): BIP32Interface {
     const p2wpkh = pubKeyTobtcAddr(proof_key, this.network)
@@ -204,7 +222,7 @@ export class Wallet {
 
   // Initialise deposit
   async depositInit(value: number) {
-    this.logger.info("Depositing Init. "+fromSatoshi(value) + " BTC");
+    log.info("Depositing Init. "+fromSatoshi(value) + " BTC");
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
@@ -225,17 +243,22 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.network);
 
-    this.logger.info("Deposite Init done. Send coins to "+p_addr);
-    return [p_addr, statecoin]
+    log.info("Deposite Init done. Send coins to "+p_addr);
+    return [statecoin.shared_key_id, p_addr]
   }
 
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
   // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
   async depositConfirm(
+    shared_key_id: string,
     funding_txid: string,
-    statecoin: StateCoin
   ): Promise<StateCoin> {
-    this.logger.info("Depositing Confirm shared_key_id: "+statecoin.shared_key_id);
+    log.info("Depositing Confirm shared_key_id: "+shared_key_id);
+
+    let statecoin = this.statecoins.getCoin(shared_key_id);
+    if (statecoin == undefined) throw Error("Coin "+shared_key_id+" does not exist.");
+    if (statecoin.confirmed) throw Error("Coin "+shared_key_id+" already confirmed.");
+
     // Add funding_txid to statecoin
     statecoin.funding_txid = funding_txid;
 
@@ -254,7 +277,7 @@ export class Wallet {
     statecoin_finalized.confirmed = true;
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
-    this.logger.info("Deposite Confirm done.");
+    log.info("Deposite Confirm done.");
     return statecoin_finalized
   }
 
@@ -265,7 +288,7 @@ export class Wallet {
     shared_key_id: string,
     receiver_se_addr: string
   ): Promise<TransferMsg3> {
-    this.logger.info("Transfer Sender for "+shared_key_id)
+    log.info("Transfer Sender for "+shared_key_id)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.network) }
       catch (e) { throw "Invlaid receiver address - Should be hexadecimal public key." }
@@ -280,7 +303,7 @@ export class Wallet {
     // Mark funds as spent in wallet
     this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
 
-    this.logger.info("Transfer Sender complete.")
+    log.info("Transfer Sender complete.")
     return transfer_sender;
   }
 
@@ -288,7 +311,7 @@ export class Wallet {
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
   async transfer_receiver(transfer_msg3: TransferMsg3): Promise<TransferFinalizeData> {
-    this.logger.info("Transfer Receiver for statechain "+transfer_msg3.statechain_id)
+    log.info("Transfer Receiver for statechain "+transfer_msg3.statechain_id)
     let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
 
     // Get SE address that funds are being sent to.
@@ -313,13 +336,13 @@ export class Wallet {
   async transfer_receiver_finalize(
     finalize_data: TransferFinalizeData
   ): Promise<StateCoin> {
-    this.logger.info("Transfer Finalize for: "+finalize_data.new_shared_key_id)
+    log.info("Transfer Finalize for: "+finalize_data.new_shared_key_id)
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
 
     // update in wallet
     this.statecoins.addCoin(statecoin_finalized);
 
-    this.logger.info("Transfer Finalize complete.")
+    log.info("Transfer Finalize complete.")
     return statecoin_finalized
   }
 
@@ -330,7 +353,7 @@ export class Wallet {
     shared_key_id: string,
     rec_addr: string
   ): Promise<Transaction> {
-    this.logger.info("Withdrawing "+shared_key_id+" to "+rec_addr);
+    log.info("Withdrawing "+shared_key_id+" to "+rec_addr);
     // Check address format
     try { bitcoin.address.toOutputScript(rec_addr, this.network) }
       catch (e) { throw "Invalid Bitcoin address entered." }
@@ -347,7 +370,7 @@ export class Wallet {
     this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
     this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
 
-    this.logger.info("Withdrawing finished.");
+    log.info("Withdrawing finished.");
 
     // Broadcast transcation
     return tx_withdraw

@@ -30,13 +30,23 @@ export class StateCoinList {
   getUnspentCoins() {
     let total = 0
     let coins = this.coins.filter((item: StateCoin) => {
-      if (!item.spent) {
+      if (item.confirmed && !item.spent) {
         total += item.value
         return item
       }
       return
     })
     return [coins.map((item: StateCoin) => item.getDisplayInfo()), total]
+  };
+
+  getUnconfirmedCoins() {
+    let coins = this.coins.filter((item: StateCoin) => {
+      if (!item.confirmed) {
+        return item
+      }
+      return
+    })
+    return coins.map((item: StateCoin) => item.getFundingTxInfo())
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
@@ -126,6 +136,15 @@ export class StateCoin {
       swap_rounds: this.swap_rounds
     }
   };
+
+  getFundingTxInfo() {
+    return {
+      shared_key_id: this.shared_key_id,
+      value: this.value,
+      funding_txid: this.funding_txid
+    }
+  }
+
 
   // Get BTC address from SharedKey
   getBtcAddress(network: Network): string {

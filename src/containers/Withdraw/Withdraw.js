@@ -6,7 +6,7 @@ import {Link, withRouter} from "react-router-dom";
 import React, {useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 
-import { callWithdraw } from '../../features/WalletDataSlice'
+import { callWithdraw, setError } from '../../features/WalletDataSlice'
 import { Coins, StdButton } from "../../components";
 import { fromSatoshi } from '../../wallet/util'
 
@@ -18,6 +18,8 @@ const WithdrawPage = () => {
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState('');
+  const [state, setState] = useState({}); // store selected coins shared_key_id
+
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -27,15 +29,19 @@ const WithdrawPage = () => {
   const withdrawButtonAction = async () => {
     // check statechain is chosen
     if (!selectedCoin) {
-      alert("Please choose a StateCoin to withdraw.");
+      dispatch(setError({msg: "Please choose a StateCoin to withdraw."}))
       return
     }
     if (!inputAddr) {
-      alert("Please enter an address to withdraw to.");
+      dispatch(setError({msg: "Please enter an address to withdraw to."}))
       return
     }
 
-    dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr}))
+    dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr})).then((res => {
+      if (res.error==undefined) {
+        setInputAddr(null) //update state to refresh TransactionDisplay render
+      }
+    }))
   }
 
 
