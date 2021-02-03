@@ -36,9 +36,7 @@ export const withdraw = async (
       shared_key_id: statecoin.shared_key_id,
       statechain_sig: statechain_sig
   }
-  let withdraw_init = await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
-  // Check for error in withdraw_init
-  console.log("withdraw_init: ", withdraw_init)
+  await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
 
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);

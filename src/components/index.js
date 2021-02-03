@@ -5,6 +5,8 @@ export { default as Header } from "./header/header";
 export { default as StdButton } from "./buttons/standardButton";
 export { default as ToggleButton } from "./buttons/toggleButton";
 
+export { default as AddressInput } from "./inputs/addressInput";
+
 export { default as PanelControl } from "./panelControl/panelControl";
 export { default as PanelConnectivity } from "./panelConnectivity/panelConnectivity";
 export { default as PanelCoinsActivity } from "./panelCoinsActivity/panelCoinsActivity";
