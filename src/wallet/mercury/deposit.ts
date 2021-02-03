@@ -32,10 +32,10 @@ export const depositInit = async (
       proof_key: String(proof_key)
   };
   let shared_key_id = await http_client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
-  typeforce(typeforce.String, shared_key_id)
+  typeforce(typeforce.String, shared_key_id.id)
 
   // 2P-ECDSA with state entity to create a Shared key
-  let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
+  let statecoin = await keyGen(http_client, wasm_client, shared_key_id.id, secret_key, PROTOCOL.DEPOSIT);
 
   return statecoin
 }
@@ -99,7 +99,7 @@ export const depositConfirm = async (
 
   // Add proof and state chain id to Shared key
   statecoin.smt_proof = proof;
-  statecoin.statechain_id = statechain_id;
+  statecoin.statechain_id = statechain_id.id;
   statecoin.tx_backup = tx_backup_signed;
 
   return statecoin
