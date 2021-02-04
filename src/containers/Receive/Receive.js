@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import { StdButton, Quantity, AddressInput } from "../../components";
 
-import { callGenSeAddr, callTransferReceiver, setError } from '../../features/WalletDataSlice'
+import { callGenSeAddr, callTransferReceiver, setError, refreshCoinData } from '../../features/WalletDataSlice'
 
 import './Receive.css';
 import '../Send/Send.css';
@@ -39,6 +39,7 @@ const ReceiveStatecoinPage = () => {
     dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
       if (res.error==undefined) {
         setTransferMsg3("")
+        dispatch(refreshCoinData()) // update GUI view of coins and activity
       }
     })
   }

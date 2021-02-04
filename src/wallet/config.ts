@@ -3,6 +3,8 @@
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "./electrum";
 
+let lodash = require('lodash');
+
 // const DEFAULT_ENPOINT = "http://0.0.0.0:8000";
  const DEFAULT_ENPOINT = "https://fakeapi.mercurywallet.io";
 
@@ -35,11 +37,15 @@ export class Config {
       port: 8443,
       protocol: 'wss',
     }
-    this.tor_proxy = "";
+    this.tor_proxy = "none";
 
     this.min_anon_set = 10;
     this.notifications = true;
     this.tutorials = false;
+  }
+
+  getConfig() {
+    return lodash.cloneDeep(this)
   }
 
   // update by providing JSONObject with new values

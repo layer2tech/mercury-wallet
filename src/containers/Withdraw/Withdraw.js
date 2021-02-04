@@ -20,16 +20,9 @@ const WithdrawPage = () => {
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
 
-  const resetStates = () => {
-    setSelectedCoin(null)
-    setInputAddr("")
-    dispatch(refreshCoinData()) // update GUI view of coins and activity
-  }
-
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
-
 
   const withdrawButtonAction = async () => {
     // check statechain is chosen
@@ -44,7 +37,9 @@ const WithdrawPage = () => {
 
     dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr})).then((res => {
       if (res.error==undefined) {
-        resetStates()
+        setSelectedCoin(null)
+        setInputAddr("")
+        dispatch(refreshCoinData()) // update GUI view of coins and activity
       }
     }))
   }

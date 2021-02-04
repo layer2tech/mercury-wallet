@@ -1,13 +1,19 @@
 import settings from "../../images/settings.png";
 
-import React from 'react';
+import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 
 import { StdButton, Quantity } from "../../components";
+import { callGetConfig } from '../../features/WalletDataSlice'
+
 
 import './Settings.css';
 
 const SettingsPage = () => {
+  let [state, setState] = useState({checked: false})
+
+  let config = callGetConfig();
+
   return (
     <div className="container">
       <p> Settings page is under construction. </p>
@@ -48,18 +54,18 @@ const SettingsPage = () => {
                    <h2>Connectivity Settings</h2>
                    <form>
 
-                      <div>
-                          <input type="text" name="Electrumx Address" placeholder="Electrumx Address" />
-                      </div>
                     <div>
-                        <input type="text" name="Tor Proxy" placeholder="Tor Proxy"/>
+                        <input type="text" name="Electrumx Address" placeholder={config.electrum_config.host} />
                     </div>
-                      <div>
-                          <input type="text" name="StateChain Entity Address" placeholder="StateChain Entity Address"/>
-                      </div>
-                       <div>
-                           <input type="text" name="Swap Conductor Address" placeholder="Swap Conductor Address"/>
-                       </div>
+                    <div>
+                        <input type="text" name="Tor Proxy" placeholder={config.tor_proxy}/>
+                    </div>
+                    <div>
+                        <input type="text" name="StateChain Entity Address" placeholder={config.state_entity_endpoint}/>
+                    </div>
+                     <div>
+                         <input type="text" name="Swap Conductor Address" placeholder={config.swap_conductor_endpoint}/>
+                     </div>
                    </form>
                    <Quantity label="Minimum Anonymity Set Size" />
                    <StdButton label="Publish back-out transaction"
@@ -71,6 +77,7 @@ const SettingsPage = () => {
                        <option value="1">mm/dd/yyyy HH:mm:ss</option>
                    </select>
                   <div className="btns">
+
                       <div className="btns-radios">
                           <label htmlFor="s1">Notifications</label>
                           <input id="s1" type="checkbox" className="switch" />
@@ -93,12 +100,12 @@ const SettingsPage = () => {
                 <StdButton
                     label="Save"
                     className="Body-button blue"/>
-
             </div>
 
         </div>
     </div>
   )
 }
+
 
 export default withRouter(SettingsPage);
