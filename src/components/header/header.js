@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import logo from '../../images/monochrome - white@4x.png';
 import question from '../../images/header-question.png';
 import settings from '../../images/settings-icon.png';
@@ -7,7 +7,7 @@ import {Link, withRouter} from "react-router-dom";
 import {Button, Modal} from "react-bootstrap";
 import { useDispatch, useSelector } from 'react-redux'
 
-import { setErrorSeen, setError } from '../../features/WalletDataSlice'
+import { setErrorSeen } from '../../features/WalletDataSlice'
 
 import './header.css';
 

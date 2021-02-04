@@ -6,7 +6,7 @@ import { ElectrumClientConfig } from "./electrum";
 let lodash = require('lodash');
 
 // const DEFAULT_ENPOINT = "http://0.0.0.0:8000";
- const DEFAULT_ENPOINT = "https://fakeapi.mercurywallet.io";
+ const DEFAULT_STATE_ENTITY_ENPOINT = "https://fakeapi.mercurywallet.io";
 
 export class Config {
   // Set at startup only
@@ -14,7 +14,7 @@ export class Config {
   testing_mode: boolean;
   jest_testing_mode: boolean;
 
-  // Editable while walelt running from Settings page
+  // Editable while wallet running from Settings page
   state_entity_endpoint: string;
   swap_conductor_endpoint: string;
   electrum_config: ElectrumClientConfig;
@@ -30,8 +30,8 @@ export class Config {
     this.testing_mode = testing_mode;
     this.jest_testing_mode = false;
 
-    this.state_entity_endpoint = DEFAULT_ENPOINT;
-    this.swap_conductor_endpoint = "https://fakeapi.mercurywallet.io";
+    this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
+    this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
       host: 'electrumx-server.tbtc.network',
       port: 8443,
@@ -42,6 +42,9 @@ export class Config {
     this.min_anon_set = 10;
     this.notifications = true;
     this.tutorials = false;
+
+    // update defaults with config in settings.json
+    this.update(require("../settings.json"))
   }
 
   getConfig() {
@@ -84,7 +87,7 @@ export class Config {
           this.tutorials = item[1]
           return;
         default:
-          throw Error("Config entry does not exist")
+          throw Error("Config entry "+item[0]+" does not exist")
       }
     })
   }

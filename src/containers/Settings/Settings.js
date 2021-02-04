@@ -10,7 +10,7 @@ import { callGetConfig } from '../../features/WalletDataSlice'
 import './Settings.css';
 
 const SettingsPage = () => {
-  let [state, setState] = useState({checked: false})
+  // let [state, setState] = useState({checked: false})
 
   let config = callGetConfig();
 

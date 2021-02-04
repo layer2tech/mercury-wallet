@@ -46,6 +46,7 @@ export class Wallet {
 
   constructor(mnemonic: string, account: any, network: Network, testing_mode: boolean) {
     this.config = new Config(network, testing_mode);
+    this.version = "vesion"
     this.version = require("../../package.json").version
 
     this.mnemonic = mnemonic;
@@ -122,7 +123,7 @@ export class Wallet {
     // Fetch raw json
     let str_wallet: string = await new Promise((resolve,_reject) => {
           fsLibrary.readFile(file_path, (error: any, txtString: String) => {
-            if (error) throw error;
+            if (error) throw Error(error);
             resolve(txtString.toString())
           });
       });
@@ -133,7 +134,7 @@ export class Wallet {
   save({file_path = WALLET_LOC}: {file_path?: string}={}) {
     // Store in file as JSON string
     fsLibrary.writeFile(file_path, JSON.stringify(this), (error: any) => {
-      if (error) throw error;
+      if (error) throw Error(error);
     })
   };
 
@@ -260,7 +261,7 @@ export class Wallet {
     log.info("Depositing Confirm shared_key_id: "+shared_key_id);
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
-    if (statecoin == undefined) throw Error("Coin "+shared_key_id+" does not exist.");
+    if (statecoin === undefined) throw Error("Coin "+shared_key_id+" does not exist.");
     if (statecoin.confirmed) throw Error("Coin "+shared_key_id+" already confirmed.");
 
     // Add funding_txid to statecoin
@@ -295,10 +296,10 @@ export class Wallet {
     log.info("Transfer Sender for "+shared_key_id)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.config.network) }
-      catch (e) { throw "Invlaid receiver address - Should be hexadecimal public key." }
+      catch (e) { throw Error("Invlaid receiver address - Should be hexadecimal public key.") }
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
-    if (!statecoin) throw "No coin found with id " + shared_key_id
+    if (!statecoin) throw Error("No coin found with id " + shared_key_id)
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
@@ -361,10 +362,10 @@ export class Wallet {
     log.info("Withdrawing "+shared_key_id+" to "+rec_addr);
     // Check address format
     try { bitcoin.address.toOutputScript(rec_addr, this.config.network) }
-      catch (e) { throw "Invalid Bitcoin address entered." }
+      catch (e) { throw Error("Invalid Bitcoin address entered.") }
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
-    if (!statecoin) throw "No coin found with id " + shared_key_id
+    if (!statecoin) throw Error("No coin found with id " + shared_key_id)
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 

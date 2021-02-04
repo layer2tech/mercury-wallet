@@ -14,6 +14,22 @@ A cross-platform GUI for Mercury written in node.js using Electron.
 
 `yarn run test`
 
+# Configuration
+
+Custom configurations can be set in `/src/settings.json` in JSON format:
+
+| Name            | Type          | Default |
+|-----------------|---------------|----------|
+| state_entity_endpoint | string | https://fakeapi.mercurywallet.io |
+| swap_conductor_endpoint | string | https://fakeapi.mercurywallet.io |
+| electrum_config | object | { host: 'https://electrumx-server.tbtc.network', port: 8443, protocol: 'wss'} |
+| tor_proxy | string | none |
+| min_anon_set | number | 10 |
+| notifications | boolean | true |
+| tutorials | boolean | false |
+
+
+
 
 # Development instructions
 

@@ -122,6 +122,6 @@ describe("Config", () => {
   test('fail update invalid value', () => {
     expect(() => {  // not enough value
       config.update({invalid: ""});
-    }).toThrowError("Config entry does not exist");
+    }).toThrowError("does not exist");
   })
 })
