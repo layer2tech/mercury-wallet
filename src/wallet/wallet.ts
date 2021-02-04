@@ -344,6 +344,7 @@ export class Wallet {
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
 
     // update in wallet
+    statecoin_finalized.confirmed = true;
     this.statecoins.addCoin(statecoin_finalized);
 
     log.info("Transfer Finalize complete.")
