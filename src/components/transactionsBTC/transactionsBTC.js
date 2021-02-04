@@ -7,7 +7,7 @@ import React, {useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 
 import { callDepositInit, callDepositConfirm, setError,
-  callGetUnspentStatecoins  } from '../../features/WalletDataSlice'
+  callGetUnconfirmedStatecoins  } from '../../features/WalletDataSlice'
 import { fromSatoshi } from '../../wallet/util'
 
 import '../../containers/Deposit/Deposit.css';
@@ -37,10 +37,8 @@ const TransactionsBTC = (props) => {
   // Get all unconfirmed coins and call depositConfirm with dummy txid value.
   const despositConfirm = () => {
     let funding_txid = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce";
-    dispatch(callGetUnspentStatecoins()).then((statecoin => {
-      statecoin.payload.forEach(deposit_ret => {
-        dispatch(callDepositConfirm({shared_key_id: deposit_ret.shared_key_id, funding_txid: funding_txid}))
-      })
+    callGetUnconfirmedStatecoins().forEach((statecoin => {
+      dispatch(callDepositConfirm({shared_key_id: statecoin.shared_key_id, funding_txid: funding_txid}))
     }));
   }
 

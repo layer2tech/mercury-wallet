@@ -33,9 +33,17 @@ export const callGetConfig = () => {
   return wallet.config.getConfig()
 }
 
-// export const callGetUnspentStatecoins = () => {
-//   return wallet.getUnspentStatecoins()
-// }
+export const callGetUnspentStatecoins = () => {
+  return wallet.getUnspentStatecoins()
+}
+
+export const callGetUnconfirmedStatecoins = () => {
+  return wallet.getUnconfirmedStatecoins()
+}
+
+export const callGetActivityLog = () => {
+  return wallet.getActivityLog(10)
+}
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
@@ -43,12 +51,6 @@ export const callDepositInit = createAsyncThunk(
   'depositInit',
   async (value, thunkAPI) => {
     return wallet.depositInit(value)
-  }
-)
-export const callGetUnspentStatecoins = createAsyncThunk(
-  'getUnspentStatecoins',
-  async (value, thunkAPI) => {
-    return wallet.getUnconfirmedStatecoins(value)
   }
 )
 export const callDepositConfirm = createAsyncThunk(
@@ -83,13 +85,6 @@ const WalletSlice = createSlice({
     // Gen new SE Address
     callGenSeAddr(state) {
       state.rec_se_addr = encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'));
-    },
-    // Get list of coins from wallet
-    refreshCoinData(state, action) {
-      let [coins_data, total_balance] = wallet.getUnspentStatecoins();
-      state.coins_data = coins_data;
-      state.total_balance = total_balance;
-      state.activity_data =  wallet.getActivityLog(10);
     },
     // Get Server Fee info
     callGetFeeInfo(state, action) {

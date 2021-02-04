@@ -39,7 +39,6 @@ const WithdrawPage = () => {
       if (res.error==undefined) {
         setSelectedCoin(null)
         setInputAddr("")
-        dispatch(refreshCoinData()) // update GUI view of coins and activity
       }
     }))
   }

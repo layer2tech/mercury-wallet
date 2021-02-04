@@ -39,7 +39,6 @@ const ReceiveStatecoinPage = () => {
     dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
       if (res.error==undefined) {
         setTransferMsg3("")
-        dispatch(refreshCoinData()) // update GUI view of coins and activity
       }
     })
   }

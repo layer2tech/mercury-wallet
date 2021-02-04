@@ -11,7 +11,6 @@ import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinaliz
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 
-
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
 let bip32 = require('bip32');
