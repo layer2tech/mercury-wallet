@@ -100,7 +100,7 @@ describe("Statecoins/Coin", () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
       let coin = statecoins.getCoin(coins[0].shared_key_id)
-      coin.confirmed=true                 // set one confirmed
+      coin.confirmed=false                 // set one unconfirmed
       statecoins.setCoinFinalized(coin)
       expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
@@ -122,6 +122,6 @@ describe("Config", () => {
   test('fail update invalid value', () => {
     expect(() => {  // not enough value
       config.update({invalid: ""});
-    }).toThrowError("Config entry does not exist");
+    }).toThrowError("does not exist");
   })
 })

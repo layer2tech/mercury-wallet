@@ -128,7 +128,7 @@ describe('StateChain Entity', function() {
     // set backuptx receive address to wrong proof_key addr
     let wrong_proof_key = "028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd42";
     let tx_backup = bitcoin.Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
-    tx_backup.outs[0].script = pubKeyToScriptPubKey(wrong_proof_key, wallet.network);
+    tx_backup.outs[0].script = pubKeyToScriptPubKey(wrong_proof_key, wallet.config.network);
     transfer_msg3.tx_backup_psm.tx_hex = tx_backup.toHex();
 
     await expect(wallet.transfer_receiver(transfer_msg3))
@@ -154,7 +154,7 @@ describe('StateChain Entity', function() {
     expect(statecoin.tx_backup).not.toBe(null);
     expect(statecoin.tx_withdraw).toBe(null);
     expect(statecoin.smt_proof).not.toBe(null);
-    expect(statecoin.confirmed).toBe(false);
+    expect(statecoin.confirmed).toBe(true);
     expect(statecoin.spent).toBe(false);
   });
 })
@@ -169,5 +169,6 @@ const run_deposit = (wallet, value) => {
   wallet.statecoins.coins[0].value = statecoin.value
   wallet.statecoins.coins[0].funding_txid = statecoin.funding_txid
   wallet.statecoins.coins[0].statechain_id = statecoin.statechain_id
+  wallet.statecoins.coins[0].confirmed = true
   return statecoin
 }

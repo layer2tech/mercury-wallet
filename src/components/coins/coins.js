@@ -19,6 +19,7 @@ import {Button, Modal} from 'react-bootstrap';
 import { useSelector } from 'react-redux'
 
 import { fromSatoshi } from '../../wallet/util'
+import { callGetUnspentStatecoins } from '../../features/WalletDataSlice'
 
 import './coins.css';
 import '../index.css';
@@ -45,7 +46,7 @@ const Coins = (props) => {
     // Check if coin is selected. If so return CSS.
     const isSelectedStyle = (shared_key_id) => {return props.selectedCoin === shared_key_id ? {backgroundColor: "#e6e6e6"} : {}}
 
-    const coins_data = useSelector(state => state.walletData).coins_data;
+    const coins_data = callGetUnspentStatecoins()[0];
     const statecoinData = coins_data.map(item => (
         <div key={item.shared_key_id}>
             <div

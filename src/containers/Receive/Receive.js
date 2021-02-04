@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import { StdButton, Quantity, AddressInput } from "../../components";
 
-import { callGenSeAddr, callTransferReceiver, setError } from '../../features/WalletDataSlice'
+import { callGenSeAddr, callTransferReceiver, setError, refreshCoinData } from '../../features/WalletDataSlice'
 
 import './Receive.css';
 import '../Send/Send.css';

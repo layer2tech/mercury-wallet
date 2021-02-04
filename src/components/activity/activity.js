@@ -10,9 +10,10 @@ import React from 'react';
 import { useSelector } from 'react-redux'
 
 import { fromSatoshi } from '../../wallet/util'
+import { callGetActivityLog } from '../../features/WalletDataSlice'
 
 const Activity = () => {
-    const activity_data = useSelector(state => state.walletData).activity_data;
+    const activity_data = callGetActivityLog()
     const activitiesTableData = activity_data.map((item, index) => (
         <div key={index}>
             <div className="date">
