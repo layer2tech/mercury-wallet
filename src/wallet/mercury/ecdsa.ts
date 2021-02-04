@@ -28,7 +28,7 @@ export const keyGen = async (
   };
   // server first
   let server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
-  let kg_party_one_first_message = server_resp_key_gen_first[1];
+  let kg_party_one_first_message = server_resp_key_gen_first.msg;
   typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
 
   // client first
@@ -44,14 +44,14 @@ export const keyGen = async (
     dlog_proof:client_resp_key_gen_first.kg_party_two_first_message.d_log_proof,
   }
   let kg_party_one_second_message = await http_client.post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
-  typeforce(types.KeyGenParty1Message2, kg_party_one_second_message);
+  typeforce(types.KeyGenParty1Message2, kg_party_one_second_message.msg);
 
   // client second
   let key_gen_second_message =
     JSON.parse(
       wasm_client.KeyGen.second_message(
         JSON.stringify(kg_party_one_first_message),
-        JSON.stringify(kg_party_one_second_message)
+        JSON.stringify(kg_party_one_second_message.msg)
       )
     );
   typeforce(types.ClientKeyGenSecondMsg, key_gen_second_message);
@@ -61,7 +61,7 @@ export const keyGen = async (
     JSON.parse(
       wasm_client.KeyGen.set_master_key(
         JSON.stringify(client_resp_key_gen_first.kg_ec_key_pair_party2),
-        JSON.stringify(kg_party_one_second_message
+        JSON.stringify(kg_party_one_second_message.msg
                 .ecdh_second_message
                 .comm_witness
                 .public_share),
@@ -99,7 +99,7 @@ export const sign = async (
       eph_key_gen_first_message_party_two: client_sign_first.eph_key_gen_first_message_party_two,
   };
   let server_sign_first = await http_client.post(POST_ROUTE.SIGN_FIRST, sign_msg1);
-  typeforce(types.ServerSignfirstMsg, server_sign_first);
+  typeforce(types.ServerSignfirstMsg, server_sign_first.msg);
 
   //client second
   let party_two_sign_message =
@@ -108,7 +108,7 @@ export const sign = async (
         JSON.stringify(master_key),
         JSON.stringify(client_sign_first.eph_ec_key_pair_party2),
         JSON.stringify(client_sign_first.eph_comm_witness),
-        JSON.stringify(server_sign_first),
+        JSON.stringify(server_sign_first.msg),
         message
       )
     );
