@@ -1,5 +1,5 @@
 let bitcoin = require('bitcoinjs-lib')
-import { Wallet, StateCoinList, ACTION } from '../';
+import { Wallet, StateCoinList, ACTION, Config } from '../';
 import { segwitAddr } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
@@ -8,6 +8,7 @@ describe('Wallet', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
 
   test('toJSON', function() {
+    wallet.config.update({min_anon_set: 1000}) // update config to ensure defaults are not revered to after fromJSON.
     let json_wallet = JSON.stringify(wallet)
     let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true)
     // check wallets serialize to same values (since deep equal on recursive objects is messy)
@@ -104,5 +105,23 @@ describe("Statecoins/Coin", () => {
       expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
+  })
+})
+
+
+describe("Config", () => {
+  var config = new Config(bitcoin.networks.bitcoin, true);
+  let update = {min_anon_set: 20}
+
+  test('update', () => {
+    expect(config.min_anon_set).not.toBe(20)
+    config.update(update)
+    expect(config.min_anon_set).toBe(20)
+  });
+
+  test('fail update invalid value', () => {
+    expect(() => {  // not enough value
+      config.update({invalid: ""});
+    }).toThrowError("Config entry does not exist");
   })
 })

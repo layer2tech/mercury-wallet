@@ -33,7 +33,7 @@ describe('2P-ECDSA', function() {
 
 describe('StateChain Entity', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.testnet);
-  wallet.jest_testing_mode = true; // Call mock wasm
+  wallet.config.jest_testing_mode = true; // Call mock wasm
 
   let value = 10000
 
