@@ -3,7 +3,7 @@
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
-  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi } from './';
+  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -190,17 +190,16 @@ export class Wallet {
     statecoin.proof_key = proof_key;
     statecoin.value = value;
     statecoin.funding_txid = txid;
-    statecoin.confirmed = true;
+    statecoin.setConfirmed();
     this.statecoins.addCoin(statecoin)
     this.activity.addItem(id, action);
     log.debug("Added Statecoin: "+statecoin.shared_key_id);
   }
   // Mark statecoin as spent after transfer or withdraw
   setStateCoinSpent(id: string, action: string) {
-    this.statecoins.setCoinSpent(id)
+    this.statecoins.setCoinSpent(id, action)
     this.activity.addItem(id, action);
     log.debug("Set Statecoin spent: "+id);
-
   }
 
   // New BTC address
@@ -262,7 +261,7 @@ export class Wallet {
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin === undefined) throw Error("Coin "+shared_key_id+" does not exist.");
-    if (statecoin.confirmed) throw Error("Coin "+shared_key_id+" already confirmed.");
+    if (statecoin.status === STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" already confirmed.");
 
     // Add funding_txid to statecoin
     statecoin.funding_txid = funding_txid;
@@ -279,7 +278,7 @@ export class Wallet {
     );
 
     // update in wallet
-    statecoin_finalized.confirmed = true;
+    statecoin_finalized.setConfirmed();
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
     log.info("Deposite Confirm done.");
@@ -345,7 +344,7 @@ export class Wallet {
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
 
     // update in wallet
-    statecoin_finalized.confirmed = true;
+    statecoin_finalized.setConfirmed();
     this.statecoins.addCoin(statecoin_finalized);
 
     log.info("Transfer Finalize complete.")

@@ -1,5 +1,5 @@
 import { verifySmtProof, StateChainSig, proofKeyToSCEAddress, pubKeyTobtcAddr, pubKeyToScriptPubKey, decryptECIES } from '../util';
-import { Wallet, StateCoin, MockHttpClient, MockWasm, StateCoinList } from '../';
+import { Wallet, StateCoin, MockHttpClient, MockWasm, StateCoinList, STATECOIN_STATUS } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
 import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
 import { BTC_ADDR, KEYGEN_SIGN_DATA, TRANSFER_MSG3, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID, STATECOIN_CONFIRMED, STATECOIN_CONFERMED_BACKUPTX_HEX } from './test_data.js'
@@ -20,8 +20,7 @@ describe('2P-ECDSA', function() {
     expect(statecoin.tx_backup).toBe(null);
     expect(statecoin.tx_withdraw).toBe(null);
     expect(statecoin.smt_proof).toBe(null);
-    expect(statecoin.confirmed).toBe(false);
-    expect(statecoin.spent).toBe(false);
+    expect(statecoin.status).toBe(STATECOIN_STATUS.UNCOMFIRMED);
   });
 
   test('Sign', async function() {
@@ -41,10 +40,9 @@ describe('StateChain Entity', function() {
     let [shared_key_id, p_addr] = await wallet.depositInit(value)
     let statecoin = wallet.statecoins.getCoin(shared_key_id);
 
-    expect(statecoin.confirmed).toBe(false);
     expect(statecoin.tx_backup).toBeNull();
     expect(statecoin.tx_withdraw).toBeNull();
-    expect(statecoin.spent).toBe(false);
+    expect(statecoin.status).toBe(STATECOIN_STATUS.UNCOMFIRMED);
     expect(wallet.statecoins.getCoin(statecoin.shared_key_id)).toBe(statecoin)
   });
 
@@ -56,7 +54,7 @@ describe('StateChain Entity', function() {
     expect(statecoin_finalized.proof_key.length).toBeGreaterThan(0);
     expect(statecoin_finalized.funding_txid.length).toBeGreaterThan(0);
     expect(statecoin_finalized.smt_proof).not.toBeNull();
-    expect(statecoin_finalized.confirmed).toBe(true);
+    expect(statecoin.status).toBe(STATECOIN_STATUS.AVAILABLE);
   });
 
 
@@ -71,7 +69,7 @@ describe('StateChain Entity', function() {
 
     // check statecoin
     let statecoin = wallet.statecoins.getCoin(shared_key_id);
-    expect(statecoin.spent).toBe(true);
+    expect(statecoin.status).toBe(STATECOIN_STATUS.WITHDRAWN);
     expect(statecoin.tx_withdraw).toBe(tx_withdraw);
 
     // check wallet.statecoins
@@ -95,7 +93,7 @@ describe('StateChain Entity', function() {
 
     // check statecoin
     let statecoin = wallet.statecoins.getCoin(shared_key_id);
-    expect(statecoin.spent).toBe(true);
+    expect(statecoin.status).toBe(STATECOIN_STATUS.SPENT);
 
     // check transfer_msg data
     expect(transfer_msg3.shared_key_id).toBe(shared_key_id);
@@ -154,8 +152,7 @@ describe('StateChain Entity', function() {
     expect(statecoin.tx_backup).not.toBe(null);
     expect(statecoin.tx_withdraw).toBe(null);
     expect(statecoin.smt_proof).not.toBe(null);
-    expect(statecoin.confirmed).toBe(true);
-    expect(statecoin.spent).toBe(false);
+    expect(statecoin.status).toBe(STATECOIN_STATUS.AVAILABLE);
   });
 })
 

@@ -89,7 +89,7 @@ describe("Statecoins/Coin", () => {
     it('Returns only unspent coins with correct data', () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
-      statecoins.setCoinSpent(coins[0].shared_key_id) // set one spent
+      statecoins.setCoinSpent(coins[0].shared_key_id, "W") // set one spent
       expect(statecoins.getUnspentCoins()[0].length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
@@ -100,7 +100,7 @@ describe("Statecoins/Coin", () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
       let coin = statecoins.getCoin(coins[0].shared_key_id)
-      coin.confirmed=false                 // set one unconfirmed
+      coin.status="UNCOMFIRMED"                 // set one unconfirmed
       statecoins.setCoinFinalized(coin)
       expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
