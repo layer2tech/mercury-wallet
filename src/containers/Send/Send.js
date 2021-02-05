@@ -6,24 +6,20 @@ import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 
-import { Coins, Quantity, StdButton } from "../../components";
+import { Coins, Quantity, StdButton, AddressInput } from "../../components";
 import { fromSatoshi } from '../../wallet/util'
 import { decodeSCEAddress, encodeMessage } from '../../wallet/util'
-import { callTransferSender } from '../../features/WalletDataSlice'
+import { callTransferSender, setError } from '../../features/WalletDataSlice'
 
 import './Send.css';
 
 const SendStatecoinPage = () => {
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
-  const [inputAddr, setInputAddr] = useState('');
-  const [transferMsg3, setTransferMsg3] = useState("null");
+  const [inputAddr, setInputAddr] = useState("");
+  const [transferMsg3, setTransferMsg3] = useState('');
 
   const total_balance = useSelector(state => state.walletData).total_balance;
   const num_statecoins = useSelector(state => state.walletData).coins_data.length;
-  const transfer_msg3_promise = useSelector(state => state.walletData).transfer_msg3;
-  transfer_msg3_promise.then((transfer_msg3) => {
-    setTransferMsg3(encodeMessage(transfer_msg3))
-  })
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -34,11 +30,11 @@ const SendStatecoinPage = () => {
   const sendButtonAction = async () => {
     // check statechain is chosen
     if (!selectedCoin) {
-      alert("Please choose a StateCoin to send.");
+      dispatch(setError({msg: "Please choose a StateCoin to send."}))
       return
     }
     if (!inputAddr) {
-      alert("Please enter an StateCoin address to send to.");
+      dispatch(setError({msg: "Please enter an StateCoin address to send to."}))
       return
     }
 
@@ -47,22 +43,28 @@ const SendStatecoinPage = () => {
     try {
       input_pubkey = decodeSCEAddress(inputAddr);
     } catch (e) {
-      alert("Error: " + e.message);
+      dispatch(setError({msg: "Error: " + e.message}))
       return
     }
 
     if (!(input_pubkey.slice(0,2) === '02' || input_pubkey.slice(0,2) === '03')) {
-      alert("Error: invalid proof public key");
+      dispatch(setError({msg: "Error: invalid proof public key."}));
       return
     }
 
     if (input_pubkey.length !== 66) {
-      alert("Error: invalid proof public key");
+      dispatch(setError({msg: "Error: invalid proof public key"}))
       return
     }
 
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
-
+    .then(res => {
+      if (res.error==undefined) {
+        setTransferMsg3(encodeMessage(res.payload))
+        setInputAddr("")
+        setSelectedCoin('')
+      }
+    })
   }
 
   const copyTransferMsgToClipboard = () => {
@@ -107,14 +109,11 @@ const SendStatecoinPage = () => {
                       <h3 className="subtitle">Transaction Details</h3>
                   </div>
                   <div>
-                     <div className="inputs">
-                         <input
-                          type="text"
-                          placeholder="Destination Address"
-                          onChange={onInputAddrChange}/>
-
-                         <span className="smalltxt">Recipients Statechain Address</span>
-                     </div>
+                     <AddressInput
+                       inputAddr={inputAddr}
+                       onChange={onInputAddrChange}
+                       placeholder='Destination Address for withdrawal'
+                       smallTxtMsg='Recipients Statechain Address'/>
                   </div>
                   <div>
                       <p className="table-title">Use Only:</p>

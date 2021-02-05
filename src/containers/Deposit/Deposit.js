@@ -18,7 +18,7 @@ const DepositPage = () => {
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
-    const [selectedValues, setSelectedValues] = useState([{value: DEFUALT_VALUE_SELECTION, initialised: false}]);
+    const [selectedValues, setSelectedValues] = useState([{value: DEFUALT_VALUE_SELECTION, initialised: false, p_addr: "Initialising.."}]);
 
     // Value in some SelectionPanel that has been chosen
     const addValueSelection = (id, value) => {
@@ -28,9 +28,16 @@ const DepositPage = () => {
     }
 
     // Store value chosen and whether statecoin has been initialised yet
-    const setValueSelectionInitialised = (id) => {
+    const setValueSelectionInitialised = (id, value) => {
       let current_values = selectedValues;
-      selectedValues[id].initialised = true;
+      selectedValues[id].initialised = value;
+      setSelectedValues(current_values);
+    }
+
+    // Set value chosen address. Called after depositInit has returned p_addr
+    const setValueSelectionAddr = (id, p_addr) => {
+      let current_values = selectedValues;
+      selectedValues[id].p_addr = p_addr;
       setSelectedValues(current_values);
     }
 
@@ -50,6 +57,7 @@ const DepositPage = () => {
       { component: <TransactionsBTC
         selectedValues={selectedValues}
         setValueSelectionInitialised={setValueSelectionInitialised}
+        setValueSelectionAddr={setValueSelectionAddr}
       /> }
     ];
 

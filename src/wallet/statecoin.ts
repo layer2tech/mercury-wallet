@@ -2,6 +2,7 @@
 
 import { Network } from "bitcoinjs-lib";
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
+import { ACTION } from ".";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
 
@@ -30,13 +31,23 @@ export class StateCoinList {
   getUnspentCoins() {
     let total = 0
     let coins = this.coins.filter((item: StateCoin) => {
-      if (!item.spent) {
+      if (item.status === STATECOIN_STATUS.AVAILABLE) {
         total += item.value
         return item
       }
       return
     })
     return [coins.map((item: StateCoin) => item.getDisplayInfo()), total]
+  };
+
+  getUnconfirmedCoins() {
+    let coins = this.coins.filter((item: StateCoin) => {
+      if (item.status === STATECOIN_STATUS.UNCOMFIRMED) {
+        return item
+      }
+      return
+    })
+    return coins.map((item: StateCoin) => item.getFundingTxInfo())
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
@@ -53,10 +64,20 @@ export class StateCoinList {
   };
 
 
-  setCoinSpent(shared_key_id: string) {
+  setCoinSpent(shared_key_id: string, action: string) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
-      coin.spent = true
+      switch (action) {
+        case ACTION.WITHDRAW:
+          coin.setWithdrawn();
+          return;
+        case ACTION.TRANSFER:
+          coin.setSpent();
+          return;
+        case ACTION.SWAP:
+          coin.setSwapped();
+          return;
+      }
     } else {
       throw "No coin found with shared_key_id " + shared_key_id
     }
@@ -82,6 +103,22 @@ export class StateCoinList {
   }
 }
 
+// STATUS represent each stage in the lifecycle of a statecoin.
+export const STATECOIN_STATUS = {
+  // UNCOMFIRMED coins are awaiting confirmation of their funding transaction
+  UNCOMFIRMED: "UNCOMFIRMED",
+  // Coins are fully owned by wallet and unspent
+  AVAILABLE: "AVAILABLE",
+  // Coin used to belonged to wallet but has been transferred
+  SPENT: "SPENT",
+  // Coin used to belonged to wallet but has been withdraw
+  WITHDRAWN: "WITHDRAWN",
+  // Coin used to belonged to wallet but has been swapped
+  SWAPPED: "SWAPPED",
+  // Coin has performed transfer_sender and has valid TransferMsg3 to be claimed by receiver
+  SPEND_PENDING: "SPEND_PENDING",
+};
+Object.freeze(STATECOIN_STATUS);
 
 // Each individual StateCoin
 export class StateCoin {
@@ -96,8 +133,7 @@ export class StateCoin {
   tx_withdraw: BTCTransaction | null;
   smt_proof: InclusionProofSMT | null;
   swap_rounds: number;
-  confirmed: boolean;
-  spent: boolean;
+  status: string;
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
     this.shared_key_id = shared_key_id;
@@ -112,9 +148,14 @@ export class StateCoin {
     this.tx_backup = null;
     this.tx_withdraw = null;
     this.smt_proof = null;
-    this.confirmed = false
-    this.spent = false
+    this.status = STATECOIN_STATUS.UNCOMFIRMED
   }
+
+  setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
+  setSpent() { this.status = STATECOIN_STATUS.SPENT; }
+  setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
+  setSwapped() { this.status = STATECOIN_STATUS.SWAPPED; }
+  setSpendPending() { this.status = STATECOIN_STATUS.SPEND_PENDING; }
 
   // Get data to display in GUI
   getDisplayInfo(): StateCoinDisplayData {
@@ -126,6 +167,14 @@ export class StateCoin {
       swap_rounds: this.swap_rounds
     }
   };
+
+  getFundingTxInfo() {
+    return {
+      shared_key_id: this.shared_key_id,
+      value: this.value,
+      funding_txid: this.funding_txid
+    }
+  }
 
   // Get BTC address from SharedKey
   getBtcAddress(network: Network): string {

@@ -23,7 +23,7 @@
     }
   },
   "repository": "github:commerceblock/mercury-wallet",
-  "version": "21.29.01",
+  "version": "0.1",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
@@ -75,11 +75,14 @@
     "client-wasm": "file:client-wasm/pkg",
     "eciesjs": "^0.3.9",
     "electron-is-dev": "^1.2.0",
+    "electron-log": "^4.3.1",
+    "electron-store": "^7.0.1",
     "eslint-plugin-react-hooks": "^4.2.0",
     "html-react-parser": "^0.14.2",
     "install": "^0.13.0",
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
+    "msgpack-lite": "^0.1.26",
     "react": "^16.1.1",
     "react-bootstrap": "^1.4.0",
     "react-dom": "^16.1.1",
@@ -92,8 +95,7 @@
     "superagent": "^6.1.0",
     "ts-jest": "^26.4.4",
     "typeforce": "^1.11.3",
-    "uuid": "^8.3.2",
-    "msgpack-lite": "^0.1.26"
+    "uuid": "^8.3.2"
   },
   "browserslist": {
     "production": [

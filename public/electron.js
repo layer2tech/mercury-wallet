@@ -8,11 +8,19 @@ const isDev = require('electron-is-dev');
 let mainWindow;
 
 function createWindow() {
-  mainWindow = new BrowserWindow({width: 1200, height: 800, icon: "./icons/mercury-symbol-tri-color.png"});
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    icon: "./icons/mercury-symbol-tri-color.png",
+    webPreferences:
+      {
+        nodeIntegration: true,
+        webSecurity: false
+      }
+    });
+
   mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
   if (isDev) {
-    // Open the DevTools.
-    //BrowserWindow.addDevToolsExtension('<location to your react chrome extension>');
     mainWindow.webContents.openDevTools();
   }
   mainWindow.on('closed', () => mainWindow = null);
