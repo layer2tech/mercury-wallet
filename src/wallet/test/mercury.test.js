@@ -54,7 +54,7 @@ describe('StateChain Entity', function() {
     expect(statecoin_finalized.proof_key.length).toBeGreaterThan(0);
     expect(statecoin_finalized.funding_txid.length).toBeGreaterThan(0);
     expect(statecoin_finalized.smt_proof).not.toBeNull();
-    expect(statecoin.status).toBe(STATECOIN_STATUS.AVAILABLE);
+    expect(statecoin_finalized.status).toBe(STATECOIN_STATUS.AVAILABLE);
   });
 
 
@@ -166,6 +166,6 @@ const run_deposit = (wallet, value) => {
   wallet.statecoins.coins[0].value = statecoin.value
   wallet.statecoins.coins[0].funding_txid = statecoin.funding_txid
   wallet.statecoins.coins[0].statechain_id = statecoin.statechain_id
-  wallet.statecoins.coins[0].confirmed = true
+  wallet.statecoins.coins[0].status = "AVAILABLE"
   return statecoin
 }
