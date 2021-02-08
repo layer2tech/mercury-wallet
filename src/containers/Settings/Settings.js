@@ -1,6 +1,6 @@
 import settings from "../../images/settings.png";
 
-import React, {useState} from 'react';
+import React from 'react';
 import {Link, withRouter} from "react-router-dom";
 
 import { StdButton, Quantity } from "../../components";
@@ -10,7 +10,6 @@ import { callGetConfig } from '../../features/WalletDataSlice'
 import './Settings.css';
 
 const SettingsPage = () => {
-  // let [state, setState] = useState({checked: false})
 
   let config = callGetConfig();
 
@@ -38,6 +37,13 @@ const SettingsPage = () => {
                       label="Create wallet backup"
                       className="Body-button blue"/>
               </Link>
+
+              <Link className="nav-link" to="/backup_tx">
+                  <StdButton
+                      label="Manage Back-up transactions"
+                      className="Body-button blue"/>
+              </Link>
+
               <Link className="nav-link" to="/">
                   <StdButton
                       label="Export activity log"
@@ -68,8 +74,7 @@ const SettingsPage = () => {
                      </div>
                    </form>
                    <Quantity label="Minimum Anonymity Set Size" />
-                   <StdButton label="Publish back-out transaction"
-                              className="Body-button blue"/>
+
                </div>
                <div className="inputs">
                    <h2>Date/Time Format</h2>

@@ -57,6 +57,14 @@ describe('Wallet', function() {
     expect(coins_before_add.length).toEqual(coins_after_add.length - 1)
     expect(activity_log_before_add.length).toEqual(activity_log_after_add.length - 1)
   });
+
+  describe("getCoinBackupTxData", () => {
+    it('shared_key_id doesnt exist', () => {
+      expect(() => { 
+        wallet.getCoinBackupTxData("StateCoin does not exist.");
+      }).toThrowError("does not exist");
+    });
+  })
 })
 
 describe("Statecoins/Coin", () => {

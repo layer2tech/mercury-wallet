@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import { HomePage, DepositPage, WithdrawPage, SettingsPage, HelpPage,
-SendStatecoinPage, ReceiveStatecoinPage, SwapPage } from '../index'
+SendStatecoinPage, ReceiveStatecoinPage, SwapPage, BackupTxPage } from '../index'
 import { Header } from '../../components'
 
 
@@ -22,6 +22,7 @@ const App = () => {
          <Route path="/swap_statecoin" exact component={() => <SwapPage />} />
          <Route path="/send_statecoin" exact component={() => <SendStatecoinPage />} />
          <Route path="/receive_statecoin" exact component={() => <ReceiveStatecoinPage />} />
+         <Route path="/backup_tx" exact component={() => <BackupTxPage />} />
          <Route component={() => <HomePage />} />
        </Switch>
      </Router>

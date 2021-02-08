@@ -166,6 +166,23 @@ export class Wallet {
   getUnconfirmedStatecoins() {
     return this.statecoins.getUnconfirmedCoins()
   }
+  // Get Backup Tx hex and receive private key
+  getCoinBackupTxData(shared_key_id: string) {
+    let statecoin = this.statecoins.getCoin(shared_key_id);
+    if (statecoin===undefined) throw Error("StateCoin does not exist.");
+    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("StateCoin is not availble.");
+
+    // Get tx hex
+    let backup_tx_data = statecoin.getBackupTxData();
+    //extract receive address private key
+    let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
+
+    let priv_key = this.getBIP32forBtcAddress(addr).privateKey;
+    if (priv_key===undefined) throw Error("Backup receive address private key not found.");
+
+    backup_tx_data.priv_key = priv_key.toString("hex");
+    return backup_tx_data
+  }
   // ActivityLog data with relevant Coin data
   getActivityLog(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {

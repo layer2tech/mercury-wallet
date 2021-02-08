@@ -16,7 +16,6 @@ import question from "../../images/question-mark.png";
 import React, {useState} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
-import { useSelector } from 'react-redux'
 
 import { fromSatoshi } from '../../wallet/util'
 import { callGetUnspentStatecoins } from '../../features/WalletDataSlice'

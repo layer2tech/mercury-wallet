@@ -79,7 +79,7 @@ export class StateCoinList {
           return;
       }
     } else {
-      throw "No coin found with shared_key_id " + shared_key_id
+      throw Error("No coin found with shared_key_id " + shared_key_id);
     }
   }
 
@@ -89,7 +89,7 @@ export class StateCoinList {
     if (statecoin) {
       statecoin = finalized_statecoin
     } else {
-      throw "No coin found with shared_key_id " + finalized_statecoin.shared_key_id
+      throw Error("No coin found with shared_key_id " + finalized_statecoin.shared_key_id);
     }
   }
 
@@ -98,7 +98,7 @@ export class StateCoinList {
     if (coin) {
       coin.tx_withdraw = tx_withdraw
     } else {
-      throw "No coin found with shared_key_id " + shared_key_id
+      throw Error("No coin found with shared_key_id " + shared_key_id);
     }
   }
 }
@@ -173,6 +173,13 @@ export class StateCoin {
       shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid
+    }
+  }
+
+  getBackupTxData() {
+    return {
+      hex: this.tx_backup?.toHex(),
+      priv_key: "",
     }
   }
 

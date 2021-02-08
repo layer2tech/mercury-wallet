@@ -1,14 +1,13 @@
 import arrow from "../../images/arrow-up.png"
-import scan from "../../images/scan-deposite.png";
 import icon2 from "../../images/icon2.png";
 
 import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 
-import { StdButton, Quantity, AddressInput } from "../../components";
+import { StdButton, AddressInput } from "../../components";
 
-import { callGenSeAddr, callTransferReceiver, setError, refreshCoinData } from '../../features/WalletDataSlice'
+import { callGenSeAddr, callTransferReceiver, setError } from '../../features/WalletDataSlice'
 
 import './Receive.css';
 import '../Send/Send.css';
@@ -37,7 +36,7 @@ const ReceiveStatecoinPage = () => {
     }
 
     dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
-      if (res.error==undefined) {
+      if (res.error===undefined) {
         setTransferMsg3("")
       }
     })

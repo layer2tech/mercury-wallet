@@ -6,7 +6,7 @@ import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 
-import { Coins, Quantity, StdButton, AddressInput } from "../../components";
+import { Coins, StdButton, AddressInput } from "../../components";
 import { fromSatoshi } from '../../wallet/util'
 import { decodeSCEAddress, encodeMessage } from '../../wallet/util'
 import { callTransferSender, setError } from '../../features/WalletDataSlice'
@@ -59,7 +59,7 @@ const SendStatecoinPage = () => {
 
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
     .then(res => {
-      if (res.error==undefined) {
+      if (res.error===undefined) {
         setTransferMsg3(encodeMessage(res.payload))
         setInputAddr("")
         setSelectedCoin('')
@@ -141,16 +141,16 @@ const SendStatecoinPage = () => {
               </div>
           </div>
 
-            <div className="Body transferMsg">
-                <h3 className="subtitle">Transfer Message:</h3>
-                <div className="transferMsg scan-trasfermsg">
-                  <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
-                    <span>
-                      {transferMsg3}
-                    </span>
-                </div>
+          <div className="Body transferMsg">
+            <h3 className="subtitle">Transfer Message:</h3>
+            <div className="transferMsg scan-trasfermsg">
+              <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
+                <span>
+                  {transferMsg3}
+                </span>
+            </div>
+          </div>
 
-        </div>
       </div>
     )
 }

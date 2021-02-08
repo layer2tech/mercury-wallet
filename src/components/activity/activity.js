@@ -7,7 +7,6 @@ import withrowIcon from '../../images/withrow-icon.png';
 import swapIcon from '../../images/swap-icon-grey.png';
 
 import React from 'react';
-import { useSelector } from 'react-redux'
 
 import { fromSatoshi } from '../../wallet/util'
 import { callGetActivityLog } from '../../features/WalletDataSlice'

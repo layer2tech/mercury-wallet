@@ -1,8 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { useDispatch } from 'react-redux'
 
-import { Wallet, ACTION, StateCoinList } from '../wallet'
-import { getFeeInfo, getSmtProof, pingServer } from '../wallet/mercury/info_api'
+import { Wallet, ACTION } from '../wallet'
+import { getFeeInfo } from '../wallet/mercury/info_api'
 import { decodeMessage, encodeSCEAddress } from '../wallet/util'
 
 import { v4 as uuidv4 } from 'uuid';
@@ -43,6 +42,10 @@ export const callGetUnconfirmedStatecoins = () => {
 
 export const callGetActivityLog = () => {
   return wallet.getActivityLog(10)
+}
+
+export const callGetCoinBackupTxData = (shared_key_id) => {
+  return wallet.getCoinBackupTxData(shared_key_id)
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in

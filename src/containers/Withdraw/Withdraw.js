@@ -6,7 +6,7 @@ import {Link, withRouter} from "react-router-dom";
 import React, {useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 
-import { callWithdraw, setError, refreshCoinData } from '../../features/WalletDataSlice'
+import { callWithdraw, setError } from '../../features/WalletDataSlice'
 import { Coins, StdButton, AddressInput } from "../../components";
 import { fromSatoshi } from '../../wallet/util'
 
@@ -36,7 +36,7 @@ const WithdrawPage = () => {
     }
 
     dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr})).then((res => {
-      if (res.error==undefined) {
+      if (res.error===undefined) {
         setSelectedCoin(null)
         setInputAddr("")
       }
