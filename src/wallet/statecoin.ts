@@ -179,8 +179,9 @@ export class StateCoin {
 
   getBackupTxData(block_height: number) {
     return {
-      hex: this.tx_backup?.toHex(),
-      priv_key: "",
+      tx_backup_hex: this.tx_backup?.toHex(),
+      priv_key_hex: "",
+      key_wif: "",
       expiry_data: this.getExpiryData(block_height)
     }
   }

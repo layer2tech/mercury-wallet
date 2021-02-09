@@ -10,7 +10,7 @@ import { Coins, StdButton } from "../../components";
 
 import './BackupTx.css';
 
-const DEFAULT_TX_DATA = {hex: "", priv_key: "", expiry_data: {blocks: "", days: "", months: ""}};
+const DEFAULT_TX_DATA = {tx_backup_hex:"",priv_key_hex:"",key_wif:"",expiry_data:{blocks:"",days:"",months:""}};
 
 const BackupTxPage = () => {
   const dispatch = useDispatch();
@@ -39,11 +39,15 @@ const BackupTxPage = () => {
   }
 
   const copyBackupTxHexToClipboard = () => {
-    navigator.clipboard.writeText(selectedCoinTxData.hex);
+    navigator.clipboard.writeText(selectedCoinTxData.tx_backup_hex);
   }
 
   const copyPrivKeyToClipboard = () => {
-    navigator.clipboard.writeText(selectedCoinTxData.priv_key);
+    navigator.clipboard.writeText(selectedCoinTxData.priv_key_hex);
+  }
+
+  const copyKeyWIFToClipboard = () => {
+    navigator.clipboard.writeText(selectedCoinTxData.key_wif);
   }
 
   return (
@@ -114,7 +118,7 @@ const BackupTxPage = () => {
                     <div className="">
                       <img type="button" src={icon2} alt="icon" onClick={copyBackupTxHexToClipboard}/>
                         <span>
-                          {selectedCoinTxData.hex}
+                          {selectedCoinTxData.tx_backup_hex}
                         </span>
                     </div>
                 </div>
@@ -124,7 +128,17 @@ const BackupTxPage = () => {
                     <div className="">
                       <img type="button" src={icon2} alt="icon" onClick={copyPrivKeyToClipboard}/>
                         <span>
-                          {selectedCoinTxData.priv_key}
+                          {selectedCoinTxData.priv_key_hex}
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 className="subtitle">Private Key WIF:</h3>
+                    <div className="">
+                      <img type="button" src={icon2} alt="icon" onClick={copyKeyWIFToClipboard}/>
+                        <span>
+                          {selectedCoinTxData.key_wif}
                         </span>
                     </div>
                 </div>

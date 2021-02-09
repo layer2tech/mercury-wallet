@@ -177,10 +177,15 @@ export class Wallet {
     //extract receive address private key
     let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
 
-    let priv_key = this.getBIP32forBtcAddress(addr).privateKey;
+
+    let bip32 = this.getBIP32forBtcAddress(addr)
+
+    let priv_key = bip32.privateKey;
     if (priv_key===undefined) throw Error("Backup receive address private key not found.");
 
-    backup_tx_data.priv_key = priv_key.toString("hex");
+    backup_tx_data.priv_key_hex = priv_key.toString("hex");
+    backup_tx_data.key_wif = bip32.toWIF();
+    
     return backup_tx_data
   }
   // ActivityLog data with relevant Coin data

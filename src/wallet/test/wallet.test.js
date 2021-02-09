@@ -103,7 +103,7 @@ describe("Statecoins/Coin", () => {
       expect(statecoins.getUnspentCoins()[0].length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
-  })
+  });
 
   describe("getUnconfirmedCoins", () => {
     it('Returns only unconfirmed coins with correct data', () => {
@@ -115,7 +115,7 @@ describe("Statecoins/Coin", () => {
       expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
-  })
+  });
 
   describe("calcExpiryDate", () => {
     it('Calculate expiry', () => {
@@ -132,15 +132,15 @@ describe("Statecoins/Coin", () => {
       expect(coin.getExpiryData(locktime-(29*24*6))).toEqual({blocks: 29*24*6, days: 29, months: 0});  // 29 days = 0 months
       expect(coin.getExpiryData(locktime-(30*24*6))).toEqual({blocks: 30*24*6, days: 30, months: 1});  // 1 month
     });
-    test('no backup tx', () => {
+    it('no backup tx', () => {
       let coin = statecoins.coins[0];
       coin.tx_backup = null
       expect(() => {  // not enough value
         coin.getExpiryData(999);
       }).toThrowError("Cannot calculate expiry - Coin is not confirmed.");
-    })
-  })
-})
+    });
+  });
+});
 
 
 describe("Config", () => {
