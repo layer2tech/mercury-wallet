@@ -24,7 +24,7 @@ const BackupTxPage = () => {
     if (id==null) {
       setSelectedCoinTxData(DEFAULT_TX_DATA)
     } else {
-      setSelectedCoinTxData(callGetCoinBackupTxData(id, block_height))
+      setSelectedCoinTxData(callGetCoinBackupTxData(id))
     }
   }
 

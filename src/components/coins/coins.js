@@ -28,7 +28,6 @@ const DEFAULT_STATE_COIN_DETAILS = {show:false,coin:{value:0,expiry_data:{blocks
 
 const Coins = (props) => {
     const dispatch = useDispatch();
-    const block_height = useSelector(state => state.walletData).block_height;
 
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const handleOpenCoinDetails = (shared_key_id) => {
@@ -51,11 +50,12 @@ const Coins = (props) => {
     // Check if coin is selected. If so return CSS.
     const isSelectedStyle = (shared_key_id) => {return props.selectedCoin === shared_key_id ? {backgroundColor: "#e6e6e6"} : {}}
 
+    // Convert expiry_data to string displaying months or days left
     const expiry_time_to_string = (expiry_data) => {
       return expiry_data.months > 0 ? expiry_data.months+" months": expiry_data.days+" days"
     }
 
-    const [coins_data, total_balance] = callGetUnspentStatecoins(block_height);
+    const [coins_data, total_balance] = callGetUnspentStatecoins();
     // Update total_balance in Redux state
     dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
 

@@ -21,7 +21,6 @@ const initialState = {
   balance_info: {total_balance: total_balance, num_coins: coins_data.length},
   fee_info: fee_info,
   rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex')),
-  block_height: 1000 // Static temporarily. Should be updated by Electrum Client.
 }
 
 // Wallet data gets
@@ -29,8 +28,8 @@ export const callGetConfig = () => {
   return wallet.config.getConfig()
 }
 
-export const callGetUnspentStatecoins = (block_height) => {
-  return wallet.getUnspentStatecoins(block_height)
+export const callGetUnspentStatecoins = () => {
+  return wallet.getUnspentStatecoins()
 }
 
 export const callGetUnconfirmedStatecoins = () => {
@@ -41,8 +40,8 @@ export const callGetActivityLog = () => {
   return wallet.getActivityLog(10)
 }
 
-export const callGetCoinBackupTxData = (shared_key_id, block_height) => {
-  return wallet.getCoinBackupTxData(shared_key_id, block_height)
+export const callGetCoinBackupTxData = (shared_key_id) => {
+  return wallet.getCoinBackupTxData(shared_key_id)
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in

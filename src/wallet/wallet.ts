@@ -37,16 +37,17 @@ try {
 export class Wallet {
   config: Config;
   version: string;
+
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
   electrum_client: ElectrumClient | MockElectrumClient;
+  block_height: number;
 
   constructor(mnemonic: string, account: any, network: Network, testing_mode: boolean) {
     this.config = new Config(network, testing_mode);
-    this.version = "vesion"
     this.version = require("../../package.json").version
 
     this.mnemonic = mnemonic;
@@ -61,6 +62,7 @@ export class Wallet {
       this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
     }
+    this.block_height = this.electrum_client.latestBlockHeight()
   }
 
   // Constructors
@@ -157,23 +159,22 @@ export class Wallet {
 
 
   // Getters
-  getMnemonic(): string {
-    return this.mnemonic
-  }
-  getUnspentStatecoins(block_height: number) {
-    return this.statecoins.getUnspentCoins(block_height)
+  getMnemonic(): string { return this.mnemonic }
+  getBlockHeight(): number { return this.block_height }
+  getUnspentStatecoins() {
+    return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   getUnconfirmedStatecoins() {
     return this.statecoins.getUnconfirmedCoins()
   }
   // Get Backup Tx hex and receive private key
-  getCoinBackupTxData(shared_key_id: string, block_height: number) {
+  getCoinBackupTxData(shared_key_id: string) {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin===undefined) throw Error("StateCoin does not exist.");
     if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("StateCoin is not availble.");
 
     // Get tx hex
-    let backup_tx_data = statecoin.getBackupTxData(block_height);
+    let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
     //extract receive address private key
     let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
 
@@ -185,7 +186,7 @@ export class Wallet {
 
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
     backup_tx_data.key_wif = bip32.toWIF();
-    
+
     return backup_tx_data
   }
   // ActivityLog data with relevant Coin data
@@ -200,6 +201,7 @@ export class Wallet {
       }
     })
   }
+
 
   // Add confirmed Statecoin to wallet
   addStatecoin(statecoin: StateCoin, action: string) {
