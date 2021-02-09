@@ -207,6 +207,7 @@ export class Wallet {
     statecoin.proof_key = proof_key;
     statecoin.value = value;
     statecoin.funding_txid = txid;
+    statecoin.tx_backup = new Transaction();
     statecoin.setConfirmed();
     this.statecoins.addCoin(statecoin)
     this.activity.addItem(id, action);

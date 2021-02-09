@@ -134,6 +134,7 @@ describe("Statecoins/Coin", () => {
     });
     test('no backup tx', () => {
       let coin = statecoins.coins[0];
+      coin.tx_backup = null
       expect(() => {  // not enough value
         coin.getExpiryData(999);
       }).toThrowError("Cannot calculate expiry - Coin is not confirmed.");
