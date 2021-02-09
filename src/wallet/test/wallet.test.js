@@ -4,6 +4,8 @@ import { segwitAddr } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
 
+let lodash = require('lodash');
+
 describe('Wallet', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
 
@@ -60,7 +62,7 @@ describe('Wallet', function() {
 
   describe("getCoinBackupTxData", () => {
     it('shared_key_id doesnt exist', () => {
-      expect(() => { 
+      expect(() => {
         wallet.getCoinBackupTxData("StateCoin does not exist.");
       }).toThrowError("does not exist");
     });
@@ -113,6 +115,29 @@ describe("Statecoins/Coin", () => {
       expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
+  })
+
+  describe("calcExpiryDate", () => {
+    it('Calculate expiry', () => {
+      let coin = lodash.clone(statecoins.coins[0]);
+      let tx_backup = new Transaction();
+      let locktime = 24*6*30; // month locktime
+      tx_backup.locktime = locktime;
+      coin.tx_backup = tx_backup;
+      expect(coin.getExpiryData(locktime-1)).toEqual({blocks: 1, days: 0, months: 0});            // < 1 day to go
+      expect(coin.getExpiryData(locktime+1)).toEqual({blocks: 0, days: 0, months: 0});          // locktime passed
+      expect(coin.getExpiryData(locktime-(24*6)+1)).toEqual({blocks: (24*6)-1, days: 0, months: 0});  // 1 block from 1 day
+      expect(coin.getExpiryData(locktime-(24*6))).toEqual({blocks: 24*6, days: 1, months: 0});    // 1 day
+      expect(coin.getExpiryData(locktime-(2*24*6))).toEqual({blocks: 2*24*6, days: 2, months: 0});  // 2 days
+      expect(coin.getExpiryData(locktime-(29*24*6))).toEqual({blocks: 29*24*6, days: 29, months: 0});  // 29 days = 0 months
+      expect(coin.getExpiryData(locktime-(30*24*6))).toEqual({blocks: 30*24*6, days: 30, months: 1});  // 1 month
+    });
+    test('no backup tx', () => {
+      let coin = statecoins.coins[0];
+      expect(() => {  // not enough value
+        coin.getExpiryData(999);
+      }).toThrowError("Cannot calculate expiry - Coin is not confirmed.");
+    })
   })
 })
 

@@ -16,7 +16,6 @@ const Activity = () => {
     const activitiesTableData = activity_data.map((item, index) => (
         <div key={index}>
             <div className="date">
-
                 <Moment format="MMMM D, YYYY">{item.date}</Moment>
             </div>
             {item.action === 'D' ?

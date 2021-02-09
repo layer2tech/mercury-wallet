@@ -148,7 +148,7 @@ export class StateCoin {
     this.tx_backup = null;
     this.tx_withdraw = null;
     this.smt_proof = null;
-    this.status = STATECOIN_STATUS.UNCOMFIRMED
+    this.status = STATECOIN_STATUS.UNCOMFIRMED;
   }
 
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
@@ -176,10 +176,25 @@ export class StateCoin {
     }
   }
 
-  getBackupTxData() {
+  getBackupTxData(block_height: number) {
     return {
       hex: this.tx_backup?.toHex(),
       priv_key: "",
+      expiry_data: this.getExpiryData(block_height)
+    }
+  }
+
+  // Calculate blocks and rough days/months until expiry
+  getExpiryData(block_height: number): ExpiryData {
+    if (this.tx_backup==null) throw Error("Cannot calculate expiry - Coin is not confirmed.");
+    let blocks_to_locktime = this.tx_backup.locktime - block_height;
+    if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0};
+    let days_to_locktime = Math.floor(blocks_to_locktime / (6*24))
+
+    return {
+      blocks: blocks_to_locktime,
+      days: days_to_locktime,
+      months: Math.floor(days_to_locktime/30)
     }
   }
 
@@ -193,6 +208,8 @@ export class StateCoin {
   getSharedPubKey(): string {
     return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed("hex");
   }
+
+
 }
 
 export interface StateCoinDisplayData {
@@ -203,9 +220,12 @@ export interface StateCoinDisplayData {
   swap_rounds: number
 }
 
-export interface PrepareSignTxMsg {
-
+export interface ExpiryData {
+  blocks: number,
+  days: number,
+  months: number
 }
+
 
 export interface InclusionProofSMT {
 
