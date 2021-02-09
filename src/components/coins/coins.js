@@ -255,9 +255,8 @@ const Coins = (props) => {
                             <img src={calendar} alt="icon"/>
                             <div className="block">
                                 <span>Date Created</span>
-                                <span>{showCoinDetails.coin.timestamp}
-                                    <br/>
-                                    13:30:12PM
+                                <span>
+                                  {new Date(showCoinDetails.coin.timestamp).toUTCString()}
                                 </span>
                             </div>
                         </div>
