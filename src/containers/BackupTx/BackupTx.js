@@ -3,17 +3,18 @@ import icon2 from "../../images/icon2.png";
 
 import {Link, withRouter} from "react-router-dom";
 import React, {useState} from 'react';
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { setError, callGetCoinBackupTxData } from '../../features/WalletDataSlice'
 import { Coins, StdButton } from "../../components";
 
 import './BackupTx.css';
 
-const DEFAULT_TX_DATA = {hex: "", priv_key: ""};
+const DEFAULT_TX_DATA = {hex: "", priv_key: "", expiry_data: {blocks: "", days: "", months: ""}};
 
 const BackupTxPage = () => {
   const dispatch = useDispatch();
+  const block_height = useSelector(state => state.walletData).block_height;
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [selectedCoinTxData, setSelectedCoinTxData] = useState(DEFAULT_TX_DATA); // store selected coins shared_key_id
@@ -23,7 +24,7 @@ const BackupTxPage = () => {
     if (id==null) {
       setSelectedCoinTxData(DEFAULT_TX_DATA)
     } else {
-      setSelectedCoinTxData(callGetCoinBackupTxData(id))
+      setSelectedCoinTxData(callGetCoinBackupTxData(id, block_height))
     }
   }
 
@@ -82,8 +83,35 @@ const BackupTxPage = () => {
                 </div>
 
                 <div>
+                  <h3 className="subtitle">Blocks left:</h3>
+                    <div className="">
+                        <span>
+                          {selectedCoinTxData.expiry_data.blocks}
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 className="subtitle">Days left:</h3>
+                    <div className="">
+                        <span>
+                          {selectedCoinTxData.expiry_data.days}
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 className="subtitle">Months left:</h3>
+                    <div className="">
+                        <span>
+                          {selectedCoinTxData.expiry_data.months}
+                        </span>
+                    </div>
+                </div>
+
+                <div>
                     <h3 className="subtitle">Hex:</h3>
-                    <div className="transferMsg scan-trasfermsg">
+                    <div className="">
                       <img type="button" src={icon2} alt="icon" onClick={copyBackupTxHexToClipboard}/>
                         <span>
                           {selectedCoinTxData.hex}
@@ -93,7 +121,7 @@ const BackupTxPage = () => {
 
                 <div>
                     <h3 className="subtitle">Receive address Private Key:</h3>
-                    <div className="transferMsg scan-trasfermsg">
+                    <div className="">
                       <img type="button" src={icon2} alt="icon" onClick={copyPrivKeyToClipboard}/>
                         <span>
                           {selectedCoinTxData.priv_key}

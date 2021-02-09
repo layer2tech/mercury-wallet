@@ -22,13 +22,13 @@ export class StateCoinList {
     return statecoins
   }
 
-  getAllCoins() {
+  getAllCoins(block_height: number) {
     return this.coins.map((item: StateCoin) => {
-      return item.getDisplayInfo()
+      return item.getDisplayInfo(block_height)
     })
   };
 
-  getUnspentCoins() {
+  getUnspentCoins(block_height: number) {
     let total = 0
     let coins = this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.AVAILABLE) {
@@ -37,7 +37,7 @@ export class StateCoinList {
       }
       return
     })
-    return [coins.map((item: StateCoin) => item.getDisplayInfo()), total]
+    return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
   };
 
   getUnconfirmedCoins() {
@@ -158,13 +158,14 @@ export class StateCoin {
   setSpendPending() { this.status = STATECOIN_STATUS.SPEND_PENDING; }
 
   // Get data to display in GUI
-  getDisplayInfo(): StateCoinDisplayData {
+  getDisplayInfo(block_height: number): StateCoinDisplayData {
     return {
       shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid,
       timestamp: this.timestamp,
-      swap_rounds: this.swap_rounds
+      swap_rounds: this.swap_rounds,
+      expiry_data: this.getExpiryData(block_height)
     }
   };
 
@@ -217,7 +218,8 @@ export interface StateCoinDisplayData {
   value: number,
   funding_txid: string,
   timestamp: number,
-  swap_rounds: number
+  swap_rounds: number,
+  expiry_data: ExpiryData
 }
 
 export interface ExpiryData {

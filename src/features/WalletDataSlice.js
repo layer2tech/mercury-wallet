@@ -19,12 +19,10 @@ const initialState = {
   error_dialogue: { seen: true, msg: "" },
   connected: false,
   fee_info: fee_info,
-  coins_data: coins_data,
   total_balance: total_balance,
-  activity_data: wallet.getActivityLog(10),
-  deposits_initialised: [],
-  transfer_msg3: Promise.resolve(),
-  rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'))
+  coins_data: coins_data,
+  rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex')),
+  block_height: 1000 // Static temporarily. Should be updated by Electrum Client.
 }
 
 // Wallet data gets
@@ -32,8 +30,8 @@ export const callGetConfig = () => {
   return wallet.config.getConfig()
 }
 
-export const callGetUnspentStatecoins = () => {
-  return wallet.getUnspentStatecoins()
+export const callGetUnspentStatecoins = (block_height) => {
+  return wallet.getUnspentStatecoins(block_height)
 }
 
 export const callGetUnconfirmedStatecoins = () => {
@@ -44,8 +42,8 @@ export const callGetActivityLog = () => {
   return wallet.getActivityLog(10)
 }
 
-export const callGetCoinBackupTxData = (shared_key_id) => {
-  return wallet.getCoinBackupTxData(shared_key_id)
+export const callGetCoinBackupTxData = (shared_key_id, block_height) => {
+  return wallet.getCoinBackupTxData(shared_key_id, block_height)
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
@@ -85,6 +83,10 @@ const WalletSlice = createSlice({
   name: 'walletData',
   initialState,
   reducers: {
+    // Update total_balance
+    updateTotalBalance(state, action) {
+      state.total_balance = action.payload.total_balance
+    },
     // Gen new SE Address
     callGenSeAddr(state) {
       state.rec_se_addr = encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'));
@@ -131,7 +133,7 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, setErrorSeen, setError,
-  callPingServer } = WalletSlice.actions
+  callPingServer, updateTotalBalance } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

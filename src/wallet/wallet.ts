@@ -160,8 +160,8 @@ export class Wallet {
   getMnemonic(): string {
     return this.mnemonic
   }
-  getUnspentStatecoins() {
-    return this.statecoins.getUnspentCoins()
+  getUnspentStatecoins(block_height: number) {
+    return this.statecoins.getUnspentCoins(block_height)
   }
   getUnconfirmedStatecoins() {
     return this.statecoins.getUnconfirmedCoins()
