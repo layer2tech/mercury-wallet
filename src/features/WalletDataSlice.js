@@ -11,7 +11,7 @@ const log = window.require('electron-log');
 
 let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
 
-let [coins_data, total_balance] = wallet.getUnspentStatecoins()
+let [coins_data, total_balance] = wallet.getUnspentStatecoins();
 let fee_info = getFeeInfo(wallet.http_client);
 
 const initialState = {
@@ -21,6 +21,14 @@ const initialState = {
   balance_info: {total_balance: total_balance, num_coins: coins_data.length},
   fee_info: fee_info,
   rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex')),
+}
+
+// Quick check for expiring coins
+for (let i=0; i<coins_data.length; i++) {
+  if (coins_data[i].expiry_data.months > 1) {
+    initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet is close to expiring." }
+    break;
+  };
 }
 
 // Wallet data gets
