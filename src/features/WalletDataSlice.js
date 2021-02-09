@@ -18,9 +18,8 @@ const initialState = {
   config: {version: wallet.version, endpoint: wallet.http_client.endpoint},
   error_dialogue: { seen: true, msg: "" },
   connected: false,
+  balance_info: {total_balance: total_balance, num_coins: coins_data.length},
   fee_info: fee_info,
-  total_balance: total_balance,
-  coins_data: coins_data,
   rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex')),
   block_height: 1000 // Static temporarily. Should be updated by Electrum Client.
 }
@@ -84,8 +83,10 @@ const WalletSlice = createSlice({
   initialState,
   reducers: {
     // Update total_balance
-    updateTotalBalance(state, action) {
-      state.total_balance = action.payload.total_balance
+    updateBalanceInfo(state, action) {
+      if (state.balance_info.total_balance !== action.payload.total_balance) {
+        state.balance_info = action.payload
+      }
     },
     // Gen new SE Address
     callGenSeAddr(state) {
@@ -133,7 +134,7 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, setErrorSeen, setError,
-  callPingServer, updateTotalBalance } = WalletSlice.actions
+  callPingServer, updateBalanceInfo } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

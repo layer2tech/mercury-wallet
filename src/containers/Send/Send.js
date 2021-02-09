@@ -18,8 +18,7 @@ const SendStatecoinPage = () => {
   const [inputAddr, setInputAddr] = useState("");
   const [transferMsg3, setTransferMsg3] = useState('');
 
-  const total_balance = useSelector(state => state.walletData).total_balance;
-  const num_statecoins = useSelector(state => state.walletData).coins_data.length;
+  const balance_info = useSelector(state => state.walletData).balance_info;
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -88,7 +87,7 @@ const SendStatecoinPage = () => {
                   </div>
               </div>
               <h3 className="subtitle">
-                 <b> {fromSatoshi(total_balance)} BTC</b> available as <b>{num_statecoins}</b> Statecoins
+                 <b> {fromSatoshi(balance_info.total_balance)} BTC</b> available as <b>{balance_info.num_coins}</b> Statecoins
               </h3>
           </div>
 

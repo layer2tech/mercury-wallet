@@ -19,7 +19,7 @@ import {Button, Modal} from 'react-bootstrap';
 import { useSelector, useDispatch } from 'react-redux'
 
 import { fromSatoshi } from '../../wallet/util'
-import { callGetUnspentStatecoins, updateTotalBalance } from '../../features/WalletDataSlice'
+import { callGetUnspentStatecoins, updateBalanceInfo } from '../../features/WalletDataSlice'
 
 import './coins.css';
 import '../index.css';
@@ -55,8 +55,9 @@ const Coins = (props) => {
       return expiry_data.months > 0 ? expiry_data.months+" months": expiry_data.days+" days"
     }
 
-    const [coins_data, total] = callGetUnspentStatecoins(block_height);
-    dispatch(updateTotalBalance(total)) // Update total_balance in Redux state
+    const [coins_data, total_balance] = callGetUnspentStatecoins(block_height);
+    // Update total_balance in Redux state
+    dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
 
     const statecoinData = coins_data.map(item => (
         <div key={item.shared_key_id}>

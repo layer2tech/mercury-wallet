@@ -14,8 +14,7 @@ import './Withdraw.css';
 
 const WithdrawPage = () => {
   const dispatch = useDispatch();
-  const total_balance = useSelector(state => state.walletData).total_balance;
-  const num_statecoins = useSelector(state => state.walletData).coins_data.length;
+  const balance_info = useSelector(state => state.walletData).balance_info;
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
@@ -62,7 +61,7 @@ const WithdrawPage = () => {
             </div>
             <h3 className="subtitle">
                 Withdraw Statecoin UTXO’s back to Bitcoin. <br/>
-               <b> {fromSatoshi(total_balance)} BTC</b> available as <b>{num_statecoins}</b> Statecoins
+               <b> {fromSatoshi(balance_info.total_balance)} BTC</b> available as <b>{balance_info.num_coins}</b> Statecoins
             </h3>
         </div>
 
