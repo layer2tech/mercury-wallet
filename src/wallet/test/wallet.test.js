@@ -9,10 +9,30 @@ describe('Wallet', function() {
 
   test('toJSON', function() {
     wallet.config.update({min_anon_set: 1000}) // update config to ensure defaults are not revered to after fromJSON.
-    let json_wallet = JSON.stringify(wallet)
+    let json_wallet = JSON.parse(JSON.stringify(wallet))
     let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true)
     // check wallets serialize to same values (since deep equal on recursive objects is messy)
     expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet))
+  });
+
+  test('save/load', async function() {
+    wallet.save()
+    let loaded_wallet = await Wallet.load(true)
+    expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
+  });
+
+  test('save coins list', async function() {
+    wallet.save();
+    let num_coins_before = wallet.statecoins.coins.length;
+
+    // new coin
+    wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+    wallet.saveStateCoinsList();
+
+    let loaded_wallet = await Wallet.load(true);
+    let num_coins_after = loaded_wallet.statecoins.coins.length;
+    expect(num_coins_after).toEqual(num_coins_before+1)
+    expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
   });
 
   test('confirmMnemonicKnowledge', function() {
@@ -20,8 +40,6 @@ describe('Wallet', function() {
     expect(wallet.confirmMnemonicKnowledge([{pos: 0, word: "praise"}])).toBe(true);
     expect(wallet.confirmMnemonicKnowledge([{pos: 0, word: "praise"},{pos: 11, word: "ghost"}])).toBe(true);
   });
-
-
 
   test('genBtcAddress', function() {
     let addr1 = wallet.genBtcAddress();
@@ -59,7 +77,7 @@ describe('Wallet', function() {
   test('addStatecoin', function() {
     let [coins_before_add, total_before] = wallet.getUnspentStatecoins()
     let activity_log_before_add = wallet.getActivityLog(100)
-    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
+    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
     let [coins_after_add, total_after] = wallet.getUnspentStatecoins()
     let activity_log_after_add = wallet.getActivityLog(100)
     expect(coins_before_add.length).toEqual(coins_after_add.length - 1)
@@ -71,7 +89,7 @@ describe("Statecoins/Coin", () => {
   var statecoins = Wallet.buildMock().statecoins;
 
   test('to/from JSON', () => {
-    var json = JSON.stringify(statecoins)
+    var json = JSON.parse(JSON.stringify(statecoins))
     let from_json = StateCoinList.fromJSON(json)
     expect(statecoins).toEqual(from_json)
   });

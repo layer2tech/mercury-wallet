@@ -19,18 +19,21 @@ let fsLibrary  = require('fs');
 
 const WALLET_LOC = "wallet.json";
 
-// Logger
+// Logger and Store import.
+// Node friendly importing required for Jest tests.
 declare const window: any;
 let log: any;
+let Store: any;
 try {
   log = window.require('electron-log');
+  Store = window.require('electron-store');
 } catch (e) {
   log = require('electron-log');
+  Store = require('electron-store');
 }
 
 // Store
-// const Store = window.require('electron-store');
-// const store = new Store();
+let store = new Store();
 
 
 // Wallet holds BIP32 key root and derivation progress information.
@@ -99,19 +102,20 @@ export class Wallet {
   }
 
   // Load wallet from JSON
-  static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean): Wallet {
-    let json_wallet: Wallet = JSON.parse(str_wallet);
+  static fromJSON(json_wallet: Wallet, testing_mode: boolean): Wallet {
+    let network: Network = json_wallet.config.network;
 
     let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, network, testing_mode);
-    new_wallet.statecoins = StateCoinList.fromJSON(JSON.stringify(json_wallet.statecoins))
-    new_wallet.activity = ActivityLog.fromJSON(JSON.stringify(json_wallet.activity))
+
+    new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
+    new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
     new_wallet.config.update(json_wallet.config);
 
     // Re-derive Account from JSON
     const chains = json_wallet.account.map(function (j: any) {
       const node = bip32.fromBase58(j.node, network)
 
-      const chain = new bip32utils.Chain(node, j.k, addressFunction)
+      const chain = new bip32utils.Chain(node, j.k, segwitAddr)
       chain.map = j.map
 
       chain.addresses = Object.keys(chain.map).sort(function (a, b) {
@@ -125,28 +129,24 @@ export class Wallet {
     return new_wallet
   }
 
-  // Load wallet from storage
-  static async load(
-    {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr, testing_mode}:
-    {file_path?: string, network?: Network, addressFunction?: Function, testing_mode: boolean}
-  ) {
-    // Fetch raw json
-    let str_wallet: string = await new Promise((resolve,_reject) => {
-          fsLibrary.readFile(file_path, (error: any, txtString: String) => {
-            if (error) throw Error(error);
-            resolve(txtString.toString())
-          });
-      });
-    return Wallet.fromJSON(str_wallet, network, addressFunction, testing_mode)
+  // Save entire wallet to storage. Store in file as JSON Object.
+  save() {
+    store.set('wallet', this);
+  };
+
+  // Load wallet JSON from store
+  static async load(testing_mode: boolean) {
+    // Fetch raw wallet string
+    let wallet_json = store.get('wallet')
+    return Wallet.fromJSON(wallet_json, testing_mode)
   }
 
-  // Load wallet to storage
-  save({file_path = WALLET_LOC}: {file_path?: string}={}) {
-    // Store in file as JSON string
-    fsLibrary.writeFile(file_path, JSON.stringify(this), (error: any) => {
-      if (error) throw Error(error);
-    })
+  // Update coins list in storage. Store in file as JSON string.
+  saveStateCoinsList() {
+    store.set('wallet.statecoins', this.statecoins);
+    store.set('wallet.activity', this.activity);
   };
+
 
   // Initialise and return Wasm object.
   // Wasm contains all wallet Rust functionality.
