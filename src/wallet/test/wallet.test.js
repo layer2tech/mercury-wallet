@@ -15,6 +15,14 @@ describe('Wallet', function() {
     expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet))
   });
 
+  test('confirmMnemonicKnowledge', function() {
+    expect(wallet.confirmMnemonicKnowledge([{pos: 3, word: "this"}])).toBe(false);
+    expect(wallet.confirmMnemonicKnowledge([{pos: 0, word: "praise"}])).toBe(true);
+    expect(wallet.confirmMnemonicKnowledge([{pos: 0, word: "praise"},{pos: 11, word: "ghost"}])).toBe(true);
+  });
+
+
+
   test('genBtcAddress', function() {
     let addr1 = wallet.genBtcAddress();
     let addr2 = wallet.genBtcAddress();

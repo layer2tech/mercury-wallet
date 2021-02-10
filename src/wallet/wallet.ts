@@ -63,12 +63,28 @@ export class Wallet {
     }
   }
 
-  // Constructors
+  // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(mnemonic: string, network: Network, testing_mode: boolean): Wallet {
     log.debug("New wallet. Mnemonic: "+mnemonic+". Testing mode: "+testing_mode+".");
     return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
   }
 
+  // Generate wallet with random mnemonic.
+  static buildFresh(testing_mode: true, network: Network): Wallet {
+    const mnemonic = bip39.generateMnemonic();
+    return Wallet.fromMnemonic(mnemonic, network, testing_mode);
+  }
+
+  // Receive 4 words at random and check thier existence in mnemonic.
+  confirmMnemonicKnowledge(words: [{pos: number, word: string}]): boolean {
+    let mnemonic = this.mnemonic.split(' ');
+    for (let word of words) {
+      if (mnemonic[word.pos] != word.word) { return false }
+    }
+    return true
+  }
+
+  // Startup wallet with some mock data. Interations with server may fail since data is random.
   static buildMock(network: Network): Wallet {
     var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
     // add some statecoins
@@ -80,12 +96,6 @@ export class Wallet {
     wallet.addStatecoinFromValues(uuid2, dummy_master_key, 20000, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", proof_key2, ACTION.DEPOSIT)
     wallet.activity.addItem(uuid2, ACTION.TRANSFER);
     return wallet
-  }
-
-  // generate wallet with random mnemonic
-  static buildFresh(testing_mode: true, network: Network): Wallet {
-    const mnemonic = bip39.generateMnemonic();
-    return Wallet.fromMnemonic(mnemonic, network, testing_mode);
   }
 
   // Load wallet from JSON
