@@ -15,9 +15,6 @@ let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
 let bip32 = require('bip32');
 let bip39 = require('bip39');
-let fsLibrary  = require('fs');
-
-const WALLET_LOC = "wallet.json";
 
 // Logger and Store import.
 // Node friendly importing required for Jest tests.
@@ -102,7 +99,7 @@ export class Wallet {
   }
 
   // Load wallet from JSON
-  static fromJSON(json_wallet: Wallet, testing_mode: boolean): Wallet {
+  static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
     let network: Network = json_wallet.config.network;
 
     let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, network, testing_mode);
