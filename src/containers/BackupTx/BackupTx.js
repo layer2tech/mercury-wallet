@@ -52,7 +52,7 @@ const BackupTxPage = () => {
 
   return (
     <div className="container ">
-        <div className="Body withdraw">
+        <div className="Body backupTx">
             <div className="swap-header">
                 <h2 className="WalletAmount">
                     <img src={settings} alt="question"/>
@@ -69,7 +69,7 @@ const BackupTxPage = () => {
             <h3 className="subtitle">Select StateCoin to view its backup transaction and associated private key</h3>
         </div>
 
-        <div className="withdraw content">
+        <div className="backupTx content">
             <div className="Body left ">
                 <div>
                     <span className="sub">Click to select UTXO’s below</span>
@@ -86,7 +86,7 @@ const BackupTxPage = () => {
 
                 </div>
 
-                <div>
+                <div className="item">
                   <h3 className="subtitle">Blocks left:</h3>
                     <div className="">
                         <span>
@@ -95,7 +95,7 @@ const BackupTxPage = () => {
                     </div>
                 </div>
 
-                <div>
+                <div className="item">
                     <h3 className="subtitle">Days left:</h3>
                     <div className="">
                         <span>
@@ -104,7 +104,7 @@ const BackupTxPage = () => {
                     </div>
                 </div>
 
-                <div>
+                <div className="item">
                     <h3 className="subtitle">Months left:</h3>
                     <div className="">
                         <span>
@@ -113,7 +113,7 @@ const BackupTxPage = () => {
                     </div>
                 </div>
 
-                <div>
+                <div className="item">
                     <h3 className="subtitle">Hex:</h3>
                     <div className="">
                       <img type="button" src={icon2} alt="icon" onClick={copyBackupTxHexToClipboard}/>
@@ -123,7 +123,7 @@ const BackupTxPage = () => {
                     </div>
                 </div>
 
-                <div>
+                <div className="item">
                     <h3 className="subtitle">Receive address Private Key:</h3>
                     <div className="">
                       <img type="button" src={icon2} alt="icon" onClick={copyPrivKeyToClipboard}/>
@@ -133,7 +133,7 @@ const BackupTxPage = () => {
                     </div>
                 </div>
 
-                <div>
+                <div className="item">
                     <h3 className="subtitle">Private Key WIF:</h3>
                     <div className="">
                       <img type="button" src={icon2} alt="icon" onClick={copyKeyWIFToClipboard}/>

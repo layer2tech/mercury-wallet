@@ -50,7 +50,7 @@
 
 }
 .progress .bg-success {
-  background-color: #646464 !important;
+  background-color: red !important;
 }
 
 .scoreAmount {

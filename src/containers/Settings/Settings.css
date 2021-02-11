@@ -6,20 +6,24 @@
     padding-left: 62px;
 
 }
+
 .settings .buttons {
     display: flex;
 }
-.settings .buttons  button {
+
+.settings .buttons button {
     margin-top: 0;
 }
-.settings .content  input {
+
+.settings .content input {
     display: block;
     position: relative;
     width: 80%;
+    outline: none;
     margin-bottom: 20px;
     opacity: 1;
     font-size: 14px;
-    color:#757575;
+    color: #757575;
     border: 1px solid #757575;
     border-radius: 6px;
     height: 56px;
@@ -31,9 +35,36 @@
     display: flex;
     justify-content: space-between;
 }
-.settings .content  .inputs {
+
+.settings .content .inputs {
     width: 50%;
     text-align: left;
+}
+
+.settings .content .inputs-item {
+    position: relative;
+
+}
+
+.settings .content .input:focus, .settings .content .input {
+    outline: none !important;
+}
+
+.settings .content .inputs-item label {
+    position: absolute;
+    z-index: 10;
+    top: 16px;
+    left: 0;
+}
+
+.settings .content .inputs-item input:focus + label, .settings .content .inputs-item input:visited + label,
+.settings .content .inputs-item input:active + label, .settings .content .inputs-item input:valid + label {
+    transition: 0.2s;
+    top: -10px;
+    left: 10px;
+    background: #ffffff;
+    padding: 0 10px;
+    color: #0F54F4;
 }
 
 input.quantity {
@@ -43,12 +74,14 @@ input.quantity {
     border-left: none;
     border-right: none;
 }
+
 .content .inputs .def-number-input {
     position: relative;
     display: flex;
     align-items: end;
     width: 80%;
 }
+
 .inputs select {
     border: none;
     box-shadow: 0px 2px 12px -7px #222;
@@ -58,14 +91,17 @@ input.quantity {
     font-size: 14px;
     margin: 0;
 }
+
 .content .inputs .def-number-input .smalltxt {
     width: 176px !important;
     color: #0F54F4;
 }
+
 .action-btns {
     display: flex;
     justify-content: flex-end;
 }
+
 .action-btns .Body-button.bg-transparent {
     border: none;
 
@@ -76,6 +112,7 @@ input.quantity {
     margin-bottom: 20px;
     font-weight: 300;
 }
+
 .Body-button.blue {
     display: block;
 }
@@ -90,15 +127,18 @@ input.quantity {
     border-right: none !important;
     text-align: center;
 }
+
 .def-number-input {
     position: relative;
     display: flex;
     align-items: center;
 }
+
 .def-number-input .smalltxt {
     z-index: 1;
     width: 90px !important;
 }
+
 .plus {
     background-image: url("../../images/increase.png");
     background-repeat: no-repeat;
@@ -112,6 +152,7 @@ input.quantity {
     border-bottom-right-radius: 6px;
 
 }
+
 .inputs .smalltxt {
     position: absolute;
     top: -10px;
@@ -126,7 +167,8 @@ input.quantity {
     padding: 0 10px;
 
 }
-.content .inputs .switch  {
+
+.content .inputs .switch {
     height: auto;
     box-shadow: 0px 2px 12px -7px #222;
     border: none;
@@ -139,13 +181,14 @@ input.quantity {
 
 }
 
-.content .inputs .btns-radios  label {
+.content .inputs .btns-radios label {
     font-size: 20px;
     color: #000000;
     margin-right: 30px;
     padding: 0;
 }
-.content .inputs  .btns span {
+
+.content .inputs .btns span {
     display: block;
     text-align: left;
     font-size: 14px;
@@ -174,6 +217,7 @@ input.quantity {
         background: var(--b, var(--background));
         transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
     }
+
     input[type='checkbox']:after, input[type='radio']:after {
         content: '';
         display: block;
@@ -182,6 +226,7 @@ input.quantity {
         position: absolute;
         transition: transform var(--d-t, 0.3s) var(--d-t-e, ease), opacity var(--d-o, 0.2s);
     }
+
     input[type='checkbox']:checked, input[type='radio']:checked {
         --b: var(--active);
         --bc: var(--active);
@@ -189,33 +234,42 @@ input.quantity {
         --d-t: 0.6s;
         --d-t-e: cubic-bezier(0.2, 0.85, 0.32, 1.2);
     }
+
     input[type='checkbox']:disabled, input[type='radio']:disabled {
         --b: var(--disabled);
         cursor: not-allowed;
         opacity: 0.9;
     }
+
     input[type='checkbox']:disabled:checked, input[type='radio']:disabled:checked {
         --b: var(--disabled-inner);
         --bc: var(--border);
     }
+
     input[type='checkbox']:disabled + label, input[type='radio']:disabled + label {
         cursor: not-allowed;
     }
+
     input[type='checkbox']:hover:not(:checked):not(:disabled), input[type='radio']:hover:not(:checked):not(:disabled) {
         --bc: var(--border-hover);
     }
+
     input[type='checkbox']:focus, input[type='radio']:focus {
         box-shadow: 0 0 0 var(--focus);
     }
+
     input[type='checkbox']:not(.switch), input[type='radio']:not(.switch) {
         width: 21px;
     }
+
     input[type='checkbox']:not(.switch):after, input[type='radio']:not(.switch):after {
         opacity: var(--o, 0);
     }
+
     input[type='checkbox']:not(.switch):checked, input[type='radio']:not(.switch):checked {
         --o: 1;
     }
+
     input[type='checkbox'] + label, input[type='radio'] + label {
         font-size: 14px;
         line-height: 21px;
@@ -224,9 +278,11 @@ input.quantity {
         cursor: pointer;
         margin-left: 4px;
     }
+
     input[type='checkbox']:not(.switch) {
         border-radius: 7px;
     }
+
     input[type='checkbox']:not(.switch):after {
         width: 5px;
         height: 9px;
@@ -237,13 +293,16 @@ input.quantity {
         top: 4px;
         transform: rotate(var(--r, 20deg));
     }
+
     input[type='checkbox']:not(.switch):checked {
         --r: 43deg;
     }
+
     input[type='checkbox'].switch {
         width: 55px;
         border-radius: 11px;
     }
+
     input[type='checkbox'].switch:after {
         left: -7px;
         top: -5px;
@@ -255,16 +314,20 @@ input.quantity {
         transform: translateX(var(--x, 0));
         box-shadow: 0px 2px 12px -7px #222;
     }
+
     input[type='checkbox'].switch:checked {
         --ab: var(--active-inner);
         --x: 45px;
     }
+
     input[type='checkbox'].switch:disabled:not(:checked):after {
         opacity: 0.6;
     }
+
     input[type='radio'] {
         border-radius: 50%;
     }
+
     input[type='radio']:after {
         width: 19px;
         height: 19px;
@@ -273,31 +336,37 @@ input.quantity {
         opacity: 0;
         transform: scale(var(--s, 0.7));
     }
+
     input[type='radio']:checked {
         --s: 0.5;
     }
 }
 
-@media only screen and (max-width: 768px)  {
+@media only screen and (max-width: 768px) {
     .settings .buttons {
         display: block;
     }
+
     .settings .buttons button {
         margin: 10px auto;
     }
+
     .settings .content {
         display: flex;
         flex-wrap: wrap;
         flex-direction: column-reverse;
 
     }
+
     .settings .content .inputs {
         width: 100%;
     }
+
     .inputs h2 {
         margin-top: 20px;
         font-size: 25px;
     }
+
     .settings .content .inputs:first-child input {
         width: 100%;
     }

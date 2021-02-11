@@ -1,4 +1,4 @@
-.withdraw .subtitle {
+.backupTx .subtitle {
     color: #676767;
     font-size: 20px;
     text-align: left;
@@ -8,16 +8,16 @@
 }
 
 
-.withdraw.content {
+.backupTx.content {
     display: flex;
     justify-content: space-between;
 }
-.withdraw.content .inputs {
+.backupTx.content .inputs {
     position: relative;
     margin-top: 30px;
 
 }
-.withdraw.content .inputs input {
+.backupTx.content .inputs input {
     position: relative;
     width: 100%;
     border: 1px solid #676767;
@@ -27,7 +27,7 @@
     opacity: 1;
 }
 
-.withdraw.content .inputs .smalltxt {
+.backupTx.content .inputs .smalltxt {
     position: absolute;
     top: -10px;
     font-size: 12px;
@@ -44,65 +44,67 @@
 
 
 
-.withdraw.content .right {
+.backupTx.content .right {
     width: 49%;
 }
-.withdraw.content  .right .header {
+
+.backupTx.content  .right .header {
     display: flex;
     justify-content: space-between;
 
 }
-.withdraw.content  .right .header .small {
+.backupTx.content  .right .header .small {
     display: block;
     font-size: 12px;
     color: #676767;
     margin-top: 5px;
 }
-.withdraw.content  .right .header .subtitle {
+.backupTx.content  .right .header .subtitle {
     padding-left: 0;
+    margin-bottom: 20px;
 }
-.withdraw.content  .right .header select {
+.backupTx.content  .right .header select {
     border: none;
     box-shadow: 0px 2px 12px -7px #222;
     padding: 10px;
     width: 145px;
 }
-.withdraw.content .left .sub,
-.withdraw.content .left h3 {
+.backupTx.content .left .sub,
+.backupTx.content .left h3 {
     text-align: left;
     margin-left: 0;
     padding-left: 0;
 }
 
-.withdraw.content .left {
+.backupTx.content .left {
     width: 49%;
 }
-.withdraw table  {
+.backupTx table  {
     display: block;
     margin-top: 30px;
 }
-.withdraw table tbody {
+.backupTx table tbody {
     display: block;
 }
-.withdraw table thead tr{
+.backupTx table thead tr{
     display: flex;
     justify-content: space-between;
     align-items: center;
 
 }
-.withdraw table thead tr td {
+.backupTx table thead tr td {
     display: flex;
     align-items: center;
 }
-.withdraw table thead tr td img {
+.backupTx table thead tr td img {
     margin-right: 10px;
 }
-.withdraw table thead tr td {
+.backupTx table thead tr td {
     color: #757575;
     font-size: 14px;
     text-transform: uppercase;
 }
-.withdraw table  tr {
+.backupTx table  tr {
     display: flex;
     justify-content: space-between;
     flex-wrap: nowrap;
@@ -112,60 +114,60 @@
     border-bottom: 1px solid #E0E0E0;
 
 }
-.withdraw table tbody  tr td ,
-.withdraw table thead  tr td {
+.backupTx table tbody  tr td ,
+.backupTx table thead  tr td {
     width: 50%;
 
 
 }
 
-.withdraw table tbody tr td .content {
+.backupTx table tbody tr td .content {
     display: flex;
     align-items: center;
     margin-left: 10px;
 
 }
-.withdraw table tbody tr td .content .txt {
+.backupTx table tbody tr td .content .txt {
     margin-left: 10px;
 }
-.withdraw table tbody tr td .content .line {
+.backupTx table tbody tr td .content .line {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-.withdraw table tbody tr td .content .line span {
+.backupTx table tbody tr td .content .line span {
     font-size: 14px;
     color: #757575;
     font-weight: 300;
 }
-.withdraw table tbody tr td .content .line img {
+.backupTx table tbody tr td .content .line img {
     width:18px;
     height:18px
 }
-.withdraw table tbody tr td .content span {
+.backupTx table tbody tr td .content span {
     display: block;
 }
-.withdraw table tbody tr td:first-child {
+.backupTx table tbody tr td:first-child {
     text-align: left;
 }
-.withdraw table tbody tr td:nth-child(2) {
+.backupTx table tbody tr td:nth-child(2) {
     text-align: right;
 }
-.withdraw table tbody tr .status {
+.backupTx table tbody tr .status {
     display: block;
     background-color: #E4E4E4;
     text-align: center;
     padding: 15px 20px;
     border-radius: 30px;
 }
-.withdraw table.second tbody tr td,
-.withdraw table.second thead tr td  {
+.backupTx table.second tbody tr td,
+.backupTx table.second thead tr td  {
     text-align: center;
 }
-.withdraw table.second thead  tr td {
+.backupTx table.second thead  tr td {
     padding-right: 40px;
 }
-.withdraw table.second thead  tr {
+.backupTx table.second thead  tr {
     border-bottom: none;
 }
 
@@ -226,35 +228,35 @@ input.quantity {
     border-bottom-right-radius: 6px;
 
 }
-.withdraw .right table {
+.backupTx .right table {
     margin-top: 0;
 }
-.withdraw .right p.table-title  {
+.backupTx .right p.table-title  {
     text-align: left;
     margin-top: 35px;
     font-size: 12px;
     color: #757575;
 }
-.withdraw .right table tbody tr td {
+.backupTx .right table tbody tr td {
     text-align: left;
     width: auto;
     margin: 20px 0;
 }
-.withdraw .right table tbody tr {
+.backupTx .right table tbody tr {
     justify-content: flex-start;
     border: none;
 }
 
-.withdraw .right table tbody tr td:first-child {
+.backupTx .right table tbody tr td:first-child {
     width: 10%;
 }
-.withdraw .right table tbody tr td:first-child input {
+.backupTx .right table tbody tr td:first-child input {
     width: 20px;
     height: 20px;
     opacity: 1;
 }
 
-.withdraw .right  .btn {
+.backupTx .right  .btn {
     width: 100%;
     padding: 20px;
     border: none;
@@ -263,24 +265,24 @@ input.quantity {
     color: #ffffff;
     text-transform: uppercase;
 }
-.withdraw .right  .btn  img {
+.backupTx .right  .btn  img {
     margin-right: 10px;
 }
 @media only screen and (max-width: 768px)  {
-    .withdraw .subtitle {
+    .backupTx .subtitle {
         padding-left: 0;
         text-align: center;
     }
     .WalletAmount {
         font-size: 26px;
     }
-    .withdraw.content {
+    .backupTx.content {
         display: block;
     }
-    .withdraw.content .left {
+    .backupTx.content .left {
         width: 100%;
     }
-    .withdraw.content .right {
+    .backupTx.content .right {
         width: 100%;
     }
 }
@@ -306,4 +308,30 @@ input.quantity {
     font-size: 20px;
     text-align: left;
     font-weight: 400;
+}
+
+
+.backupTx .right .item {
+    display: flex;
+    margin-top: 10px;
+    justify-content: space-between;
+    align-items: center;
+}
+.backupTx .right .item div  {
+    display: block;
+    width: 130px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+.backupTx .right .item img {
+    margin-right: 10px;
+}
+.backupTx .right .item h3 {
+    padding-left: 0;
+}
+.backupTx.content .right button {
+    margin-top: 20px;
 }
