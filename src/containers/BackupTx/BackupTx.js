@@ -28,16 +28,6 @@ const BackupTxPage = () => {
     }
   }
 
-  const broadcastButtonAction = async () => {
-    // check statechain is chosen
-    if (!selectedCoin) {
-      dispatch(setError({msg: "Please choose a StateCoin to broadcast."}))
-      return
-    }
-    dispatch(setError({msg: "Cannot broadcast Backup Transaction in testing version."}));
-
-  }
-
   const copyBackupTxHexToClipboard = () => {
     navigator.clipboard.writeText(selectedCoinTxData.tx_backup_hex);
   }
@@ -143,10 +133,6 @@ const BackupTxPage = () => {
                     </div>
                 </div>
 
-                <div>
-                    <button type="button" className="btn" onClick={broadcastButtonAction}>
-                        Broadcast Transaction</button>
-                </div>
             </div>
         </div>
     </div>
