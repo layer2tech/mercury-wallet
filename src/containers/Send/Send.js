@@ -111,8 +111,8 @@ const SendStatecoinPage = () => {
                      <AddressInput
                        inputAddr={inputAddr}
                        onChange={onInputAddrChange}
-                       placeholder='Destination Address for withdrawal'
-                       smallTxtMsg='Recipients Statechain Address'/>
+                       placeholder='Send to destination address'
+                       smallTxtMsg='Statechain Address'/>
                   </div>
                   <div>
                       <p className="table-title">Use Only:</p>

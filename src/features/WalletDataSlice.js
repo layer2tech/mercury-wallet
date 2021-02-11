@@ -35,6 +35,11 @@ for (let i=0; i<coins_data.length; i++) {
 export const callGetConfig = () => {
   return wallet.config.getConfig()
 }
+// Update config with JSON of field to change
+export const callUpdateConfig = (config_changes) => {
+  console.log("config updated")
+  return wallet.config.updateConfig(config_changes)
+}
 
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()

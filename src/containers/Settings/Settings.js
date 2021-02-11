@@ -4,7 +4,7 @@ import React from 'react';
 import {Link, withRouter} from "react-router-dom";
 
 import {StdButton, Quantity} from "../../components";
-import {callGetConfig} from '../../features/WalletDataSlice'
+import {callGetConfig, callUpdateConfig} from '../../features/WalletDataSlice'
 
 
 import './Settings.css';
@@ -36,6 +36,11 @@ class SettingsPage extends React.Component {
         let tutorials = this.config.tutorials;
         document.getElementById('notification').checked = notifications;
         document.getElementById('tutorials').checked = tutorials;
+    }
+
+    saveButtonOnClick = () => {
+      console.log("click!")
+      callUpdateConfig()
     }
 
     render() {
@@ -88,14 +93,13 @@ class SettingsPage extends React.Component {
 
 
                                 <div className="inputs-item">
-
                                     <input id="address" type="text" name="Electrumx Address" required/>
                                     <label className="control-label"
-                                           htmlFor="address">{this.config.electrum_config.host}</label>
+                                           htmlFor="address">Electrumx Server Address</label>
                                 </div>
                                 <div className="inputs-item">
                                     <input id="proxy" type="text" name="Tor Proxy" required/>
-                                    <label className="control-label" htmlFor="proxy">{this.config.tor_proxy}</label>
+                                    <label className="control-label" htmlFor="proxy">Tor Proxy</label>
                                 </div>
                                 <div className="inputs-item">
                                     <input id="entity-address" type="text" name="StateChain Entity Address" required/>
@@ -141,7 +145,8 @@ class SettingsPage extends React.Component {
                             className="Body-button bg-transparent"/>
                         <StdButton
                             label="Save"
-                            className="Body-button blue"/>
+                            className="Body-button blue"
+                            onClick={this.saveButtonOnClick}/>
                     </div>
 
                 </div>
