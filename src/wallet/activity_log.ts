@@ -7,9 +7,9 @@ export class ActivityLog {
     this.items = []
   }
 
-  static fromJSON(json: any) {
+  static fromJSON(activity_json: ActivityLog): ActivityLog {
     let activity_log = new ActivityLog()
-    JSON.parse(json).items.forEach((item: ActivityLogItem) => {
+    activity_json.items.forEach((item: ActivityLogItem) => {
       let log_item = new ActivityLogItem(item.statecoin_id, item.action);
       activity_log.items.push(Object.assign(log_item, item))
     })
