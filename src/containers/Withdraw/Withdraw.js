@@ -4,11 +4,11 @@ import withdrowIcon from "../../images/withdrow-icon.png";
 
 import {Link, withRouter} from "react-router-dom";
 import React, {useState} from 'react';
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux';
 
-import { callWithdraw, setError } from '../../features/WalletDataSlice'
+import { callWithdraw, setError } from '../../features/WalletDataSlice';
 import { Coins, StdButton, AddressInput } from "../../components";
-import { fromSatoshi } from '../../wallet/util'
+import { fromSatoshi } from '../../wallet/util';
 
 import './Withdraw.css';
 

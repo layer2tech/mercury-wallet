@@ -37,8 +37,11 @@ export const callGetConfig = () => {
 }
 // Update config with JSON of field to change
 export const callUpdateConfig = (config_changes) => {
-  console.log("config updated")
-  return wallet.config.updateConfig(config_changes)
+  wallet.config.update(config_changes)
+  wallet.save()
+  const remote = require('electron').remote;
+  remote.app.relaunch();
+  remote.app.exit(0);
 }
 
 export const callGetUnspentStatecoins = () => {
