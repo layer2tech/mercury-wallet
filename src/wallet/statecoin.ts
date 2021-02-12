@@ -13,9 +13,9 @@ export class StateCoinList {
     this.coins = [];
   }
 
-  static fromJSON(json: any): StateCoinList {
+  static fromJSON(coins_json: StateCoinList): StateCoinList {
     let statecoins = new StateCoinList()
-    JSON.parse(json).coins.forEach((item: StateCoin) => {
+    coins_json.coins.forEach((item: StateCoin) => {
       let coin = new StateCoin(item.shared_key_id, item.shared_key);
       statecoins.coins.push(Object.assign(coin, item))
     })
