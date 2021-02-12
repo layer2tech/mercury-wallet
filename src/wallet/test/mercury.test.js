@@ -1,10 +1,11 @@
 import { verifySmtProof, StateChainSig, proofKeyToSCEAddress, pubKeyTobtcAddr, pubKeyToScriptPubKey, decryptECIES } from '../util';
 import { Wallet, StateCoin, MockHttpClient, HttpClient, MockWasm, StateCoinList, STATECOIN_STATUS } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
+import { depositConfirm } from "../mercury/deposit";
 import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
 import { BTC_ADDR, KEYGEN_SIGN_DATA, TRANSFER_MSG3, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID, STATECOIN_CONFIRMED, STATECOIN_CONFERMED_BACKUPTX_HEX } from './test_data.js'
 import { CLI_KEYGEN_FIRST, CLI_KEYGEN_SECOND, CLI_KEYGEN_SET_MASTER_KEY, CLI_SIGN_FIRST, CLI_SIGN_SECOND} from '../mocks/mock_wasm'
-import { SERV_KEYGEN_FIRST, SERV_KEYGEN_SECOND, SERV_SIGN_FIRST, SERV_SIGN_SECOND } from '../mocks/mock_http_client'
+import { FEE_INFO, SERV_KEYGEN_FIRST, SERV_KEYGEN_SECOND, SERV_SIGN_FIRST, SERV_SIGN_SECOND, DEPOSIT_CONFIRM, ROOT_INFO, SMT_PROOF } from '../mocks/mock_http_client'
 
 let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
@@ -13,25 +14,21 @@ const BJSON = require('buffer-json')
 // client side's mock
 let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 // server side's mock
-let http_client_mock = jest.genMockFromModule('../mocks/mock_http_client');
+let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 
 
 describe('2P-ECDSA', function() {
-  let http_client = new MockHttpClient();
-  let wasm_client = new MockWasm();
 
+  test('KeyGen', async function() {
+    http_mock.post = jest.fn().mockReset()
+      .mockReturnValueOnce(SERV_KEYGEN_FIRST)
+      .mockReturnValueOnce(SERV_KEYGEN_SECOND);
+    wasm_mock.KeyGen.first_message = jest.fn(() => CLI_KEYGEN_FIRST);
+    wasm_mock.KeyGen.second_message = jest.fn(() => CLI_KEYGEN_SECOND);
+    wasm_mock.KeyGen.set_master_key = jest.fn(() => CLI_KEYGEN_SET_MASTER_KEY);
 
-  test('KeyGen test', async function() {
-    let wasm_keygen_mock = wasm_mock.KeyGen;
-    let http_keygen_mock = http_client_mock.MockHttpClient;
-    http_client_mock.post = jest.fn();
-    http_client_mock.post.mockResolvedValueOnce(SERV_KEYGEN_FIRST);
-    wasm_keygen_mock.first_message = jest.fn(() => CLI_KEYGEN_FIRST);
-    http_client_mock.post.mockResolvedValueOnce(SERV_KEYGEN_SECOND);
-    wasm_keygen_mock.second_message = jest.fn(() => CLI_KEYGEN_SECOND);
-    wasm_keygen_mock.set_master_key = jest.fn(() => CLI_KEYGEN_SET_MASTER_KEY);
+    let statecoin = await keyGen(http_mock, wasm_mock, KEYGEN_SIGN_DATA.shared_key_id, KEYGEN_SIGN_DATA.shared_key.private.x2, KEYGEN_SIGN_DATA.protocol);
 
-    let statecoin = await keyGen(http_client_mock, wasm_mock, KEYGEN_SIGN_DATA.shared_key_id, KEYGEN_SIGN_DATA.shared_key.private.x2, KEYGEN_SIGN_DATA.protocol);
     expect(statecoin.shared_key_id).toBe(KEYGEN_SIGN_DATA.shared_key_id);
     expect(statecoin.value).toBe(0);
     expect(statecoin.shared_key).toStrictEqual(KEYGEN_SIGN_DATA.shared_key);
@@ -42,48 +39,45 @@ describe('2P-ECDSA', function() {
   });
 
   test('Sign', async function() {
-    let wasm_sign_mock = wasm_mock.Sign;
-    let http_keygen_mock = http_client_mock.MockHttpClient;
-    http_client_mock.post = jest.fn();
-    http_client_mock.post.mockResolvedValueOnce(true); //POST.PREPARE_SIGN
-    wasm_sign_mock.first_message = jest.fn(() => CLI_SIGN_FIRST);
-    http_client_mock.post.mockResolvedValueOnce(SERV_KEYGEN_FIRST);
-    wasm_sign_mock.second_message = jest.fn(() => CLI_SIGN_SECOND);
-    http_client_mock.post.mockResolvedValueOnce(SERV_KEYGEN_SECOND);
+    http_mock.post = jest.fn().mockReset()
+      .mockReturnValueOnce(true)   //POST.PREPARE_SIGN
+      .mockReturnValueOnce(SERV_SIGN_FIRST)
+      .mockReturnValueOnce(SERV_SIGN_SECOND);
+    wasm_mock.Sign.first_message = jest.fn(() => CLI_SIGN_FIRST);
+    wasm_mock.Sign.second_message = jest.fn(() => CLI_SIGN_SECOND);
 
-    let signature = await sign(http_client, wasm_client, KEYGEN_SIGN_DATA.shared_key_id, KEYGEN_SIGN_DATA.shared_key, KEYGEN_SIGN_DATA.signature_hash, KEYGEN_SIGN_DATA.protocol);
+    let signature = await sign(http_mock, wasm_mock, KEYGEN_SIGN_DATA.shared_key_id, KEYGEN_SIGN_DATA.shared_key, KEYGEN_SIGN_DATA.signature_hash, KEYGEN_SIGN_DATA.protocol);
     expect(typeof signature).toBe('string');
   });
 })
 
 
+
 describe('StateChain Entity', function() {
-  let wallet = Wallet.buildMock(bitcoin.networks.testnet);
-  wallet.config.jest_testing_mode = true; // Call mock wasm
 
-  let value = 10000
+  describe('Deposit', function() {
+    test('Confirm', async function() {
+      http_mock.get = jest.fn().mockReset()
+        .mockReturnValueOnce(FEE_INFO)
+        .mockReturnValueOnce(ROOT_INFO);
+      http_mock.post = jest.fn().mockReset()
+        .mockReturnValueOnce(true)   //POST.PREPARE_SIGN
+        .mockReturnValueOnce(SERV_SIGN_FIRST)
+        .mockReturnValueOnce(SERV_SIGN_SECOND)
+        .mockReturnValueOnce(DEPOSIT_CONFIRM)
+        .mockReturnValueOnce(SMT_PROOF);
+      wasm_mock.Sign.first_message = jest.fn(() => CLI_SIGN_FIRST);
+      wasm_mock.Sign.second_message = jest.fn(() => CLI_SIGN_SECOND);
 
-  test('Deposit init', async function() {
-    let [shared_key_id, p_addr] = await wallet.depositInit(value)
-    let statecoin = wallet.statecoins.getCoin(shared_key_id);
+      let statecoin = lodash.cloneDeep(tester_statecoin);
+      let statecoin_finalized = await depositConfirm(http_mock,wasm_mock,bitcoin.networks.testnet,statecoin,10);
 
-    expect(statecoin.tx_backup).toBeNull();
-    expect(statecoin.tx_withdraw).toBeNull();
-    expect(statecoin.status).toBe(STATECOIN_STATUS.UNCOMFIRMED);
-    expect(wallet.statecoins.getCoin(statecoin.shared_key_id)).toBe(statecoin)
+      expect(statecoin_finalized.statechain_id.length).toBeGreaterThan(0);
+      expect(statecoin_finalized.proof_key.length).toBeGreaterThan(0);
+      expect(statecoin_finalized.funding_txid.length).toBeGreaterThan(0);
+      expect(statecoin_finalized.smt_proof).not.toBeNull();
+    });
   });
-
-  test('Deposit confirm', async function() {
-    let shared_key_id = SHARED_KEY_ID;
-    let statecoin_finalized = await wallet.depositConfirm(shared_key_id, FUNDING_TXID)
-
-    expect(statecoin_finalized.statechain_id.length).toBeGreaterThan(0);
-    expect(statecoin_finalized.proof_key.length).toBeGreaterThan(0);
-    expect(statecoin_finalized.funding_txid.length).toBeGreaterThan(0);
-    expect(statecoin_finalized.smt_proof).not.toBeNull();
-    expect(statecoin_finalized.status).toBe(STATECOIN_STATUS.AVAILABLE);
-  });
-
 
   test('Withdraw', async function() {
     let statecoin_finalized = run_deposit(wallet, 10000);
@@ -184,15 +178,12 @@ describe('StateChain Entity', function() {
 })
 
 
-const run_deposit = (wallet, value) => {
-  let statecoin = BJSON.parse(lodash.cloneDeep(STATECOIN_CONFIRMED))
-  wallet.statecoins = new StateCoinList();
-  wallet.statecoins.addCoin(new StateCoin(statecoin.shared_key_id, statecoin.shared_key))
-  wallet.statecoins.coins[0].tx_backup = bitcoin.Transaction.fromHex(STATECOIN_CONFERMED_BACKUPTX_HEX)
-  wallet.statecoins.coins[0].proof_key = statecoin.proof_key
-  wallet.statecoins.coins[0].value = statecoin.value
-  wallet.statecoins.coins[0].funding_txid = statecoin.funding_txid
-  wallet.statecoins.coins[0].statechain_id = statecoin.statechain_id
-  wallet.statecoins.coins[0].status = "AVAILABLE"
-  return statecoin
-}
+const SHARED_KEY = {"public":{"q":{"x":"ccd65d5f8e1b5e36fcc6f75daacfb144fc4b2ef956f5968c0dd871474d38d4dd","y":"c3c7acf1b5084d0ce373a415849c6b3072441b2123cf0102f4f9bede9deed434"},"p2":{"x":"ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477","y":"1d970329ed67b215033fa4f45431aa84d5d8969189b166b8b1c995c71418fc79"},"p1":{"x":"5775571335149beef013e041916f8bd6ad74560f614e4cdcc6285cf2239804a4","y":"5d444f7986a767249ec6f624956169edd31ad34169d1e644b9948bb084155a09"},"paillier_pub":{"n":"18618973404778754190518985428533896252170868175908426298152069620162843266686340593727719917765761117728365267017152884385574431579173532202603789689258042399403850464508838324962482715255812960593375421462405196296118705922516865620487438060730020195057476921619387883344824404749260998392405042001310138908055325868010132968223806254698220349656258811324161297045756648004671649730891558015063255667266103305209518264666426136884754344645705399865342796296732565545547519164996468902145097768529183807656951187924006922284038339794011741856368099322064983876937896831825577803442314444728202710488558740408208235001"},"c_key":[1,[2802809810,2295538597,824023868,2468614206,2382410329,3498283269,542845278,2638857966,882874623,314779007,533459108,4110532496,2066816076,3866382865,1507727392,2622766556,2166819970,745160432,4007494000,2755553791,1211723955,4026434693,34787852,817363057,2111193045,1986153889,989827644,3051061802,308497917,3526483949,1313053198,3239938395,3224233175,2656233176,2735490441,528833738,2992068321,1123445282,1322576068,3634835356,3687088759,804528076,1959677799,1848875502,142865825,2608636890,120148350,3818230595,1121032084,629553958,540686410,3942881735,3193185548,3170665768,3039748817,569567082,3758896658,884071316,2728026343,3841465923,3085691968,80776206,2649739738,2735555777,1101020525,3145673761,1465495093,1214998012,3210306804,2083816658,1336173722,3059272070,4195353313,2583489626,2533717747,2110492144,1090372498,3017243663,1048666077,368350691,3098877136,1984080230,662245415,1960616310,1421703698,1721963016,2678994935,1412068076,1627969329,538142028,2155846472,1586893482,2192750863,4161389416,2390953754,2538228113,3035795711,3182964956,732329291,3763461501,1558634765,1289229671,3058158470,2534690608,3070745896,1836149201,2651117011,3055342589,2032472510,669284634,778163039,3181597927,4052939209,82895660,4122394071,3411990510,165191647,1554192820,2780054189,3864774479,1672712056,3345642895,1192039886,4199617900,2746613170,2010732704,3580851445,234733436]]},"private":{"x2":"5b84bbf6c266c8e45f14290f8dd996445144463426c1a093fe76a163c3b5221f"},"chain_code":[0,[]]};
+
+const STATECOIN =
+{"shared_key_id":"c93ad45a-00b9-449c-a804-aab5530efc90","statechain_id":"","shared_key":{"public":{"q":{"x":"ccd65d5f8e1b5e36fcc6f75daacfb144fc4b2ef956f5968c0dd871474d38d4dd","y":"c3c7acf1b5084d0ce373a415849c6b3072441b2123cf0102f4f9bede9deed434"},"p2":{"x":"ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477","y":"1d970329ed67b215033fa4f45431aa84d5d8969189b166b8b1c995c71418fc79"},"p1":{"x":"5775571335149beef013e041916f8bd6ad74560f614e4cdcc6285cf2239804a4","y":"5d444f7986a767249ec6f624956169edd31ad34169d1e644b9948bb084155a09"},"paillier_pub":{"n":"18618973404778754190518985428533896252170868175908426298152069620162843266686340593727719917765761117728365267017152884385574431579173532202603789689258042399403850464508838324962482715255812960593375421462405196296118705922516865620487438060730020195057476921619387883344824404749260998392405042001310138908055325868010132968223806254698220349656258811324161297045756648004671649730891558015063255667266103305209518264666426136884754344645705399865342796296732565545547519164996468902145097768529183807656951187924006922284038339794011741856368099322064983876937896831825577803442314444728202710488558740408208235001"},"c_key":[1,[2802809810,2295538597,824023868,2468614206,2382410329,3498283269,542845278,2638857966,882874623,314779007,533459108,4110532496,2066816076,3866382865,1507727392,2622766556,2166819970,745160432,4007494000,2755553791,1211723955,4026434693,34787852,817363057,2111193045,1986153889,989827644,3051061802,308497917,3526483949,1313053198,3239938395,3224233175,2656233176,2735490441,528833738,2992068321,1123445282,1322576068,3634835356,3687088759,804528076,1959677799,1848875502,142865825,2608636890,120148350,3818230595,1121032084,629553958,540686410,3942881735,3193185548,3170665768,3039748817,569567082,3758896658,884071316,2728026343,3841465923,3085691968,80776206,2649739738,2735555777,1101020525,3145673761,1465495093,1214998012,3210306804,2083816658,1336173722,3059272070,4195353313,2583489626,2533717747,2110492144,1090372498,3017243663,1048666077,368350691,3098877136,1984080230,662245415,1960616310,1421703698,1721963016,2678994935,1412068076,1627969329,538142028,2155846472,1586893482,2192750863,4161389416,2390953754,2538228113,3035795711,3182964956,732329291,3763461501,1558634765,1289229671,3058158470,2534690608,3070745896,1836149201,2651117011,3055342589,2032472510,669284634,778163039,3181597927,4052939209,82895660,4122394071,3411990510,165191647,1554192820,2780054189,3864774479,1672712056,3345642895,1192039886,4199617900,2746613170,2010732704,3580851445,234733436]]},"private":{"x2":"5b84bbf6c266c8e45f14290f8dd996445144463426c1a093fe76a163c3b5221f"},"chain_code":[0,[]]},"proof_key":"03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477","value":1000000,"funding_txid":"f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce","timestamp":1613056711604,"tx_backup":null,"tx_withdraw":null,"smt_proof":null,"swap_rounds":0,"status":"UNCOMFIRMED"}
+
+let tester_statecoin = new StateCoin("c93ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEY);
+tester_statecoin.proof_key = STATECOIN.proof_key;
+tester_statecoin.value = STATECOIN.value;
+tester_statecoin.funding_txid = STATECOIN.funding_txid;
