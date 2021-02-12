@@ -2,9 +2,10 @@ import settings from "../../images/settings.png";
 
 import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
+import {useDispatch} from 'react-redux'
 
 import {StdButton} from "../../components";
-import {callGetConfig, callUpdateConfig} from '../../features/WalletDataSlice'
+import {callGetConfig, callUpdateConfig, callClearSave} from '../../features/WalletDataSlice'
 
 
 import './Settings.css';
@@ -75,9 +76,13 @@ const SettingsPage = (props) => {
     setMinAnonSet(current_config.min_anon_set);
   }
 
+  const dispatch = useDispatch();
+  const clearWalletButtonOnClick = () => {
+    dispatch(callClearSave())
+  }
+
   return (
       <div className="container">
-          <p> Settings page is under construction. </p>
           <div className="Body settings">
               <div className="swap-header">
                   <h2 className="WalletAmount">
@@ -192,6 +197,13 @@ const SettingsPage = (props) => {
               </div>
 
           </div>
+
+          <button
+            type="button"
+            className="Body-button blue"
+            onClick={clearWalletButtonOnClick}>
+              Clear wallet memory
+          </button>
       </div>
   )
 }

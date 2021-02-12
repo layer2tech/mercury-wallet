@@ -37,6 +37,9 @@ for (let i=0; i<coins_data.length; i++) {
   };
 }
 
+
+
+
 // Wallet data gets
 export const callGetConfig = () => {
   return wallet.config.getConfig()
@@ -46,7 +49,6 @@ export const callUpdateConfig = (config_changes) => {
   wallet.config.update(config_changes)
   wallet.save()
 }
-
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
@@ -127,6 +129,10 @@ const WalletSlice = createSlice({
       state.error_dialogue = {seen: false, msg: action.payload.msg};
       log.error(action.payload.msg)
     },
+    callClearSave(state) {
+      wallet.clearSave()
+      state.error_dialogue = {seen: false, msg: "Wallet data removed. Please restart."};
+    }
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -152,7 +158,7 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, setErrorSeen, setError,
-  callPingServer, updateBalanceInfo } = WalletSlice.actions
+  callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

@@ -147,6 +147,12 @@ export class Wallet {
     store.set('wallet.activity', this.activity);
   };
 
+  // Clear storage.
+  clearSave() {
+    store.set('wallet', {});
+  };
+
+
 
   // Initialise and return Wasm object.
   // Wasm contains all wallet Rust functionality.
@@ -281,6 +287,7 @@ export class Wallet {
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
     log.info("Deposite Init done. Send coins to "+p_addr);
+    this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
   }
 
@@ -315,6 +322,7 @@ export class Wallet {
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
     log.info("Deposite Confirm done.");
+    this.saveStateCoinsList();
     return statecoin_finalized
   }
 
@@ -331,7 +339,7 @@ export class Wallet {
       catch (e) { throw Error("Invlaid receiver address - Should be hexadecimal public key.") }
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
-    if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+    if (!statecoin) throw Error("No coin found with id " + shared_key_id);
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
@@ -340,7 +348,8 @@ export class Wallet {
     // Mark funds as spent in wallet
     this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
 
-    log.info("Transfer Sender complete.")
+    log.info("Transfer Sender complete.");
+    this.saveStateCoinsList();
     return transfer_sender;
   }
 
@@ -367,6 +376,7 @@ export class Wallet {
         this.transfer_receiver_finalize(finalize_data);
     }
 
+    this.saveStateCoinsList();
     return finalize_data
   }
 
@@ -381,6 +391,7 @@ export class Wallet {
     this.statecoins.addCoin(statecoin_finalized);
 
     log.info("Transfer Finalize complete.")
+    this.saveStateCoinsList();
     return statecoin_finalized
   }
 
@@ -408,9 +419,10 @@ export class Wallet {
     this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
     this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
 
-    log.info("Withdrawing finished.");
-
     // Broadcast transcation
+
+    log.info("Withdrawing finished.");
+    this.saveStateCoinsList();
     return tx_withdraw
   }
 
