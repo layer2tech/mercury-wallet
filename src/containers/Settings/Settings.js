@@ -3,8 +3,8 @@ import settings from "../../images/settings.png";
 import React from 'react';
 import {Link, withRouter} from "react-router-dom";
 
-import {StdButton, Quantity} from "../../components";
-import {callGetConfig, callUpdateConfig} from '../../features/WalletDataSlice'
+import {StdButton} from "../../components";
+import {callGetConfig} from '../../features/WalletDataSlice'
 
 
 import './Settings.css';
@@ -12,11 +12,25 @@ import './Settings.css';
 class SettingsPage extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {isToggleOn: true};
         this.config = callGetConfig();
-        // This binding is necessary to make `this` work in the callback
+        this.label = props.label;
+        this.state = {
+            address: "",
+            proxy: this.config.tor_proxy,
+            entity_endpoint: this.config.state_entity_endpoint,
+            min_anon_set: this.config.min_anon_set,
+            swap_conductor_endpoint: this.config.swap_conductor_endpoint
+        }
+
         this.handleNotification = this.handleNotification.bind(this);
         this.handleTutorial = this.handleTutorial.bind(this);
+
+        this.handleAddressChange = this.handleAddressChange.bind(this);
+        this.handleProxyChange = this.handleProxyChange.bind(this);
+        this.handleEntityChange = this.handleEntityChange.bind(this);
+        this.handleConductorChange = this.handleConductorChange.bind(this);
+        this.handleNumberChange = this.handleNumberChange.bind(this);
+
     }
 
     handleNotification = () => {
@@ -38,12 +52,50 @@ class SettingsPage extends React.Component {
         document.getElementById('tutorials').checked = tutorials;
     }
 
-    saveButtonOnClick = () => {
-      console.log("click!")
-      callUpdateConfig()
+    handleAddressChange(evt) {
+        this.setState({address: evt.target.value});
     }
 
+    handleProxyChange(evt) {
+        this.setState({proxy: evt.target.value});
+    }
+
+    handleEntityChange(evt) {
+        this.setState({entity_endpoint: evt.target.value});
+    }
+
+    handleConductorChange(evt) {
+        this.setState({swap_conductor_endpoint: evt.target.value});
+    }
+
+    decrease = () => {
+        this.setState({min_anon_set: this.state.value - 1});
+    }
+
+    increase = () => {
+        this.setState({min_anon_set: this.state.value + 1});
+    }
+
+    handleNumberChange(evt) {
+        this.setState({min_anon_set: evt.target.value});
+    }
+
+
+    saveButtonOnClick = (event) => {
+        console.log("click!")
+        // callUpdateConfig()
+
+        console.log(this.state.address)
+        console.log(this.state.proxy)
+        console.log(this.state.entity_endpoint)
+        console.log(this.state.swap_conductor_endpoint)
+        console.log(this.state.value)
+        event.preventDefault();
+    }
+
+
     render() {
+
         return (
             <div className="container">
                 <p> Settings page is under construction. </p>
@@ -81,7 +133,6 @@ class SettingsPage extends React.Component {
                                 className="Body-button bg-transparent"/>
                         </Link>
 
-
                     </div>
                 </div>
                 <div className="Body settings">
@@ -91,28 +142,39 @@ class SettingsPage extends React.Component {
                             <h2>Connectivity Settings</h2>
                             <form>
 
-
                                 <div className="inputs-item">
-                                    <input id="address" type="text" name="Electrumx Address" required/>
+                                    <input id="address" type="text" name="Electrumx Address" value={this.state.address}
+                                           onChange={this.handleAddressChange} required/>
                                     <label className="control-label"
                                            htmlFor="address">Electrumx Server Address</label>
                                 </div>
                                 <div className="inputs-item">
-                                    <input id="proxy" type="text" name="Tor Proxy" required/>
+                                    <input id="proxy" type="text" name="TorProxy" required
+                                           value={this.state.proxy} onChange={this.handleProxyChange}/>
                                     <label className="control-label" htmlFor="proxy">Tor Proxy</label>
                                 </div>
                                 <div className="inputs-item">
-                                    <input id="entity-address" type="text" name="StateChain Entity Address" required/>
+                                    <input id="entity-address" type="text" name="StateChain Entity Address"
+                                           value={this.state.entity_endpoint} onChange={this.handleEntityChange}
+                                           required/>
                                     <label className="control-label"
-                                           htmlFor="entity-address">{this.config.state_entity_endpoint}</label>
+                                           htmlFor="entity-address">State entity endpoint</label>
                                 </div>
                                 <div className="inputs-item">
-                                    <input id="conductor-address" type="text" name="Swap Conductor Address" required/>
-                                    <label className="control-label"
-                                           htmlFor="conductor-address">{this.config.swap_conductor_endpoint}</label>
+                                    <input id="conductor-address" type="text" name="Swap Conductor Address"
+                                           value={this.state.swap_conductor_endpoint}
+                                           onChange={this.handleConductorChange} required/>
+                                    <label className="control-label" htmlFor="conductor-address">Swap conductor
+                                        endpoint</label>
+                                </div>
+                                <div className="inputs-item def-number-input number-input">
+                                    <button onClick={this.decrease} className="minus"></button>
+                                    <span className="smalltxt">{this.label}</span>
+                                    <input className="quantity" name="quantity" value={this.state.value}
+                                           type="number" placeholder="0 BTC"/>
+                                    <button onClick={this.increase} className="plus"></button>
                                 </div>
                             </form>
-                            <Quantity label="Minimum Anonymity Set Size"/>
 
                         </div>
                         <div className="inputs">
