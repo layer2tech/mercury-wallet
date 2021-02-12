@@ -9,7 +9,13 @@ import * as bitcoin from 'bitcoinjs-lib';
 
 const log = window.require('electron-log');
 
-let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
+let wallet;
+try {
+  wallet = Wallet.load(false)
+  console.log("wallet loaded")
+} catch {
+  wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
+}
 
 let [coins_data, total_balance] = wallet.getUnspentStatecoins();
 let fee_info = getFeeInfo(wallet.http_client);
@@ -39,9 +45,6 @@ export const callGetConfig = () => {
 export const callUpdateConfig = (config_changes) => {
   wallet.config.update(config_changes)
   wallet.save()
-  const remote = require('electron').remote;
-  remote.app.relaunch();
-  remote.app.exit(0);
 }
 
 export const callGetUnspentStatecoins = () => {

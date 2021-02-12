@@ -134,9 +134,10 @@ export class Wallet {
   };
 
   // Load wallet JSON from store
-  static async load(testing_mode: boolean) {
+  static load(testing_mode: boolean) {
     // Fetch raw wallet string
     let wallet_json = store.get('wallet')
+    if (wallet_json==undefined) throw Error("No wallet stored.")
     return Wallet.fromJSON(wallet_json, testing_mode)
   }
 
