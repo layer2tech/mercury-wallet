@@ -39,3 +39,7 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+// Electron Store
+const Store = require('electron-store');
+Store.initRenderer();
