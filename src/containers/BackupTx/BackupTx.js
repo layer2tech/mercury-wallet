@@ -105,7 +105,10 @@ const BackupTxPage = () => {
                 <div className="item">
                     <span className="sub">Hex:</span>
                     <div className="">
-                      <img type="button" src={icon2} alt="icon" onClick={copyBackupTxHexToClipboard}/>
+                        {selectedCoinTxData.tx_backup_hex.length > 0 ?
+                          <img type="button" src={icon2} alt="icon" onClick={copyBackupTxHexToClipboard}/>
+                          : null
+                        }
                         <span>
                           {selectedCoinTxData.tx_backup_hex}
                         </span>
@@ -115,7 +118,10 @@ const BackupTxPage = () => {
                 <div className="item">
                     <span className="sub">Private key hex:</span>
                     <div className="">
-                      <img type="button" src={icon2} alt="icon" onClick={copyPrivKeyToClipboard}/>
+                        {selectedCoinTxData.priv_key_hex.length > 0 ?
+                          <img type="button" src={icon2} alt="icon" onClick={copyPrivKeyToClipboard}/>
+                          : null
+                        }
                         <span>
                           {selectedCoinTxData.priv_key_hex}
                         </span>
@@ -125,7 +131,10 @@ const BackupTxPage = () => {
                 <div className="item">
                     <span className="sub">Private Key WIF:</span>
                     <div className="">
-                      <img type="button" src={icon2} alt="icon" onClick={copyKeyWIFToClipboard}/>
+                      {selectedCoinTxData.key_wif.length > 0 ?
+                        <img type="button" src={icon2} alt="icon" onClick={copyKeyWIFToClipboard}/>
+                        : null
+                      }
                         <span>
                           {selectedCoinTxData.key_wif}
                         </span>
