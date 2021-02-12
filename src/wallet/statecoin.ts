@@ -22,13 +22,13 @@ export class StateCoinList {
     return statecoins
   }
 
-  getAllCoins() {
+  getAllCoins(block_height: number) {
     return this.coins.map((item: StateCoin) => {
-      return item.getDisplayInfo()
+      return item.getDisplayInfo(block_height)
     })
   };
 
-  getUnspentCoins() {
+  getUnspentCoins(block_height: number) {
     let total = 0
     let coins = this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.AVAILABLE) {
@@ -37,7 +37,7 @@ export class StateCoinList {
       }
       return
     })
-    return [coins.map((item: StateCoin) => item.getDisplayInfo()), total]
+    return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
   };
 
   getUnconfirmedCoins() {
@@ -79,7 +79,7 @@ export class StateCoinList {
           return;
       }
     } else {
-      throw "No coin found with shared_key_id " + shared_key_id
+      throw Error("No coin found with shared_key_id " + shared_key_id);
     }
   }
 
@@ -89,7 +89,7 @@ export class StateCoinList {
     if (statecoin) {
       statecoin = finalized_statecoin
     } else {
-      throw "No coin found with shared_key_id " + finalized_statecoin.shared_key_id
+      throw Error("No coin found with shared_key_id " + finalized_statecoin.shared_key_id);
     }
   }
 
@@ -98,7 +98,7 @@ export class StateCoinList {
     if (coin) {
       coin.tx_withdraw = tx_withdraw
     } else {
-      throw "No coin found with shared_key_id " + shared_key_id
+      throw Error("No coin found with shared_key_id " + shared_key_id);
     }
   }
 }
@@ -148,7 +148,7 @@ export class StateCoin {
     this.tx_backup = null;
     this.tx_withdraw = null;
     this.smt_proof = null;
-    this.status = STATECOIN_STATUS.UNCOMFIRMED
+    this.status = STATECOIN_STATUS.UNCOMFIRMED;
   }
 
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
@@ -158,13 +158,14 @@ export class StateCoin {
   setSpendPending() { this.status = STATECOIN_STATUS.SPEND_PENDING; }
 
   // Get data to display in GUI
-  getDisplayInfo(): StateCoinDisplayData {
+  getDisplayInfo(block_height: number): StateCoinDisplayData {
     return {
       shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid,
       timestamp: this.timestamp,
-      swap_rounds: this.swap_rounds
+      swap_rounds: this.swap_rounds,
+      expiry_data: this.getExpiryData(block_height)
     }
   };
 
@@ -173,6 +174,29 @@ export class StateCoin {
       shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid
+    }
+  }
+
+  getBackupTxData(block_height: number) {
+    return {
+      tx_backup_hex: this.tx_backup?.toHex(),
+      priv_key_hex: "",
+      key_wif: "",
+      expiry_data: this.getExpiryData(block_height)
+    }
+  }
+
+  // Calculate blocks and rough days/months until expiry
+  getExpiryData(block_height: number): ExpiryData {
+    if (this.tx_backup==null) throw Error("Cannot calculate expiry - Coin is not confirmed.");
+    let blocks_to_locktime = this.tx_backup.locktime - block_height;
+    if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0};
+    let days_to_locktime = Math.floor(blocks_to_locktime / (6*24))
+
+    return {
+      blocks: blocks_to_locktime,
+      days: days_to_locktime,
+      months: Math.floor(days_to_locktime/30)
     }
   }
 
@@ -186,6 +210,8 @@ export class StateCoin {
   getSharedPubKey(): string {
     return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed("hex");
   }
+
+
 }
 
 export interface StateCoinDisplayData {
@@ -193,12 +219,16 @@ export interface StateCoinDisplayData {
   value: number,
   funding_txid: string,
   timestamp: number,
-  swap_rounds: number
+  swap_rounds: number,
+  expiry_data: ExpiryData
 }
 
-export interface PrepareSignTxMsg {
-
+export interface ExpiryData {
+  blocks: number,
+  days: number,
+  months: number
 }
+
 
 export interface InclusionProofSMT {
 

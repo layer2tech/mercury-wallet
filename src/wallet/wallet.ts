@@ -37,16 +37,17 @@ let store = new Store();
 export class Wallet {
   config: Config;
   version: string;
+
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
   electrum_client: ElectrumClient | MockElectrumClient;
+  block_height: number;
 
   constructor(mnemonic: string, account: any, network: Network, testing_mode: boolean) {
     this.config = new Config(network, testing_mode);
-    this.version = "vesion"
     this.version = require("../../package.json").version
 
     this.mnemonic = mnemonic;
@@ -61,6 +62,7 @@ export class Wallet {
       this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
     }
+    this.block_height = this.electrum_client.latestBlockHeight()
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -132,9 +134,10 @@ export class Wallet {
   };
 
   // Load wallet JSON from store
-  static async load(testing_mode: boolean) {
+  static load(testing_mode: boolean) {
     // Fetch raw wallet string
     let wallet_json = store.get('wallet')
+    if (wallet_json==undefined) throw Error("No wallet stored.")
     return Wallet.fromJSON(wallet_json, testing_mode)
   }
 
@@ -143,6 +146,12 @@ export class Wallet {
     store.set('wallet.statecoins', this.statecoins);
     store.set('wallet.activity', this.activity);
   };
+
+  // Clear storage.
+  clearSave() {
+    store.set('wallet', {});
+  };
+
 
 
   // Initialise and return Wasm object.
@@ -164,14 +173,35 @@ export class Wallet {
 
 
   // Getters
-  getMnemonic(): string {
-    return this.mnemonic
-  }
+  getMnemonic(): string { return this.mnemonic }
+  getBlockHeight(): number { return this.block_height }
   getUnspentStatecoins() {
-    return this.statecoins.getUnspentCoins()
+    return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   getUnconfirmedStatecoins() {
     return this.statecoins.getUnconfirmedCoins()
+  }
+  // Get Backup Tx hex and receive private key
+  getCoinBackupTxData(shared_key_id: string) {
+    let statecoin = this.statecoins.getCoin(shared_key_id);
+    if (statecoin===undefined) throw Error("StateCoin does not exist.");
+    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("StateCoin is not availble.");
+
+    // Get tx hex
+    let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
+    //extract receive address private key
+    let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
+
+
+    let bip32 = this.getBIP32forBtcAddress(addr)
+
+    let priv_key = bip32.privateKey;
+    if (priv_key===undefined) throw Error("Backup receive address private key not found.");
+
+    backup_tx_data.priv_key_hex = priv_key.toString("hex");
+    backup_tx_data.key_wif = bip32.toWIF();
+
+    return backup_tx_data
   }
   // ActivityLog data with relevant Coin data
   getActivityLog(depth: number) {
@@ -186,6 +216,7 @@ export class Wallet {
     })
   }
 
+
   // Add confirmed Statecoin to wallet
   addStatecoin(statecoin: StateCoin, action: string) {
     this.statecoins.addCoin(statecoin);
@@ -197,6 +228,7 @@ export class Wallet {
     statecoin.proof_key = proof_key;
     statecoin.value = value;
     statecoin.funding_txid = txid;
+    statecoin.tx_backup = new Transaction();
     statecoin.setConfirmed();
     this.statecoins.addCoin(statecoin)
     this.activity.addItem(id, action);
@@ -255,6 +287,7 @@ export class Wallet {
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
     log.info("Deposite Init done. Send coins to "+p_addr);
+    this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
   }
 
@@ -289,6 +322,7 @@ export class Wallet {
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
     log.info("Deposite Confirm done.");
+    this.saveStateCoinsList();
     return statecoin_finalized
   }
 
@@ -305,7 +339,7 @@ export class Wallet {
       catch (e) { throw Error("Invlaid receiver address - Should be hexadecimal public key.") }
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
-    if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+    if (!statecoin) throw Error("No coin found with id " + shared_key_id);
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
@@ -314,7 +348,8 @@ export class Wallet {
     // Mark funds as spent in wallet
     this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
 
-    log.info("Transfer Sender complete.")
+    log.info("Transfer Sender complete.");
+    this.saveStateCoinsList();
     return transfer_sender;
   }
 
@@ -341,6 +376,7 @@ export class Wallet {
         this.transfer_receiver_finalize(finalize_data);
     }
 
+    this.saveStateCoinsList();
     return finalize_data
   }
 
@@ -355,6 +391,7 @@ export class Wallet {
     this.statecoins.addCoin(statecoin_finalized);
 
     log.info("Transfer Finalize complete.")
+    this.saveStateCoinsList();
     return statecoin_finalized
   }
 
@@ -382,9 +419,10 @@ export class Wallet {
     this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
     this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
 
-    log.info("Withdrawing finished.");
-
     // Broadcast transcation
+
+    log.info("Withdrawing finished.");
+    this.saveStateCoinsList();
     return tx_withdraw
   }
 

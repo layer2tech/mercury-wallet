@@ -7,7 +7,6 @@ import withrowIcon from '../../images/withrow-icon.png';
 import swapIcon from '../../images/swap-icon-grey.png';
 
 import React from 'react';
-import { useSelector } from 'react-redux'
 
 import { fromSatoshi } from '../../wallet/util'
 import { callGetActivityLog } from '../../features/WalletDataSlice'
@@ -17,7 +16,6 @@ const Activity = () => {
     const activitiesTableData = activity_data.map((item, index) => (
         <div key={index}>
             <div className="date">
-
                 <Moment format="MMMM D, YYYY">{item.date}</Moment>
             </div>
             {item.action === 'D' ?

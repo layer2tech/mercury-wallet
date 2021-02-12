@@ -4,7 +4,6 @@ import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
-import { TransferMsg4 } from "../types";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1 } from "../util";
 
 let bitcoin = require("bitcoinjs-lib");
@@ -45,7 +44,7 @@ export const transferSender = async (
   if (statecoin.tx_backup) {
     new_tx_backup = lodash.cloneDeep(statecoin.tx_backup);
   } else {
-    throw ("Back up tx does not exist. Statecoin deposit is not complete.")
+    throw Error("Back up tx does not exist. Statecoin deposit is not complete.")
   }
 
   // Get state entity fee info
@@ -53,8 +52,8 @@ export const transferSender = async (
 
   // Get statechain from SE and check ownership
   let statechain_data = await getStateChain(http_client, statecoin.statechain_id);
-  if (statechain_data.amount === 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
-  if (statechain_data.chain.pop().data !== statecoin.proof_key) throw "StateChain not owned by this Wallet. Incorrect proof key."
+  if (statechain_data.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
+  if (statechain_data.chain.pop().data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key.");
 
   // Sign statecoin to signal desire to Transfer
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
@@ -142,7 +141,7 @@ export const transferReceiver = async (
   let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
   let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
   let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
-  if (!statechain_sig.verify(prev_owner_proof_key_der)) throw "Invalid StateChainSig."
+  if (!statechain_sig.verify(prev_owner_proof_key_der)) throw Error("Invalid StateChainSig.");
 
   // decrypt t1
   let t1 = decryptECIES(se_rec_addr_bip32.privateKey!.toString("hex"), transfer_msg3.t1.secret_bytes)
@@ -217,7 +216,7 @@ export const transferReceiverFinalize = async (
   // Verify proof key inclusion in SE sparse merkle tree
   let root = await getRoot(http_client);
   let proof = await getSmtProof(http_client, root, statecoin.funding_txid);
-  if (!verifySmtProof(wasm_client, root, finalize_data.proof_key, proof)) throw "SMT verification failed.";
+  if (!verifySmtProof(wasm_client, root, finalize_data.proof_key, proof)) throw Error("SMT verification failed.");
 
   // Add state chain id, value, proof key and SMT inclusion proofs to local SharedKey data
   // Add proof and state chain id to Shared key

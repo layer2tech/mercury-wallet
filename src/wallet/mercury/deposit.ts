@@ -95,7 +95,7 @@ export const depositConfirm = async (
   // Verify proof key inclusion in SE sparse merkle tree
   let root = await getRoot(http_client);
   let proof = await getSmtProof(http_client, root, statecoin.funding_txid);
-  if (!verifySmtProof(wasm_client, root, statecoin.proof_key, proof)) throw "SMT verification failed."
+  if (!verifySmtProof(wasm_client, root, statecoin.proof_key, proof)) throw Error("SMT verification failed.")
 
   // Add proof and state chain id to Shared key
   statecoin.smt_proof = proof;

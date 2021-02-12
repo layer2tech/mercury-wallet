@@ -37,12 +37,33 @@
 .CoinAmount {
   color: #000000;
 }
-.sub .progress {
-  height: 5px;
+
+#danger .sub .progress {
+    height: 3px;
+    background-image: linear-gradient(to right, #ff3d00 10%, #ffb2ab 0%);
+    background-position: top;
+    background-size: 9% 3px;
+    background-repeat: repeat-x;
+}
+#danger .expiry-time-left{
+    color: #ff3d00;
+}
+
+#success .sub .progress {
+    height: 3px;
+    background-image: linear-gradient(to right, #ffffff 10%, rgb(176, 176, 176) 0%);
+    background-position: top;
+    background-size: 9% 3px;
+    background-repeat: repeat-x;
+  background-color: #ff0000;
+}
+
+.progress_bar {
+    width: 35%;
 }
 
 .progress .bg-danger {
-  background-color: #E64A1A !important;
+  background-color: #ff0000 !important;
 
 }
 .progress .bg-warning {
@@ -50,7 +71,7 @@
 
 }
 .progress .bg-success {
-  background-color: #646464 !important;
+    background-color: #000000 !important;
 }
 
 .scoreAmount {

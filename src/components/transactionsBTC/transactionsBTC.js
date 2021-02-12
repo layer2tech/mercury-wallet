@@ -4,9 +4,9 @@ import icon2 from "../../images/icon2.png";
 import arrow from "../../images/scan-arrow.png";
 
 import React, {useState} from 'react';
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 
-import { callDepositInit, callDepositConfirm, setError,
+import { callDepositInit, callDepositConfirm,
   callGetUnconfirmedStatecoins  } from '../../features/WalletDataSlice'
 import { fromSatoshi } from '../../wallet/util'
 
@@ -16,7 +16,6 @@ import '../index.css';
 const TransactionsBTC = (props) => {
   const [state, setState] = useState({}); // store selected coins shared_key_id
 
-  const deposits_initialised = useSelector(state => state.walletData).deposits_initialised;
   const dispatch = useDispatch();
 
   // run depositInit for selected deposit amount if not already complete
@@ -24,7 +23,7 @@ const TransactionsBTC = (props) => {
     if (!item.initialised && item.value !== null) {
       dispatch(callDepositInit(item.value))
       .then((res => {  // when finished update p_addr in GUI
-        if (res.error==undefined) {
+        if (res.error===undefined) {
           props.setValueSelectionAddr(id, res.payload[1])
           setState({}) //update state to refresh TransactionDisplay render
         }
@@ -75,7 +74,7 @@ const TransactionDisplay = (props) => {
   return (
     <div className="Body">
         <div className="deposit-scan">
-            <img src={scan} alt="image"/>
+            <img src={scan} alt=""/>
             <div className="deposit-scan-content">
                 <div className="deposit-scan-subtxt">
                     <span>Finish Creating the Statecoin by sending exactly {fromSatoshi(props.amount)} BTC to:</span>
