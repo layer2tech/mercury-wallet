@@ -70,10 +70,10 @@ export const ROOT_INFO = {
   commitment_info:null
 }
 
-const STATECHAIN_INFO = {
+export const STATECHAIN_INFO = {
   utxo: { txid: "0158f2978e5c2cf407970d7213f2b4289993b2fe3ef6aca531316cdcf347cc41", vout: 1},
   amount: 100,
-  chain: [{ data: "028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41", next_state: null }],
+  chain: [{ data: "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", next_state: null }],
   locktime: 1000
 }
 

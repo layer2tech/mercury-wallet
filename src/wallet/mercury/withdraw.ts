@@ -25,9 +25,9 @@ export const withdraw = async (
 ): Promise<Transaction> => {
   // Get statechain from SE and check ownership
   let statechain = await getStateChain(http_client, statecoin.statechain_id);
-  if (statechain.amount === 0) throw "StateChain " + statecoin.statechain_id + " already withdrawn."
-  if (statechain.chain.pop().data !== statecoin.proof_key) throw "StateChain not owned by this Wallet. Incorrect proof key."
-
+  if (statechain.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
+  if (statechain.chain.pop().data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key.");
+  
   // Sign statecoin to signal desire to Withdraw
   let statechain_sig = StateChainSig.create(proof_key_der, "WITHDRAW", rec_addr);
 

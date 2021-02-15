@@ -145,5 +145,9 @@
     "directories": {
       "buildResources": "assets"
     }
+  },
+  "resolutions": {
+    "**/@typescript-eslint/eslint-plugin": "^4.1.1",
+    "**/@typescript-eslint/parser": "^4.1.1"
   }
 }
