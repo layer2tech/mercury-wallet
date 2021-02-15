@@ -6,7 +6,7 @@ import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 
-import { Coins, Quantity, StdButton, AddressInput } from "../../components";
+import { Coins, StdButton, AddressInput } from "../../components";
 import { fromSatoshi } from '../../wallet/util'
 import { decodeSCEAddress, encodeMessage } from '../../wallet/util'
 import { callTransferSender, setError } from '../../features/WalletDataSlice'
@@ -18,8 +18,7 @@ const SendStatecoinPage = () => {
   const [inputAddr, setInputAddr] = useState("");
   const [transferMsg3, setTransferMsg3] = useState('');
 
-  const total_balance = useSelector(state => state.walletData).total_balance;
-  const num_statecoins = useSelector(state => state.walletData).coins_data.length;
+  const balance_info = useSelector(state => state.walletData).balance_info;
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -59,7 +58,7 @@ const SendStatecoinPage = () => {
 
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
     .then(res => {
-      if (res.error==undefined) {
+      if (res.error===undefined) {
         setTransferMsg3(encodeMessage(res.payload))
         setInputAddr("")
         setSelectedCoin('')
@@ -88,7 +87,7 @@ const SendStatecoinPage = () => {
                   </div>
               </div>
               <h3 className="subtitle">
-                 <b> {fromSatoshi(total_balance)} BTC</b> available as <b>{num_statecoins}</b> Statecoins
+                 <b> {fromSatoshi(balance_info.total_balance)} BTC</b> available as <b>{balance_info.num_coins}</b> Statecoins
               </h3>
           </div>
 
@@ -112,8 +111,8 @@ const SendStatecoinPage = () => {
                      <AddressInput
                        inputAddr={inputAddr}
                        onChange={onInputAddrChange}
-                       placeholder='Destination Address for withdrawal'
-                       smallTxtMsg='Recipients Statechain Address'/>
+                       placeholder='Send to destination address'
+                       smallTxtMsg='Statechain Address'/>
                   </div>
                   <div>
                       <p className="table-title">Use Only:</p>
@@ -141,16 +140,16 @@ const SendStatecoinPage = () => {
               </div>
           </div>
 
-            <div className="Body transferMsg">
-                <h3 className="subtitle">Transfer Message:</h3>
-                <div className="transferMsg scan-trasfermsg">
-                  <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
-                    <span>
-                      {transferMsg3}
-                    </span>
-                </div>
+          <div className="Body transferMsg">
+            <h3 className="subtitle">Transfer Message:</h3>
+            <div className="transferMsg scan-trasfermsg">
+              <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
+                <span>
+                  {transferMsg3}
+                </span>
+            </div>
+          </div>
 
-        </div>
       </div>
     )
 }

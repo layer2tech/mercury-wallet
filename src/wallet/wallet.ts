@@ -15,38 +15,39 @@ let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
 let bip32 = require('bip32');
 let bip39 = require('bip39');
-let fsLibrary  = require('fs');
 
-const WALLET_LOC = "wallet.json";
-
-// Logger
+// Logger and Store import.
+// Node friendly importing required for Jest tests.
 declare const window: any;
 let log: any;
+let Store: any;
 try {
   log = window.require('electron-log');
+  Store = window.require('electron-store');
 } catch (e) {
   log = require('electron-log');
+  Store = require('electron-store');
 }
 
 // Store
-// const Store = window.require('electron-store');
-// const store = new Store();
+let store = new Store();
 
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   config: Config;
   version: string;
+
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
   electrum_client: ElectrumClient | MockElectrumClient;
+  block_height: number;
 
   constructor(mnemonic: string, account: any, network: Network, testing_mode: boolean) {
     this.config = new Config(network, testing_mode);
-    this.version = "vesion"
     this.version = require("../../package.json").version
 
     this.mnemonic = mnemonic;
@@ -61,14 +62,31 @@ export class Wallet {
       this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
     }
+    this.block_height = this.electrum_client.latestBlockHeight()
   }
 
-  // Constructors
+  // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(mnemonic: string, network: Network, testing_mode: boolean): Wallet {
     log.debug("New wallet. Mnemonic: "+mnemonic+". Testing mode: "+testing_mode+".");
     return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
   }
 
+  // Generate wallet with random mnemonic.
+  static buildFresh(testing_mode: true, network: Network): Wallet {
+    const mnemonic = bip39.generateMnemonic();
+    return Wallet.fromMnemonic(mnemonic, network, testing_mode);
+  }
+
+  // Receive 4 words at random and check thier existence in mnemonic.
+  confirmMnemonicKnowledge(words: [{pos: number, word: string}]): boolean {
+    let mnemonic = this.mnemonic.split(' ');
+    for (let word of words) {
+      if (mnemonic[word.pos] != word.word) { return false }
+    }
+    return true
+  }
+
+  // Startup wallet with some mock data. Interations with server may fail since data is random.
   static buildMock(network: Network): Wallet {
     var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
     // add some statecoins
@@ -82,26 +100,21 @@ export class Wallet {
     return wallet
   }
 
-  // generate wallet with random mnemonic
-  static buildFresh(testing_mode: true, network: Network): Wallet {
-    const mnemonic = bip39.generateMnemonic();
-    return Wallet.fromMnemonic(mnemonic, network, testing_mode);
-  }
-
   // Load wallet from JSON
-  static fromJSON(str_wallet: string, network: Network, addressFunction: Function, testing_mode: boolean): Wallet {
-    let json_wallet: Wallet = JSON.parse(str_wallet);
+  static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
+    let network: Network = json_wallet.config.network;
 
     let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, network, testing_mode);
-    new_wallet.statecoins = StateCoinList.fromJSON(JSON.stringify(json_wallet.statecoins))
-    new_wallet.activity = ActivityLog.fromJSON(JSON.stringify(json_wallet.activity))
+
+    new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
+    new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
     new_wallet.config.update(json_wallet.config);
 
     // Re-derive Account from JSON
     const chains = json_wallet.account.map(function (j: any) {
       const node = bip32.fromBase58(j.node, network)
 
-      const chain = new bip32utils.Chain(node, j.k, addressFunction)
+      const chain = new bip32utils.Chain(node, j.k, segwitAddr)
       chain.map = j.map
 
       chain.addresses = Object.keys(chain.map).sort(function (a, b) {
@@ -115,28 +128,31 @@ export class Wallet {
     return new_wallet
   }
 
-  // Load wallet from storage
-  static async load(
-    {file_path = WALLET_LOC, network = bitcoin.networks.bitcoin, addressFunction = segwitAddr, testing_mode}:
-    {file_path?: string, network?: Network, addressFunction?: Function, testing_mode: boolean}
-  ) {
-    // Fetch raw json
-    let str_wallet: string = await new Promise((resolve,_reject) => {
-          fsLibrary.readFile(file_path, (error: any, txtString: String) => {
-            if (error) throw Error(error);
-            resolve(txtString.toString())
-          });
-      });
-    return Wallet.fromJSON(str_wallet, network, addressFunction, testing_mode)
+  // Save entire wallet to storage. Store in file as JSON Object.
+  save() {
+    store.set('wallet', this);
+  };
+
+  // Load wallet JSON from store
+  static load(testing_mode: boolean) {
+    // Fetch raw wallet string
+    let wallet_json = store.get('wallet')
+    if (wallet_json==undefined) throw Error("No wallet stored.")
+    return Wallet.fromJSON(wallet_json, testing_mode)
   }
 
-  // Load wallet to storage
-  save({file_path = WALLET_LOC}: {file_path?: string}={}) {
-    // Store in file as JSON string
-    fsLibrary.writeFile(file_path, JSON.stringify(this), (error: any) => {
-      if (error) throw Error(error);
-    })
+  // Update coins list in storage. Store in file as JSON string.
+  saveStateCoinsList() {
+    store.set('wallet.statecoins', this.statecoins);
+    store.set('wallet.activity', this.activity);
   };
+
+  // Clear storage.
+  clearSave() {
+    store.set('wallet', {});
+  };
+
+
 
   // Initialise and return Wasm object.
   // Wasm contains all wallet Rust functionality.
@@ -157,14 +173,35 @@ export class Wallet {
 
 
   // Getters
-  getMnemonic(): string {
-    return this.mnemonic
-  }
+  getMnemonic(): string { return this.mnemonic }
+  getBlockHeight(): number { return this.block_height }
   getUnspentStatecoins() {
-    return this.statecoins.getUnspentCoins()
+    return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   getUnconfirmedStatecoins() {
     return this.statecoins.getUnconfirmedCoins()
+  }
+  // Get Backup Tx hex and receive private key
+  getCoinBackupTxData(shared_key_id: string) {
+    let statecoin = this.statecoins.getCoin(shared_key_id);
+    if (statecoin===undefined) throw Error("StateCoin does not exist.");
+    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("StateCoin is not availble.");
+
+    // Get tx hex
+    let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
+    //extract receive address private key
+    let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
+
+
+    let bip32 = this.getBIP32forBtcAddress(addr)
+
+    let priv_key = bip32.privateKey;
+    if (priv_key===undefined) throw Error("Backup receive address private key not found.");
+
+    backup_tx_data.priv_key_hex = priv_key.toString("hex");
+    backup_tx_data.key_wif = bip32.toWIF();
+
+    return backup_tx_data
   }
   // ActivityLog data with relevant Coin data
   getActivityLog(depth: number) {
@@ -179,6 +216,7 @@ export class Wallet {
     })
   }
 
+
   // Add confirmed Statecoin to wallet
   addStatecoin(statecoin: StateCoin, action: string) {
     this.statecoins.addCoin(statecoin);
@@ -190,6 +228,7 @@ export class Wallet {
     statecoin.proof_key = proof_key;
     statecoin.value = value;
     statecoin.funding_txid = txid;
+    statecoin.tx_backup = new Transaction();
     statecoin.setConfirmed();
     this.statecoins.addCoin(statecoin)
     this.activity.addItem(id, action);
@@ -248,6 +287,7 @@ export class Wallet {
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
     log.info("Deposite Init done. Send coins to "+p_addr);
+    this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
   }
 
@@ -282,6 +322,7 @@ export class Wallet {
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
     log.info("Deposite Confirm done.");
+    this.saveStateCoinsList();
     return statecoin_finalized
   }
 
@@ -298,7 +339,7 @@ export class Wallet {
       catch (e) { throw Error("Invlaid receiver address - Should be hexadecimal public key.") }
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
-    if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+    if (!statecoin) throw Error("No coin found with id " + shared_key_id);
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
@@ -307,7 +348,8 @@ export class Wallet {
     // Mark funds as spent in wallet
     this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
 
-    log.info("Transfer Sender complete.")
+    log.info("Transfer Sender complete.");
+    this.saveStateCoinsList();
     return transfer_sender;
   }
 
@@ -334,6 +376,7 @@ export class Wallet {
         this.transfer_receiver_finalize(finalize_data);
     }
 
+    this.saveStateCoinsList();
     return finalize_data
   }
 
@@ -348,6 +391,7 @@ export class Wallet {
     this.statecoins.addCoin(statecoin_finalized);
 
     log.info("Transfer Finalize complete.")
+    this.saveStateCoinsList();
     return statecoin_finalized
   }
 
@@ -375,9 +419,10 @@ export class Wallet {
     this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
     this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
 
-    log.info("Withdrawing finished.");
-
     // Broadcast transcation
+
+    log.info("Withdrawing finished.");
+    this.saveStateCoinsList();
     return tx_withdraw
   }
 

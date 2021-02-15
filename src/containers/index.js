@@ -8,3 +8,4 @@ export { default as SwapPage } from "./Swap/Swap";
 
 export { default as SendStatecoinPage } from "./Send/Send";
 export { default as ReceiveStatecoinPage } from "./Receive/Receive";
+export { default as BackupTxPage } from "./BackupTx/BackupTx";

@@ -37,7 +37,7 @@ export class Config {
       port: 8443,
       protocol: 'wss',
     }
-    this.tor_proxy = "none";
+    this.tor_proxy = "";
 
     this.min_anon_set = 10;
     this.notifications = true;

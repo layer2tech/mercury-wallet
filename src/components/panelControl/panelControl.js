@@ -16,17 +16,16 @@ import './panelControl.css';
 import '../index.css';
 
 const PanelControl = () => {
-  const total_balance = useSelector(state => state.walletData).total_balance;
-  const num_statecoins = useSelector(state => state.walletData).coins_data.length;
+  const balance_info = useSelector(state => state.walletData).balance_info;
 
   return (
     <div className="Body">
       <h2 className="WalletAmount">
           <img src={walletIcon} alt="walletIcon"/>
-          {fromSatoshi(total_balance)} BTC
+          {fromSatoshi(balance_info.total_balance)} BTC
       </h2>
         <div className="no-wallet">
-            <span>{num_statecoins} Statecoins in Wallet</span>
+            <span>{balance_info.num_coins} Statecoins in Wallet</span>
         </div>
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">

@@ -19,6 +19,12 @@ function createWindow() {
       }
     });
 
+  // Open links in systems default browser
+  mainWindow.webContents.on('new-window', function(e, url) {
+    e.preventDefault();
+    electron.shell.openExternal(url);
+  });
+
   mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
   if (isDev) {
     mainWindow.webContents.openDevTools();
@@ -39,3 +45,7 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+// Electron Store
+const Store = require('electron-store');
+Store.initRenderer();

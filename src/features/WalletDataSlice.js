@@ -1,8 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { useDispatch } from 'react-redux'
 
-import { Wallet, ACTION, StateCoinList } from '../wallet'
-import { getFeeInfo, getSmtProof, pingServer } from '../wallet/mercury/info_api'
+import { Wallet, ACTION } from '../wallet'
+import { getFeeInfo } from '../wallet/mercury/info_api'
 import { decodeMessage, encodeSCEAddress } from '../wallet/util'
 
 import { v4 as uuidv4 } from 'uuid';
@@ -10,29 +9,46 @@ import * as bitcoin from 'bitcoinjs-lib';
 
 const log = window.require('electron-log');
 
-let wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
+let wallet;
+try {
+  wallet = Wallet.load(false)
+  console.log("wallet loaded")
+} catch {
+  wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
+}
 
-let [coins_data, total_balance] = wallet.getUnspentStatecoins()
+let [coins_data, total_balance] = wallet.getUnspentStatecoins();
 let fee_info = getFeeInfo(wallet.http_client);
 
 const initialState = {
   config: {version: wallet.version, endpoint: wallet.http_client.endpoint},
   error_dialogue: { seen: true, msg: "" },
   connected: false,
+  balance_info: {total_balance: total_balance, num_coins: coins_data.length},
   fee_info: fee_info,
-  coins_data: coins_data,
-  total_balance: total_balance,
-  activity_data: wallet.getActivityLog(10),
-  deposits_initialised: [],
-  transfer_msg3: Promise.resolve(),
-  rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'))
+  rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex')),
 }
+
+// Quick check for expiring coins
+for (let i=0; i<coins_data.length; i++) {
+  if (coins_data[i].expiry_data.months > 1) {
+    initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet is close to expiring." }
+    break;
+  };
+}
+
+
+
 
 // Wallet data gets
 export const callGetConfig = () => {
   return wallet.config.getConfig()
 }
-
+// Update config with JSON of field to change
+export const callUpdateConfig = (config_changes) => {
+  wallet.config.update(config_changes)
+  wallet.save()
+}
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
@@ -43,6 +59,10 @@ export const callGetUnconfirmedStatecoins = () => {
 
 export const callGetActivityLog = () => {
   return wallet.getActivityLog(10)
+}
+
+export const callGetCoinBackupTxData = (shared_key_id) => {
+  return wallet.getCoinBackupTxData(shared_key_id)
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
@@ -82,6 +102,12 @@ const WalletSlice = createSlice({
   name: 'walletData',
   initialState,
   reducers: {
+    // Update total_balance
+    updateBalanceInfo(state, action) {
+      if (state.balance_info.total_balance !== action.payload.total_balance) {
+        state.balance_info = action.payload
+      }
+    },
     // Gen new SE Address
     callGenSeAddr(state) {
       state.rec_se_addr = encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'));
@@ -103,6 +129,10 @@ const WalletSlice = createSlice({
       state.error_dialogue = {seen: false, msg: action.payload.msg};
       log.error(action.payload.msg)
     },
+    callClearSave(state) {
+      wallet.clearSave()
+      state.error_dialogue = {seen: false, msg: "Wallet data removed. Please restart."};
+    }
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -128,7 +158,7 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, setErrorSeen, setError,
-  callPingServer } = WalletSlice.actions
+  callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

@@ -4,18 +4,17 @@ import withdrowIcon from "../../images/withdrow-icon.png";
 
 import {Link, withRouter} from "react-router-dom";
 import React, {useState} from 'react';
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux';
 
-import { callWithdraw, setError, refreshCoinData } from '../../features/WalletDataSlice'
+import { callWithdraw, setError } from '../../features/WalletDataSlice';
 import { Coins, StdButton, AddressInput } from "../../components";
-import { fromSatoshi } from '../../wallet/util'
+import { fromSatoshi } from '../../wallet/util';
 
 import './Withdraw.css';
 
 const WithdrawPage = () => {
   const dispatch = useDispatch();
-  const total_balance = useSelector(state => state.walletData).total_balance;
-  const num_statecoins = useSelector(state => state.walletData).coins_data.length;
+  const balance_info = useSelector(state => state.walletData).balance_info;
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
@@ -36,7 +35,7 @@ const WithdrawPage = () => {
     }
 
     dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr})).then((res => {
-      if (res.error==undefined) {
+      if (res.error===undefined) {
         setSelectedCoin(null)
         setInputAddr("")
       }
@@ -62,7 +61,7 @@ const WithdrawPage = () => {
             </div>
             <h3 className="subtitle">
                 Withdraw Statecoin UTXO’s back to Bitcoin. <br/>
-               <b> {fromSatoshi(total_balance)} BTC</b> available as <b>{num_statecoins}</b> Statecoins
+               <b> {fromSatoshi(balance_info.total_balance)} BTC</b> available as <b>{balance_info.num_coins}</b> Statecoins
             </h3>
         </div>
 

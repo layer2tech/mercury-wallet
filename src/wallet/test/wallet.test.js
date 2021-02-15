@@ -4,15 +4,43 @@ import { segwitAddr } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
 
+let lodash = require('lodash');
+
 describe('Wallet', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
 
   test('toJSON', function() {
     wallet.config.update({min_anon_set: 1000}) // update config to ensure defaults are not revered to after fromJSON.
-    let json_wallet = JSON.stringify(wallet)
+    let json_wallet = JSON.parse(JSON.stringify(wallet))
     let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true)
     // check wallets serialize to same values (since deep equal on recursive objects is messy)
     expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet))
+  });
+
+  test('save/load', async function() {
+    wallet.save()
+    let loaded_wallet = await Wallet.load(true)
+    expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
+  });
+
+  test('save coins list', async function() {
+    wallet.save();
+    let num_coins_before = wallet.statecoins.coins.length;
+
+    // new coin
+    wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+    wallet.saveStateCoinsList();
+
+    let loaded_wallet = await Wallet.load(true);
+    let num_coins_after = loaded_wallet.statecoins.coins.length;
+    expect(num_coins_after).toEqual(num_coins_before+1)
+    expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
+  });
+
+  test('confirmMnemonicKnowledge', function() {
+    expect(wallet.confirmMnemonicKnowledge([{pos: 3, word: "this"}])).toBe(false);
+    expect(wallet.confirmMnemonicKnowledge([{pos: 0, word: "praise"}])).toBe(true);
+    expect(wallet.confirmMnemonicKnowledge([{pos: 0, word: "praise"},{pos: 11, word: "ghost"}])).toBe(true);
   });
 
   test('genBtcAddress', function() {
@@ -51,19 +79,27 @@ describe('Wallet', function() {
   test('addStatecoin', function() {
     let [coins_before_add, total_before] = wallet.getUnspentStatecoins()
     let activity_log_before_add = wallet.getActivityLog(100)
-    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", ACTION.DEPOSIT)
+    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
     let [coins_after_add, total_after] = wallet.getUnspentStatecoins()
     let activity_log_after_add = wallet.getActivityLog(100)
     expect(coins_before_add.length).toEqual(coins_after_add.length - 1)
     expect(activity_log_before_add.length).toEqual(activity_log_after_add.length - 1)
   });
+
+  describe("getCoinBackupTxData", () => {
+    it('shared_key_id doesnt exist', () => {
+      expect(() => {
+        wallet.getCoinBackupTxData("StateCoin does not exist.");
+      }).toThrowError("does not exist");
+    });
+  })
 })
 
 describe("Statecoins/Coin", () => {
   var statecoins = Wallet.buildMock().statecoins;
 
   test('to/from JSON', () => {
-    var json = JSON.stringify(statecoins)
+    var json = JSON.parse(JSON.stringify(statecoins))
     let from_json = StateCoinList.fromJSON(json)
     expect(statecoins).toEqual(from_json)
   });
@@ -93,7 +129,7 @@ describe("Statecoins/Coin", () => {
       expect(statecoins.getUnspentCoins()[0].length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
-  })
+  });
 
   describe("getUnconfirmedCoins", () => {
     it('Returns only unconfirmed coins with correct data', () => {
@@ -105,8 +141,32 @@ describe("Statecoins/Coin", () => {
       expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
-  })
-})
+  });
+
+  describe("calcExpiryDate", () => {
+    it('Calculate expiry', () => {
+      let coin = lodash.clone(statecoins.coins[0]);
+      let tx_backup = new Transaction();
+      let locktime = 24*6*30; // month locktime
+      tx_backup.locktime = locktime;
+      coin.tx_backup = tx_backup;
+      expect(coin.getExpiryData(locktime-1)).toEqual({blocks: 1, days: 0, months: 0});            // < 1 day to go
+      expect(coin.getExpiryData(locktime+1)).toEqual({blocks: 0, days: 0, months: 0});          // locktime passed
+      expect(coin.getExpiryData(locktime-(24*6)+1)).toEqual({blocks: (24*6)-1, days: 0, months: 0});  // 1 block from 1 day
+      expect(coin.getExpiryData(locktime-(24*6))).toEqual({blocks: 24*6, days: 1, months: 0});    // 1 day
+      expect(coin.getExpiryData(locktime-(2*24*6))).toEqual({blocks: 2*24*6, days: 2, months: 0});  // 2 days
+      expect(coin.getExpiryData(locktime-(29*24*6))).toEqual({blocks: 29*24*6, days: 29, months: 0});  // 29 days = 0 months
+      expect(coin.getExpiryData(locktime-(30*24*6))).toEqual({blocks: 30*24*6, days: 30, months: 1});  // 1 month
+    });
+    it('no backup tx', () => {
+      let coin = statecoins.coins[0];
+      coin.tx_backup = null
+      expect(() => {  // not enough value
+        coin.getExpiryData(999);
+      }).toThrowError("Cannot calculate expiry - Coin is not confirmed.");
+    });
+  });
+});
 
 
 describe("Config", () => {

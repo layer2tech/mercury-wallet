@@ -16,42 +16,59 @@ import question from "../../images/question-mark.png";
 import React, {useState} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
-import { useSelector } from 'react-redux'
+import {useSelector, useDispatch} from 'react-redux'
 
-import { fromSatoshi } from '../../wallet/util'
-import { callGetUnspentStatecoins } from '../../features/WalletDataSlice'
+import {fromSatoshi} from '../../wallet/util'
+import {callGetUnspentStatecoins, updateBalanceInfo} from '../../features/WalletDataSlice'
 
 import './coins.css';
 import '../index.css';
 
+const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}}}
+
 const Coins = (props) => {
-    const [showCoinDetails, setShowCoinDetails] = useState({show: false,  coin: {value: 0}});  // Display details of Coin in Modal
+    const dispatch = useDispatch();
+
+
+    const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const handleOpenCoinDetails = (shared_key_id) => {
-      let coin = coins_data.find((coin) => {return coin.shared_key_id===shared_key_id})
-      setShowCoinDetails({show: true, coin: coin});
+        let coin = coins_data.find((coin) => {
+            return coin.shared_key_id === shared_key_id
+        })
+        setShowCoinDetails({show: true, coin: coin});
     }
     const handleCloseCoinDetails = () => {
-      props.setSelectedCoin(null);
-      setShowCoinDetails({show: false,  coin: {value: 0}});
+        props.setSelectedCoin(null);
+        setShowCoinDetails(DEFAULT_STATE_COIN_DETAILS);
     }
 
     // Set selected coin
     const selectCoin = (shared_key_id) => {
-      shared_key_id === props.selectedCoin ? props.setSelectedCoin(null) : props.setSelectedCoin(shared_key_id);
-      if (props.displayDetailsOnClick) {
-        handleOpenCoinDetails(shared_key_id)
-      }
+        shared_key_id === props.selectedCoin ? props.setSelectedCoin(null) : props.setSelectedCoin(shared_key_id);
+        if (props.displayDetailsOnClick) {
+            handleOpenCoinDetails(shared_key_id)
+        }
     }
 
     // Check if coin is selected. If so return CSS.
-    const isSelectedStyle = (shared_key_id) => {return props.selectedCoin === shared_key_id ? {backgroundColor: "#e6e6e6"} : {}}
+    const isSelectedStyle = (shared_key_id) => {
+        return props.selectedCoin === shared_key_id ? {backgroundColor: "#e6e6e6"} : {}
+    }
 
-    const coins_data = callGetUnspentStatecoins()[0];
+    // Convert expiry_data to string displaying months or days left
+    const expiry_time_to_string = (expiry_data) => {
+        return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days"
+    }
+
+    const [coins_data, total_balance] = callGetUnspentStatecoins();
+    // Update total_balance in Redux state
+    dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
+
     const statecoinData = coins_data.map(item => (
         <div key={item.shared_key_id}>
             <div
-              onClick={() => selectCoin(item.shared_key_id)}
-              style={isSelectedStyle(item.shared_key_id)}>
+                onClick={() => selectCoin(item.shared_key_id)}
+                style={isSelectedStyle(item.shared_key_id)}>
                 {item.swap_rounds === 0 ? <div className="CoinPanel">
                     <div className="CoinAmount-block">
                         <img src={icon2} alt="icon"/>
@@ -68,24 +85,26 @@ const Coins = (props) => {
                             </div>
                         </span>
                     </div>
-                    <div>
+                    <div className="progress_bar" id={item.expiry_data.months < 5 ? 'danger' : 'success'}>
                         <div className="sub">
                             <ProgressBar>
-                                <ProgressBar striped variant="success" now={10.2 * 100 / 12} key={1}/>
+                                <ProgressBar striped variant={item.expiry_data.months < 5 ? 'danger' : 'success'} now={item.expiry_data.months * 100 / 12}
+                                             key={1}/>
                                 {/*<ProgressBar variant="warning" now={20} key={2} />*/}
                                 {/*<ProgressBar striped variant="danger" now={10} key={3} />*/}
                             </ProgressBar>
                         </div>
                         <div className="CoinTimeLeft">
                             <img src={timeIcon} alt="icon"/>
-                            <span>Time Until Expiry: 12 months</span>
-
+                            <span>
+                                Time Until Expiry: <span className='expiry-time-left'>{expiry_time_to_string(item.expiry_data)}</span>
+                            </span>
                         </div>
 
                     </div>
                     <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
-                        {item.txid}
+                        {item.funding_txid}
                     </b>
                 </div> : null}
                 {item.swap_rounds < 0 ? <div className="CoinPanel">
@@ -104,7 +123,7 @@ const Coins = (props) => {
                             </div>
                         </span>
                     </div>
-                    <div>
+                    <div className="progress_bar">
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant="success" now={10.2 * 100 / 12} key={1}/>
@@ -114,14 +133,16 @@ const Coins = (props) => {
                         </div>
                         <div className="CoinTimeLeft">
                             <img src={timeIcon} alt="icon"/>
-                            <span>Time Until Expiry: 12 months</span>
+                            <span>
+                              Time Until Expiry: {expiry_time_to_string(item.expiry_data)}
+                            </span>
 
                         </div>
 
                     </div>
                     <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
-                        {item.txid}
+                        {item.funding_txid}
                     </b>
                 </div> : null}
                 {item.swap_rounds > 5 && item.swap_rounds < 10 ? <div className="CoinPanel">
@@ -150,13 +171,15 @@ const Coins = (props) => {
                         </div>
                         <div className="CoinTimeLeft">
                             <img src={timeIcon} alt="icon"/>
-                            <span>Time Until Expiry: 12 months</span>
+                            <span>
+                              Time Until Expiry: {expiry_time_to_string(item.expiry_data)}
+                            </span>
                         </div>
 
                     </div>
                     <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
-                        {item.txid}
+                        {item.funding_txid}
                     </b>
                 </div> : null}
                 {item.swap_rounds > 10 ? <div className="CoinPanel">
@@ -185,7 +208,9 @@ const Coins = (props) => {
                         </div>
                         <div className="CoinTimeLeft">
                             <img src={timeIcon} alt="icon"/>
-                            <span>Time Until Expiry: 12 months</span>
+                            <span>
+                              Time Until Expiry: {expiry_time_to_string(item.expiry_data)}
+                            </span>
 
                         </div>
 
@@ -226,8 +251,9 @@ const Coins = (props) => {
                         <div className="item">
                             <img src={time} alt="icon"/>
                             <div className="block">
-                                <span>Time Left Until Expiry</span>
-                                <span>12 Months</span>
+                                <span>
+                                  Time Until Expiry: {expiry_time_to_string(showCoinDetails.coin.expiry_data)}
+                                </span>
                                 <span></span>
                             </div>
                         </div>
@@ -235,9 +261,8 @@ const Coins = (props) => {
                             <img src={calendar} alt="icon"/>
                             <div className="block">
                                 <span>Date Created</span>
-                                <span>{showCoinDetails.coin.timestamp}
-                                    <br/>
-                                    13:30:12PM
+                                <span>
+                                  {new Date(showCoinDetails.coin.timestamp).toUTCString()}
                                 </span>
                             </div>
                         </div>

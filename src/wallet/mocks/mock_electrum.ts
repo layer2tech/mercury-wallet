@@ -3,7 +3,7 @@ let bitcoin = require('bitcoinjs-lib')
 export class MockElectrumClient {
 
     latestBlockHeight() {
-      return 12345
+      return 1000
     }
 
     broadcastTransaction(raw_tx: string) {
