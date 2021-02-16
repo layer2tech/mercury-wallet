@@ -40,14 +40,14 @@ export class StateCoinList {
     return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
   };
 
-  getUnconfirmedCoins() {
+  getUnconfirmedCoins(network: Network) {
     let coins = this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.UNCOMFIRMED) {
         return item
       }
       return
     })
-    return coins.map((item: StateCoin) => item.getFundingTxInfo())
+    return coins.map((item: StateCoin) => item.getFundingTxInfo(network))
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
@@ -169,11 +169,12 @@ export class StateCoin {
     }
   };
 
-  getFundingTxInfo() {
+  getFundingTxInfo(network: Network) {
     return {
       shared_key_id: this.shared_key_id,
       value: this.value,
-      funding_txid: this.funding_txid
+      funding_txid: this.funding_txid,
+      p_addr: this.getBtcAddress(network)
     }
   }
 

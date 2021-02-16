@@ -29,7 +29,6 @@ const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {
 const Coins = (props) => {
     const dispatch = useDispatch();
 
-
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const handleOpenCoinDetails = (shared_key_id) => {
         let coin = coins_data.find((coin) => {

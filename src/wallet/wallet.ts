@@ -58,11 +58,17 @@ export class Wallet {
       this.electrum_client = new MockElectrumClient();
       this.http_client = new MockHttpClient();
     } else {
-      // this.electrum_client = new ElectrumClient(config.electrum_config);
-      this.electrum_client = new MockElectrumClient();
+      // this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
+      this.electrum_client = new ElectrumClient(this.config.electrum_config);
+      // this.electrum_client.blockHeightSubscribe(callBackFn).then((item) => {
+      //   console.log("height sub:: ", item)
+      // })
+      // this.electrum_client.serverPing().then((item) => {console.log("ping: ", item)})
     }
-    this.block_height = this.electrum_client.latestBlockHeight()
+    this.block_height = 1000
+
+
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -179,7 +185,7 @@ export class Wallet {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   getUnconfirmedStatecoins() {
-    return this.statecoins.getUnconfirmedCoins()
+    return this.statecoins.getUnconfirmedCoins(this.config.network)
   }
   // Get Backup Tx hex and receive private key
   getCoinBackupTxData(shared_key_id: string) {
