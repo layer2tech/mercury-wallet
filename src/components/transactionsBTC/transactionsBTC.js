@@ -41,7 +41,9 @@ const TransactionsBTC = (props) => {
     }));
   }
 
-  const populateWithTransactionDisplayPanels = props.selectedValues.map((item, index) => {
+  // Fetch all outstanding initialised deposits from wallet
+  let init_deposits = callGetUnconfirmedStatecoins();
+  const populateWithTransactionDisplayPanels = init_deposits.map((item, index) => {
     if (item.value != null) {
       return (
         <div key={index}>

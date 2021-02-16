@@ -12,7 +12,7 @@ const log = window.require('electron-log');
 let wallet;
 try {
   wallet = Wallet.load(false)
-  console.log("wallet loaded")
+  console.log("wallet loaded from Store.")
 } catch {
   wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
 }
@@ -31,12 +31,11 @@ const initialState = {
 
 // Quick check for expiring coins
 for (let i=0; i<coins_data.length; i++) {
-  if (coins_data[i].expiry_data.months > 1) {
+  if (coins_data[i].expiry_data.months <= 1) {
     initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet is close to expiring." }
     break;
   };
 }
-
 
 
 
