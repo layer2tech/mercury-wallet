@@ -13,24 +13,18 @@ describe('Electrum', function() {
     // }
     let config = {
       host: 'wallet.mercurywallet.io',
-      port: 50002,
-      protocol: 'ssl',
+      port: 50004,
+      protocol: 'wss',
     }
     let electrum_client = await new ElectrumClient(config);
 
-    //   let output_script = bitcoin.address.toOutputScript("tb1q8ux92etsg0w7m4ps4wj89n4k7msmdpw4z89cwl", bitcoin.networks.testnet)
-    // let hash = bitcoin.crypto.sha256(output_script).toString("hex")
-    //
-    // let addr_subscribe = await electrum_client.addressSubscribe(hash)
-    // console.log("addr_subscribe: ", addr_subscribe);
-    let headers_subscribe = await electrum_client.blockHeightSubscribe()
-    console.log("headers_subscribe: ", headers_subscribe);
+    let output_script = bitcoin.address.toOutputScript("tb1qmkm6r7p02qx3lxawtkysjnclcdcqvqtayhth24", bitcoin.networks.testnet)
 
-    while (true) {
-      // Keep connection alive.
-      await sleep(1000)
-      electrum_client.serverPing().then((item) => {console.log("ping: ", item)})
-    }
+    let addr_subscribe = await electrum_client.getScriptHashListUnspent(output_script, console.log)
+    console.log("addr_subscribe: ", addr_subscribe);
+    // let headers_subscribe = await electrum_client.blockHeightSubscribe()
+    // console.log("headers_subscribe: ", headers_subscribe);
+
 
   });
 

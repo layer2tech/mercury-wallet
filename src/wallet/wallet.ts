@@ -61,8 +61,9 @@ export class Wallet {
       // this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
       this.electrum_client = new ElectrumClient(this.config.electrum_config);
-      this.electrum_client.blockHeightSubscribe(this.setBlockHeight).then((item) => {
-        console.log("height sub:: ", item)
+      this.electrum_client.connect().then(() => {
+        // Continuously update block height
+        this.electrum_client.blockHeightSubscribe(this.setBlockHeight);
       })
     }
     this.block_height = 1000
@@ -155,12 +156,18 @@ export class Wallet {
     store.set('wallet', {});
   };
 
-  // Set Wallet.block_height
-  setBlockHeight(block_height: number) {
-    this.block_height = block_height
+  // Set Wallet.block_height. Update initialised deposits that are awaiting confirmations
+  setBlockHeight(header_data: any) {
+    this.block_height = header_data[0].height
     console.log("this.block_height: ", this.block_height);
-    // Check if any coins are UNCOMFIRMED. If so:
-    //  If coin.confirmations = 0, check if coin has been mined yet.
+    // Check if any coins are UNCONFIRMED. If so check if coin has been mined yet.
+    // let coin_inits = this.statecoins.getUnconfirmedCoins()
+    // for (let i=0;coin_inits.length-1;i++) {
+    //   console.log("coin_inits[i].funding_txid: ", coin_inits[i].funding_txid);
+    //   coin_inits[i]
+    //
+    //   })
+    // }
     //  If coin.confirmations > 0, increase confirmations by 1.
   }
 
@@ -190,7 +197,7 @@ export class Wallet {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   getUnconfirmedStatecoins() {
-    return this.statecoins.getUnconfirmedCoins(this.config.network, this.block_height)
+    return this.statecoins.getUnconfirmedCoinsData(this.config.network, this.block_height)
   }
   // Get Backup Tx hex and receive private key
   getCoinBackupTxData(shared_key_id: string) {
@@ -300,17 +307,32 @@ export class Wallet {
     log.info("Deposite Init done. Waiting for coins sent to "+p_addr);
     this.saveStateCoinsList();
 
-    let p_addr_script = bitcoin.address.toOutputScript("tb1q8ux92etsg0w7m4ps4wj89n4k7msmdpw4z89cwl", this.config.network)
-    let callBack = (coin_data: any) => {
-      console.log("call back from script listener!");
-      console.log("coin_data: ", coin_data);
-      let funding_txid = "28932jfke"
-      this.statecoins.setCoinUnconfirmed(statecoin.shared_key_id, funding_txid)
-    }
-    let script_listner = this.electrum_client.scriptHashSubscribe(p_addr_script, callBack)
-    console.log("script_listner: ", script_listner);
+    // Begin task waiting for tx in mempool and update coin upon success.
+    this.waitForFundingTx(statecoin.shared_key_id, p_addr)
 
     return [statecoin.shared_key_id, p_addr]
+  }
+
+  // Wait for tx to appear in mempool. Mark coin UNCONFIRMED when it arrives.
+  async waitForFundingTx(shared_key_id: string, p_addr: string) {
+    let p_addr_script = bitcoin.address.toOutputScript(p_addr, this.config.network)
+    this.electrum_client.scriptHashSubscribe(p_addr_script, (coin_data: any) => {
+        // Get p_addr list_unspent and verify tx
+        this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data) => {
+          for (let i=0; i<funding_tx_data.length; i++) {
+            if (!funding_tx_data[i].height) {
+              log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
+              // Verify amount of tx
+            } else {
+              log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
+              // Set coin UNCOMFIRMED.
+              this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i].tx_hash, funding_tx_data[i].height)
+              // No longer need subscription since confirmations are now +1 for each new block.
+              this.electrum_client.scriptHashUnsubscribe(p_addr_script);
+            }
+          }
+        });
+    })
   }
 
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.

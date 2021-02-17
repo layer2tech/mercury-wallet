@@ -11,7 +11,7 @@ export class MockElectrumClient {
     }
 
     getTransaction(_txHash: string) {
-      return { txid:
+      return new Promise(function(resolve) {resolve({ txid:
          'c33c88b149ec86eb99f1b5d6177ccd198833b07735bfd3049d2dd90c9c0328fc',
         hash:
          '47cb606ed7f772a6fbc0e41f3a084e4e54f2ceafffef51c2349ce663ff3095ed',
@@ -33,10 +33,26 @@ export class MockElectrumClient {
          '0000000000011ff22e58f08aa4b0f4ab891fd60ba97818237105d10670ecae0c',
         confirmations: 120,
         time: 1613408329,
-        blocktime: 1613408329 }
+        blocktime: 1613408329 })
+      })
     }
 
+    async getScriptHashListUnspent(_script: string): Promise<any> {
+      return [ { tx_hash:
+           '4ede6424ce0e60b34f45f8422af4d2f2304fd71923cf0a121cf5e1c2b4b12269',
+          tx_pos: 0,
+          height: 1936508,
+          value: 4 } ]
+    }
+
+    async blockHeightSubscribe(_callback: any): Promise<any> {
+      console.log("ELECTRON MOCK: subscribed to block height ")
+    }
     async scriptHashSubscribe(script: string): Promise<any> {
       console.log("ELECTRON MOCK: subscribed to script ", script)
+    }
+    async scriptHashUnsubscribe(script: string): Promise<any> {
+      console.log("ELECTRON MOCK: unsubscribed from script ", script)
+
     }
 }

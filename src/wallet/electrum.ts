@@ -31,8 +31,13 @@ export class ElectrumClient {
   }
 
   async serverPing() {
-    await this.client.connect()
     this.client.server_ping()
+  }
+
+  // convert BTC address scipt to electrum script has
+  scriptToScriptHash(script: string) {
+    let script_hash = bitcoin.crypto.sha256(script).toString("hex") // hash
+    return script_hash.match(/[a-fA-F0-9]{2}/g).reverse().join(''); // reverse
   }
 
 
@@ -56,11 +61,20 @@ export class ElectrumClient {
     return tx
   }
 
-  async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
-    await this.client.connect();
-    this.client.subscribe.on('blockchain.scripthash.subscribe', callBack)
+  async getScriptHashListUnspent(script: string): Promise<any> {
+    let script_hash_rev = this.scriptToScriptHash(script);
+    const list_unspent = await this.client
+      .blockchain_scripthash_listunspent(script_hash_rev)
+        .catch((err: any) => {
+          throw new Error(`failed to get list unspent for script ${script}: [${err}]`)
+        }
+      )
+    return list_unspent
+  }
 
-    let script_hash = bitcoin.crypto.sha256(script).toString("hex")
+  async scriptHashSubscribe(script: string, callBack: any): Promise<any> {;
+    this.client.subscribe.on('blockchain.scripthash.subscribe', callBack)
+    let script_hash = this.scriptToScriptHash(script)
     const addr_subscription = await this.client
       .blockchain_scripthash_subscribe(script_hash)
         .catch((err: any) => {
@@ -70,10 +84,18 @@ export class ElectrumClient {
     return addr_subscription
   }
 
-  async blockHeightSubscribe(callBack: any): Promise<any> {
-    await this.client.connect()
-    this.client.subscribe.on('blockchain.headers.subscribe', callBack)
+  async scriptHashUnsubscribe(script: string): Promise<any> {
+    let script_hash = this.scriptToScriptHash(script)
+    this.client
+      .blockchain_scripthash_unsubscribe(script_hash)
+        .catch((err: any) => {
+          throw new Error(`failed to subscribe to script ${script}: [${err}]`)
+        }
+      )
+  }
 
+  async blockHeightSubscribe(callBack: any): Promise<any> {
+    this.client.subscribe.on('blockchain.headers.subscribe', callBack)
     const headers_subscription = await this.client
       .blockchain_headers_subscribe()
         .catch((err: any) => {

@@ -40,13 +40,27 @@ export class StateCoinList {
     return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
   };
 
-  getUnconfirmedCoins(network: Network, block_height: number) {
-    let coins = this.coins.filter((item: StateCoin) => {
-      if (item.status === STATECOIN_STATUS.INITIALISED || item.status === STATECOIN_STATUS.UNCOMFIRMED) {
+  getInitialisedCoins() {
+    return this.coins.filter((item: StateCoin) => {
+      if (item.status === STATECOIN_STATUS.INITIALISED) {
         return item
       }
       return
     })
+  };
+
+  getUnconfirmedCoins() {
+    return this.coins.filter((item: StateCoin) => {
+      if (item.status === STATECOIN_STATUS.UNCOMFIRMED) {
+        return item
+      }
+      return
+    })
+  };
+
+  // get all INITIALISED and UNCONFIRMED coins
+  getUnconfirmedCoinsData(network: Network, block_height: number) {
+    let coins = this.getUnconfirmedCoins().concat(this.getInitialisedCoins())
     return coins.map((item: StateCoin) => item.getFundingTxInfo(network, block_height))
   };
 
@@ -84,11 +98,12 @@ export class StateCoinList {
   }
 
   // Funding Tx seen on network. Set coin status and funding_txid
-  setCoinUnconfirmed(shared_key_id: string, funding_txid: string) {
+  setCoinUnconfirmed(shared_key_id: string, funding_txid: string, block: number) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.setUnconfirmed()
       coin.funding_txid = funding_txid
+      coin.block = block
       console.log("coin set unconfirmed.: ", coin)
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
@@ -117,9 +132,9 @@ export class StateCoinList {
 
 // STATUS represent each stage in the lifecycle of a statecoin.
 export const STATECOIN_STATUS = {
-  // INITIALISED coins are awaiting a confirmation of their funding transaction
+  // INITIALISED coins are awaiting their funding transaction to appear in the mempool
   INITIALISED: "INITIALISED",
-  // UNCOMFIRMED coins are awaiting more confirmations of their funding transaction
+  // UNCOMFIRMED coins are awaiting more confirmations on their funding transaction
   UNCOMFIRMED: "UNCOMFIRMED",
   // Coins are fully owned by wallet and unspent
   AVAILABLE: "AVAILABLE",
