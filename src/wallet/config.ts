@@ -33,9 +33,9 @@ export class Config {
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
-      host: 'electrumx-server.tbtc.network',
-      port: 8443,
-      protocol: 'wss',
+      host: "electrumx-server.test.tbtc.network",
+      port: 50003,
+      protocol: "wss"
     }
     this.tor_proxy = "";
 

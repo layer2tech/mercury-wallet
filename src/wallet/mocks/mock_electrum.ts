@@ -7,11 +7,10 @@ export class MockElectrumClient {
     }
 
     broadcastTransaction(raw_tx: string) {
-      let tx = bitcoin.Transaction.fromHex(raw_tx);
-      return tx.getId()
+      return bitcoin.Transaction.fromHex(raw_tx).getId()
     }
 
-    getTransaction(txHash: string) {
+    getTransaction(_txHash: string) {
       return { txid:
          'c33c88b149ec86eb99f1b5d6177ccd198833b07735bfd3049d2dd90c9c0328fc',
         hash:
@@ -35,5 +34,9 @@ export class MockElectrumClient {
         confirmations: 120,
         time: 1613408329,
         blocktime: 1613408329 }
+    }
+
+    async scriptHashSubscribe(script: string): Promise<any> {
+      console.log("ELECTRON MOCK: subscribed to script ", script)
     }
 }

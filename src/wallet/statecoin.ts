@@ -42,7 +42,7 @@ export class StateCoinList {
 
   getUnconfirmedCoins(network: Network, block_height: number) {
     let coins = this.coins.filter((item: StateCoin) => {
-      if (item.status === STATECOIN_STATUS.UNCOMFIRMED) {
+      if (item.status === STATECOIN_STATUS.INITIALISED || item.status === STATECOIN_STATUS.UNCOMFIRMED) {
         return item
       }
       return
@@ -83,6 +83,18 @@ export class StateCoinList {
     }
   }
 
+  // Funding Tx seen on network. Set coin status and funding_txid
+  setCoinUnconfirmed(shared_key_id: string, funding_txid: string) {
+    let coin = this.getCoin(shared_key_id)
+    if (coin) {
+      coin.setUnconfirmed()
+      coin.funding_txid = funding_txid
+      console.log("coin set unconfirmed.: ", coin)
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+  }
+
   setCoinFinalized(finalized_statecoin: StateCoin) {
     let statecoin = this.getCoin(finalized_statecoin.shared_key_id)
     // TODO: do some checks here
@@ -105,7 +117,9 @@ export class StateCoinList {
 
 // STATUS represent each stage in the lifecycle of a statecoin.
 export const STATECOIN_STATUS = {
-  // UNCOMFIRMED coins are awaiting confirmation of their funding transaction
+  // INITIALISED coins are awaiting a confirmation of their funding transaction
+  INITIALISED: "INITIALISED",
+  // UNCOMFIRMED coins are awaiting more confirmations of their funding transaction
   UNCOMFIRMED: "UNCOMFIRMED",
   // Coins are fully owned by wallet and unspent
   AVAILABLE: "AVAILABLE",
@@ -150,9 +164,10 @@ export class StateCoin {
     this.tx_backup = null;
     this.tx_withdraw = null;
     this.smt_proof = null;
-    this.status = STATECOIN_STATUS.UNCOMFIRMED;
+    this.status = STATECOIN_STATUS.INITIALISED;
   }
 
+  setUnconfirmed() { this.status = STATECOIN_STATUS.UNCOMFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }

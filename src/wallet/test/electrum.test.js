@@ -18,14 +18,13 @@ describe('Electrum', function() {
     }
     let electrum_client = await new ElectrumClient(config);
 
-    let addr = bitcoin.address.fromBase58Check("2N5TVxZUB46mz99rnBVcfTQumsFZ5PMpb6Z");
-    let output_script = bitcoin.address.toOutputScript("tb1q8ux92etsg0w7m4ps4wj89n4k7msmdpw4z89cwl", bitcoin.networks.testnet)
-    let hash = bitcoin.crypto.sha256(output_script).toString("hex")
-
-    let addr_subscribe = await electrum_client.addressSubscribe(hash)
-    console.log("addr_subscribe: ", addr_subscribe);
-    // let headers_subscribe = await electrum_client.blockHeightSubscribe()
-    // console.log("headers_subscribe: ", headers_subscribe);
+    //   let output_script = bitcoin.address.toOutputScript("tb1q8ux92etsg0w7m4ps4wj89n4k7msmdpw4z89cwl", bitcoin.networks.testnet)
+    // let hash = bitcoin.crypto.sha256(output_script).toString("hex")
+    //
+    // let addr_subscribe = await electrum_client.addressSubscribe(hash)
+    // console.log("addr_subscribe: ", addr_subscribe);
+    let headers_subscribe = await electrum_client.blockHeightSubscribe()
+    console.log("headers_subscribe: ", headers_subscribe);
 
     while (true) {
       // Keep connection alive.

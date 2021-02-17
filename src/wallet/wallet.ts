@@ -61,14 +61,11 @@ export class Wallet {
       // this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
       this.electrum_client = new ElectrumClient(this.config.electrum_config);
-      // this.electrum_client.blockHeightSubscribe(callBackFn).then((item) => {
-      //   console.log("height sub:: ", item)
-      // })
-      // this.electrum_client.serverPing().then((item) => {console.log("ping: ", item)})
+      this.electrum_client.blockHeightSubscribe(this.setBlockHeight).then((item) => {
+        console.log("height sub:: ", item)
+      })
     }
     this.block_height = 1000
-
-
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -158,6 +155,14 @@ export class Wallet {
     store.set('wallet', {});
   };
 
+  // Set Wallet.block_height
+  setBlockHeight(block_height: number) {
+    this.block_height = block_height
+    console.log("this.block_height: ", this.block_height);
+    // Check if any coins are UNCOMFIRMED. If so:
+    //  If coin.confirmations = 0, check if coin has been mined yet.
+    //  If coin.confirmations > 0, increase confirmations by 1.
+  }
 
 
   // Initialise and return Wasm object.
@@ -292,8 +297,19 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
-    log.info("Deposite Init done. Send coins to "+p_addr);
+    log.info("Deposite Init done. Waiting for coins sent to "+p_addr);
     this.saveStateCoinsList();
+
+    let p_addr_script = bitcoin.address.toOutputScript("tb1q8ux92etsg0w7m4ps4wj89n4k7msmdpw4z89cwl", this.config.network)
+    let callBack = (coin_data: any) => {
+      console.log("call back from script listener!");
+      console.log("coin_data: ", coin_data);
+      let funding_txid = "28932jfke"
+      this.statecoins.setCoinUnconfirmed(statecoin.shared_key_id, funding_txid)
+    }
+    let script_listner = this.electrum_client.scriptHashSubscribe(p_addr_script, callBack)
+    console.log("script_listner: ", script_listner);
+
     return [statecoin.shared_key_id, p_addr]
   }
 

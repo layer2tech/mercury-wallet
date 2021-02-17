@@ -56,9 +56,9 @@ export class ElectrumClient {
     return tx
   }
 
-  async scriptHashSubscribe(script: string): Promise<any> {
+  async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
     await this.client.connect();
-    this.client.subscribe.on('blockchain.scripthash.subscribe', console.log)
+    this.client.subscribe.on('blockchain.scripthash.subscribe', callBack)
 
     let script_hash = bitcoin.crypto.sha256(script).toString("hex")
     const addr_subscription = await this.client
