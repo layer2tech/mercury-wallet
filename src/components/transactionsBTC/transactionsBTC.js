@@ -35,23 +35,6 @@ const TransactionsBTC = (props) => {
 
   // Fetch all outstanding initialised deposit_inits from wallet
   let deposit_inits = callGetUnconfirmedStatecoins();
-  // Create state keeping track of cofirmations for each deposit_init. map: p_addr->confirmations
-  let res = deposit_inits.map(deposit_init => {return {p_addr: deposit_init.p_addr, confirmations: 0}});
-  const [confirmations, setConfirmations] = useState(res);
-
-  // Get/update confirmation data
-  const getConfsForAddr = (addr) => {
-    for (let item in confirmations) {
-      if (item.p_addr==addr) { return item.confirmations}
-    }
-  }
-  const setConfsForAddr = (addr, confs) => {
-    setConfirmations(
-      confirmations.map((item) => {
-        if (item.p_addr==addr) {item.confirmations=confs; return item} else {return item}
-      })
-    )
-  }
 
 
   const scriptHashSubscribeCallBackFn = async () => {
@@ -81,7 +64,7 @@ const TransactionsBTC = (props) => {
       return (
         <div key={index}>
           <div>
-            <TransactionDisplay amount={item.value} confirmations={getConfsForAddr(item.p_addr)} address={item.p_addr}/>
+            <TransactionDisplay amount={item.value} confirmations={item.confirmations} address={item.p_addr}/>
           </div>
       </div>
       )

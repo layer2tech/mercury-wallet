@@ -40,14 +40,14 @@ export class StateCoinList {
     return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
   };
 
-  getUnconfirmedCoins(network: Network) {
+  getUnconfirmedCoins(network: Network, block_height: number) {
     let coins = this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.UNCOMFIRMED) {
         return item
       }
       return
     })
-    return coins.map((item: StateCoin) => item.getFundingTxInfo(network))
+    return coins.map((item: StateCoin) => item.getFundingTxInfo(network, block_height))
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
@@ -128,6 +128,7 @@ export class StateCoin {
   proof_key: string;
   value: number;
   funding_txid: string;
+  block: number;  // included in block number. 0 for unconfirmed.
   timestamp: number;
   tx_backup: BTCTransaction | null;
   tx_withdraw: BTCTransaction | null;
@@ -144,6 +145,7 @@ export class StateCoin {
     this.timestamp = new Date().getTime();
 
     this.funding_txid = "";
+    this.block = 0;
     this.swap_rounds = 0
     this.tx_backup = null;
     this.tx_withdraw = null;
@@ -169,12 +171,13 @@ export class StateCoin {
     }
   };
 
-  getFundingTxInfo(network: Network) {
+  getFundingTxInfo(network: Network, block_height: number) {
     return {
       shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid,
-      p_addr: this.getBtcAddress(network)
+      p_addr: this.getBtcAddress(network),
+      confirmations: !this.block ? 0 : block_height-this.block
     }
   }
 

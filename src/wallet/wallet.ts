@@ -185,7 +185,7 @@ export class Wallet {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   getUnconfirmedStatecoins() {
-    return this.statecoins.getUnconfirmedCoins(this.config.network)
+    return this.statecoins.getUnconfirmedCoins(this.config.network, this.block_height)
   }
   // Get Backup Tx hex and receive private key
   getCoinBackupTxData(shared_key_id: string) {
