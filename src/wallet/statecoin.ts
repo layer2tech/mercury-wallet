@@ -174,7 +174,7 @@ export class StateCoin {
     this.timestamp = new Date().getTime();
 
     this.funding_txid = "";
-    this.block = 0;
+    this.block = -1; // marks tx has not been mined
     this.swap_rounds = 0
     this.tx_backup = null;
     this.tx_withdraw = null;
@@ -207,7 +207,7 @@ export class StateCoin {
       value: this.value,
       funding_txid: this.funding_txid,
       p_addr: this.getBtcAddress(network),
-      confirmations: !this.block ? 0 : block_height-this.block
+      confirmations: this.block<1 ? this.block : block_height-this.block
     }
   }
 

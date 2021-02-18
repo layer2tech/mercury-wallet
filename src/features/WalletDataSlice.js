@@ -13,8 +13,9 @@ let wallet;
 try {
   wallet = Wallet.load(false)
   console.log("wallet loaded from Store.")
-} catch {
+} catch (e){
   wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
+  wallet.save()
 }
 
 let [coins_data, total_balance] = wallet.getUnspentStatecoins();

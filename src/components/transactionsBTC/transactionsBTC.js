@@ -89,6 +89,13 @@ const TransactionDisplay = (props) => {
     navigator.clipboard.writeText(props.address);
   }
 
+  const getCofirmationsDisplayString = () => {
+    if (props.confirmations==-1) {
+        return "Awaiting.."
+    }
+    return props.confirmations+" Confirmations.."
+  }
+
   return (
     <div className="Body">
         <div className="deposit-scan">
@@ -96,7 +103,7 @@ const TransactionDisplay = (props) => {
             <div className="deposit-scan-content">
                 <div className="deposit-scan-subtxt">
                     <span>Finish Creating the Statecoin by sending exactly {fromSatoshi(props.amount)} BTC to:</span>
-                    <span>{props.confirmations} Confirmations</span>
+                    <span>{getCofirmationsDisplayString()}</span>
                 </div>
                 <div className="deposit-scan-main">
                     <div className="deposit-scan-main-item">
