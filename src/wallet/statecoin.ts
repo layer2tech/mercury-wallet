@@ -49,7 +49,7 @@ export class StateCoinList {
     })
   };
 
-  getUnconfirmedCoins() {
+  getUncomfirmedCoins() {
     return this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.UNCOMFIRMED) {
         return item
@@ -59,8 +59,8 @@ export class StateCoinList {
   };
 
   // get all INITIALISED and UNCONFIRMED coins
-  getUnconfirmedCoinsData(network: Network, block_height: number) {
-    let coins = this.getUnconfirmedCoins().concat(this.getInitialisedCoins())
+  getUncomfirmedCoinsData(network: Network, block_height: number) {
+    let coins = this.getUncomfirmedCoins().concat(this.getInitialisedCoins())
     return coins.map((item: StateCoin) => item.getFundingTxInfo(network, block_height))
   };
 
@@ -207,7 +207,7 @@ export class StateCoin {
       value: this.value,
       funding_txid: this.funding_txid,
       p_addr: this.getBtcAddress(network),
-      confirmations: this.block<1 ? this.block : block_height-this.block
+      confirmations: this.block==-1 ? this.block : block_height-this.block
     }
   }
 

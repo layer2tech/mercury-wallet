@@ -76,7 +76,7 @@ export const callDepositInit = createAsyncThunk(
 export const callDepositConfirm = createAsyncThunk(
   'depositConfirm',
   async (action, thunkAPI) => {
-    return wallet.depositConfirm(action.shared_key_id, action.funding_txid)
+    return wallet.depositConfirm(action.shared_key_id)
   }
 )
 export const callWithdraw = createAsyncThunk(

@@ -13,6 +13,7 @@ export class Config {
   network: Network;
   testing_mode: boolean;
   jest_testing_mode: boolean;
+  required_confirmations: number;
 
   // Editable while wallet running from Settings page
   state_entity_endpoint: string;
@@ -29,6 +30,7 @@ export class Config {
     this.network = network;
     this.testing_mode = testing_mode;
     this.jest_testing_mode = false;
+    this.required_confirmations = 6;
 
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;

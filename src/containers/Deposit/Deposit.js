@@ -10,7 +10,7 @@ import { CreateStatecoin, TransactionsBTC, StdButton} from "../../components";
 
 import './Deposit.css';
 
-const DEFUALT_VALUE_SELECTION = 1000000;
+const DEFUALT_VALUE_SELECTION = 1000;
 
 const DepositPage = () => {
     // Show settings

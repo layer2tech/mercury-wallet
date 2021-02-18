@@ -131,14 +131,14 @@ describe("Statecoins/Coin", () => {
     });
   });
 
-  describe("getUnconfirmedCoinsData", () => {
+  describe("getUncomfirmedCoinsData", () => {
     it('Returns only unconfirmed coins with correct data', () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
       let coin = statecoins.getCoin(coins[0].shared_key_id)
       coin.status="UNCOMFIRMED"                 // set one unconfirmed
       statecoins.setCoinFinalized(coin)
-      expect(statecoins.getUnconfirmedCoinsData().length).toBe(num_coins-1)
+      expect(statecoins.getUncomfirmedCoinsData().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
   });

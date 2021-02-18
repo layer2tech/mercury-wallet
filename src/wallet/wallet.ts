@@ -64,7 +64,9 @@ export class Wallet {
       this.electrum_client = new ElectrumClient(this.config.electrum_config);
       this.electrum_client.connect().then(() => {
         // Continuously update block height
-        this.electrum_client.blockHeightSubscribe(this.setBlockHeight);
+        this.electrum_client.blockHeightSubscribe(this.setBlockHeight).then((item) => {
+          this.setBlockHeight([item])
+        });
         // Check if any deposit_inits are awaiting funding txs
         this.statecoins.getInitialisedCoins().forEach((statecoin) => {
           // Create listeners if unconfirmed deposits exist
@@ -144,7 +146,7 @@ export class Wallet {
 
   // Save entire wallet to storage. Store in file as JSON Object.
   save() {
-    let wallet_json = lodash.deepClone(this)
+    let wallet_json = lodash.cloneDeep(this)
     wallet_json.electrum_client = ""
     store.set('wallet', wallet_json);
   };
@@ -170,17 +172,15 @@ export class Wallet {
 
   // Set Wallet.block_height. Update initialised deposits that are awaiting confirmations
   setBlockHeight(header_data: any) {
-    this.block_height = header_data[0].height
-    console.log("this.block_height: ", this.block_height);
-    // Check if any coins are UNCONFIRMED. If so check if coin has been mined yet.
-    // let coin_inits = this.statecoins.getUnconfirmedCoins()
-    // for (let i=0;coin_inits.length-1;i++) {
-    //   console.log("coin_inits[i].funding_txid: ", coin_inits[i].funding_txid);
-    //   coin_inits[i]
-    //
-    //   })
-    // }
-    //  If coin.confirmations > 0, increase confirmations by 1.
+    this.block_height = header_data[0].height;
+
+    // Check if any await deposits now have sufficient confirmations
+    this.statecoins.getUncomfirmedCoins().forEach((statecoin) => {
+      if (statecoin.getFundingTxInfo(this.config.network, this.block_height).confirmations
+        >= this.config.required_confirmations) {
+          this.depositConfirm(statecoin.shared_key_id)
+      }
+    })
   }
 
 
@@ -209,7 +209,7 @@ export class Wallet {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   getUnconfirmedStatecoins() {
-    return this.statecoins.getUnconfirmedCoinsData(this.config.network, this.block_height)
+    return this.statecoins.getUncomfirmedCoinsData(this.config.network, this.block_height)
   }
   // Get Backup Tx hex and receive private key
   getCoinBackupTxData(shared_key_id: string) {
@@ -338,14 +338,16 @@ export class Wallet {
               log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
               // Verify amount of tx
               if (funding_tx_data[i].value!==value) {
-                let err_str = "Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".";
-                log.error(err_str);
-                throw Error(err_str)
+                log.error("Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".");
+                log.error("Setting value of statecoin to "+funding_tx_data[i].value);
+                let statecoin = this.statecoins.getCoin(shared_key_id);
+                statecoin!.value = funding_tx_data[i].value;
               }
             } else {
               log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
               // Set coin UNCOMFIRMED.
               this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i].tx_hash, funding_tx_data[i].height)
+              this.saveStateCoinsList()
               // No longer need subscription
               this.electrum_client.scriptHashUnsubscribe(p_addr_script);
             }
@@ -357,8 +359,7 @@ export class Wallet {
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
   // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
   async depositConfirm(
-    shared_key_id: string,
-    funding_txid: string,
+    shared_key_id: string
   ): Promise<StateCoin> {
     log.info("Depositing Confirm shared_key_id: "+shared_key_id);
 
@@ -366,18 +367,12 @@ export class Wallet {
     if (statecoin === undefined) throw Error("Coin "+shared_key_id+" does not exist.");
     if (statecoin.status === STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" already confirmed.");
 
-    // Add funding_txid to statecoin
-    statecoin.funding_txid = funding_txid;
-
-    // Finish deposit protocol
-    let chaintip_height: number = await this.electrum_client.latestBlockHeight();
-
     let statecoin_finalized = await depositConfirm(
       this.http_client,
       await this.getWasm(),
       this.config.network,
       statecoin,
-      chaintip_height
+      this.block_height
     );
 
     // update in wallet

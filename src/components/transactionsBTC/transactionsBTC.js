@@ -53,9 +53,8 @@ const TransactionsBTC = (props) => {
   // Force confirm all outstanding depositInit's.
   // Get all unconfirmed coins and call depositConfirm with dummy txid value.
   const despositConfirm = () => {
-    let funding_txid = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce";
     callGetUnconfirmedStatecoins().forEach((statecoin => {
-      dispatch(callDepositConfirm({shared_key_id: statecoin.shared_key_id, funding_txid: funding_txid}))
+      dispatch(callDepositConfirm({shared_key_id: statecoin.shared_key_id}))
     }));
   }
 

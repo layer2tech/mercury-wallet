@@ -42,13 +42,13 @@ export class ElectrumClient {
 
 
   // Get header of the latest mined block.
-  async latestBlockHeight(): Promise<number> {
+  async latestBlockHeader(): Promise<number> {
     const header = await this.client
       .blockchain_headers_subscribe()
       .catch((err: any) => {
         throw new Error(`failed to get block header: [${err}]`)
       })
-    return header.height
+    return header
   }
 
   async getTransaction(txHash: string): Promise<any> {
