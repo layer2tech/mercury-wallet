@@ -19,7 +19,7 @@ import {Button, Modal} from 'react-bootstrap';
 import {useSelector, useDispatch} from 'react-redux'
 
 import {fromSatoshi} from '../../wallet/util'
-import {callGetUnspentStatecoins, updateBalanceInfo} from '../../features/WalletDataSlice'
+import {callGetUnspentStatecoins, updateBalanceInfo, callGetUncomfirmedCoinsDisplayData} from '../../features/WalletDataSlice'
 
 import './coins.css';
 import '../index.css';
@@ -31,7 +31,7 @@ const Coins = (props) => {
 
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const handleOpenCoinDetails = (shared_key_id) => {
-        let coin = coins_data.find((coin) => {
+        let coin = all_coins_data.find((coin) => {
             return coin.shared_key_id === shared_key_id
         })
         setShowCoinDetails({show: true, coin: coin});
@@ -63,7 +63,10 @@ const Coins = (props) => {
     // Update total_balance in Redux state
     dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
 
-    const statecoinData = coins_data.map(item => (
+    let uncomfired_coins_data = callGetUncomfirmedCoinsDisplayData();
+    let all_coins_data = coins_data.concat(uncomfired_coins_data)
+
+    const statecoinData = all_coins_data.map(item => (
         <div key={item.shared_key_id}>
             <div
                 onClick={() => selectCoin(item.shared_key_id)}
@@ -84,6 +87,10 @@ const Coins = (props) => {
                             </div>
                         </span>
                     </div>
+                    {item.expiry_data.blocks==-1 ?
+                          <b>Confirmations: {item.expiry_data.confirmtions<0 ? 0 : item.expiry_data.confirmtions}</b>
+                      :
+
                     <div className="progress_bar" id={item.expiry_data.months < 5 ? 'danger' : 'success'}>
                         <div className="sub">
                             <ProgressBar>
@@ -101,6 +108,7 @@ const Coins = (props) => {
                         </div>
 
                     </div>
+                  }
                     <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
                         {item.funding_txid}

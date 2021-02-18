@@ -67,9 +67,8 @@ export class Wallet {
         this.electrum_client.blockHeightSubscribe(this.setBlockHeight).then((item) => {
           this.setBlockHeight([item])
         });
-        // Check if any deposit_inits are awaiting funding txs
+        // Check if any deposit_inits are awaiting funding txs and create listeners if so
         this.statecoins.getInitialisedCoins().forEach((statecoin) => {
-          // Create listeners if unconfirmed deposits exist
           this.awaitFundingTx(
             statecoin.shared_key_id,
             statecoin.getBtcAddress(this.config.network),
@@ -173,14 +172,6 @@ export class Wallet {
   // Set Wallet.block_height. Update initialised deposits that are awaiting confirmations
   setBlockHeight(header_data: any) {
     this.block_height = header_data[0].height;
-
-    // Check if any await deposits now have sufficient confirmations
-    this.statecoins.getUncomfirmedCoins().forEach((statecoin) => {
-      if (statecoin.getFundingTxInfo(this.config.network, this.block_height).confirmations
-        >= this.config.required_confirmations) {
-          this.depositConfirm(statecoin.shared_key_id)
-      }
-    })
   }
 
 
@@ -210,6 +201,16 @@ export class Wallet {
   }
   getUnconfirmedStatecoins() {
     return this.statecoins.getUncomfirmedCoinsData(this.config.network, this.block_height)
+  }
+  getUnconfirmedStatecoinsDisplayData() {
+    // Check if any await deposits now have sufficient confirmations and can be confirmed
+    let unconfirmed_coins = this.statecoins.getUncomfirmedCoins();
+    unconfirmed_coins.forEach((statecoin) => {
+      if (this.block_height-statecoin.block >= this.config.required_confirmations) {
+          this.depositConfirm(statecoin.shared_key_id)
+      }
+    })
+    return unconfirmed_coins.map((item: StateCoin) => item.getDisplayInfo(this.block_height))
   }
   // Get Backup Tx hex and receive private key
   getCoinBackupTxData(shared_key_id: string) {
@@ -336,11 +337,12 @@ export class Wallet {
           for (let i=0; i<funding_tx_data.length; i++) {
             if (!funding_tx_data[i].height) {
               log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
+              let statecoin = this.statecoins.getCoin(shared_key_id);
+              statecoin!.setInMempool();
               // Verify amount of tx
               if (funding_tx_data[i].value!==value) {
                 log.error("Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".");
                 log.error("Setting value of statecoin to "+funding_tx_data[i].value);
-                let statecoin = this.statecoins.getCoin(shared_key_id);
                 statecoin!.value = funding_tx_data[i].value;
               }
             } else {
@@ -366,6 +368,7 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin === undefined) throw Error("Coin "+shared_key_id+" does not exist.");
     if (statecoin.status === STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" already confirmed.");
+    if (statecoin.status === STATECOIN_STATUS.INITIALISED) throw Error("Coin "+shared_key_id+" awaiting funding transaction.");
 
     let statecoin_finalized = await depositConfirm(
       this.http_client,

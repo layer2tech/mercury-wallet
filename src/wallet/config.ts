@@ -66,6 +66,9 @@ export class Config {
         case "jest_testing_mode":
           this.jest_testing_mode = item[1];
           return;
+        case "required_confirmations":
+          this.required_confirmations = item[1];
+          return;
 
         case "state_entity_endpoint":
           this.state_entity_endpoint = item[1];

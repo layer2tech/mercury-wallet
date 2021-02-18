@@ -36,20 +36,6 @@ const TransactionsBTC = (props) => {
   // Fetch all outstanding initialised deposit_inits from wallet
   let deposit_inits = callGetUnconfirmedStatecoins();
 
-
-  const scriptHashSubscribeCallBackFn = async () => {
-    // verify Tx is correct
-
-    // get number of confs
-
-    // Update confs display
-    // setConfsForAddr(item.p_addr, 100)
-
-    // update confs with async loop polling getTxHex
-
-  }
-
-
   // Force confirm all outstanding depositInit's.
   // Get all unconfirmed coins and call depositConfirm with dummy txid value.
   const despositConfirm = () => {
@@ -90,7 +76,7 @@ const TransactionDisplay = (props) => {
 
   const getCofirmationsDisplayString = () => {
     if (props.confirmations==-1) {
-        return "Awaiting.."
+      return "Awaiting.."
     }
     return props.confirmations+" Confirmations.."
   }

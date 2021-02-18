@@ -14,6 +14,7 @@ try {
   wallet = Wallet.load(false)
   console.log("wallet loaded from Store.")
 } catch (e){
+  console.log("e", e)
   wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
   wallet.save()
 }
@@ -44,6 +45,9 @@ for (let i=0; i<coins_data.length; i++) {
 export const callGetConfig = () => {
   return wallet.config.getConfig()
 }
+export const callGetBlockHeight = () => {
+  return wallet.block_height
+}
 // Update config with JSON of field to change
 export const callUpdateConfig = (config_changes) => {
   wallet.config.update(config_changes)
@@ -55,6 +59,9 @@ export const callGetUnspentStatecoins = () => {
 
 export const callGetUnconfirmedStatecoins = () => {
   return wallet.getUnconfirmedStatecoins()
+}
+export const callGetUncomfirmedCoinsDisplayData = () => {
+  return wallet.getUnconfirmedStatecoinsDisplayData()
 }
 
 export const callGetActivityLog = () => {

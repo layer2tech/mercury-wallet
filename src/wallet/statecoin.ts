@@ -58,6 +58,10 @@ export class StateCoinList {
     })
   };
 
+  getUncomfirmedCoinsDisplayData(block_height: number) {
+    return this.getUncomfirmedCoins().map((item: StateCoin) => item.getDisplayInfo(block_height))
+  }
+
   // get all INITIALISED and UNCONFIRMED coins
   getUncomfirmedCoinsData(network: Network, block_height: number) {
     let coins = this.getUncomfirmedCoins().concat(this.getInitialisedCoins())
@@ -104,7 +108,6 @@ export class StateCoinList {
       coin.setUnconfirmed()
       coin.funding_txid = funding_txid
       coin.block = block
-      console.log("coin set unconfirmed.: ", coin)
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
@@ -134,6 +137,8 @@ export class StateCoinList {
 export const STATECOIN_STATUS = {
   // INITIALISED coins are awaiting their funding transaction to appear in the mempool
   INITIALISED: "INITIALISED",
+  // IN_MEMPOOL funding transaction in the mempool
+  IN_MEMPOOL: "IN_MEMPOOL",
   // UNCOMFIRMED coins are awaiting more confirmations on their funding transaction
   UNCOMFIRMED: "UNCOMFIRMED",
   // Coins are fully owned by wallet and unspent
@@ -183,6 +188,7 @@ export class StateCoin {
   }
 
   setUnconfirmed() { this.status = STATECOIN_STATUS.UNCOMFIRMED }
+  setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
@@ -221,16 +227,26 @@ export class StateCoin {
   }
 
   // Calculate blocks and rough days/months until expiry
+  // If not comfirmed, send confirmation data instead.
   getExpiryData(block_height: number): ExpiryData {
-    if (this.tx_backup==null) throw Error("Cannot calculate expiry - Coin is not confirmed.");
+    // If not comfirmed, send confirmation data instead.
+    if (this.tx_backup==null) {
+      if (this.status==STATECOIN_STATUS.IN_MEMPOOL) {
+        return {blocks:-1, confirmtions: 0, days:0, months:0};
+      }
+      // Otherwise must be UNCOMFIRMED so calculate number of confs
+      return {blocks:-1, confirmtions: block_height-this.block, days:0, months:0};
+    }
+
     let blocks_to_locktime = this.tx_backup.locktime - block_height;
-    if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0};
+    if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0, confirmtions: 0};
     let days_to_locktime = Math.floor(blocks_to_locktime / (6*24))
 
     return {
       blocks: blocks_to_locktime,
       days: days_to_locktime,
-      months: Math.floor(days_to_locktime/30)
+      months: Math.floor(days_to_locktime/30),
+      confirmtions: 0
     }
   }
 
@@ -260,7 +276,8 @@ export interface StateCoinDisplayData {
 export interface ExpiryData {
   blocks: number,
   days: number,
-  months: number
+  months: number,
+  confirmtions: number
 }
 
 
