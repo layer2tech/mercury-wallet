@@ -21,6 +21,7 @@ export const POST_ROUTE = {
   DEPOSIT_CONFIRM: "deposit/confirm",
   WITHDRAW_INIT: "withdraw/init",
   TRANSFER_SENDER: "transfer/sender",
+  TRANSFER_PUBKEY: "transfer/pubkey",
   TRANSFER_RECEIVER: "transfer/receiver",
   TRANSFER_UPDATE_MSG: "transfer/update_msg",
   TRANSFER_GET_MSG: "transfer/get_msg"
