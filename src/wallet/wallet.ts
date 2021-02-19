@@ -199,14 +199,18 @@ export class Wallet {
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
-  getUnconfirmedStatecoins() {
-    return this.statecoins.getUncomfirmedCoinsData(this.config.network, this.block_height)
+  // Get all INITIALISED, IN_MEMPOOL and UNCONFIRMED coins funding tx data
+  getUncomfirmedAndUnmindeCoinsFundingTxData() {
+    let coins = this.statecoins.getUncomfirmedCoins().concat(this.statecoins.getInitialisedCoins())
+    return coins.map((item: StateCoin) => item.getFundingTxInfo(this.config.network, this.block_height))
   }
-  getUnconfirmedStatecoinsDisplayData() {
-    // Check if any await deposits now have sufficient confirmations and can be confirmed
+  //  Get all INITIALISED UNCONFIRMED coins display data
+  getUncomfirmedStatecoinsDisplayData() {
+    // Check if any awaiting deposits now have sufficient confirmations and can be confirmed
     let unconfirmed_coins = this.statecoins.getUncomfirmedCoins();
     unconfirmed_coins.forEach((statecoin) => {
-      if (this.block_height-statecoin.block >= this.config.required_confirmations) {
+      if (statecoin.status==STATECOIN_STATUS.UNCOMFIRMED &&
+        statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           this.depositConfirm(statecoin.shared_key_id)
       }
     })
@@ -222,8 +226,6 @@ export class Wallet {
     let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
     //extract receive address private key
     let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
-
-
     let bip32 = this.getBIP32forBtcAddress(addr)
 
     let priv_key = bip32.privateKey;
@@ -337,18 +339,19 @@ export class Wallet {
           for (let i=0; i<funding_tx_data.length; i++) {
             if (!funding_tx_data[i].height) {
               log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
-              let statecoin = this.statecoins.getCoin(shared_key_id);
-              statecoin!.setInMempool();
+              this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i].tx_hash)
+              this.saveStateCoinsList()
               // Verify amount of tx
               if (funding_tx_data[i].value!==value) {
                 log.error("Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".");
                 log.error("Setting value of statecoin to "+funding_tx_data[i].value);
+                let statecoin = this.statecoins.getCoin(shared_key_id);
                 statecoin!.value = funding_tx_data[i].value;
               }
             } else {
               log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
               // Set coin UNCOMFIRMED.
-              this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i].tx_hash, funding_tx_data[i].height)
+              this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i].height)
               this.saveStateCoinsList()
               // No longer need subscription
               this.electrum_client.scriptHashUnsubscribe(p_addr_script);

@@ -40,6 +40,7 @@ export class StateCoinList {
     return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
   };
 
+  // Return coins that are awaiting funding tx to be broadcast
   getInitialisedCoins() {
     return this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.INITIALISED) {
@@ -49,23 +50,14 @@ export class StateCoinList {
     })
   };
 
+  // Find all coins in mempool or mined but with required_confirmations confirmations
   getUncomfirmedCoins() {
     return this.coins.filter((item: StateCoin) => {
-      if (item.status === STATECOIN_STATUS.UNCOMFIRMED) {
+      if (item.status === STATECOIN_STATUS.UNCOMFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL) {
         return item
       }
       return
     })
-  };
-
-  getUncomfirmedCoinsDisplayData(block_height: number) {
-    return this.getUncomfirmedCoins().map((item: StateCoin) => item.getDisplayInfo(block_height))
-  }
-
-  // get all INITIALISED and UNCONFIRMED coins
-  getUncomfirmedCoinsData(network: Network, block_height: number) {
-    let coins = this.getUncomfirmedCoins().concat(this.getInitialisedCoins())
-    return coins.map((item: StateCoin) => item.getFundingTxInfo(network, block_height))
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
@@ -102,11 +94,21 @@ export class StateCoinList {
   }
 
   // Funding Tx seen on network. Set coin status and funding_txid
-  setCoinUnconfirmed(shared_key_id: string, funding_txid: string, block: number) {
+  setCoinInMempool(shared_key_id: string, funding_txid: string) {
+    let coin = this.getCoin(shared_key_id)
+    if (coin) {
+      coin.setInMempool()
+      coin.funding_txid = funding_txid
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+  }
+
+  // Funding Tx mined. Set coin status and block height
+  setCoinUnconfirmed(shared_key_id: string, block: number) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.setUnconfirmed()
-      coin.funding_txid = funding_txid
       coin.block = block
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
@@ -207,13 +209,17 @@ export class StateCoin {
     }
   };
 
+  getConfirmations(block_height: number): number {
+    return block_height-this.block+1
+  }
+
   getFundingTxInfo(network: Network, block_height: number) {
     return {
       shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid,
       p_addr: this.getBtcAddress(network),
-      confirmations: this.block==-1 ? this.block : block_height-this.block
+      confirmations: this.block==-1 ? this.block : this.getConfirmations(block_height)
     }
   }
 
@@ -232,10 +238,10 @@ export class StateCoin {
     // If not comfirmed, send confirmation data instead.
     if (this.tx_backup==null) {
       if (this.status==STATECOIN_STATUS.IN_MEMPOOL) {
-        return {blocks:-1, confirmtions: 0, days:0, months:0};
+        return {blocks:-1, confirmtions: -1, days:0, months:0};
       }
       // Otherwise must be UNCOMFIRMED so calculate number of confs
-      return {blocks:-1, confirmtions: block_height-this.block, days:0, months:0};
+      return {blocks:-1, confirmtions: this.getConfirmations(block_height), days:0, months:0};
     }
 
     let blocks_to_locktime = this.tx_backup.locktime - block_height;
