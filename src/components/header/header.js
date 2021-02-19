@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import logo from '../../images/monochrome - white@4x.png';
 import question from '../../images/header-question.png';
 import settings from '../../images/settings-icon.png';
@@ -18,12 +18,15 @@ const Header = (props) => {
   const handleClose = () => {
     dispatch(setErrorSeen())
   }
+    const [show, setShow] = useState(false);
+    const handleCloseNotofication = () => setShow(false);
+    const handleShowNotofication = () => setShow(true);
 
   return (
       <div className="Header">
 
           <div className="container block">
-              <Link className="navbar-brand" to="/">
+              <Link className="navbar-brand" to="/home">
                   <img src={logo} className="Header-logo" alt="logo"/>
               </Link>
 
@@ -40,6 +43,12 @@ const Header = (props) => {
                       </Link>
                   </div>
 
+                  <div className="nav-item" onClick={handleShowNotofication}>
+                      <div className="nav-link">
+                          <i className="fa fa-exclamation"></i>
+                      </div>
+                  </div>
+
               </div>
           </div>
 
@@ -52,6 +61,20 @@ const Header = (props) => {
               </Modal.Body>
               <Modal.Footer>
                   <Button variant="secondary" onClick={handleClose}>
+                      Close
+                  </Button>
+
+              </Modal.Footer>
+          </Modal>
+          <Modal  show={show}  onHide={handleCloseNotofication} className="modal">
+              <Modal.Body>
+                  <div>
+                     Notification Modal
+                  </div>
+
+              </Modal.Body>
+              <Modal.Footer>
+                  <Button variant="secondary" onClick={handleCloseNotofication}>
                       Close
                   </Button>
 

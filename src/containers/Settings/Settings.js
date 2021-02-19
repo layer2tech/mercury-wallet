@@ -90,7 +90,7 @@ const SettingsPage = (props) => {
                       Settings
                   </h2>
                   <div>
-                      <Link className="nav-link" to="/">
+                      <Link className="nav-link" to="/home">
                           <StdButton
                               label="Back"
                               className="Body-button transparent"/>
@@ -99,7 +99,7 @@ const SettingsPage = (props) => {
 
               </div>
               <div className="buttons">
-                  <Link className="nav-link" to="/">
+                  <Link className="nav-link" to="/home">
                       <StdButton
                           label="Create wallet backup"
                           className="Body-button blue"/>
@@ -111,7 +111,7 @@ const SettingsPage = (props) => {
                           className="Body-button blue"/>
                   </Link>
 
-                  <Link className="nav-link" to="/">
+                  <Link className="nav-link" to="/home">
                       <StdButton
                           label="Export activity log"
                           className="Body-button bg-transparent"/>

@@ -32,6 +32,13 @@
 .nav-item {
     color: #ffffff;
 }
+.nav-item i {
+    cursor: pointer;
+}
+.nav-item i:hover  {
+    color: #ffffff;
+
+}
 
 .nav-link {
     color: #ffffff;

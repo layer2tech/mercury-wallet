@@ -55,7 +55,7 @@ const ReceiveStatecoinPage = () => {
                     Receive Statecoins
                 </h2>
                 <div>
-                    <Link className="nav-link" to="/">
+                    <Link className="nav-link" to="/home">
                         <StdButton
                             label="Back"
                             className="Body-button transparent"/>
