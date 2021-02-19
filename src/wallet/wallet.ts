@@ -339,7 +339,7 @@ export class Wallet {
           for (let i=0; i<funding_tx_data.length; i++) {
             if (!funding_tx_data[i].height) {
               log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
-              this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i].tx_hash)
+              this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i].tx_hash)
               this.saveStateCoinsList()
               // Verify amount of tx
               if (funding_tx_data[i].value!==value) {

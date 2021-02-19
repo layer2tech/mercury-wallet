@@ -210,7 +210,14 @@ export class StateCoin {
   };
 
   getConfirmations(block_height: number): number {
-    return block_height-this.block+1
+    switch (this.status) {
+      case (STATECOIN_STATUS.INITIALISED):
+        return -1;
+      case (STATECOIN_STATUS.IN_MEMPOOL):
+        return 0;
+      default:
+        return block_height-this.block+1
+    }
   }
 
   getFundingTxInfo(network: Network, block_height: number) {
@@ -219,7 +226,7 @@ export class StateCoin {
       value: this.value,
       funding_txid: this.funding_txid,
       p_addr: this.getBtcAddress(network),
-      confirmations: this.block==-1 ? this.block : this.getConfirmations(block_height)
+      confirmations: this.getConfirmations(block_height)
     }
   }
 
@@ -237,22 +244,19 @@ export class StateCoin {
   getExpiryData(block_height: number): ExpiryData {
     // If not comfirmed, send confirmation data instead.
     if (this.tx_backup==null) {
-      if (this.status==STATECOIN_STATUS.IN_MEMPOOL) {
-        return {blocks:-1, confirmtions: -1, days:0, months:0};
-      }
       // Otherwise must be UNCOMFIRMED so calculate number of confs
-      return {blocks:-1, confirmtions: this.getConfirmations(block_height), days:0, months:0};
+      return {blocks:-1, confirmations: this.getConfirmations(block_height), days:0, months:0};
     }
 
     let blocks_to_locktime = this.tx_backup.locktime - block_height;
-    if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0, confirmtions: 0};
+    if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0, confirmations: 0};
     let days_to_locktime = Math.floor(blocks_to_locktime / (6*24))
 
     return {
       blocks: blocks_to_locktime,
       days: days_to_locktime,
       months: Math.floor(days_to_locktime/30),
-      confirmtions: 0
+      confirmations: 0
     }
   }
 
@@ -283,7 +287,7 @@ export interface ExpiryData {
   blocks: number,
   days: number,
   months: number,
-  confirmtions: number
+  confirmations: number
 }
 
 

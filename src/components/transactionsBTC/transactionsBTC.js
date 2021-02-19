@@ -8,7 +8,7 @@ import { useDispatch } from 'react-redux'
 
 import { callDepositInit, callDepositConfirm,
   callGetUncomfirmedAndUnmindeCoinsFundingTxData  } from '../../features/WalletDataSlice'
-import { fromSatoshi } from '../../wallet/util'
+import { fromSatoshi } from '../../wallet'
 
 import '../../containers/Deposit/Deposit.css';
 import '../index.css';
@@ -49,7 +49,10 @@ const TransactionsBTC = (props) => {
       return (
         <div key={index}>
           <div>
-            <TransactionDisplay amount={item.value} confirmations={item.confirmations} address={item.p_addr}/>
+            <TransactionDisplay
+              amount={item.value}
+              confirmations={item.confirmations}
+              address={item.p_addr}/>
           </div>
       </div>
       )

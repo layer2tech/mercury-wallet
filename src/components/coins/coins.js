@@ -88,7 +88,7 @@ const Coins = (props) => {
                         </span>
                     </div>
                     {item.expiry_data.blocks==-1 ?
-                          <b>Confirmations: {item.expiry_data.confirmtions<0 ? 0 : item.expiry_data.confirmtions}</b>
+                          <b>Confirmations: {item.expiry_data.confirmations<0 ? 0 : item.expiry_data.confirmations}</b>
                       :
 
                     <div className="progress_bar" id={item.expiry_data.months < 5 ? 'danger' : 'success'}>
