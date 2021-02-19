@@ -4,7 +4,7 @@ import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
-import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1 } from "../util";
+import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1, encryptECIESt2 } from "../util";
 
 let bitcoin = require("bitcoinjs-lib");
 let lodash = require('lodash');
@@ -159,10 +159,19 @@ export const transferReceiver = async (
   // t2 = t1*o2_inv = o1*x1*o2_inv
   let t2 = t1_bn.mul(o2_inv_bn).mod(n);
 
+  // get SE pub hey share for t2 encryption
+  let user_id = { id: transfer_msg3.shared_key_id};
+  let s1_pubkey = await http_client.post(POST_ROUTE.TRANSFER_PUBKEY, user_id);
+
+  // encrypt t2
+  let t2_enc = {
+    secret_bytes: Array.from(encryptECIESt2(s1_pubkey.key,t2.toString("hex")))
+  }
+
   let transfer_msg4 = {
     shared_key_id: transfer_msg3.shared_key_id,
     statechain_id: transfer_msg3.statechain_id,
-    t2: t2.toString("hex"),
+    t2: t2_enc,
     statechain_sig: transfer_msg3.statechain_sig,
     o2_pub: encodeSecp256k1Point(o2_keypair.publicKey.toString("hex")),        // decode into {x,y}
     tx_backup_hex: transfer_msg3.tx_backup_psm.tx_hex,
@@ -228,6 +237,10 @@ export const transferReceiverFinalize = async (
   return statecoin
 }
 
+export interface UserID {
+  id: string,
+}
+
 export interface Secp256k1Point {
   x: string,
   y: string
@@ -264,7 +277,7 @@ export interface TransferMsg3 {
 export interface TransferMsg4 {
   shared_key_id: string,
   statechain_id: string,
-  t2: string, // t2 = t1*o2_inv = o1*x1*o2_inv
+  t2: {secret_bytes: number[]}, // t2 = t1*o2_inv = o1*x1*o2_inv
   statechain_sig: StateChainSig,
   o2_pub: string,
   tx_backup_hex: string,
