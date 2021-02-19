@@ -34,6 +34,8 @@ const Header = (props) => {
       dispatch(setNotification({msg:"test"}))
     }
 
+
+    // Display all notifications
     const showNotifications = notifications_list.map((item) => (
       <NotificationBar msg={item.msg} handleCloseNotification={handleCloseNotification}/>
     ));

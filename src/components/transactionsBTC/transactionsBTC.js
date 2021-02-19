@@ -6,7 +6,7 @@ import arrow from "../../images/scan-arrow.png";
 import React, {useState} from 'react';
 import { useDispatch } from 'react-redux'
 
-import { callDepositInit, callDepositConfirm,
+import { callDepositInit, callDepositConfirm, setNotification,
   callGetUncomfirmedAndUnmindeCoinsFundingTxData  } from '../../features/WalletDataSlice'
 import { fromSatoshi } from '../../wallet'
 
@@ -32,7 +32,6 @@ const TransactionsBTC = (props) => {
     }
   })
 
-
   // Fetch all outstanding initialised deposit_inits from wallet
   let deposit_inits = callGetUncomfirmedAndUnmindeCoinsFundingTxData();
 
@@ -41,6 +40,7 @@ const TransactionsBTC = (props) => {
   const despositConfirm = () => {
     callGetUncomfirmedAndUnmindeCoinsFundingTxData().forEach((statecoin => {
       dispatch(callDepositConfirm({shared_key_id: statecoin.shared_key_id}))
+      dispatch(setNotification({msg:"Deposit Complete! StateCoin of "+fromSatoshi(statecoin.value)+" BTC created."}))
     }));
   }
 

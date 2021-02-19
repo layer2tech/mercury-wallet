@@ -58,7 +58,7 @@ const PanelControl = () => {
 
                 className="Body-button "/>
           </Link>
-          <Link className="nav-link" to="/welcome">
+          <Link className="nav-link" to="/receive_statecoin">
             <StdButton
                 label="Receive" icon={arrowDown}
 

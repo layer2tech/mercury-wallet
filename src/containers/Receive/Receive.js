@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import { StdButton, AddressInput } from "../../components";
 
-import { callGenSeAddr, callTransferReceiver, setError } from '../../features/WalletDataSlice'
+import { callGenSeAddr, callTransferReceiver, setError, setNotification } from '../../features/WalletDataSlice'
 
 import './Receive.css';
 import '../Send/Send.css';
@@ -40,6 +40,8 @@ const ReceiveStatecoinPage = () => {
         setTransferMsg3("")
       }
     })
+    dispatch(setNotification({msg:"Transfer complete!"}))
+
   }
 
   const copySEAddressToClipboard = () => {

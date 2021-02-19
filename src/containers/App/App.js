@@ -18,10 +18,12 @@ const App = () => {
       <Router>
        <Header />
        <Switch>
+       {/*
          // <Route path="/" exact component={() => <Welcome />} />
          // <Route path="/create_wallet" exact component={() => <CreateWallet />} />
          // <Route path="/create_wizard" exact component={() => <CreateWizard />} />
          // <Route path="/memory_form" exact component={() => <MemoryForm />} />
+         */}
          <Route path="/home" exact component={() => <HomePage />} />
          <Route path="/settings" exact component={() => <SettingsPage />} />
          <Route path="/help" exact component={() => <HelpPage />} />
