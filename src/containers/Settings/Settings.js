@@ -5,7 +5,7 @@ import {Link, withRouter} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
 import {StdButton} from "../../components";
-import {callGetConfig, callUpdateConfig, callClearSave} from '../../features/WalletDataSlice'
+import {setNotification as setNotificationMsg, callGetConfig, callUpdateConfig, callClearSave} from '../../features/WalletDataSlice'
 
 
 import './Settings.css';
@@ -64,6 +64,7 @@ const SettingsPage = (props) => {
       notifications: notifications,
       tutorials: tutorials
     })
+    dispatch(setNotificationMsg({msg:"Settings successfully updated."}))
   }
 
   const cancelButtonOnClick = () => {

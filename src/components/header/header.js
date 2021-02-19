@@ -7,23 +7,36 @@ import {Link, withRouter} from "react-router-dom";
 import {Button, Modal} from "react-bootstrap";
 import {useDispatch, useSelector} from 'react-redux'
 
-import {setErrorSeen} from '../../features/WalletDataSlice'
+import {setErrorSeen, setNotificationSeen, setNotification} from '../../features/WalletDataSlice'
 
 import './header.css';
 
 const Header = (props) => {
     const dispatch = useDispatch();
+    const notification_dialogue = useSelector(state => state.walletData).notification_dialogue;
     const error_dialogue = useSelector(state => state.walletData).error_dialogue;
 
-    const handleClose = () => {
+    let notifications_list = notification_dialogue;
+
+    const handleCloseError = () => {
         dispatch(setErrorSeen())
     }
-    const state = useState(false);
-    const hide = state[0];
-    const bar = state[1]
-    const [show, setShow] = useState(false);
-    const handleCloseNotofication = () => setShow(false);
-    const handleShowNotofication = () => setShow(true);
+    const handleCloseNotification = (msg) => {
+      // remove notificaiton message from WalletData state and local state
+      dispatch(setNotificationSeen({msg: msg}))
+      let new_notifications_list = notifications_list.filter((item) => {
+        if (item.msg !== msg) { return item }
+      })
+      notifications_list = new_notifications_list;
+    }
+
+    const handleShowNotofication = () => {
+      dispatch(setNotification({msg:"test"}))
+    }
+
+    const showNotifications = notifications_list.map((item) => (
+      <NotificationBar msg={item.msg} handleCloseNotification={handleCloseNotification}/>
+    ));
 
     return (
         <div className="Header">
@@ -46,51 +59,43 @@ const Header = (props) => {
                         </Link>
                     </div>
 
-                    <div className="nav-item" onClick={() => bar(hide === false)}>
+                    <div className="nav-item" onClick={handleShowNotofication}>
                         <div className="nav-link">
                             <i className="fa fa-exclamation"></i>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div className={`hideBar  ${!hide ? "disabled" : ""}`}>
-                <p><i className="fa fa-exclamation"></i> Notification bar</p>
-                <div className="close" onClick={() => bar(hide === false)}>
-                    <i className="fa fa-close"></i>
+
                 </div>
             </div>
 
-            <Modal show={!error_dialogue.seen} onHide={handleClose} className="modal">
+            {showNotifications}
 
+            <Modal show={!error_dialogue.seen} onHide={handleCloseError} className="modal">
                 <Modal.Body>
                     <div className="alert alert-danger" role="alert">
                         {error_dialogue.msg}
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={handleClose}>
+                    <Button variant="secondary" onClick={handleCloseError}>
                         Close
                     </Button>
-
-                </Modal.Footer>
-            </Modal>
-            <Modal show={show} onHide={handleCloseNotofication} className="modal">
-                <Modal.Body>
-                    <div>
-                        Notification Modal
-                    </div>
-
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseNotofication}>
-                        Close
-                    </Button>
-
                 </Modal.Footer>
             </Modal>
 
         </div>
     );
+}
+
+const NotificationBar = (props) => {
+  return (
+    <div className={`hideBar  ${false ? "disabled" : ""}`}>
+        <p><i className="fa fa-exclamation"></i> {props.msg}</p>
+        <div className="close" onClick={() => props.handleCloseNotification(props.msg)}>
+            <i className="fa fa-close"></i>
+        </div>
+    </div>
+  )
 }
 
 export default withRouter(Header);

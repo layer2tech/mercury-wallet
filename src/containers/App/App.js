@@ -18,6 +18,10 @@ const App = () => {
       <Router>
        <Header />
        <Switch>
+         // <Route path="/" exact component={() => <Welcome />} />
+         // <Route path="/create_wallet" exact component={() => <CreateWallet />} />
+         // <Route path="/create_wizard" exact component={() => <CreateWizard />} />
+         // <Route path="/memory_form" exact component={() => <MemoryForm />} />
          <Route path="/home" exact component={() => <HomePage />} />
          <Route path="/settings" exact component={() => <SettingsPage />} />
          <Route path="/help" exact component={() => <HelpPage />} />
@@ -27,10 +31,6 @@ const App = () => {
          <Route path="/send_statecoin" exact component={() => <SendStatecoinPage />} />
          <Route path="/receive_statecoin" exact component={() => <ReceiveStatecoinPage />} />
          <Route path="/backup_tx" exact component={() => <BackupTxPage />} />
-           <Route path="/" exact component={() => <Welcome />} />
-           <Route path="/create_wallet" exact component={() => <CreateWallet />} />
-           <Route path="/create_wizard" exact component={() => <CreateWizard />} />
-           <Route path="/memory_form" exact component={() => <MemoryForm />} />
          <Route component={() => <HomePage />} />
        </Switch>
      </Router>

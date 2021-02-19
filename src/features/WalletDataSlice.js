@@ -24,6 +24,7 @@ let fee_info = getFeeInfo(wallet.http_client);
 
 const initialState = {
   config: {version: wallet.version, endpoint: wallet.http_client.endpoint},
+  notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
   connected: false,
   balance_info: {total_balance: total_balance, num_coins: coins_data.length},
@@ -136,6 +137,24 @@ const WalletSlice = createSlice({
       state.error_dialogue = {seen: false, msg: action.payload.msg};
       log.error(action.payload.msg)
     },
+    setNotificationSeen(state, action) {
+      return {
+        ...state,
+        notification_dialogue:
+          state.notification_dialogue.filter((item) => {
+            return item.msg !== action.payload.msg
+        })
+      }
+    },
+    setNotification(state, action) {
+      return {
+        ...state,
+        notification_dialogue: [
+          ...state.notification_dialogue,
+          {msg: action.payload.msg}
+        ]
+      }
+    },
     callClearSave(state) {
       wallet.clearSave()
       state.error_dialogue = {seen: false, msg: "Wallet data removed. Please restart."};
@@ -165,7 +184,7 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, setErrorSeen, setError,
-  callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
+  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
   export default WalletSlice.reducer
 
 
