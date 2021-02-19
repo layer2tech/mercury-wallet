@@ -70,7 +70,7 @@ const DepositPage = () => {
                        Deposit BTC
                    </h2>
                    <div className="nav-item">
-                       <Link className="nav-link" to="/">
+                       <Link className="nav-link" to="/home">
                            <StdButton
                                label="Back"
                                className="Body-button transparent"/>

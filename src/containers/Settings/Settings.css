@@ -15,7 +15,7 @@
     margin-top: 0;
 }
 
-.settings .content input {
+.settings .content .inputs .inputs-item input, .content .btns-radios input {
     display: block;
     position: relative;
     width: 80%;

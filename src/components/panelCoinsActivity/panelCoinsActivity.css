@@ -41,6 +41,7 @@
 }
 .nav-tabs a.nav-item.active {
   color: #0054F4;
+  background-color: #F5F5F5;
 }
 .nav-tabs a.nav-item.active:after {
   content: "";
