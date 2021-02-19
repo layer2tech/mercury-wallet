@@ -39,10 +39,37 @@
     color: #ffffff;
 
 }
+.hideBar p {
+    padding: 5px 10px;
+    font-size: 18px;
+    text-align: left;
+    color: #ffffff;
+    margin: 0;
+}
+.hideBar .fa-close {
+    cursor: pointer;
+    position: absolute;
+    right: 15px;
+    bottom: 13px;
+    font-size: 15px;
+    color: #ffffff;
+    opacity: 1;
+}
+.hideBar .close {
+    position: relative;
+}
+.hideBar.disabled {
+    display: none;
+}
 
 .nav-link {
     color: #ffffff;
 }
-@media only screen and (max-width: 768px)  {
+.hideBar {
+    position: absolute;
+    width: 100%;
+    margin-top: 0;
+    background-color: #F79325;
+    left: 0;
 
 }
