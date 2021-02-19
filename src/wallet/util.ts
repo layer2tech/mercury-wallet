@@ -176,6 +176,12 @@ export const decodeSecp256k1Point = (point: Secp256k1Point) => {
 }
 
 // ECIES encrypt string
+export const encryptECIESt2 = (publicKey: string, data: string): Buffer => {
+  let data_arr = new Uint32Array(Buffer.from(data, "hex")) // JSONify to match Mercury ECIES
+  return encrypt(publicKey, Buffer.from(data_arr));
+}
+
+// ECIES encrypt string
 export const encryptECIES = (publicKey: string, data: string): Buffer => {
   let data_arr = new Uint32Array(Buffer.from(JSON.stringify(data))) // JSONify to match Mercury ECIES
   return encrypt(publicKey, Buffer.from(data_arr));
