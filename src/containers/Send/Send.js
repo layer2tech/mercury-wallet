@@ -62,9 +62,9 @@ const SendStatecoinPage = () => {
         setTransferMsg3(encodeMessage(res.payload))
         setInputAddr("")
         setSelectedCoin('')
+        dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
       }
     })
-    dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
   }
 
   const copyTransferMsgToClipboard = () => {

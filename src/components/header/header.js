@@ -61,12 +61,6 @@ const Header = (props) => {
                         </Link>
                     </div>
 
-                    <div className="nav-item" onClick={handleShowNotofication}>
-                        <div className="nav-link">
-                            <i className="fa fa-exclamation"></i>
-                        </div>
-                    </div>
-
                 </div>
             </div>
 

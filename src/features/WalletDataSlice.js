@@ -58,11 +58,11 @@ export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
 
-export const callGetUncomfirmedAndUnmindeCoinsFundingTxData= () => {
-  return wallet.getUncomfirmedAndUnmindeCoinsFundingTxData()
+export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
+  return wallet.getUnconfirmedAndUnmindeCoinsFundingTxData()
 }
-export const callGetUncomfirmedStatecoinsDisplayData = () => {
-  return wallet.getUncomfirmedStatecoinsDisplayData()
+export const callGetUnconfirmedStatecoinsDisplayData = () => {
+  return wallet.getUnconfirmedStatecoinsDisplayData()
 }
 
 export const callGetActivityLog = () => {

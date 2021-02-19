@@ -7,7 +7,7 @@ import React, {useState} from 'react';
 import { useDispatch } from 'react-redux'
 
 import { callDepositInit, callDepositConfirm, setNotification,
-  callGetUncomfirmedAndUnmindeCoinsFundingTxData  } from '../../features/WalletDataSlice'
+  callGetUnconfirmedAndUnmindeCoinsFundingTxData  } from '../../features/WalletDataSlice'
 import { fromSatoshi } from '../../wallet'
 
 import '../../containers/Deposit/Deposit.css';
@@ -33,14 +33,17 @@ const TransactionsBTC = (props) => {
   })
 
   // Fetch all outstanding initialised deposit_inits from wallet
-  let deposit_inits = callGetUncomfirmedAndUnmindeCoinsFundingTxData();
+  let deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData();
 
   // Force confirm all outstanding depositInit's.
   // Get all unconfirmed coins and call depositConfirm with dummy txid value.
   const despositConfirm = () => {
-    callGetUncomfirmedAndUnmindeCoinsFundingTxData().forEach((statecoin => {
-      dispatch(callDepositConfirm({shared_key_id: statecoin.shared_key_id}))
-      dispatch(setNotification({msg:"Deposit Complete! StateCoin of "+fromSatoshi(statecoin.value)+" BTC created."}))
+    callGetUnconfirmedAndUnmindeCoinsFundingTxData().forEach((statecoin => {
+      dispatch(callDepositConfirm({shared_key_id: statecoin.shared_key_id})).then((res => {
+        if (res.error===undefined) {
+          dispatch(setNotification({msg:"Deposit Complete! StateCoin of "+fromSatoshi(statecoin.value)+" BTC created."}))
+        }
+      }));
     }));
   }
 
@@ -64,7 +67,7 @@ const TransactionsBTC = (props) => {
       {populateWithTransactionDisplayPanels}
       <div className="Body">
           <button type="button" className="std-button" onClick={despositConfirm}>
-              PERFORM TRANSFER RECEIVER
+              PERFORM DEPOSIT CONFIRM
           </button>
       </div>
     </div>

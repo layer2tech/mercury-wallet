@@ -38,9 +38,9 @@ const WithdrawPage = () => {
       if (res.error===undefined) {
         setSelectedCoin(null)
         setInputAddr("")
+        dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
       }
     }))
-    dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
 
   }
 

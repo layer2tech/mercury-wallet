@@ -38,9 +38,9 @@ const ReceiveStatecoinPage = () => {
     dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
       if (res.error===undefined) {
         setTransferMsg3("")
+        dispatch(setNotification({msg:"Transfer complete!"}))
       }
     })
-    dispatch(setNotification({msg:"Transfer complete!"}))
 
   }
 

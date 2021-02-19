@@ -19,7 +19,7 @@ import {Button, Modal} from 'react-bootstrap';
 import {useSelector, useDispatch} from 'react-redux'
 
 import {fromSatoshi} from '../../wallet/util'
-import {callGetUnspentStatecoins, updateBalanceInfo, callGetUncomfirmedStatecoinsDisplayData} from '../../features/WalletDataSlice'
+import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData} from '../../features/WalletDataSlice'
 
 import './coins.css';
 import '../index.css';
@@ -63,8 +63,8 @@ const Coins = (props) => {
     // Update total_balance in Redux state
     dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
 
-    let uncomfired_coins_data = callGetUncomfirmedStatecoinsDisplayData();
-    let all_coins_data = coins_data.concat(uncomfired_coins_data)
+    let unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+    let all_coins_data = coins_data.concat(unconfired_coins_data)
 
     const statecoinData = all_coins_data.map(item => (
         <div key={item.shared_key_id}>

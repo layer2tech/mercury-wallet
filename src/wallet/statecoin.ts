@@ -51,7 +51,7 @@ export class StateCoinList {
   };
 
   // Find all coins in mempool or mined but with required_confirmations confirmations
-  getUncomfirmedCoins() {
+  getUnconfirmedCoins() {
     return this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.UNCOMFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL) {
         return item
@@ -240,9 +240,9 @@ export class StateCoin {
   }
 
   // Calculate blocks and rough days/months until expiry
-  // If not comfirmed, send confirmation data instead.
+  // If not confirmed, send confirmation data instead.
   getExpiryData(block_height: number): ExpiryData {
-    // If not comfirmed, send confirmation data instead.
+    // If not confirmed, send confirmation data instead.
     if (this.tx_backup==null) {
       // Otherwise must be UNCOMFIRMED so calculate number of confs
       return {blocks:-1, confirmations: this.getConfirmations(block_height), days:0, months:0};

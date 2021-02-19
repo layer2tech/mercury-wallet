@@ -200,14 +200,14 @@ export class Wallet {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   // Get all INITIALISED, IN_MEMPOOL and UNCONFIRMED coins funding tx data
-  getUncomfirmedAndUnmindeCoinsFundingTxData() {
-    let coins = this.statecoins.getUncomfirmedCoins().concat(this.statecoins.getInitialisedCoins())
+  getUnconfirmedAndUnmindeCoinsFundingTxData() {
+    let coins = this.statecoins.getUnconfirmedCoins().concat(this.statecoins.getInitialisedCoins())
     return coins.map((item: StateCoin) => item.getFundingTxInfo(this.config.network, this.block_height))
   }
   //  Get all INITIALISED UNCONFIRMED coins display data
-  getUncomfirmedStatecoinsDisplayData() {
+  getUnconfirmedStatecoinsDisplayData() {
     // Check if any awaiting deposits now have sufficient confirmations and can be confirmed
-    let unconfirmed_coins = this.statecoins.getUncomfirmedCoins();
+    let unconfirmed_coins = this.statecoins.getUnconfirmedCoins();
     unconfirmed_coins.forEach((statecoin) => {
       if (statecoin.status==STATECOIN_STATUS.UNCOMFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
@@ -370,8 +370,8 @@ export class Wallet {
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin === undefined) throw Error("Coin "+shared_key_id+" does not exist.");
-    if (statecoin.status === STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" already confirmed.");
-    if (statecoin.status === STATECOIN_STATUS.INITIALISED) throw Error("Coin "+shared_key_id+" awaiting funding transaction.");
+    if (statecoin.status === STATECOIN_STATUS.AVAILABLE) throw Error("Already confirmed Coin "+shared_key_id+".");
+    if (statecoin.status === STATECOIN_STATUS.INITIALISED) throw Error("Awaiting funding transaction for StateCoin "+shared_key_id+".");
 
     let statecoin_finalized = await depositConfirm(
       this.http_client,
@@ -484,6 +484,7 @@ export class Wallet {
     this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
 
     // Broadcast transcation
+    await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
 
     log.info("Withdrawing finished.");
     this.saveStateCoinsList();
