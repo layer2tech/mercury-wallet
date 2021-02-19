@@ -189,8 +189,8 @@ export class StateCoin {
     this.status = STATECOIN_STATUS.INITIALISED;
   }
 
-  setUnconfirmed() { this.status = STATECOIN_STATUS.UNCOMFIRMED }
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
+  setUnconfirmed() { this.status = STATECOIN_STATUS.UNCOMFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
