@@ -7,6 +7,10 @@ import { Header } from '../../components'
 
 
 import './App.css';
+import Welcome from "../Welcome/Welcome";
+import CreateWallet from "../CreateNewWallet/CreateWallet";
+import CreateWizard from "../CreateWizard/CreateWizard";
+import MemoryForm from "../MemoryForm/MemoryForm";
 
 const App = () => {
   return (
@@ -14,7 +18,13 @@ const App = () => {
       <Router>
        <Header />
        <Switch>
-         <Route path="/" exact component={() => <HomePage />} />
+       {/*
+         // <Route path="/" exact component={() => <Welcome />} />
+         // <Route path="/create_wallet" exact component={() => <CreateWallet />} />
+         // <Route path="/create_wizard" exact component={() => <CreateWizard />} />
+         // <Route path="/memory_form" exact component={() => <MemoryForm />} />
+         */}
+         <Route path="/home" exact component={() => <HomePage />} />
          <Route path="/settings" exact component={() => <SettingsPage />} />
          <Route path="/help" exact component={() => <HelpPage />} />
          <Route path="/deposit" exact component={() => <DepositPage />} />

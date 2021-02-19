@@ -19,7 +19,7 @@ let secp256k1 = new EC('secp256k1')
 var msgpack = require("msgpack-lite");
 
 /// Temporary - fees should be calculated dynamically
-export const FEE = 1000;
+export const FEE = 300;
 
 // Verify Spase Merkle Tree proof of inclusion
 export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {

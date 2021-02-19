@@ -12,9 +12,11 @@ const log = window.require('electron-log');
 let wallet;
 try {
   wallet = Wallet.load(false)
-  console.log("wallet loaded")
-} catch {
+  console.log("wallet loaded from Store.")
+} catch (e){
+  console.log("e", e)
   wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
+  wallet.save()
 }
 
 let [coins_data, total_balance] = wallet.getUnspentStatecoins();
@@ -22,6 +24,7 @@ let fee_info = getFeeInfo(wallet.http_client);
 
 const initialState = {
   config: {version: wallet.version, endpoint: wallet.http_client.endpoint},
+  notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
   connected: false,
   balance_info: {total_balance: total_balance, num_coins: coins_data.length},
@@ -31,7 +34,7 @@ const initialState = {
 
 // Quick check for expiring coins
 for (let i=0; i<coins_data.length; i++) {
-  if (coins_data[i].expiry_data.months > 1) {
+  if (coins_data[i].expiry_data.months <= 1) {
     initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet is close to expiring." }
     break;
   };
@@ -39,10 +42,12 @@ for (let i=0; i<coins_data.length; i++) {
 
 
 
-
 // Wallet data gets
 export const callGetConfig = () => {
   return wallet.config.getConfig()
+}
+export const callGetBlockHeight = () => {
+  return wallet.block_height
 }
 // Update config with JSON of field to change
 export const callUpdateConfig = (config_changes) => {
@@ -53,8 +58,11 @@ export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
 
-export const callGetUnconfirmedStatecoins = () => {
-  return wallet.getUnconfirmedStatecoins()
+export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
+  return wallet.getUnconfirmedAndUnmindeCoinsFundingTxData()
+}
+export const callGetUnconfirmedStatecoinsDisplayData = () => {
+  return wallet.getUnconfirmedStatecoinsDisplayData()
 }
 
 export const callGetActivityLog = () => {
@@ -76,7 +84,7 @@ export const callDepositInit = createAsyncThunk(
 export const callDepositConfirm = createAsyncThunk(
   'depositConfirm',
   async (action, thunkAPI) => {
-    return wallet.depositConfirm(action.shared_key_id, action.funding_txid)
+    return wallet.depositConfirm(action.shared_key_id)
   }
 )
 export const callWithdraw = createAsyncThunk(
@@ -129,6 +137,24 @@ const WalletSlice = createSlice({
       state.error_dialogue = {seen: false, msg: action.payload.msg};
       log.error(action.payload.msg)
     },
+    setNotificationSeen(state, action) {
+      return {
+        ...state,
+        notification_dialogue:
+          state.notification_dialogue.filter((item) => {
+            return item.msg !== action.payload.msg
+        })
+      }
+    },
+    setNotification(state, action) {
+      return {
+        ...state,
+        notification_dialogue: [
+          ...state.notification_dialogue,
+          {msg: action.payload.msg}
+        ]
+      }
+    },
     callClearSave(state) {
       wallet.clearSave()
       state.error_dialogue = {seen: false, msg: "Wallet data removed. Please restart."};
@@ -158,7 +184,7 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, setErrorSeen, setError,
-  callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
+  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

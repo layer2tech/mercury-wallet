@@ -24,7 +24,7 @@ const HelpPage = () => {
                   Help & Support
               </h2>
               <div>
-                  <Link className="nav-link" to="/">
+                  <Link className="nav-link" to="/home">
                       <StdButton
                           label="Back"
                           className="Body-button transparent"/>

@@ -20,7 +20,7 @@ describe('2P-ECDSA', function() {
     expect(statecoin.tx_backup).toBe(null);
     expect(statecoin.tx_withdraw).toBe(null);
     expect(statecoin.smt_proof).toBe(null);
-    expect(statecoin.status).toBe(STATECOIN_STATUS.UNCOMFIRMED);
+    expect(statecoin.status).toBe(STATECOIN_STATUS.INITIALISED);
   });
 
   test('Sign', async function() {
@@ -42,12 +42,14 @@ describe('StateChain Entity', function() {
 
     expect(statecoin.tx_backup).toBeNull();
     expect(statecoin.tx_withdraw).toBeNull();
-    expect(statecoin.status).toBe(STATECOIN_STATUS.UNCOMFIRMED);
+    expect(statecoin.status).toBe(STATECOIN_STATUS.INITIALISED);
     expect(wallet.statecoins.getCoin(statecoin.shared_key_id)).toBe(statecoin)
   });
 
   test('Deposit confirm', async function() {
     let shared_key_id = SHARED_KEY_ID;
+    let fundin_txid = "64ec6bc7f794343a0c3651c0578f25df5134322b959ece99795dccfffe8a87e9"
+    let coin = wallet.statecoins.setCoinInMempool(shared_key_id, fundin_txid);
     let statecoin_finalized = await wallet.depositConfirm(shared_key_id, FUNDING_TXID)
 
     expect(statecoin_finalized.statechain_id.length).toBeGreaterThan(0);
