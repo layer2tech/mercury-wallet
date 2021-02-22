@@ -1,30 +1,23 @@
-import React from 'react';
-
-import '../WalletSeed/WalletSeed.css'
 import copy from '../../images/copy-image.png';
 
+import React from 'react';
+
 import {Wallet} from "../../wallet";
-import * as bitcoin from "bitcoinjs-lib";
-import useClipboard from "react-use-clipboard";
+
+import '../WalletSeed/WalletSeed.css'
 
 
-const WalletSeed = () => {
+const WalletSeed = (props) => {
+    let mnemonic = props.mnemonic;
+    let words = mnemonic.split(" ");
 
-    let wallet;
-    try {
-        wallet = Wallet.load(false)
-        console.log("wallet loaded")
-    } catch {
-        wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
-    }
-
-    let seed = wallet.getMnemonic()
-    let keywords = seed.split(" ");
-    console.log(JSON.stringify(keywords))
-    const inputs = keywords.map((item, index) => (
+    const inputs = words.map((item, index) => (
         <input key={index} type="text" placeholder={index + 1 + ". " + item} disabled/>
     ))
-    const [isCopied, setCopied] = useClipboard(JSON.stringify(keywords));
+
+    const copyMnemonicToClipboard = () => {
+      navigator.clipboard.writeText(words.join(" "));
+    }
 
     return (
         <div className="wizard-form inputs">
@@ -43,7 +36,7 @@ const WalletSeed = () => {
                 {inputs}
             </form>
 
-            <div className="copy" onClick={setCopied}>
+            <div className="copy" onClick={copyMnemonicToClipboard}>
                 <img src={copy} alt="copy-icon"/>
                 <span> Copy Seed to Clipboard</span>
             </div>

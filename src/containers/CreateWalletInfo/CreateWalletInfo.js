@@ -1,14 +1,15 @@
-import React, {useState} from 'react';
-import {Link, withRouter} from "react-router-dom";
-import './CreateWallet.css'
-
 import key from '../../images/key-blue-img.png';
 import restore from '../../images/restore-red-img.png';
 import secure from '../../images/secure-blue-img.png';
 import store from '../../images/store-red-img.png';
 
+import React, {useState} from 'react';
+import {Link, withRouter} from "react-router-dom";
 
-const CreateWallet = () => {
+import './CreateWalletInfo.css'
+
+
+const CreateWalletInfo = () => {
     const state = useState(false);
     const checked = state[0];
     const changeCheckbox = state[1]
@@ -58,4 +59,4 @@ const CreateWallet = () => {
     )
 }
 
-export default withRouter(CreateWallet);
+export default withRouter(CreateWalletInfo);

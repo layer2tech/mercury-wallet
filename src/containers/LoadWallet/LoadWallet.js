@@ -14,7 +14,7 @@ const LoadWalletPage = () => {
       }
       return false
     }
-    checkWalletStored()
+
     return (
     <div className="memory-form">
       <form>

@@ -35,6 +35,10 @@ export const walletLoad = () => {
   wallet = Wallet.load(true);
   checkForExpiringCoins();
 }
+export const walletFromMnemonic = (mnemonic) => {
+  wallet = Wallet.fromMnemonic(mnemonic, bitcoin.networks.testnet, false);
+  checkForExpiringCoins();
+}
 
 
 // Wallet data gets

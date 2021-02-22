@@ -1,14 +1,15 @@
 import React from 'react';
-import { withRouter } from "react-router-dom";
+import { withRouter, useParams } from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux'
 
-import { walletLoad, callGetUnspentStatecoins, updateBalanceInfo, updateFeeInfo, callGetFeeInfo, callGenSeAddr } from '../../features/WalletDataSlice'
+import { walletLoad, walletFromMnemonic, callGetUnspentStatecoins, updateBalanceInfo, updateFeeInfo, callGetFeeInfo, callGenSeAddr } from '../../features/WalletDataSlice'
 import { PanelControl, PanelConnectivity, PanelCoinsActivity } from '../../components'
 
 // Home page is the main page from which a user can view and use their Wallet.
 // Provided with props Home is used to initiliase a Wallet into the Redux state.
 const HomePage = (props) => {
   const dispatch = useDispatch();
+  const { mnemonic } = useParams(); // get mnemonic from url (if passed)
 
   // Initiliase wallet data in Redux state
   const initWalletInRedux = () => {
@@ -26,8 +27,10 @@ const HomePage = (props) => {
   if (props.load) {
     // load wallet into Redux
     walletLoad();
-    initWalletInRedux()
+  } else {
+    walletFromMnemonic(mnemonic);
   }
+  initWalletInRedux()
 
 
   return (

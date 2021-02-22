@@ -1,15 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
-import { HomePage, DepositPage, WithdrawPage, SettingsPage, HelpPage,
+import { CreateWalletInfo, HomePage, DepositPage, WithdrawPage, SettingsPage, HelpPage,
 SendStatecoinPage, ReceiveStatecoinPage, SwapPage, BackupTxPage, LoadWalletPage } from '../index'
+import Welcome from "../Welcome/Welcome";
+import CreateWizard from "../CreateWizard/CreateWizard";
 import { Header } from '../../components'
 
-
 import './App.css';
-import Welcome from "../Welcome/Welcome";
-import CreateWallet from "../CreateNewWallet/CreateWallet";
-import CreateWizard from "../CreateWizard/CreateWizard";
 
 const App = () => {
   return (
@@ -18,11 +16,12 @@ const App = () => {
       <Header />
       <Switch>
         <Route path="/" exact component={() => <Welcome />} />
-        <Route path="/create_wallet" exact component={() => <CreateWallet />} />
+        <Route path="/create_wallet" exact component={() => <CreateWalletInfo />} />
         <Route path="/create_wizard" exact component={() => <CreateWizard />} />
         <Route path="/load_wallet" exact component={() => <LoadWalletPage />} />
-        <Route path="/home" exact component={() => <HomePage />} />
+        <Route path="/home" exact component={() => <HomePage />} /> />
         <Route path="/home/load" exact component={() => <HomePage load={true}/>} />
+        <Route path="/home/mnemonic/:mnemonic" component={() => <HomePage load={false}/>} />
         <Route path="/settings" exact component={() => <SettingsPage />} />
         <Route path="/help" exact component={() => <HelpPage />} />
         <Route path="/deposit" exact component={() => <DepositPage />} />
