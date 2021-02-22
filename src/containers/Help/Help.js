@@ -6,12 +6,13 @@ import {Tab, Tabs} from "react-bootstrap";
 import { useSelector } from 'react-redux'
 
 import { StdButton } from '../../components/'
+import { callGetVersion } from '../../features/WalletDataSlice';
 
 import './Help.css';
 
 
 const HelpPage = () => {
-  const config = useSelector(state => state.walletData).config;
+  const version = callGetVersion();
 
   return (
     <div className="container">
@@ -41,7 +42,7 @@ const HelpPage = () => {
             <Tabs defaultActiveKey="About">
                 <Tab eventKey="About" title="About">
                     <div className="content">
-                        <span className="title">v. {config.version} </span>
+                        <span className="title">v. {version} </span>
                         <p>About content here ...</p>
                     </div>
                 </Tab>
