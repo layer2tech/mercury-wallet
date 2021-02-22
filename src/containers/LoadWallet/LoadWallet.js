@@ -1,10 +1,10 @@
 import React, {useRef} from 'react';
 import {Link} from "react-router-dom";
 
-import  './MemoryForm.css'
+import  './LoadWallet.css'
 
 
-const MemoryForm = () => {
+const LoadWalletPage = () => {
 
     return (
     <div className="memory-form">
@@ -29,4 +29,4 @@ const MemoryForm = () => {
   )
 }
 
-export default MemoryForm;
+export default LoadWalletPage;

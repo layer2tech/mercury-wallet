@@ -24,7 +24,6 @@ const HomePage = (props) => {
   }
 
   if (props.load) {
-    console.log("load == true")
     // load wallet into Redux
     walletLoad();
     initWalletInRedux()
