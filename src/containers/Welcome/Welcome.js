@@ -39,7 +39,7 @@ const Welcome = () => {
                     <span>Load From Memory</span>
                     <img className="check-img" src={check} alt="plus"/>
                 </div>
-            </div>
+            </div> 
             <Link to={`${checked === 1 ? "create_wallet" : checked === 2 ? "create_wallet" : "load_wallet"}`}
                   className={`send  ${!checked ? "disabled" : ""}`}>
                 Continue

@@ -37,7 +37,6 @@ export const walletLoad = () => {
 }
 
 
-
 // Wallet data gets
 export const callGetConfig = () => {
   return wallet.config.getConfig()

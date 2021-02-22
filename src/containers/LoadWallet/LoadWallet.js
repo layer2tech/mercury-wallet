@@ -3,26 +3,46 @@ import {Link} from "react-router-dom";
 
 import  './LoadWallet.css'
 
+let Store = window.require('electron-store');
+let store = new Store();
 
 const LoadWalletPage = () => {
 
+    const checkWalletStored = () => {
+      if (Object.keys(store.get('wallet')).length) {
+        return true
+      }
+      return false
+    }
+    checkWalletStored()
     return (
     <div className="memory-form">
-        <form>
+      <form>
 
-            <div className="inputs-item">
-                <input id="Name" type="text" name="Wallet Name" placeholder="Wallet Name"
-                       required/>
-            </div>
-
-            <div className="inputs-item">
-                <input id="Passphrase" type="password" name="password" required placeholder="Passphrase "
-                      />
-            </div>
-            <Link  to="/home/load" >
-                Send
+        {/*
+        <div className="inputs-item">
+            <input id="Name" disabled={true} type="text" name="Wallet Name" placeholder="Wallet name"
+                   required/>
+        </div>
+        <div className="inputs-item">
+            <input id="Passphrase" type="password" name="password" required placeholder="Passphrase "
+                  />
+        </div>
+        */}
+        {checkWalletStored() ?
+          <div>
+          <p>Wallet found in memory. Press continue to Load. </p>
+            <Link to="/home/load" >
+              Continue
             </Link>
-        </form>
+          </div>
+          :
+          <p>No Wallet in memory. Please create a new one.</p>
+        }
+        <Link to="/" >
+          Back
+        </Link>
+      </form>
 
 
     </div>
