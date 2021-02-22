@@ -1,11 +1,10 @@
 import React from 'react';
 import {Link, withRouter} from "react-router-dom";
-import './CreateWizard.css'
 
 import MultiStep from "react-multistep";
-import CreateWizardForm from "../../components/CreateWizardForm/CreateWizardForm";
-import WalletSeed from "../../components/WalletSeed/WalletSeed";
-import ConfirmSeed from "../../components/ConfirmSeed/ConfirmSeed";
+import { CreateWizardForm, ConfirmSeed, DisplaySeed } from "../../components";
+
+import './CreateWalletWizard.css'
 
 let bip39 = require('bip39');
 
@@ -14,12 +13,12 @@ const rands = [Math.floor(Math.random()*11),Math.floor(Math.random()*11),Math.fl
 
 const steps = [
     {component: <CreateWizardForm />},
-    {component: <WalletSeed mnemonic={mnemonic}/>},
+    {component: <DisplaySeed mnemonic={mnemonic}/>},
     {component: <ConfirmSeed mnemonic={mnemonic} rands={rands}/>}
 ];
 
 
-const CreateWizard = () => {
+const CreateWizardPage = () => {
     return (
         <div className="container wizard">
             <MultiStep steps={steps}/>
@@ -32,4 +31,4 @@ const CreateWizard = () => {
     )
 }
 
-export default withRouter(CreateWizard);
+export default withRouter(CreateWizardPage);

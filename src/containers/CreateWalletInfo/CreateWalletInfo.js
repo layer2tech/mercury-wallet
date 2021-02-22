@@ -9,7 +9,7 @@ import {Link, withRouter} from "react-router-dom";
 import './CreateWalletInfo.css'
 
 
-const CreateWalletInfo = () => {
+const CreateWalletInfoPage = () => {
     const state = useState(false);
     const checked = state[0];
     const changeCheckbox = state[1]
@@ -59,4 +59,4 @@ const CreateWalletInfo = () => {
     )
 }
 
-export default withRouter(CreateWalletInfo);
+export default withRouter(CreateWalletInfoPage);

@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
-import './CreateWizardForm.css'
 import {useForm} from "react-hook-form";
 
+import './createWizardForm.css'
 
 const CreateWizardForm = () => {
     const {register, errors, handleSubmit, watch} = useForm({mode: 'onChange', reValidateMode: 'onChange',});

@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux'
 import {Wallet} from "../../wallet";
 import {setError } from '../../features/WalletDataSlice'
 
-import './ConfirmSeed.css'
+import './confirmSeed.css'
 
 
 const ConfirmSeed = (props) => {
@@ -48,9 +48,6 @@ const ConfirmSeed = (props) => {
             <form>
                 {inputs}
             </form>
-            <Link onClick={onClickConf} className="confirm">
-                Test
-            </Link>
             <Link to={"/home/mnemonic/"+props.mnemonic} onClick={onClickConf} className="confirm">
                 Confirm
             </Link>

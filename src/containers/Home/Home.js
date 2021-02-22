@@ -10,7 +10,7 @@ import { PanelControl, PanelConnectivity, PanelCoinsActivity } from '../../compo
 const HomePage = (props) => {
   const dispatch = useDispatch();
   const { mnemonic } = useParams(); // get mnemonic from url (if passed)
-
+  console.log("mnemonic: ", mnemonic)
   // Initiliase wallet data in Redux state
   const initWalletInRedux = () => {
     // Get coins info

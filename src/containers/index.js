@@ -2,8 +2,11 @@ export { default as HomePage } from "./Home/Home";
 export { default as SettingsPage } from "./Settings/Settings";
 export { default as HelpPage } from "./Help/Help";
 
+
+export { default as WelcomePage } from "./Welcome/Welcome";
 export { default as LoadWalletPage } from "./LoadWallet/LoadWallet";
-export { default as CreateWalletInfo } from "./CreateWalletInfo/CreateWalletInfo";
+export { default as CreateWalletInfoPage } from "./CreateWalletInfo/CreateWalletInfo";
+export { default as CreateWalletWizardPage } from "./CreateWalletWizard/CreateWalletWizard";
 
 export { default as DepositPage } from "./Deposit/Deposit";
 export { default as WithdrawPage } from "./Withdraw/Withdraw";

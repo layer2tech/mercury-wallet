@@ -4,10 +4,10 @@ import React from 'react';
 
 import {Wallet} from "../../wallet";
 
-import '../WalletSeed/WalletSeed.css'
+import '../displaySeed/displaySeed.css'
 
 
-const WalletSeed = (props) => {
+const DisplaySeed = (props) => {
     let mnemonic = props.mnemonic;
     let words = mnemonic.split(" ");
 
@@ -44,4 +44,4 @@ const WalletSeed = (props) => {
     )
 }
 
-export default WalletSeed;
+export default DisplaySeed;
