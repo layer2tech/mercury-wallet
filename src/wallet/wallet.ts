@@ -512,7 +512,7 @@ export class Wallet {
 // BIP39 mnemonic -> BIP32 Account
 const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
   if (!bip39.validateMnemonic(mnemonic)) {
-    return "Invalid mnemonic"
+    throw Error("Invalid mnemonic")
   }
   const seed = bip39.mnemonicToSeedSync(mnemonic);
   const root = bip32.fromSeed(seed, network);

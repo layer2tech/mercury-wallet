@@ -1,29 +1,45 @@
-import React from 'react';
-import './ConfirmSeed.css'
+import React, {useState} from 'react';
 import {Link} from "react-router-dom";
+import { useDispatch } from 'react-redux'
+
 import {Wallet} from "../../wallet";
-import * as bitcoin from "bitcoinjs-lib";
+import {setError } from '../../features/WalletDataSlice'
+
+import './confirmSeed.css'
 
 
-const ConfirmSeed = () => {
+const ConfirmSeed = (props) => {
+  const dispatch = useDispatch();
 
-    let wallet;
-    try {
-        wallet = Wallet.load(false)
-        console.log("wallet loaded")
-    } catch {
-        wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
+  let words = props.mnemonic.split(" ");
+
+  const [missingwords, setMissingWords] = useState([{pos:props.rands[0], word:""},{pos:props.rands[1], word:""}, {pos:props.rands[2], word:""}]);
+  const inputMissingWord = (event) => {
+    let map = missingwords.map((item) => {if (item.pos==event.target.id) {item.word=event.target.value} return item})
+    setMissingWords(map)
+  }
+
+  // Display other words and create input boxes
+  let words_without_missing = words.map((item, index) => (props.rands.includes(index) ? "" : item))
+  const inputs = words_without_missing.map((item, index) => (
+      <input key={index}
+        id={index}
+        type="text"
+        placeholder={index + 1 + ". " + item}
+        value={item === '' ? missingwords.find((item) => {if (item.pos==index) {return item}}).word : ""}
+        disabled={item === '' ? "" : "disabled"}
+        onChange={inputMissingWord}/>
+  ))
+
+  // Confirm words are correct
+  const onClickConf = (event) => {
+    for (let i=0;i<missingwords.length; i++) {
+      if (missingwords[i].word!=words[missingwords[i].pos]) {
+        event.preventDefault();
+        dispatch(setError({msg: "Seed confirmation failed."}))
+      }
     }
-
-    let seed = wallet.getMnemonic()
-
-    let keywords = seed.split(" ");
-    keywords[5] = "";
-    keywords[2] = "";
-    keywords[6] = "";
-    const inputs = keywords.map((item, index) => (
-        <input key={index} type="text" placeholder={index + 1 + ". " + item} disabled={item === '' ? "" : "disabled"}/>
-    ))
+  }
 
     return (
         <div className="wizard-form-confirm">
@@ -32,7 +48,7 @@ const ConfirmSeed = () => {
             <form>
                 {inputs}
             </form>
-            <Link to="/home" className="confirm">
+            <Link to={"/home/mnemonic/"+props.mnemonic} onClick={onClickConf} className="confirm">
                 Confirm
             </Link>
         </div>

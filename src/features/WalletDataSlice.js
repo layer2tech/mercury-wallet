@@ -10,67 +10,71 @@ import * as bitcoin from 'bitcoinjs-lib';
 const log = window.require('electron-log');
 
 let wallet;
-try {
-  wallet = Wallet.load(false)
-  console.log("wallet loaded from Store.")
-} catch (e){
-  console.log("e", e)
-  wallet = Wallet.buildFresh(false, bitcoin.networks.testnet);
-  wallet.save()
-}
-
-let [coins_data, total_balance] = wallet.getUnspentStatecoins();
-let fee_info = getFeeInfo(wallet.http_client);
 
 const initialState = {
-  config: {version: wallet.version, endpoint: wallet.http_client.endpoint},
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
   connected: false,
-  balance_info: {total_balance: total_balance, num_coins: coins_data.length},
-  fee_info: fee_info,
-  rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex')),
+  balance_info: {total_balance: null, num_coins: null},
+  fee_info: {deposit: "NA", withdraw: "NA"},
+  rec_se_addr: null,
 }
 
-// Quick check for expiring coins
-for (let i=0; i<coins_data.length; i++) {
-  if (coins_data[i].expiry_data.months <= 1) {
-    initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet is close to expiring." }
-    break;
-  };
+// Quick check for expiring coins. If so display error dialogue
+const checkForExpiringCoins = () => {
+  let [coins_data, _total_balance] = wallet.getUnspentStatecoins();
+  for (let i=0; i<coins_data.length; i++) {
+    if (coins_data[i].expiry_data.months <= 1) {
+        initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet is close to expiring." }
+        break;
+      };
+    }
 }
 
+export const walletLoad = () => {
+  wallet = Wallet.load(false);
+  checkForExpiringCoins();
+}
+export const walletFromMnemonic = (mnemonic) => {
+  wallet = Wallet.fromMnemonic(mnemonic, bitcoin.networks.testnet, false);
+  wallet.save()
+  checkForExpiringCoins();
+}
 
 
 // Wallet data gets
 export const callGetConfig = () => {
   return wallet.config.getConfig()
 }
+export const callGetVersion = () => {
+  return wallet.version
+}
 export const callGetBlockHeight = () => {
   return wallet.block_height
-}
-// Update config with JSON of field to change
-export const callUpdateConfig = (config_changes) => {
-  wallet.config.update(config_changes)
-  wallet.save()
 }
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
-
 export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
   return wallet.getUnconfirmedAndUnmindeCoinsFundingTxData()
 }
 export const callGetUnconfirmedStatecoinsDisplayData = () => {
   return wallet.getUnconfirmedStatecoinsDisplayData()
 }
-
 export const callGetActivityLog = () => {
   return wallet.getActivityLog(10)
 }
-
+export const callGetFeeInfo = () => {
+  return getFeeInfo(wallet.http_client)
+}
 export const callGetCoinBackupTxData = (shared_key_id) => {
   return wallet.getCoinBackupTxData(shared_key_id)
+}
+
+// Update config with JSON of field to change
+export const callUpdateConfig = (config_changes) => {
+  wallet.config.update(config_changes)
+  wallet.save()
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
@@ -113,16 +117,25 @@ const WalletSlice = createSlice({
     // Update total_balance
     updateBalanceInfo(state, action) {
       if (state.balance_info.total_balance !== action.payload.total_balance) {
-        state.balance_info = action.payload
+        return {
+          ...state,
+          balance_info: action.payload
+        }
+      }
+    },
+    // Update fee_info
+    updateFeeInfo(state, action) {
+      return {
+        ...state,
+        fee_info: action.payload
       }
     },
     // Gen new SE Address
     callGenSeAddr(state) {
-      state.rec_se_addr = encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'));
-    },
-    // Get Server Fee info
-    callGetFeeInfo(state, action) {
-      state.fee_info = getFeeInfo(wallet.http_client);
+      return {
+        ...state,
+        rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'))
+      }
     },
     // Deposit
     dummyDeposit() {
@@ -131,10 +144,13 @@ const WalletSlice = createSlice({
       wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, proof_key, ACTION.DEPOSIT)
     },
     setErrorSeen(state) {
-      state.error_dialogue.seen = true;
+      state.error_dialogue.seen = true
     },
     setError(state, action) {
-      state.error_dialogue = {seen: false, msg: action.payload.msg};
+      return {
+        ...state,
+        error_dialogue: {seen: false, msg: action.payload.msg}
+      }
       log.error(action.payload.msg)
     },
     setNotificationSeen(state, action) {
@@ -157,7 +173,10 @@ const WalletSlice = createSlice({
     },
     callClearSave(state) {
       wallet.clearSave()
-      state.error_dialogue = {seen: false, msg: "Wallet data removed. Please restart."};
+      return {
+        ...state,
+        error_dialogue: {seen: false, msg: "Wallet data removed. Please restart."}
+      }
     }
   },
   extraReducers: {
@@ -183,7 +202,7 @@ const WalletSlice = createSlice({
 }
 })
 
-export const { callGenSeAddr, callGetFeeInfo, refreshCoinData, setErrorSeen, setError,
+export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo,
   setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
   export default WalletSlice.reducer
 
