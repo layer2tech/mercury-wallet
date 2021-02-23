@@ -71,6 +71,7 @@ describe('StateChain Entity', function() {
         .mockReturnValueOnce(SMT_PROOF);
       wasm_mock.Sign.first_message = jest.fn(() => CLI_SIGN_FIRST);
       wasm_mock.Sign.second_message = jest.fn(() => CLI_SIGN_SECOND);
+      wasm_mock.verify_statechain_smt = jest.fn(() => true);
 
       let statecoin = lodash.cloneDeep(tester_statecoin);
       let statecoin_finalized = await depositConfirm(http_mock,wasm_mock,network,statecoin,10);
