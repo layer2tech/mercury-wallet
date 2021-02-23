@@ -39,6 +39,7 @@ const LoadWalletPage = () => {
           :
           <p>No Wallet in memory. Please create a new one.</p>
         }
+        
         <Link to="/" >
           Back
         </Link>

@@ -5,6 +5,7 @@ export { default as HelpPage } from "./Help/Help";
 
 export { default as WelcomePage } from "./Welcome/Welcome";
 export { default as LoadWalletPage } from "./LoadWallet/LoadWallet";
+export { default as RestoreWalletPage } from "./RestoreWallet/RestoreWallet";
 export { default as CreateWalletInfoPage } from "./CreateWalletInfo/CreateWalletInfo";
 export { default as CreateWalletWizardPage } from "./CreateWalletWizard/CreateWalletWizard";
 
