@@ -117,7 +117,10 @@ const WalletSlice = createSlice({
     // Update total_balance
     updateBalanceInfo(state, action) {
       if (state.balance_info.total_balance !== action.payload.total_balance) {
-        state.balance_info = action.payload
+        return {
+          ...state,
+          balance_info: action.payload
+        }
       }
     },
     // Update fee_info
@@ -129,7 +132,10 @@ const WalletSlice = createSlice({
     },
     // Gen new SE Address
     callGenSeAddr(state) {
-      state.rec_se_addr = encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'));
+      return {
+        ...state,
+        rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'))
+      }
     },
     // Deposit
     dummyDeposit() {
@@ -138,10 +144,13 @@ const WalletSlice = createSlice({
       wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, proof_key, ACTION.DEPOSIT)
     },
     setErrorSeen(state) {
-      state.error_dialogue.seen = true;
+      state.error_dialogue.seen = true
     },
     setError(state, action) {
-      state.error_dialogue = {seen: false, msg: action.payload.msg};
+      return {
+        ...state,
+        error_dialogue: {seen: false, msg: action.payload.msg}
+      }
       log.error(action.payload.msg)
     },
     setNotificationSeen(state, action) {
@@ -164,7 +173,10 @@ const WalletSlice = createSlice({
     },
     callClearSave(state) {
       wallet.clearSave()
-      state.error_dialogue = {seen: false, msg: "Wallet data removed. Please restart."};
+      return {
+        ...state,
+        error_dialogue: {seen: false, msg: "Wallet data removed. Please restart."}
+      }
     }
   },
   extraReducers: {
