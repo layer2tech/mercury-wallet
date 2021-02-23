@@ -9,8 +9,7 @@ import { PanelControl, PanelConnectivity, PanelCoinsActivity } from '../../compo
 // Provided with props Home is used to initiliase a Wallet into the Redux state.
 const HomePage = (props) => {
   const dispatch = useDispatch();
-  const { mnemonic } = useParams(); // get mnemonic from url (if passed)
-  console.log("mnemonic: ", mnemonic)
+
   // Initiliase wallet data in Redux state
   const initWalletInRedux = () => {
     // Get coins info
@@ -24,11 +23,14 @@ const HomePage = (props) => {
     dispatch(callGenSeAddr());
   }
 
-  if (props.load) {
+  const { mnemonic } = useParams(); // get mnemonic from url
+  if (props.loadWallet) {
     // load wallet into Redux
     walletLoad();
-  } else {
+    props.setWalletLoaded(true);
+  } else if (props.createWallet){
     walletFromMnemonic(mnemonic);
+    props.setWalletLoaded(true);
   }
   initWalletInRedux()
 

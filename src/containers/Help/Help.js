@@ -11,8 +11,8 @@ import { callGetVersion } from '../../features/WalletDataSlice';
 import './Help.css';
 
 
-const HelpPage = () => {
-  const version = callGetVersion();
+const HelpPage = (props) => {
+  const version = require("../../../package.json").version;
 
   return (
     <div className="container">
@@ -25,7 +25,7 @@ const HelpPage = () => {
                   Help & Support
               </h2>
               <div>
-                  <Link className="nav-link" to="/home">
+                  <Link className="nav-link" to={props.walletLoaded ? "/home" : "/"}>
                       <StdButton
                           label="Back"
                           className="Body-button transparent"/>
@@ -42,7 +42,7 @@ const HelpPage = () => {
             <Tabs defaultActiveKey="About">
                 <Tab eventKey="About" title="About">
                     <div className="content">
-                        <span className="title">v. {version} </span>
+                        <span className="title">{version} </span>
                         <p>About content here ...</p>
                     </div>
                 </Tab>
@@ -51,18 +51,13 @@ const HelpPage = () => {
                         <span className="title">Title</span>
                         <p>Privacy Policy content here ...</p>
                     </div>
-
-
                 </Tab>
                 <Tab eventKey="Terms of use" title="Terms of use">
                     <div className="content">
                         <span className="title">Title</span>
                         <p>Terms of use content here ...</p>
                     </div>
-
-
                 </Tab>
-
             </Tabs>
 
         </div>

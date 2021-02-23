@@ -32,11 +32,12 @@ const checkForExpiringCoins = () => {
 }
 
 export const walletLoad = () => {
-  wallet = Wallet.load(true);
+  wallet = Wallet.load(false);
   checkForExpiringCoins();
 }
 export const walletFromMnemonic = (mnemonic) => {
   wallet = Wallet.fromMnemonic(mnemonic, bitcoin.networks.testnet, false);
+  wallet.save()
   checkForExpiringCoins();
 }
 

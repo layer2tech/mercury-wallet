@@ -1,5 +1,5 @@
-import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import React, {useState} from 'react';
 
 import { WelcomePage, CreateWalletInfoPage, CreateWalletWizardPage, HomePage, DepositPage, WithdrawPage, SettingsPage, HelpPage,
 SendStatecoinPage, ReceiveStatecoinPage, SwapPage, BackupTxPage, LoadWalletPage } from '../index'
@@ -8,20 +8,26 @@ import { Header } from '../../components'
 import './App.css';
 
 const App = () => {
+  // State tell header whether wallet is loaded: home is Home page
+  // or not: home is Welcome screen
+  const [walletLoaded, setWalletLoaded] = useState(false);
+
   return (
     <div className="App">
       <Router>
-      <Header />
+      <Header walletLoaded={walletLoaded}/>
       <Switch>
         <Route path="/" exact component={() => <WelcomePage />} />
         <Route path="/create_wallet" exact component={() => <CreateWalletInfoPage />} />
         <Route path="/create_wizard" exact component={() => <CreateWalletWizardPage />} />
         <Route path="/load_wallet" exact component={() => <LoadWalletPage />} />
         <Route path="/home" exact component={() => <HomePage />} />
-        <Route path="/home/load" exact component={() => <HomePage load={true}/>} />
-        <Route path="/home/mnemonic/:mnemonic" component={() => <HomePage load={false}/>} />
+        <Route path="/home/load" exact component={() =>
+          <HomePage loadWallet={true} setWalletLoaded={setWalletLoaded}/>} />
+        <Route path="/home/mnemonic/:mnemonic" component={() =>
+          <HomePage createWallet={true} setWalletLoaded={setWalletLoaded}/>} />
         <Route path="/settings" exact component={() => <SettingsPage />} />
-        <Route path="/help" exact component={() => <HelpPage />} />
+        <Route path="/help" exact component={() => <HelpPage walletLoaded={walletLoaded}/>} />
         <Route path="/deposit" exact component={() => <DepositPage />} />
         <Route path="/withdraw" exact component={() => <WithdrawPage />} />
         <Route path="/swap_statecoin" exact component={() => <SwapPage />} />
