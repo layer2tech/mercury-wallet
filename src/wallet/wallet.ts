@@ -89,6 +89,7 @@ export class Wallet {
   // Generate wallet with random mnemonic.
   static buildFresh(testing_mode: true, network: Network): Wallet {
     const mnemonic = bip39.generateMnemonic();
+    // const mnemonic = 'praise you muffin lion enable neck grocery crumble super myself license ghost';
     return Wallet.fromMnemonic(mnemonic, network, testing_mode);
   }
 
@@ -325,6 +326,7 @@ export class Wallet {
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 
+    this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
   }
 
