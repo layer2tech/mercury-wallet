@@ -1,7 +1,9 @@
 import arrow from '../../images/arrow-accordion.png';
 
 import React, {useState} from "react";
-import { useSelector } from 'react-redux'
+import {useSelector} from 'react-redux'
+
+import { callGetBlockHeight } from '../../features/WalletDataSlice'
 
 import './panelConnectivity.css';
 import '../index.css';
@@ -10,22 +12,12 @@ import '../index.css';
 const PanelConnectivity = (props) => {
   // Arrow down state
   const [state, setState] = useState({isToggleOn: false});
-  const toggleContent = (event) => {setState({isToggleOn: !state.isToggleOn})}
-
-  // Fee info state
-  const [stateFeeInfo, setStateFeeInfo] = useState({deposit: "NA", withdraw: "NA"});
-
-  const fee_info_promise = useSelector(state => state.walletData).fee_info;
-  const config = useSelector(state => state.walletData).config;
-
-  // Check if fee info is present and store in state
-  const checkFeeInfo = () => {
-    fee_info_promise.then((fee_info) => {
-      fee_info.endpoint = config.endpoint
-      setStateFeeInfo(fee_info)
-    })
+  const toggleContent = (event) => {
+      setState({isToggleOn: !state.isToggleOn})
   }
-  checkFeeInfo()
+
+  const fee_info = useSelector(state => state.walletData).fee_info;
+  const block_height = callGetBlockHeight();
 
   return (
       <div className="Body small accordion">
@@ -35,7 +27,7 @@ const PanelConnectivity = (props) => {
                       <input
                           type="radio"
                           value="StateChain"
-                          checked={stateFeeInfo !== "NA"}
+                          checked={fee_info.deposit !== "NA"}
                       />
                       Connected to Server
                       <span className="checkmark"></span>
@@ -52,20 +44,21 @@ const PanelConnectivity = (props) => {
                       <span className="checkmark"></span>
                   </label>
               </div>
-              <div onClick={toggleContent} className={state.isToggleOn ? "image rotate"  : ' image '} >
+              <div onClick={toggleContent} className={state.isToggleOn ? "image rotate" : ' image '}>
                   <img src={arrow} alt="arrowIcon"/>
               </div>
           </div>
 
-          <div className={state.isToggleOn ? "show" : ' hide'}>
-              <div className="collapse-content">
-                  <div className="collapse-content-item">
-                      <span>{stateFeeInfo.endpoint}</span>
-                      <div>
-                          <span className="txt">Deposit Fee: <b>{stateFeeInfo.deposit /10000}%</b></span>
-                          <span className="txt">Withdraw Fee: <b>{stateFeeInfo.withdraw/10000}%</b></span>
-                      </div>
-                  </div>
+        <div className={state.isToggleOn ? "show" : ' hide'}>
+            <div className="collapse-content">
+                <div className="collapse-content-item">
+                  <span>Block height: {block_height}</span>
+                    <span>{fee_info.endpoint}</span>
+                    <div>
+                        <span className="txt">Deposit Fee: <b>{fee_info.deposit /10000}%</b></span>
+                        <span className="txt">Withdraw Fee: <b>{fee_info.withdraw/10000}%</b></span>
+                    </div>
+                </div>
 
                   <div className="collapse-content-item">
                       <span>xxx.xxx.x.xx</span>

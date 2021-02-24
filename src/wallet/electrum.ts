@@ -1,4 +1,5 @@
 let ElectrumClientLib = require('@keep-network/electrum-client-js')
+let bitcoin = require('bitcoinjs-lib')
 
 export interface ElectrumClientConfig {
   host: string,
@@ -16,7 +17,6 @@ export class ElectrumClient {
 
   // Connect to Electrum Server
   async connect() {
-    // console.log("Connecting to electrum server...")
     await this.client.connect(
       "mercury-electrum-client-js",  // optional client name
       "1.4.2"                        // optional protocol version
@@ -27,43 +27,90 @@ export class ElectrumClient {
 
   // Disconnect from the ElectrumClientServer.
   async close() {
-    // console.log("Closing connection to electrum server...")
     this.client.close()
   }
 
+  async serverPing() {
+    this.client.server_ping()
+  }
 
-  async latestBlockHeight(): Promise<number> {
-    await this.connect()
-    // Get header of the latest mined block.
+  // convert BTC address scipt to electrum script has
+  scriptToScriptHash(script: string) {
+    let script_hash = bitcoin.crypto.sha256(script).toString("hex") // hash
+    return script_hash.match(/[a-fA-F0-9]{2}/g).reverse().join(''); // reverse
+  }
+
+
+  // Get header of the latest mined block.
+  async latestBlockHeader(): Promise<number> {
     const header = await this.client
       .blockchain_headers_subscribe()
       .catch((err: any) => {
         throw new Error(`failed to get block header: [${err}]`)
       })
-    await this.close()
-    return header.height
+    return header
   }
 
   async getTransaction(txHash: string): Promise<any> {
-    await this.connect()
     const tx = await this.client
       .blockchain_transaction_get(txHash, true)
         .catch((err: any) => {
           throw new Error(`failed to get transaction ${txHash}: [${err}]`)
         }
       )
-    await this.close()
     return tx
   }
 
+  async getScriptHashListUnspent(script: string): Promise<any> {
+    let script_hash_rev = this.scriptToScriptHash(script);
+    const list_unspent = await this.client
+      .blockchain_scripthash_listunspent(script_hash_rev)
+        .catch((err: any) => {
+          throw new Error(`failed to get list unspent for script ${script}: [${err}]`)
+        }
+      )
+    return list_unspent
+  }
+
+  async scriptHashSubscribe(script: string, callBack: any): Promise<any> {;
+    this.client.subscribe.on('blockchain.scripthash.subscribe', callBack)
+    let script_hash = this.scriptToScriptHash(script)
+    const addr_subscription = await this.client
+      .blockchain_scripthash_subscribe(script_hash)
+        .catch((err: any) => {
+          throw new Error(`failed to subscribe to script ${script}: [${err}]`)
+        }
+      )
+    return addr_subscription
+  }
+
+  async scriptHashUnsubscribe(script: string): Promise<any> {
+    let script_hash = this.scriptToScriptHash(script)
+    this.client
+      .blockchain_scripthash_unsubscribe(script_hash)
+        .catch((err: any) => {
+          throw new Error(`failed to subscribe to script ${script}: [${err}]`)
+        }
+      )
+  }
+
+  async blockHeightSubscribe(callBack: any): Promise<any> {
+    this.client.subscribe.on('blockchain.headers.subscribe', callBack)
+    const headers_subscription = await this.client
+      .blockchain_headers_subscribe()
+        .catch((err: any) => {
+          throw new Error(`failed to subscribe to headers: [${err}]`)
+        }
+      )
+    return headers_subscription
+  }
+
   async broadcastTransaction(rawTX: string): Promise<string> {
-    await this.connect()
     const txHash = await this.client
       .blockchain_transaction_broadcast(rawTX)
       .catch((err: any) => {
         throw new Error(`failed to broadcast transaction: [${err}]`)
       })
-    await this.close()
     return txHash
   }
 }

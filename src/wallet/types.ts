@@ -224,7 +224,7 @@ export const TransferMsg3 = typeforce.compile({
 export const TransferMsg4 = typeforce.compile({
   shared_key_id: String,
   statechain_id: String,
-  t2: String, // t2 = t1*o2_inv = o1*x1*o2_inv
+  t2: {secret_bytes: Buffer}, // t2 = t1*o2_inv = o1*x1*o2_inv
   statechain_sig: Object,
   o2_pub: Secp256k1Point,
   tx_backup_hex: String,

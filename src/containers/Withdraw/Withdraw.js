@@ -6,7 +6,7 @@ import {Link, withRouter} from "react-router-dom";
 import React, {useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { callWithdraw, setError } from '../../features/WalletDataSlice';
+import { callWithdraw, setError, setNotification } from '../../features/WalletDataSlice';
 import { Coins, StdButton, AddressInput } from "../../components";
 import { fromSatoshi } from '../../wallet/util';
 
@@ -38,8 +38,10 @@ const WithdrawPage = () => {
       if (res.error===undefined) {
         setSelectedCoin(null)
         setInputAddr("")
+        dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
       }
     }))
+
   }
 
 
@@ -52,7 +54,7 @@ const WithdrawPage = () => {
                     Withdraw Statecoins
                 </h2>
                 <div>
-                    <Link className="nav-link" to="/">
+                    <Link className="nav-link" to="/home">
                         <StdButton
                             label="Back"
                             className="Body-button transparent"/>

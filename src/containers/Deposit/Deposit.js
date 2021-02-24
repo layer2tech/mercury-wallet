@@ -10,7 +10,7 @@ import { CreateStatecoin, TransactionsBTC, StdButton} from "../../components";
 
 import './Deposit.css';
 
-const DEFUALT_VALUE_SELECTION = 1000000;
+const DEFUALT_VALUE_SELECTION = 1000;
 
 const DepositPage = () => {
     // Show settings
@@ -70,7 +70,7 @@ const DepositPage = () => {
                        Deposit BTC
                    </h2>
                    <div className="nav-item">
-                       <Link className="nav-link" to="/">
+                       <Link className="nav-link" to="/home">
                            <StdButton
                                label="Back"
                                className="Body-button transparent"/>
@@ -85,6 +85,7 @@ const DepositPage = () => {
             <div className="wizard">
                 <MultiStep steps={steps} />
             </div>
+
             <Modal show={show} onHide={handleClose} className="modal">
                 <Modal.Header>
                     <h6>Display Settings</h6>

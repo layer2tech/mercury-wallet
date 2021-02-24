@@ -13,6 +13,7 @@ export class Config {
   network: Network;
   testing_mode: boolean;
   jest_testing_mode: boolean;
+  required_confirmations: number;
 
   // Editable while wallet running from Settings page
   state_entity_endpoint: string;
@@ -29,12 +30,13 @@ export class Config {
     this.network = network;
     this.testing_mode = testing_mode;
     this.jest_testing_mode = false;
+    this.required_confirmations = 3;
 
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
-      host: 'electrumx-server.tbtc.network',
-      port: 8443,
+      host: 'wallet.mercurywallet.io',
+      port: 50004,
       protocol: 'wss',
     }
     this.tor_proxy = "";
@@ -63,6 +65,9 @@ export class Config {
           return;
         case "jest_testing_mode":
           this.jest_testing_mode = item[1];
+          return;
+        case "required_confirmations":
+          this.required_confirmations = item[1];
           return;
 
         case "state_entity_endpoint":
