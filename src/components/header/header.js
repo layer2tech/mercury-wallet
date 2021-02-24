@@ -44,7 +44,7 @@ const Header = (props) => {
         <div className="Header">
 
             <div className="container block">
-                <Link className="navbar-brand" to="/home">
+                <Link className="navbar-brand" to={props.walletLoaded ? "/home" : "/"}>
                     <img src={logo} className="Header-logo" alt="logo"/>
                 </Link>
 
@@ -55,11 +55,15 @@ const Header = (props) => {
                         </Link>
                     </div>
 
-                    <div className={`nav-item  ${props.location.pathname === "/settings" ? "active" : ""}`}>
+                    {props.walletLoaded ?
+                      <div className={`nav-item  ${props.location.pathname === "/settings" ? "active" : ""}`}>
                         <Link className="nav-link" to="/settings">
-                            <img src={settings} alt="settings"/>
+                          <img src={settings} alt="settings"/>
                         </Link>
-                    </div>
+                      </div>
+                      :
+                      null
+                    }
 
                 </div>
             </div>

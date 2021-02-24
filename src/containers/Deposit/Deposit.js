@@ -85,6 +85,7 @@ const DepositPage = () => {
             <div className="wizard">
                 <MultiStep steps={steps} />
             </div>
+
             <Modal show={show} onHide={handleClose} className="modal">
                 <Modal.Header>
                     <h6>Display Settings</h6>

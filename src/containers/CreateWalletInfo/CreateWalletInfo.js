@@ -1,18 +1,40 @@
-import React, {useState} from 'react';
-import {Link, withRouter} from "react-router-dom";
-import './CreateWallet.css'
-
 import key from '../../images/key-blue-img.png';
 import restore from '../../images/restore-red-img.png';
 import secure from '../../images/secure-blue-img.png';
-import store from '../../images/store-red-img.png';
+import store_img from '../../images/store-red-img.png';
 
+import React, {useState} from 'react';
+import {Link, withRouter} from "react-router-dom";
+import { useDispatch } from 'react-redux'
 
-const CreateWallet = () => {
+import { setError } from '../../features/WalletDataSlice'
+
+import './CreateWalletInfo.css'
+
+let Store = window.require('electron-store');
+let store = new Store();
+
+const CreateWalletInfoPage = () => {
+    const dispatch = useDispatch();
+
     const state = useState(false);
     const checked = state[0];
     const changeCheckbox = state[1]
     // Change handlers
+
+    const [warningSeen, setWarningSeen] = useState(false);
+
+    // If wallet saved warn of overwriting data
+    const checkWalletStored = () => {
+      if (Object.keys(store.get('wallet')).length) {
+        return true
+      }
+      return false
+    }
+    if (!warningSeen && checkWalletStored()) {
+      setWarningSeen(true);
+      dispatch(setError({msg: "Warning: Creating a new wallet will overwrite your current wallet."}))
+    }
 
     return (
         <div className="welcome-second ">
@@ -24,7 +46,7 @@ const CreateWallet = () => {
                         somewhere safe.</p>
                 </div>
                 <div className="create-welcome-item">
-                    <img src={store} alt="store"/>
+                    <img src={store_img} alt="store"/>
                     <p>Never store it online or on the same computer as the wallet.</p>
                 </div>
                 <div className="create-welcome-item">
@@ -58,4 +80,4 @@ const CreateWallet = () => {
     )
 }
 
-export default withRouter(CreateWallet);
+export default withRouter(CreateWalletInfoPage);
