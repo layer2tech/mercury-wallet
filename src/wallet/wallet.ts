@@ -89,7 +89,6 @@ export class Wallet {
   // Generate wallet with random mnemonic.
   static buildFresh(testing_mode: true, network: Network): Wallet {
     const mnemonic = bip39.generateMnemonic();
-    // const mnemonic = 'praise you muffin lion enable neck grocery crumble super myself license ghost';
     return Wallet.fromMnemonic(mnemonic, network, testing_mode);
   }
 
