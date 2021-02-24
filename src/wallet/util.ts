@@ -175,7 +175,7 @@ export const decodeSecp256k1Point = (point: Secp256k1Point) => {
   return p;
 }
 
-function zero_pad(num) {
+const zero_pad = (num: any) => {
     var pad = '0000000000000000000000000000000000000000000000000000000000000000';
     return (pad + num).slice(-pad.length);
 }
