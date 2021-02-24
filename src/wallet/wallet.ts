@@ -33,7 +33,6 @@ try {
 // Store
 let store = new Store();
 
-
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   config: Config;
