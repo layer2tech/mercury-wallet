@@ -101,7 +101,7 @@ export class StateChainSig {
 }
 
 export const getSigHash = (tx: Transaction, index: number, pk: string, amount: number, network: Network): string => {
-  let addr_p2pkh = bitcoin.payments.p2wpkh({
+  let addr_p2pkh = bitcoin.payments.p2pkh({
     pubkey: Buffer.from(pk, "hex"),
     network: network
   }).address;
@@ -117,7 +117,7 @@ export const txBackupBuild = (network: Network, funding_txid: string, backup_rec
 
   let txb = new TransactionBuilder(network);
   txb.setLockTime(init_locktime);
-  txb.addInput(funding_txid, 0);
+  txb.addInput(funding_txid, 0, 0xFFFFFFFE);
   txb.addOutput(backup_receive_addr, value - FEE - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
   return txb
@@ -175,9 +175,14 @@ export const decodeSecp256k1Point = (point: Secp256k1Point) => {
   return p;
 }
 
+function zero_pad(num) {
+    var pad = '0000000000000000000000000000000000000000000000000000000000000000';
+    return (pad + num).slice(-pad.length);
+}
+
 // ECIES encrypt string
 export const encryptECIESt2 = (publicKey: string, data: string): Buffer => {
-  let data_arr = new Uint32Array(Buffer.from(data, "hex")) // JSONify to match Mercury ECIES
+  let data_arr = new Uint32Array(Buffer.from(zero_pad(data), "hex")); // JSONify to match Mercury ECIES
   return encrypt(publicKey, Buffer.from(data_arr));
 }
 

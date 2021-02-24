@@ -467,6 +467,7 @@ export class Wallet {
     rec_addr: string
   ): Promise<Transaction> {
     log.info("Withdrawing "+shared_key_id+" to "+rec_addr);
+
     // Check address format
     try { bitcoin.address.toOutputScript(rec_addr, this.config.network) }
       catch (e) { throw Error("Invalid Bitcoin address entered.") }
