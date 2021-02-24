@@ -91,7 +91,7 @@ export const transferSender = async (
 
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;
-  new_tx_backup_signed.ins[0].witness = [Buffer.from(signature)];
+  new_tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]),Buffer.from(signature[1])];
   prepare_sign_msg.tx_hex = new_tx_backup_signed.toHex();
 
   // Get o1 priv key
@@ -233,6 +233,7 @@ export const transferReceiverFinalize = async (
   statecoin.value = finalize_data.state_chain_data.amount;
   statecoin.smt_proof = proof;
   statecoin.tx_backup = Transaction.fromHex(finalize_data.tx_backup_psm.tx_hex);
+  statecoin.proof_key = finalize_data.proof_key;
 
   return statecoin
 }
