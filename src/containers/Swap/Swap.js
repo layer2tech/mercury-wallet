@@ -15,7 +15,7 @@ import time from "../../images/table-icon-time.png";
 
 const SwapPage = () => {
 
-  let disabled = false;
+  let disabled = true;
 
   return (
       <div className="container ">

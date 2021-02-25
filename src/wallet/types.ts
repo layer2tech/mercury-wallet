@@ -15,6 +15,7 @@ export const Null = typeforce.Null;
 export const OutPoint = typeforce.Object;
 export const Chain = Array;
 
+
 // StateChain Entity API
 export const StateChainDataAPI = typeforce.compile({
     utxo: typeforce.anyOf(String, Object),
@@ -48,6 +49,7 @@ export const Secp256k1Point = typeforce.compile({
     x: String,
     y: String
 })
+export const Secp256k1Scalar = String;
 
 // multi_party_ecdsa::protocols::two_party_ecdsa::lindell_2017::party_one::KeyGenFirstMsg
 export const KeyGenFirstMsgParty1 = typeforce.compile({
@@ -245,3 +247,106 @@ export const TransferFinalizeData = typeforce.compile({
     statechain_id: String,
     tx_backup_psm: PrepareSignTxMsg,
 })
+
+////////// COORDINATOR structs/////////////
+
+
+///////////// SWAP /////////////
+
+/// Struct defines a Swap. This is signed by each participant as agreement to take part in the swap.
+export const SwapToken = typeforce.compile({
+    id: String, //Uuid,
+    amount: UInt64, 
+    time_out: UInt64,
+    statechain_ids: Array, //Vec<Uuid>,
+})
+
+/// Blind Spend Token data for each Swap. (priv, pub) keypair, k and R' value for signing and verification.
+export const BSTSenderData = typeforce.compile ({
+    x: Secp256k1Scalar,  
+    q: Secp256k1Point,
+    k: String,
+    r_prime: Secp256k1Point,
+})
+
+export const SwapInfo = typeforce.compile({
+    status: String, //SwapStatus,
+    swap_token: SwapToken,
+    bst_sender_data: BSTSenderData,
+})
+
+/// State change signature object
+/// Data necessary to create ownership transfer signatures
+export const StateChainSig = typeforce.compile({
+    /// Purpose: "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
+    purpose: String, // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
+    /// The new owner proof public key (if transfer) or address (if withdrawal)    
+    data: String,    // proof key, state chain id or address
+    /// Current owner signature (DER encoded). 
+    sig: String,
+})
+
+
+/// Owner -> Conductor
+export const RegisterUtxo  = typeforce.compile({
+  statechain_id: String, //Uuid,
+  signature: StateChainSig,
+  swap_size: UInt64,
+})
+
+//pub struct SignatureDef(String);
+
+/// Owner -> Conductor
+export const SwapMsg1 = typeforce.compile({
+  swap_id: String, //Uuid,
+  statechain_id: String, //Uuid,
+  swap_token_sig: Object, //Signature,
+  transfer_batch_sig: StateChainSig,
+  address: SCEAddress,
+  bst_e_prime: Secp256k1Scalar,
+})
+
+// Message to request a blinded spend token
+export const BSTMsg = typeforce.compile({
+    swap_id: String, //Uuid,
+    statechain_id: String, //Uuid,
+})
+
+/// (s,r) blind spend token
+export const BlindedSpendToken = typeforce.compile({
+    s: Secp256k1Scalar,
+    r: Secp256k1Point,
+    m: String,
+})
+
+/// Owner -> Conductor
+export const SwapMsg2 = typeforce.compile({
+  swap_id: String, //Uuid,
+  blinded_spend_token: BlindedSpendToken,
+})
+
+export const StatechainID = typeforce.compile({
+  id: String //Uuid,
+})
+
+export const SwapID = typeforce.compile({
+  id: typeforce.anyOf(String, Null), //Option<Uuid>,
+})
+
+/// Blind Spend Token data for each Swap. (priv, pub) keypair, k and R' value for signing and verification.
+export const BSTRequestorData = typeforce.compile({
+  u: Secp256k1Scalar, 
+  v: Secp256k1Scalar, 
+  r: Secp256k1Point, 
+  e_prime: Secp256k1Scalar,
+  m: String,
+})
+
+export const SwapStatus = {
+    Phase1: "Phase1",
+    Phase2: "Phase2",
+    Phase3: "Phase3",
+    Phase4: "Phase4",
+    End: "End",
+}
+Object.freeze(SwapStatus);

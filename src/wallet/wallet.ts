@@ -43,6 +43,7 @@ export class Wallet {
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
+  conductor_client: HttpClient | MockHttpClient;	
   electrum_client: ElectrumClient | MockElectrumClient;
   block_height: number;
 
@@ -57,10 +58,12 @@ export class Wallet {
     if (testing_mode) {
       this.electrum_client = new MockElectrumClient();
       this.http_client = new MockHttpClient();
+      this.conductor_client = new MockConductorClient();	
     } else {
       // this.electrum_client = new ElectrumClient(config.electrum_config);
       this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
+      this.conductor_client = new HttpClient(this.config.swap_conductor_endpoint);	
     }
     this.block_height = this.electrum_client.latestBlockHeight()
   }
