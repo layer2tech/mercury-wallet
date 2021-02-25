@@ -3,7 +3,7 @@ import icon1 from "../../images/icon1.png";
 import icon2 from "../../images/icon2.png";
 import arrow from "../../images/scan-arrow.png";
 
-import React, {useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux'
 
 import { callDepositInit, callDepositConfirm, setNotification,
@@ -34,7 +34,17 @@ const TransactionsBTC = (props) => {
 
   // Fetch all outstanding initialised deposit_inits from wallet
   let deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData();
+  // Re-fetch every 10 seconds and update state to refresh render
+  useEffect(() => {
+    const interval = setInterval(() => {
+      deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
+      console.log("deposit_inits: ", deposit_inits)
+      setState({}) //update state to refresh TransactionDisplay render
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
+  // ** FOR TESTING **
   // Force confirm all outstanding depositInit's.
   // Get all unconfirmed coins and call depositConfirm with dummy txid value.
   const despositConfirm = () => {

@@ -13,11 +13,12 @@ import timeIcon from "../../images/time.png";
 import check from "../../images/check-grey.png";
 import question from "../../images/question-mark.png";
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
 import {useSelector, useDispatch} from 'react-redux'
 
+import { STATECOIN_STATUS } from '../../wallet'
 import {fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData} from '../../features/WalletDataSlice'
 
@@ -29,6 +30,7 @@ const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {
 const Coins = (props) => {
     const dispatch = useDispatch();
 
+    const [state, setState] = useState({});
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const handleOpenCoinDetails = (shared_key_id) => {
         let coin = all_coins_data.find((coin) => {
@@ -65,6 +67,21 @@ const Coins = (props) => {
 
     let unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
     let all_coins_data = coins_data.concat(unconfired_coins_data)
+
+    // Re-fetch every 10 seconds and update state to refresh render
+    // IF any coins are marked UNCONFIRMED
+    useEffect(() => {
+      let unconfirmed_coins = all_coins_data.find((item) =>
+        item.status==STATECOIN_STATUS.UNCONFIRMED || item.status==STATECOIN_STATUS.IN_MEMPOOL)
+      if (unconfirmed_coins!=undefined) {
+        const interval = setInterval(() => {
+          unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+          all_coins_data = coins_data.concat(unconfired_coins_data)
+          setState({}) //update state to refresh TransactionDisplay render
+        }, 5000);
+        return () => clearInterval(interval);
+      }
+    }, []);
 
     const statecoinData = all_coins_data.map(item => (
         <div key={item.shared_key_id}>
