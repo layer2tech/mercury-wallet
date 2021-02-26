@@ -17,10 +17,12 @@ const RestoreWalletPage = () => {
   const [warningSeen, setWarningSeen] = useState(false);
 
   // If wallet saved warn of overwriting data
-  const checkWalletStored = () => {
-    if (Object.keys(store.get('wallet')).length) {
-      return true
-    }
+    const checkWalletStored = () => {
+	if (store.get('wallet')) {
+	    if (Object.keys(store.get('wallet')).length) {
+		return true
+	    }
+	}
     return false
   }
   if (!warningSeen && checkWalletStored()) {

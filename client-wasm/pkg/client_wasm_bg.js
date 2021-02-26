@@ -325,7 +325,7 @@ export const __wbg_randomFillSync_1b52c8482374c55b = function(arg0, arg1, arg2) 
     getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
 };
 
-export const __wbg_log_f2e13ca55da8bad3 = function(arg0) {
+export const __wbg_log_2e875b1d2f6f87ac = function(arg0) {
     console.log(getObject(arg0));
 };
 

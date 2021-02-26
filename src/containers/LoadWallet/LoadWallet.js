@@ -9,9 +9,11 @@ let store = new Store();
 const LoadWalletPage = () => {
 
     const checkWalletStored = () => {
-      if (Object.keys(store.get('wallet')).length) {
-        return true
-      }
+	if (store.get('wallet')) {
+	    if (Object.keys(store.get('wallet')).length) {
+		return true
+	    }
+	}
       return false
     }
 
