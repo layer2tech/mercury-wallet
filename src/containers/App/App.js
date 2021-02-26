@@ -35,6 +35,7 @@ const App = () => {
         <Route path="/send_statecoin" exact component={() => <SendStatecoinPage />} />
         <Route path="/receive_statecoin" exact component={() => <ReceiveStatecoinPage />} />
         <Route path="/backup_tx" exact component={() => <BackupTxPage />} />
+        <Route component={() => <WelcomePage />} />
        </Switch>
      </Router>
     </div>
