@@ -1,0 +1,80 @@
+h1 {
+    font-size: 34px;
+}
+
+p {
+    font-size: 14px;
+    color: #757575;
+    max-width: 910px
+}
+
+.welcome-btns {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+.welcome-first {
+    max-width: 990px;
+    padding: 20px;
+    margin: 0 auto;
+    padding-top: 10%;
+    text-align: left;
+
+}
+
+.welcome-btns div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    text-align: left;
+    font-size: 20px;
+    cursor: pointer;
+    background-color: #ffffff;
+    padding: 20px 30px;
+    box-shadow: 0px 2px 12px -7px #222;
+    color: #000000;
+    margin: 0 10px;
+}
+
+
+.welcome-btns img {
+    margin-right: 10px;
+}
+.check-img {
+    display: none;
+    position: absolute;
+    top: 5px;
+    width: 17px;
+    right: 0;
+}
+
+
+.welcome-btns div.selected {
+    background-color: #DFEAFF;
+}
+.welcome-btns div.selected .check-img{
+    display: block;
+
+}
+.send, .send:hover {
+    font-size: 14px;
+    text-transform: uppercase;
+    background-color: #0F54F4;
+    color: #ffffff;
+    padding: 5px 10px;
+    border-radius: 6px;
+    float: right;
+    display: block;
+    width: 88px;
+    margin-top: 30px;
+}
+
+
+.welcome-first a.send.disabled {
+    background-color: #afc2ef;
+    color: #ffffff;
+    cursor: not-allowed;
+    pointer-events: none;
+}

@@ -131,7 +131,7 @@ describe("Statecoins/Coin", () => {
     });
   });
 
-  describe("getUnconfirmedCoins", () => {
+  describe("getUnconfirmedCoinsData", () => {
     it('Returns only unconfirmed coins with correct data', () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
@@ -150,20 +150,19 @@ describe("Statecoins/Coin", () => {
       let locktime = 24*6*30; // month locktime
       tx_backup.locktime = locktime;
       coin.tx_backup = tx_backup;
-      expect(coin.getExpiryData(locktime-1)).toEqual({blocks: 1, days: 0, months: 0});            // < 1 day to go
-      expect(coin.getExpiryData(locktime+1)).toEqual({blocks: 0, days: 0, months: 0});          // locktime passed
-      expect(coin.getExpiryData(locktime-(24*6)+1)).toEqual({blocks: (24*6)-1, days: 0, months: 0});  // 1 block from 1 day
-      expect(coin.getExpiryData(locktime-(24*6))).toEqual({blocks: 24*6, days: 1, months: 0});    // 1 day
-      expect(coin.getExpiryData(locktime-(2*24*6))).toEqual({blocks: 2*24*6, days: 2, months: 0});  // 2 days
-      expect(coin.getExpiryData(locktime-(29*24*6))).toEqual({blocks: 29*24*6, days: 29, months: 0});  // 29 days = 0 months
-      expect(coin.getExpiryData(locktime-(30*24*6))).toEqual({blocks: 30*24*6, days: 30, months: 1});  // 1 month
+      expect(coin.getExpiryData(locktime-1)).toEqual({blocks: 1, days: 0, months: 0, confirmations:0});            // < 1 day to go
+      expect(coin.getExpiryData(locktime+1)).toEqual({blocks: 0, days: 0, months: 0, confirmations:0});          // locktime passed
+      expect(coin.getExpiryData(locktime-(24*6)+1)).toEqual({blocks: (24*6)-1, days: 0, months: 0, confirmations:0});  // 1 block from 1 day
+      expect(coin.getExpiryData(locktime-(24*6))).toEqual({blocks: 24*6, days: 1, months: 0, confirmations:0});    // 1 day
+      expect(coin.getExpiryData(locktime-(2*24*6))).toEqual({blocks: 2*24*6, days: 2, months: 0, confirmations:0});  // 2 days
+      expect(coin.getExpiryData(locktime-(29*24*6))).toEqual({blocks: 29*24*6, days: 29, months: 0, confirmations:0});  // 29 days = 0 months
+      expect(coin.getExpiryData(locktime-(30*24*6))).toEqual({blocks: 30*24*6, days: 30, months: 1, confirmations:0});  // 1 month
     });
     it('no backup tx', () => {
       let coin = statecoins.coins[0];
       coin.tx_backup = null
-      expect(() => {  // not enough value
-        coin.getExpiryData(999);
-      }).toThrowError("Cannot calculate expiry - Coin is not confirmed.");
+      let expiry_data = coin.getExpiryData(999);
+      expect(expiry_data.blocks).toBe(-1);
     });
   });
 });

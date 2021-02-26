@@ -15,6 +15,7 @@ let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
 let bip32 = require('bip32');
 let bip39 = require('bip39');
+let lodash = require('lodash');
 
 // Logger and Store import.
 // Node friendly importing required for Jest tests.
@@ -31,7 +32,6 @@ try {
 
 // Store
 let store = new Store();
-
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
@@ -60,12 +60,26 @@ export class Wallet {
       this.http_client = new MockHttpClient();
       this.conductor_client = new MockConductorClient();	
     } else {
-      // this.electrum_client = new ElectrumClient(config.electrum_config);
-      this.electrum_client = new MockElectrumClient();
+      // this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
       this.conductor_client = new HttpClient(this.config.swap_conductor_endpoint);	
+      this.electrum_client = new ElectrumClient(this.config.electrum_config);
+      this.electrum_client.connect().then(() => {
+        // Continuously update block height
+        this.electrum_client.blockHeightSubscribe(this.setBlockHeight).then((item) => {
+          this.setBlockHeight([item])
+        });
+        // Check if any deposit_inits are awaiting funding txs and create listeners if so
+        this.statecoins.getInitialisedCoins().forEach((statecoin) => {
+          this.awaitFundingTx(
+            statecoin.shared_key_id,
+            statecoin.getBtcAddress(this.config.network),
+            statecoin.value
+          )
+        })
+      })
     }
-    this.block_height = this.electrum_client.latestBlockHeight()
+    this.block_height = 1000
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -133,7 +147,9 @@ export class Wallet {
 
   // Save entire wallet to storage. Store in file as JSON Object.
   save() {
-    store.set('wallet', this);
+    let wallet_json = lodash.cloneDeep(this)
+    wallet_json.electrum_client = ""
+    store.set('wallet', wallet_json);
   };
 
   // Load wallet JSON from store
@@ -155,6 +171,10 @@ export class Wallet {
     store.set('wallet', {});
   };
 
+  // Set Wallet.block_height. Update initialised deposits that are awaiting confirmations
+  setBlockHeight(header_data: any) {
+    this.block_height = header_data[0].height;
+  }
 
 
   // Initialise and return Wasm object.
@@ -181,8 +201,22 @@ export class Wallet {
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
-  getUnconfirmedStatecoins() {
-    return this.statecoins.getUnconfirmedCoins()
+  // Get all INITIALISED, IN_MEMPOOL and UNCONFIRMED coins funding tx data
+  getUnconfirmedAndUnmindeCoinsFundingTxData() {
+    let coins = this.statecoins.getUnconfirmedCoins().concat(this.statecoins.getInitialisedCoins())
+    return coins.map((item: StateCoin) => item.getFundingTxInfo(this.config.network, this.block_height))
+  }
+  //  Get all INITIALISED UNCONFIRMED coins display data
+  getUnconfirmedStatecoinsDisplayData() {
+    // Check if any awaiting deposits now have sufficient confirmations and can be confirmed
+    let unconfirmed_coins = this.statecoins.getUnconfirmedCoins();
+    unconfirmed_coins.forEach((statecoin) => {
+      if (statecoin.status==STATECOIN_STATUS.UNCOMFIRMED &&
+        statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
+          this.depositConfirm(statecoin.shared_key_id)
+      }
+    })
+    return unconfirmed_coins.map((item: StateCoin) => item.getDisplayInfo(this.block_height))
   }
   // Get Backup Tx hex and receive private key
   getCoinBackupTxData(shared_key_id: string) {
@@ -194,8 +228,6 @@ export class Wallet {
     let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
     //extract receive address private key
     let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
-
-
     let bip32 = this.getBIP32forBtcAddress(addr)
 
     let priv_key = bip32.privateKey;
@@ -289,35 +321,67 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
-    log.info("Deposite Init done. Send coins to "+p_addr);
+    log.info("Deposite Init done. Waiting for coins sent to "+p_addr);
+    this.saveStateCoinsList();
+
+    // Begin task waiting for tx in mempool and update StateCoin status upon success.
+    this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
+
     this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
+  }
+
+  // Wait for tx to appear in mempool. Mark coin UNCONFIRMED when it arrives.
+  async awaitFundingTx(shared_key_id: string, p_addr: string, value: number) {
+    let p_addr_script = bitcoin.address.toOutputScript(p_addr, this.config.network)
+    log.info("Subscribed to script hash for p_addr: ", p_addr);
+    this.electrum_client.scriptHashSubscribe(p_addr_script, (_status: any) => {
+      log.info("Script hash status change for p_addr: ", p_addr);
+        // Get p_addr list_unspent and verify tx
+        this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data) => {
+          for (let i=0; i<funding_tx_data.length; i++) {
+            if (!funding_tx_data[i].height) {
+              log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
+              this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i].tx_hash)
+              this.saveStateCoinsList()
+              // Verify amount of tx
+              if (funding_tx_data[i].value!==value) {
+                log.error("Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".");
+                log.error("Setting value of statecoin to "+funding_tx_data[i].value);
+                let statecoin = this.statecoins.getCoin(shared_key_id);
+                statecoin!.value = funding_tx_data[i].value;
+              }
+            } else {
+              log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
+              // Set coin UNCOMFIRMED.
+              this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i].height)
+              this.saveStateCoinsList()
+              // No longer need subscription
+              this.electrum_client.scriptHashUnsubscribe(p_addr_script);
+            }
+          }
+        });
+    })
   }
 
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
   // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
   async depositConfirm(
-    shared_key_id: string,
-    funding_txid: string,
+    shared_key_id: string
   ): Promise<StateCoin> {
     log.info("Depositing Confirm shared_key_id: "+shared_key_id);
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin === undefined) throw Error("Coin "+shared_key_id+" does not exist.");
-    if (statecoin.status === STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" already confirmed.");
-
-    // Add funding_txid to statecoin
-    statecoin.funding_txid = funding_txid;
-
-    // Finish deposit protocol
-    let chaintip_height: number = await this.electrum_client.latestBlockHeight();
+    if (statecoin.status === STATECOIN_STATUS.AVAILABLE) throw Error("Already confirmed Coin "+shared_key_id+".");
+    if (statecoin.status === STATECOIN_STATUS.INITIALISED) throw Error("Awaiting funding transaction for StateCoin "+shared_key_id+".");
 
     let statecoin_finalized = await depositConfirm(
       this.http_client,
       await this.getWasm(),
       this.config.network,
       statecoin,
-      chaintip_height
+      this.block_height
     );
 
     // update in wallet
@@ -406,6 +470,7 @@ export class Wallet {
     rec_addr: string
   ): Promise<Transaction> {
     log.info("Withdrawing "+shared_key_id+" to "+rec_addr);
+
     // Check address format
     try { bitcoin.address.toOutputScript(rec_addr, this.config.network) }
       catch (e) { throw Error("Invalid Bitcoin address entered.") }
@@ -423,6 +488,7 @@ export class Wallet {
     this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
 
     // Broadcast transcation
+    await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
 
     log.info("Withdrawing finished.");
     this.saveStateCoinsList();
@@ -450,7 +516,7 @@ export class Wallet {
 // BIP39 mnemonic -> BIP32 Account
 const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
   if (!bip39.validateMnemonic(mnemonic)) {
-    return "Invalid mnemonic"
+    throw Error("Invalid mnemonic")
   }
   const seed = bip39.mnemonicToSeedSync(mnemonic);
   const root = bip32.fromSeed(seed, network);

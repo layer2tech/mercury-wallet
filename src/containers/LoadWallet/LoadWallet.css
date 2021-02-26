@@ -1,0 +1,54 @@
+.memory-form {
+   width: 80%;
+    margin: 0 auto;
+}
+
+.memory-form .inputs-item input {
+    position: relative;
+    opacity: 1;
+   width: 100% !important;
+    padding: 10px;
+    margin-bottom: 30px;
+    border: 1px solid #D7D7D7;
+    border-radius: 6px !important;
+}
+.memory-form .inputs-item {
+    justify-content: center;
+    width: 350px;
+    margin: 0 auto;
+}
+
+.memory-form .inputs-item p {
+    text-align: left;
+    margin-top: 20px;
+}
+.inputs-item.checkbox {
+    justify-content: start;
+}
+.inputs-item.checkbox input {
+    border-radius: 0 !important;
+    width: 22px !important;
+    position: relative;
+    top: 7px;
+}
+
+
+
+.error {
+    width: 350px;
+    margin: 0 auto;
+}
+.error p {
+    color: red;
+    text-align: left;
+}
+
+.memory-form a, .memory-form a:hover {
+    background-color: #0F54F4;
+    border: none;
+    color:#ffffff;
+    text-transform: uppercase;
+    font-size: 14px;
+    border-radius: 8px;
+    padding: 5px 30px;
+}

@@ -69,11 +69,19 @@ export const withdraw = async (
     proof_key: statecoin.proof_key,
   };
 
-  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
+  await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
+
+  // Complete confirm to get witness
+  let withdraw_msg_2 = {
+      shared_key_id: statecoin.shared_key_id,
+      address: rec_addr
+  }
+
+  let signature = await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
 
   // set witness data with signature
   let tx_backup_signed = tx_withdraw_unsigned;
-  tx_backup_signed.ins[0].witness = [Buffer.from(signature)];
+  tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]),Buffer.from(signature[1])];
 
   return tx_backup_signed
 }

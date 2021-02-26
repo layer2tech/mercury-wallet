@@ -1,0 +1,58 @@
+.wizard-form {
+    width: 80%;
+    margin: 0 auto;
+}
+
+.wizard-form .inputs-item input {
+    width: 100% !important;
+    padding: 10px;
+    margin-bottom: 30px;
+    border: 1px solid #D7D7D7;
+    border-radius: 6px !important;
+}
+
+.wizard-form .inputs-item {
+    justify-content: center;
+    width: 350px;
+    margin: 0 auto;
+}
+
+.wizard-form input {
+    opacity: 1;
+    position: relative;
+}
+
+.wizard-form .inputs-item p {
+    text-align: left;
+    margin-top: 20px;
+}
+
+.wizard-form .inputs-item.checkbox {
+    justify-content: start;
+}
+
+.wizard-form .inputs-item.checkbox input {
+    border-radius: 0 !important;
+    width: 22px !important;
+    position: relative;
+    background: none;
+    top: 7px;
+}
+
+li.go2067797667:last-child::before {
+    content: "3" !important;
+}
+
+.go2478912419::before {
+    content: "✓" !important;
+}
+
+.error {
+    width: 350px;
+    margin: 0 auto;
+}
+
+.error p {
+    color: red;
+    text-align: left;
+}

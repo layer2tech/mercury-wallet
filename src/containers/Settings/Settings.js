@@ -5,7 +5,7 @@ import {Link, withRouter} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
 import {StdButton} from "../../components";
-import {callGetConfig, callUpdateConfig, callClearSave} from '../../features/WalletDataSlice'
+import {setNotification as setNotificationMsg, callGetConfig, callUpdateConfig, callClearSave} from '../../features/WalletDataSlice'
 
 
 import './Settings.css';
@@ -64,6 +64,7 @@ const SettingsPage = (props) => {
       notifications: notifications,
       tutorials: tutorials
     })
+    dispatch(setNotificationMsg({msg:"Settings successfully updated."}))
   }
 
   const cancelButtonOnClick = () => {
@@ -90,7 +91,7 @@ const SettingsPage = (props) => {
                       Settings
                   </h2>
                   <div>
-                      <Link className="nav-link" to="/">
+                      <Link className="nav-link" to="/home">
                           <StdButton
                               label="Back"
                               className="Body-button transparent"/>
@@ -99,7 +100,7 @@ const SettingsPage = (props) => {
 
               </div>
               <div className="buttons">
-                  <Link className="nav-link" to="/">
+                  <Link className="nav-link" to="/home">
                       <StdButton
                           label="Create wallet backup"
                           className="Body-button blue"/>
@@ -111,7 +112,7 @@ const SettingsPage = (props) => {
                           className="Body-button blue"/>
                   </Link>
 
-                  <Link className="nav-link" to="/">
+                  <Link className="nav-link" to="/home">
                       <StdButton
                           label="Export activity log"
                           className="Body-button bg-transparent"/>

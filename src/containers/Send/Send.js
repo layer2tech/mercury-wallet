@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { Coins, StdButton, AddressInput } from "../../components";
 import { fromSatoshi } from '../../wallet/util'
 import { decodeSCEAddress, encodeMessage } from '../../wallet/util'
-import { callTransferSender, setError } from '../../features/WalletDataSlice'
+import { callTransferSender, setError, setNotification } from '../../features/WalletDataSlice'
 
 import './Send.css';
 
@@ -62,6 +62,7 @@ const SendStatecoinPage = () => {
         setTransferMsg3(encodeMessage(res.payload))
         setInputAddr("")
         setSelectedCoin('')
+        dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
       }
     })
   }
@@ -79,7 +80,7 @@ const SendStatecoinPage = () => {
                       Send StateCoins
                   </h2>
                   <div>
-                      <Link className="nav-link" to="/">
+                      <Link className="nav-link" to="/home">
                           <StdButton
                               label="Back"
                               className="Body-button transparent"/>

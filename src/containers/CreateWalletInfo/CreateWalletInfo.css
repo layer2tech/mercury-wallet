@@ -1,0 +1,84 @@
+h1 {
+    font-size: 34px;
+}
+
+.create-welcome-item p {
+    font-size: 14px;
+    color: #757575;
+    margin-bottom: 0;
+
+}
+
+.create-welcome {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.create-welcome-item {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    width: 49%;
+    background-color: #ffffff;
+    padding: 20px;
+    min-height: 120px;
+    margin-bottom: 20px;
+}
+.welcome-second {
+    width: 65%;
+    margin: 0 auto;
+   padding-top: 10%;
+    text-align: left;
+
+}
+
+.create-welcome-item img {
+    width: 35px;
+    margin-right: 10px;
+}
+
+.inputs-item {
+    display: flex;
+    align-items: baseline;
+
+}
+.welcome-second .inputs-item input {
+    border: 1px solid #707070;
+    background: #ffffff;
+    margin-right: 10px;
+    opacity: 1;
+    border-radius: 0 !important;
+    width: 27px !important;
+    position: relative;
+    top: 12px;
+}
+input[type='checkbox'], input[type='radio'] {
+    --active-inner: #707070;
+}
+
+.welcome-second .btns {
+    display: flex;
+    justify-content: flex-end;
+}
+.welcome-second .btns a {
+    color: #0F54F4;
+    font-size: 14px;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 6px;
+    margin-left: 20px;
+    margin-top: 30px;
+}
+.welcome-second .btns a.send {
+    background-color: #0F54F4;
+    color: #ffffff;
+    padding: 5px 10px;
+}
+
+.welcome-second .btns a.send.disabled {
+    background-color: #afc2ef;
+    color: #ffffff;
+    cursor: not-allowed;
+    pointer-events: none;
+}

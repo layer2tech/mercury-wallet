@@ -19,7 +19,7 @@ let secp256k1 = new EC('secp256k1')
 var msgpack = require("msgpack-lite");
 
 /// Temporary - fees should be calculated dynamically
-export const FEE = 1000;
+export const FEE = 300;
 
 // Verify Spase Merkle Tree proof of inclusion
 export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {
@@ -100,8 +100,53 @@ export class StateChainSig {
 
 }
 
+/// Blind Spend Token data for each Swap. (priv, pub) keypair, k and R' value for signing and verification.
+export class  BSTRequestorData {
+    #[schemars(with = "FEDef")]
+    u: FE,
+    #[schemars(with = "FEDef")]
+    v: FE,
+    #[schemars(with = "GEDef")]
+    r: GE,
+    #[schemars(with = "FEDef")]
+    e_prime: FE,
+    m: String,
+}
+impl BSTRequestorData {
+    /// Generate new BSTRequestorData with senders r_prime value and a message m
+    pub fn setup(r_prime: GE, m: &String) -> Result<Self> {
+        let (u, v, r, e_prime) = requester_calc_e_prime(r_prime, &m)?;
+        Ok(BSTRequestorData {
+            u,
+            v,
+            r,
+            e_prime,
+            m: m.to_owned(),
+        })
+    }
+
+    pub fn get_e_prime(&self) -> FE {
+        self.e_prime
+    }
+
+    /// Unblind blind spend token signature
+    pub fn unblind_signature(&self, signature: BlindedSpendSignature) -> FE {
+        requester_calc_s(signature.s_prime, self.u, self.v)
+    }
+
+    /// Create BlindedSpendToken for blinded signature
+    pub fn make_blind_spend_token(&self, s: FE) -> BlindedSpendToken {
+        BlindedSpendToken {
+            s,
+            r: self.r,
+            m: self.m.clone(),
+        }
+    }
+}
+
+
 export const getSigHash = (tx: Transaction, index: number, pk: string, amount: number, network: Network): string => {
-  let addr_p2pkh = bitcoin.payments.p2wpkh({
+  let addr_p2pkh = bitcoin.payments.p2pkh({
     pubkey: Buffer.from(pk, "hex"),
     network: network
   }).address;
@@ -113,11 +158,11 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
 
 // Backup Tx builder
 export const txBackupBuild = (network: Network, funding_txid: string, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number): TransactionBuilder => {
-  if (FEE >= value) throw Error("Not enough value to cover fee.");
+  if (FEE+withdraw_fee >= value) throw Error("Not enough value to cover fee.");
 
   let txb = new TransactionBuilder(network);
   txb.setLockTime(init_locktime);
-  txb.addInput(funding_txid, 0);
+  txb.addInput(funding_txid, 0, 0xFFFFFFFE);
   txb.addOutput(backup_receive_addr, value - FEE - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
   return txb
@@ -173,6 +218,17 @@ export const encodeSecp256k1Point = (publicKey: string): {x: string, y: string} 
 export const decodeSecp256k1Point = (point: Secp256k1Point) => {
   let p = secp256k1.curve.point(point.x, point.y);
   return p;
+}
+
+const zero_pad = (num: any) => {
+    var pad = '0000000000000000000000000000000000000000000000000000000000000000';
+    return (pad + num).slice(-pad.length);
+}
+
+// ECIES encrypt string
+export const encryptECIESt2 = (publicKey: string, data: string): Buffer => {
+  let data_arr = new Uint32Array(Buffer.from(zero_pad(data), "hex")); // JSONify to match Mercury ECIES
+  return encrypt(publicKey, Buffer.from(data_arr));
 }
 
 // ECIES encrypt string

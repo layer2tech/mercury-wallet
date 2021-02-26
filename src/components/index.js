@@ -7,6 +7,10 @@ export { default as ToggleButton } from "./buttons/toggleButton";
 
 export { default as AddressInput } from "./inputs/addressInput";
 
+export { default as DisplaySeed } from "./displaySeed/displaySeed";
+export { default as ConfirmSeed } from "./confirmSeed/confirmSeed";
+export { default as CreateWizardForm } from "./createWizardForm/createWizardForm";
+
 export { default as PanelControl } from "./panelControl/panelControl";
 export { default as PanelConnectivity } from "./panelConnectivity/panelConnectivity";
 export { default as PanelCoinsActivity } from "./panelCoinsActivity/panelCoinsActivity";

@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import { StdButton, AddressInput } from "../../components";
 
-import { callGenSeAddr, callTransferReceiver, setError } from '../../features/WalletDataSlice'
+import { callGenSeAddr, callTransferReceiver, setError, setNotification } from '../../features/WalletDataSlice'
 
 import './Receive.css';
 import '../Send/Send.css';
@@ -38,8 +38,10 @@ const ReceiveStatecoinPage = () => {
     dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
       if (res.error===undefined) {
         setTransferMsg3("")
+        dispatch(setNotification({msg:"Transfer complete!"}))
       }
     })
+
   }
 
   const copySEAddressToClipboard = () => {
@@ -55,7 +57,7 @@ const ReceiveStatecoinPage = () => {
                     Receive Statecoins
                 </h2>
                 <div>
-                    <Link className="nav-link" to="/">
+                    <Link className="nav-link" to="/home">
                         <StdButton
                             label="Back"
                             className="Body-button transparent"/>

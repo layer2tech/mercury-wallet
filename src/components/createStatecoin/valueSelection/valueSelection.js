@@ -25,21 +25,21 @@ const ValueSelectionPanel = (props) => {
               <div className="deposit-statecoins">
                   <div className="numbers">
                       <ValueSelection
+                        value={1000} selected={selected} selectValue={selectValue} />
+                      <ValueSelection
+                        value={5000} selected={selected} selectValue={selectValue} />
+                      <ValueSelection
+                        value={10000} selected={selected} selectValue={selectValue} />
+                      <ValueSelection
+                        value={50000} selected={selected} selectValue={selectValue} />
+                      <ValueSelection
+                        value={100000} selected={selected} selectValue={selectValue} />
+                      <ValueSelection
+                        value={250000} selected={selected} selectValue={selectValue} />
+                      <ValueSelection
+                        value={500000} selected={selected} selectValue={selectValue} />
+                      <ValueSelection
                         value={1000000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={5000000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={10000000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={50000000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={100000000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={250000000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={500000000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={1000000000} selected={selected} selectValue={selectValue} />
                   </div>
               </div>
           </div>

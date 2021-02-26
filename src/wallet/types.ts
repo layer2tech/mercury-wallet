@@ -4,10 +4,10 @@ let typeforce = require('typeforce');
 export const Buffer256bit = typeforce.BufferN(32);
 export const Hash160bit = typeforce.BufferN(20);
 export const Hash256bit = typeforce.BufferN(32);
-export const Number = typeforce.Number; // tslint:disable-line variable-name
+export const Number = typeforce.Number;
 export const Array = typeforce.Array;
-export const Boolean = typeforce.Boolean; // tslint:disable-line variable-name
-export const String = typeforce.String; // tslint:disable-line variable-name
+export const Boolean = typeforce.Boolean;
+export const String = typeforce.String;
 export const UInt32 = typeforce.UInt32;
 export const UInt64 = typeforce.UInt64;
 export const Null = typeforce.Null;
@@ -226,7 +226,7 @@ export const TransferMsg3 = typeforce.compile({
 export const TransferMsg4 = typeforce.compile({
   shared_key_id: String,
   statechain_id: String,
-  t2: String, // t2 = t1*o2_inv = o1*x1*o2_inv
+  t2: {secret_bytes: Buffer}, // t2 = t1*o2_inv = o1*x1*o2_inv
   statechain_sig: Object,
   o2_pub: Secp256k1Point,
   tx_backup_hex: String,

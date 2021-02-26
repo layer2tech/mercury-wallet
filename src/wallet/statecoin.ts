@@ -40,14 +40,24 @@ export class StateCoinList {
     return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
   };
 
-  getUnconfirmedCoins() {
-    let coins = this.coins.filter((item: StateCoin) => {
-      if (item.status === STATECOIN_STATUS.UNCOMFIRMED) {
+  // Return coins that are awaiting funding tx to be broadcast
+  getInitialisedCoins() {
+    return this.coins.filter((item: StateCoin) => {
+      if (item.status === STATECOIN_STATUS.INITIALISED) {
         return item
       }
       return
     })
-    return coins.map((item: StateCoin) => item.getFundingTxInfo())
+  };
+
+  // Find all coins in mempool or mined but with required_confirmations confirmations
+  getUnconfirmedCoins() {
+    return this.coins.filter((item: StateCoin) => {
+      if (item.status === STATECOIN_STATUS.UNCOMFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL) {
+        return item
+      }
+      return
+    })
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
@@ -83,6 +93,28 @@ export class StateCoinList {
     }
   }
 
+  // Funding Tx seen on network. Set coin status and funding_txid
+  setCoinInMempool(shared_key_id: string, funding_txid: string) {
+    let coin = this.getCoin(shared_key_id)
+    if (coin) {
+      coin.setInMempool()
+      coin.funding_txid = funding_txid
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+  }
+
+  // Funding Tx mined. Set coin status and block height
+  setCoinUnconfirmed(shared_key_id: string, block: number) {
+    let coin = this.getCoin(shared_key_id)
+    if (coin) {
+      coin.setUnconfirmed()
+      coin.block = block
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+  }
+
   setCoinFinalized(finalized_statecoin: StateCoin) {
     let statecoin = this.getCoin(finalized_statecoin.shared_key_id)
     // TODO: do some checks here
@@ -105,7 +137,11 @@ export class StateCoinList {
 
 // STATUS represent each stage in the lifecycle of a statecoin.
 export const STATECOIN_STATUS = {
-  // UNCOMFIRMED coins are awaiting confirmation of their funding transaction
+  // INITIALISED coins are awaiting their funding transaction to appear in the mempool
+  INITIALISED: "INITIALISED",
+  // IN_MEMPOOL funding transaction in the mempool
+  IN_MEMPOOL: "IN_MEMPOOL",
+  // UNCOMFIRMED coins are awaiting more confirmations on their funding transaction
   UNCOMFIRMED: "UNCOMFIRMED",
   // Coins are fully owned by wallet and unspent
   AVAILABLE: "AVAILABLE",
@@ -128,6 +164,7 @@ export class StateCoin {
   proof_key: string;
   value: number;
   funding_txid: string;
+  block: number;  // included in block number. 0 for unconfirmed.
   timestamp: number;
   tx_backup: BTCTransaction | null;
   tx_withdraw: BTCTransaction | null;
@@ -144,13 +181,16 @@ export class StateCoin {
     this.timestamp = new Date().getTime();
 
     this.funding_txid = "";
+    this.block = -1; // marks tx has not been mined
     this.swap_rounds = 0
     this.tx_backup = null;
     this.tx_withdraw = null;
     this.smt_proof = null;
-    this.status = STATECOIN_STATUS.UNCOMFIRMED;
+    this.status = STATECOIN_STATUS.INITIALISED;
   }
 
+  setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
+  setUnconfirmed() { this.status = STATECOIN_STATUS.UNCOMFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
@@ -169,11 +209,24 @@ export class StateCoin {
     }
   };
 
-  getFundingTxInfo() {
+  getConfirmations(block_height: number): number {
+    switch (this.status) {
+      case (STATECOIN_STATUS.INITIALISED):
+        return -1;
+      case (STATECOIN_STATUS.IN_MEMPOOL):
+        return 0;
+      default:
+        return block_height-this.block+1
+    }
+  }
+
+  getFundingTxInfo(network: Network, block_height: number) {
     return {
       shared_key_id: this.shared_key_id,
       value: this.value,
-      funding_txid: this.funding_txid
+      funding_txid: this.funding_txid,
+      p_addr: this.getBtcAddress(network),
+      confirmations: this.getConfirmations(block_height)
     }
   }
 
@@ -187,16 +240,23 @@ export class StateCoin {
   }
 
   // Calculate blocks and rough days/months until expiry
+  // If not confirmed, send confirmation data instead.
   getExpiryData(block_height: number): ExpiryData {
-    if (this.tx_backup==null) throw Error("Cannot calculate expiry - Coin is not confirmed.");
+    // If not confirmed, send confirmation data instead.
+    if (this.tx_backup==null) {
+      // Otherwise must be UNCOMFIRMED so calculate number of confs
+      return {blocks:-1, confirmations: this.getConfirmations(block_height), days:0, months:0};
+    }
+
     let blocks_to_locktime = this.tx_backup.locktime - block_height;
-    if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0};
+    if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0, confirmations: 0};
     let days_to_locktime = Math.floor(blocks_to_locktime / (6*24))
 
     return {
       blocks: blocks_to_locktime,
       days: days_to_locktime,
-      months: Math.floor(days_to_locktime/30)
+      months: Math.floor(days_to_locktime/30),
+      confirmations: 0
     }
   }
 
@@ -226,7 +286,8 @@ export interface StateCoinDisplayData {
 export interface ExpiryData {
   blocks: number,
   days: number,
-  months: number
+  months: number,
+  confirmations: number
 }
 
 

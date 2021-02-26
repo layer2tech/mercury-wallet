@@ -1,139 +1,133 @@
-.ConnectionsPanel {
-
-
-}
-
-.ConnectionStateChain {
-
-}
-
-
-.ConnectionSwaps {
-
-}
-
 .Collapse {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  padding: 5px 25px;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 5px 25px;
 }
-
 
 
 .accordion .hide {
-  transition: all .5s ease-in-out;
-  height: 0;
-  overflow:hidden;
-
-
+    transition: all .5s ease-in-out;
+    height: 0;
+    overflow: hidden;
 }
+
 .accordion .show {
-  transition: all .5s ease-in-out;
-  height: 8em;
-  overflow: auto;
-  padding: 30px 10px;
-
+    transition: all .5s ease-in-out;
+    height: 8em;
+    overflow: auto;
+    padding: 30px 10px;
 }
 
-.image  {
-  cursor: pointer;
+.image {
+    cursor: pointer;
 }
+
 .image.rotate img {
     transform: rotate(180deg);
-   transition: all .5s ease-in-out;
-}
-label {
-display: block;
-position: relative;
-padding-left: 25px;
-cursor: pointer;
-font-size: 14px;
-color: #666666;
--webkit-user-select: none;
--moz-user-select: none;
--ms-user-select: none;
-user-select: none;
-}
-input {
-position: absolute;
-opacity: 0;
-cursor: pointer;
-}
-.checkmark {
-position: absolute;
-top: 4px;
-left: 0;
-height: 15px;
-width: 15px;
-background-color: #ffffff;
-border: 2px solid #388E3C;
-border-radius: 50%;
+    transition: all .5s ease-in-out;
 }
 
+label {
+    display: block;
+    position: relative;
+    padding-left: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666666;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.ConnectionStateChain input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.checkmark {
+    position: absolute;
+    top: 4px;
+    left: 0;
+    height: 15px;
+    width: 15px;
+    background-color: #ffffff;
+    border: 2px solid #388E3C;
+    border-radius: 50%;
+}
 
 
 /* Create the indicator (the dot/circle - hidden when not checked) */
 .checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
+    content: "";
+    position: absolute;
+    display: none;
 }
-input:checked ~ .checkmark:after {
-  display: block;
+
+.ConnectionStateChain input:checked ~ .checkmark:after {
+    display: block;
 }
+
 .checkmark:after {
-  top: 1.5px;
-  left: 2.1px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #388E3C;
+    top: 1.5px;
+    left: 2.1px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #388E3C;
 }
 
 .collapse-content {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
 }
 
 .collapse-content-item {
-  display: flex;
-  flex-direction: column;
-  align-items: baseline;
-  font-size: 16px;
-  color: #666666;
-  width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+    font-size: 16px;
+    color: #666666;
+    width: 50%;
 }
 
 .collapse-content-item .txt {
-  margin-right: 20px;
-  font-size: 16px;
-  color: #666666;
+    margin-right: 20px;
+    font-size: 16px;
+    color: #666666;
 }
-.collapse-content-item .txt b {
-  color: #000000;
-}
-@media only screen and (max-width: 768px)  {
-  .Collapse {
-    flex-wrap: wrap;
-  }
-  .collapse-content {
-    display: block;
-  }
-  .collapse-content .collapse-content-item {
-    display: block;
-    margin-left: 0;
-    text-align: center;
-    width: 100%;
-    margin-bottom: 20px;
-  }
-  .collapse-content .collapse-content-item .txt {
-    display: block;
 
-  }
-  .accordion .show {
-    height: 13em;
-    padding: 0;
-  }
+.collapse-content-item .txt b {
+    color: #000000;
+}
+
+@media only screen and (max-width: 768px) {
+    .Collapse {
+        flex-wrap: wrap;
+    }
+
+    .collapse-content {
+        display: block;
+    }
+
+    .collapse-content .collapse-content-item {
+        display: block;
+        margin-left: 0;
+        text-align: center;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .collapse-content .collapse-content-item .txt {
+        display: block;
+
+    }
+
+    .accordion .show {
+        height: 13em;
+        padding: 0;
+    }
 }
