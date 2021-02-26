@@ -112,12 +112,12 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
 }
 
 // Backup Tx builder
-export const txBackupBuild = (network: Network, funding_txid: string, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number): TransactionBuilder => {
+export const txBackupBuild = (network: Network, funding_txid: string, funding_vout: number, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number): TransactionBuilder => {
   if (FEE+withdraw_fee >= value) throw Error("Not enough value to cover fee.");
 
   let txb = new TransactionBuilder(network);
   txb.setLockTime(init_locktime);
-  txb.addInput(funding_txid, 0, 0xFFFFFFFE);
+  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFE);
   txb.addOutput(backup_receive_addr, value - FEE - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
   return txb
@@ -126,11 +126,12 @@ export const txBackupBuild = (network: Network, funding_txid: string, backup_rec
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-export const txWithdrawBuild = (network: Network, funding_txid: string, rec_address: string, value: number, fee_address: string, withdraw_fee: number): TransactionBuilder => {
+export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number): TransactionBuilder => {
   if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
 
   let txb = new TransactionBuilder(network);
-  txb.addInput(funding_txid, 0);
+
+  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF);
   txb.addOutput(rec_address, value - FEE - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
   return txb

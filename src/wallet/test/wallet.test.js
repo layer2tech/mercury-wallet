@@ -28,7 +28,7 @@ describe('Wallet', function() {
     let num_coins_before = wallet.statecoins.coins.length;
 
     // new coin
-    wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+    wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
     wallet.saveStateCoinsList();
 
     let loaded_wallet = await Wallet.load(true);
@@ -79,7 +79,7 @@ describe('Wallet', function() {
   test('addStatecoin', function() {
     let [coins_before_add, total_before] = wallet.getUnspentStatecoins()
     let activity_log_before_add = wallet.getActivityLog(100)
-    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
     let [coins_after_add, total_after] = wallet.getUnspentStatecoins()
     let activity_log_after_add = wallet.getActivityLog(100)
     expect(coins_before_add.length).toEqual(coins_after_add.length - 1)
@@ -114,6 +114,7 @@ describe("Statecoins/Coin", () => {
             shared_key_id: expect.any(String),
             value: expect.any(Number),
             funding_txid: expect.any(String),
+            funding_vout: expect.any(Number),
             timestamp: expect.any(Number),
             swap_rounds: expect.any(Number),
           }))
