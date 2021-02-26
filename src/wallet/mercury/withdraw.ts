@@ -47,6 +47,7 @@ export const withdraw = async (
   let txb_withdraw_unsigned = txWithdrawBuild(
     network,
     statecoin.funding_txid,
+    statecoin.funding_vout,
     rec_addr,
     statecoin.value,
     fee_info.address,

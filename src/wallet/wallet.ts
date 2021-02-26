@@ -108,8 +108,8 @@ export class Wallet {
     let proof_key2 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
     let uuid1 = uuidv4();
     let uuid2 = uuidv4();
-    wallet.addStatecoinFromValues(uuid1, dummy_master_key, 10000, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", proof_key1, ACTION.DEPOSIT)
-    wallet.addStatecoinFromValues(uuid2, dummy_master_key, 20000, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", proof_key2, ACTION.DEPOSIT)
+    wallet.addStatecoinFromValues(uuid1, dummy_master_key, 10000, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, proof_key1, ACTION.DEPOSIT)
+    wallet.addStatecoinFromValues(uuid2, dummy_master_key, 20000, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", 0, proof_key2, ACTION.DEPOSIT)
     wallet.activity.addItem(uuid2, ACTION.TRANSFER);
     return wallet
   }
@@ -255,11 +255,12 @@ export class Wallet {
     this.activity.addItem(statecoin.shared_key_id, action);
     log.debug("Added Statecoin: "+statecoin.shared_key_id);
   }
-  addStatecoinFromValues(id: string, shared_key: MasterKey2, value: number, txid: string, proof_key: string, action: string) {
+  addStatecoinFromValues(id: string, shared_key: MasterKey2, value: number, txid: string, vout: number, proof_key: string, action: string) {
     let statecoin = new StateCoin(id, shared_key);
     statecoin.proof_key = proof_key;
     statecoin.value = value;
     statecoin.funding_txid = txid;
+    statecoin.funding_vout = vout;
     statecoin.tx_backup = new Transaction();
     statecoin.setConfirmed();
     this.statecoins.addCoin(statecoin)
@@ -338,8 +339,8 @@ export class Wallet {
         this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data) => {
           for (let i=0; i<funding_tx_data.length; i++) {
             if (!funding_tx_data[i].height) {
-              log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
-              this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i].tx_hash)
+              log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash+" n: "+funding_tx_data[i].tx_pos)
+              this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i].tx_hash, funding_tx_data[i].tx_pos)
               this.saveStateCoinsList()
               // Verify amount of tx
               if (funding_tx_data[i].value!==value) {
@@ -501,6 +502,7 @@ export class Wallet {
       shared_key_id: "h46w1ueui-438c-87dc-d06054277a5d",
       statechain_id: statechain_id,
       funding_txid: "4aac3d840fbad3cf76843a5d74e2e118b822772c020fe0d3d0f3d73c0662c9be",
+      funding_vout: 0,
       backuptx: "40fbad3cef62c93c06e118b8f62c9b74e276843a5d0f22772c024aac3d8e0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
       proof_key: "43030ed1524b9660afb44a7ed876aa15c2983ee7dcf5dc7aec2aeffee49cd9b243db99ea404418727260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
       swap_rounds: swap_rounds + 10,
