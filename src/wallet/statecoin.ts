@@ -232,7 +232,6 @@ export class StateCoin {
   }
 
   getFundingTxInfo(network: Network, block_height: number) {
-    console.log("block_height: ", block_height)
     return {
       shared_key_id: this.shared_key_id,
       value: this.value,

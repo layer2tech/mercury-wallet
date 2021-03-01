@@ -24,9 +24,9 @@ const App = () => {
         <Route path="/restore_wallet" exact component={() => <RestoreWalletPage />} />
         <Route path="/home" exact component={() => <HomePage />} />
         <Route path="/home/load" exact component={() =>
-          <HomePage loadWallet={true} setWalletLoaded={setWalletLoaded}/>} />
+          <HomePage loadWallet={true} walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded}/>} />
         <Route path="/home/mnemonic/:mnemonic" component={() =>
-          <HomePage createWallet={true} setWalletLoaded={setWalletLoaded}/>} />
+          <HomePage createWallet={true} walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded}/>} />
         <Route path="/settings" exact component={() => <SettingsPage />} />
         <Route path="/help" exact component={() => <HelpPage walletLoaded={walletLoaded}/>} />
         <Route path="/deposit" exact component={() => <DepositPage />} />

@@ -63,7 +63,7 @@ export class Wallet {
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
       this.electrum_client = new ElectrumClient(this.config.electrum_config);
     }
-    this.block_height = 1000
+    this.block_height = 0
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.

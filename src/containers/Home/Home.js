@@ -24,16 +24,16 @@ const HomePage = (props) => {
   }
 
   const { mnemonic } = useParams(); // get mnemonic from url
-  if (props.loadWallet) {
+  if (props.loadWallet && !props.walletLoaded) {
     // load wallet into Redux
     walletLoad();
     props.setWalletLoaded(true);
-  } else if (props.createWallet){
+  } else if (props.createWallet && !props.walletLoaded){
+    // Create new wallet form mnemonic
     walletFromMnemonic(mnemonic);
     props.setWalletLoaded(true);
   }
   initWalletInRedux()
-
 
   return (
     <div className="container home-page">
