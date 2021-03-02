@@ -7,8 +7,9 @@ import {useDispatch} from 'react-redux'
 import {StdButton} from "../../components";
 import {setNotification as setNotificationMsg, callGetConfig, callUpdateConfig, callClearSave} from '../../features/WalletDataSlice'
 
-
 import './Settings.css';
+
+const { app } = window.require('electron').remote
 
 const SettingsPage = (props) => {
   const current_config = callGetConfig();
@@ -80,6 +81,8 @@ const SettingsPage = (props) => {
   const dispatch = useDispatch();
   const clearWalletButtonOnClick = () => {
     dispatch(callClearSave())
+    app.relaunch();
+    app.exit(0);
   }
 
   return (
