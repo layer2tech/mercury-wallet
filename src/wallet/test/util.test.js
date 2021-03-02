@@ -2,7 +2,7 @@ import { TransactionBuilder, crypto, networks, ECPair } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, txBackupBuild, txWithdrawBuild, StateChainSig, toSatoshi, fromSatoshi,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point, encryptECIES, decryptECIES } from '../util';
-import { FUNDING_TXID, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY } from './test_data.js'
+import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY } from './test_data.js'
 import { Wallet } from '../';
 
 import { encrypt, decrypt, PrivateKey } from 'eciesjs'
@@ -33,18 +33,19 @@ describe('signStateChain', function() {
 
 describe('txBackupBuild', function() {
     let funding_txid = FUNDING_TXID;
+    let funding_vout = FUNDING_VOUT;
     let backup_receive_addr = BTC_ADDR
     let value = 10000;
     let locktime = 100;
 
   test('txBackupBuild throw on value < fee', async function() {
     expect(() => {  // not enough value
-      txBackupBuild(network, funding_txid, backup_receive_addr, 100, backup_receive_addr, 100, locktime);
+      txBackupBuild(network, funding_txid, funding_vout, backup_receive_addr, 100, backup_receive_addr, 100, locktime);
     }).toThrowError('Not enough value to cover fee.');
   });
 
   test('Check built tx correct', async function() {
-    let tx_backup = txBackupBuild(network, funding_txid, backup_receive_addr, value, backup_receive_addr, 100, locktime).buildIncomplete();
+    let tx_backup = txBackupBuild(network, funding_txid, funding_vout, backup_receive_addr, value, backup_receive_addr, 100, locktime).buildIncomplete();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
     expect(tx_backup.outs.length).toBe(2);
@@ -55,21 +56,22 @@ describe('txBackupBuild', function() {
 
 describe('txWithdrawBuild', function() {
   let funding_txid = FUNDING_TXID;
+  let funding_vout = FUNDING_VOUT;
   let rec_address = BTC_ADDR
   let value = 10000;
   let fee_info = FEE_INFO
 
   test('Throw on invalid value', async function() {
     expect(() => {  // not enough value
-      txWithdrawBuild(network, funding_txid, rec_address, 0, fee_info.address, Number(fee_info.withdraw));
+      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 0, fee_info.address, Number(fee_info.withdraw));
     }).toThrowError('Not enough value to cover fee.');
     expect(() => {  // not enough value
-      txWithdrawBuild(network, funding_txid, rec_address, 100, fee_info.address, Number(fee_info.withdraw)); // should be atleast + value of network FEE also
+      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 100, fee_info.address, Number(fee_info.withdraw)); // should be atleast + value of network FEE also
     }).toThrowError('Not enough value to cover fee.');
   });
 
   test('Check built tx correct', async function() {
-    let tx_backup = txWithdrawBuild(network, funding_txid, rec_address, value, rec_address, Number(fee_info.withdraw)).buildIncomplete();
+    let tx_backup = txWithdrawBuild(network, funding_txid, funding_vout, rec_address, value, rec_address, Number(fee_info.withdraw)).buildIncomplete();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
     expect(tx_backup.outs.length).toBe(2);

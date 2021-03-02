@@ -1,5 +1,6 @@
 // Misc useful values for testing
 export const FUNDING_TXID = "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce";
+export const FUNDING_VOUT = 0;
 export const STATECHAIN_ID = "56ee06ea-88b4-415d-b1e9-62b308889d29";
 export const SHARED_KEY_ID = "861d2223-7d84-44f1-ba3e-4cd7dd418560";
 export const BTC_ADDR = "tb1q6xwt00hnwcrtlunvnz8u0xrtdxv5ztx7pj44cp";
