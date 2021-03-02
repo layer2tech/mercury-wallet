@@ -184,8 +184,7 @@ const WalletSlice = createSlice({
     callClearSave(state) {
       wallet.clearSave()
       return {
-        ...state,
-        error_dialogue: {seen: false, msg: "Wallet data removed. Please restart."}
+        ...state
       }
     }
   },

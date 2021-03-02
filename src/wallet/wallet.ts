@@ -225,8 +225,6 @@ export class Wallet {
   }
   // Get all INITIALISED, IN_MEMPOOL and UNCONFIRMED coins funding tx data
   getUnconfirmedAndUnmindeCoinsFundingTxData() {
-    console.log("getting unconfed coins.")
-    console.log("this.block_height: ", this.block_height)
     let unconfirmed_coins = this.statecoins.getUnconfirmedCoins()
     this.checkUnconfirmedCoinsStatus(unconfirmed_coins)
     let coins = unconfirmed_coins.concat(this.statecoins.getInitialisedCoins())
@@ -366,17 +364,17 @@ export class Wallet {
   async checkFundingTxListUnspent(shared_key_id: string, p_addr: string, p_addr_script: string, value: number) {
     this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data) => {
       for (let i=0; i<funding_tx_data.length; i++) {
+        // Verify amount of tx
+        if (funding_tx_data[i].value!==value) {
+          log.error("Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".");
+          log.error("Setting value of statecoin to "+funding_tx_data[i].value);
+          let statecoin = this.statecoins.getCoin(shared_key_id);
+          statecoin!.value = funding_tx_data[i].value;
+        }
         if (!funding_tx_data[i].height) {
           log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
           this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i].tx_hash)
           this.saveStateCoinsList()
-          // Verify amount of tx
-          if (funding_tx_data[i].value!==value) {
-            log.error("Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".");
-            log.error("Setting value of statecoin to "+funding_tx_data[i].value);
-            let statecoin = this.statecoins.getCoin(shared_key_id);
-            statecoin!.value = funding_tx_data[i].value;
-          }
         } else {
           log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
           // Set coin UNCOMFIRMED.

@@ -37,10 +37,12 @@ const TransactionsBTC = (props) => {
   // Re-fetch every 10 seconds and update state to refresh render
   useEffect(() => {
     const interval = setInterval(() => {
-      deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
-      console.log("deposit_inits: ", deposit_inits)
-      setState({}) //update state to refresh TransactionDisplay render
-    }, 5000);
+      let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
+      if (JSON.stringify(deposit_inits)!==JSON.stringify(new_deposit_inits)) {
+        deposit_inits = new_deposit_inits
+        setState({}) //update state to refresh TransactionDisplay render
+      }
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 

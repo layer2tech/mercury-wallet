@@ -71,14 +71,23 @@ const Coins = (props) => {
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
     useEffect(() => {
-      let unconfirmed_coins = all_coins_data.find((item) =>
-        item.status==STATECOIN_STATUS.UNCONFIRMED || item.status==STATECOIN_STATUS.IN_MEMPOOL)
-      if (unconfirmed_coins!=undefined) {
+      if (unconfired_coins_data!=undefined) {
         const interval = setInterval(() => {
-          unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
-          all_coins_data = coins_data.concat(unconfired_coins_data)
-          setState({}) //update state to refresh TransactionDisplay render
-        }, 5000);
+          let new_unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+          // check for change in length of unconfirmed coins list and total number
+          // of confirmations in unconfirmed coins list
+          if (
+            unconfired_coins_data.length != new_unconfired_coins_data.length
+              ||
+            unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
+              !==
+            new_unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
+          ) {
+            unconfired_coins_data = new_unconfired_coins_data
+            all_coins_data = coins_data.concat(unconfired_coins_data)
+            setState({}) //update state to refresh TransactionDisplay render
+          }
+        }, 10000);
         return () => clearInterval(interval);
       }
     }, []);
