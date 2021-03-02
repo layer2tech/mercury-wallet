@@ -136,6 +136,20 @@ export class Wallet {
     store.set('wallet', wallet_json);
   };
 
+  // Update coins list in storage. Store in file as JSON string.
+  saveStateCoinsList() {
+    store.set('wallet.statecoins', this.statecoins);
+    store.set('wallet.activity', this.activity);
+  };
+  // Update account in storage. Store in file as JSON string.
+  saveKeyStore() {
+    store.set('wallet.account', this.account);
+  };
+  // Clear storage.
+  clearSave() {
+    store.set('wallet', {});
+  };
+
   // Load wallet JSON from store
   static load(testing_mode: boolean) {
     // Fetch raw wallet string
@@ -173,16 +187,6 @@ export class Wallet {
     })
   }
 
-  // Update coins list in storage. Store in file as JSON string.
-  saveStateCoinsList() {
-    store.set('wallet.statecoins', this.statecoins);
-    store.set('wallet.activity', this.activity);
-  };
-
-  // Clear storage.
-  clearSave() {
-    store.set('wallet', {});
-  };
 
   // Set Wallet.block_height
   setBlockHeight(header_data: any) {
@@ -299,6 +303,7 @@ export class Wallet {
   // New BTC address
   genBtcAddress(): string {
     let addr = this.account.nextChainAddress(0);
+    this.saveKeyStore()
     log.debug("Gen BTC address: "+addr);
     return addr
   }
@@ -309,6 +314,7 @@ export class Wallet {
   // New Proof Key
   genProofKey(): BIP32Interface {
     let addr = this.account.nextChainAddress(0);
+    this.saveKeyStore()
     let proof_key = this.account.derive(addr);
     log.debug("Gen proof key. Address: "+addr+". Proof key: "+proof_key.publicKey.toString("hex"));
     return proof_key
@@ -341,12 +347,11 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
-    log.info("Deposite Init done. Waiting for coins sent to "+p_addr);
-    this.saveStateCoinsList();
 
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 
+    log.info("Deposite Init done. Waiting for coins sent to "+p_addr);
     this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
   }
