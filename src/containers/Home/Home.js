@@ -30,7 +30,7 @@ const HomePage = (props) => {
     props.setWalletLoaded(true);
   } else if (props.createWallet && !props.walletLoaded){
     // Create new wallet form mnemonic
-    walletFromMnemonic(mnemonic);
+    walletFromMnemonic("name", mnemonic);
     props.setWalletLoaded(true);
   }
   initWalletInRedux()
