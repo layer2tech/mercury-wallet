@@ -22,13 +22,10 @@ let lodash = require('lodash');
 // Node friendly importing required for Jest tests.
 declare const window: any;
 let log: any;
-let Store: any;
 try {
   log = window.require('electron-log');
-  Store = window.require('electron-store');
 } catch (e) {
   log = require('electron-log');
-  Store = require('electron-store');
 }
 
 
@@ -156,10 +153,10 @@ export class Wallet {
 
   // Load wallet JSON from store
   static load(wallet_name: string, testing_mode: boolean) {
-    let store = new Store();
+    let store = new Storage();
     // Fetch raw wallet string
-    let wallet_json = store.get('wallets.'+wallet_name)
-    if (wallet_json==undefined) throw Error("No wallet stored.")
+    let wallet_json = store.getWallet('wallets.'+wallet_name)
+    if (wallet_json==undefined) throw Error("No wallet called "+wallet_name+" stored.")
     return Wallet.fromJSON(wallet_json, testing_mode)
   }
 

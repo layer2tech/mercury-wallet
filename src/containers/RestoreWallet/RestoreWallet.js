@@ -18,7 +18,7 @@ const RestoreWalletPage = () => {
 
   // If wallet saved warn of overwriting data
   const checkWalletStored = () => {
-    if (Object.keys(store.get('wallet')).length) {
+    if (Object.keys(store.get('wallets')).length) {
       return true
     }
     return false
@@ -30,7 +30,6 @@ const RestoreWalletPage = () => {
 
   const onMnemonicChange = (event) => {
     setMnemonic(event.target.value)
-    console.log("mnemonic: ", mnemonic)
   }
 
   // Confirm mnemonic is valid

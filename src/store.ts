@@ -29,8 +29,28 @@ export class Storage {
     this.store = new Store();
   }
 
+  // Login info storage
+  storeNewLogin(wallet_name: string, password: string) {
+    this.store.set('logins.'+wallet_name, password)
+  }
+
+  // Check password for a wallet
+  checkLogin(wallet_name: string, pw_attempt: string) {
+    let pw = this.store.get('logins.'+wallet_name, pw_attempt)
+    if (pw==undefined) throw Error("Wallet "+wallet_name+" does not exist.")
+    if (pw==pw_attempt) return true;
+    return false
+  }
+
+
+
+  // Wallet storage
   storeWallet(wallet_json: any) {
     this.store.set('wallets.'+wallet_json.name, wallet_json);
+  }
+
+  getWallet(wallet_name: string) {
+    this.store.get('wallets.'+wallet_name)
   }
 
   storeWalletStateCoinsList(wallet_name: string, statecoins: StateCoinList, activity: ActivityLog) {
