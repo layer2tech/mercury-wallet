@@ -16,12 +16,14 @@ const CreateWizardPage = () => {
   const [wizardState, setWizardState] = useState(
     {
       wallet_name: "",
+      wallet_password: "",
       mnemonic: mnemonic,
     });
   const setStateWalletName = (event) => setWizardState({...wizardState, wallet_name: event.target.value});
+  const setStateWalletPassword = (pw) => setWizardState({...wizardState, wallet_password: pw});
 
   const steps = [
-    {component: <CreateWizardForm wizardState={wizardState} setStateWalletName={setStateWalletName}/>},
+    {component: <CreateWizardForm wizardState={wizardState} setStateWalletName={setStateWalletName} setStateWalletPassword={setStateWalletPassword}/>},
     {component: <DisplaySeed wizardState={wizardState}/>},
     {component: <ConfirmSeed wizardState={wizardState}/>}
   ];

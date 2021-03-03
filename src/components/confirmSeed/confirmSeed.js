@@ -42,18 +42,18 @@ const ConfirmSeed = (props) => {
     }
   }
 
-    return (
-        <div className="wizard-form-confirm">
-            <p>Click below or type in the missing words to confirm your seed key.</p>
+  return (
+      <div className="wizard-form-confirm">
+          <p>Click below or type in the missing words to confirm your seed key.</p>
 
-            <form>
-                {inputs}
-            </form>
-            <Link to={"/home/mnemonic/"+JSON.stringify(props.wizardState)} onClick={onClickConf} className="confirm">
-                Confirm
-            </Link>
-        </div>
-    )
+          <form>
+              {inputs}
+          </form>
+          <Link to={"/home/mnemonic/"+JSON.stringify(props.wizardState)} onClick={onClickConf} className="confirm">
+              Confirm
+          </Link>
+      </div>
+  )
 }
 
 export default ConfirmSeed;

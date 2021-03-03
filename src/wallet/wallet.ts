@@ -155,7 +155,7 @@ export class Wallet {
   static load(wallet_name: string, testing_mode: boolean) {
     let store = new Storage();
     // Fetch raw wallet string
-    let wallet_json = store.getWallet('wallets.'+wallet_name)
+    let wallet_json = store.getWallet(wallet_name)
     if (wallet_json==undefined) throw Error("No wallet called "+wallet_name+" stored.")
     return Wallet.fromJSON(wallet_json, testing_mode)
   }

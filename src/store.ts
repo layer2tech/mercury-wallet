@@ -29,6 +29,10 @@ export class Storage {
     this.store = new Store();
   }
 
+  getWalletNames() {
+    return Object.keys(this.store.get('wallets'))
+  }
+
   // Login info storage
   storeNewLogin(wallet_name: string, password: string) {
     this.store.set('logins.'+wallet_name, password)
@@ -50,7 +54,7 @@ export class Storage {
   }
 
   getWallet(wallet_name: string) {
-    this.store.get('wallets.'+wallet_name)
+    return this.store.get('wallets.'+wallet_name)
   }
 
   storeWalletStateCoinsList(wallet_name: string, statecoins: StateCoinList, activity: ActivityLog) {
