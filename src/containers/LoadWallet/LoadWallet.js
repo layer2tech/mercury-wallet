@@ -15,7 +15,7 @@ let wallet_name_password_map = store.getWalletNamePasswordMap()
 const LoadWalletPage = () => {
   const dispatch = useDispatch();
 
-  const [selected, setSelected] = useState(wallet_name_password_map[0].name)
+  const [selected, setSelected] = useState(wallet_name_password_map.length ? wallet_name_password_map[0].name : "")
   const onSelectedChange = (event) => {
     setSelected(event.target.value)
   }

@@ -11,6 +11,7 @@ import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinaliz
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
+import { encodeSCEAddress } from './util';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -43,6 +44,7 @@ export class Wallet {
   http_client: HttpClient | MockHttpClient;
   electrum_client: ElectrumClient | MockElectrumClient;
   block_height: number;
+  current_sce_addr: string;
 
   storage: Storage
 
@@ -65,6 +67,7 @@ export class Wallet {
       this.electrum_client = new ElectrumClient(this.config.electrum_config);
     }
     this.block_height = 0
+    this.current_sce_addr = "";
 
     this.storage = new Storage()
   }
@@ -197,6 +200,13 @@ export class Wallet {
     this.block_height = header_data[0].height;
   }
 
+  genSEAddress() {
+    return encodeSCEAddress(this.genProofKey().publicKey.toString('hex'));
+  }
+  // Gen new SCEAddress and set in this.current_sce_addr
+  newSEAddress() {
+    this.current_sce_addr = this.genSEAddress()
+  }
 
   // Initialise and return Wasm object.
   // Wasm contains all wallet Rust functionality.
@@ -219,6 +229,7 @@ export class Wallet {
   // Getters
   getMnemonic(): string { return this.mnemonic }
   getBlockHeight(): number { return this.block_height }
+  getSEAddress(): string { return this.current_sce_addr }
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }

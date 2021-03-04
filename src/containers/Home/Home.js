@@ -2,7 +2,7 @@ import React from 'react';
 import { withRouter, useParams } from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux'
 
-import { walletLoad, walletFromMnemonic, callGetUnspentStatecoins, updateBalanceInfo, updateFeeInfo, callGetFeeInfo, callGenSeAddr } from '../../features/WalletDataSlice'
+import { walletLoad, walletFromMnemonic, callGetUnspentStatecoins, updateBalanceInfo, updateFeeInfo, callGetFeeInfo, callNewSeAddr } from '../../features/WalletDataSlice'
 import { PanelControl, PanelConnectivity, PanelCoinsActivity } from '../../components'
 
 // Home page is the main page from which a user can view and use their Wallet.
@@ -19,23 +19,25 @@ const HomePage = (props) => {
     const fee_info = callGetFeeInfo().then((fee_info) => {
       dispatch(updateFeeInfo(fee_info));
     })
-    // Gen se address
-    dispatch(callGenSeAddr());
+    callNewSeAddr()
   }
 
-  let { wallet_setup } = useParams(); // get wallet_name and mnemonic from url
-  if (props.loadWallet && !props.walletLoaded) {
-    wallet_setup = JSON.parse(wallet_setup)
-    // load wallet into Redux
-    walletLoad(wallet_setup.wallet_name);
-    props.setWalletLoaded(true);
-  } else if (props.createWallet && !props.walletLoaded){
-    wallet_setup = JSON.parse(wallet_setup)
-    // Create new wallet form mnemonic
-    walletFromMnemonic(wallet_setup.wallet_name, wallet_setup.wallet_password, wallet_setup.mnemonic);
-    props.setWalletLoaded(true);
+  // Load or create wallet if come from Welcome screens
+  let { wallet_setup } = useParams(); // get wallet_name, password and mnemonic from url
+  if (!props.walletLoaded) {
+    if (props.loadWallet) {
+      wallet_setup = JSON.parse(wallet_setup)
+      // load wallet into Redux
+      walletLoad(wallet_setup.wallet_name);
+      props.setWalletLoaded(true);
+    } else if (props.createWallet){
+      wallet_setup = JSON.parse(wallet_setup)
+      // Create new wallet form mnemonic
+      walletFromMnemonic(wallet_setup.wallet_name, wallet_setup.wallet_password, wallet_setup.mnemonic);
+      props.setWalletLoaded(true);
+    }
+    initWalletInRedux()
   }
-  initWalletInRedux()
 
   return (
     <div className="container home-page">
