@@ -18,7 +18,6 @@ const initialState = {
   connected: false,
   balance_info: {total_balance: null, num_coins: null},
   fee_info: {deposit: "NA", withdraw: "NA"},
-  rec_se_addr: null,
 }
 
 // Quick check for expiring coins. If so display error dialogue
@@ -60,7 +59,7 @@ export const callGetVersion = () => {
   return wallet.version
 }
 export const callGetBlockHeight = () => {
-  return wallet.block_height
+  return wallet.getBlockHeight()
 }
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
@@ -79,6 +78,13 @@ export const callGetFeeInfo = () => {
 }
 export const callGetCoinBackupTxData = (shared_key_id) => {
   return wallet.getCoinBackupTxData(shared_key_id)
+}
+export const callGetSeAddr = (state) => {
+  return wallet.getSEAddress()
+}
+// Gen new SE Address
+export const callNewSeAddr = (state) => {
+  return wallet.newSEAddress()
 }
 
 // Update config with JSON of field to change
@@ -138,13 +144,6 @@ const WalletSlice = createSlice({
       return {
         ...state,
         fee_info: action.payload
-      }
-    },
-    // Gen new SE Address
-    callGenSeAddr(state) {
-      return {
-        ...state,
-        rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'))
       }
     },
     // Deposit
