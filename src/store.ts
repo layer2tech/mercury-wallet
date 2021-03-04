@@ -29,8 +29,10 @@ export class Storage {
     this.store = new Store();
   }
 
-  getWalletNames() {
-    return Object.keys(this.store.get('wallets'))
+  // return map of wallet names->passwords
+  getWalletNamePasswordMap() {
+    let wallets = this.store.get('wallets')
+    return Object.keys(wallets).map((name: string) => ({name: name, password: wallets[name].password}))
   }
 
   // Login info storage

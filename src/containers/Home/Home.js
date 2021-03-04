@@ -24,14 +24,15 @@ const HomePage = (props) => {
   }
 
   let { wallet_setup } = useParams(); // get wallet_name and mnemonic from url
-  wallet_setup = JSON.parse(wallet_setup)
   if (props.loadWallet && !props.walletLoaded) {
+    wallet_setup = JSON.parse(wallet_setup)
     // load wallet into Redux
     walletLoad(wallet_setup.wallet_name);
     props.setWalletLoaded(true);
   } else if (props.createWallet && !props.walletLoaded){
+    wallet_setup = JSON.parse(wallet_setup)
     // Create new wallet form mnemonic
-    walletFromMnemonic(wallet_setup.wallet_name, wallet_setup.mnemonic);
+    walletFromMnemonic(wallet_setup.wallet_name, wallet_setup.wallet_password, wallet_setup.mnemonic);
     props.setWalletLoaded(true);
   }
   initWalletInRedux()

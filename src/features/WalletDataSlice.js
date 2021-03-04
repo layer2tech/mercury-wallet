@@ -44,9 +44,9 @@ export const walletLoad = (wallet_name) => {
   wallet.initElectrumClient(setBlockHeightCallBack)
   checkForExpiringCoins();
 }
-export const walletFromMnemonic = (wallet_name, mnemonic) => {
+export const walletFromMnemonic = (wallet_name, password, mnemonic) => {
   log.info("Wallet "+wallet_name+" created from mnemonic: ", mnemonic)
-  wallet = Wallet.fromMnemonic(wallet_name, mnemonic, bitcoin.networks.testnet, false);
+  wallet = Wallet.fromMnemonic(wallet_name, password, mnemonic, bitcoin.networks.testnet, false);
   wallet.initElectrumClient(setBlockHeightCallBack)
   wallet.save()
   checkForExpiringCoins();

@@ -20,7 +20,7 @@ const CreateWizardPage = () => {
       mnemonic: mnemonic,
     });
   const setStateWalletName = (event) => setWizardState({...wizardState, wallet_name: event.target.value});
-  const setStateWalletPassword = (pw) => setWizardState({...wizardState, wallet_password: pw});
+  const setStateWalletPassword = (event) => setWizardState({...wizardState, wallet_password: event.target.value});
 
   const steps = [
     {component: <CreateWizardForm wizardState={wizardState} setStateWalletName={setStateWalletName} setStateWalletPassword={setStateWalletPassword}/>},

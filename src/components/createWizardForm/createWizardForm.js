@@ -24,6 +24,7 @@ const CreateWizardForm = (props) => {
                 <div className="inputs-item">
                   <input id="Passphrase" type="password" name="password" required
                     placeholder="Passphrase (min 8 characters)"
+                    onChange={props.setStateWalletPassword}
                     ref={register({
                        minLength: {
                            value: 8,

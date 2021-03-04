@@ -3,7 +3,7 @@ import {Link} from "react-router-dom";
 import { useDispatch } from 'react-redux'
 
 import {Wallet} from "../../wallet";
-import {setError } from '../../features/WalletDataSlice'
+import {setError} from '../../features/WalletDataSlice'
 
 import './confirmSeed.css'
 

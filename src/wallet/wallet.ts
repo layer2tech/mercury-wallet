@@ -32,6 +32,7 @@ try {
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
+  password: string;
   config: Config;
   version: string;
 
@@ -45,8 +46,9 @@ export class Wallet {
 
   storage: Storage
 
-  constructor(name: string, mnemonic: string, account: any, network: Network, testing_mode: boolean) {
+  constructor(name: string, password: string, mnemonic: string, account: any, network: Network, testing_mode: boolean) {
     this.name = name;
+    this.password = password;
     this.config = new Config(network, testing_mode);
     this.version = require("../../package.json").version
 
@@ -68,15 +70,15 @@ export class Wallet {
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
-  static fromMnemonic(name: string, mnemonic: string, network: Network, testing_mode: boolean): Wallet {
-    log.debug("New wallet. Mnemonic: "+mnemonic+". Testing mode: "+testing_mode+".");
-    return new Wallet(name, mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
+  static fromMnemonic(name: string, password: string, mnemonic: string, network: Network, testing_mode: boolean): Wallet {
+    log.debug("New wallet named "+name+" created. Testing mode: "+testing_mode+".");
+    return new Wallet(name, password, mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
   }
 
   // Generate wallet with random mnemonic.
   static buildFresh(testing_mode: true, network: Network): Wallet {
     const mnemonic = bip39.generateMnemonic();
-    return Wallet.fromMnemonic("test", mnemonic, network, testing_mode);
+    return Wallet.fromMnemonic("test", "", mnemonic, network, testing_mode);
   }
 
   // Receive 4 words at random and check thier existence in mnemonic.
@@ -90,7 +92,7 @@ export class Wallet {
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
   static buildMock(network: Network): Wallet {
-    var wallet = Wallet.fromMnemonic('mock', 'praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
+    var wallet = Wallet.fromMnemonic('mock', '', 'praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
     // add some statecoins
     let proof_key1 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
@@ -106,7 +108,7 @@ export class Wallet {
   static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
     let network: Network = json_wallet.config.network;
 
-    let new_wallet = new Wallet(json_wallet.name, json_wallet.mnemonic, json_wallet.account, network, testing_mode);
+    let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, network, testing_mode);
 
     new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
     new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
