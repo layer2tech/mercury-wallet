@@ -10,6 +10,7 @@ import { withdraw } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
+import { Storage } from '../store';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -21,21 +22,17 @@ let lodash = require('lodash');
 // Node friendly importing required for Jest tests.
 declare const window: any;
 let log: any;
-let Store: any;
 try {
   log = window.require('electron-log');
-  Store = window.require('electron-store');
 } catch (e) {
   log = require('electron-log');
-  Store = require('electron-store');
 }
-
-// Store
-let store = new Store();
 
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
+  name: string;
+  password: string;
   config: Config;
   version: string;
 
@@ -47,7 +44,11 @@ export class Wallet {
   electrum_client: ElectrumClient | MockElectrumClient;
   block_height: number;
 
-  constructor(mnemonic: string, account: any, network: Network, testing_mode: boolean) {
+  storage: Storage
+
+  constructor(name: string, password: string, mnemonic: string, account: any, network: Network, testing_mode: boolean) {
+    this.name = name;
+    this.password = password;
     this.config = new Config(network, testing_mode);
     this.version = require("../../package.json").version
 
@@ -64,18 +65,20 @@ export class Wallet {
       this.electrum_client = new ElectrumClient(this.config.electrum_config);
     }
     this.block_height = 0
+
+    this.storage = new Storage()
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
-  static fromMnemonic(mnemonic: string, network: Network, testing_mode: boolean): Wallet {
-    log.debug("New wallet. Mnemonic: "+mnemonic+". Testing mode: "+testing_mode+".");
-    return new Wallet(mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
+  static fromMnemonic(name: string, password: string, mnemonic: string, network: Network, testing_mode: boolean): Wallet {
+    log.debug("New wallet named "+name+" created. Testing mode: "+testing_mode+".");
+    return new Wallet(name, password, mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
   }
 
   // Generate wallet with random mnemonic.
   static buildFresh(testing_mode: true, network: Network): Wallet {
     const mnemonic = bip39.generateMnemonic();
-    return Wallet.fromMnemonic(mnemonic, network, testing_mode);
+    return Wallet.fromMnemonic("test", "", mnemonic, network, testing_mode);
   }
 
   // Receive 4 words at random and check thier existence in mnemonic.
@@ -89,7 +92,7 @@ export class Wallet {
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
   static buildMock(network: Network): Wallet {
-    var wallet = Wallet.fromMnemonic('praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
+    var wallet = Wallet.fromMnemonic('mock', '', 'praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
     // add some statecoins
     let proof_key1 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
@@ -105,7 +108,7 @@ export class Wallet {
   static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
     let network: Network = json_wallet.config.network;
 
-    let new_wallet = new Wallet(json_wallet.mnemonic, json_wallet.account, network, testing_mode);
+    let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, network, testing_mode);
 
     new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
     new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
@@ -133,14 +136,29 @@ export class Wallet {
   save() {
     let wallet_json = lodash.cloneDeep(this)
     wallet_json.electrum_client = ""
-    store.set('wallet', wallet_json);
+    wallet_json.storage = ""
+    this.storage.storeWallet(wallet_json)
+  };
+
+  // Update coins list in storage. Store in file as JSON string.
+  saveStateCoinsList() {
+    this.storage.storeWalletStateCoinsList(this.name, this.statecoins, this.activity);
+  };
+  // Update account in storage. Store in file as JSON string.
+  saveKeys() {
+    this.storage.storeWalletKeys(this.name,this.account)
+  };
+  // Clear storage.
+  clearSave() {
+    this.storage.clearWallet(this.name)
   };
 
   // Load wallet JSON from store
-  static load(testing_mode: boolean) {
+  static load(wallet_name: string, testing_mode: boolean) {
+    let store = new Storage();
     // Fetch raw wallet string
-    let wallet_json = store.get('wallet')
-    if (wallet_json==undefined) throw Error("No wallet stored.")
+    let wallet_json = store.getWallet(wallet_name)
+    if (wallet_json==undefined) throw Error("No wallet called "+wallet_name+" stored.")
     return Wallet.fromJSON(wallet_json, testing_mode)
   }
 
@@ -173,16 +191,6 @@ export class Wallet {
     })
   }
 
-  // Update coins list in storage. Store in file as JSON string.
-  saveStateCoinsList() {
-    store.set('wallet.statecoins', this.statecoins);
-    store.set('wallet.activity', this.activity);
-  };
-
-  // Clear storage.
-  clearSave() {
-    store.set('wallet', {});
-  };
 
   // Set Wallet.block_height
   setBlockHeight(header_data: any) {
@@ -299,6 +307,7 @@ export class Wallet {
   // New BTC address
   genBtcAddress(): string {
     let addr = this.account.nextChainAddress(0);
+    this.saveKeys()
     log.debug("Gen BTC address: "+addr);
     return addr
   }
@@ -309,6 +318,7 @@ export class Wallet {
   // New Proof Key
   genProofKey(): BIP32Interface {
     let addr = this.account.nextChainAddress(0);
+    this.saveKeys()
     let proof_key = this.account.derive(addr);
     log.debug("Gen proof key. Address: "+addr+". Proof key: "+proof_key.publicKey.toString("hex"));
     return proof_key
@@ -341,12 +351,11 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
-    log.info("Deposite Init done. Waiting for coins sent to "+p_addr);
-    this.saveStateCoinsList();
 
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 
+    log.info("Deposite Init done. Waiting for coins sent to "+p_addr);
     this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
   }

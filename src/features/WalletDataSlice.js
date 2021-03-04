@@ -38,15 +38,15 @@ function setBlockHeightCallBack(item) {
   wallet.setBlockHeight(item)
 }
 
-export const walletLoad = () => {
+export const walletLoad = (wallet_name) => {
   log.info("Wallet loaded from memory. ")
-  wallet = Wallet.load(false);
+  wallet = Wallet.load(wallet_name, false);
   wallet.initElectrumClient(setBlockHeightCallBack)
   checkForExpiringCoins();
 }
-export const walletFromMnemonic = (mnemonic) => {
-  log.info("Wallet created from mnemonic: ", mnemonic)
-  wallet = Wallet.fromMnemonic(mnemonic, bitcoin.networks.testnet, false);
+export const walletFromMnemonic = (wallet_name, password, mnemonic) => {
+  log.info("Wallet "+wallet_name+" created from mnemonic: ", mnemonic)
+  wallet = Wallet.fromMnemonic(wallet_name, password, mnemonic, bitcoin.networks.testnet, false);
   wallet.initElectrumClient(setBlockHeightCallBack)
   wallet.save()
   checkForExpiringCoins();
