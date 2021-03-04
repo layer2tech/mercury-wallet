@@ -33,6 +33,7 @@ try {
 // Store
 let store = new Store();
 
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   config: Config;
@@ -61,22 +62,8 @@ export class Wallet {
       // this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
       this.electrum_client = new ElectrumClient(this.config.electrum_config);
-      this.electrum_client.connect().then(() => {
-        // Continuously update block height
-        this.electrum_client.blockHeightSubscribe(this.setBlockHeight).then((item) => {
-          this.setBlockHeight([item])
-        });
-        // Check if any deposit_inits are awaiting funding txs and create listeners if so
-        this.statecoins.getInitialisedCoins().forEach((statecoin) => {
-          this.awaitFundingTx(
-            statecoin.shared_key_id,
-            statecoin.getBtcAddress(this.config.network),
-            statecoin.value
-          )
-        })
-      })
     }
-    this.block_height = 1000
+    this.block_height = 0
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -157,6 +144,35 @@ export class Wallet {
     return Wallet.fromJSON(wallet_json, testing_mode)
   }
 
+  // Initialise electum server:
+  // Setup subscribe for block height and outstanding initialised deposits
+  initElectrumClient(blockHeightCallBack: any) {
+    this.electrum_client.connect().then(() => {
+      // Continuously update block height
+      this.electrum_client.blockHeightSubscribe(blockHeightCallBack).then((item) => {
+        blockHeightCallBack([item])
+      });
+      // Check if any deposit_inits are awaiting funding txs and create listeners if so
+      this.statecoins.getInitialisedCoins().forEach((statecoin) => {
+        this.awaitFundingTx(
+          statecoin.shared_key_id,
+          statecoin.getBtcAddress(this.config.network),
+          statecoin.value
+        )
+      })
+      // Check if any deposit_inits are awaiting confirmations and mark unconfirmed/confirmed if complete
+      this.statecoins.getInMempoolCoins().forEach((statecoin) => {
+        let p_addr = statecoin.getBtcAddress(this.config.network)
+        this.checkFundingTxListUnspent(
+          statecoin.shared_key_id,
+          p_addr,
+          bitcoin.address.toOutputScript(p_addr, this.config.network),
+          statecoin.value
+        )
+      })
+    })
+  }
+
   // Update coins list in storage. Store in file as JSON string.
   saveStateCoinsList() {
     store.set('wallet.statecoins', this.statecoins);
@@ -168,7 +184,7 @@ export class Wallet {
     store.set('wallet', {});
   };
 
-  // Set Wallet.block_height. Update initialised deposits that are awaiting confirmations
+  // Set Wallet.block_height
   setBlockHeight(header_data: any) {
     this.block_height = header_data[0].height;
   }
@@ -198,21 +214,27 @@ export class Wallet {
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
-  // Get all INITIALISED, IN_MEMPOOL and UNCONFIRMED coins funding tx data
-  getUnconfirmedAndUnmindeCoinsFundingTxData() {
-    let coins = this.statecoins.getUnconfirmedCoins().concat(this.statecoins.getInitialisedCoins())
-    return coins.map((item: StateCoin) => item.getFundingTxInfo(this.config.network, this.block_height))
-  }
-  //  Get all INITIALISED UNCONFIRMED coins display data
-  getUnconfirmedStatecoinsDisplayData() {
-    // Check if any awaiting deposits now have sufficient confirmations and can be confirmed
-    let unconfirmed_coins = this.statecoins.getUnconfirmedCoins();
+  // Each time we get unconfirmed coins call this to check for confirmations
+  checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
       if (statecoin.status==STATECOIN_STATUS.UNCOMFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           this.depositConfirm(statecoin.shared_key_id)
       }
     })
+  }
+  // Get all INITIALISED, IN_MEMPOOL and UNCONFIRMED coins funding tx data
+  getUnconfirmedAndUnmindeCoinsFundingTxData() {
+    let unconfirmed_coins = this.statecoins.getUnconfirmedCoins()
+    this.checkUnconfirmedCoinsStatus(unconfirmed_coins)
+    let coins = unconfirmed_coins.concat(this.statecoins.getInitialisedCoins())
+    return coins.map((item: StateCoin) => item.getFundingTxInfo(this.config.network, this.block_height))
+  }
+  //  Get all INITIALISED UNCONFIRMED coins display data
+  getUnconfirmedStatecoinsDisplayData() {
+    // Check if any awaiting deposits now have sufficient confirmations and can be confirmed
+    let unconfirmed_coins = this.statecoins.getUnconfirmedCoins();
+    this.checkUnconfirmedCoinsStatus(unconfirmed_coins)
     return unconfirmed_coins.map((item: StateCoin) => item.getDisplayInfo(this.block_height))
   }
   // Get Backup Tx hex and receive private key
@@ -329,37 +351,42 @@ export class Wallet {
     return [statecoin.shared_key_id, p_addr]
   }
 
-  // Wait for tx to appear in mempool. Mark coin UNCONFIRMED when it arrives.
+  // Wait for tx to appear in mempool. Mark coin IN_MEMPOOL or UNCONFIRMED when it arrives.
   async awaitFundingTx(shared_key_id: string, p_addr: string, value: number) {
     let p_addr_script = bitcoin.address.toOutputScript(p_addr, this.config.network)
     log.info("Subscribed to script hash for p_addr: ", p_addr);
     this.electrum_client.scriptHashSubscribe(p_addr_script, (_status: any) => {
       log.info("Script hash status change for p_addr: ", p_addr);
         // Get p_addr list_unspent and verify tx
-        this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data) => {
-          for (let i=0; i<funding_tx_data.length; i++) {
-            if (!funding_tx_data[i].height) {
-              log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash+" n: "+funding_tx_data[i].tx_pos)
-              this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i].tx_hash, funding_tx_data[i].tx_pos)
-              this.saveStateCoinsList()
-              // Verify amount of tx
-              if (funding_tx_data[i].value!==value) {
-                log.error("Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".");
-                log.error("Setting value of statecoin to "+funding_tx_data[i].value);
-                let statecoin = this.statecoins.getCoin(shared_key_id);
-                statecoin!.value = funding_tx_data[i].value;
-              }
-            } else {
-              log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
-              // Set coin UNCOMFIRMED.
-              this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i].height)
-              this.saveStateCoinsList()
-              // No longer need subscription
-              this.electrum_client.scriptHashUnsubscribe(p_addr_script);
-            }
-          }
-        });
+        this.checkFundingTxListUnspent(shared_key_id, p_addr, p_addr_script, value);
     })
+  }
+  // Query funding txs list unspent and mark coin IN_MEMPOOL or UNCONFIRMED
+  async checkFundingTxListUnspent(shared_key_id: string, p_addr: string, p_addr_script: string, value: number) {
+    this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data) => {
+      for (let i=0; i<funding_tx_data.length; i++) {
+        // Verify amount of tx
+        if (funding_tx_data[i].value!==value) {
+          log.error("Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".");
+          log.error("Setting value of statecoin to "+funding_tx_data[i].value);
+          let statecoin = this.statecoins.getCoin(shared_key_id);
+          statecoin!.value = funding_tx_data[i].value;
+        }
+        if (!funding_tx_data[i].height) {
+          log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
+          this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i].tx_hash, funding_tx_data[i].tx_pos)
+          this.saveStateCoinsList()
+        } else {
+          log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
+          // Set coin UNCOMFIRMED.
+          this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i].height)
+          this.saveStateCoinsList()
+          // No longer need subscription
+          this.electrum_client.scriptHashUnsubscribe(p_addr_script);
+        }
+      }
+    });
+
   }
 
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
@@ -545,6 +572,7 @@ export const segwitAddr = (node: any, _network: Network) => {
   });
   return p2wpkh.address
 }
+
 
 
 const dummy_master_key = {public:{q:{x:"47dc67d37acf9952b2a39f84639fc698d98c3c6c9fb90fdc8b100087df75bf32",y:"374935604c8496b2eb5ff3b4f1b6833de019f9653be293f5b6e70f6758fe1eb6"},p2:{x:"5220bc6ebcc83d0a1e4482ab1f2194cb69648100e8be78acde47ca56b996bd9e",y:"8dfbb36ef76f2197598738329ffab7d3b3a06d80467db8e739c6b165abc20231"},p1:{x:"bada7f0efb10f35b920ff92f9c609f5715f2703e2c67bd0e362227290c8f1be9",y:"46ce24197d468c50001e6c2aa6de8d9374bb37322d1daf0120215fb0c97a455a"},paillier_pub:{n:"17945609950524790912898455372365672530127324710681445199839926830591356778719067270420287946423159715031144719332460119432440626547108597346324742121422771391048313578132842769475549255962811836466188142112842892181394110210275612137463998279698990558525870802338582395718737206590148296218224470557801430185913136432965780247483964177331993320926193963209106016417593344434547509486359823213494287461975253216400052041379785732818522252026238822226613139610817120254150810552690978166222643873509971549146120614258860562230109277986562141851289117781348025934400257491855067454202293309100635821977638589797710978933"},c_key:"36d7dde4b796a7034fc6cfd75d341b223012720b52a35a37cd8229839fe9ed1f1f1fe7cbcdbc0fa59adbb757bd60a5b7e3067bc49c1395a24f70228cc327d7346b639d4e81bd3cfd39698c58e900f99c3110d6a3d769f75c8f59e7f5ad57009eadb8c6e6c4830c1082ddd84e28a70a83645354056c90ab709325fc6246d505134d4006ef6fec80645493483413d309cb84d5b5f34e28ab6af3316e517e556df963134c09810f754c58b85cf079e0131498f004108733a5f6e6a242c549284cf2df4aede022d03b854c6601210b450bdb1f73591b3f880852f0e9a3a943e1d1fdb8d5c5b839d0906de255316569b703aca913114067736dae93ea721ddd0b26e33cf5b0af67cee46d6a3281d17082a08ab53688734667c641d71e8f69b25ca1e6e0ebf59aa46c0e0a3266d6d1fba8e9f25837a28a40ae553c59fe39072723daa2e8078e889fd342ef656295d8615531159b393367b760590a1325a547dc1eff118bc3655912ac0b3c589e9d7fbc6d244d5860dfb8a5a136bf7b665711bf4e75fe42eb28a168d1ddd5ecf77165a3d4db72fda355c0dc748b0c6c2eada407dba5c1a6c797385e23c050622418be8f3cd393e6acd8a7ea5bd3306aafae75f4def94386f62564fce7a66dc5d99c197d161c7c0d3eea898ca3c5e9fbd7ceb1e3f7f2cb375181cf98f7608d08ed96ef1f98af3d5e2d769ae4211e7d20415677eddd1051"},private:{x2:"34c0b428488ddc6b28e05cee37e7c4533007f0861e06a2b77e71d3f133ddb81b"},chain_code:"0"}

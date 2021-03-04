@@ -50,6 +50,16 @@ export class StateCoinList {
     })
   };
 
+  // Return coins that are awaiting funding tx confirmations
+  getInMempoolCoins() {
+    return this.coins.filter((item: StateCoin) => {
+      if (item.status === STATECOIN_STATUS.IN_MEMPOOL) {
+        return item
+      }
+      return
+    })
+  };
+
   // Find all coins in mempool or mined but with required_confirmations confirmations
   getUnconfirmedCoins() {
     return this.coins.filter((item: StateCoin) => {
@@ -209,7 +219,8 @@ export class StateCoin {
       funding_vout: this.funding_vout,
       timestamp: this.timestamp,
       swap_rounds: this.swap_rounds,
-      expiry_data: this.getExpiryData(block_height)
+      expiry_data: this.getExpiryData(block_height),
+      status: this.status
     }
   };
 
@@ -286,7 +297,8 @@ export interface StateCoinDisplayData {
   funding_vout: number,
   timestamp: number,
   swap_rounds: number,
-  expiry_data: ExpiryData
+  expiry_data: ExpiryData,
+  status: string
 }
 
 export interface ExpiryData {

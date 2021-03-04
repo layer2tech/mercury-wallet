@@ -3,6 +3,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { Wallet, ACTION } from '../wallet'
 import { getFeeInfo } from '../wallet/mercury/info_api'
 import { decodeMessage, encodeSCEAddress } from '../wallet/util'
+import { initElectrumClient } from '../wallet/wallet'
 
 import { v4 as uuidv4 } from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
@@ -31,16 +32,25 @@ const checkForExpiringCoins = () => {
     }
 }
 
+// Call back fn updates wallet block_height upon electrum block height subscribe message event.
+// This fn must be in scope of the wallet being acted upon
+function setBlockHeightCallBack(item) {
+  wallet.setBlockHeight(item)
+}
+
 export const walletLoad = () => {
+  log.info("Wallet loaded from memory. ")
   wallet = Wallet.load(false);
+  wallet.initElectrumClient(setBlockHeightCallBack)
   checkForExpiringCoins();
 }
 export const walletFromMnemonic = (mnemonic) => {
+  log.info("Wallet created from mnemonic: ", mnemonic)
   wallet = Wallet.fromMnemonic(mnemonic, bitcoin.networks.testnet, false);
+  wallet.initElectrumClient(setBlockHeightCallBack)
   wallet.save()
   checkForExpiringCoins();
 }
-
 
 // Wallet data gets
 export const callGetConfig = () => {
@@ -175,8 +185,7 @@ const WalletSlice = createSlice({
     callClearSave(state) {
       wallet.clearSave()
       return {
-        ...state,
-        error_dialogue: {seen: false, msg: "Wallet data removed. Please restart."}
+        ...state
       }
     }
   },
