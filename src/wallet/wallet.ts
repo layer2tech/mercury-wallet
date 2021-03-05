@@ -8,6 +8,7 @@ import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
+import { doSwap } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 
@@ -397,7 +398,34 @@ export class Wallet {
     return statecoin_finalized
   }
 
-  // Perform transfer_sender
+  // Perform do_swap
+  // Args: shared_key_id of coin to swap.
+  async do_swap(
+    shared_key_id: string,
+  ): Promise<StateCoin>{
+    log.info("Do swap for "+shared_key_id)
+    
+    let statecoin = this.statecoins.getCoin(shared_key_id);
+    if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+
+    let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+
+    let new_proof_key_der = this.genProofKey();
+
+    let new_statecoin = await doSwap(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
+
+    // Mark funds as spent in wallet
+    this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
+
+    // Store new statecoin
+    this.addStatecoin(new_statecoin,ACTION.SWAP);
+
+    log.info("Swap complete for " + shared_key_id);
+    this.saveStateCoinsList();
+    return new_statecoin;
+  }
+
+    // Perform transfer_sender
   // Args: shared_key_id of coin to send and receivers se_addr.
   // Return: transfer_message String to be sent to receiver.
   async transfer_sender(

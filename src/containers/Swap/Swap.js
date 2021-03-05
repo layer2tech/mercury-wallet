@@ -13,6 +13,7 @@ import user from "../../images/table-icon-user.png";
 import time from "../../images/table-icon-time.png";
 
 import { Coins, Swaps } from "../../components";
+import {callDoSwap} from '../../features/WalletDataSlice'
 
 
 const SwapPage = () => {
@@ -21,6 +22,27 @@ const SwapPage = () => {
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
+
+  const sendButtonAction = async () => {
+    // check statechain is chosen
+    if (!selectedCoin) {
+      dispatch(setError({msg: "Please choose a StateCoin to swap."}))
+      return
+    }
+
+ 
+      dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+      .then(res => {
+        if (res.error===undefined) {
+         // setTransferMsg3(encodeMessage(res.payload))
+         // setInputAddr("")
+         // setSelectedCoin('')
+         // dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
+        }
+      })
+    }
+ 
+
 
 
   return (
@@ -58,6 +80,9 @@ const SwapPage = () => {
               </div>
               <div className="Body right">
                   <div>
+                      <button type="button" className="btn" onClick={swapButtonAction}>
+                          SWAP STATECOIN UTXO
+                      </button>
                       <h3 className="subtitle">Swaps waiting to begin …</h3>
                       <Swaps/>
                   </div>

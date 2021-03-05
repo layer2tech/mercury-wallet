@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { SwapMsg1, BSTMsg, SwapMsg2, RegisterUtxo, SwapStatus, BatchData} from '../types';
 import { AssertionError } from 'assert';
 import { create } from 'domain';
+import Swap from '../../containers/Swap/Swap';
 
 let bitcoin = require("bitcoinjs-lib");
 
