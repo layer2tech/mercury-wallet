@@ -41,7 +41,7 @@ const RestoreWalletPage = () => {
   }
 
   return (
-  <div className="memory-form">
+  <div className="restore-form">
     <form>
       <div className="inputs-item">
           <input id="Passphrase" type="text" oname="mnemonic" required placeholder="Mnemonic " onChange={onMnemonicChange}/>
@@ -50,12 +50,12 @@ const RestoreWalletPage = () => {
       <Link to={"/home/mnemonic/"+mnemonic} onClick={onClickConf}>
         Confirm
       </Link>
-        <Link to="/" >
-          Back
-        </Link>
       </div>
 
     </form>
+    <Link to="/" className="back">
+      Back
+    </Link>
     </div>
   )
 }
