@@ -81,6 +81,23 @@ export class StateChainSig {
       return statechain_sig
     }
 
+
+      /// Generate signature to request participation in a batch transfer
+    static new_transfer_batch_sig(
+        proof_key_der: BIP32Interface,
+        batch_id: string,
+        statechain_id: string,
+    ): StateChainSig {
+        let purpose = this.purpose_transfer_batch(batch_id); 
+        let statechain_sig = StateChainSig.create(proof_key_der,purpose, statechain_id);
+        return statechain_sig;
+    }
+
+    static purpose_transfer_batch(batch_id: string):string{
+      let buf =  "TRANSFER_BATCH:" + batch_id;
+      return buf;
+    }
+
     // Make StateChainSig message. Concat purpose string + data and sha256 hash.
     to_message(): Buffer {
       let buf = Buffer.from(this.purpose + this.data, "utf8")
@@ -99,51 +116,6 @@ export class StateChainSig {
     }
 
 }
-
-/// Blind Spend Token data for each Swap. (priv, pub) keypair, k and R' value for signing and verification.
-export class  BSTRequestorData {
-    #[schemars(with = "FEDef")]
-    u: FE,
-    #[schemars(with = "FEDef")]
-    v: FE,
-    #[schemars(with = "GEDef")]
-    r: GE,
-    #[schemars(with = "FEDef")]
-    e_prime: FE,
-    m: String,
-}
-impl BSTRequestorData {
-    /// Generate new BSTRequestorData with senders r_prime value and a message m
-    pub fn setup(r_prime: GE, m: &String) -> Result<Self> {
-        let (u, v, r, e_prime) = requester_calc_e_prime(r_prime, &m)?;
-        Ok(BSTRequestorData {
-            u,
-            v,
-            r,
-            e_prime,
-            m: m.to_owned(),
-        })
-    }
-
-    pub fn get_e_prime(&self) -> FE {
-        self.e_prime
-    }
-
-    /// Unblind blind spend token signature
-    pub fn unblind_signature(&self, signature: BlindedSpendSignature) -> FE {
-        requester_calc_s(signature.s_prime, self.u, self.v)
-    }
-
-    /// Create BlindedSpendToken for blinded signature
-    pub fn make_blind_spend_token(&self, s: FE) -> BlindedSpendToken {
-        BlindedSpendToken {
-            s,
-            r: self.r,
-            m: self.m.clone(),
-        }
-    }
-}
-
 
 export const getSigHash = (tx: Transaction, index: number, pk: string, amount: number, network: Network): string => {
   let addr_p2pkh = bitcoin.payments.p2pkh({

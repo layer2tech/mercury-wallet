@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import './Swap.css';
 
 import {Link, withRouter} from "react-router-dom";
@@ -12,14 +12,20 @@ import coin from "../../images/table-icon1.png";
 import user from "../../images/table-icon-user.png";
 import time from "../../images/table-icon-time.png";
 
+import { Coins } from "../../components";
+
 
 const SwapPage = () => {
 
-  let disabled = true;
+  let disabled = false;
+
+  const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const [inputAddr, setInputAddr] = useState("");
+
 
   return (
       <div className="container ">
-      {disabled===false ?
+      {disabled===true ?
           <p> Swapping is currenlty not available. </p>
           :
 
@@ -72,29 +78,10 @@ const SwapPage = () => {
                   <div>
                       <h3 className="subtitle">Swap Statecoins to increase their Privacy Score</h3>
                       <span className="sub">Click to select UTXO’s below</span>
-                      <table>
-                          <tbody>
-                              <tr>
-                                  <td>
-                                      <div className="content">
-                                          <img src={cyrcle} alt="swapIcon"/>
-
-                                          <div className="txt">
-                                              <span className="">0.0005 BTC</span>
-                                              <div className="line">
-                                                  <img src={close} alt="swapIcon"/>
-                                                  <span>No Privacy Score</span>
-                                              </div>
-                                          </div>
-                                      </div>
-                                  </td>
-                                  <td>
-                                      <img src={number} alt="swapIcon"/>
-                                      <span>15kje…398hj</span>
-                                  </td>
-                              </tr>
-                          </tbody>
-                      </table>
+                      <Coins
+                        displayDetailsOnClick={false}
+                        selectedCoin={selectedCoin}
+                        setSelectedCoin={setSelectedCoin}/>
                   </div>
 
               </div>

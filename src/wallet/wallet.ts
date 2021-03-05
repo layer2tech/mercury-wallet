@@ -58,7 +58,7 @@ export class Wallet {
     if (testing_mode) {
       this.electrum_client = new MockElectrumClient();
       this.http_client = new MockHttpClient();
-      this.conductor_client = new MockConductorClient();	
+      this.conductor_client = new MockHttpClient();  
     } else {
       // this.electrum_client = new MockElectrumClient();
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
@@ -282,6 +282,7 @@ export class Wallet {
     log.debug("Gen BTC address: "+addr);
     return addr
   }
+
   getBIP32forBtcAddress(addr: string): BIP32Interface {
     return this.account.derive(addr)
   }

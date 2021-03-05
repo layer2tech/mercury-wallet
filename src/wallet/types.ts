@@ -306,6 +306,12 @@ export const SwapMsg1 = typeforce.compile({
   bst_e_prime: Secp256k1Scalar,
 })
 
+
+export const BatchData = typeforce.compile({
+  commitment: String,
+  nonce: Buffer,
+})
+
 // Message to request a blinded spend token
 export const BSTMsg = typeforce.compile({
     swap_id: String, //Uuid,

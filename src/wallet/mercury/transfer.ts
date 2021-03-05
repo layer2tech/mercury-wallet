@@ -237,6 +237,19 @@ export const transferReceiverFinalize = async (
   return statecoin
 }
 
+
+export const transferBatchSign = (
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
+  network: Network,
+  statecoin: StateCoin,
+  batch_id: string,
+  proof_key_der: BIP32Interface
+): StateChainSig => {
+  let tbs = StateChainSig.new_transfer_batch_sig(proof_key_der, batch_id, statecoin.statechain_id);
+  return tbs;
+}
+
 export interface UserID {
   id: string,
 }
