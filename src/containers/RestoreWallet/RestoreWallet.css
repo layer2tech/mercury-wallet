@@ -2,6 +2,9 @@
    width: 80%;
     margin: 0 auto;
 }
+.memory-form  a {
+    margin: 0 20px;
+}
 
 .memory-form .inputs-item input {
     position: relative;

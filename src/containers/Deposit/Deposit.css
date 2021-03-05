@@ -154,6 +154,18 @@ ol.go2441762052 {
     border-radius: 6px;
     margin-left: 10px;
 }
+.wizard .btns a {
+     font-size: 14px;
+     text-transform: uppercase;
+     background-color: #0F54F4;
+     color: #ffffff;
+     padding: 5px 10px;
+     border-radius: 6px;
+     float: right;
+     display: block;
+     width: 88px;
+     margin-top: 30px;
+ }
 
 .create-title {
     font-size: 14px;
@@ -355,4 +367,15 @@ ol.go2441762052 {
     .deposit-scan-subtxt span {
         margin-bottom: 10px;
     }
+}
+
+@media only screen and (max-width: 991px) {
+    .long {
+        display: block;
+        width: 130px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
 }

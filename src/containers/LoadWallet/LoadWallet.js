@@ -58,14 +58,13 @@ const LoadWalletPage = () => {
             onClick={onClickConf}>
             Continue
           </Link>
+          <Link to="/">
+            Back
+          </Link>
         </div>
         :
         <p>No Wallet in memory. Please create a new one.</p>
       }
-
-      <Link to="/">
-        Back
-      </Link>
     </form>
   </div>
 )
