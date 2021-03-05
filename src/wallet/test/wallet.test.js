@@ -19,7 +19,7 @@ describe('Wallet', function() {
 
   test('save/load', async function() {
     wallet.save()
-    let loaded_wallet = await Wallet.load(true)
+    let loaded_wallet = await Wallet.load('mock', '', true)
     expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
   });
 
@@ -35,12 +35,6 @@ describe('Wallet', function() {
     let num_coins_after = loaded_wallet.statecoins.coins.length;
     expect(num_coins_after).toEqual(num_coins_before+1)
     expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
-  });
-
-  test('confirmMnemonicKnowledge', function() {
-    expect(wallet.confirmMnemonicKnowledge([{pos: 3, word: "this"}])).toBe(false);
-    expect(wallet.confirmMnemonicKnowledge([{pos: 0, word: "praise"}])).toBe(true);
-    expect(wallet.confirmMnemonicKnowledge([{pos: 0, word: "praise"},{pos: 11, word: "ghost"}])).toBe(true);
   });
 
   test('genBtcAddress', function() {

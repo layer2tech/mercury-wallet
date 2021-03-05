@@ -37,9 +37,9 @@ function setBlockHeightCallBack(item) {
   wallet.setBlockHeight(item)
 }
 
-export const walletLoad = (wallet_name) => {
+export const walletLoad = (name, password) => {
   log.info("Wallet loaded from memory. ")
-  wallet = Wallet.load(wallet_name, false);
+  wallet = Wallet.load(name, password, false);
   wallet.initElectrumClient(setBlockHeightCallBack)
   checkForExpiringCoins();
 }

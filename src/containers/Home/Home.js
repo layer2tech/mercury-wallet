@@ -28,7 +28,7 @@ const HomePage = (props) => {
     if (props.loadWallet) {
       wallet_setup = JSON.parse(wallet_setup)
       // load wallet into Redux
-      walletLoad(wallet_setup.wallet_name);
+      walletLoad(wallet_setup.wallet_name, wallet_setup.wallet_password);
       props.setWalletLoaded(true);
     } else if (props.createWallet){
       wallet_setup = JSON.parse(wallet_setup)

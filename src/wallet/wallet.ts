@@ -3,7 +3,8 @@
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
-  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS } from './';
+  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, encryptAES,
+  decryptAES, encodeSCEAddress } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -11,7 +12,6 @@ import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinaliz
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
-import { encodeSCEAddress } from './util';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -84,15 +84,6 @@ export class Wallet {
     return Wallet.fromMnemonic("test", "", mnemonic, network, testing_mode);
   }
 
-  // Receive 4 words at random and check thier existence in mnemonic.
-  confirmMnemonicKnowledge(words: [{pos: number, word: string}]): boolean {
-    let mnemonic = this.mnemonic.split(' ');
-    for (let word of words) {
-      if (mnemonic[word.pos] != word.word) { return false }
-    }
-    return true
-  }
-
   // Startup wallet with some mock data. Interations with server may fail since data is random.
   static buildMock(network: Network): Wallet {
     var wallet = Wallet.fromMnemonic('mock', '', 'praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
@@ -140,6 +131,7 @@ export class Wallet {
     let wallet_json = lodash.cloneDeep(this)
     wallet_json.electrum_client = ""
     wallet_json.storage = ""
+    wallet_json.mnemonic = encryptAES(this.mnemonic, this.password)
     this.storage.storeWallet(wallet_json)
   };
 
@@ -157,12 +149,14 @@ export class Wallet {
   };
 
   // Load wallet JSON from store
-  static load(wallet_name: string, testing_mode: boolean) {
+  static load(wallet_name: string, password: string, testing_mode: boolean) {
     let store = new Storage();
     // Fetch raw wallet string
-    let wallet_json = store.getWallet(wallet_name)
-    if (wallet_json==undefined) throw Error("No wallet called "+wallet_name+" stored.")
-    return Wallet.fromJSON(wallet_json, testing_mode)
+    let wallet_json = store.getWallet(wallet_name);
+    if (wallet_json==undefined) throw Error("No wallet called "+wallet_name+" stored.");
+    // Decrypt mnemonic
+    wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+    return Wallet.fromJSON(wallet_json, testing_mode);
   }
 
   // Initialise electum server:

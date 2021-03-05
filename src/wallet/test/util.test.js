@@ -1,13 +1,15 @@
-import { TransactionBuilder, crypto, networks, ECPair } from 'bitcoinjs-lib';
+import { TransactionBuilder, networks, ECPair } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, txBackupBuild, txWithdrawBuild, StateChainSig, toSatoshi, fromSatoshi,
-  encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point, encryptECIES, decryptECIES } from '../util';
+  encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
+  encryptECIES, decryptECIES, encryptAES, decryptAES } from '../util';
 import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY } from './test_data.js'
 import { Wallet } from '../';
 
 import { encrypt, decrypt, PrivateKey } from 'eciesjs'
 
 let bip32 = require('bip32');
+var crypto = require('crypto')
 
 let network = networks.testnet;
 
@@ -117,3 +119,14 @@ test('ECIES encrypt/decrypt', async function() {
     expect(dec).toBe(item.data);
   })
 });
+
+
+test('AES encrypt/decrypt', async () => {
+  let passwords = ['123abc', '', "!!"];
+  let data = "abc123!#@"
+  passwords.forEach(password => {
+    let encrypted = encryptAES(data, password);
+    let decrypted = decryptAES(encrypted, password);
+    expect(decrypted).toBe(data);
+  })
+})
