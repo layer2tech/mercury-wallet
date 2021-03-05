@@ -31,11 +31,12 @@ export const depositInit = async (
       auth: "authstr",
       proof_key: String(proof_key)
   };
-  let shared_key_id = await http_client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
-  typeforce(typeforce.String, shared_key_id.id)
+  let deposit_init_res = await http_client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
+  let shared_key_id = deposit_init_res.id;
+  typeforce(typeforce.String, shared_key_id)
 
   // 2P-ECDSA with state entity to create a Shared key
-  let statecoin = await keyGen(http_client, wasm_client, shared_key_id.id, secret_key, PROTOCOL.DEPOSIT);
+  let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
 
   return statecoin
 }

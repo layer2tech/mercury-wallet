@@ -54,8 +54,7 @@ const LoadWalletPage = () => {
               onChange={onPasswordChange}
                     />
           </div>
-          <Link to={"/home/load/"+JSON.stringify({wallet_name: selected})}
-            onClick={onClickConf}>
+          <Link to={"/home/load/"+JSON.stringify({wallet_name: selected, wallet_password: passwordEntered})}>
             Continue
           </Link>
         </div>
