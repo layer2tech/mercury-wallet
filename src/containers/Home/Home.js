@@ -2,7 +2,7 @@ import React from 'react';
 import { withRouter, useParams } from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux'
 
-import { walletLoad, walletFromMnemonic, callGetUnspentStatecoins, updateBalanceInfo, updateFeeInfo, callGetFeeInfo, callGenSeAddr } from '../../features/WalletDataSlice'
+import { walletLoad, walletFromMnemonic, callGetUnspentStatecoins, updateBalanceInfo, updateFeeInfo, callGetFeeInfo, callGenSeAddr, callPingSwap, updatePingSwap } from '../../features/WalletDataSlice'
 import { PanelControl, PanelConnectivity, PanelCoinsActivity } from '../../components'
 
 // Home page is the main page from which a user can view and use their Wallet.
@@ -19,6 +19,9 @@ const HomePage = (props) => {
     const fee_info = callGetFeeInfo().then((fee_info) => {
       dispatch(updateFeeInfo(fee_info));
     })
+   // const ping_swap = callPingSwap().then((ping_swap) => {
+   //   dispatch(updatePingSwap(ping_swap));
+   // })
     // Gen se address
     dispatch(callGenSeAddr());
   }

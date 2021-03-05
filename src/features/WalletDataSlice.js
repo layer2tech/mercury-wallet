@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
 import { Wallet, ACTION } from '../wallet'
 import { getFeeInfo } from '../wallet/mercury/info_api'
+import { pingServer } from '../wallet/swap/info_api'
 import { decodeMessage, encodeSCEAddress } from '../wallet/util'
 
 import { v4 as uuidv4 } from 'uuid';
@@ -18,6 +19,7 @@ const initialState = {
   balance_info: {total_balance: null, num_coins: null},
   fee_info: {deposit: "NA", withdraw: "NA"},
   rec_se_addr: null,
+  ping_swap: null,
 }
 
 // Quick check for expiring coins. If so display error dialogue
@@ -55,6 +57,9 @@ export const callGetBlockHeight = () => {
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
+export const callGetOngoingSwaps = () => {
+  return wallet.getOngoingSwaps()
+}
 export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
   return wallet.getUnconfirmedAndUnmindeCoinsFundingTxData()
 }
@@ -66,6 +71,14 @@ export const callGetActivityLog = () => {
 }
 export const callGetFeeInfo = () => {
   return getFeeInfo(wallet.http_client)
+}
+export const callPingSwap = () => {
+  try {
+    pingServer(wallet.conductor_client)
+  } catch (error){
+    return false;
+  }
+  return true;
 }
 export const callGetCoinBackupTxData = (shared_key_id) => {
   return wallet.getCoinBackupTxData(shared_key_id)
@@ -129,6 +142,13 @@ const WalletSlice = createSlice({
         ...state,
         fee_info: action.payload
       }
+    },
+    // Update fee_info
+    updatePingSwap(state, action) {
+        return {
+          ...state,
+          ping_swap: action.payload
+        }
     },
     // Gen new SE Address
     callGenSeAddr(state) {
@@ -202,7 +222,7 @@ const WalletSlice = createSlice({
 }
 })
 
-export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo,
+export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo, updatePingSwap,
   setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
   export default WalletSlice.reducer
 

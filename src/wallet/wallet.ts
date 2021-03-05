@@ -201,6 +201,9 @@ export class Wallet {
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
+  getOngoingSwaps() {
+    return this.statecoins.getOngoingSwaps(this.getBlockHeight())
+  }
   // Get all INITIALISED, IN_MEMPOOL and UNCONFIRMED coins funding tx data
   getUnconfirmedAndUnmindeCoinsFundingTxData() {
     let coins = this.statecoins.getUnconfirmedCoins().concat(this.statecoins.getInitialisedCoins())

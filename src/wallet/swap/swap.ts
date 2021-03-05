@@ -2,7 +2,7 @@
 
 import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, Wallet } from '..';
 import {transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
-import { pollUtxo, pollSwap, swapInfo } from "./info_api";
+import { pollUtxo, pollSwap, getSwapInfo } from "./info_api";
 import { getStateChain } from "../mercury/info_api";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, 
   pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1, 
@@ -49,7 +49,7 @@ export const doSwap = async (
 
   let swap_info = null;
   while (swap_info === null){
-    swap_info = await swapInfo(http_client,swap_id);
+    swap_info = await getSwapInfo(http_client,swap_id);
     await delay(3);
   };
   typeforce(types.SwapInfo, swap_info);
@@ -265,7 +265,7 @@ export interface BSTRequestorData {
 
 
 export interface SwapInfo {
-  status: string, //SwapStatus,
+  status: SwapStatus,
   swap_token: SwapToken,
   bst_sender_data: BSTSenderData,
 }
@@ -402,4 +402,12 @@ export interface PrepareSignTxMsg {
 export interface BatchData {
   commitment: String,
   nonce: Buffer,
+}
+
+export interface SwapStatus {
+  Phase1: "Phase1",
+  Phase2: "Phase2",
+  Phase3: "Phase3",
+  Phase4: "Phase4",
+  End: "End",
 }

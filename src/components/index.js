@@ -16,6 +16,7 @@ export { default as PanelConnectivity } from "./panelConnectivity/panelConnectiv
 export { default as PanelCoinsActivity } from "./panelCoinsActivity/panelCoinsActivity";
 
 export { default as Coins } from "./coins/coins";
+export { default as Swaps } from "./swaps/swaps";
 export { default as Activity } from "./activity/activity";
 export { default as Quantity } from "./quantity/quantity";
 

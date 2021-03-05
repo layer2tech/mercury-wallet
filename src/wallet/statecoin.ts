@@ -5,6 +5,7 @@ import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { ACTION } from ".";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
+import { SwapInfo, SwapStatus } from "./swap/swap";
 
 export class StateCoinList {
   coins: StateCoin[]
@@ -38,6 +39,17 @@ export class StateCoinList {
       return
     })
     return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
+  };
+
+  getOngoingSwaps(block_height: number) {
+    let coins = this.coins.filter((item: StateCoin) => {
+      if (item.status === STATECOIN_STATUS.AVAILABLE
+        && item.swap_info !== null) {
+        return item
+      }
+      return
+    })
+    return [coins.map((item: StateCoin) => item.getSwapDisplayInfo(block_height))]
   };
 
   // Return coins that are awaiting funding tx to be broadcast
@@ -171,6 +183,7 @@ export class StateCoin {
   smt_proof: InclusionProofSMT | null;
   swap_rounds: number;
   status: string;
+  swap_info: SwapInfo | null;
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
     this.shared_key_id = shared_key_id;
@@ -187,6 +200,7 @@ export class StateCoin {
     this.tx_withdraw = null;
     this.smt_proof = null;
     this.status = STATECOIN_STATUS.INITIALISED;
+    this.swap_info = null;
   }
 
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
@@ -206,6 +220,21 @@ export class StateCoin {
       timestamp: this.timestamp,
       swap_rounds: this.swap_rounds,
       expiry_data: this.getExpiryData(block_height)
+    }
+  };
+
+  // Get data to display in GUI
+  getSwapDisplayInfo(block_height: number): SwapDisplayData | null {
+    let si = this.swap_info;
+    if (si === null){
+      return null;
+    }
+
+    return {
+      swap_id: si.swap_token.id,
+      participants: si.swap_token.statechain_ids.length,
+      capacity:si.swap_token.statechain_ids.length,
+      status: si.status,
     }
   };
 
@@ -281,6 +310,13 @@ export interface StateCoinDisplayData {
   timestamp: number,
   swap_rounds: number,
   expiry_data: ExpiryData
+}
+
+export interface SwapDisplayData {
+  swap_id: string,
+  participants: number,
+  capacity: number,
+  status: SwapStatus,
 }
 
 export interface ExpiryData {

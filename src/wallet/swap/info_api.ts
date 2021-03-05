@@ -31,7 +31,7 @@ export const pollSwap = async (
   return swap_status
 }
 
-export const swapInfo = async (
+export const getSwapInfo = async (
   http_client: HttpClient | MockHttpClient,
   swap_id: String	 
 ) => {

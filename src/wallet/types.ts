@@ -269,8 +269,18 @@ export const BSTSenderData = typeforce.compile ({
     r_prime: Secp256k1Point,
 })
 
+
+export const SwapStatus = {
+  Phase1: "Phase1",
+  Phase2: "Phase2",
+  Phase3: "Phase3",
+  Phase4: "Phase4",
+  End: "End",
+}
+Object.freeze(SwapStatus);
+
 export const SwapInfo = typeforce.compile({
-    status: String, //SwapStatus,
+    status: SwapStatus, //SwapStatus,
     swap_token: SwapToken,
     bst_sender_data: BSTSenderData,
 })
@@ -348,11 +358,3 @@ export const BSTRequestorData = typeforce.compile({
   m: String,
 })
 
-export const SwapStatus = {
-    Phase1: "Phase1",
-    Phase2: "Phase2",
-    Phase3: "Phase3",
-    Phase4: "Phase4",
-    End: "End",
-}
-Object.freeze(SwapStatus);

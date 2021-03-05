@@ -17,6 +17,7 @@ const PanelConnectivity = (props) => {
   }
 
   const fee_info = useSelector(state => state.walletData).fee_info;
+  const swap_info = useSelector(state => state.walletData).swap_info;
   const block_height = callGetBlockHeight();
 
   return (
@@ -38,7 +39,7 @@ const PanelConnectivity = (props) => {
                       <input
                           type="radio"
                           value="Swaps"
-                          checked={false}
+                          checked={swap_info !== null}
                       />
                       Connected to Swaps
                       <span className="checkmark"></span>

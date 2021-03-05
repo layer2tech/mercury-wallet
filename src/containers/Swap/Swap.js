@@ -12,7 +12,7 @@ import coin from "../../images/table-icon1.png";
 import user from "../../images/table-icon-user.png";
 import time from "../../images/table-icon-time.png";
 
-import { Coins } from "../../components";
+import { Coins, Swaps } from "../../components";
 
 
 const SwapPage = () => {
@@ -43,36 +43,7 @@ const SwapPage = () => {
                       </Link>
                   </div>
               </div>
-              <h3 className="subtitle">Swap Statecoins to increase their Privacy Score</h3>
-              <div className="swap-header-txt">
-                  <div className="ConnectionSwaps">
-                      <label>
-                          <input
-                              type="radio"
-                              value="Swaps"
-                              // {/*checked*/}
-                          />
-                          Connected to Swaps
-                          <span className="checkmark"></span>
-                      </label>
-                  </div>
-                  <div className="collapse-content-item">
-                      <span>xxx.xxx.x.xx</span>
-                      <div>
-                          <span className="txt">Pending Swaps:
-                              <b>13</b>
-                          </span>
-                          <span className="txt">Participants:
-                              <b>56</b>
-                          </span>
-                          <span className="txt">Total pooled BTC:
-                              <b>34.3</b>
-                          </span>
-                      </div>
-                  </div>
-              </div>
-
-
+        
           <div className="swap content">
               <div className="Body left ">
                   <div>
@@ -88,42 +59,7 @@ const SwapPage = () => {
               <div className="Body right">
                   <div>
                       <h3 className="subtitle">Swaps waiting to begin …</h3>
-                      <table className="second">
-                          <thead>
-                              <tr>
-                                  <td>
-                                      <img src={coin} alt="coin"/>
-                                      VALUE
-                                  </td>
-                                  <td>
-                                      <img src={user} alt="user"/>
-                                      PARTICIPANTS
-                                  </td>
-                                  <td>
-                                      <img src={time} alt="time"/>
-                                      INTERVAL
-                                  </td>
-                                  <td>STATUS</td>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              <tr>
-                                  <td>
-                                      <input type="text" name="name"/>
-                                      <span>0.0005 BTC</span>
-                                  </td>
-                                  <td>
-                                      <span>13/15</span>
-                                  </td>
-                                  <td>
-                                      <span>5 Blocks Left</span>
-                                  </td>
-                                  <td>
-                                      <span className="status">PENDING</span>
-                                  </td>
-                              </tr>
-                          </tbody>
-                      </table>
+                      <Swaps/>
                   </div>
               </div>
           </div>
