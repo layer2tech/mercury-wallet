@@ -31,7 +31,7 @@ describe('Wallet', function() {
     wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
     wallet.saveStateCoinsList();
 
-    let loaded_wallet = await Wallet.load(true);
+    let loaded_wallet = await Wallet.load('mock', '', true);
     let num_coins_after = loaded_wallet.statecoins.coins.length;
     expect(num_coins_after).toEqual(num_coins_before+1)
     expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))

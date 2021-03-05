@@ -1,4 +1,4 @@
-import { ActivityLog, StateCoinList } from "./wallet";
+import { ActivityLog, encryptAES, StateCoinList } from "./wallet";
 
 declare const window: any;
 let Store: any;
@@ -8,20 +8,6 @@ try {
   Store = require('electron-store');
 }
 
-// TODO: Write explicit schema
-
-
-// {
-// logins: {
-//   wallet_name: string,
-//   password: string
-// },
-// wallets: {
-//   wallet_name: {
-//     ...wallet
-//   }
-// }
-// }
 
 export class Storage {
   store: any;
@@ -49,10 +35,27 @@ export class Storage {
     return false
   }
 
-
+  accountToAddrMap(account_json: any) {
+    return [{
+      k: account_json.chains[0].k,
+      map: account_json.chains[0].map
+    },
+    {
+      k: account_json.chains[1].k,
+      map: account_json.chains[1].map
+    }]
+  }
 
   // Wallet storage
   storeWallet(wallet_json: any) {
+    wallet_json.electrum_client = ""
+    wallet_json.storage = ""
+    // encrypt mnemonic
+    wallet_json.mnemonic = encryptAES(wallet_json.mnemonic, wallet_json.password)
+    // remove password and root keys
+    wallet_json.password = ""
+    wallet_json.account = this.accountToAddrMap(wallet_json.account)
+
     this.store.set('wallets.'+wallet_json.name, wallet_json);
   }
 
@@ -65,8 +68,10 @@ export class Storage {
     this.store.set('wallets.'+wallet_name+'.activity', activity);
   };
 
-  storeWalletKeys(wallet_name: string, account: Account) {
-    this.store.set('wallets.'+wallet_name+'.account', account);
+  storeWalletKeys(wallet_name: string, account: any) {
+    // remove root keys
+    let account_to_store = this.accountToAddrMap(account)
+    this.store.set('wallets.'+wallet_name+'.account', account_to_store);
   };
 
   clearWallet(wallet_name: string) {
