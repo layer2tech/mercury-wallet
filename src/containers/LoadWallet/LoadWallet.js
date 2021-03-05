@@ -57,15 +57,15 @@ const LoadWalletPage = () => {
           <Link to={"/home/load/"+JSON.stringify({wallet_name: selected, wallet_password: passwordEntered})}>
             Continue
           </Link>
+
         </div>
         :
         <p>No Wallet in memory. Please create a new one.</p>
       }
-
-      <Link to="/">
-        Back
-      </Link>
     </form>
+    <Link to="/" className="back">
+      Back
+    </Link>
   </div>
 )
 }

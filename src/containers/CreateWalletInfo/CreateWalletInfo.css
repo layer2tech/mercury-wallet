@@ -46,10 +46,9 @@ h1 {
 .welcome-second .inputs-item input {
     border: 1px solid #707070;
     background: #ffffff;
-    margin-right: 10px;
     opacity: 1;
     border-radius: 0 !important;
-    width: 27px !important;
+    width: 32px !important;
     position: relative;
     top: 12px;
 }
