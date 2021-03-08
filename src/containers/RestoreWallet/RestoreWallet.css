@@ -1,9 +1,21 @@
-.memory-form {
-   width: 80%;
+.restore-form {
+   width: 50%;
     margin: 0 auto;
+    position: relative;
+    padding-bottom: 90px;
 }
 
-.memory-form .inputs-item input {
+.restore-form .back {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+
+}
+.restore-form  a {
+    margin: 0 20px;
+}
+
+.restore-form .inputs-item input {
     position: relative;
     opacity: 1;
    width: 100% !important;
@@ -12,13 +24,13 @@
     border: 1px solid #D7D7D7;
     border-radius: 6px !important;
 }
-.memory-form .inputs-item {
+.restore-form .inputs-item {
     justify-content: center;
     width: 350px;
     margin: 0 auto;
 }
 
-.memory-form .inputs-item p {
+.restore-form .inputs-item p {
     text-align: left;
     margin-top: 20px;
 }
@@ -43,7 +55,7 @@
     text-align: left;
 }
 
-.memory-form a, .memory-form a:hover {
+.restore-form a, .restore-form a:hover {
     background-color: #0F54F4;
     border: none;
     color:#ffffff;

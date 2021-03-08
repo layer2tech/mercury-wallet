@@ -18,7 +18,7 @@ const RestoreWalletPage = () => {
 
   // If wallet saved warn of overwriting data
   const checkWalletStored = () => {
-    if (Object.keys(store.get('wallet')).length) {
+    if (Object.keys(store.get('wallets')).length) {
       return true
     }
     return false
@@ -30,7 +30,6 @@ const RestoreWalletPage = () => {
 
   const onMnemonicChange = (event) => {
     setMnemonic(event.target.value)
-    console.log("mnemonic: ", mnemonic)
   }
 
   // Confirm mnemonic is valid
@@ -42,22 +41,21 @@ const RestoreWalletPage = () => {
   }
 
   return (
-  <div className="memory-form">
+  <div className="restore-form">
     <form>
       <div className="inputs-item">
           <input id="Passphrase" type="text" oname="mnemonic" required placeholder="Mnemonic " onChange={onMnemonicChange}/>
       </div>
-      <div>
+      <div >
       <Link to={"/home/mnemonic/"+mnemonic} onClick={onClickConf}>
         Confirm
       </Link>
       </div>
-      <Link to="/" >
-        Back
-      </Link>
+
     </form>
-
-
+    <Link to="/" className="back">
+      Back
+    </Link>
     </div>
   )
 }

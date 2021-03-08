@@ -3,6 +3,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { Wallet, ACTION } from '../wallet'
 import { getFeeInfo } from '../wallet/mercury/info_api'
 import { decodeMessage, encodeSCEAddress } from '../wallet/util'
+import { initElectrumClient } from '../wallet/wallet'
 
 import { v4 as uuidv4 } from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
@@ -17,7 +18,6 @@ const initialState = {
   connected: false,
   balance_info: {total_balance: null, num_coins: null},
   fee_info: {deposit: "NA", withdraw: "NA"},
-  rec_se_addr: null,
 }
 
 // Quick check for expiring coins. If so display error dialogue
@@ -31,16 +31,25 @@ const checkForExpiringCoins = () => {
     }
 }
 
-export const walletLoad = () => {
-  wallet = Wallet.load(false);
+// Call back fn updates wallet block_height upon electrum block height subscribe message event.
+// This fn must be in scope of the wallet being acted upon
+function setBlockHeightCallBack(item) {
+  wallet.setBlockHeight(item)
+}
+
+export const walletLoad = (name, password) => {
+  log.info("Wallet loaded from memory. ")
+  wallet = Wallet.load(name, password, false);
+  wallet.initElectrumClient(setBlockHeightCallBack)
   checkForExpiringCoins();
 }
-export const walletFromMnemonic = (mnemonic) => {
-  wallet = Wallet.fromMnemonic(mnemonic, bitcoin.networks.testnet, false);
+export const walletFromMnemonic = (wallet_name, password, mnemonic) => {
+  log.info("Wallet "+wallet_name+" created from mnemonic: ", mnemonic)
+  wallet = Wallet.fromMnemonic(wallet_name, password, mnemonic, bitcoin.networks.testnet, false);
+  wallet.initElectrumClient(setBlockHeightCallBack)
   wallet.save()
   checkForExpiringCoins();
 }
-
 
 // Wallet data gets
 export const callGetConfig = () => {
@@ -50,7 +59,7 @@ export const callGetVersion = () => {
   return wallet.version
 }
 export const callGetBlockHeight = () => {
-  return wallet.block_height
+  return wallet.getBlockHeight()
 }
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
@@ -69,6 +78,13 @@ export const callGetFeeInfo = () => {
 }
 export const callGetCoinBackupTxData = (shared_key_id) => {
   return wallet.getCoinBackupTxData(shared_key_id)
+}
+export const callGetSeAddr = (state) => {
+  return wallet.getSEAddress()
+}
+// Gen new SE Address
+export const callNewSeAddr = (state) => {
+  return wallet.newSEAddress()
 }
 
 // Update config with JSON of field to change
@@ -130,18 +146,12 @@ const WalletSlice = createSlice({
         fee_info: action.payload
       }
     },
-    // Gen new SE Address
-    callGenSeAddr(state) {
-      return {
-        ...state,
-        rec_se_addr: encodeSCEAddress(wallet.genProofKey().publicKey.toString('hex'))
-      }
-    },
     // Deposit
     dummyDeposit() {
       let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
       let funding_txid = "64ec6bc7f794343a0c3651c0578f25df5134322b959ece99795dccfffe8a87e9"
-      wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, proof_key, ACTION.DEPOSIT)
+      let funding_vout = 0
+      wallet.addStatecoinFromValues(uuidv4(), dummy_master_key, 10000, funding_txid, funding_vout, proof_key, ACTION.DEPOSIT)
     },
     setErrorSeen(state) {
       state.error_dialogue.seen = true
@@ -174,8 +184,7 @@ const WalletSlice = createSlice({
     callClearSave(state) {
       wallet.clearSave()
       return {
-        ...state,
-        error_dialogue: {seen: false, msg: "Wallet data removed. Please restart."}
+        ...state
       }
     }
   },

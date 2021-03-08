@@ -1,53 +1,73 @@
-import React, {useRef} from 'react';
-import {Link} from "react-router-dom";
+import React, {useState} from 'react';
+import { Link } from "react-router-dom";
+import { useDispatch } from 'react-redux'
+
+import { Storage } from '../../store';
+import {setError} from '../../features/WalletDataSlice'
 
 import  './LoadWallet.css'
 
 let Store = window.require('electron-store');
-let store = new Store();
+let store = new Storage();
+
+let wallet_name_password_map = store.getWalletNamePasswordMap()
 
 const LoadWalletPage = () => {
+  const dispatch = useDispatch();
 
-    const checkWalletStored = () => {
-      if (Object.keys(store.get('wallet')).length) {
-        return true
-      }
-      return false
+  const [selected, setSelected] = useState(wallet_name_password_map.length ? wallet_name_password_map[0].name : "")
+  const onSelectedChange = (event) => {
+    setSelected(event.target.value)
+  }
+  const [passwordEntered, setPasswordEntered] = useState("")
+  const onPasswordChange = (event) => {
+    setPasswordEntered(event.target.value)
+  }
+
+  // Confirm wallet name and password match
+  const onClickConf = (event) => {
+    if (passwordEntered!==wallet_name_password_map.find(item => item.name==selected).password) {
+      event.preventDefault();
+      dispatch(setError({msg: "Incorrect password."}))
     }
+  }
 
-    return (
-    <div className="memory-form">
-      <form>
+  const populateWalletNameOptions = () => {
+    return wallet_name_password_map.map((item, index) => (<option key={index} value={item.name}>{item.name}</option>))
+  }
 
-        {/*
-        <div className="inputs-item">
-            <input id="Name" disabled={true} type="text" name="Wallet Name" placeholder="Wallet name"
-                   required/>
-        </div>
-        <div className="inputs-item">
-            <input id="Passphrase" type="password" name="password" required placeholder="Passphrase "
-                  />
-        </div>
-        */}
-        {checkWalletStored() ?
-          <div>
-          <p>Wallet found in memory. Press continue to Load. </p>
-            <Link to="/home/load" >
-              Continue
-            </Link>
+  return (
+  <div className="memory-form">
+    <form>
+      {wallet_name_password_map.length ?
+        <div>
+          <p>Select a wallet to load and input its password </p>
+
+          <select value={selected} onChange={onSelectedChange}>
+            {populateWalletNameOptions()}
+          </select>
+
+          <div className="inputs-item">
+            <input id="Passphrase" type="password" name="password" required
+              placeholder="Passphrase "
+              value={passwordEntered}
+              onChange={onPasswordChange}
+                    />
           </div>
-          :
-          <p>No Wallet in memory. Please create a new one.</p>
-        }
-        
-        <Link to="/" >
-          Back
-        </Link>
-      </form>
+          <Link to={"/home/load/"+JSON.stringify({wallet_name: selected, wallet_password: passwordEntered})}>
+            Continue
+          </Link>
 
-
-    </div>
-  )
+        </div>
+        :
+        <p>No Wallet in memory. Please create a new one.</p>
+      }
+    </form>
+    <Link to="/" className="back">
+      Back
+    </Link>
+  </div>
+)
 }
 
 export default LoadWalletPage;

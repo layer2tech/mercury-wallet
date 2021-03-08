@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import React, {useState} from 'react';
 
 import { WelcomePage, CreateWalletInfoPage, CreateWalletWizardPage, HomePage, DepositPage, WithdrawPage, SettingsPage, HelpPage,
@@ -22,11 +22,12 @@ const App = () => {
         <Route path="/create_wizard" exact component={() => <CreateWalletWizardPage />} />
         <Route path="/load_wallet" exact component={() => <LoadWalletPage />} />
         <Route path="/restore_wallet" exact component={() => <RestoreWalletPage />} />
-        <Route path="/home" exact component={() => <HomePage />} />
-        <Route path="/home/load" exact component={() =>
-          <HomePage loadWallet={true} setWalletLoaded={setWalletLoaded}/>} />
-        <Route path="/home/mnemonic/:mnemonic" component={() =>
-          <HomePage createWallet={true} setWalletLoaded={setWalletLoaded}/>} />
+        <Route path="/home" exact component={() =>
+          <HomePage walletLoaded={walletLoaded}/>} />
+        <Route path="/home/load/:wallet_setup" exact component={() =>
+          <HomePage loadWallet={true} walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded}/>} />
+        <Route path="/home/mnemonic/:wallet_setup" component={() =>
+          <HomePage createWallet={true} walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded}/>} />
         <Route path="/settings" exact component={() => <SettingsPage />} />
         <Route path="/help" exact component={() => <HelpPage walletLoaded={walletLoaded}/>} />
         <Route path="/deposit" exact component={() => <DepositPage />} />
@@ -35,6 +36,7 @@ const App = () => {
         <Route path="/send_statecoin" exact component={() => <SendStatecoinPage />} />
         <Route path="/receive_statecoin" exact component={() => <ReceiveStatecoinPage />} />
         <Route path="/backup_tx" exact component={() => <BackupTxPage />} />
+        <Route component={() => <WelcomePage />} />
        </Switch>
      </Router>
     </div>

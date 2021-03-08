@@ -221,7 +221,6 @@ export const transferReceiverFinalize = async (
   //         .q
   //         .get_element()
 
-
   // Verify proof key inclusion in SE sparse merkle tree
   let root = await getRoot(http_client);
   let proof = await getSmtProof(http_client, root, statecoin.funding_txid);
@@ -234,6 +233,7 @@ export const transferReceiverFinalize = async (
   statecoin.smt_proof = proof;
   statecoin.tx_backup = Transaction.fromHex(finalize_data.tx_backup_psm.tx_hex);
   statecoin.proof_key = finalize_data.proof_key;
+  statecoin.funding_vout = statecoin.tx_backup.ins[0].index;
 
   return statecoin
 }

@@ -31,11 +31,12 @@ export const depositInit = async (
       auth: "authstr",
       proof_key: String(proof_key)
   };
-  let shared_key_id = await http_client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
-  typeforce(typeforce.String, shared_key_id.id)
+  let deposit_init_res = await http_client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
+  let shared_key_id = deposit_init_res.id;
+  typeforce(typeforce.String, shared_key_id)
 
   // 2P-ECDSA with state entity to create a Shared key
-  let statecoin = await keyGen(http_client, wasm_client, shared_key_id.id, secret_key, PROTOCOL.DEPOSIT);
+  let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
 
   return statecoin
 }
@@ -58,7 +59,7 @@ export const depositConfirm = async (
 
   // Build unsigned backup tx
   let backup_receive_addr = pubKeyTobtcAddr(statecoin.proof_key, network);
-  let txb_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, backup_receive_addr, statecoin.value, fee_info.address, withdraw_fee, init_locktime);
+  let txb_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, statecoin.funding_vout, backup_receive_addr, statecoin.value, fee_info.address, withdraw_fee, init_locktime);
   let tx_backup_unsigned = txb_backup_unsigned.buildIncomplete();
 
   //co sign funding tx input signatureHash

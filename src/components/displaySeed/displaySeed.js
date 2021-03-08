@@ -8,7 +8,7 @@ import '../displaySeed/displaySeed.css'
 
 
 const DisplaySeed = (props) => {
-    let mnemonic = props.mnemonic;
+    let mnemonic = props.wizardState.mnemonic;
     let words = mnemonic.split(" ");
 
     const inputs = words.map((item, index) => (
@@ -22,8 +22,8 @@ const DisplaySeed = (props) => {
     return (
         <div className="wizard-form inputs">
             <p>
-                The list of 24 words below is the recovery seed key for the wallet you are creating.
-                <b>Carefully write down and store your seed somewhere safe, as it provides access to your wallet.</b>
+                The list of 12 words below is the recovery seed key for the wallet you are creating.
+                <b> Carefully write down and store your seed somewhere safe, as it provides access to your wallet.</b>
             </p>
             <p>
                 For best practice, never store it online or on the same computer as the wallet. The seed key is the only

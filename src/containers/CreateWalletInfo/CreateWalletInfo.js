@@ -26,8 +26,10 @@ const CreateWalletInfoPage = () => {
 
     // If wallet saved warn of overwriting data
     const checkWalletStored = () => {
-      if (Object.keys(store.get('wallet')).length) {
-        return true
+      if (store.get('wallet')) {
+          if (Object.keys(store.get('wallet')).length) {
+            return true
+          }
       }
       return false
     }
