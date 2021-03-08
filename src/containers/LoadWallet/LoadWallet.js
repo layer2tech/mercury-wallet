@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
-import { Link } from "react-router-dom";
-import { useDispatch } from 'react-redux'
+import {Link} from "react-router-dom";
+import {useDispatch} from 'react-redux'
 
-import { Storage } from '../../store';
-import {setError} from '../../features/WalletDataSlice'
+import {Storage} from '../../store';
+import {isWalletLoaded, walletLoad, setError} from '../../features/WalletDataSlice'
 
 import  './LoadWallet.css'
 
@@ -12,11 +12,11 @@ let store = new Storage();
 
 let wallet_name_password_map = store.getWalletNamePasswordMap()
 
-const LoadWalletPage = () => {
+const LoadWalletPage = (props) => {
   const dispatch = useDispatch();
 
-  const [selected, setSelected] = useState(wallet_name_password_map.length ? wallet_name_password_map[0].name : "")
-  const onSelectedChange = (event) => {
+  const [selectedWallet, setSelected] = useState(wallet_name_password_map.length ? wallet_name_password_map[0].name : "")
+  const onSelectedWalletChange = (event) => {
     setSelected(event.target.value)
   }
   const [passwordEntered, setPasswordEntered] = useState("")
@@ -24,12 +24,14 @@ const LoadWalletPage = () => {
     setPasswordEntered(event.target.value)
   }
 
-  // Confirm wallet name and password match
-  const onClickConf = (event) => {
-    if (passwordEntered!==wallet_name_password_map.find(item => item.name==selected).password) {
-      event.preventDefault();
-      dispatch(setError({msg: "Incorrect password."}))
-    }
+  // Attempt to load wallet. If fail display error.
+  const onContinueClick = (event) => {
+    try { walletLoad(selectedWallet, passwordEntered) }
+      catch (e) {
+        event.preventDefault();
+        dispatch(setError({msg: e.message}))
+      }
+      props.setWalletLoaded(true);
   }
 
   const populateWalletNameOptions = () => {
@@ -43,7 +45,7 @@ const LoadWalletPage = () => {
         <div>
           <p>Select a wallet to load and input its password </p>
 
-          <select value={selected} onChange={onSelectedChange}>
+          <select value={selectedWallet} onChange={onSelectedWalletChange}>
             {populateWalletNameOptions()}
           </select>
 
@@ -54,7 +56,7 @@ const LoadWalletPage = () => {
               onChange={onPasswordChange}
                     />
           </div>
-          <Link to={"/home/load/"+JSON.stringify({wallet_name: selected, wallet_password: passwordEntered})}>
+          <Link to="/home" onClick={onContinueClick}>
             Continue
           </Link>
 

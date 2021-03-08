@@ -2,12 +2,12 @@ import arrow from "../../images/arrow-up.png"
 import icon2 from "../../images/icon2.png";
 
 import React, {useState} from 'react';
-import {Link, withRouter} from "react-router-dom";
-import { useSelector, useDispatch } from 'react-redux'
+import {Link, withRouter, Redirect} from "react-router-dom";
+import {useSelector, useDispatch} from 'react-redux'
 
-import { StdButton, AddressInput } from "../../components";
+import {StdButton, AddressInput} from "../../components";
 
-import { callNewSeAddr, callGetSeAddr, callTransferReceiver, setError, setNotification } from '../../features/WalletDataSlice'
+import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callTransferReceiver, setError, setNotification} from '../../features/WalletDataSlice'
 
 import './Receive.css';
 import '../Send/Send.css';
@@ -26,6 +26,12 @@ const ReceiveStatecoinPage = () => {
     callNewSeAddr()
     setRecAddr(callGetSeAddr())
   }
+
+  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
+  if (!isWalletLoaded()) {
+    dispatch(setError({msg: "No Wallet loaded."}))
+    return <Redirect to="/" />;
+ }
 
   const receiveButtonAction =() => {
     // check statechain is chosen

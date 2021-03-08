@@ -19,16 +19,11 @@ const App = () => {
       <Switch>
         <Route path="/" exact component={() => <WelcomePage />} />
         <Route path="/create_wallet" exact component={() => <CreateWalletInfoPage />} />
-        <Route path="/create_wizard" exact component={() => <CreateWalletWizardPage />} />
-        <Route path="/load_wallet" exact component={() => <LoadWalletPage />} />
+        <Route path="/create_wizard" exact component={() => <CreateWalletWizardPage setWalletLoaded={setWalletLoaded}/>} />
+        <Route path="/load_wallet" exact component={() => <LoadWalletPage setWalletLoaded={setWalletLoaded}/>} />
         <Route path="/restore_wallet" exact component={() => <RestoreWalletPage />} />
-        <Route path="/home" exact component={() =>
-          <HomePage walletLoaded={walletLoaded}/>} />
-        <Route path="/home/load/:wallet_setup" exact component={() =>
-          <HomePage loadWallet={true} walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded}/>} />
-        <Route path="/home/mnemonic/:wallet_setup" component={() =>
-          <HomePage createWallet={true} walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded}/>} />
-        <Route path="/settings" exact component={() => <SettingsPage />} />
+        <Route path="/home" exact component={() => <HomePage />} />
+        <Route path="/settings" exact component={() => <SettingsPage setWalletLoaded={setWalletLoaded}/>} />
         <Route path="/help" exact component={() => <HelpPage walletLoaded={walletLoaded}/>} />
         <Route path="/deposit" exact component={() => <DepositPage />} />
         <Route path="/withdraw" exact component={() => <WithdrawPage />} />

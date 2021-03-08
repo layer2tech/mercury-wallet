@@ -31,23 +31,37 @@ const checkForExpiringCoins = () => {
     }
 }
 
+// Check if a wallet is loaded in memory
+export const isWalletLoaded = () => {
+  if (wallet===undefined) {
+    return false
+  }
+  return true
+}
+export const unloadWallet = () => {
+  wallet = undefined;
+}
+
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
 function setBlockHeightCallBack(item) {
-  wallet.setBlockHeight(item)
+  wallet.setBlockHeight(item);
 }
 
+// Load wallet from store
 export const walletLoad = (name, password) => {
-  log.info("Wallet loaded from memory. ")
+  log.info("Wallet "+name+" loaded from memory. ");
   wallet = Wallet.load(name, password, false);
-  wallet.initElectrumClient(setBlockHeightCallBack)
+  wallet.initElectrumClient(setBlockHeightCallBack);
   checkForExpiringCoins();
 }
-export const walletFromMnemonic = (wallet_name, password, mnemonic) => {
-  log.info("Wallet "+wallet_name+" created from mnemonic: ", mnemonic)
-  wallet = Wallet.fromMnemonic(wallet_name, password, mnemonic, bitcoin.networks.testnet, false);
-  wallet.initElectrumClient(setBlockHeightCallBack)
-  wallet.save()
+// Create wallet from nmemonic and load wallet
+export const walletFromMnemonic = (name, password, mnemonic) => {
+  log.info("Wallet "+name+" created.");
+  wallet = Wallet.fromMnemonic(name, password, mnemonic, bitcoin.networks.testnet, false);
+  wallet.initElectrumClient(setBlockHeightCallBack);
+  callNewSeAddr();
+  wallet.save();
   checkForExpiringCoins();
 }
 
@@ -190,6 +204,9 @@ const WalletSlice = createSlice({
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
+    [walletLoad.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
     [callDepositInit.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },

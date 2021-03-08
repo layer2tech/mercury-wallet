@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import {Link} from "react-router-dom";
-import { useDispatch } from 'react-redux'
+import {useDispatch} from 'react-redux'
 
 import {Wallet} from "../../wallet";
-import {setError} from '../../features/WalletDataSlice'
+import {setError, walletFromMnemonic} from '../../features/WalletDataSlice'
 
 import './confirmSeed.css'
 
@@ -33,13 +33,22 @@ const ConfirmSeed = (props) => {
   ))
 
   // Confirm words are correct
-  const onClickConf = (event) => {
+  const onConfirmClick = (event) => {
+    // Verify mnemonic confirmation
     for (let i=0;i<missingwords.length; i++) {
       if (missingwords[i].word!=words[missingwords[i].pos]) {
         event.preventDefault();
         dispatch(setError({msg: "Seed confirmation failed."}))
+        return
       }
     }
+    // Create wallet and load into Redux state
+    try { walletFromMnemonic(props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic) }
+      catch (e) {
+        event.preventDefault();
+        dispatch(setError({msg: e.message}))
+      }
+    props.setWalletLoaded(true);
   }
 
   return (
@@ -49,7 +58,7 @@ const ConfirmSeed = (props) => {
           <form>
               {inputs}
           </form>
-          <Link to={"/home/mnemonic/"+JSON.stringify(props.wizardState)} onClick={onClickConf} className="confirm">
+          <Link to="/home" onClick={onConfirmClick} className="confirm">
               Confirm
           </Link>
       </div>

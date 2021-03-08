@@ -2,13 +2,13 @@ import walletIcon from '../../images/walletIcon.png';
 import orange from "../../images/wallet-orange.png";
 import withdrowIcon from "../../images/withdrow-icon.png";
 
-import {Link, withRouter} from "react-router-dom";
+import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState} from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 
-import { callWithdraw, setError, setNotification } from '../../features/WalletDataSlice';
-import { Coins, StdButton, AddressInput } from "../../components";
-import { fromSatoshi } from '../../wallet/util';
+import {isWalletLoaded, callWithdraw, setError, setNotification} from '../../features/WalletDataSlice';
+import {Coins, StdButton, AddressInput} from "../../components";
+import {fromSatoshi} from '../../wallet/util';
 
 import './Withdraw.css';
 
@@ -18,10 +18,15 @@ const WithdrawPage = () => {
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
-
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
+
+  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
+  if (!isWalletLoaded()) {
+    dispatch(setError({msg: "No Wallet loaded."}))
+    return <Redirect to="/" />;
+  }
 
   const withdrawButtonAction = async () => {
     // check statechain is chosen
