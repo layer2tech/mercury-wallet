@@ -171,8 +171,6 @@ export class Wallet {
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
     } catch (e) {
-      console.log("e.message: ", e.message)
-      console.log("e: ", typeof(e))
       if (e.message=="unable to decrypt data") throw Error("Incorrect password.")
     }
     return Wallet.fromJSON(wallet_json, testing_mode);

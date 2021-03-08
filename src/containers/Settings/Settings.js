@@ -45,7 +45,6 @@ const SettingsPage = (props) => {
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
-    dispatch(setError({msg: "No Wallet loaded."}));
     return <Redirect to="/" />;
   }
 
@@ -79,8 +78,13 @@ const SettingsPage = (props) => {
 
   const clearWalletButtonOnClick = () => {
     dispatch(callClearSave());
-    props.setWalletLoaded(false);
     unloadWallet();
+    props.setWalletLoaded(false);
+  }
+
+  const logOutButtonOnClick = () => {
+    unloadWallet();
+    props.setWalletLoaded(false);
   }
 
   return (
@@ -205,6 +209,13 @@ const SettingsPage = (props) => {
             className="Body-button blue"
             onClick={clearWalletButtonOnClick}>
               Clear wallet memory
+          </button>
+
+          <button
+            type="button"
+            className="Body-button blue"
+            onClick={logOutButtonOnClick}>
+              Log out of wallet
           </button>
       </div>
   )
