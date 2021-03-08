@@ -39,8 +39,25 @@ export const doSwap = async (
   new_proof_key_der: BIP32Interface,
 ): Promise<StateCoin> => {
 
-  await swap_register_utxo(http_client, wasm_client,statecoin.statechain_id,swap_size,proof_key_der);
+  console.log('swap.ts: doSwap - swap_register_utxo: ', statecoin.statechain_id);
+  console.log('create public key:');
+  console.log('create public key: ', proof_key_der.publicKey);
+  console.log('create public key for :', proof_key_der.publicKey);
+  let publicKey = proof_key_der.publicKey.toString('hex');
+  console.log('create statechain sig for ', publicKey);
+  let sc_sig = StateChainSig.create(proof_key_der, "SWAP", publicKey);
 
+  console.log('create RegisterUtxo');
+  let registerUtxo = new RegisterUtxo(
+    statecoin.statechain_id,
+    sc_sig,
+    swap_size
+  );
+
+  console.log('swap_register_utxo: await swap_register_utxo - ep:', POST_ROUTE.SWAP_REGISTER_UTXO, ', ID:', registerUtxo);
+  await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
+
+  console.log('await poll utxo');
   let swap_id = null
   while (swap_id === null){
     swap_id = await pollUtxo(http_client,statecoin.statechain_id);
@@ -48,6 +65,7 @@ export const doSwap = async (
   };
   typeforce(types.SwapID, swap_id);
 
+  console.log('await swap info');
   let swap_info = null;
   while (swap_info === null){
     swap_info = await getSwapInfo(http_client,swap_id);
@@ -60,14 +78,17 @@ export const doSwap = async (
     new_proof_key_der.publicKey,
   );
 
+  console.log('await new transfer batch sig');
   let transfer_batch_sig = await StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id,statecoin.statechain_id);
 
+  console.log('await first message');
   let my_bst_data = await first_message(http_client, 
     wasm_client,swap_info,statecoin.statechain_id,transfer_batch_sig,
     address,new_proof_key_der);
   typeforce(types.BSTRequestorData, my_bst_data);  
 
 
+  console.log('await poll swap');
   while(true){
     let phase = await pollSwap(http_client, swap_id);
     if (phase === SwapStatus.Phase2){
@@ -78,11 +99,14 @@ export const doSwap = async (
 
   let publicProofKey = new_proof_key_der.publicKey;
 
+  console.log('await get blinded spend signature');
   let bss = await get_blinded_spend_signature(http_client, wasm_client, swap_id,statecoin.statechain_id);
   typeforce(types.BlindedSpendSignature, bss);    
 
+  console.log('await second message');
   let receiver_addr = await second_message(http_client, wasm_client, swap_id, my_bst_data, bss);
 
+  console.log('await poll swap');
   while(true){
     let phase = await pollSwap(http_client, swap_id);
     if (phase === SwapStatus.Phase4){
@@ -91,12 +115,14 @@ export const doSwap = async (
     await delay(3)
   }
 
+  console.log('transferSender');
   let _ = transferSender(http_client, wasm_client, network, statecoin, proof_key_der, receiver_addr.proof_key);
  
   let commitment = wasm_client.Commitment.make_commitment(statecoin.statechain_id);
 
   let batch_id = swap_id;
 
+  console.log('await do_transfer_receiver');
   let transfer_finalized_data = await do_transfer_receiver(
     http_client,
     wasm_client,
@@ -107,6 +133,7 @@ export const doSwap = async (
     new_proof_key_der
   );
 
+  console.log('await pollSwap');
   while(true){
     let phase = await pollSwap(http_client, swap_id);
     if (phase === SwapStatus.End){
@@ -116,6 +143,7 @@ export const doSwap = async (
   }
 
   //Confirm batch transfer status and finalize the transfer in the wallet
+  console.log('await info transfer batch');
   let bt_info = await http_client.post(POST_ROUTE.INFO_TRANSFER_BATCH, batch_id);
   typeforce(types.TransferBatchDataAPI, bt_info);
 
@@ -124,6 +152,7 @@ export const doSwap = async (
     throw new Error("Swap error: batch transfer not finalized");
   }
 
+  console.log('await transfer receiver finalize');
   let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, transfer_finalized_data);
 
   return statecoin_out;
@@ -164,19 +193,25 @@ export const swap_register_utxo = async (
   swap_size: number,
   proof_key_der: BIP32Interface,
 ) => {
-  let statechain_data = await getStateChain(http_client, statechain_id);
-  typeforce(types.StateChainDataAPI, statechain_data);
-  let chain = statechain_data.chain;
+  //console.log('await getStateChain: {}', statechain_id);
+  //let statechain_data = await getStateChain(http_client, statechain_id);
+  //typeforce(types.StateChainDataAPI, statechain_data);
+  //let chain = statechain_data.chain;
 
   //purpose, data, ""
-  let sc_sig = StateChainSig.create(proof_key_der, "SWAP", proof_key_der.publicKey.toString('hex'));
+  console.log('create public key for ', proof_key_der.publicKey);
+  let publicKey = proof_key_der.publicKey.toString('hex');
+  console.log('create statechain sig for ', publicKey);
+  let sc_sig = StateChainSig.create(proof_key_der, "SWAP", publicKey);
 
+  console.log('create RegisterUtxo');
   let registerUtxo = new RegisterUtxo(
     statechain_id,
     sc_sig,
     swap_size
   );
 
+  console.log('swap_register_utxo: await swap_register_utxo');
   await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
 };
 

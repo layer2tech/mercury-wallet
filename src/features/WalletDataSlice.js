@@ -125,6 +125,7 @@ export const callTransferReceiver = createAsyncThunk(
 export const callDoSwap = createAsyncThunk(
   'DoSwap',
   async (action, thunkAPI) => {
+    console.log('callDoSwap');
     return wallet.do_swap(action.shared_key_id)
   }
 )

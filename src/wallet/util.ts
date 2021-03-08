@@ -69,14 +69,21 @@ export class StateChainSig {
       purpose: string,
       data: string
     ): StateChainSig {
+      console.log('create StateChainSig')
+
       let statechain_sig = new StateChainSig(purpose, data, "");
+      console.log('creating message')
       let hash = statechain_sig.to_message();
+      console.log('signing')
       let sig = proof_key_der.sign(hash, false);
 
+      console.log('encoding')
       // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
       let encoded_sig = script.signature.encode(sig,1);
       encoded_sig = encoded_sig.slice(0, encoded_sig.length-1);
       statechain_sig.sig = encoded_sig.toString("hex");
+
+      console.log('returning')
 
       return statechain_sig
     }

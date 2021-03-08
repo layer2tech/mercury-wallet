@@ -407,21 +407,36 @@ export class Wallet {
     
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+    log.info("Got statecoin with proof key ", statecoin.proof_key)
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+    log.info("Got proof key der") 
 
     let new_proof_key_der = this.genProofKey();
+    log.info("Got new proof key der") 
 
-    let new_statecoin = await doSwap(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
+    log.info("Getting wasm")
+    let wasm = await this.getWasm(); 
+
+    log.info("Public key:");
+    log.info("Public key: ", proof_key_der.publicKey.toString("hex"));   
+
+
+    log.info("Awaiting doSwap") 
+    let new_statecoin = await doSwap(this.conductor_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
+  
 
     // Mark funds as spent in wallet
+    log.info("Marking spent") 
     this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
 
     // Store new statecoin
+    log.info("Storing new statecoin")
     this.addStatecoin(new_statecoin,ACTION.SWAP);
 
     log.info("Swap complete for " + shared_key_id);
     this.saveStateCoinsList();
+    log.info("swap finished")
     return new_statecoin;
   }
 

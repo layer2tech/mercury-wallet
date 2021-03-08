@@ -2,8 +2,9 @@ import React, {useState} from 'react';
 import './Swap.css';
 
 import {Link, withRouter} from "react-router-dom";
+import { useSelector, useDispatch } from 'react-redux'
 import swapIcon from '../../images/swap_icon-blue.png';
-import StdButton from "../../components/buttons/standardButton";
+//import StdButton from "../../components/buttons/standardButton";
 
 import close from "../../images/close-icon.png";
 import number from "../../images/number-icon.png";
@@ -12,8 +13,8 @@ import coin from "../../images/table-icon1.png";
 import user from "../../images/table-icon-user.png";
 import time from "../../images/table-icon-time.png";
 
-import { Coins, Swaps } from "../../components";
-import {callDoSwap} from '../../features/WalletDataSlice'
+import { Coins, Swaps, StdButton} from "../../components";
+import {callDoSwap, setError, callGetOngoingSwaps} from '../../features/WalletDataSlice'
 
 
 const SwapPage = () => {
@@ -23,7 +24,8 @@ const SwapPage = () => {
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
 
-  const sendButtonAction = async () => {
+  const dispatch = useDispatch();
+  const swapButtonAction = async () => {
     // check statechain is chosen
     if (!selectedCoin) {
       dispatch(setError({msg: "Please choose a StateCoin to swap."}))
@@ -80,12 +82,12 @@ const SwapPage = () => {
               </div>
               <div className="Body right">
                   <div>
-                      <button type="button" className="btn" onClick={swapButtonAction}>
-                          SWAP STATECOIN UTXO
-                      </button>
                       <h3 className="subtitle">Swaps waiting to begin …</h3>
                       <Swaps/>
                   </div>
+                  <button type="button" className="btn" onClick={swapButtonAction}>
+                          SWAP STATECOIN UTXO
+                      </button>
               </div>
           </div>
         </div>
@@ -94,4 +96,8 @@ const SwapPage = () => {
   )
 }
 
+
+//export const { setError } = WalletSlice.actions
+//    export default WalletSlice.reducer
+  
 export default withRouter(SwapPage);
