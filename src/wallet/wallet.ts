@@ -66,10 +66,10 @@ export class Wallet {
       this.http_client = new HttpClient(this.config.state_entity_endpoint);
       this.electrum_client = new ElectrumClient(this.config.electrum_config);
     }
-    this.block_height = 0
+    this.block_height = 0;
     this.current_sce_addr = "";
 
-    this.storage = new Storage()
+    this.storage = new Storage();
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -158,6 +158,7 @@ export class Wallet {
   // Clear storage.
   clearSave() {
     this.storage.clearWallet(this.name)
+    log.info("Wallet cleared.")
   };
 
   // Load wallet JSON from store
@@ -167,7 +168,11 @@ export class Wallet {
     let wallet_json = store.getWallet(wallet_name);
     if (wallet_json==undefined) throw Error("No wallet called "+wallet_name+" stored.");
     // Decrypt mnemonic
-    wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+    try {
+      wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+    } catch (e) {
+      if (e.message=="unable to decrypt data") throw Error("Incorrect password.")
+    }
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
 

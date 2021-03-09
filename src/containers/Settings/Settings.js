@@ -1,18 +1,28 @@
 import settings from "../../images/settings.png";
 
 import React, {useState} from 'react';
-import {Link, withRouter} from "react-router-dom";
+import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
 import {StdButton} from "../../components";
-import {setNotification as setNotificationMsg, callGetConfig, callUpdateConfig, callClearSave} from '../../features/WalletDataSlice'
+import {isWalletLoaded, setError, setNotification as setNotificationMsg, callGetConfig,
+  callUpdateConfig, callClearSave, unloadWallet} from '../../features/WalletDataSlice'
 
 import './Settings.css';
 
 const { app } = window.require('electron').remote
 
 const SettingsPage = (props) => {
-  const current_config = callGetConfig();
+  const dispatch = useDispatch();
+
+  let current_config;
+  try {
+    current_config = callGetConfig();
+  } catch {
+    current_config = {notifications: "", tutorials: "", state_entity_endpoint: "", swap_conductor_endpoint: "",
+      electrum_config: {host: ""}, tor_proxy: "", min_anon_set: ""};
+  }
+
   const [notifications, setNotification] = useState(current_config.notifications);
   const [tutorials, setTutorials] = useState(current_config.tutorials);
   const [stateEntityAddr, setStateEntityAddr] = useState(current_config.state_entity_endpoint);
@@ -21,33 +31,21 @@ const SettingsPage = (props) => {
   const [torProxy, setTorProxy] = useState(current_config.tor_proxy);
   const [minAnonSet, setMinAnonSet] = useState(current_config.min_anon_set);
 
+
   // Change handlers
-  const onNotificationChange = () => {
-    setNotification(!notifications);
-  };
-  const onTutorialChange = () => {
-    setTutorials(!tutorials);
-  };
-  const onStateEntityAddrChange = (evt) => {
-    setStateEntityAddr(evt.target.value);
-  }
-  const onSwapAddrChange = (evt) => {
-    setSwapAddr(evt.target.value);
-  }
-  const onElecAddrChange = (evt) => {
-      setElecAddr(evt.target.value);
-  }
-  const onTorProxyChange = (evt) => {
-    setTorProxy(evt.target.value);
-  }
-  const decreaseMinAnonSet = () => {
-      setMinAnonSet(minAnonSet-1);
-  }
-  const increaseMinAnonSet = () => {
-      setMinAnonSet(minAnonSet+1);
-  }
-  const onMinAnonSetChange = (evt) => {
-      setMinAnonSet(evt.target.value);
+  const onNotificationChange = () => { setNotification(!notifications) };
+  const onTutorialChange = () => { setTutorials(!tutorials) };
+  const onStateEntityAddrChange = (evt) => { setStateEntityAddr(evt.target.value) };
+  const onSwapAddrChange = (evt) => { setSwapAddr(evt.target.value) };
+  const onElecAddrChange = (evt) => { setElecAddr(evt.target.value) };
+  const onTorProxyChange = (evt) => { setTorProxy(evt.target.value) };
+  const decreaseMinAnonSet = () => { setMinAnonSet(minAnonSet-1) };
+  const increaseMinAnonSet = () => { setMinAnonSet(minAnonSet+1) };
+  const onMinAnonSetChange = (evt) => { setMinAnonSet(evt.target.value) };
+
+  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
+  if (!isWalletLoaded()) {
+    return <Redirect to="/" />;
   }
 
   // buttons
@@ -78,11 +76,15 @@ const SettingsPage = (props) => {
     setMinAnonSet(current_config.min_anon_set);
   }
 
-  const dispatch = useDispatch();
   const clearWalletButtonOnClick = () => {
-    dispatch(callClearSave())
-    app.relaunch();
-    app.exit(0);
+    dispatch(callClearSave());
+    unloadWallet();
+    props.setWalletLoaded(false);
+  }
+
+  const logOutButtonOnClick = () => {
+    unloadWallet();
+    props.setWalletLoaded(false);
   }
 
   return (
@@ -207,6 +209,13 @@ const SettingsPage = (props) => {
             className="Body-button blue"
             onClick={clearWalletButtonOnClick}>
               Clear wallet memory
+          </button>
+
+          <button
+            type="button"
+            className="Body-button blue"
+            onClick={logOutButtonOnClick}>
+              Log out of wallet
           </button>
       </div>
   )
