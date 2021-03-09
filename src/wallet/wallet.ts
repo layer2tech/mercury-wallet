@@ -377,7 +377,7 @@ export class Wallet {
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 
-    log.info("Deposite Init done. Waiting for coins sent to "+p_addr);
+    log.info("Deposit Init done. Waiting for coins sent to "+p_addr);
     this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
   }
@@ -444,7 +444,7 @@ export class Wallet {
     statecoin_finalized.setConfirmed();
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
-    log.info("Deposite Confirm done.");
+    log.info("Deposit Confirm done.");
     this.saveStateCoinsList();
     return statecoin_finalized
   }

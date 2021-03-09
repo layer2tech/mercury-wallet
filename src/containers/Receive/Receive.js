@@ -12,6 +12,7 @@ import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callTransferReceiver, setE
 import './Receive.css';
 import '../Send/Send.css';
 
+import Transaction from 'bitcoinjs-lib';
 
 const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
@@ -43,7 +44,9 @@ const ReceiveStatecoinPage = () => {
     dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
       if (res.error===undefined) {
         setTransferMsg3("")
-        dispatch(setNotification({msg:"Transfer complete!"}))
+        let amount = res.state_chain_data.amount
+        let locktime = Transaction.fromHex(res.tx_backup_psm.tx_hex).locktime
+        dispatch(setNotification({msg:"Transfer of "+amount+" BTC complete! StateCoin expires at block height "+locktime+"."}))
       }
     })
   }
