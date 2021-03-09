@@ -3,8 +3,8 @@
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
-  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, encryptAES,
-  decryptAES, encodeSCEAddress } from './';
+  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, decryptAES,
+  encodeSCEAddress } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -166,12 +166,12 @@ export class Wallet {
     let store = new Storage();
     // Fetch raw wallet string
     let wallet_json = store.getWallet(wallet_name);
-    if (wallet_json==undefined) throw Error("No wallet called "+wallet_name+" stored.");
+    if (wallet_json===undefined) throw Error("No wallet called "+wallet_name+" stored.");
     // Decrypt mnemonic
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
     } catch (e) {
-      if (e.message=="unable to decrypt data") throw Error("Incorrect password.")
+      if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
@@ -247,7 +247,7 @@ export class Wallet {
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
-      if (statecoin.status==STATECOIN_STATUS.UNCOMFIRMED &&
+      if (statecoin.status===STATECOIN_STATUS.UNCOMFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           this.depositConfirm(statecoin.shared_key_id)
       }
@@ -494,7 +494,7 @@ export class Wallet {
     let finalize_data = await transferReceiver(this.http_client, transfer_msg3, rec_se_addr_bip32, batch_data)
 
     // In batch case this step is performed once all other transfers in the batch are complete.
-    if (batch_data = {}) {
+    if (batch_data==={}) {
         // Finalize protocol run by generating new shared key and updating wallet.
         this.transfer_receiver_finalize(finalize_data);
     }

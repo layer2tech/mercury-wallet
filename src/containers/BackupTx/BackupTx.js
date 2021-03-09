@@ -3,7 +3,7 @@ import icon2 from "../../images/icon2.png";
 
 import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux'
+import {useDispatch} from 'react-redux'
 
 import {isWalletLoaded, setError, callGetCoinBackupTxData} from '../../features/WalletDataSlice'
 import {Coins, StdButton} from "../../components";
@@ -14,7 +14,6 @@ const DEFAULT_TX_DATA = {tx_backup_hex:"",priv_key_hex:"",key_wif:"",expiry_data
 
 const BackupTxPage = () => {
   const dispatch = useDispatch();
-  const block_height = useSelector(state => state.walletData).block_height;
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [selectedCoinTxData, setSelectedCoinTxData] = useState(DEFAULT_TX_DATA); // store selected coins shared_key_id

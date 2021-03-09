@@ -3,7 +3,7 @@ import icon2 from "../../images/icon2.png";
 
 import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
-import {useSelector, useDispatch} from 'react-redux'
+import {useDispatch} from 'react-redux'
 
 import {StdButton, AddressInput} from "../../components";
 

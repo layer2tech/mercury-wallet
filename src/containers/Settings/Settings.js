@@ -5,12 +5,10 @@ import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
 import {StdButton} from "../../components";
-import {isWalletLoaded, setError, setNotification as setNotificationMsg, callGetConfig,
+import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
   callUpdateConfig, callClearSave, unloadWallet} from '../../features/WalletDataSlice'
 
 import './Settings.css';
-
-const { app } = window.require('electron').remote
 
 const SettingsPage = (props) => {
   const dispatch = useDispatch();

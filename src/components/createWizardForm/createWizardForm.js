@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {useForm} from "react-hook-form";
 
 import './createWizardForm.css'
@@ -44,7 +44,7 @@ const CreateWizardForm = (props) => {
                     required
                     ref={register({
                        validate: value =>
-                           value == password.current || "The passwords do not match"
+                           value===password.current || "The passwords do not match"
                     })}/>
 
                 </div>
