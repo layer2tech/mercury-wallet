@@ -12,8 +12,6 @@ import {isWalletLoaded, setError} from '../../features/WalletDataSlice'
 
 import './Deposit.css';
 
-const DEFUALT_VALUE_SELECTION = 1000;
-
 const DepositPage = () => {
   const dispatch = useDispatch();
 
@@ -22,7 +20,8 @@ const DepositPage = () => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  const [selectedValues, setSelectedValues] = useState([{value: DEFUALT_VALUE_SELECTION, initialised: false, p_addr: "Initialising.."}]);
+  // const [selectedValues, setSelectedValues] = useState([{value: DEFUALT_VALUE_SELECTION, initialised: false, p_addr: "Initialising.."}]);
+  const [selectedValues, setSelectedValues] = useState([{value: null, initialised: false, p_addr: "Initialising.."}]);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -54,7 +53,8 @@ const DepositPage = () => {
   // Add SelectionPanel to form
   const addSelectionPanel = (id, value) => {
     let current_values = selectedValues;
-    current_values.push({value: DEFUALT_VALUE_SELECTION, initialised: false});
+    current_values.push({value: null, initialised: false});
+    // current_values.push({value: DEFUALT_VALUE_SELECTION, initialised: false});
     setSelectedValues(current_values);
   }
 
