@@ -3,11 +3,10 @@ import {Link} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
 import {Storage} from '../../store';
-import {isWalletLoaded, walletLoad, setError} from '../../features/WalletDataSlice'
+import {walletLoad, setError} from '../../features/WalletDataSlice'
 
 import  './LoadWallet.css'
 
-let Store = window.require('electron-store');
 let store = new Storage();
 
 let wallet_name_password_map = store.getWalletNamePasswordMap()

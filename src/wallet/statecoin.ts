@@ -35,7 +35,7 @@ export class StateCoinList {
         total += item.value
         return item
       }
-      return
+      return null
     })
     return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
   };
@@ -46,7 +46,7 @@ export class StateCoinList {
       if (item.status === STATECOIN_STATUS.INITIALISED) {
         return item
       }
-      return
+      return null
     })
   };
 
@@ -56,7 +56,7 @@ export class StateCoinList {
       if (item.status === STATECOIN_STATUS.IN_MEMPOOL) {
         return item
       }
-      return
+      return null
     })
   };
 
@@ -66,7 +66,7 @@ export class StateCoinList {
       if (item.status === STATECOIN_STATUS.UNCOMFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL) {
         return item
       }
-      return
+      return null
     })
   };
 

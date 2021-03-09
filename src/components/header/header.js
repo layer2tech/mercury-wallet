@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import logo from '../../images/monochrome - white@4x.png';
 import question from '../../images/header-question.png';
 import settings from '../../images/settings-icon.png';
@@ -7,7 +7,7 @@ import {Link, withRouter} from "react-router-dom";
 import {Button, Modal} from "react-bootstrap";
 import {useDispatch, useSelector} from 'react-redux'
 
-import {setErrorSeen, setNotificationSeen, setNotification} from '../../features/WalletDataSlice'
+import {setErrorSeen, setNotificationSeen} from '../../features/WalletDataSlice'
 
 import './header.css';
 
@@ -25,15 +25,11 @@ const Header = (props) => {
       // remove notificaiton message from WalletData state and local state
       dispatch(setNotificationSeen({msg: msg}))
       let new_notifications_list = notifications_list.filter((item) => {
-        if (item.msg !== msg) { return item }
+        if (item.msg !== msg) { return item };
+        return null
       })
       notifications_list = new_notifications_list;
     }
-
-    const handleShowNotofication = () => {
-      dispatch(setNotification({msg:"test"}))
-    }
-
 
     // Display all notifications
     const showNotifications = notifications_list.map((item) => (

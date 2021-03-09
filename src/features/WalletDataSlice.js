@@ -1,11 +1,10 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 
-import { Wallet, ACTION } from '../wallet'
-import { getFeeInfo } from '../wallet/mercury/info_api'
-import { decodeMessage, encodeSCEAddress } from '../wallet/util'
-import { initElectrumClient } from '../wallet/wallet'
+import {Wallet, ACTION} from '../wallet'
+import {getFeeInfo} from '../wallet/mercury/info_api'
+import {decodeMessage} from '../wallet/util'
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 
 const log = window.require('electron-log');
@@ -22,7 +21,8 @@ const initialState = {
 
 // Quick check for expiring coins. If so display error dialogue
 const checkForExpiringCoins = () => {
-  let [coins_data, _total_balance] = wallet.getUnspentStatecoins();
+  let unspent_coins_data = wallet.getUnspentStatecoins();
+  let coins_data = unspent_coins_data[0];
   for (let i=0; i<coins_data.length; i++) {
     if (coins_data[i].expiry_data.months <= 1) {
         initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet is close to expiring." }
@@ -171,11 +171,11 @@ const WalletSlice = createSlice({
       state.error_dialogue.seen = true
     },
     setError(state, action) {
+      log.error(action.payload.msg)
       return {
         ...state,
         error_dialogue: {seen: false, msg: action.payload.msg}
       }
-      log.error(action.payload.msg)
     },
     setNotificationSeen(state, action) {
       return {

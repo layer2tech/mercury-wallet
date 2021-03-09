@@ -1,5 +1,5 @@
 import React from 'react';
-import {withRouter, useParams, Redirect} from "react-router-dom";
+import {withRouter, Redirect} from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux'
 
 import {setError, isWalletLoaded, updateFeeInfo, callGetFeeInfo} from '../../features/WalletDataSlice'
@@ -9,7 +9,7 @@ import {PanelControl, PanelConnectivity, PanelCoinsActivity} from '../../compone
 // Provided with props Home is used to initiliase a Wallet into the Redux state.
 const HomePage = () => {
   const dispatch = useDispatch();
-  const fee_info = useSelector(state => state.walletData).fee_info;
+  let fee_info = useSelector(state => state.walletData).fee_info;
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -20,7 +20,7 @@ const HomePage = () => {
   // Initiliase wallet data in Redux state
   const initWalletInRedux = () => {
     // Get fee info
-    const fee_info = callGetFeeInfo().then((fee_info) => {
+    fee_info = callGetFeeInfo().then((fee_info) => {
       dispatch(updateFeeInfo(fee_info));
     })
   }

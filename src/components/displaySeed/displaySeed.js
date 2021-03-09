@@ -2,8 +2,6 @@ import copy from '../../images/copy-image.png';
 
 import React from 'react';
 
-import {Wallet} from "../../wallet";
-
 import '../displaySeed/displaySeed.css'
 
 

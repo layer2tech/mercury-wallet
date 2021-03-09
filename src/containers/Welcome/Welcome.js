@@ -1,8 +1,6 @@
 import plus from '../../images/plus-black.png';
 import restore from '../../images/restore-img.png';
 import check from '../../images/icon-action-check_circle.png';
-import StdButton from "../../components/buttons/standardButton";
-import swapIcon from "../../images/swap-icon.png";
 
 import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
