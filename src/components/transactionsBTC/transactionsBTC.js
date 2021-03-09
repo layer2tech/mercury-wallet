@@ -1,4 +1,3 @@
-import scan from "../../images/scan-deposite.png";
 import icon1 from "../../images/icon1.png";
 import icon2 from "../../images/icon2.png";
 import arrow from "../../images/scan-arrow.png";
@@ -12,6 +11,8 @@ import { fromSatoshi } from '../../wallet'
 
 import '../../containers/Deposit/Deposit.css';
 import '../index.css';
+
+let QRCode = require('qrcode.react');
 
 const TransactionsBTC = (props) => {
   const [state, setState] = useState({});
@@ -99,29 +100,37 @@ const TransactionDisplay = (props) => {
     return props.confirmations+" Confirmations.."
   }
 
+  // WARNING: amount is in BTC NOT satoshis.
+  const makeQRCodeString = (address, amount) => "bitcoin:"+address+"?amount="+amount;
+
   return (
     <div className="Body">
-        <div className="deposit-scan">
-            <img src={scan} alt=""/>
-            <div className="deposit-scan-content">
-                <div className="deposit-scan-subtxt">
-                    <span>Finish Creating the Statecoin by sending exactly {fromSatoshi(props.amount)} BTC to:</span>
-                    <span>{getCofirmationsDisplayString()}</span>
-                </div>
-                <div className="deposit-scan-main">
-                    <div className="deposit-scan-main-item">
-                        <img src={icon1} alt="icon"/>
-                        <span><b>{fromSatoshi(props.amount)}</b> BTC</span>
-                    </div>
-                    <img src={arrow} alt="arrow"/>
-                    <div className="deposit-scan-main-item">
-                        <img type="button" src={icon2} alt="icon" onClick={copyAddressToClipboard}/>
-                        <span className="long"><b>{props.address}</b></span>
-                    </div>
-                </div>
+      <div className="deposit-scan">
+        <QRCode value={makeQRCodeString(props.address, fromSatoshi(props.amount))}
+        level='H'
+        />
+
+        <div className="deposit-scan-content">
+          <div className="deposit-scan-subtxt">
+            <span>Finish Creating the Statecoin by sending exactly {fromSatoshi(props.amount)} BTC to:</span>
+            <span>{getCofirmationsDisplayString()}</span>
+          </div>
+
+          <div className="deposit-scan-main">
+            <div className="deposit-scan-main-item">
+              <img src={icon1} alt="icon"/>
+              <span><b>{fromSatoshi(props.amount)}</b> BTC</span>
             </div>
+            <img src={arrow} alt="arrow"/>
+            <div className="deposit-scan-main-item">
+              <img type="button" src={icon2} alt="icon" onClick={copyAddressToClipboard}/>
+              <span className="long"><b>{props.address}</b></span>
+            </div>
+          </div>
+
         </div>
-    </div>
+      </div>
+  </div>
   )
 }
 
