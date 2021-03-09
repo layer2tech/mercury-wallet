@@ -62,6 +62,16 @@ export class StateCoinList {
     })
   };
 
+  // Return coins that are awaiting funding tx confirmations
+  getInMempoolCoins() {
+    return this.coins.filter((item: StateCoin) => {
+      if (item.status === STATECOIN_STATUS.IN_MEMPOOL) {
+        return item
+      }
+      return
+    })
+  };
+
   // Find all coins in mempool or mined but with required_confirmations confirmations
   getUnconfirmedCoins() {
     return this.coins.filter((item: StateCoin) => {
@@ -106,11 +116,12 @@ export class StateCoinList {
   }
 
   // Funding Tx seen on network. Set coin status and funding_txid
-  setCoinInMempool(shared_key_id: string, funding_txid: string) {
+  setCoinInMempool(shared_key_id: string, funding_txid: string, funding_vout: number) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.setInMempool()
       coin.funding_txid = funding_txid
+      coin.funding_vout = funding_vout
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
@@ -176,6 +187,7 @@ export class StateCoin {
   proof_key: string;
   value: number;
   funding_txid: string;
+  funding_vout: number;
   block: number;  // included in block number. 0 for unconfirmed.
   timestamp: number;
   tx_backup: BTCTransaction | null;
@@ -194,6 +206,7 @@ export class StateCoin {
     this.timestamp = new Date().getTime();
 
     this.funding_txid = "";
+    this.funding_vout = 0;
     this.block = -1; // marks tx has not been mined
     this.swap_rounds = 0
     this.tx_backup = null;
@@ -217,9 +230,11 @@ export class StateCoin {
       shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid,
+      funding_vout: this.funding_vout,
       timestamp: this.timestamp,
       swap_rounds: this.swap_rounds,
-      expiry_data: this.getExpiryData(block_height)
+      expiry_data: this.getExpiryData(block_height),
+      status: this.status
     }
   };
 
@@ -254,6 +269,7 @@ export class StateCoin {
       shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid,
+      funding_vout: this.funding_vout,
       p_addr: this.getBtcAddress(network),
       confirmations: this.getConfirmations(block_height)
     }
@@ -307,9 +323,11 @@ export interface StateCoinDisplayData {
   shared_key_id: string,
   value: number,
   funding_txid: string,
+  funding_vout: number,
   timestamp: number,
   swap_rounds: number,
-  expiry_data: ExpiryData
+  expiry_data: ExpiryData,
+  status: string
 }
 
 export interface SwapDisplayData {

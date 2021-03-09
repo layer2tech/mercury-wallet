@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import { StdButton, AddressInput } from "../../components";
 
-import { callGenSeAddr, callTransferReceiver, setError, setNotification } from '../../features/WalletDataSlice'
+import { callNewSeAddr, callGetSeAddr, callTransferReceiver, setError, setNotification } from '../../features/WalletDataSlice'
 
 import './Receive.css';
 import '../Send/Send.css';
@@ -16,16 +16,15 @@ import '../Send/Send.css';
 const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
 
-  const rec_se_addr = useSelector(state => state.walletData).rec_se_addr;
-
   const [transfer_msg3, setTransferMsg3] = useState("");
-
   const onTransferMsg3Change = (event) => {
     setTransferMsg3(event.target.value);
   };
+  const [rec_sce_addr, setRecAddr] = useState(callGetSeAddr());
 
   const genAddrButtonAction = async () => {
-    dispatch(callGenSeAddr())
+    callNewSeAddr()
+    setRecAddr(callGetSeAddr())
   }
 
   const receiveButtonAction =() => {
@@ -41,11 +40,10 @@ const ReceiveStatecoinPage = () => {
         dispatch(setNotification({msg:"Transfer complete!"}))
       }
     })
-
   }
 
   const copySEAddressToClipboard = () => {
-    navigator.clipboard.writeText(rec_se_addr);
+    navigator.clipboard.writeText(rec_sce_addr);
   }
 
   return (
@@ -79,7 +77,7 @@ const ReceiveStatecoinPage = () => {
                         <div className="receiveStatecoin-scan-txid">
                           <img type="button" src={icon2} alt="icon" onClick={copySEAddressToClipboard}/>
                             <span>
-                              {rec_se_addr}
+                              {rec_sce_addr}
                             </span>
                         </div>
                         <span

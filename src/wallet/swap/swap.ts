@@ -26,7 +26,7 @@ export const pingServer = async (
 }
 
 function delay(s: number) {
-  return new Promise( resolve => setTimeout(resolve, s) );
+  return new Promise( resolve => setTimeout(resolve, s*1000) );
 }
 
 export const doSwap = async (
@@ -40,38 +40,53 @@ export const doSwap = async (
 ): Promise<StateCoin> => {
 
   console.log('swap.ts: doSwap - swap_register_utxo: ', statecoin.statechain_id);
-  console.log('create public key:');
-  console.log('create public key: ', proof_key_der.publicKey);
-  console.log('create public key for :', proof_key_der.publicKey);
   let publicKey = proof_key_der.publicKey.toString('hex');
   console.log('create statechain sig for ', publicKey);
   let sc_sig = StateChainSig.create(proof_key_der, "SWAP", publicKey);
 
+  console.log('statechainSig: ', sc_sig);
+
   console.log('create RegisterUtxo');
-  let registerUtxo = new RegisterUtxo(
-    statecoin.statechain_id,
-    sc_sig,
-    swap_size
-  );
+  let registerUtxo = {
+    statechain_id: statecoin.statechain_id,
+    signature: sc_sig,
+    swap_size: swap_size
+  };
+  console.log('RegisterUtxo: ', registerUtxo);
 
   console.log('swap_register_utxo: await swap_register_utxo - ep:', POST_ROUTE.SWAP_REGISTER_UTXO, ', ID:', registerUtxo);
-  await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
+  let reg_res = await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
 
-  console.log('await poll utxo');
+  console.log('register utxo response: ', reg_res);
+
+  let statechain_id = {
+    id: statecoin.statechain_id
+  }
+
+  console.log('await poll utxo ', statechain_id);
+
   let swap_id = null
-  while (swap_id === null){
-    swap_id = await pollUtxo(http_client,statecoin.statechain_id);
+  while (true){
+    swap_id = await pollUtxo(http_client,statechain_id);
+    if (swap_id !== null) {
+      typeforce(types.SwapID, swap_id);
+      if (swap_id.id !== null) {
+        break;
+      }
+    }
     await delay(3);
   };
-  typeforce(types.SwapID, swap_id);
+  
 
-  console.log('await swap info');
+  console.log('await swap info for swap id ', swap_id);
   let swap_info = null;
   while (swap_info === null){
     swap_info = await getSwapInfo(http_client,swap_id);
     await delay(3);
   };
+  console.log('got swap info response');
   typeforce(types.SwapInfo, swap_info);
+  console.log('got swap info ', swap_info);
 
   let address = new types.SCEAddress (
     null,
@@ -446,4 +461,16 @@ export interface SwapStatus {
   Phase3: "Phase3",
   Phase4: "Phase4",
   End: "End",
+}
+export interface BSTMsg {
+  swap_id: String, //Uuid,
+  statechain_id: String, //Uuid,
+}
+
+export interface SwapID{
+  id: String | null, //Option<Uuid>,
+}
+
+export interface StatechainID{
+  id: String, //Option<Uuid>,
 }

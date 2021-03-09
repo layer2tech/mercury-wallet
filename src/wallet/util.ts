@@ -1,6 +1,6 @@
 // wallet utilities
 
-import { BIP32Interface, Network, TransactionBuilder, crypto, script, Transaction } from 'bitcoinjs-lib';
+import { BIP32Interface, Network, TransactionBuilder, crypto as crypto_btc, script, Transaction } from 'bitcoinjs-lib';
 import { Root } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 import { TransferMsg3 } from './mercury/transfer';
@@ -13,6 +13,7 @@ let bech32 = require('bech32')
 let bitcoin = require('bitcoinjs-lib')
 let typeforce = require('typeforce');
 let types = require("./types")
+let crypto = require('crypto');
 
 let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
@@ -108,7 +109,7 @@ export class StateChainSig {
     // Make StateChainSig message. Concat purpose string + data and sha256 hash.
     to_message(): Buffer {
       let buf = Buffer.from(this.purpose + this.data, "utf8")
-      return crypto.sha256(buf)
+      return crypto_btc.sha256(buf)
     }
 
     // Verify self's signature for transfer or withdraw
@@ -136,12 +137,12 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
 }
 
 // Backup Tx builder
-export const txBackupBuild = (network: Network, funding_txid: string, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number): TransactionBuilder => {
+export const txBackupBuild = (network: Network, funding_txid: string, funding_vout: number, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number): TransactionBuilder => {
   if (FEE+withdraw_fee >= value) throw Error("Not enough value to cover fee.");
 
   let txb = new TransactionBuilder(network);
   txb.setLockTime(init_locktime);
-  txb.addInput(funding_txid, 0, 0xFFFFFFFE);
+  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFE);
   txb.addOutput(backup_receive_addr, value - FEE - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
   return txb
@@ -150,11 +151,12 @@ export const txBackupBuild = (network: Network, funding_txid: string, backup_rec
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-export const txWithdrawBuild = (network: Network, funding_txid: string, rec_address: string, value: number, fee_address: string, withdraw_fee: number): TransactionBuilder => {
+export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number): TransactionBuilder => {
   if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
 
   let txb = new TransactionBuilder(network);
-  txb.addInput(funding_txid, 0);
+
+  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF);
   txb.addOutput(rec_address, value - FEE - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
   return txb
@@ -228,4 +230,40 @@ export const decryptECIESx1 = (secret_key: string, encryption: string): string =
   let enc = new Uint32Array(Buffer.from(encryption, "hex"))
   let dec = decrypt(secret_key, Buffer.from(enc));
   return dec.toString("hex")  // un-JSONify
+}
+
+
+const AES_ALGORITHM = 'aes-192-cbc';
+const PBKDF2_HASH_ALGORITHM = 'sha512';
+const PBKDF2_NUM_ITERATIONS = 2000;
+
+export interface EncryptionAES {
+  iv: string,
+  encryption: string
+}
+
+// AES encrypt with password
+export const encryptAES = (data: string, password: string): EncryptionAES => {
+  const key = crypto.pbkdf2Sync(password, 'salt', PBKDF2_NUM_ITERATIONS, 24, PBKDF2_HASH_ALGORITHM);
+  let iv = crypto.randomFillSync(new Uint8Array(16))
+  const cipher = crypto.createCipheriv(AES_ALGORITHM, key, iv);
+
+  let encrypted = cipher.update(data, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+
+  return {
+    iv: Buffer.from(iv).toString("hex"),
+    encryption: encrypted
+  }
+}
+
+// AES decrypt with password
+export const decryptAES = (encryption: EncryptionAES, password: string) => {
+  const key = crypto.pbkdf2Sync(password, 'salt', PBKDF2_NUM_ITERATIONS, 24, PBKDF2_HASH_ALGORITHM);
+  const decipher = crypto.createDecipheriv(AES_ALGORITHM, key, Buffer.from(encryption.iv, "hex"));
+
+  let decrypted = decipher.update(encryption.encryption, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+
+  return decrypted
 }

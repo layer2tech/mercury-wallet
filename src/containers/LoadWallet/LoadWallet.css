@@ -1,8 +1,16 @@
 .memory-form {
-   width: 80%;
+    width: 50%;
     margin: 0 auto;
-}
+    position: relative;
+    padding-bottom: 90px;
 
+}
+.memory-form .back {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+
+}
 .memory-form .inputs-item input {
     position: relative;
     opacity: 1;
@@ -51,4 +59,13 @@
     font-size: 14px;
     border-radius: 8px;
     padding: 5px 30px;
+}
+.memory-form select {
+    position: relative;
+    opacity: 1;
+    width: 350px;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #D7D7D7;
+    border-radius: 6px !important;
 }

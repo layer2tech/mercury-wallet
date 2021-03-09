@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 
 import MultiStep from "react-multistep";
@@ -9,26 +9,35 @@ import './CreateWalletWizard.css'
 let bip39 = require('bip39');
 
 const mnemonic = bip39.generateMnemonic();
-const rands = [Math.floor(Math.random()*11),Math.floor(Math.random()*11),Math.floor(Math.random()*11)]
 
-const steps = [
-    {component: <CreateWizardForm />},
-    {component: <DisplaySeed mnemonic={mnemonic}/>},
-    {component: <ConfirmSeed mnemonic={mnemonic} rands={rands}/>}
-];
-
-
+// MultiStep wizard for wallet setup
 const CreateWizardPage = () => {
-    return (
-        <div className="container wizard">
-            <MultiStep steps={steps}/>
-            <div className="btns">
-              <Link to="/" >
-                go back
-              </Link>
-            </div>
-        </div>
-    )
+
+  const [wizardState, setWizardState] = useState(
+    {
+      wallet_name: "",
+      wallet_password: "",
+      mnemonic: mnemonic,
+    });
+  const setStateWalletName = (event) => setWizardState({...wizardState, wallet_name: event.target.value});
+  const setStateWalletPassword = (event) => setWizardState({...wizardState, wallet_password: event.target.value});
+
+  const steps = [
+    {component: <CreateWizardForm wizardState={wizardState} setStateWalletName={setStateWalletName} setStateWalletPassword={setStateWalletPassword}/>},
+    {component: <DisplaySeed wizardState={wizardState}/>},
+    {component: <ConfirmSeed wizardState={wizardState}/>}
+  ];
+
+  return (
+    <div className="container wizard">
+      <MultiStep steps={steps}/>
+      <div className="btns">
+        <Link to="/" >
+          go back
+        </Link>
+      </div>
+    </div>
+  )
 }
 
 export default withRouter(CreateWizardPage);

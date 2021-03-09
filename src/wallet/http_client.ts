@@ -38,6 +38,14 @@ export const POST_ROUTE = {
 };
 Object.freeze(POST_ROUTE);
 
+
+// Check if returned value from server is an error. Throw if so.
+const checkForServerError = (return_val: any) => {
+  if (typeof(return_val)=="string" && return_val.includes("Error")) {
+    throw Error(return_val)
+  }
+}
+
 export class HttpClient {
   endpoint: string
 
@@ -55,6 +63,7 @@ export class HttpClient {
       };
       let res = await axios(config)
       let return_data = res.data
+      checkForServerError(return_data)
 
       return return_data
 
@@ -77,7 +86,8 @@ export class HttpClient {
       };
       let res = await axios(config)
       let return_data = res.data
-
+      checkForServerError(return_data)
+      
       return return_data
 
     } catch (err) {

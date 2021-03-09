@@ -4,6 +4,7 @@ const BrowserWindow = electron.BrowserWindow;
 
 const path = require('path');
 const isDev = require('electron-is-dev');
+const url = require('url');
 
 let mainWindow;
 
@@ -15,7 +16,8 @@ function createWindow() {
     webPreferences:
       {
         nodeIntegration: true,
-        webSecurity: false
+        webSecurity: false,
+        enableRemoteModule: true
       }
     });
 
@@ -25,7 +27,13 @@ function createWindow() {
     electron.shell.openExternal(url);
   });
 
-  mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
+  const startUrl = url.format({
+          pathname: path.join(__dirname, '/../build/index.html'),
+          protocol: 'file:',
+          slashes: true
+      });
+  mainWindow.loadURL(isDev ? 'http://localhost:3000' : startUrl);
+
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }

@@ -1,9 +1,9 @@
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {useForm} from "react-hook-form";
 
 import './createWizardForm.css'
 
-const CreateWizardForm = () => {
+const CreateWizardForm = (props) => {
     const {register, errors, handleSubmit, watch} = useForm({mode: 'onChange', reValidateMode: 'onChange',});
     const password = useRef({});
     password.current = watch("password", "");
@@ -11,27 +11,26 @@ const CreateWizardForm = () => {
     return (
         <div className="wizard-form">
             <form>
+                <div className="inputs-item">
+                  <input id="Name" type="text" name="Wallet Name" placeholder="Wallet Name"
+                    value={props.wizardState.wallet_name}
+                    onChange={props.setStateWalletName}
+                    required/>
+                </div>
+                <div className="inputs-item">
+                    <p>Enter a password for your wallet. Leave blank for no password.</p>
+                </div>
 
                 <div className="inputs-item">
-                    <input id="Name" disabled={true} type="text" name="Wallet Name" placeholder="Wallet Name"
-                           required/>
-                </div>
-                {/*
-                <div className="inputs-item">
-                    <p>Details on what the passphrase is used for, what makes for a secure passphrase.</p>
-                </div>
-                */}
-
-                <div className="inputs-item">
-                    <input id="Passphrase" disabled={true} type="password" name="password" required
-                           placeholder="Passphrase (min 8 characters)"
-                           ref={register({
-                               required: "You must specify a password",
-                               minLength: {
-                                   value: 8,
-                                   message: "Password must have at least 8 characters"
-                               }
-                           })}
+                  <input id="Passphrase" type="password" name="password" required
+                    placeholder="Passphrase (min 8 characters)"
+                    onChange={props.setStateWalletPassword}
+                    ref={register({
+                       minLength: {
+                           value: 8,
+                           message: "Password must have at least 8 characters"
+                       }
+                    })}
                     />
 
                 </div>
@@ -40,12 +39,13 @@ const CreateWizardForm = () => {
                 </div>
 
                 <div className="inputs-item">
-                    <input id="password_repeat" disabled={true} type="password" name="password_repeat" placeholder="Confirm Passphrase"
-                           required
-                           ref={register({
-                               validate: value =>
-                                   value === password.current || "The passwords do not match"
-                           })}/>
+                  <input id="password_repeat"type="password" name="password_repeat"
+                    placeholder="Confirm Passphrase"
+                    required
+                    ref={register({
+                       validate: value =>
+                           value == password.current || "The passwords do not match"
+                    })}/>
 
                 </div>
                 <div className="error">

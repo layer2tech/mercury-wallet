@@ -8,7 +8,7 @@ import '../displaySeed/displaySeed.css'
 
 
 const DisplaySeed = (props) => {
-    let mnemonic = props.mnemonic;
+    let mnemonic = props.wizardState.mnemonic;
     let words = mnemonic.split(" ");
 
     const inputs = words.map((item, index) => (
