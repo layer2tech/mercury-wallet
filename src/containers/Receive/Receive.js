@@ -12,7 +12,7 @@ import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callTransferReceiver, setE
 import './Receive.css';
 import '../Send/Send.css';
 
-import Transaction from 'bitcoinjs-lib';
+import { Transaction } from 'bitcoinjs-lib';
 
 const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
@@ -23,16 +23,17 @@ const ReceiveStatecoinPage = () => {
   };
   const [rec_sce_addr, setRecAddr] = useState(callGetSeAddr());
 
+  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
+  if (!isWalletLoaded()) {
+    dispatch(setError({msg: "No Wallet loaded."}))
+    return <Redirect to="/" />;
+  }
+
   const genAddrButtonAction = async () => {
     callNewSeAddr()
     setRecAddr(callGetSeAddr())
   }
 
-  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
-  if (!isWalletLoaded()) {
-    dispatch(setError({msg: "No Wallet loaded."}))
-    return <Redirect to="/" />;
- }
 
   const receiveButtonAction =() => {
     // check statechain is chosen
@@ -44,8 +45,8 @@ const ReceiveStatecoinPage = () => {
     dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
       if (res.error===undefined) {
         setTransferMsg3("")
-        let amount = res.state_chain_data.amount
-        let locktime = Transaction.fromHex(res.tx_backup_psm.tx_hex).locktime
+        let amount = res.payload.state_chain_data.amount
+        let locktime = Transaction.fromHex(res.payload.tx_backup_psm.tx_hex).locktime
         dispatch(setNotification({msg:"Transfer of "+amount+" BTC complete! StateCoin expires at block height "+locktime+"."}))
       }
     })
