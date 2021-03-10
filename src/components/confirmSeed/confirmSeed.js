@@ -15,7 +15,7 @@ const ConfirmSeed = (props) => {
   const [missingwords, setMissingWords] = useState(rands.map((rand) => ({pos:rand, word:""})));
 
   const inputMissingWord = (event) => {
-    let map = missingwords.map((item) => {if (item.pos===event.target.id) {item.word=event.target.value} return item})
+    let map = missingwords.map((item) => {if (item.pos===parseInt(event.target.id)) {item.word=event.target.value} return item})
     setMissingWords(map)
   }
 
