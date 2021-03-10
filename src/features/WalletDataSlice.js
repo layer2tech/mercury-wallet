@@ -11,6 +11,7 @@ const log = window.require('electron-log');
 const network = bitcoin.networks[require("../settings.json").network];
 
 let wallet;
+let testing_mode = require("../settings.json").testing_mode;
 
 const initialState = {
   notification_dialogue: [],
@@ -51,15 +52,17 @@ function setBlockHeightCallBack(item) {
 
 // Load wallet from store
 export const walletLoad = (name, password) => {
-  wallet = Wallet.load(name, password, false);
+  wallet = Wallet.load(name, password, testing_mode);
   log.info("Wallet "+name+" loaded from memory. ");
+  if (testing_mode) log.info("Testing mode set.");
   wallet.initElectrumClient(setBlockHeightCallBack);
   checkForExpiringCoins();
 }
 // Create wallet from nmemonic and load wallet
 export const walletFromMnemonic = (name, password, mnemonic) => {
-  wallet = Wallet.fromMnemonic(name, password, mnemonic, network, false);
+  wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   log.info("Wallet "+name+" created.");
+  if (testing_mode) log.info("Testing mode set.");
   wallet.initElectrumClient(setBlockHeightCallBack);
   callNewSeAddr();
   wallet.save();

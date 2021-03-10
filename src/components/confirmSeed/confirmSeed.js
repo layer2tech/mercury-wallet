@@ -2,11 +2,14 @@ import React, {useState} from 'react';
 import {Link} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
-import {setError, walletFromMnemonic} from '../../features/WalletDataSlice'
+import {setError, walletFromMnemonic, callGetConfig} from '../../features/WalletDataSlice'
 
 import './confirmSeed.css'
 
-const rands = [Math.floor(Math.random()*11),Math.floor(Math.random()*11),Math.floor(Math.random()*11)]
+let rands = [];
+if (!require("../../settings.json").testing_mode) {
+  rands = [Math.floor(Math.random()*11),Math.floor(Math.random()*11),Math.floor(Math.random()*11)]
+}
 
 const ConfirmSeed = (props) => {
   const dispatch = useDispatch();
