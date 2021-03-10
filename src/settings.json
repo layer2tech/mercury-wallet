@@ -1,3 +1,4 @@
 {
-  "min_anon_set": 10000
+  "min_anon_set": 10000,
+  "network": "testnet"
 }

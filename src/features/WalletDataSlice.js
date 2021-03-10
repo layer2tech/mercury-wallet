@@ -8,6 +8,7 @@ import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 
 const log = window.require('electron-log');
+const network = bitcoin.networks[require("../settings.json").network];
 
 let wallet;
 
@@ -57,7 +58,7 @@ export const walletLoad = (name, password) => {
 }
 // Create wallet from nmemonic and load wallet
 export const walletFromMnemonic = (name, password, mnemonic) => {
-  wallet = Wallet.fromMnemonic(name, password, mnemonic, bitcoin.networks.testnet, false);
+  wallet = Wallet.fromMnemonic(name, password, mnemonic, network, false);
   log.info("Wallet "+name+" created.");
   wallet.initElectrumClient(setBlockHeightCallBack);
   callNewSeAddr();

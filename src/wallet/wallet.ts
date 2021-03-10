@@ -29,6 +29,9 @@ try {
   log = require('electron-log');
 }
 
+// Get network from settings.json
+const network = bitcoin.networks[require("../settings.json").network];
+
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
@@ -596,10 +599,10 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
 }
 
 // Address generation fn
-export const segwitAddr = (node: any, _network: Network) => {
+export const segwitAddr = (node: any) => {
   const p2wpkh = bitcoin.payments.p2wpkh({
     pubkey: node.publicKey,
-    network: bitcoin.networks.testnet
+    network: network
   });
   return p2wpkh.address
 }
