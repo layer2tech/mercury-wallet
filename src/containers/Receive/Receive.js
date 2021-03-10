@@ -2,16 +2,17 @@ import arrow from "../../images/arrow-up.png"
 import icon2 from "../../images/icon2.png";
 
 import React, {useState} from 'react';
-import {Link, withRouter} from "react-router-dom";
-import { useSelector, useDispatch } from 'react-redux'
+import {Link, withRouter, Redirect} from "react-router-dom";
+import {useDispatch} from 'react-redux'
 
-import { StdButton, AddressInput } from "../../components";
+import {StdButton, AddressInput} from "../../components";
 
-import { callNewSeAddr, callGetSeAddr, callTransferReceiver, setError, setNotification } from '../../features/WalletDataSlice'
+import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callTransferReceiver, setError, setNotification} from '../../features/WalletDataSlice'
 
 import './Receive.css';
 import '../Send/Send.css';
 
+import { Transaction } from 'bitcoinjs-lib';
 
 const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
@@ -22,10 +23,17 @@ const ReceiveStatecoinPage = () => {
   };
   const [rec_sce_addr, setRecAddr] = useState(callGetSeAddr());
 
+  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
+  if (!isWalletLoaded()) {
+    dispatch(setError({msg: "No Wallet loaded."}))
+    return <Redirect to="/" />;
+  }
+
   const genAddrButtonAction = async () => {
     callNewSeAddr()
     setRecAddr(callGetSeAddr())
   }
+
 
   const receiveButtonAction =() => {
     // check statechain is chosen
@@ -37,7 +45,9 @@ const ReceiveStatecoinPage = () => {
     dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
       if (res.error===undefined) {
         setTransferMsg3("")
-        dispatch(setNotification({msg:"Transfer complete!"}))
+        let amount = res.payload.state_chain_data.amount
+        let locktime = Transaction.fromHex(res.payload.tx_backup_psm.tx_hex).locktime
+        dispatch(setNotification({msg:"Transfer of "+amount+" BTC complete! StateCoin expires at block height "+locktime+"."}))
       }
     })
   }

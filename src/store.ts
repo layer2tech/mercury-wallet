@@ -30,8 +30,8 @@ export class Storage {
   // Check password for a wallet
   checkLogin(wallet_name: string, pw_attempt: string) {
     let pw = this.store.get('logins.'+wallet_name, pw_attempt)
-    if (pw==undefined) throw Error("Wallet "+wallet_name+" does not exist.")
-    if (pw==pw_attempt) return true;
+    if (pw===undefined) throw Error("Wallet "+wallet_name+" does not exist.")
+    if (pw===pw_attempt) return true;
     return false
   }
 

@@ -274,11 +274,6 @@ interface PrepareSignTxMsg {
     proof_key: string | null,
 }
 
-export interface SCEAddress {
-  tx_backup_addr: string,
-  proof_key: string
-}
-
 export interface TransferMsg3 {
   shared_key_id: string,
   statechain_id: string,

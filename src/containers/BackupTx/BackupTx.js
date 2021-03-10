@@ -1,12 +1,12 @@
 import settings from "../../images/settings.png";
 import icon2 from "../../images/icon2.png";
 
-import {Link, withRouter} from "react-router-dom";
+import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState} from 'react';
-import { useDispatch, useSelector } from 'react-redux'
+import {useDispatch} from 'react-redux'
 
-import { setError, callGetCoinBackupTxData } from '../../features/WalletDataSlice'
-import { Coins, StdButton } from "../../components";
+import {isWalletLoaded, setError, callGetCoinBackupTxData} from '../../features/WalletDataSlice'
+import {Coins, StdButton} from "../../components";
 
 import './BackupTx.css';
 
@@ -14,10 +14,16 @@ const DEFAULT_TX_DATA = {tx_backup_hex:"",priv_key_hex:"",key_wif:"",expiry_data
 
 const BackupTxPage = () => {
   const dispatch = useDispatch();
-  const block_height = useSelector(state => state.walletData).block_height;
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [selectedCoinTxData, setSelectedCoinTxData] = useState(DEFAULT_TX_DATA); // store selected coins shared_key_id
+
+  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates
+  // in developer mode.
+  if (!isWalletLoaded()) {
+    dispatch(setError({msg: "No Wallet loaded."}))
+    return <Redirect to="/" />;
+  }
 
   const setSelectedCoinWrapper = (id) => {
     setSelectedCoin(id);
@@ -31,11 +37,9 @@ const BackupTxPage = () => {
   const copyBackupTxHexToClipboard = () => {
     navigator.clipboard.writeText(selectedCoinTxData.tx_backup_hex);
   }
-
   const copyPrivKeyToClipboard = () => {
     navigator.clipboard.writeText(selectedCoinTxData.priv_key_hex);
   }
-
   const copyKeyWIFToClipboard = () => {
     navigator.clipboard.writeText(selectedCoinTxData.key_wif);
   }

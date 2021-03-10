@@ -1,5 +1,6 @@
 {
   "min_anon_set": 3,
   "state_entity_endpoint": "http://0.0.0.0:8000",
+  "network": "testnet",
   "swap_conductor_endpoint": "http://0.0.0.0:8000"
 }

@@ -3,8 +3,8 @@
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
-  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, encryptAES,
-  decryptAES, encodeSCEAddress } from './';
+  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, decryptAES,
+  encodeSCEAddress } from './';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -70,10 +70,10 @@ export class Wallet {
       this.conductor_client = new HttpClient(this.config.swap_conductor_endpoint);	
       this.electrum_client = new ElectrumClient(this.config.electrum_config);
     }
-    this.block_height = 0
+    this.block_height = 0;
     this.current_sce_addr = "";
 
-    this.storage = new Storage()
+    this.storage = new Storage();
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -162,6 +162,7 @@ export class Wallet {
   // Clear storage.
   clearSave() {
     this.storage.clearWallet(this.name)
+    log.info("Wallet cleared.")
   };
 
   // Load wallet JSON from store
@@ -169,9 +170,13 @@ export class Wallet {
     let store = new Storage();
     // Fetch raw wallet string
     let wallet_json = store.getWallet(wallet_name);
-    if (wallet_json==undefined) throw Error("No wallet called "+wallet_name+" stored.");
+    if (wallet_json===undefined) throw Error("No wallet called "+wallet_name+" stored.");
     // Decrypt mnemonic
-    wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+    try {
+      wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+    } catch (e) {
+      if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
+    }
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
 
@@ -249,7 +254,7 @@ export class Wallet {
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
-      if (statecoin.status==STATECOIN_STATUS.UNCOMFIRMED &&
+      if (statecoin.status===STATECOIN_STATUS.UNCOMFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           this.depositConfirm(statecoin.shared_key_id)
       }
@@ -376,11 +381,10 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
-
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 
-    log.info("Deposite Init done. Waiting for coins sent to "+p_addr);
+    log.info("Deposit Init done. Waiting for coins sent to "+p_addr);
     this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
   }
@@ -447,7 +451,7 @@ export class Wallet {
     statecoin_finalized.setConfirmed();
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
-    log.info("Deposite Confirm done.");
+    log.info("Deposit Confirm done.");
     this.saveStateCoinsList();
     return statecoin_finalized
   }
@@ -538,7 +542,7 @@ export class Wallet {
     let finalize_data = await transferReceiver(this.http_client, transfer_msg3, rec_se_addr_bip32, batch_data)
 
     // In batch case this step is performed once all other transfers in the batch are complete.
-    if (batch_data = {}) {
+    if (batch_data==={}) {
         // Finalize protocol run by generating new shared key and updating wallet.
         this.transfer_receiver_finalize(finalize_data);
     }
@@ -627,9 +631,6 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
   let external = i.derive(0)
   let internal = i.derive(1)
 
-  external.keyPair = { network: network };
-  internal.keyPair = { network: network };
-
   // BIP32 Account is made up of two BIP32 Chains.
   let account = new bip32utils.Account([
     new bip32utils.Chain(external, null, segwitAddr),
@@ -640,10 +641,11 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
 }
 
 // Address generation fn
-export const segwitAddr = (node: any, _network: Network) => {
+export const segwitAddr = (node: any, network: Network) => {
+  network = network===undefined ? node.network : network
   const p2wpkh = bitcoin.payments.p2wpkh({
     pubkey: node.publicKey,
-    network: bitcoin.networks.testnet
+    network: network
   });
   return p2wpkh.address
 }
