@@ -373,7 +373,6 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
-
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 
@@ -583,9 +582,6 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
   let external = i.derive(0)
   let internal = i.derive(1)
 
-  external.keyPair = { network: network };
-  internal.keyPair = { network: network };
-
   // BIP32 Account is made up of two BIP32 Chains.
   let account = new bip32utils.Account([
     new bip32utils.Chain(external, null, segwitAddr),
@@ -596,10 +592,11 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
 }
 
 // Address generation fn
-export const segwitAddr = (node: any, _network: Network) => {
+export const segwitAddr = (node: any, network: Network) => {
+  network = network===undefined ? node.network : network
   const p2wpkh = bitcoin.payments.p2wpkh({
     pubkey: node.publicKey,
-    network: bitcoin.networks.testnet
+    network: network
   });
   return p2wpkh.address
 }
