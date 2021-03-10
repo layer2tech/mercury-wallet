@@ -9,10 +9,11 @@ import  './LoadWallet.css'
 
 let store = new Storage();
 
-let wallet_name_password_map = store.getWalletNamePasswordMap()
 
 const LoadWalletPage = (props) => {
   const dispatch = useDispatch();
+  
+  let wallet_name_password_map = store.getWalletNamePasswordMap()
 
   const [selectedWallet, setSelected] = useState(wallet_name_password_map.length ? wallet_name_password_map[0].name : "")
   const onSelectedWalletChange = (event) => {
