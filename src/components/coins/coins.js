@@ -16,9 +16,8 @@ import question from "../../images/question-mark.png";
 import React, {useState, useEffect} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
-import {useSelector, useDispatch} from 'react-redux'
+import {useDispatch} from 'react-redux'
 
-import { STATECOIN_STATUS } from '../../wallet'
 import {fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData} from '../../features/WalletDataSlice'
 
@@ -71,13 +70,13 @@ const Coins = (props) => {
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
     useEffect(() => {
-      if (unconfired_coins_data!=undefined) {
+      if (unconfired_coins_data!==undefined) {
         const interval = setInterval(() => {
           let new_unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
           if (
-            unconfired_coins_data.length != new_unconfired_coins_data.length
+            unconfired_coins_data.length !== new_unconfired_coins_data.length
               ||
             unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
               !==
@@ -113,7 +112,7 @@ const Coins = (props) => {
                             </div>
                         </span>
                     </div>
-                    {item.expiry_data.blocks==-1 ?
+                    {item.expiry_data.blocks===-1 ?
                           <b>Confirmations: {item.expiry_data.confirmations<0 ? 0 : item.expiry_data.confirmations}</b>
                       :
 

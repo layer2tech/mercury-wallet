@@ -1,9 +1,8 @@
 import React, {useState} from 'react';
 import {Link} from "react-router-dom";
-import { useDispatch } from 'react-redux'
+import {useDispatch} from 'react-redux'
 
-import {Wallet} from "../../wallet";
-import {setError} from '../../features/WalletDataSlice'
+import {setError, walletFromMnemonic} from '../../features/WalletDataSlice'
 
 import './confirmSeed.css'
 
@@ -16,7 +15,7 @@ const ConfirmSeed = (props) => {
   const [missingwords, setMissingWords] = useState(rands.map((rand) => ({pos:rand, word:""})));
 
   const inputMissingWord = (event) => {
-    let map = missingwords.map((item) => {if (item.pos==event.target.id) {item.word=event.target.value} return item})
+    let map = missingwords.map((item) => {if (item.pos===parseInt(event.target.id)) {item.word=event.target.value} return item})
     setMissingWords(map)
   }
 
@@ -27,19 +26,28 @@ const ConfirmSeed = (props) => {
         id={index}
         type="text"
         placeholder={index + 1 + ". " + item}
-        value={item === '' ? missingwords.find((item) => {if (item.pos==index) {return item}}).word : ""}
+        value={item === '' ? missingwords.find((item) => {if (item.pos===index) {return item} return null}).word : ""}
         disabled={item === '' ? "" : "disabled"}
         onChange={inputMissingWord}/>
   ))
 
   // Confirm words are correct
-  const onClickConf = (event) => {
+  const onConfirmClick = (event) => {
+    // Verify mnemonic confirmation
     for (let i=0;i<missingwords.length; i++) {
-      if (missingwords[i].word!=words[missingwords[i].pos]) {
+      if (missingwords[i].word!==words[missingwords[i].pos]) {
         event.preventDefault();
         dispatch(setError({msg: "Seed confirmation failed."}))
+        return
       }
     }
+    // Create wallet and load into Redux state
+    try { walletFromMnemonic(props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic) }
+      catch (e) {
+        event.preventDefault();
+        dispatch(setError({msg: e.message}))
+      }
+    props.setWalletLoaded(true);
   }
 
   return (
@@ -49,7 +57,7 @@ const ConfirmSeed = (props) => {
           <form>
               {inputs}
           </form>
-          <Link to={"/home/mnemonic/"+JSON.stringify(props.wizardState)} onClick={onClickConf} className="confirm">
+          <Link to="/home" onClick={onConfirmClick} className="confirm">
               Confirm
           </Link>
       </div>

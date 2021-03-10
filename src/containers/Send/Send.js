@@ -3,29 +3,33 @@ import arrow from "../../images/arrow-up.png"
 import icon2 from "../../images/icon2.png";
 
 import React, {useState} from 'react';
-import {Link, withRouter} from "react-router-dom";
-import { useSelector, useDispatch } from 'react-redux'
+import {Link, withRouter, Redirect} from "react-router-dom";
+import {useSelector, useDispatch} from 'react-redux'
 
-import { Coins, StdButton, AddressInput } from "../../components";
-import { fromSatoshi } from '../../wallet/util'
-import { decodeSCEAddress, encodeMessage } from '../../wallet/util'
-import { callTransferSender, setError, setNotification } from '../../features/WalletDataSlice'
+import {Coins, StdButton, AddressInput} from "../../components";
+import {fromSatoshi} from '../../wallet/util'
+import {decodeSCEAddress, encodeMessage} from '../../wallet/util'
+import {isWalletLoaded, callTransferSender, setError, setNotification} from '../../features/WalletDataSlice'
 
 import './Send.css';
 
 const SendStatecoinPage = () => {
-  const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
-  const [inputAddr, setInputAddr] = useState("");
-  const [transferMsg3, setTransferMsg3] = useState('');
-
+  const dispatch = useDispatch();
   const balance_info = useSelector(state => state.walletData).balance_info;
 
+  const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const [inputAddr, setInputAddr] = useState("");
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
+  const [transferMsg3, setTransferMsg3] = useState('');
 
+  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
+  if (!isWalletLoaded()) {
+    dispatch(setError({msg: "No Wallet loaded."}))
+    return <Redirect to="/" />;
+ }
 
-  const dispatch = useDispatch();
   const sendButtonAction = async () => {
     // check statechain is chosen
     if (!selectedCoin) {

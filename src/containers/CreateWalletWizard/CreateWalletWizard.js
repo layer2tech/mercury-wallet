@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 
 import MultiStep from "react-multistep";
-import { CreateWizardForm, ConfirmSeed, DisplaySeed } from "../../components";
+import {CreateWizardForm, ConfirmSeed, DisplaySeed} from "../../components";
 
 import './CreateWalletWizard.css'
 
@@ -11,7 +11,7 @@ let bip39 = require('bip39');
 const mnemonic = bip39.generateMnemonic();
 
 // MultiStep wizard for wallet setup
-const CreateWizardPage = () => {
+const CreateWizardPage = (props) => {
 
   const [wizardState, setWizardState] = useState(
     {
@@ -25,7 +25,7 @@ const CreateWizardPage = () => {
   const steps = [
     {component: <CreateWizardForm wizardState={wizardState} setStateWalletName={setStateWalletName} setStateWalletPassword={setStateWalletPassword}/>},
     {component: <DisplaySeed wizardState={wizardState}/>},
-    {component: <ConfirmSeed wizardState={wizardState}/>}
+    {component: <ConfirmSeed setWalletLoaded={props.setWalletLoaded} wizardState={wizardState}/>}
   ];
 
   return (

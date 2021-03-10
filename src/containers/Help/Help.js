@@ -3,10 +3,8 @@ import question from "../../images/question-blue.png";
 import React from 'react';
 import {Link, withRouter} from "react-router-dom";
 import {Tab, Tabs} from "react-bootstrap";
-import { useSelector } from 'react-redux'
 
 import { StdButton } from '../../components/'
-import { callGetVersion } from '../../features/WalletDataSlice';
 
 import './Help.css';
 
