@@ -122,7 +122,7 @@ export class StateCoinList {
     if (coin) {
       coin.setUnconfirmed()
       coin.block = funding_tx_data.height
-      if (coin.funding_txid==undefined) { // May have missed setCoinInMempool call.
+      if (coin.funding_txid==="") { // May have missed setCoinInMempool call.
         coin.funding_txid = funding_tx_data.tx_hash
         coin.funding_vout = funding_tx_data.tx_pos
       }

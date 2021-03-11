@@ -58,10 +58,8 @@ export class MockElectrumClient {
     }
 
     async scriptHashSubscribe(script: string, callback: any): Promise<any> {
-      console.log("ELECTRON MOCK: subscribed to script ", script)
       callback(); // calling callback alerts wallet that script hash status has changed
     }
     async scriptHashUnsubscribe(script: string): Promise<any> {
-      console.log("ELECTRON MOCK: unsubscribed from script ", script)
     }
 }
