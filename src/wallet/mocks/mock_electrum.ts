@@ -47,14 +47,19 @@ export class MockElectrumClient {
           value: 4 } ]
     }
 
-    async blockHeightSubscribe(_callback: any): Promise<any> {
+    async blockHeightSubscribe(callback: any): Promise<any> {
       console.log("ELECTRON MOCK: subscribed to block height ")
+      callback([{
+        height: 1936508
+      }])
+      return {
+          height: 1936508
+        }
     }
-    async scriptHashSubscribe(script: string): Promise<any> {
-      console.log("ELECTRON MOCK: subscribed to script ", script)
+
+    async scriptHashSubscribe(script: string, callback: any): Promise<any> {
+      callback(); // calling callback alerts wallet that script hash status has changed
     }
     async scriptHashUnsubscribe(script: string): Promise<any> {
-      console.log("ELECTRON MOCK: unsubscribed from script ", script)
-
     }
 }
