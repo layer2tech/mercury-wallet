@@ -19,9 +19,9 @@ export const Chain = Array;
 // StateChain Entity API
 export const StateChainDataAPI = typeforce.compile({
     utxo: typeforce.anyOf(String, Object),
-    amount: UInt32,
+    amount: Number,
     chain: Chain,
-    locktime: UInt32,
+    locktime: Number,
 })
 
 export const Root = typeforce.compile({
@@ -203,7 +203,7 @@ export const PrepareSignTxMsg = typeforce.compile({
 });
 
 export const SCEAddress = typeforce.compile({
-  tx_backup_addr: String,
+  tx_backup_addr: typeforce.oneOf(Null, String),
   proof_key: String
 })
 
@@ -256,8 +256,8 @@ export const TransferFinalizeData = typeforce.compile({
 /// Struct defines a Swap. This is signed by each participant as agreement to take part in the swap.
 export const SwapToken = typeforce.compile({
     id: String, //Uuid,
-    amount: UInt64, 
-    time_out: UInt64,
+    amount: Number, 
+    time_out: Number,
     statechain_ids: Array, //Vec<Uuid>,
 })
 
@@ -279,8 +279,9 @@ export const SwapStatus = {
 }
 Object.freeze(SwapStatus);
 
+//To do: enforce SwapStatus type checking
 export const SwapInfo = typeforce.compile({
-    status: SwapStatus, //SwapStatus,
+    status: String, //SwapStatus,
     swap_token: SwapToken,
     bst_sender_data: BSTSenderData,
 })

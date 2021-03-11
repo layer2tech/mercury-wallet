@@ -17,7 +17,6 @@ export const pollUtxo = async (
 ) => {
 
   let swap_id = await http_client.post(POST_ROUTE.SWAP_POLL_UTXO, statechain_id);	
-  console.log("pollUtxo got swap_id: ", swap_id)
   typeforce(types.SwapID, swap_id);
   return swap_id
 }
@@ -39,8 +38,9 @@ export const getSwapInfo = async (
 ) => {
 
   let swap_info = await http_client.post(POST_ROUTE.SWAP_INFO, swap_id);	
-
+  console.log("gotSwapInfo: ", swap_info);
   typeforce(types.SwapInfo, swap_info);
+  console.log("swap info conforms to type. Returning");
   return swap_info
 }
 

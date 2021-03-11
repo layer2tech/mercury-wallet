@@ -252,6 +252,9 @@ const WalletSlice = createSlice({
     },
     [callTransferReceiver.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callDoSwap.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
 }
 })

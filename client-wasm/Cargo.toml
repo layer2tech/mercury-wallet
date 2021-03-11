@@ -29,6 +29,8 @@ web-sys = { version = "0.3.45", features = [
   'RequestDestination',
   'Window']}
 console_error_panic_hook = "0.1.6"
+hex = "0.4.2"
+rand = { version = "0.6.5", features = ["wasm-bindgen"] }
 
 [dev-dependencies]
 mockito = "0.27.0"

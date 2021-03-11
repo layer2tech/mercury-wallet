@@ -104,23 +104,6 @@ function passStringToWasm0(arg, malloc, realloc) {
     return ptr;
 }
 /**
-*/
-export function test_wasm() {
-    wasm.test_wasm();
-}
-
-/**
-* @param {string} pk
-* @returns {any}
-*/
-export function curv_ge_to_bitcoin_public_key(pk) {
-    var ptr0 = passStringToWasm0(pk, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    var ret = wasm.curv_ge_to_bitcoin_public_key(ptr0, len0);
-    return takeObject(ret);
-}
-
-/**
 * @param {string} root
 * @param {string} proof_key
 * @param {string} proof
@@ -143,6 +126,23 @@ export function init() {
     wasm.init();
 }
 
+/**
+*/
+export function test_wasm() {
+    wasm.test_wasm();
+}
+
+/**
+* @param {string} pk
+* @returns {any}
+*/
+export function curv_ge_to_bitcoin_public_key(pk) {
+    var ptr0 = passStringToWasm0(pk, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ret = wasm.curv_ge_to_bitcoin_public_key(ptr0, len0);
+    return takeObject(ret);
+}
+
 let cachegetInt32Memory0 = null;
 function getInt32Memory0() {
     if (cachegetInt32Memory0 === null || cachegetInt32Memory0.buffer !== wasm.memory.buffer) {
@@ -153,6 +153,87 @@ function getInt32Memory0() {
 
 function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
+}
+/**
+* Provides wrappers for Swap methods
+*/
+export class BSTRequestorData {
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_bstrequestordata_free(ptr);
+    }
+    /**
+    * @param {string} r_prime_str
+    * @param {string} m
+    * @returns {any}
+    */
+    static setup(r_prime_str, m) {
+        var ptr0 = passStringToWasm0(r_prime_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(m, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ret = wasm.bstrequestordata_setup(ptr0, len0, ptr1, len1);
+        return takeObject(ret);
+    }
+    /**
+    * Create BlindedSpendToken for blinded signature
+    * @param {string} bst_requestor_data_str
+    * @param {string} signature_str
+    * @returns {any}
+    */
+    static make_blind_spend_token(bst_requestor_data_str, signature_str) {
+        var ptr0 = passStringToWasm0(bst_requestor_data_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(signature_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ret = wasm.bstrequestordata_make_blind_spend_token(ptr0, len0, ptr1, len1);
+        return takeObject(ret);
+    }
+}
+/**
+* Provides wrappers for Swap methods
+*/
+export class BSTSenderData {
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_bstsenderdata_free(ptr);
+    }
+    /**
+    * Generate new BSTSenderData for Swap
+    * @returns {any}
+    */
+    static setup() {
+        var ret = wasm.bstsenderdata_setup();
+        return takeObject(ret);
+    }
+}
+/**
+* Provides wrappers for Swap methods
+*/
+export class Commitment {
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_commitment_free(ptr);
+    }
+    /**
+    * @param {string} data
+    * @returns {any}
+    */
+    static setup(data) {
+        var ptr0 = passStringToWasm0(data, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ret = wasm.commitment_setup(ptr0, len0);
+        return takeObject(ret);
+    }
 }
 /**
 * Provides wrappers for kms-secp256k1 MasterKey2 KeyGen methods
@@ -243,6 +324,31 @@ export class Sign {
         var ptr4 = passStringToWasm0(message, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         var len4 = WASM_VECTOR_LEN;
         var ret = wasm.sign_second_message(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4);
+        return takeObject(ret);
+    }
+}
+/**
+* Provides wrappers for Swap methods
+*/
+export class Swap {
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_swap_free(ptr);
+    }
+    /**
+    * @param {string} r_prime_str
+    * @param {string} m
+    * @returns {any}
+    */
+    static requester_calc_eprime(r_prime_str, m) {
+        var ptr0 = passStringToWasm0(r_prime_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(m, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ret = wasm.swap_requester_calc_eprime(ptr0, len0, ptr1, len1);
         return takeObject(ret);
     }
 }

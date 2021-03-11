@@ -9,7 +9,7 @@ import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress,
   encryptECIESt2} from "../util";
 import { BIP32Interface, Network, TransactionBuilder, crypto, script, Transaction } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
-import { SwapMsg1, BSTMsg, SwapMsg2, RegisterUtxo, SwapStatus, BatchData} from '../types';
+import { SwapMsg1, BSTMsg, SwapMsg2, RegisterUtxo, SwapStatus, BatchData, BSTRequestorData} from '../types';
 import { AssertionError } from 'assert';
 import { create } from 'domain';
 import Swap from '../../containers/Swap/Swap';
@@ -80,18 +80,23 @@ export const doSwap = async (
 
   console.log('await swap info for swap id ', swap_id);
   let swap_info = null;
-  while (swap_info === null){
+  while (true){
     swap_info = await getSwapInfo(http_client,swap_id);
+    if (swap_info !== null){
+      console.log('got swap info: ', swap_info);
+      break;
+    }
     await delay(3);
   };
   console.log('got swap info response');
   typeforce(types.SwapInfo, swap_info);
   console.log('got swap info ', swap_info);
 
-  let address = new types.SCEAddress (
-    null,
-    new_proof_key_der.publicKey,
-  );
+  let address = {
+    "tx_backup_addr": null,
+    "proof_key": new_proof_key_der.publicKey.toString("hex"),
+  };
+  typeforce(types.SCEAddress, address);
 
   console.log('await new transfer batch sig');
   let transfer_batch_sig = await StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id,statecoin.statechain_id);
@@ -340,39 +345,60 @@ export const first_message = async (
 ): Promise<BSTRequestorData> => {
 
   let swap_token = swap_info.swap_token;
-
+  console.log("getStateChain: ", statechain_id);
   let statechain_data = await getStateChain(http_client, statechain_id);
+  console.log("typeforce stateChain: ", statechain_data);
   typeforce(types.StateChainDataAPI, statechain_data);
+  console.log("finished typeforce stateChain");
 
   let proof_pub_key = statechain_data.chain[statechain_data.chain.length-1].data;
 
+  console.log("get proof_key_der_pub");
   let proof_key_der_pub = bitcoin.ECPair.fromPublicKey(Buffer.from(proof_pub_key, "hex"));
 
-  if (!(proof_key_der.publicKey === proof_key_der_pub.key.public)){
-    throw new Error('statechain_data proof_pub_key does not derive from proof_key_priv');
-  }
+  //console.log("compare proof_key_der_pub");
+  //console.log("expected: ");
+  //console.log(proof_key_der_pub.key.public);
+  //console.log(", got: ");
+  //console.log(proof_key_der.publicKey); 
+  //if (!(proof_key_der.publicKey === proof_key_der_pub.key.public)){
+  //    throw new Error('statechain_data proof_pub_key does not derive from proof_key_priv');
+  //  }
 
-  let swap_token_sig = swap_token.sign(proof_key_der);
+  console.log("get swap_token_sig");
+  let swap_token_class = new SwapToken(swap_token.id, swap_token.amount, swap_token.time_out, swap_token.statechain_ids);
+  let swap_token_sig = swap_token_class.sign(proof_key_der);
   
+  console.log("get blinded spend token message ");
   let blindedspenttokenmessage = new BlindedSpentTokenMessage(swap_token.id);
 
   //Requester
   let m = JSON.stringify(blindedspenttokenmessage);
   
   // Requester setup BST generation
-  let my_bst_data = wasm_client.BSTRequestorData.setup(wasm_client, swap_info.bst_sender_data.r_prime, m);
+  console.log("get my bst data for ", swap_info.bst_sender_data.r_prime, m);
+  //let bst_req_class = new BSTRequestorData();
+  let r_prime_str: string = JSON.stringify(swap_info.bst_sender_data.r_prime);
+  let my_bst_data: BSTRequestorData = JSON.parse(
+    wasm_client.BSTRequestorData.setup(r_prime_str, m)
+  );
 
-  let swapMsg1 = new SwapMsg1(
-    swap_token.id,
-    statechain_id,
-    swap_token_sig,
-    transfer_batch_sig,
-    new_address,
-    my_bst_data.e_prime,
-  )
+  console.log("make swap msg 1");
+  let swapMsg1 = {
+    "swap_id": swap_token.id,
+    "statechain_id": statechain_id,
+    "swap_token_sig": swap_token_sig,
+    "transfer_batch_sig": transfer_batch_sig,
+    "address": new_address,
+    "bst_e_prime": my_bst_data.e_prime,
+  }
+  typeforce(types.SwapMsg1, swapMsg1);
 
+  console.log("first msg post: ", swapMsg1);
   let requestor_data =  await http_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1);
+  console.log("typeforce first msg post response");
   typeforce(types.BSTRequestorData, requestor_data);
+  console.log("first message finished");
   return requestor_data;
 }
 

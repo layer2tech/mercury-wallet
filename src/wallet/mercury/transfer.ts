@@ -261,7 +261,7 @@ export interface Secp256k1Point {
 }
 
 export interface SCEAddress {
-  tx_backup_addr: string,
+  tx_backup_addr: string | null,
   proof_key: string
 }
 
