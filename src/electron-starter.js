@@ -20,7 +20,8 @@ function createWindow() {
         {
           nodeIntegration: true,
           webSecurity: false,
-          enableRemoteModule: true
+          enableRemoteModule: true,
+          backgroundThrottling: false,
         }
       }
     );

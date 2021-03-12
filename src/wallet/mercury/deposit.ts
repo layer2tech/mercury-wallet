@@ -104,6 +104,7 @@ export const depositConfirm = async (
   statecoin.smt_proof = proof;
   statecoin.statechain_id = statechain_id.id;
   statecoin.tx_backup = tx_backup_signed;
+  statecoin.interval = fee_info.interval;
 
   return statecoin
 }
