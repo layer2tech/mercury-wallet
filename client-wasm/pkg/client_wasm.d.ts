@@ -114,3 +114,19 @@ export class Swap {
 */
   static requester_calc_eprime(r_prime_str: string, m: string): any;
 }
+/**
+*/
+export class SwapTokenW {
+  free(): void;
+/**
+* @param {string} swap_token_str
+* @returns {any}
+*/
+  static to_message_str(swap_token_str: string): any;
+/**
+* Create message to be signed
+* @param {string} swap_token_str
+* @returns {any}
+*/
+  static to_message(swap_token_str: string): any;
+}

@@ -8,6 +8,10 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 extern crate rand;
+extern crate uuid;
+extern crate schemars;
+extern crate rocket_okapi;
+//extern crate mercury_shared;
 
 pub mod kms_secp256k1_js_wrapper;
 pub mod swap_js_wrapper;

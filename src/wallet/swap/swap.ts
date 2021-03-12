@@ -267,15 +267,25 @@ export class SwapToken {
   }
 
   /// Create message to be signed
-  to_message() : Buffer {
-    let buf = Buffer.from(String(this.amount) + String(this.time_out) + String(this.statechain_ids), "utf8");
-    return crypto.sha256(buf) 
+  to_message(wasm_client: any) : Buffer {
+    let self_str = JSON.stringify(this);
+    console.log('self_str: ', self_str);
+    let hash_out = wasm_client.SwapTokenW.to_message(self_str);
+    let str_out = wasm_client.SwapTokenW.to_message_str(self_str);
+    console.log('swap token hash_out: ', hash_out);
+    let msg_str: string= JSON.parse(str_out);
+    console.log('swap token str_out: ', msg_str);
+    let hash: Buffer= JSON.parse(hash_out);
+    console.log('swap token hash: ', hash.toString('hex'));
+    return hash 
   }
 
   /// Generate Signature for change of state chain ownership
-  sign(proof_key_der: BIP32Interface): String {
-    let hash = this.to_message();
+  sign(proof_key_der: BIP32Interface, wasm_client: any): String {
+    let hash: Buffer = this.to_message(wasm_client);
+    console.log("signing for message {}", hash);
     let sig = proof_key_der.sign(hash, false);
+    console.log("finished signing for message");
 
      // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
      let encoded_sig = script.signature.encode(sig,1);
@@ -286,13 +296,13 @@ export class SwapToken {
   }
 
   // Verify self's signature for transfer or withdraw
-  verify_sig(proof_key_der: BIP32Interface, sig: string): boolean {
+  verify_sig(proof_key_der: BIP32Interface, sig: string, wasm_client: any): boolean {
     let proof = Buffer.from(sig, "hex");
     // Re-insert hashType marker ("01" suffix) and decode from bip66
     proof = Buffer.concat([proof, Buffer.from("01", "hex")]);
     let decoded = script.signature.decode(proof);
 
-    let hash = this.to_message();
+    let hash = this.to_message(wasm_client);
     return proof_key_der.verify(hash, decoded.signature);
   }
 
@@ -367,7 +377,7 @@ export const first_message = async (
 
   console.log("get swap_token_sig");
   let swap_token_class = new SwapToken(swap_token.id, swap_token.amount, swap_token.time_out, swap_token.statechain_ids);
-  let swap_token_sig = swap_token_class.sign(proof_key_der);
+  let swap_token_sig = swap_token_class.sign(proof_key_der, wasm_client);
   
   console.log("get blinded spend token message ");
   let blindedspenttokenmessage = new BlindedSpentTokenMessage(swap_token.id);

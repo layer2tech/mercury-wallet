@@ -352,6 +352,38 @@ export class Swap {
         return takeObject(ret);
     }
 }
+/**
+*/
+export class SwapTokenW {
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_swaptokenw_free(ptr);
+    }
+    /**
+    * @param {string} swap_token_str
+    * @returns {any}
+    */
+    static to_message_str(swap_token_str) {
+        var ptr0 = passStringToWasm0(swap_token_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ret = wasm.swaptokenw_to_message_str(ptr0, len0);
+        return takeObject(ret);
+    }
+    /**
+    * Create message to be signed
+    * @param {string} swap_token_str
+    * @returns {any}
+    */
+    static to_message(swap_token_str) {
+        var ptr0 = passStringToWasm0(swap_token_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ret = wasm.swaptokenw_to_message(ptr0, len0);
+        return takeObject(ret);
+    }
+}
 
 export const __wbindgen_string_new = function(arg0, arg1) {
     var ret = getStringFromWasm0(arg0, arg1);

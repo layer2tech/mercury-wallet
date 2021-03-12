@@ -31,6 +31,10 @@ web-sys = { version = "0.3.45", features = [
 console_error_panic_hook = "0.1.6"
 hex = "0.4.2"
 rand = { version = "0.6.5", features = ["wasm-bindgen"] }
+schemars = { version = "0.8.0-alpha-4", features = ["chrono", "uuid"] }
+uuid = { version = "0.5", features = ["v4", "serde"] }
+rocket_okapi = "0.6.0-alpha-1"
+#mercury_shared =  { git = "https://github.com/commerceblock/mercury", package="shared" }
 
 [dev-dependencies]
 mockito = "0.27.0"
