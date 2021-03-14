@@ -12,9 +12,10 @@ export function __wbg_commitment_free(a: number): void;
 export function commitment_setup(a: number, b: number): number;
 export function __wbg_swaptokenw_free(a: number): void;
 export function swaptokenw_to_message_str(a: number, b: number): number;
-export function swaptokenw_to_message(a: number, b: number): number;
+export function swaptokenw_to_message_ser(a: number, b: number): number;
+export function rustsecp256k1_v0_2_0_context_preallocated_destroy(a: number): void;
+export function swaptokenw_sign(a: number, b: number, c: number, d: number): number;
 export function verify_statechain_smt(a: number, b: number, c: number, d: number, e: number, f: number): number;
-export function init(): void;
 export function __wbg_keygen_free(a: number): void;
 export function keygen_first_message(a: number, b: number): number;
 export function keygen_second_message(a: number, b: number, c: number, d: number): number;
@@ -22,6 +23,8 @@ export function keygen_set_master_key(a: number, b: number, c: number, d: number
 export function __wbg_sign_free(a: number): void;
 export function sign_first_message(): number;
 export function sign_second_message(a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number): number;
+export function rustsecp256k1_v0_2_0_ecdsa_sign(a: number, b: number, c: number, d: number, e: number, f: number): number;
+export function init(): void;
 export function test_wasm(): void;
 export function curv_ge_to_bitcoin_public_key(a: number, b: number): number;
 export function rustsecp256k1_v0_2_0_ecdsa_recoverable_signature_serialize_compact(a: number, b: number, c: number, d: number): number;
@@ -30,7 +33,6 @@ export function rustsecp256k1_v0_2_0_ec_seckey_verify(a: number, b: number): num
 export function rustsecp256k1_v0_2_0_ec_pubkey_serialize(a: number, b: number, c: number, d: number, e: number): number;
 export function rustsecp256k1_v0_2_0_ec_pubkey_parse(a: number, b: number, c: number, d: number): number;
 export function rustsecp256k1_v0_2_0_ec_pubkey_tweak_mul(a: number, b: number, c: number): number;
-export function rustsecp256k1_v0_2_0_context_preallocated_destroy(a: number): void;
 export function rustsecp256k1_v0_2_0_context_preallocated_size(a: number): number;
 export function rustsecp256k1_v0_2_0_context_preallocated_create(a: number, b: number): number;
 export function rustsecp256k1_v0_2_0_ecdsa_signature_serialize_der(a: number, b: number, c: number, d: number): number;
@@ -48,7 +50,6 @@ export function rustsecp256k1_v0_2_0_context_set_illegal_callback(a: number, b: 
 export function rustsecp256k1_v0_2_0_context_set_error_callback(a: number, b: number, c: number): void;
 export function rustsecp256k1_v0_2_0_ecdsa_signature_serialize_compact(a: number, b: number, c: number): number;
 export function rustsecp256k1_v0_2_0_ecdsa_verify(a: number, b: number, c: number, d: number): number;
-export function rustsecp256k1_v0_2_0_ecdsa_sign(a: number, b: number, c: number, d: number, e: number, f: number): number;
 export function rustsecp256k1_v0_2_0_ec_pubkey_create(a: number, b: number, c: number): number;
 export function rustsecp256k1_v0_2_0_ec_seckey_negate(a: number, b: number): number;
 export function rustsecp256k1_v0_2_0_ec_privkey_negate(a: number, b: number): number;

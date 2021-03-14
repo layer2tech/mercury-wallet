@@ -270,41 +270,46 @@ export class SwapToken {
   to_message(wasm_client: any) : Buffer {
     let self_str = JSON.stringify(this);
     console.log('self_str: ', self_str);
-    let hash_out = wasm_client.SwapTokenW.to_message(self_str);
+    let hash_out = wasm_client.SwapTokenW.to_message_ser(self_str);
     let str_out = wasm_client.SwapTokenW.to_message_str(self_str);
     console.log('swap token hash_out: ', hash_out);
     let msg_str: string= JSON.parse(str_out);
     console.log('swap token str_out: ', msg_str);
-    let hash: Buffer= JSON.parse(hash_out);
-    console.log('swap token hash: ', hash.toString('hex'));
-    return hash 
+    let hash: string = JSON.parse(hash_out);
+    let hash_buf = Buffer.from(hash, "hex");
+    console.log('swap token hash: ', hash.toString());
+    return hash_buf;
   }
+  
 
   /// Generate Signature for change of state chain ownership
-  sign(proof_key_der: BIP32Interface, wasm_client: any): String {
-    let hash: Buffer = this.to_message(wasm_client);
-    console.log("signing for message {}", hash);
-    let sig = proof_key_der.sign(hash, false);
-    console.log("finished signing for message");
+  sign(proof_key_der: BIP32Interface, wasm_client: any): string {
+    let self_str = JSON.stringify(this);
+    let proof_key_priv_str = proof_key_der.privateKey?.toString("hex");
+    console.log("proof key priv json: ", proof_key_priv_str);
+    let sig: string = JSON.parse(wasm_client.SwapTokenW.sign(self_str, proof_key_priv_str));
+    console.log("sig for message {}", sig);
 
-     // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
-     let encoded_sig = script.signature.encode(sig,1);
-     encoded_sig = encoded_sig.slice(0, encoded_sig.length-1);
-     let sig_str = encoded_sig.toString("hex");
-
-     return sig_str
+    return sig
   }
 
   // Verify self's signature for transfer or withdraw
   verify_sig(proof_key_der: BIP32Interface, sig: string, wasm_client: any): boolean {
+    console.log("verify_sig: get proof");
     let proof = Buffer.from(sig, "hex");
+    
     // Re-insert hashType marker ("01" suffix) and decode from bip66
+    console.log("verify_sig: concat");
     proof = Buffer.concat([proof, Buffer.from("01", "hex")]);
+    console.log("verify_sig: decoded");
     let decoded = script.signature.decode(proof);
 
+    console.log("verify_sig: message hash");
     let hash = this.to_message(wasm_client);
+    console.log("verify_sig: verify");
     return proof_key_der.verify(hash, decoded.signature);
   }
+
 
 }
 
@@ -393,6 +398,10 @@ export const first_message = async (
     wasm_client.BSTRequestorData.setup(r_prime_str, m)
   );
 
+  console.log("proof pub key: ", proof_pub_key);
+  let ver = swap_token_class.verify_sig(proof_key_der, String(swap_token_sig), wasm_client);  
+  console.log("proof pub key ver: ", ver);
+  
   console.log("make swap msg 1");
   let swapMsg1 = {
     "swap_id": swap_token.id,

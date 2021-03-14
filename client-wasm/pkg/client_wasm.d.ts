@@ -128,5 +128,11 @@ export class SwapTokenW {
 * @param {string} swap_token_str
 * @returns {any}
 */
-  static to_message(swap_token_str: string): any;
+  static to_message_ser(swap_token_str: string): any;
+/**
+* @param {string} swap_token_str
+* @param {string} proof_key_priv_str
+* @returns {any}
+*/
+  static sign(swap_token_str: string, proof_key_priv_str: string): any;
 }

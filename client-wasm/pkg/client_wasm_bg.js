@@ -377,10 +377,23 @@ export class SwapTokenW {
     * @param {string} swap_token_str
     * @returns {any}
     */
-    static to_message(swap_token_str) {
+    static to_message_ser(swap_token_str) {
         var ptr0 = passStringToWasm0(swap_token_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         var len0 = WASM_VECTOR_LEN;
-        var ret = wasm.swaptokenw_to_message(ptr0, len0);
+        var ret = wasm.swaptokenw_to_message_ser(ptr0, len0);
+        return takeObject(ret);
+    }
+    /**
+    * @param {string} swap_token_str
+    * @param {string} proof_key_priv_str
+    * @returns {any}
+    */
+    static sign(swap_token_str, proof_key_priv_str) {
+        var ptr0 = passStringToWasm0(swap_token_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(proof_key_priv_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ret = wasm.swaptokenw_sign(ptr0, len0, ptr1, len1);
         return takeObject(ret);
     }
 }

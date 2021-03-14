@@ -57,7 +57,7 @@ export const transferSender = async (
 
   // Sign statecoin to signal desire to Transfer
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
-
+  console.log("transfer - statechina_sig: ", statechain_sig);
   // Init transfer: Send statechain signature or batch data
   let transfer_msg1 = {
       shared_key_id: statecoin.shared_key_id,
