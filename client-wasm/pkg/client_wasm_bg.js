@@ -396,6 +396,23 @@ export class SwapTokenW {
         var ret = wasm.swaptokenw_sign(ptr0, len0, ptr1, len1);
         return takeObject(ret);
     }
+    /**
+    * Verify self's signature for transfer or withdraw
+    * @param {string} pk_str
+    * @param {string} sig_str
+    * @param {string} swap_token_str
+    * @returns {any}
+    */
+    static verify_sig(pk_str, sig_str, swap_token_str) {
+        var ptr0 = passStringToWasm0(pk_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(sig_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ptr2 = passStringToWasm0(swap_token_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len2 = WASM_VECTOR_LEN;
+        var ret = wasm.swaptokenw_verify_sig(ptr0, len0, ptr1, len1, ptr2, len2);
+        return takeObject(ret);
+    }
 }
 
 export const __wbindgen_string_new = function(arg0, arg1) {

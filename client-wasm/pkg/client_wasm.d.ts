@@ -135,4 +135,12 @@ export class SwapTokenW {
 * @returns {any}
 */
   static sign(swap_token_str: string, proof_key_priv_str: string): any;
+/**
+* Verify self's signature for transfer or withdraw
+* @param {string} pk_str
+* @param {string} sig_str
+* @param {string} swap_token_str
+* @returns {any}
+*/
+  static verify_sig(pk_str: string, sig_str: string, swap_token_str: string): any;
 }

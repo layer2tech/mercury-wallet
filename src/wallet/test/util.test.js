@@ -1,4 +1,4 @@
-import { TransactionBuilder, networks, ECPair } from 'bitcoinjs-lib';
+import { TransactionBuilder, networks, ECPair, BIP32Interface } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, txBackupBuild, txWithdrawBuild, StateChainSig, toSatoshi, fromSatoshi,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
@@ -21,9 +21,10 @@ test('to/from Satoshi', async function() {
 });
 
 
+
 describe('signStateChain', function() {
   let proof_key_der = bip32.fromSeed(Buffer.from("0123456789abcdef"), network)
-
+  
   test('Gen and Verify', async function() {
     SIGNSTATECHAIN_DATA.forEach(data => {
       let statechain_sig = StateChainSig.create(proof_key_der, data.purpose, data.data);

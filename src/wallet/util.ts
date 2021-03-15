@@ -70,40 +70,16 @@ export class StateChainSig {
       purpose: string,
       data: string
     ): StateChainSig {
-      console.log('create StateChainSig')
-
       let statechain_sig = new StateChainSig(purpose, data, "");
-      console.log('creating message')
       let hash = statechain_sig.to_message();
-      console.log('signing')
       let sig = proof_key_der.sign(hash, false);
 
-      console.log('encoding')
       // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
       let encoded_sig = script.signature.encode(sig,1);
       encoded_sig = encoded_sig.slice(0, encoded_sig.length-1);
       statechain_sig.sig = encoded_sig.toString("hex");
 
-      console.log('returning')
-
       return statechain_sig
-    }
-
-
-      /// Generate signature to request participation in a batch transfer
-    static new_transfer_batch_sig(
-        proof_key_der: BIP32Interface,
-        batch_id: string,
-        statechain_id: string,
-    ): StateChainSig {
-        let purpose = this.purpose_transfer_batch(batch_id); 
-        let statechain_sig = StateChainSig.create(proof_key_der,purpose, statechain_id);
-        return statechain_sig;
-    }
-
-    static purpose_transfer_batch(batch_id: string):string{
-      let buf =  "TRANSFER_BATCH:" + batch_id;
-      return buf;
     }
 
     // Make StateChainSig message. Concat purpose string + data and sha256 hash.

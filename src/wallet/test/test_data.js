@@ -25,3 +25,10 @@ export const SIGNSTATECHAIN_DATA =
 
 // Input for transfer_finalize testing
 export const FINALIZE_DATA = '{"new_shared_key_id":"07387798-ae2b-4d40-b3cd-e2c56e06b821","o2":"0ca756f401478fb1a166d27945501d8af59ada1cb552c598509dfcb494f475b8","s2_pub":{"x":"ccde29a6592798b5e66bb9ffdd4de1256d3b823be465b371011afe78a4e271b3","y":"68bc529d833c9b13ab24271ec664b164db47673006303ef89902e92cfa7f7138"},"theta":"cc7bef84aa30100c4d4e82fb4ca67f503dd42e2fce4501d307295ef140e9c81","state_chain_data":{"utxo":{"txid":"0158f2978e5c2cf407970d7213f2b4289993b2fe3ef6aca531316cdcf347cc41","vout":1},"amount":100,"chain":[{"data":"028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41","next_state":null}],"locktime":1000},"proof_key":"028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41","statechain_id":"21d28236-d874-f0f4-ba3e-d4184cd7d560","tx_backup_psm":{"shared_key_id":"07387798-ae2b-4d40-b3cd-e2c56e06b821","protocol":"TRANSFER","tx_hex":"02000000000101d03085921c1e291ac7d9caeb2e93861afcf365cd3945b5cae546045fc59300ae0000000000ffffffff01e425000000000000160014d19cb7bef37606bff26c988fc7986b6999412cde011331323334357369676e6174757265353433323184030000","input_addrs":[],"input_amounts":[],"proof_key":"028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41"}}'
+
+export const SIGNSWAPTOKEN_DATA = 
+  [
+    {swap_token: "SwapToken { id: Uuid(\"637203c9-37ab-46f9-abda-0678c891b2d3\"), amount: 1, time_out: 100, statechain_ids: [Uuid(\"001203c9-93f0-46f9-abda-0678c891b2d3\")] }", sig:"3045022100ef5d910a68e7f895db72b859d98d462ac1c0bc78c1c9465b869e3ec2fef4d382022027315cbeeb1d09c29a81e869d80fc54f98d7ca6bdefb73dc08c375b3dd9db5c6", priv:"0101010101010101010101010101010101010101010101010101010101010101", pub:"031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f"}
+  ]
+
+

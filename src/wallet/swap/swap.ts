@@ -295,6 +295,17 @@ export class SwapToken {
 
   // Verify self's signature for transfer or withdraw
   verify_sig(proof_key_der: BIP32Interface, sig: string, wasm_client: any): boolean {
+    let self_str = JSON.stringify(this);
+    
+    let pubKey = proof_key_der.publicKey.toString('hex');
+
+    let _message = this.to_message(wasm_client);
+
+    let ver: boolean = JSON.parse(wasm_client.SwapTokenW.verify_sig(pubKey, sig, self_str));
+    console.log("verify_sig result: {}", ver);
+    return ver
+
+  /*
     console.log("verify_sig: get proof");
     let proof = Buffer.from(sig, "hex");
     
@@ -308,6 +319,7 @@ export class SwapToken {
     let hash = this.to_message(wasm_client);
     console.log("verify_sig: verify");
     return proof_key_der.verify(hash, decoded.signature);
+    */
   }
 
 
@@ -383,7 +395,10 @@ export const first_message = async (
   console.log("get swap_token_sig");
   let swap_token_class = new SwapToken(swap_token.id, swap_token.amount, swap_token.time_out, swap_token.statechain_ids);
   let swap_token_sig = swap_token_class.sign(proof_key_der, wasm_client);
-  
+  console.log("proof pub key: ", proof_pub_key);
+  let ver = swap_token_class.verify_sig(proof_key_der, swap_token_sig, wasm_client);  
+  console.log("proof pub key ver: ", ver);
+
   console.log("get blinded spend token message ");
   let blindedspenttokenmessage = new BlindedSpentTokenMessage(swap_token.id);
 
@@ -398,9 +413,7 @@ export const first_message = async (
     wasm_client.BSTRequestorData.setup(r_prime_str, m)
   );
 
-  console.log("proof pub key: ", proof_pub_key);
-  let ver = swap_token_class.verify_sig(proof_key_der, String(swap_token_sig), wasm_client);  
-  console.log("proof pub key ver: ", ver);
+  
   
   console.log("make swap msg 1");
   let swapMsg1 = {

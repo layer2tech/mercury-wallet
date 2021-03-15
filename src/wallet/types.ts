@@ -239,13 +239,23 @@ export const TransferMsg5 = typeforce.compile({
 })
 
 export const TransferFinalizeData = typeforce.compile({
-    new_shared_key_id: String,
-    o2: String,
-    s2_pub: Secp256k1Point,
-    state_chain_data: StateChainDataAPI,
-    proof_key: String,
-    statechain_id: String,
-    tx_backup_psm: PrepareSignTxMsg,
+  new_shared_key_id: String,
+  o2: String,
+  s2_pub: Secp256k1Point,
+  state_chain_data: StateChainDataAPI,
+  proof_key: String,
+  statechain_id: String,
+  tx_backup_psm: PrepareSignTxMsg,
+})
+
+
+
+////////// ELECTRUM structs/////////////
+export const ElectrumTxData = typeforce.compile({
+  tx_hash: String,
+  tx_pos: UInt32,
+  height: UInt32,
+  value: UInt32
 })
 
 ////////// COORDINATOR structs/////////////

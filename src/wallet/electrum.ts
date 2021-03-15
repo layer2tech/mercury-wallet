@@ -114,3 +114,11 @@ export class ElectrumClient {
     return txHash
   }
 }
+
+
+export interface ElectrumTxData {
+  tx_hash: string,
+  tx_pos: number,
+  height: number,
+  value: number
+}

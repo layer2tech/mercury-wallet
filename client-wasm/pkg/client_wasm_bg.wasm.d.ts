@@ -15,6 +15,8 @@ export function swaptokenw_to_message_str(a: number, b: number): number;
 export function swaptokenw_to_message_ser(a: number, b: number): number;
 export function rustsecp256k1_v0_2_0_context_preallocated_destroy(a: number): void;
 export function swaptokenw_sign(a: number, b: number, c: number, d: number): number;
+export function rustsecp256k1_v0_2_0_ecdsa_verify(a: number, b: number, c: number, d: number): number;
+export function swaptokenw_verify_sig(a: number, b: number, c: number, d: number, e: number, f: number): number;
 export function verify_statechain_smt(a: number, b: number, c: number, d: number, e: number, f: number): number;
 export function __wbg_keygen_free(a: number): void;
 export function keygen_first_message(a: number, b: number): number;
@@ -49,7 +51,6 @@ export function rustsecp256k1_v0_2_0_context_preallocated_clone(a: number, b: nu
 export function rustsecp256k1_v0_2_0_context_set_illegal_callback(a: number, b: number, c: number): void;
 export function rustsecp256k1_v0_2_0_context_set_error_callback(a: number, b: number, c: number): void;
 export function rustsecp256k1_v0_2_0_ecdsa_signature_serialize_compact(a: number, b: number, c: number): number;
-export function rustsecp256k1_v0_2_0_ecdsa_verify(a: number, b: number, c: number, d: number): number;
 export function rustsecp256k1_v0_2_0_ec_pubkey_create(a: number, b: number, c: number): number;
 export function rustsecp256k1_v0_2_0_ec_seckey_negate(a: number, b: number): number;
 export function rustsecp256k1_v0_2_0_ec_privkey_negate(a: number, b: number): number;

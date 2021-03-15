@@ -3,6 +3,7 @@
 import { Network } from "bitcoinjs-lib";
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { ACTION } from ".";
+import { ElectrumTxData } from "./electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
 import { SwapInfo, SwapStatus } from "./swap/swap";
@@ -116,23 +117,27 @@ export class StateCoinList {
   }
 
   // Funding Tx seen on network. Set coin status and funding_txid
-  setCoinInMempool(shared_key_id: string, funding_txid: string, funding_vout: number) {
+  setCoinInMempool(shared_key_id: string, funding_tx_data: ElectrumTxData) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.setInMempool()
-      coin.funding_txid = funding_txid
-      coin.funding_vout = funding_vout
+      coin.funding_txid = funding_tx_data.tx_hash
+      coin.funding_vout = funding_tx_data.tx_pos
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
   }
 
   // Funding Tx mined. Set coin status and block height
-  setCoinUnconfirmed(shared_key_id: string, block: number) {
+  setCoinUnconfirmed(shared_key_id: string, funding_tx_data: ElectrumTxData) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.setUnconfirmed()
-      coin.block = block
+      coin.block = funding_tx_data.height
+      if (coin.funding_txid==="") { // May have missed setCoinInMempool call.
+        coin.funding_txid = funding_tx_data.tx_hash
+        coin.funding_vout = funding_tx_data.tx_pos
+      }
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
