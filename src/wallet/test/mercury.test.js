@@ -9,6 +9,8 @@ import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
 import { BTC_ADDR, KEYGEN_SIGN_DATA, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID } from './test_data.js'
 import * as MOCK_CLIENT from '../mocks/mock_wasm';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
+import { BIP32Interface, BIP32,  fromBase58, fromSeed} from 'bip32';
+import { SwapToken } from '../swap/swap'
 
 let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
@@ -21,7 +23,6 @@ let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 
 
 describe('2P-ECDSA', function() {
-
   test('KeyGen', async function() {
     http_mock.post = jest.fn().mockReset()
       .mockReturnValueOnce(MOCK_SERVER.KEYGEN_FIRST)
@@ -296,6 +297,41 @@ describe('StateChain Entity', function() {
       expect(statecoin.smt_proof).not.toBe(null);
       expect(statecoin.status).toBe(STATECOIN_STATUS.INITIALISED);
     });
+  });
+});
+
+describe('Swaps', function() {
+  describe('swapTokenSign', function() {
+    test('Gen and Verify', async function() {
+      //let wasm = await wallet.getWasm();
+      let proof_key_der = fromSeed(Buffer.from("0123456789abcdef"), bitcoin.networks.bitcoin);
+      console.log("proof_key_der: ", proof_key_der.privateKey.toString("hex"))
+      console.log("proof_key_der: ", Array.from(proof_key_der.privateKey))
+      let pub = proof_key_der.publicKey.toString('hex');
+      console.log("pub: ", pub)
+
+      // let data = Buffer.from("tom", "utf8")
+      // let hash = bitcoin.crypto.sha256(data)
+      //
+      // console.log("hash: ", hash.toString("hex"))
+      // let sig = proof_key_der.sign(hash, false);
+      // console.log("sig of data: ", sig.toString("hex"))
+
+      let swap_token = new SwapToken(
+        "120270b4-1a97-46c8-aed6-6b48bf9ff310",
+        10,
+        10,
+        []);
+
+      let msg = swap_token.to_message()
+      let swap_sig = swap_token.sign(proof_key_der);
+      console.log("swap_sig: ", swap_sig)
+      console.log("swap_sig: ", swap_token.verify_sig(proof_key_der, swap_sig))
+      // expect(swap_sig.sig).toBe(data.sig);
+      // let ver_json = wasm.SwapTokenW.verify_sig(data.pub, data.sig, data.swap_token);
+      // let ver = JSON.parse(ver_json);
+      // expect(ver).toBe(true)
+    })
   });
 });
 

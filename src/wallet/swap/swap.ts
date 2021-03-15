@@ -4,8 +4,8 @@ import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, Wallet } 
 import {transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo } from "./info_api";
 import { getStateChain } from "../mercury/info_api";
-import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, 
-  pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1, 
+import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress,
+  pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1,
   encryptECIESt2} from "../util";
 import { BIP32Interface, Network, TransactionBuilder, crypto, script, Transaction } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
@@ -76,7 +76,7 @@ export const doSwap = async (
     }
     await delay(3);
   };
-  
+
 
   console.log('await swap info for swap id ', swap_id);
   let swap_info = null;
@@ -102,10 +102,10 @@ export const doSwap = async (
   let transfer_batch_sig = await StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id,statecoin.statechain_id);
 
   console.log('await first message');
-  let my_bst_data = await first_message(http_client, 
+  let my_bst_data = await first_message(http_client,
     wasm_client,swap_info,statecoin.statechain_id,transfer_batch_sig,
     address,new_proof_key_der);
-  typeforce(types.BSTRequestorData, my_bst_data);  
+  typeforce(types.BSTRequestorData, my_bst_data);
 
 
   console.log('await poll swap');
@@ -121,7 +121,7 @@ export const doSwap = async (
 
   console.log('await get blinded spend signature');
   let bss = await get_blinded_spend_signature(http_client, wasm_client, swap_id,statecoin.statechain_id);
-  typeforce(types.BlindedSpendSignature, bss);    
+  typeforce(types.BlindedSpendSignature, bss);
 
   console.log('await second message');
   let receiver_addr = await second_message(http_client, wasm_client, swap_id, my_bst_data, bss);
@@ -137,7 +137,7 @@ export const doSwap = async (
 
   console.log('transferSender');
   let _ = transferSender(http_client, wasm_client, network, statecoin, proof_key_der, receiver_addr.proof_key);
- 
+
   let commitment = wasm_client.Commitment.make_commitment(statecoin.statechain_id);
 
   let batch_id = swap_id;
@@ -192,7 +192,7 @@ export const do_transfer_receiver = async (
     while(true) {
       let msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG, id);
       try{
-        typeforce(types.TransferMsg3, msg3);  
+        typeforce(types.TransferMsg3, msg3);
       }catch(err){
         continue;
       }
@@ -238,7 +238,7 @@ export const swap_register_utxo = async (
 
 //conductor::register_utxo,
 //conductor::swap_first_message,
-//conductor::swap_second_message,  
+//conductor::swap_second_message,
 
 /// Struct serialized to string to be used as Blind sign token message
 export class BlindedSpentTokenMessage {
@@ -254,7 +254,7 @@ export class BlindedSpentTokenMessage {
 /// Struct defines a Swap. This is signed by each participant as agreement to take part in the swap.
 export class SwapToken {
   id: string; //Uuid,
-  amount: number; 
+  amount: number;
   time_out: number;
   statechain_ids: string[]; //Vec<Uuid>,
 
@@ -267,48 +267,83 @@ export class SwapToken {
   }
 
   /// Create message to be signed
-  to_message(wasm_client: any) : Buffer {
-    let self_str = JSON.stringify(this);
-    console.log('self_str: ', self_str);
-    let hash_out = wasm_client.SwapTokenW.to_message_ser(self_str);
-    let str_out = wasm_client.SwapTokenW.to_message_str(self_str);
-    console.log('swap token hash_out: ', hash_out);
-    let msg_str: string= JSON.parse(str_out);
-    console.log('swap token str_out: ', msg_str);
-    let hash: string = JSON.parse(hash_out);
-    let hash_buf = Buffer.from(hash, "hex");
-    console.log('swap token hash: ', hash.toString());
-    return hash_buf;
+  // to_message(wasm_client: any) : Buffer {
+  to_message() : Buffer {
+    // let self_str = JSON.stringify(this);
+    // console.log('self_str: ', self_str);
+    // let hash_out = wasm_client.SwapTokenW.to_message_ser(self_str);
+    // let str_out = wasm_client.SwapTokenW.to_message_str(self_str);
+    // console.log('swap token hash_out: ', hash_out);
+    // let msg_str: string= JSON.parse(str_out);
+    // console.log('swap token str_out: ', msg_str);
+    // let hash: string = JSON.parse(hash_out);
+
+    let buf = Buffer.from(this.amount +""+ this.time_out + JSON.stringify(this.statechain_ids), "utf8")
+    let hash = bitcoin.crypto.sha256(buf)
+
+    return hash;
   }
-  
+
 
   /// Generate Signature for change of state chain ownership
-  sign(proof_key_der: BIP32Interface, wasm_client: any): string {
-    let self_str = JSON.stringify(this);
-    let proof_key_priv_str = proof_key_der.privateKey?.toString("hex");
-    console.log("proof key priv json: ", proof_key_priv_str);
-    let sig: string = JSON.parse(wasm_client.SwapTokenW.sign(self_str, proof_key_priv_str));
-    console.log("sig for message {}", sig);
+  // sign(proof_key_der: BIP32Interface, wasm_client: any): string {
+  //   let self_str = JSON.stringify(this);
+  //   let proof_key_priv_str = proof_key_der.privateKey?.toString("hex");
+  //   console.log("proof key priv json: ", proof_key_priv_str);
+  //   let sig: string = JSON.parse(wasm_client.SwapTokenW.sign(self_str, proof_key_priv_str));
+  //   console.log("sig for message {}", sig);
+  //
+  //   return sig
+  // }
 
-    return sig
+  /// Generate Signature for change of state chain ownership
+  sign(proof_key_der: BIP32Interface): string {
+    let msg = this.to_message()
+    let sig = proof_key_der.sign(msg, false);
+
+    // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
+    let encoded_sig = script.signature.encode(sig,1);
+    encoded_sig = encoded_sig.slice(0, encoded_sig.length-1);
+
+    return encoded_sig.toString("hex")
+
+    // let self_str = JSON.stringify(this);
+    // let proof_key_priv_str = proof_key_der.privateKey?.toString("hex");
+    // console.log("proof key priv json: ", proof_key_priv_str);
+    // let sig: string = JSON.parse(wasm_client.SwapTokenW.sign(self_str, proof_key_priv_str));
+    // console.log("sig for message {}", sig);
+    //
+    // return sig
   }
 
-  // Verify self's signature for transfer or withdraw
-  verify_sig(proof_key_der: BIP32Interface, sig: string, wasm_client: any): boolean {
-    let self_str = JSON.stringify(this);
-    
-    let pubKey = proof_key_der.publicKey.toString('hex');
 
-    let _message = this.to_message(wasm_client);
+  verify_sig(proof_key_der: BIP32Interface, sig: string): boolean {
+    let sig_buf = Buffer.from(sig, "hex");
 
-    let ver: boolean = JSON.parse(wasm_client.SwapTokenW.verify_sig(pubKey, sig, self_str));
-    console.log("verify_sig result: {}", ver);
-    return ver
+    // Re-insert hashType marker ("01" suffix) and decode from bip66
+    sig_buf = Buffer.concat([sig_buf, Buffer.from("01", "hex")]);
+    let decoded = script.signature.decode(sig_buf);
+
+    let hash = this.to_message();
+    return proof_key_der.verify(hash, decoded.signature);
+}
+
+  // // Verify self's signature for transfer or withdraw
+  // verify_sig(proof_key_der: BIP32Interface, sig: string, wasm_client: any): boolean {
+  //   let self_str = JSON.stringify(this);
+  //
+  //   let pubKey = proof_key_der.publicKey.toString('hex');
+  //
+  //   let _message = this.to_message(wasm_client);
+  //
+  //   let ver: boolean = JSON.parse(wasm_client.SwapTokenW.verify_sig(pubKey, sig, self_str));
+  //   console.log("verify_sig result: {}", ver);
+  //   return ver
 
   /*
     console.log("verify_sig: get proof");
     let proof = Buffer.from(sig, "hex");
-    
+
     // Re-insert hashType marker ("01" suffix) and decode from bip66
     console.log("verify_sig: concat");
     proof = Buffer.concat([proof, Buffer.from("01", "hex")]);
@@ -320,7 +355,7 @@ export class SwapToken {
     console.log("verify_sig: verify");
     return proof_key_der.verify(hash, decoded.signature);
     */
-  }
+  // }
 
 
 }
@@ -387,16 +422,16 @@ export const first_message = async (
   //console.log("expected: ");
   //console.log(proof_key_der_pub.key.public);
   //console.log(", got: ");
-  //console.log(proof_key_der.publicKey); 
+  //console.log(proof_key_der.publicKey);
   //if (!(proof_key_der.publicKey === proof_key_der_pub.key.public)){
   //    throw new Error('statechain_data proof_pub_key does not derive from proof_key_priv');
   //  }
 
   console.log("get swap_token_sig");
   let swap_token_class = new SwapToken(swap_token.id, swap_token.amount, swap_token.time_out, swap_token.statechain_ids);
-  let swap_token_sig = swap_token_class.sign(proof_key_der, wasm_client);
+  let swap_token_sig = swap_token_class.sign(proof_key_der);
   console.log("proof pub key: ", proof_pub_key);
-  let ver = swap_token_class.verify_sig(proof_key_der, swap_token_sig, wasm_client);  
+  let ver = swap_token_class.verify_sig(proof_key_der, swap_token_sig);
   console.log("proof pub key ver: ", ver);
 
   console.log("get blinded spend token message ");
@@ -404,7 +439,7 @@ export const first_message = async (
 
   //Requester
   let m = JSON.stringify(blindedspenttokenmessage);
-  
+
   // Requester setup BST generation
   console.log("get my bst data for ", swap_info.bst_sender_data.r_prime, m);
   //let bst_req_class = new BSTRequestorData();
@@ -413,8 +448,8 @@ export const first_message = async (
     wasm_client.BSTRequestorData.setup(r_prime_str, m)
   );
 
-  
-  
+
+
   console.log("make swap msg 1");
   let swapMsg1 = {
     "swap_id": swap_token.id,
@@ -490,7 +525,7 @@ export const swapSecondMessage = async (
 ) => {
   return await http_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2)
 }
-  
+
 export interface SwapMsg1 {
   swap_id: string, //Uuid,
   statechain_id: string, //Uuid,
