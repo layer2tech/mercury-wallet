@@ -22,6 +22,7 @@ const SwapPage = () => {
   let disabled = false;
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [inputAddr, setInputAddr] = useState("");
 
   const dispatch = useDispatch();
@@ -83,11 +84,16 @@ const SwapPage = () => {
               <div className="Body right">
                   <div>
                       <h3 className="subtitle">Swaps waiting to begin …</h3>
-                      <Swaps/>
+                      <span className="sub">Swaps below</span>
+                      <Swaps
+                      displayDetailsOnClick={false}
+                      selectedSwap={selectedSwap}
+                      setSelectedSwap={setSelectedSwap}
+                      />
                   </div>
                   <button type="button" className="btn" onClick={swapButtonAction}>
                           SWAP STATECOIN UTXO
-                      </button>
+                  </button>
               </div>
           </div>
         </div>
