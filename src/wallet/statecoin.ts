@@ -175,19 +175,19 @@ Object.freeze(STATECOIN_STATUS);
 // STATUS represent each stage in the lifecycle of a statecoin.
 export const BACKUP_STATUS = {
   // PRE_LOCKTIME backup transactions are not valid yet as block_height < nLocktime
-  PRE_LOCKTIME: "PRE_LOCKTIME",
+  PRE_LOCKTIME: "Not Final",
   // UNBROADCAST are valid transactions (block_height >= nLocktime) yet to be broadcast
-  UNBROADCAST: "UNBROADCAST",
+  UNBROADCAST: "Unbroadcast",
   // IN_MEMPOOL backup transactions are accepted into the mempool
-  IN_MEMPOOL: "IN_MEMPOOL",
+  IN_MEMPOOL: "In mempool",
   // CONFIRMED backup transactions are included in a block, but as yet unspent
-  CONFIRMED: "CONFIRMED",
+  CONFIRMED: "Confirmed",
   // POST_INTERVAL backup transactions are not yet confirmed, but the previous owner nLocktime <= block_height
-  POST_INTERVAL: "POST_INTERVAL",
+  POST_INTERVAL: "Interval elapsed",
   // TAKEN backup transactions have failed to confirm in time and the output has been spent by a previous owner
-  TAKEN: "TAKEN",
+  TAKEN: "Output taken",
   // SPENT backup transactions have been spent to a specified address
-  SPENT: "SPENT"
+  SPENT: "Spent"
 };
 Object.freeze(BACKUP_STATUS);
 
@@ -289,7 +289,8 @@ export class StateCoin {
       tx_backup_hex: this.tx_backup?.toHex(),
       priv_key_hex: "",
       key_wif: "",
-      expiry_data: this.getExpiryData(block_height)
+      expiry_data: this.getExpiryData(block_height),
+      backup_status: this.backup_status,
     }
   }
 

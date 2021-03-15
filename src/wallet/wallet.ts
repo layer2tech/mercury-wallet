@@ -295,22 +295,25 @@ export class Wallet {
     })
   }
 
-  // update statuts of backup transactions and broadcast in necessary
+  // update statuts of backup transactions and broadcast if neccessary
   updateBackupTxStatus() {
-    let height = this.getBlockHeight();
-    console.log(height);
-
-
+    console.log(this.block_height);
 
     for (let i=0; i<this.statecoins.coins.length; i++) {
 
+    console.log(this.statecoins.coins[i].backup_status);
+
+    // check if there is a backup tx yet, if not do nothing
+      if (this.statecoins.coins[i].tx_backup == null) {
+        continue;
+      }
       if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED || 
         this.statecoins.coins[i].backup_status === BACKUP_STATUS.TAKEN || 
         this.statecoins.coins[i].backup_status === BACKUP_STATUS.SPENT) {
         continue;
       }
       // check locktime
-      let blocks_to_locktime = this.statecoins.coins[i].tx_backup.locktime - height;
+      let blocks_to_locktime = this.statecoins.coins[i].tx_backup.locktime - this.block_height;
       // pre-locktime - do nothing
       if (blocks_to_locktime > 0) {
         this.statecoins.coins[i].setBackupPreLocktime();
@@ -319,104 +322,35 @@ export class Wallet {
       } else {
         // in mempool - check if confirmed
         if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
-          this.electrum_client.getTransaction(this.statecoins.coins[i].backup_tx.getId()).then((tx_data) => {
+          this.electrum_client.getTransaction(this.statecoins.coins[i].tx_backup.getId()).then((tx_data) => {
             if(tx_data.confirmations > 0) {
               this.statecoins.coins[i].setBackupConfirmed();
             }
           })
         } else {
           // broadcast transaction
-          this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_backup.toHex()).then((response) => {
-            if(response.includes('txn-already-in-mempool') || response.length == 64) {
+          this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_backup.toHex()).then((bresponse) => {
+            if(bresponse.includes('txn-already-in-mempool') || bresponse.length == 64) {
               this.statecoins.coins[i].setBackupInMempool();
-            } else if(response.includes('already')) {
+            } else if(bresponse.includes('already')) {
               this.statecoins.coins[i].setBackupInMempool();              
+            } else if(bresponse.includes('confict') || bresponse.includes('missingorspent')) {
+              this.statecoins.coins[i].setBackupTaken();
             }
-
-
-
-
-
-txn-mempool-conflict
-
-txn-already-in-mempool
-
-
-
-
-
-
-
-          }) 
-        }
-
-      }
-
-
-
-
-
-
-
-      if (blocks_to_locktime >= 0) {
-        if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED)
-      }
-
-
-
-
-
-        && this.statecoins.coins[i].interval) {
-
-      }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data) => {
-      for (let i=0; i<funding_tx_data.length; i++) {
-        // Verify amount of tx. Ignore if mock electrum
-        if (!this.config.testing_mode && funding_tx_data[i].value!==value) {
-          log.error("Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".");
-          log.error("Setting value of statecoin to "+funding_tx_data[i].value);
-          let statecoin = this.statecoins.getCoin(shared_key_id);
-          statecoin!.value = funding_tx_data[i].value;
-        }
-        if (!funding_tx_data[i].height) {
-          log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
-          this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i])
-          this.saveStateCoinsList()
-        } else {
-          log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
-          // Set coin UNCOMFIRMED.
-          this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i])
-          this.saveStateCoinsList()
-          // No longer need subscription
-          this.electrum_client.scriptHashUnsubscribe(p_addr_script);
+          });
+          // if CPFP present, then broadcast this as well
+          if (this.statecoins.coins[i].tx_cpfp != null) {
+              this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_cpfp.toHex())       
+          }
         }
       }
-    });
+    }
+  }
 
-
-
-
-
-
-
-
-
-
-
+  // create CPFP transaction to spend from backup tx
+  createBackupTxCPFP(cpfp_data: any) {
+    console.log(cpfp_data);
+    return true;
   }
 
   // Add confirmed Statecoin to wallet
