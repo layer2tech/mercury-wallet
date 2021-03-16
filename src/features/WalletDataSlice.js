@@ -104,6 +104,11 @@ export const callGetSeAddr = (state) => {
 export const callNewSeAddr = (state) => {
   return wallet.newSEAddress()
 }
+// Remove coin from coins list
+export const callRemoveCoin = (shared_key_id) => {
+  log.info("Removing coin "+shared_key_id+" from wallet.");
+  wallet.statecoins.removeCoin(shared_key_id);
+}
 
 // Update config with JSON of field to change
 export const callUpdateConfig = (config_changes) => {

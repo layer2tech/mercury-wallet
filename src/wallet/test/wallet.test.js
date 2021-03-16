@@ -104,7 +104,7 @@ describe("Statecoins/Coin", () => {
     var json = JSON.parse(JSON.stringify(statecoins))
     statecoins = StateCoinList.fromJSON(json)
     let new_shared_key_id = "861d2223-7d84-44f1-ba3e-4cd7dd418560";
-    
+
     // Check new_shared_key_id not already in coins list
     expect(statecoins.coins.filter(item =>
       {if (item.shared_key_id==new_shared_key_id){return item}}).length
@@ -121,6 +121,20 @@ describe("Statecoins/Coin", () => {
     expect(statecoins.coins.filter(item =>
       {if (item.shared_key_id==new_shared_key_id){return item}}).length
     ).toEqual(0)
+  });
+
+  test('try remove confirmed coin', () => {
+    var json = JSON.parse(JSON.stringify(statecoins))
+    statecoins = StateCoinList.fromJSON(json)
+    let new_shared_key_id = "861d2223-7d84-44f1-ba3e-4cd7dd418560";
+    statecoins.addNewCoin(new_shared_key_id, SHARED_KEY_DUMMY);
+    let coin = statecoins.getCoin(new_shared_key_id);
+    coin.setInMempool();
+
+    // Attempt to remove coin from list
+    expect(() => {
+      statecoins.removeCoin(new_shared_key_id)
+    }).toThrowError("Should not remove coin whose funding transaction has been broadcast.")
   });
 
   describe("getAllCoins", () => {
@@ -155,11 +169,11 @@ describe("Statecoins/Coin", () => {
     it('Returns only unconfirmed coins with correct data', () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
-      let coin = statecoins.getCoin(coins[0].shared_key_id)
-      coin.status="UNCOMFIRMED"                 // set one unconfirmed
-      statecoins.setCoinFinalized(coin)
-      expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1)
-      expect(coins.length).toBe(statecoins.coins.length)
+      let coin = statecoins.getCoin(coins[0].shared_key_id);
+      coin.status="UNCONFIRMED";                 // set one unconfirmed
+      statecoins.setCoinFinalized(coin);
+      expect(statecoins.getUnconfirmedCoins().length).toBe(1);
+      expect(coins.length).toBe(statecoins.coins.length);
     });
   });
 

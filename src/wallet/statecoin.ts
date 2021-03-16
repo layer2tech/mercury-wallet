@@ -64,7 +64,7 @@ export class StateCoinList {
   // Find all coins in mempool or mined but with required_confirmations confirmations
   getUnconfirmedCoins() {
     return this.coins.filter((item: StateCoin) => {
-      if (item.status === STATECOIN_STATUS.UNCOMFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL) {
+      if (item.status === STATECOIN_STATUS.UNCONFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL) {
         return item
       }
       return null
@@ -86,7 +86,14 @@ export class StateCoinList {
 
   // Remove coin from list
   removeCoin(shared_key_id: string) {
-    this.coins = this.coins.filter(item => {if (item.shared_key_id!==shared_key_id){return item}})
+    this.coins = this.coins.filter(item => {
+      if (item.shared_key_id!==shared_key_id) {
+        return item
+      } else {
+        if (item.status!==STATECOIN_STATUS.INITIALISED) {
+          throw Error("Should not remove coin whose funding transaction has been broadcast.")
+        }
+      }})
   };
 
 
@@ -162,8 +169,8 @@ export const STATECOIN_STATUS = {
   INITIALISED: "INITIALISED",
   // IN_MEMPOOL funding transaction in the mempool
   IN_MEMPOOL: "IN_MEMPOOL",
-  // UNCOMFIRMED coins are awaiting more confirmations on their funding transaction
-  UNCOMFIRMED: "UNCOMFIRMED",
+  // UNCONFIRMED coins are awaiting more confirmations on their funding transaction
+  UNCONFIRMED: "UNCONFIRMED",
   // Coins are fully owned by wallet and unspent
   AVAILABLE: "AVAILABLE",
   // Coin used to belonged to wallet but has been transferred
@@ -213,7 +220,7 @@ export class StateCoin {
   }
 
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
-  setUnconfirmed() { this.status = STATECOIN_STATUS.UNCOMFIRMED }
+  setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
@@ -270,7 +277,7 @@ export class StateCoin {
   getExpiryData(block_height: number): ExpiryData {
     // If not confirmed, send confirmation data instead.
     if (this.tx_backup==null) {
-      // Otherwise must be UNCOMFIRMED so calculate number of confs
+      // Otherwise must be UNCONFIRMED so calculate number of confs
       return {blocks:-1, confirmations: this.getConfirmations(block_height), days:0, months:0};
     }
 
