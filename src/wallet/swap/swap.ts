@@ -98,20 +98,21 @@ export const doSwap = async (
   };
   typeforce(types.SCEAddress, address);
 
-  console.log('await new transfer batch sig');
-  let transfer_batch_sig = await StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id,statecoin.statechain_id);
-
+  console.log('await new transfer batch sig fo swap id: ', swap_id);
+  
+  let transfer_batch_sig = await StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id.id,statecoin.statechain_id);
+console.log('transfer batch sig: ', transfer_batch_sig);
   console.log('await first message');
   let my_bst_data = await first_message(http_client,
     wasm_client,swap_info,statecoin.statechain_id,transfer_batch_sig,
-    address,new_proof_key_der);
+    address,proof_key_der);
   typeforce(types.BSTRequestorData, my_bst_data);
 
 
   console.log('await poll swap');
   while(true){
-    let phase = await pollSwap(http_client, swap_id);
-    if (phase === SwapStatus.Phase2){
+    let phase: string = await pollSwap(http_client, swap_id);
+    if (phase !== SwapStatus.Phase1){
       break;
     }
     await delay(3)
@@ -120,17 +121,23 @@ export const doSwap = async (
   let publicProofKey = new_proof_key_der.publicKey;
 
   console.log('await get blinded spend signature');
-  let bss = await get_blinded_spend_signature(http_client, wasm_client, swap_id,statecoin.statechain_id);
+  let bss = await get_blinded_spend_signature(http_client, wasm_client, swap_id.id,statecoin.statechain_id);
   typeforce(types.BlindedSpendSignature, bss);
 
   console.log('await second message');
-  let receiver_addr = await second_message(http_client, wasm_client, swap_id, my_bst_data, bss);
+  let receiver_addr = await second_message(http_client, wasm_client, swap_id.id, my_bst_data, bss);
 
   console.log('await poll swap');
   while(true){
     let phase = await pollSwap(http_client, swap_id);
     if (phase === SwapStatus.Phase4){
       break;
+    }
+    if (phase === SwapStatus.End){
+      throw new Error("Swap error: unexpended swap status \"End\"");
+    }
+    if (phase === SwapStatus.Phase1){
+      throw new Error("Swap error: unexpended swap status \"Phase1\"");
     }
     await delay(3)
   }
@@ -279,7 +286,7 @@ export class SwapToken {
     // let hash: string = JSON.parse(hash_out);
 
     let buf = Buffer.from(this.amount +""+ this.time_out + JSON.stringify(this.statechain_ids), "utf8")
-    let hash = bitcoin.crypto.sha256(buf)
+    let hash = bitcoin.crypto.hash256(buf);
 
     return hash;
   }
@@ -416,7 +423,10 @@ export const first_message = async (
   let proof_pub_key = statechain_data.chain[statechain_data.chain.length-1].data;
 
   console.log("get proof_key_der_pub");
-  let proof_key_der_pub = bitcoin.ECPair.fromPublicKey(Buffer.from(proof_pub_key, "hex"));
+  //let proof_key_der_pub = bitcoin.ECPair.fromPublicKey(Buffer.from(proof_pub_key, "hex"));
+  
+  let proof_key_der_pub = proof_key_der.publicKey.toString("hex");
+  let proof_key_priv = proof_key_der.privateKey?.toString("hex");
 
   //console.log("compare proof_key_der_pub");
   //console.log("expected: ");
@@ -427,10 +437,16 @@ export const first_message = async (
   //    throw new Error('statechain_data proof_pub_key does not derive from proof_key_priv');
   //  }
 
-  console.log("get swap_token_sig");
+
   let swap_token_class = new SwapToken(swap_token.id, swap_token.amount, swap_token.time_out, swap_token.statechain_ids);
+  let st_str = JSON.stringify(swap_token_class);
+  console.log("get swap_token_sig for swap token: ", st_str);
+
+  console.log("swap token message: ", swap_token_class.to_message().toString('hex'));
   let swap_token_sig = swap_token_class.sign(proof_key_der);
   console.log("proof pub key: ", proof_pub_key);
+  console.log("proof key der pub: ", proof_key_der_pub);
+  console.log("proof key priv: ", proof_key_priv);
   let ver = swap_token_class.verify_sig(proof_key_der, swap_token_sig);
   console.log("proof pub key ver: ", ver);
 
@@ -448,8 +464,6 @@ export const first_message = async (
     wasm_client.BSTRequestorData.setup(r_prime_str, m)
   );
 
-
-
   console.log("make swap msg 1");
   let swapMsg1 = {
     "swap_id": swap_token.id,
@@ -462,11 +476,12 @@ export const first_message = async (
   typeforce(types.SwapMsg1, swapMsg1);
 
   console.log("first msg post: ", swapMsg1);
-  let requestor_data =  await http_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1);
-  console.log("typeforce first msg post response");
-  typeforce(types.BSTRequestorData, requestor_data);
+  let _ =  await http_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1);
+  
+  console.log("make bst requestor data");
+
   console.log("first message finished");
-  return requestor_data;
+  return my_bst_data;
 }
 
 /// blind spend signature
@@ -480,8 +495,12 @@ export const get_blinded_spend_signature = async(
   swap_id: String,
   statechain_id: String,
 ): Promise<BlindedSpendSignature> => {
-  let bstMsg = new BSTMsg(swap_id, statechain_id);
+  let bstMsg = {
+    "swap_id": swap_id, 
+    "statechain_id": statechain_id,
+  };
   let result =  await http_client.post(POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE, bstMsg);
+  console.log("get_blinded_spend_signature result: ", result);
   typeforce(types.BlindedSpendSignature, result);
   return result;
 }
@@ -493,10 +512,23 @@ export const second_message = async (
   my_bst_data: BSTRequestorData,
   blinded_spend_signature: BlindedSpendSignature,
 ): Promise<SCEAddress> => {
-  let bst = wasm_client.BSTRequestorData.make_blind_spend_token(my_bst_data,blinded_spend_signature);
-  let swapMsg2 = new SwapMsg2(swap_id, bst);
+  let my_bst_data_str = JSON.stringify(my_bst_data);
+  let blinded_spend_signature_str = JSON.stringify(blinded_spend_signature.s_prime);
+  
+  let bst_json = wasm_client.BSTRequestorData.make_blind_spend_token(my_bst_data_str,blinded_spend_signature_str);
+  
+  let bst: BlindedSpendToken = JSON.parse(bst_json);
+
+  console.log("made blinded spend token");
+  let swapMsg2 = {
+    "swap_id":swap_id, 
+    "blinded_spend_token":bst,
+  };
+  console.log("await swap second: ", swapMsg2);
   let result =  await http_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2);
+  console.log("typeforce result");
   typeforce(types.BlindedSpendSignature, result);
+  
   return result;
 }
 

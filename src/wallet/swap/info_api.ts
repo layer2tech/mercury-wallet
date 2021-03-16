@@ -28,7 +28,7 @@ export const pollSwap = async (
 
   let swap_status = await http_client.post(POST_ROUTE.SWAP_POLL_SWAP, swap_id);	
 
-  typeforce(types.SwapStatus, swap_status);
+  typeforce(String, swap_status);
   return swap_status
 }
 

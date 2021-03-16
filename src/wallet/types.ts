@@ -346,6 +346,12 @@ export const BlindedSpendToken = typeforce.compile({
     m: String,
 })
 
+export const BlindedSpendSignature = typeforce.compile(
+  {
+    s_prime: Secp256k1Scalar 
+  }
+)
+
 /// Owner -> Conductor
 export const SwapMsg2 = typeforce.compile({
   swap_id: String, //Uuid,

@@ -169,7 +169,8 @@ impl BSTSenderData {
 /// Provides wrappers for Swap methods
 #[wasm_bindgen]
 #[derive(Deserialize, Debug)]
-pub struct BSTRequestorData{
+pub struct BSTRequestorData
+{
     u: FE,
     v: FE,
     r: GE,
@@ -177,8 +178,10 @@ pub struct BSTRequestorData{
     m: String,
 }
 
+
 #[wasm_bindgen]
 impl BSTRequestorData {
+    
     pub fn setup(r_prime_str: String, m: String) -> Result<JsValue, JsValue> {
        
         let r_prime: GE = match serde_json::from_str(&r_prime_str){
@@ -204,9 +207,11 @@ impl BSTRequestorData {
             ).to_string().into()
         )
     }
+    
 
      /// Create BlindedSpendToken for blinded signature
      pub fn make_blind_spend_token(bst_requestor_data_str: String, signature_str: String) -> Result<JsValue, JsValue> {
+        
         let s: FE = serde_json::from_str(&signature_str).expect("unable to parse JSON");
         let bst_rd: BSTRequestorData =
             serde_json::from_str(&bst_requestor_data_str).expect("unable to parse JSON");
@@ -223,11 +228,12 @@ impl BSTRequestorData {
         )
     }
 
-    /// Requester calculates
-    ///      s = s'u+v
-    fn requester_calc_s(s_prime: FE, u: FE, v: FE) -> FE {
-        s_prime * u + v
-    }
+    // Requester calculates
+    //      s = s'u+v
+    //fn requester_calc_s(s_prime: FE, u: FE, v: FE) -> FE {
+    //    s_prime * u + v
+    //}
+    
 
 }
 
