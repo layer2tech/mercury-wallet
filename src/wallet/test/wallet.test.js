@@ -3,6 +3,7 @@ import { Wallet, StateCoinList, ACTION, Config } from '../';
 import { segwitAddr } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
+import { txWithdrawBuild } from '../util';
 
 let lodash = require('lodash');
 
@@ -87,6 +88,32 @@ describe('Wallet', function() {
       }).toThrowError("does not exist");
     });
   })
+
+  describe('createBackupTxCPFP', function() {
+    let cpfp_data = {selected_coin: wallet.statecoins.coins[0].shared_key_id, cpfp_addr: wallet.genBtcAddress(), fee_rate: 3};
+    let cpfp_data_bad_address = {selected_coin: wallet.statecoins.coins[0].shared_key_id, cpfp_addr: "tc1aaldkjqoeihj87yuih", fee_rate: 3};
+    let cpfp_data_bad_coin = {selected_coin: "c93ad45a-00b9-449c-a804-aab5530efc90", cpfp_addr: wallet.genBtcAddress(), fee_rate: 3};
+    let cpfp_data_bad_fee = {selected_coin: wallet.statecoins.coins[0].shared_key_id, cpfp_addr: wallet.genBtcAddress(), fee_rate: "three"};
+
+    let tx_backup = txWithdrawBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, wallet.genBtcAddress(), 10000, wallet.genBtcAddress(), 10)
+
+    wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
+
+    test('Throw on invalid value', async function() {
+      expect(() => {  
+        wallet.createBackupTxCPFP(cpfp_data_bad_address);
+      }).toThrowError('Invalid Bitcoin address entered.');
+      expect(() => { 
+        wallet.createBackupTxCPFP(cpfp_data_bad_coin);
+      }).toThrowError('No coin found with id c93ad45a-00b9-449c-a804-aab5530efc90');
+      expect(() => { 
+        wallet.createBackupTxCPFP(cpfp_data_bad_fee);
+      }).toThrowError('Fee rate not an integer');      
+    });
+
+    expect(wallet.createBackupTxCPFP(cpfp_data)).toBe(true);
+    expect(wallet.statecoins.coins[0].tx_cpfp.outs.length).toBe(1);
+  });
 })
 
 describe("Statecoins/Coin", () => {
