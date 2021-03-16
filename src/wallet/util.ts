@@ -144,6 +144,8 @@ export const txCPFPBuild = (network: Network, funding_txid: string, funding_vout
   // Subtract the fee already paid in the backup-tx
   let total_fee = (fee_rate * 250) - FEE;
 
+  if (total_fee >= value) throw Error("Not enough value to cover fee.");
+
   let txb = new TransactionBuilder(network);
 
   txb.addInput(funding_txid, funding_vout, null, p2wpkh.output);
