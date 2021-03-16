@@ -5,6 +5,7 @@ import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
   MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, decryptAES,
   encodeSCEAddress } from './';
+import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -272,13 +273,23 @@ export class Wallet {
     let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
     //extract receive address private key
     let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
+
+    console.log(addr);
+
     let bip32 = this.getBIP32forBtcAddress(addr)
+
+    console.log(bip32);
 
     let priv_key = bip32.privateKey;
     if (priv_key===undefined) throw Error("Backup receive address private key not found.");
 
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
     backup_tx_data.key_wif = bip32.toWIF();
+
+    if (statecoin.tx_cpfp != null) {
+       let fee_rate = (FEE + backup_tx_data.output_value - statecoin.tx_cpfp.outs[0].value)/250;
+       backup_tx_data.cpfp_status = "Set. Fee rate = "+fee_rate.toString();
+    }
 
     return backup_tx_data
   }
@@ -297,12 +308,8 @@ export class Wallet {
 
   // update statuts of backup transactions and broadcast if neccessary
   updateBackupTxStatus() {
-    console.log(this.block_height);
 
     for (let i=0; i<this.statecoins.coins.length; i++) {
-
-    console.log(this.statecoins.coins[i].backup_status);
-
     // check if there is a backup tx yet, if not do nothing
       if (this.statecoins.coins[i].tx_backup == null) {
         continue;
@@ -325,17 +332,19 @@ export class Wallet {
           this.electrum_client.getTransaction(this.statecoins.coins[i].tx_backup.getId()).then((tx_data) => {
             if(tx_data.confirmations > 0) {
               this.statecoins.coins[i].setBackupConfirmed();
+              this.statecoins.coins[i].setExpired();
             }
           })
         } else {
           // broadcast transaction
           this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_backup.toHex()).then((bresponse) => {
-            if(bresponse.includes('txn-already-in-mempool') || bresponse.length == 64) {
+            if(bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
               this.statecoins.coins[i].setBackupInMempool();
             } else if(bresponse.includes('already')) {
               this.statecoins.coins[i].setBackupInMempool();              
             } else if(bresponse.includes('confict') || bresponse.includes('missingorspent')) {
               this.statecoins.coins[i].setBackupTaken();
+              this.statecoins.coins[i].setExpired();
             }
           });
           // if CPFP present, then broadcast this as well
@@ -349,7 +358,51 @@ export class Wallet {
 
   // create CPFP transaction to spend from backup tx
   createBackupTxCPFP(cpfp_data: any) {
-    console.log(cpfp_data);
+
+    log.info("Add CPFP for "+cpfp_data.selected_coin+" to "+cpfp_data.cpfp_addr);
+
+    // Check address format
+    try { bitcoin.address.toOutputScript(cpfp_data.cpfp_addr, this.config.network) }
+      catch (e) { throw Error("Invalid Bitcoin address entered.") }
+
+    let statecoin = this.statecoins.getCoin(cpfp_data.selected_coin);
+    if (!statecoin) throw Error("No coin found with id " + cpfp_data.selected_coin);
+
+    let backup_tx_data = this.getCoinBackupTxData(cpfp_data.selected_coin);
+
+    let fee_rate = parseInt(cpfp_data.fee_rate);
+    if (isNaN(fee_rate)) throw Error("Fee rate not an integer");
+
+    var ec_pair = bitcoin.ECPair.fromWIF(backup_tx_data.key_wif, this.config.network);
+    console.log(ec_pair);
+
+    var p2wpkh = bitcoin.payments.p2wpkh({ pubkey: ec_pair.publicKey, network: this.config.network })
+    console.log(p2wpkh)
+
+    // Construct CPFP tx
+    let txb_cpfp = txCPFPBuild(
+      this.config.network,
+      backup_tx_data.txid,
+      0,
+      cpfp_data.cpfp_addr,
+      backup_tx_data.output_value,
+      fee_rate,
+      p2wpkh,
+    );
+
+    // sign tx
+    txb_cpfp.sign(0,ec_pair,null,null,backup_tx_data.output_value);
+
+    let cpfp_tx = txb_cpfp.build();
+
+    // add CPFP tx to statecoin
+    for (let i=0; i<this.statecoins.coins.length; i++) {
+      if (this.statecoins.coins[i].shared_key_id === cpfp_data.selected_coin) {
+        this.statecoins.coins[i].tx_cpfp = cpfp_tx;
+        break;
+      }
+    }
+
     return true;
   }
 

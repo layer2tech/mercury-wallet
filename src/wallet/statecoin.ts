@@ -169,6 +169,8 @@ export const STATECOIN_STATUS = {
   SWAPPED: "SWAPPED",
   // Coin has performed transfer_sender and has valid TransferMsg3 to be claimed by receiver
   SPEND_PENDING: "SPEND_PENDING",
+  // Coin has reached it's backup timelock and has been spent
+  EXPIRED: "EXPIRED",
 };
 Object.freeze(STATECOIN_STATUS);
 
@@ -239,6 +241,7 @@ export class StateCoin {
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
   setSwapped() { this.status = STATECOIN_STATUS.SWAPPED; }
   setSpendPending() { this.status = STATECOIN_STATUS.SPEND_PENDING; }
+  setExpired() { this.status = STATECOIN_STATUS.EXPIRED; }
 
   setBackupPreLocktime() { this.backup_status = BACKUP_STATUS.PRE_LOCKTIME }
   setBackupUnbroadcast() { this.backup_status = BACKUP_STATUS.UNBROADCAST }
@@ -291,6 +294,9 @@ export class StateCoin {
       key_wif: "",
       expiry_data: this.getExpiryData(block_height),
       backup_status: this.backup_status,
+      txid: this.tx_backup?.getId(),
+      output_value: this.tx_backup?.outs[0].value,
+      cpfp_status: "None",
     }
   }
 

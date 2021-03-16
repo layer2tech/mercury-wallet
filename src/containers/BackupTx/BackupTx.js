@@ -55,25 +55,27 @@ const BackupTxPage = () => {
   }
 
   const addCPFP = () => {
-     let sucess = callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
-//        const { dialog } = require('electron')
-//        if (sucess) {
-//          const options = {
-//              type: 'info',
-//              buttons: ['OK'],
-//              title: 'Complete',
-//              message: 'Child-pays-for-parent transaction created. It will be broadcast along with the backup transaction.',
-//            };
-//        dialog.showMessageBox(null, options);
-//        } else {
-//          const options = {
-//              type: 'info',
-//              buttons: ['OK'],
-//              title: 'Error',
-//              message: 'CPFP transaction build error: please check address and fee.',
-//            };
-//        dialog.showMessageBox(null, options);
-//        }
+    // check statechain is chosen
+    if (!selectedCoin) {
+      dispatch(setError({msg: "Please choose a StateCoin."}))
+      return
+    }
+    if (!cpfpAddr) {
+      dispatch(setError({msg: "Please enter a pay to address."}))
+      return
+    }
+    if (!txFee) {
+      dispatch(setError({msg: "Please enter a fee rate."}))
+      return
+    }    
+
+    let sucess = callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
+
+    if (!sucess) {
+      dispatch(setError({msg: "CPFP build error: please check address is correct"}))
+      return      
+    }
+
    }
 
   return (
@@ -186,6 +188,15 @@ const BackupTxPage = () => {
                     </div>
                 </div>
 
+                <div className="item">
+                    <span className="sub">CPFP:</span>
+                    <div className="">
+                        <span>
+                          {selectedCoinTxData.cpfp_status}
+                        </span>
+                    </div>
+                </div>
+
                 <div className="item">                
                     <span className="sub">Pay to:</span>
                     <div className="inputs-item">
@@ -200,10 +211,11 @@ const BackupTxPage = () => {
                 <div className="item">                
                     <span className="sub">Fee (sat/b):</span>
                     <div className="inputs-item">
-                        <input id="tx-fee" type="text" name="Fee rate"
-                         value={txFee}
-                         onChange={onAddrChange}
-                               required/>
+                     <AddressInput
+                       inputAddr={txFee}
+                       onChange={onFeeChange}
+                       placeholder='Fee rate'
+                       smallTxtMsg='CPFP Tx Fee'/>
                     </div>       
                 </div> 
 
