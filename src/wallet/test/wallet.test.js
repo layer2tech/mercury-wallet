@@ -6,6 +6,8 @@ import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
 
 let lodash = require('lodash');
 
+const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
+
 describe('Wallet', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
 
@@ -28,7 +30,7 @@ describe('Wallet', function() {
     let num_coins_before = wallet.statecoins.coins.length;
 
     // new coin
-    wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+    wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", SHARED_KEY_DUMMY, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
     wallet.saveStateCoinsList();
 
     let loaded_wallet = await Wallet.load('mock', '', true);
@@ -96,6 +98,29 @@ describe("Statecoins/Coin", () => {
     var json = JSON.parse(JSON.stringify(statecoins))
     let from_json = StateCoinList.fromJSON(json)
     expect(statecoins).toEqual(from_json)
+  });
+
+  test('get/remove coin', () => {
+    var json = JSON.parse(JSON.stringify(statecoins))
+    statecoins = StateCoinList.fromJSON(json)
+    let new_shared_key_id = "861d2223-7d84-44f1-ba3e-4cd7dd418560";
+    
+    // Check new_shared_key_id not already in coins list
+    expect(statecoins.coins.filter(item =>
+      {if (item.shared_key_id==new_shared_key_id){return item}}).length
+    ).toEqual(0)
+
+    // Add new coin to list
+    statecoins.addNewCoin(new_shared_key_id, SHARED_KEY_DUMMY);
+    expect(statecoins.coins.filter(item =>
+      {if (item.shared_key_id==new_shared_key_id){return item}}).length
+    ).toEqual(1)
+
+    // Remove coin from list
+    statecoins.removeCoin(new_shared_key_id);
+    expect(statecoins.coins.filter(item =>
+      {if (item.shared_key_id==new_shared_key_id){return item}}).length
+    ).toEqual(0)
   });
 
   describe("getAllCoins", () => {

@@ -84,6 +84,11 @@ export class StateCoinList {
     this.coins.push(statecoin)
   };
 
+  // Remove coin from list
+  removeCoin(shared_key_id: string) {
+    this.coins = this.coins.filter(item => {if (item.shared_key_id!==shared_key_id){return item}})
+  };
+
 
   setCoinSpent(shared_key_id: string, action: string) {
     let coin = this.getCoin(shared_key_id)
