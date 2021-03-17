@@ -243,7 +243,7 @@ export class Wallet {
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
-      if (statecoin.status===STATECOIN_STATUS.UNCOMFIRMED &&
+      if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           this.depositConfirm(statecoin.shared_key_id)
       }
@@ -508,7 +508,7 @@ export class Wallet {
           this.saveStateCoinsList()
         } else {
           log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
-          // Set coin UNCOMFIRMED.
+          // Set coin UNCONFIRMED.
           this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i])
           this.saveStateCoinsList()
           // No longer need subscription

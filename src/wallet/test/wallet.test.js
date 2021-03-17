@@ -7,6 +7,8 @@ import { txWithdrawBuild } from '../util';
 
 let lodash = require('lodash');
 
+const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
+
 describe('Wallet', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
 
@@ -29,7 +31,7 @@ describe('Wallet', function() {
     let num_coins_before = wallet.statecoins.coins.length;
 
     // new coin
-    wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+    wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", SHARED_KEY_DUMMY, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
     wallet.saveStateCoinsList();
 
     let loaded_wallet = await Wallet.load('mock', '', true);
@@ -125,6 +127,43 @@ describe("Statecoins/Coin", () => {
     expect(statecoins).toEqual(from_json)
   });
 
+  test('get/remove coin', () => {
+    var json = JSON.parse(JSON.stringify(statecoins))
+    statecoins = StateCoinList.fromJSON(json)
+    let new_shared_key_id = "861d2223-7d84-44f1-ba3e-4cd7dd418560";
+
+    // Check new_shared_key_id not already in coins list
+    expect(statecoins.coins.filter(item =>
+      {if (item.shared_key_id==new_shared_key_id){return item}}).length
+    ).toEqual(0)
+
+    // Add new coin to list
+    statecoins.addNewCoin(new_shared_key_id, SHARED_KEY_DUMMY);
+    expect(statecoins.coins.filter(item =>
+      {if (item.shared_key_id==new_shared_key_id){return item}}).length
+    ).toEqual(1)
+
+    // Remove coin from list
+    statecoins.removeCoin(new_shared_key_id);
+    expect(statecoins.coins.filter(item =>
+      {if (item.shared_key_id==new_shared_key_id){return item}}).length
+    ).toEqual(0)
+  });
+
+  test('try remove confirmed coin', () => {
+    var json = JSON.parse(JSON.stringify(statecoins))
+    statecoins = StateCoinList.fromJSON(json)
+    let new_shared_key_id = "861d2223-7d84-44f1-ba3e-4cd7dd418560";
+    statecoins.addNewCoin(new_shared_key_id, SHARED_KEY_DUMMY);
+    let coin = statecoins.getCoin(new_shared_key_id);
+    coin.setInMempool();
+
+    // Attempt to remove coin from list
+    expect(() => {
+      statecoins.removeCoin(new_shared_key_id)
+    }).toThrowError("Should not remove coin whose funding transaction has been broadcast.")
+  });
+
   describe("getAllCoins", () => {
     it('Returns coins with correct data', () => {
       let coins = statecoins.getAllCoins();
@@ -157,11 +196,11 @@ describe("Statecoins/Coin", () => {
     it('Returns only unconfirmed coins with correct data', () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
-      let coin = statecoins.getCoin(coins[0].shared_key_id)
-      coin.status="UNCOMFIRMED"                 // set one unconfirmed
-      statecoins.setCoinFinalized(coin)
-      expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1)
-      expect(coins.length).toBe(statecoins.coins.length)
+      let coin = statecoins.getCoin(coins[0].shared_key_id);
+      coin.status="UNCONFIRMED";                 // set one unconfirmed
+      statecoins.setCoinFinalized(coin);
+      expect(statecoins.getUnconfirmedCoins().length).toBe(1);
+      expect(coins.length).toBe(statecoins.coins.length);
     });
   });
 
