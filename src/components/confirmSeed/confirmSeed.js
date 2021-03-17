@@ -1,21 +1,22 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {Link} from "react-router-dom";
 import {useDispatch} from 'react-redux'
-
 import {setError, walletFromMnemonic, callGetConfig} from '../../features/WalletDataSlice'
 
 import './confirmSeed.css'
 
-let rands = [];
-if (!require("../../settings.json").testing_mode) {
-  rands = [Math.floor(Math.random()*11),Math.floor(Math.random()*11),Math.floor(Math.random()*11)]
-}
-
 const ConfirmSeed = (props) => {
   const dispatch = useDispatch();
+  const [rands] = useState(() => !require("../../settings.json").testing_mode ?
+    [
+      Math.floor(Math.random()*11),
+      Math.floor(Math.random()*11),
+      Math.floor(Math.random()*11)
+    ] : []
+  )
 
   let words = props.wizardState.mnemonic.split(" ");
-  const [missingwords, setMissingWords] = useState(rands.map((rand) => ({pos:rand, word:""})));
+  const [missingwords, setMissingWords] = useState(() => rands.map((rand) => ({pos:rand, word:""})));
 
   const inputMissingWord = (event) => {
     let map = missingwords.map((item) => {if (item.pos===parseInt(event.target.id)) {item.word=event.target.value} return item})
