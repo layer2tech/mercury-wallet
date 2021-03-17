@@ -18,14 +18,16 @@ const SettingsPage = (props) => {
     current_config = callGetConfig();
   } catch {
     current_config = {notifications: "", tutorials: "", state_entity_endpoint: "", swap_conductor_endpoint: "",
-      electrum_config: {host: ""}, tor_proxy: "", min_anon_set: ""};
+      electrum_config: {host: "", port: 0, protocol: ""}, tor_proxy: "", min_anon_set: ""};
   }
 
   const [notifications, setNotification] = useState(current_config.notifications);
   const [tutorials, setTutorials] = useState(current_config.tutorials);
   const [stateEntityAddr, setStateEntityAddr] = useState(current_config.state_entity_endpoint);
   const [swapAddr, setSwapAddr] = useState(current_config.swap_conductor_endpoint);
-  const [elecAddr, setElecAddr] = useState(current_config.electrum_config.host);
+  const [elecAddrHost, setElecAddrHost] = useState(current_config.electrum_config.host);
+  const [elecAddrPort, setElecAddrPort] = useState(current_config.electrum_config.port);
+  const [elecAddrProtocol, setElecAddrProtocol] = useState(current_config.electrum_config.protocol);
   const [torProxy, setTorProxy] = useState(current_config.tor_proxy);
   const [minAnonSet, setMinAnonSet] = useState(current_config.min_anon_set);
 
@@ -35,7 +37,9 @@ const SettingsPage = (props) => {
   const onTutorialChange = () => { setTutorials(!tutorials) };
   const onStateEntityAddrChange = (evt) => { setStateEntityAddr(evt.target.value) };
   const onSwapAddrChange = (evt) => { setSwapAddr(evt.target.value) };
-  const onElecAddrChange = (evt) => { setElecAddr(evt.target.value) };
+  const onElecAddrHostChange = (evt) => { setElecAddrHost(evt.target.value) };
+  const onElecAddrPortChange = (evt) => { setElecAddrPort(evt.target.value) };
+  const onElecAddrProtocolChange = (evt) => { setElecAddrProtocol(evt.target.value) };
   const onTorProxyChange = (evt) => { setTorProxy(evt.target.value) };
   const decreaseMinAnonSet = () => { setMinAnonSet(minAnonSet-1) };
   const increaseMinAnonSet = () => { setMinAnonSet(minAnonSet+1) };
@@ -52,9 +56,9 @@ const SettingsPage = (props) => {
       state_entity_endpoint: stateEntityAddr,
       swap_conductor_endpoint: swapAddr,
       electrum_config: {
-        host: elecAddr,
-        port: 8443,
-        protocol: 'wss',
+        host: elecAddrHost,
+        port: elecAddrPort,
+        protocol: elecAddrProtocol,
       },
       tor_proxy: torProxy,
       min_anon_set: minAnonSet,
@@ -69,7 +73,9 @@ const SettingsPage = (props) => {
     setTutorials(current_config.tutorials);
     setStateEntityAddr(current_config.state_entity_endpoint);
     setSwapAddr(current_config.swap_conductor_endpoint);
-    setElecAddr(current_config.electrum_config.host);
+    setElecAddrHost(current_config.electrum_config.host);
+    setElecAddrPort(current_config.electrum_config.port)
+    setElecAddrProtocol(current_config.electrum_config.protocol)
     setTorProxy(current_config.tor_proxy);
     setMinAnonSet(current_config.min_anon_set);
   }
@@ -129,12 +135,25 @@ const SettingsPage = (props) => {
                   <div className="inputs">
                       <h2>Connectivity Settings</h2>
                       <form>
-
                           <div className="inputs-item">
-                              <input id="address" type="text" name="Electrumx Address" value={elecAddr}
-                                     onChange={onElecAddrChange} required/>
+                              <input id="address-host" type="text" name="Electrumx Address Host" value={elecAddrHost}
+                                     onChange={onElecAddrHostChange} required/>
                               <label className="control-label"
-                                     htmlFor="address">Electrumx Server Address</label>
+                                     htmlFor="address-host">Electrumx Server Host</label>
+                          </div>
+                          <div className="d-flex input-group">
+                            <div className="inputs-item">
+                                <input id="address-port" type="number" name="Electrumx Address Port" value={elecAddrPort}
+                                      onChange={onElecAddrPortChange} required/>
+                                <label className="control-label"
+                                      htmlFor="address-port">Server Port</label>
+                            </div>
+                            <div className="inputs-item">
+                                <input id="address-protocol" type="text" name="Electrumx Address Protocol" value={elecAddrProtocol}
+                                      onChange={onElecAddrProtocolChange} required/>
+                                <label className="control-label"
+                                      htmlFor="address-protocol">Server Protocol</label>
+                            </div>
                           </div>
                           <div className="inputs-item">
                               <input id="proxy" type="text" name="TorProxy" required
@@ -156,11 +175,11 @@ const SettingsPage = (props) => {
                                   endpoint</label>
                           </div>
                           <div className="inputs-item def-number-input number-input">
-                              <button onClick={decreaseMinAnonSet} className="minus"></button>
+                              <span onClick={decreaseMinAnonSet} className="minus update-min-anon-set" />
 
                               <input className="quantity" name="quantity" value={minAnonSet}
                                      onChange={onMinAnonSetChange} type="number" placeholder="0 BTC"/>
-                              <button onClick={increaseMinAnonSet} className="plus"></button>
+                              <span onClick={increaseMinAnonSet} className="plus update-min-anon-set" />
                           </div>
                       </form>
 
