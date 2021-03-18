@@ -421,6 +421,7 @@ export const first_message = async (
 
   //Requester
   let m = JSON.stringify(blindedspenttokenmessage);
+  console.log("BLindeddSpendTokenMessage: ", m);
   
   // Requester setup BST generation
   //let bst_req_class = new BSTRequestorData();
