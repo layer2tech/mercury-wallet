@@ -60,6 +60,7 @@ export const walletLoad = (name, password) => {
   wallet.initElectrumClient(setBlockHeightCallBack);
   checkForExpiringCoins();
 }
+
 // Create wallet from nmemonic and load wallet
 export const walletFromMnemonic = (name, password, mnemonic) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);

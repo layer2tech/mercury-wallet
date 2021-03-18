@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+// wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 use serde_json::{json, Value};
 use curv::{elliptic::curves::traits::{ECScalar, ECPoint}, FE, GE, BigInt};
@@ -50,7 +50,7 @@ pub struct Swap;
 
 #[wasm_bindgen]
 impl Swap {
-    pub fn requester_calc_eprime(r_prime_str: String, m: String) -> Result<JsValue, JsValue> 
+    pub fn requester_calc_eprime(r_prime_str: String, m: String) -> Result<JsValue, JsValue>
     {
         let r_prime: GE =
             serde_json::from_str(&r_prime_str).expect("unable to parse JSON");
@@ -75,34 +75,37 @@ impl Swap {
 }
 
 
-pub fn requester_calc_eprime(r_prime: &GE, m: &String) -> Result<(FE, FE, GE, FE), Box<dyn std::error::Error>> 
+pub fn requester_calc_eprime(r_prime: &GE, m: &String) -> Result<(FE, FE, GE, FE), Box<dyn std::error::Error>>
 {
-    let u: FE = FE::new_random();
-    let v: FE = FE::new_random();
+    // let u: FE = FE::new_random();
+    let u: FE = ECScalar::from(&BigInt::from(3));
+    // let v: FE = FE::new_random();
+    let v: FE = ECScalar::from(&BigInt::from(4));
+
     let p: GE = ECPoint::generator();
-  
+
     let r: GE = *r_prime * u + p * v;
-  
+
     let e = match calc_e(r, m){
         Ok(e)=>e,
         Err(err) => return Err(err.to_string().into()),
     };
-  
+
     let e_prime = e * u.invert();
 
     Ok((u,v,r,e_prime))
 }
 
  /// Verify blind spend token
-pub fn verify_blind_sig(s_str: &String, m: &String, 
+pub fn verify_blind_sig(s_str: &String, m: &String,
     q_str: &String, r_str: &String) -> Result<bool, Box<dyn std::error::Error>> {
     let s: FE =
         serde_json::from_str(s_str).expect("unable to parse JSON");
 
-    let q: GE =    
+    let q: GE =
         serde_json::from_str(q_str).expect("unable to parse JSON");
 
-    let r: GE =    
+    let r: GE =
         serde_json::from_str(r_str).expect("unable to parse JSON");
 
     let p: GE = ECPoint::generator();
@@ -124,10 +127,14 @@ impl BSTSenderData {
     /// Generate new BSTSenderData for Swap
     pub fn setup() -> Result<JsValue, JsValue> {
         let p: GE = ECPoint::generator(); // gen
-        let x = FE::new_random(); // priv
+        // let x = FE::new_random(); // priv
+        let x: FE = ECScalar::from(&BigInt::from(1));
+
         let q = p * x; //pub
 
-        let k: FE = FE::new_random();
+        // let k: FE = FE::new_random();
+        let k: FE = ECScalar::from(&BigInt::from(2));
+
         let r_prime = p * k;
 
          // Place into JSON for return to JS
@@ -184,14 +191,14 @@ pub struct BSTRequestorData
 
 #[wasm_bindgen]
 impl BSTRequestorData {
-    
+
     pub fn setup(r_prime_str: String, m: String) -> Result<JsValue, JsValue> {
-       
+
         let r_prime: GE = match serde_json::from_str(&r_prime_str){
             Ok(r) => r,
             Err(err) => return Err(format!("{}: GE from {}", err.to_string(), r_prime_str).into())
         };
-        
+
 
         let (u, v, r, e_prime) = match requester_calc_eprime(&r_prime, &m){
             Ok(r) => r,
@@ -210,16 +217,16 @@ impl BSTRequestorData {
             ).to_string().into()
         )
     }
-    
+
 
      /// Create BlindedSpendToken for blinded signature
      pub fn make_blind_spend_token(bst_requestor_data_str: String, signature_str: String) -> Result<JsValue, JsValue> {
-        
+
         let s: FE = serde_json::from_str(&signature_str).expect("unable to parse JSON");
         let bst_rd: BSTRequestorData =
             serde_json::from_str(&bst_requestor_data_str).expect("unable to parse JSON");
          //s: FE
-        //BlindedSpendToken 
+        //BlindedSpendToken
         Ok(
             json!(
                 {
@@ -233,10 +240,22 @@ impl BSTRequestorData {
 
     // Requester calculates
     //      s = s'u+v
-    //fn requester_calc_s(s_prime: FE, u: FE, v: FE) -> FE {
-    //    s_prime * u + v
-    //}
-    
+    pub fn requester_calc_s(s_prime: String, u: String, v: String) -> Result<JsValue, JsValue> {
+        let s_prime: FE = serde_json::from_str(&s_prime).expect("unable to parse JSON");
+        let u: FE = serde_json::from_str(&u).expect("unable to parse JSON");
+        let v: FE = serde_json::from_str(&v).expect("unable to parse JSON");
+
+       let res = s_prime * u + v;
+       Ok(
+           json!(
+               {
+                   "unblinded_sig": res,
+               }
+           ).to_string().into()
+       )
+
+    }
+
 
 }
 
@@ -292,7 +311,7 @@ impl SwapTokenW {
         }
     }
 
-    pub fn to_message_str(swap_token_str: String) -> Result<JsValue, JsValue> { 
+    pub fn to_message_str(swap_token_str: String) -> Result<JsValue, JsValue> {
         let st = match SwapTokenW::from_str(&swap_token_str){
             Ok(r) => r,
             Err(err) => return Err(format!("SwapTokenW: {}", err.to_string()).into()),
@@ -301,14 +320,14 @@ impl SwapTokenW {
         let mut str = st.amount.to_string();
         str.push_str(&st.time_out.to_string());
         str.push_str(&format!("{:?}", st.statechain_ids));
-        
+
         Ok(
             json!(str).to_string().into()
         )
     }
 
     /// Create message to be signed
-    pub fn to_message_ser(swap_token_str: String) -> Result<JsValue, JsValue> { 
+    pub fn to_message_ser(swap_token_str: String) -> Result<JsValue, JsValue> {
         let st = match SwapTokenW::from_str(&swap_token_str){
             Ok(r) => r,
             Err(err) => return Err(format!("SwapTokenW: {}", err.to_string()).into()),
@@ -326,7 +345,7 @@ impl SwapTokenW {
         )
     }
 
-    fn to_message(swap_token_str: String) -> Result<Message, Box<dyn std::error::Error>> { 
+    fn to_message(swap_token_str: String) -> Result<Message, Box<dyn std::error::Error>> {
         let st = match SwapTokenW::from_str(&swap_token_str){
             Ok(r) => r,
             Err(err) => return Err(format!("SwapTokenW: {}", err.to_string()).into()),
@@ -342,13 +361,13 @@ impl SwapTokenW {
         Ok(Message::from_slice(&hash)?)
     }
 
-    pub fn sign(swap_token_str: String, proof_key_priv_str: String) -> Result<JsValue, JsValue> { 
+    pub fn sign(swap_token_str: String, proof_key_priv_str: String) -> Result<JsValue, JsValue> {
         let key = match SecretKey::from_str(&proof_key_priv_str){
             Ok(r)=>r,
             Err(err) => return Err(format!("SwapTokenW - parse secret key:{}, {}",&proof_key_priv_str, err.to_string()).into()),
         };
-        
-        
+
+
         //let key: SecretKey =  match serde_json::from_str(&proof_key_priv_str){
             //Ok(r) => r,
             //Err(err) => return Err(format!("SwapTokenW - parse secret key:{}, {}",&proof_key_priv_str, err.to_string()).into()),
@@ -358,7 +377,7 @@ impl SwapTokenW {
           //  Err(err) => return Err(format!("SwapTokenW: {}", err.to_string()).into()),
         //};
 
-        
+
         let secp = Secp256k1::new();
 
         let message = match SwapTokenW::to_message(swap_token_str){
@@ -367,12 +386,12 @@ impl SwapTokenW {
         };
 
         let signature = secp.sign(&message, &key).to_string();
-        
+
         //info!("got signature: {}", signature);
         Ok(
             json!(signature).to_string().into()
         )
-        
+
         //Ok(0.into())
     }
 
@@ -393,7 +412,7 @@ impl SwapTokenW {
 
         let secp = Secp256k1::new();
 
-        let verify = secp.verify(&message, &sig, &pk).is_ok(); 
+        let verify = secp.verify(&message, &sig, &pk).is_ok();
 
         Ok(
             json!(verify).to_string().into()
