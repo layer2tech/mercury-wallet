@@ -1,9 +1,10 @@
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_test::*;
+wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 use serde_json::{json, Value};
 use curv::{elliptic::curves::traits::{ECScalar, ECPoint}, FE, GE, BigInt};
 use curv::arithmetic::big_num::Num;
-use crate::curv::arithmetic::traits::Converter;
 use kms::ecdsa::two_party::MasterKey2;
 use kms::ecdsa::two_party::party1::KeyGenParty1Message2;
 use multi_party_ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::{PaillierPublic, EphCommWitness, EcKeyPair, EphEcKeyPair};
@@ -20,6 +21,7 @@ use bitcoin::{
     secp256k1::{PublicKey, Secp256k1, SecretKey, Message, Signature},
 };
 use std::str::FromStr;
+use curv::arithmetic::traits::Converter;
 
 //use mercury_shared::{util::keygen::Message, swap_data::SwapToken};
 
@@ -36,6 +38,7 @@ fn calc_e(r: GE, m: &String) -> Result<FE, Box<dyn std::error::Error>> {
             .collect::<Vec<u8>>();
         data_vec.append(&mut r_vec);
         let e = sha256d::Hash::hash(&data_vec);
+        //let e_rev = e.iter().rev().cloned().collect::<Vec<u8>>();
         let hex = hex::encode(e);
         let big_int = BigInt::from_hex(&hex);
         Ok(curv::elliptic::curves::traits::ECScalar::from(&big_int))
@@ -49,7 +52,7 @@ pub struct Swap;
 impl Swap {
     pub fn requester_calc_eprime(r_prime_str: String, m: String) -> Result<JsValue, JsValue> 
     {
-        let mut r_prime: GE =
+        let r_prime: GE =
             serde_json::from_str(&r_prime_str).expect("unable to parse JSON");
 
         let (u,v,r,e_prime) = match requester_calc_eprime(&r_prime, &m){
@@ -78,9 +81,9 @@ pub fn requester_calc_eprime(r_prime: &GE, m: &String) -> Result<(FE, FE, GE, FE
     let v: FE = FE::new_random();
     let p: GE = ECPoint::generator();
   
-    let r: GE = r_prime * &u + p * v;
+    let r: GE = *r_prime * u + p * v;
   
-    let e = match calc_e(r, &m){
+    let e = match calc_e(r, m){
         Ok(e)=>e,
         Err(err) => return Err(err.to_string().into()),
     };
@@ -143,13 +146,13 @@ impl BSTSenderData {
 
  /// Create a blind signature for some e_prime value
  pub fn gen_blind_signature(x_str: &String, e_prime_str: &String, k_str: &String) -> Result<JsValue, JsValue> {
-    let mut x: FE =
+    let x: FE =
         serde_json::from_str(x_str).expect("unable to parse JSON");
 
-    let mut e_prime: FE =
+    let e_prime: FE =
         serde_json::from_str(e_prime_str).expect("unable to parse JSON");
 
-    let mut k: FE =
+    let k: FE =
         serde_json::from_str(k_str).expect("unable to parse JSON");
 
     let s_prime = x * e_prime + k;
@@ -398,3 +401,11 @@ impl SwapTokenW {
     }
 }
 
+/*
+#[wasm_bindgen_test]
+fn test_blind_sign_structs() {
+    let msg = "Message".to_string();
+    // Sender, Requestor init
+    let sender = BSTSenderData::setup();
+}
+*/

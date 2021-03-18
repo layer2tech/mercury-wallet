@@ -38,33 +38,28 @@ export const doSwap = async (
   swap_size: number,
   new_proof_key_der: BIP32Interface,
 ): Promise<StateCoin> => {
+  let swap_rounds=statecoin.swap_rounds;
 
-  console.log('swap.ts: doSwap - swap_register_utxo: ', statecoin.statechain_id);
   let publicKey = proof_key_der.publicKey.toString('hex');
-  console.log('create statechain sig for ', publicKey);
+  
   let sc_sig = StateChainSig.create(proof_key_der, "SWAP", publicKey);
 
-  console.log('statechainSig: ', sc_sig);
-
-  console.log('create RegisterUtxo');
+  
   let registerUtxo = {
     statechain_id: statecoin.statechain_id,
     signature: sc_sig,
     swap_size: swap_size
   };
-  console.log('RegisterUtxo: ', registerUtxo);
+  
+  console.log('await swap_register_utxo: (RegisterUtxo)', registerUtxo);
+  let _reg_res = await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
 
-  console.log('swap_register_utxo: await swap_register_utxo - ep:', POST_ROUTE.SWAP_REGISTER_UTXO, ', ID:', registerUtxo);
-  let reg_res = await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
-
-  console.log('register utxo response: ', reg_res);
-
+  
   let statechain_id = {
     id: statecoin.statechain_id
   }
 
-  console.log('await poll utxo ', statechain_id);
-
+  
   let swap_id = null
   while (true){
     swap_id = await pollUtxo(http_client,statechain_id);
@@ -78,19 +73,20 @@ export const doSwap = async (
   };
 
 
-  console.log('await swap info for swap id ', swap_id);
+  
   let swap_info = null;
   while (true){
     swap_info = await getSwapInfo(http_client,swap_id);
     if (swap_info !== null){
-      console.log('got swap info: ', swap_info);
+      
       break;
     }
     await delay(3);
   };
-  console.log('got swap info response');
+  
   typeforce(types.SwapInfo, swap_info);
-  console.log('got swap info ', swap_info);
+  
+  statecoin.swap_info=swap_info;
 
   let address = {
     "tx_backup_addr": null,
@@ -102,21 +98,25 @@ export const doSwap = async (
   
   let transfer_batch_sig = await StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id.id,statecoin.statechain_id);
 console.log('transfer batch sig: ', transfer_batch_sig);
-  console.log('await first message');
+  console.log('await first message: ', );
   let my_bst_data = await first_message(http_client,
     wasm_client,swap_info,statecoin.statechain_id,transfer_batch_sig,
     address,proof_key_der);
-  typeforce(types.BSTRequestorData, my_bst_data);
+  
 
 
   console.log('await poll swap');
   while(true){
     let phase: string = await pollSwap(http_client, swap_id);
-    if (phase !== SwapStatus.Phase1){
+    if (statecoin.swap_info){
+      statecoin.swap_info.status=phase;
+    }
+    if (phase !== SwapStatus.Phase1){      
       break;
     }
     await delay(3)
   }
+  
 
   let publicProofKey = new_proof_key_der.publicKey;
 
@@ -130,6 +130,9 @@ console.log('transfer batch sig: ', transfer_batch_sig);
   console.log('await poll swap');
   while(true){
     let phase = await pollSwap(http_client, swap_id);
+    if (statecoin.swap_info){
+      statecoin.swap_info.status=phase;
+    }
     if (phase === SwapStatus.Phase4){
       break;
     }
@@ -163,6 +166,9 @@ console.log('transfer batch sig: ', transfer_batch_sig);
   console.log('await pollSwap');
   while(true){
     let phase = await pollSwap(http_client, swap_id);
+    if (statecoin.swap_info){
+      statecoin.swap_info.status=phase;
+    }
     if (phase === SwapStatus.End){
       break;
     }
@@ -170,7 +176,7 @@ console.log('transfer batch sig: ', transfer_batch_sig);
   }
 
   //Confirm batch transfer status and finalize the transfer in the wallet
-  console.log('await info transfer batch');
+  console.log('await info transfer batch: ', batch_id);
   let bt_info = await http_client.post(POST_ROUTE.INFO_TRANSFER_BATCH, batch_id);
   typeforce(types.TransferBatchDataAPI, bt_info);
 
@@ -182,6 +188,7 @@ console.log('transfer batch sig: ', transfer_batch_sig);
   console.log('await transfer receiver finalize');
   let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, transfer_finalized_data);
 
+  statecoin_out.swap_rounds=swap_rounds+1;
   return statecoin_out;
 
 }
@@ -212,36 +219,6 @@ export const do_transfer_receiver = async (
   }
   throw new Error('no swap transfer message addressed to me');
 }
-
-export const swap_register_utxo = async (
-  http_client: HttpClient | MockHttpClient,
-  wasm_client: any,
-  statechain_id: string,
-  swap_size: number,
-  proof_key_der: BIP32Interface,
-) => {
-  //console.log('await getStateChain: {}', statechain_id);
-  //let statechain_data = await getStateChain(http_client, statechain_id);
-  //typeforce(types.StateChainDataAPI, statechain_data);
-  //let chain = statechain_data.chain;
-
-  //purpose, data, ""
-  console.log('create public key for ', proof_key_der.publicKey);
-  let publicKey = proof_key_der.publicKey.toString('hex');
-  console.log('create statechain sig for ', publicKey);
-  let sc_sig = StateChainSig.create(proof_key_der, "SWAP", publicKey);
-
-  console.log('create RegisterUtxo');
-  let registerUtxo = new RegisterUtxo(
-    statechain_id,
-    sc_sig,
-    swap_size
-  );
-
-  console.log('swap_register_utxo: await swap_register_utxo');
-  await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
-};
-
 
 //conductor::register_utxo,
 //conductor::swap_first_message,
@@ -390,7 +367,7 @@ export interface BSTRequestorData {
 
 
 export interface SwapInfo {
-  status: SwapStatus,
+  status: String,
   swap_token: SwapToken,
   bst_sender_data: BSTSenderData,
 }
@@ -414,16 +391,12 @@ export const first_message = async (
 ): Promise<BSTRequestorData> => {
 
   let swap_token = swap_info.swap_token;
-  console.log("getStateChain: ", statechain_id);
   let statechain_data = await getStateChain(http_client, statechain_id);
-  console.log("typeforce stateChain: ", statechain_data);
   typeforce(types.StateChainDataAPI, statechain_data);
-  console.log("finished typeforce stateChain");
-
+  
   let proof_pub_key = statechain_data.chain[statechain_data.chain.length-1].data;
 
-  console.log("get proof_key_der_pub");
-  //let proof_key_der_pub = bitcoin.ECPair.fromPublicKey(Buffer.from(proof_pub_key, "hex"));
+    //let proof_key_der_pub = bitcoin.ECPair.fromPublicKey(Buffer.from(proof_pub_key, "hex"));
   
   let proof_key_der_pub = proof_key_der.publicKey.toString("hex");
   let proof_key_priv = proof_key_der.privateKey?.toString("hex");
@@ -440,31 +413,27 @@ export const first_message = async (
 
   let swap_token_class = new SwapToken(swap_token.id, swap_token.amount, swap_token.time_out, swap_token.statechain_ids);
   let st_str = JSON.stringify(swap_token_class);
-  console.log("get swap_token_sig for swap token: ", st_str);
 
-  console.log("swap token message: ", swap_token_class.to_message().toString('hex'));
   let swap_token_sig = swap_token_class.sign(proof_key_der);
-  console.log("proof pub key: ", proof_pub_key);
-  console.log("proof key der pub: ", proof_key_der_pub);
-  console.log("proof key priv: ", proof_key_priv);
   let ver = swap_token_class.verify_sig(proof_key_der, swap_token_sig);
-  console.log("proof pub key ver: ", ver);
-
-  console.log("get blinded spend token message ");
+    
   let blindedspenttokenmessage = new BlindedSpentTokenMessage(swap_token.id);
 
   //Requester
   let m = JSON.stringify(blindedspenttokenmessage);
-
+  
   // Requester setup BST generation
-  console.log("get my bst data for ", swap_info.bst_sender_data.r_prime, m);
   //let bst_req_class = new BSTRequestorData();
   let r_prime_str: string = JSON.stringify(swap_info.bst_sender_data.r_prime);
+  let bst_req_json = wasm_client.BSTRequestorData.setup(r_prime_str, m)
+  console.log("bst_req_json: ", bst_req_json);
   let my_bst_data: BSTRequestorData = JSON.parse(
-    wasm_client.BSTRequestorData.setup(r_prime_str, m)
+    bst_req_json
   );
+  typeforce(types.BSTRequestorData, my_bst_data);
+  console.log("my_bst_data: ", my_bst_data);
+  console.log("my_bst_eprime: ", JSON.stringify(my_bst_data.e_prime));
 
-  console.log("make swap msg 1");
   let swapMsg1 = {
     "swap_id": swap_token.id,
     "statechain_id": statechain_id,
@@ -478,9 +447,6 @@ export const first_message = async (
   console.log("first msg post: ", swapMsg1);
   let _ =  await http_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1);
   
-  console.log("make bst requestor data");
-
-  console.log("first message finished");
   return my_bst_data;
 }
 
@@ -499,9 +465,10 @@ export const get_blinded_spend_signature = async(
     "swap_id": swap_id, 
     "statechain_id": statechain_id,
   };
+  console.log("await get_blinded_spend_signature - (BSTMsg): ", bstMsg);
   let result =  await http_client.post(POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE, bstMsg);
-  console.log("get_blinded_spend_signature result: ", result);
   typeforce(types.BlindedSpendSignature, result);
+  console.log("get_blinded_spend_signature result (BlindedSpendSignature): ", result);
   return result;
 }
 
@@ -516,18 +483,18 @@ export const second_message = async (
   let blinded_spend_signature_str = JSON.stringify(blinded_spend_signature.s_prime);
   
   let bst_json = wasm_client.BSTRequestorData.make_blind_spend_token(my_bst_data_str,blinded_spend_signature_str);
-  
+  console.log("bst_json: ", bst_json);
   let bst: BlindedSpendToken = JSON.parse(bst_json);
+  console.log("bst: ", bst);
 
-  console.log("made blinded spend token");
   let swapMsg2 = {
     "swap_id":swap_id, 
     "blinded_spend_token":bst,
   };
-  console.log("await swap second: ", swapMsg2);
+  console.log("await swap second: (SwapMsg2)", swapMsg2);
   let result =  await http_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2);
-  console.log("typeforce result");
   typeforce(types.BlindedSpendSignature, result);
+  console.log("swap second result (BlindedSpendSignature): ", result);
   
   return result;
 }

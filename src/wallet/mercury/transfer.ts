@@ -178,7 +178,7 @@ export const transferReceiver = async (
     batch_data: null,
   };
   typeforce(types.TransferMsg4, transfer_msg4);
-
+  console.log("sending transfer msg 4: ", transfer_msg4);
   let transfer_msg5: TransferMsg5 = await http_client.post(POST_ROUTE.TRANSFER_RECEIVER, transfer_msg4);
   typeforce(types.TransferMsg5, transfer_msg5);
 

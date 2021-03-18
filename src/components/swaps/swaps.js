@@ -15,7 +15,7 @@ import question from "../../images/question-mark.png";
 import coin from "../../images/table-icon1.png";
 import user from "../../images/table-icon-user.png";
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
 import {useSelector, useDispatch} from 'react-redux'
@@ -69,12 +69,25 @@ const Swaps = (props) => {
     //let unconfired_swaps_data = callGetUnconfirmedStateSwapsDisplayData();
     let all_swaps_data = swaps_data;//.concat(unconfired_swaps_data)
 
+     // Re-fetch swaps every 10 seconds
+    useEffect(() => {
+          const interval = setInterval(() => {
+            const [swaps_data] = callGetOngoingSwaps();
+            all_swaps_data=swaps_data;// check for change in length of unconfirmed coins list and total number
+          }, 10000);
+          return () => clearInterval(interval);
+        }, 
+      []);
+
+
     const swapData = all_swaps_data.map(item => (
         <div key={item.swap_id}>
             <div
-                onClick={() => selectSwap(item.swap_id)}
+
+               onClick={() => selectSwap(item.swap_id)}
                 style={isSelectedStyle(item.swap_id)}>
-            <table className="second">
+                <div className="SwapPanel">
+                    <table className="second">
                           <thead>
                               <tr>
                                   <td>
@@ -102,9 +115,9 @@ const Swaps = (props) => {
                                   </td>
                               </tr>
                           </tbody>
-                      </table>
+                    </table>
+                </div>
             </div>
-
         </div>
         )
     );

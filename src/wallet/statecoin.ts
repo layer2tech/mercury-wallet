@@ -219,6 +219,7 @@ export class StateCoin {
     this.smt_proof = null;
     this.status = STATECOIN_STATUS.INITIALISED;
     this.swap_info = null;
+    this.swap_status = null;
   }
 
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }

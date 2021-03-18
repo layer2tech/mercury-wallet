@@ -84,7 +84,6 @@ const SwapPage = () => {
               <div className="Body right">
                   <div>
                       <h3 className="subtitle">Swaps waiting to begin …</h3>
-                      <span className="sub">Swaps below</span>
                       <Swaps
                       displayDetailsOnClick={false}
                       selectedSwap={selectedSwap}
