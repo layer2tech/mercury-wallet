@@ -35,8 +35,8 @@ export class Config {
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
-      host: 'electrumx-server.tbtc.network',
-      port: 8443,
+      host: 'wallet.mercurywallet.io',
+      port: 50004,
       protocol: 'wss',
     }
     this.tor_proxy = "";

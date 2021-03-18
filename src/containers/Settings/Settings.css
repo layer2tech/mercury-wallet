@@ -183,32 +183,16 @@ input.quantity {
 
 }
 
-.content .inputs .switch {
-    height: auto;
-    box-shadow: 0px 2px 12px -7px #222;
-    border: none;
-}
-
-.content .inputs .btns-radios {
-    display: flex;
-    align-items: baseline;
-    margin-top: 40px;
-
-}
-
-.content .inputs .btns-radios label {
-    font-size: 20px;
-    color: #000000;
-    margin-right: 30px;
-    padding: 0;
-}
-
 .content .inputs .btns span {
     display: block;
     text-align: left;
     font-size: 14px;
     color: #666666;
 
+}
+
+.checkbox-group {
+    margin-top: 40px;
 }
 
 @supports (-webkit-appearance: none) or (-moz-appearance: none) {

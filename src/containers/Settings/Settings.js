@@ -4,7 +4,7 @@ import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
-import {StdButton} from "../../components";
+import {StdButton, CheckBox} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
   callUpdateConfig, callClearSave, unloadWallet} from '../../features/WalletDataSlice'
 
@@ -17,7 +17,7 @@ const SettingsPage = (props) => {
   try {
     current_config = callGetConfig();
   } catch {
-    current_config = {notifications: "", tutorials: "", state_entity_endpoint: "", swap_conductor_endpoint: "",
+    current_config = {notifications: false, tutorials: false, state_entity_endpoint: "", swap_conductor_endpoint: "",
       electrum_config: {host: "", port: 0, protocol: ""}, tor_proxy: "", min_anon_set: ""};
   }
 
@@ -25,21 +25,22 @@ const SettingsPage = (props) => {
   const [tutorials, setTutorials] = useState(current_config.tutorials);
   const [stateEntityAddr, setStateEntityAddr] = useState(current_config.state_entity_endpoint);
   const [swapAddr, setSwapAddr] = useState(current_config.swap_conductor_endpoint);
-  const [elecAddrHost, setElecAddrHost] = useState(current_config.electrum_config.host);
-  const [elecAddrPort, setElecAddrPort] = useState(current_config.electrum_config.port);
-  const [elecAddrProtocol, setElecAddrProtocol] = useState(current_config.electrum_config.protocol);
+  const [elecAddr, setElecAddr] = useState(current_config.electrum_config);
   const [torProxy, setTorProxy] = useState(current_config.tor_proxy);
   const [minAnonSet, setMinAnonSet] = useState(current_config.min_anon_set);
 
 
   // Change handlers
-  const onNotificationChange = () => { setNotification(!notifications) };
-  const onTutorialChange = () => { setTutorials(!tutorials) };
+  const onNotificationChange = ({checked}) => { setNotification(checked) };
+  const onTutorialChange = ({checked}) => { setTutorials(checked) };
   const onStateEntityAddrChange = (evt) => { setStateEntityAddr(evt.target.value) };
   const onSwapAddrChange = (evt) => { setSwapAddr(evt.target.value) };
-  const onElecAddrHostChange = (evt) => { setElecAddrHost(evt.target.value) };
-  const onElecAddrPortChange = (evt) => { setElecAddrPort(evt.target.value) };
-  const onElecAddrProtocolChange = (evt) => { setElecAddrProtocol(evt.target.value) };
+  const onElecAddrChange = (evt) => {
+    setElecAddr({
+      ...elecAddr,
+      [evt.target.name]: evt.target.value
+    });
+  }
   const onTorProxyChange = (evt) => { setTorProxy(evt.target.value) };
   const decreaseMinAnonSet = () => { setMinAnonSet(minAnonSet-1) };
   const increaseMinAnonSet = () => { setMinAnonSet(minAnonSet+1) };
@@ -55,11 +56,7 @@ const SettingsPage = (props) => {
     callUpdateConfig({
       state_entity_endpoint: stateEntityAddr,
       swap_conductor_endpoint: swapAddr,
-      electrum_config: {
-        host: elecAddrHost,
-        port: elecAddrPort,
-        protocol: elecAddrProtocol,
-      },
+      electrum_config: elecAddr,
       tor_proxy: torProxy,
       min_anon_set: minAnonSet,
       notifications: notifications,
@@ -73,9 +70,7 @@ const SettingsPage = (props) => {
     setTutorials(current_config.tutorials);
     setStateEntityAddr(current_config.state_entity_endpoint);
     setSwapAddr(current_config.swap_conductor_endpoint);
-    setElecAddrHost(current_config.electrum_config.host);
-    setElecAddrPort(current_config.electrum_config.port)
-    setElecAddrProtocol(current_config.electrum_config.protocol)
+    setElecAddr(current_config.electrum_config);
     setTorProxy(current_config.tor_proxy);
     setMinAnonSet(current_config.min_anon_set);
   }
@@ -136,21 +131,21 @@ const SettingsPage = (props) => {
                       <h2>Connectivity Settings</h2>
                       <form>
                           <div className="inputs-item">
-                              <input id="address-host" type="text" name="Electrumx Address Host" value={elecAddrHost}
-                                     onChange={onElecAddrHostChange} required/>
+                              <input id="address-host" type="text" name="host" value={elecAddr.host}
+                                     onChange={onElecAddrChange} required/>
                               <label className="control-label"
                                      htmlFor="address-host">Electrumx Server Host</label>
                           </div>
                           <div className="d-flex input-group">
                             <div className="inputs-item">
-                                <input id="address-port" type="number" name="Electrumx Address Port" value={elecAddrPort}
-                                      onChange={onElecAddrPortChange} required/>
+                                <input id="address-port" type="number" name="port" value={elecAddr.port}
+                                      onChange={onElecAddrChange} required/>
                                 <label className="control-label"
                                       htmlFor="address-port">Server Port</label>
                             </div>
                             <div className="inputs-item">
-                                <input id="address-protocol" type="text" name="Electrumx Address Protocol" value={elecAddrProtocol}
-                                      onChange={onElecAddrProtocolChange} required/>
+                                <input id="address-protocol" type="text" name="protocol" value={elecAddr.protocol}
+                                      onChange={onElecAddrChange} required/>
                                 <label className="control-label"
                                       htmlFor="address-protocol">Server Protocol</label>
                             </div>
@@ -189,18 +184,20 @@ const SettingsPage = (props) => {
                       <select name="1" id="1">
                           <option value="1">mm/dd/yyyy HH:mm:ss</option>
                       </select>
-
-                      <CheckBox
-                        label={"Notifications"}
-                        description={"Toggle notifications"}
-                        checked={notifications}
-                        onClick={onNotificationChange}/>
-
-                      <CheckBox
-                        label={"Tutorials"}
-                        description={"Toggle show tutorials"}
-                        checked={tutorials}
-                        onClick={onTutorialChange}/>
+                      <div className="checkbox-group">
+                        <CheckBox
+                          label="Notifications"
+                          description="Toggle notifications"
+                          checked={!!notifications}
+                          onChange={onNotificationChange}
+                        />
+                        <CheckBox
+                          label="Tutorials"
+                          description="Toggle show tutorials"
+                          checked={!!tutorials}
+                          onChange={onTutorialChange}
+                        />
+                      </div>
 
                   </div>
               </div>
@@ -235,20 +232,6 @@ const SettingsPage = (props) => {
               Log out of wallet
           </button>
       </div>
-  )
-}
-
-const CheckBox = (props) => {
-  return (
-    <div className="btns">
-        <div className="btns-radios">
-            <label htmlFor="notification">{props.label}</label>
-            <input id="notification" type="checkbox" className="switch"
-                checked={props.checked}
-                onClick={props.onClick}/>
-        </div>
-        <span>{props.description}</span>
-    </div>
   )
 }
 

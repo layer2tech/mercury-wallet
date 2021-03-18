@@ -6,6 +6,7 @@ export { default as StdButton } from "./buttons/standardButton";
 export { default as ToggleButton } from "./buttons/toggleButton";
 
 export { default as AddressInput } from "./inputs/addressInput";
+export { default as CheckBox } from './Checkbox'
 
 export { default as DisplaySeed } from "./displaySeed/displaySeed";
 export { default as ConfirmSeed } from "./confirmSeed/confirmSeed";
