@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {Link} from "react-router-dom";
+import { withRouter } from "react-router-dom";
 import {useDispatch} from 'react-redux'
 import {setError, walletFromMnemonic, callGetConfig} from '../../features/WalletDataSlice'
 
@@ -46,11 +46,13 @@ const ConfirmSeed = (props) => {
       }
     }
     // Create wallet and load into Redux state
-    try { walletFromMnemonic(props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic) }
-      catch (e) {
-        event.preventDefault();
-        dispatch(setError({msg: e.message}))
-      }
+    try {
+      walletFromMnemonic(props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic)
+      props.history.push('/home')
+    } catch (e) {
+      event.preventDefault();
+      dispatch(setError({msg: e.message}))
+    }
     props.setWalletLoaded(true);
   }
 
@@ -61,11 +63,14 @@ const ConfirmSeed = (props) => {
           <form>
               {inputs}
           </form>
-          <Link to="/home" onClick={onConfirmClick} className="confirm">
-              Confirm
-          </Link>
+          <div className="mt-3">
+            <button onClick={props.onPrevStep} className="btn btn-primary">Prev</button>
+            <button className="btn btn-primary" onClick={onConfirmClick} >
+                Confirm
+            </button>
+          </div>
       </div>
   )
 }
 
-export default ConfirmSeed;
+export default withRouter(ConfirmSeed);

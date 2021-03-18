@@ -5,6 +5,7 @@ import '../displaySeed/displaySeed.css'
 
 const DisplaySeed = (props) => {
     let mnemonic = props.wizardState.mnemonic;
+    const {onPrevStep, onNextStep} = props
     let words = mnemonic.split(" ");
 
     const inputs = words.map((item, index) => (
@@ -26,6 +27,10 @@ const DisplaySeed = (props) => {
 
             <form>
                 {inputs}
+                <div className="mt-3">
+                    <button onClick={onPrevStep} className="btn btn-primary">Prev</button>
+                    <button onClick={onNextStep} className="btn btn-primary">Next</button>
+                </div>
             </form>
         </div>
     )

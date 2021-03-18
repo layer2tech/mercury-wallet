@@ -4,13 +4,17 @@ import {useForm} from "react-hook-form";
 import './createWizardForm.css'
 
 const CreateWizardForm = (props) => {
-    const {register, errors, handleSubmit, watch} = useForm({mode: 'onChange', reValidateMode: 'onChange',});
+    const {register, errors, watch, handleSubmit} = useForm({mode: 'onChange', reValidateMode: 'onChange',});
     const password = useRef({});
     password.current = watch("password", "");
 
+    function onSubmit(data) {
+        props.onSubmit()
+    }
+
     return (
         <div className="wizard-form">
-            <form>
+            <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="inputs-item">
                   <input id="Name" type="text" name="Wallet Name" placeholder="Wallet Name"
                     value={props.wizardState.wallet_name}
@@ -58,6 +62,7 @@ const CreateWizardForm = (props) => {
                            required/>
                     <label htmlFor="terms">I have read and agree to the Terms of Use</label>
                 </div>
+                <button type="submit" className="btn btn-primary">Next</button>
             </form>
         </div>
     )
