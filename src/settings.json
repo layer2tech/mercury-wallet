@@ -3,5 +3,5 @@
   "state_entity_endpoint": "http://0.0.0.0:8000",
   "swap_conductor_endpoint": "http://0.0.0.0:8000",
   "network": "testnet",
-  "testing_mode": false
+  "testing_mode": true
 }
