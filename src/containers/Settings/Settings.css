@@ -30,6 +30,17 @@
     padding: 10px;
 }
 
+.input-group .inputs-item {
+    width: 38%;
+}
+
+.input-group .inputs-item:first-of-type {
+    margin-right: 4%;
+}
+
+.input-group .inputs-item input {
+    width: 100% !important;
+}
 
 .settings .content {
     display: flex;
@@ -55,6 +66,10 @@
     z-index: 10;
     top: 16px;
     left: 0;
+}
+
+.update-min-anon-set {
+    cursor: pointer;
 }
 
 .settings .content .inputs-item input:focus + label, .settings .content .inputs-item input:visited + label,
@@ -168,32 +183,16 @@ input.quantity {
 
 }
 
-.content .inputs .switch {
-    height: auto;
-    box-shadow: 0px 2px 12px -7px #222;
-    border: none;
-}
-
-.content .inputs .btns-radios {
-    display: flex;
-    align-items: baseline;
-    margin-top: 40px;
-
-}
-
-.content .inputs .btns-radios label {
-    font-size: 20px;
-    color: #000000;
-    margin-right: 30px;
-    padding: 0;
-}
-
 .content .inputs .btns span {
     display: block;
     text-align: left;
     font-size: 14px;
     color: #666666;
 
+}
+
+.checkbox-group {
+    margin-top: 40px;
 }
 
 @supports (-webkit-appearance: none) or (-moz-appearance: none) {
@@ -343,6 +342,18 @@ input.quantity {
 }
 
 @media only screen and (max-width: 768px) {
+    .input-group {
+        flex-direction: column;
+    }
+
+    .input-group .inputs-item {
+        width: 100%;
+    }
+    
+    .input-group .inputs-item:first-of-type {
+        margin-right: 0;
+    }
+
     .settings .buttons {
         display: block;
     }
