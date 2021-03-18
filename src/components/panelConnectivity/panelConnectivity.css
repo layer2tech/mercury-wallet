@@ -14,7 +14,6 @@
 
 .accordion .show {
     transition: all .5s ease-in-out;
-    height: 8em;
     overflow: auto;
     padding: 30px 10px;
 }

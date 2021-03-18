@@ -3,7 +3,8 @@ import arrow from '../../images/arrow-accordion.png';
 import React, {useState} from "react";
 import {useSelector} from 'react-redux'
 
-import { callGetBlockHeight } from '../../features/WalletDataSlice'
+import { callGetBlockHeight, callGetConfig } from '../../features/WalletDataSlice'
+import { defaultWalletConfig } from '../../containers/Settings/Settings'
 
 import './panelConnectivity.css';
 import '../index.css';
@@ -16,6 +17,13 @@ const PanelConnectivity = (props) => {
       setState({isToggleOn: !state.isToggleOn})
   }
 
+  let current_config;
+  try {
+    current_config = callGetConfig();
+  } catch {
+    current_config = defaultWalletConfig()
+  }
+
   const fee_info = useSelector(state => state.walletData).fee_info;
   const block_height = callGetBlockHeight();
 
@@ -25,6 +33,7 @@ const PanelConnectivity = (props) => {
               <div className="ConnectionStateChain">
                   <label>
                       <input
+                          readOnly
                           type="radio"
                           value="StateChain"
                           checked={fee_info.deposit !== "NA"}
@@ -36,9 +45,10 @@ const PanelConnectivity = (props) => {
               <div className="ConnectionSwaps">
                   <label>
                       <input
-                          type="radio"
-                          value="Swaps"
-                          checked={false}
+                        readOnly
+                        type="radio"
+                        value="Swaps"
+                        checked={false}
                       />
                       Connected to Swaps
                       <span className="checkmark"></span>
@@ -52,12 +62,15 @@ const PanelConnectivity = (props) => {
         <div className={state.isToggleOn ? "show" : ' hide'}>
             <div className="collapse-content">
                 <div className="collapse-content-item">
-                  <span>Block height: {block_height}</span>
+                    <span>Block height: {block_height}</span>
+                    <span>Host: {current_config.electrum_config.host}</span>
+                    <span>Port: {current_config.electrum_config.port}</span>
+                    <span>Protocol: {current_config.electrum_config.protocol}</span>
                     <span>{fee_info.endpoint}</span>
                     <div>
-                        <span className="txt">Deposit Fee: <b>{fee_info.deposit /10000}%</b></span>
-                        <span className="txt">Withdraw Fee: <b>{fee_info.withdraw/10000}%</b></span>
-                    </div>
+                    <span className="txt">Deposit Fee: <b>{fee_info.deposit /10000}%</b></span>
+                    <span className="txt">Withdraw Fee: <b>{fee_info.withdraw/10000}%</b></span>
+                </div>
                 </div>
 
                   <div className="collapse-content-item">
