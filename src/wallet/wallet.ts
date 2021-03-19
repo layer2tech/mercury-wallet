@@ -474,20 +474,17 @@ export class Wallet {
     log.info("Public key: ", proof_key_der.publicKey.toString("hex"));   
 
     log.info("Awaiting doSwap") 
-    //TODO min_anon_set
-    let new_statecoin = await doSwap(this.conductor_client, wasm, this.config.network, statecoin, proof_key_der, 3, new_proof_key_der);
+    
+    let new_statecoin = await doSwap(this.conductor_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
   
-
     // Mark funds as spent in wallet
     log.info("Marking spent") 
     this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
-
 
     // update in wallet
     new_statecoin.setConfirmed();
     this.statecoins.addCoin(new_statecoin);
 
-    
     log.info("Swap complete for shared key:" + shared_key_id);
     this.saveStateCoinsList();
     return new_statecoin;

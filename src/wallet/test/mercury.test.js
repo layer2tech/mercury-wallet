@@ -303,19 +303,11 @@ describe('StateChain Entity', function() {
 describe('Swaps', function() {
   describe('swapTokenSign', function() {
     test('Gen and Verify', async function() {
-      //let wasm = await wallet.getWasm();
       let proof_key_der = fromSeed(Buffer.from("0123456789abcdef"), bitcoin.networks.bitcoin);
       console.log("proof_key_der: ", proof_key_der.privateKey.toString("hex"))
       console.log("proof_key_der: ", Array.from(proof_key_der.privateKey))
       let pub = proof_key_der.publicKey.toString('hex');
       console.log("pub: ", pub)
-
-      // let data = Buffer.from("tom", "utf8")
-      // let hash = bitcoin.crypto.sha256(data)
-      //
-      // console.log("hash: ", hash.toString("hex"))
-      // let sig = proof_key_der.sign(hash, false);
-      // console.log("sig of data: ", sig.toString("hex"))
 
       let swap_token = new SwapToken(
         "120270b4-1a97-46c8-aed6-6b48bf9ff310",
@@ -327,10 +319,6 @@ describe('Swaps', function() {
       let swap_sig = swap_token.sign(proof_key_der);
       console.log("swap_sig: ", swap_sig)
       console.log("swap_sig: ", swap_token.verify_sig(proof_key_der, swap_sig))
-      // expect(swap_sig.sig).toBe(data.sig);
-      // let ver_json = wasm.SwapTokenW.verify_sig(data.pub, data.sig, data.swap_token);
-      // let ver = JSON.parse(ver_json);
-      // expect(ver).toBe(true)
     })
   });
 });

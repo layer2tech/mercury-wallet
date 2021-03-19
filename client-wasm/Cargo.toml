@@ -35,7 +35,6 @@ rand = { version = "0.6.5", features = ["wasm-bindgen"] }
 schemars = { version = "0.8.0-alpha-4", features = ["chrono", "uuid"] }
 uuid = { version = "0.5", features = ["v4", "serde"] }
 rocket_okapi = "0.6.0-alpha-1"
-#mercury_shared =  { git = "https://github.com/commerceblock/mercury", package="shared" }
 
 [dev-dependencies]
 mockito = "0.27.0"

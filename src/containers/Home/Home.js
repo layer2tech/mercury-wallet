@@ -23,9 +23,6 @@ const HomePage = () => {
     fee_info = callGetFeeInfo().then((fee_info) => {
       dispatch(updateFeeInfo(fee_info));
     })
-   // const ping_swap = callPingSwap().then((ping_swap) => {
-   //   dispatch(updatePingSwap(ping_swap));
-   // })
   }
   // Check if wallet initialised
   if (fee_info.deposit==="NA") { initWalletInRedux() }

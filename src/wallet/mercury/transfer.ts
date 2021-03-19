@@ -178,7 +178,6 @@ export const transferReceiver = async (
     batch_data,
   };
   typeforce(types.TransferMsg4, transfer_msg4);
-  console.log("sending transfer msg 4: ", transfer_msg4);
   let transfer_msg5: TransferMsg5 = await http_client.post(POST_ROUTE.TRANSFER_RECEIVER, transfer_msg4);
   typeforce(types.TransferMsg5, transfer_msg5);
 
@@ -198,7 +197,6 @@ export const transferReceiver = async (
   };
   typeforce(types.TransferFinalizeData, finalize_data);
 
-  console.log("finished transfer_receiver");
   return finalize_data
 }
 

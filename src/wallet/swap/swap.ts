@@ -261,32 +261,12 @@ export class SwapToken {
   /// Create message to be signed
   // to_message(wasm_client: any) : Buffer {
   to_message() : Buffer {
-    // let self_str = JSON.stringify(this);
-    // console.log('self_str: ', self_str);
-    // let hash_out = wasm_client.SwapTokenW.to_message_ser(self_str);
-    // let str_out = wasm_client.SwapTokenW.to_message_str(self_str);
-    // console.log('swap token hash_out: ', hash_out);
-    // let msg_str: string= JSON.parse(str_out);
-    // console.log('swap token str_out: ', msg_str);
-    // let hash: string = JSON.parse(hash_out);
-
+        
     let buf = Buffer.from(this.amount +""+ this.time_out + JSON.stringify(this.statechain_ids), "utf8")
     let hash = bitcoin.crypto.hash256(buf);
 
     return hash;
   }
-
-
-  /// Generate Signature for change of state chain ownership
-  // sign(proof_key_der: BIP32Interface, wasm_client: any): string {
-  //   let self_str = JSON.stringify(this);
-  //   let proof_key_priv_str = proof_key_der.privateKey?.toString("hex");
-  //   console.log("proof key priv json: ", proof_key_priv_str);
-  //   let sig: string = JSON.parse(wasm_client.SwapTokenW.sign(self_str, proof_key_priv_str));
-  //   console.log("sig for message {}", sig);
-  //
-  //   return sig
-  // }
 
   /// Generate Signature for change of state chain ownership
   sign(proof_key_der: BIP32Interface): string {
@@ -298,14 +278,7 @@ export class SwapToken {
     encoded_sig = encoded_sig.slice(0, encoded_sig.length-1);
 
     return encoded_sig.toString("hex")
-
-    // let self_str = JSON.stringify(this);
-    // let proof_key_priv_str = proof_key_der.privateKey?.toString("hex");
-    // console.log("proof key priv json: ", proof_key_priv_str);
-    // let sig: string = JSON.parse(wasm_client.SwapTokenW.sign(self_str, proof_key_priv_str));
-    // console.log("sig for message {}", sig);
-    //
-    // return sig
+ 
   }
 
 
@@ -319,36 +292,6 @@ export class SwapToken {
     let hash = this.to_message();
     return proof_key_der.verify(hash, decoded.signature);
 }
-
-  // // Verify self's signature for transfer or withdraw
-  // verify_sig(proof_key_der: BIP32Interface, sig: string, wasm_client: any): boolean {
-  //   let self_str = JSON.stringify(this);
-  //
-  //   let pubKey = proof_key_der.publicKey.toString('hex');
-  //
-  //   let _message = this.to_message(wasm_client);
-  //
-  //   let ver: boolean = JSON.parse(wasm_client.SwapTokenW.verify_sig(pubKey, sig, self_str));
-  //   console.log("verify_sig result: {}", ver);
-  //   return ver
-
-  /*
-    console.log("verify_sig: get proof");
-    let proof = Buffer.from(sig, "hex");
-
-    // Re-insert hashType marker ("01" suffix) and decode from bip66
-    console.log("verify_sig: concat");
-    proof = Buffer.concat([proof, Buffer.from("01", "hex")]);
-    console.log("verify_sig: decoded");
-    let decoded = script.signature.decode(proof);
-
-    console.log("verify_sig: message hash");
-    let hash = this.to_message(wasm_client);
-    console.log("verify_sig: verify");
-    return proof_key_der.verify(hash, decoded.signature);
-    */
-  // }
-
 
 }
 
@@ -404,19 +347,8 @@ export const first_message = async (
 
   let proof_pub_key = statechain_data.chain[statechain_data.chain.length-1].data;
 
-    //let proof_key_der_pub = bitcoin.ECPair.fromPublicKey(Buffer.from(proof_pub_key, "hex"));
-
   let proof_key_der_pub = proof_key_der.publicKey.toString("hex");
   let proof_key_priv = proof_key_der.privateKey?.toString("hex");
-
-  //console.log("compare proof_key_der_pub");
-  //console.log("expected: ");
-  //console.log(proof_key_der_pub.key.public);
-  //console.log(", got: ");
-  //console.log(proof_key_der.publicKey);
-  //if (!(proof_key_der.publicKey === proof_key_der_pub.key.public)){
-  //    throw new Error('statechain_data proof_pub_key does not derive from proof_key_priv');
-  //  }
 
 
   let swap_token_class = new SwapToken(swap_token.id, swap_token.amount, swap_token.time_out, swap_token.statechain_ids);

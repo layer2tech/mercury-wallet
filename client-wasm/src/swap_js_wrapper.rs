@@ -1,20 +1,11 @@
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_test::*;
-// wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
-use serde_json::{json, Value};
+use serde_json::json;
 use curv::{elliptic::curves::traits::{ECScalar, ECPoint}, FE, GE, BigInt};
-use curv::arithmetic::big_num::Num;
-use kms::ecdsa::two_party::MasterKey2;
-use kms::ecdsa::two_party::party1::KeyGenParty1Message2;
-use multi_party_ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::{PaillierPublic, EphCommWitness, EcKeyPair, EphEcKeyPair};
-use multi_party_ecdsa::protocols::two_party_ecdsa::lindell_2017::party_one::{EphKeyGenFirstMsg, KeyGenFirstMsg};
-use std::collections::HashMap;
 use hex;
 use rand;
 use uuid::Uuid;
 use schemars;
-use std::string;
 use rocket_okapi::JsonSchema;
 use bitcoin::{
     hashes::{sha256d, Hash},
@@ -22,8 +13,6 @@ use bitcoin::{
 };
 use std::str::FromStr;
 use curv::arithmetic::traits::Converter;
-
-//use mercury_shared::{util::keygen::Message, swap_data::SwapToken};
 
 #[derive(JsonSchema)]
 #[schemars(remote = "Uuid")]
@@ -77,10 +66,8 @@ impl Swap {
 
 pub fn requester_calc_eprime(r_prime: &GE, m: &String) -> Result<(FE, FE, GE, FE), Box<dyn std::error::Error>>
 {
-    // let u: FE = FE::new_random();
-    let u: FE = ECScalar::from(&BigInt::from(3));
-    // let v: FE = FE::new_random();
-    let v: FE = ECScalar::from(&BigInt::from(4));
+    let u: FE = FE::new_random();
+    let v: FE = FE::new_random();
 
     let p: GE = ECPoint::generator();
 
@@ -127,13 +114,11 @@ impl BSTSenderData {
     /// Generate new BSTSenderData for Swap
     pub fn setup() -> Result<JsValue, JsValue> {
         let p: GE = ECPoint::generator(); // gen
-        // let x = FE::new_random(); // priv
-        let x: FE = ECScalar::from(&BigInt::from(1));
+        let x = FE::new_random(); // priv
 
         let q = p * x; //pub
 
-        // let k: FE = FE::new_random();
-        let k: FE = ECScalar::from(&BigInt::from(2));
+        let k: FE = FE::new_random();
 
         let r_prime = p * k;
 
@@ -225,7 +210,7 @@ impl BSTRequestorData {
         let s: FE = serde_json::from_str(&signature_str).expect("unable to parse JSON");
         let bst_rd: BSTRequestorData =
             serde_json::from_str(&bst_requestor_data_str).expect("unable to parse JSON");
-         //s: FE
+         
         //BlindedSpendToken
         Ok(
             json!(

@@ -4,14 +4,6 @@ import './Swap.css';
 import {Link, withRouter} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 import swapIcon from '../../images/swap_icon-blue.png';
-//import StdButton from "../../components/buttons/standardButton";
-
-import close from "../../images/close-icon.png";
-import number from "../../images/number-icon.png";
-import cyrcle from "../../images/cyrcle-icon.png";
-import coin from "../../images/table-icon1.png";
-import user from "../../images/table-icon-user.png";
-import time from "../../images/table-icon-time.png";
 
 import { Coins, Swaps, StdButton} from "../../components";
 import {callDoSwap, setError, callGetOngoingSwaps} from '../../features/WalletDataSlice'
@@ -37,10 +29,6 @@ const SwapPage = () => {
       dispatch(callDoSwap({"shared_key_id": selectedCoin}))
       .then(res => {
         if (res.error===undefined) {
-         // setTransferMsg3(encodeMessage(res.payload))
-         // setInputAddr("")
-         // setSelectedCoin('')
-         // dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
         }
       })
     }
@@ -100,9 +88,5 @@ const SwapPage = () => {
       </div>
   )
 }
-
-
-//export const { setError } = WalletSlice.actions
-//    export default WalletSlice.reducer
   
 export default withRouter(SwapPage);

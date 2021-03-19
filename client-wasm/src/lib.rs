@@ -13,7 +13,6 @@ extern crate schemars;
 extern crate rocket_okapi;
 extern crate bitcoin;
 extern crate bitcoin_hashes;
-//extern crate mercury_shared;
 
 pub mod kms_secp256k1_js_wrapper;
 pub mod swap_js_wrapper;
