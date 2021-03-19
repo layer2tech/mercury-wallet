@@ -1,8 +1,19 @@
 .Collapse {
     display: flex;
+    position: relative;
     justify-content: space-between;
     width: 100%;
     padding: 5px 25px;
+}
+
+.Collapse .image {
+    position: absolute;
+    right: 12px;
+    top: 0;
+}
+
+.Collapse.row {
+    margin: 0;
 }
 
 
@@ -13,7 +24,7 @@
 }
 
 .accordion .show {
-    transition: all .5s ease-in-out;
+    transition: all .5s linear;
     overflow: auto;
     padding: 30px 10px;
 }
@@ -24,7 +35,7 @@
 
 .image.rotate img {
     transform: rotate(180deg);
-    transition: all .5s ease-in-out;
+    transition: all .5s linear;
 }
 
 label {
@@ -40,9 +51,16 @@ label {
     user-select: none;
 }
 
-.ConnectionStateChain input {
+.connection-title {
+    display: flex;
+    padding: 0 !important;
+    justify-content: flex-start;
+}
+
+.connection-title input {
     position: absolute;
     opacity: 0;
+    flex: 1;
     cursor: pointer;
 }
 
@@ -86,47 +104,45 @@ label {
 
 .collapse-content-item {
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: baseline;
     font-size: 16px;
+    margin-left: 8px !important;
     color: #666666;
-    width: 50%;
-}
-
-.collapse-content-item .txt {
-    margin-right: 20px;
-    font-size: 16px;
-    color: #666666;
-}
-
-.collapse-content-item .txt b {
-    color: #000000;
 }
 
 @media only screen and (max-width: 768px) {
-    .Collapse {
-        flex-wrap: wrap;
+    .Body.small {
+        padding: 16px;
     }
 
-    .collapse-content {
-        display: block;
+    .Collapse.row {
+        padding: 0;
+    }
+
+    .Collapse .image {
+        right: 0;
     }
 
     .collapse-content .collapse-content-item {
-        display: block;
-        margin-left: 0;
-        text-align: center;
-        width: 100%;
-        margin-bottom: 20px;
+        margin-left: 0 !important;
+        flex: 1;
     }
 
-    .collapse-content .collapse-content-item .txt {
-        display: block;
-
+    .collapse-content {
+        padding: 0;
     }
 
     .accordion .show {
-        height: 13em;
+        margin-top: 16px;
         padding: 0;
+    }
+
+    .collapse-content .collapse-content-item span {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
