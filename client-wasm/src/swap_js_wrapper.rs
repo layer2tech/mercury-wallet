@@ -352,17 +352,6 @@ impl SwapTokenW {
             Err(err) => return Err(format!("SwapTokenW - parse secret key:{}, {}",&proof_key_priv_str, err.to_string()).into()),
         };
 
-
-        //let key: SecretKey =  match serde_json::from_str(&proof_key_priv_str){
-            //Ok(r) => r,
-            //Err(err) => return Err(format!("SwapTokenW - parse secret key:{}, {}",&proof_key_priv_str, err.to_string()).into()),
-        //};
-       // let st = match SwapTokenW::from_str(&swap_token_str){
-         //   Ok(r) => r,
-          //  Err(err) => return Err(format!("SwapTokenW: {}", err.to_string()).into()),
-        //};
-
-
         let secp = Secp256k1::new();
 
         let message = match SwapTokenW::to_message(swap_token_str){
@@ -377,7 +366,6 @@ impl SwapTokenW {
             json!(signature).to_string().into()
         )
 
-        //Ok(0.into())
     }
 
      /// Verify self's signature for transfer or withdraw
@@ -404,12 +392,3 @@ impl SwapTokenW {
         )
     }
 }
-
-/*
-#[wasm_bindgen_test]
-fn test_blind_sign_structs() {
-    let msg = "Message".to_string();
-    // Sender, Requestor init
-    let sender = BSTSenderData::setup();
-}
-*/
