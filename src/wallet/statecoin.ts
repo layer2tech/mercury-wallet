@@ -201,6 +201,8 @@ export class StateCoin {
   swap_rounds: number;
   status: string;
   swap_info: SwapInfo | null;
+  swap_status: string | null;
+
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
     this.shared_key_id = shared_key_id;
@@ -340,7 +342,7 @@ export interface SwapDisplayData {
   swap_id: string,
   participants: number,
   capacity: number,
-  status: SwapStatus,
+  status: string,
 }
 
 export interface ExpiryData {

@@ -248,6 +248,15 @@ export const TransferFinalizeData = typeforce.compile({
   tx_backup_psm: PrepareSignTxMsg,
 })
 
+export const TransferBatchdataAPI = typeforce.compile({
+  new_shared_key_id: String,
+  o2: String,
+  s2_pub: Secp256k1Point,
+  state_chain_data: StateChainDataAPI,
+  proof_key: String,
+  statechain_id: String,
+  tx_backup_psm: PrepareSignTxMsg,
+})
 
 
 ////////// ELECTRUM structs/////////////

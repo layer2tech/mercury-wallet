@@ -26,7 +26,6 @@ export const POST_ROUTE = {
   TRANSFER_RECEIVER: "transfer/receiver",
   TRANSFER_UPDATE_MSG: "transfer/update_msg",
   TRANSFER_GET_MSG: "transfer/get_msg",
-  INFO_TRANSFER_BATCH: "info/transfer-batch",			  
   SWAP_REGISTER_UTXO: "swap/register-utxo",	
   SWAP_POLL_UTXO: "swap/poll/utxo",
   SWAP_POLL_SWAP: "swap/poll/swap",

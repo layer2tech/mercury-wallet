@@ -41,25 +41,25 @@ export const doSwap = async (
   let swap_rounds=statecoin.swap_rounds;
 
   let publicKey = proof_key_der.publicKey.toString('hex');
-  
+
   let sc_sig = StateChainSig.create(proof_key_der, "SWAP", publicKey);
 
-  
+
   let registerUtxo = {
     statechain_id: statecoin.statechain_id,
     signature: sc_sig,
     swap_size: swap_size
   };
-  
+
   console.log('await swap_register_utxo: (RegisterUtxo)', registerUtxo);
   let _reg_res = await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
 
-  
+
   let statechain_id = {
     id: statecoin.statechain_id
   }
 
-  
+
   let swap_id = null
   while (true){
     swap_id = await pollUtxo(http_client,statechain_id);
@@ -73,19 +73,19 @@ export const doSwap = async (
   };
 
 
-  
+
   let swap_info = null;
   while (true){
     swap_info = await getSwapInfo(http_client,swap_id);
     if (swap_info !== null){
-      
+
       break;
     }
     await delay(3);
   };
-  
+
   typeforce(types.SwapInfo, swap_info);
-  
+
   statecoin.swap_info=swap_info;
 
   let address = {
@@ -95,14 +95,14 @@ export const doSwap = async (
   typeforce(types.SCEAddress, address);
 
   console.log('await new transfer batch sig fo swap id: ', swap_id);
-  
+
   let transfer_batch_sig = await StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id.id,statecoin.statechain_id);
-console.log('transfer batch sig: ', transfer_batch_sig);
+  console.log('transfer batch sig: ', transfer_batch_sig);
   console.log('await first message: ', );
   let my_bst_data = await first_message(http_client,
     wasm_client,swap_info,statecoin.statechain_id,transfer_batch_sig,
     address,proof_key_der);
-  
+
 
 
   console.log('await poll swap');
@@ -111,12 +111,12 @@ console.log('transfer batch sig: ', transfer_batch_sig);
     if (statecoin.swap_info){
       statecoin.swap_info.status=phase;
     }
-    if (phase !== SwapStatus.Phase1){      
+    if (phase !== SwapStatus.Phase1){
       break;
     }
     await delay(3)
   }
-  
+
 
   let publicProofKey = new_proof_key_der.publicKey;
 
@@ -148,7 +148,10 @@ console.log('transfer batch sig: ', transfer_batch_sig);
   console.log('transferSender');
   let _ = transferSender(http_client, wasm_client, network, statecoin, proof_key_der, receiver_addr.proof_key);
 
-  let commitment = wasm_client.Commitment.make_commitment(statecoin.statechain_id);
+  let batch_data_json = wasm_client.Commitment.make_commitment(statecoin.statechain_id);
+  let batch_data = JSON.parse(batch_data_json);
+  typeforce(types.BatchData, batch_data);
+  let commitment = batch_data.commitment;
 
   let batch_id = swap_id;
 
@@ -156,33 +159,27 @@ console.log('transfer batch sig: ', transfer_batch_sig);
   let transfer_finalized_data = await do_transfer_receiver(
     http_client,
     wasm_client,
-    batch_id,
-    commitment.commitment,
+    batch_id.id,
+    commitment,
     swap_info.swap_token.statechain_ids,
     address,
     new_proof_key_der
   );
 
-  console.log('await pollSwap');
+  console.log('await for pollSwap status: ', SwapStatus.End);
   while(true){
     let phase = await pollSwap(http_client, swap_id);
+    console.log("swap status: ", phase);
     if (statecoin.swap_info){
       statecoin.swap_info.status=phase;
     }
     if (phase === SwapStatus.End){
       break;
     }
+    if (phase === null){
+      break;
+    }
     await delay(3)
-  }
-
-  //Confirm batch transfer status and finalize the transfer in the wallet
-  console.log('await info transfer batch: ', batch_id);
-  let bt_info = await http_client.post(POST_ROUTE.INFO_TRANSFER_BATCH, batch_id);
-  typeforce(types.TransferBatchDataAPI, bt_info);
-
-
-  if (!bt_info.finalized) {
-    throw new Error("Swap error: batch transfer not finalized");
   }
 
   console.log('await transfer receiver finalize');
@@ -203,17 +200,28 @@ export const do_transfer_receiver = async (
   rec_se_addr_bip32: BIP32Interface,
 ): Promise<TransferFinalizeData> => {
   for (var id of statechain_ids){
+    console.log("getting transfer message for id: ", id);
+    let msg3;
     while(true) {
-      let msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG, id);
       try{
-        typeforce(types.TransferMsg3, msg3);
+        msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG,{"id":id});
       }catch(err){
+        console.log(err);
+        await delay(3);
         continue;
       }
+      typeforce(types.TransferMsg3, msg3);
+      console.log("got msg3: ", msg3);
       if (msg3.rec_se_addr.proof_key == rec_se_addr.proof_key){
-        let batch_data = new BatchData(batch_id,commit);
-        let tfd =  await transferReceiver(http_client, msg3,rec_se_addr_bip32,batch_data);
-        return tfd;
+        let batch_data = {
+          "id":batch_id,
+          "commitment":commit,
+        }
+        let finalize_data = await transferReceiver(http_client, msg3,rec_se_addr_bip32,batch_data);
+        typeforce(types.TransferFinalizeData, finalize_data);
+        return finalize_data;
+      } else {
+        break;
       }
     }
   }
@@ -367,7 +375,7 @@ export interface BSTRequestorData {
 
 
 export interface SwapInfo {
-  status: String,
+  status: string,
   swap_token: SwapToken,
   bst_sender_data: BSTSenderData,
 }
@@ -393,11 +401,11 @@ export const first_message = async (
   let swap_token = swap_info.swap_token;
   let statechain_data = await getStateChain(http_client, statechain_id);
   typeforce(types.StateChainDataAPI, statechain_data);
-  
+
   let proof_pub_key = statechain_data.chain[statechain_data.chain.length-1].data;
 
     //let proof_key_der_pub = bitcoin.ECPair.fromPublicKey(Buffer.from(proof_pub_key, "hex"));
-  
+
   let proof_key_der_pub = proof_key_der.publicKey.toString("hex");
   let proof_key_priv = proof_key_der.privateKey?.toString("hex");
 
@@ -416,13 +424,13 @@ export const first_message = async (
 
   let swap_token_sig = swap_token_class.sign(proof_key_der);
   let ver = swap_token_class.verify_sig(proof_key_der, swap_token_sig);
-    
+
   let blindedspenttokenmessage = new BlindedSpentTokenMessage(swap_token.id);
 
   //Requester
   let m = JSON.stringify(blindedspenttokenmessage);
   console.log("BLindeddSpendTokenMessage: ", m);
-  
+
   // Requester setup BST generation
   //let bst_req_class = new BSTRequestorData();
   let r_prime_str: string = JSON.stringify(swap_info.bst_sender_data.r_prime);
@@ -447,7 +455,7 @@ export const first_message = async (
 
   console.log("first msg post: ", swapMsg1);
   let _ =  await http_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1);
-  
+
   return my_bst_data;
 }
 
@@ -463,7 +471,7 @@ export const get_blinded_spend_signature = async(
   statechain_id: String,
 ): Promise<BlindedSpendSignature> => {
   let bstMsg = {
-    "swap_id": swap_id, 
+    "swap_id": swap_id,
     "statechain_id": statechain_id,
   };
   console.log("await get_blinded_spend_signature - (BSTMsg): ", bstMsg);
@@ -482,21 +490,27 @@ export const second_message = async (
 ): Promise<SCEAddress> => {
   let my_bst_data_str = JSON.stringify(my_bst_data);
   let blinded_spend_signature_str = JSON.stringify(blinded_spend_signature.s_prime);
-  
-  let bst_json = wasm_client.BSTRequestorData.make_blind_spend_token(my_bst_data_str,blinded_spend_signature_str);
+
+  let unblinded_sig = JSON.parse(wasm_client.BSTRequestorData.requester_calc_s(
+    JSON.stringify(blinded_spend_signature.s_prime),
+    JSON.stringify(my_bst_data.u),
+    JSON.stringify(my_bst_data.v)
+  ));
+
+  let bst_json = wasm_client.BSTRequestorData.make_blind_spend_token(JSON.stringify(my_bst_data),JSON.stringify(unblinded_sig.unblinded_sig));
   console.log("bst_json: ", bst_json);
   let bst: BlindedSpendToken = JSON.parse(bst_json);
   console.log("bst: ", bst);
 
   let swapMsg2 = {
-    "swap_id":swap_id, 
+    "swap_id":swap_id,
     "blinded_spend_token":bst,
   };
   console.log("await swap second: (SwapMsg2)", swapMsg2);
   let result =  await http_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2);
-  typeforce(types.BlindedSpendSignature, result);
-  console.log("swap second result (BlindedSpendSignature): ", result);
-  
+  typeforce(types.SCEAddress, result);
+  console.log("swap second result (SCEAddress): ", result);
+
   return result;
 }
 

@@ -125,7 +125,6 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
   let script = bitcoin.address.toOutputScript(addr_p2pkh, network);
 
   return tx.hashForWitnessV0(index, script, amount, Transaction.SIGHASH_ALL).toString("hex");
-
 }
 
 // Backup Tx builder

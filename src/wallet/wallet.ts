@@ -480,15 +480,16 @@ export class Wallet {
 
     // Mark funds as spent in wallet
     log.info("Marking spent") 
-    this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
+    this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 
-    // Store new statecoin
-    log.info("Storing new statecoin")
-    this.addStatecoin(new_statecoin,ACTION.SWAP);
 
-    log.info("Swap complete for " + shared_key_id);
+    // update in wallet
+    new_statecoin.setConfirmed();
+    this.statecoins.addCoin(new_statecoin);
+
+    
+    log.info("Swap complete for shared key:" + shared_key_id);
     this.saveStateCoinsList();
-    log.info("swap finished")
     return new_statecoin;
   }
 
@@ -533,13 +534,15 @@ export class Wallet {
     if (rec_se_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
     if (rec_se_addr_bip32.publicKey.toString("hex") !== transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
 
-    let batch_data = {};
+    let batch_data = null;
     let finalize_data = await transferReceiver(this.http_client, transfer_msg3, rec_se_addr_bip32, batch_data)
 
     // In batch case this step is performed once all other transfers in the batch are complete.
-    if (!Object.keys(batch_data).length) {
-      // Finalize protocol run by generating new shared key and updating wallet.
-      this.transfer_receiver_finalize(finalize_data);
+    if(batch_data){
+      if (!Object.keys(batch_data).length) {
+        // Finalize protocol run by generating new shared key and updating wallet.
+        this.transfer_receiver_finalize(finalize_data);
+      }
     }
 
     this.saveStateCoinsList();

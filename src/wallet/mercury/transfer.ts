@@ -132,7 +132,7 @@ export const transferReceiver = async (
   http_client: HttpClient | MockHttpClient,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
-  _batch_data: any
+  batch_data: any
 ): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
@@ -175,7 +175,7 @@ export const transferReceiver = async (
     statechain_sig: transfer_msg3.statechain_sig,
     o2_pub: encodeSecp256k1Point(o2_keypair.publicKey.toString("hex")),        // decode into {x,y}
     tx_backup_hex: transfer_msg3.tx_backup_psm.tx_hex,
-    batch_data: null,
+    batch_data,
   };
   typeforce(types.TransferMsg4, transfer_msg4);
   console.log("sending transfer msg 4: ", transfer_msg4);
@@ -198,6 +198,7 @@ export const transferReceiver = async (
   };
   typeforce(types.TransferFinalizeData, finalize_data);
 
+  console.log("finished transfer_receiver");
   return finalize_data
 }
 
