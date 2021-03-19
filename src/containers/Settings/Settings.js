@@ -10,6 +10,16 @@ import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
 
 import './Settings.css';
 
+export const defaultWalletConfig = () => ({
+  notifications: false,
+  tutorials: false,
+  state_entity_endpoint: "",
+  swap_conductor_endpoint: "",
+  electrum_config: {host: "", port: 0, protocol: ""},
+  tor_proxy: "",
+  min_anon_set: ""
+})
+
 const SettingsPage = (props) => {
   const dispatch = useDispatch();
 
@@ -17,8 +27,7 @@ const SettingsPage = (props) => {
   try {
     current_config = callGetConfig();
   } catch {
-    current_config = {notifications: false, tutorials: false, state_entity_endpoint: "", swap_conductor_endpoint: "",
-      electrum_config: {host: "", port: 0, protocol: ""}, tor_proxy: "", min_anon_set: ""};
+    current_config = defaultWalletConfig()
   }
 
   const [notifications, setNotification] = useState(current_config.notifications);
