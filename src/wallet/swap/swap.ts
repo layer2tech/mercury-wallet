@@ -51,7 +51,6 @@ export const doSwap = async (
     swap_size: swap_size
   };
 
-  console.log('await swap_register_utxo: (RegisterUtxo)', registerUtxo);
   let _reg_res = await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
 
 
@@ -94,18 +93,12 @@ export const doSwap = async (
   };
   typeforce(types.SCEAddress, address);
 
-  console.log('await new transfer batch sig fo swap id: ', swap_id);
 
   let transfer_batch_sig = await StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id.id,statecoin.statechain_id);
-  console.log('transfer batch sig: ', transfer_batch_sig);
-  console.log('await first message: ', );
   let my_bst_data = await first_message(http_client,
     wasm_client,swap_info,statecoin.statechain_id,transfer_batch_sig,
     address,proof_key_der);
 
-
-
-  console.log('await poll swap');
   while(true){
     let phase: string = await pollSwap(http_client, swap_id);
     if (statecoin.swap_info){
@@ -120,14 +113,11 @@ export const doSwap = async (
 
   let publicProofKey = new_proof_key_der.publicKey;
 
-  console.log('await get blinded spend signature');
-  let bss = await get_blinded_spend_signature(http_client, wasm_client, swap_id.id,statecoin.statechain_id);
+    let bss = await get_blinded_spend_signature(http_client, wasm_client, swap_id.id,statecoin.statechain_id);
   typeforce(types.BlindedSpendSignature, bss);
 
-  console.log('await second message');
-  let receiver_addr = await second_message(http_client, wasm_client, swap_id.id, my_bst_data, bss);
+    let receiver_addr = await second_message(http_client, wasm_client, swap_id.id, my_bst_data, bss);
 
-  console.log('await poll swap');
   while(true){
     let phase = await pollSwap(http_client, swap_id);
     if (statecoin.swap_info){
@@ -145,7 +135,6 @@ export const doSwap = async (
     await delay(3)
   }
 
-  console.log('transferSender');
   let _ = transferSender(http_client, wasm_client, network, statecoin, proof_key_der, receiver_addr.proof_key);
 
   let batch_data_json = wasm_client.Commitment.make_commitment(statecoin.statechain_id);
@@ -155,7 +144,6 @@ export const doSwap = async (
 
   let batch_id = swap_id;
 
-  console.log('await do_transfer_receiver');
   let transfer_finalized_data = await do_transfer_receiver(
     http_client,
     wasm_client,
@@ -166,7 +154,6 @@ export const doSwap = async (
     new_proof_key_der
   );
 
-  console.log('await for pollSwap status: ', SwapStatus.End);
   while(true){
     let phase = await pollSwap(http_client, swap_id);
     console.log("swap status: ", phase);
@@ -182,7 +169,6 @@ export const doSwap = async (
     await delay(3)
   }
 
-  console.log('await transfer receiver finalize');
   let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, transfer_finalized_data);
 
   statecoin_out.swap_rounds=swap_rounds+1;
@@ -200,7 +186,6 @@ export const do_transfer_receiver = async (
   rec_se_addr_bip32: BIP32Interface,
 ): Promise<TransferFinalizeData> => {
   for (var id of statechain_ids){
-    console.log("getting transfer message for id: ", id);
     let msg3;
     while(true) {
       try{
@@ -211,7 +196,6 @@ export const do_transfer_receiver = async (
         continue;
       }
       typeforce(types.TransferMsg3, msg3);
-      console.log("got msg3: ", msg3);
       if (msg3.rec_se_addr.proof_key == rec_se_addr.proof_key){
         let batch_data = {
           "id":batch_id,
@@ -361,20 +345,16 @@ export const first_message = async (
 
   //Requester
   let m = JSON.stringify(blindedspenttokenmessage);
-  console.log("BLindeddSpendTokenMessage: ", m);
 
   // Requester setup BST generation
   //let bst_req_class = new BSTRequestorData();
   let r_prime_str: string = JSON.stringify(swap_info.bst_sender_data.r_prime);
   let bst_req_json = wasm_client.BSTRequestorData.setup(r_prime_str, m)
-  console.log("bst_req_json: ", bst_req_json);
   let my_bst_data: BSTRequestorData = JSON.parse(
     bst_req_json
   );
   typeforce(types.BSTRequestorData, my_bst_data);
-  console.log("my_bst_data: ", my_bst_data);
-  console.log("my_bst_eprime: ", JSON.stringify(my_bst_data.e_prime));
-
+  
   let swapMsg1 = {
     "swap_id": swap_token.id,
     "statechain_id": statechain_id,
@@ -385,7 +365,6 @@ export const first_message = async (
   }
   typeforce(types.SwapMsg1, swapMsg1);
 
-  console.log("first msg post: ", swapMsg1);
   let _ =  await http_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1);
 
   return my_bst_data;
@@ -406,10 +385,8 @@ export const get_blinded_spend_signature = async(
     "swap_id": swap_id,
     "statechain_id": statechain_id,
   };
-  console.log("await get_blinded_spend_signature - (BSTMsg): ", bstMsg);
   let result =  await http_client.post(POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE, bstMsg);
   typeforce(types.BlindedSpendSignature, result);
-  console.log("get_blinded_spend_signature result (BlindedSpendSignature): ", result);
   return result;
 }
 
@@ -430,19 +407,15 @@ export const second_message = async (
   ));
 
   let bst_json = wasm_client.BSTRequestorData.make_blind_spend_token(JSON.stringify(my_bst_data),JSON.stringify(unblinded_sig.unblinded_sig));
-  console.log("bst_json: ", bst_json);
   let bst: BlindedSpendToken = JSON.parse(bst_json);
-  console.log("bst: ", bst);
-
+  
   let swapMsg2 = {
     "swap_id":swap_id,
     "blinded_spend_token":bst,
   };
-  console.log("await swap second: (SwapMsg2)", swapMsg2);
   let result =  await http_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2);
   typeforce(types.SCEAddress, result);
-  console.log("swap second result (SCEAddress): ", result);
-
+  
   return result;
 }
 
