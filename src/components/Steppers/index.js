@@ -7,14 +7,12 @@ function Steppers({ total, current }) {
 
   return (
     <div className="row steppers">
-      <div className="col-xs-12 col-md-8 offset-md-2 block">
-        <div className="wrapper-progressbar">
-          <ul className="progressbar">
-            {arr.map((index) => (
-              <li className={`${index < current ? 'active' : ''}`} key={index}>{index + 1}</li>
-            )) }
-          </ul>
-        </div>
+      <div className="wrapper-progressbar">
+        <ul className="progressbar">
+          {arr.map((index) => (
+            <li className={`${index < current ? 'active' : ''}`} key={index}>{index + 1}</li>
+          )) }
+        </ul>
       </div>
     </div>
   )
