@@ -26,7 +26,7 @@ const CreateWizardForm = (props) => {
                 </div>
 
                 <div className="inputs-item">
-                  <input id="Passphrase" type="password" name="password" required
+                  <input id="Passphrase" type="password" name="password"
                     placeholder="Passphrase (min 8 characters)"
                     onChange={props.setStateWalletPassword}
                     ref={register({
@@ -45,7 +45,6 @@ const CreateWizardForm = (props) => {
                 <div className="inputs-item">
                   <input id="password_repeat"type="password" name="password_repeat"
                     placeholder="Confirm Passphrase"
-                    required
                     ref={register({
                        validate: value =>
                            value===password.current || "The passwords do not match"
