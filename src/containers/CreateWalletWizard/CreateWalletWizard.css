@@ -37,3 +37,7 @@ input[type='checkbox'], input[type='radio'] {
     cursor: not-allowed;
     pointer-events: none;
 }
+
+.wizard .steppers {
+    margin: 40px 0;
+}
