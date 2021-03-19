@@ -7,10 +7,6 @@ extern crate floating_duration;
 extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
-extern crate rand;
-extern crate uuid;
-extern crate schemars;
-extern crate rocket_okapi;
 extern crate bitcoin;
 extern crate bitcoin_hashes;
 
