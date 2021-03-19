@@ -1,53 +1,63 @@
 import settings from "../../images/settings.png";
 
 import React, {useState} from 'react';
-import {Link, withRouter} from "react-router-dom";
+import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
-import {StdButton} from "../../components";
-import {setNotification as setNotificationMsg, callGetConfig, callUpdateConfig, callClearSave} from '../../features/WalletDataSlice'
+import {StdButton, CheckBox} from "../../components";
+import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
+  callUpdateConfig, callClearSave, unloadWallet} from '../../features/WalletDataSlice'
 
 import './Settings.css';
 
-const { app } = window.require('electron').remote
+export const defaultWalletConfig = () => ({
+  notifications: false,
+  tutorials: false,
+  state_entity_endpoint: "",
+  swap_conductor_endpoint: "",
+  electrum_config: {host: "", port: 0, protocol: ""},
+  tor_proxy: "",
+  min_anon_set: ""
+})
 
 const SettingsPage = (props) => {
-  const current_config = callGetConfig();
+  const dispatch = useDispatch();
+
+  let current_config;
+  try {
+    current_config = callGetConfig();
+  } catch {
+    current_config = defaultWalletConfig()
+  }
+
   const [notifications, setNotification] = useState(current_config.notifications);
   const [tutorials, setTutorials] = useState(current_config.tutorials);
   const [stateEntityAddr, setStateEntityAddr] = useState(current_config.state_entity_endpoint);
   const [swapAddr, setSwapAddr] = useState(current_config.swap_conductor_endpoint);
-  const [elecAddr, setElecAddr] = useState(current_config.electrum_config.host);
+  const [elecAddr, setElecAddr] = useState(current_config.electrum_config);
   const [torProxy, setTorProxy] = useState(current_config.tor_proxy);
   const [minAnonSet, setMinAnonSet] = useState(current_config.min_anon_set);
 
+
   // Change handlers
-  const onNotificationChange = () => {
-    setNotification(!notifications);
-  };
-  const onTutorialChange = () => {
-    setTutorials(!tutorials);
-  };
-  const onStateEntityAddrChange = (evt) => {
-    setStateEntityAddr(evt.target.value);
-  }
-  const onSwapAddrChange = (evt) => {
-    setSwapAddr(evt.target.value);
-  }
+  const onNotificationChange = ({checked}) => { setNotification(checked) };
+  const onTutorialChange = ({checked}) => { setTutorials(checked) };
+  const onStateEntityAddrChange = (evt) => { setStateEntityAddr(evt.target.value) };
+  const onSwapAddrChange = (evt) => { setSwapAddr(evt.target.value) };
   const onElecAddrChange = (evt) => {
-      setElecAddr(evt.target.value);
+    setElecAddr({
+      ...elecAddr,
+      [evt.target.name]: evt.target.value
+    });
   }
-  const onTorProxyChange = (evt) => {
-    setTorProxy(evt.target.value);
-  }
-  const decreaseMinAnonSet = () => {
-      setMinAnonSet(minAnonSet-1);
-  }
-  const increaseMinAnonSet = () => {
-      setMinAnonSet(minAnonSet+1);
-  }
-  const onMinAnonSetChange = (evt) => {
-      setMinAnonSet(evt.target.value);
+  const onTorProxyChange = (evt) => { setTorProxy(evt.target.value) };
+  const decreaseMinAnonSet = () => { setMinAnonSet(minAnonSet-1) };
+  const increaseMinAnonSet = () => { setMinAnonSet(minAnonSet+1) };
+  const onMinAnonSetChange = (evt) => { setMinAnonSet(evt.target.value) };
+
+  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
+  if (!isWalletLoaded()) {
+    return <Redirect to="/" />;
   }
 
   // buttons
@@ -55,11 +65,7 @@ const SettingsPage = (props) => {
     callUpdateConfig({
       state_entity_endpoint: stateEntityAddr,
       swap_conductor_endpoint: swapAddr,
-      electrum_config: {
-        host: elecAddr,
-        port: 8443,
-        protocol: 'wss',
-      },
+      electrum_config: elecAddr,
       tor_proxy: torProxy,
       min_anon_set: minAnonSet,
       notifications: notifications,
@@ -73,16 +79,20 @@ const SettingsPage = (props) => {
     setTutorials(current_config.tutorials);
     setStateEntityAddr(current_config.state_entity_endpoint);
     setSwapAddr(current_config.swap_conductor_endpoint);
-    setElecAddr(current_config.electrum_config.host);
+    setElecAddr(current_config.electrum_config);
     setTorProxy(current_config.tor_proxy);
     setMinAnonSet(current_config.min_anon_set);
   }
 
-  const dispatch = useDispatch();
   const clearWalletButtonOnClick = () => {
-    dispatch(callClearSave())
-    app.relaunch();
-    app.exit(0);
+    dispatch(callClearSave());
+    unloadWallet();
+    props.setWalletLoaded(false);
+  }
+
+  const logOutButtonOnClick = () => {
+    unloadWallet();
+    props.setWalletLoaded(false);
   }
 
   return (
@@ -129,12 +139,25 @@ const SettingsPage = (props) => {
                   <div className="inputs">
                       <h2>Connectivity Settings</h2>
                       <form>
-
                           <div className="inputs-item">
-                              <input id="address" type="text" name="Electrumx Address" value={elecAddr}
+                              <input id="address-host" type="text" name="host" value={elecAddr.host}
                                      onChange={onElecAddrChange} required/>
                               <label className="control-label"
-                                     htmlFor="address">Electrumx Server Address</label>
+                                     htmlFor="address-host">Electrumx Server Host</label>
+                          </div>
+                          <div className="d-flex input-group">
+                            <div className="inputs-item">
+                                <input id="address-port" type="number" name="port" value={elecAddr.port}
+                                      onChange={onElecAddrChange} required/>
+                                <label className="control-label"
+                                      htmlFor="address-port">Server Port</label>
+                            </div>
+                            <div className="inputs-item">
+                                <input id="address-protocol" type="text" name="protocol" value={elecAddr.protocol}
+                                      onChange={onElecAddrChange} required/>
+                                <label className="control-label"
+                                      htmlFor="address-protocol">Server Protocol</label>
+                            </div>
                           </div>
                           <div className="inputs-item">
                               <input id="proxy" type="text" name="TorProxy" required
@@ -156,11 +179,11 @@ const SettingsPage = (props) => {
                                   endpoint</label>
                           </div>
                           <div className="inputs-item def-number-input number-input">
-                              <button onClick={decreaseMinAnonSet} className="minus"></button>
+                              <span onClick={decreaseMinAnonSet} className="minus update-min-anon-set" />
 
                               <input className="quantity" name="quantity" value={minAnonSet}
                                      onChange={onMinAnonSetChange} type="number" placeholder="0 BTC"/>
-                              <button onClick={increaseMinAnonSet} className="plus"></button>
+                              <span onClick={increaseMinAnonSet} className="plus update-min-anon-set" />
                           </div>
                       </form>
 
@@ -170,18 +193,20 @@ const SettingsPage = (props) => {
                       <select name="1" id="1">
                           <option value="1">mm/dd/yyyy HH:mm:ss</option>
                       </select>
-
-                      <CheckBox
-                        label={"Notifications"}
-                        description={"Toggle notifications"}
-                        checked={notifications}
-                        onClick={onNotificationChange}/>
-
-                      <CheckBox
-                        label={"Tutorials"}
-                        description={"Toggle show tutorials"}
-                        checked={tutorials}
-                        onClick={onTutorialChange}/>
+                      <div className="checkbox-group">
+                        <CheckBox
+                          label="Notifications"
+                          description="Toggle notifications"
+                          checked={!!notifications}
+                          onChange={onNotificationChange}
+                        />
+                        <CheckBox
+                          label="Tutorials"
+                          description="Toggle show tutorials"
+                          checked={!!tutorials}
+                          onChange={onTutorialChange}
+                        />
+                      </div>
 
                   </div>
               </div>
@@ -208,21 +233,14 @@ const SettingsPage = (props) => {
             onClick={clearWalletButtonOnClick}>
               Clear wallet memory
           </button>
-      </div>
-  )
-}
 
-const CheckBox = (props) => {
-  return (
-    <div className="btns">
-        <div className="btns-radios">
-            <label htmlFor="notification">{props.label}</label>
-            <input id="notification" type="checkbox" className="switch"
-                checked={props.checked}
-                onClick={props.onClick}/>
-        </div>
-        <span>{props.description}</span>
-    </div>
+          <button
+            type="button"
+            className="Body-button blue"
+            onClick={logOutButtonOnClick}>
+              Log out of wallet
+          </button>
+      </div>
   )
 }
 

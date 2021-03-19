@@ -3,8 +3,9 @@
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
-  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, encryptAES,
-  decryptAES, encodeSCEAddress } from './';
+  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, decryptAES,
+  encodeSCEAddress } from './';
+import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -58,18 +59,12 @@ export class Wallet {
     this.account = account;
     this.statecoins = new StateCoinList();
     this.activity = new ActivityLog();
-    if (testing_mode) {
-      this.electrum_client = new MockElectrumClient();
-      this.http_client = new MockHttpClient();
-    } else {
-      // this.electrum_client = new MockElectrumClient();
-      this.http_client = new HttpClient(this.config.state_entity_endpoint);
-      this.electrum_client = new ElectrumClient(this.config.electrum_config);
-    }
-    this.block_height = 0
+    this.electrum_client = testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
+    this.http_client = new HttpClient(this.config.state_entity_endpoint);
+    this.block_height = 0;
     this.current_sce_addr = "";
 
-    this.storage = new Storage()
+    this.storage = new Storage();
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -107,6 +102,7 @@ export class Wallet {
     new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
     new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
     new_wallet.config.update(json_wallet.config);
+    new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
     // Rederive root and root chain keys
     const seed = bip39.mnemonicToSeedSync(json_wallet.mnemonic);
@@ -158,6 +154,7 @@ export class Wallet {
   // Clear storage.
   clearSave() {
     this.storage.clearWallet(this.name)
+    log.info("Wallet cleared.")
   };
 
   // Load wallet JSON from store
@@ -165,9 +162,13 @@ export class Wallet {
     let store = new Storage();
     // Fetch raw wallet string
     let wallet_json = store.getWallet(wallet_name);
-    if (wallet_json==undefined) throw Error("No wallet called "+wallet_name+" stored.");
+    if (wallet_json===undefined) throw Error("No wallet called "+wallet_name+" stored.");
     // Decrypt mnemonic
-    wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+    try {
+      wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+    } catch (e) {
+      if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
+    }
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
 
@@ -242,7 +243,7 @@ export class Wallet {
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
-      if (statecoin.status==STATECOIN_STATUS.UNCOMFIRMED &&
+      if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           this.depositConfirm(statecoin.shared_key_id)
       }
@@ -272,13 +273,19 @@ export class Wallet {
     let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
     //extract receive address private key
     let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
-    let bip32 = this.getBIP32forBtcAddress(addr)
+
+    let bip32 = this.getBIP32forBtcAddress(addr);
 
     let priv_key = bip32.privateKey;
     if (priv_key===undefined) throw Error("Backup receive address private key not found.");
 
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
     backup_tx_data.key_wif = bip32.toWIF();
+
+    if (statecoin.tx_cpfp != null) {
+       let fee_rate = (FEE + backup_tx_data.output_value - statecoin.tx_cpfp.outs[0].value)/250;
+       backup_tx_data.cpfp_status = "Set. Fee rate = "+fee_rate.toString();
+    }
 
     return backup_tx_data
   }
@@ -295,6 +302,104 @@ export class Wallet {
     })
   }
 
+  // update statuts of backup transactions and broadcast if neccessary
+  updateBackupTxStatus() {
+
+    for (let i=0; i<this.statecoins.coins.length; i++) {
+    // check if there is a backup tx yet, if not do nothing
+      if (this.statecoins.coins[i].tx_backup == null) {
+        continue;
+      }
+      if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED || 
+        this.statecoins.coins[i].backup_status === BACKUP_STATUS.TAKEN || 
+        this.statecoins.coins[i].backup_status === BACKUP_STATUS.SPENT ||
+        this.statecoins.coins[i].status == STATECOIN_STATUS.SPENT ||
+        this.statecoins.coins[i].status == STATECOIN_STATUS.WITHDRAWN) {
+        continue;
+      }
+      // check locktime
+      let blocks_to_locktime = this.statecoins.coins[i].tx_backup.locktime - this.block_height;
+      // pre-locktime - do nothing
+      if (blocks_to_locktime > 0) {
+        this.statecoins.coins[i].setBackupPreLocktime();
+        continue;
+      // locktime reached
+      } else {
+        // in mempool - check if confirmed
+        if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
+          this.electrum_client.getTransaction(this.statecoins.coins[i].tx_backup.getId()).then((tx_data) => {
+            if(tx_data.confirmations > 0) {
+              this.statecoins.coins[i].setBackupConfirmed();
+              this.statecoins.coins[i].setExpired();
+            }
+          })
+        } else {
+          // broadcast transaction
+          this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_backup.toHex()).then((bresponse) => {
+            if(bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
+              this.statecoins.coins[i].setBackupInMempool();
+            } else if(bresponse.includes('already')) {
+              this.statecoins.coins[i].setBackupInMempool();              
+            } else if(bresponse.includes('confict') || bresponse.includes('missingorspent')) {
+              this.statecoins.coins[i].setBackupTaken();
+              this.statecoins.coins[i].setExpired();
+            }
+          });
+          // if CPFP present, then broadcast this as well
+          if (this.statecoins.coins[i].tx_cpfp != null) {
+              this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_cpfp.toHex())       
+          }
+        }
+      }
+    }
+  }
+
+  // create CPFP transaction to spend from backup tx
+  createBackupTxCPFP(cpfp_data: any) {
+
+    log.info("Add CPFP for "+cpfp_data.selected_coin+" to "+cpfp_data.cpfp_addr);
+
+    // Check address format
+    try { bitcoin.address.toOutputScript(cpfp_data.cpfp_addr, this.config.network) }
+      catch (e) { throw Error("Invalid Bitcoin address entered.") }
+
+    let statecoin = this.statecoins.getCoin(cpfp_data.selected_coin);
+    if (!statecoin) throw Error("No coin found with id " + cpfp_data.selected_coin);
+
+    let fee_rate = parseInt(cpfp_data.fee_rate);
+    if (isNaN(fee_rate)) throw Error("Fee rate not an integer");
+
+    let backup_tx_data = this.getCoinBackupTxData(cpfp_data.selected_coin);
+
+    var ec_pair = bitcoin.ECPair.fromWIF(backup_tx_data.key_wif, this.config.network);
+    var p2wpkh = bitcoin.payments.p2wpkh({ pubkey: ec_pair.publicKey, network: this.config.network })
+
+    // Construct CPFP tx
+    let txb_cpfp = txCPFPBuild(
+      this.config.network,
+      backup_tx_data.txid,
+      0,
+      cpfp_data.cpfp_addr,
+      backup_tx_data.output_value,
+      fee_rate,
+      p2wpkh,
+    );
+
+    // sign tx
+    txb_cpfp.sign(0,ec_pair,null,null,backup_tx_data.output_value);
+
+    let cpfp_tx = txb_cpfp.build();
+
+    // add CPFP tx to statecoin
+    for (let i=0; i<this.statecoins.coins.length; i++) {
+      if (this.statecoins.coins[i].shared_key_id === cpfp_data.selected_coin) {
+        this.statecoins.coins[i].tx_cpfp = cpfp_tx;
+        break;
+      }
+    }
+
+    return true;
+  }
 
   // Add confirmed Statecoin to wallet
   addStatecoin(statecoin: StateCoin, action: string) {
@@ -368,11 +473,10 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
-
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 
-    log.info("Deposite Init done. Waiting for coins sent to "+p_addr);
+    log.info("Deposit Init done. Waiting for coins sent to "+p_addr);
     this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
   }
@@ -391,8 +495,8 @@ export class Wallet {
   async checkFundingTxListUnspent(shared_key_id: string, p_addr: string, p_addr_script: string, value: number) {
     this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data) => {
       for (let i=0; i<funding_tx_data.length; i++) {
-        // Verify amount of tx
-        if (funding_tx_data[i].value!==value) {
+        // Verify amount of tx. Ignore if mock electrum
+        if (!this.config.testing_mode && funding_tx_data[i].value!==value) {
           log.error("Funding tx for p_addr "+p_addr+" has value "+funding_tx_data[i].value+" expected "+value+".");
           log.error("Setting value of statecoin to "+funding_tx_data[i].value);
           let statecoin = this.statecoins.getCoin(shared_key_id);
@@ -400,12 +504,12 @@ export class Wallet {
         }
         if (!funding_tx_data[i].height) {
           log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
-          this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i].tx_hash, funding_tx_data[i].tx_pos)
+          this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i])
           this.saveStateCoinsList()
         } else {
           log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
-          // Set coin UNCOMFIRMED.
-          this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i].height)
+          // Set coin UNCONFIRMED.
+          this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i])
           this.saveStateCoinsList()
           // No longer need subscription
           this.electrum_client.scriptHashUnsubscribe(p_addr_script);
@@ -439,7 +543,7 @@ export class Wallet {
     statecoin_finalized.setConfirmed();
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
-    log.info("Deposite Confirm done.");
+    log.info("Deposit Confirm done.");
     this.saveStateCoinsList();
     return statecoin_finalized
   }
@@ -489,9 +593,9 @@ export class Wallet {
     let finalize_data = await transferReceiver(this.http_client, transfer_msg3, rec_se_addr_bip32, batch_data)
 
     // In batch case this step is performed once all other transfers in the batch are complete.
-    if (batch_data = {}) {
-        // Finalize protocol run by generating new shared key and updating wallet.
-        this.transfer_receiver_finalize(finalize_data);
+    if (!Object.keys(batch_data).length) {
+      // Finalize protocol run by generating new shared key and updating wallet.
+      this.transfer_receiver_finalize(finalize_data);
     }
 
     this.saveStateCoinsList();
@@ -578,9 +682,6 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
   let external = i.derive(0)
   let internal = i.derive(1)
 
-  external.keyPair = { network: network };
-  internal.keyPair = { network: network };
-
   // BIP32 Account is made up of two BIP32 Chains.
   let account = new bip32utils.Account([
     new bip32utils.Chain(external, null, segwitAddr),
@@ -591,10 +692,11 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
 }
 
 // Address generation fn
-export const segwitAddr = (node: any, _network: Network) => {
+export const segwitAddr = (node: any, network: Network) => {
+  network = network===undefined ? node.network : network
   const p2wpkh = bitcoin.payments.p2wpkh({
     pubkey: node.publicKey,
-    network: bitcoin.networks.testnet
+    network: network
   });
   return p2wpkh.address
 }

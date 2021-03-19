@@ -1,16 +1,17 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 
-import { Wallet, ACTION } from '../wallet'
-import { getFeeInfo } from '../wallet/mercury/info_api'
-import { decodeMessage, encodeSCEAddress } from '../wallet/util'
-import { initElectrumClient } from '../wallet/wallet'
+import {Wallet, ACTION} from '../wallet'
+import {getFeeInfo} from '../wallet/mercury/info_api'
+import {decodeMessage} from '../wallet/util'
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 
 const log = window.require('electron-log');
+const network = bitcoin.networks[require("../settings.json").network];
 
 let wallet;
+let testing_mode = require("../settings.json").testing_mode;
 
 const initialState = {
   notification_dialogue: [],
@@ -22,7 +23,8 @@ const initialState = {
 
 // Quick check for expiring coins. If so display error dialogue
 const checkForExpiringCoins = () => {
-  let [coins_data, _total_balance] = wallet.getUnspentStatecoins();
+  let unspent_coins_data = wallet.getUnspentStatecoins();
+  let coins_data = unspent_coins_data[0];
   for (let i=0; i<coins_data.length; i++) {
     if (coins_data[i].expiry_data.months <= 1) {
         initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet is close to expiring." }
@@ -31,23 +33,45 @@ const checkForExpiringCoins = () => {
     }
 }
 
+// Check if a wallet is loaded in memory
+export const isWalletLoaded = () => {
+  if (wallet===undefined) {
+    return false
+  }
+  return true
+}
+export const unloadWallet = () => {
+  wallet = undefined;
+}
+
+// update backuptx status and broadcast if necessary
+setInterval(function() {
+    if (wallet) {
+      wallet.updateBackupTxStatus();
+    } }, 30000);
+
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
 function setBlockHeightCallBack(item) {
-  wallet.setBlockHeight(item)
+  wallet.setBlockHeight(item);
 }
 
+// Load wallet from store
 export const walletLoad = (name, password) => {
-  log.info("Wallet loaded from memory. ")
-  wallet = Wallet.load(name, password, false);
-  wallet.initElectrumClient(setBlockHeightCallBack)
+  wallet = Wallet.load(name, password, testing_mode);
+  log.info("Wallet "+name+" loaded from memory. ");
+  if (testing_mode) log.info("Testing mode set.");
+  wallet.initElectrumClient(setBlockHeightCallBack);
   checkForExpiringCoins();
 }
-export const walletFromMnemonic = (wallet_name, password, mnemonic) => {
-  log.info("Wallet "+wallet_name+" created from mnemonic: ", mnemonic)
-  wallet = Wallet.fromMnemonic(wallet_name, password, mnemonic, bitcoin.networks.testnet, false);
-  wallet.initElectrumClient(setBlockHeightCallBack)
-  wallet.save()
+// Create wallet from nmemonic and load wallet
+export const walletFromMnemonic = (name, password, mnemonic) => {
+  wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
+  log.info("Wallet "+name+" created.");
+  if (testing_mode) log.info("Testing mode set.");
+  wallet.initElectrumClient(setBlockHeightCallBack);
+  callNewSeAddr();
+  wallet.save();
   checkForExpiringCoins();
 }
 
@@ -86,11 +110,22 @@ export const callGetSeAddr = (state) => {
 export const callNewSeAddr = (state) => {
   return wallet.newSEAddress()
 }
+// Remove coin from coins list
+export const callRemoveCoin = (shared_key_id) => {
+  log.info("Removing coin "+shared_key_id+" from wallet.");
+  wallet.statecoins.removeCoin(shared_key_id);
+}
 
 // Update config with JSON of field to change
 export const callUpdateConfig = (config_changes) => {
   wallet.config.update(config_changes)
   wallet.save()
+}
+
+// Create CPFP transaction and add to coin
+export const callCreateBackupTxCPFP = (cpfp_data) => {
+     let sucess = wallet.createBackupTxCPFP(cpfp_data);
+     return sucess
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
@@ -157,11 +192,11 @@ const WalletSlice = createSlice({
       state.error_dialogue.seen = true
     },
     setError(state, action) {
+      log.error(action.payload.msg)
       return {
         ...state,
         error_dialogue: {seen: false, msg: action.payload.msg}
       }
-      log.error(action.payload.msg)
     },
     setNotificationSeen(state, action) {
       return {
@@ -190,6 +225,9 @@ const WalletSlice = createSlice({
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
+    [walletLoad.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
     [callDepositInit.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },

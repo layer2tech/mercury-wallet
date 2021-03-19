@@ -1,22 +1,25 @@
-import React, {useState} from 'react';
-import {Link} from "react-router-dom";
-import { useDispatch } from 'react-redux'
-
-import {Wallet} from "../../wallet";
-import {setError} from '../../features/WalletDataSlice'
+import React, { useState } from 'react';
+import { withRouter } from "react-router-dom";
+import {useDispatch} from 'react-redux'
+import {setError, walletFromMnemonic, callGetConfig} from '../../features/WalletDataSlice'
 
 import './confirmSeed.css'
 
-const rands = [Math.floor(Math.random()*11),Math.floor(Math.random()*11),Math.floor(Math.random()*11)]
-
 const ConfirmSeed = (props) => {
   const dispatch = useDispatch();
+  const [rands] = useState(() => !require("../../settings.json").testing_mode ?
+    [
+      Math.floor(Math.random()*11),
+      Math.floor(Math.random()*11),
+      Math.floor(Math.random()*11)
+    ] : []
+  )
 
   let words = props.wizardState.mnemonic.split(" ");
-  const [missingwords, setMissingWords] = useState(rands.map((rand) => ({pos:rand, word:""})));
+  const [missingwords, setMissingWords] = useState(() => rands.map((rand) => ({pos:rand, word:""})));
 
   const inputMissingWord = (event) => {
-    let map = missingwords.map((item) => {if (item.pos==event.target.id) {item.word=event.target.value} return item})
+    let map = missingwords.map((item) => {if (item.pos===parseInt(event.target.id)) {item.word=event.target.value} return item})
     setMissingWords(map)
   }
 
@@ -27,19 +30,30 @@ const ConfirmSeed = (props) => {
         id={index}
         type="text"
         placeholder={index + 1 + ". " + item}
-        value={item === '' ? missingwords.find((item) => {if (item.pos==index) {return item}}).word : ""}
+        value={item === '' ? missingwords.find((item) => {if (item.pos===index) {return item} return null}).word : ""}
         disabled={item === '' ? "" : "disabled"}
         onChange={inputMissingWord}/>
   ))
 
   // Confirm words are correct
-  const onClickConf = (event) => {
+  const onConfirmClick = (event) => {
+    // Verify mnemonic confirmation
     for (let i=0;i<missingwords.length; i++) {
-      if (missingwords[i].word!=words[missingwords[i].pos]) {
+      if (missingwords[i].word!==words[missingwords[i].pos]) {
         event.preventDefault();
         dispatch(setError({msg: "Seed confirmation failed."}))
+        return
       }
     }
+    // Create wallet and load into Redux state
+    try {
+      walletFromMnemonic(props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic)
+      props.history.push('/home')
+    } catch (e) {
+      event.preventDefault();
+      dispatch(setError({msg: e.message}))
+    }
+    props.setWalletLoaded(true);
   }
 
   return (
@@ -49,11 +63,14 @@ const ConfirmSeed = (props) => {
           <form>
               {inputs}
           </form>
-          <Link to={"/home/mnemonic/"+JSON.stringify(props.wizardState)} onClick={onClickConf} className="confirm">
-              Confirm
-          </Link>
+          <div className="mt-3">
+            <button onClick={props.onPrevStep} className="btn btn-primary">Prev</button>
+            <button className="btn btn-primary" onClick={onConfirmClick} >
+                Confirm
+            </button>
+          </div>
       </div>
   )
 }
 
-export default ConfirmSeed;
+export default withRouter(ConfirmSeed);

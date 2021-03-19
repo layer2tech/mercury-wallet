@@ -1,18 +1,7 @@
 # Mercury Wallet
 
-A cross-platform GUI for Mercury written in node.js using Electron.
+Mercury wallet is a cross-platform GUI for [Mercury](https://github.com/commerceblock/mercury) written in node.js using Electron.
 
-
-# Run development
-
-`yarn install`
-
-`yarn run dev`
-
-
-# Run tests
-
-`yarn run test`
 
 # Configuration
 
@@ -27,11 +16,31 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 | min_anon_set | number | 10 |
 | notifications | boolean | true |
 | tutorials | boolean | false |
-
+| testing_mode | boolean | false |
 
 
 
 # Development instructions
+
+## Run development
+
+`yarn install`
+
+`yarn run dev`
+
+
+## Run tests
+
+`yarn run test`
+
+
+## Testing mode
+
+Setting testing_mode removes some inconveniences to make testing easier and faster:
+
+- No seed confirmation
+- Electrum calls mocked so no need to send and wait for funding transactions
+
 
 ## Rust bindings
 
@@ -50,7 +59,7 @@ To rebuild after editing:
 Mac users may have to compile WebAssembly from within a Docker container:
 
 
-### Docker instructions for building client-wasm
+## Docker instructions for building client-wasm
 
 There is a DockerFile in `client-wasm/`, first build the image
 
@@ -72,7 +81,7 @@ You can edit files outside of container with your normal text editor and then
 issue cargo/wasm build in container again.
 
 
-### Logs
+## Logs
 
 Logs are written to console and file at the following locations:
 

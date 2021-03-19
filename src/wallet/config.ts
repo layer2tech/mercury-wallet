@@ -58,7 +58,6 @@ export class Config {
     Object.entries(config_changes).forEach((item) => {
       switch(item[0]) {
         case "network":
-          this.network = item[1];
           return;
         case "testing_mode":
           this.testing_mode = item[1];

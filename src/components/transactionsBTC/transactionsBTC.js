@@ -1,17 +1,19 @@
-import scan from "../../images/scan-deposite.png";
-import icon1 from "../../images/icon1.png";
-import icon2 from "../../images/icon2.png";
-import arrow from "../../images/scan-arrow.png";
+import btc_img from "../../images/icon1.png";
+import copy_img from "../../images/icon2.png";
+import arrow_img from "../../images/scan-arrow.png";
+import close_img from "../../images/close-icon.png";
 
-import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux'
+import React, {useEffect, useState} from 'react';
+import {useDispatch} from 'react-redux'
 
-import { callDepositInit, callDepositConfirm, setNotification,
-  callGetUnconfirmedAndUnmindeCoinsFundingTxData  } from '../../features/WalletDataSlice'
-import { fromSatoshi } from '../../wallet'
+import {callDepositInit, callDepositConfirm, setNotification,
+  callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin} from '../../features/WalletDataSlice'
+import {fromSatoshi} from '../../wallet'
 
 import '../../containers/Deposit/Deposit.css';
 import '../index.css';
+
+let QRCode = require('qrcode.react');
 
 const TransactionsBTC = (props) => {
   const [state, setState] = useState({});
@@ -65,13 +67,16 @@ const TransactionsBTC = (props) => {
         <div key={index}>
           <div>
             <TransactionDisplay
+              shared_key_id={item.shared_key_id}
               amount={item.value}
               confirmations={item.confirmations}
-              address={item.p_addr}/>
+              address={item.p_addr}
+              parent_setState={setState}/>
           </div>
       </div>
       )
     }
+    return null
   })
 
   return (
@@ -93,35 +98,49 @@ const TransactionDisplay = (props) => {
   }
 
   const getCofirmationsDisplayString = () => {
-    if (props.confirmations==-1) {
+    if (props.confirmations===-1) {
       return "Awaiting.."
     }
     return props.confirmations+" Confirmations.."
   }
 
+  const onCloseArrowClick = () => {
+    callRemoveCoin(props.shared_key_id)
+    props.parent_setState({})
+  }
+
+  // WARNING: amount is in BTC NOT satoshis.
+  const makeQRCodeString = (address, amount) => "bitcoin:"+address+"?amount="+amount;
+
   return (
     <div className="Body">
-        <div className="deposit-scan">
-            <img src={scan} alt=""/>
-            <div className="deposit-scan-content">
-                <div className="deposit-scan-subtxt">
-                    <span>Finish Creating the Statecoin by sending exactly {fromSatoshi(props.amount)} BTC to:</span>
-                    <span>{getCofirmationsDisplayString()}</span>
-                </div>
-                <div className="deposit-scan-main">
-                    <div className="deposit-scan-main-item">
-                        <img src={icon1} alt="icon"/>
-                        <span><b>{fromSatoshi(props.amount)}</b> BTC</span>
-                    </div>
-                    <img src={arrow} alt="arrow"/>
-                    <div className="deposit-scan-main-item">
-                        <img type="button" src={icon2} alt="icon" onClick={copyAddressToClipboard}/>
-                        <span className="long"><b>{props.address}</b></span>
-                    </div>
-                </div>
+      <img src={close_img} alt="arrow" onClick={onCloseArrowClick}/>
+      <div className="deposit-scan">
+        <QRCode value={makeQRCodeString(props.address, fromSatoshi(props.amount))}
+        level='H'
+        />
+
+        <div className="deposit-scan-content">
+          <div className="deposit-scan-subtxt">
+            <span>Finish Creating the Statecoin by sending exactly {fromSatoshi(props.amount)} BTC to:</span>
+            <span>{getCofirmationsDisplayString()}</span>
+          </div>
+
+          <div className="deposit-scan-main">
+            <div className="deposit-scan-main-item">
+              <img src={btc_img} alt="icon"/>
+              <span><b>{fromSatoshi(props.amount)}</b> BTC</span>
             </div>
+            <img src={arrow_img} alt="arrow"/>
+            <div className="deposit-scan-main-item">
+              <img type="button" src={copy_img} alt="icon" onClick={copyAddressToClipboard}/>
+              <span className="long"><b>{props.address}</b></span>
+            </div>
+          </div>
+
         </div>
-    </div>
+      </div>
+  </div>
   )
 }
 
