@@ -12,6 +12,11 @@
   flex-direction: column;
   padding-left: 10px;
 }
+.CoinSwapStatus {
+  display: flex;
+  align-items: center;
+  color: #757575;
+}
 .CoinTimeLeft {
   display: flex;
   align-items: center;

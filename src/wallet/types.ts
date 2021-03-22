@@ -290,6 +290,7 @@ export const BSTSenderData = typeforce.compile ({
 
 
 export const SwapStatus = {
+  Phase0: "Phase0",
   Phase1: "Phase1",
   Phase2: "Phase2",
   Phase3: "Phase3",

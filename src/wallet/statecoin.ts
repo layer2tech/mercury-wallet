@@ -216,6 +216,7 @@ export class StateCoin {
     this.funding_vout = 0;
     this.block = -1; // marks tx has not been mined
     this.swap_rounds = 0
+    //this.swap_participants = 0
     this.tx_backup = null;
     this.tx_withdraw = null;
     this.smt_proof = null;
@@ -242,7 +243,9 @@ export class StateCoin {
       timestamp: this.timestamp,
       swap_rounds: this.swap_rounds,
       expiry_data: this.getExpiryData(block_height),
-      status: this.status
+      status: this.status,
+      swap_id: (this.swap_info ? this.swap_info.swap_token.id : null),
+      swap_status: this.swap_status
     }
   };
 
@@ -254,6 +257,7 @@ export class StateCoin {
     }
 
     return {
+      swap_status: this.swap_status,
       swap_id: si.swap_token.id,
       participants: si.swap_token.statechain_ids.length,
       capacity:si.swap_token.statechain_ids.length,
@@ -335,10 +339,13 @@ export interface StateCoinDisplayData {
   timestamp: number,
   swap_rounds: number,
   expiry_data: ExpiryData,
-  status: string
+  status: string,
+  swap_id: string | null,
+  swap_status: string | null,
 }
 
 export interface SwapDisplayData {
+  swap_status: string | null,
   swap_id: string,
   participants: number,
   capacity: number,

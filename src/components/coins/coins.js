@@ -26,6 +26,8 @@ import '../index.css';
 
 const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}}}
 
+
+
 const Coins = (props) => {
     const dispatch = useDispatch();
 
@@ -75,6 +77,7 @@ const Coins = (props) => {
           let new_unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
+          
           if (
             unconfired_coins_data.length !== new_unconfired_coins_data.length
               ||
@@ -82,6 +85,7 @@ const Coins = (props) => {
               !==
             new_unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
           ) {
+              
             unconfired_coins_data = new_unconfired_coins_data
             all_coins_data = coins_data.concat(unconfired_coins_data)
             setState({}) //update state to refresh TransactionDisplay render
@@ -131,12 +135,30 @@ const Coins = (props) => {
                                 Time Until Expiry: <span className='expiry-time-left'>{expiry_time_to_string(item.expiry_data)}</span>
                             </span>
                         </div>
+    
 
                     </div>
                   }
                     <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
                         {item.funding_txid}
+                    </b>
+                    <b className="CoinSwapStatus">
+                        {item.swap_id !== null &&
+                            <span>
+                                In swap id: {item.swap_id}
+                            </span>
+                        }
+                        {item.swap_id === null && item.swap_status === null &&
+                            <span>
+                                Not currently in a swap.
+                            </span>
+                        }
+                        {item.swap_status !== null && item.swap_id === null &&
+                            <span>
+                                Waiting for other swap participants...
+                            </span>
+                        }
                     </b>
                 </div> : null}
                 {item.swap_rounds < 0 ? <div className="CoinPanel">
@@ -170,11 +192,28 @@ const Coins = (props) => {
                             </span>
 
                         </div>
-
+        
                     </div>
                     <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
                         {item.funding_txid}
+                    </b>
+                    <b className="CoinSwapStatus">
+                        {item.swap_id !== null &&
+                            <span>
+                                In swap id: {item.swap_id}
+                            </span>
+                        }
+                        {item.swap_id === null && item.swap_status === null &&
+                            <span>
+                                Not currently in a swap.
+                            </span>
+                        }
+                        {item.swap_status !== null && item.swap_id === null &&
+                            <span>
+                                Waiting for other swap participants...
+                            </span>
+                        }
                     </b>
                 </div> : null}
                 {item.swap_rounds > 5 && item.swap_rounds < 10 ? <div className="CoinPanel">
@@ -207,11 +246,29 @@ const Coins = (props) => {
                               Time Until Expiry: {expiry_time_to_string(item.expiry_data)}
                             </span>
                         </div>
+        
 
                     </div>
                     <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
                         {item.funding_txid}
+                    </b>
+                    <b className="CoinSwapStatus">
+                        {item.swap_id !== null &&
+                            <span>
+                                In swap id: {item.swap_id}
+                            </span>
+                        }
+                        {item.swap_id === null && item.swap_status === null &&
+                            <span>
+                                Not currently in a swap.
+                            </span>
+                        }
+                        {item.swap_status !== null && item.swap_id === null &&
+                            <span>
+                                Waiting for other swap participants...
+                            </span>
+                        }
                     </b>
                 </div> : null}
                 {item.swap_rounds > 10 ? <div className="CoinPanel">
@@ -245,11 +302,29 @@ const Coins = (props) => {
                             </span>
 
                         </div>
+               
 
                     </div>
                     <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
                         {item.funding_txid}
+                    </b>
+                    <b className="CoinSwapStatus">
+                        {item.swap_id !== null &&
+                            <span>
+                                In swap id: {item.swap_id}
+                            </span>
+                        }
+                        {item.swap_id === null && item.swap_status === null &&
+                            <span>
+                                Not currently in a swap.
+                            </span>
+                        }
+                        {item.swap_status !== null && item.swap_id === null &&
+                            <span>
+                                Waiting for other swap participants...
+                            </span>
+                        }
                     </b>
                 </div> : null}
             </div>

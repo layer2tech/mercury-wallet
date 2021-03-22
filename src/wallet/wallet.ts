@@ -482,6 +482,7 @@ export class Wallet {
     this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 
     // update in wallet
+    new_statecoin.swap_status = null;
     new_statecoin.setConfirmed();
     this.statecoins.addCoin(new_statecoin);
 

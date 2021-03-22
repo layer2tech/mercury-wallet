@@ -58,6 +58,8 @@ export const doSwap = async (
     id: statecoin.statechain_id
   }
 
+  statecoin.swap_status=SwapStatus.Phase0;
+
 
   let swap_id = null
   while (true){
@@ -77,7 +79,7 @@ export const doSwap = async (
   while (true){
     swap_info = await getSwapInfo(http_client,swap_id);
     if (swap_info !== null){
-
+        statecoin.swap_status=swap_info.status;
       break;
     }
     await delay(3);
@@ -103,6 +105,7 @@ export const doSwap = async (
     let phase: string = await pollSwap(http_client, swap_id);
     if (statecoin.swap_info){
       statecoin.swap_info.status=phase;
+      statecoin.swap_status=phase;
     }
     if (phase !== SwapStatus.Phase1){
       break;
@@ -122,6 +125,7 @@ export const doSwap = async (
     let phase = await pollSwap(http_client, swap_id);
     if (statecoin.swap_info){
       statecoin.swap_info.status=phase;
+      statecoin.swap_status=phase;
     }
     if (phase === SwapStatus.Phase4){
       break;
@@ -159,6 +163,7 @@ export const doSwap = async (
     console.log("swap status: ", phase);
     if (statecoin.swap_info){
       statecoin.swap_info.status=phase;
+      statecoin.swap_status=phase;
     }
     if (phase === SwapStatus.End){
       break;
@@ -173,7 +178,6 @@ export const doSwap = async (
 
   statecoin_out.swap_rounds=swap_rounds+1;
   return statecoin_out;
-
 }
 
 export const do_transfer_receiver = async (
@@ -468,6 +472,7 @@ export interface BatchData {
 }
 
 export interface SwapStatus {
+  Phase0: "Phase0",
   Phase1: "Phase1",
   Phase2: "Phase2",
   Phase3: "Phase3",
