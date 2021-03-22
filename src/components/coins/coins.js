@@ -1,17 +1,16 @@
-import icon1 from "../../images/table-icon.png";
-import icon2 from "../../images/table-icon-grey.png";
-import medium from "../../images/table-icon-medium.png";
+import anon_icon_none from "../../images/table-icon-grey.png";
+import anon_icon_low from "../../images/table-icon-medium.png";
+import anon_icon_high from "../../images/table-icon.png";
+import anon_icon2_none from "../../images/close-grey.png";
+import anon_icon2_low from "../../images/question-mark.png";
+import anon_icon2_high from "../../images/check-grey.png";
 import utx from "../../images/UTX.png";
 import time from "../../images/time-grey.png";
 import calendar from "../../images/calendar.png";
-import privacy from "../../images/privacy.png";
 import swapNumber from "../../images/swap-number.png";
 import walleticon from "../../images/walletIcon.png";
-import close from "../../images/close-grey.png";
 import txidIcon from "../../images/txid-icon.png";
 import timeIcon from "../../images/time.png";
-import check from "../../images/check-grey.png";
-import question from "../../images/question-mark.png";
 
 import React, {useState, useEffect} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
@@ -24,8 +23,11 @@ import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoin
 import './coins.css';
 import '../index.css';
 
-const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}}}
-
+const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}, privacy_data: {score_desc: ""}}}
+// privacy score considered "low"
+const LOW_PRIVACY = 10
+// style time left timer as red after this many months
+const MONTHS_WARNING = 5
 
 
 const Coins = (props) => {
@@ -37,6 +39,7 @@ const Coins = (props) => {
         let coin = all_coins_data.find((coin) => {
             return coin.shared_key_id === shared_key_id
         })
+        coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
         setShowCoinDetails({show: true, coin: coin});
     }
     const handleCloseCoinDetails = () => {
@@ -77,7 +80,7 @@ const Coins = (props) => {
           let new_unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
-          
+
           if (
             unconfired_coins_data.length !== new_unconfired_coins_data.length
               ||
@@ -85,7 +88,7 @@ const Coins = (props) => {
               !==
             new_unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
           ) {
-              
+
             unconfired_coins_data = new_unconfired_coins_data
             all_coins_data = coins_data.concat(unconfired_coins_data)
             setState({}) //update state to refresh TransactionDisplay render
@@ -95,23 +98,53 @@ const Coins = (props) => {
       }
     }, []);
 
-    const statecoinData = all_coins_data.map(item => (
+    // data to display in privacy related sections
+    const getPrivacyScoreDesc = (swap_rounds) => {
+      if (!swap_rounds) {
+        return {
+          icon1: anon_icon_none,
+          icon2: anon_icon2_none,
+          score_desc: "No Privacy Score",
+          msg: "Withdrawn BTC will have no privacy"
+        }
+      }
+      if (swap_rounds < LOW_PRIVACY) {
+        return {
+          icon1: anon_icon_low,
+          icon2: anon_icon2_low,
+          score_desc: "Low Privacy Score",
+          msg: "Withdrawn BTC will have low privacy"
+        }
+      }
+      return {
+        icon1: anon_icon_high,
+        icon2: anon_icon2_high,
+        score_desc: "High Privacy Score",
+        msg: "Withdrawn BTC will be private"
+      }
+    }
+
+
+    const statecoinData = all_coins_data.map(item => {
+      item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
+
+    return (
         <div key={item.shared_key_id}>
             <div
                 onClick={() => selectCoin(item.shared_key_id)}
                 style={isSelectedStyle(item.shared_key_id)}>
-                {item.swap_rounds === 0 ? <div className="CoinPanel">
+
+                  <div className="CoinPanel">
                     <div className="CoinAmount-block">
-                        <img src={icon2} alt="icon"/>
+                        <img src={item.privacy_data.icon1} alt="icon"/>
                         <span className="sub">
                             <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
                             <div className="scoreAmount">
-                                <img src={close} alt="icon"/>
-                                No Privacy Score
-
+                                <img src={item.privacy_data.icon2} alt="icon"/>
+                                {item.privacy_data.score_desc}
                                 <span className="tooltip">
-                                    <b>No Privacy Score:</b>
-                                    Withdrawn BTC wille private
+                                    <b>{item.privacy_data.score_desc}:</b>
+                                      {item.privacy_data.msg}
                                 </span>
                             </div>
                         </span>
@@ -120,13 +153,12 @@ const Coins = (props) => {
                           <b>Confirmations: {item.expiry_data.confirmations<0 ? 0 : item.expiry_data.confirmations}</b>
                       :
 
-                    <div className="progress_bar" id={item.expiry_data.months < 5 ? 'danger' : 'success'}>
+                    <div className="progress_bar" id={item.expiry_data.months < MONTHS_WARNING ? 'danger' : 'success'}>
                         <div className="sub">
                             <ProgressBar>
-                                <ProgressBar striped variant={item.expiry_data.months < 5 ? 'danger' : 'success'} now={item.expiry_data.months * 100 / 12}
-                                             key={1}/>
-                                {/*<ProgressBar variant="warning" now={20} key={2} />*/}
-                                {/*<ProgressBar striped variant="danger" now={10} key={3} />*/}
+                                <ProgressBar striped variant={item.expiry_data.months < MONTHS_WARNING ? 'danger' : 'success'}
+                                  now={item.expiry_data.months * 100 / 12}
+                                  key={1}/>
                             </ProgressBar>
                         </div>
                         <div className="CoinTimeLeft">
@@ -135,8 +167,6 @@ const Coins = (props) => {
                                 Time Until Expiry: <span className='expiry-time-left'>{expiry_time_to_string(item.expiry_data)}</span>
                             </span>
                         </div>
-    
-
                     </div>
                   }
                     <b className="CoinFundingTxid">
@@ -160,183 +190,16 @@ const Coins = (props) => {
                             </span>
                         }
                     </b>
-                </div> : null}
-                {item.swap_rounds < 0 ? <div className="CoinPanel">
-                    <div className="CoinAmount-block">
-                        <img src={icon2} alt="icon"/>
-                        <span className="sub">
-                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
-                            <div className="scoreAmount">
-                                <img src={question} alt="icon"/>
-                                Low Privacy Score
-
-                                <span className="tooltip">
-                                    <b>High Privacy Score:</b>
-                                    Withdrawn BTC wille private
-                                </span>
-                            </div>
-                        </span>
-                    </div>
-                    <div className="progress_bar">
-                        <div className="sub">
-                            <ProgressBar>
-                                <ProgressBar striped variant="success" now={10.2 * 100 / 12} key={1}/>
-                                {/*<ProgressBar variant="warning" now={20} key={2} />*/}
-                                {/*<ProgressBar striped variant="danger" now={10} key={3} />*/}
-                            </ProgressBar>
-                        </div>
-                        <div className="CoinTimeLeft">
-                            <img src={timeIcon} alt="icon"/>
-                            <span>
-                              Time Until Expiry: {expiry_time_to_string(item.expiry_data)}
-                            </span>
-
-                        </div>
-        
-                    </div>
-                    <b className="CoinFundingTxid">
-                        <img src={txidIcon} alt="icon"/>
-                        {item.funding_txid}
-                    </b>
-                    <b className="CoinSwapStatus">
-                        {item.swap_id !== null &&
-                            <span>
-                                In swap id: {item.swap_id}
-                            </span>
-                        }
-                        {item.swap_id === null && item.swap_status === null &&
-                            <span>
-                                Not currently in a swap.
-                            </span>
-                        }
-                        {item.swap_status !== null && item.swap_id === null &&
-                            <span>
-                                Waiting for other swap participants...
-                            </span>
-                        }
-                    </b>
-                </div> : null}
-                {item.swap_rounds > 5 && item.swap_rounds < 10 ? <div className="CoinPanel">
-                    <div className="CoinAmount-block">
-                        <img src={medium} alt="icon"/>
-                        <span className="sub">
-                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
-                            <div className="scoreAmount">
-                                <img src={question} alt="icon"/>
-                                Medium Privacy Score
-
-                                <span className="tooltip">
-                                    <b>Medium Privacy Score:</b>
-                                    Withdrawn BTC wille private
-                                </span>
-                            </div>
-                        </span>
-                    </div>
-                    <div>
-                        <div className="sub">
-                            <ProgressBar>
-                                <ProgressBar striped variant="success" now={10.2 * 100 / 12} key={1}/>
-                                {/*<ProgressBar variant="warning" now={20} key={2} />*/}
-                                {/*<ProgressBar striped variant="danger" now={10} key={3} />*/}
-                            </ProgressBar>
-                        </div>
-                        <div className="CoinTimeLeft">
-                            <img src={timeIcon} alt="icon"/>
-                            <span>
-                              Time Until Expiry: {expiry_time_to_string(item.expiry_data)}
-                            </span>
-                        </div>
-        
-
-                    </div>
-                    <b className="CoinFundingTxid">
-                        <img src={txidIcon} alt="icon"/>
-                        {item.funding_txid}
-                    </b>
-                    <b className="CoinSwapStatus">
-                        {item.swap_id !== null &&
-                            <span>
-                                In swap id: {item.swap_id}
-                            </span>
-                        }
-                        {item.swap_id === null && item.swap_status === null &&
-                            <span>
-                                Not currently in a swap.
-                            </span>
-                        }
-                        {item.swap_status !== null && item.swap_id === null &&
-                            <span>
-                                Waiting for other swap participants...
-                            </span>
-                        }
-                    </b>
-                </div> : null}
-                {item.swap_rounds > 10 ? <div className="CoinPanel">
-                    <div className="CoinAmount-block">
-                        <img src={icon1} alt="icon"/>
-                        <span className="sub">
-                            <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
-                            <div className="scoreAmount">
-                                <img src={check} alt="icon"/>
-                                High Privacy Score
-
-                                <span className="tooltip">
-                                    <b>High Privacy Score:</b>
-                                    Withdrawn BTC wille private
-                                </span>
-                            </div>
-                        </span>
-                    </div>
-                    <div>
-                        <div className="sub">
-                            <ProgressBar>
-                                <ProgressBar striped variant="success" now={10.2 * 100 / 12} key={1}/>
-                                {/*<ProgressBar variant="warning" now={20} key={2} />*/}
-                                {/*<ProgressBar striped variant="danger" now={10} key={3} />*/}
-                            </ProgressBar>
-                        </div>
-                        <div className="CoinTimeLeft">
-                            <img src={timeIcon} alt="icon"/>
-                            <span>
-                              Time Until Expiry: {expiry_time_to_string(item.expiry_data)}
-                            </span>
-
-                        </div>
-               
-
-                    </div>
-                    <b className="CoinFundingTxid">
-                        <img src={txidIcon} alt="icon"/>
-                        {item.funding_txid}
-                    </b>
-                    <b className="CoinSwapStatus">
-                        {item.swap_id !== null &&
-                            <span>
-                                In swap id: {item.swap_id}
-                            </span>
-                        }
-                        {item.swap_id === null && item.swap_status === null &&
-                            <span>
-                                Not currently in a swap.
-                            </span>
-                        }
-                        {item.swap_status !== null && item.swap_id === null &&
-                            <span>
-                                Waiting for other swap participants...
-                            </span>
-                        }
-                    </b>
-                </div> : null}
-            </div>
+                  </div>
+              </div>
         </div>
-    ))
+    )})
 
     return (
         <div>
             {statecoinData}
 
             <Modal show={showCoinDetails.show} onHide={handleCloseCoinDetails} className="modal">
-
                 <Modal.Body>
                     <div>
                         <div className="item">
@@ -374,22 +237,23 @@ const Coins = (props) => {
                             </div>
                         </div>
                         <div className="item">
-                            <img src={privacy} alt="icon"/>
+                            <img src={showCoinDetails.coin.privacy_data.icon1} alt="icon"/>
 
                             <div className="block">
                                 <span>Privacy Score</span>
-                                <span>Low: 0</span>
+                                <span>{showCoinDetails.coin.privacy_data.score_desc}</span>
 
                             </div>
-                            <img className="question-icon" src={question} alt="icon"/>
                         </div>
                         <div className="item">
                             <img src={swapNumber} alt="icon"/>
                             <div className="block">
                                 <span>Number of Swaps Rounds</span>
                                 <span>Swaps: {showCoinDetails.coin.swap_rounds}
+                                  {/*
                                     <br/>
                                     Number of Participants: 0
+                                  */}
                                 </span>
                             </div>
                         </div>
