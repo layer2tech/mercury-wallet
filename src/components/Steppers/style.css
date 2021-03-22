@@ -1,0 +1,46 @@
+.steppers .wrapper-progressbar {
+  width: 100%;
+}
+.steppers .progressbar li {
+  list-style-type: none;
+  float: left;
+  width: 33%;
+  position: relative;
+  text-align: center;
+}
+.steppers .progressbar li:before {
+  content: ' ';
+  color: red;
+  line-height: 30px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ddd;
+  display: block;
+  text-align: center;
+  margin: 0 auto 10px;
+  background-color: white;
+}
+.steppers .progressbar li:after {
+  content: '';
+  position: absolute;
+  width: calc(100% - 29px);
+  height: 4px;
+  background-color: silver;
+  top: 14px;
+  left: calc(-50% + 14.5px);
+  z-index: 0;
+}
+.steppers .progressbar li:first-child:after {
+  content: none;
+}
+.steppers .progressbar li.active {
+  color: dodgerblue;
+}
+.steppers .progressbar li.active:before {
+  border-color: dodgerblue;
+  background-color: dodgerblue;
+}
+.steppers .progressbar .active:after {
+  background-color: dodgerblue;
+}

@@ -1,21 +1,22 @@
-import React, {useState} from 'react';
-import {Link} from "react-router-dom";
+import React, { useState } from 'react';
+import { withRouter } from "react-router-dom";
 import {useDispatch} from 'react-redux'
-
 import {setError, walletFromMnemonic, callGetConfig} from '../../features/WalletDataSlice'
 
 import './confirmSeed.css'
 
-let rands = [];
-if (!require("../../settings.json").testing_mode) {
-  rands = [Math.floor(Math.random()*11),Math.floor(Math.random()*11),Math.floor(Math.random()*11)]
-}
-
 const ConfirmSeed = (props) => {
   const dispatch = useDispatch();
+  const [rands] = useState(() => !require("../../settings.json").testing_mode ?
+    [
+      Math.floor(Math.random()*11),
+      Math.floor(Math.random()*11),
+      Math.floor(Math.random()*11)
+    ] : []
+  )
 
   let words = props.wizardState.mnemonic.split(" ");
-  const [missingwords, setMissingWords] = useState(rands.map((rand) => ({pos:rand, word:""})));
+  const [missingwords, setMissingWords] = useState(() => rands.map((rand) => ({pos:rand, word:""})));
 
   const inputMissingWord = (event) => {
     let map = missingwords.map((item) => {if (item.pos===parseInt(event.target.id)) {item.word=event.target.value} return item})
@@ -45,11 +46,13 @@ const ConfirmSeed = (props) => {
       }
     }
     // Create wallet and load into Redux state
-    try { walletFromMnemonic(props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic) }
-      catch (e) {
-        event.preventDefault();
-        dispatch(setError({msg: e.message}))
-      }
+    try {
+      walletFromMnemonic(props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic)
+      props.history.push('/home')
+    } catch (e) {
+      event.preventDefault();
+      dispatch(setError({msg: e.message}))
+    }
     props.setWalletLoaded(true);
   }
 
@@ -60,11 +63,14 @@ const ConfirmSeed = (props) => {
           <form>
               {inputs}
           </form>
-          <Link to="/home" onClick={onConfirmClick} className="confirm">
-              Confirm
-          </Link>
+          <div className="mt-3">
+            <button onClick={props.onPrevStep} className="btn btn-primary">Prev</button>
+            <button className="btn btn-primary" onClick={onConfirmClick} >
+                Confirm
+            </button>
+          </div>
       </div>
   )
 }
 
-export default ConfirmSeed;
+export default withRouter(ConfirmSeed);

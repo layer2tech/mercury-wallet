@@ -17,7 +17,8 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      backgroundThrottling: false,
     }
   });
     // Open the DevTools.

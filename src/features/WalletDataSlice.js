@@ -46,6 +46,12 @@ export const unloadWallet = () => {
   wallet = undefined;
 }
 
+// update backuptx status and broadcast if necessary
+setInterval(function() {
+    if (wallet) {
+      wallet.updateBackupTxStatus();
+    } }, 30000);
+
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
 function setBlockHeightCallBack(item) {
@@ -123,11 +129,22 @@ export const callGetSeAddr = (state) => {
 export const callNewSeAddr = (state) => {
   return wallet.newSEAddress()
 }
+// Remove coin from coins list
+export const callRemoveCoin = (shared_key_id) => {
+  log.info("Removing coin "+shared_key_id+" from wallet.");
+  wallet.statecoins.removeCoin(shared_key_id);
+}
 
 // Update config with JSON of field to change
 export const callUpdateConfig = (config_changes) => {
   wallet.config.update(config_changes)
   wallet.save()
+}
+
+// Create CPFP transaction and add to coin
+export const callCreateBackupTxCPFP = (cpfp_data) => {
+     let sucess = wallet.createBackupTxCPFP(cpfp_data);
+     return sucess
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
