@@ -6,6 +6,7 @@ export const Hash160bit = typeforce.BufferN(20);
 export const Hash256bit = typeforce.BufferN(32);
 export const Number = typeforce.Number;
 export const Array = typeforce.Array;
+export const Map = typeforce.Map;
 export const Boolean = typeforce.Boolean;
 export const String = typeforce.String;
 export const UInt32 = typeforce.UInt32;
@@ -385,3 +386,12 @@ export const BSTRequestorData = typeforce.compile({
   m: String,
 })
 
+export const SwapGroup = typeforce.compile({
+  amount: UInt64,
+  size: UInt64,
+})
+
+export const SwapGroupMap = typeforce.compile(
+    //Map::<SwapGroup, UInt64>
+    Map
+)

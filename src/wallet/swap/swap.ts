@@ -29,6 +29,7 @@ function delay(s: number) {
   return new Promise( resolve => setTimeout(resolve, s*1000) );
 }
 
+
 export const doSwap = async (
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
@@ -72,7 +73,6 @@ export const doSwap = async (
     }
     await delay(3);
   };
-
 
 
   let swap_info = null;
@@ -490,4 +490,9 @@ export interface SwapID{
 
 export interface StatechainID{
   id: String, //Option<Uuid>,
+}
+
+export interface SwapGroup{
+  amount: number,
+  size: number,
 }

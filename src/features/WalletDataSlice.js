@@ -88,6 +88,13 @@ export const callGetUnspentStatecoins = () => {
 export const callGetOngoingSwaps = () => {
   return wallet.getOngoingSwaps()
 }
+export const callGetSwapGroupInfo = () => {
+  let map = new Map;
+  map.set({"amount":0.1,"size":12}, 11);
+  map.set({"amount":1.0,"size":20}, 19);
+  return map
+  //return wallet.getSwapGroupInfo()
+}
 export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
   return wallet.getUnconfirmedAndUnmindeCoinsFundingTxData()
 }

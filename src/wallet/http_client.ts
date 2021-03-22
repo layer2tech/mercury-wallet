@@ -6,7 +6,8 @@ export const GET_ROUTE = {
   FEES: "info/fee",
   ROOT: "info/root",
   STATECHAIN: "info/statechain",
-  TRANSFER_BATCH: "info/transfer-batch"
+  TRANSFER_BATCH: "info/transfer-batch",
+  SWAP_GROUPINFO: "swap/groupinfo"
 };
 Object.freeze(GET_ROUTE);
 
@@ -33,7 +34,6 @@ export const POST_ROUTE = {
   SWAP_FIRST: "swap/first",			
   SWAP_BLINDED_SPEND_SIGNATURE: "swap/blinded-spend-signature",
   SWAP_SECOND: "swap/second",	
-
 };
 Object.freeze(POST_ROUTE);
 

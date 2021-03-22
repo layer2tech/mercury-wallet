@@ -1,5 +1,5 @@
 import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE } from "..";
-import { BSTMsg, SwapID, StatechainID} from './swap';
+import { BSTMsg, SwapID, StatechainID, SwapGroup} from './swap';
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -54,5 +54,19 @@ export const getBlindedSpendSignature = async (
   typeforce(types.BlindedSpendSignature, bst);
   return bst
 }
+
+export const groupInfo = async(
+  http_client: HttpClient | MockHttpClient,
+) =>  {
+  let sgm_json = await http_client.get(GET_ROUTE.SWAP_GROUPINFO, {})
+  typeforce(types.SwapGroupMap, sgm_json);
+
+  let map = new Map<SwapGroup, number>();
+  for (var value_json in sgm_json) {
+    let value = JSON.parse(value_json);
+    map.set(value, sgm_json[value])
+  }
+  return map
+} 
 
 

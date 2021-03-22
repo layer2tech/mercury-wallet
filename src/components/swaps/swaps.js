@@ -22,12 +22,14 @@ import {useSelector, useDispatch} from 'react-redux'
 
 import {fromSatoshi} from '../../wallet/util'
 
-import {callGetOngoingSwaps} from '../../features/WalletDataSlice'
+import {callGetOngoingSwaps, callGetSwapGroupInfo} from '../../features/WalletDataSlice'
 
 import './swaps.css';
 import '../index.css';
+import { SwapGroup } from "../../wallet/types";
 
 const DEFAULT_SWAP_DETAILS = {show: false, swap: {value: 0, participants: 0, capacity: 0, status: "none"}}
+
 
 const Swaps = (props) => {
     const dispatch = useDispatch();
@@ -66,8 +68,13 @@ const Swaps = (props) => {
     // Update total_balance in Redux state
     //dispatch(updateBalanceInfo({total_balance: total_balance, num_swaps: swaps_data.length}));
 
+    const swap_groups = callGetSwapGroupInfo();
+
     //let unconfired_swaps_data = callGetUnconfirmedStateSwapsDisplayData();
     let all_swaps_data = swaps_data;//.concat(unconfired_swaps_data)
+
+
+    let all_swap_groups_data = swap_groups;//.concat(unconfired_swaps_data)
 
      // Re-fetch swaps every 10 seconds
     useEffect(() => {
@@ -79,35 +86,47 @@ const Swaps = (props) => {
         }, 
       []);
 
+    // Re-fetch swaps every 10 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+          const swap_groups = callGetSwapGroupInfo();
+          all_swap_groups_data=swap_groups;// check for change in length of unconfirmed coins list and total number
+        }, 10000);
+        return () => clearInterval(interval);
+      },
+      []);
 
-    const swapData = all_swaps_data.map(item => (
-        <div key={item.swap_id}>
-           <div
-                onClick={() => selectSwap(item.shared_key_id)}
-                style={isSelectedStyle(item.shared_key_id)}>
-                <div className="SwapPanel">
-                    <div className="SwapAmount-block">
-                        <img src={coin} alt="coin"/>
-                        <span className="subAmount">
-                            <b className="SwapAmount">  100 BTC</b>
-                        </span>
-                    </div>
+    console.log("Doing swap data - all swap groups data:")
+    //console.log(all_swap_groups_data)
+    const swapData = Array.from(all_swap_groups_data.entries()).map(([key,value]) => (
+        //console.log(item)
+        
+        <div key={key} value={value}>
+        <div>
+        <div className="SwapPanel">
+            <div className="SwapAmount-block">
+                <img src={coin} alt="coin"/>
+                <span className="sub">
+                    <b className="SwapAmount">  {key.amount} BTC</b>
+                </span>
+            </div>
 
-                    <b className="SwapParticipants">
-                        <img src={user} alt="user"/>
-                        <span className="subParicipants">
-                            <b className="SwapParticipants">  13/15 </b>
-                        </span>
-                    </b>
+            <b className="SwapParticipants">
+                <img src={user} alt="user"/>
+                <span className="sub">
+                    <b className="SwapParticipants">  {value}/{key.size} </b>
+                </span>
+            </b>
 
-                    <b className="SwapStatus">
-                        <span className="subStatus">
-                            <b className="SwapStatus">  Waiting for participants... </b>
-                        </span>
-                    </b>
-                </div>
+            <b className="SwapStatus">
+                <span className="sub">
+                    <b className="SwapStatus">  Waiting for participants... </b>
+                </span>
+            </b>
             </div>
         </div>
+        </div>
+        
     ));
 
     return (

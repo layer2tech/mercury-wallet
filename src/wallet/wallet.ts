@@ -9,10 +9,11 @@ import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
-import { doSwap } from './swap/swap'
+import { doSwap, SwapGroup } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
+import { groupInfo } from './swap/info_api';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -489,6 +490,15 @@ export class Wallet {
     log.info("Swap complete for shared key:" + shared_key_id);
     this.saveStateCoinsList();
     return new_statecoin;
+  }
+
+  async getSwapGroupInfo(): Promise<Map<SwapGroup, number>> {
+    // let map = await groupInfo(this.conductor_client);
+    let map = new Map<SwapGroup, number>();
+    map.set({"amount":0.1,"size":12}, 11);
+    map.set({"amount":1.0,"size":20}, 19);
+    map.set({"amount":2.0,"size":20}, 19);
+    return map
   }
 
     // Perform transfer_sender
