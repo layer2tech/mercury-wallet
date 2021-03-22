@@ -70,6 +70,13 @@ const SwapPage = () => {
 
               </div>
               <div className="Body right">
+                  <div>
+                      <Swaps
+                      displayDetailsOnClick={false}
+                      selectedSwap={selectedSwap}
+                      setSelectedSwap={setSelectedSwap}
+                      />
+                  </div>
                   <button type="button" className="btn" onClick={swapButtonAction}>
                           SWAP STATECOIN UTXO
                   </button>

@@ -368,68 +368,6 @@ export class Swap {
         return takeObject(ret);
     }
 }
-/**
-*/
-export class SwapTokenW {
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_swaptokenw_free(ptr);
-    }
-    /**
-    * @param {string} swap_token_str
-    * @returns {any}
-    */
-    static to_message_str(swap_token_str) {
-        var ptr0 = passStringToWasm0(swap_token_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ret = wasm.swaptokenw_to_message_str(ptr0, len0);
-        return takeObject(ret);
-    }
-    /**
-    * Create message to be signed
-    * @param {string} swap_token_str
-    * @returns {any}
-    */
-    static to_message_ser(swap_token_str) {
-        var ptr0 = passStringToWasm0(swap_token_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ret = wasm.swaptokenw_to_message_ser(ptr0, len0);
-        return takeObject(ret);
-    }
-    /**
-    * @param {string} swap_token_str
-    * @param {string} proof_key_priv_str
-    * @returns {any}
-    */
-    static sign(swap_token_str, proof_key_priv_str) {
-        var ptr0 = passStringToWasm0(swap_token_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ptr1 = passStringToWasm0(proof_key_priv_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len1 = WASM_VECTOR_LEN;
-        var ret = wasm.swaptokenw_sign(ptr0, len0, ptr1, len1);
-        return takeObject(ret);
-    }
-    /**
-    * Verify self's signature for transfer or withdraw
-    * @param {string} pk_str
-    * @param {string} sig_str
-    * @param {string} swap_token_str
-    * @returns {any}
-    */
-    static verify_sig(pk_str, sig_str, swap_token_str) {
-        var ptr0 = passStringToWasm0(pk_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ptr1 = passStringToWasm0(sig_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len1 = WASM_VECTOR_LEN;
-        var ptr2 = passStringToWasm0(swap_token_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len2 = WASM_VECTOR_LEN;
-        var ret = wasm.swaptokenw_verify_sig(ptr0, len0, ptr1, len1, ptr2, len2);
-        return takeObject(ret);
-    }
-}
 
 export const __wbindgen_string_new = function(arg0, arg1) {
     var ret = getStringFromWasm0(arg0, arg1);

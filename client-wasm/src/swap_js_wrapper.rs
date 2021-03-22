@@ -4,14 +4,11 @@ use serde_json::json;
 use curv::{elliptic::curves::traits::{ECScalar, ECPoint}, FE, GE, BigInt};
 use hex;
 use rand;
-use uuid::Uuid;
 use schemars;
 use rocket_okapi::JsonSchema;
 use bitcoin::{
     hashes::{sha256d, Hash},
-    secp256k1::{PublicKey, Secp256k1, SecretKey, Message, Signature},
 };
-use std::str::FromStr;
 use curv::arithmetic::traits::Converter;
 
 #[derive(JsonSchema)]
@@ -268,127 +265,6 @@ impl Commitment {
                     "nonce": nonce,
                 }
             ).to_string().into()
-        )
-    }
-}
-
-#[wasm_bindgen]
-pub struct SwapTokenW;
-
-/// Struct defines a Swap. This is signed by each participant as agreement to take part in the swap.
-#[derive(Serialize, Deserialize, JsonSchema, Debug, Clone)]
-pub struct SwapToken {
-    #[schemars(with = "UuidDef")]
-    pub id: Uuid,
-    pub amount: u64,
-    pub time_out: u64,
-    #[schemars(with = "UuidDef")]
-    pub statechain_ids: Vec<Uuid>,
-}
-
-#[wasm_bindgen]
-impl SwapTokenW {
-
-    fn from_str(swap_token_str: &String) -> Result<SwapToken,Box<dyn std::error::Error>> {
-        match serde_json::from_str(swap_token_str){
-            Ok(r) => Ok(r),
-            Err(err) => Err(format!("SwapTokenW: {}", err.to_string()).into()),
-        }
-    }
-
-    pub fn to_message_str(swap_token_str: String) -> Result<JsValue, JsValue> {
-        let st = match SwapTokenW::from_str(&swap_token_str){
-            Ok(r) => r,
-            Err(err) => return Err(format!("SwapTokenW: {}", err.to_string()).into()),
-        };
-
-        let mut str = st.amount.to_string();
-        str.push_str(&st.time_out.to_string());
-        str.push_str(&format!("{:?}", st.statechain_ids));
-
-        Ok(
-            json!(str).to_string().into()
-        )
-    }
-
-    /// Create message to be signed
-    pub fn to_message_ser(swap_token_str: String) -> Result<JsValue, JsValue> {
-        let st = match SwapTokenW::from_str(&swap_token_str){
-            Ok(r) => r,
-            Err(err) => return Err(format!("SwapTokenW: {}", err.to_string()).into()),
-        };
-
-        let mut str = st.amount.to_string();
-        str.push_str(&st.time_out.to_string());
-        str.push_str(&format!("{:?}", st.statechain_ids));
-        //info!("swap token message str: {}", str);
-        //info!("swap token message bytes: {:?}", &str.as_bytes());
-        let hash = sha256d::Hash::hash(&str.as_bytes());
-        //info!("swap token message hash: {}", hash);
-        Ok(
-            json!(hash).to_string().into()
-        )
-    }
-
-    fn to_message(swap_token_str: String) -> Result<Message, Box<dyn std::error::Error>> {
-        let st = match SwapTokenW::from_str(&swap_token_str){
-            Ok(r) => r,
-            Err(err) => return Err(format!("SwapTokenW: {}", err.to_string()).into()),
-        };
-
-        let mut str = st.amount.to_string();
-        str.push_str(&st.time_out.to_string());
-        str.push_str(&format!("{:?}", st.statechain_ids));
-        //info!("swap token message str: {}", str);
-        //info!("swap token message bytes: {:?}", &str.as_bytes());
-        let hash = sha256d::Hash::hash(&str.as_bytes());
-        //info!("swap token message hash: {}", hash);
-        Ok(Message::from_slice(&hash)?)
-    }
-
-    pub fn sign(swap_token_str: String, proof_key_priv_str: String) -> Result<JsValue, JsValue> {
-        let key = match SecretKey::from_str(&proof_key_priv_str){
-            Ok(r)=>r,
-            Err(err) => return Err(format!("SwapTokenW - parse secret key:{}, {}",&proof_key_priv_str, err.to_string()).into()),
-        };
-
-        let secp = Secp256k1::new();
-
-        let message = match SwapTokenW::to_message(swap_token_str){
-            Ok(r) => r,
-            Err(err) => return Err(format!("SwapTokenW: {}", err.to_string()).into()),
-        };
-
-        let signature = secp.sign(&message, &key).to_string();
-
-        //info!("got signature: {}", signature);
-        Ok(
-            json!(signature).to_string().into()
-        )
-
-    }
-
-     /// Verify self's signature for transfer or withdraw
-     pub fn verify_sig(pk_str: String, sig_str: String, swap_token_str: String) -> Result<JsValue, JsValue> {
-        let pk = match PublicKey::from_str(&pk_str){
-            Ok(r)=>r,
-            Err(err) => return Err(format!("SwapTokenW - parse public key:{}, {}",&pk_str, err.to_string()).into()),
-        };
-        let sig = match Signature::from_str(&sig_str){
-            Ok(r)=>r,
-            Err(err) => return Err(format!("SwapTokenW - signature:{}, {}",&sig_str, err.to_string()).into()),
-        };
-        let message = match SwapTokenW::to_message(swap_token_str){
-            Ok(r) => r,
-            Err(err) => return Err(format!("SwapTokenW - message:{}, {}",&sig_str, err.to_string()).into()),
-        };
-
-        let secp = Secp256k1::new();
-
-        let verify = secp.verify(&message, &sig, &pk).is_ok();
-
-        Ok(
-            json!(verify).to_string().into()
         )
     }
 }

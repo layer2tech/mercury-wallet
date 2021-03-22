@@ -1,4 +1,4 @@
-.CoinPanel.SwapPanel {
+.CoinPanel.SwapPanel.SwapHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -178,7 +178,7 @@
 }
 
 @media only screen and (max-width: 768px) {
-  .CoinPanel.SwapPanel {
+  .CoinPanel.SwapPanel.SwapHeader {
     flex-wrap: wrap;
     justify-content: center;
   }

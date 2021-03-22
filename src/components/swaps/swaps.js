@@ -82,45 +82,33 @@ const Swaps = (props) => {
 
     const swapData = all_swaps_data.map(item => (
         <div key={item.swap_id}>
-            <div
-
-               onClick={() => selectSwap(item.swap_id)}
-                style={isSelectedStyle(item.swap_id)}>
+           <div
+                onClick={() => selectSwap(item.shared_key_id)}
+                style={isSelectedStyle(item.shared_key_id)}>
                 <div className="SwapPanel">
-                    <table className="second">
-                          <thead>
-                              <tr>
-                                  <td>
-                                      <img src={coin} alt="coin"/>
-                                      VALUE
-                                  </td>
-                                  <td>
-                                      <img src={user} alt="user"/>
-                                      PARTICIPANTS
-                                  </td>
-                                  <td>STATUS</td>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              <tr>
-                                  <td>
-                                      <input type="text" name="name"/>
-                                      <span>0.0005 BTC</span>
-                                  </td>
-                                  <td>
-                                      <span>13/15</span>
-                                  </td>
-                                  <td>
-                                      <span className="status">PENDING</span>
-                                  </td>
-                              </tr>
-                          </tbody>
-                    </table>
+                    <div className="SwapAmount-block">
+                        <img src={coin} alt="coin"/>
+                        <span className="subAmount">
+                            <b className="SwapAmount">  100 BTC</b>
+                        </span>
+                    </div>
+
+                    <b className="SwapParticipants">
+                        <img src={user} alt="user"/>
+                        <span className="subParicipants">
+                            <b className="SwapParticipants">  13/15 </b>
+                        </span>
+                    </b>
+
+                    <b className="SwapStatus">
+                        <span className="subStatus">
+                            <b className="SwapStatus">  Waiting for participants... </b>
+                        </span>
+                    </b>
                 </div>
             </div>
         </div>
-        )
-    );
+    ));
 
     return (
         <div>

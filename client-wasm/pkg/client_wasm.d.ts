@@ -121,33 +121,3 @@ export class Swap {
 */
   static requester_calc_eprime(r_prime_str: string, m: string): any;
 }
-/**
-*/
-export class SwapTokenW {
-  free(): void;
-/**
-* @param {string} swap_token_str
-* @returns {any}
-*/
-  static to_message_str(swap_token_str: string): any;
-/**
-* Create message to be signed
-* @param {string} swap_token_str
-* @returns {any}
-*/
-  static to_message_ser(swap_token_str: string): any;
-/**
-* @param {string} swap_token_str
-* @param {string} proof_key_priv_str
-* @returns {any}
-*/
-  static sign(swap_token_str: string, proof_key_priv_str: string): any;
-/**
-* Verify self's signature for transfer or withdraw
-* @param {string} pk_str
-* @param {string} sig_str
-* @param {string} swap_token_str
-* @returns {any}
-*/
-  static verify_sig(pk_str: string, sig_str: string, swap_token_str: string): any;
-}
