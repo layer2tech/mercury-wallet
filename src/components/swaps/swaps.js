@@ -22,7 +22,7 @@ import {useSelector, useDispatch} from 'react-redux'
 
 import {fromSatoshi} from '../../wallet/util'
 
-import {callGetOngoingSwaps, callGetSwapGroupInfo} from '../../features/WalletDataSlice'
+import {callGetOngoingSwaps, callGetSwapGroupInfo, callUpdateSwapGroupInfo} from '../../features/WalletDataSlice'
 
 import './swaps.css';
 import '../index.css';
@@ -68,13 +68,17 @@ const Swaps = (props) => {
     // Update total_balance in Redux state
     //dispatch(updateBalanceInfo({total_balance: total_balance, num_swaps: swaps_data.length}));
 
-    const swap_groups = callGetSwapGroupInfo();
+    dispatch(callUpdateSwapGroupInfo());
+
+    const swap_groups  = callGetSwapGroupInfo();
 
     //let unconfired_swaps_data = callGetUnconfirmedStateSwapsDisplayData();
     let all_swaps_data = swaps_data;//.concat(unconfired_swaps_data)
 
 
     let all_swap_groups_data = swap_groups;//.concat(unconfired_swaps_data)
+    let all_swap_groups_array = swap_groups ? Array.from(all_swap_groups_data.entries()) :
+    new Array();
 
      // Re-fetch swaps every 10 seconds
     useEffect(() => {
@@ -89,16 +93,19 @@ const Swaps = (props) => {
     // Re-fetch swaps every 10 seconds
     useEffect(() => {
         const interval = setInterval(() => {
-          const swap_groups = callGetSwapGroupInfo();
-          all_swap_groups_data=swap_groups;// check for change in length of unconfirmed coins list and total number
-        }, 10000);
+            dispatch(callUpdateSwapGroupInfo());    
+            const swap_groups = callGetSwapGroupInfo();            
+            all_swap_groups_data=swap_groups; // check for change in length of unconfirmed coins list and total number
+            console.log("Updated swap data - all swap groups data:")
+            console.log(all_swap_groups_data)
+            all_swap_groups_array = swap_groups ? Array.from(all_swap_groups_data.entries()) :
+    new Array();
+            console.log(all_swap_groups_array)
+        }, 5000);
         return () => clearInterval(interval);
       },
       []);
-
-    console.log("Doing swap data - all swap groups data:")
-    //console.log(all_swap_groups_data)
-    const swapData = Array.from(all_swap_groups_data.entries()).map(([key,value]) => (
+    const swapData = all_swap_groups_array.map(([key,value]) => (
         //console.log(item)
         
         <div key={key} value={value}>
@@ -107,7 +114,7 @@ const Swaps = (props) => {
             <div className="SwapAmount-block">
                 <img src={coin} alt="coin"/>
                 <span className="sub">
-                    <b className="SwapAmount">  {key.amount} BTC</b>
+                    <b className="SwapAmount">  {key.amount/1e8} BTC</b>
                 </span>
             </div>
 
@@ -120,7 +127,12 @@ const Swaps = (props) => {
 
             <b className="SwapStatus">
                 <span className="sub">
-                    <b className="SwapStatus">  Waiting for participants... </b>
+                    {value < key.size && false && 
+                        <b className="SwapStatus"> Waiting for participants... </b>
+                    }
+                    {value >= key.size && false &&
+                        <b className="SwapStatus"> Swap in progress... </b>
+                    }
                 </span>
             </b>
             </div>

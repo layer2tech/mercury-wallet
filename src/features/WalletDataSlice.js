@@ -88,13 +88,11 @@ export const callGetUnspentStatecoins = () => {
 export const callGetOngoingSwaps = () => {
   return wallet.getOngoingSwaps()
 }
+
 export const callGetSwapGroupInfo = () => {
-  let map = new Map;
-  map.set({"amount":0.1,"size":12}, 11);
-  map.set({"amount":1.0,"size":20}, 19);
-  return map
-  //return wallet.getSwapGroupInfo()
+  return wallet.getSwapGroupInfo()
 }
+
 export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
   return wallet.getUnconfirmedAndUnmindeCoinsFundingTxData()
 }
@@ -171,6 +169,18 @@ export const callDoSwap = createAsyncThunk(
     return wallet.do_swap(action.shared_key_id)
   }
 )
+export const callUpdateSwapGroupInfo = createAsyncThunk(
+  //let map = new Map;
+  //map.set({"amount":0.1,"size":12}, 11);
+  //map.set({"amount":1.0,"size":20}, 19);
+  //return map
+  'UpdateSwapGroupInfo',
+  async (action, thunkAPI) => {
+    console.log('callUpdateSwapGroupinfo');
+    wallet.updateSwapGroupInfo();
+  }
+)
+
 
 const WalletSlice = createSlice({
   name: 'walletData',
@@ -265,6 +275,9 @@ const WalletSlice = createSlice({
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callDoSwap.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callUpdateSwapGroupInfo.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
 }

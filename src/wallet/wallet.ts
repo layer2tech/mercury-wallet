@@ -48,6 +48,7 @@ export class Wallet {
   electrum_client: ElectrumClient | MockElectrumClient;
   block_height: number;
   current_sce_addr: string;
+  swap_group_info: Map<SwapGroup, number>;
 
   storage: Storage
 
@@ -60,6 +61,7 @@ export class Wallet {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
+    this.swap_group_info = new Map<SwapGroup, number>();
     this.activity = new ActivityLog();
     this.electrum_client = testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
       this.conductor_client = new MockHttpClient();  
@@ -492,14 +494,19 @@ export class Wallet {
     return new_statecoin;
   }
 
-  async getSwapGroupInfo(): Promise<Map<SwapGroup, number>> {
-    // let map = await groupInfo(this.conductor_client);
-    let map = new Map<SwapGroup, number>();
-    map.set({"amount":0.1,"size":12}, 11);
-    map.set({"amount":1.0,"size":20}, 19);
-    map.set({"amount":2.0,"size":20}, 19);
-    return map
+  getSwapGroupInfo(): Map<SwapGroup, number>{
+    return this.swap_group_info;
   }
+
+  async updateSwapGroupInfo() {
+    this.swap_group_info = await groupInfo(this.conductor_client);
+  }
+  //   let map = new Map<SwapGroup, number>();
+   // map.set({"amount":0.1,"size":12}, 11);
+    //map.set({"amount":1.0,"size":20}, 19);
+    //map.set({"amount":2.0,"size":20}, 19);
+    //return map
+  //}
 
     // Perform transfer_sender
   // Args: shared_key_id of coin to send and receivers se_addr.

@@ -393,5 +393,5 @@ export const SwapGroup = typeforce.compile({
 
 export const SwapGroupMap = typeforce.compile(
     //Map::<SwapGroup, UInt64>
-    Map
+    Object
 )

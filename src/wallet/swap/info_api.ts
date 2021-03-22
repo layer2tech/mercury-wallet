@@ -59,12 +59,24 @@ export const groupInfo = async(
   http_client: HttpClient | MockHttpClient,
 ) =>  {
   let sgm_json = await http_client.get(GET_ROUTE.SWAP_GROUPINFO, {})
+  
+  console.log('swap group map json: ', sgm_json);
+  
   typeforce(types.SwapGroupMap, sgm_json);
 
+  //let map: Map<SwapGroup, number> = sgm_json;
+
+  console.log("map: ", sgm_json);
   let map = new Map<SwapGroup, number>();
-  for (var value_json in sgm_json) {
-    let value = JSON.parse(value_json);
-    map.set(value, sgm_json[value])
+  for (var value_str in sgm_json) {
+    console.log('value_str: ', value_str);
+    let value_arr = value_str.split(":");
+    console.log('value_arr: ', value_arr);
+    let swap_group = {
+      "amount": parseInt(value_arr[0]),
+      "size": parseInt(value_arr[1])
+    }
+    map.set(swap_group, sgm_json[value_str])
   }
   return map
 } 
