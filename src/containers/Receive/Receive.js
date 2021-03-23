@@ -34,7 +34,6 @@ const ReceiveStatecoinPage = () => {
     setRecAddr(callGetSeAddr())
   }
 
-
   const receiveButtonAction =() => {
     // check statechain is chosen
     if (!transfer_msg3) {

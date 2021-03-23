@@ -153,6 +153,20 @@ export const txWithdrawBuild = (network: Network, funding_txid: string, funding_
   return txb
 }
 
+// CPFP tx builder spending backup tx to user specified address
+export const txCPFPBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_rate: number, p2wpkh: any): TransactionBuilder => {
+  // Total size of backup_tx (1 input 2 outputs) + 1-input-1-output = 140 + 110 bytes
+  // Subtract the fee already paid in the backup-tx
+  let total_fee = (fee_rate * 250) - FEE;
+
+  if (total_fee >= value) throw Error("Not enough value to cover fee.");
+
+  let txb = new TransactionBuilder(network);
+
+  txb.addInput(funding_txid, funding_vout, null, p2wpkh.output);
+  txb.addOutput(rec_address, value - total_fee);
+  return txb
+}
 
 // Bech32 encode SCEAddress (StateChain Entity Address)
 export const encodeSCEAddress = (proof_key: string) => {

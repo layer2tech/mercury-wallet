@@ -3,8 +3,9 @@
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
-  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, decryptAES,
+  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, decryptAES,
   encodeSCEAddress } from './';
+import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -252,7 +253,7 @@ export class Wallet {
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
-      if (statecoin.status===STATECOIN_STATUS.UNCOMFIRMED &&
+      if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           this.depositConfirm(statecoin.shared_key_id)
       }
@@ -282,13 +283,19 @@ export class Wallet {
     let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
     //extract receive address private key
     let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
-    let bip32 = this.getBIP32forBtcAddress(addr)
+
+    let bip32 = this.getBIP32forBtcAddress(addr);
 
     let priv_key = bip32.privateKey;
     if (priv_key===undefined) throw Error("Backup receive address private key not found.");
 
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
     backup_tx_data.key_wif = bip32.toWIF();
+
+    if (statecoin.tx_cpfp != null) {
+       let fee_rate = (FEE + backup_tx_data.output_value - statecoin.tx_cpfp.outs[0].value)/250;
+       backup_tx_data.cpfp_status = "Set. Fee rate = "+fee_rate.toString();
+    }
 
     return backup_tx_data
   }
@@ -305,6 +312,104 @@ export class Wallet {
     })
   }
 
+  // update statuts of backup transactions and broadcast if neccessary
+  updateBackupTxStatus() {
+
+    for (let i=0; i<this.statecoins.coins.length; i++) {
+    // check if there is a backup tx yet, if not do nothing
+      if (this.statecoins.coins[i].tx_backup == null) {
+        continue;
+      }
+      if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED || 
+        this.statecoins.coins[i].backup_status === BACKUP_STATUS.TAKEN || 
+        this.statecoins.coins[i].backup_status === BACKUP_STATUS.SPENT ||
+        this.statecoins.coins[i].status == STATECOIN_STATUS.SPENT ||
+        this.statecoins.coins[i].status == STATECOIN_STATUS.WITHDRAWN) {
+        continue;
+      }
+      // check locktime
+      let blocks_to_locktime = this.statecoins.coins[i].tx_backup.locktime - this.block_height;
+      // pre-locktime - do nothing
+      if (blocks_to_locktime > 0) {
+        this.statecoins.coins[i].setBackupPreLocktime();
+        continue;
+      // locktime reached
+      } else {
+        // in mempool - check if confirmed
+        if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
+          this.electrum_client.getTransaction(this.statecoins.coins[i].tx_backup.getId()).then((tx_data) => {
+            if(tx_data.confirmations > 0) {
+              this.statecoins.coins[i].setBackupConfirmed();
+              this.statecoins.coins[i].setExpired();
+            }
+          })
+        } else {
+          // broadcast transaction
+          this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_backup.toHex()).then((bresponse) => {
+            if(bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
+              this.statecoins.coins[i].setBackupInMempool();
+            } else if(bresponse.includes('already')) {
+              this.statecoins.coins[i].setBackupInMempool();              
+            } else if(bresponse.includes('confict') || bresponse.includes('missingorspent')) {
+              this.statecoins.coins[i].setBackupTaken();
+              this.statecoins.coins[i].setExpired();
+            }
+          });
+          // if CPFP present, then broadcast this as well
+          if (this.statecoins.coins[i].tx_cpfp != null) {
+              this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_cpfp.toHex())       
+          }
+        }
+      }
+    }
+  }
+
+  // create CPFP transaction to spend from backup tx
+  createBackupTxCPFP(cpfp_data: any) {
+
+    log.info("Add CPFP for "+cpfp_data.selected_coin+" to "+cpfp_data.cpfp_addr);
+
+    // Check address format
+    try { bitcoin.address.toOutputScript(cpfp_data.cpfp_addr, this.config.network) }
+      catch (e) { throw Error("Invalid Bitcoin address entered.") }
+
+    let statecoin = this.statecoins.getCoin(cpfp_data.selected_coin);
+    if (!statecoin) throw Error("No coin found with id " + cpfp_data.selected_coin);
+
+    let fee_rate = parseInt(cpfp_data.fee_rate);
+    if (isNaN(fee_rate)) throw Error("Fee rate not an integer");
+
+    let backup_tx_data = this.getCoinBackupTxData(cpfp_data.selected_coin);
+
+    var ec_pair = bitcoin.ECPair.fromWIF(backup_tx_data.key_wif, this.config.network);
+    var p2wpkh = bitcoin.payments.p2wpkh({ pubkey: ec_pair.publicKey, network: this.config.network })
+
+    // Construct CPFP tx
+    let txb_cpfp = txCPFPBuild(
+      this.config.network,
+      backup_tx_data.txid,
+      0,
+      cpfp_data.cpfp_addr,
+      backup_tx_data.output_value,
+      fee_rate,
+      p2wpkh,
+    );
+
+    // sign tx
+    txb_cpfp.sign(0,ec_pair,null,null,backup_tx_data.output_value);
+
+    let cpfp_tx = txb_cpfp.build();
+
+    // add CPFP tx to statecoin
+    for (let i=0; i<this.statecoins.coins.length; i++) {
+      if (this.statecoins.coins[i].shared_key_id === cpfp_data.selected_coin) {
+        this.statecoins.coins[i].tx_cpfp = cpfp_tx;
+        break;
+      }
+    }
+
+    return true;
+  }
 
   // Add confirmed Statecoin to wallet
   addStatecoin(statecoin: StateCoin, action: string) {
@@ -414,7 +519,7 @@ export class Wallet {
           this.saveStateCoinsList()
         } else {
           log.info("Funding tx for p_addr "+p_addr+" mined. Height: "+funding_tx_data[i].height)
-          // Set coin UNCOMFIRMED.
+          // Set coin UNCONFIRMED.
           this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i])
           this.saveStateCoinsList()
           // No longer need subscription

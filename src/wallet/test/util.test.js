@@ -1,6 +1,6 @@
 import { TransactionBuilder, networks, ECPair, BIP32Interface } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
-import { FEE, txBackupBuild, txWithdrawBuild, StateChainSig, toSatoshi, fromSatoshi,
+import { FEE, txBackupBuild, txWithdrawBuild, txCPFPBuild, StateChainSig, toSatoshi, fromSatoshi,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
   encryptECIES, decryptECIES, encryptAES, decryptAES } from '../util';
 import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY } from './test_data.js'
@@ -10,6 +10,7 @@ import { encrypt, decrypt, PrivateKey } from 'eciesjs'
 
 let bip32 = require('bip32');
 var crypto = require('crypto')
+let bitcoin = require('bitcoinjs-lib');
 
 let network = networks.testnet;
 
@@ -80,6 +81,34 @@ describe('txWithdrawBuild', function() {
     expect(tx_backup.outs.length).toBe(2);
     expect(tx_backup.outs[0].value).toBeLessThan(value);
     expect(tx_backup.outs[1].value).toBe(Number(fee_info.withdraw));
+  });
+});
+
+describe('txCPFPBuild', function() {
+  let funding_txid = FUNDING_TXID;
+  let funding_vout = FUNDING_VOUT;
+  let rec_address = BTC_ADDR
+  let value = 10000;
+  let fee_rate = 2;
+
+  var ec_pair = bitcoin.ECPair.makeRandom({network: network});
+  var p2wpkh = bitcoin.payments.p2wpkh({ pubkey: ec_pair.publicKey, network: network })  
+
+  test('Throw on invalid value', async function() {
+    expect(() => {  // not enough value
+      txCPFPBuild(network, funding_txid, funding_vout, rec_address, 0, fee_rate, p2wpkh);
+    }).toThrowError('Not enough value to cover fee.');
+    expect(() => {  // not enough value
+      txCPFPBuild(network, funding_txid, funding_vout, rec_address, 100, fee_rate, p2wpkh); // should be atleast + value of network FEE also
+    }).toThrowError('Not enough value to cover fee.');
+  });
+
+  test('Check built tx correct', async function() {
+    let tx_backup = txCPFPBuild(network, funding_txid, funding_vout, rec_address, value, fee_rate, p2wpkh).buildIncomplete();
+    expect(tx_backup.ins.length).toBe(1);
+    expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
+    expect(tx_backup.outs.length).toBe(1);
+    expect(tx_backup.outs[0].value).toBeLessThan(value);
   });
 });
 

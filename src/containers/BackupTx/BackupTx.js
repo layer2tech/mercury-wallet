@@ -5,8 +5,8 @@ import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState} from 'react';
 import {useDispatch} from 'react-redux'
 
-import {isWalletLoaded, setError, callGetCoinBackupTxData} from '../../features/WalletDataSlice'
-import {Coins, StdButton} from "../../components";
+import {isWalletLoaded, setError, callGetCoinBackupTxData, callCreateBackupTxCPFP} from '../../features/WalletDataSlice'
+import {Coins, StdButton, AddressInput} from "../../components";
 
 import './BackupTx.css';
 
@@ -17,6 +17,8 @@ const BackupTxPage = () => {
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [selectedCoinTxData, setSelectedCoinTxData] = useState(DEFAULT_TX_DATA); // store selected coins shared_key_id
+  const [cpfpAddr, setInputAddr] = useState("");
+  const [txFee, setTxFee] = useState("");
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates
   // in developer mode.
@@ -34,6 +36,14 @@ const BackupTxPage = () => {
     }
   }
 
+  const onAddrChange = (event) => {
+    setInputAddr(event.target.value);
+  };
+
+  const onFeeChange = (event) => {
+    setTxFee(event.target.value);
+  };
+
   const copyBackupTxHexToClipboard = () => {
     navigator.clipboard.writeText(selectedCoinTxData.tx_backup_hex);
   }
@@ -43,6 +53,30 @@ const BackupTxPage = () => {
   const copyKeyWIFToClipboard = () => {
     navigator.clipboard.writeText(selectedCoinTxData.key_wif);
   }
+
+  const addCPFP = () => {
+    // check statechain is chosen
+    if (!selectedCoin) {
+      dispatch(setError({msg: "Please choose a StateCoin."}))
+      return
+    }
+    if (!cpfpAddr) {
+      dispatch(setError({msg: "Please enter a pay to address."}))
+      return
+    }
+    if (!txFee) {
+      dispatch(setError({msg: "Please enter a fee rate."}))
+      return
+    }    
+
+    let sucess = callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
+
+    if (!sucess) {
+      dispatch(setError({msg: "CPFP build error: please check address is correct"}))
+      return      
+    }
+
+   }
 
   return (
     <div className="container ">
@@ -143,6 +177,52 @@ const BackupTxPage = () => {
                           {selectedCoinTxData.key_wif}
                         </span>
                     </div>
+                </div>
+
+                <div className="item">
+                    <span className="sub">Status:</span>
+                    <div className="">
+                        <span>
+                          {selectedCoinTxData.backup_status}
+                        </span>
+                    </div>
+                </div>
+
+                <div className="item">
+                    <span className="sub">CPFP:</span>
+                    <div className="">
+                        <span>
+                          {selectedCoinTxData.cpfp_status}
+                        </span>
+                    </div>
+                </div>
+
+                <div className="item">                
+                    <span className="sub">Pay to:</span>
+                    <div className="inputs-item">
+                     <AddressInput
+                       inputAddr={cpfpAddr}
+                       onChange={onAddrChange}
+                       placeholder='Send to destination address'
+                       smallTxtMsg='Bitcoin Address'/>
+                     </div>      
+                </div>
+
+                <div className="item">                
+                    <span className="sub">Fee (sat/b):</span>
+                    <div className="inputs-item">
+                     <AddressInput
+                       inputAddr={txFee}
+                       onChange={onFeeChange}
+                       placeholder='Fee rate'
+                       smallTxtMsg='CPFP Tx Fee'/>
+                    </div>       
+                </div> 
+
+                <div className="item">
+                    <button type="button" className="std-button" onClick={addCPFP}>
+                        Create CPFP
+                    </button>
                 </div>
 
             </div>

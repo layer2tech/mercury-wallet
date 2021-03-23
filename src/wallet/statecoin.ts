@@ -76,7 +76,7 @@ export class StateCoinList {
   // Find all coins in mempool or mined but with required_confirmations confirmations
   getUnconfirmedCoins() {
     return this.coins.filter((item: StateCoin) => {
-      if (item.status === STATECOIN_STATUS.UNCOMFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL) {
+      if (item.status === STATECOIN_STATUS.UNCONFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL) {
         return item
       }
       return null
@@ -94,6 +94,18 @@ export class StateCoinList {
   // Add already constructed statecoin
   addCoin(statecoin: StateCoin) {
     this.coins.push(statecoin)
+  };
+
+  // Remove coin from list
+  removeCoin(shared_key_id: string) {
+    this.coins = this.coins.filter(item => {
+      if (item.shared_key_id!==shared_key_id) {
+        return item
+      } else {
+        if (item.status!==STATECOIN_STATUS.INITIALISED) {
+          throw Error("Should not remove coin whose funding transaction has been broadcast.")
+        }
+      }})
   };
 
 
@@ -169,8 +181,8 @@ export const STATECOIN_STATUS = {
   INITIALISED: "INITIALISED",
   // IN_MEMPOOL funding transaction in the mempool
   IN_MEMPOOL: "IN_MEMPOOL",
-  // UNCOMFIRMED coins are awaiting more confirmations on their funding transaction
-  UNCOMFIRMED: "UNCOMFIRMED",
+  // UNCONFIRMED coins are awaiting more confirmations on their funding transaction
+  UNCONFIRMED: "UNCONFIRMED",
   // Coins are fully owned by wallet and unspent
   AVAILABLE: "AVAILABLE",
   // Coin used to belonged to wallet but has been transferred
@@ -181,8 +193,29 @@ export const STATECOIN_STATUS = {
   SWAPPED: "SWAPPED",
   // Coin has performed transfer_sender and has valid TransferMsg3 to be claimed by receiver
   SPEND_PENDING: "SPEND_PENDING",
+  // Coin has reached it's backup timelock and has been spent
+  EXPIRED: "EXPIRED",
 };
 Object.freeze(STATECOIN_STATUS);
+
+// STATUS represent each stage in the lifecycle of a statecoin.
+export const BACKUP_STATUS = {
+  // PRE_LOCKTIME backup transactions are not valid yet as block_height < nLocktime
+  PRE_LOCKTIME: "Not Final",
+  // UNBROADCAST are valid transactions (block_height >= nLocktime) yet to be broadcast
+  UNBROADCAST: "Unbroadcast",
+  // IN_MEMPOOL backup transactions are accepted into the mempool
+  IN_MEMPOOL: "In mempool",
+  // CONFIRMED backup transactions are included in a block, but as yet unspent
+  CONFIRMED: "Confirmed",
+  // POST_INTERVAL backup transactions are not yet confirmed, but the previous owner nLocktime <= block_height
+  POST_INTERVAL: "Interval elapsed",
+  // TAKEN backup transactions have failed to confirm in time and the output has been spent by a previous owner
+  TAKEN: "Output taken",
+  // SPENT backup transactions have been spent to a specified address
+  SPENT: "Spent"
+};
+Object.freeze(BACKUP_STATUS);
 
 // Each individual StateCoin
 export class StateCoin {
@@ -196,6 +229,9 @@ export class StateCoin {
   block: number;  // included in block number. 0 for unconfirmed.
   timestamp: number;
   tx_backup: BTCTransaction | null;
+  backup_status: string;
+  interval: number;
+  tx_cpfp: BTCTransaction | null;
   tx_withdraw: BTCTransaction | null;
   smt_proof: InclusionProofSMT | null;
   swap_rounds: number;
@@ -218,6 +254,9 @@ export class StateCoin {
     this.swap_rounds = 0
     //this.swap_participants = 0
     this.tx_backup = null;
+    this.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
+    this.interval = 1;
+    this.tx_cpfp = null;
     this.tx_withdraw = null;
     this.smt_proof = null;
     this.status = STATECOIN_STATUS.INITIALISED;
@@ -226,12 +265,21 @@ export class StateCoin {
   }
 
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
-  setUnconfirmed() { this.status = STATECOIN_STATUS.UNCOMFIRMED }
+  setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
   setSwapped() { this.status = STATECOIN_STATUS.SWAPPED; }
   setSpendPending() { this.status = STATECOIN_STATUS.SPEND_PENDING; }
+  setExpired() { this.status = STATECOIN_STATUS.EXPIRED; }
+
+  setBackupPreLocktime() { this.backup_status = BACKUP_STATUS.PRE_LOCKTIME }
+  setBackupUnbroadcast() { this.backup_status = BACKUP_STATUS.UNBROADCAST }
+  setBackupInMempool() { this.backup_status = BACKUP_STATUS.IN_MEMPOOL }
+  setBackupConfirmed() { this.backup_status = BACKUP_STATUS.CONFIRMED }
+  setBackupPostInterval() { this.backup_status = BACKUP_STATUS.POST_INTERVAL }
+  setBackupTaken() { this.backup_status = BACKUP_STATUS.TAKEN }
+  setBackupSpent() { this.backup_status = BACKUP_STATUS.SPENT }
 
   // Get data to display in GUI
   getDisplayInfo(block_height: number): StateCoinDisplayData {
@@ -292,7 +340,11 @@ export class StateCoin {
       tx_backup_hex: this.tx_backup?.toHex(),
       priv_key_hex: "",
       key_wif: "",
-      expiry_data: this.getExpiryData(block_height)
+      expiry_data: this.getExpiryData(block_height),
+      backup_status: this.backup_status,
+      txid: this.tx_backup?.getId(),
+      output_value: this.tx_backup?.outs[0].value,
+      cpfp_status: "None",
     }
   }
 
@@ -301,7 +353,7 @@ export class StateCoin {
   getExpiryData(block_height: number): ExpiryData {
     // If not confirmed, send confirmation data instead.
     if (this.tx_backup==null) {
-      // Otherwise must be UNCOMFIRMED so calculate number of confs
+      // Otherwise must be UNCONFIRMED so calculate number of confs
       return {blocks:-1, confirmations: this.getConfirmations(block_height), days:0, months:0};
     }
 

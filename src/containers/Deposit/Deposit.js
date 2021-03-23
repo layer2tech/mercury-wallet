@@ -4,10 +4,9 @@ import points from "../../images/points.png";
 import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
-import MultiStep from "react-multistep";
 import {Button, Modal} from "react-bootstrap";
 
-import {CreateStatecoin, TransactionsBTC, StdButton} from "../../components";
+import {CreateStatecoin, TransactionsBTC, StdButton, Steppers} from "../../components";
 import {isWalletLoaded, setError} from '../../features/WalletDataSlice'
 
 import './Deposit.css';
@@ -17,6 +16,7 @@ const DepositPage = () => {
 
   // Show settings
   const [show, setShow] = useState(false);
+  const [step, setStep] = useState(1)
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
@@ -93,7 +93,25 @@ const DepositPage = () => {
               <h3 className="subtitle">Deposit BTC to create new Statecoins</h3>
           </div>
           <div className="wizard">
-              <MultiStep steps={steps} />
+              <Steppers total={2} current={step} />
+              {step === 1 ? (
+                <CreateStatecoin
+                  selectedValues={selectedValues}
+                  addValueSelection={addValueSelection}
+                  addSelectionPanel={addSelectionPanel}
+                />
+              ) : (
+                <TransactionsBTC
+                  selectedValues={selectedValues}
+                  setValueSelectionInitialised={setValueSelectionInitialised}
+                  setValueSelectionAddr={setValueSelectionAddr}
+                />
+              )}
+              {step === 1 ? (
+                <button className="btn btn-primary" onClick={() => setStep(2)}>Next</button>
+              ) : (
+                <button className="btn btn-primary" onClick={() => setStep(1)}>Prev</button>
+              )}
           </div>
 
           <Modal show={show} onHide={handleClose} className="modal">
