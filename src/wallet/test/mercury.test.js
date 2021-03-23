@@ -223,7 +223,7 @@ describe('StateChain Entity', function() {
       expect(
         bitcoin.address.fromOutputScript(tx_backup.outs[0].script, network)
       ).toBe(
-        pubKeyTobtcAddr(rec_se_addr)
+        pubKeyTobtcAddr(rec_se_addr, network)
       );
     });
   })

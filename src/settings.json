@@ -2,6 +2,6 @@
   "min_anon_set": 3,
   "state_entity_endpoint": "https://fakeapi.mercurywallet.io",
   "swap_conductor_endpoint": "https://fakeapi.mercurywallet.io",
-  "network": "testnet",
+  "network": "bitcoin",
   "testing_mode": false
 }
