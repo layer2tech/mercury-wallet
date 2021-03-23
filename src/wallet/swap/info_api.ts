@@ -38,9 +38,7 @@ export const getSwapInfo = async (
 ) => {
 
   let swap_info = await http_client.post(POST_ROUTE.SWAP_INFO, swap_id);	
-  console.log("gotSwapInfo: ", swap_info);
   typeforce(types.SwapInfo, swap_info);
-  console.log("swap info conforms to type. Returning");
   return swap_info
 }
 
@@ -60,18 +58,12 @@ export const groupInfo = async(
 ) =>  {
   let sgm_json = await http_client.get(GET_ROUTE.SWAP_GROUPINFO, {})
   
-  console.log('swap group map json: ', sgm_json);
-  
   typeforce(types.SwapGroupMap, sgm_json);
 
   //let map: Map<SwapGroup, number> = sgm_json;
-
-  console.log("map: ", sgm_json);
   let map = new Map<SwapGroup, number>();
   for (var value_str in sgm_json) {
-    console.log('value_str: ', value_str);
     let value_arr = value_str.split(":");
-    console.log('value_arr: ', value_arr);
     let swap_group = {
       "amount": parseInt(value_arr[0]),
       "size": parseInt(value_arr[1])
