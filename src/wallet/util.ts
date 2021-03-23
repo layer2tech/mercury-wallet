@@ -99,6 +99,22 @@ export class StateChainSig {
       return proof_key_der.verify(hash, decoded.signature);
     }
 
+    /// Generate signature to request participation in a batch transfer
+      static new_transfer_batch_sig(
+          proof_key_der: BIP32Interface,
+          batch_id: string,
+          statechain_id: string,
+      ): StateChainSig {
+          let purpose = this.purpose_transfer_batch(batch_id); 
+          let statechain_sig = StateChainSig.create(proof_key_der,purpose, statechain_id);
+          return statechain_sig;
+      }
+
+      static purpose_transfer_batch(batch_id: string):string{
+        let buf =  "TRANSFER_BATCH:" + batch_id;
+        return buf;
+      }
+
 }
 
 export const getSigHash = (tx: Transaction, index: number, pk: string, amount: number, network: Network): string => {
@@ -109,7 +125,6 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
   let script = bitcoin.address.toOutputScript(addr_p2pkh, network);
 
   return tx.hashForWitnessV0(index, script, amount, Transaction.SIGHASH_ALL).toString("hex");
-
 }
 
 // Backup Tx builder
@@ -148,7 +163,7 @@ export const txCPFPBuild = (network: Network, funding_txid: string, funding_vout
 
   let txb = new TransactionBuilder(network);
 
-  txb.addInput(funding_txid, funding_vout, null, p2wpkh.output);
+  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF, p2wpkh.output);
   txb.addOutput(rec_address, value - total_fee);
   return txb
 }

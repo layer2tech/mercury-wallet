@@ -13,7 +13,7 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 | swap_conductor_endpoint | string | https://fakeapi.mercurywallet.io |
 | electrum_config | object | { host: 'https://electrumx-server.tbtc.network', port: 8443, protocol: 'wss'} |
 | tor_proxy | string | none |
-| min_anon_set | number | 10 |
+| min_anon_set | number | 5 |
 | notifications | boolean | true |
 | tutorials | boolean | false |
 | testing_mode | boolean | false |

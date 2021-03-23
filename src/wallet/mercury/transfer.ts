@@ -57,7 +57,6 @@ export const transferSender = async (
 
   // Sign statecoin to signal desire to Transfer
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
-
   // Init transfer: Send statechain signature or batch data
   let transfer_msg1 = {
       shared_key_id: statecoin.shared_key_id,
@@ -132,7 +131,7 @@ export const transferReceiver = async (
   http_client: HttpClient | MockHttpClient,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
-  _batch_data: any
+  batch_data: any
 ): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
@@ -175,10 +174,9 @@ export const transferReceiver = async (
     statechain_sig: transfer_msg3.statechain_sig,
     o2_pub: encodeSecp256k1Point(o2_keypair.publicKey.toString("hex")),        // decode into {x,y}
     tx_backup_hex: transfer_msg3.tx_backup_psm.tx_hex,
-    batch_data: null,
+    batch_data,
   };
   typeforce(types.TransferMsg4, transfer_msg4);
-
   let transfer_msg5: TransferMsg5 = await http_client.post(POST_ROUTE.TRANSFER_RECEIVER, transfer_msg4);
   typeforce(types.TransferMsg5, transfer_msg5);
 
@@ -238,6 +236,19 @@ export const transferReceiverFinalize = async (
   return statecoin
 }
 
+
+export const transferBatchSign = (
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
+  network: Network,
+  statecoin: StateCoin,
+  batch_id: string,
+  proof_key_der: BIP32Interface
+): StateChainSig => {
+  let tbs = StateChainSig.new_transfer_batch_sig(proof_key_der, batch_id, statecoin.statechain_id);
+  return tbs;
+}
+
 export interface UserID {
   id: string,
 }
@@ -248,7 +259,7 @@ export interface Secp256k1Point {
 }
 
 export interface SCEAddress {
-  tx_backup_addr: string,
+  tx_backup_addr: string | null,
   proof_key: string
 }
 

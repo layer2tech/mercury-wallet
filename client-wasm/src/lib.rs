@@ -7,8 +7,11 @@ extern crate floating_duration;
 extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
+extern crate bitcoin;
+extern crate bitcoin_hashes;
 
 pub mod kms_secp256k1_js_wrapper;
+pub mod swap_js_wrapper;
 pub mod monotree_js_wrapper;
 pub mod util_js_wrapper;
 mod error;

@@ -4,7 +4,7 @@ import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
-import {StdButton, CheckBox} from "../../components";
+import {StdButton, CheckBox, ConfirmPopup} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
   callUpdateConfig, callClearSave, unloadWallet} from '../../features/WalletDataSlice'
 
@@ -227,19 +227,26 @@ const SettingsPage = (props) => {
 
           </div>
 
-          <button
-            type="button"
-            className="Body-button blue"
-            onClick={clearWalletButtonOnClick}>
+          <ConfirmPopup
+            onOk={clearWalletButtonOnClick}
+          >
+            <button
+              type="button"
+              className="Body-button blue"
+            >
               Clear wallet memory
-          </button>
-
-          <button
-            type="button"
-            className="Body-button blue"
-            onClick={logOutButtonOnClick}>
+            </button>
+          </ConfirmPopup>
+          <ConfirmPopup
+            onOk={logOutButtonOnClick}
+          >
+            <button
+              type="button"
+              className="Body-button blue"
+            >
               Log out of wallet
-          </button>
+            </button>
+          </ConfirmPopup>
       </div>
   )
 }

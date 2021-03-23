@@ -5,8 +5,7 @@ import { ElectrumClientConfig } from "./electrum";
 
 let lodash = require('lodash');
 
-// const DEFAULT_STATE_ENTITY_ENPOINT = "http://0.0.0.0:8000";
- const DEFAULT_STATE_ENTITY_ENPOINT = "https://fakeapi.mercurywallet.io";
+const DEFAULT_STATE_ENTITY_ENPOINT = "https://fakeapi.mercurywallet.io";
 
 export class Config {
   // Set at startup only
@@ -41,7 +40,7 @@ export class Config {
     }
     this.tor_proxy = "";
 
-    this.min_anon_set = 10;
+    this.min_anon_set = 5;
     this.notifications = true;
     this.tutorials = false;
 

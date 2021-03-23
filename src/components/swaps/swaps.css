@@ -1,4 +1,4 @@
-.CoinPanel {
+.SwapPanel.SwapHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -12,34 +12,17 @@
   flex-direction: column;
   padding-left: 10px;
 }
-.CoinSwapStatus {
-  display: flex;
-  align-items: center;
-  color: #757575;
-}
-.CoinTimeLeft {
-  display: flex;
-  align-items: center;
-  color: #757575;
-}
-.CoinTimeLeft img {
-  margin-right: 5px;
 
-}
-.CoinAmount-block {
+.SwapAmount-block.SwapParticipants.SwapStatus {
   text-align: left;
   display: flex;
 }
-.CoinAmount-block img {
+.SwapAmount-block.SwapParticipants.SwapStatus img {
   width:36px;
   height:36px
 }
-.scoreAmount img,
-.CoinTimeLeft img {
-  width:18px;
-  height:18px
-}
-.CoinAmount {
+
+.SwapAmount {
   color: #000000;
 }
 
@@ -121,17 +104,7 @@
   opacity: 1;
 }
 
-.CoinFundingTxid {
-  color: #BDBDBD;
-  display: block;
-  width: 130px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.CoinFundingTxid img {
-  margin-right: 5px;
-}
+
 
 .modal .item {
   display: flex;
@@ -183,7 +156,7 @@
 }
 
 @media only screen and (max-width: 768px) {
-  .CoinPanel {
+  .CoinPanel.SwapPanel.SwapHeader {
     flex-wrap: wrap;
     justify-content: center;
   }
@@ -196,4 +169,17 @@
   .tab-content .CoinPanel {
     display: block;
   }
+}
+
+.swap .right  .btn {
+  width: 100%;
+  padding: 20px;
+  border: none;
+  background-color: #757575;
+  font-size: 14px;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+.swap .right  .btn  img {
+  margin-right: 10px;
 }

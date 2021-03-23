@@ -17,6 +17,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.24"
 serde_derive = "1.0"
 bitcoin = { version = "0.25", features = [ "use-serde" ]}
+bitcoin_hashes = "0.9"
 floating-duration = "0.1.2"
 web-sys = { version = "0.3.45", features = [
   'console',
@@ -29,6 +30,11 @@ web-sys = { version = "0.3.45", features = [
   'RequestDestination',
   'Window']}
 console_error_panic_hook = "0.1.6"
+hex = "0.4.2"
+rand = { version = "0.6.5", features = ["wasm-bindgen"] }
+schemars = { version = "0.8.0-alpha-4", features = ["chrono", "uuid"] }
+uuid = { version = "0.5", features = ["v4", "serde"] }
+rocket_okapi = "0.6.0-alpha-1"
 
 [dev-dependencies]
 mockito = "0.27.0"
