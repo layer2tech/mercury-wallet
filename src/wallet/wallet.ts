@@ -4,7 +4,8 @@ import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
   MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, decryptAES,
-  encodeSCEAddress } from './';
+  encodeSCEAddress,
+  getRecoveryRequest} from './';
 import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
@@ -172,6 +173,14 @@ export class Wallet {
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
 
+  async recoverCoins() {
+    let recovery_data = await getRecoveryRequest(this.http_client, [{
+      key: "02f4ecedfe9580929d25e5ebdad95f916452b186493d169ae9a8e4dd002cfd2b46",
+      sig: ""
+    }])
+    console.log("recovery_data: ", recovery_data)
+  }
+
   // Initialise electum server:
   // Setup subscribe for block height and outstanding initialised deposits
   initElectrumClient(blockHeightCallBack: any) {
@@ -310,8 +319,8 @@ export class Wallet {
       if (this.statecoins.coins[i].tx_backup == null) {
         continue;
       }
-      if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED || 
-        this.statecoins.coins[i].backup_status === BACKUP_STATUS.TAKEN || 
+      if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED ||
+        this.statecoins.coins[i].backup_status === BACKUP_STATUS.TAKEN ||
         this.statecoins.coins[i].backup_status === BACKUP_STATUS.SPENT ||
         this.statecoins.coins[i].status == STATECOIN_STATUS.SPENT ||
         this.statecoins.coins[i].status == STATECOIN_STATUS.WITHDRAWN) {
@@ -339,7 +348,7 @@ export class Wallet {
             if(bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
               this.statecoins.coins[i].setBackupInMempool();
             } else if(bresponse.includes('already')) {
-              this.statecoins.coins[i].setBackupInMempool();              
+              this.statecoins.coins[i].setBackupInMempool();
             } else if(bresponse.includes('confict') || bresponse.includes('missingorspent')) {
               this.statecoins.coins[i].setBackupTaken();
               this.statecoins.coins[i].setExpired();
@@ -347,7 +356,7 @@ export class Wallet {
           });
           // if CPFP present, then broadcast this as well
           if (this.statecoins.coins[i].tx_cpfp != null) {
-              this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_cpfp.toHex())       
+              this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_cpfp.toHex())
           }
         }
       }
