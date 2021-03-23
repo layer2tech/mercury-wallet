@@ -8,6 +8,7 @@ import {useDispatch} from 'react-redux'
 import {StdButton, AddressInput} from "../../components";
 
 import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callTransferReceiver, setError, setNotification} from '../../features/WalletDataSlice'
+import {fromSatoshi} from '../../wallet'
 
 import './Receive.css';
 import '../Send/Send.css';
@@ -47,7 +48,7 @@ const ReceiveStatecoinPage = () => {
         setTransferMsg3("")
         let amount = res.payload.state_chain_data.amount
         let locktime = Transaction.fromHex(res.payload.tx_backup_psm.tx_hex).locktime
-        dispatch(setNotification({msg:"Transfer of "+amount+" BTC complete! StateCoin expires at block height "+locktime+"."}))
+        dispatch(setNotification({msg:"Transfer of "+fromSatoshi(amount)+" BTC complete! StateCoin expires at block height "+locktime+"."}))
       }
     })
   }
