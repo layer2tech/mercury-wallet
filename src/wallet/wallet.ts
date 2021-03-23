@@ -45,7 +45,7 @@ export class Wallet {
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
-  conductor_client: HttpClient | MockHttpClient;	
+  conductor_client: HttpClient | MockHttpClient;
   electrum_client: ElectrumClient | MockElectrumClient;
   block_height: number;
   current_sce_addr: string;
@@ -65,9 +65,9 @@ export class Wallet {
     this.swap_group_info = new Map<SwapGroup, number>();
     this.activity = new ActivityLog();
     this.electrum_client = testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
-      this.conductor_client = new MockHttpClient();  
+      this.conductor_client = new MockHttpClient();
     this.http_client = new HttpClient(this.config.state_entity_endpoint);
-      this.conductor_client = new HttpClient(this.config.swap_conductor_endpoint);	
+      this.conductor_client = new HttpClient(this.config.swap_conductor_endpoint);
     this.block_height = 0;
     this.current_sce_addr = "";
 
@@ -320,8 +320,8 @@ export class Wallet {
       if (this.statecoins.coins[i].tx_backup == null) {
         continue;
       }
-      if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED || 
-        this.statecoins.coins[i].backup_status === BACKUP_STATUS.TAKEN || 
+      if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED ||
+        this.statecoins.coins[i].backup_status === BACKUP_STATUS.TAKEN ||
         this.statecoins.coins[i].backup_status === BACKUP_STATUS.SPENT ||
         this.statecoins.coins[i].status == STATECOIN_STATUS.SPENT ||
         this.statecoins.coins[i].status == STATECOIN_STATUS.WITHDRAWN) {
@@ -353,7 +353,7 @@ export class Wallet {
             if(bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
               this.statecoins.coins[i].setBackupInMempool();
             } else if(bresponse.includes('already')) {
-              this.statecoins.coins[i].setBackupInMempool();              
+              this.statecoins.coins[i].setBackupInMempool();
             } else if(bresponse.includes('confict') || bresponse.includes('missingorspent')) {
               this.statecoins.coins[i].setBackupTaken();
               this.statecoins.coins[i].setExpired();
@@ -362,7 +362,7 @@ export class Wallet {
           // if CPFP present, then broadcast this as well
           if (this.statecoins.coins[i].tx_cpfp != null) {
               let cpfp_tx = this!.statecoins!.coins[i]!.tx_cpfp!.toHex();
-              this.electrum_client.broadcastTransaction(cpfp_tx);       
+              this.electrum_client.broadcastTransaction(cpfp_tx);
           }
         }
       }
@@ -570,28 +570,28 @@ export class Wallet {
     shared_key_id: string,
   ): Promise<StateCoin>{
     log.info("Do swap for "+shared_key_id)
-    
+
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     log.info("Got statecoin with proof key ", statecoin.proof_key)
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-    log.info("Got proof key der") 
+    log.info("Got proof key der")
 
     let new_proof_key_der = this.genProofKey();
-    log.info("Got new proof key der") 
+    log.info("Got new proof key der")
 
     log.info("Getting wasm")
-    let wasm = await this.getWasm(); 
+    let wasm = await this.getWasm();
 
-    log.info("Public key: ", proof_key_der.publicKey.toString("hex"));   
+    log.info("Public key: ", proof_key_der.publicKey.toString("hex"));
 
-    log.info("Awaiting doSwap") 
-    
+    log.info("Awaiting doSwap")
+
     let new_statecoin = await doSwap(this.conductor_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
-  
+
     // Mark funds as spent in wallet
-    log.info("Marking spent") 
+    log.info("Marking spent")
     this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 
     // update in wallet
@@ -662,13 +662,8 @@ export class Wallet {
     let batch_data = null;
     let finalize_data = await transferReceiver(this.http_client, transfer_msg3, rec_se_addr_bip32, batch_data)
 
-    // In batch case this step is performed once all other transfers in the batch are complete.
-    if(batch_data){
-      if (!Object.keys(batch_data).length) {
-        // Finalize protocol run by generating new shared key and updating wallet.
-        this.transfer_receiver_finalize(finalize_data);
-      }
-    }
+    // Finalize protocol run by generating new shared key and updating wallet.
+    this.transfer_receiver_finalize(finalize_data);
 
     this.saveStateCoinsList();
     return finalize_data
