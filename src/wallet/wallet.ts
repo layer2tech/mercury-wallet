@@ -173,12 +173,25 @@ export class Wallet {
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
 
+  // Send all proof keys to server to check for statecoins owned by this wallet.
+  // Should be used as a last resort only due to privacy leakage.
   async recoverCoins() {
-    let recovery_data = await getRecoveryRequest(this.http_client, [{
-      key: "02f4ecedfe9580929d25e5ebdad95f916452b186493d169ae9a8e4dd002cfd2b46",
-      sig: ""
-    }])
+    let recovery_data: any = [];
+    let new_recovery_data_load = [null];
+    let recovery_request = [];
+    // Keep grabbing data until
+    while (new_recovery_data_load.length > 0) {
+      recovery_request = [];
+      for (let i=0; i<50; i++) {
+        let addr = this.account.nextChainAddress(0);
+        recovery_request.push({key: this.account.derive(addr).publicKey.toString("hex"), sig: ""});
+      }
+      new_recovery_data_load = await getRecoveryRequest(this.http_client, recovery_request)
+      recovery_data.concat(new_recovery_data_load)
+    }
+
     console.log("recovery_data: ", recovery_data)
+    this.saveKeys();
   }
 
   // Initialise electum server:
