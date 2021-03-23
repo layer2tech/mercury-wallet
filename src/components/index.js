@@ -6,6 +6,9 @@ export { default as StdButton } from "./buttons/standardButton";
 export { default as ToggleButton } from "./buttons/toggleButton";
 
 export { default as AddressInput } from "./inputs/addressInput";
+export { default as CheckBox } from './Checkbox'
+export { default as Steppers } from './Steppers'
+export { default as ConfirmPopup } from './ConfirmPopup'
 
 export { default as DisplaySeed } from "./displaySeed/displaySeed";
 export { default as ConfirmSeed } from "./confirmSeed/confirmSeed";
@@ -16,6 +19,7 @@ export { default as PanelConnectivity } from "./panelConnectivity/panelConnectiv
 export { default as PanelCoinsActivity } from "./panelCoinsActivity/panelCoinsActivity";
 
 export { default as Coins } from "./coins/coins";
+export { default as Swaps } from "./swaps/swaps";
 export { default as Activity } from "./activity/activity";
 export { default as Quantity } from "./quantity/quantity";
 

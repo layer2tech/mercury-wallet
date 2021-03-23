@@ -2,6 +2,7 @@ import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 
 import {Wallet, ACTION} from '../wallet'
 import {getFeeInfo} from '../wallet/mercury/info_api'
+import { pingServer } from '../wallet/swap/info_api'
 import {decodeMessage} from '../wallet/util'
 
 import {v4 as uuidv4} from 'uuid';
@@ -19,6 +20,7 @@ const initialState = {
   connected: false,
   balance_info: {total_balance: null, num_coins: null},
   fee_info: {deposit: "NA", withdraw: "NA"},
+  ping_swap: null,
 }
 
 // Quick check for expiring coins. If so display error dialogue
@@ -64,6 +66,7 @@ export const walletLoad = (name, password) => {
   wallet.initElectrumClient(setBlockHeightCallBack);
   checkForExpiringCoins();
 }
+
 // Create wallet from nmemonic and load wallet
 export const walletFromMnemonic = (name, password, mnemonic) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
@@ -88,6 +91,14 @@ export const callGetBlockHeight = () => {
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
+export const callGetOngoingSwaps = () => {
+  return wallet.getOngoingSwaps()
+}
+
+export const callGetSwapGroupInfo = () => {
+  return wallet.getSwapGroupInfo()
+}
+
 export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
   return wallet.getUnconfirmedAndUnmindeCoinsFundingTxData()
 }
@@ -99,6 +110,14 @@ export const callGetActivityLog = () => {
 }
 export const callGetFeeInfo = () => {
   return getFeeInfo(wallet.http_client)
+}
+export const callPingSwap = () => {
+  try {
+    pingServer(wallet.conductor_client)
+  } catch (error){
+    return false;
+  }
+  return true;
 }
 export const callGetCoinBackupTxData = (shared_key_id) => {
   return wallet.getCoinBackupTxData(shared_key_id)
@@ -160,6 +179,25 @@ export const callTransferReceiver = createAsyncThunk(
     return wallet.transfer_receiver(decodeMessage(action))
   }
 )
+export const callDoSwap = createAsyncThunk(
+  'DoSwap',
+  async (action, thunkAPI) => {
+    console.log('callDoSwap');
+    return wallet.do_swap(action.shared_key_id)
+  }
+)
+export const callUpdateSwapGroupInfo = createAsyncThunk(
+  //let map = new Map;
+  //map.set({"amount":0.1,"size":12}, 11);
+  //map.set({"amount":1.0,"size":20}, 19);
+  //return map
+  'UpdateSwapGroupInfo',
+  async (action, thunkAPI) => {
+    console.log('callUpdateSwapGroupinfo');
+    wallet.updateSwapGroupInfo();
+  }
+)
+
 
 const WalletSlice = createSlice({
   name: 'walletData',
@@ -180,6 +218,13 @@ const WalletSlice = createSlice({
         ...state,
         fee_info: action.payload
       }
+    },
+    // Update fee_info
+    updatePingSwap(state, action) {
+        return {
+          ...state,
+          ping_swap: action.payload
+        }
     },
     // Deposit
     dummyDeposit() {
@@ -245,11 +290,17 @@ const WalletSlice = createSlice({
     },
     [callTransferReceiver.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callDoSwap.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callUpdateSwapGroupInfo.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
 }
 })
 
-export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo,
+export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo, updatePingSwap,
   setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
   export default WalletSlice.reducer
 

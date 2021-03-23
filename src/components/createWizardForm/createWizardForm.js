@@ -4,13 +4,17 @@ import {useForm} from "react-hook-form";
 import './createWizardForm.css'
 
 const CreateWizardForm = (props) => {
-    const {register, errors, handleSubmit, watch} = useForm({mode: 'onChange', reValidateMode: 'onChange',});
+    const {register, errors, watch, handleSubmit} = useForm({mode: 'onChange', reValidateMode: 'onChange',});
     const password = useRef({});
     password.current = watch("password", "");
 
+    function onSubmit(data) {
+        props.onSubmit()
+    }
+
     return (
         <div className="wizard-form">
-            <form>
+            <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="inputs-item">
                   <input id="Name" type="text" name="Wallet Name" placeholder="Wallet Name"
                     value={props.wizardState.wallet_name}
@@ -22,7 +26,7 @@ const CreateWizardForm = (props) => {
                 </div>
 
                 <div className="inputs-item">
-                  <input id="Passphrase" type="password" name="password" required
+                  <input id="Passphrase" type="password" name="password"
                     placeholder="Passphrase (min 8 characters)"
                     onChange={props.setStateWalletPassword}
                     ref={register({
@@ -41,7 +45,6 @@ const CreateWizardForm = (props) => {
                 <div className="inputs-item">
                   <input id="password_repeat"type="password" name="password_repeat"
                     placeholder="Confirm Passphrase"
-                    required
                     ref={register({
                        validate: value =>
                            value===password.current || "The passwords do not match"
@@ -58,6 +61,7 @@ const CreateWizardForm = (props) => {
                            required/>
                     <label htmlFor="terms">I have read and agree to the Terms of Use</label>
                 </div>
+                <button type="submit" className="btn btn-primary">Next</button>
             </form>
         </div>
     )

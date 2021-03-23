@@ -102,8 +102,8 @@ const Activity = () => {
 
                   </td>
                   <td>
-                      <span></span>
-                      <span className="red"></span>
+                      <span>Swapped</span>
+                      <span className="green"> {fromSatoshi(item.value)} BTC</span>
 
                   </td>
               </tr>
