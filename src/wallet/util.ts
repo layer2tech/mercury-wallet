@@ -163,7 +163,7 @@ export const txCPFPBuild = (network: Network, funding_txid: string, funding_vout
 
   let txb = new TransactionBuilder(network);
 
-  txb.addInput(funding_txid, funding_vout, null, p2wpkh.output);
+  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF, p2wpkh.output);
   txb.addOutput(rec_address, value - total_fee);
   return txb
 }

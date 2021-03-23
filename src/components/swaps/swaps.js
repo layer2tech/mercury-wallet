@@ -96,17 +96,13 @@ const Swaps = (props) => {
             dispatch(callUpdateSwapGroupInfo());    
             const swap_groups = callGetSwapGroupInfo();            
             all_swap_groups_data=swap_groups; // check for change in length of unconfirmed coins list and total number
-            console.log("Updated swap data - all swap groups data:")
-            console.log(all_swap_groups_data)
             all_swap_groups_array = swap_groups ? Array.from(all_swap_groups_data.entries()) :
     new Array();
-            console.log(all_swap_groups_array)
         }, 5000);
         return () => clearInterval(interval);
       },
       []);
     const swapData = all_swap_groups_array.map(([key,value]) => (
-        //console.log(item)
         
         <div key={key} value={value}>
         <div>

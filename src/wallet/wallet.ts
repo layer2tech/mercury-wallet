@@ -293,7 +293,7 @@ export class Wallet {
     backup_tx_data.key_wif = bip32.toWIF();
 
     if (statecoin.tx_cpfp != null) {
-       let fee_rate = (FEE + backup_tx_data.output_value - statecoin.tx_cpfp.outs[0].value)/250;
+       let fee_rate = (FEE + (backup_tx_data?.output_value ?? 0) - (statecoin.tx_cpfp?.outs[0]?.value ?? 0))/250;
        backup_tx_data.cpfp_status = "Set. Fee rate = "+fee_rate.toString();
     }
 
@@ -328,7 +328,7 @@ export class Wallet {
         continue;
       }
       // check locktime
-      let blocks_to_locktime = this.statecoins.coins[i].tx_backup.locktime - this.block_height;
+      let blocks_to_locktime = (this?.statecoins?.coins[i]?.tx_backup?.locktime ?? 0) - this.block_height;
       // pre-locktime - do nothing
       if (blocks_to_locktime > 0) {
         this.statecoins.coins[i].setBackupPreLocktime();
@@ -337,15 +337,19 @@ export class Wallet {
       } else {
         // in mempool - check if confirmed
         if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
-          this.electrum_client.getTransaction(this.statecoins.coins[i].tx_backup.getId()).then((tx_data) => {
-            if(tx_data.confirmations > 0) {
-              this.statecoins.coins[i].setBackupConfirmed();
-              this.statecoins.coins[i].setExpired();
+          let txid = this!.statecoins!.coins[i]!.tx_backup!.getId();
+          if(txid != null) {
+            this.electrum_client.getTransaction(txid).then((tx_data) => {
+              if(tx_data.confirmations > 0) {
+                this.statecoins.coins[i].setBackupConfirmed();
+                this.statecoins.coins[i].setExpired();
             }
           })
+          }
         } else {
           // broadcast transaction
-          this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_backup.toHex()).then((bresponse) => {
+          let backup_tx = this!.statecoins!.coins[i]!.tx_backup!.toHex();
+          this.electrum_client.broadcastTransaction(backup_tx).then((bresponse: any) => {
             if(bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
               this.statecoins.coins[i].setBackupInMempool();
             } else if(bresponse.includes('already')) {
@@ -357,7 +361,8 @@ export class Wallet {
           });
           // if CPFP present, then broadcast this as well
           if (this.statecoins.coins[i].tx_cpfp != null) {
-              this.electrum_client.broadcastTransaction(this.statecoins.coins[i].tx_cpfp.toHex())       
+              let cpfp_tx = this!.statecoins!.coins[i]!.tx_cpfp!.toHex();
+              this.electrum_client.broadcastTransaction(cpfp_tx);       
           }
         }
       }
@@ -387,16 +392,16 @@ export class Wallet {
     // Construct CPFP tx
     let txb_cpfp = txCPFPBuild(
       this.config.network,
-      backup_tx_data.txid,
+      backup_tx_data.txid!,
       0,
       cpfp_data.cpfp_addr,
-      backup_tx_data.output_value,
+      backup_tx_data.output_value!,
       fee_rate,
       p2wpkh,
     );
 
     // sign tx
-    txb_cpfp.sign(0,ec_pair,null,null,backup_tx_data.output_value);
+    txb_cpfp.sign(0,ec_pair,null!,null!,backup_tx_data.output_value);
 
     let cpfp_tx = txb_cpfp.build();
 
