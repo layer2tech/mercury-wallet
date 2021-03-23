@@ -25,6 +25,7 @@ const PanelConnectivity = (props) => {
   }
 
   const fee_info = useSelector(state => state.walletData).fee_info;
+  const swap_info = useSelector(state => state.walletData).swap_info;
   const block_height = callGetBlockHeight();
 
   return (
@@ -59,8 +60,8 @@ const PanelConnectivity = (props) => {
                       <input
                           readOnly
                           type="radio"
-                          value="Electrum"
-                          checked={false}
+                          value="Swaps"
+                          checked={swap_info !== null}
                       />
                       Connected to Electrum
                       <span className="checkmark"></span>

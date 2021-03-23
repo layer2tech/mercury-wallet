@@ -9,6 +9,8 @@ import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
 import { BTC_ADDR, KEYGEN_SIGN_DATA, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID } from './test_data.js'
 import * as MOCK_CLIENT from '../mocks/mock_wasm';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
+import { BIP32Interface, BIP32,  fromBase58, fromSeed} from 'bip32';
+import { SwapToken } from '../swap/swap'
 
 let bitcoin = require('bitcoinjs-lib')
 let lodash = require('lodash');
@@ -21,7 +23,6 @@ let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 
 
 describe('2P-ECDSA', function() {
-
   test('KeyGen', async function() {
     http_mock.post = jest.fn().mockReset()
       .mockReturnValueOnce(MOCK_SERVER.KEYGEN_FIRST)
@@ -238,9 +239,9 @@ describe('StateChain Entity', function() {
       //POST.TRANSFER_UPDATE_MSG;
         .mockReturnValueOnce(true)
 
-      let transfer_msg3: TransferMsg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
+      let transfer_msg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
       let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER.__D));
-      let finalize_data = await transferReceiver(http_mock, transfer_msg3, se_rec_addr_bip32, {});
+      let finalize_data = await transferReceiver(http_mock, transfer_msg3, se_rec_addr_bip32, null);
 
       expect(finalize_data.shared_key_id).not.toBe(transfer_msg3.shared_key_id);
     });
@@ -248,10 +249,10 @@ describe('StateChain Entity', function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
 
-      let transfer_msg3: TransferMsg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
+      let transfer_msg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
       transfer_msg3.statechain_sig.sig = "3044022026a22bb2b8c0e43094d9baa9de1abd1de914b59f8bbcf5b740900180da575ed10220544e27e2861edf01b5c383fc90d8b1fd41211628516789f771b2c3536e650bdb";
 
-      await expect(transferReceiver(http_mock, transfer_msg3, {}, {}))
+      await expect(transferReceiver(http_mock, transfer_msg3, {}, null))
         .rejects
         .toThrowError("Invalid StateChainSig.");
     });
@@ -259,11 +260,11 @@ describe('StateChain Entity', function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
 
-      let transfer_msg3: TransferMsg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
+      let transfer_msg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
       let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER.__D));
       se_rec_addr_bip32.__D = Buffer.from("0ca756f401478fb1a166d27945501d8af59ada1cb552c598509dfcb494f475b9", "hex")
 
-      await expect(transferReceiver(http_mock, transfer_msg3, se_rec_addr_bip32, {}))
+      await expect(transferReceiver(http_mock, transfer_msg3, se_rec_addr_bip32, null))
         .rejects
         .toThrowError("Unsupported state or unable to authenticate data");
     });
@@ -285,7 +286,7 @@ describe('StateChain Entity', function() {
       http_mock.post
         .mockReturnValueOnce(MOCK_SERVER.SMT_PROOF);
 
-      let finalize_data: TransferFinalizeData = BJSON.parse(lodash.cloneDeep(FINALIZE_DATA));
+      let finalize_data = BJSON.parse(lodash.cloneDeep(FINALIZE_DATA));
       let statecoin = await transferReceiverFinalize(http_mock, wasm_mock, finalize_data);
 
       expect(statecoin.statechain_id).toBe(finalize_data.statechain_id);
@@ -296,6 +297,29 @@ describe('StateChain Entity', function() {
       expect(statecoin.smt_proof).not.toBe(null);
       expect(statecoin.status).toBe(STATECOIN_STATUS.INITIALISED);
     });
+  });
+});
+
+describe('Swaps', function() {
+  describe('swapTokenSign', function() {
+    test('Gen and Verify', async function() {
+      let proof_key_der = fromSeed(Buffer.from("0123456789abcdef"), bitcoin.networks.bitcoin);
+      console.log("proof_key_der: ", proof_key_der.privateKey.toString("hex"))
+      console.log("proof_key_der: ", Array.from(proof_key_der.privateKey))
+      let pub = proof_key_der.publicKey.toString('hex');
+      console.log("pub: ", pub)
+
+      let swap_token = new SwapToken(
+        "120270b4-1a97-46c8-aed6-6b48bf9ff310",
+        10,
+        10,
+        []);
+
+      let msg = swap_token.to_message()
+      let swap_sig = swap_token.sign(proof_key_der);
+      console.log("swap_sig: ", swap_sig)
+      console.log("swap_sig: ", swap_token.verify_sig(proof_key_der, swap_sig))
+    })
   });
 });
 
