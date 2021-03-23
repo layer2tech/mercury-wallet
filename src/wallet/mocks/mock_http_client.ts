@@ -121,7 +121,7 @@ export const POLL_SWAP_END = "End"
 
 export const GET_SWAP_INFO_1 = {
   status: "Phase1",
-  swap_token: SIGNSWAPTOKEN_DATA.swap_token,
+  swap_token: SIGNSWAPTOKEN_DATA[0].swap_token,
   bst_sender_data: BST_DATA.bst_sender_data,
 }
 
