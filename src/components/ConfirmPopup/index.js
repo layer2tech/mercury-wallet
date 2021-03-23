@@ -18,7 +18,7 @@ function ConfirmPopup ({ children, onOk, onCancel }) {
   return (
     <>
       <Modal show={showModal} onHide={handleClose} className="modal">
-        <Modal.Body>
+        <Modal.Body className="custom-modal-body">
           <p className="confirm-question">Are you sure?</p>
         </Modal.Body>
         <div className="confirm-footer">
