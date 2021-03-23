@@ -5,6 +5,7 @@ import { segwitAddr } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
 import { txWithdrawBuild } from '../util';
+import { SIGNSWAPTOKEN_DATA } from './test_data'
 
 let lodash = require('lodash');
 
@@ -18,19 +19,17 @@ describe('Wallet', function() {
    describe('swapTokenSign', function() {
   
      test('Gen and Verify', async function() {
-       let wasm = await wallet.getWasm();
        SIGNSWAPTOKEN_DATA.forEach(data => {
-         let proof_key_der = BIP32Interface.fromHex(data.priv);
+         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(data.priv, "hex"));
+         //let proof_key_der = wallet.getBIP32forProofKeyPubKey(data.priv);
+         console.log('proof_key_der', proof_key_der);
          let pub = proof_key_der.publicKey.toString('hex');
          expect(pub).toBe(data.pub);
-         let st = JSON.parse(data.swap_token);
+         let st = data.swap_token;
          let st_cls = new SwapToken(st.id, st.amount, st.time_out, st.statechain_ids);
   
-         let swap_sig = st_cls.sign(proof_key_derdata.swap_token, proof_key_priv_str);
-       expect(swap_sig.sig).toBe(data.sig);
-       let ver_json = wasm.SwapTokenW.verify_sig(data.pub, data.sig, data.swap_token);
-       let ver = JSON.parse(ver_json);
-       expect(ver).toBe(true)
+         let swap_sig = st_cls.sign(proof_key_der,data.swap_token, data.priv);
+       expect(swap_sig).toBe(data.swap_token_sig);
      })
    });
  })

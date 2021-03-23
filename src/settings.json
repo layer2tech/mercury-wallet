@@ -3,5 +3,5 @@
   "state_entity_endpoint": "https://fakeapi.mercurywallet.io",
   "swap_conductor_endpoint": "https://fakeapi.mercurywallet.io",
   "network": "bitcoin",
-  "testing_mode": false
+  "testing_mode": true
 }

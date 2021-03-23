@@ -7,12 +7,25 @@ import { getStateChain } from "../mercury/info_api";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress,
   pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1,
   encryptECIESt2} from "../util";
-import { BIP32Interface, Network, TransactionBuilder, crypto, script, Transaction } from 'bitcoinjs-lib';
+import { BIP32Interface, Network, TransactionBuilder, crypto as crypto_btc, script, Transaction } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
 import { SwapMsg1, BSTMsg, SwapMsg2, RegisterUtxo, SwapStatus, BatchData, BSTRequestorData} from '../types';
 import { AssertionError } from 'assert';
 import { create } from 'domain';
 import Swap from '../../containers/Swap/Swap';
+import { Root } from '../mercury/info_api';
+import { TransferMsg3 } from '../mercury/transfer';
+
+
+import { encrypt, decrypt } from 'eciesjs'
+import { segwitAddr } from '../wallet';
+
+let bech32 = require('bech32')
+let crypto = require('crypto');
+
+let EC = require('elliptic').ec
+let secp256k1 = new EC('secp256k1')
+var msgpack = require("msgpack-lite");
 
 let bitcoin = require("bitcoinjs-lib");
 
