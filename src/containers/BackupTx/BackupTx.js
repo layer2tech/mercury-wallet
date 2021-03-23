@@ -32,7 +32,12 @@ const BackupTxPage = () => {
     if (id==null) {
       setSelectedCoinTxData(DEFAULT_TX_DATA)
     } else {
-      setSelectedCoinTxData(callGetCoinBackupTxData(id))
+      try {
+        const txData = callGetCoinBackupTxData(id);
+        setSelectedCoinTxData(txData)
+      } catch(error) {
+        console.warn('Something wrong with get coin backup tx data', error);
+      }
     }
   }
 

@@ -84,7 +84,7 @@ export class StateCoinList {
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
-    return this.coins.reverse().find(coin => coin.shared_key_id === shared_key_id)
+    return this.coins.find(coin => coin.shared_key_id === shared_key_id)
   }
 
   // creates new coin with Date.now()
