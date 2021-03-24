@@ -1,15 +1,12 @@
 .custom-modal-body.modal-body {
   padding: 16px;
 }
-.confirm-question {
+.custom-modal-info {
   font-size: 20px;
   text-align: center;
 }
-.confirm-footer {
+.custom-modal-footer {
   padding: 0 20px;
   display: flex;
   justify-content: center;
-}
-.confirm-footer button {
-  margin-right: 20px;
 }
