@@ -34,10 +34,11 @@ const checkForCoinsHealth = () => {
         break;
       };
     if (coins_data[i].wallet_version !== wallet.version) {
-        initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet was created in previous wallet version. Due to rapid development some backward incompatible changes may break old coins. We recommend withdrawing testnet coins and creating a fresh wallet." }
+      // initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet was created in previous wallet version. Due to rapid development some backward incompatible changes may break old coins. We recommend withdrawing testnet coins and creating a fresh wallet." }
         break;
       };
     }
+    initialState.error_dialogue = { seen: false, msg: "show some error here." }
 }
 
 // Check if a wallet is loaded in memory
