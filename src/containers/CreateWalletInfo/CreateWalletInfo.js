@@ -22,22 +22,6 @@ const CreateWalletInfoPage = () => {
     const changeCheckbox = state[1]
     // Change handlers
 
-    const [warningSeen, setWarningSeen] = useState(false);
-
-    // If wallet saved warn of overwriting data
-    const checkWalletStored = () => {
-      if (store.get('wallet')) {
-          if (Object.keys(store.get('wallet')).length) {
-            return true
-          }
-      }
-      return false
-    }
-    if (!warningSeen && checkWalletStored()) {
-      setWarningSeen(true);
-      dispatch(setError({msg: "Warning: Creating a new wallet will overwrite your current wallet."}))
-    }
-
     return (
         <div className="welcome-second ">
             <h1>Create a New Wallet</h1>

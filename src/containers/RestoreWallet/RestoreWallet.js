@@ -14,20 +14,6 @@ const RestoreWalletPage = () => {
   const dispatch = useDispatch();
 
   const [mnemonic, setMnemonic] = useState("");
-  const [warningSeen, setWarningSeen] = useState(false);
-
-  // If wallet saved warn of overwriting data
-  const checkWalletStored = () => {
-    if (Object.keys(store.get('wallets')).length) {
-      return true
-    }
-    return false
-  }
-  if (!warningSeen && checkWalletStored()) {
-    setWarningSeen(true);
-    dispatch(setError({msg: "Warning: Creating a new wallet will overwrite your current wallet."}));
-  }
-
   const onMnemonicChange = (event) => {
     setMnemonic(event.target.value)
   }
