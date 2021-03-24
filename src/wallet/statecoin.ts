@@ -6,7 +6,7 @@ import { ACTION } from ".";
 import { ElectrumTxData } from "./electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
-import { SwapInfo, SwapStatus } from "./swap/swap";
+import { SwapInfo } from "./swap/swap";
 
 export class StateCoinList {
   coins: StateCoin[]
@@ -19,6 +19,7 @@ export class StateCoinList {
     let statecoins = new StateCoinList()
     coins_json.coins.forEach((item: StateCoin) => {
       let coin = new StateCoin(item.shared_key_id, item.shared_key);
+      coin.wallet_version = "";
       statecoins.coins.push(Object.assign(coin, item))
     })
     return statecoins
@@ -42,7 +43,7 @@ export class StateCoinList {
     return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
   };
 
-  getOngoingSwaps(block_height: number) {
+  getOngoingSwaps() {
     let coins = this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.AVAILABLE
         && item.swap_info !== null) {
@@ -50,7 +51,7 @@ export class StateCoinList {
       }
       return
     })
-    return [coins.map((item: StateCoin) => item.getSwapDisplayInfo(block_height))]
+    return [coins.map((item: StateCoin) => item.getSwapDisplayInfo())]
   };
 
   // Return coins that are awaiting funding tx to be broadcast
@@ -84,7 +85,7 @@ export class StateCoinList {
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
-    return this.coins.reverse().find(coin => coin.shared_key_id === shared_key_id)
+    return this.coins.find(coin => coin.shared_key_id === shared_key_id)
   }
 
   // creates new coin with Date.now()
@@ -222,6 +223,7 @@ export class StateCoin {
   shared_key_id: string;    // SharedKeyId
   statechain_id: string;   // StateChainId
   shared_key: MasterKey2;
+  wallet_version: string;
   proof_key: string;
   value: number;
   funding_txid: string;
@@ -244,6 +246,7 @@ export class StateCoin {
     this.shared_key_id = shared_key_id;
     this.statechain_id = "";
     this.shared_key = shared_key;
+    this.wallet_version = require("../../package.json").version
     this.proof_key = "";
     this.value = 0;
     this.timestamp = new Date().getTime();
@@ -284,6 +287,7 @@ export class StateCoin {
   // Get data to display in GUI
   getDisplayInfo(block_height: number): StateCoinDisplayData {
     return {
+      wallet_version: this.wallet_version,
       shared_key_id: this.shared_key_id,
       value: this.value,
       funding_txid: this.funding_txid,
@@ -298,7 +302,7 @@ export class StateCoin {
   };
 
   // Get data to display in GUI
-  getSwapDisplayInfo(block_height: number): SwapDisplayData | null {
+  getSwapDisplayInfo(): SwapDisplayData | null {
     let si = this.swap_info;
     if (si === null){
       return null;
@@ -379,11 +383,10 @@ export class StateCoin {
   getSharedPubKey(): string {
     return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed("hex");
   }
-
-
 }
 
 export interface StateCoinDisplayData {
+  wallet_version: string,
   shared_key_id: string,
   value: number,
   funding_txid: string,

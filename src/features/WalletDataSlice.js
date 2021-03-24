@@ -23,18 +23,6 @@ const initialState = {
   ping_swap: null,
 }
 
-// Quick check for expiring coins. If so display error dialogue
-const checkForExpiringCoins = () => {
-  let unspent_coins_data = wallet.getUnspentStatecoins();
-  let coins_data = unspent_coins_data[0];
-  for (let i=0; i<coins_data.length; i++) {
-    if (coins_data[i].expiry_data.months <= 1) {
-        initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet is close to expiring." }
-        break;
-      };
-    }
-}
-
 // Check if a wallet is loaded in memory
 export const isWalletLoaded = () => {
   if (wallet===undefined) {
@@ -64,7 +52,6 @@ export const walletLoad = (name, password) => {
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
   wallet.initElectrumClient(setBlockHeightCallBack);
-  checkForExpiringCoins();
 }
 
 // Create wallet from nmemonic and load wallet
@@ -75,7 +62,6 @@ export const walletFromMnemonic = (name, password, mnemonic) => {
   wallet.initElectrumClient(setBlockHeightCallBack);
   callNewSeAddr();
   wallet.save();
-  checkForExpiringCoins();
 }
 
 // Wallet data gets

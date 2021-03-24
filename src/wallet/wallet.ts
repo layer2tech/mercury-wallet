@@ -248,7 +248,7 @@ export class Wallet {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   getOngoingSwaps() {
-    return this.statecoins.getOngoingSwaps(this.getBlockHeight())
+    return this.statecoins.getOngoingSwaps()
   }
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
