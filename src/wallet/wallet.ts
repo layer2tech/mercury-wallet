@@ -568,7 +568,7 @@ export class Wallet {
   // Args: shared_key_id of coin to swap.
   async do_swap(
     shared_key_id: string,
-  ): Promise<StateCoin>{
+  ): Promise<StateCoin | null>{
     log.info("Do swap for "+shared_key_id)
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
@@ -589,6 +589,10 @@ export class Wallet {
     log.info("Awaiting doSwap")
 
     let new_statecoin = await doSwap(this.conductor_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
+
+    if (new_statecoin == null){
+      return null;
+    }
 
     // Mark funds as spent in wallet
     log.info("Marking spent")

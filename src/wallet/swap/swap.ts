@@ -51,7 +51,7 @@ export const doSwap = async (
   proof_key_der: BIP32Interface,
   swap_size: number,
   new_proof_key_der: BIP32Interface,
-): Promise<StateCoin> => {
+): Promise<StateCoin | null> => {
   let swap_rounds=statecoin.swap_rounds;
 
   let publicKey = proof_key_der.publicKey.toString('hex');
@@ -76,7 +76,11 @@ export const doSwap = async (
 
 
   let swap_id = null
+  let max_n_polls = 20;
+  let n_polls=0;
   while (true){
+    n_polls ++;
+    if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     swap_id = await pollUtxo(http_client,statechain_id);
     if (swap_id !== null) {
       typeforce(types.SwapID, swap_id);
@@ -86,10 +90,12 @@ export const doSwap = async (
     }
     await delay(3);
   };
-
+  n_polls=0;
 
   let swap_info = null;
   while (true){
+    n_polls ++;
+    if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     swap_info = await getSwapInfo(http_client,swap_id);
     if (swap_info !== null){
         statecoin.swap_status=swap_info.status;
@@ -114,7 +120,10 @@ export const doSwap = async (
     wasm_client,swap_info,statecoin.statechain_id,transfer_batch_sig,
     address,proof_key_der);
 
+  n_polls = 0;
   while(true){
+    n_polls ++;
+    if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     let phase: string = await pollSwap(http_client, swap_id);
     if (statecoin.swap_info){
       statecoin.swap_info.status=phase;
@@ -134,7 +143,10 @@ export const doSwap = async (
 
     let receiver_addr = await second_message(http_client, wasm_client, swap_id.id, my_bst_data, bss);
 
+  n_polls=0;
   while(true){
+    n_polls ++;
+    if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     let phase = await pollSwap(http_client, swap_id);
     if (statecoin.swap_info){
       statecoin.swap_info.status=phase;
@@ -171,7 +183,10 @@ export const doSwap = async (
     new_proof_key_der
   );
 
+  n_polls=0;
   while(true){
+    n_polls ++;
+    if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     let phase = await pollSwap(http_client, swap_id);
     console.log("swap status: ", phase);
     if (statecoin.swap_info){
@@ -191,6 +206,12 @@ export const doSwap = async (
 
   statecoin_out.swap_rounds=swap_rounds+1;
   return statecoin_out;
+}
+
+export const clear_statecoin_swap_info = (statecoin: StateCoin): null => {
+  statecoin.swap_info=null;
+  statecoin.swap_status=null;
+  return null;
 }
 
 export const do_transfer_receiver = async (
