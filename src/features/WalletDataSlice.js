@@ -130,6 +130,11 @@ export const callCreateBackupTxCPFP = (cpfp_data) => {
      return sucess
 }
 
+// Set coin status to AVAILABLE. This fn is used when a coin is removed from a swap pool.
+export const callRemoveCoinFromSwap = (shared_key_id) => {
+     wallet.statecoins.removeCoinFromSwap(shared_key_id);
+}
+
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
 export const callDepositInit = createAsyncThunk(

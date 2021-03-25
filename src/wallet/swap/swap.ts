@@ -1,6 +1,6 @@
 // Conductor Swap protocols
 
-import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE } from '..';
+import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
 import {transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo } from "./info_api";
 import { getStateChain } from "../mercury/info_api";
@@ -33,7 +33,7 @@ export const doSwap = async (
   proof_key_der: BIP32Interface,
   swap_size: number,
   new_proof_key_der: BIP32Interface,
-): Promise<StateCoin> => {
+): Promise<StateCoin | null> => {
   let swap_rounds=statecoin.swap_rounds;
 
   let publicKey = proof_key_der.publicKey.toString('hex');
@@ -58,6 +58,8 @@ export const doSwap = async (
 
   let swap_id = null
   while (true){
+    // check statecoin is still IN_SWAP_QUEUE
+    if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) return null;
     swap_id = await pollUtxo(http_client,statechain_id);
     if (swap_id !== null) {
       typeforce(types.SwapID, swap_id);
@@ -70,7 +72,9 @@ export const doSwap = async (
 
 
   let swap_info = null;
-  while (true){
+  while (true) {
+    // check statecoin is still IN_SWAP_QUEUE
+
     swap_info = await getSwapInfo(http_client,swap_id);
     if (swap_info !== null){
         statecoin.swap_status=swap_info.status;
@@ -78,6 +82,10 @@ export const doSwap = async (
     }
     await delay(3);
   };
+
+ // set coins to IN_SWAP
+
+
 
   typeforce(types.SwapInfo, swap_info);
 

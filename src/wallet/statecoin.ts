@@ -163,6 +163,17 @@ export class StateCoinList {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
   }
+
+  removeCoinFromSwap(shared_key_id: string) {
+    let coin = this.getCoin(shared_key_id)
+    if (coin) {
+      coin.setConfirmed();
+      coin.swap_info = null;
+      coin.swap_status = null;
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+  }
 }
 
 // STATUS represent each stage in the lifecycle of a statecoin.

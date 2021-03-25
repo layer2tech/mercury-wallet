@@ -1,13 +1,14 @@
-import React, {useState} from 'react';
-import './Swap.css';
+import swapIcon from '../../images/swap_icon-blue.png';
 
 import {Link, withRouter, Redirect} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
-import swapIcon from '../../images/swap_icon-blue.png';
+import React, {useState} from 'react';
 
 import { Coins, Swaps, StdButton} from "../../components";
-import {isWalletLoaded, setNotification, setError, callDoSwap, callGetOngoingSwaps} from '../../features/WalletDataSlice'
+import {isWalletLoaded, setNotification, setError, callDoSwap, callGetOngoingSwaps,
+  callRemoveCoinFromSwap } from '../../features/WalletDataSlice'
 
+  import './Swap.css';
 
 const SwapPage = () => {
   const dispatch = useDispatch();
@@ -33,7 +34,7 @@ const SwapPage = () => {
     dispatch(callDoSwap({"shared_key_id": selectedCoin}))
       .then(res => {
         if (res.payload===null) {
-          dispatch(setNotification({msg:"Coin "+selectedCoin+" swap failed."}))
+          dispatch(setNotification({msg:"Coin "+selectedCoin+" removed from swap pool."}))
           return
         }
         if (res.error===undefined) {
@@ -41,6 +42,14 @@ const SwapPage = () => {
           dispatch(setNotification({msg:"Swap complete!"}))
         }
       })
+    }
+
+    const leavePoolButtonAction = () => {
+      if (!selectedCoin) {
+        dispatch(setError({msg: "Please choose a StateCoin to remove."}))
+        return
+      }
+      callRemoveCoinFromSwap(selectedCoin)
     }
 
   return (
@@ -86,6 +95,9 @@ const SwapPage = () => {
                   </div>
                   <button type="button" className="btn" onClick={swapButtonAction}>
                           SWAP STATECOIN UTXO
+                  </button>
+                  <button type="button" className="btn" onClick={leavePoolButtonAction}>
+                          REMOVE STATECOIN UTXO FROM SWAP
                   </button>
               </div>
           </div>
