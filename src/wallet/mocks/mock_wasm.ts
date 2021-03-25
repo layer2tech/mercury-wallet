@@ -38,11 +38,9 @@ export class KeyGen {
 
 export class Commitment {
   make_commitment(_data: string){
-    return JSON.stringify({"foo":"bar"});
-   // return {
-      //"commitment": COMMITMENT_DATA[0].commitment,
-     // "nonce": COMMITMENT_DATA[0].nonce
-    //}
+    return JSON.stringify(
+    COMMITMENT_DATA[0].batch_data
+    )
   }
 }
 
