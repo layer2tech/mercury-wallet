@@ -1,15 +1,16 @@
-import './activity.css';
-import txidIcon from '../../images/txid-icon.png';
+import React from 'react';
 import Moment from 'react-moment';
+
+import { fromSatoshi } from '../../wallet/util'
+import { callGetActivityLog } from '../../features/WalletDataSlice'
+
+import txidIcon from '../../images/txid-icon.png';
 import createIcon from '../../images/create-icon-dep.png';
 import transferIcon from '../../images/transfer-icon.png';
 import withrowIcon from '../../images/withrow-icon.png';
 import swapIcon from '../../images/swap-icon-grey.png';
 
-import React from 'react';
-
-import { fromSatoshi } from '../../wallet/util'
-import { callGetActivityLog } from '../../features/WalletDataSlice'
+import './activity.css';
 
 const Activity = () => {
     let activity_data = callGetActivityLog();
@@ -52,7 +53,7 @@ const Activity = () => {
 								</td>
 								<td>
 									<img src={txidIcon} alt="txidIcon"/>
-									<span className="txid">{item.txid}</span>
+									<span className="txid">{item.funding_txid}</span>
 
 								</td>
 								<td>
@@ -75,7 +76,7 @@ const Activity = () => {
 								</td>
 								<td>
 									<img src={txidIcon} alt="txidIcon"/>
-									<span className="txid">{item.txid}</span>
+									<span className="txid">{item.funding_txid}</span>
 
 								</td>
 								<td>
@@ -98,7 +99,7 @@ const Activity = () => {
 								</td>
 								<td>
 									<img src={txidIcon} alt="txidIcon"/>
-									<span className="txid">{item.txid}</span>
+									<span className="txid">{item.funding_txid}</span>
 
 								</td>
 								<td>
@@ -121,7 +122,7 @@ const Activity = () => {
 								</td>
 								<td>
 									<img src={swapIcon} alt="txidIcon"/>
-									<span className="txid">{item.txid}</span>
+									<span className="txid">{item.funding_txid}</span>
 
 								</td>
 								<td>
