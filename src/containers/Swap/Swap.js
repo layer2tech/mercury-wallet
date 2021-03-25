@@ -7,6 +7,7 @@ import React, {useState} from 'react';
 import { Coins, Swaps, StdButton} from "../../components";
 import {isWalletLoaded, setNotification, setError, callDoSwap, callGetOngoingSwaps,
   callRemoveCoinFromSwap } from '../../features/WalletDataSlice'
+import {fromSatoshi} from '../../wallet'
 
   import './Swap.css';
 
@@ -38,8 +39,7 @@ const SwapPage = () => {
           return
         }
         if (res.error===undefined) {
-          console.log("res: ", res)
-          dispatch(setNotification({msg:"Swap complete!"}))
+          dispatch(setNotification({msg:"Swap complete for coin of value "+fromSatoshi(res.payload.value)+" with new id "+res.payload.shared_key_id}))
         }
       })
     }
