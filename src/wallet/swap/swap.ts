@@ -197,7 +197,6 @@ export const make_swap_commitment = (statecoin: any,
   swap_info: any, wasm_client: any): BatchData => {
 
   let commitment_str: string = statecoin.statechain_id;
-  console.log("swaps - swap_info: ", swap_info);
   swap_info.swap_token.statechain_ids.forEach ( function(item: string){
     commitment_str.concat(item);
   });
