@@ -1,23 +1,28 @@
 import React, {useState} from 'react';
 import './Swap.css';
 
-import {Link, withRouter} from "react-router-dom";
+import {Link, withRouter, Redirect} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 import swapIcon from '../../images/swap_icon-blue.png';
 
 import { Coins, Swaps, StdButton} from "../../components";
-import {callDoSwap, setError, callGetOngoingSwaps} from '../../features/WalletDataSlice'
+import {isWalletLoaded, setNotification, setError, callDoSwap, callGetOngoingSwaps} from '../../features/WalletDataSlice'
 
 
 const SwapPage = () => {
-
+  const dispatch = useDispatch();
   let disabled = false;
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [inputAddr, setInputAddr] = useState("");
 
-  const dispatch = useDispatch();
+  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
+  if (!isWalletLoaded()) {
+    dispatch(setError({msg: "No Wallet loaded."}))
+    return <Redirect to="/" />;
+  }
+
   const swapButtonAction = async () => {
     // check statechain is chosen
     if (!selectedCoin) {
@@ -25,16 +30,18 @@ const SwapPage = () => {
       return
     }
 
- 
-      dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+    dispatch(callDoSwap({"shared_key_id": selectedCoin}))
       .then(res => {
+        if (res.payload===null) {
+          dispatch(setNotification({msg:"Coin "+selectedCoin+" swap failed."}))
+          return
+        }
         if (res.error===undefined) {
+          console.log("res: ", res)
+          dispatch(setNotification({msg:"Swap complete!"}))
         }
       })
     }
- 
-
-
 
   return (
       <div className="container ">
@@ -56,7 +63,7 @@ const SwapPage = () => {
                       </Link>
                   </div>
               </div>
-        
+
           <div className="swap content">
               <div className="Body left ">
                   <div>
@@ -87,5 +94,5 @@ const SwapPage = () => {
       </div>
   )
 }
-  
+
 export default withRouter(SwapPage);

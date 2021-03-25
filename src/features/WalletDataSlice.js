@@ -237,6 +237,7 @@ const WalletSlice = createSlice({
       }
     },
     setNotification(state, action) {
+      log.info(action.payload.msg);
       return {
         ...state,
         notification_dialogue: [

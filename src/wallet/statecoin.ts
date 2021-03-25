@@ -34,7 +34,7 @@ export class StateCoinList {
   getUnspentCoins(block_height: number) {
     let total = 0
     let coins = this.coins.filter((item: StateCoin) => {
-      if (item.status === STATECOIN_STATUS.AVAILABLE) {
+      if (item.status===STATECOIN_STATUS.AVAILABLE || item.status===STATECOIN_STATUS.IN_SWAP) {
         total += item.value
         return item
       }
@@ -186,6 +186,8 @@ export const STATECOIN_STATUS = {
   UNCONFIRMED: "UNCONFIRMED",
   // Coins are fully owned by wallet and unspent
   AVAILABLE: "AVAILABLE",
+  // Coin currently carrying out swap protocol
+  IN_SWAP: "IN_SWAP",
   // Coin used to belonged to wallet but has been transferred
   SPENT: "SPENT",
   // Coin used to belonged to wallet but has been withdraw
@@ -270,6 +272,7 @@ export class StateCoin {
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
   setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
+  setInSwap() { this.status = STATECOIN_STATUS.IN_SWAP }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
   setSwapped() { this.status = STATECOIN_STATUS.SWAPPED; }
