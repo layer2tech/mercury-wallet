@@ -77,9 +77,6 @@ export const callGetBlockHeight = () => {
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
-export const callGetOngoingSwaps = () => {
-  return wallet.getOngoingSwaps()
-}
 
 export const callGetSwapGroupInfo = () => {
   return wallet.getSwapGroupInfo()
@@ -118,7 +115,7 @@ export const callNewSeAddr = (state) => {
 // Remove coin from coins list
 export const callRemoveCoin = (shared_key_id) => {
   log.info("Removing coin "+shared_key_id+" from wallet.");
-  wallet.statecoins.removeCoin(shared_key_id);
+  wallet.removeStatecoin(shared_key_id);
 }
 
 // Update config with JSON of field to change

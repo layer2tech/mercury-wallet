@@ -43,17 +43,6 @@ export class StateCoinList {
     return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
   };
 
-  getOngoingSwaps() {
-    let coins = this.coins.filter((item: StateCoin) => {
-      if (item.status === STATECOIN_STATUS.AVAILABLE
-        && item.swap_info !== null) {
-        return item
-      }
-      return
-    })
-    return [coins.map((item: StateCoin) => item.getSwapDisplayInfo())]
-  };
-
   // Return coins that are awaiting funding tx to be broadcast
   getInitialisedCoins() {
     return this.coins.filter((item: StateCoin) => {
@@ -98,12 +87,12 @@ export class StateCoinList {
   };
 
   // Remove coin from list
-  removeCoin(shared_key_id: string) {
+  removeCoin(shared_key_id: string, testing_mode: boolean) {
     this.coins = this.coins.filter(item => {
       if (item.shared_key_id!==shared_key_id) {
         return item
       } else {
-        if (item.status!==STATECOIN_STATUS.INITIALISED) {
+        if (item.status!==STATECOIN_STATUS.INITIALISED && !testing_mode) {
           throw Error("Should not remove coin whose funding transaction has been broadcast.")
         }
       }})

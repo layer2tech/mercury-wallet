@@ -145,7 +145,7 @@ describe("Statecoins/Coin", () => {
     ).toEqual(1)
 
     // Remove coin from list
-    statecoins.removeCoin(new_shared_key_id);
+    statecoins.removeCoin(new_shared_key_id, false);
     expect(statecoins.coins.filter(item =>
       {if (item.shared_key_id==new_shared_key_id){return item}}).length
     ).toEqual(0)
@@ -161,7 +161,7 @@ describe("Statecoins/Coin", () => {
 
     // Attempt to remove coin from list
     expect(() => {
-      statecoins.removeCoin(new_shared_key_id)
+      statecoins.removeCoin(new_shared_key_id, false)
     }).toThrowError("Should not remove coin whose funding transaction has been broadcast.")
   });
 

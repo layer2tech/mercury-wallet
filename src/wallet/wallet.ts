@@ -247,9 +247,6 @@ export class Wallet {
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
-  getOngoingSwaps() {
-    return this.statecoins.getOngoingSwaps()
-  }
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
@@ -433,6 +430,9 @@ export class Wallet {
     this.statecoins.addCoin(statecoin)
     this.activity.addItem(id, action);
     log.debug("Added Statecoin: "+statecoin.shared_key_id);
+  }
+  removeStatecoin(shared_key_id: string) {
+    this.statecoins.removeCoin(shared_key_id, this.config.testing_mode)
   }
   // Mark statecoin as spent after transfer or withdraw
   setStateCoinSpent(id: string, action: string) {
@@ -637,6 +637,8 @@ export class Wallet {
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+    if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+shared_key_id+" currenlty involved in swap protocol.");
+    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" not available for Transfer.");
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
@@ -704,6 +706,8 @@ export class Wallet {
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+    if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+shared_key_id+" currenlty involved in swap protocol.");
+    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" not available for withdraw.");
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
