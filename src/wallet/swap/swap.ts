@@ -80,8 +80,11 @@ export const doSwap = async (
   let max_n_polls = 20;
   let n_polls=0;
   while (true){
-    n_polls ++;
-    if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
+    n_polls=n_polls+1;
+    if (n_polls > max_n_polls) {
+      console.log("saw timeout");
+      return clear_statecoin_swap_info(statecoin);
+    }
     swap_id = await pollUtxo(conductor_client,statechain_id);
     if (swap_id !== null) {
       typeforce(types.SwapID, swap_id);
@@ -95,7 +98,7 @@ export const doSwap = async (
 
   let swap_info = null;
   while (true){
-    n_polls ++;
+    n_polls=n_polls+1;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     swap_info = await getSwapInfo(conductor_client,swap_id);
     if (swap_info !== null){
@@ -123,7 +126,7 @@ export const doSwap = async (
 
   n_polls = 0;
   while(true){
-    n_polls ++;
+    n_polls=n_polls+1;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     let phase: string = await pollSwap(conductor_client, swap_id);
     if (statecoin.swap_info){
@@ -145,7 +148,7 @@ export const doSwap = async (
 
   n_polls=0;
   while(true){
-    n_polls ++;
+    n_polls=n_polls+1;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     let phase = await pollSwap(conductor_client, swap_id);
     if (statecoin.swap_info){
@@ -183,7 +186,7 @@ export const doSwap = async (
 
   n_polls=0;
   while(true){
-    n_polls ++;
+    n_polls=n_polls+1;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     let phase = await pollSwap(conductor_client, swap_id);
     console.log("swap status: ", phase);
