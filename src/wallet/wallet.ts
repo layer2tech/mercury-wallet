@@ -588,10 +588,10 @@ export class Wallet {
 
     log.info("Awaiting doSwap")
 
-    let new_statecoin = await doSwap(this.conductor_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
+    let new_statecoin = await doSwap(this.conductor_client, this.http_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
 
     if (new_statecoin == null){
-      return null;
+      return null
     }
 
     // Mark funds as spent in wallet

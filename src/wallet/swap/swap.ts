@@ -33,9 +33,9 @@ let types = require("../types")
 let typeforce = require('typeforce');
 
 export const pingServer = async (
-  http_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | MockHttpClient,
 ) => {
-  return await http_client.get(GET_ROUTE.PING, {})
+  return await conductor_client.get(GET_ROUTE.PING, {})
 }
 
 function delay(s: number) {
@@ -44,6 +44,7 @@ function delay(s: number) {
 
 
 export const doSwap = async (
+  conductor_client: HttpClient | MockHttpClient,
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   network: Network,
@@ -65,7 +66,7 @@ export const doSwap = async (
     swap_size: swap_size
   };
 
-  let _reg_res = await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
+  let _reg_res = await conductor_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
 
 
   let statechain_id = {
@@ -81,7 +82,7 @@ export const doSwap = async (
   while (true){
     n_polls ++;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
-    swap_id = await pollUtxo(http_client,statechain_id);
+    swap_id = await pollUtxo(conductor_client,statechain_id);
     if (swap_id !== null) {
       typeforce(types.SwapID, swap_id);
       if (swap_id.id !== null) {
@@ -96,7 +97,7 @@ export const doSwap = async (
   while (true){
     n_polls ++;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
-    swap_info = await getSwapInfo(http_client,swap_id);
+    swap_info = await getSwapInfo(conductor_client,swap_id);
     if (swap_info !== null){
         statecoin.swap_status=swap_info.status;
       break;
@@ -116,7 +117,7 @@ export const doSwap = async (
 
 
   let transfer_batch_sig = await StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id.id,statecoin.statechain_id);
-  let my_bst_data = await first_message(http_client,
+  let my_bst_data = await first_message(conductor_client, http_client,
     wasm_client,swap_info,statecoin.statechain_id,transfer_batch_sig,
     address,proof_key_der);
 
@@ -124,7 +125,7 @@ export const doSwap = async (
   while(true){
     n_polls ++;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
-    let phase: string = await pollSwap(http_client, swap_id);
+    let phase: string = await pollSwap(conductor_client, swap_id);
     if (statecoin.swap_info){
       statecoin.swap_info.status=phase;
       statecoin.swap_status=phase;
@@ -138,16 +139,15 @@ export const doSwap = async (
 
   let publicProofKey = new_proof_key_der.publicKey;
 
-    let bss = await get_blinded_spend_signature(http_client, wasm_client, swap_id.id,statecoin.statechain_id);
-  typeforce(types.BlindedSpendSignature, bss);
+    let bss = await get_blinded_spend_signature(conductor_client, swap_id.id, statecoin.statechain_id);
 
-    let receiver_addr = await second_message(http_client, wasm_client, swap_id.id, my_bst_data, bss);
+    let receiver_addr = await second_message(conductor_client, wasm_client, swap_id.id, my_bst_data, bss);
 
   n_polls=0;
   while(true){
     n_polls ++;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
-    let phase = await pollSwap(http_client, swap_id);
+    let phase = await pollSwap(conductor_client, swap_id);
     if (statecoin.swap_info){
       statecoin.swap_info.status=phase;
       statecoin.swap_status=phase;
@@ -166,9 +166,7 @@ export const doSwap = async (
 
   let _ = transferSender(http_client, wasm_client, network, statecoin, proof_key_der, receiver_addr.proof_key);
 
-  let batch_data_json = wasm_client.Commitment.make_commitment(statecoin.statechain_id);
-  let batch_data = JSON.parse(batch_data_json);
-  typeforce(types.BatchData, batch_data);
+  let batch_data = make_swap_commitment(statecoin, swap_info, wasm_client);
   let commitment = batch_data.commitment;
 
   let batch_id = swap_id;
@@ -187,7 +185,7 @@ export const doSwap = async (
   while(true){
     n_polls ++;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
-    let phase = await pollSwap(http_client, swap_id);
+    let phase = await pollSwap(conductor_client, swap_id);
     console.log("swap status: ", phase);
     if (statecoin.swap_info){
       statecoin.swap_info.status=phase;
@@ -206,6 +204,21 @@ export const doSwap = async (
 
   statecoin_out.swap_rounds=swap_rounds+1;
   return statecoin_out;
+}
+
+export const make_swap_commitment = (statecoin: any, 
+  swap_info: any, wasm_client: any): BatchData => {
+
+  let commitment_str: string = statecoin.statechain_id;
+  console.log("swaps - swap_info: ", swap_info);
+  swap_info.swap_token.statechain_ids.forEach ( function(item: string){
+    commitment_str.concat(item);
+  });
+  let batch_data_json: string =  wasm_client.Commitment.make_commitment(commitment_str);
+  console.log("batch_data_json: ", batch_data_json);
+  let batch_data: BatchData = JSON.parse(batch_data_json);
+  typeforce(types.BatchData, batch_data);
+  return batch_data;
 }
 
 export const clear_statecoin_swap_info = (statecoin: StateCoin): null => {
@@ -354,6 +367,7 @@ export interface StateChainDataAPI{
 }
 
 export const first_message = async (
+  conductor_client: HttpClient | MockHttpClient,
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   swap_info: SwapInfo,
@@ -403,7 +417,7 @@ export const first_message = async (
   }
   typeforce(types.SwapMsg1, swapMsg1);
 
-  let _ =  await http_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1);
+  let _ =  await conductor_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1);
 
   return my_bst_data;
 }
@@ -414,8 +428,7 @@ export interface BlindedSpendSignature{
 }
 
 export const get_blinded_spend_signature = async(
-  http_client: HttpClient | MockHttpClient,
-  wasm_client: any,
+  conductor_client: HttpClient | MockHttpClient,
   swap_id: String,
   statechain_id: String,
 ): Promise<BlindedSpendSignature> => {
@@ -423,13 +436,13 @@ export const get_blinded_spend_signature = async(
     "swap_id": swap_id,
     "statechain_id": statechain_id,
   };
-  let result =  await http_client.post(POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE, bstMsg);
+  let result =  await conductor_client.post(POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE, bstMsg);
   typeforce(types.BlindedSpendSignature, result);
   return result;
 }
 
 export const second_message = async (
-  http_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | MockHttpClient,
   wasm_client: any,
   swap_id: String,
   my_bst_data: BSTRequestorData,
@@ -451,7 +464,7 @@ export const second_message = async (
     "swap_id":swap_id,
     "blinded_spend_token":bst,
   };
-  let result =  await http_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2);
+  let result =  await conductor_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2);
   typeforce(types.SCEAddress, result);
   
   return result;
@@ -477,10 +490,10 @@ export interface SwapMsg2{
 }
 
 export const swapSecondMessage = async (
-  http_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | MockHttpClient,
   swapMsg2: SwapMsg2,
 ) => {
-  return await http_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2)
+  return await conductor_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2)
 }
 
 export interface SwapMsg1 {
@@ -501,7 +514,7 @@ export interface PrepareSignTxMsg {
   proof_key: string,
 }
 export interface BatchData {
-  commitment: String,
+  commitment: string,
   nonce: Buffer,
 }
 
