@@ -1,14 +1,18 @@
 // Mocks out client side calls to cryptographic protocols.
 // Mock Classes are followed by mock data for full protocol runs.
 
+import { COMMITMENT_DATA } from "../test/test_data"
+
 
 export class MockWasm {
   KeyGen: KeyGen
   Sign: Sign
+  Commitment: Commitment
 
   constructor() {
     this.KeyGen = new KeyGen()
     this.Sign = new Sign()
+    this.Commitment = new Commitment()
   }
   init() {}
   verify_statechain_smt() {
@@ -29,6 +33,14 @@ export class KeyGen {
   }
   set_master_key(_kg_ec_key_pair_party2: string, _public_share: string, _party_two_paillier: string) {
     return KEYGEN_SET_MASTER_KEY
+  }
+}
+
+export class Commitment {
+  make_commitment(_data: string){
+    return JSON.stringify(
+    COMMITMENT_DATA[0].batch_data
+    )
   }
 }
 

@@ -6,7 +6,8 @@ import { withdraw } from "../mercury/withdraw";
 import { transferSender, transferReceiver, transferReceiverFinalize } from "../mercury/transfer";
 import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
 
-import { BTC_ADDR, KEYGEN_SIGN_DATA, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID } from './test_data.js'
+import { BTC_ADDR, KEYGEN_SIGN_DATA, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA } from './test_data.js'
+import { SwapToken, make_swap_commitment } from '../swap/swap'
 import * as MOCK_CLIENT from '../mocks/mock_wasm';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 import { BIP32Interface, BIP32,  fromBase58, fromSeed} from 'bip32';
@@ -19,6 +20,35 @@ const BJSON = require('buffer-json')
 let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 // server side's mock
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+
+describe('swapTokenSign', function() {
+  
+  test('Gen and Verify', async function() {
+    SIGNSWAPTOKEN_DATA.forEach(data => {
+      let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(data.priv, "hex"));
+      //let proof_key_der = wallet.getBIP32forProofKeyPubKey(data.priv);
+      console.log('proof_key_der', proof_key_der);
+      let pub = proof_key_der.publicKey.toString('hex');
+      expect(pub).toBe(data.pub);
+      let st = data.swap_token;
+      let st_cls = new SwapToken(st.id, st.amount, st.time_out, st.statechain_ids);
+
+      let swap_sig = st_cls.sign(proof_key_der,data.swap_token, data.priv);
+    expect(swap_sig).toBe(data.swap_token_sig);
+  })
+});
+})
+
+describe('commitment', function() {
+test('Gen and Verify', async function() {
+  wasm_mock.Commitment.make_commitment = jest.fn(() => JSON.stringify(COMMITMENT_DATA[0].batch_data));
+   COMMITMENT_DATA.forEach(data => {
+     console.log("commitment data: ", data);
+     let batch_data = make_swap_commitment(data.statecoin, data.swap_info, wasm_mock);
+     expect(batch_data.commitment).toBe(data.batch_data.commitment);
+   })
+ });
+})
 
 
 describe('2P-ECDSA', function() {

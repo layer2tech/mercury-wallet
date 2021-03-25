@@ -1,10 +1,10 @@
 let bitcoin = require('bitcoinjs-lib')
 import { Wallet, StateCoinList, ACTION, Config } from '../';
-import { SwapToken } from '../swap/swap'
 import { segwitAddr } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
 import { txWithdrawBuild } from '../util';
+
 
 let lodash = require('lodash');
 
