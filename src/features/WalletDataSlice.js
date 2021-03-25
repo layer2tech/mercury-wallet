@@ -23,18 +23,6 @@ const initialState = {
   ping_swap: null,
 }
 
-// Quick check for expiring coins. If so display error dialogue
-const checkForExpiringCoins = () => {
-  let unspent_coins_data = wallet.getUnspentStatecoins();
-  let coins_data = unspent_coins_data[0];
-  for (let i=0; i<coins_data.length; i++) {
-    if (coins_data[i].expiry_data.months <= 1) {
-        initialState.error_dialogue = { seen: false, msg: "Warning: Coin in wallet is close to expiring." }
-        break;
-      };
-    }
-}
-
 // Check if a wallet is loaded in memory
 export const isWalletLoaded = () => {
   if (wallet===undefined) {
@@ -64,7 +52,6 @@ export const walletLoad = (name, password) => {
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
   wallet.initElectrumClient(setBlockHeightCallBack);
-  checkForExpiringCoins();
 }
 
 // Create wallet from nmemonic and load wallet
@@ -75,7 +62,6 @@ export const walletFromMnemonic = (name, password, mnemonic) => {
   wallet.initElectrumClient(setBlockHeightCallBack);
   callNewSeAddr();
   wallet.save();
-  checkForExpiringCoins();
 }
 
 // Wallet data gets
@@ -90,9 +76,6 @@ export const callGetBlockHeight = () => {
 }
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
-}
-export const callGetOngoingSwaps = () => {
-  return wallet.getOngoingSwaps()
 }
 
 export const callGetSwapGroupInfo = () => {
@@ -132,7 +115,7 @@ export const callNewSeAddr = (state) => {
 // Remove coin from coins list
 export const callRemoveCoin = (shared_key_id) => {
   log.info("Removing coin "+shared_key_id+" from wallet.");
-  wallet.statecoins.removeCoin(shared_key_id);
+  wallet.removeStatecoin(shared_key_id);
 }
 
 // Update config with JSON of field to change
@@ -145,6 +128,11 @@ export const callUpdateConfig = (config_changes) => {
 export const callCreateBackupTxCPFP = (cpfp_data) => {
      let sucess = wallet.createBackupTxCPFP(cpfp_data);
      return sucess
+}
+
+// Set coin status to AVAILABLE. This fn is used when a coin is removed from a swap pool.
+export const callRemoveCoinFromSwap = (shared_key_id) => {
+     wallet.statecoins.removeCoinFromSwap(shared_key_id);
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
@@ -251,6 +239,7 @@ const WalletSlice = createSlice({
       }
     },
     setNotification(state, action) {
+      log.info(action.payload.msg);
       return {
         ...state,
         notification_dialogue: [
