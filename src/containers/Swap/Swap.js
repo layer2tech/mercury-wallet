@@ -1,23 +1,30 @@
-import React, {useState} from 'react';
-import './Swap.css';
-
-import {Link, withRouter} from "react-router-dom";
-import { useSelector, useDispatch } from 'react-redux'
 import swapIcon from '../../images/swap_icon-blue.png';
 
-import { Coins, Swaps, StdButton} from "../../components";
-import {callDoSwap, setError, callGetOngoingSwaps} from '../../features/WalletDataSlice'
+import {Link, withRouter, Redirect} from "react-router-dom";
+import { useSelector, useDispatch } from 'react-redux'
+import React, {useState} from 'react';
 
+import { Coins, Swaps, StdButton} from "../../components";
+import {isWalletLoaded, setNotification, setError, callDoSwap, callGetOngoingSwaps,
+  callRemoveCoinFromSwap } from '../../features/WalletDataSlice'
+import {fromSatoshi} from '../../wallet'
+
+  import './Swap.css';
 
 const SwapPage = () => {
-
+  const dispatch = useDispatch();
   let disabled = false;
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [inputAddr, setInputAddr] = useState("");
 
-  const dispatch = useDispatch();
+  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
+  if (!isWalletLoaded()) {
+    dispatch(setError({msg: "No Wallet loaded."}))
+    return <Redirect to="/" />;
+  }
+
   const swapButtonAction = async () => {
     // check statechain is chosen
     if (!selectedCoin) {
@@ -25,16 +32,25 @@ const SwapPage = () => {
       return
     }
 
- 
-      dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+    dispatch(callDoSwap({"shared_key_id": selectedCoin}))
       .then(res => {
+        if (res.payload===null) {
+          dispatch(setNotification({msg:"Coin "+selectedCoin+" removed from swap pool."}))
+          return
+        }
         if (res.error===undefined) {
+          dispatch(setNotification({msg:"Swap complete for coin of value "+fromSatoshi(res.payload.value)+" with new id "+res.payload.shared_key_id}))
         }
       })
     }
- 
 
-
+    const leavePoolButtonAction = () => {
+      if (!selectedCoin) {
+        dispatch(setError({msg: "Please choose a StateCoin to remove."}))
+        return
+      }
+      callRemoveCoinFromSwap(selectedCoin)
+    }
 
   return (
       <div className="container ">
@@ -56,7 +72,7 @@ const SwapPage = () => {
                       </Link>
                   </div>
               </div>
-        
+
           <div className="swap content">
               <div className="Body left ">
                   <div>
@@ -80,6 +96,9 @@ const SwapPage = () => {
                   <button type="button" className="btn" onClick={swapButtonAction}>
                           SWAP STATECOIN UTXO
                   </button>
+                  <button type="button" className="btn" onClick={leavePoolButtonAction}>
+                          REMOVE STATECOIN UTXO FROM SWAP
+                  </button>
               </div>
           </div>
         </div>
@@ -87,5 +106,5 @@ const SwapPage = () => {
       </div>
   )
 }
-  
+
 export default withRouter(SwapPage);

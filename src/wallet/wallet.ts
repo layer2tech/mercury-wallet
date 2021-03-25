@@ -247,9 +247,6 @@ export class Wallet {
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
-  getOngoingSwaps() {
-    return this.statecoins.getOngoingSwaps()
-  }
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
@@ -434,6 +431,9 @@ export class Wallet {
     this.activity.addItem(id, action);
     log.debug("Added Statecoin: "+statecoin.shared_key_id);
   }
+  removeStatecoin(shared_key_id: string) {
+    this.statecoins.removeCoin(shared_key_id, this.config.testing_mode)
+  }
   // Mark statecoin as spent after transfer or withdraw
   setStateCoinSpent(id: string, action: string) {
     this.statecoins.setCoinSpent(id, action)
@@ -568,11 +568,13 @@ export class Wallet {
   // Args: shared_key_id of coin to swap.
   async do_swap(
     shared_key_id: string,
-  ): Promise<StateCoin>{
+  ): Promise<StateCoin | null> {
     log.info("Do swap for "+shared_key_id)
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+    if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+shared_key_id+" already in swap pool.");
+
     log.info("Got statecoin with proof key ", statecoin.proof_key)
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
@@ -587,9 +589,12 @@ export class Wallet {
     log.info("Public key: ", proof_key_der.publicKey.toString("hex"));
 
     log.info("Awaiting doSwap")
-
+    statecoin.setInSwap();
     let new_statecoin = await doSwap(this.conductor_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
-
+    if (new_statecoin==null) {
+      statecoin.setConfirmed();
+      return null;
+    }
     // Mark funds as spent in wallet
     log.info("Marking spent")
     this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
@@ -632,6 +637,8 @@ export class Wallet {
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+    if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+shared_key_id+" currenlty involved in swap protocol.");
+    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" not available for Transfer.");
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
@@ -699,6 +706,8 @@ export class Wallet {
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+    if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+shared_key_id+" currenlty involved in swap protocol.");
+    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" not available for withdraw.");
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
