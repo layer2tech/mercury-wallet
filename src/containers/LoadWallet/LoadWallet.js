@@ -3,7 +3,7 @@ import {Link} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
 import {Storage} from '../../store';
-import {walletLoad, setError} from '../../features/WalletDataSlice'
+import {walletLoad, setError, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice'
 
 import  './LoadWallet.css'
 
@@ -12,7 +12,7 @@ let store = new Storage();
 
 const LoadWalletPage = (props) => {
   const dispatch = useDispatch();
-  
+
   let wallet_name_password_map = store.getWalletNamePasswordMap()
 
   const [selectedWallet, setSelected] = useState(wallet_name_password_map.length ? wallet_name_password_map[0].name : "")
@@ -24,6 +24,23 @@ const LoadWalletPage = (props) => {
     setPasswordEntered(event.target.value)
   }
 
+  // Quick check for expiring or potentially dangerous coins.
+  // If so display error dialogue
+  const checkForCoinsHealth = () => {
+    let unspent_coins_data = callGetUnspentStatecoins();
+    let coins_data = unspent_coins_data[0];
+    for (let i=0; i<coins_data.length; i++) {
+      if (coins_data[i].wallet_version !== callGetVersion()) {
+        dispatch(setError({msg: "Warning: Coin in wallet was created in previous wallet version. Due to rapid development some backward incompatible changes may break old coins. We recommend withdrawing testnet coins and creating a fresh wallet."}))
+        break;
+      };
+      if (coins_data[i].expiry_data.months <= 1) {
+        dispatch(setError({msg: "Warning: Coin in wallet is close to expiring."}))
+        break;
+      };
+    }
+  }
+
   // Attempt to load wallet. If fail display error.
   const onContinueClick = (event) => {
     try { walletLoad(selectedWallet, passwordEntered) }
@@ -31,6 +48,7 @@ const LoadWalletPage = (props) => {
         event.preventDefault();
         dispatch(setError({msg: e.message}))
       }
+      checkForCoinsHealth();
       props.setWalletLoaded(true);
   }
 

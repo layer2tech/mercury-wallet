@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { withRouter } from "react-router-dom";
 import {useDispatch} from 'react-redux'
-import {setError, walletFromMnemonic, callGetConfig} from '../../features/WalletDataSlice'
+import {setError, walletFromMnemonic, callGetConfig, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice'
 
 import './confirmSeed.css'
 
@@ -45,6 +45,20 @@ const ConfirmSeed = (props) => {
         return
       }
     }
+
+    // Quick check for expiring coins.
+    // If so display error dialogue
+    const checkForCoinsHealth = () => {
+      let unspent_coins_data = callGetUnspentStatecoins();
+      let coins_data = unspent_coins_data[0];
+      for (let i=0; i<coins_data.length; i++) {
+        if (coins_data[i].wallet_version !== callGetVersion()) {
+          dispatch(setError({msg: "Warning: Coin in wallet was created in previous wallet version. Due to rapid development some backward incompatible changes may break old coins. We recommend withdrawing testnet coins and creating a fresh wallet."}))
+          break;
+        };
+      }
+    }
+
     // Create wallet and load into Redux state
     try {
       walletFromMnemonic(props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic)
@@ -53,6 +67,7 @@ const ConfirmSeed = (props) => {
       event.preventDefault();
       dispatch(setError({msg: e.message}))
     }
+    checkForCoinsHealth();
     props.setWalletLoaded(true);
   }
 

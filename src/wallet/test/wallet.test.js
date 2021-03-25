@@ -103,15 +103,15 @@ describe('Wallet', function() {
     wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
 
     test('Throw on invalid value', async function() {
-      expect(() => {  
+      expect(() => {
         wallet.createBackupTxCPFP(cpfp_data_bad_address);
       }).toThrowError('Invalid Bitcoin address entered.');
-      expect(() => { 
+      expect(() => {
         wallet.createBackupTxCPFP(cpfp_data_bad_coin);
       }).toThrowError('No coin found with id c93ad45a-00b9-449c-a804-aab5530efc90');
-      expect(() => { 
+      expect(() => {
         wallet.createBackupTxCPFP(cpfp_data_bad_fee);
-      }).toThrowError('Fee rate not an integer');      
+      }).toThrowError('Fee rate not an integer');
     });
 
     expect(wallet.createBackupTxCPFP(cpfp_data)).toBe(true);
@@ -145,7 +145,7 @@ describe("Statecoins/Coin", () => {
     ).toEqual(1)
 
     // Remove coin from list
-    statecoins.removeCoin(new_shared_key_id);
+    statecoins.removeCoin(new_shared_key_id, false);
     expect(statecoins.coins.filter(item =>
       {if (item.shared_key_id==new_shared_key_id){return item}}).length
     ).toEqual(0)
@@ -161,7 +161,7 @@ describe("Statecoins/Coin", () => {
 
     // Attempt to remove coin from list
     expect(() => {
-      statecoins.removeCoin(new_shared_key_id)
+      statecoins.removeCoin(new_shared_key_id, false)
     }).toThrowError("Should not remove coin whose funding transaction has been broadcast.")
   });
 
@@ -188,7 +188,7 @@ describe("Statecoins/Coin", () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
       statecoins.setCoinSpent(coins[0].shared_key_id, "W") // set one spent
-      expect(statecoins.getUnspentCoins()[0].length).toBe(num_coins-1)
+      expect(statecoins.getUnspentCoins().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
   });
@@ -200,7 +200,7 @@ describe("Statecoins/Coin", () => {
       let coin = statecoins.getCoin(coins[0].shared_key_id);
       coin.status="UNCONFIRMED";                 // set one unconfirmed
       statecoins.setCoinFinalized(coin);
-      expect(statecoins.getUnconfirmedCoins().length).toBe(1);
+      expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1);
       expect(coins.length).toBe(statecoins.coins.length);
     });
   });
