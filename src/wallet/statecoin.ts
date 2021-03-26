@@ -34,7 +34,11 @@ export class StateCoinList {
   getUnspentCoins(block_height: number) {
     let total = 0
     let coins = this.coins.filter((item: StateCoin) => {
-      if (item.status===STATECOIN_STATUS.AVAILABLE || item.status===STATECOIN_STATUS.IN_SWAP) {
+      if (
+        item.status===STATECOIN_STATUS.AVAILABLE ||
+        item.status===STATECOIN_STATUS.IN_SWAP ||
+        item.status===STATECOIN_STATUS.AWAITING_SWAP
+      ) {
         total += item.value
         return item
       }
@@ -167,6 +171,8 @@ export class StateCoinList {
   removeCoinFromSwap(shared_key_id: string) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
+      if (coin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Swap already begun. Cannot remove coin.");
+      if (coin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
       coin.setConfirmed();
       coin.swap_info = null;
       coin.swap_status = null;
@@ -186,6 +192,8 @@ export const STATECOIN_STATUS = {
   UNCONFIRMED: "UNCONFIRMED",
   // Coins are fully owned by wallet and unspent
   AVAILABLE: "AVAILABLE",
+  // Coin currently waiting in swap pool
+  AWAITING_SWAP: "AWAITING_SWAP",
   // Coin currently carrying out swap protocol
   IN_SWAP: "IN_SWAP",
   // Coin used to belonged to wallet but has been transferred
@@ -272,6 +280,7 @@ export class StateCoin {
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
   setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
+  setAwaitingSwap() { this.status = STATECOIN_STATUS.AWAITING_SWAP }
   setInSwap() { this.status = STATECOIN_STATUS.IN_SWAP }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }

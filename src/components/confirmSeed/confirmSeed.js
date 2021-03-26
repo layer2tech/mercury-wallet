@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { withRouter } from "react-router-dom";
 import {useDispatch} from 'react-redux'
-import {setError, walletFromMnemonic, callGetConfig, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice'
+import {setError, walletFromMnemonic, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice'
 
 import './confirmSeed.css'
 

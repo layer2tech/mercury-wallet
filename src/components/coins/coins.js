@@ -106,7 +106,7 @@ const Coins = (props) => {
             setCoins({
                 ...coins,
                 unConfirmedCoins: [
-					...coins.unConfirmedCoins, 
+					...coins.unConfirmedCoins,
 					...new_unconfired_coins_data
 				]
             })
@@ -143,23 +143,22 @@ const Coins = (props) => {
     }
 
     const all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
-
-	all_coins_data.sort((a, b) => {
-		let compareProp = sortCoin.by;
-		if(compareProp === 'expiry_data') {
-			a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
-			b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
-		} else {
-			a = a[compareProp];
-			b = b[compareProp];
-		}
-		if(a > b) {
-			return sortCoin.direction ? 1 : -1;
-		} else if (a < b) {
-			return sortCoin.direction ? -1 : 1;
-		}
-		return 0;
-	});
+  	all_coins_data.sort((a, b) => {
+  		let compareProp = sortCoin.by;
+  		if(compareProp === 'expiry_data') {
+  			a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
+  			b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
+  		} else {
+  			a = a[compareProp];
+  			b = b[compareProp];
+  		}
+  		if(a > b) {
+  			return sortCoin.direction ? 1 : -1;
+  		} else if (a < b) {
+  			return sortCoin.direction ? -1 : 1;
+  		}
+  		return 0;
+  	});
 
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);

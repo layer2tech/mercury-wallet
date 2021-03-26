@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 
 import {CreateWizardForm, ConfirmSeed, DisplaySeed, Steppers} from "../../components";

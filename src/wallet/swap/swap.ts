@@ -7,7 +7,6 @@ import { getStateChain } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
-import { SwapMsg1, BSTMsg, SwapMsg2, SwapStatus, BatchData, BSTRequestorData} from '../types';
 
 let bitcoin = require("bitcoinjs-lib");
 
@@ -54,19 +53,25 @@ export const doSwap = async (
     id: statecoin.statechain_id
   }
 
-  statecoin.swap_status=SwapStatus.Phase0;
+  statecoin.swap_status=types.SwapStatus.Phase0;
 
 
   let swap_id = null
   let max_n_polls = 20;
   let n_polls=0;
   while (true){
+<<<<<<< HEAD
     if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) return null;
     n_polls=n_polls+1;
     if (n_polls > max_n_polls) {
       return clear_statecoin_swap_info(statecoin);
     }
     swap_id = await pollUtxo(conductor_client,statechain_id);
+=======
+    // check statecoin is still AWAITING_SWAP
+    if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) return null;
+    swap_id = await pollUtxo(http_client,statechain_id);
+>>>>>>> ef8328c8c05c40805923c5084eae498a3210b5ce
     if (swap_id !== null) {
       typeforce(types.SwapID, swap_id);
       if (swap_id.id !== null) {
@@ -79,31 +84,33 @@ export const doSwap = async (
   n_polls=0;
   let swap_info = null;
   while (true) {
+<<<<<<< HEAD
     // check statecoin is still IN_SWAP_QUEUE
     n_polls=n_polls+1;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     swap_info = await getSwapInfo(conductor_client,swap_id);
+=======
+    // check statecoin is still AWAITING_SWAP
+    if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) return null;
+    swap_info = await getSwapInfo(http_client,swap_id);
+>>>>>>> ef8328c8c05c40805923c5084eae498a3210b5ce
     if (swap_info !== null){
         statecoin.swap_status=swap_info.status;
       break;
     }
     await delay(3);
   };
-
- // set coins to IN_SWAP
-
-
-
   typeforce(types.SwapInfo, swap_info);
-
   statecoin.swap_info=swap_info;
+
+  // set coins to IN_SWAP
+  statecoin.setInSwap();
 
   let address = {
     "tx_backup_addr": null,
     "proof_key": new_proof_key_der.publicKey.toString("hex"),
   };
   typeforce(types.SCEAddress, address);
-
 
   let transfer_batch_sig = StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id.id,statecoin.statechain_id);
   let my_bst_data = await first_message(conductor_client, http_client,
@@ -119,7 +126,7 @@ export const doSwap = async (
       statecoin.swap_info.status=phase;
       statecoin.swap_status=phase;
     }
-    if (phase !== SwapStatus.Phase1){
+    if (phase !== types.SwapStatus.Phase1){
       break;
     }
     await delay(3)
@@ -139,13 +146,13 @@ export const doSwap = async (
       statecoin.swap_info.status=phase;
       statecoin.swap_status=phase;
     }
-    if (phase === SwapStatus.Phase4){
+    if (phase === types.SwapStatus.Phase4){
       break;
     }
-    if (phase === SwapStatus.End){
+    if (phase === types.SwapStatus.End){
       throw new Error("Swap error: unexpended swap status \"End\"");
     }
-    if (phase === SwapStatus.Phase1){
+    if (phase === types.SwapStatus.Phase1){
       throw new Error("Swap error: unexpended swap status \"Phase1\"");
     }
     await delay(3)
@@ -178,7 +185,7 @@ export const doSwap = async (
       statecoin.swap_info.status=phase;
       statecoin.swap_status=phase;
     }
-    if (phase === SwapStatus.End){
+    if (phase === types.SwapStatus.End){
       break;
     }
     if (phase === null){
@@ -232,7 +239,7 @@ export const do_transfer_receiver = async (
         continue;
       }
       typeforce(types.TransferMsg3, msg3);
-      if (msg3.rec_se_addr.proof_key == rec_se_addr.proof_key){
+      if (msg3.rec_se_addr.proof_key===rec_se_addr.proof_key){
         let batch_data = {
           "id":batch_id,
           "commitment":commit,
