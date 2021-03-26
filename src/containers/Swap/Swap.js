@@ -2,14 +2,14 @@ import swapIcon from '../../images/swap_icon-blue.png';
 
 import {Link, withRouter, Redirect} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 
 import { Coins, Swaps, StdButton} from "../../components";
 import {isWalletLoaded, setNotification, setError, callDoSwap, callGetOngoingSwaps,
   callRemoveCoinFromSwap } from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
-  import './Swap.css';
+import './Swap.css';
 
 const SwapPage = () => {
   const dispatch = useDispatch();
@@ -57,6 +57,7 @@ const SwapPage = () => {
       }
     }
 
+
   return (
       <div className="container ">
       {disabled===true ?
@@ -93,9 +94,9 @@ const SwapPage = () => {
               <div className="Body right">
                   <div>
                       <Swaps
-                      displayDetailsOnClick={false}
-                      selectedSwap={selectedSwap}
-                      setSelectedSwap={setSelectedSwap}
+                        displayDetailsOnClick={false}
+                        selectedSwap={selectedSwap}
+                        setSelectedSwap={setSelectedSwap}
                       />
                   </div>
                   <button type="button" className="btn" onClick={swapButtonAction}>

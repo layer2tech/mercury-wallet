@@ -21,12 +21,11 @@ import {Button, Modal} from 'react-bootstrap';
 import {useSelector, useDispatch} from 'react-redux'
 
 import {fromSatoshi} from '../../wallet/util'
-
+import { SwapGroup } from "../../wallet/types";
 import {callGetSwapGroupInfo, callUpdateSwapGroupInfo} from '../../features/WalletDataSlice'
 
 import './swaps.css';
 import '../index.css';
-import { SwapGroup } from "../../wallet/types";
 
 const DEFAULT_SWAP_DETAILS = {show: false, swap: {value: 0, participants: 0, capacity: 0, status: "none"}}
 
@@ -34,6 +33,7 @@ const DEFAULT_SWAP_DETAILS = {show: false, swap: {value: 0, participants: 0, cap
 const Swaps = (props) => {
     const dispatch = useDispatch();
 
+    const [state, setState] = useState({});
     const [showSwapDetails, setShowSwapDetails] = useState(DEFAULT_SWAP_DETAILS);  // Display details of swap in Modal
 
     // Set selected swap
@@ -52,26 +52,23 @@ const Swaps = (props) => {
     }
 
     dispatch(callUpdateSwapGroupInfo());
-    const swap_groups  = callGetSwapGroupInfo();
+    const swap_groups_data  = callGetSwapGroupInfo();
+    let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
 
-    let all_swap_groups_data = swap_groups;//.concat(unconfired_swaps_data)
-    let all_swap_groups_array = swap_groups ? Array.from(all_swap_groups_data.entries()) :
-    new Array();
-
-    // Re-fetch swaps every 10 seconds
+    // Re-fetch swaps every 3 seconds and update state to refresh render
     useEffect(() => {
         const interval = setInterval(() => {
             dispatch(callUpdateSwapGroupInfo());
-            const swap_groups = callGetSwapGroupInfo();
-            all_swap_groups_data=swap_groups; // check for change in length of unconfirmed coins list and total number
-            all_swap_groups_array = swap_groups ? Array.from(all_swap_groups_data.entries()) : new Array();
-        }, 5000);
+            const swap_groups_data = callGetSwapGroupInfo();
+            swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
+            setState({}) //update state to refresh TransactionDisplay render
+        }, 3000);
         return () => clearInterval(interval);
       },
       []);
 
-    const swapData = all_swap_groups_array.map(([key,value]) => (
-        <div key={key} value={value}>
+    const swapData = swap_groups_array.map(([key,value]) => (
+        <div key={key.amount} value={value}>
         <div>
         <div className="SwapPanel">
             <div className="SwapAmount-block">

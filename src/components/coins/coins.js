@@ -80,7 +80,6 @@ const Coins = (props) => {
           let new_unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
-
           if (
             unconfired_coins_data.length !== new_unconfired_coins_data.length
               ||
@@ -88,7 +87,6 @@ const Coins = (props) => {
               !==
             new_unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
           ) {
-
             unconfired_coins_data = new_unconfired_coins_data
             all_coins_data = coins_data.concat(unconfired_coins_data)
             setState({}) //update state to refresh TransactionDisplay render

@@ -77,7 +77,6 @@ export const callGetBlockHeight = () => {
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
-
 export const callGetSwapGroupInfo = () => {
   return wallet.getSwapGroupInfo()
 }
