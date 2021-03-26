@@ -320,8 +320,8 @@ export class Wallet {
       if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED ||
         this.statecoins.coins[i].backup_status === BACKUP_STATUS.TAKEN ||
         this.statecoins.coins[i].backup_status === BACKUP_STATUS.SPENT ||
-        this.statecoins.coins[i].status == STATECOIN_STATUS.SPENT ||
-        this.statecoins.coins[i].status == STATECOIN_STATUS.WITHDRAWN) {
+        this.statecoins.coins[i].status === STATECOIN_STATUS.SPENT ||
+        this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWN) {
         continue;
       }
       // check locktime

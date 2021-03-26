@@ -1,27 +1,10 @@
-import icon1 from "../../images/table-icon.png";
-import icon2 from "../../images/table-icon-grey.png";
-import medium from "../../images/table-icon-medium.png";
-import utx from "../../images/UTX.png";
-import time from "../../images/time-grey.png";
-import calendar from "../../images/calendar.png";
-import privacy from "../../images/privacy.png";
-import swapNumber from "../../images/swap-number.png";
-import walleticon from "../../images/walletIcon.png";
-import close from "../../images/close-grey.png";
-import txidIcon from "../../images/txid-icon.png";
-import timeIcon from "../../images/time.png";
-import check from "../../images/check-grey.png";
-import question from "../../images/question-mark.png";
 import coin from "../../images/table-icon1.png";
 import user from "../../images/table-icon-user.png";
 
 import React, {useState, useEffect} from 'react';
-import ProgressBar from 'react-bootstrap/ProgressBar'
-import {Button, Modal} from 'react-bootstrap';
-import {useSelector, useDispatch} from 'react-redux'
+import {Modal} from 'react-bootstrap';
+import {useDispatch} from 'react-redux'
 
-import {fromSatoshi} from '../../wallet/util'
-import { SwapGroup } from "../../wallet/types";
 import {callGetSwapGroupInfo, callUpdateSwapGroupInfo} from '../../features/WalletDataSlice'
 
 import './swaps.css';
@@ -34,22 +17,23 @@ const Swaps = (props) => {
     const dispatch = useDispatch();
 
     const [state, setState] = useState({});
-    const [showSwapDetails, setShowSwapDetails] = useState(DEFAULT_SWAP_DETAILS);  // Display details of swap in Modal
 
+    // The following group of functions will be used when user can select a particular
+    // swap group to join.
+    const [showSwapDetails, setShowSwapDetails] = useState(DEFAULT_SWAP_DETAILS);  // Display details of swap in Modal
     // Set selected swap
     const selectSwap = (shared_key_id) => {
         shared_key_id === props.selectedSwap ? props.setSelectedSwap(null) : props.setSelectedSwap(shared_key_id);
     }
-
     // Check if swap is selected. If so return CSS.
     const isSelectedStyle = (shared_key_id) => {
         return props.selectedSwap === shared_key_id ? {backgroundColor: "#e6e6e6"} : {}
     }
-
     // Convert expiry_data to string displaying months or days left
     const expiry_time_to_string = (expiry_data) => {
         return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days"
     }
+
 
     const swap_groups_data  = callGetSwapGroupInfo();
     let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
@@ -58,7 +42,7 @@ const Swaps = (props) => {
     useEffect(() => {
         const interval = setInterval(() => {
             dispatch(callUpdateSwapGroupInfo());
-            const swap_groups_data = callGetSwapGroupInfo();
+            let swap_groups_data = callGetSwapGroupInfo();
             swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
             setState({}) //update state to refresh TransactionDisplay render
         }, 3000);
@@ -102,7 +86,7 @@ const Swaps = (props) => {
 
     return (
         <div>
-            {swapData.length!=0 ? swapData : <p>Loading swap group information...</p>}
+            {swapData.length!==0 ? swapData : <p>Loading swap group information...</p>}
         </div>
     );
 }

@@ -7,7 +7,6 @@ import { getStateChain } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
-import { SwapMsg1, BSTMsg, SwapMsg2, SwapStatus, BatchData, BSTRequestorData} from '../types';
 
 let bitcoin = require("bitcoinjs-lib");
 
@@ -53,7 +52,7 @@ export const doSwap = async (
     id: statecoin.statechain_id
   }
 
-  statecoin.swap_status=SwapStatus.Phase0;
+  statecoin.swap_status=types.SwapStatus.Phase0;
 
 
   let swap_id = null
@@ -105,7 +104,7 @@ export const doSwap = async (
       statecoin.swap_info.status=phase;
       statecoin.swap_status=phase;
     }
-    if (phase !== SwapStatus.Phase1){
+    if (phase !== types.SwapStatus.Phase1){
       break;
     }
     await delay(3)
@@ -122,13 +121,13 @@ export const doSwap = async (
       statecoin.swap_info.status=phase;
       statecoin.swap_status=phase;
     }
-    if (phase === SwapStatus.Phase4){
+    if (phase === types.SwapStatus.Phase4){
       break;
     }
-    if (phase === SwapStatus.End){
+    if (phase === types.SwapStatus.End){
       throw new Error("Swap error: unexpended swap status \"End\"");
     }
-    if (phase === SwapStatus.Phase1){
+    if (phase === types.SwapStatus.Phase1){
       throw new Error("Swap error: unexpended swap status \"Phase1\"");
     }
     await delay(3)
@@ -159,7 +158,7 @@ export const doSwap = async (
       statecoin.swap_info.status=phase;
       statecoin.swap_status=phase;
     }
-    if (phase === SwapStatus.End){
+    if (phase === types.SwapStatus.End){
       break;
     }
     if (phase === null){
@@ -193,7 +192,7 @@ export const do_transfer_receiver = async (
         continue;
       }
       typeforce(types.TransferMsg3, msg3);
-      if (msg3.rec_se_addr.proof_key == rec_se_addr.proof_key){
+      if (msg3.rec_se_addr.proof_key===rec_se_addr.proof_key){
         let batch_data = {
           "id":batch_id,
           "commitment":commit,

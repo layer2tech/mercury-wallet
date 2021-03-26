@@ -58,19 +58,6 @@ const DepositPage = () => {
     setSelectedValues(current_values);
   }
 
-  const steps = [
-    { component: <CreateStatecoin
-        selectedValues={selectedValues}
-        addValueSelection={addValueSelection}
-        addSelectionPanel={addSelectionPanel}
-    /> },
-    { component: <TransactionsBTC
-      selectedValues={selectedValues}
-      setValueSelectionInitialised={setValueSelectionInitialised}
-      setValueSelectionAddr={setValueSelectionAddr}
-    /> }
-  ];
-
   return (
       <div className="container deposit">
           <div className="Body ">
