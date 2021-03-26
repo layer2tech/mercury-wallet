@@ -51,7 +51,6 @@ const Swaps = (props) => {
         return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days"
     }
 
-    dispatch(callUpdateSwapGroupInfo());
     const swap_groups_data  = callGetSwapGroupInfo();
     let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
 
@@ -103,7 +102,7 @@ const Swaps = (props) => {
 
     return (
         <div>
-            {swapData}
+            {swapData.length!=0 ? swapData : <p>Loading swap group information...</p>}
         </div>
     );
 }
