@@ -36,6 +36,14 @@ export const SIGNSWAPTOKEN_DATA =
     pub: "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
   }]
 
+export const COMMITMENT_DATA = 
+[{
+  statecoin: {statechain_id:"123"},
+  swap_info: {swap_token: {statechain_ids: ["4","5"]}},
+  batch_data: {commitment: "7aef2a9771923a485161095ae2314b2a374d223ec1ff67f7602398b3118b445d",
+  nonce: [118, 94, 232, 150, 99, 240, 44, 21, 13, 91, 170, 84, 58, 234, 242, 220, 184, 197, 137, 219, 179, 125, 111, 165, 233, 100, 228, 21, 79, 170, 3, 238]},
+}]
+
   export const BST_DATA = {
     bst_sender_data: {x:"a69ee11dd94ebb7d45194c5fc5b0f001b6836894aaf93e0c1a85bad88280a5bc",q:{x:"41fc72226373d61df5fa0aabcd257d9f65e54b42906fe2871de406cacb675594",y:"f57b5133122a7a8066fd956a32df9c1f9959df3079dbfa980512c91c5d7cd160"},k:"73098242f2b18a70a7d91aa27cf959ca88a56b3fd9493b651f7f94771ee10e90",r_prime:{x:"cde12c788fa16a0235ac148353bc4469edfd0f8e417b00eb66c18b83dff53f0f",y:"e280715e647dcd3e0e4d390ca2098035e955796aeb50f335ddd7e20bff334942"}}
   }

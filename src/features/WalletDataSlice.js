@@ -77,9 +77,6 @@ export const callGetBlockHeight = () => {
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
-export const callGetOngoingSwaps = () => {
-  return wallet.getOngoingSwaps()
-}
 
 export const callGetSwapGroupInfo = () => {
   return wallet.getSwapGroupInfo()
@@ -118,7 +115,7 @@ export const callNewSeAddr = (state) => {
 // Remove coin from coins list
 export const callRemoveCoin = (shared_key_id) => {
   log.info("Removing coin "+shared_key_id+" from wallet.");
-  wallet.statecoins.removeCoin(shared_key_id);
+  wallet.removeStatecoin(shared_key_id);
 }
 
 // Update config with JSON of field to change
@@ -131,6 +128,11 @@ export const callUpdateConfig = (config_changes) => {
 export const callCreateBackupTxCPFP = (cpfp_data) => {
      let sucess = wallet.createBackupTxCPFP(cpfp_data);
      return sucess
+}
+
+// Set coin status to AVAILABLE. This fn is used when a coin is removed from a swap pool.
+export const callRemoveCoinFromSwap = (shared_key_id) => {
+     wallet.statecoins.removeCoinFromSwap(shared_key_id);
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
@@ -237,6 +239,7 @@ const WalletSlice = createSlice({
       }
     },
     setNotification(state, action) {
+      log.info(action.payload.msg);
       return {
         ...state,
         notification_dialogue: [

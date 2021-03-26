@@ -1,0 +1,64 @@
+.sort-by-wrapper {
+  position: relative;
+}
+.sort-by-menu {
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+}
+.sort-by-menu svg {
+  transform: rotate(90deg);
+}
+.sort-by-menu svg:first-child {
+  transform: rotate(-90deg);
+}
+.sort-by-options {
+  position: absolute;
+  right: 35px;
+  top: 0;
+  width: 200px;
+  background: #fff;
+  box-shadow: 0px 2px 12px -7px #222;
+  z-index: 400;
+}
+.sort-head {
+  height: 30px;
+  border-bottom: 1px solid #dee2e6;
+  text-align: left;
+}
+.sort-direction {
+  margin-right: 8px;
+  height: 100%;
+  border-right: 1px solid #dee2e6;
+  line-height: 30px;
+  cursor: pointer;
+  display: inline-block;
+  width: 40px;
+  text-align: center;
+}
+.sort-direction.up svg {
+  transform: rotate(180deg);
+}
+.order-items {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+.order-item {
+  padding: 0 11px;
+  line-height: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+.order-item:hover,
+.order-item.active {
+  background-color: rgb(230, 230, 230);
+}
+.sort-by-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 300;
+}

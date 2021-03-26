@@ -34,24 +34,13 @@ export class StateCoinList {
   getUnspentCoins(block_height: number) {
     let total = 0
     let coins = this.coins.filter((item: StateCoin) => {
-      if (item.status === STATECOIN_STATUS.AVAILABLE) {
+      if (item.status===STATECOIN_STATUS.AVAILABLE || item.status===STATECOIN_STATUS.IN_SWAP) {
         total += item.value
         return item
       }
       return null
     })
     return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
-  };
-
-  getOngoingSwaps() {
-    let coins = this.coins.filter((item: StateCoin) => {
-      if (item.status === STATECOIN_STATUS.AVAILABLE
-        && item.swap_info !== null) {
-        return item
-      }
-      return
-    })
-    return [coins.map((item: StateCoin) => item.getSwapDisplayInfo())]
   };
 
   // Return coins that are awaiting funding tx to be broadcast
@@ -98,12 +87,12 @@ export class StateCoinList {
   };
 
   // Remove coin from list
-  removeCoin(shared_key_id: string) {
+  removeCoin(shared_key_id: string, testing_mode: boolean) {
     this.coins = this.coins.filter(item => {
       if (item.shared_key_id!==shared_key_id) {
         return item
       } else {
-        if (item.status!==STATECOIN_STATUS.INITIALISED) {
+        if (item.status!==STATECOIN_STATUS.INITIALISED && !testing_mode) {
           throw Error("Should not remove coin whose funding transaction has been broadcast.")
         }
       }})
@@ -174,6 +163,17 @@ export class StateCoinList {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
   }
+
+  removeCoinFromSwap(shared_key_id: string) {
+    let coin = this.getCoin(shared_key_id)
+    if (coin) {
+      coin.setConfirmed();
+      coin.swap_info = null;
+      coin.swap_status = null;
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+  }
 }
 
 // STATUS represent each stage in the lifecycle of a statecoin.
@@ -186,6 +186,8 @@ export const STATECOIN_STATUS = {
   UNCONFIRMED: "UNCONFIRMED",
   // Coins are fully owned by wallet and unspent
   AVAILABLE: "AVAILABLE",
+  // Coin currently carrying out swap protocol
+  IN_SWAP: "IN_SWAP",
   // Coin used to belonged to wallet but has been transferred
   SPENT: "SPENT",
   // Coin used to belonged to wallet but has been withdraw
@@ -270,6 +272,7 @@ export class StateCoin {
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
   setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
+  setInSwap() { this.status = STATECOIN_STATUS.IN_SWAP }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
   setSwapped() { this.status = STATECOIN_STATUS.SWAPPED; }

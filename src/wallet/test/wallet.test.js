@@ -1,11 +1,10 @@
 let bitcoin = require('bitcoinjs-lib')
 import { Wallet, StateCoinList, ACTION, Config } from '../';
-import { SwapToken } from '../swap/swap'
 import { segwitAddr } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
 import { txWithdrawBuild } from '../util';
-import { SIGNSWAPTOKEN_DATA } from './test_data'
+
 
 let lodash = require('lodash');
 
@@ -13,27 +12,6 @@ const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: ""
 
 describe('Wallet', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
-
-
-
-   describe('swapTokenSign', function() {
-  
-     test('Gen and Verify', async function() {
-       SIGNSWAPTOKEN_DATA.forEach(data => {
-         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(data.priv, "hex"));
-         //let proof_key_der = wallet.getBIP32forProofKeyPubKey(data.priv);
-         console.log('proof_key_der', proof_key_der);
-         let pub = proof_key_der.publicKey.toString('hex');
-         expect(pub).toBe(data.pub);
-         let st = data.swap_token;
-         let st_cls = new SwapToken(st.id, st.amount, st.time_out, st.statechain_ids);
-  
-         let swap_sig = st_cls.sign(proof_key_der,data.swap_token, data.priv);
-       expect(swap_sig).toBe(data.swap_token_sig);
-     })
-   });
- })
-
 
   test('toJSON', function() {
     wallet.config.update({min_anon_set: 1000}) // update config to ensure defaults are not revered to after fromJSON.
@@ -125,15 +103,15 @@ describe('Wallet', function() {
     wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
 
     test('Throw on invalid value', async function() {
-      expect(() => {  
+      expect(() => {
         wallet.createBackupTxCPFP(cpfp_data_bad_address);
       }).toThrowError('Invalid Bitcoin address entered.');
-      expect(() => { 
+      expect(() => {
         wallet.createBackupTxCPFP(cpfp_data_bad_coin);
       }).toThrowError('No coin found with id c93ad45a-00b9-449c-a804-aab5530efc90');
-      expect(() => { 
+      expect(() => {
         wallet.createBackupTxCPFP(cpfp_data_bad_fee);
-      }).toThrowError('Fee rate not an integer');      
+      }).toThrowError('Fee rate not an integer');
     });
 
     expect(wallet.createBackupTxCPFP(cpfp_data)).toBe(true);
@@ -167,7 +145,7 @@ describe("Statecoins/Coin", () => {
     ).toEqual(1)
 
     // Remove coin from list
-    statecoins.removeCoin(new_shared_key_id);
+    statecoins.removeCoin(new_shared_key_id, false);
     expect(statecoins.coins.filter(item =>
       {if (item.shared_key_id==new_shared_key_id){return item}}).length
     ).toEqual(0)
@@ -183,7 +161,7 @@ describe("Statecoins/Coin", () => {
 
     // Attempt to remove coin from list
     expect(() => {
-      statecoins.removeCoin(new_shared_key_id)
+      statecoins.removeCoin(new_shared_key_id, false)
     }).toThrowError("Should not remove coin whose funding transaction has been broadcast.")
   });
 
@@ -210,7 +188,7 @@ describe("Statecoins/Coin", () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
       statecoins.setCoinSpent(coins[0].shared_key_id, "W") // set one spent
-      expect(statecoins.getUnspentCoins()[0].length).toBe(num_coins-1)
+      expect(statecoins.getUnspentCoins().length).toBe(num_coins-1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
   });
@@ -222,7 +200,7 @@ describe("Statecoins/Coin", () => {
       let coin = statecoins.getCoin(coins[0].shared_key_id);
       coin.status="UNCONFIRMED";                 // set one unconfirmed
       statecoins.setCoinFinalized(coin);
-      expect(statecoins.getUnconfirmedCoins().length).toBe(1);
+      expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1);
       expect(coins.length).toBe(statecoins.coins.length);
     });
   });
