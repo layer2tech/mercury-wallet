@@ -591,13 +591,9 @@ export class Wallet {
     log.info("Public key: ", proof_key_der.publicKey.toString("hex"));
 
     log.info("Awaiting doSwap")
-<<<<<<< HEAD
-    statecoin.setInSwap();
-    let new_statecoin = await doSwap(this.conductor_client, this.http_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
-=======
     statecoin.setAwaitingSwap();
-    let new_statecoin = await doSwap(this.conductor_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
->>>>>>> ef8328c8c05c40805923c5084eae498a3210b5ce
+    let new_statecoin = await doSwap(this.conductor_client, this.http_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
+
     if (new_statecoin==null) {
       statecoin.setConfirmed();
       return null;

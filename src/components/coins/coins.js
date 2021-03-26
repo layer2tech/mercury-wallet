@@ -43,7 +43,7 @@ const INITIAL_SORT_BY = {
 const Coins = (props) => {
     const dispatch = useDispatch();
 
-	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
+  	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const handleOpenCoinDetails = (shared_key_id) => {
@@ -78,15 +78,15 @@ const Coins = (props) => {
 
     //Load coins once component done render
     useEffect(() => {
-        const [coins_data, total_balance] = callGetUnspentStatecoins();
-        let unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
-        setCoins({
-            unspentCoins: coins_data,
-            unConfirmedCoins: unconfired_coins_data
-        })
-        // Update total_balance in Redux state
-        dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
-    }, []);
+      const [coins_data, total_balance] = callGetUnspentStatecoins();
+      let unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+      setCoins({
+          unspentCoins: coins_data,
+          unConfirmedCoins: unconfired_coins_data
+      })
+      // Update total_balance in Redux state
+      dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
+    }, [props.refresh]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED

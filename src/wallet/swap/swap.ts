@@ -60,18 +60,15 @@ export const doSwap = async (
   let max_n_polls = 20;
   let n_polls=0;
   while (true){
-<<<<<<< HEAD
-    if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) return null;
+    // check statecoin is still AWAITING_SWAP
+    if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) return null;
+
     n_polls=n_polls+1;
     if (n_polls > max_n_polls) {
       return clear_statecoin_swap_info(statecoin);
     }
     swap_id = await pollUtxo(conductor_client,statechain_id);
-=======
-    // check statecoin is still AWAITING_SWAP
-    if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) return null;
-    swap_id = await pollUtxo(http_client,statechain_id);
->>>>>>> ef8328c8c05c40805923c5084eae498a3210b5ce
+
     if (swap_id !== null) {
       typeforce(types.SwapID, swap_id);
       if (swap_id.id !== null) {
@@ -80,20 +77,18 @@ export const doSwap = async (
     }
     await delay(3);
   };
-  
+
   n_polls=0;
   let swap_info = null;
   while (true) {
-<<<<<<< HEAD
+    // check statecoin is still AWAITING_SWAP
+    if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) return null;
+
     // check statecoin is still IN_SWAP_QUEUE
     n_polls=n_polls+1;
     if (n_polls > max_n_polls) return clear_statecoin_swap_info(statecoin) ;
     swap_info = await getSwapInfo(conductor_client,swap_id);
-=======
-    // check statecoin is still AWAITING_SWAP
-    if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) return null;
-    swap_info = await getSwapInfo(http_client,swap_id);
->>>>>>> ef8328c8c05c40805923c5084eae498a3210b5ce
+
     if (swap_info !== null){
         statecoin.swap_status=swap_info.status;
       break;
@@ -157,7 +152,7 @@ export const doSwap = async (
     }
     await delay(3)
   }
-  
+
 
   transferSender(http_client, wasm_client, network, statecoin, proof_key_der, receiver_addr.proof_key);
 
@@ -200,7 +195,7 @@ export const doSwap = async (
   return statecoin_out;
 }
 
-export const make_swap_commitment = (statecoin: any, 
+export const make_swap_commitment = (statecoin: any,
   swap_info: any, wasm_client: any): BatchData => {
 
   let commitment_str: string = statecoin.statechain_id;
