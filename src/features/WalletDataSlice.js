@@ -130,7 +130,7 @@ export const callCreateBackupTxCPFP = (cpfp_data) => {
      return sucess
 }
 
-// Set coin status to AVAILABLE. This fn is used when a coin is removed from a swap pool.
+// Remove coin from a swap pool.
 export const callRemoveCoinFromSwap = (shared_key_id) => {
      wallet.statecoins.removeCoinFromSwap(shared_key_id);
 }
@@ -174,10 +174,6 @@ export const callDoSwap = createAsyncThunk(
   }
 )
 export const callUpdateSwapGroupInfo = createAsyncThunk(
-  //let map = new Map;
-  //map.set({"amount":0.1,"size":12}, 11);
-  //map.set({"amount":1.0,"size":20}, 19);
-  //return map
   'UpdateSwapGroupInfo',
   async (action, thunkAPI) => {
     wallet.updateSwapGroupInfo();

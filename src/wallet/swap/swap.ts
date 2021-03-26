@@ -58,8 +58,8 @@ export const doSwap = async (
 
   let swap_id = null
   while (true){
-    // check statecoin is still IN_SWAP_QUEUE
-    if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) return null;
+    // check statecoin is still AWAITING_SWAP
+    if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) return null;
     swap_id = await pollUtxo(http_client,statechain_id);
     if (swap_id !== null) {
       typeforce(types.SwapID, swap_id);
@@ -73,8 +73,8 @@ export const doSwap = async (
 
   let swap_info = null;
   while (true) {
-    // check statecoin is still IN_SWAP_QUEUE
-
+    // check statecoin is still AWAITING_SWAP
+    if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) return null;
     swap_info = await getSwapInfo(http_client,swap_id);
     if (swap_info !== null){
         statecoin.swap_status=swap_info.status;
@@ -82,21 +82,17 @@ export const doSwap = async (
     }
     await delay(3);
   };
-
- // set coins to IN_SWAP
-
-
-
   typeforce(types.SwapInfo, swap_info);
-
   statecoin.swap_info=swap_info;
+
+  // set coins to IN_SWAP
+  statecoin.setInSwap();
 
   let address = {
     "tx_backup_addr": null,
     "proof_key": new_proof_key_der.publicKey.toString("hex"),
   };
   typeforce(types.SCEAddress, address);
-
 
   let transfer_batch_sig = StateChainSig.new_transfer_batch_sig(proof_key_der,swap_id.id,statecoin.statechain_id);
   let my_bst_data = await first_message(http_client,

@@ -44,12 +44,17 @@ const SwapPage = () => {
       })
     }
 
-    const leavePoolButtonAction = () => {
+    const leavePoolButtonAction = (event) => {
       if (!selectedCoin) {
         dispatch(setError({msg: "Please choose a StateCoin to remove."}))
         return
       }
-      callRemoveCoinFromSwap(selectedCoin)
+      try {
+        callRemoveCoinFromSwap(selectedCoin)
+      } catch (e) {
+        event.preventDefault();
+        dispatch(setError({msg: e.message}))
+      }
     }
 
   return (
