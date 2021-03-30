@@ -43,7 +43,7 @@ const INITIAL_SORT_BY = {
 const Coins = (props) => {
     const dispatch = useDispatch();
 
-	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
+  	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const handleOpenCoinDetails = (shared_key_id) => {
@@ -78,15 +78,15 @@ const Coins = (props) => {
 
     //Load coins once component done render
     useEffect(() => {
-        const [coins_data, total_balance] = callGetUnspentStatecoins();
-        let unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
-        setCoins({
-            unspentCoins: coins_data,
-            unConfirmedCoins: unconfired_coins_data
-        })
-        // Update total_balance in Redux state
-        dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
-    }, []);
+      const [coins_data, total_balance] = callGetUnspentStatecoins();
+      let unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+      setCoins({
+          unspentCoins: coins_data,
+          unConfirmedCoins: unconfired_coins_data
+      })
+      // Update total_balance in Redux state
+      dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
+    }, [props.refresh]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
@@ -106,7 +106,7 @@ const Coins = (props) => {
             setCoins({
                 ...coins,
                 unConfirmedCoins: [
-					...coins.unConfirmedCoins, 
+					...coins.unConfirmedCoins,
 					...new_unconfired_coins_data
 				]
             })
@@ -143,23 +143,22 @@ const Coins = (props) => {
     }
 
     const all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
-
-	all_coins_data.sort((a, b) => {
-		let compareProp = sortCoin.by;
-		if(compareProp === 'expiry_data') {
-			a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
-			b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
-		} else {
-			a = a[compareProp];
-			b = b[compareProp];
-		}
-		if(a > b) {
-			return sortCoin.direction ? 1 : -1;
-		} else if (a < b) {
-			return sortCoin.direction ? -1 : 1;
-		}
-		return 0;
-	});
+  	all_coins_data.sort((a, b) => {
+  		let compareProp = sortCoin.by;
+  		if(compareProp === 'expiry_data') {
+  			a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
+  			b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
+  		} else {
+  			a = a[compareProp];
+  			b = b[compareProp];
+  		}
+  		if(a > b) {
+  			return sortCoin.direction ? 1 : -1;
+  		} else if (a < b) {
+  			return sortCoin.direction ? -1 : 1;
+  		}
+  		return 0;
+  	});
 
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);

@@ -1,15 +1,14 @@
 import swapIcon from '../../images/swap_icon-blue.png';
 
 import {Link, withRouter, Redirect} from "react-router-dom";
-import { useSelector, useDispatch } from 'react-redux'
+import {useDispatch} from 'react-redux'
 import React, {useState} from 'react';
 
 import { Coins, Swaps, StdButton} from "../../components";
-import {isWalletLoaded, setNotification, setError, callDoSwap, callGetOngoingSwaps,
-  callRemoveCoinFromSwap } from '../../features/WalletDataSlice'
+import {isWalletLoaded, setNotification, setError, callDoSwap, callRemoveCoinFromSwap } from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
-  import './Swap.css';
+import './Swap.css';
 
 const SwapPage = () => {
   const dispatch = useDispatch();
@@ -17,7 +16,9 @@ const SwapPage = () => {
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
-  const [inputAddr, setInputAddr] = useState("");
+  // Update Coins model to force re-render
+  const [refreshCoins, setRefreshCoins] = useState(false); // store selected swap_id
+  const refreshToggle = () => refreshCoins ? setRefreshCoins(false) : setRefreshCoins(true);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -42,15 +43,25 @@ const SwapPage = () => {
           dispatch(setNotification({msg:"Swap complete for coin of value "+fromSatoshi(res.payload.value)+" with new id "+res.payload.shared_key_id}))
         }
       })
+      // Refresh Coins list
+      setTimeout(() => { refreshToggle(); }, 1000);
     }
 
-    const leavePoolButtonAction = () => {
+    const leavePoolButtonAction = (event) => {
       if (!selectedCoin) {
         dispatch(setError({msg: "Please choose a StateCoin to remove."}))
         return
       }
-      callRemoveCoinFromSwap(selectedCoin)
+      try {
+        callRemoveCoinFromSwap(selectedCoin);
+        // Refresh Coins list
+        setTimeout(() => { refreshToggle(); }, 2000);
+      } catch (e) {
+        event.preventDefault();
+        dispatch(setError({msg: e.message}))
+      }
     }
+
 
   return (
       <div className="container ">
@@ -81,16 +92,17 @@ const SwapPage = () => {
                       <Coins
                         displayDetailsOnClick={false}
                         selectedCoin={selectedCoin}
-                        setSelectedCoin={setSelectedCoin}/>
+                        setSelectedCoin={setSelectedCoin}
+                        refresh={refreshCoins}/>
                   </div>
 
               </div>
               <div className="Body right">
                   <div>
                       <Swaps
-                      displayDetailsOnClick={false}
-                      selectedSwap={selectedSwap}
-                      setSelectedSwap={setSelectedSwap}
+                        displayDetailsOnClick={false}
+                        selectedSwap={selectedSwap}
+                        setSelectedSwap={setSelectedSwap}
                       />
                   </div>
                   <button type="button" className="btn" onClick={swapButtonAction}>

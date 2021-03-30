@@ -50,7 +50,7 @@ const CreateWalletInfoPage = () => {
                 <input id="checkbox" type="checkbox" name="checkbox" required
                        onChange={() => changeCheckbox(!checked)}/>
                 <label className="control-label"
-                       htmlFor="address"> I confirm that nobody can see my screen and take responsiblity of the security
+                       htmlFor="checkbox"> I confirm that nobody can see my screen and take responsiblity of the security
                     of this computer,
                     because anyone who has access to my seed key will be able to spend the funds in my wallet.</label>
             </div>

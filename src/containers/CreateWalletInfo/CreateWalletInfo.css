@@ -48,9 +48,10 @@ h1 {
     background: #ffffff;
     opacity: 1;
     border-radius: 0 !important;
-    width: 32px !important;
+    /* width: 32px !important; */
     position: relative;
     top: 12px;
+    min-width: 21px;
 }
 input[type='checkbox'], input[type='radio'] {
     --active-inner: #707070;
