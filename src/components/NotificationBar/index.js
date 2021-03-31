@@ -1,6 +1,9 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+
 import { setNotificationSeen } from "../../features/WalletDataSlice";
+
+import "./index.css";
 
 function NotificationBar () {
   const dispatch = useDispatch();
@@ -18,11 +21,13 @@ function NotificationBar () {
   }
 
   // Display all notifications
-  const showNotifications = notifications_list.map((item) => (
-    <div className={`hideBar  ${false ? "disabled" : ""}`}>
-      <p><i className="fa fa-exclamation"></i> {item.msg}</p>
-      <div className="close" onClick={() => handleCloseNotification(item.msg)}>
+  const showNotifications = notifications_list.map((item, index) => (
+    <div key={index} className={`hideBar wallet-notification`}>
+      <div className="notification-content">
+        <p><i className="fa fa-exclamation"></i> {item.msg}</p>
+        <div className="close" onClick={() => handleCloseNotification(item.msg)}>
           <i className="fa fa-close"></i>
+        </div>
       </div>
     </div>
   ))
