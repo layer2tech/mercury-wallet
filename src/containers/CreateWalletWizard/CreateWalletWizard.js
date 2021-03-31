@@ -15,6 +15,21 @@ const CreateWizardStep = {
   CONFIRMSEED: 3
 }
 
+const STEPS = [
+  {
+    id: 1,
+    description: 'Create Passphrase',
+  },
+  {
+    id: 2,
+    description: 'New Wallet Seed',
+  },
+  {
+    id: 3,
+    description: 'Confirm Seed',
+  },
+];
+
 // MultiStep wizard for wallet setup
 const CreateWizardPage = (props) => {
   const [step, setStep] = useState(CreateWizardStep.FORM)
@@ -60,7 +75,10 @@ const CreateWizardPage = (props) => {
 
   return (
     <div className="container wizard">
-      <Steppers total={3} current={step} />
+      <Steppers 
+        steps={STEPS}
+        current={step} 
+      />
       {Component()}
       <div className="btns">
         <Link to="/" >
