@@ -39,7 +39,7 @@ const CreateStatecoin = (props) => {
         liquidity_data=liquidity_data.concat(defaults_missing)
 
         // Sort
-        if (props.settings.sort_by==="Liquidity") {)
+        if (props.settings.sort_by==="Liquidity") {
           liquidity_data.sort((a,b) => {
             return b.liquidity - a.liquidity;
           })

@@ -1,12 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 
 import { fromSatoshi } from '../../../wallet/util'
 
 import '../../../containers/Deposit/Deposit.css';
-
-const LIQUIDITY_MED=10;
-const LIQUIDITY_HIGH=20;
-const NUM_HIGH_LIQUIDITY=3;
 
 const ValueSelectionPanel = (props) => {
 
