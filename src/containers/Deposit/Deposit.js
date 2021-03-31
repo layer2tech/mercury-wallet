@@ -11,6 +11,9 @@ import {isWalletLoaded, setError} from '../../features/WalletDataSlice'
 
 import './Deposit.css';
 
+// sort_by 0=liquidity, 1=amount.
+const DEFAULT_SETTINGS = {sort_by: 0, min_value: 0.000001, picks: 8}
+
 const DepositPage = () => {
   const dispatch = useDispatch();
 
@@ -21,7 +24,11 @@ const DepositPage = () => {
   const handleShow = () => setShow(true);
 
   const [selectedValues, setSelectedValues] = useState([{value: null, initialised: false, p_addr: "Initialising.."}]);
-
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const setPicksSetting = (event) => setSettings({
+    ...settings,
+    picks: event.target.value
+  })
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     dispatch(setError({msg: "No Wallet loaded."}))
@@ -70,7 +77,6 @@ const DepositPage = () => {
                          <StdButton
                              label="Back"
                              className="Body-button transparent"/>
-
                      </Link>
                      <img onClick={handleShow} src={points} alt="points"/>
 
@@ -85,6 +91,7 @@ const DepositPage = () => {
                   selectedValues={selectedValues}
                   addValueSelection={addValueSelection}
                   addSelectionPanel={addSelectionPanel}
+                  settings={settings}
                 />
               ) : (
                 <TransactionsBTC
@@ -119,11 +126,12 @@ const DepositPage = () => {
                           <option value="0.0001">0.0001 BTC</option>
                       </select>
                   </div>
-                  <div className="selected-item">
+                  <div className="selected-item" onChange={setPicksSetting}>
                       <span>Number of Picks</span>
                       <select>
-                          <option value="6">6 options</option>
-                          <option value="2">2 options</option>
+                          <option value="4">4 options</option>
+                          <option value="8">8 options</option>
+                          <option value="12">12 options</option>
                       </select>
                   </div>
 

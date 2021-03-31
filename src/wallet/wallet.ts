@@ -612,10 +612,11 @@ export class Wallet {
     return new_statecoin;
   }
 
+  // Get swap group information stored in wallet
   getSwapGroupInfo(): Map<SwapGroup, number>{
     return this.swap_group_info;
   }
-
+  // Update swap group information from server
   async updateSwapGroupInfo() {
     this.swap_group_info = await groupInfo(this.conductor_client);
   }
