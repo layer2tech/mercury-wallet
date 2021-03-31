@@ -12,7 +12,7 @@ import {isWalletLoaded, setError} from '../../features/WalletDataSlice'
 import './Deposit.css';
 
 // sort_by 0=liquidity, 1=amount.
-const DEFAULT_SETTINGS = {sort_by: 0, min_value: 0.000001, picks: 8}
+const DEFAULT_SETTINGS = {sort_by: "Liquidity", min_value: 0.000001, picks: 8}
 
 const DepositPage = () => {
   const dispatch = useDispatch();
@@ -119,8 +119,8 @@ const DepositPage = () => {
                   <div className="selected-item" onChange={setSortbySetting}>
                       <span>Sort By</span>
                       <select>
-                          <option value={0}>Liquidity</option>
-                          <option value={1}>Amount</option>
+                          <option value="Liquidity">Liquidity</option>
+                          <option value="Amount">Amount</option>
                       </select>
                   </div>
                   <div className="selected-item">
