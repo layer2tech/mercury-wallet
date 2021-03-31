@@ -30,24 +30,24 @@ const CreateStatecoin = (props) => {
           return {value: parseInt(amount), liquidity: liquidity}
         })
 
-        // truncate to display top {settings.picks} choices
-        liquidity_data = liquidity_data.slice(0, props.settings.picks)
+        // Add list of defualt values if not already in list
+        let liquidity_data_amounts = liquidity_data.map((item) => item.value);
+        let defaults_missing = DEFAULT_LIQUIDITY_VALUES.filter((item) => {
+          // checks if default value is already in liquidity_data. If not return item.
+          if (liquidity_data_amounts.indexOf(item.value)<0) return item;
+        });
+        liquidity_data=liquidity_data.concat(defaults_missing)
 
-        // Add some defualt values if not already in list
-        if (liquidity_data.length<=props.settings.picks) {
-          let liquidity_data_amounts = liquidity_data.map((item) => item.value);
-          let defaults_missing = DEFAULT_LIQUIDITY_VALUES.filter((item) => {
-            // checks if default value is already in liquidity_data. If not return item.
-            if (liquidity_data_amounts.indexOf(item.value)<0) return item;
-          });
-          defaults_missing = defaults_missing.slice(0, props.settings.picks-liquidity_data.length);
-          liquidity_data=liquidity_data.concat(defaults_missing)
+        // Sort
+        if (!props.settings.sort_by) {
+          liquidity_data.sort((a,b) => {
+            return b.liquidity - a.liquidity;
+          })
+        } else { // sort by amount
+          liquidity_data.sort((a,b) => {
+            return b.value - a.value;
+          })
         }
-
-        // Sort by liquidity
-        liquidity_data.sort((a,b) => {
-          return b.liquidity - a.liquidity;
-        })
 
         // Replace liquidity value with string "None", "Low", "Med" or "High"
         let num_highs=0;
@@ -64,6 +64,10 @@ const CreateStatecoin = (props) => {
           };
           return item;
         })
+
+        // truncate to display top {settings.picks} choices
+        liquidity_data = liquidity_data.slice(0, props.settings.picks)
+
         setLiquidityData(liquidity_data)
       });
     }, [props.settings]);

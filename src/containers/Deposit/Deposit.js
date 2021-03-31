@@ -29,6 +29,10 @@ const DepositPage = () => {
     ...settings,
     picks: event.target.value
   })
+  const setSortbySetting = (event) => setSettings({
+    ...settings,
+    sort_by: event.target.value
+  })
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     dispatch(setError({msg: "No Wallet loaded."}))
@@ -112,17 +116,16 @@ const DepositPage = () => {
                   <h6>Display Settings</h6>
               </Modal.Header>
               <Modal.Body>
-                  <div className="selected-item">
+                  <div className="selected-item" onChange={setSortbySetting}>
                       <span>Sort By</span>
                       <select>
-                          <option value="HighestLiquidity">Highest Liquidity</option>
-                          <option value="HighestLiquidity1">Highest Liquidity1</option>
+                          <option value={0}>Liquidity</option>
+                          <option value={1}>Amount</option>
                       </select>
                   </div>
                   <div className="selected-item">
                       <span>Smallest Value</span>
                       <select>
-                          <option value="0.0005">0.0005 BTC</option>
                           <option value="0.0001">0.0001 BTC</option>
                       </select>
                   </div>
