@@ -20,7 +20,6 @@ const DepositPage = () => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  // const [selectedValues, setSelectedValues] = useState([{value: DEFUALT_VALUE_SELECTION, initialised: false, p_addr: "Initialising.."}]);
   const [selectedValues, setSelectedValues] = useState([{value: null, initialised: false, p_addr: "Initialising.."}]);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.

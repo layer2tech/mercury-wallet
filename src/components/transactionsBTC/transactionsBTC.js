@@ -7,7 +7,7 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch} from 'react-redux'
 
 import {callDepositInit, callDepositConfirm, setNotification,
-  callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin} from '../../features/WalletDataSlice'
+  callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin } from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
 import '../../containers/Deposit/Deposit.css';
@@ -73,7 +73,7 @@ const TransactionsBTC = (props) => {
               address={item.p_addr}
               parent_setState={setState}/>
           </div>
-      </div>
+        </div>
       )
     }
     return null
