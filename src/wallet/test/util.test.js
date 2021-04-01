@@ -2,8 +2,8 @@ import { TransactionBuilder, networks, ECPair, BIP32Interface } from 'bitcoinjs-
 import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, txBackupBuild, txWithdrawBuild, txCPFPBuild, StateChainSig, toSatoshi, fromSatoshi,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
-  encryptECIES, decryptECIES, encryptAES, decryptAES } from '../util';
-import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY } from './test_data.js'
+  encryptECIES, decryptECIES, encryptAES, decryptAES, proofKeyToSCEAddress, encodeMessage, decodeMessage } from '../util';
+import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
 import { Wallet } from '../';
 
 import { encrypt, decrypt, PrivateKey } from 'eciesjs'
@@ -20,8 +20,6 @@ test('to/from Satoshi', async function() {
   expect(sat).toBe(100000000);
   expect(fromSatoshi(sat)).toBe(btc);
 });
-
-
 
 describe('signStateChain', function() {
   let proof_key_der = bip32.fromSeed(Buffer.from("0123456789abcdef"), network)
@@ -120,6 +118,35 @@ test('bech32 encode/decode', function() {
   expect(proof_key).toBe(decode);
 });
 
+test('transfer message encode/decode', function() {
+
+  let proof_key = "03b971d624567214a2e9a53995ee7d4858d6355eb4e3863d9ac540085c8b2d12b3";
+
+  let tx_backup_psm = {
+          shared_key_id: SHARED_KEY_ID,
+          protocol: "Transfer",
+          tx_hex: BACKUP_TX_HEX,
+          input_addrs: [],
+          input_amounts: [],
+          proof_key: proof_key,
+        };
+
+  let t1 = {secret_bytes: Array.from([4, 56, 87, 6, 105, 142, 166, 89, 114, 187, 249, 14, 19, 73, 207, 122, 216, 178, 29, 29, 54, 152, 186, 203, 142, 176, 55, 37, 39, 97, 90, 198, 168, 103, 102, 3, 205, 201, 43, 113, 170, 28, 28, 16, 31, 123, 192, 185, 131, 156, 244, 169, 112, 164, 229, 239, 24, 183, 225, 149, 125, 182, 42, 171, 115, 196, 105, 214, 122, 134, 60, 189, 113, 27, 249, 144, 52, 129, 180, 83, 65, 227, 119, 44, 187, 139, 84, 25, 94, 107, 104, 56, 186, 240, 137, 25, 139, 226, 14, 182, 135, 217, 180, 219, 255, 123, 199, 35, 207, 18, 27, 184, 222, 83, 106, 86, 92, 23, 237, 252, 58, 150, 39, 47, 136, 216, 235, 23, 63])};
+
+  let trans_msg_3 = { 
+      shared_key_id: SHARED_KEY_ID,
+      statechain_id: STATECHAIN_ID,
+      t1: t1,
+      statechain_sig: new StateChainSig("TRANSFER",proof_key,"304402205bb830138dc807cad3c34a674e9c5804eb1a6d9a75dc4043d35c72b704b587420220299b6d09455e438d871e4c35b9a369f3ab3ec2c7196da8179db1a5b43d0c2fdc"),
+      tx_backup_psm: tx_backup_psm,
+      rec_se_addr: proofKeyToSCEAddress(proof_key, network)
+  };
+
+  let encoded_message = encodeMessage(trans_msg_3);
+  let decoded_message = decodeMessage(encoded_message, network);
+  expect(decoded_message).toStrictEqual(trans_msg_3);
+});
+
 test('Secp256k Point encode/decode', async function() {
   let bip32 = ECPair.makeRandom({compressed: false});
   let publicKey = bip32.publicKey;
@@ -131,16 +158,16 @@ test('Secp256k Point encode/decode', async function() {
 
 
 const MERCURY_ENCRYPTIONS = [
-  { data: "str1", enc: "04293ffc6c67bdd866838a95f13541982182dcde87d89e7037a13665b1246a654198f3911682de79c89e2b5c8466f99f486e475929b88473bbc46f4112ea1da2ab10d892ef8a11ec2ded92878c2850385c475c470b51edb50bc07d7cf2b0f6e00c5429cf6dd55e" },
-  { data: "123456", enc: "04d037a01346a3337e9dc60c3552957a199ce3121b0f399ae348d146f000996038d91d151ffffd8177ccd9a9adc58a9288c921bf1945ded60f0298d6a57314de7379f529fdfea4e4c95b00d496809d1cabe857e50245bd71493e328440312703b6638f60a516125a70" },
-  { data: "8972302757y7823r892dy83ydo9nz3y7ydo3ud", enc: "047adfadf1e70d472c68b46c804a876ef61dce075a4c9f3eb936ec61c542a3a54071be86f3bd037d9d0466baa6c0a894356ee051992e46e1ebef9a5e5b3b4aa11f06f3d7dfe85c5684b7777131fb9407bc285dadbf29d321676f6ce000cff8fa0a4c71a1b66ac933627f6f0ad1e8ee74d10596d2524045cff5689ebc9797811d2f25fe699959cbe09c" }
+  { data: PROOF_KEY, enc: "044453a5a7466008171dcb4acd909a2fd47daaeac86ad6047cc968a9ccce32760ede105813e77084b799b2edcbfa0472b5ce5a3774e16deb0c6f072415fd50b7685dbc4543baad8d3eefec12bac6b4c62334909af9aca02cfb2f2eb7b921876b505c14291bce9e2ee44a419b9f609b02f101f6e2b06ff51e043fd7d2f5ba23735b" },
+  { data: "b26d89e448407500bc6e68a035775f9baa435c644651ffe171c645c0ca94a5ab", enc: "048f8a9f6773cf0ad1c340c3ceebb6c2192221b91eb5738e42080c27c08c66e575119b8bff915eaf0502479201ee8ba73b1180cd159734d12c020a3bbb794ac57ff54c1815befe0fabe35abb1331073215e4d53e13d98191411053d93103019eabd2abb5dc06572fa4be0e065c0f04d93545f3bba75c874bd563bc8e73e0b5c91d" },
+  { data: "9302a573b48d11b96ab9459c5899ac461e15197da4c52e5d237536bc2177cc64", enc: "041164dfed1b4f1a68f81784f6ab92850fc5b535607000dd8cd1cda92a4cb6cb065cae1ec3ed478eabbbf511c0003ab844d530845f5ba8d80c80a150a606dee478b57b736aa288f5f1d7fbeee1314d029e0395e2ac9318215bf2a14be183f485bd8e172f9ab163fed3982fc0f21b2b4e9284753e6f7ed2f07cf8f08ef7b991f5d5" }
 ]
 
 test('ECIES encrypt/decrypt', async function() {
   const sk = PrivateKey.fromHex("0000000000000000000000000000000000000000000000000000000000000001")
-  let data = "str1"
+  let data = PROOF_KEY
 
-  let enc = encryptECIES(sk.publicKey.toHex(), "str1")
+  let enc = encryptECIES(sk.publicKey.toHex(), PROOF_KEY)
   let dec = decryptECIES(sk.toHex(), enc);
   expect(dec).toBe(data);
 
