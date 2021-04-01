@@ -82,7 +82,7 @@ export const withdraw = async (
 
   // Complete confirm to get witness
   let withdraw_msg_2 = {
-      shared_key_id: statecoin.shared_key_id,
+      shared_key_ids: [statecoin.shared_key_id],
       address: rec_addr
   }
 
@@ -90,7 +90,7 @@ export const withdraw = async (
 
   // set witness data with signature
   let tx_backup_signed = tx_withdraw_unsigned;
-  tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]),Buffer.from(signature[1])];
+  tx_backup_signed.ins[0].witness = [Buffer.from(signature[0][0]),Buffer.from(signature[0][1])];
 
   return tx_backup_signed
 }

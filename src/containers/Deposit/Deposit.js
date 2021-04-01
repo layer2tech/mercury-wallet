@@ -7,9 +7,20 @@ import {useDispatch} from 'react-redux'
 import {Button, Modal} from "react-bootstrap";
 
 import {CreateStatecoin, TransactionsBTC, StdButton, Steppers} from "../../components";
-import {isWalletLoaded, setError} from '../../features/WalletDataSlice'
+import {isWalletLoaded, setError} from '../../features/WalletDataSlice';
 
 import './Deposit.css';
+
+const STEPS = [
+  {
+    id: 1,
+    description: 'Choose Amount and Value',
+  },
+  {
+    id: 2,
+    description: 'Complete BTC Transactions',
+  },
+];
 
 const DepositPage = () => {
   const dispatch = useDispatch();
@@ -78,9 +89,9 @@ const DepositPage = () => {
                  </div>
              </div>
               <h3 className="subtitle">Deposit BTC to create new Statecoins</h3>
+              <Steppers steps={STEPS} current={step} />
           </div>
           <div className="wizard">
-              <Steppers total={2} current={step} />
               {step === 1 ? (
                 <CreateStatecoin
                   selectedValues={selectedValues}

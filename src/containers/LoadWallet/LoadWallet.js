@@ -5,17 +5,21 @@ import {useDispatch} from 'react-redux'
 import {Storage} from '../../store';
 import {walletLoad, setError, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice'
 
+import eyeIcon from "../../images/eye-icon.svg";
+import eyeIconOff from "../../images/eye-icon-off.svg";
 import  './LoadWallet.css'
 
 let store = new Storage();
 
 
 const LoadWalletPage = (props) => {
+  const [showPass, setShowPass] = useState(false);
   const dispatch = useDispatch();
 
   let wallet_name_password_map = store.getWalletNamePasswordMap()
 
   const [selectedWallet, setSelected] = useState(wallet_name_password_map.length ? wallet_name_password_map[0].name : "")
+  const toggleShowPass = () => setShowPass(!showPass);
   const onSelectedWalletChange = (event) => {
     setSelected(event.target.value)
   }
@@ -68,11 +72,18 @@ const LoadWalletPage = (props) => {
           </select>
 
           <div className="inputs-item">
-            <input id="Passphrase" type="password" name="password" required
+            <input 
+              id="Passphrase" 
+              type={showPass ? 'text' : 'password'} name="password"
+              name="password" 
+              required
               placeholder="Passphrase "
               value={passwordEntered}
               onChange={onPasswordChange}
-                    />
+            />
+            <span className={'eye-icon'} onClick={toggleShowPass}>
+                {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
+            </span>
           </div>
           <Link to="/home" onClick={onContinueClick}>
             Continue
