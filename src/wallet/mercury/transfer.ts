@@ -4,7 +4,7 @@ import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
-import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash, decryptECIESx1, encryptECIESt2 } from "../util";
+import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
 
 let bitcoin = require("bitcoinjs-lib");
 let lodash = require('lodash');
@@ -98,7 +98,7 @@ export const transferSender = async (
 
   // Get SE's x1
   let x1 = transfer_msg2.x1.secret_bytes;
-  let x1_dec = decryptECIESx1(proof_key_der.privateKey!.toString("hex"), Buffer.from(x1).toString("hex"));
+  let x1_dec = decryptECIES(proof_key_der.privateKey!.toString("hex"), Buffer.from(x1).toString("hex"));
 
   let o1_bn = new BN(o1, 16);
   let x1_bn = new BN(x1_dec, 16);
@@ -164,7 +164,7 @@ export const transferReceiver = async (
 
   // encrypt t2
   let t2_enc = {
-    secret_bytes: Array.from(encryptECIESt2(s1_pubkey.key,t2.toString("hex")))
+    secret_bytes: Array.from(encryptECIES(s1_pubkey.key,t2.toString("hex")))
   }
 
   let transfer_msg4 = {
@@ -263,7 +263,7 @@ export interface SCEAddress {
   proof_key: string
 }
 
-interface PrepareSignTxMsg {
+export interface PrepareSignTxMsg {
     shared_key_id: string,
     protocol: string,
     tx_hex: string,
@@ -279,6 +279,15 @@ export interface TransferMsg3 {
   statechain_sig: StateChainSig,
   tx_backup_psm: PrepareSignTxMsg,
   rec_se_addr: SCEAddress,
+}
+
+export interface CompactTransfer {
+  t1: {secret_bytes: number[]},
+  proof_key: number[],
+  sig: number[],
+  statechain_id: string,
+  shared_key_id: string,
+  tx_backup: number[],
 }
 
 export interface TransferMsg4 {
