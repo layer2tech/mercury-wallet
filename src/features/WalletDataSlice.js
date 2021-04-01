@@ -166,7 +166,7 @@ export const callTransferSender = createAsyncThunk(
 export const callTransferReceiver = createAsyncThunk(
   'TransferReceiver',
   async (action, thunkAPI) => {
-    return wallet.transfer_receiver(decodeMessage(action, network))
+    return wallet.transfer_receiver(decodeMessage(action))
   }
 )
 export const callDoSwap = createAsyncThunk(

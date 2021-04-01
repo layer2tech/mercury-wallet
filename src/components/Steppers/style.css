@@ -6,12 +6,11 @@
   float: left;
   width: 33%;
   position: relative;
-  text-align: left;
+  text-align: center;
 }
-.steppers .progressbar li .steppers-num {
-  background-color: #757575;
-  /* content: attr(data-index); */
-  color: #fff;
+.steppers .progressbar li:before {
+  content: ' ';
+  color: red;
   line-height: 30px;
   border-radius: 50%;
   width: 30px;
@@ -19,35 +18,29 @@
   border: 1px solid #ddd;
   display: block;
   text-align: center;
-  margin-bottom: 10px;
+  margin: 0 auto 10px;
+  background-color: white;
 }
 .steppers .progressbar li:after {
   content: '';
   position: absolute;
-  width: calc(100% - 30px);
+  width: calc(100% - 29px);
   height: 4px;
   background-color: silver;
   top: 14px;
-  left: calc(-100% + 30px);
+  left: calc(-50% + 14.5px);
   z-index: 0;
 }
 .steppers .progressbar li:first-child:after {
   content: none;
 }
 .steppers .progressbar li.active {
-  color: #0054F4;
+  color: dodgerblue;
 }
-.steppers .progressbar li.active .steppers-num,
-.steppers .progressbar li.done .steppers-num  {
-  border-color: #0054F4;
-  background-color: #0054F4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.steppers .progressbar li.active:before {
+  border-color: dodgerblue;
+  background-color: dodgerblue;
 }
 .steppers .progressbar .active:after {
-  background-color: #0054F4;
-}
-.steppers .steppers-num {
-  font-size: 16px;
+  background-color: dodgerblue;
 }

@@ -1,5 +1,3 @@
-import copy from '../../images/copy-image.png';
-
 import React from 'react';
 
 import '../displaySeed/displaySeed.css'
@@ -13,10 +11,6 @@ const DisplaySeed = (props) => {
     const inputs = words.map((item, index) => (
         <input key={index} type="text" placeholder={index + 1 + ". " + item} disabled/>
     ))
-
-    const copyMnemonicToClipboard = () => {
-      navigator.clipboard.writeText(words.join(" "));
-    }
 
     return (
         <div className="wizard-form inputs">
@@ -33,19 +27,11 @@ const DisplaySeed = (props) => {
 
             <form>
                 {inputs}
-
-
                 <div className="mt-3">
                     <button onClick={onPrevStep} className="btn btn-primary">Prev</button>
                     <button onClick={onNextStep} className="btn btn-primary">Next</button>
                 </div>
             </form>
-
-            <div className="copy" onClick={copyMnemonicToClipboard}>
-              <img src={copy} alt="copy-icon"/>
-              <span> Copy Seed to Clipboard</span>
-            </div>
-
         </div>
     )
 }

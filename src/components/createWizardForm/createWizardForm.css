@@ -15,16 +15,6 @@
     justify-content: center;
     width: 350px;
     margin: 0 auto;
-    position: relative;
-}
-
-.wizard-form .inputs-item .eye-icon {
-    position: absolute;
-    right: 10px;
-    cursor: pointer;
-    height: 46px;
-    display: flex;
-    align-items: center;
 }
 
 .wizard-form input {

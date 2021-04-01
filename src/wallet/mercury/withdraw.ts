@@ -33,8 +33,8 @@ export const withdraw = async (
 
   // Alert SE of desire to withdraw and receive authorisation if state chain signature verifies
   let withdraw_msg_1 = {
-      shared_key_ids: [statecoin.shared_key_id],
-      statechain_sigs: [statechain_sig]
+      shared_key_id: statecoin.shared_key_id,
+      statechain_sig: statechain_sig
   }
   await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
 
@@ -74,7 +74,7 @@ export const withdraw = async (
 
   // Complete confirm to get witness
   let withdraw_msg_2 = {
-      shared_key_ids: [statecoin.shared_key_id],
+      shared_key_id: statecoin.shared_key_id,
       address: rec_addr
   }
 
@@ -82,7 +82,7 @@ export const withdraw = async (
 
   // set witness data with signature
   let tx_backup_signed = tx_withdraw_unsigned;
-  tx_backup_signed.ins[0].witness = [Buffer.from(signature[0][0]),Buffer.from(signature[0][1])];
+  tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]),Buffer.from(signature[1])];
 
   return tx_backup_signed
 }

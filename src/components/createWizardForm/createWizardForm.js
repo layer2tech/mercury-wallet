@@ -1,18 +1,12 @@
-import React, {useRef, useState } from 'react';
+import React, {useRef} from 'react';
 import {useForm} from "react-hook-form";
-import eyeIcon from "../../images/eye-icon.svg";
-import eyeIconOff from "../../images/eye-icon-off.svg";
 
 import './createWizardForm.css'
 
-
 const CreateWizardForm = (props) => {
     const {register, errors, watch, handleSubmit} = useForm({mode: 'onChange', reValidateMode: 'onChange',});
-    const [showPass, setShowPass] = useState(false);
     const password = useRef({});
     password.current = watch("password", "");
-
-    const toggleShowPass = () => setShowPass(!showPass);
 
     function onSubmit(data) {
         props.onSubmit()
@@ -32,9 +26,7 @@ const CreateWizardForm = (props) => {
                 </div>
 
                 <div className="inputs-item">
-                  <input 
-                    id="Passphrase" 
-                    type={showPass ? 'text' : 'password'} name="password"
+                  <input id="Passphrase" type="password" name="password"
                     placeholder="Passphrase (min 8 characters)"
                     onChange={props.setStateWalletPassword}
                     ref={register({
@@ -44,24 +36,20 @@ const CreateWizardForm = (props) => {
                        }
                     })}
                     />
-                    <span className={'eye-icon'} onClick={toggleShowPass}>
-                        {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
-                    </span>
+
                 </div>
                 <div className="error">
                     {errors.password && <p>{errors.password.message}</p>}
                 </div>
 
                 <div className="inputs-item">
-                  <input id="password_repeat" type={showPass ? 'text': 'password'} name="password_repeat"
+                  <input id="password_repeat"type="password" name="password_repeat"
                     placeholder="Confirm Passphrase"
                     ref={register({
                        validate: value =>
                            value===password.current || "The passwords do not match"
                     })}/>
-                    <span className={'eye-icon'} onClick={toggleShowPass}>
-                        {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
-                    </span>
+
                 </div>
                 <div className="error">
                     {errors.password_repeat && <p>{errors.password_repeat.message}</p>}
