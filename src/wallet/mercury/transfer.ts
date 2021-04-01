@@ -281,15 +281,6 @@ export interface TransferMsg3 {
   rec_se_addr: SCEAddress,
 }
 
-export interface CompactTransfer {
-  t1: {secret_bytes: number[]},
-  proof_key: number[],
-  sig: number[],
-  statechain_id: string,
-  shared_key_id: string,
-  tx_backup: number[],
-}
-
 export interface TransferMsg4 {
   shared_key_id: string,
   statechain_id: string,
