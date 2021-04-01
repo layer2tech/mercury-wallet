@@ -19,10 +19,12 @@ export const withdraw = async (
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   network: Network,
-  statecoin: StateCoin,
-  proof_key_der: BIP32Interface,
+  statecoins: [StateCoin],
+  proof_key_ders: [BIP32Interface],
   rec_addr: string
 ): Promise<Transaction> => {
+  let statecoin: StateCoin = statecoins[0];
+  let proof_key_der: BIP32Interface = proof_key_ders[0];
   // Get statechain from SE and check ownership
   let statechain = await getStateChain(http_client, statecoin.statechain_id);
   if (statechain.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
