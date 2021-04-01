@@ -23,21 +23,27 @@ export const withdraw = async (
   proof_key_ders: [BIP32Interface],
   rec_addr: string
 ): Promise<Transaction> => {
-  let statecoin: StateCoin = statecoins[0];
-  let proof_key_der: BIP32Interface = proof_key_ders[0];
-  // Get statechain from SE and check ownership
-  let statechain = await getStateChain(http_client, statecoin.statechain_id);
-  if (statechain.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
-  if (statechain.chain.pop().data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key.");
 
-  // Sign statecoin to signal desire to Withdraw
-  let statechain_sig = StateChainSig.create(proof_key_der, "WITHDRAW", rec_addr);
+  let statechain_sigs = [];
+  let shared_key_ids = [];
 
-  // Alert SE of desire to withdraw and receive authorisation if state chain signature verifies
-  let withdraw_msg_1 = {
-      shared_key_id: statecoin.shared_key_id,
-      statechain_sig: statechain_sig
+  statecoins.forEach((statecoin, index) => {
+    let proof_key_der: BIP32Interface = proof_key_ders[index];
+    // Get statechain from SE and check ownership
+    let statechain = await getStateChain(http_client, statecoin.statechain_id);
+    if (statechain.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
+    if (statechain.chain.pop().data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key.");
+
+    // Sign statecoin to signal desire to Withdraw
+    let statechain_sig = StateChainSig.create(proof_key_der, "WITHDRAW", rec_addr);
+    statechain_sigs.push(statechain_sig);
+    shared_key_ids.push(statecoin.shared_key_id)
   }
+    // Alert SE of desire to withdraw and receive authorisation if state chain signature verifies
+    let withdraw_msg_1 = {
+        shared_key_ids: statecoin.shared_key_id,
+        statechain_sigs: statechain_sig
+    }
   await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
 
   // Get state entity fee info
