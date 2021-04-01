@@ -106,7 +106,7 @@
 
 .deposit-statecoins {
     margin-left: 40px;
-
+    width: 80%;
 }
 
 .go3147146168:before {
@@ -215,6 +215,19 @@ ol.go2441762052 {
     margin-top: 15px;
 
 }
+
+.selected-item .custom-smallest {
+    position: relative;
+    margin-top: 15px;
+    padding: 8px 15px;
+    width: 100%;
+    /* border: 1px solid #D7D7D7; */
+    border: none;
+    box-shadow: 0px 2px 12px -7px #222;
+    font-size: 14px;
+    opacity: 1;
+}
+
 .add.show {
     display: block;
 }

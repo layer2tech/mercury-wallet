@@ -1,10 +1,10 @@
-import plus from "../../images/plus-deposit.png";
-
 import React, {useState, useEffect} from 'react';
 
 import {callGetCoinsInfo} from '../../features/WalletDataSlice'
 import ValueSelectionPanel from "./valueSelection/valueSelection";
+import { fromSatoshi } from '../../wallet/util'
 
+import plus from "../../images/plus-deposit.png";
 import '../../containers/Deposit/Deposit.css';
 
 const DEFAULT_LIQUIDITY_VALUES = [{value: 1000,liquidity:0},{value:5000,liquidity:0},{value:10000,liquidity:0},{value:50000,liquidity:0},{value:100000,liquidity:0},{value:500000,liquidity:0},{value:1000000,liquidity:0},{value:5000000,liquidity:0},{value:10000000,liquidity:0},{value:50000000,liquidity:0}]
@@ -45,7 +45,10 @@ const CreateStatecoin = (props) => {
           })
         } else { // sort by amount
           liquidity_data.sort((a,b) => {
-            return b.value - a.value;
+            if(props.settings.sort_by === "HighToLow") {
+              return b.value - a.value;
+            }
+            return a.value - b.value;
           })
         }
 
@@ -65,6 +68,8 @@ const CreateStatecoin = (props) => {
           return item;
         })
 
+        // Filter by min
+        liquidity_data = liquidity_data.filter(item => fromSatoshi(item.value) >= props.settings.min_value)
         // truncate to display top {settings.picks} choices
         liquidity_data = liquidity_data.slice(0, props.settings.picks)
 

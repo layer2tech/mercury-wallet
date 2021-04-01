@@ -1,6 +1,3 @@
-import plus from "../../images/plus-deposit.png";
-import points from "../../images/points.png";
-
 import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
@@ -9,10 +6,16 @@ import {Button, Modal} from "react-bootstrap";
 import {CreateStatecoin, TransactionsBTC, StdButton, Steppers} from "../../components";
 import {isWalletLoaded, setError} from '../../features/WalletDataSlice'
 
+import plus from "../../images/plus-deposit.png";
+import points from "../../images/points.png";
 import './Deposit.css';
 
 // sort_by 0=liquidity, 1=amount.
-const DEFAULT_SETTINGS = {sort_by: "Liquidity", min_value: 0.000001, picks: 8}
+const DEFAULT_SETTINGS = {
+  sort_by: "Liquidity", 
+  min_value: 0.000001, 
+  picks: 8
+}
 
 const DepositPage = () => {
   const dispatch = useDispatch();
@@ -25,14 +28,34 @@ const DepositPage = () => {
 
   const [selectedValues, setSelectedValues] = useState([{value: null, initialised: false, p_addr: "Initialising.."}]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const setPicksSetting = (event) => setSettings({
-    ...settings,
-    picks: event.target.value
-  })
+  const [smallestOption, setSmallestOption] = useState(DEFAULT_SETTINGS.min_value);
+  const setPicksSetting = (event) => {
+    setSettings({
+      ...settings,
+      picks: event.target.value
+    })
+  }
   const setSortbySetting = (event) => setSettings({
     ...settings,
     sort_by: event.target.value
   })
+
+  const handleChangeSmallest = (e) => {
+    const value = e.target.value;
+    setSmallestOption(value);
+    if(value !== 'other') {
+      setSettings({
+        ...settings,
+        min_value: value
+      });
+    }
+  };
+
+  const handleCustomSmallest = (e) => setSettings({ 
+    ...settings, 
+    min_value: e.target.value 
+  })
+
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     dispatch(setError({msg: "No Wallet loaded."}))
@@ -116,22 +139,38 @@ const DepositPage = () => {
                   <h6>Display Settings</h6>
               </Modal.Header>
               <Modal.Body>
-                  <div className="selected-item" onChange={setSortbySetting}>
+                  <div className="selected-item">
                       <span>Sort By</span>
-                      <select>
-                          <option value="Liquidity">Liquidity</option>
-                          <option value="Amount">Amount</option>
+                      <select 
+                        onChange={setSortbySetting}
+                        value={settings.sort_by}
+                      >
+                          <option value="Liquidity">Highest Liquidity</option>
+                          <option value="LowToHigh">Value Low to High</option>
+                          <option value="HighToLow">Value High to Low</option>
                       </select>
                   </div>
                   <div className="selected-item">
                       <span>Smallest Value</span>
-                      <select>
+                      <select value={smallestOption} onChange={handleChangeSmallest}>
+                          <option value="0.000001">0.000001 BTC</option>
+                          <option value="0.00001">0.00001 BTC</option>
                           <option value="0.0001">0.0001 BTC</option>
+                          <option value="0.001">0.001 BTC</option>
+                          <option value="0.01">0.01 BTC</option>
+                          <option value="other">Other</option>
                       </select>
+                      {smallestOption === 'other' && (
+                        <input 
+                          className="custom-smallest" 
+                          type="text" 
+                          value={settings.min_value}
+                          onChange={handleCustomSmallest} />
+                      )}
                   </div>
-                  <div className="selected-item" onChange={setPicksSetting}>
+                  <div className="selected-item">
                       <span>Number of Picks</span>
-                      <select>
+                      <select value={settings.picks} onChange={setPicksSetting}>
                           <option value="4">4 options</option>
                           <option value="8">8 options</option>
                           <option value="12">12 options</option>
