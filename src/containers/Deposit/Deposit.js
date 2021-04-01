@@ -4,7 +4,7 @@ import {useDispatch} from 'react-redux'
 import {Button, Modal} from "react-bootstrap";
 
 import {CreateStatecoin, TransactionsBTC, StdButton, Steppers} from "../../components";
-import {isWalletLoaded, setError} from '../../features/WalletDataSlice'
+import {isWalletLoaded, setError} from '../../features/WalletDataSlice';
 
 import plus from "../../images/plus-deposit.png";
 import points from "../../images/points.png";
