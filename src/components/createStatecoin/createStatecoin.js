@@ -55,15 +55,16 @@ const CreateStatecoin = (props) => {
         // Replace liquidity value with string "None", "Low", "Med" or "High"
         let num_highs=0;
         liquidity_data.map((item) => {
-          if (!item.liquidity) {item.liquidity="None"}
-          else if (item.liquidity<LIQUIDITY_MED) {item.liquidity="Low"}
-          else if (item.liquidity<LIQUIDITY_HIGH) {item.liquidity="Med"}
+          if (!item.liquidity) {item.liquidityLabel="None"}
+          else if (item.liquidity<LIQUIDITY_MED) {item.liquidityLabel="Low"}
+          else if (item.liquidity<LIQUIDITY_HIGH) {item.liquidityLabel="Med"}
           else {
             if (num_highs<NUM_HIGH_LIQUIDITY) { // Only allow top 3 values to have "high" liquidity
-              item.liquidity="High";
+              item.liquidityLabel="High";
               num_highs+=1;
+            } else {
+              item.liquidityLabel="Med";
             }
-            item.liquidity="Med";
           };
           return item;
         })
