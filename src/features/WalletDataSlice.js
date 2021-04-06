@@ -1,7 +1,7 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 
 import {Wallet, ACTION} from '../wallet'
-import {getFeeInfo} from '../wallet/mercury/info_api'
+import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
 import { pingServer } from '../wallet/swap/info_api'
 import {decodeMessage} from '../wallet/util'
 
@@ -92,6 +92,9 @@ export const callGetActivityLog = () => {
 }
 export const callGetFeeInfo = () => {
   return getFeeInfo(wallet.http_client)
+}
+export const callGetCoinsInfo = () => {
+  return getCoinsInfo(wallet.http_client)
 }
 export const callPingSwap = () => {
   try {
