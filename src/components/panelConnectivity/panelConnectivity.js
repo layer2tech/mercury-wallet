@@ -3,8 +3,8 @@ import arrow from '../../images/arrow-accordion.png';
 import React, {useState} from "react";
 import {useSelector} from 'react-redux'
 
-import { callGetBlockHeight, callGetConfig } from '../../features/WalletDataSlice'
-import { defaultWalletConfig } from '../../containers/Settings/Settings'
+import {callGetBlockHeight, callGetConfig, callGetSwapGroupInfo} from '../../features/WalletDataSlice'
+import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
 import './panelConnectivity.css';
 import '../index.css';
@@ -25,8 +25,12 @@ const PanelConnectivity = (props) => {
   }
 
   const fee_info = useSelector(state => state.walletData).fee_info;
-  const swap_info = useSelector(state => state.walletData).swap_info;
   const block_height = callGetBlockHeight();
+  const swap_groups_data = callGetSwapGroupInfo();
+  let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
+  let pending_swaps = swap_groups_array.length;
+  let participants = swap_groups_array.reduce((acc, item) => acc+item[1],0);
+  let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1] * item[0].amount),0);
 
   return (
       <div className="Body small accordion">
@@ -36,7 +40,6 @@ const PanelConnectivity = (props) => {
                       <input
                           readOnly
                           type="radio"
-                          value="StateChain"
                           checked={fee_info.deposit !== "NA"}
                       />
                       Connected to Server
@@ -48,8 +51,7 @@ const PanelConnectivity = (props) => {
                       <input
                         readOnly
                         type="radio"
-                        value="Swaps"
-                        checked={false}
+                        checked={swap_groups_array.length}
                       />
                       Connected to Swaps
                       <span className="checkmark"></span>
@@ -60,8 +62,7 @@ const PanelConnectivity = (props) => {
                       <input
                           readOnly
                           type="radio"
-                          value="Swaps"
-                          checked={swap_info !== null}
+                          checked={block_height}
                       />
                       Connected to Electrum
                       <span className="checkmark"></span>
@@ -75,16 +76,16 @@ const PanelConnectivity = (props) => {
         <div className={state.isToggleOn ? "show" : ' hide'}>
             <div className="collapse-content">
                 <div className="collapse-content-item">
-                    <span>Host: {current_config.electrum_config.host}</span>
+                    <span>Host: {current_config.state_entity_endpoint}</span>
                     <span>Deposit Fee: <b>{fee_info.deposit /10000}%</b></span>
                     <span>Withdraw Fee: <b>{fee_info.withdraw/10000}%</b></span>
                     <span>{fee_info.endpoint}</span>
                 </div>
                 <div className="collapse-content-item">
-                    <span>Host: xxx.xxx.x.xx</span>
-                    <span>Pending Swaps: <b>NA</b></span>
-                    <span>Participants: <b>NA</b></span>
-                    <span>Total pooled BTC: <b>NA</b></span>
+                    <span>Host: {current_config.swap_conductor_endpoint}</span>
+                    <span>Pending Swaps: <b>{pending_swaps}</b></span>
+                    <span>Participants: <b>{participants}</b></span>
+                    <span>Total pooled BTC: <b>{total_pooled_btc}</b></span>
                 </div>
                 <div className="collapse-content-item">
                     <span>Block height: {block_height}</span>

@@ -17,7 +17,6 @@ let testing_mode = require("../settings.json").testing_mode;
 const initialState = {
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
-  connected: false,
   balance_info: {total_balance: null, num_coins: null},
   fee_info: {deposit: "NA", withdraw: "NA"},
   ping_swap: null,
@@ -52,6 +51,7 @@ export const walletLoad = (name, password) => {
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
   wallet.initElectrumClient(setBlockHeightCallBack);
+  wallet.updateSwapGroupInfo();
 }
 
 // Create wallet from nmemonic and load wallet
