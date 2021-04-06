@@ -18,28 +18,25 @@ const ValueSelectionPanel = (props) => {
       props.addValueSelection(props.id, null)
     }
 
+    const populateValueSelections = props.coinsLiquidityData.map((item, index) => {
+        return (
+          <div key={index} className="numbers-item">
+            <ValueSelection
+              value={item.value}
+              liquidity={item.liquidity}
+              selected={selected}
+              selectValue={selectValue}/>
+          </div>
+        )
+      });
+
     return (
       <div className="Body">
           <div className="deposit-main">
               <span>Select Statecoin Value</span>
               <div className="deposit-statecoins">
-                  <div className="numbers">
-                      <ValueSelection
-                        value={1000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={5000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={10000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={50000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={100000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={250000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={500000} selected={selected} selectValue={selectValue} />
-                      <ValueSelection
-                        value={1000000} selected={selected} selectValue={selectValue} />
+                <div className="numbers">
+                    {populateValueSelections}
                   </div>
               </div>
           </div>
@@ -54,11 +51,10 @@ const ValueSelection = (props) => {
 
     return (
       <div
-        className="numbers-item"
         onClick={() => props.selectValue(props.value)}
         style={isSelectedStyle()}>
           <span><b>{fromSatoshi(props.value)}</b> BTC</span>
-          <span>Liquidity: <b>High</b></span>
+          <span>Liquidity: <b>{props.liquidity}</b></span>
       </div>
     )
 }

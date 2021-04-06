@@ -6,6 +6,7 @@ export const GET_ROUTE = {
   FEES: "info/fee",
   ROOT: "info/root",
   STATECHAIN: "info/statechain",
+  COINS_INFO: "info/coins",
   TRANSFER_BATCH: "info/transfer-batch",
   SWAP_GROUPINFO: "swap/groupinfo"
 };
@@ -27,13 +28,13 @@ export const POST_ROUTE = {
   TRANSFER_RECEIVER: "transfer/receiver",
   TRANSFER_UPDATE_MSG: "transfer/update_msg",
   TRANSFER_GET_MSG: "transfer/get_msg",
-  SWAP_REGISTER_UTXO: "swap/register-utxo",	
+  SWAP_REGISTER_UTXO: "swap/register-utxo",
   SWAP_POLL_UTXO: "swap/poll/utxo",
   SWAP_POLL_SWAP: "swap/poll/swap",
   SWAP_INFO: "swap/info",
-  SWAP_FIRST: "swap/first",			
+  SWAP_FIRST: "swap/first",
   SWAP_BLINDED_SPEND_SIGNATURE: "swap/blinded-spend-signature",
-  SWAP_SECOND: "swap/second",	
+  SWAP_SECOND: "swap/second",
 };
 Object.freeze(POST_ROUTE);
 
@@ -86,7 +87,7 @@ export class HttpClient {
       let res = await axios(config)
       let return_data = res.data
       checkForServerError(return_data)
-      
+
       return return_data
 
     } catch (err) {
