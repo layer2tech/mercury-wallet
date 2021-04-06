@@ -16,7 +16,7 @@ const DEFAULT_SWAP_DETAILS = {show: false, swap: {value: 0, participants: 0, cap
 const Swaps = (props) => {
     const dispatch = useDispatch();
 
-    const [state, setState] = useState({});
+    const [swapGroupsData, setSwapGroupsData] = useState([]);
 
     // The following group of functions will be used when user can select a particular
     // swap group to join.
@@ -34,23 +34,19 @@ const Swaps = (props) => {
         return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days"
     }
 
-
-    const swap_groups_data  = callGetSwapGroupInfo();
-    let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
-
     // Re-fetch swaps every 3 seconds and update state to refresh render
     useEffect(() => {
         const interval = setInterval(() => {
             dispatch(callUpdateSwapGroupInfo());
             let swap_groups_data = callGetSwapGroupInfo();
-            swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
-            setState({}) //update state to refresh TransactionDisplay render
+            let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
+            setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
         }, 3000);
         return () => clearInterval(interval);
       },
       []);
 
-    const swapData = swap_groups_array.map(([key,value]) => (
+    const swapData = swapGroupsData.map(([key,value]) => (
         <div key={key.amount} value={value}>
         <div>
         <div className="SwapPanel">
