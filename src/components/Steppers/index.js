@@ -17,8 +17,8 @@ function Steppers({ current, steps }) {
       <div className="wrapper-progressbar">
         <ul className="progressbar">
           {steps.map((item, index) => (
-            <li 
-              className={`${item.id < current ? 'done' : ''}${item.id === current ? 'active': ''}`} 
+            <li
+              className={`${item.id < current ? 'done' : ''}${item.id === current ? 'active': ''}`}
               key={item.id}
             >
               <span className={`steppers-num`}>{item.id < current ? <CheckIcon /> : item.id}</span>

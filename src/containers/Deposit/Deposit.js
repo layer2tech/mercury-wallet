@@ -7,9 +7,16 @@ import {useDispatch} from 'react-redux'
 import {Button, Modal} from "react-bootstrap";
 
 import {CreateStatecoin, TransactionsBTC, StdButton, Steppers} from "../../components";
-import {isWalletLoaded, setError} from '../../features/WalletDataSlice';
+import {isWalletLoaded, setError} from '../../features/WalletDataSlice'
 
 import './Deposit.css';
+
+// sort_by 0=liquidity, 1=amount.
+const DEFAULT_SETTINGS = {
+  sort_by: "Liquidity",
+  min_value: 0.000001,
+  picks: 8
+}
 
 const STEPS = [
   {
@@ -31,8 +38,35 @@ const DepositPage = () => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  // const [selectedValues, setSelectedValues] = useState([{value: DEFUALT_VALUE_SELECTION, initialised: false, p_addr: "Initialising.."}]);
   const [selectedValues, setSelectedValues] = useState([{value: null, initialised: false, p_addr: "Initialising.."}]);
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [smallestOption, setSmallestOption] = useState(DEFAULT_SETTINGS.min_value);
+  const setPicksSetting = (event) => {
+    setSettings({
+      ...settings,
+      picks: event.target.value
+    })
+  }
+  const setSortbySetting = (event) => setSettings({
+    ...settings,
+    sort_by: event.target.value
+  })
+
+  const handleChangeSmallest = (e) => {
+    const value = e.target.value;
+    setSmallestOption(value);
+    if(value !== 'other') {
+      setSettings({
+        ...settings,
+        min_value: value
+      });
+    }
+  };
+
+  const handleCustomSmallest = (e) => setSettings({
+    ...settings,
+    min_value: e.target.value
+  })
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -82,21 +116,21 @@ const DepositPage = () => {
                          <StdButton
                              label="Back"
                              className="Body-button transparent"/>
-
                      </Link>
                      <img onClick={handleShow} src={points} alt="points"/>
 
                  </div>
              </div>
               <h3 className="subtitle">Deposit BTC to create new Statecoins</h3>
-              <Steppers steps={STEPS} current={step} />
           </div>
           <div className="wizard">
+              <Steppers steps={STEPS} total={2} current={step} />
               {step === 1 ? (
                 <CreateStatecoin
                   selectedValues={selectedValues}
                   addValueSelection={addValueSelection}
                   addSelectionPanel={addSelectionPanel}
+                  settings={settings}
                 />
               ) : (
                 <TransactionsBTC
@@ -119,23 +153,39 @@ const DepositPage = () => {
               <Modal.Body>
                   <div className="selected-item">
                       <span>Sort By</span>
-                      <select>
-                          <option value="HighestLiquidity">Highest Liquidity</option>
-                          <option value="HighestLiquidity1">Highest Liquidity1</option>
+                      <select
+                        onChange={setSortbySetting}
+                        value={settings.sort_by}
+                      >
+                          <option value="Liquidity">Highest Liquidity</option>
+                          <option value="LowToHigh">Value Low to High</option>
+                          <option value="HighToLow">Value High to Low</option>
                       </select>
                   </div>
                   <div className="selected-item">
                       <span>Smallest Value</span>
-                      <select>
-                          <option value="0.0005">0.0005 BTC</option>
+                      <select value={smallestOption} onChange={handleChangeSmallest}>
+                          <option value="0.000001">0.000001 BTC</option>
+                          <option value="0.00001">0.00001 BTC</option>
                           <option value="0.0001">0.0001 BTC</option>
+                          <option value="0.001">0.001 BTC</option>
+                          <option value="0.01">0.01 BTC</option>
+                          <option value="other">Other</option>
                       </select>
+                      {smallestOption === 'other' && (
+                        <input
+                          className="custom-smallest"
+                          type="text"
+                          value={settings.min_value}
+                          onChange={handleCustomSmallest} />
+                      )}
                   </div>
                   <div className="selected-item">
                       <span>Number of Picks</span>
-                      <select>
-                          <option value="6">6 options</option>
-                          <option value="2">2 options</option>
+                      <select value={settings.picks} onChange={setPicksSetting}>
+                          <option value="4">4 options</option>
+                          <option value="8">8 options</option>
+                          <option value="12">12 options</option>
                       </select>
                   </div>
 
