@@ -1,13 +1,12 @@
-import settings from "../../images/settings.png";
-import icon2 from "../../images/icon2.png";
-
 import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState} from 'react';
 import {useDispatch} from 'react-redux'
 
 import {isWalletLoaded, setError, callGetCoinBackupTxData, callCreateBackupTxCPFP} from '../../features/WalletDataSlice'
-import {Coins, StdButton, AddressInput} from "../../components";
+import {Coins, StdButton, AddressInput, CopiedButton} from "../../components";
 
+import settings from "../../images/settings.png";
+import icon2 from "../../images/icon2.png";
 import './BackupTx.css';
 
 const DEFAULT_TX_DATA = {tx_backup_hex:"",priv_key_hex:"",key_wif:"",expiry_data:{blocks:"",days:"",months:""}};
@@ -149,7 +148,9 @@ const BackupTxPage = () => {
                     <span className="sub">Hex:</span>
                     <div className="">
                         {selectedCoinTxData.tx_backup_hex.length > 0 ?
-                          <img type="button" src={icon2} alt="icon" onClick={copyBackupTxHexToClipboard}/>
+                          <CopiedButton handleCopy={copyBackupTxHexToClipboard}>
+                            <img type="button" src={icon2} alt="icon"/>
+                          </CopiedButton>
                           : null
                         }
                         <span>
@@ -162,7 +163,9 @@ const BackupTxPage = () => {
                     <span className="sub">Private key hex:</span>
                     <div className="">
                         {selectedCoinTxData.priv_key_hex.length > 0 ?
-                          <img type="button" src={icon2} alt="icon" onClick={copyPrivKeyToClipboard}/>
+                          <CopiedButton handleCopy={copyPrivKeyToClipboard}>
+                            <img type="button" src={icon2} alt="icon"/>
+                          </CopiedButton>
                           : null
                         }
                         <span>
@@ -175,7 +178,9 @@ const BackupTxPage = () => {
                     <span className="sub">Private Key WIF:</span>
                     <div className="">
                       {selectedCoinTxData.key_wif.length > 0 ?
-                        <img type="button" src={icon2} alt="icon" onClick={copyKeyWIFToClipboard}/>
+                        <CopiedButton handleCopy={copyKeyWIFToClipboard}>
+                          <img type="button" src={icon2} alt="icon" />
+                        </CopiedButton>
                         : null
                       }
                         <span>
