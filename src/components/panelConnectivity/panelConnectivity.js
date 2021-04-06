@@ -77,8 +77,8 @@ const PanelConnectivity = (props) => {
             <div className="collapse-content">
                 <div className="collapse-content-item">
                     <span>Host: {current_config.state_entity_endpoint}</span>
-                    <span>Deposit Fee: <b>{fee_info.deposit /10000}%</b></span>
-                    <span>Withdraw Fee: <b>{fee_info.withdraw/10000}%</b></span>
+                    <span>Deposit Fee: <b>{fee_info.deposit /100}%</b></span>
+                    <span>Withdraw Fee: <b>{fee_info.withdraw/100}%</b></span>
                     <span>{fee_info.endpoint}</span>
                 </div>
                 <div className="collapse-content-item">
