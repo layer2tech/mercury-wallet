@@ -4,7 +4,7 @@ import "./copiedButton.css";
 
 let timeout;
 
-function CopiedButton ({ children, handleCopy }) {
+function CopiedButton ({ children, handleCopy, style = {} }) {
   const [copied, setCopied] = useState(false);
   const handleClick = () => {
     handleCopy()
@@ -19,7 +19,7 @@ function CopiedButton ({ children, handleCopy }) {
   }, [copied]);
   return (
     <div className="copy-btn-wrap">
-      {copied && <span className="copied">Copied!</span>}
+      {copied && <span className="copied" style={style}>Copied!</span>}
       {cloneElement(children, { onClick: handleClick })}
     </div>
   );
@@ -28,6 +28,7 @@ function CopiedButton ({ children, handleCopy }) {
 CopiedButton.propTypes = {
   children: PropTypes.element,
   handleCopy: PropTypes.func,
+  style: PropTypes.object,
 };
 
 export default CopiedButton;
