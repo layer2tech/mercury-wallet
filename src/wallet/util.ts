@@ -17,7 +17,6 @@ let crypto = require('crypto');
 
 let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
-var msgpack = require("msgpack-lite");
 
 /// Temporary - fees should be calculated dynamically
 export const FEE = 300;
@@ -105,7 +104,7 @@ export class StateChainSig {
           batch_id: string,
           statechain_id: string,
       ): StateChainSig {
-          let purpose = this.purpose_transfer_batch(batch_id); 
+          let purpose = this.purpose_transfer_batch(batch_id);
           let statechain_sig = StateChainSig.create(proof_key_der,purpose, statechain_id);
           return statechain_sig;
       }
@@ -200,8 +199,8 @@ export const encodeMessage = (message: TransferMsg3) => {
   item_array.push(sig_bytes);
   //byte tx_len is backup tx length (variable)
   let tx_bytes = Buffer.from(message.tx_backup_psm.tx_hex, 'hex');
-  item_array.push(Buffer.from([tx_bytes.length]));  
-  //remaining bytes backup tx    
+  item_array.push(Buffer.from([tx_bytes.length]));
+  //remaining bytes backup tx
   item_array.push(tx_bytes);
 
   let encoded_bytes = Buffer.concat(item_array);
@@ -252,7 +251,7 @@ export const decodeMessage = (enc_message: string, network: Network): TransferMs
         };
 
   // re-create transfer message
-  let trans_msg_3 = { 
+  let trans_msg_3 = {
       shared_key_id: shared_key_id,
       statechain_id: statechain_id,
       t1: {secret_bytes: Array.from(t1_bytes)},
@@ -283,7 +282,7 @@ const zero_pad = (num: any) => {
 
 // ECIES encrypt string
 export const encryptECIES = (publicKey: string, data: string): Buffer => {
-  let data_arr = new Uint32Array(Buffer.from(zero_pad(data), "hex")); 
+  let data_arr = new Uint32Array(Buffer.from(zero_pad(data), "hex"));
   return encrypt(publicKey, Buffer.from(data_arr));
 }
 
