@@ -23,8 +23,73 @@ function delay(s: number) {
   return new Promise( resolve => setTimeout(resolve, s*1000) );
 }
 
+// SWAP_STATUS represent each stage in the lifecycle of a coin in a swap.
+export const SWAP_STATUS = {
+  PollUtxo: "PollUtxo",
+  PollSwapInfo: "PollSwapInfo",
+  Phase0: "Phase0",
+  Phase1: "Phase1",
+  Phase2: "Phase2",
+  Phase3: "Phase3",
+  Phase4: "Phase4",
+  End: "End",
+}
+Object.freeze(SWAP_STATUS);
 
-export const doSwap = async (
+
+// Register coin to swap pool and set to phase0
+export const swapInit = async (
+  conductor_client: HttpClient | MockHttpClient,
+  statecoin: StateCoin,
+  proof_key_der: BIP32Interface,
+  swap_size: number
+) => {
+  if (statecoin.swap_status!==null) throw Error("Coin is already involved in a swap. Swap status: "+statecoin.swap_status);
+
+  let publicKey = proof_key_der.publicKey.toString('hex');
+  let sc_sig = StateChainSig.create(proof_key_der, "SWAP", publicKey);
+
+  let registerUtxo = {
+    statechain_id: statecoin.statechain_id,
+    signature: sc_sig,
+    swap_size: swap_size
+  };
+
+  await conductor_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
+  statecoin.swap_status=SWAP_STATUS.PollUtxo;
+}
+
+
+// Poll Conductor awaiting for swap pool to initialise
+export const swapPollUtxo = async (
+  conductor_client: HttpClient | MockHttpClient,
+  statecoin: StateCoin,
+) => {
+  if (statecoin.swap_status!==SWAP_STATUS.PollUtxo) throw Error("Coin is not yet in this phase of the swap protocol. In phase: "+statecoin.swap_status);
+
+  let statechain_id = {
+    id: statecoin.statechain_id
+  }
+
+  // check statecoin is still AWAITING_SWAP
+  if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) return null;
+
+  // PollUtxo. If swap has begun store SwapId
+  let swap_id = null
+  swap_id = await pollUtxo(conductor_client,statechain_id);
+
+  console.log("pollUxo return: ", swap_id)
+
+  if (swap_id !== null) {
+    typeforce(types.SwapID, swap_id);
+    if (swap_id.id !== null) {
+      statecoin.swap_status=SWAP_STATUS.PollSwapInfo;
+      statecoin.swap_id = swap_id.id
+    }
+  }
+}
+
+export const doSwapOld = async (
   conductor_client: HttpClient | MockHttpClient,
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
@@ -57,7 +122,7 @@ export const doSwap = async (
 
 
   let swap_id = null
-  let max_n_polls = 20;
+  let max_n_polls = 100;
   let n_polls=0;
   while (true){
     // check statecoin is still AWAITING_SWAP
@@ -203,7 +268,7 @@ export const make_swap_commitment = (statecoin: any,
     commitment_str.concat(item);
   });
   let batch_data_json: string =  wasm_client.Commitment.make_commitment(commitment_str);
-  console.log("batch_data_json: ", batch_data_json);
+
   let batch_data: BatchData = JSON.parse(batch_data_json);
   typeforce(types.BatchData, batch_data);
   return batch_data;

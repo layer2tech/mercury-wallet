@@ -248,6 +248,7 @@ export class StateCoin {
   smt_proof: InclusionProofSMT | null;
   swap_rounds: number;
   status: string;
+  swap_id: string | null;
   swap_info: SwapInfo | null;
   swap_status: string | null;
 
@@ -273,6 +274,7 @@ export class StateCoin {
     this.tx_withdraw = null;
     this.smt_proof = null;
     this.status = STATECOIN_STATUS.INITIALISED;
+    this.swap_id = null
     this.swap_info = null;
     this.swap_status = null;
   }

@@ -295,16 +295,6 @@ export const BSTSenderData = typeforce.compile ({
 })
 
 
-export const SwapStatus = {
-  Phase0: "Phase0",
-  Phase1: "Phase1",
-  Phase2: "Phase2",
-  Phase3: "Phase3",
-  Phase4: "Phase4",
-  End: "End",
-}
-Object.freeze(SwapStatus);
-
 //To do: enforce SwapStatus type checking
 export const SwapInfo = typeforce.compile({
     status: String, //SwapStatus,

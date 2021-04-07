@@ -2,7 +2,6 @@
 // Mock Classes  are followed by mock data for full protocol runs.
 
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
-import { SwapStatus } from '../types';
 import { SIGNSWAPTOKEN_DATA, BST_DATA } from "../test/test_data";
 
 let lodash = require('lodash');
@@ -119,16 +118,14 @@ export const POLL_SWAP_3 = "Phase3"
 export const POLL_SWAP_4 = "Phase4"
 export const POLL_SWAP_END = "End"
 
-export const GET_SWAP_INFO_1 = {
-  status: "Phase1",
-  swap_token: SIGNSWAPTOKEN_DATA[0].swap_token,
-  bst_sender_data: BST_DATA.bst_sender_data,
-}
+// export const GET_SWAP_INFO_1 = {
+//   status: "Phase1",
+//   swap_token: lodash.cloneDeep(SIGNSWAPTOKEN_DATA)[0].swap_token,
+//   bst_sender_data: BST_DATA.bst_sender_data,
+// }
 
 export const GET_BLINDED_SPEND_SIGNATURE = {
   //s_prime: "",
 }
 
 export const REGISTER_UTXO = null;
-
-
