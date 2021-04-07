@@ -37,7 +37,7 @@ export const getSwapInfo = async (
   swap_id: SwapID
 ) => {
   let swap_info = await http_client.post(POST_ROUTE.SWAP_INFO, swap_id);
-  typeforce(types.SwapInfo, swap_info);
+  typeforce(typeforce.oneOf(types.SwapInfo, typeforce.Null), swap_info);
   return swap_info
 }
 

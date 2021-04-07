@@ -1,5 +1,5 @@
 import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA} from './test_data.js'
-import {swapInit, swapPollUtxo, SWAP_STATUS, SwapToken, make_swap_commitment} from "../swap/swap";
+import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, SwapToken, make_swap_commitment} from "../swap/swap";
 import {STATECOIN_STATUS} from '../statecoin'
 
 import * as MOCK_SERVER from '../mocks/mock_http_client'
@@ -48,15 +48,15 @@ describe('Swaps', function() {
     let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
     let init = await swapInit(http_mock, statecoin, proof_key_der, 10)
-    expect(statecoin.swap_status).toBe(SWAP_STATUS.PollUtxo)
+    expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase0)
 
     // try again with swap_status != null
     await expect(swapInit(http_mock, statecoin, proof_key_der, 10))
       .rejects
-      .toThrowError("Coin is already involved in a swap. Swap status: PollUtxo");
+      .toThrowError("Coin is already involved in a swap. Swap status: Phase0");
   })
 
-  test('swapPollUtxo', async function() {
+  test('swapPhase0', async function() {
     let swap_id = "12345";
     http_mock.post = jest.fn().mockReset()
       .mockReturnValueOnce({id: null})    // return once null => swap has not started
@@ -64,22 +64,62 @@ describe('Swaps', function() {
 
     let statecoin = makeTesterStatecoin();
 
-    // try first without swap_status == PollUtxo
-    await expect(swapPollUtxo(http_mock, statecoin))
+    // try first without swap_status == Phase0
+    statecoin.status = STATECOIN_STATUS.AWAITING_SWAP
+    await expect(swapPhase0(http_mock, statecoin))
       .rejects
       .toThrowError("Coin is not yet in this phase of the swap protocol. In phase: null");
 
     // set swap_status as if coin had already run swapInit
-    statecoin.swap_status = SWAP_STATUS.PollUtxo
-    statecoin.status = STATECOIN_STATUS.AWAITING_SWAP
+    statecoin.swap_status = SWAP_STATUS.Phase0
 
     // swap not yet begun
-    await swapPollUtxo(http_mock, statecoin)
-    expect(statecoin.swap_status).toBe(SWAP_STATUS.PollUtxo)
+    await swapPhase0(http_mock, statecoin)
+    expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase0)
     expect(statecoin.swap_id).toBe(null)
     // swap begun
-    await swapPollUtxo(http_mock, statecoin)
-    expect(statecoin.swap_status).toBe(SWAP_STATUS.PollSwapInfo)
-    expect(statecoin.swap_id).toBe(swap_id)
+    await swapPhase0(http_mock, statecoin)
+    expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase1)
+    expect(statecoin.swap_id.id).toBe(swap_id)
+  })
+
+  test('swapPhase1', async function() {
+    let swap_info = {
+      status: SWAP_STATUS.Phase1,
+      swap_token: { id: "12345", amount: 10, time_out: 15, statechain_ids: [] },
+      bst_sender_data: {x: "1",q: {x:"1",y:"1"},k: "1",r_prime: {x:"1",y:"1"},}
+    }
+    http_mock.post = jest.fn().mockReset()
+      .mockReturnValueOnce(null)    // return once null => swap has not started
+      .mockReturnValueOnce(swap_info) // return once an id => swap has begun
+
+    let statecoin = makeTesterStatecoin();
+    let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+
+    // try first without swap_status == Phase0
+    statecoin.status = STATECOIN_STATUS.AWAITING_SWAP
+    await expect(swapPhase1(http_mock, http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
+      .rejects
+      .toThrowError("Coin is not in this phase of the swap protocol. In phase: null");
+
+    // Set swap_status as if coin had already run Phase0
+    statecoin.swap_status = SWAP_STATUS.Phase1
+
+    await expect(swapPhase1(http_mock, http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
+      .rejects
+      .toThrowError("No Swap ID found. Swap ID should be set in Phase1.");
+
+    // Set swap_id as if coin had already run Phase0
+    statecoin.swap_id = "12345"
+
+    // swap token not yet available
+    await swapPhase1(http_mock, http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der)
+    expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase1)
+    expect(statecoin.swap_address).toBe(null)
+    expect(statecoin.swap_my_bst_data).toBe(null)
+    // swap token available
+    // await swapPhase1(http_mock, http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der)
+    // expect(statecoin.swap_address).toBe(SWAP_STATUS.Phase1)
+    // expect(statecoin.swap_my_bst_data).toBe(swap_info)
   })
 })
