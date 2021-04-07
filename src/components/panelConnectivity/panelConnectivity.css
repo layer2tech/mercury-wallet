@@ -55,7 +55,8 @@ label {
     display: flex;
     padding: 0 !important;
     justify-content: flex-start;
-    width: 33.3%;
+    width: 33.3333%;
+    flex: 0 0 33.3333%;
 }
 
 .connection-title input {

@@ -74,7 +74,7 @@ const PanelConnectivity = (props) => {
         <div className={state.isToggleOn ? "show" : ' hide'}>
             <div className="collapse-content">
                 <div className="collapse-content-item">
-                    <span className="host">Host: {current_config.electrum_config.host}</span>
+                    <span className="host">Host: {current_config.electrum_config.host?.replace(/https?:\/\//, '')}</span>
                     <span>Deposit Fee: <b>{fee_info.deposit /10000}%</b></span>
                     <span>Withdraw Fee: <b>{fee_info.withdraw/10000}%</b></span>
                     <span>{fee_info.endpoint}</span>
@@ -87,7 +87,7 @@ const PanelConnectivity = (props) => {
                 </div>
                 <div className="collapse-content-item">
                     <span>Block height: {block_height}</span>
-                    <span className="host">Host: {current_config.electrum_config.host}</span>
+                    <span className="host">Host: {current_config.electrum_config.host?.replace(/https?:\/\//, '')}</span>
                     <span>Port: {current_config.electrum_config.port}</span>
                     <span>Protocol: {current_config.electrum_config.protocol}</span>
                 </div>
