@@ -1,14 +1,14 @@
-import btc_img from "../../images/icon1.png";
-import copy_img from "../../images/icon2.png";
-import arrow_img from "../../images/scan-arrow.png";
-import close_img from "../../images/close-icon.png";
-
 import React, {useEffect, useState} from 'react';
 import {useDispatch} from 'react-redux'
 
 import {callDepositInit, callDepositConfirm, setNotification,
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
+
+import btc_img from "../../images/icon1.png";
+import copy_img from "../../images/icon2.png";
+import arrow_img from "../../images/scan-arrow.png";
+import close_img from "../../images/close-icon.png";
 
 import '../../containers/Deposit/Deposit.css';
 import '../index.css';
@@ -114,7 +114,6 @@ const TransactionDisplay = (props) => {
 
   return (
     <div className="Body">
-      <img src={close_img} alt="arrow" onClick={onCloseArrowClick}/>
       <div className="deposit-scan">
         <QRCode value={makeQRCodeString(props.address, fromSatoshi(props.amount))}
         level='H'
@@ -123,7 +122,10 @@ const TransactionDisplay = (props) => {
         <div className="deposit-scan-content">
           <div className="deposit-scan-subtxt">
             <span>Finish Creating the Statecoin by sending exactly {fromSatoshi(props.amount)} BTC to:</span>
-            <span>{getCofirmationsDisplayString()}</span>
+            <div className="deposit-scan-status">
+              <span>{getCofirmationsDisplayString()}</span>
+              <img src={close_img} alt="arrow" onClick={onCloseArrowClick}/>
+            </div>
           </div>
 
           <div className="deposit-scan-main">
