@@ -1,7 +1,7 @@
-import copy from '../../images/copy-image.png';
-
 import React from 'react';
+import { CopiedButton } from '../../components'
 
+import copy from '../../images/copy-image.png';
 import '../displaySeed/displaySeed.css'
 
 
@@ -40,10 +40,16 @@ const DisplaySeed = (props) => {
                     <button onClick={onNextStep} className="btn btn-primary">Next</button>
                 </div>
             </form>
-
-            <div className="copy" onClick={copyMnemonicToClipboard}>
-              <img src={copy} alt="copy-icon"/>
-              <span> Copy Seed to Clipboard</span>
+            <div className="copy">
+                <CopiedButton 
+                    handleCopy={copyMnemonicToClipboard} 
+                    style={{left: -65, color: '#000', textTransform: 'capitalize'}}
+                >
+                    <div>
+                        <img src={copy} alt="copy-icon"/>
+                        <span> Copy Seed to Clipboard</span>
+                    </div>
+                </CopiedButton>
             </div>
 
         </div>

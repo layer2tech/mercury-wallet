@@ -1,16 +1,15 @@
-import orange from "../../images/wallet-orange.png";
-import arrow from "../../images/arrow-up.png"
-import icon2 from "../../images/icon2.png";
-
 import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux'
 
-import {Coins, StdButton, AddressInput} from "../../components";
+import {Coins, StdButton, AddressInput, CopiedButton} from "../../components";
 import {fromSatoshi} from '../../wallet/util'
 import {decodeSCEAddress, encodeMessage} from '../../wallet/util'
 import {isWalletLoaded, callTransferSender, setError, setNotification} from '../../features/WalletDataSlice'
 
+import orange from "../../images/wallet-orange.png";
+import arrow from "../../images/arrow-up.png"
+import icon2 from "../../images/icon2.png";
 import './Send.css';
 
 const SendStatecoinPage = () => {
@@ -148,7 +147,9 @@ const SendStatecoinPage = () => {
           <div className="Body transferMsg">
             <h3 className="subtitle">Transfer Message:</h3>
             <div className="transferMsg scan-trasfermsg">
-              <img type="button" src={icon2} alt="icon" onClick={copyTransferMsgToClipboard}/>
+              <CopiedButton handleCopy={copyTransferMsgToClipboard}>
+                <img type="button" src={icon2} alt="icon" />
+              </CopiedButton>
                 <span>
                   {transferMsg3}
                 </span>
