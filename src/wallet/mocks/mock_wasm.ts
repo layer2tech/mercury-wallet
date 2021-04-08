@@ -39,7 +39,7 @@ export class KeyGen {
 export class Commitment {
   make_commitment(_data: string){
     return JSON.stringify(
-    COMMITMENT_DATA[0].batch_data
+      COMMITMENT_DATA[0].batch_data
     )
   }
 }
