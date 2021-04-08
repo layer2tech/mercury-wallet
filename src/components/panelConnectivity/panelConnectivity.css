@@ -1,14 +1,14 @@
 .Collapse {
     display: flex;
     position: relative;
-    justify-content: space-between;
+    justify-content: space-around;
     width: 100%;
     padding: 5px 25px;
 }
 
 .Collapse .image {
     position: absolute;
-    right: 12px;
+    right: 0;
     top: 0;
 }
 
@@ -55,6 +55,7 @@ label {
     display: flex;
     padding: 0 !important;
     justify-content: flex-start;
+    width: 33.3%;
 }
 
 .connection-title input {
@@ -99,17 +100,25 @@ label {
 .collapse-content {
     display: flex;
     justify-content: space-between;
-    padding: 0 20px;
+    /* padding: 0 20px; */
 }
 
-.collapse-content-item {
+.connection-wrap .collapse-content-item:first-child  {
+    margin-left: 0;
+}
+.connection-wrap .collapse-content-item {
     display: flex;
     flex: 1;
     flex-direction: column;
     align-items: baseline;
     font-size: 16px;
-    margin-left: 8px !important;
     color: #666666;
+    margin-left: 8px;
+    padding: 8px;
+}
+
+.connection-wrap .collapse-content-item .host {
+    white-space: nowrap;
 }
 
 @media only screen and (max-width: 768px) {
@@ -128,6 +137,7 @@ label {
     .collapse-content .collapse-content-item {
         margin-left: 0 !important;
         flex: 1;
+        padding: 4px;
     }
 
     .collapse-content {
