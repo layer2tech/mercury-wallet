@@ -7,7 +7,7 @@ import { ElectrumTxData } from "./electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
 import { BSTRequestorData, SwapID, SwapInfo } from "./swap/swap";
-import { SCEAddress } from "./mercury/transfer";
+import { SCEAddress, TransferFinalizeData } from "./mercury/transfer";
 
 export class StateCoinList {
   coins: StateCoin[]
@@ -249,13 +249,15 @@ export class StateCoin {
   smt_proof: InclusionProofSMT | null;
   swap_rounds: number;
   status: string;
+
+  // Swap data
   swap_status: string | null;
   swap_id: SwapID | null;
   swap_info: SwapInfo | null;
   swap_address: SCEAddress | null;
   swap_my_bst_data: BSTRequestorData | null;
   swap_receiver_addr: SCEAddress | null;
-
+  swap_transfer_finalized_data: TransferFinalizeData | null;
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
     this.shared_key_id = shared_key_id;
@@ -278,12 +280,15 @@ export class StateCoin {
     this.tx_withdraw = null;
     this.smt_proof = null;
     this.status = STATECOIN_STATUS.INITIALISED;
+    
     this.swap_status = null;
     this.swap_id = null
     this.swap_address = null;
     this.swap_info = null;
     this.swap_my_bst_data = null;
     this.swap_receiver_addr = null;
+    this.swap_transfer_finalized_data = null;
+
   }
 
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }

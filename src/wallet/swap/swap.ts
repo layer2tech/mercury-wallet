@@ -167,8 +167,12 @@ export const swapPhase2 = async (
     statecoin.swap_info.status=phase;
     statecoin.swap_status=phase;
   }
-  if (phase !== types.SwapStatus.Phase2){
+  // If still in previous phase return nothing.
+  // If in any other than expected Phase return Error.
+  if (phase !== types.SwapStatus.Phase1){
     return
+  } else if (phase !== types.SwapStatus.Phase2){
+    throw new Error("Swap error: unexpended swap status "+phase);
   }
 
   let bss = await get_blinded_spend_signature(conductor_client, statecoin.swap_id.id, statecoin.statechain_id);
@@ -206,8 +210,13 @@ export const swapPhase3 = async (
     statecoin.swap_status=phase;
   }
 
-  // Not sure why Phase4 is caught here. Should be Phase3. Must be server side error.
-  if (phase !== types.SwapStatus.Phase4){
+  // We expect Phase4 here. Should be Phase3. Must be server side error.
+
+  // If still in previous phase return nothing.
+  // If in any other than expected Phase return Error.
+  if (phase !== types.SwapStatus.Phase2){
+    return
+  } else if (phase !== types.SwapStatus.Phase4){
     throw new Error("Swap error: unexpended swap status "+phase);
   }
 
@@ -228,9 +237,51 @@ export const swapPhase3 = async (
   );
 
   // Update coin status
+  statecoin.swap_transfer_finalized_data=transfer_finalized_data;
   statecoin.swap_status=SWAP_STATUS.Phase4;
 }
 
+
+
+// Poll swap until phase changes to Phase End. In that case complete swap by performing transfer finalize.
+export const swapPhase4 = async (
+  conductor_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
+  statecoin: StateCoin,
+) => {
+  // check statecoin is still AWAITING_SWAP
+  if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) return null;
+
+  if (statecoin.swap_status!==SWAP_STATUS.Phase2) throw Error("Coin is not in this phase of the swap protocol. In phase: "+statecoin.swap_status);
+  if (statecoin.swap_id===null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
+  if (statecoin.swap_info===null) throw Error("No swap info found for coin. Swap info should be set in Phase1.");
+  if (statecoin.swap_transfer_finalized_data===null) throw Error("No transfer finalize data found for coin. Transfer finalize data should be set in Phase1.");
+
+  let phase = await pollSwap(conductor_client, statecoin.swap_id);
+  if (statecoin.swap_info){
+    statecoin.swap_info.status=phase;
+    statecoin.swap_status=phase;
+  }
+
+  // If still in previous phase return nothing.
+  // If in any other than expected Phase return Error.
+  if (phase !== types.SwapStatus.Phase4) {
+    return
+  } else if (phase !== types.SwapStatus.End) {
+    throw new Error("Swap error: unexpended swap status "+phase);
+  }
+
+  // Complete transfer for swap and receive new statecoin
+  let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
+
+  // Update coin status and num swap rounds
+  statecoin.swap_status=SWAP_STATUS.End;
+  statecoin_out.swap_rounds=statecoin.swap_rounds+1;
+
+  return statecoin_out;
+
+}
 
 
 
