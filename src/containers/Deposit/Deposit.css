@@ -248,12 +248,19 @@ ol.go2441762052 {
     display: block;
     font-size: 14px;
 }
-.deposit-scan-subtxt span:nth-child(2) {
+.deposit-scan-subtxt .deposit-scan-status {
+    display: flex;
+    align-items: center;
+}
+.deposit-scan-subtxt .deposit-scan-status span {
     background-color: #E4E4E4;
     padding: 5px 20px;
     border-radius: 20px;
-
- }
+}
+.deposit-scan-subtxt .deposit-scan-status img {
+    cursor: pointer;
+    margin-left: 8px;
+}
 .deposit-scan-main {
     display: flex;
     justify-content: space-between;

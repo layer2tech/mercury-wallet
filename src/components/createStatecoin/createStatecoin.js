@@ -1,11 +1,13 @@
+import plus from "../../images/plus-deposit.png";
+
 import React, {useState, useEffect} from 'react';
 
 import {callGetCoinsInfo} from '../../features/WalletDataSlice'
 import ValueSelectionPanel from "./valueSelection/valueSelection";
 import { fromSatoshi } from '../../wallet/util'
 
-import plus from "../../images/plus-deposit.png";
 import '../../containers/Deposit/Deposit.css';
+
 
 const DEFAULT_LIQUIDITY_VALUES = [{value: 100,liquidity:0},{value:500,liquidity:0},{value: 1000,liquidity:0},{value:5000,liquidity:0},{value:10000,liquidity:0},{value:50000,liquidity:0},{value:100000,liquidity:0},{value:500000,liquidity:0},{value:1000000,liquidity:0},{value:5000000,liquidity:0},{value:10000000,liquidity:0},{value:50000000,liquidity:0}]
 const LIQUIDITY_MED=10;
@@ -55,15 +57,16 @@ const CreateStatecoin = (props) => {
         // Replace liquidity value with string "None", "Low", "Med" or "High"
         let num_highs=0;
         liquidity_data.map((item) => {
-          if (!item.liquidity) {item.liquidity="None"}
-          else if (item.liquidity<LIQUIDITY_MED) {item.liquidity="Low"}
-          else if (item.liquidity<LIQUIDITY_HIGH) {item.liquidity="Med"}
+          if (!item.liquidity) {item.liquidityLabel="None"}
+          else if (item.liquidity<LIQUIDITY_MED) {item.liquidityLabel="Low"}
+          else if (item.liquidity<LIQUIDITY_HIGH) {item.liquidityLabel="Med"}
           else {
             if (num_highs<NUM_HIGH_LIQUIDITY) { // Only allow top 3 values to have "high" liquidity
-              item.liquidity="High";
+              item.liquidityLabel="High";
               num_highs+=1;
+            } else {
+              item.liquidityLabel="Med";
             }
-            item.liquidity="Med";
           };
           return item;
         })

@@ -24,6 +24,7 @@ const ValueSelectionPanel = (props) => {
             <ValueSelection
               value={item.value}
               liquidity={item.liquidity}
+              liquidityLabel={item.liquidityLabel}
               selected={selected}
               selectValue={selectValue}/>
           </div>
@@ -54,7 +55,7 @@ const ValueSelection = (props) => {
         onClick={() => props.selectValue(props.value)}
         style={isSelectedStyle()}>
           <span><b>{fromSatoshi(props.value)}</b> BTC</span>
-          <span>Liquidity: <b>{props.liquidity}</b></span>
+          <span>Liquidity: <b>{props.liquidityLabel}</b></span>
       </div>
     )
 }
