@@ -338,8 +338,12 @@ input.quantity {
     padding: 20px;
     align-items: baseline;
     border-radius: 6px;
+    overflow-y: auto;
 }
 
+.transferMsg .scan-trasfermsg span {
+    padding-right: 20px;
+}
 
 .transferMsg .subtitle {
     color: #676767;
