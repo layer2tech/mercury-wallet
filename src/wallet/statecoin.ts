@@ -280,7 +280,7 @@ export class StateCoin {
     this.tx_withdraw = null;
     this.smt_proof = null;
     this.status = STATECOIN_STATUS.INITIALISED;
-    
+
     this.swap_status = null;
     this.swap_id = null
     this.swap_address = null;
@@ -288,7 +288,6 @@ export class StateCoin {
     this.swap_my_bst_data = null;
     this.swap_receiver_addr = null;
     this.swap_transfer_finalized_data = null;
-
   }
 
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
