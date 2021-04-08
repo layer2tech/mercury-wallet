@@ -1,15 +1,14 @@
-import arrow from "../../images/arrow-up.png"
-import icon2 from "../../images/icon2.png";
-
 import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
-import {StdButton, AddressInput} from "../../components";
+import {StdButton, AddressInput, CopiedButton} from "../../components";
 
 import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callTransferReceiver, setError, setNotification} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
+import arrow from "../../images/arrow-up.png"
+import icon2 from "../../images/icon2.png";
 import './Receive.css';
 import '../Send/Send.css';
 
@@ -85,7 +84,9 @@ const ReceiveStatecoinPage = () => {
                     */}
                     <div className="receiveStatecoin-scan-content">
                         <div className="receiveStatecoin-scan-txid">
-                          <img type="button" src={icon2} alt="icon" onClick={copySEAddressToClipboard}/>
+                          <CopiedButton handleCopy={copySEAddressToClipboard}>
+                            <img type="button" src={icon2} alt="icon"/>
+                          </CopiedButton>
                             <span>
                               {rec_sce_addr}
                             </span>

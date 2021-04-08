@@ -4,6 +4,7 @@ import {useDispatch} from 'react-redux'
 import {callDepositInit, callDepositConfirm, setNotification,
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
+import { CopiedButton } from '../../components'
 
 import btc_img from "../../images/icon1.png";
 import copy_img from "../../images/icon2.png";
@@ -135,7 +136,9 @@ const TransactionDisplay = (props) => {
             </div>
             <img src={arrow_img} alt="arrow"/>
             <div className="deposit-scan-main-item">
-              <img type="button" src={copy_img} alt="icon" onClick={copyAddressToClipboard}/>
+              <CopiedButton handleCopy={copyAddressToClipboard}>
+                <img type="button" src={copy_img} alt="icon" />
+              </CopiedButton>
               <span className="long"><b>{props.address}</b></span>
             </div>
           </div>
