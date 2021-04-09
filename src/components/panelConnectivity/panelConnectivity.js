@@ -33,9 +33,9 @@ const PanelConnectivity = (props) => {
   let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1] * item[0].amount),0);
 
   return (
-      <div className="Body small accordion">
-          <div className="Collapse row">
-              <div className="connection-title ConnectionStateChain col-4">
+      <div className="Body small accordion connection-wrap">
+          <div className="Collapse">
+              <div className="connection-title ConnectionStateChain">
                   <label>
                       <input
                           readOnly
@@ -46,7 +46,7 @@ const PanelConnectivity = (props) => {
                       <span className="checkmark"></span>
                   </label>
               </div>
-              <div className="connection-title ConnectionSwaps col-4">
+              <div className="connection-title ConnectionSwaps">
                   <label>
                       <input
                         readOnly
@@ -57,7 +57,7 @@ const PanelConnectivity = (props) => {
                       <span className="checkmark"></span>
                   </label>
               </div>
-              <div className="connection-title ConnectionElectrum col-4">
+              <div className="connection-title ConnectionElectrum">
                   <label>
                       <input
                           readOnly
@@ -76,20 +76,20 @@ const PanelConnectivity = (props) => {
         <div className={state.isToggleOn ? "show" : ' hide'}>
             <div className="collapse-content">
                 <div className="collapse-content-item">
-                    <span>Host: {current_config.state_entity_endpoint}</span>
+                    <span className="host">Host: {current_config.state_entity_endpoint}</span>
                     <span>Deposit Fee: <b>{fee_info.deposit /100}%</b></span>
                     <span>Withdraw Fee: <b>{fee_info.withdraw/100}%</b></span>
                     <span>{fee_info.endpoint}</span>
                 </div>
                 <div className="collapse-content-item">
-                    <span>Host: {current_config.swap_conductor_endpoint}</span>
+                    <span className="host">Host: {current_config.swap_conductor_endpoint}</span>
                     <span>Pending Swaps: <b>{pending_swaps}</b></span>
                     <span>Participants: <b>{participants}</b></span>
                     <span>Total pooled BTC: <b>{total_pooled_btc}</b></span>
                 </div>
                 <div className="collapse-content-item">
                     <span>Block height: {block_height}</span>
-                    <span>Host: {current_config.electrum_config.host}</span>
+                    <span className="host">Host: {current_config.electrum_config.host}</span>
                     <span>Port: {current_config.electrum_config.port}</span>
                     <span>Protocol: {current_config.electrum_config.protocol}</span>
                 </div>
