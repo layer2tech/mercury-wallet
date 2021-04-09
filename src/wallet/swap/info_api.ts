@@ -32,6 +32,20 @@ export const pollSwap = async (
   return swap_status
 }
 
+export const swapRegisterUtxo = async (
+  http_client: HttpClient | MockHttpClient,
+  registerUtxo: any
+) => {
+  await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
+}
+
+export const swapDeregisterUtxo = async (
+  http_client: HttpClient | MockHttpClient,
+  statechain_id: StatechainID
+) => {
+  await http_client.post(POST_ROUTE.SWAP_DEREGISTER_UTXO, statechain_id);
+}
+
 export const getSwapInfo = async (
   http_client: HttpClient | MockHttpClient,
   swap_id: SwapID

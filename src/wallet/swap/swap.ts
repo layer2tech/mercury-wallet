@@ -2,7 +2,7 @@
 
 import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
 import {transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
-import { pollUtxo, pollSwap, getSwapInfo } from "./info_api";
+import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo } from "./info_api";
 import { getStateChain } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
@@ -67,7 +67,7 @@ export const swapInit = async (
     swap_size: swap_size
   };
 
-  await conductor_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
+  await swapRegisterUtxo(conductor_client, registerUtxo);
   log.info("Coin registered for Swap. Coin ID: ", statecoin.shared_key_id)
 
   statecoin.swap_status=SWAP_STATUS.Phase0;
@@ -277,7 +277,7 @@ export const swapPhase4 = async (
   // Update coin status and num swap rounds
   statecoin.swap_status=SWAP_STATUS.End;
   statecoin_out.swap_rounds=statecoin.swap_rounds+1;
-  
+
   return statecoin_out;
 }
 
