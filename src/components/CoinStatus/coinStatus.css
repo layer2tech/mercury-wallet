@@ -6,9 +6,45 @@
 .coin-status svg {
   margin-right: 10px;
 }
+.coin-status.coin-status-modal {
+  width: 100%;
+}
+
+.coin-status.coin-status-modal svg {
+  transform: scale(2.3);
+  transform-origin: left;
+  margin-right: 36px;
+}
 
 .coin-status-details {
   display: flex;
+  font-size: .875rem;
+  line-height: 1.25rem;
+  color: #000000;
+  position: relative;
+}
+
+.coin-status.coin-status-modal .coin-status-details {
+  flex-direction: column;
+  width: 100%;
+}
+
+.coin-status.coin-status-modal .coin-status-title {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: rgba(0, 0, 0, 0.870588);
+  letter-spacing: 0.5px;
+}
+
+.coin-mid-cancel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  text-decoration: underline;
+  color: #E64A19;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  cursor: pointer;
 }
 
 .coin-status-copy-code {
@@ -23,6 +59,9 @@
   height: 11px;
   border: 1px solid #BDBDBD;
   margin-right: 4px;;
+}
+.coin-status.coin-status-modal .coin-status-details .coin-status-copy-code::before {
+  display: none;
 }
 .coin-status-title {
   margin-right: 4px;

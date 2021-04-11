@@ -1,5 +1,4 @@
 import React from 'react'
-
 import { 
   SendIcon, 
   InMempoolIcon,
@@ -31,7 +30,7 @@ const TYPE_STATUS_INFO = {
   },
   awaitingConfirm: {
     icon: <AwaitingConfirmIcon />,
-    title: 'Awaiting Confirmations (1/3)'
+    title: 'Awaiting Confirmations'
   },
   inSwap: {
     icon: <InSwapIcon />,
@@ -49,12 +48,16 @@ const TYPE_STATUS_INFO = {
 
 const CoinStatus = (props) => {
   const randomStatus = Math.floor(Math.random() * (Object.keys(COIN_STATUS).length - 1));
-  let status = Object.keys(COIN_STATUS)[randomStatus];
+  let status = COIN_STATUS.midTransfer;//Object.keys(COIN_STATUS)[randomStatus];
 
   const handleCopyTransferCode = (e) => {
     e.preventDefault();
     e.stopPropagation();
     alert('handle copy transfer code');
+  };
+
+  const handleCancelTransfer = (e) => {
+    alert('handle cancel transfer!')
   }
 
   const getStatusIcon = () => {
@@ -62,9 +65,37 @@ const CoinStatus = (props) => {
   };
 
   const getStatusDetails = () => {
+    if(props.isDetails) {
+      return (
+        <div className="coin-status-details"> 
+          <span className="coin-status-title">{TYPE_STATUS_INFO[status]?.title}</span>
+          {status === COIN_STATUS.midTransfer && (
+            <>
+              <span 
+                className="coin-mid-cancel" 
+                onClick={handleCancelTransfer}
+              >Cancel</span>
+              <div className="coin-status-description">
+                <span 
+                  className="coin-status-copy-code"
+                  onClick={handleCopyTransferCode}
+                >Click to Copy Transfer Code</span> to clipboard and send it to the Receiver.
+              </div>
+            </>
+          )}
+          {status === COIN_STATUS.awaitingConfirm && (
+            <div className="coin-status-description">
+              1 out of 3 confirmed, {` `}
+              <span className="coin-status-copy-code">
+                view on block explorer
+              </span>
+            </div>
+          )}
+        </div>
+      );
+    }
     return (
       <div className="coin-status-details"> 
-        {props.isDetails ? 'Details' : null}
         <span className="coin-status-title">{TYPE_STATUS_INFO[status]?.title}</span>
         {status === COIN_STATUS.midTransfer && (
           <div 
@@ -79,7 +110,7 @@ const CoinStatus = (props) => {
   };
 
   return (
-    <div className="coin-status">
+    <div className={`coin-status ${props.isDetails ? 'coin-status-modal' : ''}`}>
       {getStatusIcon()}
       {getStatusDetails()}
     </div>
