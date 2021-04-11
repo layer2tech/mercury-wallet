@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { 
   SendIcon, 
   InMempoolIcon,
@@ -56,6 +56,7 @@ const COPIED_MESSAGE_STYLE = {
 };
 
 const CoinStatus = (props) => {
+  const [cancelConfirm, setCancelConfirm] = useState(false);
   let status = COIN_STATUS.midTransfer;//Object.keys(COIN_STATUS)[props.data.coinStatusIndex];
 
   const handleCopyTransferCode = (e) => {
@@ -67,7 +68,8 @@ const CoinStatus = (props) => {
   };
 
   const handleCancelTransfer = (e) => {
-    alert('handle cancel transfer!')
+    alert('handle cancel transfer!');
+    setCancelConfirm(false);
   }
 
   const getStatusIcon = () => {
@@ -83,8 +85,17 @@ const CoinStatus = (props) => {
             <>
               <span 
                 className="coin-mid-cancel" 
-                onClick={handleCancelTransfer}
+                onClick={() => setCancelConfirm(true)}
               >Cancel</span>
+              {cancelConfirm && (
+                <div className="coin-mid-cancel-confirm">
+                  <span>Do you really want to cancel this transaction?? More details message will update later!</span>
+                  <div className="coin-mid-transfer-btns">
+                    <button type="button" onClick={() => setCancelConfirm(false)}>Cancel</button>
+                    <button type="button" className="btn-confirm" onClick={handleCancelTransfer}>Confirm</button>
+                  </div>
+                </div>
+              )}
               <div className="coin-status-description">
                 <CopiedButton 
                   handleCopy={handleCopyTransferCode} 
