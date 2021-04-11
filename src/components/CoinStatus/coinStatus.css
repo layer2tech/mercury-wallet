@@ -1,0 +1,29 @@
+.coin-status {
+  display: flex;
+  align-items: center;
+}
+
+.coin-status svg {
+  margin-right: 10px;
+}
+
+.coin-status-details {
+  display: flex;
+}
+
+.coin-status-copy-code {
+  color: #0254F4;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.coin-status-copy-code::before {
+  content: "";
+  display: inline-block;
+  width: 0px;
+  height: 11px;
+  border: 1px solid #BDBDBD;
+  margin-right: 4px;;
+}
+.coin-status-title {
+  margin-right: 4px;
+}
