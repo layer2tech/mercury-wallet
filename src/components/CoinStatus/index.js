@@ -7,6 +7,7 @@ import {
   AwaitingSwapIcon,
   AwaitingTransactionIcon
 } from './statusIcons';
+import { CopiedButton } from '../../components';
 
 import './coinStatus.css';
 
@@ -46,14 +47,23 @@ const TYPE_STATUS_INFO = {
   }
 };
 
+const COPIED_MESSAGE = 'Transfer Code was copied to Clipboard. Send it to the Receiver of the Transaction';
+const COPIED_MESSAGE_DELAYS = 3000;
+const COPIED_MESSAGE_STYLE = {
+  top: 45,
+  left: 0,
+  width: '80%',
+};
+
 const CoinStatus = (props) => {
-  const randomStatus = Math.floor(Math.random() * (Object.keys(COIN_STATUS).length - 1));
-  let status = COIN_STATUS.midTransfer;//Object.keys(COIN_STATUS)[randomStatus];
+  let status = COIN_STATUS.midTransfer;//Object.keys(COIN_STATUS)[props.data.coinStatusIndex];
 
   const handleCopyTransferCode = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    alert('handle copy transfer code');
+    if(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    navigator.clipboard.writeText('Will update real code later');
   };
 
   const handleCancelTransfer = (e) => {
@@ -76,10 +86,19 @@ const CoinStatus = (props) => {
                 onClick={handleCancelTransfer}
               >Cancel</span>
               <div className="coin-status-description">
-                <span 
-                  className="coin-status-copy-code"
-                  onClick={handleCopyTransferCode}
-                >Click to Copy Transfer Code</span> to clipboard and send it to the Receiver.
+                <CopiedButton 
+                  handleCopy={handleCopyTransferCode} 
+                  message={COPIED_MESSAGE}
+                  delay={COPIED_MESSAGE_DELAYS}
+                  style={COPIED_MESSAGE_STYLE}
+                >
+                  <div>
+                    <span 
+                      className="coin-status-copy-code"
+                      // onClick={handleCopyTransferCode}
+                    >Click to Copy Transfer Code</span> to clipboard and send it to the Receiver.
+                  </div>
+                </CopiedButton>
               </div>
             </>
           )}
@@ -98,12 +117,22 @@ const CoinStatus = (props) => {
       <div className="coin-status-details"> 
         <span className="coin-status-title">{TYPE_STATUS_INFO[status]?.title}</span>
         {status === COIN_STATUS.midTransfer && (
-          <div 
-            className="coin-status-copy-code"
-            onClick={handleCopyTransferCode}
+          <CopiedButton
+            handleCopy={handleCopyTransferCode} 
+            message={COPIED_MESSAGE}
+            delay={COPIED_MESSAGE_DELAYS}
+            style={{
+              ...COPIED_MESSAGE_STYLE,
+              left: 'initial',
+              right: 0,
+              width: 250,
+              top: 55
+            }}
           >
-            Copy Transfer Code
-          </div>
+            <div className="coin-status-copy-code">
+              Copy Transfer Code
+            </div>
+          </CopiedButton>
         )}
       </div>
     );

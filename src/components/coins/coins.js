@@ -160,6 +160,8 @@ const Coins = (props) => {
   		}
   		return 0;
   	});
+    // Fake random status index
+    all_coins_data.map(item => item.coinStatusIndex = Math.floor(Math.random() * 5));
 
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
@@ -245,7 +247,7 @@ const Coins = (props) => {
                             </div>
                         </div>
                         <div className="item">
-                          <CoinStatus data={showCoinDetails} isDetails={true} />
+                          <CoinStatus data={showCoinDetails.coin} isDetails={true} />
                         </div>
                         <div className="item">
                             <img src={utx} alt="icon"/>

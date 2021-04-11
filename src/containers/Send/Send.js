@@ -147,7 +147,7 @@ const SendStatecoinPage = () => {
           <div className="Body transferMsg">
             <h3 className="subtitle">Transfer Message:</h3>
             <div className="transferMsg scan-trasfermsg">
-              <CopiedButton handleCopy={copyTransferMsgToClipboard}>
+              <CopiedButton style={{left: 0, top: -7 }} handleCopy={copyTransferMsgToClipboard}>
                 <img type="button" src={icon2} alt="icon" />
               </CopiedButton>
                 <span>
