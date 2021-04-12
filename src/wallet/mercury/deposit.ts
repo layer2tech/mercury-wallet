@@ -78,13 +78,14 @@ export const depositConfirm = async (
   };
 
   // construct shared signature
-  let signatures: Array<Array<string>> = await sign(http_client, wasm_client, [statecoin.shared_key_id], [statecoin.shared_key], prepare_sign_msg, [signatureHash], PROTOCOL.DEPOSIT);
-  let sig0: string = signatures[0][0];
+  let signatures: Array<string> = await sign(http_client, wasm_client, [statecoin.shared_key_id], [statecoin.shared_key], prepare_sign_msg, [signatureHash], PROTOCOL.DEPOSIT);
+  let sig0: string = signatures[0];
+
 
   // set witness data with signature
   let tx_backup_signed = tx_backup_unsigned;
 
-  tx_backup_signed.ins[0].witness = [Buffer.from(sig0),Buffer.from(signatures[0][1])];
+  tx_backup_signed.ins[0].witness = [Buffer.from(sig0),Buffer.from(signatures[1])];
 
   prepare_sign_msg.tx_hex = tx_backup_signed.toHex();
 

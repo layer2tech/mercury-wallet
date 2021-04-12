@@ -39,6 +39,25 @@ export const makeTesterStatecoin = () => {
   return tester_statecoin
 }
 
+export const makeTesterStatecoins = () => {
+
+  let tester_statecoins = [new StateCoin("c93ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEY),
+    new StateCoin("d93ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEY)];
+
+  tester_statecoins[0].proof_key = STATECOIN.proof_key;
+  tester_statecoins[0].value = STATECOIN.value;
+  tester_statecoins[0].funding_txid = STATECOIN.funding_txid;
+  tester_statecoins[0].funding_vout = STATECOIN.funding_vout;
+  tester_statecoins[0].tx_backup = bitcoin.Transaction.fromHex(STATECOIN_CONFIRMED_BACKUPTX_HEX);
+  
+  tester_statecoins[1].proof_key = STATECOIN.proof_key;
+  tester_statecoins[1].value = STATECOIN.value;
+  tester_statecoins[1].funding_txid = STATECOIN.funding_txid;
+  tester_statecoins[1].funding_vout = STATECOIN.funding_vout;
+  tester_statecoins[1].tx_backup = bitcoin.Transaction.fromHex(STATECOIN_CONFIRMED_BACKUPTX_HEX);
+  return tester_statecoina
+}
+
 
 
 // sigs generated from Mercury server StateChainSig.

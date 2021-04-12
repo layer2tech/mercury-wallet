@@ -50,6 +50,8 @@ describe('2P-ECDSA', function() {
     wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
 
     let signatures = await sign(http_mock, wasm_mock, [KEYGEN_SIGN_DATA.shared_key_id], [KEYGEN_SIGN_DATA.shared_key], [KEYGEN_SIGN_DATA.signature_hash], KEYGEN_SIGN_DATA, KEYGEN_SIGN_DATA.protocol);
+    console.log("signatures: " + signatures)
+    console.log("signatures[0]: " + signatures[0])
     expect(typeof signatures[0]).toBe('string');
   });
 })
@@ -198,7 +200,7 @@ describe('StateChain Entity', function() {
       wasm_mock.Sign.first_message = jest.fn(() => MOCK_CLIENT.SIGN_FIRST);
       wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
 
-      let statecoins = [lodash.cloneDeep(tester_statecoins[0]), lodash.cloneDeep(tester_statecoins[1])]
+      let statecoins = [lodash.cloneDeep(makeTesterStatecoins[0]), lodash.cloneDeep(makeTesterStatecoins[1])]
       let proof_key_ders =[bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)),
         bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D))];
       console.log('statecoin: {}', statecoins[0]);
@@ -227,7 +229,7 @@ describe('StateChain Entity', function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
 
-      let statecoin = lodash.cloneDeep(tester_statecoins[0]);
+      let statecoin = lodash.cloneDeep(makeTesterStatecoins[0]);
       statecoin.proof_key = "aaa";
       await expect(withdraw(http_mock, wasm_mock, network, [statecoin], [{}], BTC_ADDR))
         .rejects
@@ -243,7 +245,7 @@ describe('StateChain Entity', function() {
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
 
-      let statecoin = lodash.cloneDeep(tester_statecoins[1]);
+      let statecoin = lodash.cloneDeep(makeTesterStatecoins[1]);
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
       await expect(withdraw(http_mock, wasm_mock, network, [statecoin], [proof_key_der], BTC_ADDR))
         .rejects
@@ -369,18 +371,3 @@ describe('StateChain Entity', function() {
     });
   });
 });
-
-let tester_statecoins = [new StateCoin("c93ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEY),
-                        new StateCoin("d93ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEY)];
-
-tester_statecoins[0].proof_key = STATECOIN.proof_key;
-tester_statecoins[0].value = STATECOIN.value;
-tester_statecoins[0].funding_txid = STATECOIN.funding_txid;
-tester_statecoins[0].funding_vout = STATECOIN.funding_vout;
-tester_statecoins[0].tx_backup = bitcoin.Transaction.fromHex(STATECOIN_CONFIRMED_BACKUPTX_HEX);
-
-tester_statecoins[1].proof_key = STATECOIN.proof_key;
-tester_statecoins[1].value = STATECOIN.value;
-tester_statecoins[1].funding_txid = STATECOIN.funding_txid;
-tester_statecoins[1].funding_vout = STATECOIN.funding_vout;
-tester_statecoins[1].tx_backup = bitcoin.Transaction.fromHex(STATECOIN_CONFIRMED_BACKUPTX_HEX);

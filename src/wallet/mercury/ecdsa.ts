@@ -82,13 +82,16 @@ export const sign = async (
   prepare_sign_msg: PrepareSignTxMsg,
   messages: string[],
   protocol: string
-): Promise<string[][]> => {
+): Promise<string[] | null> => {
   // prepare-sign step. Allow server to check backup_tx.
   await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
   
-  let resps: string[][] = [[]];
+  let resps: string[] = [];
+
+  console.log("sign - shared key ids: " + shared_key_ids);
 
   [...shared_key_ids].forEach(async (shared_key_id, index) => {
+    console.log("sign - shared key id: " + shared_key_id + ", index: " + index);
     //client first
     let client_sign_first: ClientSignFirstMsg =
       JSON.parse(
@@ -127,10 +130,15 @@ export const sign = async (
             party_two_sign_message,
         },
     };
-    let resp: string[] = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
+    console.log("sign - posting sign second: " + sign_msg2);
+    let resp: string = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
+    console.log("resp: " + resp);
+    console.log("resp[0]: " + resp[0]);
     resps.push(resp);
   });
-  
+  console.log("resps: " + resps);
+  console.log("resps[0]: " + resps[0]);
+
   return resps;
 }
 
