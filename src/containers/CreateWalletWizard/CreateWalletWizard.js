@@ -75,9 +75,9 @@ const CreateWizardPage = (props) => {
 
   return (
     <div className="container wizard">
-      <Steppers 
+      <Steppers
         steps={STEPS}
-        current={step} 
+        current={step}
       />
       {Component()}
       <div className="btns">

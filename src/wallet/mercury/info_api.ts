@@ -17,6 +17,14 @@ export const getFeeInfo = async (
   return fee_info
 }
 
+export const getCoinsInfo = async (
+  http_client: HttpClient | MockHttpClient,
+) => {
+  let coins_info = await http_client.get(GET_ROUTE.COINS_INFO, {});
+  typeforce(types.CoinsInfo, coins_info);
+  return coins_info
+}
+
 export const getStateChain = async (
   http_client: HttpClient | MockHttpClient,
   statechain_id: string

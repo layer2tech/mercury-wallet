@@ -2,10 +2,11 @@ import swapIcon from '../../images/swap_icon-blue.png';
 
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 
 import { Coins, Swaps, StdButton} from "../../components";
-import {isWalletLoaded, setNotification, setError, callDoSwap, callRemoveCoinFromSwap } from '../../features/WalletDataSlice'
+import {isWalletLoaded, setNotification, setError, callDoSwap, callSwapDeregisterUtxo,
+  callGetSwapGroupInfo, callUpdateSwapGroupInfo} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
 import './Swap.css';
@@ -18,7 +19,21 @@ const SwapPage = () => {
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   // Update Coins model to force re-render
   const [refreshCoins, setRefreshCoins] = useState(false); // store selected swap_id
-  const refreshToggle = () => refreshCoins ? setRefreshCoins(false) : setRefreshCoins(true);
+
+  const [swapGroupsData, setSwapGroupsData] = useState([]);
+
+  // Re-fetch swaps group data every 3 seconds and update swaps component
+  useEffect(() => {
+      const interval = setInterval(() => {
+          dispatch(callUpdateSwapGroupInfo());
+          let swap_groups_data = callGetSwapGroupInfo();
+          let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
+          setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
+          setRefreshCoins((prevState) => !prevState);
+      }, 3000);
+      return () => clearInterval(interval);
+    },
+    []);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -44,7 +59,7 @@ const SwapPage = () => {
         }
       })
       // Refresh Coins list
-      setTimeout(() => { refreshToggle(); }, 1000);
+      setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
     }
 
     const leavePoolButtonAction = (event) => {
@@ -53,9 +68,9 @@ const SwapPage = () => {
         return
       }
       try {
-        callRemoveCoinFromSwap(selectedCoin);
+        dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}));
         // Refresh Coins list
-        setTimeout(() => { refreshToggle(); }, 2000);
+        setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
       } catch (e) {
         event.preventDefault();
         dispatch(setError({msg: e.message}))
@@ -100,6 +115,7 @@ const SwapPage = () => {
               <div className="Body right">
                   <div>
                       <Swaps
+                        swapGroupsData={swapGroupsData}
                         displayDetailsOnClick={false}
                         selectedSwap={selectedSwap}
                         setSelectedSwap={setSelectedSwap}

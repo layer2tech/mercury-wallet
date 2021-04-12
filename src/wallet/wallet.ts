@@ -10,7 +10,7 @@ import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
-import { doSwap, SwapGroup } from './swap/swap'
+import { SwapGroup, do_swap_poll } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
@@ -22,7 +22,7 @@ let bip32 = require('bip32');
 let bip39 = require('bip39');
 let lodash = require('lodash');
 
-// Logger and Store import.
+// Logger import.
 // Node friendly importing required for Jest tests.
 declare const window: any;
 let log: any;
@@ -31,7 +31,6 @@ try {
 } catch (e) {
   log = require('electron-log');
 }
-
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
@@ -336,8 +335,8 @@ export class Wallet {
         if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
           let txid = this!.statecoins!.coins[i]!.tx_backup!.getId();
           if(txid != null) {
-            this.electrum_client.getTransaction(txid).then((tx_data) => {
-              if(tx_data.confirmations > 0) {
+            this.electrum_client.getTransaction(txid).then((tx_data: any) => {
+              if(tx_data.confirmations!==undefined && tx_data.confirmations > 0) {
                 this.statecoins.coins[i].setBackupConfirmed();
                 this.statecoins.coins[i].setExpired();
             }
@@ -569,37 +568,25 @@ export class Wallet {
   async do_swap(
     shared_key_id: string,
   ): Promise<StateCoin | null> {
-    log.info("Do swap for "+shared_key_id)
-
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+shared_key_id+" already in swap pool.");
     if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+shared_key_id+" already involved in swap.");
     if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" not available for swap.");
 
-    log.info("Got statecoin with proof key ", statecoin.proof_key)
+    log.info("Swapping coin: "+shared_key_id);
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-    log.info("Got proof key der")
-
     let new_proof_key_der = this.genProofKey();
-    log.info("Got new proof key der")
-
-    log.info("Getting wasm")
     let wasm = await this.getWasm();
 
-    log.info("Public key: ", proof_key_der.publicKey.toString("hex"));
-
-    log.info("Awaiting doSwap")
-    statecoin.setAwaitingSwap();
-    let new_statecoin = await doSwap(this.conductor_client, this.http_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
+    let new_statecoin = await do_swap_poll(this.conductor_client, this.http_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
 
     if (new_statecoin==null) {
       statecoin.setConfirmed();
       return null;
     }
     // Mark funds as spent in wallet
-    log.info("Marking spent")
     this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 
     // update in wallet
@@ -607,7 +594,7 @@ export class Wallet {
     new_statecoin.setConfirmed();
     this.statecoins.addCoin(new_statecoin);
 
-    log.info("Swap complete for shared key:" + shared_key_id);
+    log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
     this.saveStateCoinsList();
     return new_statecoin;
   }

@@ -3,9 +3,8 @@ import user from "../../images/table-icon-user.png";
 
 import React, {useState, useEffect} from 'react';
 import {Modal} from 'react-bootstrap';
-import {useDispatch} from 'react-redux'
 
-import {callGetSwapGroupInfo, callUpdateSwapGroupInfo} from '../../features/WalletDataSlice'
+import {fromSatoshi} from '../../wallet'
 
 import './swaps.css';
 import '../index.css';
@@ -14,10 +13,6 @@ const DEFAULT_SWAP_DETAILS = {show: false, swap: {value: 0, participants: 0, cap
 
 
 const Swaps = (props) => {
-    const dispatch = useDispatch();
-
-    const [state, setState] = useState({});
-
     // The following group of functions will be used when user can select a particular
     // swap group to join.
     const [showSwapDetails, setShowSwapDetails] = useState(DEFAULT_SWAP_DETAILS);  // Display details of swap in Modal
@@ -34,30 +29,14 @@ const Swaps = (props) => {
         return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days"
     }
 
-
-    const swap_groups_data  = callGetSwapGroupInfo();
-    let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
-
-    // Re-fetch swaps every 3 seconds and update state to refresh render
-    useEffect(() => {
-        const interval = setInterval(() => {
-            dispatch(callUpdateSwapGroupInfo());
-            let swap_groups_data = callGetSwapGroupInfo();
-            swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
-            setState({}) //update state to refresh TransactionDisplay render
-        }, 3000);
-        return () => clearInterval(interval);
-      },
-      []);
-
-    const swapData = swap_groups_array.map(([key,value]) => (
+    const swapData = props.swapGroupsData.map(([key,value]) => (
         <div key={key.amount} value={value}>
         <div>
         <div className="SwapPanel">
             <div className="SwapAmount-block">
                 <img src={coin} alt="coin"/>
                 <span className="sub">
-                    <b className="SwapAmount">  {key.amount/1e8} BTC</b>
+                    <b className="SwapAmount">  {fromSatoshi(key.amount)} BTC</b>
                 </span>
             </div>
 

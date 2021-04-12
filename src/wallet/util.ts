@@ -3,7 +3,7 @@
 import { BIP32Interface, Network, TransactionBuilder, crypto as crypto_btc, script, Transaction } from 'bitcoinjs-lib';
 import { Root, StateChainDataAPI, FeeInfo, OutPoint } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
-import { TransferMsg3 } from './mercury/transfer';
+import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
 
 
 import { encrypt, decrypt } from 'eciesjs'
@@ -17,7 +17,6 @@ let crypto = require('crypto');
 
 let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
-var msgpack = require("msgpack-lite");
 
 /// Temporary - fees should be calculated dynamically
 export const FEE = 300;
@@ -105,7 +104,7 @@ export class StateChainSig {
           batch_id: string,
           statechain_id: string,
       ): StateChainSig {
-          let purpose = this.purpose_transfer_batch(batch_id); 
+          let purpose = this.purpose_transfer_batch(batch_id);
           let statechain_sig = StateChainSig.create(proof_key_der,purpose, statechain_id);
           return statechain_sig;
       }
@@ -214,16 +213,86 @@ export const decodeSCEAddress = (sce_address: string): string => {
 
 // Bech32 encode transfer message
 export const encodeMessage = (message: TransferMsg3) => {
-  let buffer = msgpack.encode(message);
-  let words = bech32.toWords(buffer)
+
+  // compact message serialisation to byte vector
+  let item_array = [];
+  //bytes 0..129 encrypted t1
+  item_array.push(Buffer.from(message.t1.secret_bytes));
+  //bytes 129..162 (33 bytes) compressed proof key
+  item_array.push(Buffer.from(message.rec_se_addr.proof_key, 'hex'));
+  //bytes 162..178 (16 bytes) statechain_id
+  item_array.push(Buffer.from(message.statechain_id.replace(/-/g, ""), 'hex'));
+  //bytes 178..194 (16 bytes) shared_key_id
+  item_array.push(Buffer.from(message.shared_key_id.replace(/-/g, ""), 'hex'));
+  //byte 194 is statechain signature length (variable)
+  let sig_bytes = Buffer.from(message.statechain_sig.sig, 'hex');
+  item_array.push(Buffer.from([sig_bytes.length]));
+  //byte 195..sig_len is statechain signature
+  item_array.push(sig_bytes);
+  //byte tx_len is backup tx length (variable)
+  let tx_bytes = Buffer.from(message.tx_backup_psm.tx_hex, 'hex');
+  item_array.push(Buffer.from([tx_bytes.length]));
+  //remaining bytes backup tx
+  item_array.push(tx_bytes);
+
+  let encoded_bytes = Buffer.concat(item_array);
+
+  let words = bech32.toWords(encoded_bytes);
   return bech32.encode('mm', words, 6000)
 }
 
 // Bech32 decode transfer message
-export const decodeMessage = (enc_message: string): TransferMsg3 => {
+export const decodeMessage = (enc_message: string, network: Network): TransferMsg3 => {
   let decode =  bech32.decode(enc_message, 6000);
-  let buf = Buffer.from(bech32.fromWords(decode.words))
-  return msgpack.decode(buf)
+  let buf = Buffer.from(bech32.fromWords(decode.words));
+
+  // compact byte message deserialisation
+  //bytes 0..129 encrypted t1
+  let t1_bytes = buf.slice(0,129);
+  //bytes 129..162 (33 bytes) compressed proof key
+  let proof_key_bytes = buf.slice(129,162);
+  //bytes 162..178 (16 bytes) statechain_id
+  let statechain_id_bytes = buf.slice(162,178);
+  //bytes 178..194 (16 bytes) shared_key_id
+  let shared_key_id_bytes = buf.slice(178,194);
+  //byte 194 is statechain signature length (variable)
+  let sig_len = buf.readUInt8(194);
+  //byte 195..sig_len is statechain signature
+  let sig = buf.slice(195,(sig_len+195));
+  //byte tx_len is backup tx length (variable)
+  let tx_len = buf.readUInt8(sig_len+195);
+  //remaining bytes backup tx
+  let backup_tx_bytes = buf.slice((sig_len+196),(sig_len+tx_len+196));
+
+  // convert uuids
+  let sch_id = statechain_id_bytes.toString("hex");
+  let statechain_id = sch_id.substr(0,8)+"-"+sch_id.substr(8,4)+"-"+sch_id.substr(12,4)+"-"+sch_id.substr(16,4)+"-"+sch_id.substr(20);
+
+  let shk_id = shared_key_id_bytes.toString("hex");
+  let shared_key_id = shk_id.substr(0,8)+"-"+shk_id.substr(8,4)+"-"+shk_id.substr(12,4)+"-"+shk_id.substr(16,4)+"-"+shk_id.substr(20);
+
+  let proof_key = proof_key_bytes.toString('hex');
+
+  let tx_backup_psm: PrepareSignTxMsg = {
+          shared_key_id: shared_key_id,
+          protocol: "Transfer",
+          tx_hex: backup_tx_bytes.toString('hex'),
+          input_addrs: [],
+          input_amounts: [],
+          proof_key: proof_key,
+        };
+
+  // re-create transfer message
+  let trans_msg_3 = {
+      shared_key_id: shared_key_id,
+      statechain_id: statechain_id,
+      t1: {secret_bytes: Array.from(t1_bytes)},
+      statechain_sig: new StateChainSig("TRANSFER",proof_key,sig.toString('hex')),
+      tx_backup_psm: tx_backup_psm,
+      rec_se_addr: proofKeyToSCEAddress(proof_key, network)
+  };
+
+  return trans_msg_3
 }
 
 // encode Secp256k1Point to {x: string, y: string}
@@ -244,31 +313,17 @@ const zero_pad = (num: any) => {
 }
 
 // ECIES encrypt string
-export const encryptECIESt2 = (publicKey: string, data: string): Buffer => {
-  let data_arr = new Uint32Array(Buffer.from(zero_pad(data), "hex")); // JSONify to match Mercury ECIES
-  return encrypt(publicKey, Buffer.from(data_arr));
-}
-
-// ECIES encrypt string
 export const encryptECIES = (publicKey: string, data: string): Buffer => {
-  let data_arr = new Uint32Array(Buffer.from(JSON.stringify(data))) // JSONify to match Mercury ECIES
+  let data_arr = new Uint32Array(Buffer.from(zero_pad(data), "hex"));
   return encrypt(publicKey, Buffer.from(data_arr));
-}
-
-// ECIES decrypt string
-export const decryptECIES = (secret_key: string, encryption: string): {} => {
-  let enc = new Uint32Array(Buffer.from(encryption, "hex"))
-  let dec = decrypt(secret_key, Buffer.from(enc)).toString();
-  return JSON.parse(dec)  // un-JSONify
 }
 
 // ECIES decrypt string x1 from Server.
-export const decryptECIESx1 = (secret_key: string, encryption: string): string => {
+export const decryptECIES = (secret_key: string, encryption: string): string => {
   let enc = new Uint32Array(Buffer.from(encryption, "hex"))
   let dec = decrypt(secret_key, Buffer.from(enc));
-  return dec.toString("hex")  // un-JSONify
+  return dec.toString("hex")
 }
-
 
 const AES_ALGORITHM = 'aes-192-cbc';
 const PBKDF2_HASH_ALGORITHM = 'sha512';

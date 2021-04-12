@@ -39,6 +39,11 @@ export const FeeInfo = typeforce.compile({
   initlock: UInt32
 })
 
+export const CoinsInfo = typeforce.compile({
+  values: Object
+})
+
+
 
 ////////// 2P-ECDSA structs/////////////
 
@@ -276,29 +281,19 @@ export const ElectrumTxData = typeforce.compile({
 /// Struct defines a Swap. This is signed by each participant as agreement to take part in the swap.
 export const SwapToken = typeforce.compile({
     id: String, //Uuid,
-    amount: Number, 
+    amount: Number,
     time_out: Number,
     statechain_ids: Array, //Vec<Uuid>,
 })
 
 /// Blind Spend Token data for each Swap. (priv, pub) keypair, k and R' value for signing and verification.
 export const BSTSenderData = typeforce.compile ({
-    x: Secp256k1Scalar,  
+    x: Secp256k1Scalar,
     q: Secp256k1Point,
     k: String,
     r_prime: Secp256k1Point,
 })
 
-
-export const SwapStatus = {
-  Phase0: "Phase0",
-  Phase1: "Phase1",
-  Phase2: "Phase2",
-  Phase3: "Phase3",
-  Phase4: "Phase4",
-  End: "End",
-}
-Object.freeze(SwapStatus);
 
 //To do: enforce SwapStatus type checking
 export const SwapInfo = typeforce.compile({
@@ -312,9 +307,9 @@ export const SwapInfo = typeforce.compile({
 export const StateChainSig = typeforce.compile({
     /// Purpose: "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
     purpose: String, // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
-    /// The new owner proof public key (if transfer) or address (if withdrawal)    
+    /// The new owner proof public key (if transfer) or address (if withdrawal)
     data: String,    // proof key, state chain id or address
-    /// Current owner signature (DER encoded). 
+    /// Current owner signature (DER encoded).
     sig: String,
 })
 
@@ -359,7 +354,7 @@ export const BlindedSpendToken = typeforce.compile({
 
 export const BlindedSpendSignature = typeforce.compile(
   {
-    s_prime: Secp256k1Scalar 
+    s_prime: Secp256k1Scalar
   }
 )
 
@@ -379,9 +374,9 @@ export const SwapID = typeforce.compile({
 
 /// Blind Spend Token data for each Swap. (priv, pub) keypair, k and R' value for signing and verification.
 export const BSTRequestorData = typeforce.compile({
-  u: Secp256k1Scalar, 
-  v: Secp256k1Scalar, 
-  r: Secp256k1Point, 
+  u: Secp256k1Scalar,
+  v: Secp256k1Scalar,
+  r: Secp256k1Point,
   e_prime: Secp256k1Scalar,
   m: String,
 })
