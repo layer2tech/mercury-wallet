@@ -79,8 +79,8 @@ describe('2P-ECDSA', function() {
     wasm_mock.Sign.first_message = jest.fn(() => MOCK_CLIENT.SIGN_FIRST);
     wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
 
-    let signature = await sign(http_mock, wasm_mock, KEYGEN_SIGN_DATA.shared_key_id, KEYGEN_SIGN_DATA.shared_key, KEYGEN_SIGN_DATA.signature_hash, KEYGEN_SIGN_DATA.protocol);
-    expect(typeof signature).toBe('string');
+    let signatures = await sign(http_mock, wasm_mock, [KEYGEN_SIGN_DATA.shared_key_id], [KEYGEN_SIGN_DATA.shared_key], [KEYGEN_SIGN_DATA.signature_hash], KEYGEN_SIGN_DATA, KEYGEN_SIGN_DATA.protocol);
+    expect(typeof signatures[0]).toBe('string');
   });
 })
 

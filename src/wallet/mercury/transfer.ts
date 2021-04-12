@@ -77,7 +77,7 @@ export const transferSender = async (
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
   // Create PrepareSignTxMsg to send funding tx data to receiver
   let prepare_sign_msg: PrepareSignTxMsg = {
-    shared_key_id: statecoin.shared_key_id,
+    shared_key_ids: [statecoin.shared_key_id],
     protocol: PROTOCOL.TRANSFER,
     tx_hex: new_tx_backup.toHex(),
     input_addrs: [pk],
@@ -86,7 +86,8 @@ export const transferSender = async (
   };
 
   // Sign new back up tx
-  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
+  let signatures: string[][] = await sign(http_client, wasm_client, [statecoin.shared_key_id], [statecoin.shared_key], prepare_sign_msg, [signatureHash], PROTOCOL.TRANSFER);
+  let signature: string[] = signatures[0];
 
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;

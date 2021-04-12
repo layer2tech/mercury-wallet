@@ -195,7 +195,7 @@ export const ClientSignSecondMsg = typeforce.compile({
 ///////////// TRANSFER /////////////
 
 export const PrepareSignTxMsg = typeforce.compile({
-  shared_key_id: String,
+  shared_key_ids: Array,
   protocol: String,
   tx_hex: String,
   input_addrs: Array,

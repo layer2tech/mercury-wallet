@@ -56,9 +56,13 @@ export const getTransferBatchStatus = async (
   return await http_client.get(GET_ROUTE.TRANSFER_BATCH, batch_id);
 }
 
+export interface OutPoint {
+  txid: string,
+  vout: number,
+}
 
 export interface StateChainDataAPI {
-    utxo: any,
+    utxo: OutPoint,
     amount: number,
     chain: any[],
     locktime: number,

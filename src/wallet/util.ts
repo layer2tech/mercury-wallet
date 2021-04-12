@@ -1,7 +1,7 @@
 // wallet utilities
 
 import { BIP32Interface, Network, TransactionBuilder, crypto as crypto_btc, script, Transaction } from 'bitcoinjs-lib';
-import { Root } from './mercury/info_api';
+import { Root, StateChainDataAPI, FeeInfo, OutPoint } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 import { TransferMsg3 } from './mercury/transfer';
 
@@ -142,6 +142,7 @@ export const txBackupBuild = (network: Network, funding_txid: string, funding_vo
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
+
 export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number): TransactionBuilder => {
   if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
 
@@ -150,6 +151,37 @@ export const txWithdrawBuild = (network: Network, funding_txid: string, funding_
   txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF);
   txb.addOutput(rec_address, value - FEE - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
+  return txb
+}
+
+
+// Withdraw tx builder spending funding tx to:
+//     - amount-fee to receive address, and
+//     - amount 'fee' to State Entity fee address
+export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_address: string, fee_info: FeeInfo): TransactionBuilder => {
+  let txin = []
+  let value = 0;
+  let txb: TransactionBuilder = new TransactionBuilder(network);  
+
+  [...sc_infos].forEach((info, index) => {
+    let utxo: OutPoint = info.utxo;
+    if (utxo !== undefined) {
+      value = value + info.amount;
+      let txid: string = utxo.txid;
+      let vout: number = utxo.vout;
+      txb.addInput(txid, vout, 0xFFFFFFFF);  
+    };
+  });
+
+  value = value + fee_info.deposit;
+
+  let withdraw_fee = (value * fee_info.withdraw) / 10000;
+  
+  if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
+
+  txb.addOutput(rec_address, value - FEE - withdraw_fee);
+  txb.addOutput(fee_info.address, withdraw_fee);
+
   return txb
 }
 

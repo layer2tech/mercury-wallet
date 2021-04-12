@@ -77,60 +77,69 @@ export const keyGen = async (
 export const sign = async (
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
-  shared_key_id: string,
-  master_key: any,
+  shared_key_ids: string[],
+  master_keys: any[],
   prepare_sign_msg: PrepareSignTxMsg,
-  message: string,
+  messages: string[],
   protocol: string
-) => {
+): Promise<string[][]> => {
   // prepare-sign step. Allow server to check backup_tx.
   await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
+  
+  let resps: string[][] = [[]];
 
-  //client first
-  let client_sign_first: ClientSignFirstMsg =
-    JSON.parse(
-      wasm_client.Sign.first_message()
-    );
-  typeforce(types.ClientSignFirstMsg, client_sign_first);
+  [...shared_key_ids].forEach(async (shared_key_id, index) => {
+    //client first
+    let client_sign_first: ClientSignFirstMsg =
+      JSON.parse(
+        wasm_client.Sign.first_message()
+      );
+    typeforce(types.ClientSignFirstMsg, client_sign_first);
 
-  // server first
-  let sign_msg1 = {
+    // server first
+    let sign_msg1 = {
       shared_key_id: shared_key_id,
       eph_key_gen_first_message_party_two: client_sign_first.eph_key_gen_first_message_party_two,
-  };
-  let server_sign_first = await http_client.post(POST_ROUTE.SIGN_FIRST, sign_msg1);
-  typeforce(types.ServerSignfirstMsg, server_sign_first.msg);
+    };
+    let server_sign_first = await http_client.post(POST_ROUTE.SIGN_FIRST, sign_msg1);
+    typeforce(types.ServerSignfirstMsg, server_sign_first.msg);
 
-  //client second
-  let party_two_sign_message =
-    JSON.parse(
-      wasm_client.Sign.second_message(
-        JSON.stringify(master_key),
-        JSON.stringify(client_sign_first.eph_ec_key_pair_party2),
-        JSON.stringify(client_sign_first.eph_comm_witness),
-        JSON.stringify(server_sign_first.msg),
-        message
-      )
-    );
-  typeforce(types.ClientSignSecondMsg, party_two_sign_message);
+    //client second
+    let party_two_sign_message =
+      JSON.parse(
+        wasm_client.Sign.second_message(
+          JSON.stringify(master_keys[index]),
+          JSON.stringify(client_sign_first.eph_ec_key_pair_party2),
+          JSON.stringify(client_sign_first.eph_comm_witness),
+          JSON.stringify(server_sign_first.msg),
+          messages[index]
+        )
+      );
+    typeforce(types.ClientSignSecondMsg, party_two_sign_message);
 
-  let sign_msg2 = {
-      shared_key_id: shared_key_id,
-      sign_second_msg_request: {
-          protocol,
-          message,
-          party_two_sign_message,
-      },
-  };
+    let message = messages[index];
 
-  return await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
+    let sign_msg2 = {
+        shared_key_id: shared_key_id,
+        sign_second_msg_request: {
+            protocol,
+            message,
+            party_two_sign_message,
+        },
+    };
+    let resp: string[] = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
+    resps.push(resp);
+  });
+  
+  return resps;
 }
+
 
 
 
 // Types involved in 2P-ECDSA and Mercury protocols.
 export interface PrepareSignTxMsg {
-    shared_key_id: string,
+    shared_key_ids: string[],
     protocol: string,
     tx_hex: string,
     input_addrs: string[], // keys being spent from
