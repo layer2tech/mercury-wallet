@@ -277,7 +277,7 @@ export const swapPhase4 = async (
   // Update coin status and num swap rounds
   statecoin.swap_status=SWAP_STATUS.End;
   statecoin_out.swap_rounds=statecoin.swap_rounds+1;
-  
+
   return statecoin_out;
 }
 

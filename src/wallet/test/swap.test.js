@@ -46,6 +46,7 @@ describe('Swaps', function() {
       .mockReturnValueOnce()
     let statecoin = makeTesterStatecoin();
     let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
 
     let init = await swapInit(http_mock, statecoin, proof_key_der, 10)
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase0)
@@ -107,7 +108,7 @@ describe('Swaps', function() {
 
     await expect(swapPhase1(http_mock, http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
       .rejects
-      .toThrowError("No Swap ID found. Swap ID should be set in Phase1.");
+      .toThrowError("No Swap ID found. Swap ID should be set in Phase0.");
 
     // Set swap_id as if coin had already run Phase0
     statecoin.swap_id = "12345"
