@@ -62,8 +62,10 @@
     display: none;
 }
 
-.nav-link {
+.Header .nav-link {
     color: #ffffff;
+    padding: 0;
+    margin-right: 14px;
 }
 .hideBar {
     position: absolute;
@@ -72,4 +74,7 @@
     background-color: #F79325;
     left: 0;
 
+}
+.header-logout {
+    cursor: pointer;
 }
