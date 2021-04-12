@@ -1,15 +1,20 @@
+import {Logo, Settings, Help, Logout} from './headerIcons';
+
+import {NotificationBar, ErrorPopup, ConfirmPopup} from "../../components";
+import {unloadWallet} from '../../features/WalletDataSlice'
+
 import React from 'react';
-import { Link, withRouter } from "react-router-dom";
-import { NotificationBar, ErrorPopup, ConfirmPopup } from "../../components";
-import { Logo, Settings, Help, Logout} from './headerIcons';
-import { unloadWallet } from '../../features/WalletDataSlice'
+import {Link, withRouter} from "react-router-dom";
+
 import './header.css';
 
 const Header = (props) => {
+
   const handleLogout = () => {
     unloadWallet();
     props.setWalletLoaded(false);
   }
+
   return (
     <div className="Header">
 
