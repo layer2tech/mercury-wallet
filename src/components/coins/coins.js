@@ -161,8 +161,6 @@ const Coins = (props) => {
   		}
   		return 0;
   	});
-    // Fake random status index
-    all_coins_data.map(item => item.coinStatusIndex = Math.floor(Math.random() * 5));
 
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
