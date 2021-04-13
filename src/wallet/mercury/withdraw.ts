@@ -31,19 +31,23 @@ export const withdraw = async (
   let shared_keys: any[] = [];
   let amounts: number[] = [];
   let amount = 0;
+  let index = 0;
 
-  statecoins.forEach(async (sc: any, index: number) => {
-    console.log("WITHDRAW: statecoin: " + sc);
-    console.log("WITHDRAW: statecoin.funding_txid: " + sc.funding_txid);
-    if (typeof sc.funding_txid === undefined) {
-      console.log("funding txid is undefined");
+      
+    for (const sc of statecoins) {
+    console.log("WITHDRAW: statecoin: " + index + " " + sc);
+    console.log("WITHDRAW: statecoin.funding_txid: " + index + " " + sc.funding_txid);
+    if (sc.funding_txid == null) {
+      console.log("funding txid is undefined - throwing error");
       throw Error("StateChain undefined already withdrawn.");
     }
+    console.log("continuing after testing for already withdrawn");
 
     let statecoin: StateCoin = sc;
 
     let proof_key_der: BIP32Interface = proof_key_ders[index];
     // Get statechain from SE and check ownership
+    console.log("WITHDRAW: Getting statechain");
     let statechain: StateChainDataAPI = await getStateChain(http_client, statecoin.statechain_id);
     sc_infos.push(statechain);
 
@@ -76,7 +80,9 @@ export const withdraw = async (
     amounts.push(statecoin.value);
     pks.push(statecoin.getSharedPubKey());
     shared_keys.push(statecoin.shared_key);
-  });
+    index = index + 1;
+  }
+
 
   // Alert SE of desire to withdraw and receive authorisation if state chain signature verifies
   let withdraw_msg_1 = {
@@ -87,6 +93,7 @@ export const withdraw = async (
   await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
 
   // Get state entity fee info
+  console.log("WITHDRAW: getting fee info");
   let fee_info: FeeInfo = await getFeeInfo(http_client);
 
   // Construct withdraw tx

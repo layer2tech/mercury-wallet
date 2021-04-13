@@ -137,8 +137,7 @@ describe('StateChain Entity', function() {
 
       let statecoin = makeTesterStatecoin();
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-      console.log('statecoin: {}', statecoin);
-      console.log('proof_key_der: {}', proof_key_der);
+      console.log('Withdraw test - calling withdraw - expect success');
       let tx_withdraw = await withdraw(http_mock, wasm_mock, network, [statecoin], [proof_key_der], BTC_ADDR);
 
       // check withdraw tx
@@ -162,7 +161,9 @@ describe('StateChain Entity', function() {
         .rejects
         .toThrowError("StateChain undefined already withdrawn.");
     });
+
     test('StateChain not owned by this wallet.', async function() {
+      console.log("Testing statechain not owned by wallet");
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
 
@@ -330,7 +331,7 @@ describe('StateChain Entity', function() {
         .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
 
       let transfer_msg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
-      transfer_msg3.statechain_asig.sig = "3044022026a22bb2b8c0e43094d9baa9de1abd1de914b59f8bbcf5b740900180da575ed10220544e27e2861edf01b5c383fc90d8b1fd41211628516789f771b2c3536e650bdb";
+      transfer_msg3.statechain_sig.sig = "3044022026a22bb2b8c0e43094d9baa9de1abd1de914b59f8bbcf5b740900180da575ed10220544e27e2861edf01b5c383fc90d8b1fd41211628516789f771b2c3536e650bdb";
 
       await expect(transferReceiver(http_mock, transfer_msg3, {}, null))
         .rejects

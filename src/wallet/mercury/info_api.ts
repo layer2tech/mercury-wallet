@@ -13,6 +13,8 @@ export const getFeeInfo = async (
   http_client: HttpClient | MockHttpClient,
 ) => {
   let fee_info = await http_client.get(GET_ROUTE.FEES, {});
+  console.log("getFeeInfo - fee_info.address: " + fee_info.address);
+  console.log("getFeeInfo - fee_info.deposit: " + fee_info.deposit);
   typeforce(types.FeeInfo, fee_info);  
 
   return fee_info
