@@ -20,6 +20,7 @@ import {useDispatch} from 'react-redux'
 import {fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData} from '../../features/WalletDataSlice'
 import SortBy from './SortBy/SortBy'
+import { STATECOIN_STATUS } from '../../wallet/statecoin'
 import { CoinStatus } from '../../components'
 
 import './coins.css';
@@ -209,7 +210,7 @@ const Coins = (props) => {
                 }
                 {props.showCoinStatus ? (
                   <div className="coin-status-or-txid">
-                    {Math.floor(Math.random() * 2) ?
+                    {item.status === STATECOIN_STATUS.AVAILABLE ?
                     (
                       <b className="CoinFundingTxid">
                           <img src={txidIcon} alt="icon"/>

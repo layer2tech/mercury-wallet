@@ -1,48 +1,40 @@
 import React, { useState } from 'react'
 import { 
-  SendIcon, 
+  InTransferIcon,
   InMempoolIcon,
-  AwaitingConfirmIcon,
+  UnconfirmedConfirmIcon,
   InSwapIcon,
   AwaitingSwapIcon,
-  AwaitingTransactionIcon
+  InitialisedIcon
 } from './statusIcons';
 import { CopiedButton } from '../../components';
+import { STATECOIN_STATUS } from '../../wallet/statecoin'
 
 import './coinStatus.css';
 
-const COIN_STATUS = {
-  midTransfer: 'midTransfer',
-  awaitingTransaction: 'awaitingTransaction',
-  inMempool: 'inMempool',
-  awaitingConfirm: 'awaitingConfirm',
-  inSwap: 'inSwap',
-  awaitingSwap: 'awaitingSwap'
-};
-
-const TYPE_STATUS_INFO = {
-  midTransfer: {
-    icon: <SendIcon />,
+const STATECOIN_STATUS_INFO = {
+  [STATECOIN_STATUS.IN_TRANSFER]: {
+    icon: <InTransferIcon />,
     title: 'Send Pending'
   },
-  inMempool: {
+  [STATECOIN_STATUS.IN_MEMPOOL]: {
     icon: <InMempoolIcon />,
     title: 'Transaction in Mempool'
   },
-  awaitingConfirm: {
-    icon: <AwaitingConfirmIcon />,
+  [STATECOIN_STATUS.UNCONFIRMED]: {
+    icon: <UnconfirmedConfirmIcon />,
     title: 'Awaiting Confirmations'
   },
-  inSwap: {
+  [STATECOIN_STATUS.IN_SWAP]: {
     icon: <InSwapIcon />,
     title: 'In Swap'
   },
-  awaitingSwap: {
+  [STATECOIN_STATUS.AWAITING_SWAP]: {
     icon: <AwaitingSwapIcon />,
     title: 'Awaiting Swap'
   },
-  awaitingTransaction: {
-    icon: <AwaitingTransactionIcon />,
+  [STATECOIN_STATUS.INITIALISED]: {
+    icon: <InitialisedIcon />,
     title: 'Awaiting Transaction'
   }
 };
@@ -57,14 +49,14 @@ const COPIED_MESSAGE_STYLE = {
 
 const CoinStatus = (props) => {
   const [cancelConfirm, setCancelConfirm] = useState(false);
-  let status = COIN_STATUS.midTransfer;//Object.keys(COIN_STATUS)[props.data.coinStatusIndex];
+  const status = props?.data?.status;
 
   const handleCopyTransferCode = (e) => {
     if(e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    navigator.clipboard.writeText('Will update real code later');
+    navigator.clipboard.writeText(props?.data?.transfer_msg);
   };
 
   const handleCancelTransfer = (e) => {
@@ -73,15 +65,15 @@ const CoinStatus = (props) => {
   }
 
   const getStatusIcon = () => {
-    return TYPE_STATUS_INFO[status]?.icon;
+    return STATECOIN_STATUS_INFO[status]?.icon;
   };
 
   const getStatusDetails = () => {
     if(props.isDetails) {
       return (
         <div className="coin-status-details"> 
-          <span className="coin-status-title">{TYPE_STATUS_INFO[status]?.title}</span>
-          {status === COIN_STATUS.midTransfer && (
+          <span className="coin-status-title">{STATECOIN_STATUS_INFO[status]?.title}</span>
+          {status === STATECOIN_STATUS.IN_TRANSFER && (
             <>
               <span 
                 className="coin-mid-cancel" 
@@ -113,7 +105,7 @@ const CoinStatus = (props) => {
               </div>
             </>
           )}
-          {status === COIN_STATUS.awaitingConfirm && (
+          {status === STATECOIN_STATUS.UNCONFIRMED && (
             <div className="coin-status-description">
               1 out of 3 confirmed, {` `}
               <span className="coin-status-copy-code">
@@ -126,8 +118,8 @@ const CoinStatus = (props) => {
     }
     return (
       <div className="coin-status-details"> 
-        <span className="coin-status-title">{TYPE_STATUS_INFO[status]?.title}</span>
-        {status === COIN_STATUS.midTransfer && (
+        <span className="coin-status-title">{STATECOIN_STATUS_INFO[status]?.title}</span>
+        {status === STATECOIN_STATUS.IN_TRANSFER && (
           <CopiedButton
             handleCopy={handleCopyTransferCode} 
             message={COPIED_MESSAGE}
