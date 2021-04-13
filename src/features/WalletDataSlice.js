@@ -4,6 +4,7 @@ import {Wallet, ACTION} from '../wallet'
 import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
 import { pingServer } from '../wallet/swap/info_api'
 import {decodeMessage} from '../wallet/util'
+import {getAllStatecoinDataForWallet} from '../wallet/recovery'
 
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
@@ -50,8 +51,9 @@ export const walletLoad = (name, password) => {
   wallet = Wallet.load(name, password, testing_mode);
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
-  wallet.initElectrumClient(setBlockHeightCallBack);
-  wallet.updateSwapGroupInfo();
+  // wallet.initElectrumClient(setBlockHeightCallBack);
+  // wallet.updateSwapGroupInfo();
+  getAllStatecoinDataForWallet(wallet)
 }
 
 // Create wallet from nmemonic and load wallet
