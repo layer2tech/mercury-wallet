@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Link} from "react-router-dom";
 import { useDispatch } from 'react-redux'
 
-import { setError } from '../../features/WalletDataSlice'
+import {setError, walletFromMnemonic} from '../../features/WalletDataSlice'
 
 import  './RestoreWallet.css'
 
@@ -10,10 +10,10 @@ let bip39 = require('bip39');
 let Store = window.require('electron-store');
 let store = new Store();
 
-const RestoreWalletPage = () => {
+const RestoreWalletPage = (props) => {
   const dispatch = useDispatch();
 
-  const [mnemonic, setMnemonic] = useState("");
+  const [mnemonic, setMnemonic] = useState("bamboo grass grant typical orange cry excite rate air state guilt pull");
   const onMnemonicChange = (event) => {
     setMnemonic(event.target.value)
   }
@@ -24,16 +24,25 @@ const RestoreWalletPage = () => {
       event.preventDefault();
       dispatch(setError({msg: "Invalid mnemonic"}))
     }
+
+    // Create wallet and load into Redux state
+    try {
+      walletFromMnemonic("restored", "", mnemonic, true)
+    } catch (e) {
+      event.preventDefault();
+      dispatch(setError({msg: e.message}))
+    }
+    props.setWalletLoaded(true);
   }
 
   return (
   <div className="restore-form">
     <form>
       <div className="inputs-item">
-          <input id="Passphrase" type="text" oname="mnemonic" required placeholder="Mnemonic " onChange={onMnemonicChange}/>
+          <input id="Passphrase" type="text" name="mnemonic" value={mnemonic} required placeholder="Mnemonic " onChange={onMnemonicChange}/>
       </div>
       <div >
-      <Link to={"/home/mnemonic/"+mnemonic} onClick={onClickConf}>
+      <Link to={"/home"} onClick={onClickConf}>
         Confirm
       </Link>
       </div>

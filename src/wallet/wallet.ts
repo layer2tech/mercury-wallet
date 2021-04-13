@@ -4,7 +4,7 @@ import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
   MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, decryptAES,
-  encodeSCEAddress } from './';
+  encodeSCEAddress, getRecoveryRequest} from './';
 import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
 import { groupInfo } from './swap/info_api';
+import { RecoveryDataMsg } from './mercury/info_api';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -176,6 +177,27 @@ export class Wallet {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
     return Wallet.fromJSON(wallet_json, testing_mode);
+  }
+
+  // Send all proof keys to server to check for statecoins owned by this wallet.
+  // Should be used as a last resort only due to privacy leakage.
+  async recoverCoins(): Promise<RecoveryDataMsg[]> {
+    let recovery_data: any = [];
+    let new_recovery_data_load = [null];
+    let recovery_request = [];
+    // Keep grabbing data until
+    while (new_recovery_data_load.length > 0) {
+      recovery_request = [];
+      for (let i=0; i<5; i++) {
+        let addr = this.account.nextChainAddress(0);
+        recovery_request.push({key: this.account.derive(addr).publicKey.toString("hex"), sig: ""});
+      }
+      new_recovery_data_load = await getRecoveryRequest(this.http_client, recovery_request)
+      recovery_data = recovery_data.concat(new_recovery_data_load)
+    }
+
+    return recovery_data
+    // this.saveKeys();
   }
 
   // Initialise electum server:
