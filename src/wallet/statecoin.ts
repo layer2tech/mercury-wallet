@@ -319,6 +319,7 @@ export class StateCoin {
   // Get data to display in GUI
   getDisplayInfo(block_height: number): StateCoinDisplayData {
     return {
+      status: this.status,
       wallet_version: this.wallet_version,
       shared_key_id: this.shared_key_id,
       value: this.value,
@@ -327,7 +328,7 @@ export class StateCoin {
       timestamp: this.timestamp,
       swap_rounds: this.swap_rounds,
       expiry_data: this.getExpiryData(block_height),
-      status: this.status,
+      transfer_msg: this.transfer_msg,
       swap_id: (this.swap_info ? this.swap_info.swap_token.id : null),
       swap_status: this.swap_status
     }
@@ -427,6 +428,7 @@ export interface StateCoinDisplayData {
   swap_rounds: number,
   expiry_data: ExpiryData,
   status: string,
+  transfer_msg: string | null,
   swap_id: string | null,
   swap_status: string | null,
 }
