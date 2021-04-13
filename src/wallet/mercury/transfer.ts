@@ -86,8 +86,7 @@ export const transferSender = async (
   };
 
   // Sign new back up tx
-  let signatures: string[][] = await sign(http_client, wasm_client, [statecoin.shared_key_id], [statecoin.shared_key], prepare_sign_msg, [signatureHash], PROTOCOL.TRANSFER);
-  let signature: string[] = signatures[0];
+  let signature: string[] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
 
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;
@@ -265,7 +264,7 @@ export interface SCEAddress {
 }
 
 export interface PrepareSignTxMsg {
-    shared_key_id: string,
+    shared_key_ids: string[],
     protocol: string,
     tx_hex: string,
     input_addrs: string[], // keys being spent from

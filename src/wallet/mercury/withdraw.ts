@@ -3,7 +3,7 @@
 import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
 import { PrepareSignTxMsg } from "./ecdsa";
-import { getSigHash, StateChainSig, txWithdrawBuildBatch } from "../util";
+import { getSigHash, StateChainSig, txWithdrawBuildBatch, txWithdrawBuild } from "../util";
 import { PROTOCOL, sign } from "./ecdsa";
 import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
 
@@ -32,14 +32,41 @@ export const withdraw = async (
   let amounts: number[] = [];
   let amount = 0;
 
-  statecoins.forEach(async (statecoin: StateCoin, index: number) => {
+  statecoins.forEach(async (sc: any, index: number) => {
+    console.log("WITHDRAW: statecoin: " + sc);
+    console.log("WITHDRAW: statecoin.funding_txid: " + sc.funding_txid);
+    if (typeof sc.funding_txid === undefined) {
+      console.log("funding txid is undefined");
+      throw Error("StateChain undefined already withdrawn.");
+    }
+
+    let statecoin: StateCoin = sc;
+
     let proof_key_der: BIP32Interface = proof_key_ders[index];
     // Get statechain from SE and check ownership
     let statechain: StateChainDataAPI = await getStateChain(http_client, statecoin.statechain_id);
     sc_infos.push(statechain);
-    if (statechain.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
-    if (statechain.chain.pop().data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key.");
 
+
+    console.log("WITHDRAW: statechain amount: " + statechain.amount);
+    if (statechain.amount === 0) {
+      console.log("Throwing error - statecoin has amount 0, already withdrawn");
+      throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
+    } else {
+      console.log("Not throwing error - statecoin exists with amount " + statechain.amount);
+    }
+
+    let chain_data = statechain.chain.pop().data;
+    console.log("statechain data: " + chain_data);
+    console.log("statecoin proof key: " + statecoin.proof_key);
+    if (chain_data !== statecoin.proof_key) {
+      console.log("Throwing ipk error")
+      throw Error("StateChain not owned by this Wallet. Incorrect proof key.");
+    } else {
+      console.log("Not throwing ipk error")
+    }
+
+  
     // Sign statecoin to signal desire to Withdraw
     let statechain_sig = StateChainSig.create(proof_key_der, "WITHDRAW", rec_addr);
     statechain_sigs.push(statechain_sig);
@@ -63,24 +90,35 @@ export const withdraw = async (
   let fee_info: FeeInfo = await getFeeInfo(http_client);
 
   // Construct withdraw tx
-  let txb_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info);
-  
-  //txWithdrawBuild(
-//    network,
-    //statecoin.funding_txid,
-    //statecoin.funding_vout,
-    //rec_addr,
-    //statecoin.value,
-    //fee_info.address,
-    //withdraw_fee
-  //);
+  let txb_withdraw_unsigned;
+
+  if(statecoins.length > 1) {
+      txb_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info)
+  } else {
+      let statecoin = statecoins[0];
+      console.log("building withdraw tx - funding txid: " + statecoin.funding_txid);
+      console.log("building withdraw tx - funding vout: " + statecoin.funding_vout);
+      let withdraw_fee = (statecoin.value * fee_info.withdraw) / 10000;
+      txb_withdraw_unsigned = txWithdrawBuild(
+            network,
+            statecoin.funding_txid,
+            statecoin.funding_vout,
+            rec_addr,
+            statecoin.value,
+            fee_info.address,
+            withdraw_fee
+          );
+  }
+
   let tx_withdraw_unsigned = txb_withdraw_unsigned.buildIncomplete();
 
   let signatureHashes: string[] = [];
 
   // tx_withdraw_unsigned
   sc_infos.forEach((info, index) => {
-    signatureHashes.push(getSigHash(tx_withdraw_unsigned, 0, pks[index], info.value, network));
+    console.log("getSigHash for: " + tx_withdraw_unsigned + " 0 " + pks[index] + info.amount);
+    let pk = pks[index];
+    signatureHashes.push(getSigHash(tx_withdraw_unsigned, 0, pk, info.amount, network));
   });
   
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
@@ -95,7 +133,7 @@ export const withdraw = async (
   };
 
   //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
-  await sign(http_client, wasm_client, shared_key_ids, shared_keys, prepare_sign_msg, signatureHashes, PROTOCOL.WITHDRAW);
+  await sign(http_client, wasm_client, shared_key_ids[0], shared_keys, prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
 
   // Complete confirm to get witness
   let withdraw_msg_2 = {
@@ -103,13 +141,16 @@ export const withdraw = async (
       address: rec_addr
   }
 
-  let signatures: any[] = await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
+  let signatures: any[][] = await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
 
   // set witness data with signature
   let tx_backup_signed = tx_withdraw_unsigned;
 
+  let sig0 = signatures[0][0];
+  let sig1 = signatures[0][1];
+
   signatures.forEach((signature, index) => {
-    tx_backup_signed.ins[index].witness = [Buffer.from(signature[0][0]),Buffer.from(signature[0][1])];
+    tx_backup_signed.ins[index].witness = [Buffer.from(sig0),Buffer.from(sig1)];
   });
   
 

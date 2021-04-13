@@ -48,12 +48,14 @@ describe('2P-ECDSA', function() {
       .mockReturnValueOnce(MOCK_SERVER.SIGN_SECOND);
     wasm_mock.Sign.first_message = jest.fn(() => MOCK_CLIENT.SIGN_FIRST);
     wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
+    
+    console.log("sign test - signing");
 
-    let signatures = await sign(http_mock, wasm_mock, [KEYGEN_SIGN_DATA.shared_key_id], [KEYGEN_SIGN_DATA.shared_key], [KEYGEN_SIGN_DATA.signature_hash], KEYGEN_SIGN_DATA, KEYGEN_SIGN_DATA.protocol);
-    console.log("signatures: " + signatures)
-    console.log("signatures[0]: " + signatures[0])
-    expect(typeof signatures[0]).toBe('string');
+    let signature = await sign(http_mock, wasm_mock, KEYGEN_SIGN_DATA.shared_key_id, KEYGEN_SIGN_DATA.shared_key, KEYGEN_SIGN_DATA, KEYGEN_SIGN_DATA.signature_hash, KEYGEN_SIGN_DATA.protocol);
+    expect(typeof signature[0]).toBe('string');
+    expect(typeof signature[1]).toBe('string');
   });
+
 })
 
 
@@ -147,11 +149,15 @@ describe('StateChain Entity', function() {
       expect(tx_withdraw.locktime).toBe(0);
     });
     test('Already withdrawn.', async function() {
+      let fee_info = lodash.clone(MOCK_SERVER.FEE_INFO);
+        fee_info.withdraw = 10000;
       let statechain_info = lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO);
       statechain_info.amount = 0;
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(statechain_info)
+        .mockReturnValueOnce(fee_info)
 
+      console.log("Expecting statechain to be already withdrawn: ");
       await expect(withdraw(http_mock, wasm_mock, network, [{}], [{}], BTC_ADDR))
         .rejects
         .toThrowError("StateChain undefined already withdrawn.");
@@ -162,7 +168,9 @@ describe('StateChain Entity', function() {
 
       let statecoin = makeTesterStatecoin();
       statecoin.proof_key = "aaa";
-      await expect(withdraw(http_mock, wasm_mock, network, [statecoin], [{}], BTC_ADDR))
+      console.log("Expecting incorrect proof key");
+      let statecoins = [statecoin];
+      await expect(withdraw(http_mock, wasm_mock, network, statecoins, [{}], BTC_ADDR))
         .rejects
         .toThrowError("StateChain not owned by this Wallet. Incorrect proof key.");
     });
@@ -322,7 +330,7 @@ describe('StateChain Entity', function() {
         .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
 
       let transfer_msg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
-      transfer_msg3.statechain_sig.sig = "3044022026a22bb2b8c0e43094d9baa9de1abd1de914b59f8bbcf5b740900180da575ed10220544e27e2861edf01b5c383fc90d8b1fd41211628516789f771b2c3536e650bdb";
+      transfer_msg3.statechain_asig.sig = "3044022026a22bb2b8c0e43094d9baa9de1abd1de914b59f8bbcf5b740900180da575ed10220544e27e2861edf01b5c383fc90d8b1fd41211628516789f771b2c3536e650bdb";
 
       await expect(transferReceiver(http_mock, transfer_msg3, {}, null))
         .rejects

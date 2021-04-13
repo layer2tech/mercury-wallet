@@ -77,21 +77,15 @@ export const keyGen = async (
 export const sign = async (
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
-  shared_key_ids: string[],
-  master_keys: any[],
+  shared_key_id: string,
+  master_key: any,
   prepare_sign_msg: PrepareSignTxMsg,
-  messages: string[],
+  message: string,
   protocol: string
-): Promise<string[] | null> => {
+) => {
   // prepare-sign step. Allow server to check backup_tx.
   await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
   
-  let resps: string[] = [];
-
-  console.log("sign - shared key ids: " + shared_key_ids);
-
-  [...shared_key_ids].forEach(async (shared_key_id, index) => {
-    console.log("sign - shared key id: " + shared_key_id + ", index: " + index);
     //client first
     let client_sign_first: ClientSignFirstMsg =
       JSON.parse(
@@ -109,7 +103,70 @@ export const sign = async (
 
     //client second
     let party_two_sign_message =
+
+
+    JSON.parse(
+        wasm_client.Sign.second_message(
+          JSON.stringify(master_key),
+          JSON.stringify(client_sign_first.eph_ec_key_pair_party2),
+          JSON.stringify(client_sign_first.eph_comm_witness),
+          JSON.stringify(server_sign_first.msg),
+          message
+        )
+      );
+    typeforce(types.ClientSignSecondMsg, party_two_sign_message);
+
+    let sign_msg2 = {
+        shared_key_id: shared_key_id,
+        sign_second_msg_request: {
+            protocol,
+            message,
+            party_two_sign_message,
+        },
+    };
+    console.log("sign - posting sign second: " + sign_msg2);
+    let resp: string[] = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
+ 
+  return resp;
+}
+
+// 2P-ECDSA Sign.
+// message should be hex string
+export const sign_batch = async (
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
+  shared_key_ids: string[],
+  master_keys: any[],
+  prepare_sign_msg: PrepareSignTxMsg,
+  messages: string[],
+  protocol: string
+) => {
+  // prepare-sign step. Allow server to check backup_tx.
+  await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
+
+  let resps: any = [];
+
+  [...shared_key_ids].forEach(async (shared_key_id, index) => {
+    //client first
+    let client_sign_first: ClientSignFirstMsg =
       JSON.parse(
+        wasm_client.Sign.first_message()
+      );
+    typeforce(types.ClientSignFirstMsg, client_sign_first);
+
+    // server first
+    let sign_msg1 = {
+      shared_key_id: shared_key_id,
+      eph_key_gen_first_message_party_two: client_sign_first.eph_key_gen_first_message_party_two,
+    };
+    let server_sign_first = await http_client.post(POST_ROUTE.SIGN_FIRST, sign_msg1);
+    typeforce(types.ServerSignfirstMsg, server_sign_first.msg);
+
+    //client second
+    let party_two_sign_message =
+
+
+    JSON.parse(
         wasm_client.Sign.second_message(
           JSON.stringify(master_keys[index]),
           JSON.stringify(client_sign_first.eph_ec_key_pair_party2),
@@ -131,13 +188,9 @@ export const sign = async (
         },
     };
     console.log("sign - posting sign second: " + sign_msg2);
-    let resp: string = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
-    console.log("resp: " + resp);
-    console.log("resp[0]: " + resp[0]);
+    let resp: string[] = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
     resps.push(resp);
   });
-  console.log("resps: " + resps);
-  console.log("resps[0]: " + resps[0]);
 
   return resps;
 }

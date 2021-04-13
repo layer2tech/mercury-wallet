@@ -122,7 +122,7 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
     network: network
   }).address;
   let script = bitcoin.address.toOutputScript(addr_p2pkh, network);
-
+  console.log('getSigHash - script: ' + script);
   return tx.hashForWitnessV0(index, script, amount, Transaction.SIGHASH_ALL).toString("hex");
 }
 
@@ -146,6 +146,8 @@ export const txWithdrawBuild = (network: Network, funding_txid: string, funding_
   if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
 
   let txb = new TransactionBuilder(network);
+
+  console.log("txWithdrawBuild: funding_txid: " + funding_txid, "funding_vout: " + funding_vout)
 
   txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF);
   txb.addOutput(rec_address, value - FEE - withdraw_fee);
@@ -274,7 +276,7 @@ export const decodeMessage = (enc_message: string, network: Network): TransferMs
   let proof_key = proof_key_bytes.toString('hex');
 
   let tx_backup_psm: PrepareSignTxMsg = {
-          shared_key_id: shared_key_id,
+          shared_key_ids: [shared_key_id],
           protocol: "Transfer",
           tx_hex: backup_tx_bytes.toString('hex'),
           input_addrs: [],
