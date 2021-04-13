@@ -38,7 +38,8 @@ export class StateCoinList {
       if (
         item.status===STATECOIN_STATUS.AVAILABLE ||
         item.status===STATECOIN_STATUS.IN_SWAP ||
-        item.status===STATECOIN_STATUS.AWAITING_SWAP
+        item.status===STATECOIN_STATUS.AWAITING_SWAP ||
+        item.status===STATECOIN_STATUS.IN_TRANSFER
       ) {
         total += item.value
         return item
