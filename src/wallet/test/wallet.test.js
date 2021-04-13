@@ -246,3 +246,18 @@ describe("Config", () => {
     }).toThrowError("does not exist");
   })
 })
+
+
+describe("Recovery", () => {
+  test('add statecoin and try sign', () => {
+    expect(config.min_anon_set).not.toBe(20)
+    config.update(update)
+    expect(config.min_anon_set).toBe(20)
+  });
+
+  test('fail update invalid value', () => {
+    expect(() => {  // not enough value
+      config.update({invalid: ""});
+    }).toThrowError("does not exist");
+  })
+})

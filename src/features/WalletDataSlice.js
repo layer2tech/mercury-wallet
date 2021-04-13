@@ -52,8 +52,7 @@ export const walletLoad = (name, password) => {
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
   wallet.initElectrumClient(setBlockHeightCallBack);
-  // wallet.updateSwapGroupInfo();
-  getAllStatecoinDataForWallet(wallet)
+  wallet.updateSwapGroupInfo();
 }
 
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
