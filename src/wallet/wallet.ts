@@ -4,12 +4,8 @@ import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
   MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, decryptAES,
-<<<<<<< HEAD
   encodeSCEAddress, getRecoveryRequest} from './';
-=======
-  encodeSCEAddress,
-  getRecoveryRequest} from './';
->>>>>>> 8304c67fd7d79ea909457bf9e262aab254d041a2
+
 import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
