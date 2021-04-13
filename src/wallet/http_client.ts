@@ -13,6 +13,7 @@ export const GET_ROUTE = {
 Object.freeze(GET_ROUTE);
 
 export const POST_ROUTE = {
+  RECOVER: "info/recover",
   KEYGEN_FIRST: "ecdsa/keygen/first",
   KEYGEN_SECOND: "ecdsa/keygen/second",
   PREPARE_SIGN: "prepare-sign",
