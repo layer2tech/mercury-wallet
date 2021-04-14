@@ -188,7 +188,7 @@ export class Wallet {
     if (recoveredCoins.length>0) {
       log.info("Found "+recoveredCoins.length+" StateCoins. Saving to wallet.");
       this.saveKeys();
-      addRestoredCoinDataToWallet(this, recoveredCoins);
+      addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
     }

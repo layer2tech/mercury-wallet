@@ -23,10 +23,6 @@ const RestoreWalletPage = (props) => {
   const setStateWalletPassword = (event) => setState({...state, wallet_password: event.target.value});
   const setStateMnemonic = (event) => setState({...state, mnemonic: event.target.value});
 
-  const onMnemonicChange = (event) => {
-    setStateMnemonic(event.target.value)
-  }
-
   // Confirm mnemonic is valid
   const onClickConf = (event) => {
     if (!bip39.validateMnemonic(state.mnemonic)) {
@@ -48,7 +44,7 @@ const RestoreWalletPage = (props) => {
   <div className="restore-form">
     <form>
       <div className="inputs-item">
-          <input id="Passphrase" type="text" name="mnemonic" value={state.mnemonic} required placeholder="Mnemonic " onChange={onMnemonicChange}/>
+          <input id="Passphrase" type="text" name="mnemonic" required placeholder="Mnemonic " onChange={setStateMnemonic}/>
       </div>
 
       <div >

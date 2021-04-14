@@ -1,10 +1,11 @@
 let bitcoin = require('bitcoinjs-lib')
-import { Wallet, StateCoinList, ACTION, Config } from '../';
+import { Wallet, StateCoinList, ACTION, Config, STATECOIN_STATUS } from '../';
 import { segwitAddr } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
 import { txWithdrawBuild } from '../util';
-
+import { addRestoredCoinDataToWallet } from '../recovery';
+import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
 
 let lodash = require('lodash');
 
@@ -248,16 +249,30 @@ describe("Config", () => {
 })
 
 
-describe("Recovery", () => {
-  test('add statecoin and try sign', () => {
-    expect(config.min_anon_set).not.toBe(20)
-    config.update(update)
-    expect(config.min_anon_set).toBe(20)
-  });
 
-  test('fail update invalid value', () => {
-    expect(() => {  // not enough value
-      config.update({invalid: ""});
-    }).toThrowError("does not exist");
-  })
+describe("Recovery", () => {
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+  wallet.statecoins.coins = [];
+  wallet.genProofKey();
+  wallet.genProofKey();
+  // client side's mock
+  let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+  // server side's mock
+  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+
+  test('run recovery', async () => {
+    http_mock.post = jest.fn().mockReset()
+      .mockReturnValueOnce(RECOVERY_DATA)
+      .mockReturnValue([]);
+    wasm_mock.convert_bigint_to_client_curv_version = jest.fn(() => RECOVERY_DATA_C_KEY_CONVERTED);
+
+    expect(wallet.statecoins.coins.length).toBe(0);
+
+    await addRestoredCoinDataToWallet(wallet, wasm_mock, RECOVERY_DATA);
+
+    expect(wallet.statecoins.coins.length).toBe(1);
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
+    expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
+    expect(wallet.statecoins.coins[0].tx_hex).toBe(RECOVERY_DATA.tx_hex);
+  });
 })

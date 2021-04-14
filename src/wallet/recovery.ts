@@ -15,7 +15,7 @@ export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> =
   // Keep grabbing data until
   while (new_recovery_data_load.length > 0) {
     recovery_request = [];
-    for (let i=0; i<5; i++) {
+    for (let i=0; i<25; i++) {
       let addr = wallet.account.nextChainAddress(0);
       recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
     }
@@ -27,14 +27,12 @@ export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> =
 }
 
 // Gen proof key. Address: tb1qgl76l9gg9qrgv9e9unsxq40dee5gvue0z2uxe2. Proof key: 03b2483ab9bea9843bd9bfb941e8c86c1308e77aa95fccd0e63c2874c0e3ead3f5
-export const addRestoredCoinDataToWallet = async (wallet: Wallet, recoveredCoins: RecoveryDataMsg[]) => {
-
+export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[]) => {
   for (let i=0;i<recoveredCoins.length;i++) {
     let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
     let shared_key= JSON.parse(recoveredCoins[i].shared_key_data)
 
     // convert c_key item to be clinet curv library compatible
-    let wasm = await wallet.getWasm();
     shared_key.c_key = JSON.parse(wasm.convert_bigint_to_client_curv_version(JSON.stringify({c_key: shared_key.c_key}), "c_key")).c_key
 
     // construct MasterKey1
