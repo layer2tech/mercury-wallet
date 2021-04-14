@@ -60,7 +60,6 @@ const CoinStatus = (props) => {
   };
 
   const handleCancelTransfer = (e) => {
-    alert('handle cancel transfer!');
     setCancelConfirm(false);
   }
 
@@ -107,10 +106,10 @@ const CoinStatus = (props) => {
           )}
           {status === STATECOIN_STATUS.UNCONFIRMED && (
             <div className="coin-status-description">
-              1 out of 3 confirmed, {` `}
-              <span className="coin-status-copy-code">
+              {props?.data?.confirmStep} out of {props?.data?.confirmTotal} confirmed
+              {/* <span className="coin-status-copy-code">
                 view on block explorer
-              </span>
+              </span> */}
             </div>
           )}
         </div>
