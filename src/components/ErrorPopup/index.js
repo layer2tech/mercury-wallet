@@ -13,7 +13,7 @@ function ErrorPopup () {
     <>
       <Modal show={!error_dialogue.seen} onHide={handleCloseError} className="modal">
         <Modal.Body className="custom-modal-body">
-          <p className="custom-modal-info">{error_dialogue.msg}</p>
+          <p className="custom-modal-info alert-danger">{error_dialogue.msg}</p>
         </Modal.Body>
         <div className="custom-modal-footer">
           <button className="Body-button bg-transparent" onClick={handleCloseError}>

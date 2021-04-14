@@ -15,7 +15,7 @@ const App = () => {
   return (
     <div className="App">
       <Router>
-      <Header walletLoaded={walletLoaded}/>
+      <Header walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded} />
       <Switch>
         <Route path="/" exact component={() => <WelcomePage />} />
         <Route path="/create_wallet" exact component={() => <CreateWalletInfoPage />} />

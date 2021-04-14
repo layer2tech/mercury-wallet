@@ -2,7 +2,7 @@ import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 
 import {Wallet, ACTION} from '../wallet'
 import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
-import { pingServer } from '../wallet/swap/info_api'
+import {pingServer, swapDeregisterUtxo} from '../wallet/swap/info_api'
 import {decodeMessage} from '../wallet/util'
 import {getAllStatecoinDataForWallet} from '../wallet/recovery'
 
@@ -136,10 +136,6 @@ export const callCreateBackupTxCPFP = (cpfp_data) => {
      return sucess
 }
 
-// Remove coin from a swap pool.
-export const callRemoveCoinFromSwap = (shared_key_id) => {
-     wallet.statecoins.removeCoinFromSwap(shared_key_id);
-}
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
@@ -185,7 +181,14 @@ export const callUpdateSwapGroupInfo = createAsyncThunk(
     wallet.updateSwapGroupInfo();
   }
 )
-
+export const callSwapDeregisterUtxo = createAsyncThunk(
+  'SwapDeregisterUtxo',
+  async (action, thunkAPI) => {
+    let statechain_id = wallet.statecoins.getCoin(action.shared_key_id).statechain_id
+    await swapDeregisterUtxo(wallet.conductor_client, {id: statechain_id});
+    wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
+  }
+)
 
 const WalletSlice = createSlice({
   name: 'walletData',
@@ -284,6 +287,9 @@ const WalletSlice = createSlice({
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callUpdateSwapGroupInfo.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callSwapDeregisterUtxo.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
 }
