@@ -62,8 +62,7 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
   if (testing_mode) log.info("Testing mode set.");
   wallet.initElectrumClient(setBlockHeightCallBack);
   if (try_restore) {
-    // wallet.doRestore
-    getAllStatecoinDataForWallet(wallet);
+    wallet.recoverCoinsFromServer();
   }
   callNewSeAddr();
   wallet.save();
