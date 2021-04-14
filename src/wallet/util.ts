@@ -163,8 +163,9 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
   let txin = []
   let value = 0;
   let txb: TransactionBuilder = new TransactionBuilder(network);  
+  let index = 0;
 
-  [...sc_infos].forEach((info, index) => {
+  for(let info of sc_infos){
     let utxo: OutPoint = info.utxo;
     if (utxo !== undefined) {
       value = value + info.amount;
@@ -172,7 +173,8 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
       let vout: number = utxo.vout;
       txb.addInput(txid, vout, 0xFFFFFFFF);  
     };
-  });
+    index = index + 1;
+  }
 
   value = value + fee_info.deposit;
 

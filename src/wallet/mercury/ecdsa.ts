@@ -146,7 +146,10 @@ export const sign_batch = async (
 
   let resps: any = [];
 
-  [...shared_key_ids].forEach(async (shared_key_id, index) => {
+  let index = 0;
+
+  //[...shared_key_ids].forEach(async (shared_key_id, index) => {
+  for (let shared_key_id of shared_key_ids){
     //client first
     let client_sign_first: ClientSignFirstMsg =
       JSON.parse(
@@ -190,7 +193,8 @@ export const sign_batch = async (
     console.log("sign - posting sign second: " + sign_msg2);
     let resp: string[] = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
     resps.push(resp);
-  });
+    index = index + 1;
+  }
 
   return resps;
 }

@@ -33,6 +33,11 @@ export const getStateChain = async (
   statechain_id: string
 ) => {
   let statechain = await http_client.get(GET_ROUTE.STATECHAIN, statechain_id);
+  console.log("getStateChain: statechain" + statechain);
+  console.log("getStateChain: statechain.utxo" + statechain.utxo);
+  console.log("getStateChain: statechain.amount" + statechain.amount);
+  console.log("getStateChain: statechain.chain" + statechain.chain);
+  console.log("getStateChain: statechain.locktime" + statechain.locktime);
   typeforce(types.StateChainDataAPI, statechain);
   return statechain
 }
