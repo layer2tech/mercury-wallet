@@ -104,29 +104,6 @@ function passStringToWasm0(arg, malloc, realloc) {
     return ptr;
 }
 /**
-* @param {string} root
-* @param {string} proof_key
-* @param {string} proof
-* @returns {any}
-*/
-export function verify_statechain_smt(root, proof_key, proof) {
-    var ptr0 = passStringToWasm0(root, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    var ptr1 = passStringToWasm0(proof_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len1 = WASM_VECTOR_LEN;
-    var ptr2 = passStringToWasm0(proof, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len2 = WASM_VECTOR_LEN;
-    var ret = wasm.verify_statechain_smt(ptr0, len0, ptr1, len1, ptr2, len2);
-    return takeObject(ret);
-}
-
-/**
-*/
-export function init() {
-    wasm.init();
-}
-
-/**
 */
 export function test_wasm() {
     wasm.test_wasm();
@@ -140,6 +117,43 @@ export function curv_ge_to_bitcoin_public_key(pk) {
     var ptr0 = passStringToWasm0(pk, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len0 = WASM_VECTOR_LEN;
     var ret = wasm.curv_ge_to_bitcoin_public_key(ptr0, len0);
+    return takeObject(ret);
+}
+
+/**
+* @param {string} json_str
+* @param {string} field_name
+* @returns {any}
+*/
+export function convert_bigint_to_client_curv_version(json_str, field_name) {
+    var ptr0 = passStringToWasm0(json_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ptr1 = passStringToWasm0(field_name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len1 = WASM_VECTOR_LEN;
+    var ret = wasm.convert_bigint_to_client_curv_version(ptr0, len0, ptr1, len1);
+    return takeObject(ret);
+}
+
+/**
+*/
+export function init() {
+    wasm.init();
+}
+
+/**
+* @param {string} root
+* @param {string} proof_key
+* @param {string} proof
+* @returns {any}
+*/
+export function verify_statechain_smt(root, proof_key, proof) {
+    var ptr0 = passStringToWasm0(root, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ptr1 = passStringToWasm0(proof_key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len1 = WASM_VECTOR_LEN;
+    var ptr2 = passStringToWasm0(proof, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len2 = WASM_VECTOR_LEN;
+    var ret = wasm.verify_statechain_smt(ptr0, len0, ptr1, len1, ptr2, len2);
     return takeObject(ret);
 }
 

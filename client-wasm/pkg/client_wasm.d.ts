@@ -1,16 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-* @param {string} root
-* @param {string} proof_key
-* @param {string} proof
-* @returns {any}
-*/
-export function verify_statechain_smt(root: string, proof_key: string, proof: string): any;
-/**
-*/
-export function init(): void;
-/**
 */
 export function test_wasm(): void;
 /**
@@ -18,6 +8,22 @@ export function test_wasm(): void;
 * @returns {any}
 */
 export function curv_ge_to_bitcoin_public_key(pk: string): any;
+/**
+* @param {string} json_str
+* @param {string} field_name
+* @returns {any}
+*/
+export function convert_bigint_to_client_curv_version(json_str: string, field_name: string): any;
+/**
+*/
+export function init(): void;
+/**
+* @param {string} root
+* @param {string} proof_key
+* @param {string} proof
+* @returns {any}
+*/
+export function verify_statechain_smt(root: string, proof_key: string, proof: string): any;
 /**
 * Provides wrappers for Swap methods
 */

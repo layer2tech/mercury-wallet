@@ -13,7 +13,7 @@ let store = new Store();
 const RestoreWalletPage = (props) => {
   const dispatch = useDispatch();
 
-  const [mnemonic, setMnemonic] = useState("bamboo grass grant typical orange cry excite rate air state guilt pull");
+  const [mnemonic, setMnemonic] = useState("");
   const onMnemonicChange = (event) => {
     setMnemonic(event.target.value)
   }

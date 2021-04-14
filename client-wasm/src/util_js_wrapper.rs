@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 use curv::{self, elliptic::curves::traits::ECPoint};
+use crate::kms_secp256k1_js_wrapper::convert_big_int_to_client_deserializable;
 
 #[wasm_bindgen]
 pub fn test_wasm() {
@@ -19,4 +20,10 @@ pub fn curv_ge_to_bitcoin_public_key(pk: String) -> Result<JsValue, JsValue> {
         compressed: true,
         key: pk.get_element(),
     }.to_string().into())
+}
+
+
+#[wasm_bindgen]
+pub fn convert_bigint_to_client_curv_version(json_str: String, field_name: String) -> Result<JsValue, JsValue> {
+    Ok(convert_big_int_to_client_deserializable(&json_str, field_name).into())
 }
