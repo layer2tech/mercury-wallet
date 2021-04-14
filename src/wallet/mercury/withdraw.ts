@@ -4,7 +4,7 @@ import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
 import { PrepareSignTxMsg } from "./ecdsa";
 import { getSigHash, StateChainSig, txWithdrawBuildBatch, txWithdrawBuild } from "../util";
-import { PROTOCOL, sign } from "./ecdsa";
+import { PROTOCOL, sign, sign_batch } from "./ecdsa";
 import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
 
 // withdraw() messages:
@@ -72,6 +72,7 @@ export const withdraw = async (
 
   
     // Sign statecoin to signal desire to Withdraw
+    console.log("WITHDRAW: get statechain sig");
     let statechain_sig = StateChainSig.create(proof_key_der, "WITHDRAW", rec_addr);
     statechain_sigs.push(statechain_sig);
     shared_key_ids.push(statecoin.shared_key_id)
@@ -90,6 +91,7 @@ export const withdraw = async (
     statechain_sigs: statechain_sigs
   }
 
+  console.log("WITHDRAW: post withdraw msg 1");
   await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
 
   // Get state entity fee info
@@ -100,6 +102,7 @@ export const withdraw = async (
   let txb_withdraw_unsigned;
 
   if(statecoins.length > 1) {
+      console.log("WITHDRAW: tx withdraw build batch");
       txb_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info)
   } else {
       let statecoin = statecoins[0];
@@ -117,11 +120,13 @@ export const withdraw = async (
           );
   }
 
+  console.log("WITHDRAW: git withdraw tx signed");
   let tx_withdraw_unsigned = txb_withdraw_unsigned.buildIncomplete();
 
   let signatureHashes: string[] = [];
 
   // tx_withdraw_unsigned
+  console.log("WITHDRAW: getting sig hashes");
   sc_infos.forEach((info, index) => {
     console.log("getSigHash for: " + tx_withdraw_unsigned + " 0 " + pks[index] + info.amount);
     let pk = pks[index];
@@ -130,6 +135,7 @@ export const withdraw = async (
   
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
   // Create PrepareSignTxMsg to send funding tx data to receiver
+  console.log("WITHDRAW: prepare_sign_msg");
   let prepare_sign_msg: PrepareSignTxMsg = {
     shared_key_ids: shared_key_ids,
     protocol: PROTOCOL.WITHDRAW,
@@ -139,27 +145,32 @@ export const withdraw = async (
     proof_key: null,
   };
 
-  //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
-  await sign(http_client, wasm_client, shared_key_ids[0], shared_keys, prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
-
+  if(shared_key_ids.length == 1) {
+    console.log("WITHDRAW: sign");
+    //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
+    await sign(http_client, wasm_client, shared_key_ids[0], shared_keys, prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
+  } else {
+    console.log("WITHDRAW: sign batch");
+    await sign_batch(http_client, wasm_client, shared_key_ids, shared_keys, prepare_sign_msg, signatureHashes, PROTOCOL.WITHDRAW);
+  }
   // Complete confirm to get witness
   let withdraw_msg_2 = {
       shared_key_ids: shared_key_ids,
       address: rec_addr
   }
 
+  console.log("WITHDRAW: confirm");
   let signatures: any[][] = await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
 
   // set witness data with signature
   let tx_backup_signed = tx_withdraw_unsigned;
 
-  let sig0 = signatures[0][0];
-  let sig1 = signatures[0][1];
-
+  console.log("WITHDRAW: update tx backup signed");
   signatures.forEach((signature, index) => {
+    let sig0 = signature[0];
+    let sig1 = signature[1];
     tx_backup_signed.ins[index].witness = [Buffer.from(sig0),Buffer.from(sig1)];
   });
   
-
   return tx_backup_signed
 }

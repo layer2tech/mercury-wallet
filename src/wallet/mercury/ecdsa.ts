@@ -84,9 +84,11 @@ export const sign = async (
   protocol: string
 ) => {
   // prepare-sign step. Allow server to check backup_tx.
+  console.log("SIGN: prepare sign...")
   await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
   
     //client first
+    console.log("SIGN: parse ClientSignFirstMsg")
     let client_sign_first: ClientSignFirstMsg =
       JSON.parse(
         wasm_client.Sign.first_message()
@@ -98,22 +100,33 @@ export const sign = async (
       shared_key_id: shared_key_id,
       eph_key_gen_first_message_party_two: client_sign_first.eph_key_gen_first_message_party_two,
     };
+    console.log("SIGN: sign first")
     let server_sign_first = await http_client.post(POST_ROUTE.SIGN_FIRST, sign_msg1);
     typeforce(types.ServerSignfirstMsg, server_sign_first.msg);
 
     //client second
+    console.log("SIGN: second");
+    let mks = JSON.stringify(master_key);
+    console.log("SIGN: second - master_key: " + master_key);
+    let csfs = JSON.stringify(client_sign_first.eph_ec_key_pair_party2);
+    console.log("SIGN: second - csfs: " + csfs);
+    let ecw = JSON.stringify(client_sign_first.eph_comm_witness);
+    console.log("SIGN: second - ecw: " + ecw);
+    let ssf = JSON.stringify(server_sign_first.msg);
+    console.log("SIGN: second - ssf: " + ssf);
+
+    console.log("SIGN: party two sign message");
     let party_two_sign_message =
-
-
     JSON.parse(
         wasm_client.Sign.second_message(
-          JSON.stringify(master_key),
-          JSON.stringify(client_sign_first.eph_ec_key_pair_party2),
-          JSON.stringify(client_sign_first.eph_comm_witness),
-          JSON.stringify(server_sign_first.msg),
+          mks,
+          csfs,
+          ecw,
+          ssf,
           message
         )
       );
+    console.log("SIGN: typeforce ClientSignSecondMsg");
     typeforce(types.ClientSignSecondMsg, party_two_sign_message);
 
     let sign_msg2 = {
@@ -124,7 +137,7 @@ export const sign = async (
             party_two_sign_message,
         },
     };
-    console.log("sign - posting sign second: " + sign_msg2);
+    console.log("SIGN: posting sign second: " + sign_msg2);
     let resp: string[] = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
  
   return resp;

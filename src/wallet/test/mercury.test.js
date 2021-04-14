@@ -207,6 +207,8 @@ describe('StateChain Entity', function() {
         .mockReturnValueOnce(true)   //POST.PREPARE_SIGN
         .mockReturnValueOnce(MOCK_SERVER.SIGN_FIRST)
         .mockReturnValueOnce(MOCK_SERVER.SIGN_SECOND)
+        .mockReturnValueOnce(MOCK_SERVER.SIGN_FIRST)
+        .mockReturnValueOnce(MOCK_SERVER.SIGN_SECOND)
         .mockReturnValueOnce(MOCK_SERVER.WITHDRAW_CONFIRM);
       wasm_mock.Sign.first_message = jest.fn(() => MOCK_CLIENT.SIGN_FIRST);
       wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
