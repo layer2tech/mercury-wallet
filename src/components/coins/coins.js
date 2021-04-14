@@ -162,14 +162,6 @@ const Coins = (props) => {
   		return 0;
   	});
 
-    // Fake confirmation step
-    all_coins_data.map(item => {
-      if(item.status === STATECOIN_STATUS.UNCONFIRMED) {
-        item.confirmStep = 2;
-        item.confirmTotal = 4;
-      }
-    })
-
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
 
