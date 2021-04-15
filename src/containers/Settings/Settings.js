@@ -221,17 +221,20 @@ const SettingsPage = (props) => {
               </div>
 
           </div>
-
-          <ConfirmPopup
+          {current_config.testing_mode ?
+            <ConfirmPopup
             onOk={clearWalletButtonOnClick}
-          >
-            <button
-              type="button"
-              className="Body-button blue"
             >
-              Clear wallet memory
+            <button
+            type="button"
+            className="Body-button blue"
+            >
+            Clear wallet memory
             </button>
-          </ConfirmPopup>
+            </ConfirmPopup>
+          :
+            null
+          }
       </div>
   )
 }
