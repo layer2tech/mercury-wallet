@@ -4,22 +4,26 @@ import "./copiedButton.css";
 
 let timeout;
 
-function CopiedButton ({ children, handleCopy, style = {} }) {
+function CopiedButton ({ 
+  children, 
+  handleCopy, 
+  style = {}, 
+  message = 'Copied!',
+  delay = 1000
+}) {
   const [copied, setCopied] = useState(false);
-  const handleClick = () => {
-    handleCopy()
+  const handleClick = (e) => {
+    handleCopy(e)
     setCopied(true)
   };
   useEffect(() => {
     clearTimeout(timeout);
-    if(copied) {
-      timeout = setTimeout(() => setCopied(false), 1000);
-    }
+    timeout = setTimeout(() => setCopied(false), delay);
     return () => clearTimeout(timeout);
-  }, [copied]);
+  });
   return (
     <div className="copy-btn-wrap">
-      {copied && <span className="copied" style={style}>Copied!</span>}
+      {copied && <span className="copied" style={style}>{message}</span>}
       {cloneElement(children, { onClick: handleClick })}
     </div>
   );
@@ -29,6 +33,8 @@ CopiedButton.propTypes = {
   children: PropTypes.element,
   handleCopy: PropTypes.func,
   style: PropTypes.object,
+  delay: PropTypes.number,
+  message: PropTypes.string
 };
 
 export default CopiedButton;

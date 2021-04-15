@@ -4,6 +4,7 @@ import {Wallet, ACTION} from '../wallet'
 import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
 import {pingServer, swapDeregisterUtxo} from '../wallet/swap/info_api'
 import {decodeMessage} from '../wallet/util'
+import {getAllStatecoinDataForWallet} from '../wallet/recovery'
 
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
@@ -54,12 +55,15 @@ export const walletLoad = (name, password) => {
   wallet.updateSwapGroupInfo();
 }
 
-// Create wallet from nmemonic and load wallet
-export const walletFromMnemonic = (name, password, mnemonic) => {
+// Create wallet from nmemonic and load wallet. Try restore wallet if set.
+export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   log.info("Wallet "+name+" created.");
   if (testing_mode) log.info("Testing mode set.");
   wallet.initElectrumClient(setBlockHeightCallBack);
+  if (try_restore) {
+    wallet.recoverCoinsFromServer();
+  }
   callNewSeAddr();
   wallet.save();
 }

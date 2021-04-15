@@ -237,6 +237,7 @@ export class StateCoin {
   wallet_version: string;
   proof_key: string;
   value: number;
+
   funding_txid: string;
   funding_vout: number;
   block: number;  // included in block number. 0 for unconfirmed.

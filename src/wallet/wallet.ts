@@ -4,7 +4,8 @@ import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
   MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, decryptAES,
-  encodeSCEAddress } from './';
+  encodeSCEAddress} from './';
+
 import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
@@ -15,6 +16,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
 import { groupInfo } from './swap/info_api';
+import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -176,6 +178,20 @@ export class Wallet {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
     return Wallet.fromJSON(wallet_json, testing_mode);
+  }
+
+  // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
+  async recoverCoinsFromServer() {
+    log.info("Recovering StateCoins from server for mnemonic.");
+
+    let recoveredCoins = await recoverCoins(this);
+    if (recoveredCoins.length>0) {
+      log.info("Found "+recoveredCoins.length+" StateCoins. Saving to wallet.");
+      this.saveKeys();
+      addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
+    } else {
+      log.info("No StateCoins found in Server for this mnemonic.");
+    }
   }
 
   // Initialise electum server:
@@ -710,23 +726,6 @@ export class Wallet {
     log.info("Withdrawing finished.");
     this.saveStateCoinsList();
     return tx_withdraw
-  }
-
-  // Perform swap
-  // Args: statechain_id of coin to swap and swap size parameter. Also provide current coin swap_rounds for GUI demos.
-  // Return: New wallet coin data
-  swap(statechain_id: string, _swap_size: number, swap_rounds: number) {
-    return {
-      amount: 0.1,
-      shared_key_id: "h46w1ueui-438c-87dc-d06054277a5d",
-      statechain_id: statechain_id,
-      funding_txid: "4aac3d840fbad3cf76843a5d74e2e118b822772c020fe0d3d0f3d73c0662c9be",
-      funding_vout: 0,
-      backuptx: "40fbad3cef62c93c06e118b8f62c9b74e276843a5d0f22772c024aac3d8e0d3d0f3d7b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3cef62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce",
-      proof_key: "43030ed1524b9660afb44a7ed876aa15c2983ee7dcf5dc7aec2aeffee49cd9b243db99ea404418727260ef40378168bfd6d0d1358d611195f4dbd89015f9b785",
-      swap_rounds: swap_rounds + 10,
-      time_left: "10"
-    }
   }
 }
 
