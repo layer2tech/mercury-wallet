@@ -53,7 +53,7 @@ export class Storage {
     // encrypt mnemonic
     wallet_json.mnemonic = encryptAES(wallet_json.mnemonic, wallet_json.password);
     // remove password and root keys
-    delete wallet_json.password;
+    wallet_json.password = ""
     wallet_json.account = this.accountToAddrMap(wallet_json.account);
     // remove testing_mode config
     delete wallet_json.config.testing_mode;
