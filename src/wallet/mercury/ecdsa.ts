@@ -107,7 +107,7 @@ export const sign = async (
     //client second
     console.log("SIGN: second");
     let mks = JSON.stringify(master_key);
-    console.log("SIGN: second - master_key: " + master_key);
+    console.log("SIGN: second - master_key: " + mks);
     let csfs = JSON.stringify(client_sign_first.eph_ec_key_pair_party2);
     console.log("SIGN: second - csfs: " + csfs);
     let ecw = JSON.stringify(client_sign_first.eph_comm_witness);
