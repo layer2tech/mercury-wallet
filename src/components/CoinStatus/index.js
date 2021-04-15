@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { 
+import {
   InTransferIcon,
   InMempoolIcon,
   UnconfirmedConfirmIcon,
@@ -70,12 +70,12 @@ const CoinStatus = (props) => {
   const getStatusDetails = () => {
     if(props.isDetails) {
       return (
-        <div className="coin-status-details"> 
+        <div className="coin-status-details">
           <span className="coin-status-title">{STATECOIN_STATUS_INFO[status]?.title}</span>
           {status === STATECOIN_STATUS.IN_TRANSFER && (
             <>
-              <span 
-                className="coin-mid-cancel" 
+              <span
+                className="coin-mid-cancel"
                 onClick={() => setCancelConfirm(true)}
               >Cancel</span>
               {cancelConfirm && (
@@ -88,14 +88,14 @@ const CoinStatus = (props) => {
                 </div>
               )}
               <div className="coin-status-description">
-                <CopiedButton 
-                  handleCopy={handleCopyTransferCode} 
+                <CopiedButton
+                  handleCopy={handleCopyTransferCode}
                   message={COPIED_MESSAGE}
                   delay={COPIED_MESSAGE_DELAYS}
                   style={COPIED_MESSAGE_STYLE}
                 >
                   <div>
-                    <span 
+                    <span
                       className="coin-status-copy-code"
                       // onClick={handleCopyTransferCode}
                     >Click to Copy Transfer Code</span> to clipboard and send it to the Receiver.
@@ -106,7 +106,7 @@ const CoinStatus = (props) => {
           )}
           {status === STATECOIN_STATUS.UNCONFIRMED && (
             <div className="coin-status-description">
-              {props?.data?.confirmStep} out of {props?.data?.confirmTotal} confirmed
+              {props?.data?.expiry_data.confirmations<0 ? 0 : props?.data?.expiry_data.confirmations} out of 3 confirations
               {/* <span className="coin-status-copy-code">
                 view on block explorer
               </span> */}
@@ -116,11 +116,11 @@ const CoinStatus = (props) => {
       );
     }
     return (
-      <div className="coin-status-details"> 
+      <div className="coin-status-details">
         <span className="coin-status-title">{STATECOIN_STATUS_INFO[status]?.title}</span>
         {status === STATECOIN_STATUS.IN_TRANSFER && (
           <CopiedButton
-            handleCopy={handleCopyTransferCode} 
+            handleCopy={handleCopyTransferCode}
             message={COPIED_MESSAGE}
             delay={COPIED_MESSAGE_DELAYS}
             style={{

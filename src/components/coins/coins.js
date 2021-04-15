@@ -186,9 +186,6 @@ const Coins = (props) => {
                           </div>
                       </span>
                   </div>
-                  {item.expiry_data.blocks===-1 ?
-                        <b>Confirmations: {item.expiry_data.confirmations<0 ? 0 : item.expiry_data.confirmations}</b>
-                    :
 
                   <div className="progress_bar" id={item.expiry_data.months < MONTHS_WARNING ? 'danger' : 'success'}>
                       <div className="sub">
@@ -205,7 +202,7 @@ const Coins = (props) => {
                           </span>
                       </div>
                   </div>
-                }
+                  
                 {props.showCoinStatus ? (
                   <div className="coin-status-or-txid">
                     {item.status === STATECOIN_STATUS.AVAILABLE ?
