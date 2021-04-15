@@ -2,7 +2,7 @@
 
 import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
 import {transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
-import { pollUtxo, pollSwap, getSwapInfo } from "./info_api";
+import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo } from "./info_api";
 import { getStateChain } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
@@ -35,6 +35,7 @@ function delay(s: number) {
 
 // SWAP_STATUS represent each stage in the lifecycle of a coin in a swap.
 export const SWAP_STATUS = {
+  Init: "Init",
   Phase0: "Phase0",
   Phase1: "Phase1",
   Phase2: "Phase2",
@@ -52,11 +53,8 @@ export const swapInit = async (
   proof_key_der: BIP32Interface,
   swap_size: number
 ) => {
-  if (statecoin.swap_status!==null) throw Error("Coin is already involved in a swap. Swap status: "+statecoin.swap_status);
-
-  if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already in swap pool.");
-  if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already involved in swap.");
-  if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.shared_key_id+" not available for swap.");
+  if (statecoin.swap_status!==null && statecoin.swap_status!==SWAP_STATUS.Init)
+    throw Error("Coin is already involved in a swap. Swap status: "+statecoin.swap_status);
 
   let publicKey = proof_key_der.publicKey.toString('hex');
   let sc_sig = StateChainSig.create(proof_key_der, "SWAP", publicKey);
@@ -67,11 +65,10 @@ export const swapInit = async (
     swap_size: swap_size
   };
 
-  await conductor_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
+  await swapRegisterUtxo(conductor_client, registerUtxo);
   log.info("Coin registered for Swap. Coin ID: ", statecoin.shared_key_id)
 
   statecoin.swap_status=SWAP_STATUS.Phase0;
-  statecoin.setAwaitingSwap();
 }
 
 
@@ -277,7 +274,7 @@ export const swapPhase4 = async (
   // Update coin status and num swap rounds
   statecoin.swap_status=SWAP_STATUS.End;
   statecoin_out.swap_rounds=statecoin.swap_rounds+1;
-  
+
   return statecoin_out;
 }
 
@@ -292,12 +289,21 @@ export const do_swap_poll = async(
   swap_size: number,
   new_proof_key_der: BIP32Interface,
 ): Promise<StateCoin | null> => {
+  if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already in swap pool.");
+  if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already involved in swap.");
+  if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.shared_key_id+" not available for swap.");
+
+  statecoin.swap_status = SWAP_STATUS.Init;
+  statecoin.setAwaitingSwap();
 
   let new_statecoin = null;
     while (new_statecoin==null) {
       try {
         switch (statecoin.swap_status) {
-          case null: {
+          case null: {  // Coin has been removed from swap
+            return null;
+          }
+          case SWAP_STATUS.Init: {
             await swapInit(conductor_client, statecoin, proof_key_der, swap_size);
             break;
           }

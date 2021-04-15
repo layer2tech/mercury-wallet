@@ -5,7 +5,7 @@ import {useDispatch} from 'react-redux'
 import React, {useState, useEffect} from 'react';
 
 import { Coins, Swaps, StdButton} from "../../components";
-import {isWalletLoaded, setNotification, setError, callDoSwap, callRemoveCoinFromSwap,
+import {isWalletLoaded, setNotification, setError, callDoSwap, callSwapDeregisterUtxo,
   callGetSwapGroupInfo, callUpdateSwapGroupInfo} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
@@ -68,7 +68,7 @@ const SwapPage = () => {
         return
       }
       try {
-        callRemoveCoinFromSwap(selectedCoin);
+        dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}));
         // Refresh Coins list
         setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
       } catch (e) {

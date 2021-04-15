@@ -257,7 +257,7 @@ export class StateCoin {
   // Transfer data
   transfer_msg: TransferMsg3 | null
 
-  // Swap data
+ // Swap data
   swap_status: string | null;
   swap_id: SwapID | null;
   swap_info: SwapInfo | null;

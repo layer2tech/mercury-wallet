@@ -142,7 +142,7 @@ export interface PrepareSignTxMsg {
 export interface MasterKey2 {
   public: Party2Public,
   private: any, // Leave as Object since we dont need these items in Wallet.
-  chain_code: string,
+  chain_code: any,
 }
 
 // kms::ecdsa:two_party::Party2Public
@@ -160,7 +160,7 @@ export interface Party2Public {
     y: string
   },
   paillier_pub: any,
-  c_key: string,
+  c_key: any,
 }
 
 
