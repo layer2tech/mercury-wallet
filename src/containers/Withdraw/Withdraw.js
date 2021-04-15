@@ -78,6 +78,7 @@ const WithdrawPage = () => {
                     <h3 className="subtitle">Select Statecoin UTXO’s to withdraw</h3>
                     <span className="sub">Click to select UTXO’s below</span>
                     <Coins
+                      showCoinStatus={true}
                       displayDetailsOnClick={false}
                       selectedCoin={selectedCoin}
                       setSelectedCoin={setSelectedCoin}/>
