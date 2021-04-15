@@ -32,7 +32,7 @@ const RestoreWalletPage = (props) => {
 
     // Create wallet and load into Redux state
     try {
-      walletFromMnemonic("restored", "", state.mnemonic, true)
+      walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true)
     } catch (e) {
       event.preventDefault();
       dispatch(setError({msg: e.message}))
@@ -44,7 +44,15 @@ const RestoreWalletPage = (props) => {
   <div className="restore-form">
     <form>
       <div className="inputs-item">
-          <input id="Passphrase" type="text" name="mnemonic" required placeholder="Mnemonic " onChange={setStateMnemonic}/>
+          <input type="text" name="mnemonic" required placeholder="Mnemonic " onChange={setStateMnemonic}/>
+      </div>
+
+      <div className="inputs-item">
+          <input type="text" name="wallet_name" required placeholder="Wallet Name " onChange={setStateWalletName}/>
+      </div>
+
+      <div className="inputs-item">
+          <input type="password" name="wallet_password" required placeholder="Password " onChange={setStateWalletPassword}/>
       </div>
 
       <div >
