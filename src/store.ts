@@ -48,19 +48,22 @@ export class Storage {
 
   // Wallet storage
   storeWallet(wallet_json: any) {
-    wallet_json.electrum_client = ""
-    wallet_json.storage = ""
+    delete wallet_json.electrum_client;
+    delete wallet_json.storage;
     // encrypt mnemonic
-    wallet_json.mnemonic = encryptAES(wallet_json.mnemonic, wallet_json.password)
+    wallet_json.mnemonic = encryptAES(wallet_json.mnemonic, wallet_json.password);
     // remove password and root keys
-    wallet_json.password = ""
-    wallet_json.account = this.accountToAddrMap(wallet_json.account)
+    delete wallet_json.password;
+    wallet_json.account = this.accountToAddrMap(wallet_json.account);
+    // remove testing_mode config
+    delete wallet_json.config.testing_mode;
+    delete wallet_json.config.jest_testing_mode;
 
     this.store.set('wallets.'+wallet_json.name, wallet_json);
   }
 
   getWallet(wallet_name: string) {
-    return this.store.get('wallets.'+wallet_name)
+    return this.store.get('wallets.'+wallet_name);
   }
 
   storeWalletStateCoinsList(wallet_name: string, statecoins: StateCoinList, activity: ActivityLog) {

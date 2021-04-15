@@ -21,6 +21,9 @@ export class MockWasm {
   curv_ge_to_bitcoin_public_key(_input: string) {
     return "0226a18285602f45cbb9a2b6c45b87971c9280daa6a342185a59afa9eb6e226bea"
   }
+  convert_bigint_to_client_curv_version(_json_str: string, _field_name: string) {
+    return ""
+  }
 }
 
 

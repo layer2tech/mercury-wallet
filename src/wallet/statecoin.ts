@@ -195,8 +195,6 @@ export const STATECOIN_STATUS = {
   UNCONFIRMED: "UNCONFIRMED",
   // Coins are fully owned by wallet and unspent
   AVAILABLE: "AVAILABLE",
-  // Coin has been sent but not yet received.
-  IN_TRANSFER: "IN_TRANSFER",
   // Coin currently waiting in swap pool
   AWAITING_SWAP: "AWAITING_SWAP",
   // Coin currently carrying out swap protocol
@@ -241,6 +239,7 @@ export class StateCoin {
   wallet_version: string;
   proof_key: string;
   value: number;
+
   funding_txid: string;
   funding_vout: number;
   block: number;  // included in block number. 0 for unconfirmed.
@@ -287,8 +286,6 @@ export class StateCoin {
     this.tx_withdraw = null;
     this.smt_proof = null;
     this.status = STATECOIN_STATUS.INITIALISED;
-
-    this.transfer_msg = null;
 
     this.swap_status = null;
     this.swap_id = null
