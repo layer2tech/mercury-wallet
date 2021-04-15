@@ -106,6 +106,7 @@ const SwapPage = () => {
                       <span className="sub">Click to select UTXO’s below</span>
                       <Coins
                         displayDetailsOnClick={false}
+                        showCoinStatus={true}
                         selectedCoin={selectedCoin}
                         setSelectedCoin={setSelectedCoin}
                         refresh={refreshCoins}/>

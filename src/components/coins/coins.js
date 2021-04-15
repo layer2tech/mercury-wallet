@@ -20,6 +20,7 @@ import {useDispatch} from 'react-redux'
 import {fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData} from '../../features/WalletDataSlice'
 import SortBy from './SortBy/SortBy'
+import { STATECOIN_STATUS } from '../../wallet/statecoin'
 import { CoinStatus } from '../../components'
 
 import './coins.css';
@@ -160,8 +161,6 @@ const Coins = (props) => {
   		}
   		return 0;
   	});
-    // Fake random status index
-    all_coins_data.map(item => item.coinStatusIndex = Math.floor(Math.random() * 5));
 
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
@@ -187,9 +186,6 @@ const Coins = (props) => {
                           </div>
                       </span>
                   </div>
-                  {item.expiry_data.blocks===-1 ?
-                        <b>Confirmations: {item.expiry_data.confirmations<0 ? 0 : item.expiry_data.confirmations}</b>
-                    :
 
                   <div className="progress_bar" id={item.expiry_data.months < MONTHS_WARNING ? 'danger' : 'success'}>
                       <div className="sub">
@@ -206,10 +202,10 @@ const Coins = (props) => {
                           </span>
                       </div>
                   </div>
-                }
+                  
                 {props.showCoinStatus ? (
                   <div className="coin-status-or-txid">
-                    {Math.floor(Math.random() * 2) ?
+                    {item.status === STATECOIN_STATUS.AVAILABLE ?
                     (
                       <b className="CoinFundingTxid">
                           <img src={txidIcon} alt="icon"/>
