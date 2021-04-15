@@ -434,8 +434,8 @@ export class Wallet {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode)
   }
   // Mark statecoin as spent after transfer or withdraw
-  setStateCoinSpent(id: string, action: string) {
-    this.statecoins.setCoinSpent(id, action)
+  setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
+    this.statecoins.setCoinSpent(id, action, transfer_msg);
     this.activity.addItem(id, action);
     log.debug("Set Statecoin spent: "+id);
   }
@@ -630,7 +630,7 @@ export class Wallet {
     let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr)
 
     // Mark funds as spent in wallet
-    this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER);
+    this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER, transfer_sender);
 
     log.info("Transfer Sender complete.");
     this.saveStateCoinsList();

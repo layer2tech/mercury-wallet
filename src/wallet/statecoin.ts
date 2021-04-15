@@ -7,7 +7,7 @@ import { ElectrumTxData } from "./electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
 import { BSTRequestorData, SwapID, SwapInfo } from "./swap/swap";
-import { SCEAddress, TransferFinalizeData } from "./mercury/transfer";
+import { SCEAddress, TransferFinalizeData, TransferMsg3 } from "./mercury/transfer";
 
 export class StateCoinList {
   coins: StateCoin[]
@@ -105,7 +105,7 @@ export class StateCoinList {
   };
 
 
-  setCoinSpent(shared_key_id: string, action: string) {
+  setCoinSpent(shared_key_id: string, action: string, transfer_msg?: TransferMsg3) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       switch (action) {
@@ -114,6 +114,7 @@ export class StateCoinList {
           return;
         case ACTION.TRANSFER:
           coin.setSpent();
+          coin.transfer_msg = transfer_msg!;
           return;
         case ACTION.SWAP:
           coin.setSwapped();
@@ -254,7 +255,7 @@ export class StateCoin {
   status: string;
 
   // Transfer data
-  transfer_msg: string | null
+  transfer_msg: TransferMsg3 | null
 
   // Swap data
   swap_status: string | null;
@@ -429,7 +430,7 @@ export interface StateCoinDisplayData {
   swap_rounds: number,
   expiry_data: ExpiryData,
   status: string,
-  transfer_msg: string | null,
+  transfer_msg: TransferMsg3 | null,
   swap_id: string | null,
   swap_status: string | null,
 }
