@@ -90,11 +90,6 @@ const SettingsPage = (props) => {
     props.setWalletLoaded(false);
   }
 
-  const logOutButtonOnClick = () => {
-    unloadWallet();
-    props.setWalletLoaded(false);
-  }
-
   return (
       <div className="container">
           <div className="Body settings">
@@ -235,16 +230,6 @@ const SettingsPage = (props) => {
               className="Body-button blue"
             >
               Clear wallet memory
-            </button>
-          </ConfirmPopup>
-          <ConfirmPopup
-            onOk={logOutButtonOnClick}
-          >
-            <button
-              type="button"
-              className="Body-button blue"
-            >
-              Log out of wallet
             </button>
           </ConfirmPopup>
       </div>
