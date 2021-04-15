@@ -6,22 +6,31 @@ import { getRecoveryRequest, RecoveryDataMsg } from './mercury/info_api';
 
 let bitcoin = require('bitcoinjs-lib')
 
+// number of keys to generate per recovery call. If no statecoins are found for this number
+// of keys then assume there are no more statecoins owned by this wallet.
+const NUM_KEYS_PER_RECOVERY_ATTEMPT = 25;
+
 // Send all proof keys to server to check for statecoins owned by this wallet.
 // Should be used as a last resort only due to privacy leakage.
 export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> => {
   let recovery_data: any = [];
   let new_recovery_data_load = [null];
   let recovery_request = [];
-  // Keep grabbing data until
+
+  // Keep grabbing data until NUM_KEYS_PER_RECOVERY_ATTEMPT keys have no statecoins
   while (new_recovery_data_load.length > 0) {
     recovery_request = [];
-    for (let i=0; i<25; i++) {
+    for (let i=0; i<NUM_KEYS_PER_RECOVERY_ATTEMPT; i++) {
       let addr = wallet.account.nextChainAddress(0);
       recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
     }
     new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
     recovery_data = recovery_data.concat(new_recovery_data_load);
   }
+
+  // No more keys found for this wallet. Remove the NUM_KEYS_PER_RECOVERY_ATTEMPT from
+  // wallets account so that the wallet can use them.
+  wallet.account.chains[0].k = wallet.account.chains[0].k - NUM_KEYS_PER_RECOVERY_ATTEMPT;
 
   return recovery_data
 }
