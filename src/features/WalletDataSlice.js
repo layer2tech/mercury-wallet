@@ -21,6 +21,7 @@ const initialState = {
   balance_info: {total_balance: null, num_coins: null},
   fee_info: {deposit: "NA", withdraw: "NA"},
   ping_swap: null,
+  filterBy: 'default'
 }
 
 // Check if a wallet is loaded in memory
@@ -217,6 +218,12 @@ const WalletSlice = createSlice({
           ping_swap: action.payload
         }
     },
+    updateFilter(state, action) {
+      return {
+        ...state,
+        filterBy: action.payload
+      }
+    },
     // Deposit
     dummyDeposit() {
       let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
@@ -296,7 +303,7 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo, updatePingSwap,
-  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
+  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave, updateFilter } = WalletSlice.actions
   export default WalletSlice.reducer
 
 
