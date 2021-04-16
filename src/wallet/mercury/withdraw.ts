@@ -148,6 +148,7 @@ export const withdraw = async (
   if(shared_key_ids.length == 1) {
     console.log("WITHDRAW: sign");
     //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
+  console.log("sign...");
     await sign(http_client, wasm_client, shared_key_ids[0], shared_keys, prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
   } else {
     console.log("WITHDRAW: sign batch");

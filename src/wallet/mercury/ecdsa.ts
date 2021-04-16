@@ -84,7 +84,7 @@ export const sign = async (
   protocol: string
 ) => {
   // prepare-sign step. Allow server to check backup_tx.
-  console.log("SIGN: prepare sign...")
+  console.log("prepare sign...")
   await http_client.post(POST_ROUTE.PREPARE_SIGN, prepare_sign_msg);
   
     //client first
@@ -104,7 +104,7 @@ export const sign = async (
     let server_sign_first = await http_client.post(POST_ROUTE.SIGN_FIRST, sign_msg1);
     typeforce(types.ServerSignfirstMsg, server_sign_first.msg);
 
-    //client second
+
     console.log("SIGN: second");
     let mks = JSON.stringify(master_key);
     console.log("SIGN: second - master_key: " + mks);
@@ -114,12 +114,12 @@ export const sign = async (
     console.log("SIGN: second - ecw: " + ecw);
     let ssf = JSON.stringify(server_sign_first.msg);
     console.log("SIGN: second - ssf: " + ssf);
-
+    
     console.log("SIGN: party two sign message");
     let party_two_sign_message =
     JSON.parse(
         wasm_client.Sign.second_message(
-          mks,
+          JSON.stringify(master_key[0]),
           csfs,
           ecw,
           ssf,
@@ -139,7 +139,7 @@ export const sign = async (
     };
     console.log("SIGN: posting sign second: " + sign_msg2);
     let resp: string[] = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
- 
+     
   return resp;
 }
 

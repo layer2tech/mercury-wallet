@@ -51,6 +51,7 @@ export const depositConfirm = async (
   chaintip_height: number,
 ): Promise<StateCoin> => {
   // Get state entity fee info
+  console.log("getFeeInfo...");
   let fee_info: FeeInfo = await getFeeInfo(http_client);
   let withdraw_fee = (statecoin.value * fee_info.withdraw) / 10000;
 
@@ -78,6 +79,7 @@ export const depositConfirm = async (
   };
 
   // construct shared signatures
+  console.log("sign...");
   let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.DEPOSIT);
   
 
@@ -92,13 +94,17 @@ export const depositConfirm = async (
   let deposit_msg2 = {
       shared_key_id: statecoin.shared_key_id,
   }
+  console.log("deposit_msg2...");
   let statechain_id = await http_client.post(POST_ROUTE.DEPOSIT_CONFIRM, deposit_msg2);
 
   typeforce(typeforce.String, statecoin.shared_key_id)
 
   // Verify proof key inclusion in SE sparse merkle tree
+  console.log("getRoot...");
   let root = await getRoot(http_client);
+  console.log("getSmtProof...");
   let proof = await getSmtProof(http_client, root, statecoin.funding_txid);
+  console.log("verifySmtProof...");
   if (!verifySmtProof(wasm_client, root, statecoin.proof_key, proof)) throw Error("SMT verification failed.")
 
   // Add proof and state chain id to Shared key
