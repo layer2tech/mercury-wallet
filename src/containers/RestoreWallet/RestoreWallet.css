@@ -103,3 +103,7 @@
 .restore-form a.back:hover {
     color: #ffffff;
 }
+
+.restore-form .btn-primary {
+    background-color: #0F54F4;
+}

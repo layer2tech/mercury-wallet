@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
-import {Link} from "react-router-dom";
+import {Link, withRouter } from "react-router-dom";
 import { useDispatch } from 'react-redux'
-
 import {setError, walletFromMnemonic} from '../../features/WalletDataSlice'
 import { CreateWizardForm } from '../../components'
 
@@ -32,6 +31,7 @@ const RestoreWalletPage = (props) => {
     // Create wallet and load into Redux state
     try {
       walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true)
+      props.history.push('/home')
     } catch (e) {
       dispatch(setError({msg: e.message}))
     }
@@ -55,4 +55,4 @@ const RestoreWalletPage = (props) => {
   )
 }
 
-export default RestoreWalletPage;
+export default withRouter(RestoreWalletPage);
