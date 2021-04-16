@@ -9,4 +9,9 @@
   font-weight: normal;
   left: -50px;
   text-transform: capitalize;
+  background: #495057;
+  color: #fff;
+  padding: 4px;
+  border-radius: 4px;
+  width: 50px;
 }
