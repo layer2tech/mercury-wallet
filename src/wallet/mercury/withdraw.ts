@@ -140,6 +140,7 @@ export const withdraw = async (
   };
 
   //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
+  console.log("sign...");
   await sign(http_client, wasm_client, shared_key_ids[0], shared_keys, prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
 
   // Complete confirm to get witness
@@ -148,6 +149,7 @@ export const withdraw = async (
       address: rec_addr
   }
 
+  console.log("withdraw_confirm...");
   let signatures: any[][] = await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
 
   // set witness data with signature

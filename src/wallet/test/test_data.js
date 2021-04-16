@@ -55,7 +55,7 @@ export const makeTesterStatecoins = () => {
   tester_statecoins[1].funding_txid = STATECOIN.funding_txid;
   tester_statecoins[1].funding_vout = STATECOIN.funding_vout;
   tester_statecoins[1].tx_backup = bitcoin.Transaction.fromHex(STATECOIN_CONFIRMED_BACKUPTX_HEX);
-  return tester_statecoina
+  return tester_statecoins
 }
 
 
