@@ -15,7 +15,8 @@ import timeIcon from "../../images/time.png";
 import React, {useState, useEffect} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
-import {useDispatch} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux';
+import Moment from 'react-moment';
 
 import {fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData} from '../../features/WalletDataSlice'
@@ -44,6 +45,7 @@ const INITIAL_SORT_BY = {
 
 const Coins = (props) => {
     const dispatch = useDispatch();
+    const { filterBy } = useSelector(state => state.walletData);
 
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
@@ -144,7 +146,20 @@ const Coins = (props) => {
       }
     }
 
-    const all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
+    let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
+
+    // Filter coins by status
+    if(filterBy === 'default') {
+      all_coins_data = all_coins_data.filter(coin => coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER)
+    } else {
+      if(filterBy === STATECOIN_STATUS.WITHDRAWN) {
+        all_coins_data = all_coins_data.filter(coin => coin.status === STATECOIN_STATUS.WITHDRAWN)
+      }
+      if(filterBy === STATECOIN_STATUS.IN_TRANSFER) {
+        all_coins_data = all_coins_data.filter(coin => coin.status === STATECOIN_STATUS.IN_TRANSFER)
+      }
+    }
+
   	all_coins_data.sort((a, b) => {
   		let compareProp = sortCoin.by;
   		if(compareProp === 'expiry_data') {
@@ -186,26 +201,36 @@ const Coins = (props) => {
                           </div>
                       </span>
                   </div>
-
-                  <div className="progress_bar" id={item.expiry_data.months < MONTHS_WARNING ? 'danger' : 'success'}>
-                      <div className="sub">
-                          <ProgressBar>
-                              <ProgressBar striped variant={item.expiry_data.months < MONTHS_WARNING ? 'danger' : 'success'}
-                                now={item.expiry_data.months * 100 / 12}
-                                key={1}/>
-                          </ProgressBar>
-                      </div>
-                      <div className="CoinTimeLeft">
-                          <img src={timeIcon} alt="icon"/>
-                          <span>
-                              Time Until Expiry: <span className='expiry-time-left'>{expiry_time_to_string(item.expiry_data)}</span>
-                          </span>
-                      </div>
-                  </div>
+                  {filterBy !== STATECOIN_STATUS.WITHDRAWN ? (
+                    <div className="progress_bar" id={item.expiry_data.months < MONTHS_WARNING ? 'danger' : 'success'}>
+                        <div className="sub">
+                            <ProgressBar>
+                                <ProgressBar striped variant={item.expiry_data.months < MONTHS_WARNING ? 'danger' : 'success'}
+                                  now={item.expiry_data.months * 100 / 12}
+                                  key={1}/>
+                            </ProgressBar>
+                        </div>
+                        <div className="CoinTimeLeft">
+                            <img src={timeIcon} alt="icon"/>
+                            <span>
+                                Time Until Expiry: <span className='expiry-time-left'>{expiry_time_to_string(item.expiry_data)}</span>
+                            </span>
+                        </div>
+                    </div>
+                  ) : (
+                    <div className="widthdrawn-status">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 0.5C3.875 0.5 0.5 3.875 0.5 8C0.5 12.125 3.875 15.5 8 15.5C12.125 15.5 15.5 12.125 15.5 8C15.5 3.875 12.125 0.5 8 0.5ZM12.875 9.125H3.125V6.875H12.875V9.125Z" fill="#BDBDBD"/>
+                      </svg>
+                      <span>
+                        Withdrawn <span className="widthdrawn-status-time">| {<Moment format="MM.DD.YYYY HH:mm">{item.timestamp}</Moment>}</span>
+                      </span>
+                    </div>
+                  )}
                   
                 {props.showCoinStatus ? (
                   <div className="coin-status-or-txid">
-                    {item.status === STATECOIN_STATUS.AVAILABLE ?
+                    {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
                     (
                       <b className="CoinFundingTxid">
                           <img src={txidIcon} alt="icon"/>
@@ -227,7 +252,7 @@ const Coins = (props) => {
 
     return (
         <div>
-			<SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} />
+          {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
             {statecoinData}
 
             <Modal show={showCoinDetails.show} onHide={handleCloseCoinDetails} className="modal">
