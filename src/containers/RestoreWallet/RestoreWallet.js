@@ -14,6 +14,7 @@ let store = new Store();
 
 const RestoreWalletPage = (props) => {
   const [showPass, setShowPass] = useState(false);
+  const [checked, setChecked] = useState(false)
   const dispatch = useDispatch();
 
   const [state, setState] = useState(
@@ -23,6 +24,7 @@ const RestoreWalletPage = (props) => {
       mnemonic: "",
     });
   const toggleShowPass = () => setShowPass(!showPass);
+  const toggleCheckbox = () => setChecked(!checked);
   const setStateWalletName = (event) => setState({...state, wallet_name: event.target.value});
   const setStateWalletPassword = (event) => setState({...state, wallet_password: event.target.value});
   const setStateMnemonic = (event) => setState({...state, mnemonic: event.target.value});
@@ -66,11 +68,23 @@ const RestoreWalletPage = (props) => {
               {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
           </span>
       </div>
+      <div className="inputs-item">
+          <input id="checkbox" type="checkbox" name="checkbox" required
+                  onChange={toggleCheckbox}/>
+          <label className="control-label"
+                  htmlFor="checkbox"> I confirm that nobody can see my screen and take responsiblity of the security
+              of this computer,
+              because anyone who has access to my seed key will be able to spend the funds in my wallet.</label>
+      </div>
 
-      <div >
-      <Link to={"/home"} onClick={onClickConf}>
-        Confirm
-      </Link>
+      <div className="btn-confirm-wrap">
+        <Link 
+          to={"/home"} 
+          className={`send  ${!checked ? "disabled" : ""}`}
+          onClick={onClickConf}
+        >
+          Confirm
+        </Link>
       </div>
 
     </form>
