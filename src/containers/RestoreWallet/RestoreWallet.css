@@ -75,19 +75,10 @@
     padding: 5px 16px;
 }
 
-input[type='checkbox'], input[type='radio'] {
-    --active-inner: #707070;
-}
 
 .restore-form .inputs-item input[type='checkbox'] {
     border: 1px solid #000000;
     background: #ffffff;
-    opacity: 1;
-    border-radius: 0 !important;
-    position: relative;
-    top: 12px;
-    width: 18px!important;
-    height: 18px;
 }
 
 .restore-form a.send.disabled {
@@ -111,8 +102,4 @@ input[type='checkbox'], input[type='radio'] {
 }
 .restore-form a.back:hover {
     color: #ffffff;
-}
-
-.restore-form input[type='checkbox'] + label {
-    text-align: left;
 }
