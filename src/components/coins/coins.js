@@ -62,6 +62,9 @@ const Coins = (props) => {
         setShowCoinDetails(DEFAULT_STATE_COIN_DETAILS);
     }
 
+    const filterCoinsByStatus = (coins = [], status) => {
+      return coins.filter(coin => coin.status === status);
+    }
     // Set selected coin
     const selectCoin = (shared_key_id) => {
         shared_key_id === props.selectedCoin ? props.setSelectedCoin(null) : props.setSelectedCoin(shared_key_id);
@@ -89,8 +92,14 @@ const Coins = (props) => {
           unConfirmedCoins: unconfired_coins_data
       })
       // Update total_balance in Redux state
-      dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
-    }, [props.refresh]);
+      if(filterBy !== 'default') {
+        const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfired_coins_data], filterBy);
+        const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value , 0);
+        dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsByStatus.length}));
+      } else {
+        dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
+      }
+    }, [props.refresh, filterBy]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
@@ -153,10 +162,10 @@ const Coins = (props) => {
       all_coins_data = all_coins_data.filter(coin => coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER)
     } else {
       if(filterBy === STATECOIN_STATUS.WITHDRAWN) {
-        all_coins_data = all_coins_data.filter(coin => coin.status === STATECOIN_STATUS.WITHDRAWN)
+        all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.WITHDRAWN);
       }
       if(filterBy === STATECOIN_STATUS.IN_TRANSFER) {
-        all_coins_data = all_coins_data.filter(coin => coin.status === STATECOIN_STATUS.IN_TRANSFER)
+        all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.IN_TRANSFER);
       }
     }
 
