@@ -8,7 +8,8 @@ import {
   InitialisedIcon
 } from './statusIcons';
 import { CopiedButton } from '../../components';
-import { STATECOIN_STATUS } from '../../wallet/statecoin'
+import { STATECOIN_STATUS } from '../../wallet/statecoin';
+import { encodeMessage } from '../../wallet/util';
 
 import './coinStatus.css';
 
@@ -56,7 +57,7 @@ const CoinStatus = (props) => {
       e.preventDefault();
       e.stopPropagation();
     }
-    navigator.clipboard.writeText(props?.data?.transfer_msg);
+    navigator.clipboard.writeText(encodeMessage(props?.data?.transfer_msg));
   };
 
   const handleCancelTransfer = (e) => {

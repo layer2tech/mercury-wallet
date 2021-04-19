@@ -39,7 +39,8 @@ export class StateCoinList {
         item.status===STATECOIN_STATUS.AVAILABLE ||
         item.status===STATECOIN_STATUS.IN_SWAP ||
         item.status===STATECOIN_STATUS.AWAITING_SWAP ||
-        item.status===STATECOIN_STATUS.IN_TRANSFER
+        item.status===STATECOIN_STATUS.IN_TRANSFER ||
+        item.status===STATECOIN_STATUS.WITHDRAWN
       ) {
         total += item.value
         return item
@@ -113,7 +114,7 @@ export class StateCoinList {
           coin.setWithdrawn();
           return;
         case ACTION.TRANSFER:
-          coin.setSpent();
+          coin.setInTransfer();
           coin.transfer_msg = transfer_msg!;
           return;
         case ACTION.SWAP:
@@ -304,6 +305,7 @@ export class StateCoin {
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
   setAwaitingSwap() { this.status = STATECOIN_STATUS.AWAITING_SWAP }
   setInSwap() { this.status = STATECOIN_STATUS.IN_SWAP }
+  setInTransfer() { this.status = STATECOIN_STATUS.IN_TRANSFER; }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
   setSwapped() { this.status = STATECOIN_STATUS.SWAPPED; }
