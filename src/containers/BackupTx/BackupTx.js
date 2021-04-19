@@ -27,16 +27,13 @@ const BackupTxPage = () => {
   }
 
   const setSelectedCoinWrapper = (id) => {
-    console.log("setSelectedCoinWrapper")
-    console.log("id", id)
     setSelectedCoin(id);
     if (id==null) {
       setSelectedCoinTxData(DEFAULT_TX_DATA)
     } else {
       try {
         const txData = callGetCoinBackupTxData(id);
-        console.log("txData", txData)
-        setSelectedCoinTxData(txData)
+        setSelectedCoinTxData(txData);
       } catch(error) {
         console.warn('Something wrong with get coin backup tx data', error);
       }
