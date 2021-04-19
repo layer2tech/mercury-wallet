@@ -217,6 +217,8 @@ describe('StateChain Entity', function() {
       let proof_key_ders =[bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)),
         bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D))];
       console.log("WithdrawBatch - doing batch withdraw")
+
+
       let tx_withdraw = await withdraw(http_mock, wasm_mock, network, statecoins, proof_key_ders, BTC_ADDR);
       console.log("WithdrawBatch - finished doing batch withdraw")
       // check withdraw tx
@@ -252,14 +254,16 @@ describe('StateChain Entity', function() {
       fee_info.withdraw = 10000;
 
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[0]))
+        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[1]))
         .mockReturnValueOnce(fee_info)
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
 
-      let statecoin = lodash.cloneDeep(makeTesterStatecoins()[1]);
-      let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-      await expect(withdraw(http_mock, wasm_mock, network, [statecoin], [proof_key_der], BTC_ADDR))
+      let statecoins = lodash.cloneDeep(makeTesterStatecoins());
+      let proof_key_ders = [bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)),
+        bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D))];
+      await expect(withdraw(http_mock, wasm_mock, network, statecoins, proof_key_ders, BTC_ADDR))
         .rejects
         .toThrowError("Not enough value to cover fee.");
     });
