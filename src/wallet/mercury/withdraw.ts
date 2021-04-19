@@ -65,7 +65,7 @@ export const withdraw = async (
     console.log("statecoin proof key: " + statecoin.proof_key);
     if (chain_data !== statecoin.proof_key) {
       console.log("Throwing ipk error")
-      throw Error("StateChain not owned by this Wallet. Incorrect proof key.");
+      throw Error("StateChain not owned by this Wallet. Incorrect proof key. Expected " + statecoin.proof_key + ", got " + chain_data);
     } else {
       console.log("Not throwing ipk error")
     }
@@ -155,13 +155,11 @@ export const withdraw = async (
   // set witness data with signature
   let tx_backup_signed = tx_withdraw_unsigned;
 
-  let sig0 = signatures[0][0];
-  let sig1 = signatures[0][1];
-
   signatures.forEach((signature, index) => {
+    let sig0 = signatures[index][0];
+    let sig1 = signatures[index][1];
     tx_backup_signed.ins[index].witness = [Buffer.from(sig0),Buffer.from(sig1)];
   });
   
-
   return tx_backup_signed
 }

@@ -6,7 +6,7 @@ import { withdraw } from "../mercury/withdraw";
 import { transferSender, transferReceiver, transferReceiverFinalize } from "../mercury/transfer";
 import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
 
-import { BTC_ADDR, KEYGEN_SIGN_DATA, makeTesterStatecoin, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID } from './test_data.js'
+import { BTC_ADDR, KEYGEN_SIGN_DATA, makeTesterStatecoin, makeTesterStatecoins, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID } from './test_data.js'
 import * as MOCK_CLIENT from '../mocks/mock_wasm';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 
@@ -196,7 +196,8 @@ describe('StateChain Entity', function() {
   describe('Withdraw Batch', function() {
     test('Expect complete', async function() {
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[0]))
+        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[1]))
         .mockReturnValueOnce(MOCK_SERVER.FEE_INFO);
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
@@ -209,11 +210,13 @@ describe('StateChain Entity', function() {
       wasm_mock.Sign.first_message = jest.fn(() => MOCK_CLIENT.SIGN_FIRST);
       wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
 
-      let statecoins = [lodash.cloneDeep(makeTesterStatecoins[0]), lodash.cloneDeep(makeTesterStatecoins[1])]
+      let statecoins = [lodash.cloneDeep(makeTesterStatecoins()[0]), lodash.cloneDeep(makeTesterStatecoins()[1])]
       let proof_key_ders =[bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)),
         bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D))];
       console.log('statecoin: {}', statecoins[0]);
       console.log('proof_key_der: {}', proof_key_ders[0]);
+
+
       let tx_withdraw = await withdraw(http_mock, wasm_mock, network, statecoins, proof_key_ders, BTC_ADDR);
 
       // check withdraw tx
@@ -238,7 +241,7 @@ describe('StateChain Entity', function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
 
-      let statecoin = lodash.cloneDeep(makeTesterStatecoins[0]);
+      let statecoin = lodash.cloneDeep(makeTesterStatecoins()[0]);
       statecoin.proof_key = "aaa";
       await expect(withdraw(http_mock, wasm_mock, network, [statecoin], [{}], BTC_ADDR))
         .rejects
@@ -254,7 +257,7 @@ describe('StateChain Entity', function() {
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
 
-      let statecoin = lodash.cloneDeep(makeTesterStatecoins[1]);
+      let statecoin = lodash.cloneDeep(makeTesterStatecoins()[1]);
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
       await expect(withdraw(http_mock, wasm_mock, network, [statecoin], [proof_key_der], BTC_ADDR))
         .rejects
