@@ -1,14 +1,13 @@
 import React, {useState} from 'react';
-import {Link} from "react-router-dom";
+import {Link, withRouter } from "react-router-dom";
 import { useDispatch } from 'react-redux'
-
 import {setError, walletFromMnemonic} from '../../features/WalletDataSlice'
+import { CreateWizardForm } from '../../components'
 
 import  './RestoreWallet.css'
 
 let bip39 = require('bip39');
 let Store = window.require('electron-store');
-let store = new Store();
 
 const RestoreWalletPage = (props) => {
   const dispatch = useDispatch();
@@ -24,17 +23,16 @@ const RestoreWalletPage = (props) => {
   const setStateMnemonic = (event) => setState({...state, mnemonic: event.target.value});
 
   // Confirm mnemonic is valid
-  const onClickConf = (event) => {
+  const onClickConf = () => {
     if (!bip39.validateMnemonic(state.mnemonic)) {
-      event.preventDefault();
       dispatch(setError({msg: "Invalid mnemonic"}))
     }
 
     // Create wallet and load into Redux state
     try {
       walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true)
+      props.history.push('/home')
     } catch (e) {
-      event.preventDefault();
       dispatch(setError({msg: e.message}))
     }
     props.setWalletLoaded(true);
@@ -42,31 +40,19 @@ const RestoreWalletPage = (props) => {
 
   return (
   <div className="restore-form">
-    <form>
-      <div className="inputs-item">
-          <input type="text" name="mnemonic" required placeholder="Mnemonic " onChange={setStateMnemonic}/>
-      </div>
-
-      <div className="inputs-item">
-          <input type="text" name="wallet_name" required placeholder="Wallet Name " onChange={setStateWalletName}/>
-      </div>
-
-      <div className="inputs-item">
-          <input type="password" name="wallet_password" required placeholder="Password " onChange={setStateWalletPassword}/>
-      </div>
-
-      <div >
-      <Link to={"/home"} onClick={onClickConf}>
-        Confirm
-      </Link>
-      </div>
-
-    </form>
+    <CreateWizardForm
+      wizardState={state}
+      onSubmit={onClickConf}
+      setStateWalletName={setStateWalletName}
+      setStateWalletPassword={setStateWalletPassword}
+      setStateMnemonic={setStateMnemonic}
+      submitTitle="Confirm"
+    />
     <Link to="/" className="back">
       Back
     </Link>
-    </div>
+  </div>
   )
 }
 
-export default RestoreWalletPage;
+export default withRouter(RestoreWalletPage);
