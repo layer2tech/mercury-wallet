@@ -220,16 +220,17 @@ export const swapPhase3 = async (
   }
   log.info("Swap Phase3: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
 
-  transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key);
+  // if this part has not yet been called, call it.
+  if (statecoin.swap_transfer_msg==null || statecoin.swap_batch_data==null) {
+    statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key);
+    statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);
+  }
 
-  let batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);
-  let commitment = batch_data.commitment;
-  let batch_id = statecoin.swap_id;
-
+  // Otherwise continue with attempt to comlete transfer_receiver
   let transfer_finalized_data = await do_transfer_receiver(
     http_client,
-    batch_id.id,
-    commitment,
+    statecoin.swap_id.id,
+    statecoin.swap_batch_data.commitment,
     statecoin.swap_info.swap_token.statechain_ids,
     statecoin.swap_address,
     new_proof_key_der
@@ -293,6 +294,9 @@ export const do_swap_poll = async(
   if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already involved in swap.");
   if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.shared_key_id+" not available for swap.");
 
+  // Reset coin's swap data
+  statecoin.setSwapDataToNull()
+
   statecoin.swap_status = SWAP_STATUS.Init;
   statecoin.setAwaitingSwap();
 
@@ -332,7 +336,7 @@ export const do_swap_poll = async(
         // Some errors are expected to be thrown throughout, however others may be critical.
         // TODO: catch critical errors
       }
-      await delay(3);
+      await delay(5);
     }
   return new_statecoin;
 }
