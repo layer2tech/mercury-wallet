@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux'
 
-import {Coins, StdButton, AddressInput, CopiedButton} from "../../components";
+import {Coins, StdButton, AddressInput, CopiedButton, SendModal} from "../../components";
 import {fromSatoshi} from '../../wallet/util'
 import {decodeSCEAddress, encodeMessage} from '../../wallet/util'
 import {isWalletLoaded, callTransferSender, setError, setNotification} from '../../features/WalletDataSlice'
@@ -77,6 +77,7 @@ const SendStatecoinPage = () => {
 
   return (
       <div className="container ">
+        <SendModal />
           <div className="Body sendStatecoin">
               <div className="swap-header">
                   <h2 className="WalletAmount">
