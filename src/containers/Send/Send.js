@@ -22,6 +22,7 @@ const SendStatecoinPage = () => {
     setInputAddr(event.target.value);
   };
   const [transferMsg3, setTransferMsg3] = useState('');
+  const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -64,6 +65,7 @@ const SendStatecoinPage = () => {
         setTransferMsg3(encodeMessage(res.payload))
         setInputAddr("")
         setSelectedCoin('')
+        setRefreshCoins((prevState) => !prevState);
         dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
       }
     })
@@ -102,7 +104,8 @@ const SendStatecoinPage = () => {
                       <Coins
                         displayDetailsOnClick={false}
                         selectedCoin={selectedCoin}
-                        setSelectedCoin={setSelectedCoin}/>
+                        setSelectedCoin={setSelectedCoin}
+                        refresh={refreshCoins}/>
                   </div>
 
               </div>

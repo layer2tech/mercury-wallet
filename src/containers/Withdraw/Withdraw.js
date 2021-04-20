@@ -21,6 +21,8 @@ const WithdrawPage = () => {
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
+  const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
+
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -42,6 +44,7 @@ const WithdrawPage = () => {
       if (res.error===undefined) {
         setSelectedCoin(null)
         setInputAddr("")
+        setRefreshCoins((prevState) => !prevState);
         dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
       }
     }))
@@ -80,7 +83,8 @@ const WithdrawPage = () => {
                       showCoinStatus={true}
                       displayDetailsOnClick={false}
                       selectedCoin={selectedCoin}
-                      setSelectedCoin={setSelectedCoin}/>
+                      setSelectedCoin={setSelectedCoin}
+                      refresh={refreshCoins}/>
                 </div>
 
             </div>

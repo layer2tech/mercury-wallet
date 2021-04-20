@@ -17,8 +17,7 @@ const SwapPage = () => {
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
-  // Update Coins model to force re-render
-  const [refreshCoins, setRefreshCoins] = useState(false); // store selected swap_id
+  const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
   const [swapGroupsData, setSwapGroupsData] = useState([]);
 
