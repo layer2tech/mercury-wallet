@@ -6,7 +6,7 @@ import { ACTION } from ".";
 import { ElectrumTxData } from "./electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
-import { BSTRequestorData, SwapID, SwapInfo } from "./swap/swap";
+import { BatchData, BSTRequestorData, SwapID, SwapInfo } from "./swap/swap";
 import { SCEAddress, TransferFinalizeData, TransferMsg3 } from "./mercury/transfer";
 
 export class StateCoinList {
@@ -177,9 +177,7 @@ export class StateCoinList {
     if (coin) {
       if (coin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Swap already begun. Cannot remove coin.");
       if (coin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
-      coin.setConfirmed();
-      coin.swap_info = null;
-      coin.swap_status = null;
+      coin.setSwapDataToNull();
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
@@ -265,6 +263,8 @@ export class StateCoin {
   swap_address: SCEAddress | null;
   swap_my_bst_data: BSTRequestorData | null;
   swap_receiver_addr: SCEAddress | null;
+  swap_transfer_msg: TransferMsg3 | null;
+  swap_batch_data: BatchData | null;
   swap_transfer_finalized_data: TransferFinalizeData | null;
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
@@ -297,6 +297,8 @@ export class StateCoin {
     this.swap_info = null;
     this.swap_my_bst_data = null;
     this.swap_receiver_addr = null;
+    this.swap_transfer_msg = null;
+    this.swap_batch_data = null;
     this.swap_transfer_finalized_data = null;
   }
 
@@ -419,6 +421,20 @@ export class StateCoin {
   // Get public key from SharedKey
   getSharedPubKey(): string {
     return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed("hex");
+  }
+
+  // Set all StateCoin swap data to null.
+  setSwapDataToNull() {
+    this.setConfirmed();
+    this.swap_status = null;
+    this.swap_id = null
+    this.swap_address = null;
+    this.swap_info = null;
+    this.swap_my_bst_data = null;
+    this.swap_receiver_addr = null;
+    this.swap_transfer_msg = null;
+    this.swap_batch_data = null;
+    this.swap_transfer_finalized_data = null;
   }
 }
 
