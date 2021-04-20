@@ -15,11 +15,11 @@ describe('Wallet', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
 
   test('toJSON', function() {
-    wallet.config.update({min_anon_set: 1000}) // update config to ensure defaults are not revered to after fromJSON.
-    let json_wallet = JSON.parse(JSON.stringify(wallet))
-    let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true)
+    wallet.config.update({min_anon_set: 1000}); // update config to ensure defaults are not revered to after fromJSON.
+    let json_wallet = JSON.parse(JSON.stringify(wallet));
+    let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true);
     // check wallets serialize to same values (since deep equal on recursive objects is messy)
-    expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet))
+    expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet));
   });
 
   test('save/load', async function() {

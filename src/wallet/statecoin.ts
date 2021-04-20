@@ -24,17 +24,23 @@ export class StateCoinList {
 
       // re-build tx_backup as Transaction
       if (item.tx_backup!==undefined) {
-        let tx_backup_any: any = item.tx_backup
-        let tx_backup = new Transaction()
-        tx_backup.version = 2;
-        tx_backup.addInput(Buffer.from(tx_backup_any.ins[0].hash), tx_backup_any.ins[0].index, tx_backup_any.ins[0].sequence)
-        tx_backup.ins[0].witness = [Buffer.from(tx_backup_any.ins[0].witness[0]),Buffer.from(tx_backup_any.ins[0].witness[1])];
-        tx_backup.addOutput(Buffer.from(tx_backup_any.outs[0].script), tx_backup_any.outs[0].value)
-        tx_backup.addOutput(Buffer.from(tx_backup_any.outs[1].script), tx_backup_any.outs[1].value)
+        let tx_backup_any: any = item.tx_backup;
+        let tx_backup = new Transaction();
+        tx_backup.version = tx_backup_any.version;
         tx_backup.locktime = tx_backup_any.locktime;
+        if (tx_backup_any.ins.length>0) {
+          tx_backup.addInput(Buffer.from(tx_backup_any.ins[0].hash), tx_backup_any.ins[0].index, tx_backup_any.ins[0].sequence)
+          if (tx_backup_any.ins[0].witness.length>0) {
+            tx_backup.ins[0].witness = [Buffer.from(tx_backup_any.ins[0].witness[0]),Buffer.from(tx_backup_any.ins[0].witness[1])];
+          }
+        }
+        if (tx_backup_any.outs.length>0) {
+          tx_backup.addOutput(Buffer.from(tx_backup_any.outs[0].script), tx_backup_any.outs[0].value)
+          tx_backup.addOutput(Buffer.from(tx_backup_any.outs[1].script), tx_backup_any.outs[1].value)
+        }
         item.tx_backup = tx_backup;
       }
-      statecoins.coins.push(Object.assign(coin, item))
+      statecoins.coins.push(Object.assign(coin, item));
     })
     return statecoins
   }
