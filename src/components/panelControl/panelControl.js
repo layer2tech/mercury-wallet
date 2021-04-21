@@ -36,12 +36,28 @@ const FILTER_BY_OPTION = [
 ]
 
 const PanelControl = () => {
-  const { balance_info, filterBy } = useSelector(state => state.walletData);
   const dispatch = useDispatch();
+  const { balance_info, filterBy } = useSelector(state => state.walletData);
   const [openFilterMenu, setOpenFilterMenu] = useState(false);
 
   const handleFilter = (filterBy) => {
     dispatch(updateFilter(filterBy));
+  }
+
+  const filterByMsg = () => {
+    let return_str = "Statecoin";
+    if (balance_info.num_coins > 1) {
+      return_str = return_str+"s"
+    }
+    switch (filterBy) {
+      case FILTER_BY_OPTION[0].value:
+        return return_str+ " in Wallet";
+      case FILTER_BY_OPTION[1].value:
+        return return_str+ " withdrawn from Wallet";
+      case FILTER_BY_OPTION[2].value:
+        return return_str+ " in transfer process";
+    }
+
   }
 
   return (
@@ -75,7 +91,7 @@ const PanelControl = () => {
           )}
       </h2>
         <div className="no-wallet">
-            <span>{balance_info.num_coins} Statecoins in Wallet</span>
+            <span>{balance_info.num_coins} {filterByMsg()}</span>
         </div>
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
