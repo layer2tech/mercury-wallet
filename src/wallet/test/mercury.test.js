@@ -48,8 +48,6 @@ describe('2P-ECDSA', function() {
       .mockReturnValueOnce(MOCK_SERVER.SIGN_SECOND);
     wasm_mock.Sign.first_message = jest.fn(() => MOCK_CLIENT.SIGN_FIRST);
     wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
-    
-    console.log("sign test - signing");
 
     let signature = await sign(http_mock, wasm_mock, KEYGEN_SIGN_DATA.shared_key_id, KEYGEN_SIGN_DATA.shared_key, KEYGEN_SIGN_DATA, KEYGEN_SIGN_DATA.signature_hash, KEYGEN_SIGN_DATA.protocol);
     expect(typeof signature[0]).toBe('string');
@@ -137,7 +135,7 @@ describe('StateChain Entity', function() {
 
       let statecoin = makeTesterStatecoin();
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-      console.log('Withdraw test - calling withdraw - expect success');
+      
       let tx_withdraw = await withdraw(http_mock, wasm_mock, network, [statecoin], [proof_key_der], BTC_ADDR);
 
       // check withdraw tx
@@ -156,20 +154,17 @@ describe('StateChain Entity', function() {
         .mockReturnValueOnce(statechain_info)
         .mockReturnValueOnce(fee_info)
 
-      console.log("Expecting statechain to be already withdrawn: ");
       await expect(withdraw(http_mock, wasm_mock, network, [{}], [{}], BTC_ADDR))
         .rejects
         .toThrowError("StateChain undefined already withdrawn.");
     });
 
     test('StateChain not owned by this wallet.', async function() {
-      console.log("Testing statechain not owned by wallet");
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
 
       let statecoin = makeTesterStatecoin();
       statecoin.proof_key = "aaa";
-      console.log("Expecting incorrect proof key");
       let statecoins = [statecoin];
       await expect(withdraw(http_mock, wasm_mock, network, statecoins, [{}], BTC_ADDR))
         .rejects
@@ -216,18 +211,17 @@ describe('StateChain Entity', function() {
       let statecoins = [lodash.cloneDeep(makeTesterStatecoins()[0]), lodash.cloneDeep(makeTesterStatecoins()[1])]
       let proof_key_ders =[bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)),
         bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D))];
-      console.log("WithdrawBatch - doing batch withdraw")
 
 
       let tx_withdraw = await withdraw(http_mock, wasm_mock, network, statecoins, proof_key_ders, BTC_ADDR);
-      console.log("WithdrawBatch - finished doing batch withdraw")
+      
       // check withdraw tx
       expect(tx_withdraw.ins.length).toBe(2);
-      //expect(tx_withdraw.ins[0].hash.reverse().toString("hex")).toBe(statecoins[0].funding_txid);
-      //expect(tx_withdraw.ins[1].hash.reverse().toString("hex")).toBe(statecoins[1].funding_txid);
-      //expect(tx_withdraw.outs.length).toBe(2);
-      //expect(tx_withdraw.outs[0].value).toBeLessThan(statecoins[0].value + statecoins[1].value);
-      //expect(tx_withdraw.locktime).toBe(0);
+      expect(tx_withdraw.ins[0].hash.reverse().toString("hex")).toBe(statecoins[0].funding_txid);
+      expect(tx_withdraw.ins[1].hash.reverse().toString("hex")).toBe(statecoins[1].funding_txid);
+      expect(tx_withdraw.outs.length).toBe(2);
+      expect(tx_withdraw.outs[0].value).toBeLessThan(statecoins[0].value + statecoins[1].value);
+      expect(tx_withdraw.locktime).toBe(0);
     });
     test('Already withdrawn.', async function() {
       let statechain_info = lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO);

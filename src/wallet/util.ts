@@ -122,7 +122,6 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
     network: network
   }).address;
   let script = bitcoin.address.toOutputScript(addr_p2pkh, network);
-  console.log('getSigHash - script: ' + script);
   return tx.hashForWitnessV0(index, script, amount, Transaction.SIGHASH_ALL).toString("hex");
 }
 
@@ -147,8 +146,6 @@ export const txWithdrawBuild = (network: Network, funding_txid: string, funding_
 
   let txb = new TransactionBuilder(network);
 
-  console.log("txWithdrawBuild: funding_txid: " + funding_txid, "funding_vout: " + funding_vout)
-
   txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF);
   txb.addOutput(rec_address, value - FEE - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
@@ -164,7 +161,7 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
   let value = 0;
   let txb: TransactionBuilder = new TransactionBuilder(network);  
   let index = 0;
-
+  
   for(let info of sc_infos){
     let utxo: OutPoint = info.utxo;
     if (utxo !== undefined) {

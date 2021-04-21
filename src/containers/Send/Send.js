@@ -16,7 +16,21 @@ const SendStatecoinPage = () => {
   const dispatch = useDispatch();
   const balance_info = useSelector(state => state.walletData).balance_info;
 
-  const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
+  function setSelectedCoin(statechain_id) {
+    setSelectedCoins(
+        prevSelectedCoins => {
+            let newSelectedCoins=[];
+            const isStatechainId = (element) => element == statechain_id; 
+            let index = prevSelectedCoins.findIndex(isStatechainId);
+            if (index == -1){
+                newSelectedCoins=[statechain_id];
+            }
+            return newSelectedCoins;
+        }
+    );
+  }
+
   const [inputAddr, setInputAddr] = useState("");
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -30,7 +44,7 @@ const SendStatecoinPage = () => {
 
   const sendButtonAction = async () => {
     // check statechain is chosen
-    if (!selectedCoin) {
+    if (selectedCoins.length == 0) {
       dispatch(setError({msg: "Please choose a StateCoin to send."}))
       return
     }
@@ -58,12 +72,12 @@ const SendStatecoinPage = () => {
       return
     }
 
-    dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
+    dispatch(callTransferSender({"shared_key_id": selectedCoins[0], "rec_addr": input_pubkey}))
     .then(res => {
       if (res.error===undefined) {
         setTransferMsg3(encodeMessage(res.payload))
         setInputAddr("")
-        setSelectedCoin('')
+        setSelectedCoins([])
         dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
       }
     })
@@ -101,7 +115,8 @@ const SendStatecoinPage = () => {
                       <span className="sub">Click to select UTXO’s below</span>
                       <Coins
                         displayDetailsOnClick={false}
-                        selectedCoin={selectedCoin}
+                        selectedCoins={selectedCoins}
+                        setSelectedCoins={setSelectedCoins}
                         setSelectedCoin={setSelectedCoin}/>
                   </div>
 

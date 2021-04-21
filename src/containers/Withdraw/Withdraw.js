@@ -16,11 +16,25 @@ const WithdrawPage = () => {
   const dispatch = useDispatch();
   const balance_info = useSelector(state => state.walletData).balance_info;
 
-  const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
+
+  function addSelectedCoin(statechain_id) {
+    setSelectedCoins( prevSelectedCoins => {
+      let newSelectedCoins = prevSelectedCoins;
+      const isStatechainId = (element) => element == statechain_id; 
+      let index = newSelectedCoins.findIndex(isStatechainId);
+      if (index != -1){
+        newSelectedCoins.splice(index,1);
+      } else {
+        newSelectedCoins.push(statechain_id);
+      }
+      return newSelectedCoins;
+    });
+  }
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -29,7 +43,7 @@ const WithdrawPage = () => {
 
   const withdrawButtonAction = async () => {
     // check statechain is chosen
-    if (!selectedCoin) {
+    if (selectedCoins.length == 0) {
       dispatch(setError({msg: "Please choose a StateCoin to withdraw."}))
       return
     }
@@ -38,9 +52,9 @@ const WithdrawPage = () => {
       return
     }
 
-    dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr})).then((res => {
+    dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr})).then((res => {
       if (res.error===undefined) {
-        setSelectedCoin(null)
+        setSelectedCoins([])
         setInputAddr("")
         dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
       }
@@ -78,9 +92,10 @@ const WithdrawPage = () => {
                     <span className="sub">Click to select UTXO’s below</span>
                     <Coins
                       displayDetailsOnClick={false}
-                      selectedCoin={selectedCoin}
-                      setSelectedCoin={setSelectedCoin}/>
-                </div>
+                      selectedCoins={selectedCoins}
+                      setSelectedCoin={addSelectedCoin}
+                      setSelectedCoins={setSelectedCoins}/>
+                  </div>
 
             </div>
             <div className="Body right">

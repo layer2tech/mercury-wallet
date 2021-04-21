@@ -15,12 +15,26 @@ const SwapPage = () => {
   const dispatch = useDispatch();
   let disabled = false;
 
-  const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   // Update Coins model to force re-render
-  const [refreshCoins, setRefreshCoins] = useState(false); // store selected swap_id
+  const [refreshCoins, setRefreshCoins] = useState(false);
 
   const [swapGroupsData, setSwapGroupsData] = useState([]);
+
+  function addSelectedCoin(statechain_id) {
+    setSelectedCoins( prevSelectedCoins => {
+      let newSelectedCoins = prevSelectedCoins;
+      const isStatechainId = (element) => element == statechain_id; 
+      let index = newSelectedCoins.findIndex(isStatechainId);
+      if (index != -1){
+        newSelectedCoins.splice(index,1);
+      } else {
+        newSelectedCoins.push(statechain_id);
+      }
+      return newSelectedCoins;
+    });
+  }
 
   // Re-fetch swaps group data every 3 seconds and update swaps component
   useEffect(() => {
@@ -43,32 +57,39 @@ const SwapPage = () => {
 
   const swapButtonAction = async () => {
     // check statechain is chosen
-    if (!selectedCoin) {
+    if (selectedCoins.length == 0) {
       dispatch(setError({msg: "Please choose a StateCoin to swap."}))
       return
     }
-
-    dispatch(callDoSwap({"shared_key_id": selectedCoin}))
-      .then(res => {
-        if (res.payload===null) {
-          dispatch(setNotification({msg:"Coin "+selectedCoin+" removed from swap pool."}))
-          return
-        }
-        if (res.error===undefined) {
-          dispatch(setNotification({msg:"Swap complete for coin of value "+fromSatoshi(res.payload.value)+" with new id "+res.payload.shared_key_id}))
-        }
-      })
-      // Refresh Coins list
-      setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
+    selectedCoins.forEach(
+      (selectedCoin) => {
+        dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+          .then(res => {
+            if (res.payload===null) {
+              dispatch(setNotification({msg:"Coin "+selectedCoin+" removed from swap pool."}))
+              return
+            }
+            if (res.error===undefined) {
+              dispatch(setNotification({msg:"Swap complete for coin of value "+fromSatoshi(res.payload.value)+" with new id "+res.payload.shared_key_id}))
+            }
+          })
+        // Refresh Coins list
+        setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
+      }
+    );
+      
+      
     }
 
     const leavePoolButtonAction = (event) => {
-      if (!selectedCoin) {
+      if (selectedCoins.length == 0) {
         dispatch(setError({msg: "Please choose a StateCoin to remove."}))
         return
       }
       try {
-        dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}));
+        for (let selectedCoin in selectedCoins){
+          dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}));
+        }
         // Refresh Coins list
         setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
       } catch (e) {
@@ -106,8 +127,9 @@ const SwapPage = () => {
                       <span className="sub">Click to select UTXO’s below</span>
                       <Coins
                         displayDetailsOnClick={false}
-                        selectedCoin={selectedCoin}
-                        setSelectedCoin={setSelectedCoin}
+                        selectedCoins={selectedCoins}
+                        setSelectedCoin={addSelectedCoin}
+                        setSelectedCoins={setSelectedCoins}
                         refresh={refreshCoins}/>
                   </div>
 

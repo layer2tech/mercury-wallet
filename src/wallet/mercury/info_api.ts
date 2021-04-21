@@ -13,8 +13,6 @@ export const getFeeInfo = async (
   http_client: HttpClient | MockHttpClient,
 ) => {
   let fee_info = await http_client.get(GET_ROUTE.FEES, {});
-  console.log("getFeeInfo - fee_info.address: " + fee_info.address);
-  console.log("getFeeInfo - fee_info.deposit: " + fee_info.deposit);
   typeforce(types.FeeInfo, fee_info);  
 
   return fee_info
@@ -33,11 +31,15 @@ export const getStateChain = async (
   statechain_id: string
 ) => {
   let statechain = await http_client.get(GET_ROUTE.STATECHAIN, statechain_id);
-  console.log("getStateChain: statechain" + statechain);
-  console.log("getStateChain: statechain.utxo" + statechain.utxo);
-  console.log("getStateChain: statechain.amount" + statechain.amount);
-  console.log("getStateChain: statechain.chain" + statechain.chain);
-  console.log("getStateChain: statechain.locktime" + statechain.locktime);
+  
+  if (typeof statechain.utxo == "string"){
+    let outpoint = {
+      txid: statechain.utxo.substring(0,64),
+      vout:parseInt(statechain.utxo.substring(65,66))
+    }
+    statechain.utxo=outpoint;
+  }
+
   typeforce(types.StateChainDataAPI, statechain);
   return statechain
 }
