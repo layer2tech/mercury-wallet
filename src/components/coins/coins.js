@@ -40,7 +40,13 @@ const INITIAL_SORT_BY = {
 	by: 'value'
 };
 
+function useForceUpdate(){
+  const [value, setValue] = useState(0); // integer state
+  return () => setValue(value => value + 1); // update the state to force render
+}
+
 const Coins = (props) => {
+    const forceUpdate = useForceUpdate();
     const dispatch = useDispatch();
 
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
@@ -60,7 +66,8 @@ const Coins = (props) => {
 
     // Set selected coin
     const selectCoin = (shared_key_id) => {
-        shared_key_id === props.selectedCoins ? props.setSelectedCoins([]) : props.setSelectedCoin(shared_key_id);
+        props.setSelectedCoin(shared_key_id);  
+        forceUpdate();
         if (props.displayDetailsOnClick) {
             handleOpenCoinDetails(shared_key_id)
         }
@@ -76,7 +83,7 @@ const Coins = (props) => {
           (selectedCoin) =>  {
             if (selectedCoin === shared_key_id) {
               selected = true;
-            }
+            } 
           }
         );
         return selected ? {backgroundColor: "#e6e6e6"} : {}
