@@ -3,7 +3,7 @@
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "./electrum";
 
-let lodash = require('lodash');
+let cloneDeep = require('lodash.clonedeep');
 
 const DEFAULT_STATE_ENTITY_ENPOINT = "https://fakeapi.mercurywallet.io";
 
@@ -49,7 +49,7 @@ export class Config {
   }
 
   getConfig() {
-    return lodash.cloneDeep(this)
+    return cloneDeep(this)
   }
 
   // update by providing JSONObject with new values
