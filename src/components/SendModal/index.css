@@ -36,8 +36,11 @@
 .send-modal .send-steps .step-item span:last-child {
   margin-left: 35px;
 }
-.send-modal .send-steps .step-no.active {
+.send-modal .send-steps .step-item.active .step-no {
   background-color: #0054F4;
+}
+.send-modal .send-steps .step-item.active {
+  color: #0054F4;
 }
 
 .send-modal p {
@@ -80,6 +83,9 @@
   color: #212121;
   font-weight: bold;
   word-break: break-all;
+  max-height: 122px;
+  overflow-y: auto;
+  display: block;
 }
 .send-modal .transfer-code:hover .copy-code {
   color: #0054F4;
@@ -95,9 +101,53 @@
   margin-top: 63px;
   outline: none;
 }
+.send-modal .confirm-btn.step2{
+  margin-top: 20px;
+}
 .send-modal .confirm-btn span {
   margin-right: 8px;
 }
-.send-modal .confirm-btn span svg {
+.send-modal .confirm-btn.active,
+.send-modal .confirm-btn:hover
+ {
+  background-color: #0054F4;
+}
+.send-modal .confirm-btn span:not(.no-scale) svg {
   transform: scale(1.5);
+}
+.send-modal .coin-info {
+  padding: 16px 0;
+  display: flex;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.121569);
+}
+.send-modal .coin-info .coin-content {
+  display: flex;
+  flex-direction: column;
+  padding-left: 12px;
+  max-width: 88%;
+  overflow: hidden;
+}
+.send-modal .coin-info .coin-content span:last-child{
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.25px;
+}
+.send-modal .coin-info .coin-content span:last-child.coin-address{
+  font-weight: normal;
+}
+
+.send-modal .private-passphrase {
+  border: 1px solid rgba(0, 0, 0, 0.121569);
+  border-radius: 4px;
+  padding: 16px;
+  font-size: 15px;
+  line-height: 23px;
+  letter-spacing: 0.140625px;
+  color: rgba(0, 0, 0, 0.6);
+  opacity: 1;
+  margin-top: 50px;
+  width: 100%;
+  position: relative;
 }

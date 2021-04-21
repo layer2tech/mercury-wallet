@@ -15,8 +15,10 @@ import './Send.css';
 const SendStatecoinPage = () => {
   const dispatch = useDispatch();
   const balance_info = useSelector(state => state.walletData).balance_info;
+  const [openSendModal, setOpenSendModal] = useState({ show: false });
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const [coinDetails, setCoinDetails] = useState({}); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -62,11 +64,14 @@ const SendStatecoinPage = () => {
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
     .then(res => {
       if (res.error===undefined) {
-        setTransferMsg3(encodeMessage(res.payload))
-        setInputAddr("")
-        setSelectedCoin('')
-        setRefreshCoins((prevState) => !prevState);
-        dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
+        const transferCode = encodeMessage(res.payload);
+        setTransferMsg3(transferCode)
+        setOpenSendModal({
+          show: true,
+          value: coinDetails.value,
+          transfer_code: transferCode,
+          coinAddress: inputAddr
+        });
       }
     })
   }
@@ -75,9 +80,25 @@ const SendStatecoinPage = () => {
     navigator.clipboard.writeText(transferMsg3);
   }
 
+  const handleConfirm = (pass) => {
+    alert('Handle confirm transaction');
+    // Do something with passphrase
+    console.log(pass);
+    setInputAddr("")
+    setSelectedCoin('')
+    setRefreshCoins((prevState) => !prevState);
+    setOpenSendModal({ show: false })
+    setCoinDetails({})
+    dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
+  }
+
   return (
-      <div className="container ">
-        <SendModal />
+      <div className="container">
+        <SendModal 
+          {...openSendModal} 
+          onClose={() => setOpenSendModal({show: false})} 
+          onConfirm={handleConfirm}
+        />
           <div className="Body sendStatecoin">
               <div className="swap-header">
                   <h2 className="WalletAmount">
@@ -106,6 +127,7 @@ const SendStatecoinPage = () => {
                         displayDetailsOnClick={false}
                         selectedCoin={selectedCoin}
                         setSelectedCoin={setSelectedCoin}
+                        setCoinDetails={setCoinDetails}
                         refresh={refreshCoins}/>
                   </div>
 
