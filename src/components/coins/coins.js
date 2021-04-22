@@ -264,7 +264,7 @@ const Coins = (props) => {
 
     return (
         <div className="main-coin-wrap">
-          <FilterBy />
+          {all_coins_data.length ? <FilterBy /> : null}
           {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
             {statecoinData}
 
