@@ -68,6 +68,10 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
   callNewSeAddr();
   wallet.save();
 }
+// Try to decrypt wallet. Throw if invalid password
+export const checkWalletPassword = (password) => {
+  Wallet.load(wallet.name, password);
+}
 
 // Wallet data gets
 export const callGetConfig = () => {

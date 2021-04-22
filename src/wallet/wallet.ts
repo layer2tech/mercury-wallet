@@ -168,15 +168,8 @@ export class Wallet {
   // Load wallet JSON from store
   static load(wallet_name: string, password: string, testing_mode: boolean) {
     let store = new Storage();
-    // Fetch raw wallet string
-    let wallet_json = store.getWallet(wallet_name);
-    if (wallet_json===undefined) throw Error("No wallet called "+wallet_name+" stored.");
-    // Decrypt mnemonic
-    try {
-      wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
-    } catch (e) {
-      if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
-    }
+    // Fetch decrypted wallet json
+    let wallet_json = store.getWalletDecrypted(wallet_name, password);
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
 

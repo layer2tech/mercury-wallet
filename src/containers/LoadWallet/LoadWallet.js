@@ -51,6 +51,7 @@ const LoadWalletPage = (props) => {
       catch (e) {
         event.preventDefault();
         dispatch(setError({msg: e.message}))
+        return
       }
       checkForCoinsHealth();
       props.setWalletLoaded(true);
@@ -72,10 +73,10 @@ const LoadWalletPage = (props) => {
           </select>
 
           <div className="inputs-item">
-            <input 
-              id="Passphrase" 
+            <input
+              id="Passphrase"
               type={showPass ? 'text' : 'password'} name="password"
-              name="password" 
+              name="password"
               required
               placeholder="Passphrase "
               value={passwordEntered}

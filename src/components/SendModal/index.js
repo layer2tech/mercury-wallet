@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "react-bootstrap";
+import {useDispatch} from 'react-redux'
+
 import { CopiedButton } from '../../components'
+import {checkWalletPassword, setError, callGetWalletName} from '../../features/WalletDataSlice'
 import { CoinValueIcon, checkIcon, copyIcon, LockIcon, CoinAddressIcon} from './icons'
 import { fromSatoshi } from '../../wallet/util'
 
@@ -27,9 +30,12 @@ function SendModal({
   close = () => false,
   onConfirm = () => false
 }) {
+  const dispatch = useDispatch();
+
   const [step, setStep] = useState(1);
   const [passphrase, setPassphrase] = useState(1);
   const handleClose = () => {
+    // TODO: call cancel transfer_sender here.
     close()
   };
   const handleCopy = () => {
@@ -42,7 +48,13 @@ function SendModal({
   const handlePrivatePassChange = (e) => {
     setPassphrase(e.target.value);
   }
-  const handleConfirm = () => {
+  const handleConfirm = (event) => {
+    try { checkWalletPassword(passphrase) }
+      catch (e) {
+        event.preventDefault();
+        dispatch(setError({msg: e.message}))
+        return
+      }
     onConfirm(passphrase);
   }
 
@@ -56,7 +68,7 @@ function SendModal({
         <div className="send-steps">
           {STEPS.map(stepItem => (
             <div className={`step-item ${step >= stepItem.id ? 'active' : ''}`} key={stepItem.id}>
-              <span 
+              <span
                 className={`step-no`}>
                   {step > stepItem.id ? checkIcon : stepItem.id}
               </span>
@@ -67,11 +79,11 @@ function SendModal({
         {step === 1 && (
           <>
             <p>
-              Send the Transfer Code below to the Receiver of this transaction. 
-              They will need to enter it, to coplete the transfer.
+              Send the Transfer Code below to the Receiver of this transaction.
+              They will need to enter it to complete the transfer.
             </p>
-            <CopiedButton 
-              handleCopy={handleCopy} 
+            <CopiedButton
+              handleCopy={handleCopy}
               style={{
                 backgroundColor: '#E0E0E0',
                 borderRadius: 5,
@@ -95,8 +107,8 @@ function SendModal({
                     {transfer_code}
                   </span>
                 </div>
-                <button 
-                  className={`confirm-btn`} 
+                <button
+                  className={`confirm-btn`}
                 >
                   <span>{copyIcon('#fff')}</span>
                   Copy To Continue
@@ -119,14 +131,14 @@ function SendModal({
               </div>
             </div>
             <div className="coin-info">
-              {CoinAddressIcon} 
+              {CoinAddressIcon}
               <div className="coin-content">
                 <span>Statecoin address</span>
                 <span className="coin-address">{coinAddress}</span>
               </div>
             </div>
-            <input 
-              type="password" 
+            <input
+              type="password"
               placeholder="Private Passphrase"
               className="private-passphrase"
               onChange={handlePrivatePassChange}
@@ -141,7 +153,7 @@ function SendModal({
           <button className="Body-button bg-transparent" onClick={handleClose}>
             Cancel
           </button>
-        </div> 
+        </div>
       </Modal.Body>
     </Modal>
   );

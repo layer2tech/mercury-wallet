@@ -81,9 +81,6 @@ const SendStatecoinPage = () => {
   }
 
   const handleConfirm = (pass) => {
-    alert('Handle confirm transaction');
-    // Do something with passphrase
-    console.log(pass);
     setInputAddr("")
     setSelectedCoin('')
     setRefreshCoins((prevState) => !prevState);
@@ -94,9 +91,9 @@ const SendStatecoinPage = () => {
 
   return (
       <div className="container">
-        <SendModal 
-          {...openSendModal} 
-          onClose={() => setOpenSendModal({show: false})} 
+        <SendModal
+          {...openSendModal}
+          onClose={() => setOpenSendModal({show: false})}
           onConfirm={handleConfirm}
         />
           <div className="Body sendStatecoin">
