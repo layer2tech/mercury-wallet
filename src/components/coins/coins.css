@@ -224,3 +224,7 @@
     display: block;
   }
 }
+
+.main-coin-wrap {
+  position: relative;
+}
