@@ -16,7 +16,7 @@ import { STATECOIN_STATUS } from '../../wallet/statecoin'
 import './panelControl.css';
 import '../index.css';
 
-const FILTER_BY_OPTION = [
+export const FILTER_BY_OPTION = [
   {
     id: 1,
     value: 'default',
@@ -50,7 +50,6 @@ const PanelControl = () => {
       case FILTER_BY_OPTION[2].value:
         return return_str+ " in transfer process";
     }
-
   }
 
   return (
