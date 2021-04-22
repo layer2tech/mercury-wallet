@@ -73,6 +73,9 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
 export const callGetConfig = () => {
   return wallet.config.getConfig()
 }
+export const callGetWalletName = () => {
+  return wallet.name
+}
 export const callGetVersion = () => {
   return wallet.version
 }
