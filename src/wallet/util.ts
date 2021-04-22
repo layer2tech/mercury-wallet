@@ -5,7 +5,7 @@ import { Root } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
 
-import { encrypt, decrypt } from 'eciesjs'
+import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
 
 let bech32 = require('bech32')
