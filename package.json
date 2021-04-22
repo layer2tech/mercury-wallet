@@ -75,7 +75,7 @@
     "bootstrap": "^4.5.3",
     "buffer-json": "^2.0.0",
     "client-wasm": "file:client-wasm/pkg",
-    "eciesjs": "git://github.com/commerceblock/js",
+    "eciesjs12b": "0.3.10",
     "electron-is-dev": "^1.2.0",
     "electron-log": "^4.3.1",
     "electron-store": "^7.0.1",
