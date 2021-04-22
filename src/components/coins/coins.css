@@ -228,3 +228,7 @@
 .main-coin-wrap {
   position: relative;
 }
+
+.main-coin-wrap.no-coin {
+  min-height: 50px;
+}
