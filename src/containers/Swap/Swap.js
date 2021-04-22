@@ -86,9 +86,11 @@ const SwapPage = () => {
         return
       }
       try {
-        for (let selectedCoin in selectedCoins){
-          dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}));
-        }
+        selectedCoins.forEach(
+          (selectedCoin) => {
+            dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}));
+          }
+        );
         // Refresh Coins list
         setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
       } catch (e) {
