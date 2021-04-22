@@ -120,10 +120,7 @@ const Coins = (props) => {
           ) {
             setCoins({
                 ...coins,
-                unConfirmedCoins: [
-					...coins.unConfirmedCoins,
-					...new_unconfired_coins_data
-				]
+                unConfirmedCoins: new_unconfired_coins_data
             })
           }
         }, 10000);
