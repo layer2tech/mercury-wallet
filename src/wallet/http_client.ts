@@ -1,4 +1,5 @@
 const axios = require('axios').default;
+const tor_axios = require('tor_axios').default;
 
 
 export const GET_ROUTE = {
@@ -63,7 +64,22 @@ export class HttpClient {
           url: url,
           headers: { 'Accept': 'application/json' }
       };
-      let res = await axios(config)
+      const tor_config = {
+        ip: '127.0.0.1',
+        port: 9050,
+        controlPort: 9051,
+        controlPassword: 'prfssdJB&JO2018'
+      };
+
+      const tor = tor_axios.torSetup(tor_config);
+
+      const inst = axios.create({
+        httpAgent: tor.httpAgent(),
+        httpsagent: tor.httpsAgent(),
+      });
+
+      //let res = await axios(config)
+      let res = await tor_axios.get(url, {headers: { 'Accept': 'application/json' }})
       let return_data = res.data
       checkForServerError(return_data)
 
@@ -84,8 +100,16 @@ export class HttpClient {
             Accept: 'application/json',
             'Content-Type': 'application/json'
           },
-          data: body,
+          data: body
       };
+
+      const tor_config = {
+        ip: '127.0.0.1',
+        port: 9050,
+        controlPort: 9051,
+        controlPassword: 'prfssdJB&JO2018'
+      };
+
       let res = await axios(config)
       let return_data = res.data
       checkForServerError(return_data)
