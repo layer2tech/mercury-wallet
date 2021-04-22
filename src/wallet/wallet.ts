@@ -22,7 +22,7 @@ let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
 let bip32 = require('bip32');
 let bip39 = require('bip39');
-let lodash = require('lodash');
+let cloneDeep = require('lodash.clonedeep');
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -146,12 +146,12 @@ export class Wallet {
   // Save entire wallet to storage. Store in file as JSON Object.
 
   save() {
-    let wallet_json = lodash.cloneDeep(this)
+    let wallet_json = cloneDeep(this)
     this.storage.storeWallet(wallet_json)
   };
   // Update account in storage.
   saveKeys() {
-    let account = lodash.cloneDeep(this.account)
+    let account = cloneDeep(this.account)
     this.storage.storeWalletKeys(this.name, account)
   };
 

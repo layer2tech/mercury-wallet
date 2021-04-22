@@ -2,9 +2,9 @@
 // Mock Classes  are followed by mock data for full protocol runs.
 
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
-import { SIGNSWAPTOKEN_DATA, BST_DATA } from "../test/test_data";
+// import { SIGNSWAPTOKEN_DATA, BST_DATA } from "../test/test_data";
 
-let lodash = require('lodash');
+let cloneDeep = require('lodash.clonedeep');
 
 export class MockHttpClient {
   get = async (path: string, _params: any) => {
@@ -12,11 +12,11 @@ export class MockHttpClient {
       case GET_ROUTE.PING:
         return true
       case GET_ROUTE.FEES:
-        return lodash.cloneDeep(FEE_INFO)
+        return cloneDeep(FEE_INFO)
       case GET_ROUTE.ROOT:
-        return lodash.cloneDeep(ROOT_INFO)
+        return cloneDeep(ROOT_INFO)
       case GET_ROUTE.STATECHAIN:
-        return lodash.cloneDeep(STATECHAIN_INFO)
+        return cloneDeep(STATECHAIN_INFO)
       case GET_ROUTE.TRANSFER_BATCH:
         return {
           status: true
@@ -120,7 +120,7 @@ export const POLL_SWAP_END = "End"
 
 // export const GET_SWAP_INFO_1 = {
 //   status: "Phase1",
-//   swap_token: lodash.cloneDeep(SIGNSWAPTOKEN_DATA)[0].swap_token,
+//   swap_token: cloneDeep(SIGNSWAPTOKEN_DATA)[0].swap_token,
 //   bst_sender_data: BST_DATA.bst_sender_data,
 // }
 

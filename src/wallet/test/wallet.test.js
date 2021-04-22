@@ -7,7 +7,7 @@ import { txWithdrawBuild } from '../util';
 import { addRestoredCoinDataToWallet } from '../recovery';
 import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
 
-let lodash = require('lodash');
+let cloneDeep = require('lodash.clonedeep');
 
 const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
 
@@ -208,7 +208,7 @@ describe("Statecoins/Coin", () => {
 
   describe("calcExpiryDate", () => {
     it('Calculate expiry', () => {
-      let coin = lodash.clone(statecoins.coins[0]);
+      let coin = cloneDeep(statecoins.coins[0]);
       let tx_backup = new Transaction();
       let locktime = 24*6*30; // month locktime
       tx_backup.locktime = locktime;
