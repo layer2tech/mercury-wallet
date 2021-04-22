@@ -2,7 +2,8 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch} from 'react-redux'
 
 import {callDepositInit, callDepositConfirm, setNotification,
-  callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin} from '../../features/WalletDataSlice'
+  callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin,
+  callGetConfig} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 import { CopiedButton } from '../../components'
 
@@ -20,6 +21,13 @@ const TransactionsBTC = (props) => {
   const [state, setState] = useState({});
 
   const dispatch = useDispatch();
+
+  let testing_mode;
+  try {
+    testing_mode = callGetConfig().testing_mode;
+  } catch {
+    testing_mode = false;
+  }
 
   // First of all run depositInit for selected deposit amount if not already complete
   props.selectedValues.forEach((item, id) => {
@@ -84,9 +92,13 @@ const TransactionsBTC = (props) => {
     <div className=" deposit">
       {populateWithTransactionDisplayPanels}
       <div className="Body">
+        {testing_mode ?
           <button type="button" className="std-button" onClick={despositConfirm}>
               PERFORM DEPOSIT CONFIRM
           </button>
+        :
+          null
+        }
       </div>
     </div>
   )

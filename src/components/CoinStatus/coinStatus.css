@@ -1,0 +1,98 @@
+.coin-status {
+  display: flex;
+  align-items: center;
+}
+
+.coin-status svg {
+  margin-right: 10px;
+}
+.coin-status.coin-status-modal {
+  width: 100%;
+}
+
+.coin-status.coin-status-modal svg {
+  transform: scale(2.3);
+  transform-origin: left;
+  margin-right: 36px;
+}
+
+.coin-status-details {
+  display: flex;
+  font-size: .875rem;
+  line-height: 1.25rem;
+  color: #000000;
+  position: relative;
+}
+
+.coin-status.coin-status-modal .coin-status-details {
+  flex-direction: column;
+  width: 100%;
+}
+
+.coin-status.coin-status-modal .coin-status-title {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: rgba(0, 0, 0, 0.870588);
+  letter-spacing: 0.5px;
+}
+
+.coin-mid-cancel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  text-decoration: underline;
+  color: #E64A19;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  cursor: pointer;
+}
+
+.coin-status-copy-code {
+  color: #0254F4;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.coin-status-copy-code::before {
+  content: "";
+  display: inline-block;
+  width: 0px;
+  height: 11px;
+  border: 1px solid #BDBDBD;
+  margin-right: 4px;;
+}
+.coin-status.coin-status-modal .coin-status-details .coin-status-copy-code::before {
+  display: none;
+}
+.coin-status-title {
+  margin-right: 4px;
+}
+
+.coin-mid-cancel-confirm {
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
+  position: absolute;
+  right: 58px;
+  z-index: 1000;
+  top: -17px;
+  box-shadow: 0px 0px 10px -4px #222;
+  font-family: Roboto;
+}
+
+.coin-mid-transfer-btns {
+  margin-top: 10px;
+}
+
+.coin-mid-transfer-btns button {
+  margin-right: 10px;
+  border-radius: 8px;
+  border: 1px solid #E0E0E0;
+  color: #0F54F4;
+  padding: 4px 8px;
+  outline: none;
+}
+.coin-mid-transfer-btns button.btn-confirm {
+  background-color: #0F54F4;
+  color: #fff;
+}

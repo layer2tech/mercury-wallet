@@ -18,7 +18,7 @@
 .restore-form .inputs-item input {
     position: relative;
     opacity: 1;
-   width: 100% !important;
+    width: 100% !important;
     padding: 10px;
     margin-bottom: 30px;
     border: 1px solid #D7D7D7;
@@ -28,6 +28,16 @@
     justify-content: center;
     width: 350px;
     margin: 0 auto;
+    position: relative;
+}
+
+.restore-form .inputs-item .eye-icon {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    height: 46px;
+    display: flex;
+    align-items: center;
 }
 
 .restore-form .inputs-item p {
@@ -55,12 +65,45 @@
     text-align: left;
 }
 
-.restore-form a, .restore-form a:hover {
+.restore-form a {
     background-color: #0F54F4;
     border: none;
     color:#ffffff;
     text-transform: uppercase;
     font-size: 14px;
     border-radius: 8px;
-    padding: 5px 30px;
+    padding: 5px 16px;
+}
+
+
+.restore-form .inputs-item input[type='checkbox'] {
+    border: 1px solid #000000;
+    background: #ffffff;
+}
+
+.restore-form a.send.disabled {
+    background-color: #afc2ef;
+    color: #ffffff;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.restore-form .btn-confirm-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.restore-form a.send:hover {
+    float: none;
+    margin-top: 0;
+    padding: 5px 16px;
+    border-radius: 8px;
+}
+.restore-form a.back:hover {
+    color: #ffffff;
+}
+
+.restore-form .btn-primary {
+    background-color: #0F54F4;
 }

@@ -104,6 +104,37 @@ function passStringToWasm0(arg, malloc, realloc) {
     return ptr;
 }
 /**
+*/
+export function test_wasm() {
+    wasm.test_wasm();
+}
+
+/**
+* @param {string} pk
+* @returns {any}
+*/
+export function curv_ge_to_bitcoin_public_key(pk) {
+    var ptr0 = passStringToWasm0(pk, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ret = wasm.curv_ge_to_bitcoin_public_key(ptr0, len0);
+    return takeObject(ret);
+}
+
+/**
+* @param {string} json_str
+* @param {string} field_name
+* @returns {any}
+*/
+export function convert_bigint_to_client_curv_version(json_str, field_name) {
+    var ptr0 = passStringToWasm0(json_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ptr1 = passStringToWasm0(field_name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len1 = WASM_VECTOR_LEN;
+    var ret = wasm.convert_bigint_to_client_curv_version(ptr0, len0, ptr1, len1);
+    return takeObject(ret);
+}
+
+/**
 * @param {string} root
 * @param {string} proof_key
 * @param {string} proof
@@ -124,23 +155,6 @@ export function verify_statechain_smt(root, proof_key, proof) {
 */
 export function init() {
     wasm.init();
-}
-
-/**
-*/
-export function test_wasm() {
-    wasm.test_wasm();
-}
-
-/**
-* @param {string} pk
-* @returns {any}
-*/
-export function curv_ge_to_bitcoin_public_key(pk) {
-    var ptr0 = passStringToWasm0(pk, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    var ret = wasm.curv_ge_to_bitcoin_public_key(ptr0, len0);
-    return takeObject(ret);
 }
 
 let cachegetInt32Memory0 = null;
@@ -419,6 +433,11 @@ export const __wbg_self_ac379e780a0d8b94 = function(arg0) {
     return addHeapObject(ret);
 };
 
+export const __wbg_require_6461b1e9a0d7c34a = function(arg0, arg1) {
+    var ret = require(getStringFromWasm0(arg0, arg1));
+    return addHeapObject(ret);
+};
+
 export const __wbg_crypto_1e4302b85d4f64a2 = function(arg0) {
     var ret = getObject(arg0).crypto;
     return addHeapObject(ret);
@@ -431,11 +450,6 @@ export const __wbindgen_is_undefined = function(arg0) {
 
 export const __wbg_getRandomValues_1b4ba144162a5c9e = function(arg0) {
     var ret = getObject(arg0).getRandomValues;
-    return addHeapObject(ret);
-};
-
-export const __wbg_require_6461b1e9a0d7c34a = function(arg0, arg1) {
-    var ret = require(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
 };
 

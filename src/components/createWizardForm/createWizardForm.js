@@ -21,6 +21,14 @@ const CreateWizardForm = (props) => {
     return (
         <div className="wizard-form">
             <form onSubmit={handleSubmit(onSubmit)}>
+                {props.setStateMnemonic && (
+                    <div className="inputs-item">
+                    <input id="Mnemonic" type="text" name="Mnemonic" placeholder="Mnemonic"
+                        value={props.wizardState.mnemonic}
+                        onChange={props.setStateMnemonic}
+                        required/>
+                    </div>
+                )}
                 <div className="inputs-item">
                   <input id="Name" type="text" name="Wallet Name" placeholder="Wallet Name"
                     value={props.wizardState.wallet_name}
@@ -73,7 +81,7 @@ const CreateWizardForm = (props) => {
                            required/>
                     <label htmlFor="terms">I have read and agree to the Terms of Use</label>
                 </div>
-                <button type="submit" className="btn btn-primary">Next</button>
+                <button type="submit" className="btn btn-primary">{props.submitTitle || 'Next'}</button>
             </form>
         </div>
     )

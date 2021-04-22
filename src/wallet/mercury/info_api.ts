@@ -79,6 +79,16 @@ export interface OutPoint {
   vout: number,
 }
 
+export const getRecoveryRequest = async (
+  http_client: HttpClient | MockHttpClient,
+  recovery_request: RecoveryRequest[]
+) => {
+  let recovery_data = await http_client.post(POST_ROUTE.RECOVER, recovery_request);
+  typeforce(types.Array, recovery_data);
+  return recovery_data
+}
+
+
 export interface StateChainDataAPI {
     utxo: OutPoint,
     amount: number,
@@ -98,4 +108,23 @@ export interface FeeInfo {
   withdraw: number,
   interval: number,
   initlock: number
+}
+
+export interface RecoveryRequest {
+  key: string,
+  sig: string
+}
+
+export interface RecoveryRequest {
+  key: string,
+  sig: string
+}
+
+export interface RecoveryDataMsg {
+  shared_key_id: string,
+  statechain_id: string,
+  amount: number,
+  tx_hex: string,
+  proof_key: string,
+  shared_key_data: string
 }

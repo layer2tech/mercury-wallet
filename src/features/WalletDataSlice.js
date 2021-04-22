@@ -4,6 +4,7 @@ import {Wallet, ACTION} from '../wallet'
 import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
 import {pingServer, swapDeregisterUtxo} from '../wallet/swap/info_api'
 import {decodeMessage} from '../wallet/util'
+import {getAllStatecoinDataForWallet} from '../wallet/recovery'
 
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
@@ -20,6 +21,7 @@ const initialState = {
   balance_info: {total_balance: null, num_coins: null},
   fee_info: {deposit: "NA", withdraw: "NA"},
   ping_swap: null,
+  filterBy: 'default'
 }
 
 // Check if a wallet is loaded in memory
@@ -54,12 +56,15 @@ export const walletLoad = (name, password) => {
   wallet.updateSwapGroupInfo();
 }
 
-// Create wallet from nmemonic and load wallet
-export const walletFromMnemonic = (name, password, mnemonic) => {
+// Create wallet from nmemonic and load wallet. Try restore wallet if set.
+export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   log.info("Wallet "+name+" created.");
   if (testing_mode) log.info("Testing mode set.");
   wallet.initElectrumClient(setBlockHeightCallBack);
+  if (try_restore) {
+    wallet.recoverCoinsFromServer();
+  }
   callNewSeAddr();
   wallet.save();
 }
@@ -213,6 +218,12 @@ const WalletSlice = createSlice({
           ping_swap: action.payload
         }
     },
+    updateFilter(state, action) {
+      return {
+        ...state,
+        filterBy: action.payload
+      }
+    },
     // Deposit
     dummyDeposit() {
       let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
@@ -292,7 +303,7 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo, updatePingSwap,
-  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave } = WalletSlice.actions
+  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave, updateFilter } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

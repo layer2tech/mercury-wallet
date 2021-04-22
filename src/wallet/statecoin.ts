@@ -6,8 +6,8 @@ import { ACTION } from ".";
 import { ElectrumTxData } from "./electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
-import { BSTRequestorData, SwapID, SwapInfo } from "./swap/swap";
-import { SCEAddress, TransferFinalizeData } from "./mercury/transfer";
+import { BatchData, BSTRequestorData, SwapID, SwapInfo } from "./swap/swap";
+import { SCEAddress, TransferFinalizeData, TransferMsg3 } from "./mercury/transfer";
 
 export class StateCoinList {
   coins: StateCoin[]
@@ -38,9 +38,14 @@ export class StateCoinList {
       if (
         item.status===STATECOIN_STATUS.AVAILABLE ||
         item.status===STATECOIN_STATUS.IN_SWAP ||
-        item.status===STATECOIN_STATUS.AWAITING_SWAP
+        item.status===STATECOIN_STATUS.AWAITING_SWAP ||
+        item.status===STATECOIN_STATUS.IN_TRANSFER ||
+        item.status===STATECOIN_STATUS.WITHDRAWN
       ) {
-        total += item.value
+        // Add all but withdrawn coins to total balance 
+        if (item.status!==STATECOIN_STATUS.WITHDRAWN) {
+          total += item.value
+        }
         return item
       }
       return null
@@ -104,7 +109,7 @@ export class StateCoinList {
   };
 
 
-  setCoinSpent(shared_key_id: string, action: string) {
+  setCoinSpent(shared_key_id: string, action: string, transfer_msg?: TransferMsg3) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       switch (action) {
@@ -112,7 +117,8 @@ export class StateCoinList {
           coin.setWithdrawn();
           return;
         case ACTION.TRANSFER:
-          coin.setSpent();
+          coin.setInTransfer();
+          coin.transfer_msg = transfer_msg!;
           return;
         case ACTION.SWAP:
           coin.setSwapped();
@@ -174,9 +180,7 @@ export class StateCoinList {
     if (coin) {
       if (coin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Swap already begun. Cannot remove coin.");
       if (coin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
-      coin.setConfirmed();
-      coin.swap_info = null;
-      coin.swap_status = null;
+      coin.setSwapDataToNull();
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
@@ -193,6 +197,8 @@ export const STATECOIN_STATUS = {
   UNCONFIRMED: "UNCONFIRMED",
   // Coins are fully owned by wallet and unspent
   AVAILABLE: "AVAILABLE",
+  // Coin has been sent but not yet received.
+  IN_TRANSFER: "IN_TRANSFER",
   // Coin currently waiting in swap pool
   AWAITING_SWAP: "AWAITING_SWAP",
   // Coin currently carrying out swap protocol
@@ -250,13 +256,18 @@ export class StateCoin {
   swap_rounds: number;
   status: string;
 
-  // Swap data
+  // Transfer data
+  transfer_msg: TransferMsg3 | null
+
+ // Swap data
   swap_status: string | null;
   swap_id: SwapID | null;
   swap_info: SwapInfo | null;
   swap_address: SCEAddress | null;
   swap_my_bst_data: BSTRequestorData | null;
   swap_receiver_addr: SCEAddress | null;
+  swap_transfer_msg: TransferMsg3 | null;
+  swap_batch_data: BatchData | null;
   swap_transfer_finalized_data: TransferFinalizeData | null;
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
@@ -281,12 +292,16 @@ export class StateCoin {
     this.smt_proof = null;
     this.status = STATECOIN_STATUS.INITIALISED;
 
+    this.transfer_msg = null;
+
     this.swap_status = null;
     this.swap_id = null
     this.swap_address = null;
     this.swap_info = null;
     this.swap_my_bst_data = null;
     this.swap_receiver_addr = null;
+    this.swap_transfer_msg = null;
+    this.swap_batch_data = null;
     this.swap_transfer_finalized_data = null;
   }
 
@@ -295,6 +310,7 @@ export class StateCoin {
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
   setAwaitingSwap() { this.status = STATECOIN_STATUS.AWAITING_SWAP }
   setInSwap() { this.status = STATECOIN_STATUS.IN_SWAP }
+  setInTransfer() { this.status = STATECOIN_STATUS.IN_TRANSFER; }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
   setSwapped() { this.status = STATECOIN_STATUS.SWAPPED; }
@@ -312,6 +328,7 @@ export class StateCoin {
   // Get data to display in GUI
   getDisplayInfo(block_height: number): StateCoinDisplayData {
     return {
+      status: this.status,
       wallet_version: this.wallet_version,
       shared_key_id: this.shared_key_id,
       value: this.value,
@@ -320,7 +337,7 @@ export class StateCoin {
       timestamp: this.timestamp,
       swap_rounds: this.swap_rounds,
       expiry_data: this.getExpiryData(block_height),
-      status: this.status,
+      transfer_msg: this.transfer_msg,
       swap_id: (this.swap_info ? this.swap_info.swap_token.id : null),
       swap_status: this.swap_status
     }
@@ -408,6 +425,20 @@ export class StateCoin {
   getSharedPubKey(): string {
     return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed("hex");
   }
+
+  // Set all StateCoin swap data to null.
+  setSwapDataToNull() {
+    this.setConfirmed();
+    this.swap_status = null;
+    this.swap_id = null
+    this.swap_address = null;
+    this.swap_info = null;
+    this.swap_my_bst_data = null;
+    this.swap_receiver_addr = null;
+    this.swap_transfer_msg = null;
+    this.swap_batch_data = null;
+    this.swap_transfer_finalized_data = null;
+  }
 }
 
 export interface StateCoinDisplayData {
@@ -420,6 +451,7 @@ export interface StateCoinDisplayData {
   swap_rounds: number,
   expiry_data: ExpiryData,
   status: string,
+  transfer_msg: TransferMsg3 | null,
   swap_id: string | null,
   swap_status: string | null,
 }

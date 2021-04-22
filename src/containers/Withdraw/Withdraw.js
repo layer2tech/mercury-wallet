@@ -21,6 +21,8 @@ const WithdrawPage = () => {
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
+  const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
+
 
   function addSelectedCoin(statechain_id) {
     setSelectedCoins( prevSelectedCoins => {
@@ -56,6 +58,7 @@ const WithdrawPage = () => {
       if (res.error===undefined) {
         setSelectedCoins([])
         setInputAddr("")
+        setRefreshCoins((prevState) => !prevState);
         dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
       }
     }))
@@ -91,10 +94,13 @@ const WithdrawPage = () => {
                     <h3 className="subtitle">Select Statecoin UTXO’s to withdraw</h3>
                     <span className="sub">Click to select UTXO’s below</span>
                     <Coins
+                      showCoinStatus={true}
                       displayDetailsOnClick={false}
                       selectedCoins={selectedCoins}
                       setSelectedCoin={addSelectedCoin}
-                      setSelectedCoins={setSelectedCoins}/>
+                      setSelectedCoins={setSelectedCoins}
+                      refresh={refreshCoins}
+                      />
                   </div>
 
             </div>

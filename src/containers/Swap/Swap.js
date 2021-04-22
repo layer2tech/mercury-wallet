@@ -17,8 +17,7 @@ const SwapPage = () => {
 
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
-  // Update Coins model to force re-render
-  const [refreshCoins, setRefreshCoins] = useState(false);
+  const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
   const [swapGroupsData, setSwapGroupsData] = useState([]);
 
@@ -127,6 +126,7 @@ const SwapPage = () => {
                       <span className="sub">Click to select UTXO’s below</span>
                       <Coins
                         displayDetailsOnClick={false}
+                        showCoinStatus={true}
                         selectedCoins={selectedCoins}
                         setSelectedCoin={addSelectedCoin}
                         setSelectedCoins={setSelectedCoins}
