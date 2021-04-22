@@ -144,7 +144,7 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "commerceblock",
+        "owner": "layer2tech",
         "repo": "mercury-wallet"
       }
     ],
