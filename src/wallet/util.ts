@@ -5,7 +5,6 @@ import { Root } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
 
-
 import { encrypt, decrypt } from 'eciesjs'
 import { segwitAddr } from './wallet';
 
@@ -216,21 +215,21 @@ export const decodeMessage = (enc_message: string, network: Network): TransferMs
 
   // compact byte message deserialisation
   //bytes 0..129 encrypted t1
-  let t1_bytes = buf.slice(0,129);
+  let t1_bytes = buf.slice(0,125);
   //bytes 129..162 (33 bytes) compressed proof key
-  let proof_key_bytes = buf.slice(129,162);
+  let proof_key_bytes = buf.slice(125,158);
   //bytes 162..178 (16 bytes) statechain_id
-  let statechain_id_bytes = buf.slice(162,178);
+  let statechain_id_bytes = buf.slice(158,174);
   //bytes 178..194 (16 bytes) shared_key_id
-  let shared_key_id_bytes = buf.slice(178,194);
+  let shared_key_id_bytes = buf.slice(174,190);
   //byte 194 is statechain signature length (variable)
-  let sig_len = buf.readUInt8(194);
+  let sig_len = buf.readUInt8(190);
   //byte 195..sig_len is statechain signature
-  let sig = buf.slice(195,(sig_len+195));
+  let sig = buf.slice(191,(sig_len+191));
   //byte tx_len is backup tx length (variable)
-  let tx_len = buf.readUInt8(sig_len+195);
+  let tx_len = buf.readUInt8(sig_len+191);
   //remaining bytes backup tx
-  let backup_tx_bytes = buf.slice((sig_len+196),(sig_len+tx_len+196));
+  let backup_tx_bytes = buf.slice((sig_len+192),(sig_len+tx_len+192));
 
   // convert uuids
   let sch_id = statechain_id_bytes.toString("hex");
