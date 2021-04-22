@@ -40,13 +40,7 @@ const INITIAL_SORT_BY = {
 	by: 'value'
 };
 
-function useForceUpdate(){
-  const [value, setValue] = useState(0); // integer state
-  return () => setValue(value => value + 1); // update the state to force render
-}
-
 const Coins = (props) => {
-    const forceUpdate = useForceUpdate();
     const dispatch = useDispatch();
 
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
@@ -63,11 +57,11 @@ const Coins = (props) => {
         props.setSelectedCoins([]);
         setShowCoinDetails(DEFAULT_STATE_COIN_DETAILS);
     }
-
+    const [refreshCoins, setRefreshCoins] = useState(false);
     // Set selected coin
     const selectCoin = (shared_key_id) => {
         props.setSelectedCoin(shared_key_id);  
-        forceUpdate();
+        setRefreshCoins((prevState) => !prevState);
         if (props.displayDetailsOnClick) {
             handleOpenCoinDetails(shared_key_id)
         }
@@ -75,17 +69,18 @@ const Coins = (props) => {
 
     // Check if coin is selected. If so return CSS.
     const isSelectedStyle = (shared_key_id) => {
-        if(props.selectedCoins == undefined) {
-          return
-        }
         let selected = false;
-        props.selectedCoins.forEach(
-          (selectedCoin) =>  {
-            if (selectedCoin === shared_key_id) {
-              selected = true;
-            } 
-          }
-        );
+        if(props.selectedCoins == undefined) {
+          selected = (props.selectedCoin == shared_key_id)
+        } else {
+            props.selectedCoins.forEach(
+              (selectedCoin) =>  {
+                if (selectedCoin === shared_key_id) {
+                  selected = true;
+                } 
+              }
+            );
+        }
         return selected ? {backgroundColor: "#e6e6e6"} : {}
     }
 

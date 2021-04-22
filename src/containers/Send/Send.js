@@ -16,19 +16,10 @@ const SendStatecoinPage = () => {
   const dispatch = useDispatch();
   const balance_info = useSelector(state => state.walletData).balance_info;
 
-  const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
-  function setSelectedCoin(statechain_id) {
-    setSelectedCoins(
-        prevSelectedCoins => {
-            let newSelectedCoins=[];
-            const isStatechainId = (element) => element == statechain_id; 
-            let index = prevSelectedCoins.findIndex(isStatechainId);
-            if (index == -1){
-                newSelectedCoins=[statechain_id];
-            }
-            return newSelectedCoins;
-        }
-    );
+  const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const toggleSelectedCoin = (statechain_id) => {
+    let result = selectedCoin == statechain_id ? null : statechain_id;
+    return setSelectedCoin(result);
   }
 
   const [inputAddr, setInputAddr] = useState("");
@@ -44,7 +35,7 @@ const SendStatecoinPage = () => {
 
   const sendButtonAction = async () => {
     // check statechain is chosen
-    if (selectedCoins.length == 0) {
+    if (selectedCoin == null) {
       dispatch(setError({msg: "Please choose a StateCoin to send."}))
       return
     }
@@ -72,12 +63,12 @@ const SendStatecoinPage = () => {
       return
     }
 
-    dispatch(callTransferSender({"shared_key_id": selectedCoins[0], "rec_addr": input_pubkey}))
+    dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
     .then(res => {
       if (res.error===undefined) {
         setTransferMsg3(encodeMessage(res.payload))
         setInputAddr("")
-        setSelectedCoins([])
+        setSelectedCoin(null)
         dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
       }
     })
@@ -115,9 +106,8 @@ const SendStatecoinPage = () => {
                       <span className="sub">Click to select UTXO’s below</span>
                       <Coins
                         displayDetailsOnClick={false}
-                        selectedCoins={selectedCoins}
-                        setSelectedCoins={setSelectedCoins}
-                        setSelectedCoin={setSelectedCoin}/>
+                        selectedCoin={selectedCoin}
+                        setSelectedCoin={toggleSelectedCoin}/>
                   </div>
 
               </div>

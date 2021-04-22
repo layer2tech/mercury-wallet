@@ -9,7 +9,7 @@ import '../index.css';
 const PanelCoinsActivity = (props) => {
     const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
 
-    function setSelectedCoin(statechain_id) {
+    const setSelectedCoin = (statechain_id) => {
         setSelectedCoins(
             prevSelectedCoins => {
                 let newSelectedCoins=[];
