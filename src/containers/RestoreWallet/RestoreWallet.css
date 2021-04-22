@@ -111,12 +111,6 @@
     background-color: #0F54F4;
 }
 
-.from-backup {
-    padding: 16px;
-    display: flex;
-    justify-content: center;
-    margin-bottom: 50px;
-}
-.from-backup button {
-    outline: none;
+.restore-form .backup-btn {
+    margin: 0 auto;
 }

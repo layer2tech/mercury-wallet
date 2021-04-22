@@ -4,6 +4,8 @@ import { useDispatch } from 'react-redux';
 import {Tabs, Tab} from 'react-bootstrap';
 import {setError, walletFromMnemonic} from '../../features/WalletDataSlice'
 import { CreateWizardForm } from '../../components'
+import eyeIcon from "../../images/eye-icon.svg";
+import eyeIconOff from "../../images/eye-icon-off.svg"
 
 import  './RestoreWallet.css'
 
@@ -12,6 +14,8 @@ let Store = window.require('electron-store');
 
 const RestoreWalletPage = (props) => {
   const dispatch = useDispatch();
+  const [showPass, setShowPass] = useState(false);
+  const toggleShowPass = () => setShowPass(!showPass);
 
   const [state, setState] = useState(
     {
@@ -76,11 +80,22 @@ const RestoreWalletPage = (props) => {
             </div>
           </Tab>
           <Tab eventKey="Restore from Backup" title="Restore from Backup">
-            <div className="from-backup">
+            <div className="restore-form">
+              <div className="inputs-item">
+                <input 
+                  type={showPass ? 'text' : 'password'} name="password"
+                  placeholder="Passphrase"
+                  onChange={setStateWalletPassword}
+                />
+                <span className={'eye-icon'} onClick={toggleShowPass}>
+                    {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
+                </span>
+              </div>
+
               <button 
                 type="button" 
                 onClick={handleSelectBackupFile}
-                className="Body-button blue">Select Your Backup File</button>
+                className="Body-button blue backup-btn">Select Your Backup File</button>
             </div>
           </Tab>
       </Tabs>
