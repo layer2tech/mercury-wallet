@@ -1,3 +1,8 @@
+.restore-wallet-wrap {
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+}
 .restore-form {
    width: 50%;
     margin: 0 auto;
@@ -5,10 +10,11 @@
     padding-bottom: 90px;
 }
 
-.restore-form .back {
+.restore-wallet-wrap .back {
     position: absolute;
     bottom: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
 
 }
 .restore-form  a {
@@ -100,10 +106,17 @@
     padding: 5px 16px;
     border-radius: 8px;
 }
-.restore-form a.back:hover {
-    color: #ffffff;
-}
 
 .restore-form .btn-primary {
     background-color: #0F54F4;
+}
+
+.from-backup {
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+.from-backup button {
+    outline: none;
 }
