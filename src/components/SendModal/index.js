@@ -3,7 +3,7 @@ import { Modal } from "react-bootstrap";
 import {useDispatch} from 'react-redux'
 
 import { CopiedButton } from '../../components'
-import {walletLoad, setError, callGetWalletName} from '../../features/WalletDataSlice'
+import {checkWalletPassword, setError, callGetWalletName} from '../../features/WalletDataSlice'
 import { CoinValueIcon, checkIcon, copyIcon, LockIcon, CoinAddressIcon} from './icons'
 import { fromSatoshi } from '../../wallet/util'
 
@@ -49,7 +49,7 @@ function SendModal({
     setPassphrase(e.target.value);
   }
   const handleConfirm = (event) => {
-    try { walletLoad(callGetWalletName(), passphrase) }
+    try { checkWalletPassword(passphrase) }
       catch (e) {
         event.preventDefault();
         dispatch(setError({msg: e.message}))
