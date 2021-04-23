@@ -21,6 +21,7 @@ import Moment from 'react-moment';
 import {fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData} from '../../features/WalletDataSlice'
 import SortBy from './SortBy/SortBy'
+import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
 import { CoinStatus } from '../../components'
 
@@ -259,7 +260,8 @@ const Coins = (props) => {
     )})
 
     return (
-        <div>
+        <div className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy}`}>
+          <FilterBy />
           {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
             {statecoinData}
 
