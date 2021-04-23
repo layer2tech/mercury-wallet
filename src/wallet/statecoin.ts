@@ -1,6 +1,6 @@
 // Statecoin is a Mercury shared key along with all deposit information.
 
-import { Network } from "bitcoinjs-lib";
+import { Network, Transaction } from "bitcoinjs-lib";
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { ACTION } from ".";
 import { ElectrumTxData } from "./electrum";
@@ -21,7 +21,26 @@ export class StateCoinList {
     coins_json.coins.forEach((item: StateCoin) => {
       let coin = new StateCoin(item.shared_key_id, item.shared_key);
       coin.wallet_version = "";
-      statecoins.coins.push(Object.assign(coin, item))
+
+      // re-build tx_backup as Transaction
+      if (item.tx_backup!==undefined) {
+        let tx_backup_any: any = item.tx_backup;
+        let tx_backup = new Transaction();
+        tx_backup.version = tx_backup_any.version;
+        tx_backup.locktime = tx_backup_any.locktime;
+        if (tx_backup_any.ins.length>0) {
+          tx_backup.addInput(Buffer.from(tx_backup_any.ins[0].hash), tx_backup_any.ins[0].index, tx_backup_any.ins[0].sequence)
+          if (tx_backup_any.ins[0].witness.length>0) {
+            tx_backup.ins[0].witness = [Buffer.from(tx_backup_any.ins[0].witness[0]),Buffer.from(tx_backup_any.ins[0].witness[1])];
+          }
+        }
+        if (tx_backup_any.outs.length>0) {
+          tx_backup.addOutput(Buffer.from(tx_backup_any.outs[0].script), tx_backup_any.outs[0].value)
+          tx_backup.addOutput(Buffer.from(tx_backup_any.outs[1].script), tx_backup_any.outs[1].value)
+        }
+        item.tx_backup = tx_backup;
+      }
+      statecoins.coins.push(Object.assign(coin, item));
     })
     return statecoins
   }
@@ -382,14 +401,16 @@ export class StateCoin {
   }
 
   getBackupTxData(block_height: number) {
+    if (this.tx_backup==null) throw Error("null")
+
     return {
-      tx_backup_hex: this.tx_backup?.toHex(),
+      tx_backup_hex: this.tx_backup.toHex(),
       priv_key_hex: "",
       key_wif: "",
       expiry_data: this.getExpiryData(block_height),
       backup_status: this.backup_status,
-      txid: this.tx_backup?.getId(),
-      output_value: this.tx_backup?.outs[0].value,
+      txid: this.tx_backup.getId(),
+      output_value: this.tx_backup.outs[0].value,
       cpfp_status: "None",
     }
   }

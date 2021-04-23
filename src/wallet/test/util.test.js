@@ -123,7 +123,7 @@ test('transfer message encode/decode', function() {
   let proof_key = "03b971d624567214a2e9a53995ee7d4858d6355eb4e3863d9ac540085c8b2d12b3";
 
   let tx_backup_psm = {
-          shared_key_id: SHARED_KEY_ID,
+          shared_key_ids: [SHARED_KEY_ID],
           protocol: "Transfer",
           tx_hex: BACKUP_TX_HEX,
           input_addrs: [],

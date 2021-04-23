@@ -23,7 +23,7 @@
     }
   },
   "repository": "github:commerceblock/mercury-wallet",
-  "version": "v0.2.13",
+  "version": "v0.2.14",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
@@ -82,7 +82,7 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "html-react-parser": "^0.14.2",
     "install": "^0.13.0",
-    "lodash": "^4.17.20",
+    "lodash.clonedeep": "^4.5.0",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
     "net": "^1.0.2",
@@ -144,7 +144,7 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "commerceblock",
+        "owner": "layer2tech",
         "repo": "mercury-wallet"
       }
     ],
