@@ -59,16 +59,17 @@ const Coins = (props) => {
         setShowCoinDetails({show: true, coin: coin});
     }
     const handleCloseCoinDetails = () => {
-        props.setSelectedCoin(null);
+        props.setSelectedCoins([]);
         setShowCoinDetails(DEFAULT_STATE_COIN_DETAILS);
     }
-
+    const [refreshCoins, setRefreshCoins] = useState(false);
     const filterCoinsByStatus = (coins = [], status) => {
       return coins.filter(coin => coin.status === status);
     }
     // Set selected coin
     const selectCoin = (shared_key_id) => {
-        shared_key_id === props.selectedCoin ? props.setSelectedCoin(null) : props.setSelectedCoin(shared_key_id);
+        props.setSelectedCoin(shared_key_id);  
+        setRefreshCoins((prevState) => !prevState);
         if (props.displayDetailsOnClick) {
             handleOpenCoinDetails(shared_key_id)
         }
@@ -76,7 +77,19 @@ const Coins = (props) => {
 
     // Check if coin is selected. If so return CSS.
     const isSelectedStyle = (shared_key_id) => {
-        return props.selectedCoin === shared_key_id ? {backgroundColor: "#e6e6e6"} : {}
+        let selected = false;
+        if(props.selectedCoins == undefined) {
+          selected = (props.selectedCoin == shared_key_id)
+        } else {
+            props.selectedCoins.forEach(
+              (selectedCoin) =>  {
+                if (selectedCoin === shared_key_id) {
+                  selected = true;
+                } 
+              }
+            );
+        }
+        return selected ? {backgroundColor: "#e6e6e6"} : {}
     }
 
     // Convert expiry_data to string displaying months or days left
