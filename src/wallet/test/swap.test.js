@@ -7,8 +7,6 @@ import * as MOCK_SERVER from '../mocks/mock_http_client'
 import {fromSeed} from 'bip32';
 
 let bitcoin = require('bitcoinjs-lib')
-let lodash = require('lodash');
-
 
 // client side's mock
 let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');

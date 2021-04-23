@@ -7,7 +7,7 @@ import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
 
 let bitcoin = require("bitcoinjs-lib");
-let lodash = require('lodash');
+let cloneDeep = require('lodash.clonedeep');
 let types = require("../types")
 let typeforce = require('typeforce');
 let BN = require('bn.js');
@@ -42,7 +42,7 @@ export const transferSender = async (
   // Checks for spent, owned etc here
   let new_tx_backup;
   if (statecoin.tx_backup) {
-    new_tx_backup = lodash.cloneDeep(statecoin.tx_backup);
+    new_tx_backup = cloneDeep(statecoin.tx_backup);
   } else {
     throw Error("Back up tx does not exist. Statecoin deposit is not complete.")
   }
