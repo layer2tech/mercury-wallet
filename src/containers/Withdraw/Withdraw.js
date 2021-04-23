@@ -113,7 +113,7 @@ const WithdrawPage = () => {
                       showCoinStatus={true}
                       displayDetailsOnClick={false}
                       selectedCoins={selectedCoins}
-                      setSelectedCoin={setSelectedCoin}
+                      setSelectedCoin={addSelectedCoin}
                       refresh={refreshCoins}/>
                   </div>
 
