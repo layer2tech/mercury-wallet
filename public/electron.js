@@ -6,6 +6,9 @@ const path = require('path');
 const isDev = require('electron-is-dev');
 const url = require('url');
 
+const Menu = electron.Menu;
+Menu.setApplicationMenu(null);
+
 let mainWindow;
 
 function createWindow() {
