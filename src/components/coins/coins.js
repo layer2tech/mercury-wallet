@@ -21,6 +21,7 @@ import Moment from 'react-moment';
 import {fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData} from '../../features/WalletDataSlice'
 import SortBy from './SortBy/SortBy'
+import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
 import { CoinStatus } from '../../components'
 
@@ -58,16 +59,17 @@ const Coins = (props) => {
         setShowCoinDetails({show: true, coin: coin});
     }
     const handleCloseCoinDetails = () => {
-        props.setSelectedCoin(null);
+        props.setSelectedCoins([]);
         setShowCoinDetails(DEFAULT_STATE_COIN_DETAILS);
     }
-
+    const [refreshCoins, setRefreshCoins] = useState(false);
     const filterCoinsByStatus = (coins = [], status) => {
       return coins.filter(coin => coin.status === status);
     }
     // Set selected coin
     const selectCoin = (shared_key_id) => {
-        shared_key_id === props.selectedCoin ? props.setSelectedCoin(null) : props.setSelectedCoin(shared_key_id);
+        props.setSelectedCoin(shared_key_id);  
+        setRefreshCoins((prevState) => !prevState);
         if (props.displayDetailsOnClick) {
             handleOpenCoinDetails(shared_key_id)
         }
@@ -75,7 +77,19 @@ const Coins = (props) => {
 
     // Check if coin is selected. If so return CSS.
     const isSelectedStyle = (shared_key_id) => {
-        return props.selectedCoin === shared_key_id ? {backgroundColor: "#e6e6e6"} : {}
+        let selected = false;
+        if(props.selectedCoins == undefined) {
+          selected = (props.selectedCoin == shared_key_id)
+        } else {
+            props.selectedCoins.forEach(
+              (selectedCoin) =>  {
+                if (selectedCoin === shared_key_id) {
+                  selected = true;
+                } 
+              }
+            );
+        }
+        return selected ? {backgroundColor: "#e6e6e6"} : {}
     }
 
     // Convert expiry_data to string displaying months or days left
@@ -120,10 +134,7 @@ const Coins = (props) => {
           ) {
             setCoins({
                 ...coins,
-                unConfirmedCoins: [
-					...coins.unConfirmedCoins,
-					...new_unconfired_coins_data
-				]
+                unConfirmedCoins: new_unconfired_coins_data
             })
           }
         }, 10000);
@@ -262,7 +273,8 @@ const Coins = (props) => {
     )})
 
     return (
-        <div>
+        <div className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy}`}>
+          <FilterBy />
           {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
             {statecoinData}
 

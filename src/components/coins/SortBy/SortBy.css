@@ -4,7 +4,7 @@
 .sort-by-menu {
   cursor: pointer;
   position: absolute;
-  right: 0;
+  right: 30px;
 }
 .sort-by-menu svg {
   transform: rotate(90deg);
