@@ -1,5 +1,5 @@
 const axios = require('axios').default;
-const tor_axios = require('tor_axios').default;
+const tor_axios = require('tor-axios').default;
 
 
 export const GET_ROUTE = {
