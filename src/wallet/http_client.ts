@@ -1,6 +1,13 @@
 const axios = require('axios').default;
-const tor_axios = require('tor-axios').default;
+const tor_axios = require('tor-axios');
+const SocksProxyAgent = require('socks-proxy-agent');
 
+const tor = tor_axios.torSetup({
+  ip: 'localhost',
+  port: 9050,
+  controlPort: 9051,
+  controlPassword: 'prfssdJB&JO2018',
+});
 
 export const GET_ROUTE = {
   PING: "ping",
@@ -51,9 +58,31 @@ const checkForServerError = (return_val: any) => {
 
 export class HttpClient {
   endpoint: string
+  //tor: any
+  //agent: any
+  //httpAgent: any
+  //httpsAgent: any
 
   constructor(endpoint: string) {
     this.endpoint = endpoint;
+    //this.agent = new SocksProxyAgent('socks5h://localhost:9050');
+    
+        //const {httpAgent, httpsAgent} = new SocksAgent({
+      //host: 'localhost',
+      //port: 9050,
+      //controlPort: 9051,
+      //controlPassword: 'prfssdJB&JO2018'
+    //})
+    //this.httpAgent = httpAgent;
+    //this.httpsAgent = httpsAgent;
+    
+    //tor_axios.torSetup({
+//      protocol: 'socks5',
+      //ip: '127.0.0.1',
+      //port: 9050,
+      //controlPort: 9051,
+   
+    //});
   }
 
   get = async (path: string, params: any) => {
@@ -64,22 +93,16 @@ export class HttpClient {
           url: url,
           headers: { 'Accept': 'application/json' }
       };
-      const tor_config = {
-        ip: '127.0.0.1',
-        port: 9050,
-        controlPort: 9051,
-        controlPassword: 'prfssdJB&JO2018'
-      };
 
-      const tor = tor_axios.torSetup(tor_config);
+      //const inst = axios.create({
+      //  httpAgent: this.httpAgent,
+      //  httpsagent: this.httpsAgent,
+      //  headers: { 'Accept': 'application/json' }
+      //});
 
-      const inst = axios.create({
-        httpAgent: tor.httpAgent(),
-        httpsagent: tor.httpsAgent(),
-      });
-
+      //let res = await tor.get(url);
       //let res = await axios(config)
-      let res = await tor_axios.get(url, {headers: { 'Accept': 'application/json' }})
+      let res = await tor.get(url, { 'Accept': 'application/json' })
       let return_data = res.data
       checkForServerError(return_data)
 
@@ -103,14 +126,17 @@ export class HttpClient {
           data: body
       };
 
-      const tor_config = {
-        ip: '127.0.0.1',
-        port: 9050,
-        controlPort: 9051,
-        controlPassword: 'prfssdJB&JO2018'
-      };
+      //const inst = axios.create({
+//        httpAgent: this.httpAgent,
+  //      httpsagent: this.httpsAgent,
+    //    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+      //});
 
-      let res = await axios(config)
+      //let res = await axios(config)
+      let res = await tor.post(url, body, {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      });
       let return_data = res.data
       checkForServerError(return_data)
 
