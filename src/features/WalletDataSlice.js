@@ -131,12 +131,6 @@ export const callUpdateConfig = (config_changes) => {
   wallet.save()
 }
 
-// Create CPFP transaction and add to coin
-export const callCreateBackupTxCPFP = (cpfp_data) => {
-     let sucess = wallet.createBackupTxCPFP(cpfp_data);
-     return sucess
-}
-
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
@@ -155,7 +149,7 @@ export const callDepositConfirm = createAsyncThunk(
 export const callWithdraw = createAsyncThunk(
   'depositWithdraw',
   async (action, thunkAPI) => {
-    return wallet.withdraw(action.shared_key_id, action.rec_addr)
+    return wallet.withdraw(action.shared_key_ids, action.rec_addr)
   }
 )
 export const callTransferSender = createAsyncThunk(
@@ -188,6 +182,13 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
     let statechain_id = wallet.statecoins.getCoin(action.shared_key_id).statechain_id
     await swapDeregisterUtxo(wallet.conductor_client, {id: statechain_id});
     wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
+  }
+)
+export const callCreateBackupTxCPFP = createAsyncThunk(
+  'CreateBackupTxCPFP',
+  async (action, thunkAPI) => {
+    let sucess = wallet.createBackupTxCPFP(action.cpfp_data);
+    return sucess
   }
 )
 
@@ -297,6 +298,9 @@ const WalletSlice = createSlice({
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callSwapDeregisterUtxo.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callCreateBackupTxCPFP.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
 }

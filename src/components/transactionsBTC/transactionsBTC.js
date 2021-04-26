@@ -91,15 +91,15 @@ const TransactionsBTC = (props) => {
   return (
     <div className=" deposit">
       {populateWithTransactionDisplayPanels}
-      <div className="Body">
-        {testing_mode ?
+      {testing_mode ?
+        <div className="Body">
           <button type="button" className="std-button" onClick={despositConfirm}>
-              PERFORM DEPOSIT CONFIRM
+          PERFORM DEPOSIT CONFIRM
           </button>
+        </div>
         :
-          null
-        }
-      </div>
+        null
+      }
     </div>
   )
 }
