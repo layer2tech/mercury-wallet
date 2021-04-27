@@ -3,11 +3,12 @@ const electron = require('electron');
 const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
+
 const path = require('path');
 const url = require('url');
 
-const Menu = electron.Menu;
-Menu.setApplicationMenu(false);
+
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -24,6 +25,7 @@ function createWindow() {
         }
       }
     );
+
     // Open links in systems default browser
     mainWindow.webContents.on('new-window', function(e, url) {
       e.preventDefault();
