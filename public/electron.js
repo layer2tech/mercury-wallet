@@ -6,9 +6,6 @@ const path = require('path');
 const isDev = require('electron-is-dev');
 const url = require('url');
 
-const Menu = electron.Menu;
-Menu.setApplicationMenu(null);
-
 let mainWindow;
 
 function createWindow() {
@@ -41,6 +38,11 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
   mainWindow.on('closed', () => mainWindow = null);
+}
+
+if (process.platform !== 'darwin') {
+  const Menu = electron.Menu;
+  Menu.setApplicationMenu(false);
 }
 
 app.on('ready', createWindow);
