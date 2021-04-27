@@ -62,4 +62,7 @@ export class MockElectrumClient {
     }
     async scriptHashUnsubscribe(script: string): Promise<any> {
     }
+
+    async getFeeHistogram(num_blocks: number): Promise<any> {
+    }
 }

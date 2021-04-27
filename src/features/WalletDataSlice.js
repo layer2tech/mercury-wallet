@@ -194,6 +194,12 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
     wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
   }
 )
+export const callGetFeeEstimation = createAsyncThunk(
+  'GetFeeEstimation',
+  async (action, thunkAPI) => {
+    return await wallet.electrum_client.getFeeHistogram(3);
+  }
+)
 
 const WalletSlice = createSlice({
   name: 'walletData',
@@ -215,7 +221,7 @@ const WalletSlice = createSlice({
         fee_info: action.payload
       }
     },
-    // Update fee_info
+    // Update ping_swap
     updatePingSwap(state, action) {
         return {
           ...state,
@@ -302,12 +308,16 @@ const WalletSlice = createSlice({
     },
     [callSwapDeregisterUtxo.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callGetFeeEstimation.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
 }
 })
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo, updatePingSwap,
-  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave, updateFilter } = WalletSlice.actions
+  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave, updateFilter,
+  updateTxFeeEstimate } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

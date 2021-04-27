@@ -3,14 +3,16 @@ import orange from "../../images/wallet-orange.png";
 import withdrowIcon from "../../images/withdrow-icon.png";
 
 import {Link, withRouter, Redirect} from "react-router-dom";
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {isWalletLoaded, callWithdraw, setError, setNotification} from '../../features/WalletDataSlice';
+import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification} from '../../features/WalletDataSlice';
 import {Coins, StdButton, AddressInput} from "../../components";
 import {fromSatoshi} from '../../wallet/util';
 
 import './Withdraw.css';
+
+export const DEFAULT_FEE = 300;
 
 const WithdrawPage = () => {
   const dispatch = useDispatch();
@@ -21,8 +23,17 @@ const WithdrawPage = () => {
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
+  const [txFeePerByte, setTxFeePerByte] = useState(DEFAULT_FEE); // Update Coins model to force re-render
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
+
+  // Get Tx fee estimate
+  useEffect(() => {
+    dispatch(callGetFeeEstimation()).then(tx_fee_estimate => {
+      console.log("tx_fee_estimate: ", tx_fee_estimate)
+      setTxFeePerByte(tx_fee_estimate);
+    })
+  }, []);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
