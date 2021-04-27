@@ -689,30 +689,36 @@ export class Wallet {
   // Args: statechain_id of coin to withdraw
   // Return: Withdraw Tx  (Details to be displayed to user - amount, txid, expect conf time...)
   async withdraw(
-    shared_key_id: string,
+    shared_key_ids: string[],
     rec_addr: string,
     fee_per_kb: number
   ): Promise<Transaction> {
-    log.info("Withdrawing "+shared_key_id+" to "+rec_addr);
+    log.info("Withdrawing "+shared_key_ids+" to "+rec_addr);
 
     // Check address format
     try { bitcoin.address.toOutputScript(rec_addr, this.config.network) }
       catch (e) { throw Error("Invalid Bitcoin address entered.") }
 
-    let statecoin = this.statecoins.getCoin(shared_key_id);
-    if (!statecoin) throw Error("No coin found with id " + shared_key_id)
-    if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+shared_key_id+" currenlty involved in swap protocol.");
-    if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+shared_key_id+" waiting in  swap pool. Remove from pool to withdraw.");
-    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" not available for withdraw.");
-
-    let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+    let statecoins : StateCoin[] = [];
+    let proof_key_ders: BIP32Interface[] = [];
+    shared_key_ids.forEach( (shared_key_id) => {
+      let statecoin = this.statecoins.getCoin(shared_key_id);
+      if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+      if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+shared_key_id+" currenlty involved in swap protocol.");
+      if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+shared_key_id+" waiting in  swap pool. Remove from pool to withdraw.");
+      if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+shared_key_id+" not available for withdraw.");
+      statecoins.push(statecoin);
+      proof_key_ders.push(this.getBIP32forProofKeyPubKey(statecoin.proof_key));
+    });
 
     // Perform withdraw with server
-    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, rec_addr, fee_per_kb);
+    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_kb);
 
     // Mark funds as withdrawn in wallet
-    this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
-    this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
+    shared_key_ids.forEach( (shared_key_id) => {
+      this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+      this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
+    });
 
     // Broadcast transcation
     await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())

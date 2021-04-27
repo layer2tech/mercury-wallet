@@ -31,7 +31,6 @@ const WithdrawPage = () => {
   // Get Tx fee estimate
   useEffect(() => {
     dispatch(callGetFeeEstimation()).then(tx_fee_estimate => {
-      console.log("tx_fee_estimate: ", tx_fee_estimate)
       if (tx_fee_estimate>0) {
         setTxFeePerKB(tx_fee_estimate);
       }

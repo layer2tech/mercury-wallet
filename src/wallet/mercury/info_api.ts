@@ -13,7 +13,8 @@ export const getFeeInfo = async (
   http_client: HttpClient | MockHttpClient,
 ) => {
   let fee_info = await http_client.get(GET_ROUTE.FEES, {});
-  typeforce(types.FeeInfo, fee_info);
+  typeforce(types.FeeInfo, fee_info);  
+
   return fee_info
 }
 
@@ -30,6 +31,15 @@ export const getStateChain = async (
   statechain_id: string
 ) => {
   let statechain = await http_client.get(GET_ROUTE.STATECHAIN, statechain_id);
+  
+  if (typeof statechain.utxo == "string"){
+    let outpoint = {
+      txid: statechain.utxo.substring(0,64),
+      vout:parseInt(statechain.utxo.substring(65,66))
+    }
+    statechain.utxo=outpoint;
+  }
+
   typeforce(types.StateChainDataAPI, statechain);
   return statechain
 }
@@ -64,6 +74,11 @@ export const getTransferBatchStatus = async (
   return await http_client.get(GET_ROUTE.TRANSFER_BATCH, batch_id);
 }
 
+export interface OutPoint {
+  txid: string,
+  vout: number,
+}
+
 export const getRecoveryRequest = async (
   http_client: HttpClient | MockHttpClient,
   recovery_request: RecoveryRequest[]
@@ -75,7 +90,7 @@ export const getRecoveryRequest = async (
 
 
 export interface StateChainDataAPI {
-    utxo: any,
+    utxo: OutPoint,
     amount: number,
     chain: any[],
     locktime: number,

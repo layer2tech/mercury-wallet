@@ -18,7 +18,11 @@ const SendStatecoinPage = () => {
   const [openSendModal, setOpenSendModal] = useState({ show: false });
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
-  const [coinDetails, setCoinDetails] = useState({}); // store selected coins shared_key_id
+  const toggleSelectedCoin = (statechain_id) => {
+    let result = selectedCoin == statechain_id ? null : statechain_id;
+    return setSelectedCoin(result);
+  }
+
   const [inputAddr, setInputAddr] = useState("");
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -33,7 +37,7 @@ const SendStatecoinPage = () => {
 
   const sendButtonAction = async () => {
     // check statechain is chosen
-    if (!selectedCoin) {
+    if (selectedCoin == null) {
       dispatch(setError({msg: "Please choose a StateCoin to send."}))
       return
     }
@@ -64,14 +68,11 @@ const SendStatecoinPage = () => {
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
     .then(res => {
       if (res.error===undefined) {
-        const transferCode = encodeMessage(res.payload);
-        setTransferMsg3(transferCode)
-        setOpenSendModal({
-          show: true,
-          value: coinDetails.value,
-          transfer_code: transferCode,
-          coinAddress: inputAddr
-        });
+        setTransferMsg3(encodeMessage(res.payload))
+        setInputAddr("")
+        setSelectedCoin(null)
+        setRefreshCoins((prevState) => !prevState);
+        dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
       }
     })
   }
@@ -123,8 +124,12 @@ const SendStatecoinPage = () => {
                       <Coins
                         displayDetailsOnClick={false}
                         selectedCoin={selectedCoin}
+<<<<<<< HEAD
                         setSelectedCoin={setSelectedCoin}
                         setCoinDetails={setCoinDetails}
+=======
+                        setSelectedCoin={toggleSelectedCoin}
+>>>>>>> develop
                         refresh={refreshCoins}/>
                   </div>
 
