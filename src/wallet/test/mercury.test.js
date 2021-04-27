@@ -116,6 +116,7 @@ describe('StateChain Entity', function() {
   });
 
   describe('Withdraw', function() {
+    let fee_per_kb = 0.00001;
     test('Expect complete', async function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
@@ -133,7 +134,7 @@ describe('StateChain Entity', function() {
 
       let statecoin = makeTesterStatecoin();
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-      let tx_withdraw = await withdraw(http_mock, wasm_mock, network, statecoin, proof_key_der, BTC_ADDR);
+      let tx_withdraw = await withdraw(http_mock, wasm_mock, network, statecoin, proof_key_der, BTC_ADDR, fee_per_kb);
 
       // check withdraw tx
       expect(tx_withdraw.ins.length).toBe(1);
@@ -148,7 +149,7 @@ describe('StateChain Entity', function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(statechain_info)
 
-      await expect(withdraw(http_mock, wasm_mock, network, {}, {}, BTC_ADDR))
+      await expect(withdraw(http_mock, wasm_mock, network, {}, {}, BTC_ADDR, fee_per_kb))
         .rejects
         .toThrowError("StateChain undefined already withdrawn.");
     });
@@ -158,7 +159,7 @@ describe('StateChain Entity', function() {
 
       let statecoin = makeTesterStatecoin();
       statecoin.proof_key = "aaa";
-      await expect(withdraw(http_mock, wasm_mock, network, statecoin, {}, BTC_ADDR))
+      await expect(withdraw(http_mock, wasm_mock, network, statecoin, {}, BTC_ADDR, fee_per_kb))
         .rejects
         .toThrowError("StateChain not owned by this Wallet. Incorrect proof key.");
     });
@@ -174,7 +175,7 @@ describe('StateChain Entity', function() {
 
       let statecoin = makeTesterStatecoin();
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-      await expect(withdraw(http_mock, wasm_mock, network, statecoin, proof_key_der, BTC_ADDR))
+      await expect(withdraw(http_mock, wasm_mock, network, statecoin, proof_key_der, BTC_ADDR, fee_per_kb))
         .rejects
         .toThrowError("Not enough value to cover fee.");
     });

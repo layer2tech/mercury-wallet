@@ -21,7 +21,8 @@ export const withdraw = async (
   network: Network,
   statecoin: StateCoin,
   proof_key_der: BIP32Interface,
-  rec_addr: string
+  rec_addr: string,
+  fee_per_kb: number
 ): Promise<Transaction> => {
   // Get statechain from SE and check ownership
   let statechain = await getStateChain(http_client, statecoin.statechain_id);
@@ -51,7 +52,8 @@ export const withdraw = async (
     rec_addr,
     statecoin.value,
     fee_info.address,
-    withdraw_fee
+    withdraw_fee,
+    fee_per_kb
   );
   let tx_withdraw_unsigned = txb_withdraw_unsigned.buildIncomplete();
 

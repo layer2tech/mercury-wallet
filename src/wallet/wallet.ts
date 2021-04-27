@@ -690,7 +690,8 @@ export class Wallet {
   // Return: Withdraw Tx  (Details to be displayed to user - amount, txid, expect conf time...)
   async withdraw(
     shared_key_id: string,
-    rec_addr: string
+    rec_addr: string,
+    fee_per_kb: number
   ): Promise<Transaction> {
     log.info("Withdrawing "+shared_key_id+" to "+rec_addr);
 
@@ -707,7 +708,7 @@ export class Wallet {
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
     // Perform withdraw with server
-    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, rec_addr);
+    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, rec_addr, fee_per_kb);
 
     // Mark funds as withdrawn in wallet
     this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)

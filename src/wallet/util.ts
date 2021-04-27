@@ -20,6 +20,7 @@ let secp256k1 = new EC('secp256k1')
 
 /// Temporary - fees should be calculated dynamically
 export const FEE = 300;
+export const SIGNED_WITHDRAW_TX_SIZE_KB = 0.56;
 
 // Verify Spase Merkle Tree proof of inclusion
 export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {
@@ -141,14 +142,16 @@ export const txBackupBuild = (network: Network, funding_txid: string, funding_vo
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number): TransactionBuilder => {
-  if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
-
+export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_kb: number): TransactionBuilder => {
+  let tx_fee = toSatoshi(Math.round(fee_per_kb*SIGNED_WITHDRAW_TX_SIZE_KB*10e7)/10e7);
+  if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
+  
   let txb = new TransactionBuilder(network);
 
   txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF);
-  txb.addOutput(rec_address, value - FEE - withdraw_fee);
+  txb.addOutput(rec_address, value - tx_fee - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
+
   return txb
 }
 

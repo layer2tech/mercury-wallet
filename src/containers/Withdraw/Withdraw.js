@@ -8,11 +8,11 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification} from '../../features/WalletDataSlice';
 import {Coins, StdButton, AddressInput} from "../../components";
-import {fromSatoshi} from '../../wallet/util';
+import {fromSatoshi, toSatoshi} from '../../wallet/util';
 
 import './Withdraw.css';
 
-export const DEFAULT_FEE = 300;
+export const DEFAULT_FEE = 0.00001;
 
 const WithdrawPage = () => {
   const dispatch = useDispatch();
@@ -23,7 +23,7 @@ const WithdrawPage = () => {
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
-  const [txFeePerByte, setTxFeePerByte] = useState(DEFAULT_FEE); // Update Coins model to force re-render
+  const [txFeePerKB, setTxFeePerKB] = useState(DEFAULT_FEE); // Update Coins model to force re-render
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
 
@@ -31,7 +31,9 @@ const WithdrawPage = () => {
   useEffect(() => {
     dispatch(callGetFeeEstimation()).then(tx_fee_estimate => {
       console.log("tx_fee_estimate: ", tx_fee_estimate)
-      setTxFeePerByte(tx_fee_estimate);
+      if (tx_fee_estimate>0) {
+        setTxFeePerKB(tx_fee_estimate);
+      }
     })
   }, []);
 
@@ -51,7 +53,7 @@ const WithdrawPage = () => {
       return
     }
 
-    dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr})).then((res => {
+    dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr, "fee_per_kb": txFeePerKB})).then((res => {
       if (res.error===undefined) {
         setSelectedCoin(null)
         setInputAddr("")
@@ -104,7 +106,7 @@ const WithdrawPage = () => {
                     <h3 className="subtitle">Transaction Details</h3>
                     <div>
                         <select name="1" id="1">
-                            <option value="1">Low 7sat/B</option>
+                            <option value="1">Low {toSatoshi(txFeePerKB/1000)} sat/B</option>
                         </select>
                         <span className="small">Transaction Fee</span>
                     </div>
