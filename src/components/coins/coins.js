@@ -21,6 +21,7 @@ import Moment from 'react-moment';
 import {fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData} from '../../features/WalletDataSlice'
 import SortBy from './SortBy/SortBy'
+import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
 import { CoinStatus } from '../../components'
 
@@ -107,7 +108,9 @@ const Coins = (props) => {
         const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsByStatus.length}));
       } else {
-        dispatch(updateBalanceInfo({total_balance: total_balance, num_coins: coins_data.length}));
+        const coinsNotWithdraw = coins_data.filter(coin => coin.status !== STATECOIN_STATUS.WITHDRAWN)
+        const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
+        dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
     }, [props.refresh, filterBy]);
 
@@ -128,10 +131,7 @@ const Coins = (props) => {
           ) {
             setCoins({
                 ...coins,
-                unConfirmedCoins: [
-					...coins.unConfirmedCoins,
-					...new_unconfired_coins_data
-				]
+                unConfirmedCoins: new_unconfired_coins_data
             })
           }
         }, 10000);
@@ -169,7 +169,7 @@ const Coins = (props) => {
 
     // Filter coins by status
     if(filterBy === 'default') {
-      all_coins_data = all_coins_data.filter(coin => coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER)
+      all_coins_data = all_coins_data.filter(coin => coin.status !== STATECOIN_STATUS.WITHDRAWN)
     } else {
       if(filterBy === STATECOIN_STATUS.WITHDRAWN) {
         all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.WITHDRAWN);
@@ -246,7 +246,7 @@ const Coins = (props) => {
                       </span>
                     </div>
                   )}
-                  
+
                 {props.showCoinStatus ? (
                   <div className="coin-status-or-txid">
                     {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
@@ -270,7 +270,8 @@ const Coins = (props) => {
     )})
 
     return (
-        <div>
+        <div className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy}`}>
+          <FilterBy />
           {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
             {statecoinData}
 

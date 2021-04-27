@@ -8,6 +8,7 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification} from '../../features/WalletDataSlice';
 import {Coins, StdButton, AddressInput} from "../../components";
+import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
 
 import './Withdraw.css';
@@ -16,7 +17,7 @@ export const DEFAULT_FEE = 0.00001;
 
 const WithdrawPage = () => {
   const dispatch = useDispatch();
-  const balance_info = useSelector(state => state.walletData).balance_info;
+  const { balance_info, filterBy } = useSelector(state => state.walletData);
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
@@ -64,6 +65,21 @@ const WithdrawPage = () => {
 
   }
 
+  const filterByMsg = () => {
+    let return_str = "Statecoin";
+    if (balance_info.num_coins > 1) {
+      return_str = return_str+"s"
+    }
+    switch (filterBy) {
+      case FILTER_BY_OPTION[0].value:
+        return return_str+ " available in Wallet";
+      case FILTER_BY_OPTION[1].value:
+        return return_str+ " already withdrawn";
+      case FILTER_BY_OPTION[2].value:
+        return return_str+ " in transfer process";
+    }
+  }
+
 
   return (
     <div className="container ">
@@ -83,7 +99,7 @@ const WithdrawPage = () => {
             </div>
             <h3 className="subtitle">
                 Withdraw Statecoin UTXO’s back to Bitcoin. <br/>
-               <b> {fromSatoshi(balance_info.total_balance)} BTC</b> available as <b>{balance_info.num_coins}</b> Statecoins
+               <b> {fromSatoshi(balance_info.total_balance)} BTC</b> as <b>{balance_info.num_coins}</b> {filterByMsg()}
             </h3>
         </div>
 
