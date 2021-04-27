@@ -1,6 +1,6 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 
-import {Wallet, ACTION} from '../wallet'
+import {Wallet, ACTION, decryptAES} from '../wallet'
 import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
 import {pingServer, swapDeregisterUtxo} from '../wallet/swap/info_api'
 import {decodeMessage} from '../wallet/util'
@@ -69,6 +69,17 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
   wallet.save();
 }
 
+// Create wallet from backup file
+export const walletFromJson = (wallet_json, password) => {
+  return Promise.resolve().then(() => {
+    wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+    wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    return wallet;
+  }).catch(error => {
+    console.error('Can not load wallet from json!', error);
+  })
+}
+
 // Wallet data gets
 export const callGetConfig = () => {
   return wallet.config.getConfig()
@@ -135,6 +146,10 @@ export const callUpdateConfig = (config_changes) => {
 export const callCreateBackupTxCPFP = (cpfp_data) => {
      let sucess = wallet.createBackupTxCPFP(cpfp_data);
      return sucess
+}
+
+export const callGetWalletJsonToBackup = () => {
+  return wallet.storage.getWallet(wallet.name);
 }
 
 

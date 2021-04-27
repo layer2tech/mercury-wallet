@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Link, withRouter } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import {Tabs, Tab} from 'react-bootstrap';
-import {setError, walletFromMnemonic} from '../../features/WalletDataSlice'
+import {setError, walletFromMnemonic, walletFromJson} from '../../features/WalletDataSlice'
 import { CreateWizardForm } from '../../components'
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg"
@@ -44,17 +44,27 @@ const RestoreWalletPage = (props) => {
   }
 
   const handleSelectBackupFile = () => {
+    if(!state.wallet_password) {
+      dispatch(setError({msg: "Please enter passphrase"}));
+      return;
+    }
     window.postMessage({
       type: 'select-backup-file'
     })
   }
 
-  const handleImportWalletData = (event, backupData) => {
+  const handleImportWalletData = async (event, backupData) => {
     try {
-      const jsonData = JSON.parse(backupData);
-      console.log(jsonData);
-      alert(backupData)
+      const walletJson = JSON.parse(backupData);
+      const wallet = await walletFromJson(walletJson, state.wallet_password);
+      if(!wallet) {
+        dispatch(setError({msg: "Incorrect password or invalid file format. Can not restore wallet from this file!"}));
+      } else {
+        props.history.push('/home');
+        props.setWalletLoaded(true);
+      }
     } catch (error) {
+      console.error(error)
       dispatch(setError({msg: "Invalid Backup File Format"}))
     }
   }
@@ -62,7 +72,7 @@ const RestoreWalletPage = (props) => {
   useEffect(() => {
     window.electron.ipcRenderer.on('received-backup-data', handleImportWalletData);
     return () => window.electron.ipcRenderer.removeListener('received-backup-data', handleImportWalletData);
-  }, [])
+  }, [state])
 
   return (
     <div className="restore-wallet-wrap">

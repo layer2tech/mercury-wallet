@@ -1,26 +1,12 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
+import { callGetWalletJsonToBackup } from '../../features/WalletDataSlice'
 import "./index.css";
 
 function BackupWalletPopup ({ close, show}) {
 
-  let walletData = {
-    name: 'Sample Wallet Data',
-    coins: [
-      {
-        id: 1,
-        value: 5000
-      },
-      {
-        id: 2,
-        value: 10000
-      },
-    ],
-    key: 'random key',
-    timeout: Date.now()
-  }
-
   const handleConfirm = () => {
+    const walletData = callGetWalletJsonToBackup();
     window.postMessage({
       type: 'select-dirs',
       walletData

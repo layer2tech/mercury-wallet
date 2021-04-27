@@ -91,12 +91,6 @@ const SettingsPage = (props) => {
     props.setWalletLoaded(false);
   }
 
-  const handleExportFile = () => {
-    window.postMessage({
-      type: 'select-dirs'
-    });
-  }
-
   return (
       <div className="container">
           <div className="Body settings">
