@@ -15,7 +15,6 @@ const LIQUIDITY_HIGH=20;
 const NUM_HIGH_LIQUIDITY=3;
 
 const CreateStatecoin = (props) => {
-
     const [state, setState] = useState(0);
     const [liquidityData, setLiquidityData] = useState(DEFAULT_LIQUIDITY_VALUES);
 
