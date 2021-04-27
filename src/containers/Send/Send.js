@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux'
 
-import {Coins, StdButton, AddressInput, CopiedButton, SendModal} from "../../components";
+import {Coins, StdButton, AddressInput, CopiedButton} from "../../components";
 import {fromSatoshi} from '../../wallet/util'
 import {decodeSCEAddress, encodeMessage} from '../../wallet/util'
 import {isWalletLoaded, callTransferSender, setError, setNotification} from '../../features/WalletDataSlice'
@@ -15,7 +15,6 @@ import './Send.css';
 const SendStatecoinPage = () => {
   const dispatch = useDispatch();
   const balance_info = useSelector(state => state.walletData).balance_info;
-  const [openSendModal, setOpenSendModal] = useState({ show: false });
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const toggleSelectedCoin = (statechain_id) => {
@@ -81,22 +80,8 @@ const SendStatecoinPage = () => {
     navigator.clipboard.writeText(transferMsg3);
   }
 
-  const handleConfirm = (pass) => {
-    setInputAddr("")
-    setSelectedCoin('')
-    setRefreshCoins((prevState) => !prevState);
-    setOpenSendModal({ show: false })
-    setCoinDetails({})
-    dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
-  }
-
   return (
-      <div className="container">
-        <SendModal
-          {...openSendModal}
-          onClose={() => setOpenSendModal({show: false})}
-          onConfirm={handleConfirm}
-        />
+      <div className="container ">
           <div className="Body sendStatecoin">
               <div className="swap-header">
                   <h2 className="WalletAmount">
@@ -124,12 +109,7 @@ const SendStatecoinPage = () => {
                       <Coins
                         displayDetailsOnClick={false}
                         selectedCoin={selectedCoin}
-<<<<<<< HEAD
-                        setSelectedCoin={setSelectedCoin}
-                        setCoinDetails={setCoinDetails}
-=======
                         setSelectedCoin={toggleSelectedCoin}
->>>>>>> develop
                         refresh={refreshCoins}/>
                   </div>
 
