@@ -4,12 +4,11 @@ import {useDispatch} from 'react-redux'
 
 import {CreateWizardForm, ConfirmSeed, DisplaySeed, Steppers} from "../../components";
 import {setError} from '../../features/WalletDataSlice'
+import {Storage} from '../../store';
 
 import './CreateWalletWizard.css'
 
-import {Storage} from '../../store';
 let bip39 = require('bip39');
-
 const mnemonic = bip39.generateMnemonic();
 let store = new Storage();
 
