@@ -33,7 +33,7 @@ const BackupTxPage = () => {
     } else {
       try {
         const txData = callGetCoinBackupTxData(id);
-        setSelectedCoinTxData(txData)
+        setSelectedCoinTxData(txData);
       } catch(error) {
         console.warn('Something wrong with get coin backup tx data', error);
       }
@@ -71,13 +71,13 @@ const BackupTxPage = () => {
     if (!txFee) {
       dispatch(setError({msg: "Please enter a fee rate."}))
       return
-    }    
+    }
 
-    let sucess = callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
+    let sucess = callCreateBackupTxCPFP({cpfp_data: {selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee}});
 
     if (!sucess) {
       dispatch(setError({msg: "CPFP build error: please check address is correct"}))
-      return      
+      return
     }
 
    }
@@ -207,7 +207,7 @@ const BackupTxPage = () => {
                     </div>
                 </div>
 
-                <div className="item">                
+                <div className="item">
                     <span className="sub">Pay to:</span>
                     <div className="inputs-item">
                      <AddressInput
@@ -215,10 +215,10 @@ const BackupTxPage = () => {
                        onChange={onAddrChange}
                        placeholder='Send to destination address'
                        smallTxtMsg='Bitcoin Address'/>
-                     </div>      
+                     </div>
                 </div>
 
-                <div className="item">                
+                <div className="item">
                     <span className="sub">Fee (sat/b):</span>
                     <div className="inputs-item">
                      <AddressInput
@@ -226,8 +226,8 @@ const BackupTxPage = () => {
                        onChange={onFeeChange}
                        placeholder='Fee rate'
                        smallTxtMsg='CPFP Tx Fee'/>
-                    </div>       
-                </div> 
+                    </div>
+                </div>
 
                 <div className="item">
                     <button type="button" className="std-button" onClick={addCPFP}>
