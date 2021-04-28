@@ -40,6 +40,11 @@ function createWindow() {
   mainWindow.on('closed', () => mainWindow = null);
 }
 
+if (process.platform !== 'darwin') {
+  const Menu = electron.Menu;
+  Menu.setApplicationMenu(false);
+}
+
 app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {

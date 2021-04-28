@@ -15,24 +15,11 @@ export class Storage {
     this.store = new Store();
   }
 
-  // return map of wallet names->passwords
-  getWalletNamePasswordMap() {
-    let wallets = this.store.get('wallets')
-    if (wallets==null) { return [] }
-    return Object.keys(wallets).map((name: string) => ({name: name, password: wallets[name].password}))
-  }
-
-  // Login info storage
-  storeNewLogin(wallet_name: string, password: string) {
-    this.store.set('logins.'+wallet_name, password)
-  }
-
-  // Check password for a wallet
-  checkLogin(wallet_name: string, pw_attempt: string) {
-    let pw = this.store.get('logins.'+wallet_name, pw_attempt)
-    if (pw===undefined) throw Error("Wallet "+wallet_name+" does not exist.")
-    if (pw===pw_attempt) return true;
-    return false
+  // return array of wallet names
+  getWalletNames() {
+    let wallets = this.store.get('wallets');
+    if (wallets==null) { return [] };
+    return Object.keys(wallets);
   }
 
   accountToAddrMap(account_json: any) {

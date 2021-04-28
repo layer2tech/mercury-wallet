@@ -8,21 +8,36 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {isWalletLoaded, callWithdraw, setError, setNotification} from '../../features/WalletDataSlice';
 import {Coins, StdButton, AddressInput} from "../../components";
+import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
 import {fromSatoshi} from '../../wallet/util';
 
 import './Withdraw.css';
 
 const WithdrawPage = () => {
   const dispatch = useDispatch();
-  const balance_info = useSelector(state => state.walletData).balance_info;
+  const { balance_info, filterBy } = useSelector(state => state.walletData);
 
-  const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
+
+  function addSelectedCoin(statechain_id) {
+    setSelectedCoins( prevSelectedCoins => {
+      let newSelectedCoins = prevSelectedCoins;
+      const isStatechainId = (element) => element == statechain_id; 
+      let index = newSelectedCoins.findIndex(isStatechainId);
+      if (index != -1){
+        newSelectedCoins.splice(index,1);
+      } else {
+        newSelectedCoins.push(statechain_id);
+      }
+      return newSelectedCoins;
+    });
+  }
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -31,7 +46,7 @@ const WithdrawPage = () => {
 
   const withdrawButtonAction = async () => {
     // check statechain is chosen
-    if (!selectedCoin) {
+    if (selectedCoins.length == 0) {
       dispatch(setError({msg: "Please choose a StateCoin to withdraw."}))
       return
     }
@@ -40,15 +55,30 @@ const WithdrawPage = () => {
       return
     }
 
-    dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr})).then((res => {
+    dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr})).then((res => {
       if (res.error===undefined) {
-        setSelectedCoin(null)
+        setSelectedCoins([])
         setInputAddr("")
         setRefreshCoins((prevState) => !prevState);
         dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
       }
     }))
 
+  }
+
+  const filterByMsg = () => {
+    let return_str = "Statecoin";
+    if (balance_info.num_coins > 1) {
+      return_str = return_str+"s"
+    }
+    switch (filterBy) {
+      case FILTER_BY_OPTION[0].value:
+        return return_str+ " available in Wallet";
+      case FILTER_BY_OPTION[1].value:
+        return return_str+ " already withdrawn";
+      case FILTER_BY_OPTION[2].value:
+        return return_str+ " in transfer process";
+    }
   }
 
 
@@ -70,7 +100,7 @@ const WithdrawPage = () => {
             </div>
             <h3 className="subtitle">
                 Withdraw Statecoin UTXO’s back to Bitcoin. <br/>
-               <b> {fromSatoshi(balance_info.total_balance)} BTC</b> available as <b>{balance_info.num_coins}</b> Statecoins
+               <b> {fromSatoshi(balance_info.total_balance)} BTC</b> as <b>{balance_info.num_coins}</b> {filterByMsg()}
             </h3>
         </div>
 
@@ -82,10 +112,10 @@ const WithdrawPage = () => {
                     <Coins
                       showCoinStatus={true}
                       displayDetailsOnClick={false}
-                      selectedCoin={selectedCoin}
-                      setSelectedCoin={setSelectedCoin}
+                      selectedCoins={selectedCoins}
+                      setSelectedCoin={addSelectedCoin}
                       refresh={refreshCoins}/>
-                </div>
+                  </div>
 
             </div>
             <div className="Body right">

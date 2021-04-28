@@ -6,16 +6,19 @@ import {setError, walletFromMnemonic, walletFromJson} from '../../features/Walle
 import { CreateWizardForm } from '../../components'
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg"
+import {Storage} from '../../store';
 
 import  './RestoreWallet.css'
 
 let bip39 = require('bip39');
-let Store = window.require('electron-store');
+let store = new Storage();
 
 const RestoreWalletPage = (props) => {
   const dispatch = useDispatch();
   const [showPass, setShowPass] = useState(false);
   const toggleShowPass = () => setShowPass(!showPass);
+
+  let wallet_names = store.getWalletNames();
 
   const [state, setState] = useState(
     {
@@ -29,8 +32,14 @@ const RestoreWalletPage = (props) => {
 
   // Confirm mnemonic is valid
   const onClickConf = () => {
+    if (wallet_names.indexOf(state.wallet_name)!=-1) {
+      dispatch(setError({msg: "Wallet with name "+state.wallet_name+" already exists."}))
+      return
+    }
+
     if (!bip39.validateMnemonic(state.mnemonic)) {
       dispatch(setError({msg: "Invalid mnemonic"}))
+      return
     }
 
     // Create wallet and load into Redux state

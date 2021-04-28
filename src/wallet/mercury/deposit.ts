@@ -69,7 +69,7 @@ export const depositConfirm = async (
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
   // Create PrepareSignTxMsg to send funding tx data to receiver
   let prepare_sign_msg: PrepareSignTxMsg = {
-    shared_key_id: statecoin.shared_key_id,
+    shared_key_ids: [statecoin.shared_key_id],
     protocol: PROTOCOL.DEPOSIT,
     tx_hex: tx_backup_unsigned.toHex(),
     input_addrs: [pk],
@@ -77,8 +77,9 @@ export const depositConfirm = async (
     proof_key: statecoin.proof_key,
   };
 
-  // construct shared signature
+  // construct shared signatures
   let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.DEPOSIT);
+  
 
   // set witness data with signature
   let tx_backup_signed = tx_backup_unsigned;
@@ -91,6 +92,7 @@ export const depositConfirm = async (
   let deposit_msg2 = {
       shared_key_id: statecoin.shared_key_id,
   }
+
   let statechain_id = await http_client.post(POST_ROUTE.DEPOSIT_CONFIRM, deposit_msg2);
 
   typeforce(typeforce.String, statecoin.shared_key_id)

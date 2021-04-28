@@ -156,7 +156,6 @@ export const callGetWalletJsonToBackup = () => {
   return wallet.storage.getWallet(wallet.name);
 }
 
-
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
 export const callDepositInit = createAsyncThunk(
@@ -174,7 +173,7 @@ export const callDepositConfirm = createAsyncThunk(
 export const callWithdraw = createAsyncThunk(
   'depositWithdraw',
   async (action, thunkAPI) => {
-    return wallet.withdraw(action.shared_key_id, action.rec_addr)
+    return wallet.withdraw(action.shared_key_ids, action.rec_addr)
   }
 )
 export const callTransferSender = createAsyncThunk(
@@ -316,6 +315,9 @@ const WalletSlice = createSlice({
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callSwapDeregisterUtxo.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callCreateBackupTxCPFP.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
 }

@@ -2,12 +2,12 @@
 
 import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
-import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
+import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, StateChainDataAPI } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
 
 let bitcoin = require("bitcoinjs-lib");
-let lodash = require('lodash');
+let cloneDeep = require('lodash.clonedeep');
 let types = require("../types")
 let typeforce = require('typeforce');
 let BN = require('bn.js');
@@ -42,7 +42,7 @@ export const transferSender = async (
   // Checks for spent, owned etc here
   let new_tx_backup;
   if (statecoin.tx_backup) {
-    new_tx_backup = lodash.cloneDeep(statecoin.tx_backup);
+    new_tx_backup = cloneDeep(statecoin.tx_backup);
   } else {
     throw Error("Back up tx does not exist. Statecoin deposit is not complete.")
   }
@@ -53,7 +53,8 @@ export const transferSender = async (
   // Get statechain from SE and check ownership
   let statechain_data = await getStateChain(http_client, statecoin.statechain_id);
   if (statechain_data.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
-  if (statechain_data.chain.pop().data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key.");
+  let sc_statecoin = statechain_data.chain.pop();
+  if (sc_statecoin.data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key: chain has " + sc_statecoin.data + ", expected " + statecoin.proof_key);
 
   // Sign statecoin to signal desire to Transfer
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
@@ -77,7 +78,7 @@ export const transferSender = async (
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
   // Create PrepareSignTxMsg to send funding tx data to receiver
   let prepare_sign_msg: PrepareSignTxMsg = {
-    shared_key_id: statecoin.shared_key_id,
+    shared_key_ids: [statecoin.shared_key_id],
     protocol: PROTOCOL.TRANSFER,
     tx_hex: new_tx_backup.toHex(),
     input_addrs: [pk],
@@ -86,7 +87,7 @@ export const transferSender = async (
   };
 
   // Sign new back up tx
-  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
+  let signature: string[] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
 
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;
@@ -207,7 +208,8 @@ export const transferReceiverFinalize = async (
   // Make shared key with new private share
   // 2P-ECDSA with state entity to create a Shared key
   let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER);
-  statecoin.funding_txid = finalize_data.state_chain_data.utxo;
+  statecoin.funding_txid = finalize_data.state_chain_data.utxo.txid;
+  statecoin.funding_vout = finalize_data.state_chain_data.utxo.vout;
 
   // Check shared key master public key === private share * SE public share
   // let P = BigInt("0x" + finalize_data.s2_pub) * BigInt("0x" + finalize_data.o2) * BigInt("0x" + finalize_data.theta)
@@ -264,7 +266,7 @@ export interface SCEAddress {
 }
 
 export interface PrepareSignTxMsg {
-    shared_key_id: string,
+    shared_key_ids: string[],
     protocol: string,
     tx_hex: string,
     input_addrs: string[], // keys being spent from
@@ -294,13 +296,6 @@ export interface TransferMsg4 {
 export interface TransferMsg5 {
   new_shared_key_id: string,
   s2_pub: any,
-}
-
-export interface StateChainDataAPI {
-    utxo: string,
-    amount: number,
-    chain: any,
-    locktime: number,
 }
 
 export interface  TransferFinalizeData {

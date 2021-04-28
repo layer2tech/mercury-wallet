@@ -17,6 +17,11 @@ const SendStatecoinPage = () => {
   const balance_info = useSelector(state => state.walletData).balance_info;
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const toggleSelectedCoin = (statechain_id) => {
+    let result = selectedCoin == statechain_id ? null : statechain_id;
+    return setSelectedCoin(result);
+  }
+
   const [inputAddr, setInputAddr] = useState("");
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -31,7 +36,7 @@ const SendStatecoinPage = () => {
 
   const sendButtonAction = async () => {
     // check statechain is chosen
-    if (!selectedCoin) {
+    if (selectedCoin == null) {
       dispatch(setError({msg: "Please choose a StateCoin to send."}))
       return
     }
@@ -64,7 +69,7 @@ const SendStatecoinPage = () => {
       if (res.error===undefined) {
         setTransferMsg3(encodeMessage(res.payload))
         setInputAddr("")
-        setSelectedCoin('')
+        setSelectedCoin(null)
         setRefreshCoins((prevState) => !prevState);
         dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
       }
@@ -104,7 +109,7 @@ const SendStatecoinPage = () => {
                       <Coins
                         displayDetailsOnClick={false}
                         selectedCoin={selectedCoin}
-                        setSelectedCoin={setSelectedCoin}
+                        setSelectedCoin={toggleSelectedCoin}
                         refresh={refreshCoins}/>
                   </div>
 
