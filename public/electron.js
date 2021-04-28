@@ -3,6 +3,7 @@ const { app, BrowserWindow, dialog, ipcMain} = require('electron');
 const path = require('path');
 const isDev = require('electron-is-dev');
 const url = require('url');
+const fs = require('fs');
 
 let mainWindow;
 
