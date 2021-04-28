@@ -44,10 +44,6 @@ const RestoreWalletPage = (props) => {
   }
 
   const handleSelectBackupFile = () => {
-    if(!state.wallet_password) {
-      dispatch(setError({msg: "Please enter passphrase"}));
-      return;
-    }
     window.postMessage({
       type: 'select-backup-file'
     })

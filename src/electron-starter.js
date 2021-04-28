@@ -81,12 +81,12 @@ ipcMain.on('select-dirs', async (event, arg) => {
 
   let saveDialog = dialog.showSaveDialog(mainWindow, options);
   saveDialog.then(function(saveTo) {
-      fs.writeFile(saveTo.filePath, JSON.stringify(arg) , (err) => {
-          if(err){
-              console.log("An error ocurred creating the file "+ err.message)
-          }
-          console.log("The file has been succesfully saved");
-      });
+    fs.writeFile(saveTo.filePath, JSON.stringify(arg) , (err) => {
+      if(err){
+          console.log("An error ocurred creating the file "+ err.message)
+      }
+      console.log("The file has been succesfully saved");
+    });
   })
 });
 

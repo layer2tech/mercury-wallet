@@ -180,6 +180,17 @@ export class Wallet {
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
 
+  // Load wallet JSON from backup file
+  static loadFromBackup(wallet_json: any, password: string, testing_mode: boolean) {
+    if (!wallet_json) throw Error("Something went wrong with backup file!");
+    // Decrypt mnemonic
+    try {
+      wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+    } catch (e) {
+      if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
+    }
+    return Wallet.fromJSON(wallet_json, testing_mode);
+  }
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
   async recoverCoinsFromServer() {
     log.info("Recovering StateCoins from server for mnemonic.");
