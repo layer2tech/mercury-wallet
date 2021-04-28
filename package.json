@@ -64,7 +64,7 @@
     "@types/node": "^14.14.13",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
     "@typescript-eslint/parser": "^4.1.1",
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "axios-socks5-agent": "^1.0.1",
     "bech32": "^1.1.4",
     "bigint-mod-arith": "^2.0.8",
@@ -101,10 +101,12 @@
     "react-router-dom": "^5.2.0",
     "react-table": "^7.6.2",
     "react-use-clipboard": "1.0.7",
+    "request-promise": "^4.2.6",
     "socks": "^2.6.1",
     "socks-proxy-agent": "^5.0.0",
     "superagent": "^6.1.0",
     "tor-axios": "^1.0.9",
+    "tor-request": "^3.1.0",
     "ts-jest": "^26.4.4",
     "typeforce": "^1.11.3",
     "uuid": "^8.3.2"
@@ -161,5 +163,6 @@
   "resolutions": {
     "**/@typescript-eslint/eslint-plugin": "^4.1.1",
     "**/@typescript-eslint/parser": "^4.1.1"
-  }
+  },
+  "testEnvironment": "node"
 }
