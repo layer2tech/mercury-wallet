@@ -33,7 +33,7 @@ function SendModal({
   const dispatch = useDispatch();
 
   const [step, setStep] = useState(1);
-  const [passphrase, setPassphrase] = useState(1);
+  const [passphrase, setPassphrase] = useState("");
   const handleClose = () => {
     // TODO: call cancel transfer_sender here.
     close()
