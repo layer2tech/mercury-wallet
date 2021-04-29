@@ -19,6 +19,7 @@ let secp256k1 = new EC('secp256k1')
 
 /// Temporary - fees should be calculated dynamically
 export const FEE = 300;
+export const SIGNED_WITHDRAW_TX_SIZE_KB = 0.56;
 
 // Verify Spase Merkle Tree proof of inclusion
 export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {
@@ -139,15 +140,16 @@ export const txBackupBuild = (network: Network, funding_txid: string, funding_vo
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-
-export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number): TransactionBuilder => {
-  if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
+export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_kb: number): TransactionBuilder => {
+  let tx_fee = toSatoshi(Math.round(fee_per_kb*SIGNED_WITHDRAW_TX_SIZE_KB*10e7)/10e7);
+  if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
 
   let txb = new TransactionBuilder(network);
 
   txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF);
-  txb.addOutput(rec_address, value - FEE - withdraw_fee);
+  txb.addOutput(rec_address, value - tx_fee - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
+
   return txb
 }
 
@@ -158,16 +160,16 @@ export const txWithdrawBuild = (network: Network, funding_txid: string, funding_
 export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_address: string, fee_info: FeeInfo): TransactionBuilder => {
   let txin = []
   let value = 0;
-  let txb: TransactionBuilder = new TransactionBuilder(network);  
+  let txb: TransactionBuilder = new TransactionBuilder(network);
   let index = 0;
-  
+
   for(let info of sc_infos){
     let utxo: OutPoint = info.utxo;
     if (utxo !== undefined) {
       value = value + info.amount;
       let txid: string = utxo.txid;
       let vout: number = utxo.vout;
-      txb.addInput(txid, vout, 0xFFFFFFFF);  
+      txb.addInput(txid, vout, 0xFFFFFFFF);
     };
     index = index + 1;
   }
@@ -175,7 +177,7 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
   value = value + fee_info.deposit;
 
   let withdraw_fee = (value * fee_info.withdraw) / 10000;
-  
+
   if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
 
   txb.addOutput(rec_address, value - FEE - withdraw_fee);

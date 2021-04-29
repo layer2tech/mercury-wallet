@@ -3,15 +3,17 @@ import orange from "../../images/wallet-orange.png";
 import withdrowIcon from "../../images/withdrow-icon.png";
 
 import {Link, withRouter, Redirect} from "react-router-dom";
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {isWalletLoaded, callWithdraw, setError, setNotification} from '../../features/WalletDataSlice';
+import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification} from '../../features/WalletDataSlice';
 import {Coins, StdButton, AddressInput} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
-import {fromSatoshi} from '../../wallet/util';
+import {fromSatoshi, toSatoshi} from '../../wallet/util';
 
 import './Withdraw.css';
+
+export const DEFAULT_FEE = 0.00001;
 
 const WithdrawPage = () => {
   const dispatch = useDispatch();
@@ -22,13 +24,14 @@ const WithdrawPage = () => {
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
+  const [txFeePerKB, setTxFeePerKB] = useState(DEFAULT_FEE);
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
 
   function addSelectedCoin(statechain_id) {
     setSelectedCoins( prevSelectedCoins => {
       let newSelectedCoins = prevSelectedCoins;
-      const isStatechainId = (element) => element == statechain_id; 
+      const isStatechainId = (element) => element == statechain_id;
       let index = newSelectedCoins.findIndex(isStatechainId);
       if (index != -1){
         newSelectedCoins.splice(index,1);
@@ -39,6 +42,15 @@ const WithdrawPage = () => {
     });
   }
 
+  // Get Tx fee estimate
+  useEffect(() => {
+    dispatch(callGetFeeEstimation()).then(tx_fee_estimate => {
+      if (tx_fee_estimate>0) {
+        setTxFeePerKB(tx_fee_estimate);
+      }
+    })
+  }, []);
+
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
@@ -46,7 +58,7 @@ const WithdrawPage = () => {
 
   const withdrawButtonAction = async () => {
     // check statechain is chosen
-    if (selectedCoins.length == 0) {
+    if (selectedCoins.length === 0) {
       dispatch(setError({msg: "Please choose a StateCoin to withdraw."}))
       return
     }
@@ -55,7 +67,7 @@ const WithdrawPage = () => {
       return
     }
 
-    dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr})).then((res => {
+    dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr, "fee_per_kb": txFeePerKB})).then((res => {
       if (res.error===undefined) {
         setSelectedCoins([])
         setInputAddr("")
@@ -123,7 +135,7 @@ const WithdrawPage = () => {
                     <h3 className="subtitle">Transaction Details</h3>
                     <div>
                         <select name="1" id="1">
-                            <option value="1">Low 7sat/B</option>
+                          <option value="1">Low {toSatoshi(txFeePerKB/1000)} sat/B</option>
                         </select>
                         <span className="small">Transaction Fee</span>
                     </div>

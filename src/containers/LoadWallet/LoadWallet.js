@@ -50,7 +50,8 @@ const LoadWalletPage = (props) => {
     try { walletLoad(selectedWallet, passwordEntered) }
       catch (e) {
         event.preventDefault();
-        dispatch(setError({msg: e.message}))
+        dispatch(setError({msg: e.message}));
+        return
       }
       checkForCoinsHealth();
       props.setWalletLoaded(true);
