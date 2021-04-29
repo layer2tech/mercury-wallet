@@ -18,7 +18,12 @@ export class Config {
   state_entity_endpoint: string;
   swap_conductor_endpoint: string;
   electrum_config: ElectrumClientConfig;
-  tor_proxy: string;
+  tor_proxy: {
+    ip: string,
+    port: number,
+    controlPassword: string,
+    controlPort: number
+  };
 
   min_anon_set: number;
   date_format: any;
@@ -38,7 +43,12 @@ export class Config {
       port: 50004,
       protocol: 'wss',
     }
-    this.tor_proxy = "";
+    this.tor_proxy = {
+      ip: 'localhost',
+      port: 9050,
+      controlPassword: 'password',
+      controlPort: 9051
+    };
 
     this.min_anon_set = 5;
     this.notifications = true;

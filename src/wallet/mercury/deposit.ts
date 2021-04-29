@@ -9,7 +9,7 @@
 
 
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
-import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
+import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, TorClient, MockHttpClient, POST_ROUTE } from "../";
 import { FeeInfo } from "./info_api";
 import { getSigHash, pubKeyTobtcAddr } from "../util";
 
@@ -21,7 +21,7 @@ let typeforce = require('typeforce');
 // Deposit Init. Generate shared key with stateChain Entity.
 // Return Shared_key_id, statecoin and address to send funds to.
 export const depositInit = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   proof_key: string,
   secret_key: string
@@ -44,7 +44,7 @@ export const depositInit = async (
 // After funds are sent to p_addr sign backup tx and verify SMT.
 // Return statecoin with smt_proot, statechain_id, tx_backup_signed, p_addr.
 export const depositConfirm = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient| MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,

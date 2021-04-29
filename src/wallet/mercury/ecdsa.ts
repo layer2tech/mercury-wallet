@@ -1,6 +1,6 @@
 // Mercury 2P-ECDSA KeyGen and Sign protocols
 
-import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE } from '../';
+import { HttpClient, TorClient, MockHttpClient, StateCoin, POST_ROUTE } from '../';
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -15,7 +15,7 @@ Object.freeze(PROTOCOL);
 
 // 2P-ECDSA Key generation. Output SharedKey struct.
 export const keyGen = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   shared_key_id: string,
   secret_key: string,
@@ -75,7 +75,7 @@ export const keyGen = async (
 // 2P-ECDSA Sign.
 // message should be hex string
 export const sign = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   shared_key_id: string,
   master_key: MasterKey2,
@@ -139,7 +139,7 @@ export const sign = async (
 // 2P-ECDSA Sign.
 // message should be hex string
 export const sign_batch = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   shared_key_ids: string[],
   master_keys: any[],

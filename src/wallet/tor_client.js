@@ -1,7 +1,7 @@
-const net = require('net');
-const os = require('os');
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { isAnyOf } from '@reduxjs/toolkit';
+const net = require('net');
+const os = require('os');
 const rp = require('request-promise');
 
 export class TorClient {
@@ -142,12 +142,10 @@ export class TorClient {
                 'User-Agent': 'Request-Promise',
                 'Accept': 'application/json' },
         }
-        
-        try{
-            return await rp(rp_options)
-        }  catch(err) {
-            console.log(err)
-        }
+
+        let result = await rp(rp_options);
+        await this.confirmNewTorConnection();
+        return result;
     }
 
     post = async (path, body) => {
@@ -165,24 +163,8 @@ export class TorClient {
             body: body,
         };
 
-
-        /*
-        let rp_options = {
-              method: 'post',
-              uri: url,
-              agent: this.proxyConfig.agent,
-              headers: {
-                  Accept: 'application/json',
-                  'Content-Type': 'application/json'
-                },
-                data: body,
-          }
-      */
-
-        try{
-            return await rp(rp_options)
-        }  catch(err) {
-            console.log(err)
-        }  
+        let result = await rp(rp_options);
+        await this.confirmNewTorConnection();
+        return result;
     }
 }

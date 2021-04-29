@@ -1,6 +1,6 @@
 // Conductor Swap protocols
 
-import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
+import { HttpClient, TorClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
 import {transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo } from "./info_api";
 import { getStateChain } from "../mercury/info_api";
@@ -24,7 +24,7 @@ try {
 }
 
 export const pingServer = async (
-  conductor_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
 ) => {
   return await conductor_client.get(GET_ROUTE.PING, {})
 }
@@ -48,7 +48,7 @@ Object.freeze(SWAP_STATUS);
 
 // Register coin to swap pool and set to phase0
 export const swapInit = async (
-  conductor_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
   statecoin: StateCoin,
   proof_key_der: BIP32Interface,
   swap_size: number
@@ -74,7 +74,7 @@ export const swapInit = async (
 
 // Poll Conductor awaiting for swap pool to initialise.
 export const swapPhase0 = async (
-  conductor_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
   statecoin: StateCoin,
 ) => {
   // check statecoin is still AWAITING_SWAP
@@ -99,8 +99,8 @@ export const swapPhase0 = async (
 // Return an SCE-Address and produce a signature over the swap_token with the
 //  proof key that currently owns the state chain they are transferring in the swap.
 export const swapPhase1 = async (
-  conductor_client: HttpClient | MockHttpClient,
-  http_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   statecoin: StateCoin,
   proof_key_der: BIP32Interface,
@@ -154,7 +154,7 @@ export const swapPhase1 = async (
 // Poll swap until phase changes to Phase2. In that case all participants have completed Phase1
 // and swap second message can be performed.
 export const swapPhase2 = async (
-  conductor_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   statecoin: StateCoin,
 ) => {
@@ -190,8 +190,8 @@ export const swapPhase2 = async (
 // Poll swap until phase changes to Phase3/4. In that case all carry out transfer_sender
 // and transfer_receiver
 export const swapPhase3 = async (
-  conductor_client: HttpClient | MockHttpClient,
-  http_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   statecoin: StateCoin,
   network: Network,
@@ -245,8 +245,8 @@ export const swapPhase3 = async (
 
 // Poll swap until phase changes to Phase End. In that case complete swap by performing transfer finalize.
 export const swapPhase4 = async (
-  conductor_client: HttpClient | MockHttpClient,
-  http_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   statecoin: StateCoin,
 ) => {
@@ -281,8 +281,8 @@ export const swapPhase4 = async (
 
 // Loop through swap protocol for some statecoin
 export const do_swap_poll = async(
-  conductor_client: HttpClient | MockHttpClient,
-  http_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,
@@ -363,7 +363,7 @@ export const clear_statecoin_swap_info = (statecoin: StateCoin): null => {
 }
 
 export const do_transfer_receiver = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   batch_id: string,
   commit: string,
   statechain_ids: Array<String>,
@@ -501,8 +501,8 @@ export interface StateChainDataAPI{
 }
 
 export const first_message = async (
-  conductor_client: HttpClient | MockHttpClient,
-  http_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   swap_info: SwapInfo,
   statechain_id: string,
@@ -554,7 +554,7 @@ export interface BlindedSpendSignature{
 }
 
 export const get_blinded_spend_signature = async(
-  conductor_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
   swap_id: String,
   statechain_id: String,
 ): Promise<BlindedSpendSignature> => {
@@ -568,7 +568,7 @@ export const get_blinded_spend_signature = async(
 }
 
 export const second_message = async (
-  conductor_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   swap_id: String,
   my_bst_data: BSTRequestorData,
@@ -613,7 +613,7 @@ export interface SwapMsg2{
 }
 
 export const swapSecondMessage = async (
-  conductor_client: HttpClient | MockHttpClient,
+  conductor_client: HttpClient | TorClient | MockHttpClient,
   swapMsg2: SwapMsg2,
 ) => {
   return await conductor_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2)

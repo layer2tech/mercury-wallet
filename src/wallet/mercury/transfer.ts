@@ -1,7 +1,7 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
 import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
-import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
+import { HttpClient, TorClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
@@ -32,7 +32,7 @@ const n = secp256k1.curve.n
 
 
 export const transferSender = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,
@@ -129,7 +129,7 @@ export const transferSender = async (
 }
 
 export const transferReceiver = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
   batch_data: any
@@ -201,7 +201,7 @@ export const transferReceiver = async (
 }
 
 export const transferReceiverFinalize = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   finalize_data: TransferFinalizeData,
 ): Promise<StateCoin> => {
@@ -239,7 +239,7 @@ export const transferReceiverFinalize = async (
 
 
 export const transferBatchSign = (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,

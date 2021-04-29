@@ -1,7 +1,7 @@
 // Withdraw
 
 import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
-import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
+import { getFeeInfo, HttpClient, MockHttpClient, TorClient, POST_ROUTE, StateCoin } from "..";
 import { PrepareSignTxMsg } from "./ecdsa";
 import { getSigHash, StateChainSig, txWithdrawBuildBatch, txWithdrawBuild } from "../util";
 import { PROTOCOL, sign, sign_batch } from "./ecdsa";
@@ -16,7 +16,7 @@ import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
 
 // Withdraw coins from state entity. Returns signed withdraw transaction
 export const withdraw = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoins: StateCoin[],

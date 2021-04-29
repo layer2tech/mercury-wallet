@@ -1,4 +1,4 @@
-import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE } from "..";
+import { HttpClient, TorClient, MockHttpClient, GET_ROUTE, POST_ROUTE } from "..";
 import { BSTMsg, SwapID, StatechainID, SwapGroup} from './swap';
 
 let types = require("../types")
@@ -6,13 +6,13 @@ let typeforce = require('typeforce');
 
 
 export const pingServer = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
 ) => {
   return await http_client.get(GET_ROUTE.PING, {})
 }
 
 export const pollUtxo = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   statechain_id: StatechainID
 ) => {
 
@@ -22,7 +22,7 @@ export const pollUtxo = async (
 }
 
 export const pollSwap = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   swap_id: SwapID
 ) => {
 
@@ -33,21 +33,21 @@ export const pollSwap = async (
 }
 
 export const swapRegisterUtxo = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   registerUtxo: any
 ) => {
   await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
 }
 
 export const swapDeregisterUtxo = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   statechain_id: StatechainID
 ) => {
   await http_client.post(POST_ROUTE.SWAP_DEREGISTER_UTXO, statechain_id);
 }
 
 export const getSwapInfo = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   swap_id: SwapID
 ) => {
   let swap_info = await http_client.post(POST_ROUTE.SWAP_INFO, swap_id);
@@ -56,7 +56,7 @@ export const getSwapInfo = async (
 }
 
 export const getBlindedSpendSignature = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
   bst_msg: BSTMsg
 ) => {
 
@@ -67,7 +67,7 @@ export const getBlindedSpendSignature = async (
 }
 
 export const groupInfo = async(
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient | TorClient | MockHttpClient,
 ) =>  {
   let sgm_json = await http_client.get(GET_ROUTE.SWAP_GROUPINFO, {})
 
