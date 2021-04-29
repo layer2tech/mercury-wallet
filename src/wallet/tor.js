@@ -16,19 +16,22 @@ export class Tor {
 
     }
 
-    constructor(ip, port, controlPassword, controlPort){
+    constructor(ip, port, controlPassword, controlPort, endpoint){
         this.torConfig={
             ip: ip,
+            port: port,
             controlPassword: controlPassword,
             controlPort: controlPort,
-        }
+        };
 
         this.proxyConfig={
             agent: new SocksProxyAgent('socks5://' + ip + ':' + port),
             headers: {
                 'User-Agent': 'Request-Promise'
             }
-        }
+        };
+
+        this.endpoint = endpoint;
     }
 
     sleep(ms) {
@@ -50,6 +53,7 @@ export class Tor {
             });
     
             socket.on('error', function ( err ) {
+                console.log('error: ' + err);
                 reject(err);
             });
     
@@ -73,11 +77,12 @@ export class Tor {
             'signal newnym', // send the signal (renew Tor session)                                                                                                 
             'quit' // close the connection                                                                                                                          
         ];
-    
+        
         let data = '';
         data = await this.torIPC(commands);
-
+        
         let lines = data.split( os.EOL ).slice( 0, -1 );
+        
         let success = lines.every( function ( val, ind, arr ) {
             // each response from the ControlPort should start with 250 (OK STATUS)                                                                         
             return val.length <= 0 || val.indexOf( '250' ) >= 0
@@ -99,6 +104,7 @@ export class Tor {
             let ipOld = await this.getip();
             let tc_result = await this.newTorConnection();
             let ipNew = await this.getip();
+            //console.log('old ip: ' + ipOld + ', new ip: ' + ipNew);
             if(ipNew != ipOld){
                 return tc_result;
             }
@@ -119,4 +125,64 @@ export class Tor {
         }
     }
 
+    get = async (path, params) => {
+        
+        let url = this.endpoint;
+        if (path){
+            url = url + "/" + path;
+        }
+        if (params){
+            url = url + "/" + (Object.entries(params).length === 0 ? "" : params);
+        }
+
+        let rp_options = {
+            uri: url,
+            agent: this.proxyConfig.agent,
+            headers: { 
+                'User-Agent': 'Request-Promise',
+                'Accept': 'application/json' },
+        }
+        
+        try{
+            return await rp(rp_options)
+        }  catch(err) {
+            console.log(err)
+        }
+    }
+
+    post = async (path, body) => {
+        
+        let url = this.endpoint + "/" + path;
+        const rp_options = {
+            method: 'POST',
+            url: url,
+            agent: this.proxyConfig.agent,
+            headers: {
+              'User-Agent': 'Request-Promise',
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: body,
+        };
+
+
+        /*
+        let rp_options = {
+              method: 'post',
+              uri: url,
+              agent: this.proxyConfig.agent,
+              headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json'
+                },
+                data: body,
+          }
+      */
+
+        try{
+            return await rp(rp_options)
+        }  catch(err) {
+            console.log(err)
+        }  
+    }
 }
