@@ -2,7 +2,7 @@ import { SocksProxyAgent } from 'socks-proxy-agent';
 import { isAnyOf } from '@reduxjs/toolkit';
 const net = require('net');
 const os = require('os');
-const rp = require('request-promise');
+const rp = require('request-promise-native').defaults({ family: 6 });
 
 export class TorClient {
     torConfig = {
@@ -17,6 +17,8 @@ export class TorClient {
     }
 
     constructor(ip, port, controlPassword, controlPort, endpoint){
+        console.log('tor constructor: ' + ip + ' ' + port+ ' ' + controlPassword+ ' ' + controlPort+ ' ' + endpoint);
+        
         this.torConfig={
             ip: ip,
             port: port,
@@ -25,13 +27,16 @@ export class TorClient {
         };
 
         this.proxyConfig={
-            agent: new SocksProxyAgent('socks5://' + ip + ':' + port),
+            agent: new SocksProxyAgent('socks5h://' + ip + ':' + port),
             headers: {
                 'User-Agent': 'Request-Promise'
             }
         };
 
         this.endpoint = endpoint;
+
+        
+        
     }
 
     sleep(ms) {

@@ -3,7 +3,7 @@
   "state_entity_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
   "swap_conductor_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
   "network": "testnet",
-  "testing_mode": false,
+  "testing_mode": true,
   "tor_proxy": {"ip": "localhost",
                 "port": 9050,
                 "controlPassword": "tijf5631",

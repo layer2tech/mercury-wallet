@@ -102,6 +102,7 @@
     "react-table": "^7.6.2",
     "react-use-clipboard": "1.0.7",
     "request-promise": "^4.2.6",
+    "request-promise-native": "^1.0.9",
     "socks": "^2.6.1",
     "socks-proxy-agent": "^5.0.0",
     "superagent": "^6.1.0",
