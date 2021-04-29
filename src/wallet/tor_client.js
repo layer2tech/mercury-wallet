@@ -4,7 +4,7 @@ import { SocksProxyAgent } from 'socks-proxy-agent';
 import { isAnyOf } from '@reduxjs/toolkit';
 const rp = require('request-promise');
 
-export class Tor {
+export class TorClient {
     torConfig = {
         ip: 'localhost',
         controlPort: 9051,
