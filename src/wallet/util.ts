@@ -49,7 +49,7 @@ export const hexToBytes = (hex: string) => {
 }
 
 // BTC value -> Satoshi value
-export const toSatoshi = (btc: number) => { return btc * 10e7 }
+export const toSatoshi = (btc: number) => { return Math.floor(btc * 10e7) }
 // Satoshi value -> BTC value
 export const fromSatoshi = (sat: number) => { return sat / 10e7 }
 

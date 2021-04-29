@@ -24,9 +24,16 @@ const WithdrawPage = () => {
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
-  const [txFeePerKB, setTxFeePerKB] = useState(DEFAULT_FEE);
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
-
+  const [txFeePerKB, setTxFeePerKB] = useState(DEFAULT_FEE); // chosen fee per kb value
+  // Calc Med and High fee values and convert to satoshis
+  const calcTxFeePerKbList = (low_fee_value) => {
+    if (low_fee_value<0.0001) { // < 10 satoshis per byte
+      return [low_fee_value, low_fee_value*2, low_fee_value*4]
+    }
+    return [low_fee_value, low_fee_value*1.1, low_fee_value*1.2]
+  }
+  const [txFeePerByteList, setTxFeePerByteList] = useState(calcTxFeePerKbList(DEFAULT_FEE)); // list of fee per kb options in satoshis
 
   function addSelectedCoin(statechain_id) {
     setSelectedCoins( prevSelectedCoins => {
@@ -93,6 +100,7 @@ const WithdrawPage = () => {
     }
   }
 
+  const handleFeeSelection = (event) => setTxFeePerKB(event.target.value)
 
   return (
     <div className="container ">
@@ -134,8 +142,13 @@ const WithdrawPage = () => {
                 <div className="header">
                     <h3 className="subtitle">Transaction Details</h3>
                     <div>
-                        <select name="1" id="1">
-                          <option value="1">Low {toSatoshi(txFeePerKB/1000)} sat/B</option>
+                        <select
+                          onChange={handleFeeSelection}
+                          value={txFeePerKB}
+                        >
+                        <option value={txFeePerByteList[0]}>Low {toSatoshi(txFeePerByteList[0]/1000)} sat/B</option>
+                        <option value={txFeePerByteList[1]}>Med {toSatoshi(txFeePerByteList[1]/1000)} sat/B</option>
+                        <option value={txFeePerByteList[2]}>High {toSatoshi(txFeePerByteList[2]/1000)} sat/B</option>
                         </select>
                         <span className="small">Transaction Fee</span>
                     </div>
