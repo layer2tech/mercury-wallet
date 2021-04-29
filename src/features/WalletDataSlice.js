@@ -198,7 +198,7 @@ export const callCreateBackupTxCPFP = createAsyncThunk(
 export const callGetFeeEstimation = createAsyncThunk(
   'GetFeeEstimation',
   async (action, thunkAPI) => {
-    return await wallet.electrum_client.getFeeHistogram(3);
+    return await wallet.electrum_client.getFeeHistogram(wallet.config.electrum_fee_estimation_blocks);
   }
 )
 
