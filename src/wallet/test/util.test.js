@@ -2,7 +2,8 @@ import { TransactionBuilder, networks, ECPair, BIP32Interface } from 'bitcoinjs-
 import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, txBackupBuild, txWithdrawBuild, txCPFPBuild, StateChainSig, toSatoshi, fromSatoshi,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
-  encryptECIES, decryptECIES, encryptAES, decryptAES, proofKeyToSCEAddress, encodeMessage, decodeMessage } from '../util';
+  encryptECIES, decryptECIES, encryptAES, decryptAES, proofKeyToSCEAddress, encodeMessage,
+  decodeMessage, SIGNED_WITHDRAW_TX_SIZE_KB } from '../util';
 import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
 import { Wallet } from '../';
 
@@ -23,7 +24,7 @@ test('to/from Satoshi', async function() {
 
 describe('signStateChain', function() {
   let proof_key_der = bip32.fromSeed(Buffer.from("0123456789abcdef"), network)
-  
+
   test('Gen and Verify', async function() {
     SIGNSTATECHAIN_DATA.forEach(data => {
       let statechain_sig = StateChainSig.create(proof_key_der, data.purpose, data.data);
@@ -62,23 +63,27 @@ describe('txWithdrawBuild', function() {
   let rec_address = BTC_ADDR
   let value = 10000;
   let fee_info = FEE_INFO
+  let fee_per_kb = 0.00001
 
   test('Throw on invalid value', async function() {
     expect(() => {  // not enough value
-      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 0, fee_info.address, Number(fee_info.withdraw));
+      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 0, fee_info.address, Number(fee_info.withdraw), fee_per_kb);
     }).toThrowError('Not enough value to cover fee.');
     expect(() => {  // not enough value
-      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 100, fee_info.address, Number(fee_info.withdraw)); // should be atleast + value of network FEE also
+      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 100, fee_info.address, Number(fee_info.withdraw), fee_per_kb); // should be atleast + value of network FEE also
     }).toThrowError('Not enough value to cover fee.');
   });
 
   test('Check built tx correct', async function() {
-    let tx_backup = txWithdrawBuild(network, funding_txid, funding_vout, rec_address, value, rec_address, Number(fee_info.withdraw)).buildIncomplete();
+    let tx_backup = txWithdrawBuild(network, funding_txid, funding_vout, rec_address, value, rec_address, Number(fee_info.withdraw), fee_per_kb).buildIncomplete();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
     expect(tx_backup.outs.length).toBe(2);
     expect(tx_backup.outs[0].value).toBeLessThan(value);
     expect(tx_backup.outs[1].value).toBe(Number(fee_info.withdraw));
+    let fee_value = value-tx_backup.outs[0].value-tx_backup.outs[1].value;
+    // With a 1 s/b fee, tx fee should be equal to signed tx size
+    expect(fee_value).toBe(SIGNED_WITHDRAW_TX_SIZE_KB*1000)
   });
 });
 
@@ -90,7 +95,7 @@ describe('txCPFPBuild', function() {
   let fee_rate = 2;
 
   var ec_pair = bitcoin.ECPair.makeRandom({network: network});
-  var p2wpkh = bitcoin.payments.p2wpkh({ pubkey: ec_pair.publicKey, network: network })  
+  var p2wpkh = bitcoin.payments.p2wpkh({ pubkey: ec_pair.publicKey, network: network })
 
   test('Throw on invalid value', async function() {
     expect(() => {  // not enough value
@@ -133,7 +138,7 @@ test('transfer message encode/decode', function() {
 
   let t1 = {secret_bytes: Array.from([4,154,205,188,28,191,7,132,185,70,179,167,78,190,252,36,187,241,6,52,130,67,8,170,148,99,121,38,221,56,71,227,57,41,20,186,135,207,193,131,77,250,120,130,170,148,7,237,147,102,186,142,97,183,18,4,142,162,27,220,222,224,80,179,91,46,21,186,23,128,41,19,218,241,129,95,206,226,74,58,140,170,130,192,96,86,183,168,227,221,25,93,36,143,78,239,190,248,24,120,27,151,165,119,55,126,98,190,142,159,44,138,85,240,186,50,176,186,180,163,62,214,206,39,247])};
 
-  let trans_msg_3 = { 
+  let trans_msg_3 = {
       shared_key_id: SHARED_KEY_ID,
       statechain_id: STATECHAIN_ID,
       t1: t1,

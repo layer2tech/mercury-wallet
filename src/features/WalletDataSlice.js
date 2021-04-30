@@ -68,6 +68,10 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
   callNewSeAddr();
   wallet.save();
 }
+// Try to decrypt wallet. Throw if invalid password
+export const checkWalletPassword = (password) => {
+  Wallet.load(wallet.name, password);
+}
 
 // Wallet data gets
 export const callGetConfig = () => {
@@ -149,7 +153,7 @@ export const callDepositConfirm = createAsyncThunk(
 export const callWithdraw = createAsyncThunk(
   'depositWithdraw',
   async (action, thunkAPI) => {
-    return wallet.withdraw(action.shared_key_ids, action.rec_addr)
+    return wallet.withdraw(action.shared_key_id, action.rec_addr, action.fee_per_kb)
   }
 )
 export const callTransferSender = createAsyncThunk(
@@ -191,6 +195,12 @@ export const callCreateBackupTxCPFP = createAsyncThunk(
     return sucess
   }
 )
+export const callGetFeeEstimation = createAsyncThunk(
+  'GetFeeEstimation',
+  async (action, thunkAPI) => {
+    return await wallet.electrum_client.getFeeHistogram(wallet.config.electrum_fee_estimation_blocks);
+  }
+)
 
 const WalletSlice = createSlice({
   name: 'walletData',
@@ -212,7 +222,7 @@ const WalletSlice = createSlice({
         fee_info: action.payload
       }
     },
-    // Update fee_info
+    // Update ping_swap
     updatePingSwap(state, action) {
         return {
           ...state,
@@ -300,6 +310,9 @@ const WalletSlice = createSlice({
     [callSwapDeregisterUtxo.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
+    [callGetFeeEstimation.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
     [callCreateBackupTxCPFP.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
@@ -307,7 +320,8 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo, updatePingSwap,
-  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave, updateFilter } = WalletSlice.actions
+  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave, updateFilter,
+  updateTxFeeEstimate } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

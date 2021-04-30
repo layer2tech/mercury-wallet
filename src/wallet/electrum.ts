@@ -113,6 +113,16 @@ export class ElectrumClient {
       })
     return txHash
   }
+
+  async getFeeHistogram(num_blocks: number): Promise<any> {
+    const fee_histogram = await this.client
+      .blockchainEstimatefee(num_blocks)
+        .catch((err: any) => {
+          throw new Error(`failed to get fee estimation: [${err}]`)
+        }
+      )
+    return fee_histogram
+  }
 }
 
 
