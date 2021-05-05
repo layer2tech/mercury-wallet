@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {useDispatch} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
+import ReactLoading from 'react-loading';
 
 import {callDepositInit, callDepositConfirm, setNotification,
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin,
@@ -17,10 +18,24 @@ import '../index.css';
 
 let QRCode = require('qrcode.react');
 
+const keyIcon = (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    height='24px'
+    viewBox='0 0 24 24'
+    width='24px'
+    fill='#0F54F4'
+  >
+    <path d='M0 0h24v24H0z' fill='none' />
+    <path d='M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z' />
+  </svg>
+);
+
 const TransactionsBTC = (props) => {
   const [state, setState] = useState({});
 
   const dispatch = useDispatch();
+  const { depositLoading } = useSelector((state) => state.walletData);
 
   let testing_mode;
   try {
@@ -90,6 +105,16 @@ const TransactionsBTC = (props) => {
 
   return (
     <div className=" deposit">
+      {depositLoading ? (
+        <div className="loading-trans">
+          <span>Generating shared key</span>
+          <div className="loading-keys">
+            <span>{keyIcon}</span>
+            <ReactLoading type={`cylon`} color="#0F54F4" />
+            <span>{keyIcon}</span>
+          </div>
+        </div>
+      ) : null }
       {populateWithTransactionDisplayPanels}
       {testing_mode ?
         <div className="Body">

@@ -21,7 +21,8 @@ const initialState = {
   balance_info: {total_balance: null, num_coins: null},
   fee_info: {deposit: "NA", withdraw: "NA"},
   ping_swap: null,
-  filterBy: 'default'
+  filterBy: 'default',
+  depositLoading: false
 }
 
 // Check if a wallet is loaded in memory
@@ -301,8 +302,14 @@ const WalletSlice = createSlice({
     [walletLoad.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
+    [callDepositInit.pending]: (state) => {
+      state.depositLoading = true;
+    },
     [callDepositInit.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callDepositInit.fulfilled]: (state) => {
+      state.depositLoading = false;
     },
     [callDepositConfirm.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
