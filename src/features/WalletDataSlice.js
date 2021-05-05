@@ -135,12 +135,6 @@ export const callUpdateConfig = (config_changes) => {
   wallet.save()
 }
 
-// Create CPFP transaction and add to coin
-export const callCreateBackupTxCPFP = (cpfp_data) => {
-     let sucess = wallet.createBackupTxCPFP(cpfp_data);
-     return sucess
-}
-
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
@@ -159,7 +153,7 @@ export const callDepositConfirm = createAsyncThunk(
 export const callWithdraw = createAsyncThunk(
   'depositWithdraw',
   async (action, thunkAPI) => {
-    return wallet.withdraw(action.shared_key_id, action.rec_addr)
+    return wallet.withdraw(action.shared_key_id, action.rec_addr, action.fee_per_kb)
   }
 )
 export const callTransferSender = createAsyncThunk(
@@ -194,6 +188,19 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
     wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
   }
 )
+export const callCreateBackupTxCPFP = createAsyncThunk(
+  'CreateBackupTxCPFP',
+  async (action, thunkAPI) => {
+    let sucess = wallet.createBackupTxCPFP(action.cpfp_data);
+    return sucess
+  }
+)
+export const callGetFeeEstimation = createAsyncThunk(
+  'GetFeeEstimation',
+  async (action, thunkAPI) => {
+    return await wallet.electrum_client.getFeeHistogram(wallet.config.electrum_fee_estimation_blocks);
+  }
+)
 
 const WalletSlice = createSlice({
   name: 'walletData',
@@ -215,7 +222,7 @@ const WalletSlice = createSlice({
         fee_info: action.payload
       }
     },
-    // Update fee_info
+    // Update ping_swap
     updatePingSwap(state, action) {
         return {
           ...state,
@@ -302,12 +309,19 @@ const WalletSlice = createSlice({
     },
     [callSwapDeregisterUtxo.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callGetFeeEstimation.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callCreateBackupTxCPFP.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     }
 }
 })
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo, updatePingSwap,
-  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave, updateFilter } = WalletSlice.actions
+  setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave, updateFilter,
+  updateTxFeeEstimate } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

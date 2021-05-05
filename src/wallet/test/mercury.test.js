@@ -6,15 +6,15 @@ import { withdraw } from "../mercury/withdraw";
 import { transferSender, transferReceiver, transferReceiverFinalize } from "../mercury/transfer";
 import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
 
-import { BTC_ADDR, KEYGEN_SIGN_DATA, makeTesterStatecoin, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID } from './test_data.js'
+import { BTC_ADDR, KEYGEN_SIGN_DATA, makeTesterStatecoin, makeTesterStatecoins, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID } from './test_data.js'
 import * as MOCK_CLIENT from '../mocks/mock_wasm';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 
 import { BIP32Interface, BIP32,  fromBase58, fromSeed} from 'bip32';
 
-let bitcoin = require('bitcoinjs-lib')
-let lodash = require('lodash');
-const BJSON = require('buffer-json')
+let bitcoin = require('bitcoinjs-lib');
+let cloneDeep = require('lodash.clonedeep');
+const BJSON = require('buffer-json');
 
 // client side's mock
 let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
@@ -49,9 +49,11 @@ describe('2P-ECDSA', function() {
     wasm_mock.Sign.first_message = jest.fn(() => MOCK_CLIENT.SIGN_FIRST);
     wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
 
-    let signature = await sign(http_mock, wasm_mock, KEYGEN_SIGN_DATA.shared_key_id, KEYGEN_SIGN_DATA.shared_key, KEYGEN_SIGN_DATA.signature_hash, KEYGEN_SIGN_DATA.protocol);
-    expect(typeof signature).toBe('string');
+    let signature = await sign(http_mock, wasm_mock, KEYGEN_SIGN_DATA.shared_key_id, KEYGEN_SIGN_DATA.shared_key, KEYGEN_SIGN_DATA, KEYGEN_SIGN_DATA.signature_hash, KEYGEN_SIGN_DATA.protocol);
+    expect(typeof signature[0]).toBe('string');
+    expect(typeof signature[1]).toBe('string');
   });
+
 })
 
 
@@ -82,7 +84,7 @@ describe('StateChain Entity', function() {
       expect(statecoin_finalized.smt_proof).not.toBeNull();
     });
     test('Fee too large for amount.', async function() {
-      let fee_info = lodash.clone(MOCK_SERVER.FEE_INFO);
+      let fee_info = cloneDeep(MOCK_SERVER.FEE_INFO);
       fee_info.withdraw = 10000;
 
       http_mock.get = jest.fn().mockReset()
@@ -116,9 +118,10 @@ describe('StateChain Entity', function() {
   });
 
   describe('Withdraw', function() {
+    let fee_per_kb = 0.00001;
     test('Expect complete', async function() {
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
         .mockReturnValueOnce(MOCK_SERVER.FEE_INFO);
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
@@ -133,7 +136,8 @@ describe('StateChain Entity', function() {
 
       let statecoin = makeTesterStatecoin();
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-      let tx_withdraw = await withdraw(http_mock, wasm_mock, network, statecoin, proof_key_der, BTC_ADDR);
+
+      let tx_withdraw = await withdraw(http_mock, wasm_mock, network, [statecoin], [proof_key_der], BTC_ADDR, fee_per_kb);
 
       // check withdraw tx
       expect(tx_withdraw.ins.length).toBe(1);
@@ -143,38 +147,117 @@ describe('StateChain Entity', function() {
       expect(tx_withdraw.locktime).toBe(0);
     });
     test('Already withdrawn.', async function() {
-      let statechain_info = lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO);
+      let statechain_info = cloneDeep(MOCK_SERVER.STATECHAIN_INFO);
+
       statechain_info.amount = 0;
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(statechain_info)
 
-      await expect(withdraw(http_mock, wasm_mock, network, {}, {}, BTC_ADDR))
+      await expect(withdraw(http_mock, wasm_mock, network, [{}], [{}], BTC_ADDR, fee_per_kb))
         .rejects
         .toThrowError("StateChain undefined already withdrawn.");
     });
+
     test('StateChain not owned by this wallet.', async function() {
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
 
       let statecoin = makeTesterStatecoin();
       statecoin.proof_key = "aaa";
-      await expect(withdraw(http_mock, wasm_mock, network, statecoin, {}, BTC_ADDR))
+      let statecoins = [statecoin];
+      await expect(withdraw(http_mock, wasm_mock, network, statecoins, [{}], BTC_ADDR, fee_per_kb))
         .rejects
         .toThrowError("StateChain not owned by this Wallet. Incorrect proof key.");
     });
     test('Fee too large for amount.', async function() {
-      let fee_info = lodash.clone(MOCK_SERVER.FEE_INFO);
+      let fee_info = cloneDeep(MOCK_SERVER.FEE_INFO);
       fee_info.withdraw = 10000;
 
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
         .mockReturnValueOnce(fee_info)
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
 
       let statecoin = makeTesterStatecoin();
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-      await expect(withdraw(http_mock, wasm_mock, network, statecoin, proof_key_der, BTC_ADDR))
+
+      await expect(withdraw(http_mock, wasm_mock, network, [statecoin], [proof_key_der], BTC_ADDR, fee_per_kb))
+        .rejects
+        .toThrowError("Not enough value to cover fee.");
+    });
+  });
+
+  describe('Withdraw Batch', function() {
+    test('Expect complete', async function() {
+      http_mock.get = jest.fn().mockReset()
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[0]))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[1]))
+        .mockReturnValueOnce(MOCK_SERVER.FEE_INFO)
+        .mockReturnValueOnce(MOCK_SERVER.FEE_INFO);
+      http_mock.post = jest.fn().mockReset()
+        .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
+      // Sign
+      http_mock.post
+        .mockReturnValueOnce(true)   //POST.PREPARE_SIGN
+        .mockReturnValueOnce(MOCK_SERVER.SIGN_FIRST)
+        .mockReturnValueOnce(MOCK_SERVER.SIGN_SECOND)
+        .mockReturnValueOnce(MOCK_SERVER.SIGN_FIRST)
+        .mockReturnValueOnce(MOCK_SERVER.SIGN_SECOND)
+        .mockReturnValueOnce(MOCK_SERVER.WITHDRAW_CONFIRM);
+      wasm_mock.Sign.first_message = jest.fn(() => MOCK_CLIENT.SIGN_FIRST);
+      wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
+
+      let statecoins = [cloneDeep(makeTesterStatecoins()[0]), cloneDeep(makeTesterStatecoins()[1])]
+      let proof_key_ders =[bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)),
+        bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D))];
+
+
+      let tx_withdraw = await withdraw(http_mock, wasm_mock, network, statecoins, proof_key_ders, BTC_ADDR);
+
+      // check withdraw tx
+      expect(tx_withdraw.ins.length).toBe(2);
+      expect(tx_withdraw.ins[0].hash.reverse().toString("hex")).toBe(statecoins[0].funding_txid);
+      expect(tx_withdraw.ins[1].hash.reverse().toString("hex")).toBe(statecoins[1].funding_txid);
+      expect(tx_withdraw.outs.length).toBe(2);
+      expect(tx_withdraw.outs[0].value).toBeLessThan(statecoins[0].value + statecoins[1].value);
+      expect(tx_withdraw.locktime).toBe(0);
+    });
+    test('Already withdrawn.', async function() {
+      let statechain_info = cloneDeep(MOCK_SERVER.STATECHAIN_INFO);
+      statechain_info.amount = 0;
+      http_mock.get = jest.fn().mockReset()
+        .mockReturnValueOnce(statechain_info)
+
+      await expect(withdraw(http_mock, wasm_mock, network, [{}], [{}], BTC_ADDR))
+        .rejects
+        .toThrowError("StateChain undefined already withdrawn.");
+    });
+    test('StateChain not owned by this wallet.', async function() {
+      http_mock.get = jest.fn().mockReset()
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+
+      let statecoin = cloneDeep(makeTesterStatecoins()[0]);
+      statecoin.proof_key = "aaa";
+      await expect(withdraw(http_mock, wasm_mock, network, [statecoin], [{}], BTC_ADDR))
+        .rejects
+        .toThrowError("StateChain not owned by this Wallet. Incorrect proof key.");
+    });
+    test('Fee too large for amount.', async function() {
+      let fee_info = cloneDeep(MOCK_SERVER.FEE_INFO);
+      fee_info.withdraw = 10000;
+
+      http_mock.get = jest.fn().mockReset()
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[0]))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[1]))
+        .mockReturnValueOnce(fee_info)
+      http_mock.post = jest.fn().mockReset()
+        .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
+
+      let statecoins = cloneDeep(makeTesterStatecoins());
+      let proof_key_ders = [bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)),
+        bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D))];
+      await expect(withdraw(http_mock, wasm_mock, network, statecoins, proof_key_ders, BTC_ADDR))
         .rejects
         .toThrowError("Not enough value to cover fee.");
     });
@@ -184,7 +267,7 @@ describe('StateChain Entity', function() {
     test('Expect complete', async function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.FEE_INFO)
-        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.TRANSFER_SENDER)
       //Sign
@@ -231,14 +314,14 @@ describe('StateChain Entity', function() {
     test('Expect complete', async function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
-        .mockReturnValueOnce(lodash.cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.TRANSFER_PUBKEY)
         .mockReturnValueOnce(MOCK_SERVER.TRANSFER_RECEIVER)
       //POST.TRANSFER_UPDATE_MSG;
         .mockReturnValueOnce(true)
 
-      let transfer_msg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
+      let transfer_msg3 = cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
       let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER.__D));
       let finalize_data = await transferReceiver(http_mock, transfer_msg3, se_rec_addr_bip32, null);
 
@@ -248,7 +331,7 @@ describe('StateChain Entity', function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
 
-      let transfer_msg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
+      let transfer_msg3 = cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
       transfer_msg3.statechain_sig.sig = "3044022026a22bb2b8c0e43094d9baa9de1abd1de914b59f8bbcf5b740900180da575ed10220544e27e2861edf01b5c383fc90d8b1fd41211628516789f771b2c3536e650bdb";
 
       await expect(transferReceiver(http_mock, transfer_msg3, {}, null))
@@ -259,7 +342,7 @@ describe('StateChain Entity', function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
 
-      let transfer_msg3 = lodash.cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
+      let transfer_msg3 = cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
       let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER.__D));
       se_rec_addr_bip32.__D = Buffer.from("0ca756f401478fb1a166d27945501d8af59ada1cb552c598509dfcb494f475b9", "hex")
 
@@ -285,7 +368,7 @@ describe('StateChain Entity', function() {
       http_mock.post
         .mockReturnValueOnce(MOCK_SERVER.SMT_PROOF);
 
-      let finalize_data = BJSON.parse(lodash.cloneDeep(FINALIZE_DATA));
+      let finalize_data = BJSON.parse(cloneDeep(FINALIZE_DATA));
       let statecoin = await transferReceiverFinalize(http_mock, wasm_mock, finalize_data);
 
       expect(statecoin.statechain_id).toBe(finalize_data.statechain_id);

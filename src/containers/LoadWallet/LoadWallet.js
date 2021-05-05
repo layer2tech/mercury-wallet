@@ -16,9 +16,9 @@ const LoadWalletPage = (props) => {
   const [showPass, setShowPass] = useState(false);
   const dispatch = useDispatch();
 
-  let wallet_name_password_map = store.getWalletNamePasswordMap()
+  let wallet_names = store.getWalletNames()
 
-  const [selectedWallet, setSelected] = useState(wallet_name_password_map.length ? wallet_name_password_map[0].name : "")
+  const [selectedWallet, setSelected] = useState(wallet_names.length ? wallet_names[0] : "")
   const toggleShowPass = () => setShowPass(!showPass);
   const onSelectedWalletChange = (event) => {
     setSelected(event.target.value)
@@ -50,7 +50,7 @@ const LoadWalletPage = (props) => {
     try { walletLoad(selectedWallet, passwordEntered) }
       catch (e) {
         event.preventDefault();
-        dispatch(setError({msg: e.message}))
+        dispatch(setError({msg: e.message}));
         return
       }
       checkForCoinsHealth();
@@ -58,13 +58,13 @@ const LoadWalletPage = (props) => {
   }
 
   const populateWalletNameOptions = () => {
-    return wallet_name_password_map.map((item, index) => (<option key={index} value={item.name}>{item.name}</option>))
+    return wallet_names.map((item, index) => (<option key={index} value={item}>{item}</option>))
   }
 
   return (
   <div className="memory-form">
     <form>
-      {wallet_name_password_map.length ?
+      {wallet_names.length ?
         <div>
           <p>Select a wallet to load and input its password </p>
 

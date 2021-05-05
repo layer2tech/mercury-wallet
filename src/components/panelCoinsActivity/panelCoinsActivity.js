@@ -9,9 +9,23 @@ import './panelCoinsActivity.css';
 import '../index.css';
 
 const PanelCoinsActivity = (props) => {
-    const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+    const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
     const { filterBy } = useSelector(state => state.walletData);
     const defaultTabTitle = filterBy === STATECOIN_STATUS.WITHDRAWN ? `WITHDRAWN STATECOIN UTXO’S` : `STATECOIN UTXO'S`
+        
+    const setSelectedCoin = (statechain_id) => {
+        setSelectedCoins(
+            prevSelectedCoins => {
+                let newSelectedCoins=[];
+                const isStatechainId = (element) => element == statechain_id; 
+                let index = prevSelectedCoins.findIndex(isStatechainId);
+                if (index == -1){
+                    newSelectedCoins=[statechain_id];
+                }
+                return newSelectedCoins;
+            }
+        );
+    }
 
     return (
         <div className="table">
@@ -21,10 +35,11 @@ const PanelCoinsActivity = (props) => {
                         <Tab eventKey={defaultTabTitle} title={defaultTabTitle}>
                             <Coins
                                 displayDetailsOnClick={true}
-                                selectedCoin={selectedCoin}
-                                setSelectedCoin={setSelectedCoin}
-                                showCoinStatus={true}
-                            />
+                          selectedCoins={selectedCoins}
+                          setSelectedCoins={setSelectedCoins}
+                          setSelectedCoin={setSelectedCoin}
+                          showCoinStatus={true}
+                          />
                         </Tab>
                         <Tab eventKey="ACTIVITY" title="ACTIVITY">
                             <Activity/>
@@ -36,7 +51,8 @@ const PanelCoinsActivity = (props) => {
                         <div className="withdrawn-tab">{defaultTabTitle}</div>
                         <Coins
                             displayDetailsOnClick={true}
-                            selectedCoin={selectedCoin}
+                            selectedCoins={selectedCoins}
+                            setSelectedCoins={setSelectedCoins}
                             setSelectedCoin={setSelectedCoin}
                             showCoinStatus={true}
                         />

@@ -57,9 +57,11 @@ export class MockElectrumClient {
         }
     }
 
-    async scriptHashSubscribe(script: string, callback: any): Promise<any> {
+    async scriptHashSubscribe(_script: string, callback: any): Promise<any> {
       callback(); // calling callback alerts wallet that script hash status has changed
     }
-    async scriptHashUnsubscribe(script: string): Promise<any> {
+    async scriptHashUnsubscribe(_script: string): Promise<any> {
+    }
+    async getFeeHistogram(_num_blocks: number): Promise<any> {
     }
 }

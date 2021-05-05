@@ -1,12 +1,11 @@
 // wallet utilities
 
 import { BIP32Interface, Network, TransactionBuilder, crypto as crypto_btc, script, Transaction } from 'bitcoinjs-lib';
-import { Root } from './mercury/info_api';
+import { Root, StateChainDataAPI, FeeInfo, OutPoint } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
 
-
-import { encrypt, decrypt } from 'eciesjs'
+import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
 
 let bech32 = require('bech32')
@@ -20,6 +19,7 @@ let secp256k1 = new EC('secp256k1')
 
 /// Temporary - fees should be calculated dynamically
 export const FEE = 300;
+export const SIGNED_WITHDRAW_TX_SIZE_KB = 0.56;
 
 // Verify Spase Merkle Tree proof of inclusion
 export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {
@@ -49,7 +49,7 @@ export const hexToBytes = (hex: string) => {
 }
 
 // BTC value -> Satoshi value
-export const toSatoshi = (btc: number) => { return btc * 10e7 }
+export const toSatoshi = (btc: number) => { return Math.floor(btc * 10e7) }
 // Satoshi value -> BTC value
 export const fromSatoshi = (sat: number) => { return sat / 10e7 }
 
@@ -122,7 +122,6 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
     network: network
   }).address;
   let script = bitcoin.address.toOutputScript(addr_p2pkh, network);
-
   return tx.hashForWitnessV0(index, script, amount, Transaction.SIGHASH_ALL).toString("hex");
 }
 
@@ -141,14 +140,49 @@ export const txBackupBuild = (network: Network, funding_txid: string, funding_vo
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number): TransactionBuilder => {
-  if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
+export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_kb: number): TransactionBuilder => {
+  let tx_fee = toSatoshi(Math.round(fee_per_kb*SIGNED_WITHDRAW_TX_SIZE_KB*10e7)/10e7);
+  if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
 
   let txb = new TransactionBuilder(network);
 
   txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF);
-  txb.addOutput(rec_address, value - FEE - withdraw_fee);
+  txb.addOutput(rec_address, value - tx_fee - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
+
+  return txb
+}
+
+
+// Withdraw tx builder spending funding tx to:
+//     - amount-fee to receive address, and
+//     - amount 'fee' to State Entity fee address
+export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_address: string, fee_info: FeeInfo): TransactionBuilder => {
+  let txin = []
+  let value = 0;
+  let txb: TransactionBuilder = new TransactionBuilder(network);
+  let index = 0;
+
+  for(let info of sc_infos){
+    let utxo: OutPoint = info.utxo;
+    if (utxo !== undefined) {
+      value = value + info.amount;
+      let txid: string = utxo.txid;
+      let vout: number = utxo.vout;
+      txb.addInput(txid, vout, 0xFFFFFFFF);
+    };
+    index = index + 1;
+  }
+
+  value = value + fee_info.deposit;
+
+  let withdraw_fee = (value * fee_info.withdraw) / 10000;
+
+  if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
+
+  txb.addOutput(rec_address, value - FEE - withdraw_fee);
+  txb.addOutput(fee_info.address, withdraw_fee);
+
   return txb
 }
 
@@ -216,21 +250,21 @@ export const decodeMessage = (enc_message: string, network: Network): TransferMs
 
   // compact byte message deserialisation
   //bytes 0..129 encrypted t1
-  let t1_bytes = buf.slice(0,129);
+  let t1_bytes = buf.slice(0,125);
   //bytes 129..162 (33 bytes) compressed proof key
-  let proof_key_bytes = buf.slice(129,162);
+  let proof_key_bytes = buf.slice(125,158);
   //bytes 162..178 (16 bytes) statechain_id
-  let statechain_id_bytes = buf.slice(162,178);
+  let statechain_id_bytes = buf.slice(158,174);
   //bytes 178..194 (16 bytes) shared_key_id
-  let shared_key_id_bytes = buf.slice(178,194);
+  let shared_key_id_bytes = buf.slice(174,190);
   //byte 194 is statechain signature length (variable)
-  let sig_len = buf.readUInt8(194);
+  let sig_len = buf.readUInt8(190);
   //byte 195..sig_len is statechain signature
-  let sig = buf.slice(195,(sig_len+195));
+  let sig = buf.slice(191,(sig_len+191));
   //byte tx_len is backup tx length (variable)
-  let tx_len = buf.readUInt8(sig_len+195);
+  let tx_len = buf.readUInt8(sig_len+191);
   //remaining bytes backup tx
-  let backup_tx_bytes = buf.slice((sig_len+196),(sig_len+tx_len+196));
+  let backup_tx_bytes = buf.slice((sig_len+192),(sig_len+tx_len+192));
 
   // convert uuids
   let sch_id = statechain_id_bytes.toString("hex");
@@ -242,7 +276,7 @@ export const decodeMessage = (enc_message: string, network: Network): TransferMs
   let proof_key = proof_key_bytes.toString('hex');
 
   let tx_backup_psm: PrepareSignTxMsg = {
-          shared_key_id: shared_key_id,
+          shared_key_ids: [shared_key_id],
           protocol: "Transfer",
           tx_hex: backup_tx_bytes.toString('hex'),
           input_addrs: [],

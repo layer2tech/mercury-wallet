@@ -7,7 +7,7 @@ import { txWithdrawBuild } from '../util';
 import { addRestoredCoinDataToWallet } from '../recovery';
 import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
 
-let lodash = require('lodash');
+let cloneDeep = require('lodash.clonedeep');
 
 const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
 
@@ -15,11 +15,11 @@ describe('Wallet', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
 
   test('toJSON', function() {
-    wallet.config.update({min_anon_set: 1000}) // update config to ensure defaults are not revered to after fromJSON.
-    let json_wallet = JSON.parse(JSON.stringify(wallet))
-    let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true)
+    wallet.config.update({min_anon_set: 1000}); // update config to ensure defaults are not revered to after fromJSON.
+    let json_wallet = JSON.parse(JSON.stringify(wallet));
+    let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true);
     // check wallets serialize to same values (since deep equal on recursive objects is messy)
-    expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet))
+    expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet));
   });
 
   test('save/load', async function() {
@@ -99,7 +99,7 @@ describe('Wallet', function() {
     let cpfp_data_bad_coin = {selected_coin: "c93ad45a-00b9-449c-a804-aab5530efc90", cpfp_addr: wallet.genBtcAddress(), fee_rate: 3};
     let cpfp_data_bad_fee = {selected_coin: wallet.statecoins.coins[0].shared_key_id, cpfp_addr: wallet.genBtcAddress(), fee_rate: "three"};
 
-    let tx_backup = txWithdrawBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, wallet.genBtcAddress(), 10000, wallet.genBtcAddress(), 10)
+    let tx_backup = txWithdrawBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, wallet.genBtcAddress(), 10000, wallet.genBtcAddress(), 10, 0.00001)
 
     wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
 
@@ -208,7 +208,7 @@ describe("Statecoins/Coin", () => {
 
   describe("calcExpiryDate", () => {
     it('Calculate expiry', () => {
-      let coin = lodash.clone(statecoins.coins[0]);
+      let coin = cloneDeep(statecoins.coins[0]);
       let tx_backup = new Transaction();
       let locktime = 24*6*30; // month locktime
       tx_backup.locktime = locktime;

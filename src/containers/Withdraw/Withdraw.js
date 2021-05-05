@@ -3,26 +3,60 @@ import orange from "../../images/wallet-orange.png";
 import withdrowIcon from "../../images/withdrow-icon.png";
 
 import {Link, withRouter, Redirect} from "react-router-dom";
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {isWalletLoaded, callWithdraw, setError, setNotification} from '../../features/WalletDataSlice';
+import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification} from '../../features/WalletDataSlice';
 import {Coins, StdButton, AddressInput} from "../../components";
-import {fromSatoshi} from '../../wallet/util';
+import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
+import {fromSatoshi, toSatoshi} from '../../wallet/util';
 
 import './Withdraw.css';
 
+export const DEFAULT_FEE = 0.00001;
+
 const WithdrawPage = () => {
   const dispatch = useDispatch();
-  const balance_info = useSelector(state => state.walletData).balance_info;
+  const { balance_info, filterBy } = useSelector(state => state.walletData);
 
-  const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
+  const [txFeePerKB, setTxFeePerKB] = useState(DEFAULT_FEE); // chosen fee per kb value
+  // Calc Med and High fee values and convert to satoshis
+  const calcTxFeePerKbList = (low_fee_value) => {
+    if (low_fee_value<0.0001) { // < 10 satoshis per byte
+      return [low_fee_value, low_fee_value*2, low_fee_value*4]
+    }
+    return [low_fee_value, low_fee_value*1.1, low_fee_value*1.2]
+  }
+  const [txFeePerByteList, setTxFeePerByteList] = useState(calcTxFeePerKbList(DEFAULT_FEE)); // list of fee per kb options in satoshis
 
+  function addSelectedCoin(statechain_id) {
+    setSelectedCoins( prevSelectedCoins => {
+      let newSelectedCoins = prevSelectedCoins;
+      const isStatechainId = (element) => element == statechain_id;
+      let index = newSelectedCoins.findIndex(isStatechainId);
+      if (index != -1){
+        newSelectedCoins.splice(index,1);
+      } else {
+        newSelectedCoins.push(statechain_id);
+      }
+      return newSelectedCoins;
+    });
+  }
+
+  // Get Tx fee estimate
+  useEffect(() => {
+    dispatch(callGetFeeEstimation()).then(tx_fee_estimate => {
+      if (tx_fee_estimate>0) {
+        setTxFeePerKB(tx_fee_estimate);
+      }
+    })
+  }, []);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -31,7 +65,7 @@ const WithdrawPage = () => {
 
   const withdrawButtonAction = async () => {
     // check statechain is chosen
-    if (!selectedCoin) {
+    if (selectedCoins.length === 0) {
       dispatch(setError({msg: "Please choose a StateCoin to withdraw."}))
       return
     }
@@ -40,9 +74,9 @@ const WithdrawPage = () => {
       return
     }
 
-    dispatch(callWithdraw({"shared_key_id": selectedCoin, "rec_addr": inputAddr})).then((res => {
+    dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr, "fee_per_kb": txFeePerKB})).then((res => {
       if (res.error===undefined) {
-        setSelectedCoin(null)
+        setSelectedCoins([])
         setInputAddr("")
         setRefreshCoins((prevState) => !prevState);
         dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
@@ -51,6 +85,22 @@ const WithdrawPage = () => {
 
   }
 
+  const filterByMsg = () => {
+    let return_str = "Statecoin";
+    if (balance_info.num_coins > 1) {
+      return_str = return_str+"s"
+    }
+    switch (filterBy) {
+      case FILTER_BY_OPTION[0].value:
+        return return_str+ " available in Wallet";
+      case FILTER_BY_OPTION[1].value:
+        return return_str+ " already withdrawn";
+      case FILTER_BY_OPTION[2].value:
+        return return_str+ " in transfer process";
+    }
+  }
+
+  const handleFeeSelection = (event) => setTxFeePerKB(event.target.value)
 
   return (
     <div className="container ">
@@ -70,7 +120,7 @@ const WithdrawPage = () => {
             </div>
             <h3 className="subtitle">
                 Withdraw Statecoin UTXO’s back to Bitcoin. <br/>
-               <b> {fromSatoshi(balance_info.total_balance)} BTC</b> available as <b>{balance_info.num_coins}</b> Statecoins
+               <b> {fromSatoshi(balance_info.total_balance)} BTC</b> as <b>{balance_info.num_coins}</b> {filterByMsg()}
             </h3>
         </div>
 
@@ -82,18 +132,23 @@ const WithdrawPage = () => {
                     <Coins
                       showCoinStatus={true}
                       displayDetailsOnClick={false}
-                      selectedCoin={selectedCoin}
-                      setSelectedCoin={setSelectedCoin}
+                      selectedCoins={selectedCoins}
+                      setSelectedCoin={addSelectedCoin}
                       refresh={refreshCoins}/>
-                </div>
+                  </div>
 
             </div>
             <div className="Body right">
                 <div className="header">
                     <h3 className="subtitle">Transaction Details</h3>
                     <div>
-                        <select name="1" id="1">
-                            <option value="1">Low 7sat/B</option>
+                        <select
+                          onChange={handleFeeSelection}
+                          value={txFeePerKB}
+                        >
+                        <option value={txFeePerByteList[0]}>Low {toSatoshi(txFeePerByteList[0]/1000)} sat/B</option>
+                        <option value={txFeePerByteList[1]}>Med {toSatoshi(txFeePerByteList[1]/1000)} sat/B</option>
+                        <option value={txFeePerByteList[2]}>High {toSatoshi(txFeePerByteList[2]/1000)} sat/B</option>
                         </select>
                         <span className="small">Transaction Fee</span>
                     </div>

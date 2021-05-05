@@ -19,6 +19,7 @@ const SendStatecoinPage = () => {
 
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [coinDetails, setCoinDetails] = useState({}); // store selected coins shared_key_id
+
   const [inputAddr, setInputAddr] = useState("");
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -33,7 +34,7 @@ const SendStatecoinPage = () => {
 
   const sendButtonAction = async () => {
     // check statechain is chosen
-    if (!selectedCoin) {
+    if (selectedCoin == null) {
       dispatch(setError({msg: "Please choose a StateCoin to send."}))
       return
     }
