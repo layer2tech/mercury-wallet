@@ -1,8 +1,11 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Link, withRouter } from "react-router-dom";
-import { useDispatch } from 'react-redux'
-import {setError, walletFromMnemonic} from '../../features/WalletDataSlice'
+import { useDispatch } from 'react-redux';
+import {Tabs, Tab} from 'react-bootstrap';
+import {setError, walletFromMnemonic, walletFromJson} from '../../features/WalletDataSlice'
 import { CreateWizardForm } from '../../components'
+import eyeIcon from "../../images/eye-icon.svg";
+import eyeIconOff from "../../images/eye-icon-off.svg"
 import {Storage} from '../../store';
 
 import  './RestoreWallet.css'
@@ -12,6 +15,8 @@ let store = new Storage();
 
 const RestoreWalletPage = (props) => {
   const dispatch = useDispatch();
+  const [showPass, setShowPass] = useState(false);
+  const toggleShowPass = () => setShowPass(!showPass);
 
   let wallet_names = store.getWalletNames();
 
@@ -47,20 +52,72 @@ const RestoreWalletPage = (props) => {
     props.setWalletLoaded(true);
   }
 
+  const handleSelectBackupFile = () => {
+    window.postMessage({
+      type: 'select-backup-file'
+    })
+  }
+
+  const handleImportWalletData = async (event, backupData) => {
+    try {
+      const walletJson = JSON.parse(backupData);
+      const wallet = await walletFromJson(walletJson, state.wallet_password);
+      if(!wallet) {
+        dispatch(setError({msg: "Incorrect password or invalid file format. Can not restore wallet from this file!"}));
+      } else {
+        props.history.push('/home');
+        props.setWalletLoaded(true);
+      }
+    } catch (error) {
+      console.error(error)
+      dispatch(setError({msg: "Invalid Backup File Format"}))
+    }
+  }
+
+  useEffect(() => {
+    window.electron.ipcRenderer.on('received-backup-data', handleImportWalletData);
+    return () => window.electron.ipcRenderer.removeListener('received-backup-data', handleImportWalletData);
+  }, [state])
+
   return (
-  <div className="restore-form">
-    <CreateWizardForm
-      wizardState={state}
-      onSubmit={onClickConf}
-      setStateWalletName={setStateWalletName}
-      setStateWalletPassword={setStateWalletPassword}
-      setStateMnemonic={setStateMnemonic}
-      submitTitle="Confirm"
-    />
-    <Link to="/" className="back">
-      Back
-    </Link>
-  </div>
+    <div className="restore-wallet-wrap">
+      <Tabs defaultActiveKey={'Restore from Seed'}>
+          <Tab eventKey={'Restore from Seed'} title={'Restore from Seed'}>
+            <div className="restore-form">
+              <CreateWizardForm
+                wizardState={state}
+                onSubmit={onClickConf}
+                setStateWalletName={setStateWalletName}
+                setStateWalletPassword={setStateWalletPassword}
+                setStateMnemonic={setStateMnemonic}
+                submitTitle="Confirm"
+              />
+            </div>
+          </Tab>
+          <Tab eventKey="Restore from Backup" title="Restore from Backup">
+            <div className="restore-form">
+              <div className="inputs-item">
+                <input 
+                  type={showPass ? 'text' : 'password'} name="password"
+                  placeholder="Passphrase"
+                  onChange={setStateWalletPassword}
+                />
+                <span className={'eye-icon'} onClick={toggleShowPass}>
+                    {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
+                </span>
+              </div>
+
+              <button 
+                type="button" 
+                onClick={handleSelectBackupFile}
+                className="Body-button blue backup-btn">Select Your Backup File</button>
+            </div>
+          </Tab>
+      </Tabs>
+      <Link to="/" className="back Body-button bg-transparent">
+        Back
+      </Link>
+    </div>
   )
 }
 

@@ -73,6 +73,21 @@ export const checkWalletPassword = (password) => {
   Wallet.load(wallet.name, password);
 }
 
+// Create wallet from backup file
+export const walletFromJson = (wallet_json, password) => {
+  return Promise.resolve().then(() => {
+    wallet = Wallet.loadFromBackup(wallet_json, password, testing_mode);
+    log.info("Wallet " + wallet.name + " loaded from backup.");
+    if (testing_mode) log.info("Testing mode set.");
+    wallet.initElectrumClient(setBlockHeightCallBack);
+    callNewSeAddr();
+    wallet.save()
+    return wallet;
+  }).catch(error => {
+    console.error('Can not load wallet from json!', error);
+  })
+}
+
 // Wallet data gets
 export const callGetConfig = () => {
   return wallet.config.getConfig()
@@ -135,6 +150,15 @@ export const callUpdateConfig = (config_changes) => {
   wallet.save()
 }
 
+// Create CPFP transaction and add to coin
+export const callCreateBackupTxCPFP = (cpfp_data) => {
+     let sucess = wallet.createBackupTxCPFP(cpfp_data);
+     return sucess
+}
+
+export const callGetWalletJsonToBackup = () => {
+  return wallet.storage.getWallet(wallet.name);
+}
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
@@ -188,6 +212,7 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
     wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
   }
 )
+
 export const callCreateBackupTxCPFP = createAsyncThunk(
   'CreateBackupTxCPFP',
   async (action, thunkAPI) => {
