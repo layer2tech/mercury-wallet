@@ -101,6 +101,7 @@
     "react-router-dom": "^5.2.0",
     "react-table": "^7.6.2",
     "react-use-clipboard": "1.0.7",
+    "request-debug": "^0.2.0",
     "request-promise": "^4.2.6",
     "request-promise-native": "^1.0.9",
     "socks": "^2.6.1",

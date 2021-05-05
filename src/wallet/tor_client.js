@@ -2,7 +2,13 @@ import { SocksProxyAgent } from 'socks-proxy-agent';
 import { isAnyOf } from '@reduxjs/toolkit';
 const net = require('net');
 const os = require('os');
-const rp = require('request-promise-native').defaults({ family: 6 });
+const rp = require('request-promise');
+
+require('request-debug')(rp, function(type, data, r) {
+    console.log("request debug type: " + type);
+    console.log("request debug data: " + JSON.stringify(data));
+    console.log("request debug r: " + JSON.stringify(r));
+});
 
 export class TorClient {
     torConfig = {
@@ -27,9 +33,10 @@ export class TorClient {
         };
 
         this.proxyConfig={
-            agent: new SocksProxyAgent('socks5h://' + ip + ':' + port),
+            agent: new SocksProxyAgent('socks://' + ip + ':' + port),
             headers: {
-                'User-Agent': 'Request-Promise'
+                'User-Agent': 'Request-Promise',
+                'Referer': ''
             }
         };
 
@@ -141,16 +148,30 @@ export class TorClient {
         }
 
         let rp_options = {
-            uri: url,
+            url: url,
             agent: this.proxyConfig.agent,
             headers: { 
+                'method': 'GET',
                 'User-Agent': 'Request-Promise',
-                'Accept': 'application/json' },
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Referer': 'http://localhost:3000',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'cross-site',
+                'Connection': 'keep-alive',
+                'Accept-language': 'en-US',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Host': 'socks://localhost:5000'
+            },
             json: true,
         }
 
-        let result = await rp(rp_options);
-        //await this.confirmNewTorConnection();
+
+        let result = await rp(rp_options).catch(function(reason) {
+            console.log("get fail reason: " + JSON.stringify(reason));
+        });
+
         return result;
     }
 
@@ -164,13 +185,17 @@ export class TorClient {
             headers: {
               'User-Agent': 'Request-Promise',
               'Accept': 'application/json',
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Referer': ''
+
             },
             body: body,
             json: true,
         };
 
-        let result = await rp(rp_options);
+        let result = await rp(rp_options).catch(function(reason) {
+            console.log("reason: " + reason);
+        });
         //await this.confirmNewTorConnection();
         return result;
     }

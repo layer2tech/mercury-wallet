@@ -12,7 +12,7 @@ export const pingServer = async (
 export const getFeeInfo = async (
   http_client: HttpClient | TorClient | MockHttpClient,
 ) => {
-  let fee_info = await http_client.get(GET_ROUTE.FEES, {});
+  let fee_info = await http_client.get(GET_ROUTE.FEES, undefined);
   typeforce(types.FeeInfo, fee_info);  
 
   return fee_info
