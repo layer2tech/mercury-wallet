@@ -109,6 +109,24 @@
     width: 80%;
 }
 
+.loading-trans {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-top: 24px;
+    width: 250px;
+    background-color: #fff;
+    margin: 20px auto;
+}
+.loading-trans .loading-keys {
+    display: flex;
+    align-items: center;
+}
+.loading-trans .loading-keys span {
+    padding: 0 16px;
+}
+
 .go3147146168:before {
     background-color: #707070 !important;
     border-radius: 50% !important;
