@@ -1,4 +1,4 @@
-import { ActivityLog, encryptAES, StateCoinList } from "./wallet";
+import { ActivityLog, decryptAES, encryptAES, StateCoinList } from "./wallet";
 
 declare const window: any;
 let Store: any;
@@ -15,11 +15,11 @@ export class Storage {
     this.store = new Store();
   }
 
-  // return array of wallet names
+  // return map of wallet names->passwords
   getWalletNames() {
-    let wallets = this.store.get('wallets');
-    if (wallets==null) { return [] };
-    return Object.keys(wallets);
+    let wallets = this.store.get('wallets')
+    if (wallets==null) { return [] }
+    return Object.keys(wallets)
   }
 
   accountToAddrMap(account_json: any) {
@@ -50,8 +50,23 @@ export class Storage {
   }
 
   getWallet(wallet_name: string) {
-    return this.store.get('wallets.'+wallet_name);
+    let wallet_json = this.store.get('wallets.'+wallet_name);
+    if (wallet_json===undefined) throw Error("No wallet called "+wallet_name+" stored.");
+    return wallet_json
   }
+
+  getWalletDecrypted(wallet_name: string, password: string) {
+    let wallet_json_encrypted = this.getWallet(wallet_name);
+    let wallet_json_decrypted = wallet_json_encrypted;
+    // Decrypt mnemonic
+    try {
+      wallet_json_decrypted.mnemonic = decryptAES(wallet_json_decrypted.mnemonic, password);
+    } catch (e) {
+      if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
+    }
+    return wallet_json_decrypted
+  }
+
 
   storeWalletStateCoinsList(wallet_name: string, statecoins: StateCoinList, activity: ActivityLog) {
     this.store.set('wallets.'+wallet_name+'.statecoins', statecoins);
