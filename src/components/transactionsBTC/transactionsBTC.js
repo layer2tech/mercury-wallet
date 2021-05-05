@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {useDispatch} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
 import ReactLoading from 'react-loading';
 
 import {callDepositInit, callDepositConfirm, setNotification,
@@ -35,6 +35,7 @@ const TransactionsBTC = (props) => {
   const [state, setState] = useState({});
 
   const dispatch = useDispatch();
+  const { depositLoading } = useSelector((state) => state.walletData);
 
   let testing_mode;
   try {
@@ -104,7 +105,7 @@ const TransactionsBTC = (props) => {
 
   return (
     <div className=" deposit">
-      {!deposit_inits.length ? (
+      {depositLoading ? (
         <div className="loading-trans">
           <span>Generating shared key</span>
           <div className="loading-keys">
