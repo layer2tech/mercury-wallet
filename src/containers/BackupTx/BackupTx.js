@@ -1,7 +1,9 @@
 import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState} from 'react';
-import {useDispatch} from 'react-redux'
-
+import {useDispatch} from 'react-redux';
+import QRCode from 'qrcode.react';
+import { Modal } from 'react-bootstrap';
+import { BACKUP_STATUS } from '../../wallet/statecoin';
 import {isWalletLoaded, setError, callGetCoinBackupTxData, callCreateBackupTxCPFP} from '../../features/WalletDataSlice'
 import {Coins, StdButton, AddressInput, CopiedButton} from "../../components";
 
@@ -18,6 +20,7 @@ const BackupTxPage = () => {
   const [selectedCoinTxData, setSelectedCoinTxData] = useState(DEFAULT_TX_DATA); // store selected coins shared_key_id
   const [cpfpAddr, setInputAddr] = useState("");
   const [txFee, setTxFee] = useState("");
+  const [showPrivateKey, setShowPrivateKey] = useState(false);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates
   // in developer mode.
@@ -58,6 +61,39 @@ const BackupTxPage = () => {
     navigator.clipboard.writeText(selectedCoinTxData.key_wif);
   }
 
+  const closePrivateKeyModal = () => setShowPrivateKey(false);
+
+  const showBackupStatus = (backup_status) => {
+    switch (backup_status) {
+      case BACKUP_STATUS.CONFIRMED:
+        return (
+          <span style={{fontWeight: 'bold', color: 'green'}}>
+            &#9989; {backup_status}
+          </span>
+        )
+      case BACKUP_STATUS.POST_INTERVAL:
+      case BACKUP_STATUS.UNBROADCAST:
+      case BACKUP_STATUS.IN_MEMPOOL:
+        return (
+          <span style={{fontWeight: 'bold', color: 'orange'}}>
+            &#9888; {backup_status}
+          </span>
+        )
+      case BACKUP_STATUS.TAKEN:
+        return (
+          <span style={{fontWeight: 'bold', color: 'red'}}>
+            &#10062; {backup_status}
+          </span>
+        )
+      default:
+        return (
+          <span>
+            {selectedCoinTxData.backup_status}
+          </span>
+        )
+    }
+  }
+
   const addCPFP = () => {
     // check statechain is chosen
     if (!selectedCoin) {
@@ -84,6 +120,33 @@ const BackupTxPage = () => {
 
   return (
     <div className="container ">
+      <Modal show={showPrivateKey} onHide={closePrivateKeyModal} className="modal">
+        <Modal.Body className="custom-modal-body">
+          <div className="private-key-code">
+            <span>Private Key WIF:</span>
+            <CopiedButton 
+              handleCopy={copyKeyWIFToClipboard} 
+              style={{
+                backgroundColor: '#ECF2FF',
+                padding: '20px'
+              }}
+            >
+              <div>
+                <img type="button" src={icon2} alt="icon"/>
+                <span>{selectedCoinTxData.key_wif}</span>
+              </div>
+            </CopiedButton>
+          </div>
+          <div className="private-key-qrcode">
+            <QRCode value={selectedCoinTxData.key_wif} level='H' />
+          </div>
+        </Modal.Body>
+        <div className="custom-modal-footer">
+          <button className="Body-button bg-transparent" onClick={closePrivateKeyModal}>
+            Close
+          </button>
+        </div>
+      </Modal>
         <div className="Body backupTx">
             <div className="swap-header">
                 <h2 className="WalletAmount">
@@ -136,41 +199,19 @@ const BackupTxPage = () => {
                 </div>
 
                 <div className="item">
-                    <span className="sub">Months left:</span>
-                    <div className="">
-                        <span>
-                          {selectedCoinTxData.expiry_data.months}
-                        </span>
-                    </div>
-                </div>
-
-                <div className="item">
                     <span className="sub">Hex:</span>
                     <div className="">
                         {selectedCoinTxData.tx_backup_hex.length > 0 ?
                           <CopiedButton handleCopy={copyBackupTxHexToClipboard}>
-                            <img type="button" src={icon2} alt="icon"/>
+                            <div className="copy-hex-wrap">
+                              <img type="button" src={icon2} alt="icon"/>
+                              <span>
+                                {selectedCoinTxData.tx_backup_hex}
+                              </span>
+                            </div>
                           </CopiedButton>
                           : null
                         }
-                        <span>
-                          {selectedCoinTxData.tx_backup_hex}
-                        </span>
-                    </div>
-                </div>
-
-                <div className="item">
-                    <span className="sub">Private key hex:</span>
-                    <div className="">
-                        {selectedCoinTxData.priv_key_hex.length > 0 ?
-                          <CopiedButton handleCopy={copyPrivKeyToClipboard}>
-                            <img type="button" src={icon2} alt="icon"/>
-                          </CopiedButton>
-                          : null
-                        }
-                        <span>
-                          {selectedCoinTxData.priv_key_hex}
-                        </span>
                     </div>
                 </div>
 
@@ -178,23 +219,24 @@ const BackupTxPage = () => {
                     <span className="sub">Private Key WIF:</span>
                     <div className="">
                       {selectedCoinTxData.key_wif.length > 0 ?
-                        <CopiedButton handleCopy={copyKeyWIFToClipboard}>
-                          <img type="button" src={icon2} alt="icon" />
-                        </CopiedButton>
+                        (
+                          <button 
+                            type="buton" 
+                            className="show-private-btn blue"
+                            onClick={() => setShowPrivateKey(true)}
+                          >
+                            Show
+                          </button>
+                        )
                         : null
                       }
-                        <span>
-                          {selectedCoinTxData.key_wif}
-                        </span>
                     </div>
                 </div>
 
                 <div className="item">
                     <span className="sub">Status:</span>
                     <div className="">
-                        <span>
-                          {selectedCoinTxData.backup_status}
-                        </span>
+                      {showBackupStatus(selectedCoinTxData.backup_status)}
                     </div>
                 </div>
 
@@ -210,26 +252,28 @@ const BackupTxPage = () => {
                 <div className="item">
                     <span className="sub">Pay to:</span>
                     <div className="inputs-item">
-                     <AddressInput
-                       inputAddr={cpfpAddr}
-                       onChange={onAddrChange}
-                       placeholder='Send to destination address'
-                       smallTxtMsg='Bitcoin Address'/>
+                      <input
+                        value={cpfpAddr}
+                        onChange={onAddrChange}
+                        placeholder='Send to destination address'
+                        smallTxtMsg='Bitcoin Address'
+                      />
                      </div>
                 </div>
 
                 <div className="item">
                     <span className="sub">Fee (sat/b):</span>
                     <div className="inputs-item">
-                     <AddressInput
-                       inputAddr={txFee}
+                      <input
+                       value={txFee}
                        onChange={onFeeChange}
                        placeholder='Fee rate'
-                       smallTxtMsg='CPFP Tx Fee'/>
+                       smallTxtMsg='CPFP Tx Fee'
+                      />
                     </div>
                 </div>
 
-                <div className="item">
+                <div className="item align-right">
                     <button type="button" className="std-button" onClick={addCPFP}>
                         Create CPFP
                     </button>

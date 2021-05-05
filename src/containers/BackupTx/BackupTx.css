@@ -193,6 +193,34 @@
     border-bottom: none;
 }
 
+.backupTx .right .item.align-right {
+    justify-content: flex-end;
+}
+.private-key-qrcode {
+    text-align: center;
+}
+.private-key-code {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+.backupTx .inputs-item input {
+    opacity: 1;
+}
+.backupTx .copy-hex-wrap {
+    width: 100%;
+}
+.backupTx.content .right button.show-private-btn {
+    padding: 2px 12px;
+    margin-top: 0;
+    outline: none;
+    border: none;
+    background-color: #0F54F4;
+    color: #fff;
+}
 .minus {
     background-image: url("../../images/decrease.png");
     background-repeat: no-repeat;
