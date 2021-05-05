@@ -213,13 +213,6 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
   }
 )
 
-export const callCreateBackupTxCPFP = createAsyncThunk(
-  'CreateBackupTxCPFP',
-  async (action, thunkAPI) => {
-    let sucess = wallet.createBackupTxCPFP(action.cpfp_data);
-    return sucess
-  }
-)
 export const callGetFeeEstimation = createAsyncThunk(
   'GetFeeEstimation',
   async (action, thunkAPI) => {
