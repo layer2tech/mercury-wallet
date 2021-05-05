@@ -127,8 +127,8 @@ const BackupTxPage = () => {
             <CopiedButton 
               handleCopy={copyKeyWIFToClipboard} 
               style={{
-                backgroundColor: '#ECF2FF',
-                padding: '20px'
+                left: 0,
+                top: '-13px'
               }}
             >
               <div>
@@ -235,14 +235,14 @@ const BackupTxPage = () => {
 
                 <div className="item">
                     <span className="sub">Status:</span>
-                    <div className="">
+                    <div>
                       {showBackupStatus(selectedCoinTxData.backup_status)}
                     </div>
                 </div>
 
                 <div className="item">
                     <span className="sub">CPFP:</span>
-                    <div className="">
+                    <div>
                         <span>
                           {selectedCoinTxData.cpfp_status}
                         </span>
@@ -251,7 +251,7 @@ const BackupTxPage = () => {
 
                 <div className="item">
                     <span className="sub">Pay to:</span>
-                    <div className="inputs-item">
+                    <div>
                       <input
                         value={cpfpAddr}
                         onChange={onAddrChange}
@@ -263,7 +263,7 @@ const BackupTxPage = () => {
 
                 <div className="item">
                     <span className="sub">Fee (sat/b):</span>
-                    <div className="inputs-item">
+                    <div>
                       <input
                        value={txFee}
                        onChange={onFeeChange}

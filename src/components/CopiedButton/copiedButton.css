@@ -13,5 +13,5 @@
   color: #fff;
   padding: 4px;
   border-radius: 4px;
-  width: 50px;
+  width: max-content;
 }
