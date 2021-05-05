@@ -146,10 +146,11 @@ export class TorClient {
             headers: { 
                 'User-Agent': 'Request-Promise',
                 'Accept': 'application/json' },
+            json: true,
         }
 
         let result = await rp(rp_options);
-        await this.confirmNewTorConnection();
+        //await this.confirmNewTorConnection();
         return result;
     }
 
@@ -166,10 +167,11 @@ export class TorClient {
               'Content-Type': 'application/json'
             },
             body: body,
+            json: true,
         };
 
         let result = await rp(rp_options);
-        await this.confirmNewTorConnection();
+        //await this.confirmNewTorConnection();
         return result;
     }
 }

@@ -67,24 +67,28 @@ export class Wallet {
     this.activity = new ActivityLog();
     this.electrum_client = testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
       this.conductor_client = new MockHttpClient();
-    this.http_client = this.config.state_entity_endpoint.endsWith(".onion") ? 
+    this.http_client = 
+    //this.config.state_entity_endpoint.endsWith(".onion") ? 
       new TorClient(
         this.config.tor_proxy.ip, 
         this.config.tor_proxy.port, 
         this.config.tor_proxy.controlPassword,  
         this.config.tor_proxy.controlPort,
-        this.config.state_entity_endpoint) : 
-      new HttpClient(this.config.state_entity_endpoint);
+        this.config.state_entity_endpoint);
+        // : 
+      //new HttpClient(this.config.state_entity_endpoint);
       
     
-    this.conductor_client = this.config.state_entity_endpoint.endsWith(".onion") ?
+    this.conductor_client = 
+    //this.config.state_entity_endpoint.endsWith(".onion") ?
       new TorClient(
         this.config.tor_proxy.ip, 
         this.config.tor_proxy.port, 
         this.config.tor_proxy.controlPassword,  
         this.config.tor_proxy.controlPort,
-        this.config.swap_conductor_endpoint) : 
-      new HttpClient(this.config.swap_conductor_endpoint);
+        this.config.swap_conductor_endpoint);
+        // : 
+      //new HttpClient(this.config.swap_conductor_endpoint);
     
     this.block_height = 0;
     this.current_sce_addr = "";

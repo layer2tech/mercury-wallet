@@ -2,7 +2,7 @@ import { TorClient } from '../tor_client';
 
 jest.setTimeout(30000);
 
-let password = 'password';
+let password = 'tijf5631';
 
 describe('Tor integration', function(){
     test('tor new connection ', async function() {
@@ -18,7 +18,13 @@ describe('Tor integration', function(){
     test('tor get onion', async function() {
         const tor = new TorClient('localhost', 9050, password, 9051, 'http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion');
         let result = await tor.get('/info/fee',undefined);
-        console.log('result');
+        console.log(result);
+    });
+
+    test('tor get onion 2', async function() {
+        const tor = new TorClient('localhost', 9050, password, 9051, 'https://beta.mercurywallet.io');
+        let result = await tor.get('/info/fee',undefined);
+        console.log('tor get onion 2: ' + result);
     });
 
     test('tor post', async function() {
