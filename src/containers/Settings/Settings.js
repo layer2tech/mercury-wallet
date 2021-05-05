@@ -4,7 +4,7 @@ import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
-import {StdButton, CheckBox, ConfirmPopup} from "../../components";
+import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
   callUpdateConfig, callClearSave, unloadWallet} from '../../features/WalletDataSlice'
 
@@ -37,6 +37,7 @@ const SettingsPage = (props) => {
   const [elecAddr, setElecAddr] = useState(current_config.electrum_config);
   const [torProxy, setTorProxy] = useState(current_config.tor_proxy);
   const [minAnonSet, setMinAnonSet] = useState(current_config.min_anon_set);
+  const [openBackupModal, setOpenBackupModal] = useState(false);
 
 
   // Change handlers
@@ -108,24 +109,19 @@ const SettingsPage = (props) => {
 
               </div>
               <div className="buttons">
-                  <Link className="nav-link" to="/home">
-                      <StdButton
-                          label="Create wallet backup"
-                          className="Body-button blue"/>
-                  </Link>
-
-                  <Link className="nav-link" to="/backup_tx">
-                      <StdButton
-                          label="Manage Back-up transactions"
-                          className="Body-button blue"/>
-                  </Link>
-
-                  <Link className="nav-link" to="/home">
-                      <StdButton
-                          label="Export activity log"
-                          className="Body-button bg-transparent"/>
-                  </Link>
-
+                <StdButton
+                  label="Create wallet backup"
+                  className="Body-button blue"
+                  onClick={() => setOpenBackupModal(true)}
+                />
+                <Link to="backup_tx">
+                  <StdButton
+                      label="Manage Back-up transactions"
+                      className="Body-button blue"/>
+                </Link>
+                <StdButton
+                    label="Export activity log"
+                    className="Body-button bg-transparent"/>
               </div>
           </div>
           <div className="Body settings">
@@ -235,6 +231,10 @@ const SettingsPage = (props) => {
           :
             null
           }
+        <BackupWalletPopup 
+          close={() => setOpenBackupModal(false)} 
+          show={openBackupModal}
+        />
       </div>
   )
 }

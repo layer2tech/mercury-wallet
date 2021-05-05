@@ -1,0 +1,12 @@
+.custom-modal-body.modal-body {
+  padding: 16px;
+}
+.custom-modal-info {
+  font-size: 20px;
+  text-align: center;
+}
+.custom-modal-footer {
+  padding: 0 20px;
+  display: flex;
+  justify-content: center;
+}

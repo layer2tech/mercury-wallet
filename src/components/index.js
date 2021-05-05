@@ -13,6 +13,7 @@ export { default as ErrorPopup } from './ErrorPopup'
 export { default as NotificationBar } from './NotificationBar'
 export { default as CopiedButton } from './CopiedButton'
 export { default as CoinStatus } from './CoinStatus'
+export { default as BackupWalletPopup } from './BackupWalletPopup'
 
 export { default as DisplaySeed } from "./displaySeed/displaySeed";
 export { default as ConfirmSeed } from "./confirmSeed/confirmSeed";
