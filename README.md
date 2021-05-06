@@ -9,10 +9,10 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 
 | Name            | Type          | Default |
 |-----------------|---------------|----------|
-| state_entity_endpoint | string | https://fakeapi.mercurywallet.io |
-| swap_conductor_endpoint | string | https://fakeapi.mercurywallet.io |
-| electrum_config | object | { host: 'https://electrumx-server.tbtc.network', port: 8443, protocol: 'wss'} |
-| tor_proxy | string | none |
+| state_entity_endpoint | string | https://beta.mercurywallet.io |
+| swap_conductor_endpoint | string | https://beta.mercurywallet.io |
+| electrum_config | object | { host: 'wallet.mercurywallet.io', port: 50004, protocol: 'wss'} |
+| tor_proxy | object | { ip: 'localhost', port: 9050, controlPassword: 'password', controlPort: 9051, serverPort: 3001 } |
 | min_anon_set | number | 5 |
 | notifications | boolean | true |
 | tutorials | boolean | false |

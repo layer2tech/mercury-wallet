@@ -49,7 +49,7 @@ export class Config {
       port: 9050,
       controlPassword: 'password',
       controlPort: 9051,
-      serverPort: 3001,
+      serverPort: 3001
     };
 
     this.min_anon_set = 5;
