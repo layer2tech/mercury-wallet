@@ -22,7 +22,7 @@
       "^.+\\.(ts|tsx)$": "ts-jest"
     }
   },
-  "repository": "github:commerceblock/mercury-wallet",
+  "repository": "github:layer2tech/mercury-wallet",
   "version": "v0.2.17",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
