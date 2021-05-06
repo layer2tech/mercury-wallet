@@ -42,7 +42,7 @@ describe.skip('Tor server', function(){
         }
     });
     
-    test('tor server post bad request', async function(){
+    test('tor server unprocessable request', async function(){
         const client = new HttpClient('http://localhost:3001');
         //let result = await client.get('tor',{});
         //console.log(result);
@@ -55,7 +55,25 @@ describe.skip('Tor server', function(){
             let result2 = await client.post(POST_ROUTE.TRANSFER_SENDER, transfer_msg1);
             expect().toBe(false);
         } catch(err){
-            expect(err.response.status).toBe(400);
+            expect(err.response.status).toBe(422);
+        }
+    });
+
+    test('tor server post success', async function(){
+        const client = new HttpClient('http://localhost:3001');
+        //let result = await client.get('tor',{});
+        //console.log(result);
+
+        let deposit_msg1 = {
+            auth: "authstr",
+            proof_key: String("029e95d1c597bd15eed0cd5fc15db25368202fc538a3a94a0b44753595f3aa4fc7")
+        };
+
+        try{
+            let result = await client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
+        } catch(err){
+            //expect(err.response.status).toBe(400);
+            expect().toBe(false);
         }
     });
     

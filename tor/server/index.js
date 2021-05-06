@@ -1,4 +1,5 @@
 var TorClient = require('./tor_client');
+var bodyParser = require('body-parser');
 var Config = new require('./config');
 const config = new Config();
 const tpc = config.tor_proxy;
@@ -7,14 +8,16 @@ const express = require("express");
 const PORT = config.tor_proxy.serverPort;
 
 const app = express();
+app.use(bodyParser.json());
 
 const tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort);
 
+
 app.listen(PORT);
+
 
 async function get_endpoint(req, res, endpoint){
   try{
-    //console.log(JSON.stringify(req));
     let result = await tor.get(req.path,undefined, endpoint);
     res.json(result);
   } catch (err){
