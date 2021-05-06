@@ -70,20 +70,21 @@ export class Wallet {
     
     
     
-    this.http_client = 
-    //this.config.state_entity_endpoint.endsWith(".onion") ? 
-      new TorClient(
+    this.http_client = this.config.state_entity_endpoint.endsWith(".onion") ? 
+        new HttpClient('http://localhost:3001/tor')
+      /*new TorClient(
         this.config.tor_proxy.ip, 
         this.config.tor_proxy.port, 
         this.config.tor_proxy.controlPassword,  
         this.config.tor_proxy.controlPort,
         this.config.state_entity_endpoint);
-        // : 
-      //new HttpClient(this.config.state_entity_endpoint);
+        */ 
+       
+        : new HttpClient(this.config.state_entity_endpoint);
       
     
-    this.conductor_client = 
-    //this.config.state_entity_endpoint.endsWith(".onion") ?
+    this.conductor_client = this.config.state_entity_endpoint.endsWith(".onion") ?
+      new HttpClient('http://localhost:3001/tor')
     /*  
     new TorClient(
         this.config.tor_proxy.ip, 
@@ -93,6 +94,7 @@ export class Wallet {
         this.config.swap_conductor_endpoint);
         // : 
         */
+       :
       new HttpClient(this.config.swap_conductor_endpoint);
     
     this.block_height = 0;
