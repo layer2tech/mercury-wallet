@@ -22,7 +22,8 @@ export class Config {
     ip: string,
     port: number,
     controlPassword: string,
-    controlPort: number
+    controlPort: number,
+    serverPort: number,
   };
 
   min_anon_set: number;
@@ -47,7 +48,8 @@ export class Config {
       ip: 'localhost',
       port: 9050,
       controlPassword: 'password',
-      controlPort: 9051
+      controlPort: 9051,
+      serverPort: 3001,
     };
 
     this.min_anon_set = 5;
@@ -67,38 +69,58 @@ export class Config {
     Object.entries(config_changes).forEach((item) => {
       switch(item[0]) {
         case "network":
-          return;
+          break;
         case "testing_mode":
           this.testing_mode = item[1];
-          return;
+          break;
         case "jest_testing_mode":
           this.jest_testing_mode = item[1];
-          return;
+          break;
         case "required_confirmations":
           this.required_confirmations = item[1];
-          return;
+          break;
 
         case "state_entity_endpoint":
           this.state_entity_endpoint = item[1];
-          return;
+          break;
         case "swap_conductor_endpoint":
           this.swap_conductor_endpoint = item[1];
-          return;
+          break;
         case "electrum_config":
           this.electrum_config = item[1];
-          return;
+          break;
         case "tor_proxy":
-          this.tor_proxy = item[1];
-          return;
+          for (var tp_item in item[1]) {
+            switch(tp_item[0]){
+                case "ip":
+                    this.tor_proxy.ip = tp_item[1];
+                    break;
+                case "port":
+                    this.tor_proxy.port = tp_item[1];
+                    break;
+                case "controlPassword":
+                    this.tor_proxy.controlPassword = tp_item[1];
+                    break;
+                case "controlPort":
+                    this.tor_proxy.controlPort = tp_item[1];
+                    break;
+                case "serverPort":
+                    this.tor_proxy.serverPort = tp_item[1];
+                    break;
+                default: 
+                  throw Error("Config tor_proxy entry "+tp_item[0]+" does not exist")
+            }
+          };
+          break;
         case "min_anon_set":
           this.min_anon_set = item[1];
-          return;
+          break;
         case "notifications":
           this.notifications = item[1]
-          return;
+          break;
         case "tutorials":
           this.tutorials = item[1]
-          return;
+          break;
         default:
           throw Error("Config entry "+item[0]+" does not exist")
       }
