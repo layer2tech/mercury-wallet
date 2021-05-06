@@ -58,7 +58,6 @@ export class HttpClient {
   get = async (path: string, params: any) => {
     try {
       const url = this.endpoint + "/" + path + "/" + (Object.entries(params).length === 0 ? "" : params);
-      console.log("get url: " + url);
       const config = {
           method: 'get',
           url: url,

@@ -5,18 +5,13 @@ jest.setTimeout(30000);
 describe.skip('Tor server', function(){
     test('tor server get', async function(){
         const client = new HttpClient('http://localhost:3001');
-        //let result = await client.get('tor',{});
-        //console.log(result);
-
+        
         let result2 = await client.get(GET_ROUTE.FEES,{});
-        console.log(JSON.stringify(result2));
     });
 
     test('tor server get unknown route', async function(){
         const client = new HttpClient('http://localhost:3001');
-        //let result = await client.get('tor',{});
-        //console.log(result);
-
+        
         try{
             await client.get('unknown route',{});
             expect().toBe(false);
@@ -27,9 +22,7 @@ describe.skip('Tor server', function(){
 
     test('tor server post unknown route', async function(){
         const client = new HttpClient('http://localhost:3001');
-        //let result = await client.get('tor',{});
-        //console.log(result);
-
+        
         let transfer_msg1 = {
             shared_key_id: "00000000000000000000000000000000",
             statechain_sig: "00000000000000000000000000000000"
@@ -44,9 +37,7 @@ describe.skip('Tor server', function(){
     
     test('tor server unprocessable request', async function(){
         const client = new HttpClient('http://localhost:3001');
-        //let result = await client.get('tor',{});
-        //console.log(result);
-
+        
         let transfer_msg1 = {
             shared_key_id: "00000000000000000000000000000000",
             statechain_sig: "00000000000000000000000000000000"
@@ -61,9 +52,7 @@ describe.skip('Tor server', function(){
 
     test('tor server post success', async function(){
         const client = new HttpClient('http://localhost:3001');
-        //let result = await client.get('tor',{});
-        //console.log(result);
-
+        
         let deposit_msg1 = {
             auth: "authstr",
             proof_key: String("029e95d1c597bd15eed0cd5fc15db25368202fc538a3a94a0b44753595f3aa4fc7")
@@ -72,7 +61,6 @@ describe.skip('Tor server', function(){
         try{
             let result = await client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
         } catch(err){
-            //expect(err.response.status).toBe(400);
             expect().toBe(false);
         }
     });

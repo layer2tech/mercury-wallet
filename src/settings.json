@@ -1,12 +1,12 @@
 {
   "min_anon_set": 3,
-  "state_entity_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  "state_entity_endpoint": "https://beta.mercurywallet.io",
   "swap_conductor_endpoint": "https://beta.mercurywallet.io",
   "network": "testnet",
-  "testing_mode": true,
+  "testing_mode": false,
   "tor_proxy": {"ip": "localhost",
                 "port": 9050,
-                "controlPassword": "tijf5631",
+                "controlPassword": "password",
                 "controlPort": 9051,
                 "serverPort": 3001
               }
