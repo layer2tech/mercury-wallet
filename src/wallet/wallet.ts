@@ -2,7 +2,7 @@
 
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
-import { ElectrumClient, MockElectrumClient, HttpClient, TorClient, MockHttpClient, StateCoinList,
+import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
   MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, decryptAES,
   encodeSCEAddress} from './';
 
@@ -45,8 +45,8 @@ export class Wallet {
   account: any;
   statecoins: StateCoinList;
   activity: ActivityLog;
-  http_client: HttpClient | TorClient | MockHttpClient;
-  conductor_client: HttpClient | TorClient| MockHttpClient;
+  http_client: HttpClient | MockHttpClient;
+  conductor_client: HttpClient | MockHttpClient;
   electrum_client: ElectrumClient | MockElectrumClient;
   block_height: number;
   current_sce_addr: string;
@@ -71,30 +71,12 @@ export class Wallet {
     
     
     this.http_client = this.config.state_entity_endpoint.endsWith(".onion") ? 
-        new HttpClient('http://localhost:3001/tor')
-      /*new TorClient(
-        this.config.tor_proxy.ip, 
-        this.config.tor_proxy.port, 
-        this.config.tor_proxy.controlPassword,  
-        this.config.tor_proxy.controlPort,
-        this.config.state_entity_endpoint);
-        */ 
-       
-        : new HttpClient(this.config.state_entity_endpoint);
+        new HttpClient('http://localhost:' + this.config.tor_proxy.serverPort): 
+        new HttpClient(this.config.state_entity_endpoint);
       
     
     this.conductor_client = this.config.state_entity_endpoint.endsWith(".onion") ?
-      new HttpClient('http://localhost:3001/tor')
-    /*  
-    new TorClient(
-        this.config.tor_proxy.ip, 
-        this.config.tor_proxy.port, 
-        this.config.tor_proxy.controlPassword,  
-        this.config.tor_proxy.controlPort,
-        this.config.swap_conductor_endpoint);
-        // : 
-        */
-       :
+      new HttpClient('http://localhost:'+this.config.tor_proxy.serverPort):
       new HttpClient(this.config.swap_conductor_endpoint);
     
     this.block_height = 0;

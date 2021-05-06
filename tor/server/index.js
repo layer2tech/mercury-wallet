@@ -3,21 +3,14 @@ var Config = new require('./config');
 const config = new Config();
 const tpc = config.tor_proxy;
 const express = require("express");
-var cors = require('cors')
-
 
 const PORT = config.tor_proxy.serverPort;
 
 const app = express();
-app.use(cors({
-  origin: 'http://localhost:3000'
-}));
 
 const tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort);
 
-app.listen(PORT, () => {
-  console.log(`Server listening on ${PORT}`);
-});
+app.listen(PORT);
 
 async function get_endpoint(req, res, endpoint){
   try{

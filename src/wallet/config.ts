@@ -90,27 +90,27 @@ export class Config {
           this.electrum_config = item[1];
           break;
         case "tor_proxy":
-          for (var tp_item in item[1]) {
-            switch(tp_item[0]){
+          Object.entries(item[1]).forEach((tp_item) => {
+              switch(tp_item[0]){
                 case "ip":
-                    this.tor_proxy.ip = tp_item[1];
+                    this.tor_proxy.ip = tp_item[1] as string;
                     break;
                 case "port":
-                    this.tor_proxy.port = tp_item[1];
+                    this.tor_proxy.port = tp_item[1] as number ;
                     break;
                 case "controlPassword":
-                    this.tor_proxy.controlPassword = tp_item[1];
+                    this.tor_proxy.controlPassword = tp_item[1] as string;
                     break;
                 case "controlPort":
-                    this.tor_proxy.controlPort = tp_item[1];
+                    this.tor_proxy.controlPort = tp_item[1] as number;
                     break;
                 case "serverPort":
-                    this.tor_proxy.serverPort = tp_item[1];
+                    this.tor_proxy.serverPort = tp_item[1] as number;
                     break;
                 default: 
                   throw Error("Config tor_proxy entry "+tp_item[0]+" does not exist")
             }
-          };
+          });
           break;
         case "min_anon_set":
           this.min_anon_set = item[1];
