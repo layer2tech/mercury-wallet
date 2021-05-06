@@ -9,9 +9,9 @@ var cors = require('cors')
 const PORT = config.tor_proxy.serverPort;
 
 const app = express();
-//app.use(cors({
-//  origin: 'http://localhost:3000'
-//}));
+app.use(cors({
+  origin: 'http://localhost:3000'
+}));
 
 const tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort);
 
@@ -25,7 +25,6 @@ async function get_endpoint(req, res, endpoint){
     let result = await tor.get(req.path,undefined, endpoint);
     res.json(result);
   } catch (err){
-    console.log("get err: "+ err);
     res.status(err.statusCode).json(err);
   }
 };
@@ -33,10 +32,8 @@ async function get_endpoint(req, res, endpoint){
 async function post_endpoint(req, res, endpoint) {
   try{
     let result = await tor.post(req.path,req.body, endpoint);
-    console.log("result: ")
     res.json(result);
   } catch (err) {
-    console.log("post err: "+ err);
     res.status(err.statusCode).json(err);
   }
 };
