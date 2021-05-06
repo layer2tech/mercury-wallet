@@ -22,8 +22,8 @@
       "^.+\\.(ts|tsx)$": "ts-jest"
     }
   },
-  "repository": "github:commerceblock/mercury-wallet",
-  "version": "v0.2.15",
+  "repository": "github:layer2tech/mercury-wallet",
+  "version": "v0.2.17",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
@@ -92,6 +92,7 @@
     "react-copy-to-clipboard": "^5.0.3",
     "react-dom": "^16.1.1",
     "react-hook-form": "^6.15.1",
+    "react-loading": "^2.0.3",
     "react-moment": "^1.0.0",
     "react-quantity-picker": "^1.0.3",
     "react-redux": "^7.2.0",

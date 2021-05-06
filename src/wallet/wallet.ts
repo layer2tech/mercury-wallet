@@ -168,9 +168,14 @@ export class Wallet {
   // Load wallet JSON from store
   static load(wallet_name: string, password: string, testing_mode: boolean) {
     let store = new Storage();
-    // Fetch raw wallet string
-    let wallet_json = store.getWallet(wallet_name);
-    if (wallet_json===undefined) throw Error("No wallet called "+wallet_name+" stored.");
+    // Fetch decrypted wallet json
+    let wallet_json = store.getWalletDecrypted(wallet_name, password);
+    return Wallet.fromJSON(wallet_json, testing_mode);
+  }
+
+  // Load wallet JSON from backup file
+  static loadFromBackup(wallet_json: any, password: string, testing_mode: boolean) {
+    if (!wallet_json) throw Error("Something went wrong with backup file!");
     // Decrypt mnemonic
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
@@ -179,7 +184,6 @@ export class Wallet {
     }
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
-
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
   async recoverCoinsFromServer() {
     log.info("Recovering StateCoins from server for mnemonic.");
@@ -697,7 +701,8 @@ export class Wallet {
   // Return: Withdraw Tx  (Details to be displayed to user - amount, txid, expect conf time...)
   async withdraw(
     shared_key_ids: string[],
-    rec_addr: string
+    rec_addr: string,
+    fee_per_kb: number
   ): Promise<Transaction> {
     log.info("Withdrawing "+shared_key_ids+" to "+rec_addr);
 
@@ -716,9 +721,9 @@ export class Wallet {
       statecoins.push(statecoin);
       proof_key_ders.push(this.getBIP32forProofKeyPubKey(statecoin.proof_key));
     });
-    
+
     // Perform withdraw with server
-    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr);
+    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_kb);
 
     // Mark funds as withdrawn in wallet
     shared_key_ids.forEach( (shared_key_id) => {

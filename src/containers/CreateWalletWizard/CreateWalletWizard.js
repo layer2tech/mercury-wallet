@@ -1,13 +1,16 @@
 import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
+import {useDispatch} from 'react-redux'
 
 import {CreateWizardForm, ConfirmSeed, DisplaySeed, Steppers} from "../../components";
+import {setError} from '../../features/WalletDataSlice'
+import {Storage} from '../../store';
 
 import './CreateWalletWizard.css'
 
 let bip39 = require('bip39');
-
 const mnemonic = bip39.generateMnemonic();
+let store = new Storage();
 
 const CreateWizardStep = {
   FORM: 1,
@@ -30,10 +33,14 @@ const STEPS = [
   },
 ];
 
+
 // MultiStep wizard for wallet setup
 const CreateWizardPage = (props) => {
-  const [step, setStep] = useState(CreateWizardStep.FORM)
+  const dispatch = useDispatch();
 
+  let wallet_names = store.getWalletNames();
+
+  const [step, setStep] = useState(CreateWizardStep.FORM)
   const [wizardState, setWizardState] = useState(
     {
       wallet_name: "",
@@ -43,13 +50,21 @@ const CreateWizardPage = (props) => {
   const setStateWalletName = (event) => setWizardState({...wizardState, wallet_name: event.target.value});
   const setStateWalletPassword = (event) => setWizardState({...wizardState, wallet_password: event.target.value});
 
+  const handleSubmit = () => {
+    if (wallet_names.indexOf(wizardState.wallet_name)<0) {
+      setStep(CreateWizardStep.DISPLAYSEED);
+      return
+    }
+    dispatch(setError({msg: "Wallet with name "+wizardState.wallet_name+" already exists."}))
+  }
+
   const Component = () => {
     switch(step) {
       case 1:
         return (
           <CreateWizardForm
             wizardState={wizardState}
-            onSubmit={() => setStep(CreateWizardStep.DISPLAYSEED)}
+            onSubmit={() => handleSubmit()}
             setStateWalletName={setStateWalletName}
             setStateWalletPassword={setStateWalletPassword}
           />

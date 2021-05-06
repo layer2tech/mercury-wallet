@@ -58,6 +58,13 @@ const Coins = (props) => {
         coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
         setShowCoinDetails({show: true, coin: coin});
     }
+    const handleSetCoinDetails = (shared_key_id) => {
+        let coin = all_coins_data.find((coin) => {
+            return coin.shared_key_id === shared_key_id
+        })
+        coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
+        props.setCoinDetails(coin);
+    }
     const handleCloseCoinDetails = () => {
         props.setSelectedCoins([]);
         setShowCoinDetails(DEFAULT_STATE_COIN_DETAILS);
@@ -72,6 +79,9 @@ const Coins = (props) => {
         setRefreshCoins((prevState) => !prevState);
         if (props.displayDetailsOnClick) {
             handleOpenCoinDetails(shared_key_id)
+        }
+        if (props.setCoinDetails) {
+            handleSetCoinDetails(shared_key_id)
         }
     }
 

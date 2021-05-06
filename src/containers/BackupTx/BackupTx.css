@@ -193,6 +193,49 @@
     border-bottom: none;
 }
 
+.backupTx .right .item.align-right {
+    justify-content: flex-end;
+}
+.private-key-qrcode {
+    text-align: center;
+}
+.private-key-code {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+.backupTx input {
+    opacity: 1;
+    position: relative;
+    width: 100%;
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    padding-left: 8px;
+}
+.backupTx.content .right .item .copy-hex-wrap {
+    width: 100%;
+}
+.backupTx.content .right button.show-private-btn {
+    padding: 2px 12px;
+    margin-top: 0;
+    outline: none;
+    border: none;
+    background-color: #0F54F4;
+    color: #fff;
+}
+.private-key-code .copy-btn-wrap img {
+    margin-right: 4px;
+}
+.private-key-code .copy-btn-wrap > div {
+    background: aliceblue;
+    padding: 8px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+
+}
 .minus {
     background-image: url("../../images/decrease.png");
     background-repeat: no-repeat;
