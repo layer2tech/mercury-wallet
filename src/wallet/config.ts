@@ -23,7 +23,6 @@ export class Config {
     port: number,
     controlPassword: string,
     controlPort: number,
-    serverPort: number,
   };
 
   min_anon_set: number;
@@ -48,8 +47,7 @@ export class Config {
       ip: 'localhost',
       port: 9050,
       controlPassword: 'password',
-      controlPort: 9051,
-      serverPort: 3001
+      controlPort: 9051
     };
 
     this.min_anon_set = 5;
@@ -103,9 +101,6 @@ export class Config {
                     break;
                 case "controlPort":
                     this.tor_proxy.controlPort = tp_item[1] as number;
-                    break;
-                case "serverPort":
-                    this.tor_proxy.serverPort = tp_item[1] as number;
                     break;
                 default: 
                   throw Error("Config tor_proxy entry "+tp_item[0]+" does not exist")

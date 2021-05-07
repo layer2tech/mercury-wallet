@@ -7,7 +7,6 @@
   "tor_proxy": {"ip": "localhost",
                 "port": 9050,
                 "controlPassword": "password",
-                "controlPort": 9051,
-                "serverPort": 3001
+                "controlPort": 9051
               }
 }

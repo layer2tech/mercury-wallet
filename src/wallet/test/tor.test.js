@@ -2,7 +2,7 @@ import { HttpClient, GET_ROUTE, POST_ROUTE } from '../http_client';
 
 jest.setTimeout(30000);
 
-describe.skip('Tor server', function(){
+describe('Tor server', function(){
     test('tor server get', async function(){
         const client = new HttpClient('http://localhost:3001');
         

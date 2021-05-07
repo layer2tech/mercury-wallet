@@ -71,12 +71,12 @@ export class Wallet {
     
     
     this.http_client = this.config.state_entity_endpoint.endsWith(".onion") ? 
-        new HttpClient('http://localhost:' + this.config.tor_proxy.serverPort): 
+        new HttpClient('http://localhost:3001'): 
         new HttpClient(this.config.state_entity_endpoint);
       
     
     this.conductor_client = this.config.state_entity_endpoint.endsWith(".onion") ?
-      new HttpClient('http://localhost:'+this.config.tor_proxy.serverPort):
+      new HttpClient('http://localhost:3001'):
       new HttpClient(this.config.swap_conductor_endpoint);
     
     this.block_height = 0;
