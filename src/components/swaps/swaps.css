@@ -154,6 +154,111 @@
   font-size: 14px;
   text-transform: uppercase;
 }
+.swap-coin .swap-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 50px;
+}
+.swap-coin .swap-top svg {
+  cursor: pointer;
+}
+.swap-coin .swap-table-head {
+  display: flex;
+  justify-content: space-between;
+  text-transform: uppercase;
+  font-size: 12px;
+  line-height: 20px;
+  color: #757575;
+  padding: 0 30px 8px 16px;
+}
+.swap-coin .swap-table-head img { 
+  margin-right: 5px;
+}
+.swap-coin .swap-table-body {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+}
+.swap-coin .swap-table-body .swap-item-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid #E0E0E0;
+  border-bottom: 1px solid #E0E0E0;
+  cursor: pointer;
+}
+.swap-coin .swap-table-body .swap-item-wrap .SwapAmount-block {
+  width: 40%;
+}
+.swap-coin .swap-table-body .swap-item-wrap .SwapParticipants {
+  width: 20%;
+  text-align: left;
+}
+.swap-coin .swap-table-body .swap-item-wrap .SwapParticipants b {
+  padding: 0;
+}
+.swap-coin .swap-table-body .swap-item-wrap .SwapStatus span {
+  text-align: right;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.252px;
+  color: rgba(0, 0, 0, 0.870588);
+  background: #E4E4E4;
+  border-radius: 16px;
+  width: max-content;
+  display: block;
+}
+.swap-coin .swap-item-wrap .SwapAmount-block label {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+}
+.swap-coin .swap-item-wrap .SwapAmount-block input {
+  position: absolute;
+  left: 0;
+}
+.swap-coin .swap-item-wrap .SwapAmount-block b {
+  padding-left: 8px;
+}
+.swap-coin .swap-item-wrap .checkmark {
+  border: 2px solid #000;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 0;
+}
+.swap-coin .swap-item-wrap .checkmark::after {
+  background-color: #000;
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+}
+.swap-coin .swap-table-body .swap-item-wrap:hover {
+  background-color: rgba(0, 84, 244, 0.101961);
+}
+
+.swap-coin .swap-table-body .swap-item-wrap div { 
+  text-align: center;
+}
+.swap-footer-btns {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+.swap .right .swap-footer-btns button {
+  width: 48%;
+}
+.swap .right .swap-footer-btns button:hover {
+  background-color: #0054F4;
+}
 
 @media only screen and (max-width: 768px) {
   .CoinPanel.SwapPanel.SwapHeader {
