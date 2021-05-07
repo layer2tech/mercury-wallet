@@ -4,6 +4,8 @@
 .custom-modal-info {
   font-size: 20px;
   text-align: center;
+  word-break: break-all;
+  padding: 8px;
 }
 .custom-modal-footer {
   padding: 0 20px;
