@@ -2,15 +2,34 @@ import { HttpClient, GET_ROUTE, POST_ROUTE } from '../http_client';
 
 jest.setTimeout(30000);
 
-describe('Tor server', function(){
+
+let tor_config = {
+    tor_proxy: {
+        ip: 'localhost',
+        port: 9050,
+        controlPassword: 'afsd9143',
+        controlPort: 9051
+    },
+    state_entity_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+    swap_conductor_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion"
+}
+
+async function set_config(client, config) {
+    await client.post('tor_settings', config)
+}
+
+describe('Tor server integration', function(){
     test('tor server get', async function(){
         const client = new HttpClient('http://localhost:3001');
+        await set_config(client, tor_config);
         
         let result2 = await client.get(GET_ROUTE.FEES,{});
+        console.log(result2);
     });
 
     test('tor server get unknown route', async function(){
         const client = new HttpClient('http://localhost:3001');
+        await set_config(client, tor_config);
         
         try{
             await client.get('unknown route',{});
@@ -22,6 +41,7 @@ describe('Tor server', function(){
 
     test('tor server post unknown route', async function(){
         const client = new HttpClient('http://localhost:3001');
+        await set_config(client, tor_config);
         
         let transfer_msg1 = {
             shared_key_id: "00000000000000000000000000000000",
@@ -37,6 +57,7 @@ describe('Tor server', function(){
     
     test('tor server unprocessable request', async function(){
         const client = new HttpClient('http://localhost:3001');
+        await set_config(client, tor_config);
         
         let transfer_msg1 = {
             shared_key_id: "00000000000000000000000000000000",
@@ -52,6 +73,7 @@ describe('Tor server', function(){
 
     test('tor server post success', async function(){
         const client = new HttpClient('http://localhost:3001');
+        await set_config(client, tor_config);
         
         let deposit_msg1 = {
             auth: "authstr",
@@ -60,9 +82,38 @@ describe('Tor server', function(){
 
         try{
             let result = await client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
+            console.log(result);
         } catch(err){
             expect().toBe(false);
         }
     });
     
+    
+});
+
+describe('Tor server', function(){
+ 
+    test('set/get tor config', async function(){
+        const client = new HttpClient('http://localhost:3001');
+
+        let tor_config = {
+            tor_proxy : {
+                ip: 'testipdfgvbcdgt',
+                port: 10000,
+                controlPassword: 'testPassworddfghbvfdc',
+                controlPort: 10020
+            }
+        }
+        try {
+            await set_config(client, tor_config);
+        } catch(err) {
+            console.log(err);
+            expect().toBe(false);
+        }
+        
+        let tor_config_resp = await client.get('tor_settings',{});
+        console.log(JSON.stringify(tor_config_resp));
+        expect(tor_config_resp.tor_proxy).toEqual(tor_config.tor_proxy);
+    });
+
 });

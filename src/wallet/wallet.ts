@@ -54,10 +54,10 @@ export class Wallet {
 
   storage: Storage
 
-  constructor(name: string, password: string, mnemonic: string, account: any, network: Network, testing_mode: boolean) {
+  constructor(name: string, password: string, mnemonic: string, account: any, config: Config) {
     this.name = name;
     this.password = password;
-    this.config = new Config(network, testing_mode);
+    this.config = config;
     this.version = require("../../package.json").version
 
     this.mnemonic = mnemonic;
@@ -65,19 +65,31 @@ export class Wallet {
     this.statecoins = new StateCoinList();
     this.swap_group_info = new Map<SwapGroup, number>();
     this.activity = new ActivityLog();
-    this.electrum_client = testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
-      this.conductor_client = new MockHttpClient();
+    this.electrum_client = config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
+    this.conductor_client = new MockHttpClient();
     
-    
-    
-    this.http_client = this.config.state_entity_endpoint.endsWith(".onion") ? 
-        new HttpClient('http://localhost:3001'): 
-        new HttpClient(this.config.state_entity_endpoint);
-      
-    
-    this.conductor_client = this.config.state_entity_endpoint.endsWith(".onion") ?
-      new HttpClient('http://localhost:3001'):
-      new HttpClient(this.config.swap_conductor_endpoint);
+    console.log("starting wallet http client with se endpoint: " + this.config.state_entity_endpoint);
+    if(this.config.state_entity_endpoint.endsWith(".onion")) {
+      this.http_client = new HttpClient('http://localhost:3001');
+      let tor_config = {
+        tor_proxy: this.config.tor_proxy,
+        state_entity_endpoint: this.config.state_entity_endpoint
+      }
+      this.http_client.post('tor_settings', tor_config);
+    } else {
+      this.http_client = new HttpClient(this.config.state_entity_endpoint);
+    }
+        
+    if(this.config.swap_conductor_endpoint.endsWith(".onion")) {
+      this.conductor_client = new HttpClient('http://localhost:3001');
+      let tor_config = {
+        tor_proxy: this.config.tor_proxy,
+        swap_conductor_endpoint: this.config.swap_conductor_endpoint
+      }
+      this.conductor_client.post('tor_settings', tor_config);
+    } else {
+      this.conductor_client = new HttpClient(this.config.swap_conductor_endpoint);
+    }
     
     this.block_height = 0;
     this.current_sce_addr = "";
@@ -88,7 +100,7 @@ export class Wallet {
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(name: string, password: string, mnemonic: string, network: Network, testing_mode: boolean): Wallet {
     log.debug("New wallet named "+name+" created. Testing mode: "+testing_mode+".");
-    return new Wallet(name, password, mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), network, testing_mode)
+    return new Wallet(name, password, mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), new Config(network, testing_mode))
   }
 
   // Generate wallet with random mnemonic.
@@ -114,12 +126,14 @@ export class Wallet {
   // Load wallet from JSON
   static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
     let network: Network = json_wallet.config.network;
-
-    let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, network, testing_mode);
+    let config = new Config(json_wallet.config.network, json_wallet.config.testing_mode);
+    config.update(json_wallet.config);
+    //Config needs to be included when constructing the wallet
+    let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
 
     new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
     new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
-    new_wallet.config.update(json_wallet.config);
+    
     new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
     // Rederive root and root chain keys
@@ -182,11 +196,13 @@ export class Wallet {
     let wallet_json = store.getWallet(wallet_name);
     if (wallet_json===undefined) throw Error("No wallet called "+wallet_name+" stored.");
     // Decrypt mnemonic
+    
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
     } catch (e) {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
+    
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
 
