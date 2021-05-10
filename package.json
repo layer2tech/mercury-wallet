@@ -23,7 +23,7 @@
     },
     "testEnvironment": "node"
   },
-  "repository": "github:commerceblock/mercury-wallet",
+  "repository": "github:layer2tech/mercury-wallet",
   "version": "v0.2.15",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
