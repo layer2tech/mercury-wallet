@@ -3,6 +3,7 @@ import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
 import {StdButton, AddressInput, CopiedButton} from "../../components";
+import QRCode from 'qrcode.react';
 
 import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callTransferReceiver, setError, setNotification} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
@@ -76,48 +77,61 @@ const ReceiveStatecoinPage = () => {
         </div>
 
         <div className="receiveStatecoin content">
-            <div className="Body">
-                <div className="receiveStatecoin-scan">
-                    {/*
-                    <img src={scan} alt="image"/>
-                    */}
-                    <div className="receiveStatecoin-scan-content">
-                        <div className="receiveStatecoin-scan-txid">
-                          <CopiedButton handleCopy={copySEAddressToClipboard}>
-                            <img type="button" src={icon2} alt="icon"/>
-                          </CopiedButton>
-                            <span>
-                              {rec_sce_addr}
-                            </span>
-                        </div>
-                        <span
-                          className="receiveStatecoin-scan-ft-txt"
-                          onClick={genAddrButtonAction}>
-                            GENERATE ANOTHER ADDRESS
+          <div className="Body">
+            <p className="receive-note">Generate Statecoin Address</p>
+            <div className="receiveStatecoin-scan">
+              <div className="receive-qr-code">
+                <QRCode value={rec_sce_addr} />
+              </div>
+              <div className="receiveStatecoin-scan-content">
+                  <div className="receiveStatecoin-scan-txid">
+                    <CopiedButton 
+                      handleCopy={copySEAddressToClipboard} 
+                      style={{
+                        bottom: '-30px',
+                        top: 'initial',
+                        backgroundColor: '#E0E0E0',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        color: '#000',
+                        fontWeight: 'bold'
+                      }} 
+                      message='Copied to Clipboard'
+                    >
+                      <div>
+                        <img type="button" src={icon2} alt="icon"/>
+                        <span>
+                          {rec_sce_addr}
                         </span>
-                    </div>
-                </div>
+                      </div>
+                    </CopiedButton>
+                  </div>
+                  <button
+                    type="button"
+                    className="Body-button transparent"
+                    onClick={genAddrButtonAction}>
+                      GENERATE ANOTHER ADDRESS
+                  </button>
+              </div>
             </div>
-
+          </div>
         </div>
 
-        <div className="sendStatecoin content">
-            <div className="Body center">
-                <div>
-                    <AddressInput
-                      inputAddr={transfer_msg3}
-                      onChange={onTransferMsg3Change}
-                      placeholder='msg'
-                      smallTxtMsg='TransferMsg3'/>
-                </div>
-                <div>
-
-                    <button type="button" className="btn" onClick={receiveButtonAction}>
-                        PERFORM TRANSFER RECEIVER
-                    </button>
-                </div>
-                </div>
+        <div className="receiveStatecoin sendStatecoin content">
+          <div className="Body center">
+            <p className="receive-note">Enter Transfer Code to complete the transfer</p>
+            <div className="receive-bottom">
+              <AddressInput
+                inputAddr={transfer_msg3}
+                onChange={onTransferMsg3Change}
+                placeholder='Generated and provided by Sender'
+                smallTxtMsg='Transfer Code'/>
+              <button type="button" className={`btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
+                RECEIVE TRANSFER
+              </button>
             </div>
+          </div>
+        </div>
     </div>
   )
 }

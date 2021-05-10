@@ -11,19 +11,23 @@
     display: flex;
     align-items: flex-start;
 }
-.receiveStatecoin-scan img {
-    position: relative;
-    bottom: 5px;
-}
-.receiveStatecoin-scan-txid {
-    display: flex;
+.receiveStatecoin-scan-txid .copy-btn-wrap {
     background-color: #ECF2FF;
     padding: 20px;
-    align-items: baseline;
-    border-radius: 6px;
 }
+.receiveStatecoin-scan-txid:hover .copy-btn-wrap {
+    cursor: pointer;
+    color: #0054F4;
+}
+.receiveStatecoin-scan-txid .copy-btn-wrap div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
 .receiveStatecoin-scan-content  {
     margin-left: 20px;
+    flex: 1;
 }
 
 .receiveStatecoin-scan-txid span {
@@ -51,10 +55,48 @@
 .sendStatecoin.content .center {
     width:100%;
 }
-.sendStatecoin.content .center button {
+.receiveStatecoin.sendStatecoin.content .center button {
     margin-top: 20px;
-    background: #0054F4;
+    background: #666666;
     color: #ffffff;
+}
+.receiveStatecoin.sendStatecoin.content .center button.active { 
+    background: #0054F4;
+}
+
+.receiveStatecoin .receive-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.receiveStatecoin .receive-bottom div:first-child {
+    flex: 1;
+    margin-right: 20px;
+}
+.receiveStatecoin .receive-bottom div:first-child .inputs { 
+    margin: 0;
+}
+.receiveStatecoin.sendStatecoin.content .center .receive-bottom button {
+    height: 56px;
+    padding: 0 35px;
+    margin: 0;
+}
+.receiveStatecoin .receive-bottom div:first-child .inputs input { 
+    padding: 16px;
+    border: 1px solid #0054F4;
+    text-overflow: ellipsis;
+    outline: none;
+}
+.receiveStatecoin .receive-bottom div:first-child .inputs .smalltxt {
+    color: #0054F4;
+}
+.receiveStatecoin .receive-note {
+    font-size: 20px;
+    line-height: 20px;
+    color: #000;
+    margin-bottom: 22px;
+    text-align: left;
+
 }
 
 @media only screen and (max-width: 768px) {
@@ -65,9 +107,6 @@
     .receiveStatecoin-scan {
         display: block;
 
-    }
-    .receiveStatecoin-scan img {
-        margin-bottom: 20px;
     }
     .receiveStatecoin-scan-content {
         margin-left: 0;

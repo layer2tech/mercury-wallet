@@ -69,7 +69,9 @@ export class Config {
         case "required_confirmations":
           this.required_confirmations = item[1];
           return;
-
+        case "electrum_fee_estimation_blocks":
+          this.electrum_fee_estimation_blocks = item[1];
+          return;         
         case "state_entity_endpoint":
           this.state_entity_endpoint = item[1];
           return;
