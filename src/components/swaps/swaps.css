@@ -224,7 +224,7 @@
   left: 0;
 }
 .swap-coin .swap-item-wrap .SwapAmount-block b {
-  padding-left: 8px;
+  padding-right: 8px;
 }
 .swap-coin .swap-item-wrap .checkmark {
   border: 2px solid #000;
