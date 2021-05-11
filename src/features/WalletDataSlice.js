@@ -38,8 +38,8 @@ export const unloadWallet = () => {
 export const reloadWallet = () => {
   let name = wallet.name;
   let password = wallet.password;
-  wallet = Wallet.load(name, password, testing_mode);
-  log.info("Wallet "+name+" loaded from memory. ");
+  unloadWallet()
+  walletLoad(name,password);
 }
 
 // update backuptx status and broadcast if necessary
