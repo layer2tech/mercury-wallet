@@ -15,7 +15,7 @@ function createWindow() {
           nodeIntegration: true,
           webSecurity: false,
           enableRemoteModule: true,
-          backgroundThrottling: false
+          backgroundThrottling: false,
           preload: __dirname + '/preload.js'
         }
       }
