@@ -2,23 +2,22 @@ import { HttpClient, GET_ROUTE, POST_ROUTE } from '../http_client';
 
 jest.setTimeout(30000);
 
-
 let tor_config = {
     tor_proxy: {
         ip: 'localhost',
         port: 9050,
-        controlPassword: 'afsd9143',
+        controlPassword: 'password',
         controlPort: 9051
     },
-    state_entity_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
-    swap_conductor_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion"
+    state_entity_endpoint: "",
+    swap_conductor_endpoint: ""
 }
 
 async function set_config(client, config) {
     await client.post('tor_settings', config)
 }
 
-describe('Tor server integration', function(){
+describe.skip('Tor server integration', function(){
     test('tor server get', async function(){
         const client = new HttpClient('http://localhost:3001');
         await set_config(client, tor_config);
@@ -91,7 +90,7 @@ describe('Tor server integration', function(){
     
 });
 
-describe('Tor server', function(){
+describe.skip('Tor server', function(){
  
     test('set/get tor config', async function(){
         const client = new HttpClient('http://localhost:3001');
@@ -117,3 +116,4 @@ describe('Tor server', function(){
     });
 
 });
+
