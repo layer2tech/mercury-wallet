@@ -16,7 +16,7 @@ export const defaultWalletConfig = () => ({
   state_entity_endpoint: "",
   swap_conductor_endpoint: "",
   electrum_config: {host: "", port: 0, protocol: ""},
-  tor_proxy: "",
+  tor_proxy: { ip: "localhost", port: 9050, controlPassword: "password", controlPort: 9051 },
   min_anon_set: ""
 })
 
@@ -51,7 +51,12 @@ const SettingsPage = (props) => {
       [evt.target.name]: evt.target.value
     });
   }
-  const onTorProxyChange = (evt) => { setTorProxy(evt.target.value) };
+  const onTorProxyChange = (evt) => { 
+    setTorProxy({
+      ...torProxy,
+      [evt.target.name]: evt.target.value
+    });
+  }
   const decreaseMinAnonSet = () => { setMinAnonSet(minAnonSet-1) };
   const increaseMinAnonSet = () => { setMinAnonSet(minAnonSet+1) };
   const onMinAnonSetChange = (evt) => { setMinAnonSet(evt.target.value) };
@@ -151,9 +156,24 @@ const SettingsPage = (props) => {
                             </div>
                           </div>
                           <div className="inputs-item">
-                              <input id="proxy" type="text" name="TorProxy" required
-                                     value={torProxy} onChange={onTorProxyChange}/>
-                              <label className="control-label" htmlFor="proxy">Tor Proxy</label>
+                              <input id="proxy-ip" type="text" name="ip" 
+                                     value={torProxy.ip} onChange={onTorProxyChange} required/>
+                              <label className="control-label" htmlFor="proxy-ip">Tor Proxy Host</label>
+                          </div>
+                          <div className="inputs-item">
+                              <input id="proxy-port" type="number" name="port" 
+                                     value={torProxy.port} onChange={onTorProxyChange} required/>
+                              <label className="control-label" htmlFor="proxy-port">Tor Proxy Port</label>
+                          </div>
+                          <div className="inputs-item">
+                              <input id="proxy-controlPassword" type="text" name="controlPassword" 
+                                     value={torProxy.controlPassword} onChange={onTorProxyChange} required/>
+                              <label className="control-label" htmlFor="proxy-controlPassword">Tor Proxy Control Password</label>
+                          </div>
+                          <div className="inputs-item">
+                              <input id="proxy-controlPort" type="number" name="controlPort" 
+                                     value={torProxy.controlPort} onChange={onTorProxyChange} required/>
+                              <label className="control-label" htmlFor="proxy-controlPort">Tor Proxy Control Port</label>
                           </div>
                           <div className="inputs-item">
                               <input id="entity-address" type="text" name="StateChain Entity Address"

@@ -4,13 +4,13 @@ let types = require("../types")
 let typeforce = require('typeforce');
 
 export const pingServer = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
 ) => {
   return await http_client.get(GET_ROUTE.PING, {})
 }
 
 export const getFeeInfo = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
 ) => {
   let fee_info = await http_client.get(GET_ROUTE.FEES, {});
   typeforce(types.FeeInfo, fee_info);  
@@ -19,7 +19,7 @@ export const getFeeInfo = async (
 }
 
 export const getCoinsInfo = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
 ) => {
   let coins_info = await http_client.get(GET_ROUTE.COINS_INFO, {});
   typeforce(types.CoinsInfo, coins_info);
@@ -27,7 +27,7 @@ export const getCoinsInfo = async (
 }
 
 export const getStateChain = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   statechain_id: string
 ) => {
   let statechain = await http_client.get(GET_ROUTE.STATECHAIN, statechain_id);
@@ -45,7 +45,7 @@ export const getStateChain = async (
 }
 
 export const getRoot = async (
-  http_client: HttpClient | MockHttpClient
+  http_client: HttpClient |  MockHttpClient
 ) => {
   let root = await http_client.get(GET_ROUTE.ROOT, {});
   typeforce(typeforce.oneOf(types.Root, typeforce.Null), root);
@@ -53,7 +53,7 @@ export const getRoot = async (
 }
 
 export const getSmtProof = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   root: Root | null,
   funding_txid: string
 ) => {
@@ -68,7 +68,7 @@ export const getSmtProof = async (
 }
 
 export const getTransferBatchStatus = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   batch_id: string
 ) => {
   return await http_client.get(GET_ROUTE.TRANSFER_BATCH, batch_id);
@@ -80,7 +80,7 @@ export interface OutPoint {
 }
 
 export const getRecoveryRequest = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   recovery_request: RecoveryRequest[]
 ) => {
   let recovery_data = await http_client.post(POST_ROUTE.RECOVER, recovery_request);

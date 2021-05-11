@@ -9,10 +9,10 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 
 | Name            | Type          | Default |
 |-----------------|---------------|----------|
-| state_entity_endpoint | string | https://fakeapi.mercurywallet.io |
-| swap_conductor_endpoint | string | https://fakeapi.mercurywallet.io |
-| electrum_config | object | { host: 'https://electrumx-server.tbtc.network', port: 8443, protocol: 'wss'} |
-| tor_proxy | string | none |
+| state_entity_endpoint | string | https://beta.mercurywallet.io |
+| swap_conductor_endpoint | string | https://beta.mercurywallet.io |
+| electrum_config | object | { host: 'wallet.mercurywallet.io', port: 50004, protocol: 'wss'} |
+| tor_proxy | object | { ip: 'localhost', port: 9050, controlPassword: 'password', controlPort: 9051 } |
 | min_anon_set | number | 5 |
 | notifications | boolean | true |
 | tutorials | boolean | false |
@@ -79,6 +79,16 @@ To build wasm:
 
 You can edit files outside of container with your normal text editor and then
 issue cargo/wasm build in container again.
+
+## Connecting via a tor node
+
+The "tor-adapter" must be started as follows (from the top level dir):
+
+`npm --prefix tor-adapter start`
+
+Configure the tor proxy settings either in the settings.json file as described above if running in develop mode, or using the "settings" page in the app. Click "save' in order for the settings to take effect.
+
+The API calls will be routed via the tor node if a .onion address is used as the state entity or swap protocol endpoint. A new tor circuit will be obtained after each API call.
 
 
 ## Logs

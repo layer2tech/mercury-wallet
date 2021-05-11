@@ -2,23 +2,25 @@ const electron = require('electron');
 const path = require('path');
 const url = require('url');
 
+
 // Module to control application life.
 const { app } = electron;
 // Module to create native browser window.
 const { BrowserWindow } = electron;
 
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
-function createWindow() {
-  // Create the browser window.
+function createWindow() {  
+    // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      backgroundThrottling: false,
+      backgroundThrottling: false
     }
   });
     // Open the DevTools.
@@ -66,3 +68,6 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+
+
