@@ -82,9 +82,7 @@ issue cargo/wasm build in container again.
 
 ## Connecting via a tor node
 
-The "tor-adapter" must be started as follows (from the top level dir):
-
-`npm --prefix tor-adapter start`
+The [mercury-wallet-tor-adapter](https://github.com/layer2tech/mercury-wallet-tor-adapter) and a tor node must be running.
 
 Configure the tor proxy settings either in the settings.json file as described above if running in develop mode, or using the "settings" page in the app. Click "save' in order for the settings to take effect.
 
