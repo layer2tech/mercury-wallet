@@ -16,7 +16,7 @@ import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
 
 // Withdraw coins from state entity. Returns signed withdraw transaction
 export const withdraw = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoins: StateCoin[],

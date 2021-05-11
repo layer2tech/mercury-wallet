@@ -32,7 +32,7 @@ const n = secp256k1.curve.n
 
 
 export const transferSender = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,
@@ -129,7 +129,7 @@ export const transferSender = async (
 }
 
 export const transferReceiver = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
   batch_data: any
@@ -201,7 +201,7 @@ export const transferReceiver = async (
 }
 
 export const transferReceiverFinalize = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   finalize_data: TransferFinalizeData,
 ): Promise<StateCoin> => {
@@ -240,7 +240,7 @@ export const transferReceiverFinalize = async (
 
 
 export const transferBatchSign = (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,

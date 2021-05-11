@@ -145,12 +145,16 @@ const SwapPage = () => {
                         setSelectedSwap={setSelectedSwap}
                       />
                   </div>
-                  <button type="button" className="btn" onClick={swapButtonAction}>
-                          SWAP STATECOIN UTXO
-                  </button>
-                  <button type="button" className="btn" onClick={leavePoolButtonAction}>
-                          REMOVE STATECOIN UTXO FROM SWAP
-                  </button>
+                  {swapGroupsData.length ? (
+                    <div className="swap-footer-btns">
+                      <button type="button" className="btn" onClick={swapButtonAction}>
+                        Join Group
+                      </button>
+                      <button type="button" className="btn" onClick={leavePoolButtonAction}>
+                        Leave Group
+                      </button>
+                    </div>
+                  ) : null}
               </div>
           </div>
         </div>

@@ -28,44 +28,64 @@ const Swaps = (props) => {
     const expiry_time_to_string = (expiry_data) => {
         return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days"
     }
-
-    const swapData = props.swapGroupsData.map(([key,value]) => (
-        <div key={key.amount} value={value}>
-        <div>
-        <div className="SwapPanel">
+    const swapData = props.swapGroupsData.map(([key,value], index) => (
+        <div key={key.amount} className="swap-item-wrap">
             <div className="SwapAmount-block">
-                <img src={coin} alt="coin"/>
-                <span className="sub">
-                    <b className="SwapAmount">  {fromSatoshi(key.amount)} BTC</b>
-                </span>
+                <label>
+                    {/* <input
+                        readOnly
+                        type="radio"
+                        checked={index === 0}
+                    /> */}
+                    <b>{fromSatoshi(key.amount)} {' '}</b> BTC
+                    {/* <span className="checkmark"></span> */}
+                </label>
             </div>
-
-            <b className="SwapParticipants">
-                <img src={user} alt="user"/>
-                <span className="sub">
-                    <b className="SwapParticipants">  {value}/{key.size} </b>
-                </span>
-            </b>
-
-            <b className="SwapStatus">
-                <span className="sub">
-                    {value < key.size && false &&
-                        <b className="SwapStatus"> Waiting for participants... </b>
-                    }
-                    {value >= key.size && false &&
-                        <b className="SwapStatus"> Swap in progress... </b>
-                    }
-                </span>
-            </b>
+            <div className="SwapParticipants">
+                <b>{value}/{key.size}</b>
             </div>
-        </div>
+            <div className="SwapStatus">
+                {value < key.size &&
+                    <span> Pending </span>
+                }
+                {value >= key.size &&
+                    <span> Inprogress </span>
+                }
+            </div>
         </div>
 
     ));
 
     return (
-        <div>
-            {swapData.length!==0 ? swapData : <p>Loading swap group information...</p>}
+        <div className="swap-coin">
+            <div className="swap-top">
+                <span>Swaps waiting to begin …</span>
+                <span>
+                    <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M9.01233 3.56494L5.00696 7.5603H8.01111V14.5798H10.0135V7.5603H13.0177L9.01233 3.56494ZM16.0218 17.594V10.5745H14.0192V17.594H11.015L15.0204 21.5894L19.0257 17.594H16.0218Z" fill="#666666" />
+                    </svg>
+                </span>
+            </div>
+            {swapData.length!==0 ? (
+                <>
+                    <div className="swap-table">
+                        <div className="swap-table-head">
+                            <span>
+                                <img src={coin} alt="coin"/>
+                                Value
+                            </span>
+                            <span>
+                                <img src={user} alt="user"/>
+                                PARTICIPANTS
+                            </span>
+                            <span>Status</span>
+                        </div>
+                        <div className="swap-table-body">
+                            {swapData}
+                        </div>
+                    </div>
+                </>
+            ) : <p>Loading swap group information...</p>}
         </div>
     );
 }

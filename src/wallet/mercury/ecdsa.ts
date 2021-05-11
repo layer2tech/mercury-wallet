@@ -75,7 +75,7 @@ export const keyGen = async (
 // 2P-ECDSA Sign.
 // message should be hex string
 export const sign = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   shared_key_id: string,
   master_key: MasterKey2,
@@ -139,7 +139,7 @@ export const sign = async (
 // 2P-ECDSA Sign.
 // message should be hex string
 export const sign_batch = async (
-  http_client: HttpClient | MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   shared_key_ids: string[],
   master_keys: any[],

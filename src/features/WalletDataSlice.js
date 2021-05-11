@@ -35,6 +35,12 @@ export const isWalletLoaded = () => {
 export const unloadWallet = () => {
   wallet = undefined;
 }
+export const reloadWallet = () => {
+  let name = wallet.name;
+  let password = wallet.password;
+  unloadWallet()
+  walletLoad(name,password);
+}
 
 // update backuptx status and broadcast if necessary
 setInterval(function() {
@@ -148,7 +154,8 @@ export const callRemoveCoin = (shared_key_id) => {
 // Update config with JSON of field to change
 export const callUpdateConfig = (config_changes) => {
   wallet.config.update(config_changes)
-  wallet.save()
+  wallet.save();
+  reloadWallet();
 }
 
 // Create CPFP transaction and add to coin
