@@ -232,6 +232,8 @@ export const STATECOIN_STATUS = {
   SPEND_PENDING: "SPEND_PENDING",
   // Coin has reached it's backup timelock and has been spent
   EXPIRED: "EXPIRED",
+  // Coin has reached the locktime limit for inclusion in swap_status
+  SWAPLIMIT: "SWAPLIMIT"
 };
 Object.freeze(STATECOIN_STATUS);
 
@@ -335,6 +337,7 @@ export class StateCoin {
   setSwapped() { this.status = STATECOIN_STATUS.SWAPPED; }
   setSpendPending() { this.status = STATECOIN_STATUS.SPEND_PENDING; }
   setExpired() { this.status = STATECOIN_STATUS.EXPIRED; }
+  setSwapLimit() { this.status = STATECOIN_STATUS.SWAPLIMIT; }
 
   setBackupPreLocktime() { this.backup_status = BACKUP_STATUS.PRE_LOCKTIME }
   setBackupUnbroadcast() { this.backup_status = BACKUP_STATUS.UNBROADCAST }

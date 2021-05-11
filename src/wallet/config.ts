@@ -30,6 +30,7 @@ export class Config {
   date_format: any;
   notifications: boolean;
   tutorials: boolean;
+  swaplimit: number;
 
   constructor(network: Network, testing_mode: boolean) {
     this.network = network;
@@ -55,6 +56,7 @@ export class Config {
     this.min_anon_set = 5;
     this.notifications = true;
     this.tutorials = false;
+    this.swaplimit = 1440;
 
     // update defaults with config in settings.json
     this.update(require("../settings.json"))
@@ -120,6 +122,9 @@ export class Config {
         case "tutorials":
           this.tutorials = item[1]
           break;
+        case "swaplimit":
+          this.swaplimit = item[1]
+          break;          
         default:
           throw Error("Config entry "+item[0]+" does not exist")
       }

@@ -371,9 +371,12 @@ export class Wallet {
       }
       // check locktime
       let blocks_to_locktime = (this?.statecoins?.coins[i]?.tx_backup?.locktime ?? 0) - this.block_height;
-      // pre-locktime - do nothing
+      // pre-locktime - update loctime swap limit status
       if (blocks_to_locktime > 0) {
         this.statecoins.coins[i].setBackupPreLocktime();
+        if (blocks_to_locktime < this.config.swaplimit) {
+          this.statecoins.coins[i].setSwapLimit();
+        }
         continue;
       // locktime reached
       } else {
