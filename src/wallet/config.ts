@@ -13,6 +13,7 @@ export class Config {
   testing_mode: boolean;
   jest_testing_mode: boolean;
   required_confirmations: number;
+  electrum_fee_estimation_blocks: number;
 
   // Editable while wallet running from Settings page
   state_entity_endpoint: string;
@@ -35,6 +36,7 @@ export class Config {
     this.testing_mode = testing_mode;
     this.jest_testing_mode = false;
     this.required_confirmations = 3;
+    this.electrum_fee_estimation_blocks = 6;
 
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
@@ -77,7 +79,9 @@ export class Config {
         case "required_confirmations":
           this.required_confirmations = item[1];
           break;
-
+        case "electrum_fee_estimation_blocks":
+          this.electrum_fee_estimation_blocks = item[1];
+          return;         
         case "state_entity_endpoint":
           this.state_entity_endpoint = item[1];
           break;

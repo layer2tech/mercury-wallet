@@ -21,7 +21,8 @@ export const withdraw = async (
   network: Network,
   statecoins: StateCoin[],
   proof_key_ders: BIP32Interface[],
-  rec_addr: string
+  rec_addr: string,
+  fee_per_kb: number
 ): Promise<Transaction> => {
 
   let sc_infos: StateChainDataAPI[] = [];
@@ -33,27 +34,27 @@ export const withdraw = async (
   let amount = 0;
   let index = 0;
 
-      
+
     for (const sc of statecoins) {
     if (sc.funding_txid == null) {
       throw Error("StateChain undefined already withdrawn.");
     }
-    
+
     let statecoin: StateCoin = sc;
 
     let proof_key_der: BIP32Interface = proof_key_ders[index];
     // Get statechain from SE and check ownership
     let statechain: StateChainDataAPI = await getStateChain(http_client, statecoin.statechain_id);
     sc_infos.push(statechain);
-        
+
     if (statechain.amount === 0) {
       throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
-    } 
+    }
 
     let chain_data = statechain.chain.pop().data;
     if (chain_data !== statecoin.proof_key) {
       throw Error("StateChain not owned by this Wallet. Incorrect proof key. Expected " + statecoin.proof_key + ", got " + chain_data);
-    } 
+    }
 
     // Sign statecoin to signal desire to Withdraw
     let statechain_sig = StateChainSig.create(proof_key_der, "WITHDRAW", rec_addr);
@@ -94,7 +95,8 @@ export const withdraw = async (
             rec_addr,
             statecoin.value,
             fee_info.address,
-            withdraw_fee
+            withdraw_fee,
+            fee_per_kb
           );
   }
 
@@ -107,7 +109,7 @@ export const withdraw = async (
     let pk = pks[index];
     signatureHashes.push(getSigHash(tx_withdraw_unsigned, index, pk, info.amount, network));
   });
-  
+
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
   // Create PrepareSignTxMsg to send funding tx data to receiver
   let prepare_sign_msg: PrepareSignTxMsg = {
@@ -141,6 +143,6 @@ export const withdraw = async (
     let sig1 = signatures[index][1];
     tx_backup_signed.ins[index].witness = [Buffer.from(sig0),Buffer.from(sig1)];
   });
-  
+
   return tx_backup_signed
 }

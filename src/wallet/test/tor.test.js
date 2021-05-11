@@ -34,7 +34,7 @@ describe.skip('Tor server integration', function(){
             await client.get('unknown route',{});
             expect().toBe(false);
         } catch (err){
-           expect(err.response.status).toBe(404);   
+           expect(err.response.status).toBe(400);   
         }
     });
 
@@ -50,7 +50,7 @@ describe.skip('Tor server integration', function(){
             let result2 = await client.post('unknown route', transfer_msg1);
             expect().toBe(false);
         } catch(err){
-            expect(err.response.status).toBe(404);
+            expect(err.response.status).toBe(400);
         }
     });
     
@@ -66,7 +66,7 @@ describe.skip('Tor server integration', function(){
             let result2 = await client.post(POST_ROUTE.TRANSFER_SENDER, transfer_msg1);
             expect().toBe(false);
         } catch(err){
-            expect(err.response.status).toBe(422);
+            expect(err.response.status).toBe(400);
         }
     });
 

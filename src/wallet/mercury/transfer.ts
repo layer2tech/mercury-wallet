@@ -2,7 +2,7 @@
 
 import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
-import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
+import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, StateChainDataAPI } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
 
@@ -208,7 +208,8 @@ export const transferReceiverFinalize = async (
   // Make shared key with new private share
   // 2P-ECDSA with state entity to create a Shared key
   let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER);
-  statecoin.funding_txid = finalize_data.state_chain_data.utxo;
+  statecoin.funding_txid = finalize_data.state_chain_data.utxo.txid;
+  statecoin.funding_vout = finalize_data.state_chain_data.utxo.vout;
 
   // Check shared key master public key === private share * SE public share
   // let P = BigInt("0x" + finalize_data.s2_pub) * BigInt("0x" + finalize_data.o2) * BigInt("0x" + finalize_data.theta)
@@ -295,13 +296,6 @@ export interface TransferMsg4 {
 export interface TransferMsg5 {
   new_shared_key_id: string,
   s2_pub: any,
-}
-
-export interface StateChainDataAPI {
-    utxo: string,
-    amount: number,
-    chain: any,
-    locktime: number,
 }
 
 export interface  TransferFinalizeData {
