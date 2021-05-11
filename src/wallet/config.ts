@@ -81,7 +81,7 @@ export class Config {
           break;
         case "electrum_fee_estimation_blocks":
           this.electrum_fee_estimation_blocks = item[1];
-          return;         
+          break;         
         case "state_entity_endpoint":
           this.state_entity_endpoint = item[1];
           break;
