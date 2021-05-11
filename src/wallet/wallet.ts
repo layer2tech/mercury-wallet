@@ -194,6 +194,7 @@ export class Wallet {
     let store = new Storage();
     // Fetch decrypted wallet json
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
+    wallet_json.password=password;
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
 

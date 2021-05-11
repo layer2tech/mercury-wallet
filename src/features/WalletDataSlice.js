@@ -38,8 +38,8 @@ export const unloadWallet = () => {
 export const reloadWallet = () => {
   let name = wallet.name;
   let password = wallet.password;
-  unloadWallet();
-  walletLoad(name,password);
+  wallet = Wallet.load(name, password, testing_mode);
+  log.info("Wallet "+name+" loaded from memory. ");
 }
 
 // update backuptx status and broadcast if necessary
@@ -153,10 +153,7 @@ export const callRemoveCoin = (shared_key_id) => {
 
 // Update config with JSON of field to change
 export const callUpdateConfig = (config_changes) => {
-  console.log("updating wallet config with changes: " + JSON.stringify(config_changes) )
-  console.log("old config: " + JSON.stringify(wallet.config) )
   wallet.config.update(config_changes)
-  console.log("new config: " + JSON.stringify(wallet.config) )
   wallet.save();
   reloadWallet();
 }
