@@ -51,7 +51,6 @@ export class Storage {
     delete wallet_json.electrum_client;
     delete wallet_json.storage;
     // encrypt mnemonic
-    console.log("encrypting mnemonic with password: " + wallet_json.password);
     wallet_json.mnemonic = encryptAES(wallet_json.mnemonic, wallet_json.password);
     // remove password and root keys
     wallet_json.password = ""
