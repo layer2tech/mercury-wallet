@@ -32,18 +32,17 @@ const Swaps = (props) => {
         <div key={key.amount} className="swap-item-wrap">
             <div className="SwapAmount-block">
                 <label>
-                    <input
+                    {/* <input
                         readOnly
                         type="radio"
                         checked={index === 0}
-                    />
+                    /> */}
                     <b>{fromSatoshi(key.amount)} {' '}</b> BTC
-                    <span className="checkmark"></span>
+                    {/* <span className="checkmark"></span> */}
                 </label>
             </div>
             <div className="SwapParticipants">
                 <b>{value}/{key.size}</b>
-                {index}
             </div>
             <div className="SwapStatus">
                 {value < key.size &&
