@@ -15,7 +15,7 @@ let store = new Storage();
 const LoadWalletPage = (props) => {
   const [showPass, setShowPass] = useState(false);
   const dispatch = useDispatch();
-
+  
   let wallet_names = store.getWalletNames()
 
   const [selectedWallet, setSelected] = useState(wallet_names.length ? wallet_names[0] : "")
@@ -58,7 +58,7 @@ const LoadWalletPage = (props) => {
   }
 
   const populateWalletNameOptions = () => {
-    return wallet_names.map((item, index) => (<option key={index} value={item}>{item}</option>))
+    return wallet_names.map((item, index) => (<option key={index} value={item.name}>{item.name}</option>))
   }
 
   return (
