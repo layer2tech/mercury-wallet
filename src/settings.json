@@ -8,5 +8,6 @@
                 "port": 9050,
                 "controlPassword": "password",
                 "controlPort": 9051
-              }
+              },
+  "required_confirmations": 0
 }

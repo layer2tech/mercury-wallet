@@ -50,22 +50,20 @@ const checkForServerError = (return_val: any) => {
 
 export class HttpClient {
   endpoint: string
+  is_tor: boolean
 
-  constructor(endpoint: string) {
+  constructor(endpoint: string, is_tor = false) {
     this.endpoint = endpoint;
-  }
-
-  is_tor = () => {
-    return this.endpoint.endsWith(".onion");
+    this.is_tor = is_tor;
   }
 
   new_tor_id = async () => {
-    if (this.is_tor()) {
+    console.log('new_tor_id');
+    if (this.is_tor) {
+      console.log('is tor, getting new id');
       await this.get('newid', {});
     }
   }
-
-  
 
   get = async (path: string, params: any) => {
     try {

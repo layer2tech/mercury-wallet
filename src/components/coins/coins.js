@@ -269,7 +269,7 @@ const Coins = (props) => {
                           {item.funding_txid}
                       </b>
                     )
-                    : <CoinStatus data={item} />}
+                    : <CoinStatus data={item}/>}
                   </div>
                 ) : (
                   <b className="CoinFundingTxid">
