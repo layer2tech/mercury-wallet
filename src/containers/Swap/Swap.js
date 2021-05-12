@@ -22,17 +22,17 @@ const SwapPage = () => {
   const [swapGroupsData, setSwapGroupsData] = useState([]);
 
   function addSelectedCoin(statechain_id) {
-    setSelectedCoins( prevSelectedCoins => {
-      let newSelectedCoins = prevSelectedCoins;
-      const isStatechainId = (element) => element == statechain_id; 
-      let index = newSelectedCoins.findIndex(isStatechainId);
-      if (index != -1){
-        newSelectedCoins.splice(index,1);
-      } else {
-        newSelectedCoins.push(statechain_id);
+    setSelectedCoins(
+      prevSelectedCoins => {
+        let newSelectedCoins=[];
+        const isStatechainId = (element) => element == statechain_id; 
+        let index = prevSelectedCoins.findIndex(isStatechainId);
+        if (index == -1){
+            newSelectedCoins=[statechain_id];
+        }
+        return newSelectedCoins;
       }
-      return newSelectedCoins;
-    });
+    );
   }
 
   // Re-fetch swaps group data every 3 seconds and update swaps component
@@ -132,7 +132,9 @@ const SwapPage = () => {
                         selectedCoins={selectedCoins}
                         setSelectedCoin={addSelectedCoin}
                         setSelectedCoins={setSelectedCoins}
-                        refresh={refreshCoins}/>
+                        refresh={refreshCoins}
+                        swap
+                      />
                   </div>
 
               </div>

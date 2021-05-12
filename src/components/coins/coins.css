@@ -232,3 +232,6 @@
 .main-coin-wrap.no-coin {
   min-height: 50px;
 }
+.coin-item.SWAPLIMIT {
+  opacity: .3;
+}
