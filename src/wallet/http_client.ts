@@ -55,6 +55,18 @@ export class HttpClient {
     this.endpoint = endpoint;
   }
 
+  is_tor = () => {
+    return this.endpoint.endsWith(".onion");
+  }
+
+  new_tor_id = async () => {
+    if (this.is_tor()) {
+      await this.get('newid', {});
+    }
+  }
+
+  
+
   get = async (path: string, params: any) => {
     try {
       const url = this.endpoint + "/" + path + "/" + (Object.entries(params).length === 0 ? "" : params);

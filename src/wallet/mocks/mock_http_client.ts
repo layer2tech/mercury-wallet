@@ -56,6 +56,9 @@ export class MockHttpClient {
           return TRANSFER_PUBKEY
       }
     }
+
+    new_tor_id = async () => {
+    }
 }
 
 

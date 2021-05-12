@@ -179,6 +179,7 @@ export const swapPhase2 = async (
 
 
   let bss = await get_blinded_spend_signature(conductor_client, statecoin.swap_id.id, statecoin.statechain_id);
+  conductor_client.new_tor_id();  
   let receiver_addr = await second_message(conductor_client, wasm_client, statecoin.swap_id.id, statecoin.swap_my_bst_data, bss);
 
   // Update coin with receiver_addr and update status
