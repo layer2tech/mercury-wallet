@@ -115,5 +115,13 @@ describe.skip('Tor server', function(){
         expect(tor_config_resp.tor_proxy).toEqual(tor_config.tor_proxy);
     });
 
+    test('new tor id', async function(){
+        const client = new HttpClient('http://localhost:3001');
+        await set_config(client, tor_config);
+        
+        let result = await client.get('newid',{});
+        console.log(JSON.stringify(result));
+    });
+
 });
 
