@@ -73,7 +73,7 @@ app.on('ready', function() {
     console.log("tor stdout: " + data.toString());
   });
   
-  console.log("starting tor-adapter")
+  console.log("starting tor-adapter");
   let tor_adapter = exec("node tor-adapter/server/index.js", {
       detached: false,
       stdio: 'ignore',
