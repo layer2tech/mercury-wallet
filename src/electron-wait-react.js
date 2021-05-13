@@ -15,36 +15,21 @@ const tryConnection = () => client.connect({port: port}, () => {
 
             console.log('starting electron');
             const electron = exec('npm run electron');
+            
             electron.stdout.on("data", function(data) {
                 console.log("stdout: " + data.toString());
             });
 
             console.log("starting tor")
-
-            let tor = exec("tor", (error, stdout, stderr) => {
-                if (error) {
-                    console.log(`error: ${error.message}`);
-                    return;
-                }
-                if (stderr) {
-                    console.log(`stderr: ${stderr}`);
-                    return;
-                }
-                console.log(`stdout: ${stdout}`);
+            let tor = exec("tor");
+            tor.stdout.on("data", function(data) {
+                console.log("tor stdout: " + data.toString());
             });
 
             console.log("starting tor-adapter")
-
-            let tor_adapter = exec("npm --prefix tor-adapter start", (error, stdout, stderr) => {
-                if (error) {
-                    console.log(`error: ${error.message}`);
-                    return;
-                }
-                if (stderr) {
-                    console.log(`stderr: ${stderr}`);
-                    return;
-                }
-                console.log(`stdout: ${stdout}`);
+            let tor_adapter = exec("npm --prefix tor-adapter start");
+            tor_adapter.stdout.on("data", function(data) {
+                console.log("tor-adapter stdout: " + data.toString());
             });
 
             electron.on('exit', (error) => {
