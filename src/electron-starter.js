@@ -7,6 +7,8 @@ const fs = require('fs');
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
+
+
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({width: 1200, height: 800,
@@ -53,7 +55,46 @@ if (process.platform !== 'darwin') {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', function() {
+  
+  let env=Object.assign({},process.env);
+  env.ELECTRON_RUN_AS_NODE=1;
+  const exec = require('child_process').exec;
+  
+  console.log("starting tor")
+  let tor = exec("tor", {
+      detached: false,
+      stdio: 'ignore',
+      env: env
+  });
+  //tor.unref();
+
+  tor.stdout.on("data", function(data) {
+    console.log("tor stdout: " + data.toString());
+  });
+  
+  console.log("starting tor-adapter")
+  let tor_adapter = exec("node tor-adapter/server/index.js", {
+      detached: false,
+      stdio: 'ignore',
+      env: env
+    }
+  );
+  //tor_adapter.unref();
+
+  tor_adapter.stdout.on("data", function(data) {
+    console.log("tor-adapter stdout: " + data.toString());
+  });
+
+  app.on('exit', (error) => {
+    console.log("stopping tor-adapter");
+    tor_adapter.kill("SIGINT");
+    console.log("stopping tor");
+    tor.kill("SIGINT");
+  });
+
+  createWindow
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
