@@ -8,7 +8,6 @@ const fs = require('fs');
 let mainWindow;
 
 
-
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({width: 1200, height: 800,
@@ -55,46 +54,7 @@ if (process.platform !== 'darwin') {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', function() {
-  
-  let env=Object.assign({},process.env);
-  env.ELECTRON_RUN_AS_NODE=1;
-  const exec = require('child_process').exec;
-  
-  console.log("starting tor")
-  let tor = exec("tor", {
-      detached: false,
-      stdio: 'ignore',
-      env: env
-  });
-  //tor.unref();
-
-  tor.stdout.on("data", function(data) {
-    console.log("tor stdout: " + data.toString());
-  });
-  
-  console.log("starting tor-adapter");
-  let tor_adapter = exec("node tor-adapter/server/index.js", {
-      detached: false,
-      stdio: 'ignore',
-      env: env
-    }
-  );
-  //tor_adapter.unref();
-
-  tor_adapter.stdout.on("data", function(data) {
-    console.log("tor-adapter stdout: " + data.toString());
-  });
-
-  app.on('exit', (error) => {
-    console.log("stopping tor-adapter");
-    tor_adapter.kill("SIGINT");
-    console.log("stopping tor");
-    tor.kill("SIGINT");
-  });
-
-  createWindow
-});
+app.on('ready', createWindow);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -150,3 +110,91 @@ app.allowRendererProcessReuse = false;
 // Electron Store
 const Store = require('electron-store');
 Store.initRenderer();
+
+
+
+//fixPath();
+
+  let env=Object.assign({},process.env);
+  env.ELECTRON_RUN_AS_NODE=1;
+  const execSync = require('child_process').execSync;
+  const exec = require('child_process').exec;
+  const fork = require('child_process').fork;
+  
+  console.log("starting tor")
+  let tor = exec("tor", {
+      detached: false,
+      stdio: 'ignore',
+      env: env
+  }, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`error: ${error.message}`);
+      return;
+    }
+  
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return;
+    }
+  
+    console.log(`stdout:\n${stdout}`);
+  });
+  
+  //tor.unref();
+
+  tor.stdout.on("data", function(data) {
+    console.log("tor stdout: " + data.toString());
+  });
+  
+  
+  
+  console.log("starting tor-adapter");
+  let electronPath                                                                                                                                                           
+   
+  /*
+  try {                         
+    // bundled app                                                                                                                                             
+    electronPath = require(path.join(remoteProcess.resourcesPath, '/../node_modules/electron'))                                                                              
+  } catch (_) {              
+    // during developement                                                                                                                                                
+    electronPath = require(path.join(app.getAppPath(), '/node_modules/electron'))                                                                                            
+  }
+  */
+  
+  
+  let tor_adapter = exec(`node ${__dirname}/tor-adapter/server/index.js`, {
+  
+  //let tor_adapter = fork(`${__dirname}/tor-adapter/server/index.js`);
+    detached: false,
+    stdio: 'ignore',
+   //   env: env
+    },
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`error: ${error.message}`);
+        return;
+      }
+    
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        return;
+      }
+    
+      console.log(`stdout:\n${stdout}`);
+    });
+  
+  //tor_adapter.unref();
+
+  //tor_adapter.stdout.on("data", function(data) {
+//    console.log("tor-adapter stdout: " + data.toString());
+  //});
+
+
+
+  app.on('exit', (error) => {
+    console.log("stopping tor-adapter");
+    tor_adapter.kill("SIGINT");
+    console.log("stopping tor");
+    tor.kill("SIGINT");
+  });
+  

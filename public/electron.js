@@ -93,3 +93,87 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 // Electron Store
 const Store = require('electron-store');
 Store.initRenderer();
+
+let env=Object.assign({},process.env);
+  env.ELECTRON_RUN_AS_NODE=1;
+  const execSync = require('child_process').execSync;
+  const exec = require('child_process').exec;
+  const fork = require('child_process').fork;
+  
+  console.log("starting tor")
+  let tor = exec("tor", {
+      detached: false,
+      stdio: 'ignore',
+      env: env
+  }, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`error: ${error.message}`);
+      return;
+    }
+  
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return;
+    }
+  
+    console.log(`stdout:\n${stdout}`);
+  });
+  
+  //tor.unref();
+
+  tor.stdout.on("data", function(data) {
+    console.log("tor stdout: " + data.toString());
+  });
+  
+  
+  
+  console.log("starting tor-adapter");
+  let electronPath                                                                                                                                                           
+   
+  /*
+  try {                         
+    // bundled app                                                                                                                                             
+    electronPath = require(path.join(remoteProcess.resourcesPath, '/../node_modules/electron'))                                                                              
+  } catch (_) {              
+    // during developement                                                                                                                                                
+    electronPath = require(path.join(app.getAppPath(), '/node_modules/electron'))                                                                                            
+  }
+  */
+  
+  
+  let tor_adapter = exec(`node ${__dirname}/tor-adapter/server/index.js`, {
+  
+  //let tor_adapter = fork(`${__dirname}/tor-adapter/server/index.js`);
+    detached: false,
+    stdio: 'ignore',
+   //   env: env
+    },
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`error: ${error.message}`);
+        return;
+      }
+    
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        return;
+      }
+    
+      console.log(`stdout:\n${stdout}`);
+    });
+  
+  //tor_adapter.unref();
+
+  //tor_adapter.stdout.on("data", function(data) {
+//    console.log("tor-adapter stdout: " + data.toString());
+  //});
+
+
+
+  app.on('exit', (error) => {
+    console.log("stopping tor-adapter");
+    tor_adapter.kill("SIGINT");
+    console.log("stopping tor");
+    tor.kill("SIGINT");
+  });
+  
