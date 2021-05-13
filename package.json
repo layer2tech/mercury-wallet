@@ -78,7 +78,6 @@
     "buffer-json": "^2.0.0",
     "client-wasm": "file:client-wasm/pkg",
     "eciesjs12b": "^0.3.11",
-    "electron": "^10.1.4",
     "electron-is-dev": "^1.2.0",
     "electron-log": "^4.3.1",
     "electron-store": "^7.0.1",

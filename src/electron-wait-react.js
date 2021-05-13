@@ -19,6 +19,41 @@ const tryConnection = () => client.connect({port: port}, () => {
                 console.log("stdout: " + data.toString());
             });
 
+            console.log("starting tor")
+
+            let tor = exec("tor", (error, stdout, stderr) => {
+                if (error) {
+                    console.log(`error: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    console.log(`stderr: ${stderr}`);
+                    return;
+                }
+                console.log(`stdout: ${stdout}`);
+            });
+
+            console.log("starting tor-adapter")
+
+            let tor_adapter = exec("npm --prefix tor-adapter start", (error, stdout, stderr) => {
+                if (error) {
+                    console.log(`error: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    console.log(`stderr: ${stderr}`);
+                    return;
+                }
+                console.log(`stdout: ${stdout}`);
+            });
+
+            electron.on('exit', (error) => {
+                console.log("stopping tor-adapter");
+                tor_adapter.kill("SIGINT");
+                console.log("stopping tor");
+                tor.kill("SIGINT");
+            });
+        
         }
     }
 );
