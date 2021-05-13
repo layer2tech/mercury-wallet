@@ -235,3 +235,22 @@
 .coin-item.SWAPLIMIT {
   opacity: .3;
 }
+.main-coin-wrap.small-screen .coin-item .CoinPanel {
+  display: block;
+  position: relative;
+}
+.main-coin-wrap.small-screen .coin-item .CoinPanel .CoinAmount-block {
+  width: 100%;
+}
+.main-coin-wrap.small-screen .coin-item .CoinPanel .CoinAmount-block img {
+  margin-right: 10px;
+}
+.main-coin-wrap.small-screen .coin-item .CoinPanel .progress_bar {
+  width: 100%;
+}
+.main-coin-wrap.small-screen .coin-item .CoinPanel .coin-status-or-txid {
+  position: absolute;
+  right: 10px;
+  top: 25px;
+  width: max-content;
+}
