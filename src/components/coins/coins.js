@@ -12,7 +12,7 @@ import walleticon from "../../images/walletIcon.png";
 import txidIcon from "../../images/txid-icon.png";
 import timeIcon from "../../images/time.png";
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import {Button, Modal} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
@@ -47,6 +47,7 @@ const INITIAL_SORT_BY = {
 const Coins = (props) => {
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
+    const coinPageRef = useRef();
 
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
@@ -151,6 +152,10 @@ const Coins = (props) => {
         return () => clearInterval(interval);
       }
     }, [coins.unConfirmedCoins]);
+
+    useEffect(() => {
+      console.log('page size', coinPageRef.current)
+    }, [])
 
     // data to display in privacy related sections
     const getPrivacyScoreDesc = (swap_rounds) => {
@@ -278,10 +283,12 @@ const Coins = (props) => {
                     : <CoinStatus data={item} />}
                   </div>
                 ) : (
-                  <b className="CoinFundingTxid">
-                    <img src={txidIcon} alt="icon"/>
-                    {item.funding_txid}
-                  </b>
+                  <div className="coin-status-or-txid">
+                    <b className="CoinFundingTxid">
+                      <img src={txidIcon} alt="icon"/>
+                      {item.funding_txid}
+                    </b>
+                  </div>
                 )}
               </div>
           </div>
@@ -289,7 +296,10 @@ const Coins = (props) => {
     )})
 
     return (
-        <div className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy}`}>
+        <div 
+          className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${coinPageRef?.current?.offsetWidth < 500 ? 'small-screen': ''}`}
+          ref={coinPageRef}
+        >
           <FilterBy />
           {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
             {statecoinData}
