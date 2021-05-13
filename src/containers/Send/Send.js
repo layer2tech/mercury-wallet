@@ -167,7 +167,7 @@ const SendStatecoinPage = () => {
               </div>
           </div>
 
-          <div className="Body transferMsg">
+          {/* <div className="Body transferMsg">
             <h3 className="subtitle">Transfer Message:</h3>
             <div className="transferMsg scan-trasfermsg">
               <CopiedButton style={{left: 0, top: -7 }} handleCopy={copyTransferMsgToClipboard}>
@@ -177,7 +177,7 @@ const SendStatecoinPage = () => {
                   {transferMsg3}
                 </span>
             </div>
-          </div>
+          </div> */}
 
       </div>
     )
