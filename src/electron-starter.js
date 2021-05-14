@@ -3,6 +3,7 @@ const path = require('path');
 const url = require('url');
 const fs = require('fs');
 const fixPath = require('fix-path');
+const alert = require('alert');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -114,15 +115,26 @@ Store.initRenderer();
 
 const exec = require('child_process').exec;
 
-let tor_adapter = exec(`npm --prefix ${__dirname}/tor-adapter start`,
+let tor_adapter = exec(`node --prefix ${__dirname}/tor-adapter/server/index.js`,
 {
 detached: true,
 stdio: 'ignore',
-  });
+  },
+  (error) => {
+    if(error){
+      alert(`${error}`);
+      app.exit(error);
+    };
+  }
+);
 tor_adapter.unref();
 
 tor_adapter.stdout.on("data", function(data) {
   console.log("tor adapter stdout: " + data.toString());
+});
+
+tor_adapter.stderr.on("data", function(data) {
+  console.log("tor adapter stderr: " + data.toString());
 });
 
 fixPath();
@@ -130,11 +142,21 @@ fixPath();
 let tor = exec("tor", {
    detached: true,
     stdio: 'ignore',
-});
+}, (error) => {
+    if(error){
+      alert(`${error}`);
+      app.exit(error);
+    };
+  }
+);
 tor.unref()
 
 tor.stdout.on("data", function(data) {
   console.log("tor stdout: " + data.toString());
+});
+
+tor.stderr.on("data", function(data) {
+  console.log("tor stderr: " + data.toString());
 });
   
 app.on('exit', (error) => {
