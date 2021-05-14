@@ -40,7 +40,11 @@ function createWindow() {
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
-  mainWindow.on('closed', () => mainWindow = null);
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+    tor.kill();
+    tor_adapter.kill();
+  });
 }
 
 if (process.platform !== 'darwin') {
@@ -54,8 +58,8 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
-  tor.kill("SIGINT");
-  tor_adapter.kill("SIGINT");
+  tor.kill();
+  tor_adapter.kill();
 });
 
 app.on('activate', () => {
@@ -99,31 +103,7 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 const Store = require('electron-store');
 Store.initRenderer();
 
-let env=Object.assign({},process.env);
-  env.ELECTRON_RUN_AS_NODE=1;
-  
-  const exec = require('child_process').exec;
-  
-
-  function openTerminal(cmd, options) {
-    if (os.platform() !== 'darwin') throw new Error('Not supported');
-  
-    const command = [
-      `osascript -e 'tell application "Terminal" to activate'`, 
-      `-e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down'`, 
-      `-e 'tell application "Terminal" to do script "${cmd}" in selected tab of the front window'`
-    ].join(" ");
-  
-    const child = exec(command, options, (error, stdout, stderr) => {
-      if (error) {
-        console.error(error);
-        alert("Unable to open Terminal window, see dev console for error.");
-      }
-    });
-  
-    child.on("exit", (code) => console.log("Open terminal exit"));
-    return child;
-  }
+const exec = require('child_process').exec;
 
   fixPath();
   
@@ -131,83 +111,36 @@ let env=Object.assign({},process.env);
   let tor = exec("tor", {
        detached: true,
         stdio: 'ignore',
-        shell: '/bin/bash'
+       // shell: '/bin/bash'
   });
-  tor.unref();
-  
-  //exec("tor", {
-  //    detached: false,
-  //    stdio: 'ignore',
-  //    env: env
-  //});
-  
-  /*
-  , (error, stdout, stderr) => {
-    if (error) {
-      console.error(`error: ${error.message}`);
-      return;
-    }
-  
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return;
-    }
-  
-    console.log(`stdout:\n${stdout}`);
-  });
-  */
-
+  tor.unref()
 
   tor.stdout.on("data", function(data) {
     console.log("tor stdout: " + data.toString());
   });
   
   
-  
-  //console.log("starting tor-adapter");
-  //let electronPath                                                                                                                                                           
-   
-  
-  let tor_adapter = exec(`node ${__dirname}/tor-adapter/server/index.js&`,
+    
+  //let tor_adapter = exec(`node ${__dirname}/tor-adapter/server/index.js&`,
+  let tor_adapter = exec(`npm --prefix ${__dirname}/tor-adapter start`,
     {
     detached: true,
     stdio: 'ignore',
-    shell: '/bin/bash'
+    //shell: '/bin/bash'
     });
     tor_adapter.unref();
-  
-  
-    /*
-  exec(`node ${__dirname}/tor-adapter/server/index.js`, {
-    detached: false,
-    stdio: 'ignore',
+
+    tor_adapter.stdout.on("data", function(data) {
+      console.log("tor adapter stdout: " + data.toString());
     });
-    */
-    
-    /*
-    ,
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error(`error: ${error.message}`);
-        return;
-      }
-    
-      if (stderr) {
-        console.error(`stderr: ${stderr}`);
-        return;
-      }
-    
-      console.log(`stdout:\n${stdout}`);
-    });
-  */
-
-
-
-
+  
   app.on('exit', (error) => {
-    //console.log("stopping tor-adapter");
-    tor_adapter.kill("SIGINT");
-    //console.log("stopping tor");
-    tor.kill("SIGINT");
+      tor_adapter.kill();
+      tor.kill();
+  });
+
+  app.on('close', (error) => {
+      tor_adapter.kill();
+      tor.kill();
   });
   
