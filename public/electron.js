@@ -4,6 +4,9 @@ const path = require('path');
 const isDev = require('electron-is-dev');
 const url = require('url');
 const fs = require('fs');
+const os = require('os');
+const fixPath = require('fix-path');
+const alert = require('alert'); 
 
 let mainWindow;
 
@@ -51,6 +54,8 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+  tor.kill("SIGINT");
+  tor_adapter.kill("SIGINT");
 });
 
 app.on('activate', () => {
@@ -96,16 +101,48 @@ Store.initRenderer();
 
 let env=Object.assign({},process.env);
   env.ELECTRON_RUN_AS_NODE=1;
-  const execSync = require('child_process').execSync;
-  const exec = require('child_process').exec;
-  const fork = require('child_process').fork;
   
-  console.log("starting tor")
+  const exec = require('child_process').exec;
+  
+
+  function openTerminal(cmd, options) {
+    if (os.platform() !== 'darwin') throw new Error('Not supported');
+  
+    const command = [
+      `osascript -e 'tell application "Terminal" to activate'`, 
+      `-e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down'`, 
+      `-e 'tell application "Terminal" to do script "${cmd}" in selected tab of the front window'`
+    ].join(" ");
+  
+    const child = exec(command, options, (error, stdout, stderr) => {
+      if (error) {
+        console.error(error);
+        alert("Unable to open Terminal window, see dev console for error.");
+      }
+    });
+  
+    child.on("exit", (code) => console.log("Open terminal exit"));
+    return child;
+  }
+
+  fixPath();
+  
+  //console.log("starting tor")
   let tor = exec("tor", {
-      detached: false,
-      stdio: 'ignore',
-      env: env
-  }, (error, stdout, stderr) => {
+       detached: true,
+        stdio: 'ignore',
+        shell: '/bin/bash'
+  });
+  tor.unref();
+  
+  //exec("tor", {
+  //    detached: false,
+  //    stdio: 'ignore',
+  //    env: env
+  //});
+  
+  /*
+  , (error, stdout, stderr) => {
     if (error) {
       console.error(`error: ${error.message}`);
       return;
@@ -118,8 +155,8 @@ let env=Object.assign({},process.env);
   
     console.log(`stdout:\n${stdout}`);
   });
-  
-  //tor.unref();
+  */
+
 
   tor.stdout.on("data", function(data) {
     console.log("tor stdout: " + data.toString());
@@ -127,27 +164,28 @@ let env=Object.assign({},process.env);
   
   
   
-  console.log("starting tor-adapter");
-  let electronPath                                                                                                                                                           
+  //console.log("starting tor-adapter");
+  //let electronPath                                                                                                                                                           
    
-  /*
-  try {                         
-    // bundled app                                                                                                                                             
-    electronPath = require(path.join(remoteProcess.resourcesPath, '/../node_modules/electron'))                                                                              
-  } catch (_) {              
-    // during developement                                                                                                                                                
-    electronPath = require(path.join(app.getAppPath(), '/node_modules/electron'))                                                                                            
-  }
-  */
+  
+  let tor_adapter = exec(`node ${__dirname}/tor-adapter/server/index.js&`,
+    {
+    detached: true,
+    stdio: 'ignore',
+    shell: '/bin/bash'
+    });
+    tor_adapter.unref();
   
   
-  let tor_adapter = exec(`node ${__dirname}/tor-adapter/server/index.js`, {
-  
-  //let tor_adapter = fork(`${__dirname}/tor-adapter/server/index.js`);
+    /*
+  exec(`node ${__dirname}/tor-adapter/server/index.js`, {
     detached: false,
     stdio: 'ignore',
-   //   env: env
-    },
+    });
+    */
+    
+    /*
+    ,
     (error, stdout, stderr) => {
       if (error) {
         console.error(`error: ${error.message}`);
@@ -161,19 +199,15 @@ let env=Object.assign({},process.env);
     
       console.log(`stdout:\n${stdout}`);
     });
-  
-  //tor_adapter.unref();
+  */
 
-  //tor_adapter.stdout.on("data", function(data) {
-//    console.log("tor-adapter stdout: " + data.toString());
-  //});
 
 
 
   app.on('exit', (error) => {
-    console.log("stopping tor-adapter");
+    //console.log("stopping tor-adapter");
     tor_adapter.kill("SIGINT");
-    console.log("stopping tor");
+    //console.log("stopping tor");
     tor.kill("SIGINT");
   });
   
