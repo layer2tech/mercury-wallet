@@ -4,9 +4,7 @@ const path = require('path');
 const isDev = require('electron-is-dev');
 const url = require('url');
 const fs = require('fs');
-const os = require('os');
 const fixPath = require('fix-path');
-const alert = require('alert'); 
 
 let mainWindow;
 
@@ -77,7 +75,7 @@ ipcMain.on('select-dirs', async (event, arg) => {
     ]
   }
 
-  let saveDialog = dialog.showSaveDialog(mainWindow, options);
+let saveDialog = dialog.showSaveDialog(mainWindow, options);
   saveDialog.then(function(saveTo) {
     fs.writeFile(saveTo.filePath, JSON.stringify(arg) , (err) => {
         if(err){
@@ -105,38 +103,36 @@ Store.initRenderer();
 
 const exec = require('child_process').exec;
 
-  fixPath();
-  
-  let tor = exec("tor", {
-       detached: true,
-        stdio: 'ignore',
+let tor_adapter = exec(`npm --prefix ${__dirname}/tor-adapter start`,
+{
+detached: true,
+stdio: 'ignore',
   });
-  tor.unref()
+tor_adapter.unref();
 
-  tor.stdout.on("data", function(data) {
-    console.log("tor stdout: " + data.toString());
-  });
+tor_adapter.stdout.on("data", function(data) {
+  console.log("tor adapter stdout: " + data.toString());
+});
+
+fixPath();
   
-  
-    
-  let tor_adapter = exec(`npm --prefix ${__dirname}/tor-adapter start`,
-    {
-    detached: true,
+let tor = exec("tor", {
+   detached: true,
     stdio: 'ignore',
-      });
-    tor_adapter.unref();
+});
+tor.unref()
 
-    tor_adapter.stdout.on("data", function(data) {
-      console.log("tor adapter stdout: " + data.toString());
-    });
+tor.stdout.on("data", function(data) {
+  console.log("tor stdout: " + data.toString());
+});
   
-  app.on('exit', (error) => {
-      tor_adapter.kill();
-      tor.kill();
-  });
+app.on('exit', (error) => {
+  tor_adapter.kill();
+  tor.kill();
+});
 
-  app.on('close', (error) => {
-      tor_adapter.kill();
-      tor.kill();
-  });
+app.on('close', (error) => {
+  tor_adapter.kill();
+  tor.kill();
+});
   
