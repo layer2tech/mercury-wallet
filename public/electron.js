@@ -101,38 +101,75 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 const Store = require('electron-store');
 Store.initRenderer();
 
+
 const exec = require('child_process').exec;
 
-let tor_adapter = exec(`npm --prefix ${__dirname}/tor-adapter start`,
+fixPath();
+
+let tor_adapter = exec(`npm --prefix ${__dirname}/..//public/tor-adapter start`,
 {
 detached: true,
 stdio: 'ignore',
-  });
+  },
+  (error) => {
+    if(error){
+      alert(`${error}`);
+      app.exit(error);
+    };
+  }
+);
 tor_adapter.unref();
 
 tor_adapter.stdout.on("data", function(data) {
   console.log("tor adapter stdout: " + data.toString());
 });
 
-fixPath();
-  
-let tor = exec("tor", {
-   detached: true,
-    stdio: 'ignore',
+tor_adapter.stderr.on("data", function(data) {
+  console.log("tor adapter stderr: " + data.toString());
 });
-tor.unref()
+  
+//Check if tor is running
+let isTorRunning=true;
+let tor;
+exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs", 
+(_error, stdout, _stderr) => {
+  if (stdout.length === 0){
+    isTorRunning=false;
+    tor = exec("tor", {
+      detached: true,
+       stdio: 'ignore',
+     },  (error) => {
+       if(error){
+         alert(`${error}`);
+         app.exit(error);
+       };
+     }
+   );
+   tor.unref();
+   tor.stdout.on("data", function(data) {
+   console.log("tor stdout: " + data.toString());  
+   });
+ 
+   tor.stderr.on("data", function(data) {
+     console.log("tor stderr: " + data.toString());
+   });
+  }
+});
 
-tor.stdout.on("data", function(data) {
-  console.log("tor stdout: " + data.toString());
-});
-  
 app.on('exit', (error) => {
+  console.log('calling exit');
   tor_adapter.kill();
-  tor.kill();
+  if(!isTorRunning){
+    tor.kill();
+  }
 });
 
 app.on('close', (error) => {
+  console.log('calling close');
   tor_adapter.kill();
-  tor.kill();
+  if(!isTorRunning){
+    tor.kill();
+  }
 });
+
   

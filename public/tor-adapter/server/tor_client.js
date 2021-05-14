@@ -4,6 +4,7 @@ const os = require('os');
 const rp = require('request-promise');
 
 class TorClient {
+    /*
     torConfig = {
         ip: 'localhost',
         port: 9050,
@@ -15,6 +16,7 @@ class TorClient {
         headers: {'':''}
 
     }
+*/
 
     constructor(ip, port, controlPassword, controlPort){
         
@@ -146,7 +148,7 @@ class TorClient {
         }
     }
 
-    get = async (path, params, endpoint) => {
+    async get (path, params, endpoint) {
         let url = endpoint;
         if (path){
             url = url + "/" + path.replace(/^\/+/, '');;
@@ -174,7 +176,7 @@ class TorClient {
         return result;
     }
 
-    post = async (path, body, endpoint) => {
+    async post(path, body, endpoint) {
         let url = endpoint + "/" + path.replace(/^\/+/, '');;
         const rp_options = {
             method: 'POST',

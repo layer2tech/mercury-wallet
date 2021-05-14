@@ -67,7 +67,7 @@ export class Wallet {
     this.activity = new ActivityLog();
     this.electrum_client = config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     this.conductor_client = new MockHttpClient();
-    
+
     console.log("starting wallet http client with se endpoint: " + this.config.state_entity_endpoint);
     if(this.config.state_entity_endpoint.endsWith(".onion")) {
       this.http_client = new HttpClient('http://localhost:3001', true);
