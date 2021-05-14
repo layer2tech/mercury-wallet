@@ -107,11 +107,9 @@ const exec = require('child_process').exec;
 
   fixPath();
   
-  //console.log("starting tor")
   let tor = exec("tor", {
        detached: true,
         stdio: 'ignore',
-       // shell: '/bin/bash'
   });
   tor.unref()
 
@@ -121,13 +119,11 @@ const exec = require('child_process').exec;
   
   
     
-  //let tor_adapter = exec(`node ${__dirname}/tor-adapter/server/index.js&`,
   let tor_adapter = exec(`npm --prefix ${__dirname}/tor-adapter start`,
     {
     detached: true,
     stdio: 'ignore',
-    //shell: '/bin/bash'
-    });
+      });
     tor_adapter.unref();
 
     tor_adapter.stdout.on("data", function(data) {
