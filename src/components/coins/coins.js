@@ -122,7 +122,7 @@ const Coins = (props) => {
         const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsByStatus.length}));
       } else {
-        const coinsNotWithdraw = coins_data.filter(coin => coin.status !== STATECOIN_STATUS.WITHDRAWN)
+        const coinsNotWithdraw = coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER));
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
@@ -187,7 +187,7 @@ const Coins = (props) => {
 
     // Filter coins by status
     if(filterBy === 'default') {
-      all_coins_data = all_coins_data.filter(coin => coin.status !== STATECOIN_STATUS.WITHDRAWN)
+      all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER))
     } else {
       if(filterBy === STATECOIN_STATUS.WITHDRAWN) {
         all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.WITHDRAWN);

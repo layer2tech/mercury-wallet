@@ -16,11 +16,11 @@ import './coinStatus.css';
 const STATECOIN_STATUS_INFO = {
   [STATECOIN_STATUS.IN_TRANSFER]: {
     icon: <InTransferIcon />,
-    title: 'Send Pending'
+    title: 'Transferred'
   },
   [STATECOIN_STATUS.IN_MEMPOOL]: {
     icon: <InMempoolIcon />,
-    title: 'Transaction in Mempool'
+    title: 'In Mempool'
   },
   [STATECOIN_STATUS.UNCONFIRMED]: {
     icon: <UnconfirmedConfirmIcon />,
@@ -133,7 +133,7 @@ const CoinStatus = (props) => {
             }}
           >
             <div className="coin-status-copy-code">
-              Copy Transfer Code
+              Copy Code
             </div>
           </CopiedButton>
         )}
