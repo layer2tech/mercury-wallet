@@ -5,6 +5,7 @@ const isDev = require('electron-is-dev');
 const url = require('url');
 const fs = require('fs');
 const fixPath = require('fix-path');
+const alert = require('alert');
 
 let mainWindow;
 
@@ -105,14 +106,13 @@ const exec = require('child_process').exec;
 
 fixPath();
 
-let tor_adapter = exec(`npm --prefix ${__dirname}/..//public/tor-adapter start`,
+let tor_adapter = exec(`npm --prefix ${__dirname}/tor-adapter start`,
 {
 detached: true,
 stdio: 'ignore',
   },
   (error) => {
     if(error){
-      alert(`${error}`);
       app.exit(error);
     };
   }
