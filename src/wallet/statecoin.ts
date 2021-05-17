@@ -23,8 +23,9 @@ export class StateCoinList {
       coin.wallet_version = "";
 
       // re-build tx_backup as Transaction
-      if (item.tx_backup!==undefined) {
+      if (item.tx_backup!==undefined && item.tx_backup !== null) {
         let tx_backup_any: any = item.tx_backup;
+        console.log('tx_backup_any = ' + tx_backup_any);
         let tx_backup = new Transaction();
         tx_backup.version = tx_backup_any.version;
         tx_backup.locktime = tx_backup_any.locktime;
