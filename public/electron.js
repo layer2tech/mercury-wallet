@@ -130,29 +130,35 @@ tor_adapter.stderr.on("data", function(data) {
 //Check if tor is running
 let isTorRunning=true;
 let tor;
+console.log("Checking if tor is running on port 9050...");
 exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs", 
 (_error, stdout, _stderr) => {
-  if (stdout.length === 0){
-    isTorRunning=false;
-    tor = exec("tor", {
-      detached: true,
-       stdio: 'ignore',
-     },  (error) => {
+    if (stdout.length <= 2){
+	console.log("tor is not running on port 9050");
+	isTorRunning=false;
+	console.log("starting tor...");
+	tor = exec("tor", {
+	    detached: true,
+	    stdio: 'ignore',
+	},  (error) => {
        if(error){
          alert(`${error}`);
          app.exit(error);
        };
-     }
-   );
+    });
    tor.unref();
    tor.stdout.on("data", function(data) {
    console.log("tor stdout: " + data.toString());  
-   });
+   }
+		);
  
    tor.stderr.on("data", function(data) {
      console.log("tor stderr: " + data.toString());
    });
-  }
+	} else {
+	    console.log("tor is running on port 9050");
+	}
+
 });
 
 app.on('exit', (error) => {
