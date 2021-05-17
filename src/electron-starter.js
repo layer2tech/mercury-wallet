@@ -118,8 +118,8 @@ Store.initRenderer();
 const exec = require('child_process').exec;
 
 fixPath();
-
-let tor_adapter = exec(`npm --prefix ${__dirname}/..//public/tor-adapter start`,
+console.log(`starting tor adapter from: ${__dirname}`);
+let tor_adapter = exec(`npm --prefix ${__dirname}/../public/tor-adapter start`,
 {
 detached: true,
 stdio: 'ignore',

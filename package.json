@@ -138,7 +138,7 @@
     "afterSign": "./afterSignHook.js",
     "mac": {
       "category": "public.app-category.utilities",
-      "hardenedRuntime": false,
+      "hardenedRuntime": true,
       "entitlements": "./node_modules/electron-builder-notarize/entitlements.mac.inherit.plist",
       "icon": "./public/icons/mercury-symbol-tri-color.icns"
     },
