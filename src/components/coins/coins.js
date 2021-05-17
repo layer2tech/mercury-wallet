@@ -14,6 +14,7 @@ import timeIcon from "../../images/time.png";
 
 import React, {useState, useEffect, useRef} from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
+import { Link } from 'react-router-dom';
 import {Button, Modal} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
@@ -294,6 +295,29 @@ const Coins = (props) => {
           </div>
         </div>
     )})
+
+    if(!all_coins_data.length) {
+      return (
+        <div className="empty-coin-list">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9.9999 19.9998C4.48594 19.9998 0 15.5139 0 9.9999C0 4.48594 4.48594 0 9.9999 0C15.5139 0 19.9998 4.48594 19.9998 9.9999C19.9998 15.5139 15.5139 19.9998 9.9999 19.9998ZM9 12.9996V15.0003H10.9998V12.9996H9ZM9 5.0004V10.9998H10.9998V5.0004H9Z"
+              fill="#E0E0E0"
+            />
+          </svg>
+          <div className="empty-message">
+            <b>Your wallet is empty.</b> <Link to="/deposit" >Deposit BTC</Link>
+            <br/> to create new Statecoin UTXO's
+          </div>
+        </div>
+      );
+    }
 
     return (
         <div 
