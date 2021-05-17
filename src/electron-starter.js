@@ -24,6 +24,10 @@ function createWindow() {
       }
     );
 
+    if (process.platform !== 'darwin') {
+	mainWindow.setMenu(null);
+    }
+    
     // Open links in systems default browser
     mainWindow.webContents.on('new-window', function(e, url) {
       e.preventDefault();
@@ -49,10 +53,7 @@ function createWindow() {
     })
 }
 
-if (process.platform !== 'darwin') {
-  const Menu = electron.Menu;
-  Menu.setApplicationMenu(false);
-}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.

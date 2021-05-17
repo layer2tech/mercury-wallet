@@ -22,6 +22,10 @@ function createWindow() {
       }
     });
 
+  if (process.platform !== 'darwin') {
+        mainWindow.setMenu(null);
+  }
+    
   // Open links in systems default browser
   mainWindow.webContents.on('new-window', function(e, url) {
     e.preventDefault();
@@ -43,11 +47,6 @@ function createWindow() {
     tor.kill();
     tor_adapter.kill();
   });
-}
-
-if (process.platform !== 'darwin') {
-  const Menu = electron.Menu;
-  Menu.setApplicationMenu(false);
 }
 
 app.on('ready', createWindow);
