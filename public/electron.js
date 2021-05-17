@@ -113,7 +113,6 @@ stdio: 'ignore',
   },
   (error) => {
     if(error){
-      alert(`${error}`);
       app.exit(error);
     };
   }
