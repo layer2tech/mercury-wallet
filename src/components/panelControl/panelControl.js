@@ -48,7 +48,7 @@ const PanelControl = () => {
       case FILTER_BY_OPTION[1].value:
         return return_str+ " withdrawn from Wallet";
       case FILTER_BY_OPTION[2].value:
-        return return_str+ " in transfer process";
+        return return_str+ " transferred";
     }
   }
 

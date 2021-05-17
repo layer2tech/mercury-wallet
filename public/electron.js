@@ -4,6 +4,8 @@ const path = require('path');
 const isDev = require('electron-is-dev');
 const url = require('url');
 const fs = require('fs');
+const fixPath = require('fix-path');
+const alert = require('alert');
 
 let mainWindow;
 
@@ -21,6 +23,10 @@ function createWindow() {
       }
     });
 
+  if (process.platform !== 'darwin') {
+        mainWindow.setMenu(null);
+  }
+    
   // Open links in systems default browser
   mainWindow.webContents.on('new-window', function(e, url) {
     e.preventDefault();
@@ -37,12 +43,11 @@ function createWindow() {
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
-  mainWindow.on('closed', () => mainWindow = null);
-}
-
-if (process.platform !== 'darwin') {
-  const Menu = electron.Menu;
-  Menu.setApplicationMenu(false);
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+    tor.kill();
+    tor_adapter.kill();
+  });
 }
 
 app.on('ready', createWindow);
@@ -51,6 +56,8 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+  tor.kill();
+  tor_adapter.kill();
 });
 
 app.on('activate', () => {
@@ -68,7 +75,7 @@ ipcMain.on('select-dirs', async (event, arg) => {
     ]
   }
 
-  let saveDialog = dialog.showSaveDialog(mainWindow, options);
+let saveDialog = dialog.showSaveDialog(mainWindow, options);
   saveDialog.then(function(saveTo) {
     fs.writeFile(saveTo.filePath, JSON.stringify(arg) , (err) => {
         if(err){
@@ -93,3 +100,81 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 // Electron Store
 const Store = require('electron-store');
 Store.initRenderer();
+
+
+const exec = require('child_process').exec;
+
+fixPath();
+
+let tor_adapter = exec(`npm --prefix ${__dirname}/tor-adapter start`,
+{
+detached: true,
+stdio: 'ignore',
+  },
+  (error) => {
+    if(error){
+      app.exit(error);
+    };
+  }
+);
+tor_adapter.unref();
+
+tor_adapter.stdout.on("data", function(data) {
+  console.log("tor adapter stdout: " + data.toString());
+});
+
+tor_adapter.stderr.on("data", function(data) {
+  console.log("tor adapter stderr: " + data.toString());
+});
+  
+//Check if tor is running
+let isTorRunning=true;
+let tor;
+console.log("Checking if tor is running on port 9050...");
+exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs", 
+(_error, stdout, _stderr) => {
+    if (stdout.length <= 2){
+	console.log("tor is not running on port 9050");
+	isTorRunning=false;
+	console.log("starting tor...");
+	tor = exec("tor", {
+	    detached: true,
+	    stdio: 'ignore',
+	},  (error) => {
+       if(error){
+         alert(`${error}`);
+         app.exit(error);
+       };
+    });
+   tor.unref();
+   tor.stdout.on("data", function(data) {
+   console.log("tor stdout: " + data.toString());  
+   }
+		);
+ 
+   tor.stderr.on("data", function(data) {
+     console.log("tor stderr: " + data.toString());
+   });
+	} else {
+	    console.log("tor is running on port 9050");
+	}
+
+});
+
+app.on('exit', (error) => {
+  console.log('calling exit');
+  tor_adapter.kill();
+  if(!isTorRunning){
+    tor.kill();
+  }
+});
+
+app.on('close', (error) => {
+  console.log('calling close');
+  tor_adapter.kill();
+  if(!isTorRunning){
+    tor.kill();
+  }
+});
+
+  

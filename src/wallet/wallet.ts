@@ -67,10 +67,10 @@ export class Wallet {
     this.activity = new ActivityLog();
     this.electrum_client = config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     this.conductor_client = new MockHttpClient();
-    
+
     console.log("starting wallet http client with se endpoint: " + this.config.state_entity_endpoint);
     if(this.config.state_entity_endpoint.endsWith(".onion")) {
-      this.http_client = new HttpClient('http://localhost:3001');
+      this.http_client = new HttpClient('http://localhost:3001', true);
       let tor_config = {
         tor_proxy: this.config.tor_proxy,
         state_entity_endpoint: this.config.state_entity_endpoint
@@ -81,7 +81,7 @@ export class Wallet {
     }
         
     if(this.config.swap_conductor_endpoint.endsWith(".onion")) {
-      this.conductor_client = new HttpClient('http://localhost:3001');
+      this.conductor_client = new HttpClient('http://localhost:3001', true);
       let tor_config = {
         tor_proxy: this.config.tor_proxy,
         swap_conductor_endpoint: this.config.swap_conductor_endpoint

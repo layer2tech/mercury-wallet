@@ -208,6 +208,21 @@
 .widthdrawn-status svg {
   margin-right: 7px;
 }
+.empty-coin-list {
+  padding: 40px 0;
+  color: #979797;
+}
+.empty-coin-list b {
+  color: #000;
+  font-weight: normal;
+}
+.empty-coin-list a {
+  text-decoration: underline;
+}
+.empty-coin-list svg {
+  transform: scale(1.5);
+  margin: 20px 0;
+}
 
 @media only screen and (max-width: 768px) {
   .CoinPanel {
@@ -231,4 +246,26 @@
 
 .main-coin-wrap.no-coin {
   min-height: 50px;
+}
+.coin-item.SWAPLIMIT {
+  opacity: .3;
+}
+.main-coin-wrap.small-screen .coin-item .CoinPanel {
+  display: block;
+  position: relative;
+}
+.main-coin-wrap.small-screen .coin-item .CoinPanel .CoinAmount-block {
+  width: 100%;
+}
+.main-coin-wrap.small-screen .coin-item .CoinPanel .CoinAmount-block img {
+  margin-right: 10px;
+}
+.main-coin-wrap.small-screen .coin-item .CoinPanel .progress_bar {
+  width: 100%;
+}
+.main-coin-wrap.small-screen .coin-item .CoinPanel .coin-status-or-txid {
+  position: absolute;
+  right: 10px;
+  top: 25px;
+  width: max-content;
 }

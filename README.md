@@ -82,8 +82,6 @@ issue cargo/wasm build in container again.
 
 ## Connecting via a tor node
 
-The [mercury-wallet-tor-adapter](https://github.com/layer2tech/mercury-wallet-tor-adapter) and a tor node must be running.
-
 Configure the tor proxy settings either in the settings.json file as described above if running in develop mode, or using the "settings" page in the app. Click "save" in order for the settings to take effect.
 
 The API calls will be routed via the tor node if a .onion address is used as the state entity or swap protocol endpoint. A new tor circuit will be obtained after each API call.
