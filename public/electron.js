@@ -52,6 +52,7 @@ app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    kill_tor();
     app.quit();
   }
 });
@@ -159,11 +160,15 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 
 
 function on_exit(){
+  kill_tor();
+  process.exit(0)
+}
+
+function kill_tor(){
   tor_adapter.kill("SIGINT");
   if(tor){
     tor.kill("SIGINT");
   }
-  process.exit(0)
 }
 
 process.on('SIGINT',on_exit);
