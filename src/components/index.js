@@ -23,6 +23,7 @@ export { default as CreateWizardForm } from "./createWizardForm/createWizardForm
 export { default as PanelControl } from "./panelControl/panelControl";
 export { default as PanelConnectivity } from "./panelConnectivity/panelConnectivity";
 export { default as PanelCoinsActivity } from "./panelCoinsActivity/panelCoinsActivity";
+export { default as Tutorial } from "./Tutorial";
 
 export { default as Coins } from "./coins/coins";
 export { default as Swaps } from "./swaps/swaps";

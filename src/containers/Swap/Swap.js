@@ -4,9 +4,17 @@ import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 import React, {useState, useEffect} from 'react';
 
-import { Coins, Swaps, StdButton} from "../../components";
-import {isWalletLoaded, setNotification, setError, callDoSwap, callSwapDeregisterUtxo,
-  callGetSwapGroupInfo, callUpdateSwapGroupInfo} from '../../features/WalletDataSlice'
+import { Coins, Swaps, StdButton, Tutorial} from "../../components";
+import {
+  isWalletLoaded,
+  setNotification,
+  setError,
+  callDoSwap,
+  callSwapDeregisterUtxo,
+  callGetSwapGroupInfo,
+  callUpdateSwapGroupInfo,
+  callGetConfig
+} from "../../features/WalletDataSlice";
 import {fromSatoshi} from '../../wallet'
 
 import './Swap.css';
@@ -76,90 +84,94 @@ const SwapPage = () => {
         setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
       }
     );
-      
-      
+  }
+  const leavePoolButtonAction = (event) => {
+    if (selectedCoins.length == 0) {
+      dispatch(setError({msg: "Please choose a StateCoin to remove."}))
+      return
     }
-
-    const leavePoolButtonAction = (event) => {
-      if (selectedCoins.length == 0) {
-        dispatch(setError({msg: "Please choose a StateCoin to remove."}))
-        return
-      }
-      try {
-        selectedCoins.forEach(
-          (selectedCoin) => {
-            dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}));
-          }
-        );
-        // Refresh Coins list
-        setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
-      } catch (e) {
-        event.preventDefault();
-        dispatch(setError({msg: e.message}))
-      }
+    try {
+      selectedCoins.forEach(
+        (selectedCoin) => {
+          dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}));
+        }
+      );
+      // Refresh Coins list
+      setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
+    } catch (e) {
+      event.preventDefault();
+      dispatch(setError({msg: e.message}))
     }
-
+  }
+  let current_config;
+  try {
+    current_config = callGetConfig();
+  } catch(error) {
+    console.warn('Can not get config', error)
+  }
 
   return (
       <div className="container ">
       {disabled===true ?
           <p> Swapping is currenlty not available. </p>
           :
-
-          <div className="Body swap">
-              <div className="swap-header">
-                  <h2 className="WalletAmount">
-                      <img src={swapIcon} alt="swapIcon"/>
-                      Swap Statecoins
-                  </h2>
-                  <div>
-                      <Link className="nav-link" to="/home">
-                          <StdButton
-                              label="Back"
-                              className="Body-button transparent"/>
-                      </Link>
-                  </div>
-              </div>
-
-          <div className="swap content">
-              <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Swap Statecoins to increase their Privacy Score</h3>
-                      <span className="sub">Click to select UTXO’s below</span>
-                      <Coins
-                        displayDetailsOnClick={false}
-                        showCoinStatus={true}
-                        selectedCoins={selectedCoins}
-                        setSelectedCoin={addSelectedCoin}
-                        setSelectedCoins={setSelectedCoins}
-                        refresh={refreshCoins}
-                        swap
-                      />
-                  </div>
-
-              </div>
-              <div className="Body right">
-                  <div>
-                      <Swaps
-                        swapGroupsData={swapGroupsData}
-                        displayDetailsOnClick={false}
-                        selectedSwap={selectedSwap}
-                        setSelectedSwap={setSelectedSwap}
-                      />
-                  </div>
-                  {swapGroupsData.length ? (
-                    <div className="swap-footer-btns">
-                      <button type="button" className="btn" onClick={swapButtonAction}>
-                        Join Group
-                      </button>
-                      <button type="button" className="btn" onClick={leavePoolButtonAction}>
-                        Leave Group
-                      </button>
+          <>
+            <div className="Body swap">
+                <div className="swap-header">
+                    <h2 className="WalletAmount">
+                        <img src={swapIcon} alt="swapIcon"/>
+                        Swap Statecoins
+                    </h2>
+                    <div>
+                        <Link className="nav-link" to="/home">
+                            <StdButton
+                                label="Back"
+                                className="Body-button transparent"/>
+                        </Link>
                     </div>
-                  ) : null}
-              </div>
+                </div>
+
+            <div className="swap content">
+                <div className="Body left ">
+                    <div>
+                        <h3 className="subtitle">Swap Statecoins to increase their Privacy Score</h3>
+                        <span className="sub">Click to select UTXO’s below</span>
+                        <Coins
+                          displayDetailsOnClick={false}
+                          showCoinStatus={true}
+                          selectedCoins={selectedCoins}
+                          setSelectedCoin={addSelectedCoin}
+                          setSelectedCoins={setSelectedCoins}
+                          refresh={refreshCoins}
+                          swap
+                        />
+                    </div>
+
+                </div>
+                <div className="Body right">
+                    <div>
+                        <Swaps
+                          swapGroupsData={swapGroupsData}
+                          displayDetailsOnClick={false}
+                          selectedSwap={selectedSwap}
+                          setSelectedSwap={setSelectedSwap}
+                        />
+                    </div>
+                    {swapGroupsData.length ? (
+                      <div className="swap-footer-btns">
+                        <button type="button" className="btn" onClick={swapButtonAction}>
+                          Join Group
+                        </button>
+                        <button type="button" className="btn" onClick={leavePoolButtonAction}>
+                          Leave Group
+                        </button>
+                      </div>
+                    ) : null}
+                </div>
+            </div>
           </div>
-        </div>
+          {current_config?.tutorials && <Tutorial />}
+        </>
       }
       </div>
   )
