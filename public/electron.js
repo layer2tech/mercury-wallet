@@ -44,11 +44,8 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
   mainWindow.on('closed', () => {
+    console.log('main window closed');
     mainWindow = null;
-    if(tor){
-      tor.kill();
-    }
-    tor_adapter.kill();
   });
 }
 
@@ -58,10 +55,6 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
-  if(tor){
-    tor.kill();
-  }
-  tor_adapter.kill();
 });
 
 app.on('activate', () => {
@@ -113,7 +106,7 @@ fixPath();
 //let tor_adapter = exec(`npm --prefix ${__dirname}/../node_modules/tor-adapter start`,
 let tor_adapter = exec(`node ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
 {
-detached: true,
+detached: false,
 stdio: 'ignore',
   },
   (error) => {
@@ -122,7 +115,6 @@ stdio: 'ignore',
     };
   }
 );
-tor_adapter.unref();
 
 tor_adapter.stdout.on("data", function(data) {
   console.log("tor adapter stdout: " + data.toString());
@@ -143,7 +135,7 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 	isTorRunning=false;
 	console.log("starting tor...");
 	tor = exec("tor", {
-	    detached: true,
+	    detached: false,
 	    stdio: 'ignore',
 	},  (error) => {
        if(error){
@@ -151,7 +143,7 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
          app.exit(error);
        };
     });
-   tor.unref();
+   
    tor.stdout.on("data", function(data) {
    console.log("tor stdout: " + data.toString());  
    }
@@ -166,20 +158,14 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 
 });
 
-app.on('exit', (error) => {
-  console.log('calling exit');
-  tor_adapter.kill();
-  if(tor){
-    tor.kill();
-  }
-});
 
-app.on('close', (error) => {
-  console.log('calling close');
-  tor_adapter.kill();
+function on_exit(){
+  tor_adapter.kill("SIGINT");
   if(tor){
-    tor.kill();
+    tor.kill("SIGINT");
   }
-});
+  process.exit(0)
+}
 
-  
+process.on('SIGINT',on_exit);
+process.on('exit',on_exit);
