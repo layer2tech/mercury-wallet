@@ -44,15 +44,13 @@ function createWindow() {
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
 
+  mainWindow.on('close', async function () {
+        await kill_tor();
+  });
+
     // Emitted when the window is closed.
-    mainWindow.on('closed', function () {
-      /*
-      console.log("on window closed");
-      tor_adapter.kill("SIGINT");
-      if(tor){
-        tor.kill("SIGINT");
-      }
-      */
+    mainWindow.on('closed', async function () {
+        await kill_tor();
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
@@ -67,14 +65,8 @@ function createWindow() {
 app.on('ready', createWindow);
 
 // Quit when all windows are closed.
-app.on('window-all-closed', function () {
-  /*
-  console.log("on window-all-closed");
-    tor_adapter.kill();
-    if(tor){
-      tor.kill();
-    }
-    */
+app.on('window-all-closed', async function () {
+    await kill_tor();
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -190,40 +182,17 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 
 });
 
-function on_exit(){
-  console.log("on exit");
-  tor_adapter.kill("SIGINT");
-  if(tor){
-    tor.kill("SIGINT");
-  }
+async function on_exit(){
+  await kill_tor();
   process.exit(0)
 }
 
-/*
-app.on('will-quit', () => {
-  console.log("on will-quit");
-  tor_adapter.kill("SIGINT");
+async function kill_tor(){
+  await process.kill(tor_adapter.pid,"SIGINT");
   if(tor){
-    tor.kill("SIGINT");
+    await process.kill(tor.pid,"SIGINT");
   }
-});
-
-app.on('before-quit', () => {
-  console.log("on before-quit");
-  tor_adapter.kill("SIGINT");
-  if(tor){
-    tor.kill("SIGINT");
-  }
-});
-
-app.on('quit', () => {
-  console.log("on quit");
-  tor_adapter.kill("SIGINT");
-  if(tor){
-    tor.kill("SIGINT");
-  }
-});
-*/
+}
 
 process.on('SIGINT',on_exit);
 process.on('exit',on_exit);
