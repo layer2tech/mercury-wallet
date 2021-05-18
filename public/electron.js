@@ -44,7 +44,6 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
   mainWindow.on('closed', () => {
-    console.log('main window closed');
     mainWindow = null;
   });
 }
@@ -169,3 +168,6 @@ function on_exit(){
 
 process.on('SIGINT',on_exit);
 process.on('exit',on_exit);
+process.on('quit',on_exit);
+process.on('will-quit',on_exit);
+

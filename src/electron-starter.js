@@ -68,13 +68,6 @@ app.on('ready', createWindow);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
-  /*
-  console.log("on window-all-closed");
-    tor_adapter.kill();
-    if(tor){
-      tor.kill();
-    }
-    */
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -199,34 +192,10 @@ function on_exit(){
   process.exit(0)
 }
 
-/*
-app.on('will-quit', () => {
-  console.log("on will-quit");
-  tor_adapter.kill("SIGINT");
-  if(tor){
-    tor.kill("SIGINT");
-  }
-});
-
-app.on('before-quit', () => {
-  console.log("on before-quit");
-  tor_adapter.kill("SIGINT");
-  if(tor){
-    tor.kill("SIGINT");
-  }
-});
-
-app.on('quit', () => {
-  console.log("on quit");
-  tor_adapter.kill("SIGINT");
-  if(tor){
-    tor.kill("SIGINT");
-  }
-});
-*/
-
 process.on('SIGINT',on_exit);
 process.on('exit',on_exit);
+process.on('quit',on_exit);
+process.on('will-quit',on_exit);
 
 
 
