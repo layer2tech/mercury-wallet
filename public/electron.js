@@ -44,20 +44,20 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
   
-  mainWindow.on('close', () => {
-    kill_tor();
+  mainWindow.on('close', async () => {
+    await kill_tor();
   });
 
-  mainWindow.on('closed', () => {
-    kill_tor();
+  mainWindow.on('closed', async () => {
+    await kill_tor();
     mainWindow = null;
   });
 }
 
 app.on('ready', createWindow);
 
-app.on('window-all-closed', () => {
-  kill_tor();
+app.on('window-all-closed', async () => {
+  await kill_tor();
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -165,15 +165,15 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 });
 
 
-function on_exit(){
-  kill_tor();
+async function on_exit(){
+  await kill_tor();
   process.exit(0)
 }
 
-function kill_tor(){
-  process.kill(tor_adapter.pid,"SIGINT");
+async function kill_tor(){
+  await process.kill(tor_adapter.pid,"SIGINT");
   if(tor){
-    process.kill(tor.pid,"SIGINT");
+    await process.kill(tor.pid,"SIGINT");
   }
 }
 
