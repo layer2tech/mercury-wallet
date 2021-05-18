@@ -51,6 +51,7 @@ function createWindow() {
 app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
+  kill_tor();
   if (process.platform !== 'darwin') {
     app.quit();
   }
