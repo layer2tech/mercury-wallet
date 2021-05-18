@@ -43,7 +43,13 @@ function createWindow() {
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
+  
+  mainWindow.on('close', () => {
+    kill_tor();
+  });
+
   mainWindow.on('closed', () => {
+    kill_tor();
     mainWindow = null;
   });
 }
