@@ -177,11 +177,15 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 });
 
 function on_exit(){
-    process.kill(tor_adapter.pid, "SIGINT");
-  if(tor){
-    process.kill(tor.pid, "SIGINT");
-  }
+  kill_tor();
   process.exit(0)
+}
+
+function kill_tor(){
+  process.kill(tor_adapter.pid,"SIGINT");
+  if(tor){
+    process.kill(tor.pid,"SIGINT");
+  }
 }
 
 process.on('SIGINT',on_exit);

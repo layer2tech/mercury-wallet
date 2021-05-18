@@ -52,7 +52,6 @@ app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    kill_tor();
     app.quit();
   }
 });
@@ -165,14 +164,11 @@ function on_exit(){
 }
 
 function kill_tor(){
-  tor_adapter.kill("SIGINT");
+  process.kill(tor_adapter.pid,"SIGINT");
   if(tor){
-    tor.kill("SIGINT");
+    process.kill(tor.pid,"SIGINT");
   }
 }
 
 process.on('SIGINT',on_exit);
 process.on('exit',on_exit);
-process.on('quit',on_exit);
-process.on('will-quit',on_exit);
-
