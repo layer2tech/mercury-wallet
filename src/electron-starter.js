@@ -46,13 +46,6 @@ function createWindow() {
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
-      /*
-      console.log("on window closed");
-      tor_adapter.kill("SIGINT");
-      if(tor){
-        tor.kill("SIGINT");
-      }
-      */
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
@@ -184,18 +177,15 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 });
 
 function on_exit(){
-  console.log("on exit");
-  tor_adapter.kill("SIGINT");
+    process.kill(tor_adapter.pid, "SIGINT");
   if(tor){
-    tor.kill("SIGINT");
+    process.kill(tor.pid, "SIGINT");
   }
   process.exit(0)
 }
 
 process.on('SIGINT',on_exit);
 process.on('exit',on_exit);
-process.on('quit',on_exit);
-process.on('will-quit',on_exit);
 
 
 
