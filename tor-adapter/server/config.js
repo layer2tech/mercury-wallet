@@ -1,8 +1,5 @@
 class Config{
-    tor_proxy
-    state_entity_endpoint
-    swap_conductor_endpoint
-
+    
     constructor() {
         this.tor_proxy = {
             ip: 'localhost',

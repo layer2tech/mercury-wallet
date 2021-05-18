@@ -119,7 +119,8 @@ const exec = require('child_process').exec;
 
 fixPath();
 console.log(`starting tor adapter from: ${__dirname}`);
-let tor_adapter = exec(`npm --prefix ${__dirname}/../public/tor-adapter start`,
+//let tor_adapter = exec(`npm --prefix ${__dirname}/../node_modules/mercury-wallet-tor-adapter start`,
+let tor_adapter = exec(`node ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
 {
 detached: true,
 stdio: 'ignore',
@@ -143,7 +144,7 @@ tor_adapter.stderr.on("data", function(data) {
   
 //Check if tor is running
 let isTorRunning=true;
-let tor;
+let tor=undefined;
 console.log("Checking if tor is running on port 9050...");
 exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs", 
 (_error, stdout, _stderr) => {
@@ -178,7 +179,7 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 app.on('exit', (error) => {
   console.log('calling exit');
   tor_adapter.kill();
-  if(!isTorRunning){
+  if(tor){
     tor.kill();
   }
 });
@@ -186,7 +187,7 @@ app.on('exit', (error) => {
 app.on('close', (error) => {
   console.log('calling close');
   tor_adapter.kill();
-  if(!isTorRunning){
+  if(tor){
     tor.kill();
   }
 });
