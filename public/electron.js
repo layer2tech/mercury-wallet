@@ -43,21 +43,24 @@ function createWindow() {
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
-  mainWindow.on('closed', () => {
+  
+  mainWindow.on('close', async () => {
+    await kill_tor();
+  });
+
+  mainWindow.on('closed', async () => {
+    await kill_tor();
     mainWindow = null;
-    tor.kill();
-    tor_adapter.kill();
   });
 }
 
 app.on('ready', createWindow);
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+  await kill_tor();
   if (process.platform !== 'darwin') {
     app.quit();
   }
-  tor.kill();
-  tor_adapter.kill();
 });
 
 app.on('activate', () => {
@@ -106,9 +109,10 @@ const exec = require('child_process').exec;
 
 fixPath();
 
-let tor_adapter = exec(`npm --prefix ${__dirname}/tor-adapter start`,
+//let tor_adapter = exec(`npm --prefix ${__dirname}/../node_modules/tor-adapter start`,
+let tor_adapter = exec(`node ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
 {
-detached: true,
+detached: false,
 stdio: 'ignore',
   },
   (error) => {
@@ -117,7 +121,6 @@ stdio: 'ignore',
     };
   }
 );
-tor_adapter.unref();
 
 tor_adapter.stdout.on("data", function(data) {
   console.log("tor adapter stdout: " + data.toString());
@@ -129,7 +132,7 @@ tor_adapter.stderr.on("data", function(data) {
   
 //Check if tor is running
 let isTorRunning=true;
-let tor;
+let tor = undefined;
 console.log("Checking if tor is running on port 9050...");
 exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs", 
 (_error, stdout, _stderr) => {
@@ -138,7 +141,7 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 	isTorRunning=false;
 	console.log("starting tor...");
 	tor = exec("tor", {
-	    detached: true,
+	    detached: false,
 	    stdio: 'ignore',
 	},  (error) => {
        if(error){
@@ -146,7 +149,7 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
          app.exit(error);
        };
     });
-   tor.unref();
+   
    tor.stdout.on("data", function(data) {
    console.log("tor stdout: " + data.toString());  
    }
@@ -161,20 +164,18 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 
 });
 
-app.on('exit', (error) => {
-  console.log('calling exit');
-  tor_adapter.kill();
-  if(!isTorRunning){
-    tor.kill();
-  }
-});
 
-app.on('close', (error) => {
-  console.log('calling close');
-  tor_adapter.kill();
-  if(!isTorRunning){
-    tor.kill();
-  }
-});
+async function on_exit(){
+  await kill_tor();
+  process.exit(0)
+}
 
-  
+async function kill_tor(){
+  await process.kill(tor_adapter.pid,"SIGINT");
+  if(tor){
+    await process.kill(tor.pid,"SIGINT");
+  }
+}
+
+process.on('SIGINT',on_exit);
+process.on('exit',on_exit);

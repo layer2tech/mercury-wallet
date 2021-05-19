@@ -44,8 +44,13 @@ function createWindow() {
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
 
+  mainWindow.on('close', async function () {
+        await kill_tor();
+  });
+
     // Emitted when the window is closed.
-    mainWindow.on('closed', function () {
+    mainWindow.on('closed', async function () {
+        await kill_tor();
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
@@ -60,7 +65,8 @@ function createWindow() {
 app.on('ready', createWindow);
 
 // Quit when all windows are closed.
-app.on('window-all-closed', function () {
+app.on('window-all-closed', async function () {
+    await kill_tor();
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -119,19 +125,20 @@ const exec = require('child_process').exec;
 
 fixPath();
 console.log(`starting tor adapter from: ${__dirname}`);
-let tor_adapter = exec(`npm --prefix ${__dirname}/../public/tor-adapter start`,
+//let tor_adapter = exec(`npm --prefix ${__dirname}/../node_modules/mercury-wallet-tor-adapter start`,
+let tor_adapter = exec(`node ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
 {
-detached: true,
+detached: false,
 stdio: 'ignore',
   },
   (error) => {
     if(error){
-      alert(`${error}`);
+      //alert(`${error}`);
       app.exit(error);
     };
   }
 );
-tor_adapter.unref();
+
 
 tor_adapter.stdout.on("data", function(data) {
   console.log("tor adapter stdout: " + data.toString());
@@ -143,7 +150,7 @@ tor_adapter.stderr.on("data", function(data) {
   
 //Check if tor is running
 let isTorRunning=true;
-let tor;
+let tor=undefined;
 console.log("Checking if tor is running on port 9050...");
 exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs", 
 (_error, stdout, _stderr) => {
@@ -152,7 +159,7 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 	isTorRunning=false;
 	console.log("starting tor...");
 	tor = exec("tor", {
-	    detached: true,
+	    detached: false,
 	    stdio: 'ignore',
 	},  (error) => {
        if(error){
@@ -160,7 +167,7 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
          app.exit(error);
        };
     });
-   tor.unref();
+   
    tor.stdout.on("data", function(data) {
    console.log("tor stdout: " + data.toString());  
    }
@@ -175,18 +182,20 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 
 });
 
-app.on('exit', (error) => {
-  console.log('calling exit');
-  tor_adapter.kill();
-  if(!isTorRunning){
-    tor.kill();
-  }
-});
+async function on_exit(){
+  await kill_tor();
+  process.exit(0)
+}
 
-app.on('close', (error) => {
-  console.log('calling close');
-  tor_adapter.kill();
-  if(!isTorRunning){
-    tor.kill();
+async function kill_tor(){
+  await process.kill(tor_adapter.pid,"SIGINT");
+  if(tor){
+    await process.kill(tor.pid,"SIGINT");
   }
-});
+}
+
+process.on('SIGINT',on_exit);
+process.on('exit',on_exit);
+
+
+
