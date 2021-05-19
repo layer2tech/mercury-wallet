@@ -1,0 +1,76 @@
+.container-with-tutorials {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0 20px;
+}
+.container-with-tutorials .tutorial-page {
+  width: 30%;
+  flex-direction: column;
+  justify-content: flex-start;
+  border: 1px solid rgba(0, 0, 0, 0.121569);
+  border-radius: 4px;
+}
+.tutorial-page * {
+  box-sizing: border-box;
+  font-family: Roboto;
+}
+.tutorial-page {
+  display: flex;
+  padding: 20px;
+  background-color: #fff;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.tutorial-page .tutorial-media {
+  margin-right: 35px;
+}
+.container-with-tutorials .tutorial-media {
+  margin: 0 auto;
+}
+.tutorial-page .tutorial-content {
+  position: relative;
+  margin-top: 30px;
+}
+.tutorial-page .tutorial-content .title {
+  text-align: left;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 24px;
+  letter-spacing: 0.15px;
+}
+.tutorial-page .tutorial-content .sub-title,
+.tutorial-page .tutorial-content p {
+  text-align: left;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.252px;
+  color: rgba(0, 0, 0, 0.6);
+}
+.tutorial-page .tutorial-content .tutorial-btns {
+  display: block;
+  text-align: right;
+  margin-top: 30px;
+}
+.tutorial-page .tutorial-content .tutorial-btns button {
+  border: none;
+  outline: none;
+  color: #0054F4;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 16px;
+  letter-spacing: 1.246px;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  background: #fff;
+}
+.hide-tutorial {
+  display: none;
+}
+.container-with-tutorials .tutorial-btns button {
+  display: none;
+}
+.container-with-tutorials .tutorial-btns button.hide-tutorial {
+  display: inline-block;
+  padding: 0;
+}
