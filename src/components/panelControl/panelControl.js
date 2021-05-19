@@ -53,7 +53,7 @@ const PanelControl = () => {
   }
 
   return (
-    <div className="Body">
+    <div className="Body panelControl">
       <h2 className="WalletAmount">
           <img src={walletIcon} alt="walletIcon"/>
           {fromSatoshi(balance_info.total_balance)} BTC
@@ -64,20 +64,17 @@ const PanelControl = () => {
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
 
-          <Link className="nav-link" to="/deposit">
+          <Link to="/deposit">
               <StdButton
                   label="Deposit"  icon={pluseIcon}
                   className="Body-button blue"/>
           </Link>
-
-          <Link className="nav-link" to="/swap_statecoin">
+          <Link to="/swap_statecoin">
             <StdButton
                 label="Swap" icon={swapIcon}
-
                 className="Body-button blue"/>
           </Link>
-
-          <Link className="nav-link" to="/withdraw">
+          <Link to="/withdraw">
             <StdButton
                 label="Withdraw" icon={walletIconSmall}
                 className="Body-button yellow"/>
@@ -86,20 +83,16 @@ const PanelControl = () => {
         </div>
         <div className="ActionGroupRight">
 
-          <Link className="nav-link" to="/send_statecoin">
+          <Link to="/send_statecoin">
             <StdButton
                 label="Send" icon={arrowUp}
-
                 className="Body-button "/>
           </Link>
-          <Link className="nav-link" to="/receive_statecoin">
+          <Link to="/receive_statecoin">
             <StdButton
                 label="Receive" icon={arrowDown}
-
                 className="Body-button"/>
           </Link>
-
-
         </div>
       </div>
     </div>
