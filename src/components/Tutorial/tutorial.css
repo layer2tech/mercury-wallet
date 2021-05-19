@@ -21,6 +21,8 @@
   background-color: #fff;
   align-items: flex-start;
   justify-content: space-between;
+  margin-bottom: 20px;
+  border-radius: 4px;
 }
 .tutorial-page .tutorial-media {
   margin-right: 35px;
