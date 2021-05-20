@@ -1,9 +1,8 @@
-.swap .subtitle{
-    text-align: left;
-    margin-left: 55px;
-    font-size: 20px;
-    font-weight: 400;
-
+.wallet-container {
+    padding: 34px 20px;
+    background: #FFFFFF;
+    border-radius: 4px;
+    margin-bottom: 20px;
 }
 
 
@@ -47,6 +46,26 @@ input {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.swap-header .subtitle{
+    font-size: 20px;
+    line-height: 26px;
+    letter-spacing: 0.36px;
+    color: rgba(0, 0, 0, 0.6);
+    font-weight: normal;
+    margin: 0 0 0 44px;
+}
+
+.swap-header h2 {
+    font-weight: 500;
+    font-size: 34px;
+    line-height: 36px;
+    letter-spacing: 0.255px;
+    color: rgba(0, 0, 0, 0.870588);
+}
+.swap-header svg {
+    margin-right: 13px;
 }
 
 /* Create the indicator (the dot/circle - hidden when not checked) */
