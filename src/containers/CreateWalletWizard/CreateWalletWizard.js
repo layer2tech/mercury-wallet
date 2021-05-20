@@ -67,6 +67,7 @@ const CreateWizardPage = (props) => {
             onSubmit={() => handleSubmit()}
             setStateWalletName={setStateWalletName}
             setStateWalletPassword={setStateWalletPassword}
+            submitTitle="Create"
           />
         )
       case 2:
@@ -95,11 +96,6 @@ const CreateWizardPage = (props) => {
         current={step}
       />
       {Component()}
-      <div className="btns">
-        <Link to="/" >
-          go back
-        </Link>
-      </div>
     </div>
   )
 }

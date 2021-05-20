@@ -5,12 +5,6 @@
     padding-bottom: 90px;
 
 }
-.memory-form .back {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-
-}
 .memory-form .inputs-item input {
     position: relative;
     opacity: 1;
@@ -61,15 +55,6 @@
     text-align: left;
 }
 
-.memory-form a, .memory-form a:hover {
-    background-color: #0F54F4;
-    border: none;
-    color:#ffffff;
-    text-transform: uppercase;
-    font-size: 14px;
-    border-radius: 8px;
-    padding: 5px 30px;
-}
 .memory-form select {
     position: relative;
     opacity: 1;
@@ -78,4 +63,9 @@
     margin-bottom: 15px;
     border: 1px solid #D7D7D7;
     border-radius: 6px !important;
+}
+.memory-form .footer-btns {
+    width: 350px;
+    margin: 0 auto;
+    text-align: right;
 }

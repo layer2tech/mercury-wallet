@@ -59,15 +59,8 @@ p {
 
 }
 .send, .send:hover {
-    font-size: 14px;
-    text-transform: uppercase;
-    background-color: #0F54F4;
-    color: #ffffff;
-    padding: 5px 10px;
-    border-radius: 6px;
     float: right;
     display: block;
-    width: 88px;
     margin-top: 30px;
 }
 
