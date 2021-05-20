@@ -61,24 +61,3 @@ input[type='checkbox'], input[type='radio'] {
     display: flex;
     justify-content: flex-end;
 }
-.welcome-second .btns a {
-    color: #0F54F4;
-    font-size: 14px;
-    text-transform: uppercase;
-    padding: 5px 10px;
-    border-radius: 6px;
-    margin-left: 20px;
-    margin-top: 30px;
-}
-.welcome-second .btns a.send {
-    background-color: #0F54F4;
-    color: #ffffff;
-    padding: 5px 10px;
-}
-
-.welcome-second .btns a.send.disabled {
-    background-color: #afc2ef;
-    color: #ffffff;
-    cursor: not-allowed;
-    pointer-events: none;
-}

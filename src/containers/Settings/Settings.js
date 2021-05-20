@@ -105,7 +105,7 @@ const SettingsPage = (props) => {
                       Settings
                   </h2>
                   <div>
-                      <Link className="nav-link" to="/home">
+                      <Link to="/home">
                           <StdButton
                               label="Back"
                               className="Body-button transparent"/>
@@ -113,20 +113,20 @@ const SettingsPage = (props) => {
                   </div>
 
               </div>
-              <div className="buttons">
+              <div className="wrap-btns">
                 <StdButton
                   label="Create wallet backup"
-                  className="Body-button blue"
+                  className="primary-btn blue"
                   onClick={() => setOpenBackupModal(true)}
                 />
                 <Link to="backup_tx">
                   <StdButton
                       label="Manage Back-up transactions"
-                      className="Body-button blue"/>
+                      className="primary-btn blue"/>
                 </Link>
                 <StdButton
                     label="Export activity log"
-                    className="Body-button bg-transparent"/>
+                    className="primary-btn ghost"/>
               </div>
           </div>
           <div className="Body settings">
@@ -224,13 +224,13 @@ const SettingsPage = (props) => {
               <div className="action-btns">
                   <button
                     type="button"
-                    className="Body-button bg-transparent"
+                    className="primary-btn-link back"
                     onClick={cancelButtonOnClick}>
                       Cancel
                   </button>
                   <button
                     type="button"
-                    className="Body-button blue"
+                    className="primary-btn blue"
                     onClick={saveButtonOnClick}>
                       Save
                   </button>

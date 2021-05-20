@@ -1,18 +1,23 @@
+.Body.settings {
+    padding: 40px 36px 4px 36px
+}
 .settings .subtitle {
     color: #676767;
     font-size: 20px;
     text-align: left;
     font-weight: 400;
     padding-left: 62px;
-
 }
 
-.settings .buttons {
+.settings .wrap-btns {
     display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
-
-.settings .buttons button {
-    margin-top: 0;
+.settings .wrap-btns button {
+    margin-right: 20px;
+    margin-bottom: 15px;
 }
 
 .settings .content .inputs .inputs-item input, .content .btns-radios input {
@@ -113,8 +118,8 @@ input.quantity {
 }
 
 .action-btns {
-    display: flex;
-    justify-content: flex-end;
+    text-align: right;
+    margin-bottom: 20px;
 }
 
 .action-btns .Body-button.bg-transparent {
