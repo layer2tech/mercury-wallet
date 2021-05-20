@@ -111,30 +111,32 @@ const SwapPage = () => {
   }
 
   return (
+    <div className={`${current_config?.tutorials ? 'container-with-tutorials' : ''}`}>
       <div className="container ">
       {disabled===true ?
           <p> Swapping is currenlty not available. </p>
           :
           <>
-            <div className="Body swap">
-                <div className="swap-header">
+            <div className="swap">
+              <div className="wallet-container swap-header">
+                  <div>
                     <h2 className="WalletAmount">
-                        <img src={swapIcon} alt="swapIcon"/>
+                      <svg width="30" height="41" viewBox="0 0 30 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14.8848 6.31494V0.98291L7.77685 8.09131L14.8848 15.2007V9.86866C20.7773 9.86866 25.5483 14.6401 25.5483 20.5327C25.5483 22.3364 25.0967 24.0239 24.3135 25.5171L26.9092 28.1118C28.2861 25.9087 29.1045 23.3228 29.1045 20.5327C29.1045 12.6763 22.7412 6.31496 14.8848 6.31496L14.8848 6.31494ZM14.8848 31.1968C8.99414 31.1968 4.22119 26.4253 4.22119 20.5327C4.22119 18.7271 4.67432 17.0415 5.45605 15.5483L2.86181 12.9517C1.48486 15.1567 0.666992 17.7427 0.666992 20.5327C0.666992 28.3882 7.03027 34.7505 14.8848 34.7505V40.0825L21.9946 32.9741L14.8848 25.8647V31.1968Z" fill="#0054F4" />
+                      </svg>
                         Swap Statecoins
                     </h2>
+                    <h3 className="subtitle">Swap Statecoins to increase their Privacy Score</h3>
+                  </div>
+                  <Link className="nav-link" to="/home">
+                      <StdButton
+                          label="Back"
+                          className="Body-button transparent"/>
+                  </Link>
+              </div>
+              <div className="swap content">
+                <div className="wallet-container left ">
                     <div>
-                        <Link className="nav-link" to="/home">
-                            <StdButton
-                                label="Back"
-                                className="Body-button transparent"/>
-                        </Link>
-                    </div>
-                </div>
-
-            <div className="swap content">
-                <div className="Body left ">
-                    <div>
-                        <h3 className="subtitle">Swap Statecoins to increase their Privacy Score</h3>
                         <span className="sub">Click to select UTXO’s below</span>
                         <Coins
                           displayDetailsOnClick={false}
@@ -148,7 +150,7 @@ const SwapPage = () => {
                     </div>
 
                 </div>
-                <div className="Body right">
+                <div className="wallet-container right">
                     <div>
                         <Swaps
                           swapGroupsData={swapGroupsData}
@@ -168,12 +170,13 @@ const SwapPage = () => {
                       </div>
                     ) : null}
                 </div>
+              </div>
             </div>
-          </div>
-          {current_config?.tutorials && <Tutorial />}
         </>
       }
       </div>
+      {current_config?.tutorials && <Tutorial />}
+    </div>
   )
 }
 
