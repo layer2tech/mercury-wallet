@@ -6,7 +6,12 @@
   text-align: center;
 }
 .custom-modal-footer {
-  padding: 0 20px;
   display: flex;
   justify-content: center;
+}
+.custom-modal-footer.group-btns {
+  padding-bottom: 20px;
+}
+.custom-modal-footer.group-btns button {
+  margin-right: 16px;
 }

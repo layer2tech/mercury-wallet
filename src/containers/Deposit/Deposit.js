@@ -139,9 +139,9 @@ const DepositPage = () => {
                 />
               )}
               {step === 1 ? (
-                <button className="btn btn-primary" onClick={() => setStep(2)}>Next</button>
+                <button className="primary-btn blue" onClick={() => setStep(2)}>Continue</button>
               ) : (
-                <button className="btn btn-primary" onClick={() => setStep(1)}>Prev</button>
+                <button className="primary-btn blue" onClick={() => setStep(1)}>Go Back</button>
               )}
           </div>
 

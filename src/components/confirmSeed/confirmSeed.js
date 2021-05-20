@@ -78,9 +78,9 @@ const ConfirmSeed = (props) => {
           <form>
               {inputs}
           </form>
-          <div className="mt-3">
-            <button onClick={props.onPrevStep} className="btn btn-primary">Prev</button>
-            <button className="btn btn-primary" onClick={onConfirmClick} >
+          <div className="footer-step-btns">
+            <button onClick={props.onPrevStep} className="primary-btn-link back">Go back</button>
+            <button className="primary-btn blue" onClick={onConfirmClick} >
                 Confirm
             </button>
           </div>

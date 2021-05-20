@@ -114,9 +114,6 @@ const RestoreWalletPage = (props) => {
             </div>
           </Tab>
       </Tabs>
-      <Link to="/" className="back Body-button bg-transparent">
-        Back
-      </Link>
     </div>
   )
 }

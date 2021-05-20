@@ -10,17 +10,6 @@
     padding-bottom: 90px;
 }
 
-.restore-wallet-wrap .back {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-
-}
-.restore-form  a {
-    margin: 0 20px;
-}
-
 .restore-form .inputs-item input {
     position: relative;
     opacity: 1;
@@ -70,17 +59,6 @@
     color: red;
     text-align: left;
 }
-
-.restore-form a {
-    background-color: #0F54F4;
-    border: none;
-    color:#ffffff;
-    text-transform: uppercase;
-    font-size: 14px;
-    border-radius: 8px;
-    padding: 5px 16px;
-}
-
 
 .restore-form .inputs-item input[type='checkbox'] {
     border: 1px solid #000000;
