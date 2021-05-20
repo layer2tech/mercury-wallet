@@ -83,7 +83,7 @@ const CreateWizardForm = (props) => {
                     <label htmlFor="terms">I have read and agree to the Terms of Use</label>
                 </div>
                 <div className="footer-step-btns">
-                    <Link to="/" className="primary-btn-link back">Back</Link>
+                    <Link to="/" className="primary-btn-link back">Go Back</Link>
                     <button type="submit" className="primary-btn blue">{props.submitTitle || 'Next'}</button>
                 </div>
             </form>

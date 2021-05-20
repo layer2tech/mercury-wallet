@@ -59,6 +59,7 @@
   font-weight: 500;
   display: inline-block;
   border: none;
+  box-sizing: border-box;
 }
 .primary-btn:hover {
   text-decoration: none;
@@ -86,6 +87,7 @@
   font-weight: 500;
   color: #0F54F4;
   display: inline-block;
+  background: none;
 }
 .primary-btn-link.back {
   margin-right: 16px;
