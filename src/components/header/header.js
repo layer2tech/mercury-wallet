@@ -16,7 +16,7 @@ const Header = (props) => {
   }
 
   return (
-    <div className="Header">
+    <div className="Header dark-mode">
 
       <div className="container block">
         <Link className="navbar-brand" to={props.walletLoaded ? "/home" : "/"}>

@@ -1,0 +1,59 @@
+.dark-mode {
+  background-color: #121212;
+}
+.dark-mode .tutorial-page {
+  background-color: #202020;
+}
+.dark-mode .container,
+.dark-mode.container {
+  padding: 0;
+}
+.dark-mode .Header {
+  background-color: #0B2B68;
+  box-shadow: none;
+}
+.dark-mode .Body,
+.dark-mode .wallet-container,
+.dark-mode .nav.nav-tabs {
+  background-color: #202020;
+}
+.dark-mode .tab-content {
+  background-color: #2D2D2D;
+}
+.dark-mode .checkmark {
+  background-color: transparent;
+}
+.dark-mode *:not(button), 
+.dark-mode .tutorial-page .tutorial-content p,
+.dark-mode .tutorial-page .tutorial-content .sub-title {
+  color: #E7E7E7;
+}
+.dark-mode .tutorial-page .tutorial-btns button {
+  background: none;
+}
+.dark-mode button.Body-button:not(.blue,.yellow) {
+  background-color: transparent;
+}
+.dark-mode .ButtonsPanel .ActionGroupRight .Body-button,
+.dark-mode button.primary-btn,
+.dark-mode .Body-button.transparent {
+  background-color: transparent;
+}
+.dark-mode .Body-button.transparent { 
+  border: 1px solid rgba(117, 117, 117, 0.380392);
+}
+.dark-mode .nav-tabs .nav-item.nav-link {
+  background: #202020;
+}
+.dark-mode .progress .bg-success {
+  background-color: #919191 !important;
+}
+.dark-mode .scoreAmount,
+.dark-mode .CoinTimeLeft span,
+.dark-mode .CoinFundingTxid{
+  color: #ADADAD;
+}
+.dark-mode .scoreAmount .tooltip {
+  background-color: #121212;
+  color: #E7E7E7;
+}

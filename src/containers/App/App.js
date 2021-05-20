@@ -6,6 +6,7 @@ SendStatecoinPage, ReceiveStatecoinPage, SwapPage, BackupTxPage, LoadWalletPage,
 import { Header } from '../../components'
 
 import './App.css';
+import './AppDarkMode.css';
 
 const App = () => {
   // State tell header whether wallet is loaded: home is Home page
