@@ -44,7 +44,7 @@ const HomePage = () => {
     console.warn('Can not get config', error)
   }
   return (
-    <div className="container home-page dark-mode">
+    <div className="container home-page">
       <PanelControl />
       <PanelConnectivity />
       <PanelCoinsActivity />

@@ -48,4 +48,9 @@
   font-family: 'Roboto', sans-serif;
   text-align: center;
   background-color: #F5F5F5;
+  padding-bottom: 20px;
+  min-height: 100vh;
+}
+.App .container {
+  padding: 0;
 }
