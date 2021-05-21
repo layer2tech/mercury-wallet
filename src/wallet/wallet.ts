@@ -1,4 +1,14 @@
 // Main wallet struct storing Keys derivation material and Mercury Statecoins.
+import { join as joinPath, dirname } from 'path';
+import { exec } from 'child_process';
+
+import appRootDir  from 'app-root-dir';
+
+
+import getPlatform from '../get-platform';
+
+
+
 
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
@@ -17,6 +27,15 @@ import { Config } from './config';
 import { Storage } from '../store';
 import { groupInfo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
+
+
+//import env from '../../env';
+let env = { name: "dev" };
+const execPath = (env.name === 'production') ?
+  joinPath(dirname(appRootDir.get()), 'bin'):
+  joinPath(appRootDir.get(), 'resources', getPlatform() as string);
+
+const cmd = `${joinPath(execPath, 'my-executable')}`;
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
