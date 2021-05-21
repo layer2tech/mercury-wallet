@@ -86,18 +86,19 @@ const LoadWalletPage = (props) => {
                 {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
             </span>
           </div>
-          <Link to="/home" onClick={onContinueClick}>
-            Continue
-          </Link>
-
+          <div className="footer-btns">
+            <Link to="/" className="primary-btn-link back">
+              Go Back
+            </Link>
+            <Link to="/home" className="primary-btn blue" onClick={onContinueClick}>
+              Continue
+            </Link>
+          </div>
         </div>
         :
         <p>No Wallet in memory. Please create a new one.</p>
       }
     </form>
-    <Link to="/" className="back">
-      Back
-    </Link>
   </div>
 )
 }

@@ -33,12 +33,6 @@ const DisplaySeed = (props) => {
 
             <form>
                 {inputs}
-
-
-                <div className="mt-3">
-                    <button onClick={onPrevStep} className="btn btn-primary">Prev</button>
-                    <button onClick={onNextStep} className="btn btn-primary">Next</button>
-                </div>
             </form>
             <div className="copy">
                 <CopiedButton 
@@ -51,7 +45,10 @@ const DisplaySeed = (props) => {
                     </div>
                 </CopiedButton>
             </div>
-
+            <div className="footer-step-btns">
+                <button onClick={onPrevStep} className="primary-btn-link back">Go Back</button>
+                <button onClick={onNextStep} className="primary-btn blue">Next</button>
+            </div>
         </div>
     )
 }

@@ -54,11 +54,11 @@ const CreateWalletInfoPage = () => {
                     of this computer,
                     because anyone who has access to my seed key will be able to spend the funds in my wallet.</label>
             </div>
-            <div className="btns">
-                <Link to="/">
+            <div className="footer-step-btns">
+                <Link className="primary-btn-link back" to="/">
                     go back
                 </Link>
-                <Link to="/create_wizard" className={`send  ${!checked ? "disabled" : ""}`}>
+                <Link to="/create_wizard" className={`primary-btn blue  ${!checked ? "disabled" : ""}`}>
                     Continue
                 </Link>
             </div>

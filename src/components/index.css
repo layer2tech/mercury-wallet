@@ -47,7 +47,65 @@
     text-transform: uppercase;
     margin-top: 0px;
 }
-
+/** Update button styles **/
+.primary-btn {
+  font-size: 14px;
+  line-height: 16px;
+  text-transform: uppercase;
+  border-radius: 4px;
+  padding: 8px 16px;
+  text-decoration: none;
+  letter-spacing: 1.25px;
+  font-weight: 500;
+  display: inline-block;
+  border: none;
+  box-sizing: border-box;
+}
+.primary-btn:hover {
+  text-decoration: none;
+}
+.primary-btn.blue {
+  background-color: #0F54F4;
+  color: #ffffff;
+}
+.primary-btn.ghost {
+  background-color: #ffffff;
+  color: #0F54F4;
+  border: 1px solid rgba(0, 0, 0, 0.121569);
+}
+.primary-btn.medium {
+  padding: 10px 16px;
+}
+.primary-btn-link {
+  font-size: 14px;
+  line-height: 16px;
+  text-transform: uppercase;
+  border: none;
+  padding: 8px 16px;
+  text-decoration: none;
+  letter-spacing: 1.25px;
+  font-weight: 500;
+  color: #0F54F4;
+  display: inline-block;
+  background: none;
+}
+.primary-btn-link.back {
+  margin-right: 16px;
+  text-decoration: none;
+  background: none;
+}
+.footer-step-btns {
+  text-align: right;
+  margin-top: 35px;
+  width: 100%;
+}
+.primary-btn.disabled,
+a.disabled {
+    background-color: #afc2ef;
+    color: #ffffff;
+    cursor: not-allowed;
+    pointer-events: none;
+}
 @media only screen and (max-width: 768px)  {
   .Body {
     padding: 15px;

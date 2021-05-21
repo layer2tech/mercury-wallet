@@ -5,7 +5,7 @@
   padding: 0 20px;
 }
 .container-with-tutorials .tutorial-page {
-  width: 30%;
+  width: 33.33%;
   flex-direction: column;
   justify-content: flex-start;
   border: 1px solid rgba(0, 0, 0, 0.121569);
@@ -29,6 +29,9 @@
 }
 .container-with-tutorials .tutorial-media {
   margin: 0 auto;
+}
+.container-with-tutorials .tutorial-media img {
+  width: 100%;
 }
 .tutorial-page .tutorial-content {
   position: relative;
