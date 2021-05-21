@@ -23,7 +23,7 @@ const Header = (props) => {
     <div className="Header">
 
       <div className="container block">
-        <button type="button" onClick={activeDarkMode}>Dark Mode</button>
+        {/* <button type="button" onClick={activeDarkMode}>Dark Mode</button> */}
         <Link className="navbar-brand" to={props.walletLoaded ? "/home" : "/"}>
           <Logo />
         </Link>

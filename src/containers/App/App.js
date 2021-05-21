@@ -13,7 +13,6 @@ const App = () => {
   // or not: home is Welcome screen
   const [walletLoaded, setWalletLoaded] = useState(false);
   const { dark_mode } = useSelector(state => state.themeData);
-  console.log('dark_mode :>> ', dark_mode);
   useEffect(() => {
     if(dark_mode === '1') {
       document.body.classList.add('dark-mode');
