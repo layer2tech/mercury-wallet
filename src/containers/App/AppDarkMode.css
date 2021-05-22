@@ -105,7 +105,7 @@
   background: #2d2d2d;
 }
 .dark-mode .modal-content .custom-modal-info.alert-danger { 
-  color: #721c24;
+  color: #e67e7e;
 }
 .dark-mode .modal-content p { 
   color: #fff;
@@ -127,4 +127,18 @@
 }
 .dark-mode .help-tabs .content .title {
   color: #E7E7E7;
+}
+.dark-mode .alert-danger {
+  background-color: #202020;
+  border-color: #202020;
+  border-radius: 4px;
+}
+.dark-mode .Collapse .image img,
+.dark-mode .filter-coin-icon svg,
+.dark-mode .deposit-header .nav-item img {
+  filter: invert(1);
+}
+.dark-mode .filter-coin-options .filter-coin-head,
+.dark-mode .filter-coin-options label {
+  color: #2d2d2d;
 }
