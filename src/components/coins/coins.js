@@ -393,7 +393,7 @@ const Coins = (props) => {
 
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseCoinDetails}>
+                    <Button className="primary-btn ghost" onClick={handleCloseCoinDetails}>
                         Close
                     </Button>
 

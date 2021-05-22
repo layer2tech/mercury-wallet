@@ -125,3 +125,6 @@
 .dark-mode .receiveStatecoin-scan-txid .copy-btn-wrap {
   background-color: #2d2d2d;
 }
+.dark-mode .help-tabs .content .title {
+  color: #E7E7E7;
+}
