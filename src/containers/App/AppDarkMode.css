@@ -92,7 +92,8 @@
 .dark-mode .wrap-btns .primary-btn.ghost {
   border: 1px solid rgba(117, 117, 117, 0.380392);
 }
-.dark-mode .settings .content .inputs .inputs-item .control-label {
+.dark-mode .settings .content .inputs .inputs-item .control-label,
+.dark-mode .withdraw.content .inputs .smalltxt {
   background: #4e4e4e;
   color: #fff;
   border-radius: 4px;

@@ -14,8 +14,8 @@ const Header = (props) => {
     unloadWallet();
     props.setWalletLoaded(false);
   }
+  const isDarkMode = localStorage.getItem('dark_mode') === '1';
   const activeDarkMode = () => {
-    const isDarkMode = localStorage.getItem('dark_mode') === '1';
     localStorage.setItem('dark_mode', isDarkMode ? 0 : 1);
     dispatch(toggleDarkMode());
   }
@@ -29,6 +29,17 @@ const Header = (props) => {
         </Link>
 
         <div className="menu">
+          <div>
+            <label className="toggle">
+              <input
+                className="toggle-checkbox"
+                type="checkbox"
+                onClick={activeDarkMode}
+                checked={isDarkMode}
+              />
+              <div className="toggle-switch" />
+            </label>
+          </div>
           <div className={`nav-item  ${props.location.pathname === "/" ? "active" : ""}`}>
             <Link className="nav-link" to="/help">
               <Help />
