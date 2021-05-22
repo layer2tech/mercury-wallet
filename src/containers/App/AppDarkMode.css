@@ -39,7 +39,8 @@
 .dark-mode .Body-button.transparent {
   background-color: transparent;
 }
-.dark-mode .Body-button.transparent { 
+.dark-mode .Body-button.transparent,
+.dark-mode .receiveStatecoin .receive-bottom div:first-child .inputs input { 
   border: 1px solid rgba(117, 117, 117, 0.380392);
 }
 .dark-mode .nav-tabs .nav-item.nav-link {
@@ -93,7 +94,9 @@
   border: 1px solid rgba(117, 117, 117, 0.380392);
 }
 .dark-mode .settings .content .inputs .inputs-item .control-label,
-.dark-mode .withdraw.content .inputs .smalltxt {
+.dark-mode .withdraw.content .inputs .smalltxt,
+.dark-mode .sendStatecoin.content .inputs .smalltxt,
+.dark-mode .receiveStatecoin .receive-bottom div:first-child .inputs .smalltxt {
   background: #4e4e4e;
   color: #fff;
   border-radius: 4px;
@@ -115,4 +118,10 @@
 }
 .dark-mode .footer-step-btns .primary-btn.blue {
   background-color: #0F54F4;
+}
+.dark-mode .receiveStatecoin .receive-note {
+  color: #E7E7E7;
+}
+.dark-mode .receiveStatecoin-scan-txid .copy-btn-wrap {
+  background-color: #2d2d2d;
 }
