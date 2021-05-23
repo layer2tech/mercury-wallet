@@ -23,18 +23,16 @@ const Header = (props) => {
     <div className="Header">
 
       <div className="container block">
-        {/* <button type="button" onClick={activeDarkMode}>Dark Mode</button> */}
         <Link className="navbar-brand" to={props.walletLoaded ? "/home" : "/"}>
           <Logo />
         </Link>
-
         <div className="menu">
           <div>
             <label className="toggle">
               <input
                 className="toggle-checkbox"
                 type="checkbox"
-                onClick={activeDarkMode}
+                onChange={activeDarkMode}
                 checked={isDarkMode}
               />
               <div className="toggle-switch" />

@@ -142,3 +142,17 @@
 .dark-mode .filter-coin-options label {
   color: #2d2d2d;
 }
+.dark-mode .deposit .primary-btn.blue {
+  background-color: #0F54F4;
+}
+.dark-mode .deposit-statecoins .numbers-item .selected-value span:first-child,
+.dark-mode .deposit-statecoins .numbers .numbers-item .selected-value span:first-child b {
+  color: #0F54F4;
+}
+.dark-mode .deposit-statecoins .numbers .numbers-item .selected-value {
+  background-color: #192A4A;
+  border-radius: 4px;
+}
+.deposit-statecoins .numbers .numbers-item .selected-value {
+  background-color: #e6e6e6;
+}

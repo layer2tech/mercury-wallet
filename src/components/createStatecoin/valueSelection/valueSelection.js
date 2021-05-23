@@ -46,14 +46,12 @@ const ValueSelectionPanel = (props) => {
 }
 
 const ValueSelection = (props) => {
-    // Check if coin is selected. If so return CSS.
-    const isSelectedStyle = () => {
-      return props.value === props.selected ? {backgroundColor: "#e6e6e6"} : {}}
 
     return (
       <div
+        className={`${props.value === props.selected ? 'selected-value' : ''}`}
         onClick={() => props.selectValue(props.value)}
-        style={isSelectedStyle()}>
+      >
           <span><b>{fromSatoshi(props.value)}</b> BTC</span>
           <span>Liquidity: <b>{props.liquidityLabel}</b></span>
       </div>
