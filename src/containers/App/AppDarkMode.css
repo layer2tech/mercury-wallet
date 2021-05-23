@@ -156,3 +156,11 @@
 .deposit-statecoins .numbers .numbers-item .selected-value {
   background-color: #e6e6e6;
 }
+.dark-mode .deposit-settings select,
+.dark-mode .deposit-settings input {
+  border: 1px solid #4e4e4e;
+  border-radius: 4px;
+}
+.dark-mode .deposit-settings .modal-header {
+  border-bottom: 1px solid #4e4e4e;
+}
