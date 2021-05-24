@@ -27,10 +27,16 @@ function getPlatform(){
 
 const isDev = (process.env.NODE_ENV == 'development');
 
-const execPath = isDev ?
-  joinPath(dirname(rootPath), 'bin'):
-  joinPath(rootPath, '../bin');
-
+var execPath;
+if(isDev) {
+    execPath = joinPath(dirname(rootPath), 'bin');
+} else {
+    if(getPlatform() == 'linux') {
+	execPath = joinPath(rootPath, '../../Resources/bin');
+    } else {
+	execPath = joinPath(rootPath, '../bin');
+    }
+}
 
 const tor_cmd = `${joinPath(execPath, 'tor')}`;
 
@@ -164,7 +170,6 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 	    stdio: 'ignore',
 	},  (error) => {
        if(error){
-         alert(`${error}`);
          app.exit(error);
        };
     });

@@ -9,11 +9,10 @@ const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
 
 function getPlatform(){
-  console.log("platform: " + process.platform);
   switch (process.platform) {
     case 'aix':
     case 'freebsd':
-    case 'linux':ls 
+    case 'linux':
     case 'openbsd':
     case 'android':
       return 'linux';
@@ -26,13 +25,9 @@ function getPlatform(){
 
 }
 
-const execPath = 
-(process.env.NODE_ENV == 'development') ?
-  joinPath(dirname(rootPath), 'bin'):
-  joinPath(rootPath, 'resources', getPlatform());
+const execPath = joinPath(dirname(rootPath), 'mercury-wallet/resources', getPlatform());
 
 const tor_cmd = `${joinPath(execPath, 'tor')}`;
-const node_cmd = `${joinPath(execPath, 'node')}`;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -182,7 +177,6 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 	    stdio: 'ignore',
 	},  (error) => {
        if(error){
-         alert(`${error}`);
          app.exit(error);
        };
     });
