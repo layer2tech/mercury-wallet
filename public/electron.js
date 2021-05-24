@@ -33,7 +33,6 @@ const execPath = isDev ?
 
 
 const tor_cmd = `${joinPath(execPath, 'tor')}`;
-const node_cmd = `${joinPath(execPath, 'node')}`;
 
 let mainWindow;
 
@@ -134,11 +133,11 @@ Store.initRenderer();
 
 
 const exec = require('child_process').exec;
+const fork = require('child_process').fork;
 
 fixPath();
 
-//let tor_adapter = exec(`npm --prefix ${__dirname}/../node_modules/tor-adapter start`,
-let tor_adapter = exec(`${node_cmd} ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
+let tor_adapter = fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
 {
 detached: false,
 stdio: 'ignore',
@@ -149,14 +148,6 @@ stdio: 'ignore',
     };
   }
 );
-
-tor_adapter.stdout.on("data", function(data) {
-  console.log("tor adapter stdout: " + data.toString());
-});
-
-tor_adapter.stderr.on("data", function(data) {
-  console.log("tor adapter stderr: " + data.toString());
-});
   
 //Check if tor is running
 let isTorRunning=true;
