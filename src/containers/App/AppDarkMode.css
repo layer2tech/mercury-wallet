@@ -1,0 +1,166 @@
+.dark-mode {
+  background-color: #121212;
+}
+.dark-mode .tutorial-page {
+  background-color: #202020;
+}
+.dark-mode .container,
+.dark-mode.container {
+  padding: 0;
+}
+.dark-mode .Header {
+  background-color: #0B2B68;
+  box-shadow: none;
+}
+.dark-mode .Body,
+.dark-mode .wallet-container,
+.dark-mode .nav.nav-tabs {
+  background-color: #202020;
+}
+.dark-mode .tab-content {
+  background-color: #2D2D2D;
+}
+.dark-mode .checkmark {
+  background-color: transparent;
+}
+.dark-mode *:not(button), 
+.dark-mode .tutorial-page .tutorial-content p,
+.dark-mode .tutorial-page .tutorial-content .sub-title {
+  color: #E7E7E7;
+}
+.dark-mode .tutorial-page .tutorial-btns button {
+  background: none;
+}
+.dark-mode button.Body-button:not(.blue,.yellow) {
+  background-color: transparent;
+}
+.dark-mode .ButtonsPanel .ActionGroupRight .Body-button,
+.dark-mode button.primary-btn,
+.dark-mode .Body-button.transparent {
+  background-color: transparent;
+}
+.dark-mode .Body-button.transparent,
+.dark-mode .receiveStatecoin .receive-bottom div:first-child .inputs input { 
+  border: 1px solid rgba(117, 117, 117, 0.380392);
+}
+.dark-mode .nav-tabs .nav-item.nav-link {
+  background: #202020;
+}
+.dark-mode .progress .bg-success {
+  background-color: #919191 !important;
+}
+.dark-mode .scoreAmount,
+.dark-mode .CoinTimeLeft span,
+.dark-mode .CoinFundingTxid{
+  color: #ADADAD;
+}
+.dark-mode .scoreAmount .tooltip {
+  background-color: #121212;
+  color: #E7E7E7;
+}
+.dark-mode .welcome-btns div {
+  color: #fff;
+  background-color: transparent;
+  border: 1px solid rgba(117, 117, 117, 0.380392);
+  border-radius: 4px;
+  color: #fff;
+}
+.dark-mode .welcome-btns img {
+  filter: invert(1);
+}
+.dark-mode select,
+.dark-mode input {
+  background-color: #2D2D2D;
+}
+.dark-mode .swap-header .subtitle {
+  color: inherit;
+}
+.dark-mode .settings .primary-btn-link.back,
+.dark-mode .modal-content .primary-btn.ghost {
+  color: #fff;
+  border-radius: 4px;
+  border: 1px solid rgba(117, 117, 117, 0.380392);
+}
+.dark-mode .settings .primary-btn,
+.dark-mode .modal-content .primary-btn.blue {
+  color: #0F54F4;
+  border-radius: 4px;
+  border: 1px solid rgba(117, 117, 117, 0.380392);
+}
+.dark-mode .wrap-btns .primary-btn.blue,
+.dark-mode .modal-content .primary-btn.ghost,
+.dark-mode .modal-content .primary-btn.blue,
+.dark-mode .wrap-btns .primary-btn.ghost {
+  border: 1px solid rgba(117, 117, 117, 0.380392);
+}
+.dark-mode .settings .content .inputs .inputs-item .control-label,
+.dark-mode .withdraw.content .inputs .smalltxt,
+.dark-mode .sendStatecoin.content .inputs .smalltxt,
+.dark-mode .receiveStatecoin .receive-bottom div:first-child .inputs .smalltxt {
+  background: #4e4e4e;
+  color: #fff;
+  border-radius: 4px;
+}
+.dark-mode .modal-content {
+  background: #2d2d2d;
+}
+.dark-mode .modal-content .custom-modal-info.alert-danger { 
+  color: #e67e7e;
+}
+.dark-mode .modal-content p { 
+  color: #fff;
+}
+.dark-mode .modal .item .block span:first-child {
+  color: #E7E7E7;;
+}
+.dark-mode .create-welcome-item {
+  background: #2d2d2d;
+}
+.dark-mode .footer-step-btns .primary-btn.blue {
+  background-color: #0F54F4;
+}
+.dark-mode .receiveStatecoin .receive-note {
+  color: #E7E7E7;
+}
+.dark-mode .receiveStatecoin-scan-txid .copy-btn-wrap {
+  background-color: #2d2d2d;
+}
+.dark-mode .help-tabs .content .title {
+  color: #E7E7E7;
+}
+.dark-mode .alert-danger {
+  background-color: #202020;
+  border-color: #202020;
+  border-radius: 4px;
+}
+.dark-mode .Collapse .image img,
+.dark-mode .filter-coin-icon svg,
+.dark-mode .deposit-header .nav-item img {
+  filter: invert(1);
+}
+.dark-mode .filter-coin-options .filter-coin-head,
+.dark-mode .filter-coin-options label {
+  color: #2d2d2d;
+}
+.dark-mode .deposit .primary-btn.blue {
+  background-color: #0F54F4;
+}
+.dark-mode .deposit-statecoins .numbers-item .selected-value span:first-child,
+.dark-mode .deposit-statecoins .numbers .numbers-item .selected-value span:first-child b {
+  color: #0F54F4;
+}
+.dark-mode .deposit-statecoins .numbers .numbers-item .selected-value {
+  background-color: #192A4A;
+  border-radius: 4px;
+}
+.deposit-statecoins .numbers .numbers-item .selected-value {
+  background-color: #e6e6e6;
+}
+.dark-mode .deposit-settings select,
+.dark-mode .deposit-settings input {
+  border: 1px solid #4e4e4e;
+  border-radius: 4px;
+}
+.dark-mode .deposit-settings .modal-header {
+  border-bottom: 1px solid #4e4e4e;
+}

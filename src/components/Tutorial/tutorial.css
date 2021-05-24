@@ -10,6 +10,7 @@
   justify-content: flex-start;
   border: 1px solid rgba(0, 0, 0, 0.121569);
   border-radius: 4px;
+  margin-left: 20px;
 }
 .tutorial-page * {
   box-sizing: border-box;

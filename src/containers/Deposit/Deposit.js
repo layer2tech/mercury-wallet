@@ -145,7 +145,7 @@ const DepositPage = () => {
               )}
           </div>
 
-          <Modal show={show} onHide={handleClose} className="modal">
+          <Modal show={show} onHide={handleClose} className="modal deposit-settings">
               <Modal.Header>
                   <h6>Display Settings</h6>
               </Modal.Header>
@@ -190,7 +190,7 @@ const DepositPage = () => {
 
               </Modal.Body>
               <Modal.Footer>
-                  <Button variant="secondary" onClick={handleClose}>
+                  <Button className="primary-btn ghost" onClick={handleClose}>
                       Close
                   </Button>
 
