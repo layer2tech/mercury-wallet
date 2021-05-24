@@ -1,9 +1,38 @@
+const { join, dirname } = require('path');
+const joinPath = join;
 const { app, BrowserWindow, dialog, ipcMain, electron } = require('electron');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
+const rootPath = require('electron-root-path').rootPath;
+
+function getPlatform(){
+  console.log("platform: " + process.platform);
+  switch (process.platform) {
+    case 'aix':
+    case 'freebsd':
+    case 'linux':ls 
+    case 'openbsd':
+    case 'android':
+      return 'linux';
+    case 'darwin':
+    case 'sunos':
+      return 'mac';
+    case 'win32':
+      return 'win';
+  }
+
+}
+
+const execPath = 
+(process.env.NODE_ENV == 'development') ?
+  joinPath(dirname(rootPath), 'bin'):
+  joinPath(rootPath, 'resources', getPlatform());
+
+const tor_cmd = `${joinPath(execPath, 'tor')}`;
+const node_cmd = `${joinPath(execPath, 'node')}`;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -126,7 +155,7 @@ const exec = require('child_process').exec;
 fixPath();
 console.log(`starting tor adapter from: ${__dirname}`);
 //let tor_adapter = exec(`npm --prefix ${__dirname}/../node_modules/mercury-wallet-tor-adapter start`,
-let tor_adapter = exec(`node ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
+let tor_adapter = exec(`${node_cmd} ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
 {
 detached: false,
 stdio: 'ignore',
@@ -158,7 +187,7 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 	console.log("tor is not running on port 9050");
 	isTorRunning=false;
 	console.log("starting tor...");
-	tor = exec("tor", {
+	tor = exec(tor_cmd, {
 	    detached: false,
 	    stdio: 'ignore',
 	},  (error) => {
