@@ -5,7 +5,7 @@ import {useDispatch} from 'react-redux'
 import {StdButton, AddressInput, CopiedButton} from "../../components";
 import QRCode from 'qrcode.react';
 
-import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callTransferReceiver, setError, setNotification} from '../../features/WalletDataSlice'
+import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callTransferReceiver, callGetTransfers, setError, setNotification} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
 import arrow from "../../images/arrow-up.png"
@@ -35,9 +35,16 @@ const ReceiveStatecoinPage = () => {
   }
 
   const receiveButtonAction =() => {
-    // check statechain is chosen
+    // if mgs box empty, then query server for transfer messages
     if (!transfer_msg3) {
-      dispatch(setError({msg: "Paste TransferMsg3 to perform transfer receiver."}))
+      dispatch(callGetTransfers()).then((res) => {
+        if (res.payload.received===0) {
+            dispatch(setError({msg: "No transfers to receive."})
+         } else {
+          let nreceived = res.payload.received
+          dispatch(setNotification({msg:"Received "+nreceived+" statecoins."}))
+        }
+      })
       return
     }
 
