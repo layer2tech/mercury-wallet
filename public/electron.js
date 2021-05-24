@@ -34,11 +34,11 @@ if(isDev) {
     if(getPlatform() == 'linux') {
 	execPath = joinPath(rootPath, '../../Resources/bin');
     } else {
-	execPath = joinPath(rootPath, '../bin');
+	    execPath = joinPath(rootPath, '../bin');
     }
 }
 
-const tor_cmd = `${joinPath(execPath, 'tor')}`;
+const tor_cmd = (getPlatform() == 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
 
 let mainWindow;
 

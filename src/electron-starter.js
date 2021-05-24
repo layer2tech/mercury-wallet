@@ -27,7 +27,7 @@ function getPlatform(){
 
 const execPath = joinPath(dirname(rootPath), 'mercury-wallet/resources', getPlatform());
 
-const tor_cmd = `${joinPath(execPath, 'tor')}`;
+const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
