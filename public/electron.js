@@ -1,11 +1,44 @@
 const { app, BrowserWindow, dialog, ipcMain} = require('electron');
-
-const path = require('path');
-const isDev = require('electron-is-dev');
+const { join, dirname } = require('path');
+const joinPath = join;
 const url = require('url');
 const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
+const rootPath = require('electron-root-path').rootPath;
+
+function getPlatform(){
+  console.log("platform: " + process.platform);
+  switch (process.platform) {
+    case 'aix':
+    case 'freebsd':
+    case 'linux':
+    case 'openbsd':
+    case 'android':
+      return 'linux';
+    case 'darwin':
+    case 'sunos':
+      return 'mac';
+    case 'win32':
+      return 'win';
+  }
+
+}
+
+const isDev = (process.env.NODE_ENV == 'development');
+
+var execPath;
+if(isDev) {
+    execPath = joinPath(dirname(rootPath), 'bin');
+} else {
+    if(getPlatform() == 'linux') {
+	execPath = joinPath(rootPath, '../../Resources/bin');
+    } else {
+	    execPath = joinPath(rootPath, '../bin');
+    }
+}
+
+const tor_cmd = (getPlatform() == 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
 
 let mainWindow;
 
@@ -34,7 +67,7 @@ function createWindow() {
   });
 
   const startUrl = url.format({
-          pathname: path.join(__dirname, '/../build/index.html'),
+          pathname: joinPath(__dirname, '/../build/index.html'),
           protocol: 'file:',
           slashes: true
       });
@@ -106,11 +139,11 @@ Store.initRenderer();
 
 
 const exec = require('child_process').exec;
+const fork = require('child_process').fork;
 
 fixPath();
 
-//let tor_adapter = exec(`npm --prefix ${__dirname}/../node_modules/tor-adapter start`,
-let tor_adapter = exec(`node ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
+let tor_adapter = fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
 {
 detached: false,
 stdio: 'ignore',
@@ -121,14 +154,6 @@ stdio: 'ignore',
     };
   }
 );
-
-tor_adapter.stdout.on("data", function(data) {
-  console.log("tor adapter stdout: " + data.toString());
-});
-
-tor_adapter.stderr.on("data", function(data) {
-  console.log("tor adapter stderr: " + data.toString());
-});
   
 //Check if tor is running
 let isTorRunning=true;
@@ -140,12 +165,11 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 	console.log("tor is not running on port 9050");
 	isTorRunning=false;
 	console.log("starting tor...");
-	tor = exec("tor", {
+	tor = exec(tor_cmd, {
 	    detached: false,
 	    stdio: 'ignore',
 	},  (error) => {
        if(error){
-         alert(`${error}`);
          app.exit(error);
        };
     });
