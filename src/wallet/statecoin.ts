@@ -107,6 +107,15 @@ export class StateCoinList {
     return this.coins.find(coin => coin.shared_key_id === shared_key_id)
   }
 
+  getCoins(statechain_id: string) {
+    return this.coins.filter((item: StateCoin) => {
+      if (item.statechain_id === statechain_id) {
+        return item
+      }
+      return null
+    })
+  }  
+
   // creates new coin with Date.now()
   addNewCoin(shared_key_id: string, shared_key: MasterKey2) {
     this.coins.push(new StateCoin(shared_key_id, shared_key))

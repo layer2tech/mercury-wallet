@@ -38,10 +38,10 @@ const ReceiveStatecoinPage = () => {
     // if mgs box empty, then query server for transfer messages
     if (!transfer_msg3) {
       dispatch(callGetTransfers()).then((res) => {
-        if (res.payload.received===0) {
-            dispatch(setError({msg: "No transfers to receive."})
+        if (res.payload===0) {
+            dispatch(setError({msg: "No transfers to receive."}))
          } else {
-          let nreceived = res.payload.received
+          let nreceived = res.payload
           dispatch(setNotification({msg:"Received "+nreceived+" statecoins."}))
         }
       })
