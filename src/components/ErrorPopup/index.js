@@ -15,8 +15,8 @@ function ErrorPopup () {
         <Modal.Body className="custom-modal-body">
           <p className="custom-modal-info alert-danger">{error_dialogue.msg}</p>
         </Modal.Body>
-        <div className="custom-modal-footer">
-          <button className="Body-button bg-transparent" onClick={handleCloseError}>
+        <div className="custom-modal-footer group-btns">
+          <button className="primary-btn ghost" onClick={handleCloseError}>
             Close
           </button>
         </div>

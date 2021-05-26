@@ -162,15 +162,8 @@ ol.go2441762052 {
     text-align: left;
 
 }
-.wizard button {
-    background-color: #0F54F4;
-    color: #Ffffff;
-    border: none;
-    padding: 6px 20px;
-    font-size: 14px;
-    text-transform: uppercase;
-    border-radius: 6px;
-    margin-left: 10px;
+.deposit .wizard {
+    margin-bottom: 15px;
 }
 .wizard .btns a {
      font-size: 14px;

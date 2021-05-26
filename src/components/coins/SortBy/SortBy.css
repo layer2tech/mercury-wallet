@@ -6,12 +6,6 @@
   position: absolute;
   right: 30px;
 }
-.sort-by-menu svg {
-  transform: rotate(90deg);
-}
-.sort-by-menu svg:first-child {
-  transform: rotate(-90deg);
-}
 .sort-by-options {
   position: absolute;
   right: 35px;

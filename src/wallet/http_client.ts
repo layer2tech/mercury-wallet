@@ -8,7 +8,8 @@ export const GET_ROUTE = {
   STATECHAIN: "info/statechain",
   COINS_INFO: "info/coins",
   TRANSFER_BATCH: "info/transfer-batch",
-  SWAP_GROUPINFO: "swap/groupinfo"
+  SWAP_GROUPINFO: "swap/groupinfo",
+  TRANSFER_GET_MSG_ADDR: "transfer/get_msg_addr",
 };
 Object.freeze(GET_ROUTE);
 

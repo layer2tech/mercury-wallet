@@ -21,11 +21,11 @@ function ConfirmPopup ({ children, onOk, onCancel }) {
         <Modal.Body className="custom-modal-body">
           <p className="confirm-question">Are you sure?</p>
         </Modal.Body>
-        <div className="confirm-footer">
-          <button className="Body-button bg-transparent" onClick={handleClose}>
+        <div className="custom-modal-footer group-btns">
+          <button className="primary-btn ghost" onClick={handleClose}>
             Cancel
           </button>
-          <button className="Body-button blue" onClick={handleConfirm}>
+          <button className="primary-btn blue" onClick={handleConfirm}>
             Confirm
           </button>
         </div>

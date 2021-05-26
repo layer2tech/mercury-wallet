@@ -1,5 +1,6 @@
 import React, {useRef, useState } from 'react';
 import {useForm} from "react-hook-form";
+import { Link } from "react-router-dom";
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 
@@ -81,7 +82,10 @@ const CreateWizardForm = (props) => {
                            required/>
                     <label htmlFor="terms">I have read and agree to the Terms of Use</label>
                 </div>
-                <button type="submit" className="btn btn-primary">{props.submitTitle || 'Next'}</button>
+                <div className="footer-step-btns">
+                    <Link to="/" className="primary-btn-link back">Go Back</Link>
+                    <button type="submit" className="primary-btn blue">{props.submitTitle || 'Next'}</button>
+                </div>
             </form>
         </div>
     )

@@ -21,11 +21,11 @@ function BackupWalletPopup ({ close, show}) {
             WARNING: Your wallet backup includes all key information and can be used to steal your funds. Ensure it is stored securely and do not send it to anybody.
           </p>
         </Modal.Body>
-        <div className="custom-modal-footer">
-          <button className="Body-button blue" onClick={handleConfirm}>
+        <div className="custom-modal-footer group-btns">
+          <button className="primary-btn blue" onClick={handleConfirm}>
             Confirm
           </button>
-          <button className="Body-button bg-transparent" onClick={close}>
+          <button className="primary-btn ghost" onClick={close}>
             Cancel
           </button>
         </div>

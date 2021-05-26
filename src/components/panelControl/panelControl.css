@@ -2,26 +2,57 @@
   background-color: #CCCCCC;
   height: 30px;
 }
+.panelControl.Body {
+  padding: 40px 36px 15px 36px;
+}
 
 .ButtonsPanel {
   display: flex;
   justify-content: space-between;
-  margin: 5px;
+  margin-top: 24px;
   overflow:hidden;
+  align-items: flex-start;
+}
+.ButtonsPanel .Body-button,
+.ButtonsPanel .Body-button.blue,
+.ButtonsPanel .Body-button.yellow
+ {
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: Roboto;
+  letter-spacing: 1.25px;
+  display: flex;
   align-items: center;
+}
+.ButtonsPanel .ActionGroupLeft a,
+.ButtonsPanel .ActionGroupRight a {
+  text-decoration: none;
+}
+.ButtonsPanel .Body-button img,
+.ButtonsPanel .Body-button.blue img,
+.ButtonsPanel .Body-button.yellow img {
+  margin-right: 5px;
+}
+.ButtonsPanel .ActionGroupLeft {
+  margin-bottom: 10px;
+}
+.ButtonsPanel .ActionGroupLeft .Body-button {
+  margin: 0 10px 0 0;
+}
+.ButtonsPanel .ActionGroupRight .Body-button {
+  margin: 0 0 0 10px;
 }
 
 .WalletAmount {
   display: flex;
   text-align: left;
-  padding-left: 15px;
   position: relative;
 }
 .no-wallet {
   color: #666666;
   text-align: left;
   font-size: 20px;
-  padding-left: 15px;
 }
 .WalletAmount img {
   margin-right: 10px;
@@ -43,13 +74,6 @@
 
 .ActionGroupRight a {
   padding: 0;
-}
-
-.filter-coin-icon {
-  position: absolute;
-  bottom: 0;
-  right: 20px;
-  cursor: pointer;
 }
 
 .filter-coin-options {

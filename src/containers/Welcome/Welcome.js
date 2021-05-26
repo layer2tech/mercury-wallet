@@ -39,7 +39,7 @@ const Welcome = () => {
                 </div>
             </div>
             <Link to={`${checked === 1 ? "create_wallet" : checked === 2 ? "restore_wallet" : "load_wallet"}`}
-                  className={`send  ${!checked ? "disabled" : ""}`}>
+                  className={`send primary-btn blue  ${!checked ? "disabled" : ""}`}>
                 Continue
             </Link>
         </div>

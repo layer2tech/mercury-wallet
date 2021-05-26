@@ -1,11 +1,44 @@
 const { app, BrowserWindow, dialog, ipcMain} = require('electron');
-
-const path = require('path');
-const isDev = require('electron-is-dev');
+const { join, dirname } = require('path');
+const joinPath = join;
 const url = require('url');
 const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
+const rootPath = require('electron-root-path').rootPath;
+
+function getPlatform(){
+  console.log("platform: " + process.platform);
+  switch (process.platform) {
+    case 'aix':
+    case 'freebsd':
+    case 'linux':
+    case 'openbsd':
+    case 'android':
+      return 'linux';
+    case 'darwin':
+    case 'sunos':
+      return 'mac';
+    case 'win32':
+      return 'win';
+  }
+
+}
+
+const isDev = (process.env.NODE_ENV == 'development');
+
+var execPath;
+if(isDev) {
+    execPath = joinPath(dirname(rootPath), 'bin');
+} else {
+    if(getPlatform() == 'linux') {
+	execPath = joinPath(rootPath, '../../Resources/bin');
+    } else {
+	    execPath = joinPath(rootPath, '../bin');
+    }
+}
+
+const tor_cmd = (getPlatform() == 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
 
 let mainWindow;
 
@@ -34,7 +67,7 @@ function createWindow() {
   });
 
   const startUrl = url.format({
-          pathname: path.join(__dirname, '/../build/index.html'),
+          pathname: joinPath(__dirname, '/../build/index.html'),
           protocol: 'file:',
           slashes: true
       });
@@ -43,21 +76,24 @@ function createWindow() {
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
-  mainWindow.on('closed', () => {
+  
+  mainWindow.on('close', async () => {
+    await kill_tor();
+  });
+
+  mainWindow.on('closed', async () => {
+    await kill_tor();
     mainWindow = null;
-    tor.kill();
-    tor_adapter.kill();
   });
 }
 
 app.on('ready', createWindow);
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+  await kill_tor();
   if (process.platform !== 'darwin') {
     app.quit();
   }
-  tor.kill();
-  tor_adapter.kill();
 });
 
 app.on('activate', () => {
@@ -103,12 +139,13 @@ Store.initRenderer();
 
 
 const exec = require('child_process').exec;
+const fork = require('child_process').fork;
 
 fixPath();
 
-let tor_adapter = exec(`npm --prefix ${__dirname}/tor-adapter start`,
+let tor_adapter = fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
 {
-detached: true,
+detached: false,
 stdio: 'ignore',
   },
   (error) => {
@@ -117,19 +154,10 @@ stdio: 'ignore',
     };
   }
 );
-tor_adapter.unref();
-
-tor_adapter.stdout.on("data", function(data) {
-  console.log("tor adapter stdout: " + data.toString());
-});
-
-tor_adapter.stderr.on("data", function(data) {
-  console.log("tor adapter stderr: " + data.toString());
-});
   
 //Check if tor is running
 let isTorRunning=true;
-let tor;
+let tor = undefined;
 console.log("Checking if tor is running on port 9050...");
 exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs", 
 (_error, stdout, _stderr) => {
@@ -137,16 +165,15 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 	console.log("tor is not running on port 9050");
 	isTorRunning=false;
 	console.log("starting tor...");
-	tor = exec("tor", {
-	    detached: true,
+	tor = exec(tor_cmd, {
+	    detached: false,
 	    stdio: 'ignore',
 	},  (error) => {
        if(error){
-         alert(`${error}`);
          app.exit(error);
        };
     });
-   tor.unref();
+   
    tor.stdout.on("data", function(data) {
    console.log("tor stdout: " + data.toString());  
    }
@@ -161,20 +188,18 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 
 });
 
-app.on('exit', (error) => {
-  console.log('calling exit');
-  tor_adapter.kill();
-  if(!isTorRunning){
-    tor.kill();
-  }
-});
 
-app.on('close', (error) => {
-  console.log('calling close');
-  tor_adapter.kill();
-  if(!isTorRunning){
-    tor.kill();
-  }
-});
+async function on_exit(){
+  await kill_tor();
+  process.exit(0)
+}
 
-  
+async function kill_tor(){
+  await process.kill(tor_adapter.pid,"SIGINT");
+  if(tor){
+    await process.kill(tor.pid,"SIGINT");
+  }
+}
+
+process.on('SIGINT',on_exit);
+process.on('exit',on_exit);

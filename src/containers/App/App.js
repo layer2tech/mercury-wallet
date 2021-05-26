@@ -1,19 +1,27 @@
+import React, {useState, useEffect} from 'react';
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
-import React, {useState} from 'react';
-
+import { useSelector } from 'react-redux';
 import { WelcomePage, CreateWalletInfoPage, CreateWalletWizardPage, HomePage, DepositPage, WithdrawPage, SettingsPage, HelpPage,
 SendStatecoinPage, ReceiveStatecoinPage, SwapPage, BackupTxPage, LoadWalletPage, RestoreWalletPage } from '../index'
 import { Header } from '../../components'
 
 import './App.css';
+import './AppDarkMode.css';
 
 const App = () => {
   // State tell header whether wallet is loaded: home is Home page
   // or not: home is Welcome screen
   const [walletLoaded, setWalletLoaded] = useState(false);
-
+  const { dark_mode } = useSelector(state => state.themeData);
+  useEffect(() => {
+    if(dark_mode === '1') {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [dark_mode]);
   return (
-    <div className="App">
+    <div className={`App ${dark_mode === '1' ? 'dark-mode': ''}`}>
       <Router>
       <Header walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded} />
       <Switch>
