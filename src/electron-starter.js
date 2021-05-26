@@ -8,6 +8,7 @@ const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
 const ipc = require('electron').ipcMain;
+const exec = require('child_process').exec;
 
 function getPlatform(){
   switch (process.platform) {
@@ -25,8 +26,6 @@ function getPlatform(){
   }
 
 }
-
-const execPath = joinPath(dirname(rootPath), 'mercury-wallet/resources', getPlatform());
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -146,7 +145,7 @@ const fork = require('child_process').fork;
 
 fixPath();
 console.log(`starting tor adapter from: ${__dirname}`);
-let tor_adapter = fork(`${__dirname}/../tor-adapter/server/index.js`, [app.getAppPath()],
+fork(`${__dirname}/../tor-adapter/server/index.js`, [app.getAppPath()],
 {
 detached: false,
 stdio: 'ignore',
@@ -164,7 +163,7 @@ async function on_exit(){
 }
 
 async function kill_tor(){
-  await process.kill(tor_adapter.pid,"SIGINT");
+    await exec('curl localhost:3001/shutdown');
 }
 
 process.on('SIGINT',on_exit);

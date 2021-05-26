@@ -157,7 +157,7 @@ async function on_exit(){
 }
 
 async function kill_tor(){
-  await process.kill(tor_adapter.pid,"SIGINT");
+  await exec('curl localhost:3001/shutdown');
 }
 
 process.on('SIGINT',on_exit);

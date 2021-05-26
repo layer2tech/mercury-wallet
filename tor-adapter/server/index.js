@@ -11,8 +11,11 @@ const app = express();
 app.use(bodyParser.json());
 
 app.listen(PORT, () => {
-     console.log(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`)
+     console.log(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`);
+     console.log("control port password: " + tpc.controlPassword);
 });
+
+
 
 const tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, process.argv[2]);
 tor.startTorNode();
@@ -96,6 +99,17 @@ app.get('/tor_settings', function(req,res) {
 });
 
 
+app.get('/shutdown', async function(req,res) {
+  try {
+    let response = await tor.stopTorNode();
+    res.status(200).json(response);
+    process.exit();
+  } catch (err) {
+    res.status(400).json(`Shutdown failed: ${err}`);
+  }
+});
+
+
 app.get('/swap/*', function(req,res) {
   get_endpoint(req, res, config.swap_conductor_endpoint)
  });
@@ -114,6 +128,7 @@ app.post('*', function(req,res) {
 
 async function on_exit(){
   await tor.stopTorNode();
+  process.exit();
 }
 
 process.on('exit',on_exit);
