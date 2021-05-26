@@ -48,9 +48,9 @@ export class Config {
     }
     this.tor_proxy = {
       ip: 'localhost',
-      port: 9050,
-      controlPassword: 'password',
-      controlPort: 9051
+      port: 9060,
+      controlPassword: '',
+      controlPort: 9061
     };
 
     this.min_anon_set = 5;

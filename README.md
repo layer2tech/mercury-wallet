@@ -12,7 +12,7 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 | state_entity_endpoint | string | https://beta.mercurywallet.io |
 | swap_conductor_endpoint | string | https://beta.mercurywallet.io |
 | electrum_config | object | { host: 'wallet.mercurywallet.io', port: 50004, protocol: 'wss'} |
-| tor_proxy | object | { ip: 'localhost', port: 9050, controlPassword: 'password', controlPort: 9051 } |
+| tor_proxy | object | { ip: 'localhost', port: 9060, controlPassword: '', controlPort: 9061 } |
 | min_anon_set | number | 5 |
 | notifications | boolean | true |
 | tutorials | boolean | false |

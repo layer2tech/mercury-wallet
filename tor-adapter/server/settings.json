@@ -2,8 +2,8 @@
   "state_entity_endpoint": "https://beta.mercurywallet.io",
   "swap_conductor_endpoint": "https://beta.mercurywallet.io",
   "tor_proxy": {"ip": "localhost",
-                "port": 9050,
-                "controlPassword": "password",
-                "controlPort": 9051
+                "port": 9060,
+                "controlPassword": "",
+                "controlPort": 9061
               }
 }

@@ -38,8 +38,6 @@ if(isDev) {
     }
 }
 
-const tor_cmd = (getPlatform() == 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
-
 let mainWindow;
 
 function createWindow() {
@@ -137,8 +135,6 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 const Store = require('electron-store');
 Store.initRenderer();
 
-
-const exec = require('child_process').exec;
 const fork = require('child_process').fork;
 
 fixPath();
@@ -155,40 +151,6 @@ stdio: 'ignore',
   }
 );
   
-//Check if tor is running
-let isTorRunning=true;
-let tor = undefined;
-console.log("Checking if tor is running on port 9050...");
-exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs", 
-(_error, stdout, _stderr) => {
-    if (stdout.length <= 2){
-	console.log("tor is not running on port 9050");
-	isTorRunning=false;
-	console.log("starting tor...");
-	tor = exec(tor_cmd, {
-	    detached: false,
-	    stdio: 'ignore',
-	},  (error) => {
-       if(error){
-         app.exit(error);
-       };
-    });
-   
-   tor.stdout.on("data", function(data) {
-   console.log("tor stdout: " + data.toString());  
-   }
-		);
- 
-   tor.stderr.on("data", function(data) {
-     console.log("tor stderr: " + data.toString());
-   });
-	} else {
-	    console.log("tor is running on port 9050");
-	}
-
-});
-
-
 async function on_exit(){
   await kill_tor();
   process.exit(0)
@@ -196,9 +158,6 @@ async function on_exit(){
 
 async function kill_tor(){
   await process.kill(tor_adapter.pid,"SIGINT");
-  if(tor){
-    await process.kill(tor.pid,"SIGINT");
-  }
 }
 
 process.on('SIGINT',on_exit);
