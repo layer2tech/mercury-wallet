@@ -10,19 +10,6 @@ const fork = require('child_process').fork;
 
 
 class TorClient {
-    /*
-    torConfig = {
-        ip: 'localhost',
-        port: 9050,
-        controlPort: 9051,
-        controlPassword: 'password'
-    }
-    proxyConfig = {
-        agent: '',
-        headers: {'':''}
-
-    }
-*/
 
     constructor(ip, port, controlPassword, controlPort, dataPath){
         
@@ -102,20 +89,10 @@ class TorClient {
     }
 
     async startTorNode(tor_cmd, torrc) {
-       
-        
-        let isTorRunning=true;
-        let tor_proc=undefined;
-
-        if (this.isNodeRunning()){
-            console.log(`tor is already running on port ${this.torConfig.port}`);
-        }
         
         //Get the password hash
         exec(`${tor_cmd} --hash-password ${this.torConfig.controlPassword}`, (_error, stdout, _stderr) => {
             let hashedPassword = stdout;
-            console.log(`tor is not running on port ${this.torConfig.port}`);
-            console.log("starting tor...");
             this.tor_proc = exec(`${tor_cmd} -f ${torrc} SOCKSPort ${this.torConfig.port} ControlPort ${this.torConfig.controlPort} HashedControlPassword ${hashedPassword}`, {
                             detached: false,
                             stdio: 'ignore',
@@ -136,7 +113,6 @@ class TorClient {
     }
 
     async isNodeRunning() {
-        console.log(`Checking if tor is running on port ${this.torConfig.port}...`);
         let result=false
         await exec(`curl --socks5 ${this.torConfig.ip}:${this.torConfig.port} --socks5-hostname ${this.torConfig.ip}:${this.torConfig.port} -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs`, 
             (_error, stdout, _stderr) => {

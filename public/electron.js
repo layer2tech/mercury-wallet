@@ -8,7 +8,6 @@ const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
 
 function getPlatform(){
-  console.log("platform: " + process.platform);
   switch (process.platform) {
     case 'aix':
     case 'freebsd':
@@ -27,19 +26,6 @@ function getPlatform(){
 
 const isDev = (process.env.NODE_ENV == 'development');
 
-/*
-var execPath;
-if(isDev) {
-    execPath = joinPath(dirname(rootPath), 'bin');
-} else {
-    if(getPlatform() == 'linux') {
-	execPath = joinPath(rootPath, '../../Resources/bin');
-    } else {
-	    execPath = joinPath(rootPath, '../bin');
-    }
-}
-*/
-
 
 let resourcesPath = undefined;
 if(getPlatform() == 'linux') {
@@ -50,26 +36,18 @@ if(getPlatform() == 'linux') {
 let execPath = undefined;
 let torrc = undefined;
 if(process.env.NODE_ENV == 'development') {
-    console.log("dev mode");
     execPath = joinPath(resourcesPath, getPlatform());
     torrc = joinPath(resourcesPath, 'etc', 'torrc');
 } else {
     if(getPlatform() == 'linux') {
-        console.log("linux prod");
         execPath = joinPath(rootPath, '../../Resources/bin');
     } else {
-        console.log("mac prod");
         execPath = joinPath(rootPath, '../../../bin');
     }
     torrc = joinPath(execPath, '../etc/torrc');
 }
 
-console.log("torrc: " + torrc);
-console.log("exec: " + execPath);
-
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
-
-console.log("tor_cmd: " + tor_cmd);
 
 let mainWindow;
 
