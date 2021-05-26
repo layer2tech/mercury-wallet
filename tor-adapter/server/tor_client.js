@@ -7,48 +7,7 @@ const joinPath = join;
 const exec = require('child_process').exec;
 const execSync = require('child_process').execSync;
 const fork = require('child_process').fork;
-const rootPath = require('electron-root-path').rootPath;
-let resourcesPath = undefined;
-if(getPlatform() == 'linux') {
-    resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
-} else {
-   resourcesPath = joinPath(dirname(rootPath), 'resources');
-}
-let execPath = undefined;
-let torrc = undefined;
-if(process.env.NODE_ENV == 'development') {
-    console.log("dev mode");
-    execPath = joinPath(resourcesPath, getPlatform());
-    torrc = joinPath(resourcesPath, 'etc', 'torrc');
-} else {
-    if(getPlatform() == 'linux') {
-        console.log("linux prod");
-        execPath = joinPath(rootPath, '../../Resources/bin');
-    } else {
-        console.log("mac prod");
-        execPath = joinPath(rootPath, '../../../bin');
-    }
-    torrc = joinPath(execPath, '../etc/torrc');
-}
 
-console.log("torrc: " + torrc);
-
-
-function getPlatform() {
-        switch (process.platform) {
-          case 'aix':
-          case 'freebsd':
-          case 'linux':
-          case 'openbsd':
-          case 'android':
-            return 'linux';
-          case 'darwin':
-          case 'sunos':
-            return 'mac';
-          case 'win32':
-            return 'win';
-        }
-    }
 
 class TorClient {
     /*
@@ -142,13 +101,8 @@ class TorClient {
         });
     }
 
-    async startTorNode() {
+    async startTorNode(tor_cmd, torrc) {
        
-
-
-        console.log("startTorNode exec path: " + execPath);
-
-        const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
         
         let isTorRunning=true;
         let tor_proc=undefined;

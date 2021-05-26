@@ -4,6 +4,55 @@ var Config = new require('./config');
 const config = new Config();
 const tpc = config.tor_proxy;
 const express = require("express");
+const { join, dirname } = require('path');
+const joinPath = join;
+const exec = require('child_process').exec;
+const execSync = require('child_process').execSync;
+const fork = require('child_process').fork;
+const rootPath = require('electron-root-path').rootPath;
+let resourcesPath = undefined;
+if(getPlatform() == 'linux') {
+    resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
+} else {
+   resourcesPath = joinPath(dirname(rootPath), 'resources');
+}
+let execPath = undefined;
+let torrc = undefined;
+if(process.env.NODE_ENV == 'development') {
+    console.log("dev mode");
+    execPath = joinPath(resourcesPath, getPlatform());
+    torrc = joinPath(resourcesPath, 'etc', 'torrc');
+} else {
+    if(getPlatform() == 'linux') {
+        console.log("linux prod");
+        execPath = joinPath(rootPath, '../../Resources/bin');
+    } else {
+        console.log("mac prod");
+        execPath = joinPath(rootPath, '../../../bin');
+    }
+    torrc = joinPath(execPath, '../etc/torrc');
+}
+
+console.log("torrc: " + torrc);
+const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
+console.log("tor_cmd: " + tor_cmd);
+
+
+function getPlatform() {
+        switch (process.platform) {
+          case 'aix':
+          case 'freebsd':
+          case 'linux':
+          case 'openbsd':
+          case 'android':
+            return 'linux';
+          case 'darwin':
+          case 'sunos':
+            return 'mac';
+          case 'win32':
+            return 'win';
+        }
+    }
 
 const PORT = 3001;
 
@@ -16,10 +65,42 @@ app.listen(PORT, () => {
      console.log("tor data dir: " + process.argv[2]);
 });
 
-
-
 const tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, process.argv[2]);
-tor.startTorNode();
+
+//tor.startTorNode(tor_cmd, torrc);
+
+        let isTorRunning=true;
+        let tor_proc=undefined;
+
+                
+        //Get the password hash
+exec(`${tor_cmd} --hash-password ${tpc.controlPassword}`,
+     (_error, stdout, _stderr) => {
+         let hashedPassword = stdout;
+	 console.log("hashed password: " + hashedPassword);
+          
+         console.log("starting tor...");
+         this.tor_proc = exec(`${tor_cmd} -f ${torrc} SOCKSPort ${tpc.port} ControlPort ${tpc.controlPort} HashedControlPassword ${hashedPassword}`, {
+             detached: false,
+             stdio: 'ignore',
+         },  (error) => {
+             if(error){
+		 conssole.log(error);
+                 throw error;
+             };
+         });
+           
+         this.tor_proc.stdout.on("data", function(data) {
+             console.log("tor stdout: " + data.toString());  
+         });
+         
+         this.tor_proc.stderr.on("data", function(data) {
+             console.log("tor stderr: " + data.toString());
+         });
+     });
+
+
+
 
 async function get_endpoint(req, res, endpoint){
   try{
