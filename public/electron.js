@@ -140,12 +140,7 @@ const exec = require('child_process').exec;
 
 fixPath();
 
-console.log("starting tor adapter: " + `${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`);
-console.log(`app path: ${app.getAppPath()}`);
-
-let appPath = app.getAppPath()
-
-let tor_adapter = exec(`node ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js ${appPath}`,
+fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`, [app.getAppPath()],
 {
 detached: false,
 stdio: 'ignore',
