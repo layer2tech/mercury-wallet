@@ -200,6 +200,12 @@ export const callTransferReceiver = createAsyncThunk(
     return wallet.transfer_receiver(decodeMessage(action, network))
   }
 )
+export const callGetTransfers = createAsyncThunk(
+  'GetTransfers',
+  async (action, thunkAPI) => {
+    return wallet.get_transfers()
+  }
+)
 export const callDoSwap = createAsyncThunk(
   'DoSwap',
   async (action, thunkAPI) => {
@@ -331,6 +337,9 @@ const WalletSlice = createSlice({
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callTransferReceiver.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callGetTransfers.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callDoSwap.rejected]: (state, action) => {
