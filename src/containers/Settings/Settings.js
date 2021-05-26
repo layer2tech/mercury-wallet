@@ -9,6 +9,7 @@ import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
   callUpdateConfig, callClearSave, unloadWallet} from '../../features/WalletDataSlice'
 
 import './Settings.css';
+import Tutorial from "../../components/Tutorial";
 
 export const defaultWalletConfig = () => ({
   notifications: false,
@@ -97,6 +98,7 @@ const SettingsPage = (props) => {
   }
 
   return (
+    <div className={`${current_config.tutorials ? 'container-with-tutorials' : ''}`}>
       <div className="container">
           <div className="Body settings">
               <div className="swap-header">
@@ -256,6 +258,8 @@ const SettingsPage = (props) => {
           show={openBackupModal}
         />
       </div>
+      { current_config.tutorials && <Tutorial />}
+    </div>
   )
 }
 

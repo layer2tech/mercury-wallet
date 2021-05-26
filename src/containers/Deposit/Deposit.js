@@ -6,8 +6,8 @@ import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 import {Button, Modal} from "react-bootstrap";
 
-import {CreateStatecoin, TransactionsBTC, StdButton, Steppers} from "../../components";
-import {isWalletLoaded, setError} from '../../features/WalletDataSlice'
+import {CreateStatecoin, TransactionsBTC, StdButton, Steppers, Tutorial} from "../../components";
+import {isWalletLoaded, setError, callGetConfig} from '../../features/WalletDataSlice'
 
 import './Deposit.css';
 
@@ -102,7 +102,15 @@ const DepositPage = () => {
     setSelectedValues(current_values);
   }
 
+  let current_config;
+  try {
+     current_config = callGetConfig();
+  } catch(error) {
+     console.warn('Can not get config', error)
+  } 
+
   return (
+    <div className={`${current_config.tutorials ? 'container-with-tutorials' : ''}`}>
       <div className="container deposit">
           <div className="Body ">
              <div className="deposit-header">
@@ -197,6 +205,8 @@ const DepositPage = () => {
               </Modal.Footer>
           </Modal>
       </div>
+      {current_config.tutorials && <Tutorial />}
+    </div>
   )
 }
 
