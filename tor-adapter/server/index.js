@@ -13,6 +13,7 @@ app.use(bodyParser.json());
 app.listen(PORT, () => {
      console.log(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`);
      console.log("control port password: " + tpc.controlPassword);
+     console.log("tor data dir: " + process.argv[2]);
 });
 
 

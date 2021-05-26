@@ -145,15 +145,19 @@ const fork = require('child_process').fork;
 
 fixPath();
 console.log(`starting tor adapter from: ${__dirname}`);
-fork(`${__dirname}/../tor-adapter/server/index.js`, [app.getAppPath()],
+//fork(`${__dirname}/../tor-adapter/server/index.js`, [app.getAppPath()],
+exec(`node ${__dirname}/../tor-adapter/server/index.js ${app.getAppPath()}`,
 {
 detached: false,
 stdio: 'ignore',
   },
-  (error) => {
+  (error, stdout, _stderr)  => {
     if(error){
       app.exit(error);
     };
+    //if(stdout){
+    //  console.log(stdout);
+    //};
   }
 );
   

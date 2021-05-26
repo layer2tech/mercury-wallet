@@ -9,8 +9,26 @@ const execSync = require('child_process').execSync;
 const fork = require('child_process').fork;
 const rootPath = require('electron-root-path').rootPath;
 const resourcesPath = joinPath(dirname(rootPath), 'resources');
-const execPath = joinPath(resourcesPath, getPlatform());
-const torrc = joinPath(resourcesPath, 'etc', 'torrc');
+
+let execPath = undefined;
+let torrc = undefined;
+if(process.env.NODE_ENV == 'development') {
+    console.log("dev mode");
+    execPath = joinPath(resourcesPath, getPlatform());
+    torrc = joinPath(resourcesPath, 'etc', 'torrc');
+} else {
+    if(getPlatform() == 'linux') {
+        console.log("linux prod");
+        execPath = joinPath(rootPath, '../../Resources/bin');
+    } else {
+        console.log("mac prod");
+        execPath = joinPath(rootPath, '../../../bin');
+    }
+    torrc = joinPath(execPath, '../etc/torrc');
+}
+
+console.log("torrc: " + torrc);
+
 
 function getPlatform() {
         switch (process.platform) {
@@ -121,7 +139,10 @@ class TorClient {
     }
 
     async startTorNode() {
-        const execPath = joinPath(dirname(rootPath), 'mercury-wallet/resources', getPlatform());
+       
+
+
+        console.log("startTorNode exec path: " + execPath);
 
         const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
         
@@ -133,11 +154,11 @@ class TorClient {
         }
         
         //Get the password hash
-        exec(`tor --hash-password ${this.torConfig.controlPassword}`, (_error, stdout, _stderr) => {
+        exec(`${tor_cmd} --hash-password ${this.torConfig.controlPassword}`, (_error, stdout, _stderr) => {
             let hashedPassword = stdout;
             console.log(`tor is not running on port ${this.torConfig.port}`);
             console.log("starting tor...");
-            this.tor_proc = exec(`tor -f ${torrc} SOCKSPort ${this.torConfig.port} ControlPort ${this.torConfig.controlPort} HashedControlPassword ${hashedPassword}`, {
+            this.tor_proc = exec(`${tor_cmd} -f ${torrc} SOCKSPort ${this.torConfig.port} ControlPort ${this.torConfig.controlPort} HashedControlPassword ${hashedPassword}`, {
                             detached: false,
                             stdio: 'ignore',
                             },  (error) => {

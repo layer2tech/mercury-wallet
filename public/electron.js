@@ -136,16 +136,23 @@ const Store = require('electron-store');
 Store.initRenderer();
 
 const fork = require('child_process').fork;
+const exec = require('child_process').exec;
 
 fixPath();
 
-let tor_adapter = fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
+console.log("starting tor adapter: " + `${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`);
+console.log(`app path: ${app.getAppPath()}`);
+
+let appPath = app.getAppPath()
+
+let tor_adapter = exec(`node ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js ${appPath}`,
 {
 detached: false,
 stdio: 'ignore',
   },
   (error) => {
     if(error){
+      console.log(error);
       app.exit(error);
     };
   }
