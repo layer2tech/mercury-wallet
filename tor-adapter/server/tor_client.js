@@ -8,8 +8,12 @@ const exec = require('child_process').exec;
 const execSync = require('child_process').execSync;
 const fork = require('child_process').fork;
 const rootPath = require('electron-root-path').rootPath;
-const resourcesPath = joinPath(dirname(rootPath), 'resources');
-
+let resourcesPath = undefined;
+if(getPlatform() == 'linux') {
+    resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
+} else {
+   resourcesPath = joinPath(dirname(rootPath), 'resources');
+}
 let execPath = undefined;
 let torrc = undefined;
 if(process.env.NODE_ENV == 'development') {
