@@ -76,13 +76,6 @@
   padding: 0;
 }
 
-.filter-coin-icon {
-  position: absolute;
-  bottom: 0;
-  right: 20px;
-  cursor: pointer;
-}
-
 .filter-coin-options {
   position: absolute;
   min-width: 158px;

@@ -138,8 +138,13 @@
 .dark-mode .deposit-header .nav-item img {
   filter: invert(1);
 }
+.dark-mode .sort-by-menu svg path {
+    fill: #fff;
+}
 .dark-mode .filter-coin-options .filter-coin-head,
-.dark-mode .filter-coin-options label {
+.dark-mode .filter-coin-options label,
+.dark-mode .sort-by-options .sort-head span,
+.dark-mode .sort-by-options .order-item {
   color: #2d2d2d;
 }
 .dark-mode .deposit .primary-btn.blue {
