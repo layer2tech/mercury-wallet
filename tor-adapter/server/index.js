@@ -18,19 +18,6 @@ if(getPlatform() == 'linux') {
 }
 let execPath = undefined;
 let torrc = undefined;
-if(process.env.NODE_ENV == 'development') {
-    execPath = joinPath(resourcesPath, getPlatform());
-    torrc = joinPath(resourcesPath, 'etc', 'torrc');
-} else {
-    if(getPlatform() == 'linux') {
-        execPath = joinPath(rootPath, '../../Resources/bin');
-    } else {
-        execPath = joinPath(rootPath, '../../../bin');
-    }
-    torrc = joinPath(execPath, '../etc/torrc');
-}
-
-const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
 
 function getPlatform() {
         switch (process.platform) {
@@ -47,6 +34,21 @@ function getPlatform() {
             return 'win';
         }
     }
+
+if(argv[3]) {
+    execPath = joinPath(resourcesPath, getPlatform());
+    torrc = joinPath(resourcesPath, 'etc', 'torrc');
+} else {
+    if(getPlatform() == 'linux') {
+        execPath = joinPath(rootPath, '../../Resources/bin');
+    } else {
+        execPath = joinPath(rootPath, '../../../bin');
+    }
+    torrc = joinPath(execPath, '../etc/torrc');
+}
+
+const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
+console.log(`tor cmd: ${tor_cmd}`);
 
 const PORT = 3001;
 

@@ -151,7 +151,7 @@ const exec = require('child_process').exec;
 
 fixPath();
 
-fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`, [app.getAppPath()],
+fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`, [app.getAppPath(), isDev],
 {
 detached: false,
 stdio: 'ignore',

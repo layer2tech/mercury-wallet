@@ -10,6 +10,8 @@ const rootPath = require('electron-root-path').rootPath;
 const ipc = require('electron').ipcMain;
 const exec = require('child_process').exec;
 
+const isDev = (process.env.NODE_ENV == 'development');
+
 function getPlatform(){
   switch (process.platform) {
     case 'aix':
@@ -144,8 +146,10 @@ Store.initRenderer();
 const fork = require('child_process').fork;
 
 fixPath();
-console.log(`starting tor adapter from: ${__dirname}`);
-fork(`${__dirname}/../tor-adapter/server/index.js`, [app.getAppPath()],
+let tor_adapter_path = `${__dirname}/../tor-adapter/server/index.js`
+console.log(`starting tor adapter from: ${tor_adapter_path}`);
+console.log(`isDev: ${isDev}`);
+fork(`${tor_adapter_path}`, [app.getAppPath(), isDev],
 {
 detached: false,
 stdio: 'ignore',
