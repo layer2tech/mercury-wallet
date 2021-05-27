@@ -86,8 +86,7 @@ const Coins = (props) => {
         }
     }
 
-    // Check if coin is selected. If so return CSS.
-    const isSelectedStyle = (shared_key_id) => {
+    const isSelected = (shared_key_id) => {
         let selected = false;
         if(props.selectedCoins == undefined) {
           selected = (props.selectedCoin == shared_key_id)
@@ -100,7 +99,7 @@ const Coins = (props) => {
               }
             );
         }
-        return selected ? {backgroundColor: "#e6e6e6"} : {}
+        return selected;
     }
 
     // Convert expiry_data to string displaying months or days left
@@ -216,7 +215,7 @@ const Coins = (props) => {
     return (
         <div key={item.shared_key_id}>
           <div
-            className={`coin-item ${props.swap ? item.status : ''}`}
+            className={`coin-item ${props.swap ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
             onClick={() => {
               if(item.status === STATECOIN_STATUS.SWAPLIMIT && props.swap) {
                 dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
@@ -224,7 +223,7 @@ const Coins = (props) => {
               }
               selectCoin(item.shared_key_id)
             }}
-            style={isSelectedStyle(item.shared_key_id)}>
+          >
               <div className="CoinPanel">
                 <div className="CoinAmount-block">
                     <img src={item.privacy_data.icon1} alt="icon"/>

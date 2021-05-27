@@ -269,3 +269,9 @@
   top: 25px;
   width: max-content;
 }
+.coin-item.selected {
+  background: rgba(117, 117, 117, 0.101961);
+}
+.dark-mode .coin-item.selected {
+  background: rgba(102, 102, 102, 0.396078);
+}
