@@ -4,6 +4,7 @@
   padding: 30px;
   margin-bottom: 15px;
   box-shadow: 0px 2px 12px -7px #222;
+  border-radius: 4px;
 }
 
 .Body.small{

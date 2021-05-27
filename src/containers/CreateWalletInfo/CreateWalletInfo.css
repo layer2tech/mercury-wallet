@@ -24,6 +24,7 @@ h1 {
     padding: 20px;
     min-height: 120px;
     margin-bottom: 20px;
+    border-radius: 4px;
 }
 .welcome-second {
     width: 65%;
