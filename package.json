@@ -90,7 +90,7 @@
     "html-react-parser": "^0.14.2",
     "install": "^0.13.0",
     "lodash.clonedeep": "^4.5.0",
-    "mercury-wallet-tor-adapter": "file:./tor-adapter",
+    "mercury-wallet-tor-adapter": "file:./tor-adapter/",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
     "net": "^1.0.2",
@@ -169,6 +169,13 @@
       {
         "from": "resources/${os}",
         "to": "Resources/bin",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources/etc",
+        "to": "Resources/etc",
         "filter": [
           "**/*"
         ]
