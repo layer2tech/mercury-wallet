@@ -4,15 +4,15 @@ import anon_icon_high from "../../images/table-icon.png";
 import anon_icon2_none from "../../images/close-grey.png";
 import anon_icon2_low from "../../images/question-mark.png";
 import anon_icon2_high from "../../images/check-grey.png";
-import utx from "../../images/UTX.png";
-import time from "../../images/time-grey.png";
+import utx from "../../images/utxo_id.png";
+import time from "../../images/time_left.png";
 import calendar from "../../images/calendar.png";
 import swapNumber from "../../images/swap-number.png";
 import walleticon from "../../images/walletIcon.png";
 import txidIcon from "../../images/txid-icon.png";
 import timeIcon from "../../images/time.png";
 
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import { Link } from 'react-router-dom';
 import {Button, Modal} from 'react-bootstrap';
@@ -48,7 +48,6 @@ const INITIAL_SORT_BY = {
 const Coins = (props) => {
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
-    const coinPageRef = useRef();
 
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
@@ -87,8 +86,7 @@ const Coins = (props) => {
         }
     }
 
-    // Check if coin is selected. If so return CSS.
-    const isSelectedStyle = (shared_key_id) => {
+    const isSelected = (shared_key_id) => {
         let selected = false;
         if(props.selectedCoins == undefined) {
           selected = (props.selectedCoin == shared_key_id)
@@ -101,7 +99,7 @@ const Coins = (props) => {
               }
             );
         }
-        return selected ? {backgroundColor: "#e6e6e6"} : {}
+        return selected;
     }
 
     // Convert expiry_data to string displaying months or days left
@@ -153,10 +151,6 @@ const Coins = (props) => {
         return () => clearInterval(interval);
       }
     }, [coins.unConfirmedCoins]);
-
-    useEffect(() => {
-      console.log('page size', coinPageRef.current)
-    }, [])
 
     // data to display in privacy related sections
     const getPrivacyScoreDesc = (swap_rounds) => {
@@ -221,7 +215,7 @@ const Coins = (props) => {
     return (
         <div key={item.shared_key_id}>
           <div
-            className={`coin-item ${props.swap ? item.status : ''}`}
+            className={`coin-item ${props.swap ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
             onClick={() => {
               if(item.status === STATECOIN_STATUS.SWAPLIMIT && props.swap) {
                 dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
@@ -229,7 +223,7 @@ const Coins = (props) => {
               }
               selectCoin(item.shared_key_id)
             }}
-            style={isSelectedStyle(item.shared_key_id)}>
+          >
               <div className="CoinPanel">
                 <div className="CoinAmount-block">
                     <img src={item.privacy_data.icon1} alt="icon"/>
@@ -321,85 +315,141 @@ const Coins = (props) => {
 
     return (
         <div 
-          className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${coinPageRef?.current?.offsetWidth < 500 ? 'small-screen': ''}`}
-          ref={coinPageRef}
+          className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}
         >
           <FilterBy />
           {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
             {statecoinData}
 
-            <Modal show={showCoinDetails.show} onHide={handleCloseCoinDetails} className="modal">
-                <Modal.Body>
-                    <div>
-                        <div className="item">
-                            <img src={walleticon} alt="icon"/>
-                            <div className="block">
-                                <span>Statecoin Value</span>
-                                <span>
-                                    <b>{fromSatoshi(showCoinDetails.coin.value)} BTC</b>
-                                </span>
-                            </div>
-                        </div>
-                        <div className="item">
-                          <CoinStatus data={showCoinDetails.coin} isDetails={true} />
-                        </div>
-                        <div className="item">
-                            <img src={utx} alt="icon"/>
-                            <div className="block">
-                                <span>UTXO ID:</span>
-                                <span>{showCoinDetails.coin.funding_txid}</span>
-                            </div>
-                        </div>
-                        <div className="item">
-                            <img src={time} alt="icon"/>
-                            <div className="block">
-                                <span>
-                                  Time Until Expiry: {expiry_time_to_string(showCoinDetails.coin.expiry_data)}
-                                </span>
-                                <span></span>
-                            </div>
-                        </div>
-                        <div className="item">
-                            <img src={calendar} alt="icon"/>
-                            <div className="block">
-                                <span>Date Created</span>
-                                <span>
-                                  {new Date(showCoinDetails.coin.timestamp).toUTCString()}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="item">
-                            <img src={showCoinDetails.coin.privacy_data.icon1} alt="icon"/>
+        <Modal
+          show={showCoinDetails.show}
+          onHide={handleCloseCoinDetails}
+          className="modal coin-details-modal"
+        >
+          <Modal.Body>
+            <div>
+              <div className="item">
+                <img src={walleticon} alt="icon" />
+                <div className="block">
+                  <span>Statecoin Value</span>
+                  <span>
+                    <b>{fromSatoshi(showCoinDetails.coin.value)} BTC</b>
+                  </span>
+                </div>
+              </div>
+              {showCoinDetails?.coin?.status &&
+                showCoinDetails.coin.status !== STATECOIN_STATUS.AVAILABLE && (
+                  <div className="item">
+                    <CoinStatus data={showCoinDetails.coin} isDetails={true} />
+                  </div>
+                )}
+              <div className="item">
+                <img src={utx} alt="icon" />
+                <div className="block">
+                  <span>UTXO ID:</span>
+                  <span>{showCoinDetails.coin.funding_txid}</span>
+                </div>
+              </div>
+              <div className="item expiry-time">
+                <div className="expiry-time-wrap">
+                  <img src={time} alt="icon" />
+                  <div className="block">
+                    <span>
+                      Time Left Until Expiry
+                    </span>
+                    <span className="expiry-time-left">
+                      {expiry_time_to_string(
+                        showCoinDetails.coin.expiry_data
+                      )}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  className="progress_bar"
+                  id={
+                    showCoinDetails.coin.expiry_data.months < MONTHS_WARNING
+                      ? "danger"
+                      : "success"
+                  }
+                >
+                  <div className="sub">
+                    <ProgressBar>
+                      <ProgressBar
+                        striped
+                        variant={
+                          showCoinDetails.coin.expiry_data.months <
+                          MONTHS_WARNING
+                            ? "danger"
+                            : "success"
+                        }
+                        now={
+                          (showCoinDetails.coin.expiry_data.months * 100) / 12
+                        }
+                        key={1}
+                      />
+                    </ProgressBar>
+                  </div>
+                </div>
+              </div>
+              <div className="item">
+                <img src={calendar} alt="icon" />
+                <div className="block">
+                  <span>Date Created</span>
+                  <Moment format="MM.DD.YYYY">
+                    {showCoinDetails.coin.timestamp}
+                  </Moment>
+                  <Moment format="h:mm a">
+                    {showCoinDetails.coin.timestamp}
+                  </Moment>
+                </div>
+              </div>
+              <div className="item">
+                <img src={showCoinDetails.coin.privacy_data.icon1} alt="icon" />
 
-                            <div className="block">
-                                <span>Privacy Score</span>
-                                <span>{showCoinDetails.coin.privacy_data.score_desc}</span>
-
-                            </div>
-                        </div>
-                        <div className="item">
-                            <img src={swapNumber} alt="icon"/>
-                            <div className="block">
-                                <span>Number of Swaps Rounds</span>
-                                <span>Swaps: {showCoinDetails.coin.swap_rounds}
-                                  {/*
+                <div className="block">
+                  <span>Privacy Score</span>
+                  <span>{showCoinDetails.coin.privacy_data.score_desc}</span>
+                  <span className="privacy-score-help">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M18.9996 3H4.99963C3.89978 3 2.99963 3.90002 2.99963 5V19C2.99963 20.1 3.89978 21 4.99963 21H18.9996C20.0997 21 20.9996 20.1 20.9996 19V5C20.9996 3.90002 20.0997 3 18.9996 3ZM12.0096 18C11.3097 18 10.7496 17.44 10.7496 16.74C10.7496 16.03 11.3097 15.49 12.0096 15.49C12.7199 15.49 13.2596 16.03 13.2596 16.74C13.2496 17.43 12.7199 18 12.0096 18ZM15.0197 10.6C14.2596 11.71 13.5397 12.06 13.1498 12.77C12.9896 13.06 12.9298 13.25 12.9298 14.18H11.1097C11.1097 13.69 11.0297 12.89 11.4198 12.2C11.9098 11.33 12.8397 10.81 13.3798 10.04C13.9498 9.22997 13.6298 7.71001 12.0096 7.71001C10.9498 7.71001 10.4298 8.51 10.2098 9.18999L8.55969 8.48998C9.00964 7.15001 10.2199 5.99999 11.9896 5.99999C13.4698 5.99999 14.4796 6.66997 14.9996 7.52001C15.4398 8.23998 15.6998 9.59002 15.0197 10.6Z"
+                        fill="#666666"
+                      />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+              <div className="item">
+                <img src={swapNumber} alt="icon" />
+                <div className="block">
+                  <span>Number of Swaps Rounds</span>
+                  <span>
+                    Swaps: {showCoinDetails.coin.swap_rounds}
+                    {/*
                                     <br/>
                                     Number of Participants: 0
                                   */}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseCoinDetails}>
-                        Close
-                    </Button>
-
-                </Modal.Footer>
-            </Modal>
-        </div>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              className="primary-btn ghost"
+              onClick={handleCloseCoinDetails}
+            >
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
     );
 }
 

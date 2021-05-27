@@ -1,9 +1,33 @@
+const { join, dirname } = require('path');
+const joinPath = join;
 const { app, BrowserWindow, dialog, ipcMain, electron } = require('electron');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
+const rootPath = require('electron-root-path').rootPath;
+
+function getPlatform(){
+  switch (process.platform) {
+    case 'aix':
+    case 'freebsd':
+    case 'linux':
+    case 'openbsd':
+    case 'android':
+      return 'linux';
+    case 'darwin':
+    case 'sunos':
+      return 'mac';
+    case 'win32':
+      return 'win';
+  }
+
+}
+
+const execPath = joinPath(dirname(rootPath), 'mercury-wallet/resources', getPlatform());
+
+const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -122,31 +146,21 @@ Store.initRenderer();
 
 
 const exec = require('child_process').exec;
+const fork = require('child_process').fork;
 
 fixPath();
 console.log(`starting tor adapter from: ${__dirname}`);
-//let tor_adapter = exec(`npm --prefix ${__dirname}/../node_modules/mercury-wallet-tor-adapter start`,
-let tor_adapter = exec(`node ${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
+let tor_adapter = fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
 {
 detached: false,
 stdio: 'ignore',
   },
   (error) => {
     if(error){
-      //alert(`${error}`);
       app.exit(error);
     };
   }
 );
-
-
-tor_adapter.stdout.on("data", function(data) {
-  console.log("tor adapter stdout: " + data.toString());
-});
-
-tor_adapter.stderr.on("data", function(data) {
-  console.log("tor adapter stderr: " + data.toString());
-});
   
 //Check if tor is running
 let isTorRunning=true;
@@ -158,12 +172,11 @@ exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://c
 	console.log("tor is not running on port 9050");
 	isTorRunning=false;
 	console.log("starting tor...");
-	tor = exec("tor", {
+	tor = exec(tor_cmd, {
 	    detached: false,
 	    stdio: 'ignore',
 	},  (error) => {
        if(error){
-         alert(`${error}`);
          app.exit(error);
        };
     });

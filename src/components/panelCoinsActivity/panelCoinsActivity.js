@@ -35,11 +35,12 @@ const PanelCoinsActivity = (props) => {
                         <Tab eventKey={defaultTabTitle} title={defaultTabTitle}>
                             <Coins
                                 displayDetailsOnClick={true}
-                          selectedCoins={selectedCoins}
-                          setSelectedCoins={setSelectedCoins}
-                          setSelectedCoin={setSelectedCoin}
-                          showCoinStatus={true}
-                          />
+                                selectedCoins={selectedCoins}
+                                setSelectedCoins={setSelectedCoins}
+                                setSelectedCoin={setSelectedCoin}
+                                showCoinStatus={true}
+                                largeScreen
+                            />
                         </Tab>
                         <Tab eventKey="ACTIVITY" title="ACTIVITY">
                             <Activity/>
