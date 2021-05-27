@@ -2,30 +2,27 @@ const SocksProxyAgent = require('socks-proxy-agent');
 const net = require('net');
 const os = require('os');
 const rp = require('request-promise');
+const { join, dirname } = require('path');
+const joinPath = join;
+const exec = require('child_process').exec;
+const execSync = require('child_process').execSync;
+const fork = require('child_process').fork;
+
 
 class TorClient {
-    /*
-    torConfig = {
-        ip: 'localhost',
-        port: 9050,
-        controlPort: 9051,
-        controlPassword: 'password'
-    }
-    proxyConfig = {
-        agent: '',
-        headers: {'':''}
 
-    }
-*/
-
-    constructor(ip, port, controlPassword, controlPort){
+    constructor(ip, port, controlPassword, controlPort, dataPath){
         
+        this.tor_proc=undefined;
+
         this.torConfig={
             ip: ip,
             port: port,
             controlPassword: controlPassword,
             controlPort: controlPort,
         };
+
+        this.dataPath = dataPath;
 
         this.proxyConfig={
             agent: new SocksProxyAgent('socks://' + ip + ':' + port),
@@ -63,10 +60,9 @@ class TorClient {
     }
 
     torIPC(commands)  {
-        let ip = this.torConfig.ip;
-        let controlPort = this.torConfig.controlPort;
-
         return new Promise(function (resolve, reject, ip, controlPort) {
+            ip = this.torConfig.ip;
+            controlPort = this.torConfig.controlPort;
             let socket = net.connect({
                 host: ip || '127.0.0.1',
                 port: controlPort || 9051,
@@ -92,18 +88,72 @@ class TorClient {
         });
     }
 
+    async startTorNode(tor_cmd, torrc) {
+        
+        //Get the password hash
+        exec(`${tor_cmd} --hash-password ${this.torConfig.controlPassword}`, (_error, stdout, _stderr) => {
+            let hashedPassword = stdout;
+            this.tor_proc = exec(`${tor_cmd} -f ${torrc} SOCKSPort ${this.torConfig.port} ControlPort ${this.torConfig.controlPort} HashedControlPassword ${hashedPassword}`, {
+                            detached: false,
+                            stdio: 'ignore',
+                            },  (error) => {
+                                if(error){
+                                    throw error;
+                                };
+                            });
+           
+            this.tor_proc.stdout.on("data", function(data) {
+                console.log("tor stdout: " + data.toString());  
+            });
+         
+            this.tor_proc.stderr.on("data", function(data) {
+                console.log("tor stderr: " + data.toString());
+            });
+        });
+    }
+
+    async isNodeRunning() {
+        let result=false
+        await exec(`curl --socks5 ${this.torConfig.ip}:${this.torConfig.port} --socks5-hostname ${this.torConfig.ip}:${this.torConfig.port} -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs`, 
+            (_error, stdout, _stderr) => {
+                console.log(stdout);
+                result = (stdout.length > 2);                
+            }
+        ); 
+        return result;
+    }
+
+    async stopTorNode(){
+        console.log("stop tor node");
+        while(true){
+            console.log("sending shutdown signal")
+            //await exec(`(echo authenticate '"${this.torConfig.controlPassword}"'; echo signal shutdown; echo quit) | nc ${this.torConfig.ip} ${this.torConfig.controlPort}`);
+            //console.log("sent shutdown signal")
+            //console.log("shutdown");
+            //await this.sendSignal('HALT');
+            //await this.sendSignal('TERM');
+            await this.sendSignal('SHUTDOWN');
+            console.log(await this.isNodeRunning());
+            if(await this.isNodeRunning() == false){  
+                console.log("shutdown complete");
+                break;
+            }            
+            await this.sleep(1000);
+        }
+    }
 
     async newTorConnection() {
-        const controlPassword = this.torConfig.controlPassword;
+        await this.sendSignal('NEWNYM');
+        await this.sleep(6000);
+    }
+
     
-        let commands = [
-            'authenticate "' + controlPassword + '"', // authenticate the connection                                                                      
-            'signal newnym', // send the signal (renew Tor session)                                                                                                 
-            'quit' // close the connection                                                                                                                          
-        ];
-        
+    async sendSignal(signal) {
         let data = '';
-        data = await this.torIPC(commands);
+        await exec(`(echo authenticate '"${this.torConfig.controlPassword}"'; echo signal ${signal}; echo quit) | nc ${this.torConfig.ip} ${this.torConfig.controlPort}`,
+        (_error, stdout, _stderr) => {
+            data = stdout;
+        });
         
         let lines = data.split( os.EOL ).slice( 0, -1 );
         
@@ -117,9 +167,7 @@ class TorClient {
             throw err;
         }
         
-        await this.sleep(6000);
-        
-        return 'Tor session successfully renewed!!';
+        return `Tor signal "${signal}" successfully sent`;
     }
     
     async confirmNewTorConnection() {

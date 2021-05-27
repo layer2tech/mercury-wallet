@@ -17,11 +17,46 @@ import { Storage } from '../store';
 import { groupInfo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
+import os  from 'os';
+//import { remote } from 'electron';
+
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
 let bip32 = require('bip32');
 let bip39 = require('bip39');
 let cloneDeep = require('lodash.clonedeep');
+
+const { join, dirname, path } = require('path');
+const joinPath = join;
+const child_processs = require('child_process');
+
+
+function getPlatform() : string {
+  switch (os.platform()) {
+    case 'aix':
+    case 'freebsd':
+    case 'linux':
+    case 'openbsd':
+    case 'android':
+      return 'linux' as string;
+    case 'darwin':
+    case 'sunos':
+      return 'mac' as string;
+    case 'win32':
+      return 'win' as string;
+  }
+  return process.platform as string;
+}
+
+const rootPath: string  = require('electron-root-path').rootPath;
+let platform: string = getPlatform();
+console.log("platform:" + platform);
+const execPath: string = joinPath(dirname(rootPath) as string, 'mercury-wallet/resources' as string, 'mac');
+//getPlatform() as string);
+//joinPath(dirname(rootPath) as string, 'mercury-wallet/resources' as string, getPlatform() as string);
+
+const tor_cmd : string = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
+
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -32,6 +67,16 @@ try {
 } catch (e) {
   log = require('electron-log');
 }
+
+ //let tor=undefined;
+ //child_processs.exec(tor_cmd); 
+ /*
+ as string, {},  (error: any) => {
+    if(error){
+      console.log(error);
+    };
+ });
+ */
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
@@ -68,19 +113,20 @@ export class Wallet {
     this.conductor_client = new MockHttpClient();
 
     
+
     this.http_client = new HttpClient('http://localhost:3001', true);
     let se_tor_config = {
       tor_proxy: this.config.tor_proxy,
       state_entity_endpoint: this.config.state_entity_endpoint
     }
-    this.http_client.post('tor_settings', se_tor_config);
+    //this.http_client.post('tor_settings', se_tor_config);
     
     this.conductor_client = new HttpClient('http://localhost:3001', true);
     let cond_tor_config = {
       tor_proxy: this.config.tor_proxy,
       swap_conductor_endpoint: this.config.swap_conductor_endpoint
     }
-    this.conductor_client.post('tor_settings', cond_tor_config);
+    //this.conductor_client.post('tor_settings', cond_tor_config);
         
     this.block_height = 0;
     this.current_sce_addr = "";
@@ -199,7 +245,6 @@ export class Wallet {
     } catch (e) {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
-    
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
@@ -287,9 +332,15 @@ export class Wallet {
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
+      // if we have the funding transaction, finalize creation and backup
+      if ((statecoin.status===STATECOIN_STATUS.UNCONFIRMED || statecoin.status===STATECOIN_STATUS.IN_MEMPOOL) && statecoin.tx_backup===null ) {
+          this.depositConfirm(statecoin.shared_key_id)
+      }
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
-          this.depositConfirm(statecoin.shared_key_id)
+          statecoin.setConfirmed();
+          // update in wallet
+          this.statecoins.setCoinFinalized(statecoin);
       }
     })
   }
@@ -311,7 +362,7 @@ export class Wallet {
   getCoinBackupTxData(shared_key_id: string) {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin===undefined) throw Error("StateCoin does not exist.");
-    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("StateCoin is not availble.");
+    if (statecoin.status===STATECOIN_STATUS.INITIALISED) throw Error("StateCoin is not availble.");
 
     // Get tx hex
     let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
@@ -580,7 +631,7 @@ export class Wallet {
   async depositConfirm(
     shared_key_id: string
   ): Promise<StateCoin> {
-    log.info("Depositing Confirm shared_key_id: "+shared_key_id);
+    log.info("Depositing Backup Confirm shared_key_id: "+shared_key_id);
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin === undefined) throw Error("Coin "+shared_key_id+" does not exist.");
@@ -596,10 +647,9 @@ export class Wallet {
     );
 
     // update in wallet
-    statecoin_finalized.setConfirmed();
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
-    log.info("Deposit Confirm done.");
+    log.info("Deposit Backup done.");
     this.saveStateCoinsList();
     return statecoin_finalized
   }

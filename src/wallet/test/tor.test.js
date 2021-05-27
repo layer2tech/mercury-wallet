@@ -5,9 +5,9 @@ jest.setTimeout(30000);
 let tor_config = {
     tor_proxy: {
         ip: 'localhost',
-        port: 9050,
-        controlPassword: 'password',
-        controlPort: 9051
+        port: 9060,
+        controlPassword: '',
+        controlPort:9061
     },
     state_entity_endpoint: "",
     swap_conductor_endpoint: ""
@@ -20,7 +20,6 @@ async function set_config(client, config) {
 describe.skip('Tor server integration', function(){
     test('tor server get', async function(){
         const client = new HttpClient('http://localhost:3001');
-        await set_config(client, tor_config);
         
         let result2 = await client.get(GET_ROUTE.FEES,{});
         console.log(result2);
@@ -28,7 +27,6 @@ describe.skip('Tor server integration', function(){
 
     test('tor server get unknown route', async function(){
         const client = new HttpClient('http://localhost:3001');
-        await set_config(client, tor_config);
         
         try{
             await client.get('unknown route',{});
@@ -40,7 +38,6 @@ describe.skip('Tor server integration', function(){
 
     test('tor server post unknown route', async function(){
         const client = new HttpClient('http://localhost:3001');
-        await set_config(client, tor_config);
         
         let transfer_msg1 = {
             shared_key_id: "00000000000000000000000000000000",
@@ -56,7 +53,6 @@ describe.skip('Tor server integration', function(){
     
     test('tor server unprocessable request', async function(){
         const client = new HttpClient('http://localhost:3001');
-        await set_config(client, tor_config);
         
         let transfer_msg1 = {
             shared_key_id: "00000000000000000000000000000000",
@@ -72,7 +68,6 @@ describe.skip('Tor server integration', function(){
 
     test('tor server post success', async function(){
         const client = new HttpClient('http://localhost:3001');
-        await set_config(client, tor_config);
         
         let deposit_msg1 = {
             auth: "authstr",
