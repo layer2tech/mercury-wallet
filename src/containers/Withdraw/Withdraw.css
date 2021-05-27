@@ -62,7 +62,7 @@
 }
 .withdraw.content  .right .header select {
     border: none;
-    box-shadow: 0px 2px 12px -7px #222;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
     padding: 10px;
     width: 145px;
 }
