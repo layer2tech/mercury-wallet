@@ -1,5 +1,6 @@
 let ElectrumClientLib = require('@keep-network/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')
+const W3CWebSocket = require('websocket').w3cwebsocket
 
 export interface ElectrumClientConfig {
   host: string,
@@ -31,7 +32,31 @@ export class ElectrumClient {
   }
 
   async serverPing() {
-    this.client.server_ping()
+    this.client.server_ping().catch( (err: any) => {
+      throw err;
+    });
+  }
+
+  hasConnected() {
+    return (this.client.status !== 0);
+  }
+
+  isOpen() {
+    console.log(`isOpen: ${this.client.status}, ${W3CWebSocket.OPEN}`)
+    return (this.client.status === W3CWebSocket.OPEN);
+  }
+
+  isConnecting() {
+    return (this.client.status === W3CWebSocket.CONNECTING);
+  }
+
+  isClosed() {
+    console.log(`isClosed: ${this.client.status}, ${W3CWebSocket.CLOSED}, ${(this.client.status ===W3CWebSocket.CLOSED)}`)
+    return (this.client.status ===W3CWebSocket.CLOSED);
+  }
+
+  isClosing() {
+    return (this.client.status === W3CWebSocket.CLOSING);
   }
 
   // convert BTC address scipt to electrum script has

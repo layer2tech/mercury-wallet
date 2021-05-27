@@ -66,8 +66,8 @@ export class Wallet {
     this.statecoins = new StateCoinList();
     this.swap_group_info = new Map<SwapGroup, number>();
     this.activity = new ActivityLog();
-    this.electrum_client = config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     this.conductor_client = new MockHttpClient();
+    this.electrum_client = this.newElectrumClient();
 
     
     this.http_client = new HttpClient('http://localhost:3001', true);
@@ -216,6 +216,10 @@ export class Wallet {
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
     }
+  }
+
+  newElectrumClient(){
+    return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
   }
 
   // Initialise electum server:

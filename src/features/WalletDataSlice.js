@@ -11,6 +11,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 
 const log = window.require('electron-log');
 const network = bitcoin.networks[require("../settings.json").network];
+const W3CWebSocket = require('websocket').w3cwebsocket
 
 let wallet;
 let testing_mode = require("../settings.json").testing_mode;
@@ -43,35 +44,54 @@ export const reloadWallet = () => {
 }
 
 //Restart the electrum server if ping fails
-async function pingRestart() {
+async function pingElectrumRestart() {
    if(wallet){
-    try {
-       wallet.electrum_client.serverPing();
-    } catch(err){
-      await wallet.electrum_client.close();
-      wallet.initElectrumClient(setBlockHeightCallBack);
+     //If client already started
+     log.info(`Wallet exists - checking if open`);
+    if (wallet.electrum_client.isOpen()){
+      log.info(`Electrum connection open - pinging`);
+      console.log(`Electrum connection open - pinging`);
+      wallet.electrum_client.client.server_ping().catch((err) => {
+        log.info(`Failed to ping electum server: ${err}. Restarting client`);
+        wallet.electrum_client.close().catch( (err) => {
+          log.info(`Failed to close electrum client: ${err}`)
+        });
+      });
+    } 
+    
+    if (!wallet.electrum_client.isOpen()){
+      log.info(`Electrum connection closed - attempting to reopen`);
+      try {
+          wallet.electrum_client = wallet.newElectrumClient();
+          wallet.initElectrumClient(setBlockHeightCallBack)
+        } catch(err) {
+          log.info(`Failed to initialize electrum client: ${err}`);
+        }
     }
   }
 }
 
 // Keep electrum server connection alive.
+/*
 setInterval(async function() {
   //Restart server if connection lost
-  await pingRestart();
+  await pingElectrumRestart().catch((err) => {
+    log.info(`Failed to ping electum server: ${err}`);
+  });
 }, 1000);
+*/
 
 // update backuptx status and broadcast if necessary
-setInterval(function() {
+setInterval(async function() {
     if (wallet) {
       //Exit the loop if the server cannot be pinged
-      try {
-        wallet.electrum_client.serverPing();
-      } catch(err){
-        console.log(err);
+      await pingElectrumRestart().catch((err) => {
+        log.info(`Failed to ping electum server: ${err}`);
         return;
-      }
-      wallet.updateBackupTxStatus();
-    } }, 30000);
+      }); 
+       wallet.updateBackupTxStatus();
+    }
+  }, 30000);
 
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
