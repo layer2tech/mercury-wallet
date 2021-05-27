@@ -24,6 +24,8 @@ let bip32 = require('bip32');
 let bip39 = require('bip39');
 let cloneDeep = require('lodash.clonedeep');
 
+const fork = require('child_process').fork;
+
 // Logger import.
 // Node friendly importing required for Jest tests.
 declare const window: any;

@@ -42,9 +42,34 @@ export const reloadWallet = () => {
   walletLoad(name,password);
 }
 
+//Restart the electrum server if ping fails
+async function pingRestart() {
+   if(wallet){
+    try {
+       wallet.electrum_client.serverPing();
+    } catch(err){
+      await wallet.electrum_client.close();
+      wallet.initElectrumClient(setBlockHeightCallBack);
+    }
+  }
+}
+
+// Keep electrum server connection alive.
+setInterval(async function() {
+  //Restart server if connection lost
+  await pingRestart();
+}, 1000);
+
 // update backuptx status and broadcast if necessary
 setInterval(function() {
     if (wallet) {
+      //Exit the loop if the server cannot be pinged
+      try {
+        wallet.electrum_client.serverPing();
+      } catch(err){
+        console.log(err);
+        return;
+      }
       wallet.updateBackupTxStatus();
     } }, 30000);
 
