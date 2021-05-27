@@ -173,3 +173,6 @@
 .dark-mode .deposit-settings .modal-header {
   border-bottom: 1px solid #4e4e4e;
 }
+.dark-mode .table {
+    background-color: #202020;
+}
