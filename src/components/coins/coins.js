@@ -12,7 +12,7 @@ import walleticon from "../../images/walletIcon.png";
 import txidIcon from "../../images/txid-icon.png";
 import timeIcon from "../../images/time.png";
 
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import { Link } from 'react-router-dom';
 import {Button, Modal} from 'react-bootstrap';
@@ -48,7 +48,6 @@ const INITIAL_SORT_BY = {
 const Coins = (props) => {
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
-    const coinPageRef = useRef();
 
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
@@ -153,10 +152,6 @@ const Coins = (props) => {
         return () => clearInterval(interval);
       }
     }, [coins.unConfirmedCoins]);
-
-    useEffect(() => {
-      console.log('page size', coinPageRef.current)
-    }, [])
 
     // data to display in privacy related sections
     const getPrivacyScoreDesc = (swap_rounds) => {
@@ -321,8 +316,7 @@ const Coins = (props) => {
 
     return (
         <div 
-          className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${coinPageRef?.current?.offsetWidth < 500 ? 'small-screen': ''}`}
-          ref={coinPageRef}
+          className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}
         >
           <FilterBy />
           {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
