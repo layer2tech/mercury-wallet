@@ -83,30 +83,58 @@
 
 .deposit-main .numbers-item {
     width: 25%;
-    margin-bottom: 20px;
-    margin-top: 10px;
+    padding: 16px;
+    cursor: pointer;
+    margin-bottom: 14px;
 }
-.deposit-main .numbers-item span:first-child:after {
-    content: "";
-    background-color: #0F54F4;
+.deposit-main .numbers-item div.progress {
+    /* background-color: #0F54F4; */
+    background: rgba(0, 84, 244, 0.380392);
     display: block;
-    width: 55%;
+    width: 100%;
     height: 4px;
-    text-align: center;
-    margin: 0 auto;
-
+    margin-top: 9px;
+    margin-bottom: 5px;
+}
+.deposit-main .numbers-item div.progress .fill {
+    height: 4px;
+    width: 50%;
+    background-color: #0F54F4;
 }
 .deposit-main .numbers span {
     display: block;
+    font-size: 20px;
+    line-height: 16px;
 }
-.deposit-main .numbers span:nth-child(2) {
+.deposit-main .numbers span:nth-child(3) {
     color: #757575;
+    font-size: 12px;
+    line-height: 16px;
 }
 
 
-.deposit-statecoins {
+.deposit-main .deposit-statecoins {
     margin-left: 40px;
     width: 80%;
+}
+.deposit-main .deposit-statecoins .numbers-item.selected-value {
+    background: #ECF2FE;
+    border-radius: 5px;
+    color: #0054F4;
+    position: relative;
+}
+
+.dark-mode .deposit-main .deposit-statecoins .numbers-item.selected-value {
+    background: #192A4A;
+}
+.dark-mode .deposit-main .deposit-statecoins .numbers-item.selected-value span,
+.dark-mode .deposit-main .deposit-statecoins .numbers-item.selected-value b { 
+    color: #0054F4;
+}
+.deposit-main .deposit-statecoins .numbers-item.selected-value svg {
+    position: absolute;
+    left: 20px;
+    top: 16px;
 }
 
 .loading-trans {
