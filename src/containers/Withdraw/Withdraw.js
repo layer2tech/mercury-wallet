@@ -82,7 +82,6 @@ const WithdrawPage = () => {
         dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
       }
     }))
-
   }
 
   const filterByMsg = () => {

@@ -340,9 +340,15 @@ export class Wallet {
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
+      // if we have the funding transaction, finalize creation and backup
+      if ((statecoin.status===STATECOIN_STATUS.UNCONFIRMED || statecoin.status===STATECOIN_STATUS.IN_MEMPOOL) && statecoin.tx_backup===null ) {
+          this.depositConfirm(statecoin.shared_key_id)
+      }
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
-          this.depositConfirm(statecoin.shared_key_id)
+          statecoin.setConfirmed();
+          // update in wallet
+          this.statecoins.setCoinFinalized(statecoin);
       }
     })
   }
@@ -364,7 +370,7 @@ export class Wallet {
   getCoinBackupTxData(shared_key_id: string) {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin===undefined) throw Error("StateCoin does not exist.");
-    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("StateCoin is not availble.");
+    if (statecoin.status===STATECOIN_STATUS.INITIALISED) throw Error("StateCoin is not availble.");
 
     // Get tx hex
     let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
@@ -633,7 +639,7 @@ export class Wallet {
   async depositConfirm(
     shared_key_id: string
   ): Promise<StateCoin> {
-    log.info("Depositing Confirm shared_key_id: "+shared_key_id);
+    log.info("Depositing Backup Confirm shared_key_id: "+shared_key_id);
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin === undefined) throw Error("Coin "+shared_key_id+" does not exist.");
@@ -649,10 +655,9 @@ export class Wallet {
     );
 
     // update in wallet
-    statecoin_finalized.setConfirmed();
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
-    log.info("Deposit Confirm done.");
+    log.info("Deposit Backup done.");
     this.saveStateCoinsList();
     return statecoin_finalized
   }
