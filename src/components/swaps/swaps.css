@@ -106,13 +106,6 @@
 
 
 
-.modal .item {
-  display: flex;
-  align-items: flex-start;
-  position: relative;
-  padding: 20px 0;
-  border-bottom :1px solid #E0E0E0;
-}
 .question-icon  {
   position: absolute;
   right: 0;

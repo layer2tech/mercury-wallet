@@ -10,6 +10,7 @@
   justify-content: flex-start;
   border: 1px solid rgba(0, 0, 0, 0.121569);
   border-radius: 4px;
+  margin-left: 20px;
 }
 .tutorial-page * {
   box-sizing: border-box;
@@ -23,6 +24,7 @@
   justify-content: space-between;
   margin-bottom: 20px;
   border-radius: 4px;
+  box-shadow: 0px 2px 12px -7px #222;
 }
 .tutorial-page .tutorial-media {
   margin-right: 35px;

@@ -2,7 +2,7 @@
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
-  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, decryptAES,
+  MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, GET_ROUTE, decryptAES,
   encodeSCEAddress} from './';
 
 import { txCPFPBuild, FEE } from './util';
@@ -29,6 +29,7 @@ let cloneDeep = require('lodash.clonedeep');
 const { join, dirname, path } = require('path');
 const joinPath = join;
 const child_processs = require('child_process');
+
 
 
 function getPlatform() : string {
@@ -109,8 +110,8 @@ export class Wallet {
     this.statecoins = new StateCoinList();
     this.swap_group_info = new Map<SwapGroup, number>();
     this.activity = new ActivityLog();
-    this.electrum_client = config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     this.conductor_client = new MockHttpClient();
+    this.electrum_client = this.newElectrumClient();
 
     
 
@@ -261,6 +262,10 @@ export class Wallet {
     }
   }
 
+  newElectrumClient(){
+    return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
+  }
+
   // Initialise electum server:
   // Setup subscribe for block height and outstanding initialised deposits
   initElectrumClient(blockHeightCallBack: any) {
@@ -287,7 +292,10 @@ export class Wallet {
           statecoin.value
         )
       })
-    })
+    }).catch((err) => {
+      log.info(err);
+      return;
+    });
   }
 
 
@@ -727,6 +735,11 @@ export class Wallet {
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
   async transfer_receiver(transfer_msg3: TransferMsg3): Promise<TransferFinalizeData> {
+    let walletcoins = this.statecoins.getCoins(transfer_msg3.statechain_id);
+    for (let i=0; i<walletcoins.length; i++) {
+      if(walletcoins[i].status===STATECOIN_STATUS.AVAILABLE) throw Error("Transfer completed.");
+    }
+
     log.info("Transfer Receiver for statechain "+transfer_msg3.statechain_id)
     let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
 
@@ -761,6 +774,45 @@ export class Wallet {
     this.saveStateCoinsList();
     return statecoin_finalized
   }
+
+  // Query server for any pending transfer messages
+  // Check for unused proof keys
+  async get_transfers(): Promise<number> {
+  log.info("Retriving transfer messages")
+
+  let num_transfers = 0;
+  // loop over active addresses
+  for (let i=0; i<this.account.chains[0].addresses.length; i++) {
+    let addr = this.account.chains[0].addresses[i];
+
+    let proofkey = this.account.derive(addr).publicKey.toString("hex");
+    console.log(proofkey)
+    let transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
+    
+    console.log(transfer_msgs.length);
+
+    for (let i=0; i<transfer_msgs.length; i++) {
+      // check if the coin is in the wallet
+      let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
+      console.log(walletcoins);
+      let dotransfer = true;
+      for (let j=0; j<walletcoins.length; j++) {
+        if(walletcoins[j].status===STATECOIN_STATUS.AVAILABLE) {
+          dotransfer = false;
+          break;
+        }
+      }
+      //perform transfer receiver
+      if (dotransfer) {
+         console.log("dotransfer");
+         let transfer_data = await this.transfer_receiver(transfer_msgs[i]);
+         num_transfers += 1;
+      }
+    }
+  }
+    return num_transfers
+  }
+
 
   // Perform withdraw
   // Args: statechain_id of coin to withdraw

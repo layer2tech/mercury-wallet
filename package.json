@@ -28,6 +28,7 @@
   "homepage": "./",
   "main": "src/electron-starter.js",
   "scripts": {
+    "install-local": "yarn add file:./tor-adapter",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test --env=jsdom",
@@ -37,10 +38,10 @@
     "dev": "BROWSER=none nf start -p 3000",
     "postinstall": "electron-builder install-app-deps",
     "build-wasm": "wasm-pack build --dev client-wasm",
-    "app-windows": "yarn install && yarn build && electron-builder -w -p always",
-    "app-linux": "yarn install && yarn build && electron-builder -l AppImage -p always",
-    "app-macos": "yarn install && yarn build && electron-builder -m -p always",
-    "app-macos-local-test": "yarn install && yarn build && DEBUG=electron-builder electron-builder -m -p never",
+    "app-windows": "yarn install-local && yarn install && yarn build && electron-builder -w -p always",
+    "app-linux": "yarn install-local && yarn install && yarn build && electron-builder -l AppImage -p always",
+    "app-macos": "yarn install-local && yarn install && yarn build && electron-builder -m -p always",
+    "app-macos-local-test": "yarn install-local && yarn install && yarn build && DEBUG=electron-builder electron-builder -m -p never",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "devDependencies": {
@@ -68,6 +69,7 @@
     "@typescript-eslint/parser": "^4.1.1",
     "alert": "^5.0.10",
     "app-root-dir": "^1.0.2",
+    "async-mutex": "^0.3.1",
     "axios": "^0.21.1",
     "bech32": "^1.1.4",
     "bigint-mod-arith": "^2.0.8",
@@ -93,6 +95,7 @@
     "mercury-wallet-tor-adapter": "file:./tor-adapter",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
+    "mutex-promise": "^0.1.0",
     "net": "^1.0.2",
     "qrcode.react": "^1.0.1",
     "react": "^16.1.1",
