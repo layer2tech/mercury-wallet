@@ -42,7 +42,6 @@ export class ElectrumClient {
   }
 
   isOpen() {
-    console.log(`isOpen: ${this.client.status}, ${W3CWebSocket.OPEN}`)
     return (this.client.status === W3CWebSocket.OPEN);
   }
 
@@ -51,7 +50,6 @@ export class ElectrumClient {
   }
 
   isClosed() {
-    console.log(`isClosed: ${this.client.status}, ${W3CWebSocket.CLOSED}, ${(this.client.status ===W3CWebSocket.CLOSED)}`)
     return (this.client.status ===W3CWebSocket.CLOSED);
   }
 

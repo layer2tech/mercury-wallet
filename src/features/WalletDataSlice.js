@@ -4,12 +4,11 @@ import {Wallet, ACTION} from '../wallet'
 import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
 import {pingServer, swapDeregisterUtxo} from '../wallet/swap/info_api'
 import {decodeMessage} from '../wallet/util'
-import {getAllStatecoinDataForWallet} from '../wallet/recovery'
 
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 
-import {Mutex, Semaphore, withTimeout} from 'async-mutex';
+import {Mutex} from 'async-mutex';
 
 const mutex = new Mutex();
 
@@ -50,7 +49,6 @@ export const reloadWallet = () => {
 async function pingElectrumRestart() {
    if(wallet){
      //If client already started
-     log.info(`Wallet exists - checking if open`);
     if (pingElectrum() == false) {
         log.info(`Failed to ping electum server. Restarting client`);
         wallet.electrum_client.close().catch( (err) => {
@@ -59,7 +57,6 @@ async function pingElectrumRestart() {
     } 
     if (!wallet.electrum_client.isOpen()){
       log.info(`Electrum connection closed - attempting to reopen`);
-      
       mutex.runExclusive(async () => {
             wallet.electrum_client = wallet.newElectrumClient();
             try{
@@ -75,10 +72,7 @@ async function pingElectrumRestart() {
 async function pingElectrum() {
   if(wallet){
     //If client already started
-    log.info(`Wallet exists - checking if open`);
    if (wallet.electrum_client.isOpen()){
-      log.info(`Electrum connection open - pinging`);
-      console.log(`Electrum connection open - pinging`);
       wallet.electrum_client.client.server_ping().catch((err) => {
       console.log(err);
       return false;
@@ -96,7 +90,7 @@ setInterval(async function() {
   await pingElectrumRestart().catch((err) => {
     log.info(`Failed to restart electum server: ${err}`);
   });
-}, 1000);
+}, 30000);
 
 
 // update backuptx status and broadcast if necessary
@@ -109,7 +103,7 @@ setInterval(async function() {
       }
        wallet.updateBackupTxStatus();
     }
-  }, 30000);
+  }, 60000);
 
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
