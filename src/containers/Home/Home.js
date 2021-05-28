@@ -19,6 +19,7 @@ import {
 // Home page is the main page from which a user can view and use their Wallet.
 // Provided with props Home is used to initiliase a Wallet into the Redux state.
 const HomePage = () => {
+  
   const dispatch = useDispatch();
   let fee_info = useSelector(state => state.walletData).fee_info;
 
