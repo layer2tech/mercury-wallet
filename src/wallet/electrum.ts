@@ -37,23 +37,19 @@ export class ElectrumClient {
     });
   }
 
-  hasConnected() {
-    return (this.client.status !== 0);
-  }
-
-  isOpen() {
+  isOpen(): boolean {
     return (this.client.status === W3CWebSocket.OPEN);
   }
 
-  isConnecting() {
+  isConnecting(): boolean {
     return (this.client.status === W3CWebSocket.CONNECTING);
   }
 
-  isClosed() {
+  isClosed(): boolean {
     return (this.client.status ===W3CWebSocket.CLOSED);
   }
 
-  isClosing() {
+  isClosing(): boolean {
     return (this.client.status === W3CWebSocket.CLOSING);
   }
 

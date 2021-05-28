@@ -10,6 +10,9 @@ import * as bitcoin from 'bitcoinjs-lib';
 
 import {Mutex} from 'async-mutex';
 
+const CLOSED = require('websocket').w3cwebsocket.CLOSED;
+const OPEN = require('websocket').w3cwebsocket.OPEN;
+
 const mutex = new Mutex();
 
 const log = window.require('electron-log');
@@ -51,11 +54,11 @@ async function pingElectrumRestart() {
      //If client already started
     if (pingElectrum() == false) {
         log.info(`Failed to ping electum server. Restarting client`);
-        wallet.electrum_client.close().catch( (err) => {
+          wallet.electrum_client.close().catch( (err) => {
           log.info(`Failed to close electrum client: ${err}`)
         });
     } 
-    if (!wallet.electrum_client.isOpen()){
+    if (wallet.electrum_client.isClosed()){
       log.info(`Electrum connection closed - attempting to reopen`);
       mutex.runExclusive(async () => {
             wallet.electrum_client = wallet.newElectrumClient();
@@ -72,8 +75,8 @@ async function pingElectrumRestart() {
 async function pingElectrum() {
   if(wallet){
     //If client already started
-   if (wallet.electrum_client.isOpen()){
-      wallet.electrum_client.client.server_ping().catch((err) => {
+    if (wallet.electrum_client.isOpen()){
+      wallet.electrum_client.serverPing().catch((err) => {
       console.log(err);
       return false;
      });

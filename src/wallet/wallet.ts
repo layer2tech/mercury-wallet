@@ -26,39 +26,6 @@ let bip32 = require('bip32');
 let bip39 = require('bip39');
 let cloneDeep = require('lodash.clonedeep');
 
-const { join, dirname, path } = require('path');
-const joinPath = join;
-const child_processs = require('child_process');
-
-
-
-function getPlatform() : string {
-  switch (os.platform()) {
-    case 'aix':
-    case 'freebsd':
-    case 'linux':
-    case 'openbsd':
-    case 'android':
-      return 'linux' as string;
-    case 'darwin':
-    case 'sunos':
-      return 'mac' as string;
-    case 'win32':
-      return 'win' as string;
-  }
-  return process.platform as string;
-}
-
-const rootPath: string  = require('electron-root-path').rootPath;
-let platform: string = getPlatform();
-console.log("platform:" + platform);
-const execPath: string = joinPath(dirname(rootPath) as string, 'mercury-wallet/resources' as string, 'mac');
-//getPlatform() as string);
-//joinPath(dirname(rootPath) as string, 'mercury-wallet/resources' as string, getPlatform() as string);
-
-const tor_cmd : string = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
-
-
 // Logger import.
 // Node friendly importing required for Jest tests.
 declare const window: any;
@@ -113,8 +80,6 @@ export class Wallet {
     this.conductor_client = new MockHttpClient();
     this.electrum_client = this.newElectrumClient();
 
-    
-
     this.http_client = new HttpClient('http://localhost:3001', true);
     let se_tor_config = {
       tor_proxy: this.config.tor_proxy,
@@ -128,7 +93,7 @@ export class Wallet {
       swap_conductor_endpoint: this.config.swap_conductor_endpoint
     }
     //this.conductor_client.post('tor_settings', cond_tor_config);
-        
+            
     this.block_height = 0;
     this.current_sce_addr = "";
 
