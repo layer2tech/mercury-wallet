@@ -4,51 +4,12 @@ var Config = new require('./config');
 const config = new Config();
 const tpc = config.tor_proxy;
 const express = require("express");
-const { join, dirname } = require('path');
-const joinPath = join;
-const exec = require('child_process').exec;
-const execSync = require('child_process').execSync;
-const fork = require('child_process').fork;
-const rootPath = require('electron-root-path').rootPath;
-let resourcesPath = undefined;
-if(getPlatform() == 'linux') {
-    resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
-} else {
-   resourcesPath = joinPath(dirname(rootPath), 'resources');
-}
-let execPath = undefined;
-let torrc = undefined;
 
-function getPlatform() {
-        switch (process.platform) {
-          case 'aix':
-          case 'freebsd':
-          case 'linux':
-          case 'openbsd':
-          case 'android':
-            return 'linux';
-          case 'darwin':
-          case 'sunos':
-            return 'mac';
-          case 'win32':
-            return 'win';
-        }
-    }
-
-if(argv[3]) {
-    execPath = joinPath(resourcesPath, getPlatform());
-    torrc = joinPath(resourcesPath, 'etc', 'torrc');
-} else {
-    if(getPlatform() == 'linux') {
-        execPath = joinPath(rootPath, '../../Resources/bin');
-    } else {
-        execPath = joinPath(rootPath, '../../../bin');
-    }
-    torrc = joinPath(execPath, '../etc/torrc');
-}
-
-const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
+const tor_cmd = process.argv[2];
+const torrc = process.argv[3];
+const dataDir = process.argv[4];
 console.log(`tor cmd: ${tor_cmd}`);
+console.log(`torrc: ${torrc}`);
 
 const PORT = 3001;
 
@@ -58,10 +19,10 @@ app.use(bodyParser.json());
 app.listen(PORT, () => {
      console.log(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`);
      console.log("control port password: " + tpc.controlPassword);
-     console.log("tor data dir: " + process.argv[2]);
+     console.log("tor data dir: " + dataDir);
 });
 
-const tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, process.argv[2]);
+const tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, dataDir);
 
 tor.startTorNode(tor_cmd, torrc);
 

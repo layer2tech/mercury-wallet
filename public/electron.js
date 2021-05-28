@@ -35,14 +35,15 @@ if(getPlatform() == 'linux') {
 }
 let execPath = undefined;
 let torrc = undefined;
-if(process.env.NODE_ENV == 'development') {
+if(isDev) {
     execPath = joinPath(resourcesPath, getPlatform());
     torrc = joinPath(resourcesPath, 'etc', 'torrc');
 } else {
     if(getPlatform() == 'linux') {
         execPath = joinPath(rootPath, '../../Resources/bin');
     } else {
-        execPath = joinPath(rootPath, '../../../bin');
+        console.log("root path: " + rootPath);
+        execPath = joinPath(rootPath, '../bin');
     }
     torrc = joinPath(execPath, '../etc/torrc');
 }
@@ -150,8 +151,12 @@ const fork = require('child_process').fork;
 const exec = require('child_process').exec;
 
 fixPath();
-
-fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`, [app.getAppPath(), isDev],
+console.log(tor_cmd);
+console.log(torrc);
+let user_data_path = app.getPath('userData');
+console.log(user_data_path);
+console.log(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`);
+fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`, [tor_cmd, torrc, user_data_path],
 {
 detached: false,
 stdio: 'ignore',
