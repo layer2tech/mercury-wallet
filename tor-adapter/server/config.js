@@ -3,9 +3,11 @@ class Config{
     constructor() {
         this.tor_proxy = {
             ip: 'localhost',
-            port: 9050,
-            controlPassword: 'password',
-            controlPort: 9051
+            port: 9060,
+            //Default randomly generated control password
+            controlPassword: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) +
+                                Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+            controlPort: 9061
         }
 
         this.update(require("./settings.json"))
@@ -24,7 +26,10 @@ class Config{
                                 this.tor_proxy.port = tp_item[1];
                                 break;
                             case "controlPassword":
-                                this.tor_proxy.controlPassword = tp_item[1];
+                                //Only update the password if specified
+                                if (tp_item[1].length > 0){ 
+                                    this.tor_proxy.controlPassword = tp_item[1];
+                                } 
                                 break;
                             case "controlPort":
                                 this.tor_proxy.controlPort = tp_item[1];

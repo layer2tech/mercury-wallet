@@ -91,7 +91,7 @@ setInterval(async function() {
       }); 
        wallet.updateBackupTxStatus();
     }
-  }, 30000);
+  }, 10000);
 
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
