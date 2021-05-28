@@ -27,6 +27,17 @@ function getPlatform(){
 
 }
 
+let resourcesPath = undefined;
+resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
+
+let execPath = undefined;
+let torrc = undefined;
+
+execPath = joinPath(resourcesPath, getPlatform());
+torrc = joinPath(resourcesPath, 'etc', 'torrc');
+
+const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -144,8 +155,14 @@ Store.initRenderer();
 const fork = require('child_process').fork;
 
 fixPath();
-console.log(`starting tor adapter from: ${__dirname}`);
-fork(`${__dirname}/../tor-adapter/server/index.js`, [app.getAppPath()],
+let tor_adapter_path = `${__dirname}/../tor-adapter/server/index.js`
+console.log(`starting tor adapter from: ${tor_adapter_path}`);
+console.log(`tor_cmd: ${tor_cmd}`);
+console.log(`torrc: ${torrc}`);
+let user_data_path = app.getPath('userData');
+console.log(`app data path: ${user_data_path}`);
+
+fork(`${tor_adapter_path}`, [tor_cmd, torrc, user_data_path],
 {
 detached: false,
 stdio: 'ignore',
