@@ -31,6 +31,7 @@ const joinPath = join;
 const child_processs = require('child_process');
 
 
+
 function getPlatform() : string {
   switch (os.platform()) {
     case 'aix':
@@ -291,7 +292,10 @@ export class Wallet {
           statecoin.value
         )
       })
-    })
+    }).catch((err) => {
+      log.info(err);
+      return;
+    });
   }
 
 

@@ -9,9 +9,12 @@ import {getAllStatecoinDataForWallet} from '../wallet/recovery'
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 
+import {Mutex, Semaphore, withTimeout} from 'async-mutex';
+
+const mutex = new Mutex();
+
 const log = window.require('electron-log');
 const network = bitcoin.networks[require("../settings.json").network];
-const W3CWebSocket = require('websocket').w3cwebsocket
 
 let wallet;
 let testing_mode = require("../settings.json").testing_mode;
@@ -48,50 +51,65 @@ async function pingElectrumRestart() {
    if(wallet){
      //If client already started
      log.info(`Wallet exists - checking if open`);
-    if (wallet.electrum_client.isOpen()){
-      log.info(`Electrum connection open - pinging`);
-      console.log(`Electrum connection open - pinging`);
-      wallet.electrum_client.client.server_ping().catch((err) => {
-        log.info(`Failed to ping electum server: ${err}. Restarting client`);
+    if (pingElectrum() == false) {
+        log.info(`Failed to ping electum server. Restarting client`);
         wallet.electrum_client.close().catch( (err) => {
           log.info(`Failed to close electrum client: ${err}`)
         });
-      });
     } 
-    
     if (!wallet.electrum_client.isOpen()){
       log.info(`Electrum connection closed - attempting to reopen`);
-      try {
-          wallet.electrum_client = wallet.newElectrumClient();
-          wallet.initElectrumClient(setBlockHeightCallBack)
-        } catch(err) {
-          log.info(`Failed to initialize electrum client: ${err}`);
-        }
+      
+      mutex.runExclusive(async () => {
+            wallet.electrum_client = wallet.newElectrumClient();
+            try{
+              wallet.initElectrumClient(setBlockHeightCallBack);
+            } catch(err){
+                log.info(`Failed to initialize electrum client: ${err}`);
+            }
+      });
     }
   }
 }
 
+async function pingElectrum() {
+  if(wallet){
+    //If client already started
+    log.info(`Wallet exists - checking if open`);
+   if (wallet.electrum_client.isOpen()){
+      log.info(`Electrum connection open - pinging`);
+      console.log(`Electrum connection open - pinging`);
+      wallet.electrum_client.client.server_ping().catch((err) => {
+      console.log(err);
+      return false;
+     });
+     return true;
+    }
+  }
+  return false;
+}
+
 // Keep electrum server connection alive.
-/*
+
 setInterval(async function() {
   //Restart server if connection lost
   await pingElectrumRestart().catch((err) => {
-    log.info(`Failed to ping electum server: ${err}`);
+    log.info(`Failed to restart electum server: ${err}`);
   });
 }, 1000);
-*/
+
 
 // update backuptx status and broadcast if necessary
 setInterval(async function() {
     if (wallet) {
       //Exit the loop if the server cannot be pinged
-      await pingElectrumRestart().catch((err) => {
-        log.info(`Failed to ping electum server: ${err}`);
+      if (pingElectrum() == false) {
+        log.info(`Failed to ping electum server`);
         return;
-      }); 
+      }
        wallet.updateBackupTxStatus();
     }
-  }, 10000);
+  }, 30000);
 
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
@@ -104,8 +122,10 @@ export const walletLoad = (name, password) => {
   wallet = Wallet.load(name, password, testing_mode);
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
-  wallet.initElectrumClient(setBlockHeightCallBack);
-  wallet.updateSwapGroupInfo();
+  mutex.runExclusive(async () => {
+    wallet.initElectrumClient(setBlockHeightCallBack);
+    wallet.updateSwapGroupInfo();
+  });
 }
 
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
@@ -113,12 +133,14 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   log.info("Wallet "+name+" created.");
   if (testing_mode) log.info("Testing mode set.");
-  wallet.initElectrumClient(setBlockHeightCallBack);
-  if (try_restore) {
-    wallet.recoverCoinsFromServer();
-  }
-  callNewSeAddr();
-  wallet.save();
+  mutex.runExclusive(async () => {
+    wallet.initElectrumClient(setBlockHeightCallBack);
+    if (try_restore) {
+      wallet.recoverCoinsFromServer();
+    }
+    callNewSeAddr();
+    wallet.save();
+  });
 }
 // Try to decrypt wallet. Throw if invalid password
 export const checkWalletPassword = (password) => {
@@ -131,13 +153,15 @@ export const walletFromJson = (wallet_json, password) => {
     wallet = Wallet.loadFromBackup(wallet_json, password, testing_mode);
     log.info("Wallet " + wallet.name + " loaded from backup.");
     if (testing_mode) log.info("Testing mode set.");
-    wallet.initElectrumClient(setBlockHeightCallBack);
-    callNewSeAddr();
-    wallet.save()
-    return wallet;
-  }).catch(error => {
-    console.error('Can not load wallet from json!', error);
-  })
+    return mutex.runExclusive(async () => {
+      wallet.initElectrumClient(setBlockHeightCallBack);
+      callNewSeAddr();
+      wallet.save()
+      return wallet;
+    }).catch(error => {
+        console.error('Can not load wallet from json!', error);
+    });
+  });
 }
 
 // Wallet data gets
