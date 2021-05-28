@@ -104,7 +104,7 @@ input.quantity {
 
 .inputs select {
     border: none;
-    box-shadow: 0px 2px 12px -7px #222;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
     padding: 0 10px;
     width: 80%;
     height: 30px;
@@ -316,7 +316,7 @@ input.quantity {
         border: 3px solid #0F54F4;
         background: #0F54F4;
         transform: translateX(var(--x, 0));
-        box-shadow: 0px 2px 12px -7px #222;
+        box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
     }
 
     input[type='checkbox'].switch:checked {

@@ -46,10 +46,10 @@
 }
 
 #danger .sub .progress {
-    height: 3px;
+    height: 4px;
     background-image: linear-gradient(to right, #ff3d00 10%, #ffb2ab 0%);
     background-position: top;
-    background-size: 9% 3px;
+    background-size: 7% 4px;
     background-repeat: repeat-x;
 }
 #danger .expiry-time-left{
@@ -57,12 +57,11 @@
 }
 
 #success .sub .progress {
-    height: 3px;
+    height: 4px;
     background-image: linear-gradient(to right, #ffffff 10%, rgb(176, 176, 176) 0%);
     background-position: top;
-    background-size: 9% 3px;
+    background-size: 7% 4px;
     background-repeat: repeat-x;
-  background-color: #ff0000;
 }
 
 .CoinPanel .progress_bar {

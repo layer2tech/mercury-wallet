@@ -32,8 +32,8 @@ import '../index.css';
 const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}, privacy_data: {score_desc: ""}}}
 // privacy score considered "low"
 const LOW_PRIVACY = 10
-// style time left timer as red after this many months
-const MONTHS_WARNING = 5
+// style time left timer as red after this many days
+const DAYS_WARNING = 5
 
 const INITIAL_COINS = {
     unspentCoins: [],
@@ -104,7 +104,7 @@ const Coins = (props) => {
 
     // Convert expiry_data to string displaying months or days left
     const expiry_time_to_string = (expiry_data) => {
-        return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days"
+        return expiry_data.months > 1 ? expiry_data.months + " month" : expiry_data.days + " days"
     }
 
     //Load coins once component done render
@@ -240,16 +240,16 @@ const Coins = (props) => {
                     </span>
                 </div>
                 {filterBy !== STATECOIN_STATUS.WITHDRAWN ? (
-                  <div className="progress_bar" id={item.expiry_data.months < MONTHS_WARNING ? 'danger' : 'success'}>
+                  <div className="progress_bar" id={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}>
                       <div className="sub">
                           <ProgressBar>
-                              <ProgressBar striped variant={item.expiry_data.months < MONTHS_WARNING ? 'danger' : 'success'}
-                                now={item.expiry_data.months * 100 / 12}
+                              <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
+                                now={item.expiry_data.days * 100 / 30}
                                 key={1}/>
                           </ProgressBar>
                       </div>
                       <div className="CoinTimeLeft">
-                          <img src={timeIcon} alt="icon"/>
+                          <img src={timeIcon} alt="icon" />
                           <span>
                               Time Until Expiry: <span className='expiry-time-left'>{expiry_time_to_string(item.expiry_data)}</span>
                           </span>
@@ -367,7 +367,7 @@ const Coins = (props) => {
                 <div
                   className="progress_bar"
                   id={
-                    showCoinDetails.coin.expiry_data.months < MONTHS_WARNING
+                    showCoinDetails.coin.expiry_data.days < DAYS_WARNING
                       ? "danger"
                       : "success"
                   }
@@ -377,13 +377,13 @@ const Coins = (props) => {
                       <ProgressBar
                         striped
                         variant={
-                          showCoinDetails.coin.expiry_data.months <
-                          MONTHS_WARNING
+                          showCoinDetails.coin.expiry_data.days <
+                          DAYS_WARNING
                             ? "danger"
                             : "success"
                         }
                         now={
-                          (showCoinDetails.coin.expiry_data.months * 100) / 12
+                          (showCoinDetails.coin.expiry_data.days * 100) / 30
                         }
                         key={1}
                       />

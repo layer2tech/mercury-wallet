@@ -247,7 +247,7 @@ ol.go2441762052 {
 .selected-item select {
     font-size: 14px;
     color: #212121;
-    box-shadow: 0px 2px 12px -7px #222;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
     padding: 8px 15px;
     border: none;
     width: 100%;
@@ -262,7 +262,7 @@ ol.go2441762052 {
     width: 100%;
     /* border: 1px solid #D7D7D7; */
     border: none;
-    box-shadow: 0px 2px 12px -7px #222;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
     font-size: 14px;
     opacity: 1;
 }
