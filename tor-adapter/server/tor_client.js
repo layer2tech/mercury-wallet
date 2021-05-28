@@ -93,7 +93,7 @@ class TorClient {
         //Get the password hash
         exec(`${tor_cmd} --hash-password ${this.torConfig.controlPassword}`, (_error, stdout, _stderr) => {
             let hashedPassword = stdout;
-            this.tor_proc = exec(`${tor_cmd} -f ${torrc} SOCKSPort ${this.torConfig.port} ControlPort ${this.torConfig.controlPort} HashedControlPassword ${hashedPassword}`, {
+            this.tor_proc = exec(`${tor_cmd} -f ${torrc} SOCKSPort ${this.torConfig.port} ControlPort ${this.torConfig.controlPort} DataDir "${this.dataPath}" HashedControlPassword ${hashedPassword}`, {
                             detached: false,
                             stdio: 'ignore',
                             },  (error) => {

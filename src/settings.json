@@ -1,7 +1,7 @@
 {
   "min_anon_set": 3,
-  "state_entity_endpoint": "https://beta.mercurywallet.io",
-  "swap_conductor_endpoint": "https://beta.mercurywallet.io",
+  "state_entity_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  "swap_conductor_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
   "network": "testnet",
   "testing_mode": false,
   "tor_proxy": {"ip": "localhost",
