@@ -7,6 +7,8 @@ const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
+const ipc = require('electron').ipcMain;
+const exec = require('child_process').exec;
 
 function getPlatform(){
   switch (process.platform) {
@@ -25,14 +27,20 @@ function getPlatform(){
 
 }
 
-const execPath = joinPath(dirname(rootPath), 'mercury-wallet/resources', getPlatform());
+let resourcesPath = undefined;
+resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
+
+let execPath = undefined;
+let torrc = undefined;
+
+execPath = joinPath(resourcesPath, getPlatform());
+torrc = joinPath(resourcesPath, 'etc', 'torrc');
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
-
 
 function createWindow() {
     // Create the browser window.
@@ -144,67 +152,38 @@ app.allowRendererProcessReuse = false;
 const Store = require('electron-store');
 Store.initRenderer();
 
-
-const exec = require('child_process').exec;
 const fork = require('child_process').fork;
 
 fixPath();
-console.log(`starting tor adapter from: ${__dirname}`);
-let tor_adapter = fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
+let tor_adapter_path = `${__dirname}/../tor-adapter/server/index.js`
+console.log(`starting tor adapter from: ${tor_adapter_path}`);
+console.log(`tor_cmd: ${tor_cmd}`);
+console.log(`torrc: ${torrc}`);
+let user_data_path = app.getPath('userData');
+console.log(`app data path: ${user_data_path}`);
+
+fork(`${tor_adapter_path}`, [tor_cmd, torrc, user_data_path],
 {
 detached: false,
 stdio: 'ignore',
   },
-  (error) => {
+  (error, stdout, _stderr)  => {
     if(error){
       app.exit(error);
     };
+    //if(stdout){
+    //  console.log(stdout);
+    //};
   }
 );
   
-//Check if tor is running
-let isTorRunning=true;
-let tor=undefined;
-console.log("Checking if tor is running on port 9050...");
-exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs", 
-(_error, stdout, _stderr) => {
-    if (stdout.length <= 2){
-	console.log("tor is not running on port 9050");
-	isTorRunning=false;
-	console.log("starting tor...");
-	tor = exec(tor_cmd, {
-	    detached: false,
-	    stdio: 'ignore',
-	},  (error) => {
-       if(error){
-         app.exit(error);
-       };
-    });
-   
-   tor.stdout.on("data", function(data) {
-   console.log("tor stdout: " + data.toString());  
-   }
-		);
- 
-   tor.stderr.on("data", function(data) {
-     console.log("tor stderr: " + data.toString());
-   });
-	} else {
-	    console.log("tor is running on port 9050");
-	}
-
-});
-
 async function on_exit(){
   await kill_tor();
   process.exit(0)
 }
 
 async function kill_tor(){
-  await process.kill(tor_adapter.pid,"SIGINT");
-  if(tor){
-    await process.kill(tor.pid,"SIGINT");
-  }
+    await exec('curl localhost:3001/shutdown');
 }
 
 process.on('SIGINT',on_exit);

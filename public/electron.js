@@ -8,7 +8,6 @@ const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
 
 function getPlatform(){
-  console.log("platform: " + process.platform);
   switch (process.platform) {
     case 'aix':
     case 'freebsd':
@@ -27,18 +26,29 @@ function getPlatform(){
 
 const isDev = (process.env.NODE_ENV == 'development');
 
-var execPath;
+
+let resourcesPath = undefined;
+if(getPlatform() == 'linux') {
+    resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
+} else {
+   resourcesPath = joinPath(dirname(rootPath), 'resources');
+}
+let execPath = undefined;
+let torrc = undefined;
 if(isDev) {
-    execPath = joinPath(dirname(rootPath), 'bin');
+    execPath = joinPath(resourcesPath, getPlatform());
+    torrc = joinPath(resourcesPath, 'etc', 'torrc');
 } else {
     if(getPlatform() == 'linux') {
-	execPath = joinPath(rootPath, '../../Resources/bin');
+        execPath = joinPath(rootPath, '../../Resources/bin');
     } else {
-	    execPath = joinPath(rootPath, '../bin');
+        console.log("root path: " + rootPath);
+        execPath = joinPath(rootPath, '../bin');
     }
+    torrc = joinPath(execPath, '../etc/torrc');
 }
 
-const tor_cmd = (getPlatform() == 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
+const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
 
 let mainWindow;
 
@@ -137,68 +147,35 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 const Store = require('electron-store');
 Store.initRenderer();
 
-
-const exec = require('child_process').exec;
 const fork = require('child_process').fork;
+const exec = require('child_process').exec;
 
 fixPath();
-
-let tor_adapter = fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`,
+console.log(tor_cmd);
+console.log(torrc);
+let user_data_path = app.getPath('userData');
+console.log(user_data_path);
+console.log(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`);
+fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`, [tor_cmd, torrc, user_data_path],
 {
 detached: false,
 stdio: 'ignore',
   },
   (error) => {
     if(error){
+      console.log(error);
       app.exit(error);
     };
   }
 );
   
-//Check if tor is running
-let isTorRunning=true;
-let tor = undefined;
-console.log("Checking if tor is running on port 9050...");
-exec("curl --socks5 localhost:9050 --socks5-hostname localhost:9050 -s https://check.torproject.org/ | cat | grep -m 1 Congratulations | xargs", 
-(_error, stdout, _stderr) => {
-    if (stdout.length <= 2){
-	console.log("tor is not running on port 9050");
-	isTorRunning=false;
-	console.log("starting tor...");
-	tor = exec(tor_cmd, {
-	    detached: false,
-	    stdio: 'ignore',
-	},  (error) => {
-       if(error){
-         app.exit(error);
-       };
-    });
-   
-   tor.stdout.on("data", function(data) {
-   console.log("tor stdout: " + data.toString());  
-   }
-		);
- 
-   tor.stderr.on("data", function(data) {
-     console.log("tor stderr: " + data.toString());
-   });
-	} else {
-	    console.log("tor is running on port 9050");
-	}
-
-});
-
-
 async function on_exit(){
   await kill_tor();
   process.exit(0)
 }
 
 async function kill_tor(){
-  await process.kill(tor_adapter.pid,"SIGINT");
-  if(tor){
-    await process.kill(tor.pid,"SIGINT");
-  }
+  await exec('curl localhost:3001/shutdown');
 }
 
 process.on('SIGINT',on_exit);
