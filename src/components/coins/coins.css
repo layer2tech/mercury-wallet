@@ -46,10 +46,10 @@
 }
 
 #danger .sub .progress {
-    height: 3px;
+    height: 4px;
     background-image: linear-gradient(to right, #ff3d00 10%, #ffb2ab 0%);
     background-position: top;
-    background-size: 9% 3px;
+    background-size: 7% 4px;
     background-repeat: repeat-x;
 }
 #danger .expiry-time-left{
@@ -57,12 +57,11 @@
 }
 
 #success .sub .progress {
-    height: 3px;
+    height: 4px;
     background-image: linear-gradient(to right, #ffffff 10%, rgb(176, 176, 176) 0%);
     background-position: top;
-    background-size: 9% 3px;
+    background-size: 7% 4px;
     background-repeat: repeat-x;
-  background-color: #ff0000;
 }
 
 .CoinPanel .progress_bar {
@@ -146,7 +145,7 @@
   display: flex;
   align-items: flex-start;
   position: relative;
-  padding: 20px 0;
+  padding: 12px 0;
   border-bottom :1px solid #E0E0E0;
 }
 .question-icon  {
@@ -163,13 +162,13 @@
 .modal .item .block span {
   word-break: break-all;
 }
-.modal .item  .block span:first-child {
+.modal.coin-details-modal .item  .block span:first-child {
   font-size: 16px;
   display: block;
-  color: #000000;
+  color: rgba(0, 0, 0, 0.870588);
 
 }
-.modal .item  .block span:nth-child(2) {
+.modal.coin-details-modal .item  .block span:nth-child(2) {
   font-size: 14px;
   display: block;
   color: #666666;
@@ -268,4 +267,49 @@
   right: 10px;
   top: 25px;
   width: max-content;
+}
+.coin-details-modal .modal-dialog {
+  width: 384px;
+}
+.coin-details-modal .modal-body {
+  padding: 30px 20px 20px 20px;
+}
+.coin-details-modal .modal-body .item.expiry-time {
+  flex-direction: column;
+}
+.coin-details-modal .progress_bar {
+  width: 100%;
+  margin-top: 10px;
+}
+.coin-details-modal .expiry-time-wrap {
+  display: flex;
+  align-items: center;
+}
+.coin-details-modal .item.expiry-time .block .expiry-time-left {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+  line-height: 20px;
+}
+.coin-details-modal .privacy-score-help {
+  position: absolute;
+  right: 0;
+  top: 12px;
+  cursor: pointer;
+}
+.coin-details-modal .block  time {
+  color: rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  font-size: 14px;
+  line-height: 20px;
+}
+.dark-mode .coin-details-modal .block time {
+  color: #666666;
+}
+.coin-details-modal * {
+}
+.coin-item.selected {
+  background: rgba(117, 117, 117, 0.101961);
+}
+.dark-mode .coin-item.selected {
+  background: rgba(102, 102, 102, 0.396078);
 }

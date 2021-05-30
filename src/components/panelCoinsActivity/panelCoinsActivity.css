@@ -3,8 +3,10 @@
 }
 .table {
   margin-bottom: 15px;
-  box-shadow: 0px 2px 12px -7px #222;
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
   padding: 10px 0;
+  border-radius: 4px;
+  background-color: #ffffff;
 }
 
 .tab-content {
@@ -41,7 +43,6 @@
 }
 .nav-tabs a.nav-item.active {
   color: #0054F4;
-  background-color: #F5F5F5;
 }
 .nav-tabs a.nav-item.active:after {
   content: "";

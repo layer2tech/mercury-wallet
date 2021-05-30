@@ -14,7 +14,6 @@
 }
 .tutorial-page * {
   box-sizing: border-box;
-  font-family: Roboto;
 }
 .tutorial-page {
   display: flex;
@@ -24,6 +23,7 @@
   justify-content: space-between;
   margin-bottom: 20px;
   border-radius: 4px;
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
 }
 .tutorial-page .tutorial-media {
   margin-right: 35px;

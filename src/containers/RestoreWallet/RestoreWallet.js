@@ -42,6 +42,7 @@ const RestoreWalletPage = (props) => {
       return
     }
 
+    
     // Create wallet and load into Redux state
     try {
       walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true)

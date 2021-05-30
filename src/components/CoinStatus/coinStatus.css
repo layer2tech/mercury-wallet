@@ -77,7 +77,6 @@
   z-index: 1000;
   top: -17px;
   box-shadow: 0px 0px 10px -4px #222;
-  font-family: Roboto;
 }
 
 .coin-mid-transfer-btns {
@@ -95,4 +94,7 @@
 .coin-mid-transfer-btns button.btn-confirm {
   background-color: #0F54F4;
   color: #fff;
+}
+.coin-status-description {
+  color: #666666;
 }

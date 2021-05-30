@@ -64,4 +64,27 @@ export class MockElectrumClient {
     }
     async getFeeHistogram(_num_blocks: number): Promise<any> {
     }
+
+    async close(): Promise<any>{      
+    }
+
+    async serverPing(): Promise<any>{
+    }
+
+    isOpen(): boolean {
+      return true;
+    }
+  
+    isConnecting(): boolean {
+      return false;
+    }
+  
+    isClosed(): boolean {
+      return false;
+    }
+  
+    isClosing(): boolean {
+      return false;
+    }
+
 }

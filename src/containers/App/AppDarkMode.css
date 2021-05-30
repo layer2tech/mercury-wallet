@@ -25,8 +25,12 @@
 }
 .dark-mode *:not(button), 
 .dark-mode .tutorial-page .tutorial-content p,
-.dark-mode .tutorial-page .tutorial-content .sub-title {
+.dark-mode .tutorial-page .tutorial-content .sub-title,
+.dark-mode .coin-status.coin-status-modal .coin-status-title {
   color: #E7E7E7;
+}
+.dark-mode .coin-status-description {
+    color: #666666;
 }
 .dark-mode .tutorial-page .tutorial-btns button {
   background: none;
@@ -168,4 +172,7 @@
 }
 .dark-mode .deposit-settings .modal-header {
   border-bottom: 1px solid #4e4e4e;
+}
+.dark-mode .table {
+    background-color: #202020;
 }

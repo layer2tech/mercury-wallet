@@ -17,6 +17,9 @@ import { Storage } from '../store';
 import { groupInfo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
+import os  from 'os';
+//import { remote } from 'electron';
+
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
 let bip32 = require('bip32');
@@ -32,6 +35,16 @@ try {
 } catch (e) {
   log = require('electron-log');
 }
+
+ //let tor=undefined;
+ //child_processs.exec(tor_cmd); 
+ /*
+ as string, {},  (error: any) => {
+    if(error){
+      console.log(error);
+    };
+ });
+ */
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
@@ -64,24 +77,23 @@ export class Wallet {
     this.statecoins = new StateCoinList();
     this.swap_group_info = new Map<SwapGroup, number>();
     this.activity = new ActivityLog();
-    this.electrum_client = config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     this.conductor_client = new MockHttpClient();
+    this.electrum_client = this.newElectrumClient();
 
-    
     this.http_client = new HttpClient('http://localhost:3001', true);
     let se_tor_config = {
       tor_proxy: this.config.tor_proxy,
       state_entity_endpoint: this.config.state_entity_endpoint
     }
-    this.http_client.post('tor_settings', se_tor_config);
+    //this.http_client.post('tor_settings', se_tor_config);
     
     this.conductor_client = new HttpClient('http://localhost:3001', true);
     let cond_tor_config = {
       tor_proxy: this.config.tor_proxy,
       swap_conductor_endpoint: this.config.swap_conductor_endpoint
     }
-    this.conductor_client.post('tor_settings', cond_tor_config);
-        
+    //this.conductor_client.post('tor_settings', cond_tor_config);
+            
     this.block_height = 0;
     this.current_sce_addr = "";
 
@@ -199,7 +211,6 @@ export class Wallet {
     } catch (e) {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
-    
     return Wallet.fromJSON(wallet_json, testing_mode);
   }
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
@@ -214,6 +225,10 @@ export class Wallet {
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
     }
+  }
+
+  newElectrumClient(){
+    return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
   }
 
   // Initialise electum server:
@@ -242,7 +257,10 @@ export class Wallet {
           statecoin.value
         )
       })
-    })
+    }).catch((err) => {
+      log.info(err);
+      return;
+    });
   }
 
 
@@ -287,9 +305,15 @@ export class Wallet {
   // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
+      // if we have the funding transaction, finalize creation and backup
+      if ((statecoin.status===STATECOIN_STATUS.UNCONFIRMED || statecoin.status===STATECOIN_STATUS.IN_MEMPOOL) && statecoin.tx_backup===null ) {
+          this.depositConfirm(statecoin.shared_key_id)
+      }
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
-          this.depositConfirm(statecoin.shared_key_id)
+          statecoin.setConfirmed();
+          // update in wallet
+          this.statecoins.setCoinFinalized(statecoin);
       }
     })
   }
@@ -311,7 +335,7 @@ export class Wallet {
   getCoinBackupTxData(shared_key_id: string) {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin===undefined) throw Error("StateCoin does not exist.");
-    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("StateCoin is not availble.");
+    if (statecoin.status===STATECOIN_STATUS.INITIALISED) throw Error("StateCoin is not availble.");
 
     // Get tx hex
     let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
@@ -580,7 +604,7 @@ export class Wallet {
   async depositConfirm(
     shared_key_id: string
   ): Promise<StateCoin> {
-    log.info("Depositing Confirm shared_key_id: "+shared_key_id);
+    log.info("Depositing Backup Confirm shared_key_id: "+shared_key_id);
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin === undefined) throw Error("Coin "+shared_key_id+" does not exist.");
@@ -596,10 +620,9 @@ export class Wallet {
     );
 
     // update in wallet
-    statecoin_finalized.setConfirmed();
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
-    log.info("Deposit Confirm done.");
+    log.info("Deposit Backup done.");
     this.saveStateCoinsList();
     return statecoin_finalized
   }

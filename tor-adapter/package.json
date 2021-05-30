@@ -1,6 +1,6 @@
 {
   "name": "mercury-wallet-tor-adapter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
+    "electron-root-path": "^1.0.16",
     "express": "^4.17.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",

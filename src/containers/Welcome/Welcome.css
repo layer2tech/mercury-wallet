@@ -33,9 +33,10 @@ p {
     cursor: pointer;
     background-color: #ffffff;
     padding: 20px 30px;
-    box-shadow: 0px 2px 12px -7px #222;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
     color: #000000;
     margin: 0 10px;
+    border-radius: 4px;
 }
 
 

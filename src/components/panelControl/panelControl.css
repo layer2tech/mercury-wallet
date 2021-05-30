@@ -20,7 +20,6 @@
   border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
-  font-family: Roboto;
   letter-spacing: 1.25px;
   display: flex;
   align-items: center;
@@ -87,7 +86,7 @@
   font-weight: normal;
   color: #212121;
   border-radius: 4px 0px 4px 4px;
-  box-shadow: 0px 2px 12px -7px #222;
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
   z-index: 301;
 }
 
