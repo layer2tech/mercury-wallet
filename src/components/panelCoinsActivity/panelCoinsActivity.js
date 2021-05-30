@@ -11,7 +11,7 @@ import '../index.css';
 const PanelCoinsActivity = (props) => {
     const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
     const { filterBy } = useSelector(state => state.walletData);
-    const defaultTabTitle = filterBy === STATECOIN_STATUS.WITHDRAWN ? `WITHDRAWN STATECOIN UTXO’S` : `STATECOIN UTXO'S`
+    const defaultTabTitle = filterBy === STATECOIN_STATUS.WITHDRAWN ? `WITHDRAWN STATECOINS` : `STATECOINS`
         
     const setSelectedCoin = (statechain_id) => {
         setSelectedCoins(
