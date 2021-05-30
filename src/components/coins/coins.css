@@ -306,7 +306,6 @@
   color: #666666;
 }
 .coin-details-modal * {
-  font-family: Roboto;
 }
 .coin-item.selected {
   background: rgba(117, 117, 117, 0.101961);

@@ -14,7 +14,6 @@
 }
 .tutorial-page * {
   box-sizing: border-box;
-  font-family: Roboto;
 }
 .tutorial-page {
   display: flex;
