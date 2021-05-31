@@ -159,7 +159,6 @@ const SwapPage = () => {
                           setSelectedSwap={setSelectedSwap}
                         />
                     </div>
-                    {swapGroupsData.length ? (
                       <div className="swap-footer-btns">
                         <button type="button" className="btn" onClick={swapButtonAction}>
                           Join Group
@@ -168,7 +167,6 @@ const SwapPage = () => {
                           Leave Group
                         </button>
                       </div>
-                    ) : null}
                 </div>
               </div>
             </div>
