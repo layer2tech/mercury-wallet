@@ -473,6 +473,10 @@ export class StateCoin {
     this.swap_batch_data = null;
     this.swap_transfer_finalized_data = null;
   }
+
+  getTXIdAndOut(): string {
+    return this.funding_txid  + ":" + this.funding_vout;
+  }
 }
 
 export interface StateCoinDisplayData {
