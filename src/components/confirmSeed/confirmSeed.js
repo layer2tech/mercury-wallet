@@ -72,7 +72,7 @@ const ConfirmSeed = (props) => {
   }
 
   return (
-      <div className="wizard-form-confirm">
+      <div className="wizard-form-confirm wizard-form inputs">
           <p>Click below or type in the missing words to confirm your seed key.</p>
 
           <form>
