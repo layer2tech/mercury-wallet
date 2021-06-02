@@ -161,7 +161,8 @@ console.log(`tor_cmd: ${tor_cmd}`);
 console.log(`torrc: ${torrc}`);
 let user_data_path = app.getPath('userData');
 console.log(`app data path: ${user_data_path}`);
-
+//Don't start tor adapter
+/*
 fork(`${tor_adapter_path}`, [tor_cmd, torrc, user_data_path],
 {
 detached: false,
@@ -176,6 +177,7 @@ stdio: 'ignore',
     //};
   }
 );
+*/
   
 async function on_exit(){
   await kill_tor();

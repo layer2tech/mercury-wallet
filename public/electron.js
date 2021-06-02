@@ -156,6 +156,8 @@ console.log(torrc);
 let user_data_path = app.getPath('userData');
 console.log(user_data_path);
 console.log(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`);
+//Don't start tor adapter
+/*
 fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`, [tor_cmd, torrc, user_data_path],
 {
 detached: false,
@@ -168,6 +170,7 @@ stdio: 'ignore',
     };
   }
 );
+*/
   
 async function on_exit(){
   await kill_tor();
