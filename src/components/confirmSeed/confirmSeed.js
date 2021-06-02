@@ -7,13 +7,19 @@ import './confirmSeed.css'
 
 const ConfirmSeed = (props) => {
   const dispatch = useDispatch();
+
+  const generateUniqueSeedArr = () => {
+    var arr = []
+    while (arr.length < 3) {
+      var r = Math.floor(Math.random() * 11);
+      if (arr.indexOf(r) === -1) arr.push(r);
+    }
+    return arr;
+  }
+
   const [rands] = useState(() => !require("../../settings.json").testing_mode ?
-    [
-      Math.floor(Math.random()*11),
-      Math.floor(Math.random()*11),
-      Math.floor(Math.random()*11)
-    ] : []
-  )
+    generateUniqueSeedArr() : []
+  );
 
   let words = props.wizardState.mnemonic.split(" ");
   const [missingwords, setMissingWords] = useState(() => rands.map((rand) => ({pos:rand, word:""})));
