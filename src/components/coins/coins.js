@@ -290,7 +290,7 @@ const Coins = (props) => {
         </div>
     )})
 
-    if(!all_coins_data.length) {
+    if(!all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN && filterBy !== STATECOIN_STATUS.IN_TRANSFER) {
       return (
         <div className="empty-coin-list">
           <svg

@@ -47,14 +47,25 @@ const LoadWalletPage = (props) => {
 
   // Attempt to load wallet. If fail display error.
   const onContinueClick = (event) => {
-    try { walletLoad(selectedWallet, passwordEntered) }
-      catch (e) {
-        event.preventDefault();
-        dispatch(setError({msg: e.message}));
-        return
-      }
-      checkForCoinsHealth();
-      props.setWalletLoaded(true);
+    if(typeof selectedWallet === 'string' || selectedWallet instanceof String) {
+        try { 
+          walletLoad(selectedWallet, passwordEntered) }
+          catch (e) {
+            event.preventDefault();
+            dispatch(setError({msg: e.message}));
+            return
+          }
+    } else { 
+        try {
+          walletLoad(selectedWallet.name, passwordEntered) }
+        catch (e) {
+          event.preventDefault();
+          dispatch(setError({msg: e.message}));
+          return
+        }
+    }
+    checkForCoinsHealth();
+    props.setWalletLoaded(true);
   }
 
   const populateWalletNameOptions = () => {
