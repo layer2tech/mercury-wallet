@@ -13,45 +13,47 @@ const DEFAULT_SWAP_DETAILS = {show: false, swap: {value: 0, participants: 0, cap
 
 
 const Swaps = (props) => {
-    // The following group of functions will be used when user can select a particular
-    // swap group to join.
-    const [showSwapDetails, setShowSwapDetails] = useState(DEFAULT_SWAP_DETAILS);  // Display details of swap in Modal
-    // Set selected swap
-    const selectSwap = (shared_key_id) => {
-        shared_key_id === props.selectedSwap ? props.setSelectedSwap(null) : props.setSelectedSwap(shared_key_id);
-    }
-    // Check if swap is selected. If so return CSS.
-    const isSelectedStyle = (shared_key_id) => {
-        return props.selectedSwap === shared_key_id ? {backgroundColor: "#e6e6e6"} : {}
-    }
-    // Convert expiry_data to string displaying months or days left
-    const expiry_time_to_string = (expiry_data) => {
-        return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days"
+    const getSwapStatusLabel = (value, total) => {
+        if(value === 0) {
+            return (
+                <div className="SwapStatus">
+                    <span style={{background: '#f5f5f5'}}>Empty</span>
+                </div>
+            )
+        }
+        if(parseInt(total) - parseInt(value) > 1) {
+            return (
+                <div className="SwapStatus">
+                    <span style={{color: '#dfeaff', background: '#757575'}}>Awaiting</span>
+                </div>
+            )
+        }
+        if(parseInt(total) - parseInt(value) === 1) {
+            return (
+                <div className="SwapStatus">
+                    <span style={{color: '#c8e6c9', background: '#757575'}}>Pending</span>
+                </div>
+            )
+        }
+        if(value === total) {
+            return (
+                <div className="SwapStatus">
+                    <span style={{color: '#ffccbc', background: '#757575'}}>Complete</span>
+                </div>
+            )
+        }
     }
     const swapData = props.swapGroupsData.map(([key,value], index) => (
         <div key={key.amount} className="swap-item-wrap">
             <div className="SwapAmount-block">
                 <label>
-                    {/* <input
-                        readOnly
-                        type="radio"
-                        checked={index === 0}
-                    /> */}
                     <b>{fromSatoshi(key.amount)} {' '}</b> BTC
-                    {/* <span className="checkmark"></span> */}
                 </label>
             </div>
             <div className="SwapParticipants">
                 <b>{value}/{key.size}</b>
             </div>
-            <div className="SwapStatus">
-                {value < key.size &&
-                    <span> Pending </span>
-                }
-                {value >= key.size &&
-                    <span> Inprogress </span>
-                }
-            </div>
+            {getSwapStatusLabel(value, key.size)}
         </div>
 
     ));
