@@ -20,7 +20,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 
 import {fromSatoshi} from '../../wallet/util'
-import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData, setError} from '../../features/WalletDataSlice'
+import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData, setError} from '../../features/WalletDataSlice'
 import SortBy from './SortBy/SortBy'
 import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
@@ -104,7 +104,12 @@ const Coins = (props) => {
 
     // Convert expiry_data to string displaying months or days left
     const expiry_time_to_string = (expiry_data) => {
-        if(expiry_data.blocks === 0 || expiry_data.blocks === '0')  return '--';
+        
+      if(callGetBlockHeight() === 0){
+        return '--';
+      }
+
+        //if(expiry_data.blocks === 0 || expiry_data.blocks === '0')  return '--';
         return expiry_data.months > 1 ? expiry_data.months + " month" : expiry_data.days + " days"
     }
 
@@ -252,6 +257,9 @@ const Coins = (props) => {
                       <div className="CoinTimeLeft">
                           <img src={timeIcon} alt="icon" />
                           <span>
+                              {console.log('Block height is: ')}
+                              {console.log("Time until expiry: ", item)}
+
                               Time Until Expiry: <span className='expiry-time-left'>{expiry_time_to_string(item.expiry_data)}</span>
                           </span>
                       </div>
