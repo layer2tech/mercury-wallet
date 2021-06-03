@@ -103,14 +103,12 @@ const Coins = (props) => {
     }
 
     // Convert expiry_data to string displaying months or days left
-    const expiry_time_to_string = (expiry_data) => {
-        
-      if(callGetBlockHeight() === 0){
+    const expiry_time_to_string = (expiry_data) => {  
+      if(callGetBlockHeight() === 0 || expiry_data.months > 400){
         return '--';
       }
 
-        //if(expiry_data.blocks === 0 || expiry_data.blocks === '0')  return '--';
-        return expiry_data.months > 1 ? expiry_data.months + " month" : expiry_data.days + " days"
+      return expiry_data.months > 1 ? expiry_data.months + " month" : expiry_data.days + " days";
     }
 
     //Load coins once component done render
