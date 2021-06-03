@@ -49,7 +49,6 @@ if(isDev) {
 }
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
-alert(tor_cmd);
 let mainWindow;
 
 function createWindow() {
@@ -156,9 +155,6 @@ console.log(torrc);
 let user_data_path = app.getPath('userData');
 console.log(user_data_path);
 let tor_adapter_path=joinPath(__dirname,"..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
-alert(tor_adapter_path);
-alert(torrc);
-alert(user_data_path);
 let tor_adapter_args = [tor_cmd, torrc, user_data_path];
 if (getPlatform() === 'win'){
   tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);

@@ -97,12 +97,12 @@ class TorClient {
          let geo_args =[];
                
             if (this.geoIpFile !== undefined) {
-                base_args.push("GeoIPFile");
-                base_args.push(`${this.geoIpFile}`);
+                geo_args.push("GeoIPFile");
+                geo_args.push(`${this.geoIpFile}`);
             }         
             if (this.geoIpV6File !== undefined) {
-                base_args.push("GeoIPv6File");
-                base_args.push(`${this.geoIpV6File}`);
+                geo_args.push("GeoIPv6File");
+                geo_args.push(`${this.geoIpV6File}`);
             }       
                   
         execFile(tor_cmd, ["--hash-password", `${this.torConfig.controlPassword}`].concat(geo_args), (_error, stdout, _stderr) => {
