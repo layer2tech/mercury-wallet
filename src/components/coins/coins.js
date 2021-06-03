@@ -102,12 +102,25 @@ const Coins = (props) => {
         return selected;
     }
 
-    // Convert expiry_data to string displaying months or days left
-    const expiry_time_to_string = (expiry_data) => {  
-      if(callGetBlockHeight() === 0 || expiry_data.months > 400){
-        return '--';
+    const displayExpiryTime = (expiry_data) => {
+      return validExpiryTime() ? expiry_time_to_string(expiry_data) : '--';
+    }
+
+    const validExpiryTime = (expiry_data) => {
+      if(callGetBlockHeight() === 0){
+        return false;
       }
 
+      // temp fix for months over 400
+      if(expiry_data.months > 400){
+        return false;
+      }
+
+      return true;
+    }
+
+    // Convert expiry_data to string displaying months or days left
+    const expiry_time_to_string = (expiry_data) => {  
       return expiry_data.months > 1 ? expiry_data.months + " month" : expiry_data.days + " days";
     }
 
@@ -255,10 +268,7 @@ const Coins = (props) => {
                       <div className="CoinTimeLeft">
                           <img src={timeIcon} alt="icon" />
                           <span>
-                              {console.log('Block height is: ')}
-                              {console.log("Time until expiry: ", item)}
-
-                              Time Until Expiry: <span className='expiry-time-left'>{expiry_time_to_string(item.expiry_data)}</span>
+                              Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
                           </span>
                       </div>
                   </div>
@@ -365,7 +375,7 @@ const Coins = (props) => {
                       Time Left Until Expiry
                     </span>
                     <span className="expiry-time-left">
-                      {expiry_time_to_string(
+                      {displayExpiryTime(
                         showCoinDetails.coin.expiry_data
                       )}
                     </span>
