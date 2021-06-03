@@ -159,7 +159,12 @@ let tor_adapter_path=joinPath(__dirname,"..", "node_modules", "mercury-wallet-to
 alert(tor_adapter_path);
 alert(torrc);
 alert(user_data_path);
-fork(tor_adapter_path, [tor_cmd, torrc, user_data_path],
+let tor_adapter_args = [tor_cmd, torrc, user_data_path];
+if (getPlatform() === 'win'){
+  tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
+  tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
+}
+fork(tor_adapter_path, tor_adapter_args,
 {
 detached: false,
 stdio: 'ignore',

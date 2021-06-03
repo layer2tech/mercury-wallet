@@ -8,12 +8,15 @@ const exec = require('child_process').exec;
 const execFile = require('child_process').execFile;
 const execSync = require('child_process').execSync;
 const fork = require('child_process').fork;
+const defaultShell = require('default-shell');
 
 
 class TorClient {
 
-    constructor(ip, port, controlPassword, controlPort, dataPath){
+    constructor(ip, port, controlPassword, controlPort, dataPath, geoIpFile, geoIpV6File){
         
+        this.geoIpFile = geoIpFile;
+        this.geoIpV6File = geoIpV6File;
         this.tor_proc=undefined;
 
         this.torConfig={
@@ -91,10 +94,26 @@ class TorClient {
 
     async startTorNode(tor_cmd, torrc) {
         //Get the password hash
-        exec(`${tor_cmd} --hash-password ${this.torConfig.controlPassword}`, (_error, stdout, _stderr) => {
-            let hashedPassword = stdout;
-            this.tor_proc = execFile(tor_cmd, [`-f ${torrc}`,`SOCKSPort ${this.torConfig.port}`,`ControlPort ${this.torConfig.controlPort}`,`DataDir "${this.dataPath}"`, `HashedControlPassword ${hashedPassword}`], {
+         let geo_args =[];
+               
+            if (this.geoIpFile !== undefined) {
+                base_args.push("GeoIPFile");
+                base_args.push(`${this.geoIpFile}`);
+            }         
+            if (this.geoIpV6File !== undefined) {
+                base_args.push("GeoIPv6File");
+                base_args.push(`${this.geoIpV6File}`);
+            }       
+                  
+        execFile(tor_cmd, ["--hash-password", `${this.torConfig.controlPassword}`].concat(geo_args), (_error, stdout, _stderr) => {
+            let hashedPassword = stdout.replace(/\n*$/, "");
+            this.tor_proc = execFile(tor_cmd, 
+                    ["-f", `${torrc}`, "SOCKSPort", `${this.torConfig.port}`,
+                        "HashedControlPassword", `${hashedPassword}`,
+                        "ControlPort",`${this.torConfig.controlPort}`,    
+                        "DataDir", `"${this.dataPath}"`], {
                             detached: false,
+                            shell: defaultShell,
                             stdio: 'ignore',
                             },  (error) => {
                                 if(error){
