@@ -152,6 +152,7 @@ const exec = require('child_process').exec;
 
 fixPath();
 console.log(tor_cmd);
+alert(tor_cmd);
 console.log(torrc);
 let user_data_path = app.getPath('userData');
 console.log(user_data_path);
