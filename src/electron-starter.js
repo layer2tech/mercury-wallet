@@ -161,8 +161,12 @@ console.log(`tor_cmd: ${tor_cmd}`);
 console.log(`torrc: ${torrc}`);
 let user_data_path = app.getPath('userData');
 console.log(`app data path: ${user_data_path}`);
-
-fork(`${tor_adapter_path}`, [tor_cmd, torrc, user_data_path],
+let tor_adapter_args=[tor_cmd, torrc, user_data_path];
+if (getPlatform() === 'win'){
+  tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
+  tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
+}
+fork(`${tor_adapter_path}`, tor_adapter_args,
 {
 detached: false,
 stdio: 'ignore',

@@ -29,7 +29,7 @@ const isDev = (process.env.NODE_ENV == 'development');
 
 let resourcesPath = undefined;
 if(getPlatform() == 'linux') {
-    resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
+    resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet', 'resources');
 } else {
    resourcesPath = joinPath(dirname(rootPath), 'resources');
 }
@@ -40,16 +40,15 @@ if(isDev) {
     torrc = joinPath(resourcesPath, 'etc', 'torrc');
 } else {
     if(getPlatform() == 'linux') {
-        execPath = joinPath(rootPath, '../../Resources/bin');
+        execPath = joinPath(rootPath, '..', '..', 'Resources', 'bin');
     } else {
         console.log("root path: " + rootPath);
-        execPath = joinPath(rootPath, '../bin');
+        execPath = joinPath(rootPath, '..', 'bin');
     }
-    torrc = joinPath(execPath, '../etc/torrc');
+    torrc = joinPath(execPath, '..', 'etc', 'torrc');
 }
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
-
 let mainWindow;
 
 function createWindow() {
@@ -155,8 +154,13 @@ console.log(tor_cmd);
 console.log(torrc);
 let user_data_path = app.getPath('userData');
 console.log(user_data_path);
-console.log(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`);
-fork(`${__dirname}/../node_modules/mercury-wallet-tor-adapter/server/index.js`, [tor_cmd, torrc, user_data_path],
+let tor_adapter_path=joinPath(__dirname,"..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
+let tor_adapter_args = [tor_cmd, torrc, user_data_path];
+if (getPlatform() === 'win'){
+  tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
+  tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
+}
+fork(tor_adapter_path, tor_adapter_args,
 {
 detached: false,
 stdio: 'ignore',

@@ -8,6 +8,14 @@ const express = require("express");
 const tor_cmd = process.argv[2];
 const torrc = process.argv[3];
 const dataDir = process.argv[4];
+let geoIpFile = undefined;
+let geoIpV6File = undefined;
+if (process.argv.length > 5) {
+  geoIpFile = process.argv[5];
+}
+if (process.argv.length > 6) {
+  geoIpV6File = process.argv[6];
+}
 console.log(`tor cmd: ${tor_cmd}`);
 console.log(`torrc: ${torrc}`);
 
@@ -22,7 +30,7 @@ app.listen(PORT, () => {
      console.log("tor data dir: " + dataDir);
 });
 
-const tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, dataDir);
+const tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, dataDir, geoIpFile, geoIpV6File);
 
 tor.startTorNode(tor_cmd, torrc);
 
