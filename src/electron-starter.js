@@ -1,6 +1,6 @@
 const { join, dirname } = require('path');
 const joinPath = join;
-const { app, BrowserWindow, dialog, ipcMain, electron } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
@@ -63,7 +63,7 @@ function createWindow() {
     // Open links in systems default browser
     mainWindow.webContents.on('new-window', function(e, url) {
       e.preventDefault();
-      electron.shell.openExternal(url);
+      shell.openExternal(url);
     });
 
     // and load the index.html of the app.
