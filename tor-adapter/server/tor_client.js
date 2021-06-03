@@ -146,11 +146,6 @@ class TorClient {
         console.log("stop tor node");
         while(true){
             console.log("sending shutdown signal")
-            //await exec(`(echo authenticate '"${this.torConfig.controlPassword}"'; echo signal shutdown; echo quit) | nc ${this.torConfig.ip} ${this.torConfig.controlPort}`);
-            //console.log("sent shutdown signal")
-            //console.log("shutdown");
-            //await this.sendSignal('HALT');
-            //await this.sendSignal('TERM');
             await this.sendSignal('SHUTDOWN');
             console.log(await this.isNodeRunning());
             if(await this.isNodeRunning() == false){  
