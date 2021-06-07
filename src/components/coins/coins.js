@@ -45,6 +45,8 @@ const INITIAL_SORT_BY = {
 	by: 'value'
 };
 
+let counter = 0;
+
 const Coins = (props) => {
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
@@ -52,11 +54,19 @@ const Coins = (props) => {
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
+
+    let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
+
+
     const handleOpenCoinDetails = (shared_key_id) => {
         let coin = all_coins_data.find((coin) => {
             return coin.shared_key_id === shared_key_id
         })
         coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
+
+        console.log('all coins data',  all_coins_data);
+        console.log('coin privacy data:', coin);
+
         setShowCoinDetails({show: true, coin: coin});
     }
     const handleSetCoinDetails = (shared_key_id) => {
@@ -103,16 +113,21 @@ const Coins = (props) => {
     }
 
     const displayExpiryTime = (expiry_data) => {
-      return validExpiryTime() ? expiry_time_to_string(expiry_data) : '--';
+      return validExpiryTime(expiry_data) ? expiry_time_to_string(expiry_data) : '--';
     }
+
+    var checkFirst = false;
 
     const validExpiryTime = (expiry_data) => {
       if(callGetBlockHeight() === 0){
         return false;
       }
+      
 
-      // temp fix for months over 400
-      if(expiry_data.months > 400){
+      counter++;
+      console.log(counter);
+      console.log('expiry data:', expiry_data)
+      if(expiry_data === undefined){
         return false;
       }
 
@@ -132,6 +147,9 @@ const Coins = (props) => {
           unspentCoins: coins_data,
           unConfirmedCoins: unconfired_coins_data
       })
+
+      console.log('1. ---->  coins_data', coins);
+
       // Update total_balance in Redux state
       if(filterBy !== 'default') {
         const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfired_coins_data], filterBy);
@@ -142,14 +160,27 @@ const Coins = (props) => {
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
+
+
+      console.log('3. after:', coins);
     }, [props.refresh, filterBy]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
     useEffect(() => {
       if (coins.unConfirmedCoins.length) {
+        console.log('2. checking  unconfirmed coins')
+        console.log('2. before: coins', coins);
         const interval = setInterval(() => {
+          console.log('2. running interval dcode...')
           let new_unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+
+          console.log('2. new_unconfirmed_coins_data', new_unconfired_coins_data);
+          console.log('2. old coins:', coins);
+
+          // check for a change in blocks
+
+
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
           if (
@@ -158,11 +189,18 @@ const Coins = (props) => {
             coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
               !==
             new_unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
+              ||
+            coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.blocks,0)
+              !==
+            new_unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
           ) {
             setCoins({
                 ...coins,
                 unConfirmedCoins: new_unconfired_coins_data
             })
+            console.log('2. after: coins', coins);
+          }else{
+            console.log('2. no change in uncconfirmed lengths')
           }
         }, 10000);
         return () => clearInterval(interval);
@@ -195,8 +233,6 @@ const Coins = (props) => {
       }
     }
 
-    let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
-
     // Filter coins by status
     if(filterBy === 'default') {
       all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER))
@@ -227,6 +263,10 @@ const Coins = (props) => {
   	});
 
     const statecoinData = all_coins_data.map(item => {
+
+
+      console.log('item:', item);
+
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
 
     return (
