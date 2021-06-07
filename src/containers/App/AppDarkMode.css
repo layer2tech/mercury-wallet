@@ -174,5 +174,13 @@
   border-bottom: 1px solid #4e4e4e;
 }
 .dark-mode .table {
-    background-color: #202020;
+  background-color: #202020;
+}
+.dark-mode .deposit-scan-main-item,
+.dark-mode .deposit-scan-subtxt .deposit-scan-status span,
+.dark-mode .loading-trans {
+  background-color: #4e4e4e;
+}
+.dark-mode .deposit-scan-status img {
+  filter: invert(1);
 }
