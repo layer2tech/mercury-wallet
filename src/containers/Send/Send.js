@@ -142,6 +142,7 @@ const SendStatecoinPage = () => {
                        smallTxtMsg='Statechain Address'/>
                   </div>
                   <div>
+                      {/* -- NOT implemented at this stage
                       <p className="table-title">Use Only:</p>
                       <table>
                           <tbody>
@@ -160,6 +161,7 @@ const SendStatecoinPage = () => {
                           </tr>
                           </tbody>
                       </table>
+                      */}
                       <button type="button" className="btn" onClick={sendButtonAction}>
                           SEND STATECOIN UTXO’S
                       </button>

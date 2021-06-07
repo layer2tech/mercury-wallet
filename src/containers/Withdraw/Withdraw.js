@@ -170,6 +170,7 @@ const WithdrawPage = () => {
                   </div>
 
                   <div>
+                      {/* -- NOT implemented at this stage
                       <p className="table-title">Use Only:</p>
                       <table>
                           <tbody>
@@ -186,7 +187,8 @@ const WithdrawPage = () => {
                               </td>
                           </tr>
                           </tbody>
-                      </table>
+                      </table>                
+                      */}
                       <button type="button" className="btn" onClick={withdrawButtonAction}>
                           <img src={withdrowIcon} alt="withdrowIcon"/>
                           Withdraw btc</button>

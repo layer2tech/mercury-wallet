@@ -153,9 +153,11 @@ const TransactionDisplay = (props) => {
   return (
     <div className="Body">
       <div className="deposit-scan">
-        <QRCode value={makeQRCodeString(props.address, fromSatoshi(props.amount))}
-        level='H'
-        />
+        {props.confirmations === -1 && (
+          <QRCode value={makeQRCodeString(props.address, fromSatoshi(props.amount))}
+            level='H'
+          />
+        )}
 
         <div className="deposit-scan-content">
           <div className="deposit-scan-subtxt">
@@ -173,10 +175,16 @@ const TransactionDisplay = (props) => {
             </div>
             <img src={arrow_img} alt="arrow"/>
             <div className="deposit-scan-main-item">
-              <CopiedButton handleCopy={copyAddressToClipboard}>
-                <img type="button" src={copy_img} alt="icon" />
-              </CopiedButton>
-              <span className="long"><b>{props.address}</b></span>
+              {props.confirmations === -1 ? (
+                <>
+                  <CopiedButton handleCopy={copyAddressToClipboard}>
+                    <img type="button" src={copy_img} alt="icon" />
+                  </CopiedButton>
+                  <span className="long"><b>{props.address}</b></span>
+                </>
+              ) : (
+                <b>Transaction received</b>
+              )}
             </div>
           </div>
 
