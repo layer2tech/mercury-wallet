@@ -2,23 +2,20 @@
 
 Mercury wallet is a cross-platform GUI for [Mercury](https://github.com/commerceblock/mercury) written in node.js using Electron.
 
-
 # Configuration
 
 Custom configurations can be set in `/src/settings.json` in JSON format:
 
-| Name            | Type          | Default |
-|-----------------|---------------|----------|
-| state_entity_endpoint | string | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion |
-| swap_conductor_endpoint | string | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion |
-| electrum_config | object | { host: 'wallet.mercurywallet.io', port: 50004, protocol: 'wss'} |
-| tor_proxy | object | { ip: 'localhost', port: 9060, controlPassword: '', controlPort: 9061 } |
-| min_anon_set | number | 5 |
-| notifications | boolean | true |
-| tutorials | boolean | false |
-| testing_mode | boolean | false |
-
-
+| Name                    | Type    | Default                                                                 |
+| ----------------------- | ------- | ----------------------------------------------------------------------- |
+| state_entity_endpoint   | string  | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion   |
+| swap_conductor_endpoint | string  | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion   |
+| electrum_config         | object  | { host: 'wallet.mercurywallet.io', port: 50004, protocol: 'wss'}        |
+| tor_proxy               | object  | { ip: 'localhost', port: 9060, controlPassword: '', controlPort: 9061 } |
+| min_anon_set            | number  | 5                                                                       |
+| notifications           | boolean | true                                                                    |
+| tutorials               | boolean | false                                                                   |
+| testing_mode            | boolean | false                                                                   |
 
 # Development instructions
 
@@ -28,19 +25,16 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 
 `yarn run dev`
 
-
 ## Run tests
 
 `yarn run test`
-
 
 ## Testing mode
 
 Setting testing_mode removes some inconveniences to make testing easier and faster:
 
-- No seed confirmation
-- Electrum calls mocked so no need to send and wait for funding transactions
-
+-   No seed confirmation
+-   Electrum calls mocked so no need to send and wait for funding transactions
 
 ## Rust bindings
 
@@ -55,9 +49,7 @@ To rebuild after editing:
 
 `yarn upgrade client_wasm`
 
-
 Mac users may have to compile WebAssembly from within a Docker container:
-
 
 ## Docker instructions for building client-wasm
 
@@ -86,14 +78,13 @@ Configure the tor proxy settings either in the settings.json file as described a
 
 The API calls will be routed via the tor node if a .onion address is used as the state entity or swap protocol endpoint. A new tor circuit will be obtained after each API call.
 
-
 ## Logs
 
 Logs are written to console and file at the following locations:
 
-- on Linux: ~/.config/{app name}/logs/{process type}.log
-- on macOS: ~/Library/Logs/{app name}/{process type}.log
-- on Windows: %USERPROFILE%\AppData\Roaming\{app name}\logs\{process type}.log
+-   on Linux: ~/.config/{app name}/logs/{process type}.log
+-   on macOS: ~/Library/Logs/{app name}/{process type}.log
+-   on Windows: %USERPROFILE%\AppData\Roaming\{app name}\logs\{process type}.log
 
 # Contact
 
