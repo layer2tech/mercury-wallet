@@ -64,9 +64,7 @@ const Coins = (props) => {
         })
         coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
 
-        console.log('all coins data',  all_coins_data);
-        console.log('coin privacy data:', coin);
-
+        
         setShowCoinDetails({show: true, coin: coin});
     }
     const handleSetCoinDetails = (shared_key_id) => {
@@ -74,7 +72,7 @@ const Coins = (props) => {
             return coin.shared_key_id === shared_key_id
         })
         coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
-        props.setCoinDetails(coin);
+        props.setCoinDetails(coin)
     }
     const handleCloseCoinDetails = () => {
         props.setSelectedCoins([]);
@@ -86,14 +84,29 @@ const Coins = (props) => {
     }
     // Set selected coin
     const selectCoin = (shared_key_id) => {
+
+      console.log('shared_key_id', shared_key_id);
+
+
+
+
+      // check if the coin has loaded yet then  allow us to open it
+      //props.setSelectedCoin(shared_key_id);  
+
+      /*
         props.setSelectedCoin(shared_key_id);  
-        setRefreshCoins((prevState) => !prevState);
-        if (props.displayDetailsOnClick) {
-            handleOpenCoinDetails(shared_key_id)
-        }
-        if (props.setCoinDetails) {
-            handleSetCoinDetails(shared_key_id)
-        }
+        
+
+      */
+     console.log(refreshCoins);
+      //setRefreshCoins((prevState) => !prevState);
+
+      if (props.displayDetailsOnClick) {
+          handleOpenCoinDetails(shared_key_id)
+      }
+      if (props.setCoinDetails) {
+          handleSetCoinDetails(shared_key_id)
+      }
     }
 
     const isSelected = (shared_key_id) => {
@@ -116,17 +129,16 @@ const Coins = (props) => {
       return validExpiryTime(expiry_data) ? expiry_time_to_string(expiry_data) : '--';
     }
 
-    var checkFirst = false;
-
     const validExpiryTime = (expiry_data) => {
       if(callGetBlockHeight() === 0){
+        expiry_data.blocks = 0;
+        return false;
+      }
+
+      if(expiry_data.blocks == 0){
         return false;
       }
       
-
-      counter++;
-      console.log(counter);
-      console.log('expiry data:', expiry_data)
       if(expiry_data === undefined){
         return false;
       }
