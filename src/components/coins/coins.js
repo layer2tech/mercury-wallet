@@ -116,14 +116,14 @@ const Coins = (props) => {
         return false;
       }
 
-      if(expiry_data.blocks == 0){
-        return false;
-      }
-      
       if(expiry_data === undefined){
         return false;
       }
 
+      if(expiry_data.blocks == 0){
+        return false;
+      }
+      
       return true;
     }
 
