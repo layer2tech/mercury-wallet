@@ -78,6 +78,7 @@ const Coins = (props) => {
     const filterCoinsByStatus = (coins = [], status) => {
       return coins.filter(coin => coin.status === status);
     }
+
     // Set selected coin
     const selectCoin = (shared_key_id) => {
       props.setSelectedCoin(shared_key_id);  
@@ -112,6 +113,7 @@ const Coins = (props) => {
 
     const validExpiryTime = (expiry_data) => {
       if(callGetBlockHeight() === 0){
+        // set its actual block to 0 so next time we can return  '--' until an actual block is received
         expiry_data.blocks = 0;
         return false;
       }
@@ -160,6 +162,7 @@ const Coins = (props) => {
           let new_unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
+          // check for change in the amount of blocks per item (where the main expiry date is set)
           if (
             coins.unConfirmedCoins.length !== new_unconfired_coins_data.length
               ||
