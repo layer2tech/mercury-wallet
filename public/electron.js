@@ -184,9 +184,9 @@ function sleep(ms) {
 
 
 async function kill_tor(){
-  await exec('curl http://localhost:3001/shutdown/tor'),
+  await exec('curl http://localhost:3001/shutdown/tor');
   sleep(1000);
-  await exec('curl http://localhost:3001/shutdown'),
+  await exec('curl http://localhost:3001/shutdown');
 }
 
 process.on('SIGINT',on_exit);
