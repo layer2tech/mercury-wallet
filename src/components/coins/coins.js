@@ -45,8 +45,6 @@ const INITIAL_SORT_BY = {
 	by: 'value'
 };
 
-let counter = 0;
-
 const Coins = (props) => {
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);

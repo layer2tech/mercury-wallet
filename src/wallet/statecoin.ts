@@ -441,15 +441,12 @@ export class StateCoin {
     if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0, confirmations: 0};
     let days_to_locktime = Math.floor(blocks_to_locktime / (6*24))
 
-    let obj = {
+    return {
       blocks: blocks_to_locktime,
       days: days_to_locktime,
       months: Math.floor(days_to_locktime/30),
       confirmations: 0
-    };
-
-    console.log('returning  real obj', obj);
-    return obj;
+    }
   }
 
   // Get BTC address from SharedKey
