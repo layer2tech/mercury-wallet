@@ -52,7 +52,6 @@ export const getRoot = async (
   return root
 }
 
-
 export const delay = (ms:number) => {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
@@ -70,7 +69,7 @@ export const getSmtProof = async (
     funding_txid: funding_txid
   };
 
-  // tries 5 times to get a valid proof from server
+  // try 5 times to get proof from server
   let attempts =  0;
   let proof = null;
   while(attempts < 5){
@@ -82,7 +81,7 @@ export const getSmtProof = async (
     await delay(500);
     attempts++;
   }
-  // if we reached here, proof was null so throw an error
+  // proof still null - throw an error
   throw('Proof returned null');
 }
 
