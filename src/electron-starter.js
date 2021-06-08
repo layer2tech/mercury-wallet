@@ -186,8 +186,14 @@ async function on_exit(){
   process.exit(0)
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function kill_tor(){
-    await exec('curl localhost:3001/shutdown');
+    await exec(`curl localhost:3001/shutdown/tor`);
+    await sleep(1000);
+    await exec(`curl localhost:3001/shutdown`);
 }
 
 process.on('SIGINT',on_exit);
