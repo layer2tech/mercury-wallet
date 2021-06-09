@@ -1,15 +1,10 @@
 const SocksProxyAgent = require('socks-proxy-agent');
 const net = require('net');
-const os = require('os');
 const rp = require('request-promise');
-const { join, dirname } = require('path');
-const joinPath = join;
 const exec = require('child_process').exec;
 const execFile = require('child_process').execFile;
-const execSync = require('child_process').execSync;
-const fork = require('child_process').fork;
 const defaultShell = require('default-shell');
-
+const TorControl = require('tor-control');
 
 class TorClient {
 
@@ -18,6 +13,7 @@ class TorClient {
         this.geoIpFile = geoIpFile;
         this.geoIpV6File = geoIpV6File;
         this.tor_proc=undefined;
+        
 
         this.torConfig={
             ip: ip,
@@ -146,7 +142,22 @@ class TorClient {
         console.log("stop tor node");
         while(true){
             console.log("sending shutdown signal")
-            await this.sendSignal('SHUTDOWN');
+   
+            //await this.sendSignal('SHUTDOWN');
+            //await this.sendSignal('NEWNYM');
+            var control = new TorControl({
+                password: this.torConfig.controlPassword,
+                persistent: false,
+                port: this.torConfig.controlPort,
+            });
+
+            await control.signalShutdown(function (err, status) {
+                if(err){
+                    let err_out = new Error( 'Error communicating with Tor ControlPort\n' + err )
+                    throw err_out;
+                }
+            });              
+         
             console.log(await this.isNodeRunning());
             if(await this.isNodeRunning() == false){  
                 console.log("shutdown complete");
@@ -157,32 +168,23 @@ class TorClient {
     }
 
     async newTorConnection() {
-        await this.sendSignal('NEWNYM');
-        await this.sleep(6000);
+        //await this.sendSignal('NEWNYM');
+        var control = new TorControl({
+            password: this.torConfig.controlPassword,
+            persistent: false,
+            port: this.torConfig.controlPort,
+        });
+
+        await control.signalNeynym(async function (err, status) {
+            if(err){
+                let err_out = new Error( 'Error communicating with Tor ControlPort\n' + err )
+                throw err_out;
+            }
+            await this.sleep(6000);
+            return `Tor signal "newnym" successfully sent`;
+        });        
     }
 
-    
-    async sendSignal(signal) {
-        let data = '';
-        await exec(`(echo authenticate '"${this.torConfig.controlPassword}"'; echo signal ${signal}; echo quit) | nc ${this.torConfig.ip} ${this.torConfig.controlPort}`,
-        (_error, stdout, _stderr) => {
-            data = stdout;
-        });
-        
-        let lines = data.split( os.EOL ).slice( 0, -1 );
-        
-        let success = lines.every( function ( val, ind, arr ) {
-            // each response from the ControlPort should start with 250 (OK STATUS)                                                                         
-            return val.length <= 0 || val.indexOf( '250' ) >= 0
-        });
-     
-        if ( !success ) {
-            let err = new Error( 'Error communicating with Tor ControlPort\n' + data )
-            throw err;
-        }
-        
-        return `Tor signal "${signal}" successfully sent`;
-    }
     
     async confirmNewTorConnection() {
         const maxNTries=3;

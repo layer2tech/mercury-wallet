@@ -112,7 +112,6 @@ app.get('/tor_settings', function(req,res) {
   res.status(200).json(response);
 });
 
-
 app.get('/shutdown', async function(req,res) {
   try {
     let response = await tor.stopTorNode();
@@ -123,6 +122,14 @@ app.get('/shutdown', async function(req,res) {
   }
 });
 
+app.get('/shutdown/tor', async function(req,res) {
+  try {
+    let response = await tor.stopTorNode();
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`Shutdown failed: ${err}`);
+  }
+});
 
 app.get('/swap/*', function(req,res) {
   get_endpoint(req, res, config.swap_conductor_endpoint)

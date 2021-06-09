@@ -142,12 +142,17 @@ ipcMain.on('select-backup-file', async (event, arg) => {
   });
 });
 
+ // You can use 'before-quit' instead of (or with) the close event
+ app.on('before-quit', async function () {
+  await kill_tor();
+});
+
 // Electron Store
 const Store = require('electron-store');
 Store.initRenderer();
 
 const fork = require('child_process').fork;
-const exec = require('child_process').exec;
+const execFile = require('child_process').execFile;
 
 fixPath();
 console.log(tor_cmd);
@@ -160,7 +165,7 @@ if (getPlatform() === 'win'){
   tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
   tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
 }
-fork(tor_adapter_path, tor_adapter_args,
+fork(`${tor_adapter_path}`, tor_adapter_args,
 {
 detached: false,
 stdio: 'ignore',
@@ -175,11 +180,15 @@ stdio: 'ignore',
   
 async function on_exit(){
   await kill_tor();
-  process.exit(0)
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 async function kill_tor(){
-  await exec('curl localhost:3001/shutdown');
+  await execFile('curl', ['http://localhost:3001/shutdown/tor']);
 }
 
 process.on('SIGINT',on_exit);
