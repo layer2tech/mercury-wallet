@@ -142,6 +142,11 @@ ipcMain.on('select-backup-file', async (event, arg) => {
   });
 });
 
+ // You can use 'before-quit' instead of (or with) the close event
+ app.on('before-quit', async function () {
+  await kill_tor();
+});
+
 // Electron Store
 const Store = require('electron-store');
 Store.initRenderer();
