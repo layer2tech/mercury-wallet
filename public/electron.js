@@ -180,7 +180,7 @@ stdio: 'ignore',
   
 async function on_exit(){
   await kill_tor();
-  process.exit(0)
+  //process.exit(0)
 }
 
 function sleep(ms) {
@@ -189,9 +189,12 @@ function sleep(ms) {
 
 
 async function kill_tor(){
+  alert('kill tor');
   await exec('curl http://localhost:3001/shutdown/tor');
   sleep(1000);
   await exec('curl http://localhost:3001/shutdown');
+  sleep(1000)
+  alert('kill tor finished')
 }
 
 process.on('SIGINT',on_exit);
