@@ -1,25 +1,10 @@
 const SocksProxyAgent = require('socks-proxy-agent');
 const net = require('net');
-const os = require('os');
 const rp = require('request-promise');
-const { join, dirname } = require('path');
-const joinPath = join;
 const exec = require('child_process').exec;
 const execFile = require('child_process').execFile;
-const execSync = require('child_process').execSync;
-const fork = require('child_process').fork;
 const defaultShell = require('default-shell');
-const NetcatClient = require('netcat/client');
-const nc = new NetcatClient();
-const fs = require('fs');
-const q = require('q');
-const util = require('util');
-const { connect } = require('react-redux');
-const { write } = require('fs').promises;
 const TorControl = require('tor-control');
-
-
-
 
 class TorClient {
 
