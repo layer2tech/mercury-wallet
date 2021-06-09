@@ -160,7 +160,7 @@ if (getPlatform() === 'win'){
   tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
   tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
 }
-fork(tor_adapter_path, tor_adapter_args,
+fork(`${tor_adapter_path}`, tor_adapter_args,
 {
 detached: false,
 stdio: 'ignore',
