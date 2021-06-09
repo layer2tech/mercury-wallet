@@ -8,7 +8,7 @@ const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
 const ipc = require('electron').ipcMain;
-const exec = require('child_process').exec;
+const execFile = require('child_process').execFile;
 
 function getPlatform(){
   switch (process.platform) {
@@ -183,7 +183,6 @@ stdio: 'ignore',
   
 async function on_exit(){
   await kill_tor();
-  process.exit(0)
 }
 
 function sleep(ms) {
@@ -191,9 +190,7 @@ function sleep(ms) {
 }
 
 async function kill_tor(){
-    await exec(`curl localhost:3001/shutdown/tor`);
-    await sleep(1000);
-    await exec(`curl localhost:3001/shutdown`);
+    await execFile('curl', ['http://localhost:3001/shutdown/tor']);
 }
 
 process.on('SIGINT',on_exit);

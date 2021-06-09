@@ -152,7 +152,7 @@ const Store = require('electron-store');
 Store.initRenderer();
 
 const fork = require('child_process').fork;
-const exec = require('child_process').exec;
+const execFile = require('child_process').execFile;
 
 fixPath();
 console.log(tor_cmd);
@@ -180,7 +180,6 @@ stdio: 'ignore',
   
 async function on_exit(){
   await kill_tor();
-  //process.exit(0)
 }
 
 function sleep(ms) {
@@ -189,12 +188,7 @@ function sleep(ms) {
 
 
 async function kill_tor(){
-  alert('kill tor');
-  await exec('curl http://localhost:3001/shutdown/tor');
-  sleep(1000);
-  await exec('curl http://localhost:3001/shutdown');
-  sleep(1000)
-  alert('kill tor finished')
+  await execFile('curl', ['http://localhost:3001/shutdown/tor']);
 }
 
 process.on('SIGINT',on_exit);
