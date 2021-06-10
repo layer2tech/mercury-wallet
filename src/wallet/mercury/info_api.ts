@@ -52,6 +52,12 @@ export const getRoot = async (
   return root
 }
 
+export const delay = (ms:number) => {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  })
+}
+
 export const getSmtProof = async (
   http_client: HttpClient |  MockHttpClient,
   root: Root | null,
@@ -62,9 +68,21 @@ export const getSmtProof = async (
     root: root,
     funding_txid: funding_txid
   };
-  let proof = await http_client.post(POST_ROUTE.SMT_PROOF, smt_proof_msg_api);
-  typeforce(types.Array, proof);
-  return proof
+
+  // try 5 times to get proof from server
+  let attempts =  0;
+  let proof = null;
+  while(attempts < 5){
+    proof = await http_client.post(POST_ROUTE.SMT_PROOF, smt_proof_msg_api);
+    if(proof !== null){
+      typeforce(types.Array, proof);
+      return proof;
+    }
+    await delay(500);
+    attempts++;
+  }
+  // proof still null - throw an error
+  throw('Proof returned null');
 }
 
 export const getTransferBatchStatus = async (
