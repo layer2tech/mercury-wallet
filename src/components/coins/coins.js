@@ -20,7 +20,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 
 import {fromSatoshi} from '../../wallet/util'
-import {callGetUnspentStatecoins, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData, setError} from '../../features/WalletDataSlice'
+import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData, setError} from '../../features/WalletDataSlice'
 import SortBy from './SortBy/SortBy'
 import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
@@ -48,10 +48,12 @@ const INITIAL_SORT_BY = {
 const Coins = (props) => {
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
-
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
+    const [refreshCoins, setRefreshCoins] = useState(false);
+    let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
+
     const handleOpenCoinDetails = (shared_key_id) => {
         let coin = all_coins_data.find((coin) => {
             return coin.shared_key_id === shared_key_id
@@ -59,31 +61,34 @@ const Coins = (props) => {
         coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
         setShowCoinDetails({show: true, coin: coin});
     }
+
     const handleSetCoinDetails = (shared_key_id) => {
         let coin = all_coins_data.find((coin) => {
             return coin.shared_key_id === shared_key_id
         })
         coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
-        props.setCoinDetails(coin);
+        props.setCoinDetails(coin)
     }
+
     const handleCloseCoinDetails = () => {
         props.setSelectedCoins([]);
         setShowCoinDetails(DEFAULT_STATE_COIN_DETAILS);
     }
-    const [refreshCoins, setRefreshCoins] = useState(false);
+
     const filterCoinsByStatus = (coins = [], status) => {
       return coins.filter(coin => coin.status === status);
     }
+
     // Set selected coin
     const selectCoin = (shared_key_id) => {
-        props.setSelectedCoin(shared_key_id);  
-        setRefreshCoins((prevState) => !prevState);
-        if (props.displayDetailsOnClick) {
-            handleOpenCoinDetails(shared_key_id)
-        }
-        if (props.setCoinDetails) {
-            handleSetCoinDetails(shared_key_id)
-        }
+      props.setSelectedCoin(shared_key_id);  
+      setRefreshCoins((prevState) => !prevState);
+      if (props.displayDetailsOnClick) {
+          handleOpenCoinDetails(shared_key_id)
+      }
+      if (props.setCoinDetails) {
+          handleSetCoinDetails(shared_key_id)
+      }
     }
 
     const isSelected = (shared_key_id) => {
@@ -102,9 +107,31 @@ const Coins = (props) => {
         return selected;
     }
 
+    const displayExpiryTime = (expiry_data) => {
+      return validExpiryTime(expiry_data) ? expiry_time_to_string(expiry_data) : '--';
+    }
+
+    const validExpiryTime = (expiry_data) => {
+      if(callGetBlockHeight() === 0){
+        // set its actual block to 0 so next time we can return  '--' until an actual block is received
+        expiry_data.blocks = 0;
+        return false;
+      }
+
+      if(expiry_data === undefined){
+        return false;
+      }
+
+      if(expiry_data.blocks == 0){
+        return false;
+      }
+      
+      return true;
+    }
+
     // Convert expiry_data to string displaying months or days left
-    const expiry_time_to_string = (expiry_data) => {
-        return expiry_data.months > 1 ? expiry_data.months + " month" : expiry_data.days + " days"
+    const expiry_time_to_string = (expiry_data) => {  
+      return expiry_data.months > 1 ? expiry_data.months + " month" : expiry_data.days + " days";
     }
 
     //Load coins once component done render
@@ -135,12 +162,17 @@ const Coins = (props) => {
           let new_unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
+          // check for change in the amount of blocks per item (where the main expiry date is set)
           if (
             coins.unConfirmedCoins.length !== new_unconfired_coins_data.length
               ||
             coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
               !==
             new_unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
+              ||
+            coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.blocks,0)
+              !==
+            new_unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
           ) {
             setCoins({
                 ...coins,
@@ -178,8 +210,6 @@ const Coins = (props) => {
       }
     }
 
-    let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
-
     // Filter coins by status
     if(filterBy === 'default') {
       all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER))
@@ -211,84 +241,83 @@ const Coins = (props) => {
 
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
-
-    return (
-        <div key={item.shared_key_id}>
-          <div
-            className={`coin-item ${props.swap ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
-            onClick={() => {
-              if(item.status === STATECOIN_STATUS.SWAPLIMIT && props.swap) {
-                dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
-                return false;
-              }
-              selectCoin(item.shared_key_id)
-            }}
-          >
-              <div className="CoinPanel">
-                <div className="CoinAmount-block">
-                    <img src={item.privacy_data.icon1} alt="icon"/>
-                    <span className="sub">
-                        <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
-                        <div className="scoreAmount">
-                            <img src={item.privacy_data.icon2} alt="icon"/>
-                            {item.privacy_data.score_desc}
-                            <span className="tooltip">
-                                <b>{item.privacy_data.score_desc}:</b>
-                                  {item.privacy_data.msg}
+      return (
+          <div key={item.shared_key_id}>
+            <div
+              className={`coin-item ${props.swap ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
+              onClick={() => {
+                if(item.status === STATECOIN_STATUS.SWAPLIMIT && props.swap) {
+                  dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
+                  return false;
+                }
+                selectCoin(item.shared_key_id)
+              }}
+            >
+                <div className="CoinPanel">
+                  <div className="CoinAmount-block">
+                      <img src={item.privacy_data.icon1} alt="icon"/>
+                      <span className="sub">
+                          <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
+                          <div className="scoreAmount">
+                              <img src={item.privacy_data.icon2} alt="icon"/>
+                              {item.privacy_data.score_desc}
+                              <span className="tooltip">
+                                  <b>{item.privacy_data.score_desc}:</b>
+                                    {item.privacy_data.msg}
+                              </span>
+                          </div>
+                      </span>
+                  </div>
+                  {filterBy !== STATECOIN_STATUS.WITHDRAWN ? (
+                    <div className="progress_bar" id={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}>
+                        <div className="sub">
+                            <ProgressBar>
+                                <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
+                                  now={item.expiry_data.days * 100 / 30}
+                                  key={1}/>
+                            </ProgressBar>
+                        </div>
+                        <div className="CoinTimeLeft">
+                            <img src={timeIcon} alt="icon" />
+                            <span>
+                                Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
                             </span>
                         </div>
-                    </span>
-                </div>
-                {filterBy !== STATECOIN_STATUS.WITHDRAWN ? (
-                  <div className="progress_bar" id={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}>
-                      <div className="sub">
-                          <ProgressBar>
-                              <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
-                                now={item.expiry_data.days * 100 / 30}
-                                key={1}/>
-                          </ProgressBar>
-                      </div>
-                      <div className="CoinTimeLeft">
-                          <img src={timeIcon} alt="icon" />
-                          <span>
-                              Time Until Expiry: <span className='expiry-time-left'>{expiry_time_to_string(item.expiry_data)}</span>
-                          </span>
-                      </div>
-                  </div>
-                ) : (
-                  <div className="widthdrawn-status">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 0.5C3.875 0.5 0.5 3.875 0.5 8C0.5 12.125 3.875 15.5 8 15.5C12.125 15.5 15.5 12.125 15.5 8C15.5 3.875 12.125 0.5 8 0.5ZM12.875 9.125H3.125V6.875H12.875V9.125Z" fill="#BDBDBD"/>
-                    </svg>
-                    <span>
-                      Withdrawn <span className="widthdrawn-status-time">| {<Moment format="MM.DD.YYYY HH:mm">{item.timestamp}</Moment>}</span>
-                    </span>
-                  </div>
-                )}
+                    </div>
+                  ) : (
+                    <div className="widthdrawn-status">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 0.5C3.875 0.5 0.5 3.875 0.5 8C0.5 12.125 3.875 15.5 8 15.5C12.125 15.5 15.5 12.125 15.5 8C15.5 3.875 12.125 0.5 8 0.5ZM12.875 9.125H3.125V6.875H12.875V9.125Z" fill="#BDBDBD"/>
+                      </svg>
+                      <span>
+                        Withdrawn <span className="widthdrawn-status-time">| {<Moment format="MM.DD.YYYY HH:mm">{item.timestamp}</Moment>}</span>
+                      </span>
+                    </div>
+                  )}
 
-                {props.showCoinStatus ? (
-                  <div className="coin-status-or-txid">
-                    {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
-                    (
+                  {props.showCoinStatus ? (
+                    <div className="coin-status-or-txid">
+                      {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
+                      (
+                        <b className="CoinFundingTxid">
+                            <img src={txidIcon} alt="icon"/>
+                            {item.funding_txid}
+                        </b>
+                      )
+                      : <CoinStatus data={item}/>}
+                    </div>
+                  ) : (
+                    <div className="coin-status-or-txid">
                       <b className="CoinFundingTxid">
-                          <img src={txidIcon} alt="icon"/>
-                          {item.funding_txid}
+                        <img src={txidIcon} alt="icon"/>
+                        {item.funding_txid}
                       </b>
-                    )
-                    : <CoinStatus data={item}/>}
-                  </div>
-                ) : (
-                  <div className="coin-status-or-txid">
-                    <b className="CoinFundingTxid">
-                      <img src={txidIcon} alt="icon"/>
-                      {item.funding_txid}
-                    </b>
-                  </div>
-                )}
-              </div>
+                    </div>
+                  )}
+                </div>
+            </div>
           </div>
-        </div>
-    )})
+      )})
 
     if(!all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN && filterBy !== STATECOIN_STATUS.IN_TRANSFER) {
       return (
@@ -358,7 +387,7 @@ const Coins = (props) => {
                       Time Left Until Expiry
                     </span>
                     <span className="expiry-time-left">
-                      {expiry_time_to_string(
+                      {displayExpiryTime(
                         showCoinDetails.coin.expiry_data
                       )}
                     </span>
