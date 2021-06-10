@@ -1,6 +1,6 @@
 import arrow from '../../images/arrow-accordion.png';
 
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {useSelector} from 'react-redux'
 
 import {callGetBlockHeight, callGetConfig, callGetSwapGroupInfo} from '../../features/WalletDataSlice'
@@ -25,12 +25,22 @@ const PanelConnectivity = (props) => {
   }
 
   const fee_info = useSelector(state => state.walletData).fee_info;
-  const block_height = callGetBlockHeight();
+  const [block_height, setBlockHeight] = useState(callGetBlockHeight());
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
   let pending_swaps = swap_groups_array.length;
   let participants = swap_groups_array.reduce((acc, item) => acc+item[1],0);
   let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1] * item[0].amount),0);
+
+  // every 5s check if block_height changed and set a new value
+  useEffect(() => {
+      const interval = setInterval(() => {
+          if(block_height !== callGetBlockHeight()){
+            setBlockHeight(callGetBlockHeight());
+          }
+      }, 5000);
+      return () => clearInterval(interval);
+  }, [block_height]);
 
   return (
       <div className="Body small accordion connection-wrap">
