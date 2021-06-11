@@ -246,6 +246,13 @@ export class Wallet {
           statecoin.getBtcAddress(this.config.network),
           statecoin.value
         )
+        let p_addr = statecoin.getBtcAddress(this.config.network)
+        this.checkFundingTxListUnspent(
+          statecoin.shared_key_id,
+          p_addr,
+          bitcoin.address.toOutputScript(p_addr, this.config.network),
+          statecoin.value
+        )        
       })
       // Check if any deposit_inits are awaiting confirmations and mark unconfirmed/confirmed if complete
       this.statecoins.getInMempoolCoins().forEach((statecoin) => {
@@ -303,12 +310,18 @@ export class Wallet {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   // Each time we get unconfirmed coins call this to check for confirmations
-  checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
+  checkReceivedTxStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
       // if we have the funding transaction, finalize creation and backup
       if ((statecoin.status===STATECOIN_STATUS.UNCONFIRMED || statecoin.status===STATECOIN_STATUS.IN_MEMPOOL) && statecoin.tx_backup===null ) {
           this.depositConfirm(statecoin.shared_key_id)
       }
+    })
+  }
+
+  // Each time we get unconfirmed coins call this to check for confirmations
+  checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
+    unconfirmed_coins.forEach((statecoin) => {
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           statecoin.setConfirmed();
@@ -317,9 +330,11 @@ export class Wallet {
       }
     })
   }
+
   // Get all INITIALISED, IN_MEMPOOL and UNCONFIRMED coins funding tx data
   getUnconfirmedAndUnmindeCoinsFundingTxData() {
     let unconfirmed_coins = this.statecoins.getUnconfirmedCoins()
+    this.checkReceivedTxStatus(unconfirmed_coins)
     this.checkUnconfirmedCoinsStatus(unconfirmed_coins)
     let coins = unconfirmed_coins.concat(this.statecoins.getInitialisedCoins())
     return coins.map((item: StateCoin) => item.getFundingTxInfo(this.config.network, this.block_height))
@@ -349,6 +364,8 @@ export class Wallet {
 
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
     backup_tx_data.key_wif = bip32.toWIF();
+
+    console.log(statecoin.tx_cpfp);
 
     if (statecoin.tx_cpfp != null) {
        let fee_rate = (FEE + (backup_tx_data?.output_value ?? 0) - (statecoin.tx_cpfp?.outs[0]?.value ?? 0))/250;
@@ -473,7 +490,7 @@ export class Wallet {
         break;
       }
     }
-
+    this.saveStateCoinsList();
     return true;
   }
 
