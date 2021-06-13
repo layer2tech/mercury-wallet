@@ -438,7 +438,7 @@ export class StateCoin {
     }
     let blocks_to_locktime = this.tx_backup.locktime - block_height;
     if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0, confirmations: 0};
-    let days_to_locktime = Math.floor(blocks_to_locktime / (6*24))
+    let days_to_locktime = Math.floor(blocks_to_locktime / (6*24));
     return {
       blocks: blocks_to_locktime,
       days: days_to_locktime,
