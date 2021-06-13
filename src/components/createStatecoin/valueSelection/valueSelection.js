@@ -6,7 +6,7 @@ import '../../../containers/Deposit/Deposit.css';
 
 const ValueSelectionPanel = (props) => {
 
-    const [selected, setSelected] = useState(props.selectedValue);
+    const [selected, setSelected] = useState(null);
 
     const selectValue = (value) => {
       if (value !== selected) {
