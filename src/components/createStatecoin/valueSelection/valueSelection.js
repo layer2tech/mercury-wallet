@@ -37,7 +37,7 @@ const ValueSelectionPanel = (props) => {
 
     const handleClose = () => setShowCustomInput(false);
     const handleConfirm = () => {
-      const customValue = customInputRef.current.value;
+      const customValue = customInputRef.current.value * 100000000;
       setCustomDeposit({
         ...customDeposit,
         value: customValue
