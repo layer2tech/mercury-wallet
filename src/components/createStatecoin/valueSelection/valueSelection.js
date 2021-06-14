@@ -1,11 +1,20 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
+import { Modal } from 'react-bootstrap';
 
 import { fromSatoshi } from '../../../wallet/util'
 
 import '../../../containers/Deposit/Deposit.css';
 
-const ValueSelectionPanel = (props) => {
-
+const ValueSelectionPanel = (props) => 
+    const [selected, setSelected] = useState(props.selectedValue);
+    const [showCustomInput, setShowCustomInput] = useState(false);
+    const [customDeposit, setCustomDeposit] = useState({
+      liquidity: 0,
+      value: 0,
+      liquidityLabel: 'Other',
+      customInput: true
+    });
+    const customInputRef = useRef()
     const [selected, setSelected] = useState(null);
 
     const selectValue = (value) => {
@@ -18,7 +27,27 @@ const ValueSelectionPanel = (props) => {
       props.addValueSelection(props.id, null)
     }
 
-    const populateValueSelections = props.coinsLiquidityData.map((item, index) => {
+    let coinsLiquidityData = props.coinsLiquidityData.slice(0, props.coinsLiquidityData.length -1);
+    if(customDeposit.value) {
+      coinsLiquidityData = [
+        ...coinsLiquidityData,
+        customDeposit
+      ]
+    }
+
+    const handleClose = () => setShowCustomInput(false);
+    const handleConfirm = () => {
+      const customValue = customInputRef.current.value * 100000000;
+      setCustomDeposit({
+        ...customDeposit,
+        value: customValue
+      });
+      selectValue(customValue);
+      setShowCustomInput(false);
+      
+    }
+
+    const populateValueSelections = coinsLiquidityData.map((item, index) => {
         return (
           <div key={index} className={`numbers-item ${selected == item.value ? 'selected-value' : ''}`}>
             {selected === item.value && (<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -40,10 +69,35 @@ const ValueSelectionPanel = (props) => {
               <span>Select Statecoin Value</span>
               <div className="deposit-statecoins">
                 <div className="numbers">
-                    {populateValueSelections}
-                  </div>
+                  {populateValueSelections}
+                  {customDeposit.value === 0 && (
+                    <div className="numbers-item" onClick={() => setShowCustomInput(true)}>
+                      <span className="custom-deposit-btn"><b>Other</b></span>
+                      <div className="progress">
+                        <div className="fill" style={{width: '0%'}}></div>
+                      </div>
+                      <span color="#757575">Select Value</span>
+                    </div>
+                  )}
+                </div>
               </div>
           </div>
+          <Modal show={showCustomInput} onHide={handleClose} className="modal">
+            <Modal.Body className="custom-modal-body">
+              <div className="selected-item">
+                <span>Custom Value</span>
+                <input type="number" className="custom-smallest" ref={customInputRef} />
+              </div>
+            </Modal.Body>
+            <div className="custom-modal-footer group-btns">
+              <button className="primary-btn ghost" onClick={handleClose}>
+                Cancel
+              </button>
+              <button className="primary-btn blue" onClick={handleConfirm}>
+                Confirm
+              </button>
+            </div>
+          </Modal>
       </div>
     )
 }
