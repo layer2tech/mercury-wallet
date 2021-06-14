@@ -5,8 +5,7 @@ import { fromSatoshi } from '../../../wallet/util'
 
 import '../../../containers/Deposit/Deposit.css';
 
-const ValueSelectionPanel = (props) => 
-    const [selected, setSelected] = useState(props.selectedValue);
+const ValueSelectionPanel = (props) => {
     const [showCustomInput, setShowCustomInput] = useState(false);
     const [customDeposit, setCustomDeposit] = useState({
       liquidity: 0,
