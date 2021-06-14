@@ -95,7 +95,7 @@ const PanelConnectivity = (props) => {
                     <span className="host">Host: {current_config.swap_conductor_endpoint}</span>
                     <span>Pending Swaps: <b>{pending_swaps}</b></span>
                     <span>Participants: <b>{participants}</b></span>
-                    <span>Total pooled BTC: <b>{total_pooled_btc}</b></span>
+                    <span>Total pooled BTC: <b>{total_pooled_btc / Math.pow(10, 8)}</b></span>
                 </div>
                 <div className="collapse-content-item">
                     <span>Block height: {block_height}</span>
