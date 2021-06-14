@@ -112,6 +112,21 @@
     line-height: 16px;
 }
 
+.deposit-main .numbers .custom-deposit-btn {
+    color: #757575;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.deposit-main .numbers .custom-deposit-btn::after {
+    content: ' ';
+    width: 0px;
+    height: 0px;
+    margin-left: 18px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #000;
+}
 
 .deposit-main .deposit-statecoins {
     margin-left: 40px;
@@ -260,9 +275,10 @@ ol.go2441762052 {
     margin-top: 15px;
     padding: 8px 15px;
     width: 100%;
-    /* border: 1px solid #D7D7D7; */
-    border: none;
-    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+    border: 1px solid #D7D7D7;
+    /* border: none; */
+    border-radius: 4px;
+    /* box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px; */
     font-size: 14px;
     opacity: 1;
 }

@@ -109,7 +109,7 @@ const BackupTxPage = () => {
       return
     }
 
-    let sucess = callCreateBackupTxCPFP({cpfp_data: {selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee}});
+    let sucess = callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
 
     if (!sucess) {
       dispatch(setError({msg: "CPFP build error: please check address is correct"}))
