@@ -436,16 +436,14 @@ export class StateCoin {
       // Otherwise must be UNCONFIRMED so calculate number of confs
       return {blocks:-1, confirmations: this.getConfirmations(block_height), days:0, months:0};
     }
-
     let blocks_to_locktime = this.tx_backup.locktime - block_height;
     if (blocks_to_locktime<=0) return {blocks: 0, days: 0, months: 0, confirmations: 0};
-    let days_to_locktime = Math.floor(blocks_to_locktime / (6*24))
-
+    let days_to_locktime = Math.floor(blocks_to_locktime / (6*24));
     return {
       blocks: blocks_to_locktime,
       days: days_to_locktime,
       months: Math.floor(days_to_locktime/30),
-      confirmations: 0
+      confirmations: this.getConfirmations(block_height)
     }
   }
 
