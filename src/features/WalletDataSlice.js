@@ -204,12 +204,15 @@ export const callPingSwap = () => {
 export const callGetCoinBackupTxData = (shared_key_id) => {
   return wallet.getCoinBackupTxData(shared_key_id)
 }
-export const callGetSeAddr = (state) => {
-  return wallet.getSEAddress()
+export const callGetSeAddr = (addr_index) => {
+  return wallet.getSEAddress(addr_index)
 }
 // Gen new SE Address
 export const callNewSeAddr = (state) => {
   return wallet.newSEAddress()
+}
+export const callGetNumSeAddr = () => {
+  return wallet.getNumSEAddress()
 }
 // Remove coin from coins list
 export const callRemoveCoin = (shared_key_id) => {
@@ -269,7 +272,7 @@ export const callTransferReceiver = createAsyncThunk(
 export const callGetTransfers = createAsyncThunk(
   'GetTransfers',
   async (action, thunkAPI) => {
-    return wallet.get_transfers()
+    return wallet.get_transfers(action)
   }
 )
 export const callDoSwap = createAsyncThunk(

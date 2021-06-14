@@ -5,7 +5,7 @@ import {useDispatch} from 'react-redux'
 import {StdButton, AddressInput, CopiedButton} from "../../components";
 import QRCode from 'qrcode.react';
 
-import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callTransferReceiver, callGetTransfers, setError, setNotification} from '../../features/WalletDataSlice'
+import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callGetNumSeAddr, callTransferReceiver, callGetTransfers, setError, setNotification} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
 import arrow from "../../images/arrow-up.png"
@@ -15,6 +15,8 @@ import '../Send/Send.css';
 
 import { Transaction } from 'bitcoinjs-lib';
 
+let addr_index = - 1;
+
 const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
 
@@ -22,7 +24,13 @@ const ReceiveStatecoinPage = () => {
   const onTransferMsg3Change = (event) => {
     setTransferMsg3(event.target.value);
   };
-  const [rec_sce_addr, setRecAddr] = useState(callGetSeAddr());
+
+  let num_addreses = callGetNumSeAddr();
+  if(addr_index === -1) { addr_index = num_addreses - 1 };
+
+  const [rec_sce_addr, setRecAddr] = useState(callGetSeAddr(addr_index));
+
+  console.log(num_addreses);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -31,13 +39,33 @@ const ReceiveStatecoinPage = () => {
 
   const genAddrButtonAction = async () => {
     callNewSeAddr()
-    setRecAddr(callGetSeAddr())
+    num_addreses = callGetNumSeAddr();
+    setRecAddr(callGetSeAddr(num_addreses - 1));
+    addr_index = num_addreses - 1
+  }
+
+  const prevAddrButtonAction = async () => {
+    if (addr_index < 1) {
+      addr_index = 0
+    } else {
+      addr_index--
+    }
+    setRecAddr(callGetSeAddr(addr_index))
+  }
+
+  const nextAddrButtonAction = async () => {
+    if (addr_index >= (num_addreses - 1)) {
+      addr_index = num_addreses - 1
+    } else {
+      addr_index++
+    }
+    setRecAddr(callGetSeAddr(addr_index))
   }
 
   const receiveButtonAction =() => {
     // if mgs box empty, then query server for transfer messages
     if (!transfer_msg3) {
-      dispatch(callGetTransfers()).then((res) => {
+      dispatch(callGetTransfers(addr_index)).then((res) => {
         if (res.payload===0) {
             dispatch(setError({msg: "No transfers to receive."}))
          } else {
@@ -79,7 +107,7 @@ const ReceiveStatecoinPage = () => {
                 </div>
             </div>
             <h3 className="subtitle">
-                Use your address below to receive Statecoins
+                Use the address below to receive Statecoins
             </h3>
         </div>
 
@@ -113,12 +141,27 @@ const ReceiveStatecoinPage = () => {
                       </div>
                     </CopiedButton>
                   </div>
+                  <span>
+                    Index: {addr_index} &nbsp; &nbsp;
+                  </span>
                   <button
                     type="button"
                     className="Body-button transparent"
                     onClick={genAddrButtonAction}>
                       GENERATE ANOTHER ADDRESS
                   </button>
+                  <button
+                    type="button"
+                    className="Body-button transparent"
+                    onClick={prevAddrButtonAction}>
+                      PREV
+                  </button>
+                  <button
+                    type="button"
+                    className="Body-button transparent"
+                    onClick={nextAddrButtonAction}>
+                      NEXT
+                  </button>                 
               </div>
             </div>
           </div>
@@ -126,12 +169,12 @@ const ReceiveStatecoinPage = () => {
 
         <div className="receiveStatecoin sendStatecoin content">
           <div className="Body center">
-            <p className="receive-note">Enter Transfer Code to complete the transfer</p>
+            <p className="receive-note">Transfer message:</p>
             <div className="receive-bottom">
               <AddressInput
                 inputAddr={transfer_msg3}
                 onChange={onTransferMsg3Change}
-                placeholder='Generated and provided by Sender'
+                placeholder='mm1...'
                 smallTxtMsg='Transfer Code'/>
               <button type="button" className={`btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
                 RECEIVE TRANSFER

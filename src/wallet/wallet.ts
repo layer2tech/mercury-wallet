@@ -281,7 +281,8 @@ export class Wallet {
   }
   // Gen new SCEAddress and set in this.current_sce_addr
   newSEAddress() {
-    this.current_sce_addr = this.genSEAddress()
+    this.current_sce_addr = this.genSEAddress();
+    this.save()
   }
 
   // Initialise and return Wasm object.
@@ -301,11 +302,21 @@ export class Wallet {
     return wasm
   }
 
-
   // Getters
   getMnemonic(): string { return this.mnemonic }
   getBlockHeight(): number { return this.block_height }
-  getSEAddress(): string { return this.current_sce_addr }
+  getSEAddress(addr_index: number): string { 
+    if (addr_index >= this.account.chains[0].addresses.length) {
+      return this.current_sce_addr
+    } else {
+      let addr = this.account.chains[0].addresses[addr_index];
+      let proofkey = this.account.derive(addr).publicKey.toString("hex");
+      return encodeSCEAddress(proofkey)
+    }
+  }
+
+  getNumSEAddress(): number { return this.account.chains[0].addresses.length }
+
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
@@ -762,41 +773,34 @@ export class Wallet {
     return statecoin_finalized
   }
 
-  // Query server for any pending transfer messages
+  // Query server for any pending transfer messages for the sepcified address index
   // Check for unused proof keys
-  async get_transfers(): Promise<number> {
+  async get_transfers(addr_index: number): Promise<number> {
   log.info("Retriving transfer messages")
 
   let num_transfers = 0;
-  // loop over active addresses
-  for (let i=0; i<this.account.chains[0].addresses.length; i++) {
-    let addr = this.account.chains[0].addresses[i];
+  let addr = this.account.chains[0].addresses[addr_index];
 
-    let proofkey = this.account.derive(addr).publicKey.toString("hex");
-    console.log(proofkey)
-    let transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
-    
-    console.log(transfer_msgs.length);
+  let proofkey = this.account.derive(addr).publicKey.toString("hex");
+  let transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
 
-    for (let i=0; i<transfer_msgs.length; i++) {
-      // check if the coin is in the wallet
-      let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
-      console.log(walletcoins);
-      let dotransfer = true;
-      for (let j=0; j<walletcoins.length; j++) {
-        if(walletcoins[j].status===STATECOIN_STATUS.AVAILABLE) {
-          dotransfer = false;
-          break;
-        }
-      }
-      //perform transfer receiver
-      if (dotransfer) {
-         console.log("dotransfer");
-         let transfer_data = await this.transfer_receiver(transfer_msgs[i]);
-         num_transfers += 1;
+  for (let i=0; i<transfer_msgs.length; i++) {
+    // check if the coin is in the wallet
+    let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
+    let dotransfer = true;
+    for (let j=0; j<walletcoins.length; j++) {
+      if(walletcoins[j].status===STATECOIN_STATUS.AVAILABLE) {
+        dotransfer = false;
+        break;
       }
     }
+    //perform transfer receiver
+    if (dotransfer) {
+       let transfer_data = await this.transfer_receiver(transfer_msgs[i]);
+       num_transfers += 1;
+    }
   }
+
     return num_transfers
   }
 
