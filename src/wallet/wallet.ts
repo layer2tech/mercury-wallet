@@ -246,6 +246,13 @@ export class Wallet {
           statecoin.getBtcAddress(this.config.network),
           statecoin.value
         )
+        let p_addr = statecoin.getBtcAddress(this.config.network)
+        this.checkFundingTxListUnspent(
+          statecoin.shared_key_id,
+          p_addr,
+          bitcoin.address.toOutputScript(p_addr, this.config.network),
+          statecoin.value
+        )        
       })
       // Check if any deposit_inits are awaiting confirmations and mark unconfirmed/confirmed if complete
       this.statecoins.getInMempoolCoins().forEach((statecoin) => {
@@ -274,7 +281,8 @@ export class Wallet {
   }
   // Gen new SCEAddress and set in this.current_sce_addr
   newSEAddress() {
-    this.current_sce_addr = this.genSEAddress()
+    this.current_sce_addr = this.genSEAddress();
+    this.save()
   }
 
   // Initialise and return Wasm object.
@@ -294,21 +302,37 @@ export class Wallet {
     return wasm
   }
 
-
   // Getters
   getMnemonic(): string { return this.mnemonic }
   getBlockHeight(): number { return this.block_height }
-  getSEAddress(): string { return this.current_sce_addr }
+  getSEAddress(addr_index: number): string { 
+    if (addr_index >= this.account.chains[0].addresses.length) {
+      return this.current_sce_addr
+    } else {
+      let addr = this.account.chains[0].addresses[addr_index];
+      let proofkey = this.account.derive(addr).publicKey.toString("hex");
+      return encodeSCEAddress(proofkey)
+    }
+  }
+
+  getNumSEAddress(): number { return this.account.chains[0].addresses.length }
+
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   // Each time we get unconfirmed coins call this to check for confirmations
-  checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
+  checkReceivedTxStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
       // if we have the funding transaction, finalize creation and backup
       if ((statecoin.status===STATECOIN_STATUS.UNCONFIRMED || statecoin.status===STATECOIN_STATUS.IN_MEMPOOL) && statecoin.tx_backup===null ) {
           this.depositConfirm(statecoin.shared_key_id)
       }
+    })
+  }
+
+  // Each time we get unconfirmed coins call this to check for confirmations
+  checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
+    unconfirmed_coins.forEach((statecoin) => {
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           statecoin.setConfirmed();
@@ -317,9 +341,11 @@ export class Wallet {
       }
     })
   }
+
   // Get all INITIALISED, IN_MEMPOOL and UNCONFIRMED coins funding tx data
   getUnconfirmedAndUnmindeCoinsFundingTxData() {
     let unconfirmed_coins = this.statecoins.getUnconfirmedCoins()
+    this.checkReceivedTxStatus(unconfirmed_coins)
     this.checkUnconfirmedCoinsStatus(unconfirmed_coins)
     let coins = unconfirmed_coins.concat(this.statecoins.getInitialisedCoins())
     return coins.map((item: StateCoin) => item.getFundingTxInfo(this.config.network, this.block_height))
@@ -349,6 +375,8 @@ export class Wallet {
 
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
     backup_tx_data.key_wif = bip32.toWIF();
+
+    console.log(statecoin.tx_cpfp);
 
     if (statecoin.tx_cpfp != null) {
        let fee_rate = (FEE + (backup_tx_data?.output_value ?? 0) - (statecoin.tx_cpfp?.outs[0]?.value ?? 0))/250;
@@ -473,7 +501,7 @@ export class Wallet {
         break;
       }
     }
-
+    this.saveStateCoinsList();
     return true;
   }
 
@@ -745,41 +773,34 @@ export class Wallet {
     return statecoin_finalized
   }
 
-  // Query server for any pending transfer messages
+  // Query server for any pending transfer messages for the sepcified address index
   // Check for unused proof keys
-  async get_transfers(): Promise<number> {
+  async get_transfers(addr_index: number): Promise<number> {
   log.info("Retriving transfer messages")
 
   let num_transfers = 0;
-  // loop over active addresses
-  for (let i=0; i<this.account.chains[0].addresses.length; i++) {
-    let addr = this.account.chains[0].addresses[i];
+  let addr = this.account.chains[0].addresses[addr_index];
 
-    let proofkey = this.account.derive(addr).publicKey.toString("hex");
-    console.log(proofkey)
-    let transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
-    
-    console.log(transfer_msgs.length);
+  let proofkey = this.account.derive(addr).publicKey.toString("hex");
+  let transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
 
-    for (let i=0; i<transfer_msgs.length; i++) {
-      // check if the coin is in the wallet
-      let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
-      console.log(walletcoins);
-      let dotransfer = true;
-      for (let j=0; j<walletcoins.length; j++) {
-        if(walletcoins[j].status===STATECOIN_STATUS.AVAILABLE) {
-          dotransfer = false;
-          break;
-        }
-      }
-      //perform transfer receiver
-      if (dotransfer) {
-         console.log("dotransfer");
-         let transfer_data = await this.transfer_receiver(transfer_msgs[i]);
-         num_transfers += 1;
+  for (let i=0; i<transfer_msgs.length; i++) {
+    // check if the coin is in the wallet
+    let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
+    let dotransfer = true;
+    for (let j=0; j<walletcoins.length; j++) {
+      if(walletcoins[j].status===STATECOIN_STATUS.AVAILABLE) {
+        dotransfer = false;
+        break;
       }
     }
+    //perform transfer receiver
+    if (dotransfer) {
+       let transfer_data = await this.transfer_receiver(transfer_msgs[i]);
+       num_transfers += 1;
+    }
   }
+
     return num_transfers
   }
 

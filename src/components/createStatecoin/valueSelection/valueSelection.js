@@ -5,8 +5,7 @@ import { fromSatoshi } from '../../../wallet/util'
 
 import '../../../containers/Deposit/Deposit.css';
 
-const ValueSelectionPanel = (props) => {
-
+const ValueSelectionPanel = (props) => 
     const [selected, setSelected] = useState(props.selectedValue);
     const [showCustomInput, setShowCustomInput] = useState(false);
     const [customDeposit, setCustomDeposit] = useState({
@@ -15,7 +14,8 @@ const ValueSelectionPanel = (props) => {
       liquidityLabel: 'Other',
       customInput: true
     });
-    const customInputRef = useRef();
+    const customInputRef = useRef()
+    const [selected, setSelected] = useState(null);
 
     const selectValue = (value) => {
       if (value !== selected) {

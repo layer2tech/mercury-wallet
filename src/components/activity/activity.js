@@ -40,7 +40,7 @@ const Activity = () => {
                 <Moment format="MMMM D, YYYY">{activityGroup[0]?.date}</Moment>
             </div>
 			{activityGroup.map((item, index) => (
-				<>
+				<div key={index}>
 
 					{item.action === 'D' ?
 						<table>
@@ -134,7 +134,7 @@ const Activity = () => {
 						</tbody>
 					</table>
 					: null }
-				</>
+				</div>
 			))}
         </div>
     ))
