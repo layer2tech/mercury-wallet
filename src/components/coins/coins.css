@@ -305,11 +305,12 @@
 .dark-mode .coin-details-modal .block time {
   color: #666666;
 }
-.coin-details-modal * {
-}
+.coin-item:hover,
 .coin-item.selected {
   background: rgba(117, 117, 117, 0.101961);
+  cursor: pointer;
 }
+.dark-mode .coin-item:hover,
 .dark-mode .coin-item.selected {
   background: rgba(102, 102, 102, 0.396078);
 }
