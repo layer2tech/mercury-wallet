@@ -2,9 +2,9 @@ import plus from "../../images/plus-deposit.png";
 
 import React, {useState, useEffect} from 'react';
 
-import {callGetCoinsInfo} from '../../features/WalletDataSlice'
+import {callGetCoinsInfo, callGetFeeInfo} from '../../features/WalletDataSlice'
 import ValueSelectionPanel from "./valueSelection/valueSelection";
-import { fromSatoshi } from '../../wallet/util'
+import { FEE, fromSatoshi } from '../../wallet/util'
 
 import '../../containers/Deposit/Deposit.css';
 
@@ -75,7 +75,11 @@ const CreateStatecoin = (props) => {
         // truncate to display top {settings.picks} choices
         liquidity_data = liquidity_data.slice(0, props.settings.picks)
 
-        setLiquidityData(liquidity_data)
+        // filter out coins where the value is not greater than the total fee
+        callGetFeeInfo().then(fee =>  {
+          liquidity_data = liquidity_data.filter(statecoin => statecoin.value >= (FEE + ((statecoin.value * fee.withdraw) / 10000)));
+          setLiquidityData(liquidity_data);
+        });
       });
     }, [props.settings]);
 
