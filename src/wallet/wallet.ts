@@ -289,6 +289,9 @@ export class Wallet {
   getBlockHeight(): number { return this.block_height }
   getSEAddress(): string { return this.current_sce_addr }
   getUnspentStatecoins() {
+    console.log(this.getBlockHeight());
+    console.log(this.statecoins.getAllCoins(this.getBlockHeight()));
+    console.log(this.statecoins.getUnspentCoins(this.getBlockHeight()));
     return this.statecoins.getUnspentCoins(this.getBlockHeight())
   }
   // Each time we get unconfirmed coins call this to check for confirmations
