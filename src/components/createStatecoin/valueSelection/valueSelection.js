@@ -47,7 +47,7 @@ const ValueSelectionPanel = (props) => {
 
       // validate
 
-
+      
       const customValue = customInputRef.current.value * 100000000;
       setCustomDeposit({
         ...customDeposit,
@@ -77,6 +77,7 @@ const ValueSelectionPanel = (props) => {
       let fieldValidationErrors = state.formErrors;
       let depositValid = state.depositValid;
     
+      /*
       switch(fieldName) {
         case 'depositBtc':
           depositValid = value > 0;
@@ -87,7 +88,7 @@ const ValueSelectionPanel = (props) => {
       setState({formErrors: fieldValidationErrors,
                       emailValid: emailValid,
                       passwordValid: passwordValid
-                    }, validateForm);
+                    }, validateForm);*/
     }
 
     const populateValueSelections = coinsLiquidityData.map((item, index) => {
@@ -141,7 +142,7 @@ const ValueSelectionPanel = (props) => {
               </button>
             </div>
             <div>
-              <FormErrors formErrors={state.formErrors}/>
+              { /* <FormErrors formErrors={state.formErrors}/> */}
             </div>
           </Modal>
       </div>
