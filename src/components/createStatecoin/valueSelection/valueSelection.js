@@ -1,11 +1,14 @@
 import React, {useState, useRef} from 'react';
 import { Modal } from 'react-bootstrap';
-
-import { fromSatoshi } from '../../../wallet/util'
-
+import { FEE, fromSatoshi } from '../../../wallet/util'
 import '../../../containers/Deposit/Deposit.css';
+import { callGetFeeInfo } from '../../../features/WalletDataSlice';
+import { FormErrors } from './valueSelectionValidaiton';
 
 const ValueSelectionPanel = (props) => {
+
+
+    const [state, setState] = useState();
     const [showCustomInput, setShowCustomInput] = useState(false);
     const [customDeposit, setCustomDeposit] = useState({
       liquidity: 0,
@@ -34,16 +37,57 @@ const ValueSelectionPanel = (props) => {
       ]
     }
 
+    // get fee and  calculated fee
+    const setupMinimumValue = () => {
+
+    };
+
     const handleClose = () => setShowCustomInput(false);
     const handleConfirm = () => {
+
+      // validate
+
+
       const customValue = customInputRef.current.value * 100000000;
       setCustomDeposit({
         ...customDeposit,
         value: customValue
       });
+      console.log('Minimum fee value:', FEE);
+      console.log('Calculated fee ==');
+      callGetFeeInfo().then(fee => {
+        console.log('Fee', fee);
+      });
       selectValue(customValue);
       setShowCustomInput(false);
-      
+    }
+
+    const handleOnChangeCustomInput = (e) => {
+      const { name, value } = e.target;
+      console.log('handle changes', value);
+      // add validation here
+
+      // do not allow negatives
+      setState({[name]:value}, () => { validateField(name, value)});
+
+      // only allow values that value can afford fee on
+    }
+
+    const validateField = (fieldName, value) => {
+      let fieldValidationErrors = state.formErrors;
+      let depositValid = state.depositValid;
+    
+      switch(fieldName) {
+        case 'depositBtc':
+          depositValid = value > 0;
+          fieldValidationErrors.deposit = depositValid ? '' : 'deposit invalid';
+        default:
+          break;
+      }
+      setState({formErrors: fieldValidationErrors,
+                      emailValid: emailValid,
+                      passwordValid: passwordValid
+                    }, validateForm);
     }
 
     const populateValueSelections = coinsLiquidityData.map((item, index) => {
@@ -60,8 +104,8 @@ const ValueSelectionPanel = (props) => {
               selectValue={selectValue}/>
           </div>
         )
-      });
-
+    });
+    
     return (
       <div className="Body">
           <div className="deposit-main">
@@ -85,7 +129,7 @@ const ValueSelectionPanel = (props) => {
             <Modal.Body className="custom-modal-body">
               <div className="selected-item">
                 <span>Custom Value</span>
-                <input type="number" className="custom-smallest" ref={customInputRef} />
+                <input name='depositBtc' type="number" className="custom-smallest" ref={customInputRef} onChange={handleOnChangeCustomInput}/>
               </div>
             </Modal.Body>
             <div className="custom-modal-footer group-btns">
@@ -95,6 +139,9 @@ const ValueSelectionPanel = (props) => {
               <button className="primary-btn blue" onClick={handleConfirm}>
                 Confirm
               </button>
+            </div>
+            <div>
+              <FormErrors formErrors={state.formErrors}/>
             </div>
           </Modal>
       </div>
