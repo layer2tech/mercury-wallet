@@ -11,11 +11,32 @@ import '../index.css';
 
 
 const PanelConnectivity = (props) => {
-  // Arrow down state
-  const [state, setState] = useState({isToggleOn: false});
+  // Arrow down state and url hover state
+  const [state, setState] = useState({isToggleOn: false,
+    isServerHover:false, isSwapsHover:false});
+
   const toggleContent = (event) => {
       setState({isToggleOn: !state.isToggleOn})
   }
+  const toggleURL = (event) => {
+      let hostCheck = event.target.classList.value
+      if (hostCheck.includes("server")){
+        setState({...state,isServerHover:!state.isServerHover})
+      }
+      if(hostCheck.includes("swaps")){
+        setState({...state,isSwapsHover:!state.isSwapsHover})
+      }
+  }
+
+  //function shortens urls to fit better with styling
+  function shortenURLs(url){
+    let shortURL = ""
+    
+    url = url.replace("http://","")
+    shortURL = shortURL.concat(url.slice(0,3),"...",url.slice(url.length-8,url.length))
+    
+    return shortURL
+    }
 
   let current_config;
   try {
@@ -86,13 +107,29 @@ const PanelConnectivity = (props) => {
         <div className={state.isToggleOn ? "show" : ' hide'}>
             <div className="collapse-content">
                 <div className="collapse-content-item">
-                    <span className="host">Host: {current_config.state_entity_endpoint}</span>
+                    <span className="host server" onMouseEnter={toggleURL}  onMouseLeave={toggleURL}>
+
+                        Host:
+                        {state.isServerHover ? 
+                        (<span className ={state.isServerHover ? "url-hover-server": 'url-hover-hide-server'}>{current_config.state_entity_endpoint}</span>)
+                        :
+                        (`${shortenURLs(current_config.state_entity_endpoint)}`)}
+
+                    </span>
                     <span>Deposit Fee: <b>{fee_info.deposit /100}%</b></span>
                     <span>Withdraw Fee: <b>{fee_info.withdraw/100}%</b></span>
                     <span>{fee_info.endpoint}</span>
                 </div>
                 <div className="collapse-content-item">
-                    <span className="host">Host: {current_config.swap_conductor_endpoint}</span>
+                    <span className="host swaps" onMouseEnter={toggleURL} onMouseLeave={toggleURL}>
+                        
+                        Host:
+                        {state.isSwapsHover ? 
+                        (<span className ={state.isSwapsHover ? "url-hover-swaps": 'url-hover-hide-swaps'}>{current_config.swap_conductor_endpoint}</span>)
+                        :
+                        (`${shortenURLs(current_config.swap_conductor_endpoint)}`)}
+
+                    </span>
                     <span>Pending Swaps: <b>{pending_swaps}</b></span>
                     <span>Participants: <b>{participants}</b></span>
                     <span>Total pooled BTC: <b>{total_pooled_btc / Math.pow(10, 8)}</b></span>

@@ -122,6 +122,40 @@ label {
     white-space: nowrap;
 }
 
+/* URL that shows up on hover */
+
+.url-hover-server{
+
+    background-color: #fff;
+    display: inline-block !important;
+    position:absolute;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+    border:0.5px solid rgba(0, 0, 0, 0.15);
+    z-index: 1;
+    font-size:0.725rem;
+
+}
+
+.url-hover-hide-server{
+    overflow:hidden;
+}
+
+.url-hover-swaps{
+
+    background-color: #fff;
+    display: inline-block !important;
+    position:absolute;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+    border:0.5px solid rgba(0, 0, 0, 0.15);
+    z-index: 1;
+    font-size:0.725rem;
+    
+}
+
+.url-hover-hide-swaps{
+    overflow:hidden;
+}
+
 @media only screen and (max-width: 768px) {
     .Body.small {
         padding: 16px;
