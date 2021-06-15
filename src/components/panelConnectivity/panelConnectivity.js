@@ -109,11 +109,11 @@ const PanelConnectivity = (props) => {
                 <div className="collapse-content-item">
                     <span className="host server" onMouseEnter={toggleURL}  onMouseLeave={toggleURL}>
 
-                        Host:
+                        Host: 
                         {state.isServerHover ? 
-                        (<span className ={state.isServerHover ? "url-hover-server": 'url-hover-hide-server'}>{current_config.state_entity_endpoint}</span>)
+                        (<span className ={state.isServerHover ? "url-hover-server": 'url-hover-hide-server'}>{ current_config.state_entity_endpoint}</span>)
                         :
-                        (`${shortenURLs(current_config.state_entity_endpoint)}`)}
+                        (` ${shortenURLs(current_config.state_entity_endpoint)}`)}
 
                     </span>
                     <span>Deposit Fee: <b>{fee_info.deposit /100}%</b></span>
@@ -123,11 +123,11 @@ const PanelConnectivity = (props) => {
                 <div className="collapse-content-item">
                     <span className="host swaps" onMouseEnter={toggleURL} onMouseLeave={toggleURL}>
                         
-                        Host:
+                        Host: 
                         {state.isSwapsHover ? 
-                        (<span className ={state.isSwapsHover ? "url-hover-swaps": 'url-hover-hide-swaps'}>{current_config.swap_conductor_endpoint}</span>)
+                        (<span className ={state.isSwapsHover ? "url-hover-swaps": 'url-hover-hide-swaps'}>{ current_config.swap_conductor_endpoint}</span>)
                         :
-                        (`${shortenURLs(current_config.swap_conductor_endpoint)}`)}
+                        (` ${shortenURLs(current_config.swap_conductor_endpoint)}`)}
 
                     </span>
                     <span>Pending Swaps: <b>{pending_swaps}</b></span>
