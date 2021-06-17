@@ -208,7 +208,7 @@
   margin-right: 7px;
 }
 .empty-coin-list {
-  padding: 40px 0;
+  padding: 0 0 65px 0;
   color: #979797;
 }
 .empty-coin-list b {
@@ -218,9 +218,9 @@
 .empty-coin-list a {
   text-decoration: underline;
 }
-.empty-coin-list svg {
+.empty-coin-list .exclamation{
   transform: scale(1.5);
-  margin: 20px 0;
+  margin: 65px 0px 20px 0px;
 }
 
 @media only screen and (max-width: 768px) {
