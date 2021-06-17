@@ -20,6 +20,7 @@ const PanelConnectivity = (props) => {
   }
   const toggleURL = (event) => {
       let hostCheck = event.target.classList.value
+
       if (hostCheck.includes("server")){
         setState({...state,isServerHover:!state.isServerHover})
       }
@@ -111,7 +112,7 @@ const PanelConnectivity = (props) => {
 
                         Host: 
                         {state.isServerHover ? 
-                        (<span className ={state.isServerHover ? "url-hover-server": 'url-hover-hide-server'}>{ current_config.state_entity_endpoint}</span>)
+                        (<span className ={state.isServerHover ? "url-hover server": "url-hide server"}>{ current_config.state_entity_endpoint}</span>)
                         :
                         (` ${shortenURLs(current_config.state_entity_endpoint)}`)}
 
@@ -125,7 +126,7 @@ const PanelConnectivity = (props) => {
                         
                         Host: 
                         {state.isSwapsHover ? 
-                        (<span className ={state.isSwapsHover ? "url-hover-swaps": 'url-hover-hide-swaps'}>{ current_config.swap_conductor_endpoint}</span>)
+                        (<span className ={state.isSwapsHover ? "url-hover swaps": 'url-hide swaps'}>{ current_config.swap_conductor_endpoint}</span>)
                         :
                         (` ${shortenURLs(current_config.swap_conductor_endpoint)}`)}
 
