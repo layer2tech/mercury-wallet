@@ -1,7 +1,8 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
 import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
-import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
+import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from "..";
+import { FEE } from "../util";
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, StateChainDataAPI } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
@@ -73,6 +74,9 @@ export const transferSender = async (
   new_tx_backup.locktime = statechain_data.locktime - fee_info.interval;
 
   let pk = statecoin.getSharedPubKey();
+
+  console.log(pk);
+
   let signatureHash = getSigHash(new_tx_backup, 0, pk, statecoin.value, network);
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
@@ -130,6 +134,7 @@ export const transferSender = async (
 
 export const transferReceiver = async (
   http_client: HttpClient |  MockHttpClient,
+  network: Network,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
   batch_data: any
@@ -142,6 +147,44 @@ export const transferReceiver = async (
   let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
   let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
   if (!statechain_sig.verify(prev_owner_proof_key_der)) throw Error("Invalid StateChainSig.");
+
+  // Backup tx verification
+
+  // 1. Verify backup transaction amount
+  let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
+  if ((tx_backup.outs[0].value + tx_backup.outs[1].value + FEE) != statechain_data.amount) throw Error("Backup tx invalid amount.");
+  // 2. Verify the input matches the specified outpoint
+  if (tx_backup.ins[0].hash.reverse().toString("hex") != statechain_data.utxo.txid) throw Error("Backup tx invalid input.");
+  if (tx_backup.ins[0].index != statechain_data.utxo.vout) throw Error("Backup tx invalid input.");
+  // 3. Verify the input signature is valid
+  
+  let pk = tx_backup.ins[0].witness[1].toString("hex");
+
+  console.log(pk);
+
+//  calculate sighash
+
+//  verify signature
+
+
+  let sighash = getSigHash(tx_backup, 0, pk, statechain_data.amount, network);
+
+  console.log(sighash);
+
+  // 4. Verify that the input outpoint is unspent
+
+  // 5. Verify that the unspent input is of the correct value
+
+
+
+
+
+
+
+
+
+
+
 
   // decrypt t1
   let t1 = decryptECIES(se_rec_addr_bip32.privateKey!.toString("hex"), transfer_msg3.t1.secret_bytes)
@@ -159,7 +202,7 @@ export const transferReceiver = async (
   // t2 = t1*o2_inv = o1*x1*o2_inv
   let t2 = t1_bn.mul(o2_inv_bn).mod(n);
 
-  // get SE pub hey share for t2 encryption
+  // get SE pub key share for t2 encryption
   let user_id = { id: transfer_msg3.shared_key_id};
   let s1_pubkey = await http_client.post(POST_ROUTE.TRANSFER_PUBKEY, user_id);
 

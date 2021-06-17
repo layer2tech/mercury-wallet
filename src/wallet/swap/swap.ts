@@ -230,6 +230,7 @@ export const swapPhase3 = async (
   // Otherwise continue with attempt to comlete transfer_receiver
   let transfer_finalized_data = await do_transfer_receiver(
     http_client,
+    network,
     statecoin.swap_id.id,
     statecoin.swap_batch_data.commitment,
     statecoin.swap_info.swap_token.statechain_ids,
@@ -365,6 +366,7 @@ export const clear_statecoin_swap_info = (statecoin: StateCoin): null => {
 
 export const do_transfer_receiver = async (
   http_client: HttpClient |  MockHttpClient,
+  network: Network,
   batch_id: string,
   commit: string,
   statechain_ids: Array<String>,
@@ -387,7 +389,7 @@ export const do_transfer_receiver = async (
           "id":batch_id,
           "commitment":commit,
         }
-        let finalize_data = await transferReceiver(http_client, msg3,rec_se_addr_bip32,batch_data);
+        let finalize_data = await transferReceiver(http_client, network, msg3,rec_se_addr_bip32,batch_data);
         typeforce(types.TransferFinalizeData, finalize_data);
         return finalize_data;
       } else {

@@ -77,7 +77,7 @@ export class Wallet {
     this.statecoins = new StateCoinList();
     this.swap_group_info = new Map<SwapGroup, number>();
     this.activity = new ActivityLog();
-    this.conductor_client = new MockHttpClient();
+    this.conductor_client = new HttpClient(this.config.state_entity_endpoint);
     this.electrum_client = this.newElectrumClient();
 
     this.http_client = new HttpClient(this.config.state_entity_endpoint);
@@ -673,7 +673,7 @@ export class Wallet {
     log.info("Transfer Sender for "+shared_key_id)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.config.network) }
-      catch (e) { throw Error("Invlaid receiver address - Should be hexadecimal public key.") }
+      catch (e) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
@@ -713,7 +713,7 @@ export class Wallet {
     if (rec_se_addr_bip32.publicKey.toString("hex") !== transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
 
     let batch_data = null;
-    let finalize_data = await transferReceiver(this.http_client, transfer_msg3, rec_se_addr_bip32, batch_data)
+    let finalize_data = await transferReceiver(this.http_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data)
 
     // Finalize protocol run by generating new shared key and updating wallet.
     this.transfer_receiver_finalize(finalize_data);

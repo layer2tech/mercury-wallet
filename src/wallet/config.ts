@@ -5,7 +5,7 @@ import { ElectrumClientConfig } from "./electrum";
 
 let cloneDeep = require('lodash.clonedeep');
 
-const DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
+const DEFAULT_STATE_ENTITY_ENPOINT = "http://0.0.0.0:8000";
 
 export class Config {
   // Set at startup only
