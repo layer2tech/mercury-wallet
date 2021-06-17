@@ -376,7 +376,7 @@ const Coins = (props) => {
                 <img src={utx} alt="icon" />
                 <div className="block">
                   <span>UTXO ID:</span>
-                  <span>{showCoinDetails.coin.funding_txid}</span>
+                  <span>{showCoinDetails.coin.funding_txid}:{showCoinDetails.coin.funding_vout}</span>
                 </div>
               </div>
               <div className="item expiry-time">
