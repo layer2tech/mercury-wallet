@@ -1,14 +1,13 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import { Modal } from 'react-bootstrap';
 import { FEE, fromSatoshi } from '../../../wallet/util'
 import '../../../containers/Deposit/Deposit.css';
 import { callGetFeeInfo } from '../../../features/WalletDataSlice';
-import { FormErrors } from './valueSelectionValidaiton';
 
 const ValueSelectionPanel = (props) => {
 
-
-    const [state, setState] = useState();
+    const customInputRef = useRef();
+    const firstRender = useRef(true); // used to retrieve fee value
     const [showCustomInput, setShowCustomInput] = useState(false);
     const [customDeposit, setCustomDeposit] = useState({
       liquidity: 0,
@@ -16,17 +15,20 @@ const ValueSelectionPanel = (props) => {
       liquidityLabel: 'Other',
       customInput: true
     });
-    const customInputRef = useRef()
+    const [depositBTC, setDepositBTC] = useState({});
     const [selected, setSelected] = useState(null);
+    const [withdrawFee, setWithdrawFee] = useState(0);
+    const [disable, setDisabled] = useState(true); // used on being able to submit a value in modal
+    const [depositError, setDepositError] = useState(null); // we can also set error messages to display to the user
 
     const selectValue = (value) => {
       if (value !== selected) {
         setSelected(value);
-        props.addValueSelection(props.id, value)
-        return
+        props.addValueSelection(props.id, value);
+        return;
       }
       setSelected(null);
-      props.addValueSelection(props.id, null)
+      props.addValueSelection(props.id, null);
     }
 
     let coinsLiquidityData = props.coinsLiquidityData.slice(0, props.coinsLiquidityData.length -1);
@@ -37,58 +39,62 @@ const ValueSelectionPanel = (props) => {
       ]
     }
 
-    // get fee and  calculated fee
-    const setupMinimumValue = () => {
+    useEffect(() => {
+      if(firstRender.current){
+        firstRender.current = false;
+        // set the fee value
+        callGetFeeInfo().then(fee => {
+          setWithdrawFee(fee?.withdraw);
+        })
+        return;
+      }
+      // validate
+      setDisabled(validateModal());
+    }, [depositBTC, withdrawFee]) // Only re-run the effect if these change
 
-    };
+    const getTotalFee = () => {
+      return FEE + ((depositBTC * withdrawFee) /  10000);
+    }
+
+    const convertValueToSatoshi = (value) => {
+      return value * 100000000;
+    }
+
+    const validateModal = () => {
+      let errorMsg = '';
+      // convert fee and depositBTC to satoshi value
+      let totalFee = getTotalFee();
+      let depositBTCSatoshi = convertValueToSatoshi(depositBTC);
+      if (depositBTC === "") {
+        errorMsg = 'value cannot be empty.';
+      } 
+      else if(depositBTC == 0){
+        errorMsg = 'value cannot be 0.';
+      }
+      else if(depositBTC < 0){
+        errorMsg = 'value cannot be negative.';
+      }
+      else if(depositBTCSatoshi <= totalFee){
+        let btcFee = ((totalFee)/ Math.pow(10, 8)).toFixed(8); // convert satoshi feee into btc
+        errorMsg = `Not enough value to cover fee: ${btcFee} BTC`;       
+      }
+      else {
+        setDepositError(null);
+        return false;
+      }
+      setDepositError(errorMsg);
+      return true;
+    }
 
     const handleClose = () => setShowCustomInput(false);
     const handleConfirm = () => {
-
-      // validate
-
-      
-      const customValue = customInputRef.current.value * 100000000;
+      const customValue = convertValueToSatoshi(customInputRef.current.value);
       setCustomDeposit({
         ...customDeposit,
         value: customValue
       });
-      console.log('Minimum fee value:', FEE);
-      console.log('Calculated fee ==');
-      callGetFeeInfo().then(fee => {
-        console.log('Fee', fee);
-      });
       selectValue(customValue);
       setShowCustomInput(false);
-    }
-
-    const handleOnChangeCustomInput = (e) => {
-      const { name, value } = e.target;
-      console.log('handle changes', value);
-      // add validation here
-
-      // do not allow negatives
-      setState({[name]:value}, () => { validateField(name, value)});
-
-      // only allow values that value can afford fee on
-    }
-
-    const validateField = (fieldName, value) => {
-      let fieldValidationErrors = state.formErrors;
-      let depositValid = state.depositValid;
-    
-      /*
-      switch(fieldName) {
-        case 'depositBtc':
-          depositValid = value > 0;
-          fieldValidationErrors.deposit = depositValid ? '' : 'deposit invalid';
-        default:
-          break;
-      }
-      setState({formErrors: fieldValidationErrors,
-                      emailValid: emailValid,
-                      passwordValid: passwordValid
-                    }, validateForm);*/
     }
 
     const populateValueSelections = coinsLiquidityData.map((item, index) => {
@@ -130,19 +136,17 @@ const ValueSelectionPanel = (props) => {
             <Modal.Body className="custom-modal-body">
               <div className="selected-item">
                 <span>Custom Value</span>
-                <input name='depositBtc' type="number" className="custom-smallest" ref={customInputRef} onChange={handleOnChangeCustomInput}/>
+                <input name='depositBtc' type="number" className="custom-smallest" ref={customInputRef} value={depositBTC} onChange={e => setDepositBTC(e.target.value) } required/>
+                {depositError && <p className='custom-modal-info alert-danger'> {depositError} </p>}
               </div>
             </Modal.Body>
             <div className="custom-modal-footer group-btns">
               <button className="primary-btn ghost" onClick={handleClose}>
                 Cancel
               </button>
-              <button className="primary-btn blue" onClick={handleConfirm}>
+              <button className={`primary-btn ${disable ? 'grey' : 'blue'}`} onClick={handleConfirm} disabled={disable}>
                 Confirm
               </button>
-            </div>
-            <div>
-              { /* <FormErrors formErrors={state.formErrors}/> */}
             </div>
           </Modal>
       </div>
@@ -163,11 +167,8 @@ const getPercentByLabel = (label) => {
 };
 
 const ValueSelection = (props) => {
-
     return (
-      <div
-        onClick={() => props.selectValue(props.value)}
-      >
+      <div onClick={() => props.selectValue(props.value)}>
           <span><b>{fromSatoshi(props.value)}</b> BTC</span>
           <div className="progress">
             <div className={`fill`} style={{width: `${getPercentByLabel(props.liquidityLabel)}%`}}></div>
