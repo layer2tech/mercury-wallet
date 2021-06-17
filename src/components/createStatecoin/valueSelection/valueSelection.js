@@ -1,6 +1,6 @@
 import React, {useState, useRef, useEffect} from 'react';
 import { Modal } from 'react-bootstrap';
-import { FEE, fromSatoshi } from '../../../wallet/util'
+import { FEE, fromSatoshi, toSatoshi } from '../../../wallet/util'
 import '../../../containers/Deposit/Deposit.css';
 import { callGetFeeInfo } from '../../../features/WalletDataSlice';
 
@@ -19,7 +19,7 @@ const ValueSelectionPanel = (props) => {
     const [selected, setSelected] = useState(null);
     const [withdrawFee, setWithdrawFee] = useState(0);
     const [disable, setDisabled] = useState(true); // used on being able to submit a value in modal
-    const [depositError, setDepositError] = useState(null); // we can also set error messages to display to the user
+    const [depositError, setDepositError] = useState(null); // error messages to display to the user
 
     const selectValue = (value) => {
       if (value !== selected) {
@@ -53,18 +53,16 @@ const ValueSelectionPanel = (props) => {
     }, [depositBTC, withdrawFee]) // Only re-run the effect if these change
 
     const getTotalFee = () => {
-      return FEE + ((depositBTC * withdrawFee) /  10000);
-    }
-
-    const convertValueToSatoshi = (value) => {
-      return value * 100000000;
+      return FEE + ((depositBTC * withdrawFee) /  10000);    
     }
 
     const validateModal = () => {
-      let errorMsg = '';
+      
       // convert fee and depositBTC to satoshi value
       let totalFee = getTotalFee();
-      let depositBTCSatoshi = convertValueToSatoshi(depositBTC);
+      let depositBTCSatoshi = toSatoshi(depositBTC);
+      let errorMsg = '';
+
       if (depositBTC === "") {
         errorMsg = 'value cannot be empty.';
       } 
@@ -75,20 +73,21 @@ const ValueSelectionPanel = (props) => {
         errorMsg = 'value cannot be negative.';
       }
       else if(depositBTCSatoshi <= totalFee){
-        let btcFee = ((totalFee)/ Math.pow(10, 8)).toFixed(8); // convert satoshi feee into btc
+        let btcFee = (fromSatoshi(totalFee)).toFixed(8); // convert satoshi fee into btc
         errorMsg = `Not enough value to cover fee: ${btcFee} BTC`;       
       }
       else {
         setDepositError(null);
         return false;
       }
+
       setDepositError(errorMsg);
       return true;
     }
 
     const handleClose = () => setShowCustomInput(false);
     const handleConfirm = () => {
-      const customValue = convertValueToSatoshi(customInputRef.current.value);
+      const customValue = toSatoshi(customInputRef.current.value);
       setCustomDeposit({
         ...customDeposit,
         value: customValue
