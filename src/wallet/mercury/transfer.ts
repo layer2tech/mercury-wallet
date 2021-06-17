@@ -1,6 +1,6 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
-import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
+import { BIP32Interface, Network, Transaction, script } from "bitcoinjs-lib";
 import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from "..";
 import { FEE } from "../util";
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, StateChainDataAPI } from "./info_api";
@@ -77,7 +77,15 @@ export const transferSender = async (
 
   console.log(pk);
 
+  console.log(statecoin.value);
+
+  console.log(network);
+
+  console.log(new_tx_backup);
+
   let signatureHash = getSigHash(new_tx_backup, 0, pk, statecoin.value, network);
+
+  console.log(signatureHash);
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
   // Create PrepareSignTxMsg to send funding tx data to receiver
@@ -93,10 +101,19 @@ export const transferSender = async (
   // Sign new back up tx
   let signature: string[] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
 
+  console.log(signature);
+
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;
+
+  signatureHash = getSigHash(new_tx_backup_signed, 0, pk, statecoin.value, network);
+
+  console.log(signatureHash)
+
   new_tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]),Buffer.from(signature[1])];
   prepare_sign_msg.tx_hex = new_tx_backup_signed.toHex();
+
+  console.log(prepare_sign_msg.tx_hex);
 
   // Get o1 priv key
   let o1 = statecoin.shared_key.private.x2;
@@ -158,18 +175,56 @@ export const transferReceiver = async (
   if (tx_backup.ins[0].index != statechain_data.utxo.vout) throw Error("Backup tx invalid input.");
   // 3. Verify the input signature is valid
   
+
+  console.log(tx_backup);
+  console.log(transfer_msg3.tx_backup_psm.tx_hex);
+
+  tx_backup.ins[0].hash = tx_backup.ins[0].hash.reverse();
+
+  console.log(tx_backup.toHex());
+  console.log(network);
+
+
   let pk = tx_backup.ins[0].witness[1].toString("hex");
+  let sighash = getSigHash(tx_backup, 0, pk, statechain_data.amount, network);
+
+  console.log(statechain_data.amount);
 
   console.log(pk);
+
+  console.log(sighash);
+
+  let sighash_bytes = Buffer.from(sighash, "hex");
+  let sig = tx_backup.ins[0].witness[0];
+
+  console.log(sig);
+
+
+
+  let pk_der = bitcoin.ECPair.fromPublicKey(Buffer.from(pk, "hex"));
+
+  let decoded = script.signature.decode(sig);
+
+  console.log(decoded);
+
+  console.log(pk_der.verify(sighash_bytes, decoded.signature));
+
+
+
+
+
+
+
 
 //  calculate sighash
 
 //  verify signature
 
 
-  let sighash = getSigHash(tx_backup, 0, pk, statechain_data.amount, network);
 
-  console.log(sighash);
+
+
+  // 3. Verify that the pay to address is the receivers proof key
 
   // 4. Verify that the input outpoint is unspent
 
