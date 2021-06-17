@@ -1,6 +1,10 @@
+import {Mutex} from 'async-mutex';
+import ThemeSlice from '../features/ThemeSlice';
 let ElectrumClientLib = require('@keep-network/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')
 const W3CWebSocket = require('websocket').w3cwebsocket
+
+export const mutex = new Mutex();
 
 export interface ElectrumClientConfig {
   host: string,
@@ -24,18 +28,42 @@ export class ElectrumClient {
 
   // Connect to Electrum Server if not already connected or in the process of connecting
   async connect() {
-    if (this.isOpen()){ return; }
-    if (this.isConnecting()){ return; }
-    // Wait for 'timeout' to close if already closing
-    await setTimeout(function(this: ElectrumClient){
-      while (this.isClosing()) { };
-      this.client.connect(
+
+
+
+    await mutex.runExclusive(async () => {
+
+      
+      await this.client.connect(
         "mercury-electrum-client-js",  // optional client name
         "1.4.2"                        // optional protocol version
       ).catch((err: any) => {
-        throw new ElectrumClientError(`failed to connect: [${err}]`)
+        throw new Error(`failed to connect: [${err}]`)
       })
-    }, 10000);
+
+
+/*      
+      console.log("checking if open..");
+      if (this.isOpen() === true ){ return; }
+      //console.log("checking if connecting..");
+      //if (this.isConnecting() === true ){ return; }
+      // Wait for 'timeout' to close if already closing
+      //console.log("waiting if closing..");
+      await setTimeout(async function(this: ElectrumClient){
+       // while (this.isClosing() === true) { };
+        console.log("connecting...");
+        await this.client.connect(
+          "mercury-electrum-client-js",  // optional client name
+          "1.4.2"                        // optional protocol version
+        ).catch((err: any) => {
+          throw new ElectrumClientError(`failed to connect: [${err}]`)
+        })
+      }, 5000);
+*/
+          });
+    
+
+
   }
 
   // Disconnect from the ElectrumClientServer.
@@ -74,7 +102,7 @@ export class ElectrumClient {
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<number> {
-    await this.connect();
+    this.connect();
     const header = await this.client
       .blockchain_headers_subscribe()
       .catch((err: any) => {
@@ -84,7 +112,7 @@ export class ElectrumClient {
   }
 
   async getTransaction(txHash: string): Promise<any> {
-    await this.connect();
+    this.connect();
     const tx = await this.client
       .blockchain_transaction_get(txHash, true)
         .catch((err: any) => {
@@ -95,7 +123,7 @@ export class ElectrumClient {
   }
 
   async getScriptHashListUnspent(script: string): Promise<any> {
-    await this.connect();
+    this.connect();
     let script_hash_rev = this.scriptToScriptHash(script);
     const list_unspent = await this.client
       .blockchain_scripthash_listunspent(script_hash_rev)
@@ -120,7 +148,7 @@ export class ElectrumClient {
   }
 
   async scriptHashUnsubscribe(script: string): Promise<any> {
-    await this.connect();
+    this.connect();
     let script_hash = this.scriptToScriptHash(script)
     this.client
       .blockchain_scripthash_unsubscribe(script_hash)
@@ -131,7 +159,7 @@ export class ElectrumClient {
   }
 
   async blockHeightSubscribe(callBack: any): Promise<any> {
-    await this.connect();
+    this.connect();
     this.client.subscribe.on('blockchain.headers.subscribe', callBack)
     const headers_subscription = await this.client
       .blockchain_headers_subscribe()
@@ -143,7 +171,7 @@ export class ElectrumClient {
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
-    await this.connect();
+    this.connect();
     const txHash = await this.client
       .blockchain_transaction_broadcast(rawTX)
       .catch((err: any) => {
@@ -153,7 +181,7 @@ export class ElectrumClient {
   }
 
   async getFeeHistogram(num_blocks: number): Promise<any> {
-    await this.connect();
+    this.connect();
     const fee_histogram = await this.client
       .blockchainEstimatefee(num_blocks)
         .catch((err: any) => {
