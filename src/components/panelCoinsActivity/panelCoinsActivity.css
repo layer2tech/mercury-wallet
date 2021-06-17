@@ -63,14 +63,17 @@
   border-right: transparent;
 
 }
+.dark-mode .nav-tabs{
+  border-bottom:0px;
+}
 
-.withdrawn-tab{
+/* .withdrawn-tab{
   color: #0054F4;
   letter-spacing: 1.246px;
   font-size: 14px;
   font-weight: 500;
   line-height: 16px;
   border-bottom: 2px solid #E0E0E0;
-  /* background-color: #fff; */
+
   padding: 16px;
-}
+} */
