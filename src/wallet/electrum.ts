@@ -8,6 +8,12 @@ export interface ElectrumClientConfig {
   protocol: string
 }
 
+class ElectrumClientError extends Error {
+  constructor(message: string){
+    super(message);
+    this.name = "ElectrumClientError";
+  }
+}
 
 export class ElectrumClient {
   client = ElectrumClientLib;
@@ -22,7 +28,7 @@ export class ElectrumClient {
       "mercury-electrum-client-js",  // optional client name
       "1.4.2"                        // optional protocol version
     ).catch((err: any) => {
-      throw new Error(`failed to connect: [${err}]`)
+      throw new ElectrumClientError(`failed to connect: [${err}]`)
     })
   }
 
@@ -65,7 +71,7 @@ export class ElectrumClient {
     const header = await this.client
       .blockchain_headers_subscribe()
       .catch((err: any) => {
-        throw new Error(`failed to get block header: [${err}]`)
+        throw new ElectrumClientError(`failed to get block header: [${err}]`)
       })
     return header
   }
@@ -74,7 +80,7 @@ export class ElectrumClient {
     const tx = await this.client
       .blockchain_transaction_get(txHash, true)
         .catch((err: any) => {
-          throw new Error(`failed to get transaction ${txHash}: [${err}]`)
+          throw new ElectrumClientError(`failed to get transaction ${txHash}: [${err}]`)
         }
       )
     return tx
@@ -85,7 +91,7 @@ export class ElectrumClient {
     const list_unspent = await this.client
       .blockchain_scripthash_listunspent(script_hash_rev)
         .catch((err: any) => {
-          throw new Error(`failed to get list unspent for script ${script}: [${err}]`)
+          throw new ElectrumClientError(`failed to get list unspent for script ${script}: [${err}]`)
         }
       )
     return list_unspent
@@ -97,7 +103,7 @@ export class ElectrumClient {
     const addr_subscription = await this.client
       .blockchain_scripthash_subscribe(script_hash)
         .catch((err: any) => {
-          throw new Error(`failed to subscribe to script ${script}: [${err}]`)
+          throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
         }
       )
     return addr_subscription
@@ -108,7 +114,7 @@ export class ElectrumClient {
     this.client
       .blockchain_scripthash_unsubscribe(script_hash)
         .catch((err: any) => {
-          throw new Error(`failed to subscribe to script ${script}: [${err}]`)
+          throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
         }
       )
   }
@@ -118,7 +124,7 @@ export class ElectrumClient {
     const headers_subscription = await this.client
       .blockchain_headers_subscribe()
         .catch((err: any) => {
-          throw new Error(`failed to subscribe to headers: [${err}]`)
+          throw new ElectrumClientError(`failed to subscribe to headers: [${err}]`)
         }
       )
     return headers_subscription
@@ -128,7 +134,7 @@ export class ElectrumClient {
     const txHash = await this.client
       .blockchain_transaction_broadcast(rawTX)
       .catch((err: any) => {
-        throw new Error(`failed to broadcast transaction: [${err}]`)
+        throw new ElectrumClientError(`failed to broadcast transaction: [${err}]`)
       })
     return txHash
   }
@@ -137,7 +143,7 @@ export class ElectrumClient {
     const fee_histogram = await this.client
       .blockchainEstimatefee(num_blocks)
         .catch((err: any) => {
-          throw new Error(`failed to get fee estimation: [${err}]`)
+          throw new ElectrumClientError(`failed to get fee estimation: [${err}]`)
         }
       )
     return fee_histogram
