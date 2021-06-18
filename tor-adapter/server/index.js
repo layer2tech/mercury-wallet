@@ -90,7 +90,7 @@ app.post('/tor_settings', async function(req,res) {
     config.update(req.body);
     await tor.stopTorNode();
     tor.set(config.tor_proxy);
-    await tor.startTorNode();
+    await tor.startTorNode(tor_cmd, torrc);
     let response = {
       tor_proxy: config.tor_proxy,
       state_entity_endpoint: config.state_entity_endpoint,

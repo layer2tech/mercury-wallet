@@ -81,18 +81,14 @@ export class Wallet {
     this.electrum_client = this.newElectrumClient();
 
     this.http_client = new HttpClient('http://localhost:3001', true);
-    let se_tor_config = {
-      tor_proxy: this.config.tor_proxy,
-      state_entity_endpoint: this.config.state_entity_endpoint
-    }
-    //this.http_client.post('tor_settings', se_tor_config);
-    
     this.conductor_client = new HttpClient('http://localhost:3001', true);
-    let cond_tor_config = {
+    let tor_config = {
       tor_proxy: this.config.tor_proxy,
-      swap_conductor_endpoint: this.config.swap_conductor_endpoint
+      swap_conductor_endpoint: this.config.swap_conductor_endpoint,
+      state_entity_endpoint: this.config.state_entity_endpoint,
     }
-    //this.conductor_client.post('tor_settings', cond_tor_config);
+    console.log('posting tor config: {}' + JSON.stringify(tor_config));
+    this.http_client.post('tor_settings', tor_config);
             
     this.block_height = 0;
     this.current_sce_addr = "";
