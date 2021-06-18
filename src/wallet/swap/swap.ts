@@ -168,6 +168,9 @@ export const swapPhase2 = async (
   // Poll swap until phase changes to Phase2.
   let phase: string = await pollSwap(conductor_client, statecoin.swap_id);
 
+
+  await delay(1);
+
   // If still in previous phase return nothing.
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase1) {
@@ -179,7 +182,9 @@ export const swapPhase2 = async (
 
 
   let bss = await get_blinded_spend_signature(conductor_client, statecoin.swap_id.id, statecoin.statechain_id);
-  conductor_client.new_tor_id();  
+//  conductor_client.new_tor_id();  
+
+  await delay(1);
   let receiver_addr = await second_message(conductor_client, wasm_client, statecoin.swap_id.id, statecoin.swap_my_bst_data, bss);
 
   // Update coin with receiver_addr and update status
@@ -212,6 +217,8 @@ export const swapPhase3 = async (
 
   // We expect Phase4 here but should be Phase3. Server must slighlty deviate from protocol specification.
 
+  await delay(1);
+
   // If still in previous phase return nothing.
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase2 || phase === SWAP_STATUS.Phase3) {
@@ -224,8 +231,11 @@ export const swapPhase3 = async (
   // if this part has not yet been called, call it.
   if (statecoin.swap_transfer_msg==null || statecoin.swap_batch_data==null) {
     statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key);
+    await delay(2)
     statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);
   }
+
+  await delay(5);
 
   // Otherwise continue with attempt to comlete transfer_receiver
   let transfer_finalized_data = await do_transfer_receiver(
@@ -237,6 +247,8 @@ export const swapPhase3 = async (
     statecoin.swap_address,
     new_proof_key_der
   );
+
+  await delay(5);
 
   // Update coin status
   statecoin.swap_transfer_finalized_data=transfer_finalized_data;
@@ -270,6 +282,8 @@ export const swapPhase4 = async (
     throw new Error("Swap error: swapPhase4: Expected swap phase4. Received: "+phase);
   }
   log.info("Swap Phase4: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
+
+  await delay(1);
 
   // Complete transfer for swap and receive new statecoin
   let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
@@ -389,6 +403,7 @@ export const do_transfer_receiver = async (
           "id":batch_id,
           "commitment":commit,
         }
+        await delay(1);
         let finalize_data = await transferReceiver(http_client, network, msg3,rec_se_addr_bip32,batch_data);
         typeforce(types.TransferFinalizeData, finalize_data);
         return finalize_data;

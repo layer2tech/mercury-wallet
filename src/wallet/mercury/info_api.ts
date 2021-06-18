@@ -15,6 +15,8 @@ export const getFeeInfo = async (
   let fee_info = await http_client.get(GET_ROUTE.FEES, {});
   typeforce(types.FeeInfo, fee_info);  
 
+  fee_info.address = "bcrt1qzvv6yfeg0navfkrxpqc0fjdsu9ey4qgqzeywhu";
+
   return fee_info
 }
 
