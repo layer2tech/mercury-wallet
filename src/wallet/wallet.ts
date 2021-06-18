@@ -77,7 +77,6 @@ export class Wallet {
     this.statecoins = new StateCoinList();
     this.swap_group_info = new Map<SwapGroup, number>();
     this.activity = new ActivityLog();
-    this.conductor_client = new MockHttpClient();
     this.electrum_client = this.newElectrumClient();
 
     this.http_client = new HttpClient('http://localhost:3001', true);
@@ -325,7 +324,10 @@ export class Wallet {
     unconfirmed_coins.forEach((statecoin) => {
       // if we have the funding transaction, finalize creation and backup
       if ((statecoin.status===STATECOIN_STATUS.UNCONFIRMED || statecoin.status===STATECOIN_STATUS.IN_MEMPOOL) && statecoin.tx_backup===null && !this.config.testing_mode) {
-          this.depositConfirm(statecoin.shared_key_id)
+          if (!statecoin.backup_confirm) {
+            this.statecoins.setConfirmingBackup(statecoin.shared_key_id);
+            this.depositConfirm(statecoin.shared_key_id)
+          }
       }
     })
   }
@@ -335,6 +337,7 @@ export class Wallet {
     unconfirmed_coins.forEach((statecoin) => {
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
+          if (statecoin.tx_backup===null) this.depositConfirm(statecoin.shared_key_id);
           statecoin.setConfirmed();
           // update in wallet
           this.statecoins.setCoinFinalized(statecoin);
@@ -712,7 +715,7 @@ export class Wallet {
     log.info("Transfer Sender for "+shared_key_id)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.config.network) }
-      catch (e) { throw Error("Invlaid receiver address - Should be hexadecimal public key.") }
+      catch (e) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
@@ -738,7 +741,7 @@ export class Wallet {
   async transfer_receiver(transfer_msg3: TransferMsg3): Promise<TransferFinalizeData> {
     let walletcoins = this.statecoins.getCoins(transfer_msg3.statechain_id);
     for (let i=0; i<walletcoins.length; i++) {
-      if(walletcoins[i].status===STATECOIN_STATUS.AVAILABLE) throw Error("Transfer completed.");
+      if(walletcoins[i].status===STATECOIN_STATUS.AVAILABLE) throw new Error("Transfer completed.");
     }
 
     log.info("Transfer Receiver for statechain "+transfer_msg3.statechain_id)
@@ -747,12 +750,28 @@ export class Wallet {
     // Get SE address that funds are being sent to.
     let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, this.config.network);
     let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
-    // Ensure backup tx funds are sent to address owned by this wallet
-    if (rec_se_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
-    if (rec_se_addr_bip32.publicKey.toString("hex") !== transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
+    // Check coin unspent and correct value
+    let pk = tx_backup.ins[0].witness[1].toString("hex");
+    let addr = pubKeyTobtcAddr(pk, this.config.network);
+    let script = bitcoin.address.toOutputScript(addr, this.config.network);
+    let match = false;
+    let funding_tx_data = await this.electrum_client.getScriptHashListUnspent(script);
+     if (funding_tx_data.length === 0) throw Error("Unspent UTXO not found.");
+     for (let i=0; i<funding_tx_data.length; i++) {
+       if (funding_tx_data[i].tx_hash === tx_backup.ins[0].hash.reverse().toString("hex")) console.log("eq1");
+       if (funding_tx_data[i].tx_pos === tx_backup.ins[0].index) console.log("eq2");
+       if (funding_tx_data[i].tx_hash === tx_backup.ins[0].hash.reverse().toString("hex") && funding_tx_data[i].tx_pos === tx_backup.ins[0].index) {
+         if (funding_tx_data[i].value === (tx_backup.outs[0].value + tx_backup.outs[1].value + FEE)) {
+           match = true;
+           break;
+         }
+       }
+     }
+
+    if (!match) throw new Error("Backup tx input incorrect or spent.");
 
     let batch_data = null;
-    let finalize_data = await transferReceiver(this.http_client, transfer_msg3, rec_se_addr_bip32, batch_data)
+    let finalize_data = await transferReceiver(this.http_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data)
 
     // Finalize protocol run by generating new shared key and updating wallet.
     this.transfer_receiver_finalize(finalize_data);

@@ -185,6 +185,15 @@ export class StateCoinList {
     }
   }
 
+  setConfirmingBackup(shared_key_id: string) { 
+    let coin = this.getCoin(shared_key_id);
+    if(coin) {
+      coin.backup_confirm = true;
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+  }
+
   setCoinFinalized(finalized_statecoin: StateCoin) {
     let statecoin = this.getCoin(finalized_statecoin.shared_key_id)
     // TODO: do some checks here
@@ -247,7 +256,7 @@ export const STATECOIN_STATUS = {
 };
 Object.freeze(STATECOIN_STATUS);
 
-// STATUS represent each stage in the lifecycle of a statecoin.
+// BACKUP_STATUS represent each stage in the lifecycle of the backup.
 export const BACKUP_STATUS = {
   // PRE_LOCKTIME backup transactions are not valid yet as block_height < nLocktime
   PRE_LOCKTIME: "Not Final",
@@ -280,6 +289,7 @@ export class StateCoin {
   timestamp: number;
   tx_backup: BTCTransaction | null;
   backup_status: string;
+  backup_confirm: boolean;
   interval: number;
   tx_cpfp: BTCTransaction | null;
   tx_withdraw: BTCTransaction | null;
@@ -317,6 +327,7 @@ export class StateCoin {
     //this.swap_participants = 0
     this.tx_backup = null;
     this.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
+    this.backup_confirm = false;
     this.interval = 1;
     this.tx_cpfp = null;
     this.tx_withdraw = null;
