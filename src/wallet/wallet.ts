@@ -324,7 +324,7 @@ export class Wallet {
   checkReceivedTxStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
       // if we have the funding transaction, finalize creation and backup
-      if ((statecoin.status===STATECOIN_STATUS.UNCONFIRMED || statecoin.status===STATECOIN_STATUS.IN_MEMPOOL) && statecoin.tx_backup===null ) {
+      if ((statecoin.status===STATECOIN_STATUS.UNCONFIRMED || statecoin.status===STATECOIN_STATUS.IN_MEMPOOL) && statecoin.tx_backup===null && !this.config.testing_mode) {
           this.depositConfirm(statecoin.shared_key_id)
       }
     })
@@ -648,6 +648,9 @@ export class Wallet {
     );
 
     // update in wallet
+    if (this.config.testing_mode) {
+      statecoin_finalized.setConfirmed();
+    }
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
     log.info("Deposit Backup done.");

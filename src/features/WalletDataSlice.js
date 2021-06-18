@@ -7,13 +7,10 @@ import {decodeMessage} from '../wallet/util'
 
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
-
-import {Mutex} from 'async-mutex';
+import {mutex} from '../wallet/electrum';
 
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
 const OPEN = require('websocket').w3cwebsocket.OPEN;
-
-const mutex = new Mutex();
 
 const log = window.require('electron-log');
 const network = bitcoin.networks[require("../settings.json").network];

@@ -1,6 +1,10 @@
+import {Mutex} from 'async-mutex';
+import ThemeSlice from '../features/ThemeSlice';
 let ElectrumClientLib = require('@keep-network/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')
 const W3CWebSocket = require('websocket').w3cwebsocket
+
+export const mutex = new Mutex();
 
 export interface ElectrumClientConfig {
   host: string,
@@ -8,6 +12,12 @@ export interface ElectrumClientConfig {
   protocol: string
 }
 
+class ElectrumClientError extends Error {
+  constructor(message: string){
+    super(message);
+    this.name = "ElectrumClientError";
+  }
+}
 
 export class ElectrumClient {
   client = ElectrumClientLib;
@@ -16,14 +26,44 @@ export class ElectrumClient {
     this.client = new ElectrumClientLib(config.host, config.port, config.protocol)
   }
 
-  // Connect to Electrum Server
+  // Connect to Electrum Server if not already connected or in the process of connecting
   async connect() {
-    await this.client.connect(
-      "mercury-electrum-client-js",  // optional client name
-      "1.4.2"                        // optional protocol version
-    ).catch((err: any) => {
-      throw new Error(`failed to connect: [${err}]`)
-    })
+
+
+
+    await mutex.runExclusive(async () => {
+
+      
+      await this.client.connect(
+        "mercury-electrum-client-js",  // optional client name
+        "1.4.2"                        // optional protocol version
+      ).catch((err: any) => {
+        throw new Error(`failed to connect: [${err}]`)
+      })
+
+
+/*      
+      console.log("checking if open..");
+      if (this.isOpen() === true ){ return; }
+      //console.log("checking if connecting..");
+      //if (this.isConnecting() === true ){ return; }
+      // Wait for 'timeout' to close if already closing
+      //console.log("waiting if closing..");
+      await setTimeout(async function(this: ElectrumClient){
+       // while (this.isClosing() === true) { };
+        console.log("connecting...");
+        await this.client.connect(
+          "mercury-electrum-client-js",  // optional client name
+          "1.4.2"                        // optional protocol version
+        ).catch((err: any) => {
+          throw new ElectrumClientError(`failed to connect: [${err}]`)
+        })
+      }, 5000);
+*/
+          });
+    
+
+
   }
 
   // Disconnect from the ElectrumClientServer.
@@ -62,82 +102,90 @@ export class ElectrumClient {
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<number> {
+    this.connect();
     const header = await this.client
       .blockchain_headers_subscribe()
       .catch((err: any) => {
-        throw new Error(`failed to get block header: [${err}]`)
+        throw new ElectrumClientError(`failed to get block header: [${err}]`)
       })
     return header
   }
 
   async getTransaction(txHash: string): Promise<any> {
+    this.connect();
     const tx = await this.client
       .blockchain_transaction_get(txHash, true)
         .catch((err: any) => {
-          throw new Error(`failed to get transaction ${txHash}: [${err}]`)
+          throw new ElectrumClientError(`failed to get transaction ${txHash}: [${err}]`)
         }
       )
     return tx
   }
 
   async getScriptHashListUnspent(script: string): Promise<any> {
+    this.connect();
     let script_hash_rev = this.scriptToScriptHash(script);
     const list_unspent = await this.client
       .blockchain_scripthash_listunspent(script_hash_rev)
         .catch((err: any) => {
-          throw new Error(`failed to get list unspent for script ${script}: [${err}]`)
+          throw new ElectrumClientError(`failed to get list unspent for script ${script}: [${err}]`)
         }
       )
     return list_unspent
   }
 
-  async scriptHashSubscribe(script: string, callBack: any): Promise<any> {;
+  async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
+    await this.connect();
     this.client.subscribe.on('blockchain.scripthash.subscribe', callBack)
     let script_hash = this.scriptToScriptHash(script)
     const addr_subscription = await this.client
       .blockchain_scripthash_subscribe(script_hash)
         .catch((err: any) => {
-          throw new Error(`failed to subscribe to script ${script}: [${err}]`)
+          throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
         }
       )
     return addr_subscription
   }
 
   async scriptHashUnsubscribe(script: string): Promise<any> {
+    this.connect();
     let script_hash = this.scriptToScriptHash(script)
     this.client
       .blockchain_scripthash_unsubscribe(script_hash)
         .catch((err: any) => {
-          throw new Error(`failed to subscribe to script ${script}: [${err}]`)
+          throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
         }
       )
   }
 
   async blockHeightSubscribe(callBack: any): Promise<any> {
+    this.connect();
     this.client.subscribe.on('blockchain.headers.subscribe', callBack)
     const headers_subscription = await this.client
       .blockchain_headers_subscribe()
         .catch((err: any) => {
-          throw new Error(`failed to subscribe to headers: [${err}]`)
+          throw new ElectrumClientError(`failed to subscribe to headers: [${err}]`)
         }
       )
     return headers_subscription
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
+    this.connect();
     const txHash = await this.client
       .blockchain_transaction_broadcast(rawTX)
       .catch((err: any) => {
-        throw new Error(`failed to broadcast transaction: [${err}]`)
+        throw new ElectrumClientError(`failed to broadcast transaction: [${err}]`)
       })
     return txHash
   }
 
   async getFeeHistogram(num_blocks: number): Promise<any> {
+    this.connect();
     const fee_histogram = await this.client
       .blockchainEstimatefee(num_blocks)
         .catch((err: any) => {
-          throw new Error(`failed to get fee estimation: [${err}]`)
+          throw new ElectrumClientError(`failed to get fee estimation: [${err}]`)
         }
       )
     return fee_histogram

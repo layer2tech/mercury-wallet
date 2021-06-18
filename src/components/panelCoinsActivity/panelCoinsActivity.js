@@ -49,14 +49,18 @@ const PanelCoinsActivity = (props) => {
                 )}
                 {filterBy === STATECOIN_STATUS.WITHDRAWN && (
                     <>
-                        <div className="withdrawn-tab">{defaultTabTitle}</div>
-                        <Coins
-                            displayDetailsOnClick={true}
-                            selectedCoins={selectedCoins}
-                            setSelectedCoins={setSelectedCoins}
-                            setSelectedCoin={setSelectedCoin}
-                            showCoinStatus={true}
-                        />
+                        
+                        <Tabs defaultActiveKey={defaultTabTitle}>
+                            <Tab eventKey={defaultTabTitle} title={defaultTabTitle}>
+                                <Coins
+                                displayDetailsOnClick={true}
+                                selectedCoins={selectedCoins}
+                                setSelectedCoins={setSelectedCoins}
+                                setSelectedCoin={setSelectedCoin}
+                                showCoinStatus={true}
+                                />
+                            </Tab>
+                        </Tabs>
                     </>
                 )}
             </div>

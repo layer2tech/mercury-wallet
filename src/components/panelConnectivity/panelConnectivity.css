@@ -122,6 +122,31 @@ label {
     white-space: nowrap;
 }
 
+/* URL that shows up on hover */
+
+.url-hover{
+
+    background-color: #fff;
+    display: inline-block !important;
+    position:absolute;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+    border:0.5px solid rgba(0, 0, 0, 0.15);
+    z-index: 1;
+    font-size:0.725rem;
+    margin-left: 0.5%;
+
+}
+
+.url-hide{
+    overflow:hidden;
+}
+
+.dark-mode .url-hover{
+    background-color: #202020;
+    box-shadow: rgba(0, 0, 0, 1) 0px 3px 3px 0px;
+}
+
+
 @media only screen and (max-width: 768px) {
     .Body.small {
         padding: 16px;

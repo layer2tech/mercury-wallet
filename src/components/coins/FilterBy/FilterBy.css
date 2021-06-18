@@ -1,9 +1,11 @@
+
 .filter-coin-icon {
   position: absolute;
   right: 0;
   top: 0;
   cursor: pointer;
 }
+
 
 .menu-overlay {
   position: fixed;
@@ -33,6 +35,8 @@
   z-index: 301;
 }
 
+
+
 .filter-coin-options > div,
 .filter-coin-options > label {
   padding: 8px 10px;
@@ -58,9 +62,6 @@
   margin-right: 12px;
 }
 
-.main-coin-wrap.WITHDRAWN .filter-coin-icon {
-  right: 10px;
-}
 .main-coin-wrap.WITHDRAWN .filter-coin-options {
   right: 30px;
 }
