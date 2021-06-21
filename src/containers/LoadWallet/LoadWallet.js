@@ -8,6 +8,7 @@ import {walletLoad, setError, callGetVersion, callGetUnspentStatecoins} from '..
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 import  './LoadWallet.css'
+import { STATECOIN_STATUS } from '../../wallet';
 
 let store = new Storage();
 
@@ -38,6 +39,9 @@ const LoadWalletPage = (props) => {
         dispatch(setError({msg: "Warning: Coin in wallet was created in previous wallet version. Due to rapid development some backward incompatible changes may break old coins. We recommend withdrawing testnet coins and creating a fresh wallet."}))
         break;
       };
+      if(coins_data[i].status === STATECOIN_STATUS.SWAPLIMIT){
+        dispatch(setError({msg: "Warning: Coin in wallet is close to expiring. Expiring coins not eligible for swap deals. Withdraw as soon as possible."}))
+      }
       if (coins_data[i].expiry_data.months <= 1) {
         dispatch(setError({msg: "Warning: Coin in wallet is close to expiring."}))
         break;
