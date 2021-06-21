@@ -55,12 +55,14 @@ export class StateCoinList {
   getUnspentCoins(block_height: number) {
     let total = 0
     let coins = this.coins.filter((item: StateCoin) => {
+
       if (
         item.status===STATECOIN_STATUS.AVAILABLE ||
         item.status===STATECOIN_STATUS.IN_SWAP ||
         item.status===STATECOIN_STATUS.AWAITING_SWAP ||
         item.status===STATECOIN_STATUS.IN_TRANSFER ||
-        item.status===STATECOIN_STATUS.WITHDRAWN
+        item.status===STATECOIN_STATUS.WITHDRAWN ||
+        item.status===STATECOIN_STATUS.SWAPLIMIT
       ) {
         // Add all but withdrawn coins to total balance 
         if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.IN_TRANSFER) {
@@ -95,7 +97,9 @@ export class StateCoinList {
 
   // Find all coins in mempool or mined but with required_confirmations confirmations
   getUnconfirmedCoins() {
+    
     return this.coins.filter((item: StateCoin) => {
+
       if (item.status === STATECOIN_STATUS.UNCONFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL) {
         return item
       }

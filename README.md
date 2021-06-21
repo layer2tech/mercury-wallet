@@ -25,6 +25,12 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 
 `yarn run dev`
 
+### Using a local mercury server and mock tor adapter
+
+When running in development mode, a mock tor adapter can be used - the connection will not be done via a tor circuit - this allows connection to a mercury server on localhost. To use the mock tor adapter edit tor-adapter/server/settings.json and change the tor-proxy ip to 'mock' as in the following example:
+
+`"tor_proxy": {"ip": "mock"}`
+
 ## Run tests
 
 `yarn run test`

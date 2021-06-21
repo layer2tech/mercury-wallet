@@ -117,6 +117,7 @@ export const walletLoad = (name, password) => {
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
   mutex.runExclusive(async () => {
+    await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapGroupInfo();
   });
@@ -128,6 +129,7 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
   log.info("Wallet "+name+" created.");
   if (testing_mode) log.info("Testing mode set.");
   mutex.runExclusive(async () => {
+    await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
       wallet.recoverCoinsFromServer();
@@ -148,6 +150,7 @@ export const walletFromJson = (wallet_json, password) => {
     log.info("Wallet " + wallet.name + " loaded from backup.");
     if (testing_mode) log.info("Testing mode set.");
     return mutex.runExclusive(async () => {
+      await wallet.set_tor_endpoints();
       wallet.initElectrumClient(setBlockHeightCallBack);
       callNewSeAddr();
       wallet.save()

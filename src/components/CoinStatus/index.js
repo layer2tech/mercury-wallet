@@ -5,7 +5,8 @@ import {
   UnconfirmedConfirmIcon,
   InSwapIcon,
   AwaitingSwapIcon,
-  InitialisedIcon
+  InitialisedIcon,
+  SwapLimitIcon
 } from './statusIcons';
 import { CopiedButton } from '../../components';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -25,6 +26,10 @@ const STATECOIN_STATUS_INFO = {
   [STATECOIN_STATUS.UNCONFIRMED]: {
     icon: <UnconfirmedConfirmIcon />,
     title: 'Awaiting Confirmations'
+  },
+  [STATECOIN_STATUS.SWAPLIMIT]:{
+    icon: <SwapLimitIcon />,
+    title: 'Expiring Soon'
   },
   [STATECOIN_STATUS.IN_SWAP]: {
     icon: <InSwapIcon />,

@@ -81,29 +81,30 @@ export class Wallet {
     this.electrum_client = this.newElectrumClient();
 
     this.http_client = new HttpClient('http://localhost:3001', true);
-    let se_tor_config = {
-      tor_proxy: this.config.tor_proxy,
-      state_entity_endpoint: this.config.state_entity_endpoint
-    }
-    //this.http_client.post('tor_settings', se_tor_config);
-    
     this.conductor_client = new HttpClient('http://localhost:3001', true);
-    let cond_tor_config = {
-      tor_proxy: this.config.tor_proxy,
-      swap_conductor_endpoint: this.config.swap_conductor_endpoint
-    }
-    //this.conductor_client.post('tor_settings', cond_tor_config);
-            
+    this.set_tor_endpoints();
+    
+    
     this.block_height = 0;
     this.current_sce_addr = "";
 
     this.storage = new Storage();
   }
 
+  set_tor_endpoints(){
+    let endpoints_config = {
+      swap_conductor_endpoint: this.config.swap_conductor_endpoint,
+      state_entity_endpoint: this.config.state_entity_endpoint,
+    }
+    let tor_ep_set = this.http_client.post('tor_endpoints', endpoints_config);
+    console.log(`Set tor endpoints: ${tor_ep_set}}`);
+  }
+
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(name: string, password: string, mnemonic: string, network: Network, testing_mode: boolean): Wallet {
     log.debug("New wallet named "+name+" created. Testing mode: "+testing_mode+".");
-    return new Wallet(name, password, mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), new Config(network, testing_mode))
+    let wallet = new Wallet(name, password, mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), new Config(network, testing_mode));
+    return wallet;
   }
 
   // Generate wallet with random mnemonic.
@@ -133,7 +134,6 @@ export class Wallet {
     config.update(json_wallet.config);
     //Config needs to be included when constructing the wallet
     let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
-
     new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
     new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
     
@@ -198,7 +198,8 @@ export class Wallet {
     // Fetch decrypted wallet json
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password=password;
-    return Wallet.fromJSON(wallet_json, testing_mode);
+    let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    return wallet;
   }
 
   // Load wallet JSON from backup file
@@ -211,7 +212,8 @@ export class Wallet {
     } catch (e) {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
-    return Wallet.fromJSON(wallet_json, testing_mode);
+    let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    return wallet;
   }
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
   async recoverCoinsFromServer() {
@@ -354,7 +356,16 @@ export class Wallet {
   getUnconfirmedStatecoinsDisplayData() {
     // Check if any awaiting deposits now have sufficient confirmations and can be confirmed
     let unconfirmed_coins = this.statecoins.getUnconfirmedCoins();
+    //Get unconfirmed coins
+
     this.checkUnconfirmedCoinsStatus(unconfirmed_coins)
+    //Check if unconfirmed status now changed and change accordingly
+    this.updateBackupTxStatus()
+    //check if status update required for coins
+
+    unconfirmed_coins = this.statecoins.getUnconfirmedCoins();
+    //reload unconfirmed coins
+    
     return unconfirmed_coins.map((item: StateCoin) => item.getDisplayInfo(this.block_height))
   }
   // Get Backup Tx hex and receive private key
