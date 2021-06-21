@@ -1,7 +1,7 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
 import { BIP32Interface, Network, Transaction, script } from "bitcoinjs-lib";
-import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from "..";
+import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from "..";
 import { FEE } from "../util";
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, StateChainDataAPI } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
@@ -131,6 +131,7 @@ export const transferSender = async (
 
 export const transferReceiver = async (
   http_client: HttpClient |  MockHttpClient,
+  electrum_client: ElectrumClient |  MockElectrumClient, 
   network: Network,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
@@ -166,6 +167,24 @@ export const transferReceiver = async (
   if (se_rec_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
   if (se_rec_addr_bip32.publicKey.toString("hex") !== transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
 
+  // Get SE address that funds are being sent to.
+  let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, this.config.network);
+  let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
+  // 5. Check coin unspent and correct value
+  let addr = pubKeyTobtcAddr(pk, this.config.network);
+  let script = bitcoin.address.toOutputScript(addr, this.config.network);
+  let match = false;
+  let funding_tx_data = await this.electrum_client.getScriptHashListUnspent(script);
+   if (funding_tx_data.length === 0) throw Error("Unspent UTXO not found.");
+   for (let i=0; i<funding_tx_data.length; i++) {
+     if (funding_tx_data[i].tx_hash === tx_backup.ins[0].hash.reverse().toString("hex") && funding_tx_data[i].tx_pos === tx_backup.ins[0].index) {
+       if (funding_tx_data[i].value === (tx_backup.outs[0].value + tx_backup.outs[1].value + FEE)) {
+         match = true;
+         break;
+       }
+     }
+   }
+  if (!match) throw new Error("Backup tx input incorrect or spent.");
 
   // decrypt t1
   let t1 = decryptECIES(se_rec_addr_bip32.privateKey!.toString("hex"), transfer_msg3.t1.secret_bytes)
