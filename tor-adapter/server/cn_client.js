@@ -1,5 +1,6 @@
 const axios = require('axios').default;
 
+
 class CNClient {
 
     constructor(){
@@ -33,9 +34,16 @@ class CNClient {
     }
 
     async get (path, params, endpoint) {
-        console.log(`get: ${path} ${[params]} ${endpoint}`);
+       
         try {
-            const url = endpoint + "/" + path + "/" + (Object.entries(params).length === 0 ? "" : params);
+            let url = endpoint;
+            if (path){
+                url = url + "/" + path.replace(/^\/+/, '');;
+            }
+            if (params){
+                url = url + "/" + (Object.entries(params).length === 0 ? "" : params).replace(/^\/+/, '');;
+            }
+            
             const config = {
                 method: 'get',
                 url: url,
@@ -43,7 +51,6 @@ class CNClient {
             };
             let res = await axios(config)
             let return_data = res.data
-            checkForServerError(return_data)
       
             return return_data
       
@@ -54,7 +61,7 @@ class CNClient {
 
     async post (path, body, endpoint) {
         try {
-            let url = endpoint + "/" + path;
+            let url = endpoint + "/" + path.replace(/^\/+/, '');;
             const config = {
                 method: 'post',
                 url: url,
@@ -66,7 +73,6 @@ class CNClient {
             };
             let res = await axios(config)
             let return_data = res.data
-            checkForServerError(return_data)
       
             return return_data
       
