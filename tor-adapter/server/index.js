@@ -1,4 +1,5 @@
 var TorClient = require('./tor_client');
+var CNClient = require('./cn_client');
 var bodyParser = require('body-parser');
 var Config = new require('./config');
 const config = new Config();
@@ -30,7 +31,14 @@ app.listen(PORT, () => {
      console.log("tor data dir: " + dataDir);
 });
 
-const tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, dataDir, geoIpFile, geoIpV6File);
+let tor;
+
+if(config.tor_proxy.ip === 'mock'){
+  tor = new CNClient();
+} else {
+  tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, dataDir, geoIpFile, geoIpV6File);
+}
+
 
 tor.startTorNode(tor_cmd, torrc);
 
