@@ -96,7 +96,8 @@ app.get('/', async function(req,res) {
 app.post('/tor_settings', async function(req,res) {
   try {
     config.update(req.body);
-    await tor.stopTorNode();
+
+   await tor.stopTorNode();
     tor.set(config.tor_proxy);
     await tor.startTorNode(tor_cmd, torrc);
     let response = {
@@ -105,15 +106,41 @@ app.post('/tor_settings', async function(req,res) {
       swap_conductor_endpoint: config.swap_conductor_endpoint
     };
     res.status(200).json(response);
-  
+
+ 
   } catch (err) {
     res.status(400).json(`Bad request: ${err}`);
   }
 });
 
 app.get('/tor_settings', function(req,res) {
-  let response = {
+
+ let response = {
     tor_proxy: config.tor_proxy,
+    state_entity_endpoint: config.state_entity_endpoint,
+    swap_conductor_endpoint: config.swap_conductor_endpoint
+  };
+  res.status(200).json(response);
+});
+
+app.post('/tor_endpoints', function(req,res) {
+  try {
+    console.log(`setting endpoints: ${JSON.stringify(req.body)}`)
+    config.update_endpoints(req.body);
+    let response = {
+      state_entity_endpoint: config.state_entity_endpoint,
+      swap_conductor_endpoint: config.swap_conductor_endpoint
+    };
+    console.log(`setting endpoints response: ${JSON.stringify(response)}`)
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`Bad request: ${err}`);
+  }
+});
+
+app.get('/tor_endpoints', function(req,res) {
+
+ let response = {
     state_entity_endpoint: config.state_entity_endpoint,
     swap_conductor_endpoint: config.swap_conductor_endpoint
   };

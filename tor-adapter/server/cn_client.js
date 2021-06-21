@@ -1,4 +1,4 @@
-const HttpClient = require('../wallet/http_client').HttpClient;
+const axios = require('axios').default;
 
 class CNClient {
 
@@ -33,15 +33,48 @@ class CNClient {
     }
 
     async get (path, params, endpoint) {
-        let client = new HttpClient(endpoint,false);
-        await client.get(path, params)
+        console.log(`get: ${path} ${[params]} ${endpoint}`);
+        try {
+            const url = endpoint + "/" + path + "/" + (Object.entries(params).length === 0 ? "" : params);
+            const config = {
+                method: 'get',
+                url: url,
+                headers: { 'Accept': 'application/json' }
+            };
+            let res = await axios(config)
+            let return_data = res.data
+            checkForServerError(return_data)
+      
+            return return_data
+      
+          } catch (err) {
+            throw err;
+          }
     }
 
     async post (path, body, endpoint) {
-        let client = new HttpClient(endpoint,false);
-        await client.get(path, body)
+        try {
+            let url = endpoint + "/" + path;
+            const config = {
+                method: 'post',
+                url: url,
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json'
+                },
+                data: body,
+            };
+            let res = await axios(config)
+            let return_data = res.data
+            checkForServerError(return_data)
+      
+            return return_data
+      
+          } catch (err) {
+            throw err;
+          }
     }
 
 }
 
-module.exports = TorClient;
+module.exports = CNClient;

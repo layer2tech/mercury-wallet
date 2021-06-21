@@ -48,6 +48,19 @@ class Config{
             }
         })
     };
+
+    update_endpoints(config_changes){
+        Object.entries(config_changes).forEach( (item) => {  
+            switch(item[0]) {
+                case "state_entity_endpoint":
+                    this.state_entity_endpoint = item[1];
+                    break;
+                case "swap_conductor_endpoint":
+                    this.swap_conductor_endpoint = item[1];
+                    break;
+            }
+        })
+    }
 }
 
 module.exports = Config;
