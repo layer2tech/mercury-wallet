@@ -141,6 +141,7 @@ class TorClient {
     async stopTorNode(){
         console.log("stop tor node");
         while(true){
+                        
             console.log("sending shutdown signal")
    
             //await this.sendSignal('SHUTDOWN');
@@ -163,8 +164,11 @@ class TorClient {
                 console.log("shutdown complete");
                 break;
             }            
+
+
             await this.sleep(1000);
         }
+        await this.sleep(1000);
     }
 
     async newTorConnection() {
