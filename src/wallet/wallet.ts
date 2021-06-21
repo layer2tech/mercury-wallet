@@ -354,7 +354,16 @@ export class Wallet {
   getUnconfirmedStatecoinsDisplayData() {
     // Check if any awaiting deposits now have sufficient confirmations and can be confirmed
     let unconfirmed_coins = this.statecoins.getUnconfirmedCoins();
+    //Get unconfirmed coins
+
     this.checkUnconfirmedCoinsStatus(unconfirmed_coins)
+    //Check if unconfirmed status now changed and change accordingly
+    this.updateBackupTxStatus()
+    //check if status update required for coins
+
+    unconfirmed_coins = this.statecoins.getUnconfirmedCoins();
+    //reload unconfirmed coins
+    
     return unconfirmed_coins.map((item: StateCoin) => item.getDisplayInfo(this.block_height))
   }
   // Get Backup Tx hex and receive private key

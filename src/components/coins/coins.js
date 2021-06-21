@@ -54,6 +54,7 @@ const Coins = (props) => {
     const [refreshCoins, setRefreshCoins] = useState(false);
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
+
     const handleOpenCoinDetails = (shared_key_id) => {
         let coin = all_coins_data.find((coin) => {
             return coin.shared_key_id === shared_key_id
@@ -137,14 +138,19 @@ const Coins = (props) => {
     //Load coins once component done render
     useEffect(() => {
       const [coins_data, total_balance] = callGetUnspentStatecoins();
-      let unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+      //Load all coins that aren't unconfirmed
+
+      let unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+      //Load unconfirmed coins
+
       setCoins({
           unspentCoins: coins_data,
-          unConfirmedCoins: unconfired_coins_data
+          unConfirmedCoins: unconfirmed_coins_data
       })
+
       // Update total_balance in Redux state
       if(filterBy !== 'default') {
-        const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfired_coins_data], filterBy);
+        const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
         const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsByStatus.length}));
       } else {
@@ -157,26 +163,35 @@ const Coins = (props) => {
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
     useEffect(() => {
+      
       if (coins.unConfirmedCoins.length) {
         const interval = setInterval(() => {
-          let new_unconfired_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+          let new_unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
           // check for change in the amount of blocks per item (where the main expiry date is set)
+
+          let [new_confirmed_coins_data,total] = callGetUnspentStatecoins();
+          //Get all updated confirmed coins & coin statuses
+          
           if (
-            coins.unConfirmedCoins.length !== new_unconfired_coins_data.length
+            coins.unConfirmedCoins.length !== new_unconfirmed_coins_data.length
               ||
             coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
               !==
-            new_unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
+            new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
               ||
             coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.blocks,0)
               !==
-            new_unconfired_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
+            new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
           ) {
+            // setCoins({
+            //     ...coins,
+            //     unConfirmedCoins: new_unconfirmed_coins_data
+            // })
             setCoins({
-                ...coins,
-                unConfirmedCoins: new_unconfired_coins_data
+              unspentCoins: new_confirmed_coins_data,
+              unConfirmedCoins: new_unconfirmed_coins_data
             })
           }
         }, 10000);
