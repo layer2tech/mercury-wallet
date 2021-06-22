@@ -678,7 +678,7 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
 
-    let new_statecoin = await do_swap_poll(this.conductor_client, this.electrum_client, this.http_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
+    let new_statecoin = await do_swap_poll(this.conductor_client, this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
 
     if (new_statecoin==null) {
       statecoin.setConfirmed();
@@ -744,16 +744,21 @@ export class Wallet {
       if(walletcoins[i].status===STATECOIN_STATUS.AVAILABLE) throw new Error("Transfer completed.");
     }
 
-    log.info("Transfer Receiver for statechain "+transfer_msg3.statechain_id)
+    log.info("Transfer Receiver for statechain "+transfer_msg3.statechain_id);
+    let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
+
+    // Get SE address that funds are being sent to.
+    let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, this.config.network);
+    let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
 
     let batch_data = null;
-    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data)
+    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations);
 
     // Finalize protocol run by generating new shared key and updating wallet.
     this.transfer_receiver_finalize(finalize_data);
 
     this.saveStateCoinsList();
-    return finalize_data k
+    return finalize_data
   }
 
   async transfer_receiver_finalize(

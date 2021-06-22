@@ -1,7 +1,7 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
 import { BIP32Interface, Network, Transaction, script } from "bitcoinjs-lib";
-import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from "..";
+import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof, pubKeyTobtcAddr } from "..";
 import { FEE } from "../util";
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, StateChainDataAPI } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
@@ -135,7 +135,8 @@ export const transferReceiver = async (
   network: Network,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
-  batch_data: any
+  batch_data: any,
+  req_confirmations: number
 ): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
@@ -165,17 +166,16 @@ export const transferReceiver = async (
   if (!pk_der.verify(sighash_bytes, decoded.signature)) throw new Error("Backup tx invalid signature.");
   // 4. Ensure backup tx funds are sent to address owned by this wallet
   if (se_rec_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
+  console.log(se_rec_addr_bip32.publicKey.toString("hex"));
   if (se_rec_addr_bip32.publicKey.toString("hex") !== transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
 
-  // Get SE address that funds are being sent to.
-  let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, this.config.network);
-  let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
   // 5. Check coin unspent and correct value
-  let addr = pubKeyTobtcAddr(pk, this.config.network);
-  let script = bitcoin.address.toOutputScript(addr, this.config.network);
+  let addr = pubKeyTobtcAddr(pk, network);
+  let out_script = bitcoin.address.toOutputScript(addr, network);
   let match = false;
-  let funding_tx_data = await this.electrum_client.getScriptHashListUnspent(script);
-   if (funding_tx_data.length === 0) throw Error("Unspent UTXO not found.");
+  let funding_tx_data = await electrum_client.getScriptHashListUnspent(out_script);
+  if (funding_tx_data===null)  throw new Error("Unspent UTXO not found.");
+   if (funding_tx_data.length === 0) throw new Error("Unspent UTXO not found.");
    for (let i=0; i<funding_tx_data.length; i++) {
      if (funding_tx_data[i].tx_hash === tx_backup.ins[0].hash.reverse().toString("hex") && funding_tx_data[i].tx_pos === tx_backup.ins[0].index) {
        if (funding_tx_data[i].value === (tx_backup.outs[0].value + tx_backup.outs[1].value + FEE)) {
@@ -185,6 +185,11 @@ export const transferReceiver = async (
      }
    }
   if (!match) throw new Error("Backup tx input incorrect or spent.");
+  // 6. Check coin has the required confirmations
+  let tx_data = await electrum_client.getTransaction(statechain_data.utxo.txid);
+  console.log(tx_data);
+  if (tx_data===null)  throw new Error("TxID not found.");
+  if (tx_data.confirmations < req_confirmations) throw new Error("Coin has insufficient confirmations.");
 
   // decrypt t1
   let t1 = decryptECIES(se_rec_addr_bip32.privateKey!.toString("hex"), transfer_msg3.t1.secret_bytes)
