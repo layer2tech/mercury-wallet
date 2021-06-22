@@ -379,8 +379,6 @@ export class Wallet {
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
     backup_tx_data.key_wif = bip32.toWIF();
 
-    console.log(statecoin.tx_cpfp);
-
     if (statecoin.tx_cpfp != null) {
        let fee_rate = (FEE + (backup_tx_data?.output_value ?? 0) - (statecoin.tx_cpfp?.outs[0]?.value ?? 0))/250;
        backup_tx_data.cpfp_status = "Set. Fee rate = "+fee_rate.toString();

@@ -166,7 +166,6 @@ export const transferReceiver = async (
   if (!pk_der.verify(sighash_bytes, decoded.signature)) throw new Error("Backup tx invalid signature.");
   // 4. Ensure backup tx funds are sent to address owned by this wallet
   if (se_rec_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
-  console.log(se_rec_addr_bip32.publicKey.toString("hex"));
   if (se_rec_addr_bip32.publicKey.toString("hex") !== transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
 
   // 5. Check coin unspent and correct value
@@ -187,7 +186,6 @@ export const transferReceiver = async (
   if (!match) throw new Error("Backup tx input incorrect or spent.");
   // 6. Check coin has the required confirmations
   let tx_data = await electrum_client.getTransaction(statechain_data.utxo.txid);
-  console.log(tx_data);
   if (tx_data===null)  throw new Error("TxID not found.");
   if (tx_data.confirmations < req_confirmations) throw new Error("Coin has insufficient confirmations.");
 
