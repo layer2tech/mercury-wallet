@@ -537,6 +537,10 @@ export class Wallet {
   removeStatecoin(shared_key_id: string) {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode)
   }
+  
+  getStatecoin(shared_key_id:string){
+    return this.statecoins.getCoin(shared_key_id);
+  }
   // Mark statecoin as spent after transfer or withdraw
   setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
     this.statecoins.setCoinSpent(id, action, transfer_msg);
