@@ -24,6 +24,25 @@
   position: relative;
 }
 
+@media(min-width:768px){
+  .withdraw .Body .coin-status .coin-status-details{
+    display:none;
+  }
+  .swap .coin-status .coin-status-details{
+    display:none;
+  }
+}
+
+@media(min-width:992px){
+  .withdraw .Body .coin-status .coin-status-details{
+    display:block;
+  }
+
+  .swap .coin-status .coin-status-details{
+    display:block;
+  }
+}
+
 .coin-status.coin-status-modal .coin-status-details {
   flex-direction: column;
   width: 100%;
