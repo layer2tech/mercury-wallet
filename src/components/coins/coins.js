@@ -132,7 +132,7 @@ const Coins = (props) => {
 
     // Convert expiry_data to string displaying months or days left
     const expiry_time_to_string = (expiry_data) => {  
-      return expiry_data.months > 1 ? expiry_data.months + " month" : expiry_data.days + " days";
+      return expiry_data.months > 1 ? expiry_data.months + " months" : expiry_data.days + " days";
     }
 
     //Load coins once component done render
@@ -258,6 +258,7 @@ const Coins = (props) => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
       return (
           <div key={item.shared_key_id}>
+            
             <div
               className={`coin-item ${props.swap ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
               onClick={() => {
@@ -273,6 +274,7 @@ const Coins = (props) => {
                       <img src={item.privacy_data.icon1} alt="icon"/>
                       <span className="sub">
                           <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
+                          
                           <div className="scoreAmount">
                               <img src={item.privacy_data.icon2} alt="icon"/>
                               {item.privacy_data.score_desc}
@@ -294,8 +296,11 @@ const Coins = (props) => {
                         </div>
                         <div className="CoinTimeLeft">
                             <img src={timeIcon} alt="icon" />
-                            <span>
-                                Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
+                            <span className = "expiry-title">
+                                Time Until Expiry: 
+                            </span>
+                            <span className='expiry-time-left'>
+                              {displayExpiryTime(item.expiry_data)}
                             </span>
                         </div>
                     </div>
@@ -316,7 +321,7 @@ const Coins = (props) => {
                       (
                         <b className="CoinFundingTxid">
                             <img src={txidIcon} alt="icon"/>
-                            {item.funding_txid}
+                            {item.funding_txid}      
                         </b>
                       )
                       : <CoinStatus data={item}/>}
@@ -339,6 +344,7 @@ const Coins = (props) => {
         <div className="empty-coin-list">
           <div className = "main-coin-wrap">
             <FilterBy />
+            
           </div>
           <svg
             width="20"
@@ -360,7 +366,7 @@ const Coins = (props) => {
         </div>
       );
     }
-
+    console.log(props.largeScreen)
     return (
         <div 
           className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}
