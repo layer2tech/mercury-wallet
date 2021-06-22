@@ -366,7 +366,7 @@ const Coins = (props) => {
         </div>
       );
     }
-    console.log(props.largeScreen)
+    
     return (
         <div 
           className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}
