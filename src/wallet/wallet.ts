@@ -58,7 +58,6 @@ export class Wallet {
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
-  conductor_client: HttpClient | MockHttpClient;
   electrum_client: ElectrumClient | MockElectrumClient;
   block_height: number;
   current_sce_addr: string;
@@ -77,11 +76,9 @@ export class Wallet {
     this.statecoins = new StateCoinList();
     this.swap_group_info = new Map<SwapGroup, number>();
     this.activity = new ActivityLog();
-    this.conductor_client = new MockHttpClient();
     this.electrum_client = this.newElectrumClient();
 
     this.http_client = new HttpClient('http://localhost:3001', true);
-    this.conductor_client = new HttpClient('http://localhost:3001', true);
     this.set_tor_endpoints();
     
     
@@ -686,7 +683,7 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
 
-    let new_statecoin = await do_swap_poll(this.conductor_client, this.http_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
+    let new_statecoin = await do_swap_poll(this.http_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der);
 
     if (new_statecoin==null) {
       statecoin.setConfirmed();
@@ -710,7 +707,7 @@ export class Wallet {
   }
 
   async updateSwapGroupInfo() {
-    this.swap_group_info = await groupInfo(this.conductor_client);
+    this.swap_group_info = await groupInfo(this.http_client);
   }
 
   // Perform transfer_sender

@@ -195,7 +195,7 @@ export const callGetCoinsInfo = () => {
 }
 export const callPingSwap = () => {
   try {
-    pingServer(wallet.conductor_client)
+    pingServer(wallet.http_client)
   } catch (error){
     return false;
   }
@@ -291,7 +291,7 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
   'SwapDeregisterUtxo',
   async (action, thunkAPI) => {
     let statechain_id = wallet.statecoins.getCoin(action.shared_key_id).statechain_id
-    await swapDeregisterUtxo(wallet.conductor_client, {id: statechain_id});
+    await swapDeregisterUtxo(wallet.http_client, {id: statechain_id});
     wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
   }
 )

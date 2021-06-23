@@ -1,5 +1,6 @@
+import {Mutex} from 'async-mutex';
 const axios = require('axios').default;
-
+export const mutex = new Mutex();
 
 export const GET_ROUTE = {
   PING: "ping",
@@ -64,9 +65,10 @@ export class HttpClient {
       console.log('is tor, getting new id');
       await this.get('newid', {});
     }
-  }
+  };
 
   get = async (path: string, params: any) => {
+    const release = await mutex.acquire();
     try {
       const url = this.endpoint + "/" + path + "/" + (Object.entries(params).length === 0 ? "" : params);
       const config = {
@@ -78,14 +80,17 @@ export class HttpClient {
       let return_data = res.data
       checkForServerError(return_data)
 
+      release();
       return return_data
 
     } catch (err) {
+      release();
       throw err;
     }
   }
 
   post = async (path: string, body: any) => {
+    const release = await mutex.acquire();
     try {
       let url = this.endpoint + "/" + path;
       const config = {
@@ -100,10 +105,11 @@ export class HttpClient {
       let res = await axios(config)
       let return_data = res.data
       checkForServerError(return_data)
-
+      release();
       return return_data
 
     } catch (err) {
+      release();
       throw err;
     }
   };
