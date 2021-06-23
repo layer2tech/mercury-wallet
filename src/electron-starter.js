@@ -147,7 +147,6 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 
 app.allowRendererProcessReuse = false;
 
-
 // Electron Store
 const Store = require('electron-store');
 Store.initRenderer();

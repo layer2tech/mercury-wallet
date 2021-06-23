@@ -41,10 +41,10 @@ export class MockElectrumClient {
 
     async getScriptHashListUnspent(_script: string): Promise<any> {
       return [ { tx_hash:
-           '4ede6424ce0e60b34f45f8422af4d2f2304fd71923cf0a121cf5e1c2b4b12269',
+           '4d0a3b1cf66942c40faf27ab898d31b2e4dc504eeb60585490764dc500cde16d',
           tx_pos: 0,
           height: 1936508,
-          value: 4 } ]
+          value: 500000 } ]
     }
 
     async blockHeightSubscribe(callback: any): Promise<any> {

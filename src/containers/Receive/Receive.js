@@ -30,8 +30,6 @@ const ReceiveStatecoinPage = () => {
 
   const [rec_sce_addr, setRecAddr] = useState(callGetSeAddr(addr_index));
 
-  console.log(num_addreses);
-
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
