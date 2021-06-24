@@ -31,7 +31,7 @@ import '../index.css';
 
 const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}, privacy_data: {score_desc: ""}}}
 // privacy score considered "low"
-const LOW_PRIVACY = 10
+const LOW_PRIVACY = 3
 // style time left timer as red after this many days
 const DAYS_WARNING = 5
 
@@ -288,7 +288,7 @@ const Coins = (props) => {
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
-                                  now={item.expiry_data.days * 100 / 30}
+                                  now={item.expiry_data.days * 100 / 90}
                                   key={1}/>
                             </ProgressBar>
                         </div>
@@ -431,7 +431,7 @@ const Coins = (props) => {
                             : "success"
                         }
                         now={
-                          (showCoinDetails.coin.expiry_data.days * 100) / 30
+                          (showCoinDetails.coin.expiry_data.days * 100) / 90
                         }
                         key={1}
                       />

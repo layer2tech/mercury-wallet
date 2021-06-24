@@ -49,7 +49,7 @@
     height: 4px;
     background-image: linear-gradient(to right, #ff3d00 10%, #ffb2ab 0%);
     background-position: top;
-    background-size: 7% 4px;
+    background-size: 8% 4px;
     background-repeat: repeat-x;
 }
 #danger .expiry-time-left{
@@ -60,7 +60,7 @@
     height: 4px;
     background-image: linear-gradient(to right, #ffffff 10%, rgb(176, 176, 176) 0%);
     background-position: top;
-    background-size: 7% 4px;
+    background-size: 8% 4px;
     background-repeat: repeat-x;
 }
 
