@@ -43,7 +43,7 @@ export class Config {
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
       host: 'wallet.mercurywallet.io',
-      port: 50004,
+      port: 60004,
       protocol: 'wss',
     }
     this.tor_proxy = {

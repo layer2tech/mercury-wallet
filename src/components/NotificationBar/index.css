@@ -5,7 +5,7 @@
   opacity: 0.97;
   position: fixed;
   bottom: 10px;
-  width: 404px;
+  width: auto;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
