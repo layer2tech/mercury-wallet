@@ -34,7 +34,13 @@ const CreateWizardForm = (props) => {
                   <input id="Name" type="text" name="Wallet Name" placeholder="Wallet Name"
                     value={props.wizardState.wallet_name}
                     onChange={props.setStateWalletName}
+                    ref = {register({
+                        validate: value => (!value.includes('.')&&!value.includes('/') || "Certain characters prohibited from use in Wallet Name")
+                    })}
                     required/>
+                </div>
+                <div className="error">
+                    {errors["Wallet Name"] && <p>{errors["Wallet Name"].message}</p>}
                 </div>
                 <div className="inputs-item">
                     <p>Enter a password for your wallet. Leave blank for no password.</p>
