@@ -87,7 +87,7 @@
   color: #212121;
   border-radius: 4px 0px 4px 4px;
   box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
-  z-index: 301;
+  z-index: 1000;
 }
 
 .filter-coin-options > div,

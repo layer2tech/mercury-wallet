@@ -363,11 +363,12 @@ const Coins = (props) => {
 
     return (
         <div 
-          className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}
-        >
-          <FilterBy />
-          {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
-            {statecoinData}
+          className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}>
+          <div className="sort-filter">
+            <FilterBy />
+            {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
+          </div>
+        {statecoinData}
 
         <Modal
           show={showCoinDetails.show}
