@@ -28,6 +28,7 @@
   "homepage": "./",
   "main": "src/electron-starter.js",
   "scripts": {
+    "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
     "install-local": "yarn add file:./tor-adapter",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",

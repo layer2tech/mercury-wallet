@@ -98,7 +98,7 @@ export const sign = async (
       shared_key_id: shared_key_id,
       eph_key_gen_first_message_party_two: client_sign_first.eph_key_gen_first_message_party_two,
     };
-    
+    console.log(`sign_msg1: ${JSON.stringify(sign_msg1)}`);
     let server_sign_first = await http_client.post(POST_ROUTE.SIGN_FIRST, sign_msg1);
     typeforce(types.ServerSignfirstMsg, server_sign_first.msg);
 
