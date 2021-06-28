@@ -34,7 +34,7 @@ const DisplaySeed = (props) => {
             <form>
                 {inputs}
             </form>
-            <div className="copy">
+            {/* <div className="copy">
                 <CopiedButton 
                     handleCopy={copyMnemonicToClipboard} 
                     style={{left: -65, color: '#000', textTransform: 'capitalize'}}
@@ -44,7 +44,7 @@ const DisplaySeed = (props) => {
                         <span> Copy Seed to Clipboard</span>
                     </div>
                 </CopiedButton>
-            </div>
+            </div> */}
             <div className="footer-step-btns">
                 <button onClick={onPrevStep} className="primary-btn-link back">Go Back</button>
                 <button onClick={onNextStep} className="primary-btn blue">Next</button>
