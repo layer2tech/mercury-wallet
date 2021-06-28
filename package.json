@@ -28,6 +28,7 @@
   "homepage": "./",
   "main": "src/electron-starter.js",
   "scripts": {
+    "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
     "install-local": "yarn add file:./tor-adapter",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
@@ -115,6 +116,8 @@
     "socks": "^2.6.1",
     "socks-proxy-agent": "^5.0.0",
     "superagent": "^6.1.0",
+    "testcafe": "^1.14.2",
+    "testcafe-browser-provider-electron": "^0.0.16",
     "ts-jest": "^26.4.4",
     "typeforce": "^1.11.3",
     "uuid": "^8.3.2"
