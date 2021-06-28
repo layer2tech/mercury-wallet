@@ -401,7 +401,9 @@ export const do_transfer_receiver = async (
       try{
         msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG,{"id":id});
       }catch(err){
-        console.log(err);
+        if (!err.includes("DB Error: No Data for identifier")) {
+          throw err;
+        } 
         await delay(3);
         continue;
       }
