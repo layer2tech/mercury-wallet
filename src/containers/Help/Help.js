@@ -30,7 +30,7 @@ const HelpPage = (props) => {
           </div>
           <ul className="list">
               <li><a target="_blank" href="https://docs.mercurywallet.com/" rel="noopener noreferrer">Docs</a></li>
-              <li><a target="_blank" href="https://t.me/CommerceBlock" rel="noopener noreferrer">Social</a></li>
+              <li><a target="_blank" href="https://twitter.com/mercury_wallet" rel="noopener noreferrer">Social</a></li>
               <li><a target="_blank" href="https://github.com/commerceblock/mercury-wallet/issues" rel="noopener noreferrer">Report bugs</a></li>
           </ul>
       </div>

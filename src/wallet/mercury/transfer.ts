@@ -1,7 +1,8 @@
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
-import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
-import { HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof } from ".."
+import { BIP32Interface, Network, Transaction, script } from "bitcoinjs-lib";
+import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof, pubKeyTobtcAddr } from "..";
+import { FEE } from "../util";
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, StateChainDataAPI } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
@@ -130,9 +131,12 @@ export const transferSender = async (
 
 export const transferReceiver = async (
   http_client: HttpClient |  MockHttpClient,
+  electrum_client: ElectrumClient |  MockElectrumClient, 
+  network: Network,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
-  batch_data: any
+  batch_data: any,
+  req_confirmations: number
 ): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
@@ -141,7 +145,49 @@ export const transferReceiver = async (
   let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
   let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
   let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
-  if (!statechain_sig.verify(prev_owner_proof_key_der)) throw Error("Invalid StateChainSig.");
+  if (!statechain_sig.verify(prev_owner_proof_key_der)) throw new Error("Invalid StateChainSig.");
+
+  // Backup tx verification
+
+  // 1. Verify backup transaction amount
+  let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
+  if ((tx_backup.outs[0].value + tx_backup.outs[1].value + FEE) != statechain_data.amount) throw new Error("Backup tx invalid amount.");
+  // 2. Verify the input matches the specified outpoint
+  if (tx_backup.ins[0].hash.reverse().toString("hex") != statechain_data.utxo.txid) throw new Error("Backup tx invalid input.");
+  if (tx_backup.ins[0].index != statechain_data.utxo.vout) throw new Error("Backup tx invalid input.");
+  // 3. Verify the input signature is valid
+  tx_backup.ins[0].hash = tx_backup.ins[0].hash.reverse();
+  let pk = tx_backup.ins[0].witness[1].toString("hex");
+  let sighash = getSigHash(tx_backup, 0, pk, statechain_data.amount, network);
+  let sighash_bytes = Buffer.from(sighash, "hex");
+  let sig = tx_backup.ins[0].witness[0];
+  let pk_der = bitcoin.ECPair.fromPublicKey(Buffer.from(pk, "hex"));
+  let decoded = script.signature.decode(sig);
+  if (!pk_der.verify(sighash_bytes, decoded.signature)) throw new Error("Backup tx invalid signature.");
+  // 4. Ensure backup tx funds are sent to address owned by this wallet
+  if (se_rec_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
+  if (se_rec_addr_bip32.publicKey.toString("hex") !== transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
+
+  // 5. Check coin unspent and correct value
+  let addr = pubKeyTobtcAddr(pk, network);
+  let out_script = bitcoin.address.toOutputScript(addr, network);
+  let match = false;
+  let funding_tx_data = await electrum_client.getScriptHashListUnspent(out_script);
+  if (funding_tx_data===null)  throw new Error("Unspent UTXO not found.");
+   if (funding_tx_data.length === 0) throw new Error("Unspent UTXO not found.");
+   for (let i=0; i<funding_tx_data.length; i++) {
+     if (funding_tx_data[i].tx_hash === tx_backup.ins[0].hash.reverse().toString("hex") && funding_tx_data[i].tx_pos === tx_backup.ins[0].index) {
+       if (funding_tx_data[i].value === (tx_backup.outs[0].value + tx_backup.outs[1].value + FEE)) {
+         match = true;
+         break;
+       }
+     }
+   }
+  if (!match) throw new Error("Backup tx input incorrect or spent.");
+  // 6. Check coin has the required confirmations
+  let tx_data = await electrum_client.getTransaction(statechain_data.utxo.txid);
+  if (tx_data===null)  throw new Error("TxID not found.");
+  if (tx_data.confirmations < req_confirmations) throw new Error("Coin has insufficient confirmations.");
 
   // decrypt t1
   let t1 = decryptECIES(se_rec_addr_bip32.privateKey!.toString("hex"), transfer_msg3.t1.secret_bytes)

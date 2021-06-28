@@ -10,6 +10,7 @@ import './createWizardForm.css'
 const CreateWizardForm = (props) => {
     const {register, errors, watch, handleSubmit} = useForm({mode: 'onChange', reValidateMode: 'onChange',});
     const [showPass, setShowPass] = useState(false);
+    const [walletNameError, setNameError] = useState(false)
     const password = useRef({});
     password.current = watch("password", "");
 
@@ -17,6 +18,16 @@ const CreateWizardForm = (props) => {
 
     function onSubmit(data) {
         props.onSubmit()
+    }
+
+    const handleKeyPress = e => {
+        if(e.key.charCodeAt(0) === 46 || e.key.charCodeAt(0) === 47){
+            e.preventDefault();
+            setNameError(true)
+        }
+        else{
+            setNameError(false)
+        }
     }
 
     return (
@@ -34,7 +45,11 @@ const CreateWizardForm = (props) => {
                   <input id="Name" type="text" name="Wallet Name" placeholder="Wallet Name"
                     value={props.wizardState.wallet_name}
                     onChange={props.setStateWalletName}
+                    onKeyPress={handleKeyPress}
                     required/>
+                </div>
+                <div className="error">
+                    {walletNameError && <p>Certain special characters are not permitted for use in Wallet Name</p>}
                 </div>
                 <div className="inputs-item">
                     <p>Enter a password for your wallet. Leave blank for no password.</p>

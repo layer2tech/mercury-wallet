@@ -13,8 +13,7 @@ import txidIcon from "../../images/txid-icon.png";
 import timeIcon from "../../images/time.png";
 
 import React, {useState, useEffect } from 'react';
-import ProgressBar from 'react-bootstrap/ProgressBar'
-import { Link } from 'react-router-dom';
+import ProgressBar from 'react-bootstrap/ProgressBar';
 import {Button, Modal} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
@@ -25,13 +24,14 @@ import SortBy from './SortBy/SortBy'
 import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
 import { CoinStatus } from '../../components'
+import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay'
 
 import './coins.css';
 import '../index.css';
 
 const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}, privacy_data: {score_desc: ""}}}
 // privacy score considered "low"
-const LOW_PRIVACY = 10
+const LOW_PRIVACY = 3
 // style time left timer as red after this many days
 const DAYS_WARNING = 5
 
@@ -52,6 +52,7 @@ const Coins = (props) => {
     const [coins, setCoins] = useState(INITIAL_COINS);
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const [refreshCoins, setRefreshCoins] = useState(false);
+
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
 
@@ -288,7 +289,7 @@ const Coins = (props) => {
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
-                                  now={item.expiry_data.days * 100 / 30}
+                                  now={item.expiry_data.days * 100 / 90}
                                   key={1}/>
                             </ProgressBar>
                         </div>
@@ -334,30 +335,23 @@ const Coins = (props) => {
           </div>
       )})
 
-    if(!all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN && filterBy !== STATECOIN_STATUS.IN_TRANSFER) {
+    if(!all_coins_data.length ) {//&& filterBy !== STATECOIN_STATUS.WITHDRAWN && filterBy !== STATECOIN_STATUS.IN_TRANSFER
+
+      let displayMessage = "Your wallet is empty";
+
+      if(filterBy === STATECOIN_STATUS.WITHDRAWN){
+        displayMessage = "No coins withdrawn."
+      }
+
+      if(filterBy === STATECOIN_STATUS.IN_TRANSFER){
+        displayMessage = "No coins transferred."
+      }
+
+      // filterBy === STATECOIN_STATUS.WITHDRAWN ? (displayMessage = "No coins withdrawn.") : ('')
+      // filterBy === STATECOIN_STATUS.IN_TRANSFER ? (displayMessage = "No coins transferred.") : ('')
+
       return (
-        <div className="empty-coin-list">
-          <div className = "main-coin-wrap">
-            <FilterBy />
-          </div>
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className={"exclamation"}
-          >
-            <path
-              d="M9.9999 19.9998C4.48594 19.9998 0 15.5139 0 9.9999C0 4.48594 4.48594 0 9.9999 0C15.5139 0 19.9998 4.48594 19.9998 9.9999C19.9998 15.5139 15.5139 19.9998 9.9999 19.9998ZM9 12.9996V15.0003H10.9998V12.9996H9ZM9 5.0004V10.9998H10.9998V5.0004H9Z"
-              fill="#E0E0E0"
-            />
-          </svg>
-          <div className="empty-message">
-            <b>Your wallet is empty.</b> <Link to="/deposit" >Deposit BTC</Link>
-            <br/> to create new Statecoin UTXO's
-          </div>
-        </div>
+        <EmptyCoinDisplay message={displayMessage}/>
       );
     }
 
@@ -431,7 +425,7 @@ const Coins = (props) => {
                             : "success"
                         }
                         now={
-                          (showCoinDetails.coin.expiry_data.days * 100) / 30
+                          (showCoinDetails.coin.expiry_data.days * 100) / 90
                         }
                         key={1}
                       />
