@@ -254,12 +254,9 @@ const Coins = (props) => {
   		}
   		return 0;
   	});
-    console.log(all_coins_data)
+
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
-      console.log("=================")
-      console.log(item, item.expiry_data)
-      console.log("=================")
       return (
           <div key={item.shared_key_id}>
             <div
