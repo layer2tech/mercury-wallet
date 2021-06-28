@@ -265,6 +265,9 @@ const Coins = (props) => {
                   dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
                   return false;
                 }
+                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || STATECOIN_STATUS.UNCONFIRMED) && props.swap){
+                  dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
+                }
                 selectCoin(item.shared_key_id)
               }}
             >
