@@ -10,6 +10,8 @@ import transferIcon from '../../images/transfer-icon.png';
 import withrowIcon from '../../images/withrow-icon.png';
 import swapIcon from '../../images/swap-icon-grey.png';
 
+import EmptyCoinDisplay from '../coins/EmptyCoinDisplay/EmptyCoinDisplay';
+
 import './activity.css';
 
 const Activity = () => {
@@ -140,7 +142,8 @@ const Activity = () => {
     ))
     return (
         <div >
-			{activitiesTableData}
+			{!activity_data.length? (<EmptyCoinDisplay message="No activity recorded."/>):(activitiesTableData)}
+
         </div>
     )
 }
