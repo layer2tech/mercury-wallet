@@ -4,6 +4,7 @@
   "swap_conductor_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
   "network": "testnet",
   "testing_mode": true,
+  "required_confirmations": 0,
   "tor_proxy": {"ip": "localhost",
                 "port": 9060,
                 "controlPassword": "",
