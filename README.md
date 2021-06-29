@@ -33,7 +33,13 @@ When running in development mode, a mock tor adapter can be used - the connectio
 
 ## Run tests
 
+### Unit tests
+
 `yarn run test`
+
+### End to end tests
+
+`yarn run e2e`
 
 ## Testing mode
 

@@ -13,7 +13,8 @@ import {
   callSwapDeregisterUtxo,
   callGetSwapGroupInfo,
   callUpdateSwapGroupInfo,
-  callGetConfig
+  callGetConfig,
+  callGetStateCoin
 } from "../../features/WalletDataSlice";
 import {fromSatoshi} from '../../wallet'
 
@@ -73,7 +74,12 @@ const SwapPage = () => {
         dispatch(callDoSwap({"shared_key_id": selectedCoin}))
           .then(res => {
             if (res.payload===null) {
-              dispatch(setNotification({msg:"Coin "+selectedCoin+" removed from swap pool."}))
+              // get the statecoin for txId method
+              let statecoin = callGetStateCoin(selectedCoin);
+              if(statecoin === undefined || statecoin === null){
+                statecoin = selectedCoin;
+              }
+              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
               return
             }
             if (res.error===undefined) {

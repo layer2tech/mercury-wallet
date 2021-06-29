@@ -220,6 +220,10 @@ export const callRemoveCoin = (shared_key_id) => {
   wallet.removeStatecoin(shared_key_id);
 }
 
+export const callGetStateCoin = (shared_key_id) => {
+  return wallet.getStatecoin(shared_key_id);
+}
+
 // Update config with JSON of field to change
 export const callUpdateConfig = (config_changes) => {
   wallet.config.update(config_changes)
