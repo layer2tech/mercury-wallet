@@ -137,6 +137,7 @@
     border-radius: 5px;
     color: #0054F4;
     position: relative;
+    border: 1px solid;
 }
 
 .dark-mode .deposit-main .deposit-statecoins .numbers-item.selected-value {
@@ -148,8 +149,9 @@
 }
 .deposit-main .deposit-statecoins .numbers-item.selected-value svg {
     position: absolute;
-    left: 20px;
-    top: 16px;
+    bottom: 5px;
+    left: 5px;
+    display:none;
 }
 
 .loading-trans {

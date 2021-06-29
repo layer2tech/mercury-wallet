@@ -246,7 +246,7 @@
 .main-coin-wrap.no-coin {
   min-height: 50px;
 }
-.coin-item.SWAPLIMIT {
+.swap .coin-item.SWAPLIMIT, .swap .coin-item.UNCONFIRMED, .swap .coin-item.IN_MEMPOOL{
   opacity: .3;
 }
 .main-coin-wrap.small-screen .coin-item .CoinPanel {
@@ -268,6 +268,11 @@
   top: 25px;
   width: max-content;
 }
+
+.sort-filter{
+  height:30px;
+}
+
 .coin-details-modal .modal-dialog {
   width: 384px;
 }

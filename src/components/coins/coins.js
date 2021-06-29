@@ -266,6 +266,9 @@ const Coins = (props) => {
                   dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
                   return false;
                 }
+                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || STATECOIN_STATUS.UNCONFIRMED) && props.swap){
+                  dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
+                }
                 selectCoin(item.shared_key_id)
               }}
             >
@@ -357,11 +360,12 @@ const Coins = (props) => {
 
     return (
         <div 
-          className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}
-        >
-          <FilterBy />
-          {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
-            {statecoinData}
+          className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}>
+          <div className="sort-filter">
+            <FilterBy />
+            {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
+          </div>
+        {statecoinData}
 
         <Modal
           show={showCoinDetails.show}

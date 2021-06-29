@@ -25,8 +25,17 @@ const ConfirmSeed = (props) => {
   const [missingwords, setMissingWords] = useState(() => rands.map((rand) => ({pos:rand, word:""})));
 
   const inputMissingWord = (event) => {
-    let map = missingwords.map((item) => {if (item.pos===parseInt(event.target.id)) {item.word=event.target.value} return item})
+    let map = missingwords.map((item) => {
+      if (item.pos===parseInt(event.target.id)) {item.word=event.target.value} return item})
     setMissingWords(map)
+  }
+
+  const handleKeyDown = e => {
+    let ASCIIchar = e.key.charCodeAt(0)
+
+    if(( ASCIIchar < 97 || ASCIIchar > 122) && ASCIIchar !== 66 && ASCIIchar !== 84){
+      e.preventDefault();
+    }
   }
 
   // Display other words and create input boxes
@@ -38,6 +47,7 @@ const ConfirmSeed = (props) => {
         placeholder={index + 1 + ". " + item}
         value={item === '' ? missingwords.find((item) => {if (item.pos===index) {return item} return null}).word : ""}
         disabled={item === '' ? "" : "disabled"}
+        onKeyDown={handleKeyDown}
         onChange={inputMissingWord}/>
   ))
 
