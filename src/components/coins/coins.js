@@ -29,6 +29,8 @@ import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay'
 import './coins.css';
 import '../index.css';
 
+const TESTING_MODE = require("../../settings.json").testing_mode;
+
 const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}, privacy_data: {score_desc: ""}}}
 // privacy score considered "low"
 const LOW_PRIVACY = 3
@@ -266,7 +268,7 @@ const Coins = (props) => {
                   dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
                   return false;
                 }
-                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || STATECOIN_STATUS.UNCONFIRMED) && props.swap){
+                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || STATECOIN_STATUS.UNCONFIRMED) && props.swap && !TESTING_MODE){
                   dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
                 }
                 selectCoin(item.shared_key_id)
