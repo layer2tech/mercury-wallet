@@ -18,7 +18,6 @@ let secp256k1 = new EC('secp256k1')
 const n = secp256k1.curve.n
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
-console.log(`transfer testing mode: ${testing_mode}`)
 
 // transfer() messages:
 // 0. Receiver communicates address to Sender (B2 and C2)
