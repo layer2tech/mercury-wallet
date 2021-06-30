@@ -542,6 +542,12 @@ export class Wallet {
   getStatecoin(shared_key_id:string){
     return this.statecoins.getCoin(shared_key_id);
   }
+
+  addDescription(shared_key_id: string, description:string){
+    let statecoin = this .statecoins.getCoin(shared_key_id);
+    if(statecoin) statecoin.description = description
+  }
+
   // Mark statecoin as spent after transfer or withdraw
   setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
     this.statecoins.setCoinSpent(id, action, transfer_msg);
@@ -671,6 +677,7 @@ export class Wallet {
 
     log.info("Deposit Backup done.");
     this.saveStateCoinsList();
+
     return statecoin_finalized
   }
 

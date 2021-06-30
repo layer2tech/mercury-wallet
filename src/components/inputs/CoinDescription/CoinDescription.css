@@ -1,0 +1,25 @@
+.description-coin-label form input{
+    opacity:1;
+    width: 100% !important;
+    padding: 10px;
+    border-radius: 6px !important;
+    position:relative;
+    cursor:text;
+}
+
+.description-coin-label .description-name p{
+    font-size: 1.15rem;
+}
+
+/* .description-coin-label form .close-icon{
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    height: 46px;
+    display: flex;
+    align-items: center;
+} */
+
+.description-coin-label .description-name{
+    border-radius: 5px;
+}
