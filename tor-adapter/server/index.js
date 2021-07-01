@@ -63,13 +63,10 @@ async function post_endpoint(req, res, endpoint) {
 };
 
 app.get('/newid', async function(req,res) {
-  let response = {
-    tor_proxy: config.tor_proxy,
-    state_entity_endpoint: config.state_entity_endpoint,
-    swap_conductor_endpoint: config.swap_conductor_endpoint
-  };
   try{
+    console.log("getting new tor id...")
     let response=await tor.confirmNewTorConnection();
+    console.log(`got new tor id: ${JSON.stringify(response)}`)
     console.log(response);
     res.status(200).json(response);
   } catch(err) {
