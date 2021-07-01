@@ -36,15 +36,6 @@ try {
   log = require('electron-log');
 }
 
- //let tor=undefined;
- //child_processs.exec(tor_cmd); 
- /*
- as string, {},  (error: any) => {
-    if(error){
-      console.log(error);
-    };
- });
- */
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
@@ -163,7 +154,7 @@ export class Wallet {
       return chain
     })
 
-    new_wallet.account = new bip32utils.Account(chains)
+    new_wallet.account = new bip32utils.Account(chains);
     return new_wallet
   }
 

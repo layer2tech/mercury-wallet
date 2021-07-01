@@ -227,6 +227,15 @@ export class StateCoinList {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
   }
+
+  clearSwapStatus(){
+    this.coins.forEach( (statecoin) => {
+      if (statecoin.status == STATECOIN_STATUS.AWAITING_SWAP ||
+          statecoin.status == STATECOIN_STATUS.IN_SWAP){
+            statecoin.setConfirmed();
+        }
+    });
+  }
 }
 
 // STATUS represent each stage in the lifecycle of a statecoin.
