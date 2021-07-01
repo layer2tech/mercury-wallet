@@ -35,10 +35,10 @@ const CreateWizardForm = (props) => {
             <form onSubmit={handleSubmit(onSubmit)}>
                 {props.setStateMnemonic && (
                     <div className="inputs-item">
-                    <input id="Mnemonic" type="text" name="Mnemonic" placeholder="Mnemonic"
-                        value={props.wizardState.mnemonic}
-                        onChange={props.setStateMnemonic}
-                        required/>
+                        <input id="Mnemonic" type="text" name="Mnemonic" placeholder="Mnemonic"
+                            value={props.wizardState.mnemonic}
+                            onChange={props.setStateMnemonic}
+                            required/>
                     </div>
                 )}
                 <div className="inputs-item">
