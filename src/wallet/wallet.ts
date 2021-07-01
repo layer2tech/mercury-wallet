@@ -590,7 +590,8 @@ export class Wallet {
     statecoin.proof_key = proof_key_pub;
 
     statecoin.value = value;
-    this.addStatecoin(statecoin, ACTION.DEPOSIT);
+    //Coin created and activity list updated
+    this.addStatecoin(statecoin, ACTION.INITIATE);
 
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.config.network);
@@ -646,6 +647,7 @@ export class Wallet {
   async depositConfirm(
     shared_key_id: string
   ): Promise<StateCoin> {
+
     log.info("Depositing Backup Confirm shared_key_id: "+shared_key_id);
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
@@ -666,6 +668,9 @@ export class Wallet {
       statecoin_finalized.setConfirmed();
     }
     this.statecoins.setCoinFinalized(statecoin_finalized);
+
+    //Confirm BTC sent to address in ActivityLog
+    this.activity.addItem(shared_key_id,ACTION.DEPOSIT)
 
     log.info("Deposit Backup done.");
     this.saveStateCoinsList();
