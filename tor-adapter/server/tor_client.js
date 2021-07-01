@@ -30,6 +30,13 @@ class TorClient {
                 'User-Agent': 'Request-Promise'
             }
         };
+
+        this.control = new TorControl({
+            password: this.torConfig.controlPassword,
+            persistent: false,
+            port: this.torConfig.controlPort,
+            host: this.torConfig.ip
+        });
     }
 
     set(torConfig){
@@ -144,15 +151,7 @@ class TorClient {
                         
             console.log("sending shutdown signal")
    
-            //await this.sendSignal('SHUTDOWN');
-            //await this.sendSignal('NEWNYM');
-            var control = new TorControl({
-                password: this.torConfig.controlPassword,
-                persistent: false,
-                port: this.torConfig.controlPort,
-            });
-
-            await control.signalShutdown(function (err, status) {
+            await this.control.signalShutdown(function (err, status) {
                 if(err){
                     let err_out = new Error( 'Error communicating with Tor ControlPort\n' + err )
                     throw err_out;
@@ -173,20 +172,17 @@ class TorClient {
 
     async newTorConnection() {
         //await this.sendSignal('NEWNYM');
-        var control = new TorControl({
-            password: this.torConfig.controlPassword,
-            persistent: false,
-            port: this.torConfig.controlPort,
-        });
-
-        await control.signalNeynym(async function (err, status) {
+        let retval;
+        await this.control.signalNewnym(function (err, status) {
             if(err){
                 let err_out = new Error( 'Error communicating with Tor ControlPort\n' + err )
+                console.log(`error: ${err_out}`);
                 throw err_out;
             }
-            await this.sleep(6000);
-            return `Tor signal "newnym" successfully sent`;
         });        
+        await this.sleep(6000);
+        retval = `Tor signal "newnym" successfully sent`;
+        return retval;
     }
 
     
@@ -196,7 +192,7 @@ class TorClient {
             let ipOld = await this.getip();
             let tc_result = await this.newTorConnection();
             let ipNew = await this.getip();
-            if(ipNew != ipOld){
+            if(ipNew !== ipOld){
                 return tc_result;
             }
         }

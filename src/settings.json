@@ -1,8 +1,8 @@
 {
   "min_anon_set": 3,
-  "state_entity_endpoint": "http://0.0.0.0:18000",
-  "swap_conductor_endpoint": "http://0.0.0.0:18000",
-  "network": "regtest",
+  "state_entity_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  "swap_conductor_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  "network": "testnet",
   "testing_mode": true,
   "required_confirmations": 0,
   "tor_proxy": {"ip": "localhost",

@@ -18,6 +18,9 @@
       "d.ts",
       "wasm"
     ],
+    "modulePathIgnorePatterns": [
+      "src/e2e"
+    ],
     "transform": {
       "^.+\\.(ts|tsx)$": "ts-jest"
     }
