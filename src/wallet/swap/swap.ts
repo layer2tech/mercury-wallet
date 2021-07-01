@@ -85,7 +85,7 @@ export const swapPhase0 = async (
 
   let statechain_id: StatechainID = {
     id: statecoin.statechain_id
-  }
+  };
 
   // PollUtxo. If swap has begun store SwapId in Statecoin
   let swap_id = await pollUtxo(http_client, statechain_id);
@@ -113,6 +113,18 @@ export const swapPhase1 = async (
   if (statecoin.swap_status!==SWAP_STATUS.Phase1) throw Error("Coin is not in this phase of the swap protocol. In phase: "+statecoin.swap_status);
   if (statecoin.swap_id===null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
 
+  //Check swap id again to confirm that the coin is still awaiting swap
+  //according to the server
+  let statechain_id: StatechainID = {
+    id: statecoin.statechain_id
+  };
+  
+  let swap_id = await pollUtxo(http_client, statechain_id);
+  statecoin.swap_id = swap_id
+  if (statecoin.swap_id == null || statecoin.swap_id.id == null) {
+    throw new Error("In swap phase 1 - no swap ID found");
+  } 
+  
   let swap_info = await getSwapInfo(http_client, statecoin.swap_id);
 
   // Drop out of function if swap info not yet available
