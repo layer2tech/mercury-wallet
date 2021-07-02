@@ -9,8 +9,6 @@ import { FEE, fromSatoshi } from '../../wallet/util'
 import '../../containers/Deposit/Deposit.css';
 
 
-// minimum deposit amount 0.002 btc
-
 const DEFAULT_LIQUIDITY_VALUES = [{value: 100,liquidity:0},{value:500,liquidity:0},{value: 1000,liquidity:0},{value:5000,liquidity:0},{value:10000,liquidity:0},{value:50000,liquidity:0},{value:100000,liquidity:0},{value:500000,liquidity:0},{value:1000000,liquidity:0},{value:5000000,liquidity:0},{value:10000000,liquidity:0},{value:50000000,liquidity:0}]
 const LIQUIDITY_MED=10;
 const LIQUIDITY_HIGH=20;
@@ -29,16 +27,8 @@ const CreateStatecoin = (props) => {
     }
 
     useEffect(() => {
-
-      console.log('before:', liquidityData);
-
-
       // Get coin liquidity data
       callGetCoinsInfo().then((liquidity_data_raw) => {
-        // If an error occurs here i.e no server then display it -
-        console.log('error?', liquidity_data_raw);
-
-
         // Update liquidity data state
         let liquidity_data = Object.entries(liquidity_data_raw.values).map(([amount, liquidity]) => {
           return {value: parseInt(amount), liquidity: liquidity}
