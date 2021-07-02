@@ -175,6 +175,8 @@ export const swapPhase2 = async (
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase1) {
     return
+  } else if (phase == null){
+    throw new Error("Swap halted at phase 1");
   } else if (phase !== SWAP_STATUS.Phase2){
     throw new Error("Swap error: Expected swap phase2. Received: "+phase);
   }
@@ -221,7 +223,11 @@ export const swapPhase3 = async (
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase2 || phase === SWAP_STATUS.Phase3) {
     return
-  } else if (phase !== SWAP_STATUS.Phase4){
+  }
+  else if (phase == null){
+    throw new Error("Swap halted at phase 3"); 
+  }
+  else if (phase !== SWAP_STATUS.Phase4){
     throw new Error("Swap error: swapPhase3: Expected swap phase4. Received: "+phase);
   }
   log.info("Swap Phase3: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
@@ -250,9 +256,11 @@ export const swapPhase3 = async (
 
   await delay(1);
 
-  // Update coin status
-  statecoin.swap_transfer_finalized_data=transfer_finalized_data;
-  statecoin.swap_status=SWAP_STATUS.Phase4;
+  if(transfer_finalized_data !== null){
+    // Update coin status
+    statecoin.swap_transfer_finalized_data=transfer_finalized_data;
+    statecoin.swap_status=SWAP_STATUS.Phase4;
+  }
 }
 
 
@@ -349,8 +357,7 @@ export const do_swap_poll = async(
           }
         }
       } catch (e) {
-        // Some errors are expected to be thrown throughout, however others may be critical.
-        // TODO: catch critical errors
+        throw new Error(`${e}`);
       }
       await delay(5);
     }
@@ -388,19 +395,20 @@ export const do_transfer_receiver = async (
   rec_se_addr: SCEAddress,
   rec_se_addr_bip32: BIP32Interface,
   req_confirmations: number
-): Promise<TransferFinalizeData> => {
+): Promise<TransferFinalizeData | null> => {
   for (var id of statechain_ids){
     let msg3;
     while(true) {
       try{
         msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG,{"id":id});
       }catch(err){
-        if (!err.includes("DB Error: No Data for identifier")) {
+        if (!err.message.includes("DB Error: No data for identifier")) {
           throw err;
-        } 
-        await delay(3);
+        }
+        await delay(3); 
         continue;
-      }
+      } 
+
       typeforce(types.TransferMsg3, msg3);
       if (msg3.rec_se_addr.proof_key===rec_se_addr.proof_key){
         let batch_data = {
@@ -416,7 +424,7 @@ export const do_transfer_receiver = async (
       }
     }
   }
-  throw new Error('no swap transfer message addressed to me');
+  return null;
 }
 
 //conductor::register_utxo,

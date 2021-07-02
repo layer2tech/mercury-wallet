@@ -69,6 +69,8 @@
   align-self: flex-end;
 }
 
+
+
 .CoinPanel .coin-status-or-txid {
   width: 30%;
   display: flex;

@@ -540,6 +540,12 @@ export class Wallet {
   getStatecoin(shared_key_id:string){
     return this.statecoins.getCoin(shared_key_id);
   }
+
+  addDescription(shared_key_id: string, description:string){
+    let statecoin = this .statecoins.getCoin(shared_key_id);
+    if(statecoin) statecoin.description = description
+  }
+
   // Mark statecoin as spent after transfer or withdraw
   setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
     this.statecoins.setCoinSpent(id, action, transfer_msg);
@@ -674,6 +680,7 @@ export class Wallet {
 
     log.info("Deposit Backup done.");
     this.saveStateCoinsList();
+
     return statecoin_finalized
   }
 
@@ -694,23 +701,29 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
 
-    let new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
+    
+    let new_statecoin=null;
+    try{
+      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
+    } catch(e){
+      log.info(`Swap was not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
+    } finally {
+      if (new_statecoin==null) {
+        statecoin.setConfirmed();
+        return null;
+     }
+      // Mark funds as spent in wallet
+      this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 
-    if (new_statecoin==null) {
-      statecoin.setConfirmed();
-      return null;
+      // update in wallet
+      new_statecoin.swap_status = null;
+      new_statecoin.setConfirmed();
+      this.statecoins.addCoin(new_statecoin);
+
+      log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
+      this.saveStateCoinsList();
+      return new_statecoin;
     }
-    // Mark funds as spent in wallet
-    this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
-
-    // update in wallet
-    new_statecoin.swap_status = null;
-    new_statecoin.setConfirmed();
-    this.statecoins.addCoin(new_statecoin);
-
-    log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
-    this.saveStateCoinsList();
-    return new_statecoin;
   }
 
   getSwapGroupInfo(): Map<SwapGroup, number>{
@@ -720,6 +733,11 @@ export class Wallet {
   async updateSwapGroupInfo() {
     this.swap_group_info = await groupInfo(this.http_client);
   }
+
+  //Check if any coins awaiting swap are still awaiting swap
+  //async updateAwaitingSwapInfo() {
+  //  this.swap_group_info = await groupInfo(this.conductor_client);
+ // }
 
   // Perform transfer_sender
   // Args: shared_key_id of coin to send and receivers se_addr.

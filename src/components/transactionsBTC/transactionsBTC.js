@@ -4,11 +4,15 @@ import ReactLoading from 'react-loading';
 
 import {callDepositInit, callDepositConfirm, setNotification,
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin,
-  callGetConfig} from '../../features/WalletDataSlice'
+  callGetConfig,
+  callAddDescription,
+  callGetStateCoin} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
 import { CopiedButton } from '../../components'
 import QRCodeGenerator from '../QRCodeGenerator/QRCodeGenerator'
+
+import CoinDescription from '../inputs/CoinDescription/CoinDescription.js';
 
 import btc_img from "../../images/icon1.png";
 import copy_img from "../../images/icon2.png";
@@ -96,7 +100,8 @@ const TransactionsBTC = (props) => {
               amount={item.value}
               confirmations={item.confirmations}
               address={item.p_addr}
-              parent_setState={setState}/>
+              parent_setState={setState}
+              />
           </div>
       </div>
       )
@@ -132,6 +137,10 @@ const TransactionsBTC = (props) => {
 
 const TransactionDisplay = (props) => {
 
+  //User added description for coin
+  const [description, setDescription] = useState("")
+  const [dscpnConfirm,setDscrpnConfirm] = useState(false)
+
   const copyAddressToClipboard = () => {
     navigator.clipboard.writeText(props.address);
   }
@@ -148,6 +157,32 @@ const TransactionDisplay = (props) => {
     props.parent_setState({})
   }
 
+  //This useEffect prevents 
+  useEffect(() => {
+    let statecoin = callGetStateCoin(props.shared_key_id)
+    if(statecoin.description !== ""){
+      setDscrpnConfirm(true)
+      setDescription(statecoin.description)
+    }
+  },[props.shared_key_id])
+
+  //handle input of coin description
+  const handleChange = e => {
+    e.preventDefault()
+    if(e.target.value.length < 20){
+      setDescription(e.target.value)
+    }
+  }
+
+  //Confirm description
+  function confirmDescription() {
+    if(dscpnConfirm === false) {
+      callAddDescription(props.shared_key_id,description)
+    }
+    setDscrpnConfirm(!dscpnConfirm)
+  }
+
+
   return (
     <div className="Body">
       <div className="deposit-scan">
@@ -158,7 +193,13 @@ const TransactionDisplay = (props) => {
 
         <div className="deposit-scan-content">
           <div className="deposit-scan-subtxt">
-            <span>Finish Creating the Statecoin by sending exactly {fromSatoshi(props.amount)} BTC to:</span>
+            <CoinDescription
+              dscrpnConfirm={dscpnConfirm}
+              description={description}
+              handleChange={handleChange}
+              setDscrpnConfirm={confirmDescription}/>
+
+
             <div className="deposit-scan-status">
               <span>{getCofirmationsDisplayString()}</span>
               <img src={close_img} alt="arrow" onClick={onCloseArrowClick}/>
@@ -187,6 +228,7 @@ const TransactionDisplay = (props) => {
 
         </div>
       </div>
+      <span className = "deposit-text">Finish creating the Statecoin by sending exactly {fromSatoshi(props.amount)} BTC to the above address</span>
   </div>
   )
 }
