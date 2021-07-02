@@ -10,6 +10,7 @@ import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
 import { release } from 'os';
 
+
 let bitcoin = require("bitcoinjs-lib");
 
 let types = require("../types")

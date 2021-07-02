@@ -14,11 +14,16 @@ import { SwapGroup, do_swap_poll } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
-import { groupInfo } from './swap/info_api';
+import { groupInfo, pollSwap, pollUtxo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
 import os  from 'os';
 //import { remote } from 'electron';
+
+import { AsyncSemaphore } from "@esfx/async-semaphore";
+
+// create a semaphore that allows one participant
+const swapSemaphore = new AsyncSemaphore(0,100);
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -680,7 +685,14 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
 
-    let new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
+    await swapSemaphore.wait();
+    let new_statecoin=null;
+    try {
+      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
+    }
+    finally{
+      swapSemaphore.release();
+    }
 
     if (new_statecoin==null) {
       statecoin.setConfirmed();
@@ -707,11 +719,21 @@ export class Wallet {
     this.swap_group_info = await groupInfo(this.http_client);
   }
 
-  async updateAwaitingSwapInfo() {
-      this.statecoins.coins.forEach( 
-        (statecoin) => {
-        let 
-      });
+  //If there are no swaps running then set all the statecoin swap data to null
+  async updateSwapStatus() {
+    //If there are no do_swap processes running then the swap statuses should all be nullified
+    await swapSemaphore.wait();
+    try {
+      if (swapSemaphore.count === 1){
+        this.statecoins.coins.forEach(
+          async (statecoin) => {
+            statecoin.setSwapDataToNull();
+          }
+        );
+      }
+    } finally {
+      swapSemaphore.release();
+    }
   }
 
   // Perform transfer_sender

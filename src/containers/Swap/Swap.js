@@ -13,6 +13,7 @@ import {
   callSwapDeregisterUtxo,
   callGetSwapGroupInfo,
   callUpdateSwapGroupInfo,
+  callUpdateSwapStatus,
   callGetConfig,
   callGetStateCoin
 } from "../../features/WalletDataSlice";
@@ -48,6 +49,7 @@ const SwapPage = () => {
   useEffect(() => {
       const interval = setInterval(() => {
           dispatch(callUpdateSwapGroupInfo());
+          dispatch(callUpdateSwapStatus());
           let swap_groups_data = callGetSwapGroupInfo();
           let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
           setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render

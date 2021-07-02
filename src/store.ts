@@ -8,7 +8,6 @@ try {
   Store = require('electron-store');
 }
 
-let cloneDeep = require('lodash.clonedeep');
 
 export class Storage {
   store: any;
@@ -83,10 +82,7 @@ export class Storage {
 
 
   storeWalletStateCoinsList(wallet_name: string, statecoins: StateCoinList, activity: ActivityLog) {
-    //Do not persist the "IN_SWAP" or "AWAITING_SWAP" states as swaps do not resume when the wallet is reloaded
-    let statecoins_save = cloneDeep(statecoins);
-    statecoins_save.clearSwapStatus();
-    this.store.set('wallets.'+wallet_name+'.statecoins', statecoins_save);
+    this.store.set('wallets.'+wallet_name+'.statecoins', statecoins);
     this.store.set('wallets.'+wallet_name+'.activity', activity);
   };
 
