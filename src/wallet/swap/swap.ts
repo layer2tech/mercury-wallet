@@ -67,7 +67,7 @@ export const swapInit = async (
     signature: sc_sig,
     swap_size: swap_size
   };
-
+  console.log("swap register utxo...");
   await swapRegisterUtxo(http_client, registerUtxo);
   log.info("Coin registered for Swap. Coin ID: ", statecoin.shared_key_id)
 
@@ -332,32 +332,39 @@ export const do_swap_poll = async(
   let new_statecoin = null;
     while (new_statecoin==null) {
       try {
+        console.log(`swap status: ${statecoin.swap_status}`);
         switch (statecoin.swap_status) {
           case null: {  // Coin has been removed from swap
             return null;
           }
           case SWAP_STATUS.Init: {
+            console.log("swapinit...");
             await swapInit(http_client, statecoin, proof_key_der, swap_size);
             break;
           }
           case SWAP_STATUS.Phase0: {
+            console.log("swapPhase0...");
             await swapPhase0(http_client, statecoin);
             break;
           }
           case SWAP_STATUS.Phase1: {
+            console.log("swapPhase1...");
             await swapPhase1(http_client, wasm_client, statecoin, proof_key_der, new_proof_key_der);
             break;
           }
           case SWAP_STATUS.Phase2: {
+            console.log("swapPhase2...");
             await swapPhase2(http_client, wasm_client, statecoin);
             break;
           }
           case SWAP_STATUS.Phase3: {
+            console.log("swapPhase3...");
             if (statecoin.swap_address===null) throw Error("No swap address found for coin. Swap address should be set in Phase1.");
             await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations);
             break;
           }
           case SWAP_STATUS.Phase4: {
+            console.log("swapPhase4...");
             new_statecoin = await swapPhase4(http_client, wasm_client, statecoin);
           }
         }

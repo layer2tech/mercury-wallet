@@ -23,7 +23,7 @@ import os  from 'os';
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 
 // create a semaphore that allows one participant
-const swapSemaphore = new AsyncSemaphore(0,100);
+const swapSemaphore = new AsyncSemaphore(100);
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -688,6 +688,7 @@ export class Wallet {
     await swapSemaphore.wait();
     let new_statecoin=null;
     try {
+      console.log("do_swap_poll: "+shared_key_id);
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
     }
     finally{
