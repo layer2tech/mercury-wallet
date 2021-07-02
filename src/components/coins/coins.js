@@ -116,8 +116,21 @@ const Coins = (props) => {
         return selected;
     }
 
-    const displayExpiryTime = (expiry_data) => {
-      return validExpiryTime(expiry_data) ? expiry_time_to_string(expiry_data) : '--';
+    const displayExpiryTime = (expiry_data, show_days=false) => {
+      if(validExpiryTime(expiry_data)){
+        if(show_days && expiry_data.days > 0){
+          return expiry_time_to_string(expiry_data) + " and " + getRemainingDays(expiry_data.days);
+        }else{
+          return expiry_time_to_string(expiry_data);
+        }
+      }
+      return  '--';
+    }
+
+    const getRemainingDays = (numberOfDays) => {
+      let days = Math.floor(numberOfDays % 365 % 30);
+      let daysDisplay = days > 0 ? days + (days == 1 ? " day" : " days") : "";
+      return daysDisplay; 
     }
 
     const validExpiryTime = (expiry_data) => {
@@ -140,7 +153,7 @@ const Coins = (props) => {
 
     // Convert expiry_data to string displaying months or days left
     const expiry_time_to_string = (expiry_data) => {  
-      return expiry_data.months > 1 ? expiry_data.months + " month" : expiry_data.days + " days";
+      return expiry_data.months > 1 ? expiry_data.months + " months" : expiry_data.days + " days";
     }
 
     //Load coins once component done render
@@ -448,7 +461,7 @@ const Coins = (props) => {
                     <span className="expiry-time-left">
                       {displayExpiryTime(
                         showCoinDetails.coin.expiry_data
-                      )}
+                      , true)}
                     </span>
                   </div>
                 </div>
