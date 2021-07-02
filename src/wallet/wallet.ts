@@ -707,6 +707,13 @@ export class Wallet {
     this.swap_group_info = await groupInfo(this.http_client);
   }
 
+  async updateAwaitingSwapInfo() {
+      this.statecoins.coins.forEach( 
+        (statecoin) => {
+        let 
+      });
+  }
+
   // Perform transfer_sender
   // Args: shared_key_id of coin to send and receivers se_addr.
   // Return: transfer_message String to be sent to receiver.
