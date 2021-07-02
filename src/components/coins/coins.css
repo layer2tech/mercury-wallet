@@ -148,6 +148,11 @@
   padding: 12px 0;
   border-bottom :1px solid #E0E0E0;
 }
+
+.modal .item.qr-container{
+  justify-content: center;
+}
+
 .question-icon  {
   position: absolute;
   right: 0;
@@ -157,6 +162,9 @@
   display: flex;
   flex-direction: column;
   margin-left: 20px;
+}
+.modal .item .block.qrcode{
+  margin-left: 0px;
 }
 
 .modal .item .block span {

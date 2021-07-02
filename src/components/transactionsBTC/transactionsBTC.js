@@ -6,7 +6,9 @@ import {callDepositInit, callDepositConfirm, setNotification,
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin,
   callGetConfig} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
+
 import { CopiedButton } from '../../components'
+import QRCodeGenerator from '../QRCodeGenerator/QRCodeGenerator'
 
 import btc_img from "../../images/icon1.png";
 import copy_img from "../../images/icon2.png";
@@ -15,8 +17,6 @@ import close_img from "../../images/close-icon.png";
 
 import '../../containers/Deposit/Deposit.css';
 import '../index.css';
-
-let QRCode = require('qrcode.react');
 
 const keyIcon = (
   <svg
@@ -86,6 +86,7 @@ const TransactionsBTC = (props) => {
   }
 
   const populateWithTransactionDisplayPanels = deposit_inits.map((item, index) => {
+
     if (item.value != null) {
       return (
         <div key={index}>
@@ -147,16 +148,12 @@ const TransactionDisplay = (props) => {
     props.parent_setState({})
   }
 
-  // WARNING: amount is in BTC NOT satoshis.
-  const makeQRCodeString = (address, amount) => "bitcoin:"+address+"?amount="+amount;
-
   return (
     <div className="Body">
       <div className="deposit-scan">
         {props.confirmations === -1 && (
-          <QRCode value={makeQRCodeString(props.address, fromSatoshi(props.amount))}
-            level='H'
-          />
+          <QRCodeGenerator address = {props.address} amount = {fromSatoshi(props.amount)}
+            level = 'H' />
         )}
 
         <div className="deposit-scan-content">

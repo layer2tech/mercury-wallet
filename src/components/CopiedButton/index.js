@@ -20,7 +20,7 @@ function CopiedButton ({
     clearTimeout(timeout);
     timeout = setTimeout(() => setCopied(false), delay);
     return () => clearTimeout(timeout);
-  });
+  },[copied]);
   return (
     <div className="copy-btn-wrap">
       {copied && <span className="copied" style={style}>{message}</span>}

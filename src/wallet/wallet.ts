@@ -350,8 +350,8 @@ export class Wallet {
     let unconfirmed_coins = this.statecoins.getUnconfirmedCoins()
     this.checkReceivedTxStatus(unconfirmed_coins)
     this.checkUnconfirmedCoinsStatus(unconfirmed_coins)
-    let coins = unconfirmed_coins.concat(this.statecoins.getInitialisedCoins())
-    return coins.map((item: StateCoin) => item.getFundingTxInfo(this.config.network, this.block_height))
+    // let coins = unconfirmed_coins.concat(this.statecoins.getInitialisedCoins())
+    return unconfirmed_coins.map((item: StateCoin) => item.getFundingTxInfo(this.config.network, this.block_height))
   }
   //  Get all INITIALISED UNCONFIRMED coins display data
   getUnconfirmedStatecoinsDisplayData() {
