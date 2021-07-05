@@ -102,6 +102,11 @@ input.quantity {
     width: 80%;
 }
 
+.settings .content .inputs .inputs-item input{
+    color: transparent;
+    text-shadow: 0 0 0 grey;
+}
+
 .inputs select {
     border: none;
     box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
