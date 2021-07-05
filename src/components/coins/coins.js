@@ -11,6 +11,7 @@ import swapNumber from "../../images/swap-number.png";
 import walleticon from "../../images/walletIcon.png";
 import txidIcon from "../../images/txid-icon.png";
 import timeIcon from "../../images/time.png";
+import descripIcon from "../../images/description.png"
 
 import React, {useState, useEffect } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
@@ -19,7 +20,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 
 import {fromSatoshi} from '../../wallet/util'
-import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData, setError} from '../../features/WalletDataSlice'
+import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData, setError,callAddDescription,callGetStateCoin} from '../../features/WalletDataSlice'
 import SortBy from './SortBy/SortBy'
 import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
@@ -28,6 +29,7 @@ import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay'
 
 import './coins.css';
 import '../index.css';
+import CoinDescription from "../inputs/CoinDescription/CoinDescription";
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -54,6 +56,9 @@ const Coins = (props) => {
     const [coins, setCoins] = useState(INITIAL_COINS);
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const [refreshCoins, setRefreshCoins] = useState(false);
+    
+    const [description,setDescription] = useState("")
+    const [dscpnConfirm,setDscrpnConfirm] = useState(false)
 
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
@@ -161,7 +166,7 @@ const Coins = (props) => {
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
-    }, [props.refresh, filterBy]);
+    }, [props.refresh, filterBy,showCoinDetails]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
@@ -188,10 +193,7 @@ const Coins = (props) => {
               !==
             new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
           ) {
-            // setCoins({
-            //     ...coins,
-            //     unConfirmedCoins: new_unconfirmed_coins_data
-            // })
+
             setCoins({
               unspentCoins: new_confirmed_coins_data,
               unConfirmedCoins: new_unconfirmed_coins_data
@@ -201,6 +203,23 @@ const Coins = (props) => {
         return () => clearInterval(interval);
       }
     }, [coins.unConfirmedCoins]);
+
+    //Initialised Coin description for coin modal
+    useEffect(() => {
+      //Get Statecoin to check for description
+      let statecoin = callGetStateCoin(showCoinDetails.coin.shared_key_id)
+      if(statecoin && statecoin.description !== ""){
+        //If there is a description setState
+        setDscrpnConfirm(true)
+        setDescription(statecoin.description)
+      }
+      else{
+        //If no description initialise setState
+        setDescription("")
+        setDscrpnConfirm(false)
+      }
+    //function called every time coin info modal shows up
+    },[showCoinDetails.coin])
 
     // data to display in privacy related sections
     const getPrivacyScoreDesc = (swap_rounds) => {
@@ -291,6 +310,9 @@ const Coins = (props) => {
                   </div>
                   {filterBy !== STATECOIN_STATUS.WITHDRAWN ? (
                     <div className="progress_bar" id={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}>
+                        <div className ="coin-description">
+                          <p>{item.description}</p>
+                        </div>
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
@@ -358,6 +380,24 @@ const Coins = (props) => {
       return (
         <EmptyCoinDisplay message={displayMessage}/>
       );
+    }
+
+
+    //Track change to description
+    const handleChange = e => {
+      e.preventDefault()
+      if(e.target.value.length < 20){
+        setDescription(e.target.value)
+      }
+    }
+  
+    //Confirm description, submit redux state to change Statecoin
+    function confirmDescription() {
+      if(dscpnConfirm === false) {
+        callAddDescription(showCoinDetails.coin.shared_key_id,description)
+
+      }
+      setDscrpnConfirm(!dscpnConfirm)
     }
 
     return (
@@ -484,6 +524,18 @@ const Coins = (props) => {
                                     Number of Participants: 0
                                   */}
                   </span>
+                </div>
+              </div>
+              <div className="item">
+                <img src={descripIcon} alt="description-icon"/>
+                <div className="block">
+                  <span>Description</span>
+                  <CoinDescription
+                    dscrpnConfirm = {dscpnConfirm}
+                    description = {description}
+                    setDscrpnConfirm = {confirmDescription}
+                    handleChange={handleChange}
+                    />
                 </div>
               </div>
             </div>

@@ -68,7 +68,7 @@ const DepositPage = () => {
     min_value: e.target.value
   })
 
-  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
+  // Check if wallet is loaded. Avoids crash when Electron real-time updates in developer mode.
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
   }

@@ -146,7 +146,7 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 });
 
 app.allowRendererProcessReuse = false;
-
+app.commandLine.appendSwitch('ignore-certificate-errors');
 // Electron Store
 const Store = require('electron-store');
 Store.initRenderer();

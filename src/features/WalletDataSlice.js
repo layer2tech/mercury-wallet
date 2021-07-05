@@ -119,8 +119,8 @@ export const walletLoad = (name, password) => {
   mutex.runExclusive(async () => {
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
-    wallet.updateSwapGroupInfo();
     wallet.updateSwapStatus();
+    wallet.updateSwapGroupInfo();
   });
 }
 
@@ -223,6 +223,10 @@ export const callRemoveCoin = (shared_key_id) => {
 
 export const callGetStateCoin = (shared_key_id) => {
   return wallet.getStatecoin(shared_key_id);
+}
+
+export const callAddDescription = (shared_key_id,description) => {
+  wallet.addDescription(shared_key_id,description)
 }
 
 // Update config with JSON of field to change

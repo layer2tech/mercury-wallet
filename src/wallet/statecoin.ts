@@ -296,6 +296,7 @@ export class StateCoin {
   wallet_version: string;
   proof_key: string;
   value: number;
+  description: string;
   funding_txid: string;
   funding_vout: number;
   block: number;  // included in block number. 0 for unconfirmed.
@@ -331,6 +332,7 @@ export class StateCoin {
     this.wallet_version = require("../../package.json").version
     this.proof_key = "";
     this.value = 0;
+    this.description = "";
     this.timestamp = new Date().getTime();
 
     this.funding_txid = "";
@@ -388,6 +390,7 @@ export class StateCoin {
       wallet_version: this.wallet_version,
       shared_key_id: this.shared_key_id,
       value: this.value,
+      description:this.description,
       funding_txid: this.funding_txid,
       funding_vout: this.funding_vout,
       timestamp: this.timestamp,
@@ -505,6 +508,7 @@ export interface StateCoinDisplayData {
   wallet_version: string,
   shared_key_id: string,
   value: number,
+  description:string,
   funding_txid: string,
   funding_vout: number,
   timestamp: number,
