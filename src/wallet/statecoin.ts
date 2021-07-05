@@ -100,7 +100,7 @@ export class StateCoinList {
     
     return this.coins.filter((item: StateCoin) => {
 
-      if (item.status === STATECOIN_STATUS.UNCONFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL) {
+      if (item.status === STATECOIN_STATUS.UNCONFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.INITIALISED) {
         return item
       }
       return null
