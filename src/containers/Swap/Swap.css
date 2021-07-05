@@ -25,17 +25,6 @@ input {
     cursor: pointer;
 }
 
-.checkmark {
-    position: absolute;
-    top: 4px;
-    left: 0;
-    height: 15px;
-    width: 15px;
-    background-color: #ffffff;
-    border: 2px solid #388E3C;
-    border-radius: 50%;
-}
-
 .ConnectionSwaps {
     text-align: left;
 }

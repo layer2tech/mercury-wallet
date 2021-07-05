@@ -7,6 +7,7 @@ import { callGetActivityLog } from '../../features/WalletDataSlice'
 import txidIcon from '../../images/txid-icon.png';
 import createIcon from '../../images/create-icon-dep.png';
 import transferIcon from '../../images/transfer-icon.png';
+import withdrowIcon from '../../images/withdrow-icon.png';
 import withrowIcon from '../../images/withrow-icon.png';
 import swapIcon from '../../images/swap-icon-grey.png';
 
@@ -41,7 +42,7 @@ const Activity = () => {
             <div className="date">
                 <Moment format="MMMM D, YYYY">{activityGroup[0]?.date}</Moment>
             </div>
-			{activityGroup.map((item, index) => (
+			{activityGroup.map((item, index) => (			
 				<div key={index}>
 
 					{item.action === 'D' ?
@@ -74,7 +75,7 @@ const Activity = () => {
 								<td>
 									<img src={transferIcon} alt="transferIcon"/>
 									<span><Moment format="HH:mm A">{item.date}</Moment> </span>
-									<span className="black">Created 1 Statecoin</span>
+									<span className="black">Transferred 1 Statecoin</span>
 								</td>
 								<td>
 									<img src={txidIcon} alt="txidIcon"/>
@@ -82,7 +83,7 @@ const Activity = () => {
 
 								</td>
 								<td>
-									<span>Transfer</span>
+									<span>Transferred</span>
 									<span className="green">+ {fromSatoshi(item.value)} BTC</span>
 								</td>
 							</tr>
@@ -97,7 +98,7 @@ const Activity = () => {
 								<td>
 									<img src={withrowIcon} alt="withrowIcon"/>
 									<span className="grey"><Moment format="HH:mm A">{item.date}</Moment> </span>
-									<span >Created 1 Statecoin</span>
+									<span >Withdrawn 1 Statecoin</span>
 								</td>
 								<td>
 									<img src={txidIcon} alt="txidIcon"/>
@@ -120,7 +121,7 @@ const Activity = () => {
 								<td>
 									<img src={withrowIcon} alt="withrowIcon"/>
 									<span className="grey"><Moment format="HH:mm A">{item.date}</Moment> </span>
-									<span >Created 1 Statecoin</span>
+									<span >Swapped 1 Statecoin</span>
 								</td>
 								<td>
 									<img src={swapIcon} alt="txidIcon"/>
@@ -136,6 +137,29 @@ const Activity = () => {
 						</tbody>
 					</table>
 					: null }
+					{item.action === 'I'?
+					<table>
+					<tbody>
+						<tr >
+							<td>
+								<img src={withrowIcon} alt="createIcon"/>
+								<span><Moment format="HH:mm A">{item.date}</Moment> </span>
+								<span >Initialized 1 Statecoin</span>
+							</td>
+							<td>
+								<img src={txidIcon} alt="txidIcon"/>
+								<span className="txid">{item.funding_txid}</span>
+
+							</td>
+							<td>
+								<span>Coin Initialized</span>
+								{/* <span className="green"> Initialized</span> */}
+
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				:null}
 				</div>
 			))}
         </div>

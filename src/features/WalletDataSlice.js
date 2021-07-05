@@ -119,6 +119,7 @@ export const walletLoad = (name, password) => {
   mutex.runExclusive(async () => {
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
+    wallet.updateSwapStatus();
     wallet.updateSwapGroupInfo();
   });
 }
@@ -195,7 +196,7 @@ export const callGetCoinsInfo = () => {
 }
 export const callPingSwap = () => {
   try {
-    pingServer(wallet.conductor_client)
+    pingServer(wallet.http_client)
   } catch (error){
     return false;
   }
@@ -222,6 +223,10 @@ export const callRemoveCoin = (shared_key_id) => {
 
 export const callGetStateCoin = (shared_key_id) => {
   return wallet.getStatecoin(shared_key_id);
+}
+
+export const callAddDescription = (shared_key_id,description) => {
+  wallet.addDescription(shared_key_id,description)
 }
 
 // Update config with JSON of field to change
@@ -291,11 +296,17 @@ export const callUpdateSwapGroupInfo = createAsyncThunk(
     wallet.updateSwapGroupInfo();
   }
 )
+export const callUpdateSwapStatus = createAsyncThunk(
+  'UpdateSwapStatus',
+  async (action, thunkAPI) => {
+    wallet.updateSwapStatus();
+  }
+)
 export const callSwapDeregisterUtxo = createAsyncThunk(
   'SwapDeregisterUtxo',
   async (action, thunkAPI) => {
     let statechain_id = wallet.statecoins.getCoin(action.shared_key_id).statechain_id
-    await swapDeregisterUtxo(wallet.conductor_client, {id: statechain_id});
+    await swapDeregisterUtxo(wallet.http_client, {id: statechain_id});
     wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
   }
 )
@@ -419,6 +430,9 @@ const WalletSlice = createSlice({
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callUpdateSwapGroupInfo.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callUpdateSwapStatus.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callSwapDeregisterUtxo.rejected]: (state, action) => {

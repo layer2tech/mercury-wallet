@@ -97,14 +97,14 @@ describe('Swaps', function() {
 
     // try first without swap_status == Phase0
     statecoin.status = STATECOIN_STATUS.AWAITING_SWAP
-    await expect(swapPhase1(http_mock, http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
+    await expect(swapPhase1(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
       .rejects
       .toThrowError("Coin is not in this phase of the swap protocol. In phase: null");
 
     // Set swap_status as if coin had already run Phase0
     statecoin.swap_status = SWAP_STATUS.Phase1
 
-    await expect(swapPhase1(http_mock, http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
+    await expect(swapPhase1(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
       .rejects
       .toThrowError("No Swap ID found. Swap ID should be set in Phase0.");
 
@@ -112,7 +112,7 @@ describe('Swaps', function() {
     statecoin.swap_id = "12345"
 
     // swap token not yet available
-    await swapPhase1(http_mock, http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der)
+    await swapPhase1(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der)
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase1)
     expect(statecoin.swap_address).toBe(null)
     expect(statecoin.swap_my_bst_data).toBe(null)

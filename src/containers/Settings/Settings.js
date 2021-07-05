@@ -58,9 +58,8 @@ const SettingsPage = (props) => {
       [evt.target.name]: evt.target.value
     });
   }
-  const decreaseMinAnonSet = () => { setMinAnonSet(minAnonSet-1) };
-  const increaseMinAnonSet = () => { setMinAnonSet(minAnonSet+1) };
-  const onMinAnonSetChange = (evt) => { setMinAnonSet(evt.target.value) };
+  const decreaseMinAnonSet = (e) => { minAnonSet>3 ? (setMinAnonSet(minAnonSet-1)):(e.preventDefault()) };
+  const increaseMinAnonSet = (e) => { minAnonSet>=10?(e.preventDefault()):(setMinAnonSet(minAnonSet+1))};
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -150,7 +149,7 @@ const SettingsPage = (props) => {
                                 <label className="control-label"
                                       htmlFor="address-port">Server Port</label>
                             </div>
-                            <div className="inputs-item">
+                            <div className="inputs-item protocol">
                                 <input id="address-protocol" type="text" name="protocol" value={elecAddr.protocol}
                                       onChange={onElecAddrChange} required/>
                                 <label className="control-label"
@@ -195,7 +194,9 @@ const SettingsPage = (props) => {
                               <span onClick={decreaseMinAnonSet} className="minus update-min-anon-set" />
 
                               <input className="quantity" name="quantity" value={minAnonSet}
-                                     onChange={onMinAnonSetChange} type="number" placeholder="0 BTC"/>
+                                     type="text" placeholder="0 BTC"/>
+                              <label className="control-label"
+                                      htmlFor="Anonymity Set">Swap group size</label>
                               <span onClick={increaseMinAnonSet} className="plus update-min-anon-set" />
                           </div>
                       </form>
@@ -213,12 +214,12 @@ const SettingsPage = (props) => {
                           checked={!!notifications}
                           onChange={onNotificationChange}
                         />
-                        <CheckBox
+                        {/* <CheckBox
                           label="Tutorials"
                           description="Toggle show tutorials"
                           checked={!!tutorials}
                           onChange={onTutorialChange}
-                        />
+                        /> */}
                       </div>
 
                   </div>
