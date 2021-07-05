@@ -17,6 +17,8 @@ let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
 const n = secp256k1.curve.n
 
+const TESTING_MODE = require("../../settings.json").testing_mode;
+
 // transfer() messages:
 // 0. Receiver communicates address to Sender (B2 and C2)
 // 1. Sender Initialises transfer protocol with State Entity
@@ -171,7 +173,7 @@ export const transferReceiver = async (
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);
   let out_script = bitcoin.address.toOutputScript(addr, network);
-  let match = false;
+  let match = TESTING_MODE;
   let funding_tx_data = await electrum_client.getScriptHashListUnspent(out_script);
   if (funding_tx_data===null)  throw new Error("Unspent UTXO not found.");
    if (funding_tx_data.length === 0) throw new Error("Unspent UTXO not found.");

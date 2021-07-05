@@ -40,6 +40,7 @@ export class ActivityLogItem {
 }
 
 export const ACTION = {
+   INITIATE: "I",  
    DEPOSIT: "D",
    TRANSFER: "T",
    WITHDRAW: "W",

@@ -3,13 +3,18 @@ import {useForm} from "react-hook-form";
 import { Link } from "react-router-dom";
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
+import CloseIcon from "../../images/close-icon.png";
+
+import TermsConditions from '../TermsConditions/TermsConditions';
 
 import './createWizardForm.css'
+import { taggedTemplateExpression } from '@babel/types';
 
 
 const CreateWizardForm = (props) => {
     const {register, errors, watch, handleSubmit} = useForm({mode: 'onChange', reValidateMode: 'onChange',});
     const [showPass, setShowPass] = useState(false);
+    const [toggleTCs, setToggleTCs] = useState(false)
     const [walletNameError, setNameError] = useState(false)
     const password = useRef({});
     password.current = watch("password", "");
@@ -18,6 +23,25 @@ const CreateWizardForm = (props) => {
 
     function onSubmit(data) {
         props.onSubmit()
+    }
+
+    //Open/Close Terms and Conditions
+    const handleTCs = (e) => {
+        e.preventDefault()
+
+        let target = e.target.parentNode.parentNode.parentNode.parentNode.parentNode
+        //Check if the page is createWallet or restoreWallet
+        if(target.classList[0] === "restore-form"){
+            if(toggleTCs === false){
+                target.style.width = "100%"
+                //adjust styling
+            }
+            else{
+                target.style.width = "50%"
+            }
+        }
+
+        setToggleTCs(!toggleTCs);
     }
 
     const handleKeyPress = e => {
@@ -35,10 +59,10 @@ const CreateWizardForm = (props) => {
             <form onSubmit={handleSubmit(onSubmit)}>
                 {props.setStateMnemonic && (
                     <div className="inputs-item">
-                    <input id="Mnemonic" type="text" name="Mnemonic" placeholder="Mnemonic"
-                        value={props.wizardState.mnemonic}
-                        onChange={props.setStateMnemonic}
-                        required/>
+                        <input id="Mnemonic" type="text" name="Mnemonic" placeholder="Mnemonic"
+                            value={props.wizardState.mnemonic}
+                            onChange={props.setStateMnemonic}
+                            required/>
                     </div>
                 )}
                 <div className="inputs-item">
@@ -90,13 +114,24 @@ const CreateWizardForm = (props) => {
                 <div className="error">
                     {errors.password_repeat && <p>{errors.password_repeat.message}</p>}
                 </div>
-
-
                 <div className="inputs-item checkbox">
                     <input id="terms" type="checkbox" name="terms"
                            required/>
-                    <label htmlFor="terms">I have read and agree to the Terms of Use</label>
+                    <label htmlFor="terms">I have read and agree to the <a href="#" className ="tc-link" onClick = {handleTCs } >Terms of Use</a></label>
                 </div>
+                {toggleTCs === true ? (
+                    <div>
+                        <div onClick = {handleTCs}className="tc-overlay"></div>
+                        <div className = "terms-conditions">
+                            <div className="group-btns tcs">
+                                <button className = "primary-btn ghost" onClick ={handleTCs}>
+                                    <img src={CloseIcon} alt ="close-icon"/>
+                                </button>
+                            </div>
+                            <TermsConditions/>
+                        </div>
+                    </div>
+                ): (null)}
                 <div className="footer-step-btns">
                     <Link to="/" className="primary-btn-link back">Go Back</Link>
                     <button type="submit" className="primary-btn blue">{props.submitTitle || 'Next'}</button>

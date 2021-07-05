@@ -11,6 +11,9 @@ import swapNumber from "../../images/swap-number.png";
 import walleticon from "../../images/walletIcon.png";
 import txidIcon from "../../images/txid-icon.png";
 import timeIcon from "../../images/time.png";
+import copy_img from "../../images/icon2.png";
+import descripIcon from "../../images/description.png"
+
 
 import React, {useState, useEffect } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
@@ -19,15 +22,21 @@ import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 
 import {fromSatoshi} from '../../wallet/util'
-import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData, setError} from '../../features/WalletDataSlice'
+import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData,callGetUnconfirmedAndUnmindeCoinsFundingTxData, setError,callAddDescription,callGetStateCoin} from '../../features/WalletDataSlice'
+
 import SortBy from './SortBy/SortBy'
 import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
 import { CoinStatus } from '../../components'
 import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay'
+import CopiedButton from "../CopiedButton";
+import QRCodeGenerator from "../QRCodeGenerator/QRCodeGenerator";
 
 import './coins.css';
 import '../index.css';
+import CoinDescription from "../inputs/CoinDescription/CoinDescription";
+
+const TESTING_MODE = require("../../settings.json").testing_mode;
 
 const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}, privacy_data: {score_desc: ""}}}
 // privacy score considered "low"
@@ -50,8 +59,12 @@ const Coins = (props) => {
     const { filterBy } = useSelector(state => state.walletData);
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
+    const [initCoins, setInitCoins] = useState({})
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const [refreshCoins, setRefreshCoins] = useState(false);
+    
+    const [description,setDescription] = useState("")
+    const [dscpnConfirm,setDscrpnConfirm] = useState(false)
 
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
@@ -72,7 +85,7 @@ const Coins = (props) => {
         props.setCoinDetails(coin)
     }
 
-    const handleCloseCoinDetails = () => {
+    function handleCloseCoinDetails (){
         props.setSelectedCoins([]);
         setShowCoinDetails(DEFAULT_STATE_COIN_DETAILS);
     }
@@ -109,9 +122,32 @@ const Coins = (props) => {
         return selected;
     }
 
-    const displayExpiryTime = (expiry_data) => {
-      return validExpiryTime(expiry_data) ? expiry_time_to_string(expiry_data) : '--';
+    const displayExpiryTime = (expiry_data, show_days=false) => {
+      if(validExpiryTime(expiry_data)){
+        if(show_days && expiry_data.days > 0){
+          return expiry_time_to_string(expiry_data) + " and " + getRemainingDays(expiry_data.days);
+        }else{
+          return expiry_time_to_string(expiry_data);
+        }
+      }
+      return  '--';
     }
+
+    const getRemainingDays = (numberOfDays) => {
+      let days = Math.floor(numberOfDays % 365 % 30);
+      let daysDisplay = days > 0 ? days + (days == 1 ? " day" : " days") : "";
+      return daysDisplay; 
+    }
+
+    //Button to handle copying p address to keyboard
+    const copyAddressToClipboard = (event,address) => {
+      event.stopPropagation()
+      navigator.clipboard.writeText(address);
+    }
+
+    const getAddress = (shared_key_id) => {
+      return initCoins.filter(coin => coin.shared_key_id === shared_key_id)[0].p_addr
+    } 
 
     const validExpiryTime = (expiry_data) => {
       if(callGetBlockHeight() === 0){
@@ -133,7 +169,7 @@ const Coins = (props) => {
 
     // Convert expiry_data to string displaying months or days left
     const expiry_time_to_string = (expiry_data) => {  
-      return expiry_data.months > 1 ? expiry_data.months + " month" : expiry_data.days + " days";
+      return expiry_data.months > 1 ? expiry_data.months + " months" : expiry_data.days + " days";
     }
 
     //Load coins once component done render
@@ -144,10 +180,15 @@ const Coins = (props) => {
       let unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
       //Load unconfirmed coins
 
+      let undeposited_coins_data = dispatch(callGetUnconfirmedAndUnmindeCoinsFundingTxData)
+      //Load coins that haven't yet been sent BTC
+
       setCoins({
           unspentCoins: coins_data,
           unConfirmedCoins: unconfirmed_coins_data
       })
+
+      setInitCoins(undeposited_coins_data)
 
       // Update total_balance in Redux state
       if(filterBy !== 'default') {
@@ -159,7 +200,7 @@ const Coins = (props) => {
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
-    }, [props.refresh, filterBy]);
+    }, [props.refresh, filterBy,showCoinDetails]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
@@ -186,10 +227,7 @@ const Coins = (props) => {
               !==
             new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
           ) {
-            // setCoins({
-            //     ...coins,
-            //     unConfirmedCoins: new_unconfirmed_coins_data
-            // })
+
             setCoins({
               unspentCoins: new_confirmed_coins_data,
               unConfirmedCoins: new_unconfirmed_coins_data
@@ -199,6 +237,23 @@ const Coins = (props) => {
         return () => clearInterval(interval);
       }
     }, [coins.unConfirmedCoins]);
+
+    //Initialised Coin description for coin modal
+    useEffect(() => {
+      //Get Statecoin to check for description
+      let statecoin = callGetStateCoin(showCoinDetails.coin.shared_key_id)
+      if(statecoin && statecoin.description !== ""){
+        //If there is a description setState
+        setDscrpnConfirm(true)
+        setDescription(statecoin.description)
+      }
+      else{
+        //If no description initialise setState
+        setDescription("")
+        setDscrpnConfirm(false)
+      }
+    //function called every time coin info modal shows up
+    },[showCoinDetails.coin])
 
     // data to display in privacy related sections
     const getPrivacyScoreDesc = (swap_rounds) => {
@@ -266,7 +321,7 @@ const Coins = (props) => {
                   dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
                   return false;
                 }
-                if((item.status === (STATECOIN_STATUS.IN_MEMPOOL || STATECOIN_STATUS.UNCONFIRMED)) && props.swap){
+                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.UNCONFIRMED ) && props.swap && !TESTING_MODE){
                   dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
                 }
                 selectCoin(item.shared_key_id)
@@ -288,7 +343,18 @@ const Coins = (props) => {
                       </span>
                   </div>
                   {filterBy !== STATECOIN_STATUS.WITHDRAWN ? (
+                    item.status === STATECOIN_STATUS.INITIALISED ?                   
+                      <div className ="deposit-scan-main-item">
+                        <CopiedButton handleCopy={(event) => copyAddressToClipboard(event,getAddress(item.shared_key_id))}>
+                          <img type="button" src={copy_img} alt="icon" />
+                        </CopiedButton>
+                        <span className="long"><b>{getAddress(item.shared_key_id)}</b></span>
+                      </div>
+                    :(
                     <div className="progress_bar" id={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}>
+                        <div className ="coin-description">
+                          <p>{item.description}</p>
+                        </div>
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
@@ -303,7 +369,7 @@ const Coins = (props) => {
                             </span>
                         </div>
                     </div>
-                  ) : (
+                  )) : (
                     <div className="widthdrawn-status">
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M8 0.5C3.875 0.5 0.5 3.875 0.5 8C0.5 12.125 3.875 15.5 8 15.5C12.125 15.5 15.5 12.125 15.5 8C15.5 3.875 12.125 0.5 8 0.5ZM12.875 9.125H3.125V6.875H12.875V9.125Z" fill="#BDBDBD"/>
@@ -358,6 +424,24 @@ const Coins = (props) => {
       );
     }
 
+
+    //Track change to description
+    const handleChange = e => {
+      e.preventDefault()
+      if(e.target.value.length < 20){
+        setDescription(e.target.value)
+      }
+    }
+  
+    //Confirm description, submit redux state to change Statecoin
+    function confirmDescription() {
+      if(dscpnConfirm === false) {
+        callAddDescription(showCoinDetails.coin.shared_key_id,description)
+
+      }
+      setDscrpnConfirm(!dscpnConfirm)
+    }
+
     return (
         <div 
           className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}>
@@ -383,107 +467,132 @@ const Coins = (props) => {
                   </span>
                 </div>
               </div>
+            
               {showCoinDetails?.coin?.status &&
                 showCoinDetails.coin.status !== STATECOIN_STATUS.AVAILABLE && (
                   <div className="item">
                     <CoinStatus data={showCoinDetails.coin} isDetails={true} />
                   </div>
                 )}
-              <div className="item">
-                <img src={utx} alt="icon" />
-                <div className="block">
-                  <span>UTXO ID:</span>
-                  <span>{showCoinDetails.coin.funding_txid}:{showCoinDetails.coin.funding_vout}</span>
-                </div>
-              </div>
-              <div className="item expiry-time">
-                <div className="expiry-time-wrap">
-                  <img src={time} alt="icon" />
-                  <div className="block">
+
+              {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
+                <div className="item qr-container">
+                  <div className="block qrcode">
                     <span>
                       Time Left Until Expiry
                     </span>
                     <span className="expiry-time-left">
                       {displayExpiryTime(
                         showCoinDetails.coin.expiry_data
-                      )}
+                      , true)}
+                      <QRCodeGenerator address = {getAddress(showCoinDetails.coin.shared_key_id)} amount={fromSatoshi(showCoinDetails.coin.amount)}/>
                     </span>
                   </div>
                 </div>
-                <div
-                  className="progress_bar"
-                  id={
-                    showCoinDetails.coin.expiry_data.days < DAYS_WARNING
-                      ? "danger"
-                      : "success"
-                  }
-                >
-                  <div className="sub">
-                    <ProgressBar>
-                      <ProgressBar
-                        striped
-                        variant={
-                          showCoinDetails.coin.expiry_data.days <
-                          DAYS_WARNING
-                            ? "danger"
-                            : "success"
-                        }
-                        now={
-                          (showCoinDetails.coin.expiry_data.days * 100) / 90
-                        }
-                        key={1}
-                      />
-                    </ProgressBar>
+              )
+              :
+              (
+                <div>
+                  <div className="item">
+                    <img src={utx} alt="icon" />
+                    <div className="block">
+                      <span>UTXO ID:</span>
+                      <span>{showCoinDetails.coin.funding_txid}:{showCoinDetails.coin.funding_vout}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className="item">
-                <img src={calendar} alt="icon" />
-                <div className="block">
-                  <span>Date Created</span>
-                  <Moment format="MM.DD.YYYY">
-                    {showCoinDetails.coin.timestamp}
-                  </Moment>
-                  <Moment format="h:mm a">
-                    {showCoinDetails.coin.timestamp}
-                  </Moment>
-                </div>
-              </div>
-              <div className="item">
-                <img src={showCoinDetails.coin.privacy_data.icon1} alt="icon" />
 
-                <div className="block">
-                  <span>Privacy Score</span>
-                  <span>{showCoinDetails.coin.privacy_data.score_desc}</span>
-                  <span className="privacy-score-help">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+                  <div className="item expiry-time">
+                    <div className="expiry-time-wrap">
+                      <img src={time} alt="icon" />
+                      <div className="block">
+                        <span>
+                          Time Left Until Expiry
+                        </span>
+                        <span className="expiry-time-left">
+                          {displayExpiryTime(
+                            showCoinDetails.coin.expiry_data
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className="progress_bar"
+                      id={
+                        showCoinDetails.coin.expiry_data.days < DAYS_WARNING
+                          ? "danger"
+                          : "success"
+                      }
                     >
-                      <path
-                        d="M18.9996 3H4.99963C3.89978 3 2.99963 3.90002 2.99963 5V19C2.99963 20.1 3.89978 21 4.99963 21H18.9996C20.0997 21 20.9996 20.1 20.9996 19V5C20.9996 3.90002 20.0997 3 18.9996 3ZM12.0096 18C11.3097 18 10.7496 17.44 10.7496 16.74C10.7496 16.03 11.3097 15.49 12.0096 15.49C12.7199 15.49 13.2596 16.03 13.2596 16.74C13.2496 17.43 12.7199 18 12.0096 18ZM15.0197 10.6C14.2596 11.71 13.5397 12.06 13.1498 12.77C12.9896 13.06 12.9298 13.25 12.9298 14.18H11.1097C11.1097 13.69 11.0297 12.89 11.4198 12.2C11.9098 11.33 12.8397 10.81 13.3798 10.04C13.9498 9.22997 13.6298 7.71001 12.0096 7.71001C10.9498 7.71001 10.4298 8.51 10.2098 9.18999L8.55969 8.48998C9.00964 7.15001 10.2199 5.99999 11.9896 5.99999C13.4698 5.99999 14.4796 6.66997 14.9996 7.52001C15.4398 8.23998 15.6998 9.59002 15.0197 10.6Z"
-                        fill="#666666"
-                      />
-                    </svg>
-                  </span>
-                </div>
-              </div>
-              <div className="item">
-                <img src={swapNumber} alt="icon" />
-                <div className="block">
-                  <span>Number of Swaps Rounds</span>
-                  <span>
-                    Swaps: {showCoinDetails.coin.swap_rounds}
-                    {/*
-                                    <br/>
-                                    Number of Participants: 0
-                                  */}
-                  </span>
-                </div>
-              </div>
+
+                      <div className="sub">
+                        <ProgressBar>
+                          <ProgressBar
+                            striped
+                            variant={
+                              showCoinDetails.coin.expiry_data.days <
+                              DAYS_WARNING
+                                ? "danger"
+                                : "success"
+                            }
+                            now={
+                              (showCoinDetails.coin.expiry_data.days * 100) / 90
+                            }
+                            key={1}
+                          />
+                        </ProgressBar>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="item">
+                    <img src={calendar} alt="icon" />
+                    <div className="block">
+                      <span>Date Created</span>
+                      <Moment format="MM.DD.YYYY">
+                        {showCoinDetails.coin.timestamp}
+                      </Moment>
+                      <Moment format="h:mm a">
+                        {showCoinDetails.coin.timestamp}
+                      </Moment>
+                    </div>
+                  </div>
+
+                  <div className="item">
+                    <img src={showCoinDetails.coin.privacy_data.icon1} alt="icon" />
+
+                    <div className="block">
+                      <span>Privacy Score</span>
+                      <span>{showCoinDetails.coin.privacy_data.score_desc}</span>
+                      <span className="privacy-score-help">
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M18.9996 3H4.99963C3.89978 3 2.99963 3.90002 2.99963 5V19C2.99963 20.1 3.89978 21 4.99963 21H18.9996C20.0997 21 20.9996 20.1 20.9996 19V5C20.9996 3.90002 20.0997 3 18.9996 3ZM12.0096 18C11.3097 18 10.7496 17.44 10.7496 16.74C10.7496 16.03 11.3097 15.49 12.0096 15.49C12.7199 15.49 13.2596 16.03 13.2596 16.74C13.2496 17.43 12.7199 18 12.0096 18ZM15.0197 10.6C14.2596 11.71 13.5397 12.06 13.1498 12.77C12.9896 13.06 12.9298 13.25 12.9298 14.18H11.1097C11.1097 13.69 11.0297 12.89 11.4198 12.2C11.9098 11.33 12.8397 10.81 13.3798 10.04C13.9498 9.22997 13.6298 7.71001 12.0096 7.71001C10.9498 7.71001 10.4298 8.51 10.2098 9.18999L8.55969 8.48998C9.00964 7.15001 10.2199 5.99999 11.9896 5.99999C13.4698 5.99999 14.4796 6.66997 14.9996 7.52001C15.4398 8.23998 15.6998 9.59002 15.0197 10.6Z"
+                            fill="#666666"
+                          />
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="item">
+                    <img src={swapNumber} alt="icon" />
+                    <div className="block">
+                      <span>Number of Swaps Rounds</span>
+                      <span>
+                        Swaps: {showCoinDetails.coin.swap_rounds}
+                        {/*
+                                        <br/>
+                                        Number of Participants: 0
+                                      */}
+                      </span>
+                    </div>
+                  </div>
+                </div>)}
             </div>
           </Modal.Body>
           <Modal.Footer>

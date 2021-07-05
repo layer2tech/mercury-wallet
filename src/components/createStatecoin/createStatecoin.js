@@ -1,5 +1,5 @@
 import plus from "../../images/plus-deposit.png";
-
+import Spinner from 'react-bootstrap/Spinner'
 import React, {useState, useEffect} from 'react';
 
 import {callGetCoinsInfo, callGetFeeInfo} from '../../features/WalletDataSlice'
@@ -15,8 +15,11 @@ const LIQUIDITY_HIGH=20;
 const NUM_HIGH_LIQUIDITY=3;
 
 const CreateStatecoin = (props) => {
+
     const [state, setState] = useState(0);
-    const [liquidityData, setLiquidityData] = useState(DEFAULT_LIQUIDITY_VALUES);
+    const [liquidityData, setLiquidityData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState({error: false, message:""});
 
     const createCoinButtonAction = () => {
       props.addSelectionPanel()
@@ -79,7 +82,14 @@ const CreateStatecoin = (props) => {
         callGetFeeInfo().then(fee =>  {
           liquidity_data = liquidity_data.filter(statecoin => statecoin.value >= (FEE + ((statecoin.value * fee.withdraw) / 10000)));
           setLiquidityData(liquidity_data);
+          setLoading(false);
+        }).catch(e => {
+          setError({error: true, message: 'Failed retrieving fee info from server...'});
+          setLoading(false);
         });
+      }).catch(e => {
+        setLoading(false);
+        setError({error: true, message: 'Failed retrieving statecoin values from server...'});
       });
     }, [props.settings]);
 
@@ -95,15 +105,35 @@ const CreateStatecoin = (props) => {
         </div>
       ));
 
+    const loadingStateCoins =  (<div>
+      <div><Spinner animation="border" variant="primary" ></Spinner></div>
+      <div>Loading statecoin values...</div>
+      <br/>
+    </div>);
+
+    const errorLoading = (
+      <div>
+        <div><Spinner animation="border" variant="danger" ></Spinner></div>
+        <br/>
+        <div className='custom-modal-info alert-danger'>{error.message}</div>
+        <br/>
+      </div>
+    );
+
+    const createAnotherStatecoin = (
+      <div className="Body">
+        <span className={"create-title"} onClick={createCoinButtonAction}>
+            <img src={plus} alt="plus"/>
+            CREATE ANOTHER STATECOIN
+        </span>
+      </div>
+    );
+
     return (
         <div>
-          {populateWithSelectionPanels}
-            <div className="Body">
-              <span className={"create-title"} onClick={createCoinButtonAction}>
-                  <img src={plus} alt="plus"/>
-                  CREATE ANOTHER STATECOIN
-              </span>
-            </div>
+          {error.error && errorLoading}
+          {!error.error && loading ?  loadingStateCoins : populateWithSelectionPanels}
+          {!error.error && !loading && createAnotherStatecoin}
         </div>
     )
 }

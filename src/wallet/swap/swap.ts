@@ -1,12 +1,15 @@
 // Conductor Swap protocols
 
+import {mutex} from "../http_client"
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
-import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo } from "./info_api";
+import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
 import { getStateChain } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
+import { release } from 'os';
+
 
 let bitcoin = require("bitcoinjs-lib");
 
@@ -24,9 +27,9 @@ try {
 }
 
 export const pingServer = async (
-  conductor_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
 ) => {
-  return await conductor_client.get(GET_ROUTE.PING, {})
+  return await http_client.get(GET_ROUTE.PING, {})
 }
 
 function delay(s: number) {
@@ -48,7 +51,7 @@ Object.freeze(SWAP_STATUS);
 
 // Register coin to swap pool and set to phase0
 export const swapInit = async (
-  conductor_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   statecoin: StateCoin,
   proof_key_der: BIP32Interface,
   swap_size: number
@@ -64,8 +67,8 @@ export const swapInit = async (
     signature: sc_sig,
     swap_size: swap_size
   };
-
-  await swapRegisterUtxo(conductor_client, registerUtxo);
+  
+  await swapRegisterUtxo(http_client, registerUtxo);
   log.info("Coin registered for Swap. Coin ID: ", statecoin.shared_key_id)
 
   statecoin.swap_status=SWAP_STATUS.Phase0;
@@ -74,7 +77,7 @@ export const swapInit = async (
 
 // Poll Conductor awaiting for swap pool to initialise.
 export const swapPhase0 = async (
-  conductor_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   statecoin: StateCoin,
 ) => {
   // check statecoin is still AWAITING_SWAP
@@ -83,10 +86,10 @@ export const swapPhase0 = async (
 
   let statechain_id: StatechainID = {
     id: statecoin.statechain_id
-  }
+  };
 
   // PollUtxo. If swap has begun store SwapId in Statecoin
-  let swap_id = await pollUtxo(conductor_client, statechain_id);
+  let swap_id = await pollUtxo(http_client, statechain_id);
 
   if (swap_id.id !== null) {
     log.info("Swap Phase0: Swap ID received: ", swap_id)
@@ -99,7 +102,6 @@ export const swapPhase0 = async (
 // Return an SCE-Address and produce a signature over the swap_token with the
 //  proof key that currently owns the state chain they are transferring in the swap.
 export const swapPhase1 = async (
-  conductor_client: HttpClient |  MockHttpClient,
   http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   statecoin: StateCoin,
@@ -112,7 +114,19 @@ export const swapPhase1 = async (
   if (statecoin.swap_status!==SWAP_STATUS.Phase1) throw Error("Coin is not in this phase of the swap protocol. In phase: "+statecoin.swap_status);
   if (statecoin.swap_id===null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
 
-  let swap_info = await getSwapInfo(conductor_client, statecoin.swap_id);
+  //Check swap id again to confirm that the coin is still awaiting swap
+  //according to the server
+  let statechain_id: StatechainID = {
+    id: statecoin.statechain_id
+  };
+  
+  let swap_id = await pollUtxo(http_client, statechain_id);
+  statecoin.swap_id = swap_id
+  if (statecoin.swap_id == null || statecoin.swap_id.id == null) {
+    throw new Error("In swap phase 1 - no swap ID found");
+  } 
+  
+  let swap_info = await getSwapInfo(http_client, statecoin.swap_id);
 
   // Drop out of function if swap info not yet available
   if (swap_info === null){
@@ -134,7 +148,6 @@ export const swapPhase1 = async (
 
   let transfer_batch_sig = StateChainSig.new_transfer_batch_sig(proof_key_der,statecoin.swap_id.id,statecoin.statechain_id);
   let my_bst_data = await first_message(
-    conductor_client,
     http_client,
     wasm_client,
     swap_info,
@@ -154,7 +167,7 @@ export const swapPhase1 = async (
 // Poll swap until phase changes to Phase2. In that case all participants have completed Phase1
 // and swap second message can be performed.
 export const swapPhase2 = async (
-  conductor_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   statecoin: StateCoin,
 ) => {
@@ -166,7 +179,7 @@ export const swapPhase2 = async (
   if (statecoin.swap_my_bst_data===null) throw Error("No BST data found for coin. BST data should be set in Phase1.");
 
   // Poll swap until phase changes to Phase2.
-  let phase: string = await pollSwap(conductor_client, statecoin.swap_id);
+  let phase: string = await pollSwap(http_client, statecoin.swap_id);
 
 
   await delay(1);
@@ -175,28 +188,29 @@ export const swapPhase2 = async (
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase1) {
     return
+  } else if (phase == null){
+    throw new Error("Swap halted at phase 1");
   } else if (phase !== SWAP_STATUS.Phase2){
     throw new Error("Swap error: Expected swap phase2. Received: "+phase);
   }
   log.info("Swap Phase2: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
+  
+  let bss = await get_blinded_spend_signature(http_client, statecoin.swap_id.id, statecoin.statechain_id);
 
-
-  let bss = await get_blinded_spend_signature(conductor_client, statecoin.swap_id.id, statecoin.statechain_id);
-//  conductor_client.new_tor_id();  
+  await http_client.new_tor_id(); 
 
   await delay(1);
-  let receiver_addr = await second_message(conductor_client, wasm_client, statecoin.swap_id.id, statecoin.swap_my_bst_data, bss);
 
+  let receiver_addr = await second_message(http_client, wasm_client, statecoin.swap_id.id, statecoin.swap_my_bst_data, bss);
   // Update coin with receiver_addr and update status
   statecoin.swap_receiver_addr=receiver_addr;
-  statecoin.swap_status=SWAP_STATUS.Phase3;
+  statecoin.swap_status=SWAP_STATUS.Phase3;  
 }
 
 
 // Poll swap until phase changes to Phase3/4. In that case all carry out transfer_sender
 // and transfer_receiver
 export const swapPhase3 = async (
-  conductor_client: HttpClient |  MockHttpClient,
   http_client: HttpClient |  MockHttpClient,
   electrum_client: ElectrumClient |  MockElectrumClient,
   wasm_client: any,
@@ -215,7 +229,7 @@ export const swapPhase3 = async (
   if (statecoin.swap_address===null) throw Error("No swap address found for coin. Swap address should be set in Phase1.");
   if (statecoin.swap_receiver_addr===null) throw Error("No receiver address found for coin. Receiver address should be set in Phase1.");
 
-  let phase = await pollSwap(conductor_client, statecoin.swap_id);
+  let phase = await pollSwap(http_client, statecoin.swap_id);
 
   // We expect Phase4 here but should be Phase3. Server must slighlty deviate from protocol specification.
 
@@ -225,7 +239,11 @@ export const swapPhase3 = async (
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase2 || phase === SWAP_STATUS.Phase3) {
     return
-  } else if (phase !== SWAP_STATUS.Phase4){
+  }
+  else if (phase == null){
+    throw new Error("Swap halted at phase 3"); 
+  }
+  else if (phase !== SWAP_STATUS.Phase4){
     throw new Error("Swap error: swapPhase3: Expected swap phase4. Received: "+phase);
   }
   log.info("Swap Phase3: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
@@ -254,16 +272,17 @@ export const swapPhase3 = async (
 
   await delay(1);
 
-  // Update coin status
-  statecoin.swap_transfer_finalized_data=transfer_finalized_data;
-  statecoin.swap_status=SWAP_STATUS.Phase4;
+  if(transfer_finalized_data !== null){
+    // Update coin status
+    statecoin.swap_transfer_finalized_data=transfer_finalized_data;
+    statecoin.swap_status=SWAP_STATUS.Phase4;
+  }
 }
 
 
 
 // Poll swap until phase changes to Phase End. In that case complete swap by performing transfer finalize.
 export const swapPhase4 = async (
-  conductor_client: HttpClient |  MockHttpClient,
   http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   statecoin: StateCoin,
@@ -276,9 +295,10 @@ export const swapPhase4 = async (
   if (statecoin.swap_info===null) throw Error("No swap info found for coin. Swap info should be set in Phase1.");
   if (statecoin.swap_transfer_finalized_data===null) throw Error("No transfer finalize data found for coin. Transfer finalize data should be set in Phase1.");
 
-  let phase = await pollSwap(conductor_client, statecoin.swap_id);
-
+  
+  let phase = await pollSwap(http_client, statecoin.swap_id);
   // If still in previous phase return nothing.
+
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase3) {
     return null
@@ -289,19 +309,21 @@ export const swapPhase4 = async (
 
   await delay(1);
 
-  // Complete transfer for swap and receive new statecoin
-  let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
-
-  // Update coin status and num swap rounds
-  statecoin.swap_status=SWAP_STATUS.End;
-  statecoin_out.swap_rounds=statecoin.swap_rounds+1;
-
-  return statecoin_out;
+  // Complete transfer for swap and receive new statecoin  
+  try {
+    let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
+    // Update coin status and num swap rounds
+    statecoin.swap_status=SWAP_STATUS.End;
+    statecoin_out.swap_rounds=statecoin.swap_rounds+1;
+    return statecoin_out;
+  } catch(e){ 
+    //Keep retrying - an authentication error may occur at this stage depending on the
+    //server state
+  } 
 }
 
 // Loop through swap protocol for some statecoin
 export const do_swap_poll = async(
-  conductor_client: HttpClient |  MockHttpClient,
   http_client: HttpClient |  MockHttpClient,
   electrum_client: ElectrumClient |  MockElectrumClient,
   wasm_client: any,
@@ -318,45 +340,60 @@ export const do_swap_poll = async(
 
   // Reset coin's swap data
   statecoin.setSwapDataToNull()
-
   statecoin.swap_status = SWAP_STATUS.Init;
   statecoin.setAwaitingSwap();
+
+  const INIT_RETRY_AFTER=5
+  let swap0_count=0;
 
   let new_statecoin = null;
     while (new_statecoin==null) {
       try {
+        console.log(`swap status: ${statecoin.swap_status}`);
         switch (statecoin.swap_status) {
           case null: {  // Coin has been removed from swap
             return null;
           }
           case SWAP_STATUS.Init: {
-            await swapInit(conductor_client, statecoin, proof_key_der, swap_size);
+            await swapInit(http_client, statecoin, proof_key_der, swap_size);
             break;
           }
           case SWAP_STATUS.Phase0: {
-            await swapPhase0(conductor_client, statecoin);
+            if(swap0_count < INIT_RETRY_AFTER){
+              try{
+                await swapPhase0(http_client, statecoin);
+              } finally {
+                swap0_count++;
+              }
+            } else {
+              swap0_count = 0;
+              await swapDeregisterUtxo(http_client, {id: statecoin.statechain_id});
+              statecoin.setSwapDataToNull();
+              statecoin.swap_status = SWAP_STATUS.Init;
+              statecoin.setAwaitingSwap();
+            }
+            
             break;
           }
           case SWAP_STATUS.Phase1: {
-            await swapPhase1(conductor_client, http_client, wasm_client, statecoin, proof_key_der, new_proof_key_der);
+            await swapPhase1(http_client, wasm_client, statecoin, proof_key_der, new_proof_key_der);
             break;
           }
           case SWAP_STATUS.Phase2: {
-            await swapPhase2(conductor_client, wasm_client, statecoin);
+            await swapPhase2(http_client, wasm_client, statecoin);
             break;
           }
           case SWAP_STATUS.Phase3: {
             if (statecoin.swap_address===null) throw Error("No swap address found for coin. Swap address should be set in Phase1.");
-            await swapPhase3(conductor_client, http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations);
+            await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations);
             break;
           }
           case SWAP_STATUS.Phase4: {
-            new_statecoin = await swapPhase4(conductor_client, http_client, wasm_client, statecoin);
+            new_statecoin = await swapPhase4(http_client, wasm_client, statecoin);
           }
         }
       } catch (e) {
-        // Some errors are expected to be thrown throughout, however others may be critical.
-        // TODO: catch critical errors
+        throw new Error(`${e}`);
       }
       await delay(5);
     }
@@ -394,19 +431,20 @@ export const do_transfer_receiver = async (
   rec_se_addr: SCEAddress,
   rec_se_addr_bip32: BIP32Interface,
   req_confirmations: number
-): Promise<TransferFinalizeData> => {
+): Promise<TransferFinalizeData | null> => {
   for (var id of statechain_ids){
     let msg3;
     while(true) {
       try{
         msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG,{"id":id});
       }catch(err){
-        if (!err.includes("DB Error: No Data for identifier")) {
+        if (!err.message.includes("DB Error: No data for identifier")) {
           throw err;
-        } 
-        await delay(3);
+        }
+        await delay(3); 
         continue;
-      }
+      } 
+
       typeforce(types.TransferMsg3, msg3);
       if (msg3.rec_se_addr.proof_key===rec_se_addr.proof_key){
         let batch_data = {
@@ -422,7 +460,7 @@ export const do_transfer_receiver = async (
       }
     }
   }
-  throw new Error('no swap transfer message addressed to me');
+  return null;
 }
 
 //conductor::register_utxo,
@@ -529,7 +567,6 @@ export interface StateChainDataAPI{
 }
 
 export const first_message = async (
-  conductor_client: HttpClient |  MockHttpClient,
   http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   swap_info: SwapInfo,
@@ -571,7 +608,7 @@ export const first_message = async (
   }
   typeforce(types.SwapMsg1, swapMsg1);
 
-  await conductor_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1)
+  await http_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1)
 
   return my_bst_data;
 }
@@ -582,7 +619,7 @@ export interface BlindedSpendSignature{
 }
 
 export const get_blinded_spend_signature = async(
-  conductor_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   swap_id: String,
   statechain_id: String,
 ): Promise<BlindedSpendSignature> => {
@@ -590,13 +627,13 @@ export const get_blinded_spend_signature = async(
     "swap_id": swap_id,
     "statechain_id": statechain_id,
   };
-  let result =  await conductor_client.post(POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE, bstMsg);
+  let result =  await http_client.post(POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE, bstMsg);
   typeforce(types.BlindedSpendSignature, result);
   return result;
 }
 
 export const second_message = async (
-  conductor_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   swap_id: String,
   my_bst_data: BSTRequestorData,
@@ -615,7 +652,7 @@ export const second_message = async (
     "swap_id":swap_id,
     "blinded_spend_token":bst,
   };
-  let result =  await conductor_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2);
+  let result =  await http_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2);
   typeforce(types.SCEAddress, result);
 
   return result;
@@ -641,10 +678,10 @@ export interface SwapMsg2{
 }
 
 export const swapSecondMessage = async (
-  conductor_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient |  MockHttpClient,
   swapMsg2: SwapMsg2,
 ) => {
-  return await conductor_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2)
+  return await http_client.post(POST_ROUTE.SWAP_SECOND, swapMsg2)
 }
 
 export interface SwapMsg1 {
