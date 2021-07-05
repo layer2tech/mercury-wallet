@@ -59,7 +59,7 @@ const SettingsPage = (props) => {
     });
   }
   const decreaseMinAnonSet = (e) => { minAnonSet>3 ? (setMinAnonSet(minAnonSet-1)):(e.preventDefault()) };
-  const increaseMinAnonSet = () => { setMinAnonSet(minAnonSet+1) };
+  const increaseMinAnonSet = (e) => { minAnonSet>=10?(e.preventDefault()):(setMinAnonSet(minAnonSet+1))};
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -196,7 +196,7 @@ const SettingsPage = (props) => {
                               <input className="quantity" name="quantity" value={minAnonSet}
                                      type="text" placeholder="0 BTC"/>
                               <label className="control-label"
-                                      htmlFor="Anonymity Set">Swap Anonymity Group Size</label>
+                                      htmlFor="Anonymity Set">Swap group size</label>
                               <span onClick={increaseMinAnonSet} className="plus update-min-anon-set" />
                           </div>
                       </form>
