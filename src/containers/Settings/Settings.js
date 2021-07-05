@@ -58,7 +58,7 @@ const SettingsPage = (props) => {
       [evt.target.name]: evt.target.value
     });
   }
-  const decreaseMinAnonSet = (e) => { minAnonSet>0 ? (setMinAnonSet(minAnonSet-1)):(e.preventDefault()) };
+  const decreaseMinAnonSet = (e) => { minAnonSet>3 ? (setMinAnonSet(minAnonSet-1)):(e.preventDefault()) };
   const increaseMinAnonSet = () => { setMinAnonSet(minAnonSet+1) };
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
