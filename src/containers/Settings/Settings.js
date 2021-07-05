@@ -149,7 +149,7 @@ const SettingsPage = (props) => {
                                 <label className="control-label"
                                       htmlFor="address-port">Server Port</label>
                             </div>
-                            <div className="inputs-item">
+                            <div className="inputs-item protocol">
                                 <input id="address-protocol" type="text" name="protocol" value={elecAddr.protocol}
                                       onChange={onElecAddrChange} required/>
                                 <label className="control-label"
@@ -214,12 +214,12 @@ const SettingsPage = (props) => {
                           checked={!!notifications}
                           onChange={onNotificationChange}
                         />
-                        <CheckBox
+                        {/* <CheckBox
                           label="Tutorials"
                           description="Toggle show tutorials"
                           checked={!!tutorials}
                           onChange={onTutorialChange}
-                        />
+                        /> */}
                       </div>
 
                   </div>

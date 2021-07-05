@@ -35,6 +35,11 @@
     padding: 10px;
 }
 
+
+.settings .content .inputs .inputs-item.protocol label{
+    width:116px;
+}
+
 .input-group .inputs-item {
     width: 38%;
 }
@@ -102,7 +107,7 @@ input.quantity {
     width: 80%;
 }
 
-.settings .content .inputs .inputs-item input{
+.settings .content .inputs .inputs-item.def-number-input input{
     color: transparent;
     text-shadow: 0 0 0 grey;
 }
