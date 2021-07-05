@@ -41,6 +41,25 @@ export class StateCoinList {
         }
         item.tx_backup = tx_backup;
       }
+
+      // re-build tx_cpfp as Transaction
+      if (item.tx_cpfp!==undefined && item.tx_cpfp !== null) {
+        let tx_cpfp_any: any = item.tx_cpfp;
+        console.log('tx_cpfp_any = ' + tx_cpfp_any);
+        let tx_cpfp = new Transaction();
+        tx_cpfp.version = tx_cpfp_any.version;
+        tx_cpfp.locktime = tx_cpfp_any.locktime;
+        if (tx_cpfp_any.ins.length>0) {
+          tx_cpfp.addInput(Buffer.from(tx_cpfp_any.ins[0].hash), tx_cpfp_any.ins[0].index, tx_cpfp_any.ins[0].sequence)
+          if (tx_cpfp_any.ins[0].witness.length>0) {
+            tx_cpfp.ins[0].witness = [Buffer.from(tx_cpfp_any.ins[0].witness[0]),Buffer.from(tx_cpfp_any.ins[0].witness[1])];
+          }
+        }
+        if (tx_cpfp_any.outs.length>0) {
+          tx_cpfp.addOutput(Buffer.from(tx_cpfp_any.outs[0].script), tx_cpfp_any.outs[0].value)
+        }
+        item.tx_cpfp = tx_cpfp;
+      }
       statecoins.coins.push(Object.assign(coin, item));
     })
     return statecoins
@@ -62,10 +81,11 @@ export class StateCoinList {
         item.status===STATECOIN_STATUS.AWAITING_SWAP ||
         item.status===STATECOIN_STATUS.IN_TRANSFER ||
         item.status===STATECOIN_STATUS.WITHDRAWN ||
-        item.status===STATECOIN_STATUS.SWAPLIMIT
+        item.status===STATECOIN_STATUS.SWAPLIMIT ||
+        item.status===STATECOIN_STATUS.EXPIRED
       ) {
         // Add all but withdrawn coins to total balance 
-        if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.IN_TRANSFER) {
+        if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.IN_TRANSFER && item.status!=STATECOIN_STATUS.EXPIRED) {
           total += item.value
         }
         return item
@@ -156,6 +176,8 @@ export class StateCoinList {
         case ACTION.SWAP:
           coin.setSwapped();
           return;
+        case ACTION.EXPIRED:
+          coin.setExpired();
       }
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);

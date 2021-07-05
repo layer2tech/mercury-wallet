@@ -6,7 +6,8 @@ import {
   InSwapIcon,
   AwaitingSwapIcon,
   InitialisedIcon,
-  SwapLimitIcon
+  SwapLimitIcon,
+  ExpiredIcon
 } from './statusIcons';
 import { CopiedButton } from '../../components';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -30,6 +31,10 @@ const STATECOIN_STATUS_INFO = {
   [STATECOIN_STATUS.SWAPLIMIT]:{
     icon: <SwapLimitIcon />,
     title: 'Expiring Soon'
+  },
+  [STATECOIN_STATUS.EXPIRED]:{
+    icon: <ExpiredIcon />,
+    title: 'Expired'
   },
   [STATECOIN_STATUS.IN_SWAP]: {
     icon: <InSwapIcon />,

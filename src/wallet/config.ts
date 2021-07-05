@@ -5,7 +5,7 @@ import { ElectrumClientConfig } from "./electrum";
 
 let cloneDeep = require('lodash.clonedeep');
 
-const DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
+const DEFAULT_STATE_ENTITY_ENPOINT = "http://0.0.0.0:8000";
 
 export class Config {
   // Set at startup only
@@ -42,7 +42,7 @@ export class Config {
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
-      host: 'wallet.mercurywallet.io',
+      host: '0.0.0.0',
       port: 50004,
       protocol: 'wss',
     }
@@ -56,7 +56,7 @@ export class Config {
     this.min_anon_set = 5;
     this.notifications = true;
     this.tutorials = false;
-    this.swaplimit = 1440;
+    this.swaplimit = 100;
 
     // update defaults with config in settings.json
     this.update(require("../settings.json"))
