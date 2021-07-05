@@ -3,7 +3,7 @@
 import {mutex} from "../http_client"
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
-import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo } from "./info_api";
+import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
 import { getStateChain } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
@@ -340,9 +340,11 @@ export const do_swap_poll = async(
 
   // Reset coin's swap data
   statecoin.setSwapDataToNull()
-
   statecoin.swap_status = SWAP_STATUS.Init;
   statecoin.setAwaitingSwap();
+
+  const INIT_RETRY_AFTER=5
+  let swap0_count=0;
 
   let new_statecoin = null;
     while (new_statecoin==null) {
@@ -357,7 +359,20 @@ export const do_swap_poll = async(
             break;
           }
           case SWAP_STATUS.Phase0: {
-            await swapPhase0(http_client, statecoin);
+            if(swap0_count < INIT_RETRY_AFTER){
+              try{
+                await swapPhase0(http_client, statecoin);
+              } finally {
+                swap0_count++;
+              }
+            } else {
+              swap0_count = 0;
+              await swapDeregisterUtxo(http_client, {id: statecoin.statechain_id});
+              statecoin.setSwapDataToNull();
+              statecoin.swap_status = SWAP_STATUS.Init;
+              statecoin.setAwaitingSwap();
+            }
+            
             break;
           }
           case SWAP_STATUS.Phase1: {
