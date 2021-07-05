@@ -49,6 +49,42 @@
     top: 7px;
 }
 
+.wizard-form .terms-conditions {
+    background-color: #ffffff;
+    border: none;
+    padding: 30px;
+    margin-bottom: 15px;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+    border-radius: 4px;
+    z-index: 150;
+    position: absolute;
+    top: 8%;
+    left: 7%;
+    margin-right:7%;
+}
+
+.restore-form .wizard-form .terms-conditions{
+    top:0%;
+}
+
+
+.wizard-form .tc-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100;
+}
+.wizard-form .terms-conditions .group-btns.tcs{
+    display: flex;
+    justify-content: flex-end;
+}
+
+.wizard-form .terms-conditions .group-btns .primary-btn.ghost{
+    padding: 2px 4px;
+}
+
 li.go2067797667:last-child::before {
     content: "3" !important;
 }
