@@ -119,6 +119,7 @@ export const walletLoad = (name, password) => {
   mutex.runExclusive(async () => {
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
+    wallet.updateSwapStatus();
     wallet.updateSwapGroupInfo();
   });
 }
@@ -295,6 +296,12 @@ export const callUpdateSwapGroupInfo = createAsyncThunk(
     wallet.updateSwapGroupInfo();
   }
 )
+export const callUpdateSwapStatus = createAsyncThunk(
+  'UpdateSwapStatus',
+  async (action, thunkAPI) => {
+    wallet.updateSwapStatus();
+  }
+)
 export const callSwapDeregisterUtxo = createAsyncThunk(
   'SwapDeregisterUtxo',
   async (action, thunkAPI) => {
@@ -423,6 +430,9 @@ const WalletSlice = createSlice({
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callUpdateSwapGroupInfo.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callUpdateSwapStatus.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callSwapDeregisterUtxo.rejected]: (state, action) => {

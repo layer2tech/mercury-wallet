@@ -14,11 +14,19 @@ import { SwapGroup, do_swap_poll } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
-import { groupInfo } from './swap/info_api';
+import { groupInfo, swapDeregisterUtxo, pollSwap, pollUtxo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
 import os  from 'os';
 //import { remote } from 'electron';
+
+import { AsyncSemaphore } from "@esfx/async-semaphore";
+import { delay } from './mercury/info_api';
+
+const MAX_SWAP_SEMAPHORE_COUNT=100;
+const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
+const MAX_UPDATE_SWAP_SEMAPHORE_COUNT=1;
+const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -36,15 +44,6 @@ try {
   log = require('electron-log');
 }
 
- //let tor=undefined;
- //child_processs.exec(tor_cmd); 
- /*
- as string, {},  (error: any) => {
-    if(error){
-      console.log(error);
-    };
- });
- */
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
@@ -163,7 +162,7 @@ export class Wallet {
       return chain
     })
 
-    new_wallet.account = new bip32utils.Account(chains)
+    new_wallet.account = new bip32utils.Account(chains);
     return new_wallet
   }
 
@@ -703,15 +702,39 @@ export class Wallet {
 
     
     let new_statecoin=null;
+    await swapSemaphore.wait();
     try{
+      await (async () => {
+        while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+          delay(100);
+        }
+      });
+      await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+      this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
+    } catch(e){
+      if (! e.message.includes("Coin is not in a swap pool")){
+        throw e;
+      }
+    } finally {
+      swapSemaphore.release();
+    }
+    await swapSemaphore.wait();
+    try{
+      await (async () => {
+        while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+          delay(100);
+        }
+      });
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
     } catch(e){
-      log.info(`Swap was not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
+      log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
+      swapSemaphore.release();
       if (new_statecoin==null) {
-        statecoin.setConfirmed();
+        statecoin.setSwapDataToNull();
+        this.saveStateCoinsList();
         return null;
-     }
+      }
       // Mark funds as spent in wallet
       this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 
@@ -734,10 +757,26 @@ export class Wallet {
     this.swap_group_info = await groupInfo(this.http_client);
   }
 
-  //Check if any coins awaiting swap are still awaiting swap
-  //async updateAwaitingSwapInfo() {
-  //  this.swap_group_info = await groupInfo(this.conductor_client);
- // }
+  //If there are no swaps running then set all the statecoin swap data to null
+  async updateSwapStatus() {
+    //If there are no do_swap processes running then the swap statuses should all be nullified
+    await swapSemaphore.wait();
+    await updateSwapSemaphore.wait();
+    try {
+      if (swapSemaphore.count === MAX_SWAP_SEMAPHORE_COUNT - 1){
+        this.statecoins.coins.forEach(
+          async (statecoin) => {
+            if(statecoin.status == STATECOIN_STATUS.IN_SWAP || statecoin.status == STATECOIN_STATUS.AWAITING_SWAP){
+              statecoin.setSwapDataToNull();
+            }
+          }
+        );
+      }
+    } finally {
+      swapSemaphore.release();
+      updateSwapSemaphore.release();
+    }
+  }
 
   // Perform transfer_sender
   // Args: shared_key_id of coin to send and receivers se_addr.
