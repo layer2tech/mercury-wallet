@@ -64,6 +64,25 @@ const PanelConnectivity = (props) => {
       return () => clearInterval(interval);
   }, [block_height]);
 
+  useEffect(() => {
+    //Displaying connecting spinners
+    let connection_pending = document.getElementsByClassName("checkmark")
+
+    //Add spinner for loading connection to Server
+    fee_info.deposit !== "NA" ? (connection_pending[0].classList.add("connected")):(connection_pending[0].classList.remove("connected"))
+
+    //Add spinner for loading connection to Swaps
+    if(swap_groups_array.length){
+        connection_pending[1].classList.add("connected")
+    }
+    else{
+        connection_pending[1].classList.remove("connected")
+    }
+    
+    //Add spinner for loading connection to Electrum server
+    block_height ? (connection_pending[2].classList.add("connected")):(connection_pending[2].classList.remove("connected")) 
+  },[fee_info.deposit,swap_groups_array.length,block_height])
+
   return (
       <div className="Body small accordion connection-wrap">
           <div className="Collapse">
@@ -74,7 +93,7 @@ const PanelConnectivity = (props) => {
                           type="radio"
                           checked={fee_info.deposit !== "NA"}
                       />
-                      Connected to Server
+                      {fee_info.deposit !== "NA" ?("Connected"):("Connecting") } to Server
                       <span className="checkmark"></span>
                   </label>
               </div>
@@ -85,7 +104,7 @@ const PanelConnectivity = (props) => {
                         type="radio"
                         checked={swap_groups_array.length}
                       />
-                      Connected to Swaps
+                      {swap_groups_array.length ? ("Connected"):("Connecting")} to Swaps
                       <span className="checkmark"></span>
                   </label>
               </div>
@@ -96,7 +115,7 @@ const PanelConnectivity = (props) => {
                           type="radio"
                           checked={block_height}
                       />
-                      Connected to Electrum
+                      {block_height?("Connected"):("Connecting") } to Electrum
                       <span className="checkmark"></span>
                   </label>
               </div>
