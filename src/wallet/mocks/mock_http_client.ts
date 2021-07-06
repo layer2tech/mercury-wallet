@@ -2,6 +2,7 @@
 // Mock Classes  are followed by mock data for full protocol runs.
 
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
+import { SwapID } from "../swap/swap";
 // import { SIGNSWAPTOKEN_DATA, BST_DATA } from "../test/test_data";
 
 let cloneDeep = require('lodash.clonedeep');
@@ -54,6 +55,8 @@ export class MockHttpClient {
           return
         case POST_ROUTE.TRANSFER_GET_MSG:
           return TRANSFER_PUBKEY
+        case POST_ROUTE.SWAP_POLL_UTXO:
+          return POLL_UTXO
       }
     }
 
@@ -126,9 +129,7 @@ export const TRANSFER_PUBKEY = {key:"03b1e51eb08539dcbf58995f9e75519071d4acd88d1
 export const TRANSFER_RECEIVER = {new_shared_key_id:"d91553ca-8cab-4eef-b315-28583fd4180b",s2_pub:{x:"abc03bfe5e2fb3d54a58069bb06cef5d25533da24d928679b1fa9e9c97b6e0e0",y:"d47dc07001729dd5adb19c52a1ce1b9c360b0e15abb5dabd652dbba787fe35c0"}}
 
 //SwapID
-export const POLL_UTXO = {
-  id: "00000000-0000-0000-0000-000000000001"
-}
+export const POLL_UTXO: SwapID = { id: "00000000-0000-0000-0000-000000000001" };
 
 //SwapID
 export const POLL_SWAP_1 = "Phase1"
