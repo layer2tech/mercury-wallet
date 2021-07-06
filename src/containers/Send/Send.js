@@ -87,7 +87,7 @@ const SendStatecoinPage = () => {
     setRefreshCoins((prevState) => !prevState);
     setOpenSendModal({ show: false })
     setCoinDetails({})
-    dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer message to finalise."}))
+    dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer key to finalise."}))
   }
 
   return (

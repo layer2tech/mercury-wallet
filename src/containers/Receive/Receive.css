@@ -15,7 +15,7 @@
     background-color: #ECF2FF;
     padding: 20px;
 }
-.receiveStatecoin-scan-txid:hover .copy-btn-wrap {
+.receiveStatecoin-scan-txid:hover .copy-btn-wrap .address {
     cursor: pointer;
     color: #0054F4;
 }
@@ -30,14 +30,35 @@
     flex: 1;
 }
 
-.receiveStatecoin-scan-txid span {
+.receiveStatecoin-scan-content .btns-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.receiveStatecoin-scan-content .btns-container .receive-btns button{
+    background: #666666;
+    color: #ffffff;
+    border-radius: 0.15rem;
+    font-size:15px;
+}
+.receiveStatecoin-scan-content .btns-container .receive-btns.active{
+    background: #0054F4;
+}
+
+.receiveStatecoin-scan-txid .address span {
     display: block;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: bold;
     line-break: anywhere;
     text-align: left;
     margin-left: 10px;
 }
+
+.receiveStatecoin-scan-txid .copy-btn-wrap .address-index{
+    display: flex;
+    justify-content: space-between;
+}
+
 .receiveStatecoin-scan-txid img {
     width: 16px;
     height: 16px;
