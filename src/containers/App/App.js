@@ -37,7 +37,8 @@ const App = () => {
         <Route path="/withdraw" exact component={() => <WithdrawPage />} />
         <Route path="/swap_statecoin" exact component={() => <SwapPage />} />
         <Route path="/send_statecoin" exact component={() => <SendStatecoinPage />} />
-        <Route path="/receive_statecoin" exact component={() => <ReceiveStatecoinPage />} />
+        {walletLoaded === false ? (null):(
+        <Route path="/receive_statecoin" exact component={() => <ReceiveStatecoinPage />} />)}
         <Route path="/backup_tx" exact component={() => <BackupTxPage />} />
         <Route component={() => <WelcomePage />} />
        </Switch>
