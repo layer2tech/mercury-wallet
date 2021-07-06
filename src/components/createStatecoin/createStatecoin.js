@@ -8,8 +8,9 @@ import { FEE, fromSatoshi } from '../../wallet/util'
 
 import '../../containers/Deposit/Deposit.css';
 
-
-const DEFAULT_LIQUIDITY_VALUES = [{value: 100,liquidity:0},{value:500,liquidity:0},{value: 1000,liquidity:0},{value:5000,liquidity:0},{value:10000,liquidity:0},{value:50000,liquidity:0},{value:100000,liquidity:0},{value:500000,liquidity:0},{value:1000000,liquidity:0},{value:5000000,liquidity:0},{value:10000000,liquidity:0},{value:50000000,liquidity:0}]
+// Minimum deposit now 0.002 BTC = 200000 satoshi value
+const MINIMUM_DEPOSIT_SATOSHI = 200000;
+const DEFAULT_LIQUIDITY_VALUES = [{value:500000,liquidity:0},{value:1000000,liquidity:0},{value:5000000,liquidity:0},{value:10000000,liquidity:0},{value:50000000,liquidity:0}]
 const LIQUIDITY_MED=10;
 const LIQUIDITY_HIGH=20;
 const NUM_HIGH_LIQUIDITY=3;
@@ -81,6 +82,8 @@ const CreateStatecoin = (props) => {
         // filter out coins where the value is not greater than the total fee
         callGetFeeInfo().then(fee =>  {
           liquidity_data = liquidity_data.filter(statecoin => statecoin.value >= (FEE + ((statecoin.value * fee.withdraw) / 10000)));
+          // ensure coins cannot be below 0.002 btc
+          liquidity_data = liquidity_data.filter(statecoin => statecoin.value >= MINIMUM_DEPOSIT_SATOSHI);
           setLiquidityData(liquidity_data);
           setLoading(false);
         }).catch(e => {

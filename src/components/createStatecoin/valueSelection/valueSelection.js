@@ -20,6 +20,7 @@ const ValueSelectionPanel = (props) => {
     const [withdrawFee, setWithdrawFee] = useState(0);
     const [disable, setDisabled] = useState(true); // used on being able to submit a value in modal
     const [depositError, setDepositError] = useState(null); // error messages to display to the user
+    const minDeposit = 0.002; // force 0.002 minimum deposit amount
 
     const selectValue = (value) => {
       if (value !== selected) {
@@ -52,17 +53,23 @@ const ValueSelectionPanel = (props) => {
       setDisabled(validateModal());
     }, [depositBTC, withdrawFee]) // Only re-run the effect if these change
 
+    /*
     const getTotalFee = () => {
       return FEE + ((depositBTC * withdrawFee) /  10000);    
+    }*/
+
+    const equalToArrayValue = (value, arr) => {
+      for(var i=0; i<arr.length; i++){
+        if(value === arr[i].value) return true;
+      }
+      return false;
     }
 
     const validateModal = () => {
-      
       // convert fee and depositBTC to satoshi value
-      let totalFee = getTotalFee();
       let depositBTCSatoshi = toSatoshi(depositBTC);
       let errorMsg = '';
-
+      
       if (depositBTC === "") {
         errorMsg = 'value cannot be empty.';
       } 
@@ -72,15 +79,16 @@ const ValueSelectionPanel = (props) => {
       else if(depositBTC < 0){
         errorMsg = 'value cannot be negative.';
       }
-      else if(depositBTCSatoshi <= totalFee){
-        let btcFee = (fromSatoshi(totalFee)).toFixed(8); // convert satoshi fee into btc
-        errorMsg = `Not enough value to cover fee: ${btcFee} BTC`;       
+      else if(depositBTCSatoshi < toSatoshi(minDeposit)){
+        errorMsg = `Not enough value to cover fee: ${minDeposit} BTC`;       
+      }
+      else if(equalToArrayValue(depositBTCSatoshi, props.coinsLiquidityData)){
+        errorMsg = 'You can already select this value';
       }
       else {
         setDepositError(null);
         return false;
       }
-
       setDepositError(errorMsg);
       return true;
     }
