@@ -1,15 +1,19 @@
 let bitcoin = require('bitcoinjs-lib')
-import { Wallet, StateCoinList, ACTION, Config, STATECOIN_STATUS } from '../';
+import { Wallet, StateCoinList, ACTION, Config, STATECOIN_STATUS, BACKUP_STATUS } from '../';
 import { segwitAddr } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
-import { txWithdrawBuild } from '../util';
+import { txWithdrawBuild, txBackupBuild } from '../util';
 import { addRestoredCoinDataToWallet } from '../recovery';
 import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
+import { MockElectrumClient } from "../mocks/mock_electrum";
 
 let cloneDeep = require('lodash.clonedeep');
 
 const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
+
+// electrum mock
+let electrum_mock = new MockElectrumClient;
 
 describe('Wallet', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
@@ -118,6 +122,54 @@ describe('Wallet', function() {
     expect(wallet.createBackupTxCPFP(cpfp_data)).toBe(true);
     expect(wallet.statecoins.coins[0].tx_cpfp.outs.length).toBe(1);
   });
+})
+
+describe('updateBackupTxStatus', function() {
+
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+
+    test('Swaplimit', async function() {
+      // locktime = 1000, height = 100 SWAPLIMIT triggered
+      let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, wallet.genBtcAddress(), 10000, wallet.genBtcAddress(), 10, 1000);
+      wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
+      wallet.block_height = 100;
+      wallet.updateBackupTxStatus();
+      expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPLIMIT);
+    })
+
+    test('Expired', async function() {
+      // locktime = 2000, height = 2000, EXPIRED triggered
+      let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, wallet.genBtcAddress(), 10000, wallet.genBtcAddress(), 10, 1000);
+      wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
+      wallet.block_height = 1000;
+      wallet.updateBackupTxStatus();
+      expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.EXPIRED);
+      // verify tx in mempool
+      expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.IN_MEMPOOL);      
+    })
+
+    test('Confirmed', async function() {
+      // blockheight 2001, backup tx confirmed, coin WITHDRAWN
+      let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, wallet.genBtcAddress(), 10000, wallet.genBtcAddress(), 10, 1000);
+      wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
+      wallet.block_height = 1001;
+      wallet.updateBackupTxStatus();
+      expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWN);
+      // verify tx confirmed
+      expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.CONFIRMED); 
+    })    
+
+    test('Double spend', async function() {
+      // blockheight 2001, backup tx double-spend, coin EXPIRED
+      let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "01f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, wallet.genBtcAddress(), 10000, wallet.genBtcAddress(), 10, 1000);
+      wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
+      wallet.block_height = 1001;
+      wallet.updateBackupTxStatus();
+      expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.EXPIRED);
+      // verify tx confirmed
+      expect(wallet.statecoins.coins[0].backup_status).toBe(BACKUP_STATUS.TAKEN); 
+    })    
+
 })
 
 describe("Statecoins/Coin", () => {

@@ -410,7 +410,6 @@ export class Wallet {
   // update statuts of backup transactions and broadcast if neccessary
   updateBackupTxStatus() {
     for (let i=0; i<this.statecoins.coins.length; i++) {
-      console.log(this.statecoins.coins[i]);
     // check if there is a backup tx yet, if not do nothing
       if (this.statecoins.coins[i].tx_backup == null) {
         continue;
@@ -456,6 +455,9 @@ export class Wallet {
               this.statecoins.coins[i].setBackupInMempool();
             } else if(bresponse.includes('already')) {
               this.statecoins.coins[i].setBackupInMempool();
+            } else if(bresponse.includes('already') && bresponse.includes('block')) {
+              this.statecoins.coins[i].setBackupConfirmed();
+              this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);  
             } else if(bresponse.includes('confict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
               this.statecoins.coins[i].setBackupTaken();
               this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);
