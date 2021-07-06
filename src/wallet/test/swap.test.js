@@ -1,5 +1,5 @@
 import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA} from './test_data.js'
-import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, SwapToken, make_swap_commitment} from "../swap/swap";
+import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment} from "../swap/swap";
 import {STATECOIN_STATUS} from '../statecoin'
 
 import * as MOCK_SERVER from '../mocks/mock_http_client'
@@ -89,6 +89,7 @@ describe('Swaps', function() {
       bst_sender_data: {x: "1",q: {x:"1",y:"1"},k: "1",r_prime: {x:"1",y:"1"},}
     }
     http_mock.post = jest.fn().mockReset()
+      .mockReturnValueOnce({ id: "00000000-0000-0000-0000-000000000001" })    // return once a swap id => swap has started, polling utxo again
       .mockReturnValueOnce(null)    // return once null => swap has not started
       .mockReturnValueOnce(swap_info) // return once an id => swap has begun
 
@@ -102,8 +103,7 @@ describe('Swaps', function() {
       .toThrowError("Coin is not in this phase of the swap protocol. In phase: null");
 
     // Set swap_status as if coin had already run Phase0
-    statecoin.swap_status = SWAP_STATUS.Phase1
-
+    statecoin.swap_status = SWAP_STATUS.Phase1q
     await expect(swapPhase1(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
       .rejects
       .toThrowError("No Swap ID found. Swap ID should be set in Phase0.");
@@ -112,7 +112,7 @@ describe('Swaps', function() {
     statecoin.swap_id = "12345"
 
     // swap token not yet available
-    await swapPhase1(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der)
+    await swapPhase1(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der);
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase1)
     expect(statecoin.swap_address).toBe(null)
     expect(statecoin.swap_my_bst_data).toBe(null)
