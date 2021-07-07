@@ -1,4 +1,4 @@
-import React, {useState,useEffect} from 'react';
+import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
@@ -17,7 +17,6 @@ import '../Send/Send.css';
 
 import { Transaction } from 'bitcoinjs-lib';
 
-
 let addr_index = - 1;
 
 const ReceiveStatecoinPage = () => {
@@ -30,8 +29,8 @@ const ReceiveStatecoinPage = () => {
     setTransferMsg3(event.target.value);
   };
 
-  let num_addresses = callGetNumSeAddr();
-  if(addr_index === -1) { addr_index = num_addresses - 1 };
+  let num_addreses = callGetNumSeAddr();
+  if(addr_index === -1) { addr_index = num_addreses - 1 };
 
   const [rec_sce_addr, setRecAddr] = useState(callGetSeAddr(addr_index));
 
@@ -42,9 +41,9 @@ const ReceiveStatecoinPage = () => {
 
   const genAddrButtonAction = async () => {
     callNewSeAddr()
-    num_addresses = callGetNumSeAddr();
-    setRecAddr(callGetSeAddr(num_addresses - 1));
-    addr_index = num_addresses - 1
+    num_addreses = callGetNumSeAddr();
+    setRecAddr(callGetSeAddr(num_addreses - 1));
+    addr_index = num_addreses - 1
   }
 
   const prevAddrButtonAction = async () => {
@@ -57,8 +56,8 @@ const ReceiveStatecoinPage = () => {
   }
 
   const nextAddrButtonAction = async () => {
-    if (addr_index >= (num_addresses - 1)) {
-      addr_index = num_addresses - 1
+    if (addr_index >= (num_addreses - 1)) {
+      addr_index = num_addreses - 1
     } else {
       addr_index++
     }
@@ -94,7 +93,7 @@ const ReceiveStatecoinPage = () => {
     setOpenTransferKey(!openTransferKey)
   }
   
-  const copySEAddressToClipboard = (e) => {
+  const copySEAddressToClipboard = () => {
     navigator.clipboard.writeText(rec_sce_addr);
   }
 
@@ -121,7 +120,7 @@ const ReceiveStatecoinPage = () => {
 
         <div className="receiveStatecoin content">
           <div className="Body">
-            <p className="receive-note">Statecoin Address</p>
+            <p className="receive-note">Generate Statecoin Address</p>
             <div className="receiveStatecoin-scan">
               <div className="receive-qr-code">
                 <QRCode value={rec_sce_addr} />
