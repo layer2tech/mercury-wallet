@@ -10,6 +10,8 @@ import {fromSatoshi} from '../../wallet'
 
 import arrow from "../../images/arrow-up.png"
 import icon2 from "../../images/icon2.png";
+import closeIcon from "../../images/close-icon.png";
+
 import './Receive.css';
 import '../Send/Send.css';
 
@@ -22,6 +24,8 @@ const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
 
   const [transfer_msg3, setTransferMsg3] = useState("");
+  const [openTransferKey, setOpenTransferKey] = useState(false)
+
   const onTransferMsg3Change = (event) => {
     setTransferMsg3(event.target.value);
   };
@@ -63,18 +67,19 @@ const ReceiveStatecoinPage = () => {
 
   const receiveButtonAction =() => {
     // if mgs box empty, then query server for transfer messages
-    if (!transfer_msg3) {
-      dispatch(callGetTransfers(addr_index)).then((res) => {
-        if (res.payload===0) {
-            dispatch(setError({msg: "No transfers to receive."}))
-         } else {
-          let nreceived = res.payload
-          dispatch(setNotification({msg:"Received "+nreceived+" statecoins."}))
-        }
-      })
-      return
-    }
-
+    
+    dispatch(callGetTransfers(addr_index)).then((res) => {
+      if (res.payload===0) {
+          dispatch(setError({msg: "No transfers to receive."}))
+       } else {
+        let nreceived = res.payload
+        dispatch(setNotification({msg:"Received "+nreceived+" statecoins."}))
+      }
+    })
+    return
+  }
+  
+  const receiveWithKey = () => {
     dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
       if (res.error===undefined) {
         setTransferMsg3("")
@@ -84,8 +89,12 @@ const ReceiveStatecoinPage = () => {
       }
     })
   }
+
+  const handleOpenTransferKey = () => {
+    setOpenTransferKey(!openTransferKey)
+  }
   
-  const copySEAddressToClipboard = () => {
+  const copySEAddressToClipboard = (e) => {
     navigator.clipboard.writeText(rec_sce_addr);
   }
 
@@ -132,55 +141,74 @@ const ReceiveStatecoinPage = () => {
                       }} 
                       message='Copied to Clipboard'
                     >
-                      <div>
-                        <img type="button" src={icon2} alt="icon"/>
-                        <span>
-                          {rec_sce_addr}
+                      <div className="address-index">
+                        <div className="address">
+                          <img type="button" src={icon2} alt="icon"/>
+                          <span>
+                            {rec_sce_addr}
+                          </span>
+                        </div>
+                        <span className = "index">
+                          Index: {addr_index} &nbsp; &nbsp;
                         </span>
                       </div>
                     </CopiedButton>
                   </div>
-                  <span>
-                    Index: {addr_index} &nbsp; &nbsp;
-                  </span>
-                  <button
-                    type="button"
-                    className="Body-button transparent"
-                    onClick={genAddrButtonAction}>
-                      GENERATE ANOTHER ADDRESS
-                  </button>
-                  <button
-                    type="button"
-                    className="Body-button transparent"
-                    onClick={prevAddrButtonAction}>
-                      PREV
-                  </button>
-                  <button
-                    type="button"
-                    className="Body-button transparent"
-                    onClick={nextAddrButtonAction}>
-                      NEXT
-                  </button>                 
+                  <div className="btns-container">
+                    <div className="prev-next">
+                      <button
+                        type="button"
+                        className="Body-button transparent"
+                        onClick={prevAddrButtonAction}>
+                          PREV
+                      </button>
+                      <button
+                        type="button"
+                        className="Body-button transparent"
+                        onClick={nextAddrButtonAction}>
+                          NEXT
+                      </button>    
+                    </div>
+                    <button
+                      type="button"
+                      className="Body-button transparent"
+                      onClick={genAddrButtonAction}>
+                        GENERATE ANOTHER ADDRESS
+                    </button>   
+                    <div className ="receive-btns">
+                      <button type="button" className={`Body-button btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
+                        RECEIVE
+                      </button>
+                      <button type="button" className={`Body-button btn ${transfer_msg3 ? 'active': ''}`} onClick={handleOpenTransferKey}>
+                        RECEIVE WITH KEY
+                      </button>
+                    </div>           
+                </div>
               </div>
             </div>
           </div>
         </div>
 
+        { openTransferKey===true ? (
         <div className="receiveStatecoin sendStatecoin content">
+          <div className="overlay" onClick={handleOpenTransferKey}></div>
           <div className="Body center">
-            <p className="receive-note">Transfer key:</p>
+            <button className="primary-btm ghost" onClick={handleOpenTransferKey}>
+              <img src={closeIcon} alt="close-button"/>
+            </button>
+            <p className="receive-note">Transfer Message:</p>
             <div className="receive-bottom">
               <AddressInput
                 inputAddr={transfer_msg3}
                 onChange={onTransferMsg3Change}
                 placeholder='mm1...'
                 smallTxtMsg='Transfer Code'/>
-              <button type="button" className={`btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
-                RECEIVE TRANSFER
+              <button type="button" className={`btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveWithKey}>
+                RECEIVE
               </button>
             </div>
           </div>
-        </div>
+        </div>):(null)}
     </div>
   )
 }
