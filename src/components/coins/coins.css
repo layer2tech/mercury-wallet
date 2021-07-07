@@ -23,6 +23,31 @@
   color: #757575;
   justify-content: center;
 }
+
+.CoinTimeLeft .expiry-time-left {
+  margin-left:3px;
+}
+
+@media(min-width:768px){
+  .withdraw .CoinTimeLeft .expiry-title,.swap .CoinTimeLeft .expiry-title{
+    display:none
+  }
+
+  .withdraw .CoinFundingTxid, .swap .CoinFundingTxid{
+    width:70px;
+  }
+
+}
+@media(min-width:992px){
+  .withdraw .CoinTimeLeft .expiry-title,.swap .CoinTimeLeft .expiry-title{
+    display:block;
+  }
+
+  .withdraw .CoinFundingTxid, .swap .CoinFundingTxid{
+    width:130px;
+  }
+}
+
 .CoinTimeLeft img {
   margin-right: 5px;
 
@@ -240,12 +265,28 @@
   }
   .CoinAmount-block {
     margin-bottom: 20px;
+    width:100%;
   }
   .CoinFundingTxid {
     margin-top: 20px;
   }
+  .CoinAmount-block img {
+    margin-right:10px;
+  }
+
+  .tab-content .CoinPanel .progress_bar {
+    width:100%;
+  }
+
+  .coin-status-or-txid {
+    position:absolute;
+    right:10px;
+    top:25px;
+    width:max-content;
+  }
   .tab-content .CoinPanel {
     display: block;
+    position:relative;
   }
 }
 
