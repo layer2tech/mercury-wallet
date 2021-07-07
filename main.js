@@ -2,6 +2,8 @@ const electron = require('electron');
 const path = require('path');
 const url = require('url');
 
+const mercuryIcon = require('./public/icons/mercury-symbol-tri-color.png')
+
 
 // Module to control application life.
 const { app } = electron;
@@ -34,6 +36,10 @@ function createWindow() {
       slashes: true
     })
   );
+
+
+  //Linux requires Disk Image Icon to be set manually
+  mainWindow.setIcon(mercuryIcon)
 
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {
