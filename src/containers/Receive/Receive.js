@@ -10,6 +10,8 @@ import {fromSatoshi} from '../../wallet'
 
 import arrow from "../../images/arrow-up.png"
 import icon2 from "../../images/icon2.png";
+import closeIcon from "../../images/close-icon.png";
+
 import './Receive.css';
 import '../Send/Send.css';
 
@@ -22,6 +24,8 @@ const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
 
   const [transfer_msg3, setTransferMsg3] = useState("");
+  const [openTransferKey, setOpenTransferKey] = useState(false)
+
   const onTransferMsg3Change = (event) => {
     setTransferMsg3(event.target.value);
   };
@@ -84,6 +88,10 @@ const ReceiveStatecoinPage = () => {
         dispatch(setNotification({msg:"Transfer of "+fromSatoshi(amount)+" BTC complete! StateCoin expires at block height "+locktime+"."}))
       }
     })
+  }
+
+  const handleOpenTransferKey = () => {
+    setOpenTransferKey(!openTransferKey)
   }
   
   const copySEAddressToClipboard = (e) => {
@@ -171,7 +179,7 @@ const ReceiveStatecoinPage = () => {
                       <button type="button" className={`Body-button btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
                         RECEIVE
                       </button>
-                      <button type="button" className={`Body-button btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
+                      <button type="button" className={`Body-button btn ${transfer_msg3 ? 'active': ''}`} onClick={handleOpenTransferKey}>
                         RECEIVE WITH KEY
                       </button>
                     </div>           
@@ -181,8 +189,13 @@ const ReceiveStatecoinPage = () => {
           </div>
         </div>
 
+        { openTransferKey===true ? (
         <div className="receiveStatecoin sendStatecoin content">
+          <div className="overlay" onClick={handleOpenTransferKey}></div>
           <div className="Body center">
+            <button className="primary-btm ghost" onClick={handleOpenTransferKey}>
+              <img src={closeIcon} alt="close-button"/>
+            </button>
             <p className="receive-note">Transfer Message:</p>
             <div className="receive-bottom">
               <AddressInput
@@ -190,15 +203,12 @@ const ReceiveStatecoinPage = () => {
                 onChange={onTransferMsg3Change}
                 placeholder='mm1...'
                 smallTxtMsg='Transfer Code'/>
-              <button type="button" className={`btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
+              <button type="button" className={`btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveWithKey}>
                 RECEIVE
-              </button>
-              <button type="button" className={`btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
-                RECEIVE WITH KEY
               </button>
             </div>
           </div>
-        </div>
+        </div>):(null)}
     </div>
   )
 }
