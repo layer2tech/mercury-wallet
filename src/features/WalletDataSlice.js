@@ -128,6 +128,7 @@ export const walletLoad = (name, password) => {
 export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   log.info("Wallet "+name+" created.");
+  console.log(try_restore)
   if (testing_mode) log.info("Testing mode set.");
   mutex.runExclusive(async () => {
     await wallet.set_tor_endpoints();

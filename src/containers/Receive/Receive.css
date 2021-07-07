@@ -1,3 +1,7 @@
+.App .container{
+    min-width: 500px;
+}
+
 .receiveStatecoin .subtitle {
     color: #676767;
     font-size: 20px;
@@ -15,7 +19,7 @@
     background-color: #ECF2FF;
     padding: 20px;
 }
-.receiveStatecoin-scan-txid:hover .copy-btn-wrap {
+.receiveStatecoin-scan-txid:hover .copy-btn-wrap .address {
     cursor: pointer;
     color: #0054F4;
 }
@@ -30,14 +34,48 @@
     flex: 1;
 }
 
-.receiveStatecoin-scan-txid span {
+.receiveStatecoin-scan-content .btns-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+@media only screen and (max-width:995px){
+    .receiveStatecoin-scan .btns-container{
+        justify-content: center;
+        flex-wrap:wrap;
+    }
+    .receiveStatecoin-scan .btns-container .prev-next button{
+        margin-bottom:0px;
+    }
+    .receiveStatecoin-scan .btns-container button{
+        margin-bottom:0px;
+    }
+}
+
+.receiveStatecoin-scan-content .btns-container .receive-btns button{
+    background: #666666;
+    color: #ffffff;
+    border-radius: 0.15rem;
+    font-size:15px;
+}
+.receiveStatecoin-scan-content .btns-container .receive-btns.active{
+    background: #0054F4;
+}
+
+.receiveStatecoin-scan-txid .address span {
     display: block;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: bold;
     line-break: anywhere;
     text-align: left;
     margin-left: 10px;
 }
+
+.receiveStatecoin-scan-txid .copy-btn-wrap .address-index{
+    display: flex;
+    justify-content: space-between;
+}
+
 .receiveStatecoin-scan-txid img {
     width: 16px;
     height: 16px;
@@ -53,28 +91,79 @@
 }
 
 .sendStatecoin.content .center {
-    width:100%;
+    width:75%;
+    z-index: 301;
+    position: fixed;
+    top:40%;
+    left:12%;
+    animation: fadeIn .2s;
 }
-.receiveStatecoin.sendStatecoin.content .center button {
+
+@keyframes fadeIn {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+.sendStatecoin.content .center .primary-btm.ghost {
+    background-color: #ffffff;
+    color: #0F54F4;
+    border: 1px solid rgba(0, 0, 0, 0.121569);
+    border-radius:5px;
+    position:absolute;
+    top:7%;
+    right:3%;
+}
+
+
+@media only screen and (max-width: 995px){
+    .sendStatecoin.content .center{
+        left:13.5%;
+        width:73.5%;
+        min-width: 425px;
+    }
+}
+@media only screen and (max-width: 768px){
+    .sendStatecoin.content .center{
+        left:7%;
+        width:85%;
+        top:40%;
+        
+    }
+}
+
+.sendStatecoin.content .overlay{
+    z-index:300;
+    position:fixed;
+    top:0;
+    left:0;
+    height:100vh;
+    width:100%;
+    background-color: #666666;
+    opacity:0.4;
+}
+
+.receiveStatecoin.sendStatecoin.content .center button.btn {
     margin-top: 20px;
     background: #666666;
     color: #ffffff;
+    width:100%;
 }
 .receiveStatecoin.sendStatecoin.content .center button.active { 
     background: #0054F4;
 }
 
-.receiveStatecoin .receive-bottom {
+/* .receiveStatecoin .receive-bottom {
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
+} */
 .receiveStatecoin .receive-bottom div:first-child {
     flex: 1;
-    margin-right: 20px;
+    margin-bottom: 20px;
 }
 .receiveStatecoin .receive-bottom div:first-child .inputs { 
     margin: 0;
+    width:100%;
 }
 .receiveStatecoin.sendStatecoin.content .center .receive-bottom button {
     height: 56px;

@@ -23,12 +23,12 @@ const Welcome = () => {
             <div className="welcome-btns">
                 <div onClick={() => changeCheckbox(1)} className={`${checked === 1 ? "selected" : ""}`}>
                     <img src={plus} alt="plus"/>
-                    <span>Create a New Wallet</span>
+                    <span>Create New Wallet</span>
                     <img className="check-img" src={check} alt="plus"/>
                 </div>
                 <div onClick={() => changeCheckbox(2)} className={`${checked === 2 ? "selected" : ""}`}>
                     <img src={restore} alt="restore"/>
-                    <span>Restore an Existing Wallet</span>
+                    <span>Restore Existing Wallet</span>
                     <img className="check-img" src={check} alt="plus"/>
                 </div>
 
