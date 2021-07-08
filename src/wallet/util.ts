@@ -19,6 +19,7 @@ let secp256k1 = new EC('secp256k1')
 
 /// Temporary - fees should be calculated dynamically
 export const FEE = 300;
+export const MINIMUM_DEPOSIT_SATOSHI = 200000;
 export const SIGNED_WITHDRAW_TX_SIZE_KB = 0.56;
 
 // Verify Spase Merkle Tree proof of inclusion

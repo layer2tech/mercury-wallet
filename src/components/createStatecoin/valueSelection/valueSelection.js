@@ -1,6 +1,6 @@
 import React, {useState, useRef, useEffect} from 'react';
 import { Modal } from 'react-bootstrap';
-import { FEE, fromSatoshi, toSatoshi } from '../../../wallet/util'
+import { MINIMUM_DEPOSIT_SATOSHI, fromSatoshi, toSatoshi } from '../../../wallet/util'
 import '../../../containers/Deposit/Deposit.css';
 import { callGetFeeInfo } from '../../../features/WalletDataSlice';
 
@@ -20,7 +20,6 @@ const ValueSelectionPanel = (props) => {
     const [withdrawFee, setWithdrawFee] = useState(0);
     const [disable, setDisabled] = useState(true); // used on being able to submit a value in modal
     const [depositError, setDepositError] = useState(null); // error messages to display to the user
-    const minDeposit = 0.002; // force 0.002 minimum deposit amount
 
     const selectValue = (value) => {
       if (value !== selected) {
@@ -32,7 +31,7 @@ const ValueSelectionPanel = (props) => {
       props.addValueSelection(props.id, null);
     }
 
-    let coinsLiquidityData = props.coinsLiquidityData.slice(0, props.coinsLiquidityData.length -1);
+    let coinsLiquidityData = props.coinsLiquidityData; //.slice(0, props.coinsLiquidityData.length -1);
     if(customDeposit.value) {
       coinsLiquidityData = [
         ...coinsLiquidityData,
@@ -52,11 +51,6 @@ const ValueSelectionPanel = (props) => {
       // validate
       setDisabled(validateModal());
     }, [depositBTC, withdrawFee]) // Only re-run the effect if these change
-
-    /*
-    const getTotalFee = () => {
-      return FEE + ((depositBTC * withdrawFee) /  10000);    
-    }*/
 
     const equalToArrayValue = (value, arr) => {
       for(var i=0; i<arr.length; i++){
@@ -79,8 +73,8 @@ const ValueSelectionPanel = (props) => {
       else if(depositBTC < 0){
         errorMsg = 'value cannot be negative.';
       }
-      else if(depositBTCSatoshi < toSatoshi(minDeposit)){
-        errorMsg = `Not enough value to cover fee: ${minDeposit} BTC`;       
+      else if(depositBTCSatoshi < MINIMUM_DEPOSIT_SATOSHI){
+        errorMsg = `Not enough value to cover fee: ${fromSatoshi(MINIMUM_DEPOSIT_SATOSHI)} BTC`;       
       }
       else if(equalToArrayValue(depositBTCSatoshi, props.coinsLiquidityData)){
         errorMsg = 'You can already select this value';
