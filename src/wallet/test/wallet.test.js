@@ -138,7 +138,7 @@ describe('updateBackupTxStatus', function() {
     })
 
     test('Expired', async function() {
-      // locktime = 2000, height = 2000, EXPIRED triggered
+      // locktime = 1000, height = 1000, EXPIRED triggered
       let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, wallet.genBtcAddress(), 10000, wallet.genBtcAddress(), 10, 1000);
       wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
       wallet.block_height = 1000;
@@ -149,7 +149,7 @@ describe('updateBackupTxStatus', function() {
     })
 
     test('Confirmed', async function() {
-      // blockheight 2001, backup tx confirmed, coin WITHDRAWN
+      // blockheight 1001, backup tx confirmed, coin WITHDRAWN
       let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, wallet.genBtcAddress(), 10000, wallet.genBtcAddress(), 10, 1000);
       wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
       wallet.block_height = 1001;
@@ -160,7 +160,7 @@ describe('updateBackupTxStatus', function() {
     })    
 
     test('Double spend', async function() {
-      // blockheight 2001, backup tx double-spend, coin EXPIRED
+      // blockheight 1001, backup tx double-spend, coin EXPIRED
       let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "01f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, wallet.genBtcAddress(), 10000, wallet.genBtcAddress(), 10, 1000);
       wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
       wallet.block_height = 1001;

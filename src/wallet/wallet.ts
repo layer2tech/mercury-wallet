@@ -441,7 +441,7 @@ export class Wallet {
           let txid = this!.statecoins!.coins[i]!.tx_backup!.getId();
           if(txid != null) {
             this.electrum_client.getTransaction(txid).then((tx_data: any) => {
-              if(tx_data.confirmations!==undefined && tx_data.confirmations > 0) {
+              if(tx_data.confirmations!==undefined && tx_data.confirmations > 2) {
                 this.statecoins.coins[i].setBackupConfirmed();
                 this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW)
             }
