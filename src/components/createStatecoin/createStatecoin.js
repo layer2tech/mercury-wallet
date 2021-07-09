@@ -73,7 +73,8 @@ const CreateStatecoin = (props) => {
       // truncate to display top {settings.picks} choices
       liquidity_data = liquidity_data.slice(0, props.settings.picks)
 
-      // filter out coins where the value is not greater than the total fee
+
+      /* - calling the server for fee info every time we go to deposit page seems wrong -  using MINIMUM_DEPOSIT_SATOSHI value instead
       callGetFeeInfo().then(fee =>  {
         liquidity_data = liquidity_data.filter(statecoin => statecoin.value >= (FEE + ((statecoin.value * fee.withdraw) / 10000)));
         // ensure coins cannot be below 0.002 btc
@@ -83,7 +84,13 @@ const CreateStatecoin = (props) => {
       }).catch(e => {
         setError({error: true, message: 'Failed retrieving fee info from server...'});
         setLoading(false);
-      });
+      });*/
+
+      // filter out coins where the value is not greater than the total fee
+      liquidity_data = liquidity_data.filter(statecoin => statecoin.value >= MINIMUM_DEPOSIT_SATOSHI);
+      setLiquidityData(liquidity_data);
+      setLoading(false);
+
     }, [props.settings]);
 
     const populateWithSelectionPanels = props.selectedValues.map((item, index) => (
