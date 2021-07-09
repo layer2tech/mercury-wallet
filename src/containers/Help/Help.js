@@ -70,7 +70,7 @@ const HelpPage = (props) => {
                             <li>Users may voluntarily enrol or opt-in for notifications regarding potential technical problems or other information.</li>
                         </ul>
                         <p>Mercury Wallet will process this Personally Identifiable Information as necessary to offer and fulfil the customer support requested.</p>
-                        <p>At any time a user may “opt out” of the receipt of email communications related to technical information or customer support through emailing support@mercurywallet.com</p>
+                        <p>At any time a user may “opt out” of the receipt of email communications related to technical information or customer support through emailing main@mercurywallet.com</p>
                         <p>In all such cases, Personally Identifiable Information provided by the user is permanently erased one hundred (100) days after the resolution of the customer service query or the purpose for which it was provided to Mercury Wallet. Mercury Wallet does not retain any Personally Identifiable Information from interactions with users relating to their technical questions and issues.</p>
                         <p>Mercury Wallet cannot link User Wallets with Personally Identifiable Information including but not limited to names and IP addresses. Therefore, a user’s Personally Identifiable Information is not able to be accessed by the staff of Mercury Wallet, its subsidiaries or holding company. </p>
                         <h6>Third Party Sharing, links and social media plug-ins</h6>
