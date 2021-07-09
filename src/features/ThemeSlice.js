@@ -1,7 +1,10 @@
 import {createSlice} from '@reduxjs/toolkit'
 
+// reset dark mode
+localStorage.removeItem("dark_mode");
+
 const initialState = {
-  dark_mode: 0 //localStorage.getItem('dark_mode')
+  dark_mode: 0
 }
 
 const ThemeSlice = createSlice({
