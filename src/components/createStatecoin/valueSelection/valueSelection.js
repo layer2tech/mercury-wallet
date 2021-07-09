@@ -1,6 +1,6 @@
 import React, {useState, useRef, useEffect} from 'react';
 import { Modal } from 'react-bootstrap';
-import { FEE, fromSatoshi, toSatoshi } from '../../../wallet/util'
+import { MINIMUM_DEPOSIT_SATOSHI, fromSatoshi, toSatoshi } from '../../../wallet/util'
 import '../../../containers/Deposit/Deposit.css';
 import { callGetFeeInfo } from '../../../features/WalletDataSlice';
 
@@ -31,7 +31,7 @@ const ValueSelectionPanel = (props) => {
       props.addValueSelection(props.id, null);
     }
 
-    let coinsLiquidityData = props.coinsLiquidityData.slice(0, props.coinsLiquidityData.length -1);
+    let coinsLiquidityData = props.coinsLiquidityData; //.slice(0, props.coinsLiquidityData.length -1);
     if(customDeposit.value) {
       coinsLiquidityData = [
         ...coinsLiquidityData,
@@ -52,17 +52,18 @@ const ValueSelectionPanel = (props) => {
       setDisabled(validateModal());
     }, [depositBTC, withdrawFee]) // Only re-run the effect if these change
 
-    const getTotalFee = () => {
-      return FEE + ((depositBTC * withdrawFee) /  10000);    
+    const equalToArrayValue = (value, arr) => {
+      for(var i=0; i<arr.length; i++){
+        if(value === arr[i].value) return true;
+      }
+      return false;
     }
 
     const validateModal = () => {
-      
       // convert fee and depositBTC to satoshi value
-      let totalFee = getTotalFee();
       let depositBTCSatoshi = toSatoshi(depositBTC);
       let errorMsg = '';
-
+      
       if (depositBTC === "") {
         errorMsg = 'value cannot be empty.';
       } 
@@ -72,15 +73,16 @@ const ValueSelectionPanel = (props) => {
       else if(depositBTC < 0){
         errorMsg = 'value cannot be negative.';
       }
-      else if(depositBTCSatoshi <= totalFee){
-        let btcFee = (fromSatoshi(totalFee)).toFixed(8); // convert satoshi fee into btc
-        errorMsg = `Not enough value to cover fee: ${btcFee} BTC`;       
+      else if(depositBTCSatoshi < MINIMUM_DEPOSIT_SATOSHI){
+        errorMsg = `Not enough value to cover fee: ${fromSatoshi(MINIMUM_DEPOSIT_SATOSHI)} BTC`;       
+      }
+      else if(equalToArrayValue(depositBTCSatoshi, props.coinsLiquidityData)){
+        errorMsg = 'You can already select this value';
       }
       else {
         setDepositError(null);
         return false;
       }
-
       setDepositError(errorMsg);
       return true;
     }
