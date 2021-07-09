@@ -3,7 +3,7 @@ import React, {useState} from 'react';
 import {useDispatch} from 'react-redux';
 import QRCode from 'qrcode.react';
 import { Modal } from 'react-bootstrap';
-import { BACKUP_STATUS } from '../../wallet/statecoin';
+import { BACKUP_STATUS, STATECOIN_STATUS } from '../../wallet/statecoin';
 import { isWalletLoaded, setError, callGetCoinBackupTxData, callCreateBackupTxCPFP, callGetConfig } from '../../features/WalletDataSlice';
 import {Coins, StdButton, AddressInput, CopiedButton, Tutorial} from "../../components";
 

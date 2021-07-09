@@ -39,7 +39,7 @@ const PanelControl = () => {
 
   const filterByMsg = () => {
     let return_str = "Statecoin";
-    if (balance_info.num_coins > 1) {
+    if (balance_info.num_coins != 1) {
       return_str = return_str+"s"
     }
     switch (filterBy) {

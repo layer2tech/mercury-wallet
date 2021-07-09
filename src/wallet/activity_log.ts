@@ -40,10 +40,11 @@ export class ActivityLogItem {
 }
 
 export const ACTION = {
-  INITIATE: "I",  
-  DEPOSIT: "D",
-  TRANSFER: "T",
-  WITHDRAW: "W",
-  SWAP: "S",
+   INITIATE: "I",  
+   DEPOSIT: "D",
+   TRANSFER: "T",
+   WITHDRAW: "W",
+   SWAP: "S",
+   EXPIRED: "E",
 };
 Object.freeze(ACTION);
