@@ -70,6 +70,11 @@
   color: #000000;
 }
 
+.CoinAmountError {
+  color: #ff3d00;
+  border-style: solid;
+}
+
 #danger .sub .progress {
     height: 4px;
     background-image: linear-gradient(to right, #ff3d00 10%, #ffb2ab 0%);
