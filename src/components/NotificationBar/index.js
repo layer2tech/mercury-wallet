@@ -41,7 +41,7 @@ const NotificationBar = () => {
   const showNotifications = notifications_list.map((item, index) => (
     <div key={index} className={`hideBar wallet-notification`} onDoubleClick={() => handleCloseNotification(item.msg)}>
       <div className="notification-content">
-        <p><i className="fa fa-exclamation"></i> {item.msg}</p>
+        <p>{item.msg}</p>
       </div>
     </div>
   ))
