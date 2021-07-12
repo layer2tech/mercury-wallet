@@ -55,7 +55,7 @@
 .receiveStatecoin-scan-content .btns-container .receive-btns button{
     background: #666666;
     color: #ffffff;
-    border-radius: 0.15rem;
+    border-radius: 5px;
     font-size:15px;
 }
 .receiveStatecoin-scan-content .btns-container .receive-btns.active{
