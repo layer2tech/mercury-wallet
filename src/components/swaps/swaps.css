@@ -211,6 +211,7 @@
   justify-content: flex-start;
   position: relative;
   padding-left: 0;
+  cursor:default;
 }
 .swap-coin .swap-item-wrap .SwapAmount-block input {
   position: absolute;
@@ -237,7 +238,7 @@
   height: 10px;
 }
 .swap-coin .swap-table-body .swap-item-wrap:hover {
-  background-color: rgba(0, 84, 244, 0.101961);
+  cursor:default;
 }
 
 .swap-coin .swap-table-body .swap-item-wrap div { 
