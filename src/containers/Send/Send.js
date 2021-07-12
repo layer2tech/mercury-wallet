@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux'
 
@@ -27,12 +27,24 @@ const SendStatecoinPage = () => {
   const [transferMsg3, setTransferMsg3] = useState('');
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
+  //Reference set on send button
+  let sendRef = useRef()
+
+  //When Send Modal (with transfer key) opens send button reactivated 
+  useEffect(()=> {
+    if(openSendModal.show === true){
+      sendRef.current.removeAttribute("disabled")
+    }
+  },[openSendModal])
+
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
- }
+  }
+ 
 
-  const sendButtonAction = async () => {
+  const sendButtonAction = async (event) => {
+
     // check statechain is chosen
     if (selectedCoin == null) {
       dispatch(setError({msg: "Please choose a StateCoin to send."}))
@@ -61,7 +73,11 @@ const SendStatecoinPage = () => {
       dispatch(setError({msg: "Error: invalid proof public key"}))
       return
     }
-
+    if(sendRef.current){
+      //Send button disabled after press
+      sendRef.current.setAttribute("disabled","disabled");
+    }
+    // if(preventDoubleClick === false){
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
     .then(res => {
       if (res.error===undefined) {
@@ -74,7 +90,10 @@ const SendStatecoinPage = () => {
           coinAddress: inputAddr
         });
       }
+
     })
+      // setPreventDoubleClick(true)
+    // }
   }
 
   const copyTransferMsgToClipboard = () => {
@@ -82,6 +101,7 @@ const SendStatecoinPage = () => {
   }
 
   const handleConfirm = (pass) => {
+    console.log("FUNCTION CALLED!!")
     setInputAddr("")
     setSelectedCoin('')
     setRefreshCoins((prevState) => !prevState);
@@ -126,7 +146,8 @@ const SendStatecoinPage = () => {
                         selectedCoin={selectedCoin}
                         setSelectedCoin={setSelectedCoin}
                         setCoinDetails={setCoinDetails}
-                        refresh={refreshCoins}/>
+                        refresh={refreshCoins}
+                        send={true}/>
                   </div>
 
               </div>
@@ -162,7 +183,7 @@ const SendStatecoinPage = () => {
                           </tbody>
                       </table>
                       */}
-                      <button type="button" className="btn" onClick={sendButtonAction}>
+                      <button ref = {sendRef} type="button" className="btn" onClick={e => sendButtonAction(e)}>
                           SEND STATECOIN UTXO’S
                       </button>
                   </div>
