@@ -343,13 +343,15 @@ const Coins = (props) => {
                       </span>
                   </div>
                   {filterBy !== STATECOIN_STATUS.WITHDRAWN ? (
-                    item.status === STATECOIN_STATUS.INITIALISED ?                   
+                    item.status === STATECOIN_STATUS.INITIALISED ?
+                    <div>                 
                       <div className ="deposit-scan-main-item">
                         <CopiedButton handleCopy={(event) => copyAddressToClipboard(event,getAddress(item.shared_key_id))}>
                           <img type="button" src={copy_img} alt="icon" />
                         </CopiedButton>
                         <span className="long"><b>{getAddress(item.shared_key_id)}</b></span>
                       </div>
+                    </div>
                     :(
                     <div className="progress_bar" id={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}>
                         <div className ="coin-description">
@@ -478,15 +480,7 @@ const Coins = (props) => {
               {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
                 <div className="item qr-container">
                   <div className="block qrcode">
-                    <span>
-                      Time Left Until Expiry
-                    </span>
-                    <span className="expiry-time-left">
-                      {displayExpiryTime(
-                        showCoinDetails.coin.expiry_data
-                      , true)}
                       <QRCodeGenerator address = {getAddress(showCoinDetails.coin.shared_key_id)} amount={fromSatoshi(showCoinDetails.coin.amount)}/>
-                    </span>
                   </div>
                 </div>
               )
@@ -593,6 +587,18 @@ const Coins = (props) => {
                     </div>
                   </div>
                 </div>)}
+              <div className="item">
+                <img src={descripIcon} alt="description-icon"/>
+                <div className="block">
+                  <span>Description</span>
+                  <CoinDescription
+                    dscrpnConfirm = {dscpnConfirm}
+                    description = {description}
+                    setDscrpnConfirm = {confirmDescription}
+                    handleChange={handleChange}
+                    />
+                </div>
+              </div>
             </div>
           </Modal.Body>
           <Modal.Footer>
