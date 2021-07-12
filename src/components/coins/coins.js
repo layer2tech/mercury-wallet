@@ -478,15 +478,7 @@ const Coins = (props) => {
               {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
                 <div className="item qr-container">
                   <div className="block qrcode">
-                    <span>
-                      Time Left Until Expiry
-                    </span>
-                    <span className="expiry-time-left">
-                      {displayExpiryTime(
-                        showCoinDetails.coin.expiry_data
-                      , true)}
                       <QRCodeGenerator address = {getAddress(showCoinDetails.coin.shared_key_id)} amount={fromSatoshi(showCoinDetails.coin.amount)}/>
-                    </span>
                   </div>
                 </div>
               )
