@@ -144,13 +144,13 @@ const ReceiveStatecoinPage = () => {
                       <div className="address-index">
                         <div className="address">
                           <img type="button" src={icon2} alt="icon"/>
-                          <span>
+                          <span className="rec-address">
                             {rec_sce_addr}
                           </span>
                         </div>
-                        <span className = "index">
-                          Index: {addr_index} &nbsp; &nbsp;
-                        </span>
+                        <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
+                          RECEIVE Index: {addr_index}
+                        </button>
                       </div>
                     </CopiedButton>
                   </div>
@@ -176,10 +176,7 @@ const ReceiveStatecoinPage = () => {
                         GENERATE ANOTHER ADDRESS
                     </button>   
                     <div className ="receive-btns">
-                      <button type="button" className={`Body-button btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
-                        RECEIVE
-                      </button>
-                      <button type="button" className={`Body-button btn ${transfer_msg3 ? 'active': ''}`} onClick={handleOpenTransferKey}>
+                      <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={handleOpenTransferKey}>
                         RECEIVE WITH KEY
                       </button>
                     </div>           

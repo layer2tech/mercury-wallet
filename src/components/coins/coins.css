@@ -297,7 +297,7 @@
 .main-coin-wrap.no-coin {
   min-height: 50px;
 }
-.swap .coin-item.SWAPLIMIT, .swap .coin-item.UNCONFIRMED, .swap .coin-item.IN_MEMPOOL, .swap .coin-item.EXPIRED{
+.swap .coin-item.SWAPLIMIT, .swap .coin-item.UNCONFIRMED, .swap .coin-item.IN_MEMPOOL, .swap .coin-item.EXPIRED, .swap .coin-item.INITIALISED{
   opacity: .3;
 }
 .main-coin-wrap.small-screen .coin-item .CoinPanel {
