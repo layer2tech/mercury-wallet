@@ -17,16 +17,14 @@ function SendModal({
 
   const handleClose = () => {
     // TODO: call cancel transfer_sender here.
-    console.log("HANDLE CLOSE!!!!")
     onClose()
   };
   const handleCopy = () => {
     navigator.clipboard.writeText(transfer_code);
-    handleClose()
   };
 
   return (
-    <Modal show={show} className="send-modal">
+    <Modal show={show} onHide={handleClose} className="send-modal">
       <Modal.Body className="custom-modal-body">
         <>
           <div className="coin-info">
@@ -68,7 +66,7 @@ function SendModal({
                 {transfer_code}
               </span>
             </div>
-            <button
+            <button onClick={handleClose}
               className={`confirm-btn`}
             >
               <span>{copyIcon('#fff')}</span>
