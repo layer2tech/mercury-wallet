@@ -196,7 +196,7 @@ const ReceiveStatecoinPage = () => {
             <button className="primary-btm ghost" onClick={handleOpenTransferKey}>
               <img src={closeIcon} alt="close-button"/>
             </button>
-            <p className="receive-note">Transfer Message:</p>
+            <p className="receive-note">Transfer Key:</p>
             <div className="receive-bottom">
               <AddressInput
                 inputAddr={transfer_msg3}
