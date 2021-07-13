@@ -42,26 +42,28 @@ const SendStatecoinPage = () => {
       dispatch(setError({msg: "Please enter an StateCoin address to send to."}))
       return
     }
-
+    
     var input_pubkey = "";
-
+    
+    
     try {
       input_pubkey = decodeSCEAddress(inputAddr);
     } catch (e) {
       dispatch(setError({msg: "Error: " + e.message}))
       return
     }
-
+    
     if (!(input_pubkey.slice(0,2) === '02' || input_pubkey.slice(0,2) === '03')) {
       dispatch(setError({msg: "Error: invalid proof public key."}));
       return
     }
-
+    
     if (input_pubkey.length !== 66) {
       dispatch(setError({msg: "Error: invalid proof public key"}))
       return
     }
-
+    
+    setOpenSendModal({show:true,loading:100})
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
     .then(res => {
       if (res.error===undefined) {
