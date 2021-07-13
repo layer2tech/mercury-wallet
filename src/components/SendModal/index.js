@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Modal } from "react-bootstrap";
 
 import { CopiedButton } from '../../components'
@@ -6,6 +6,7 @@ import { CoinValueIcon, copyIcon, CoinAddressIcon} from './icons'
 import { fromSatoshi } from '../../wallet/util'
 
 import "./index.css";
+import { propTypes } from "react-bootstrap/esm/Image";
 
 function SendModal({
   transfer_code = '',
@@ -22,6 +23,8 @@ function SendModal({
   const handleCopy = () => {
     navigator.clipboard.writeText(transfer_code);
   };
+
+
 
   return (
     <Modal show={show} onHide={handleClose} className="send-modal">

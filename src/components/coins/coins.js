@@ -21,7 +21,7 @@ import {Button, Modal} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 
-import {fromSatoshi} from '../../wallet/util'
+import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData,callGetUnconfirmedAndUnmindeCoinsFundingTxData, setError,callAddDescription,callGetStateCoin} from '../../features/WalletDataSlice'
 
 import SortBy from './SortBy/SortBy'
@@ -321,17 +321,24 @@ const Coins = (props) => {
                   dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
                   return false;
                 }
+
                 if((item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.UNCONFIRMED ) && (props.swap||props.send) && !TESTING_MODE){
+
                   dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
                 }
+                if(item.status === STATECOIN_STATUS.INITIALISED && (props.swap || props.send)){
+                  dispatch(setError({msg: `Coin uninitialised: send BTC to address displayed`}))
+                }
+                else{
                 selectCoin(item.shared_key_id)
+                }
               }}
             >
                 <div className="CoinPanel">
                   <div className="CoinAmount-block">
                       <img src={item.privacy_data.icon1} alt="icon"/>
                       <span className="sub">
-                          <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
+                          <b className={item.value < MINIMUM_DEPOSIT_SATOSHI ?  "CoinAmountError" :  "CoinAmount"}>  {fromSatoshi(item.value)} BTC</b>
                           <div className="scoreAmount">
                               <img src={item.privacy_data.icon2} alt="icon"/>
                               {item.privacy_data.score_desc}
@@ -357,6 +364,7 @@ const Coins = (props) => {
                         <div className ="coin-description">
                           <p>{item.description}</p>
                         </div>
+                        {item.value < MINIMUM_DEPOSIT_SATOSHI && <div class='CoinAmountError'>Coin in error state: below minimum deposit value</div>} 
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
