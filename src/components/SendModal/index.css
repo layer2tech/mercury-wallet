@@ -89,6 +89,23 @@
 .send-modal .transfer-code:hover .copy-code {
   color: #0054F4;
 }
+.send-modal .loading-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding:60px;
+}
+
+.send-modal .loading-spinner{
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.send-modal .loading-txt{
+  display: flex;
+  justify-content: center;
+}
+
 .send-modal .confirm-btn {
   text-transform: uppercase;
   color: #fff;

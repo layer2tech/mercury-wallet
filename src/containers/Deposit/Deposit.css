@@ -485,3 +485,13 @@ ol.go2441762052 {
     }
 
 }
+
+@media only screen and (max-width:768px){
+    .main-coin-wrap .long{
+        width: auto;
+    }
+    .main-coin-wrap .deposit-scan-main-item{
+        display:flex;
+        justify-content: center;
+    }
+}

@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Modal } from "react-bootstrap";
+import React, {useEffect} from "react";
+import { Modal, Spinner} from "react-bootstrap";
 
 import { CopiedButton } from '../../components'
 import { CoinValueIcon, copyIcon, CoinAddressIcon} from './icons'
@@ -15,6 +15,7 @@ function SendModal({
   show = false,
   onClose = () => false,
 }) {
+
 
   const handleClose = () => {
     // TODO: call cancel transfer_sender here.
@@ -62,19 +63,27 @@ function SendModal({
             message='Copied to Clipboard'
         >
           <div>
-            <div className="transfer-code">
-              <span className="copy-note">Click to Copy Transfer Code</span>
-              <span className="copy-btn">{copyIcon()}</span>
-              <span className="copy-code">
-                {transfer_code}
-              </span>
-            </div>
-            <button onClick={handleClose}
-              className={`confirm-btn`}
-            >
-              <span>{copyIcon('#fff')}</span>
-              Continue
-            </button>
+            {transfer_code === "" ? (
+              <div className = "loading-container">
+                <div className = "loading-spinner"  ><Spinner animation="border" style = {{color: "#0054F4"}} variant="primary" ></Spinner></div>
+                <div className = "loading-txt" >Loading transfer key...</div>
+              </div>  
+            ):(
+            <div>
+              <div className="transfer-code">
+                <span className="copy-note">Click to Copy Transfer Key</span>
+                <span className="copy-btn">{copyIcon()}</span>
+                <span className="copy-code">
+                  {transfer_code}
+                </span>
+              </div>
+              <button onClick={handleClose}
+                className={`confirm-btn`}
+              >
+                <span>{copyIcon('#fff')}</span>
+                Continue
+              </button>
+            </div>)}
           </div>
           </CopiedButton>
         </>
