@@ -327,13 +327,13 @@ const Coins = (props) => {
       return (
           <div key={item.shared_key_id}>
             <div
-              className={`coin-item ${props.swap ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
+              className={`coin-item ${(props.swap||props.send) ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
               onClick={() => {
-                if((item.status === STATECOIN_STATUS.SWAPLIMIT || item.status === STATECOIN_STATUS.EXPIRED) && props.swap) {
+                if((item.status === STATECOIN_STATUS.SWAPLIMIT || item.status === STATECOIN_STATUS.EXPIRED) && (props.swap||props.send)) {
                   dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
                   return false;
                 }
-                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.UNCONFIRMED) && props.swap && !TESTING_MODE){
+                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.UNCONFIRMED) && (props.swap||props.send) && !TESTING_MODE){
                   dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
                 }
                 if(item.status === STATECOIN_STATUS.INITIALISED && (props.swap || props.send)){
