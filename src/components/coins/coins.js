@@ -452,6 +452,10 @@ const Coins = (props) => {
       setDscrpnConfirm(!dscpnConfirm)
     }
 
+    const onClickTXID = txId => {
+      window.require("electron").shell.openExternal('https://blockstream.info/tx/'  + txId);
+    }
+
     return (
         <div 
           className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}>
@@ -499,7 +503,7 @@ const Coins = (props) => {
                     <img src={utx} alt="icon" />
                     <div className="block">
                       <span>UTXO ID:</span>
-                      <span>{showCoinDetails.coin.funding_txid}:{showCoinDetails.coin.funding_vout}</span>
+                      <span><a href={'javascript:;'} onClick={() => onClickTXID(showCoinDetails.coin.funding_txid)}>{showCoinDetails.coin.funding_txid}</a>:{showCoinDetails.coin.funding_vout}</span>
                     </div>
                   </div>
 
