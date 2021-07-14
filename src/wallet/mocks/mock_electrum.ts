@@ -8,8 +8,18 @@ export class MockElectrumClient {
       return 1000
     }
 
-    broadcastTransaction(raw_tx: string) {
-      return bitcoin.Transaction.fromHex(raw_tx).getId()
+    async broadcastTransaction(raw_tx: string): Promise<string> {
+      let txid = bitcoin.Transaction.fromHex(raw_tx).getId();
+
+      console.log(txid);
+
+      if (txid === "d21633ba23f70118185227be58a63527675641ad37967e2aa461559f577aec43") {
+        return txid
+      } else if (txid === "14ea0a52fe5b9d23f109dd11053a15cfe17632143d11db7857737524d7c65d4e") {
+        return "tx already in blockchain"
+      } else {
+        return "inputs-missingorspent"
+      }
     }
 
     getTransaction(_txHash: string) {

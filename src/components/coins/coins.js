@@ -21,7 +21,7 @@ import {Button, Modal} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 
-import {fromSatoshi} from '../../wallet/util'
+import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData,callGetUnconfirmedAndUnmindeCoinsFundingTxData, setError,callAddDescription,callGetStateCoin} from '../../features/WalletDataSlice'
 
 import SortBy from './SortBy/SortBy'
@@ -317,22 +317,28 @@ const Coins = (props) => {
             <div
               className={`coin-item ${props.swap ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
               onClick={() => {
-                if(item.status === STATECOIN_STATUS.SWAPLIMIT && props.swap) {
+                if((item.status === STATECOIN_STATUS.SWAPLIMIT || item.status === STATECOIN_STATUS.EXPIRED) && (props.swap||props.send)) {
                   dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
                   return false;
                 }
-                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.UNCONFIRMED ) && props.swap && !TESTING_MODE){
-                  console.log(`statecoin status: ${item.status}, props.swap: ${props.swap}`)
+
+                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.UNCONFIRMED ) && (props.swap||props.send) && !TESTING_MODE){
+
                   dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
                 }
+                if(item.status === STATECOIN_STATUS.INITIALISED && (props.swap || props.send)){
+                  dispatch(setError({msg: `Coin uninitialised: send BTC to address displayed`}))
+                }
+                else{
                 selectCoin(item.shared_key_id)
+                }
               }}
             >
                 <div className="CoinPanel">
                   <div className="CoinAmount-block">
                       <img src={item.privacy_data.icon1} alt="icon"/>
                       <span className="sub">
-                          <b className="CoinAmount">  {fromSatoshi(item.value)} BTC</b>
+                          <b className={item.value < MINIMUM_DEPOSIT_SATOSHI ?  "CoinAmountError" :  "CoinAmount"}>  {fromSatoshi(item.value)} BTC</b>
                           <div className="scoreAmount">
                               <img src={item.privacy_data.icon2} alt="icon"/>
                               {item.privacy_data.score_desc}
@@ -344,18 +350,21 @@ const Coins = (props) => {
                       </span>
                   </div>
                   {filterBy !== STATECOIN_STATUS.WITHDRAWN ? (
-                    item.status === STATECOIN_STATUS.INITIALISED ?                   
+                    item.status === STATECOIN_STATUS.INITIALISED ?
+                    <div>                 
                       <div className ="deposit-scan-main-item">
                         <CopiedButton handleCopy={(event) => copyAddressToClipboard(event,getAddress(item.shared_key_id))}>
                           <img type="button" src={copy_img} alt="icon" />
                         </CopiedButton>
                         <span className="long"><b>{getAddress(item.shared_key_id)}</b></span>
                       </div>
+                    </div>
                     :(
                     <div className="progress_bar" id={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}>
                         <div className ="coin-description">
                           <p>{item.description}</p>
                         </div>
+                        {item.value < MINIMUM_DEPOSIT_SATOSHI && <div class='CoinAmountError'>Coin in error state: below minimum deposit value</div>} 
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
@@ -479,15 +488,7 @@ const Coins = (props) => {
               {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
                 <div className="item qr-container">
                   <div className="block qrcode">
-                    <span>
-                      Time Left Until Expiry
-                    </span>
-                    <span className="expiry-time-left">
-                      {displayExpiryTime(
-                        showCoinDetails.coin.expiry_data
-                      , true)}
                       <QRCodeGenerator address = {getAddress(showCoinDetails.coin.shared_key_id)} amount={fromSatoshi(showCoinDetails.coin.amount)}/>
-                    </span>
                   </div>
                 </div>
               )
@@ -594,6 +595,18 @@ const Coins = (props) => {
                     </div>
                   </div>
                 </div>)}
+              <div className="item">
+                <img src={descripIcon} alt="description-icon"/>
+                <div className="block">
+                  <span>Description</span>
+                  <CoinDescription
+                    dscrpnConfirm = {dscpnConfirm}
+                    description = {description}
+                    setDscrpnConfirm = {confirmDescription}
+                    handleChange={handleChange}
+                    />
+                </div>
+              </div>
             </div>
           </Modal.Body>
           <Modal.Footer>

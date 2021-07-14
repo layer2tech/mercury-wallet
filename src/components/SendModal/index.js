@@ -1,11 +1,12 @@
-import React from "react";
-import { Modal } from "react-bootstrap";
+import React, {useEffect} from "react";
+import { Modal, Spinner} from "react-bootstrap";
 
 import { CopiedButton } from '../../components'
 import { CoinValueIcon, copyIcon, CoinAddressIcon} from './icons'
 import { fromSatoshi } from '../../wallet/util'
 
 import "./index.css";
+import { propTypes } from "react-bootstrap/esm/Image";
 
 function SendModal({
   transfer_code = '',
@@ -15,14 +16,16 @@ function SendModal({
   onClose = () => false,
 }) {
 
+
   const handleClose = () => {
     // TODO: call cancel transfer_sender here.
     onClose()
   };
   const handleCopy = () => {
     navigator.clipboard.writeText(transfer_code);
-    handleClose()
   };
+
+
 
   return (
     <Modal show={show} onHide={handleClose} className="send-modal">
@@ -60,19 +63,27 @@ function SendModal({
             message='Copied to Clipboard'
         >
           <div>
-            <div className="transfer-code">
-              <span className="copy-note">Click to Copy Transfer Code</span>
-              <span className="copy-btn">{copyIcon()}</span>
-              <span className="copy-code">
-                {transfer_code}
-              </span>
-            </div>
-            <button
-              className={`confirm-btn`}
-            >
-              <span>{copyIcon('#fff')}</span>
-              Continue
-            </button>
+            {transfer_code === "" ? (
+              <div className = "loading-container">
+                <div className = "loading-spinner"  ><Spinner animation="border" style = {{color: "#0054F4"}} variant="primary" ></Spinner></div>
+                <div className = "loading-txt" >Loading transfer key...</div>
+              </div>  
+            ):(
+            <div>
+              <div className="transfer-code">
+                <span className="copy-note">Click to Copy Transfer Key</span>
+                <span className="copy-btn">{copyIcon()}</span>
+                <span className="copy-code">
+                  {transfer_code}
+                </span>
+              </div>
+              <button onClick={handleClose}
+                className={`confirm-btn`}
+              >
+                <span>{copyIcon('#fff')}</span>
+                Continue
+              </button>
+            </div>)}
           </div>
           </CopiedButton>
         </>

@@ -70,6 +70,11 @@
   color: #000000;
 }
 
+.CoinAmountError {
+  color: #ff3d00;
+  border-style: solid;
+}
+
 #danger .sub .progress {
     height: 4px;
     background-image: linear-gradient(to right, #ff3d00 10%, #ffb2ab 0%);
@@ -297,7 +302,7 @@
 .main-coin-wrap.no-coin {
   min-height: 50px;
 }
-.swap .coin-item.SWAPLIMIT, .swap .coin-item.UNCONFIRMED, .swap .coin-item.IN_MEMPOOL{
+.swap .coin-item.SWAPLIMIT, .swap .coin-item.UNCONFIRMED, .swap .coin-item.IN_MEMPOOL, .swap .coin-item.EXPIRED, .swap .coin-item.INITIALISED{
   opacity: .3;
 }
 .main-coin-wrap.small-screen .coin-item .CoinPanel {
