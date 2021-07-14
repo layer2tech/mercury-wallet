@@ -28,6 +28,25 @@
   margin-left:3px;
 }
 
+.swap-status p {
+  margin-bottom: 0px;
+}
+
+.item.swap-status-container{
+  flex-direction: column;
+}
+
+.item.swap-status-container .swap-status{
+  margin-left:51px;
+}
+
+p.minimal{
+  display:none;
+}
+p.short{
+  display:none
+}
+
 @media(min-width:768px){
   .withdraw .CoinTimeLeft .expiry-title,.swap .CoinTimeLeft .expiry-title{
     display:none
@@ -37,12 +56,24 @@
     width:70px;
   }
 
+  .swap .swap-status .main{
+    display:none;
+  }
+  .swap .swap-status .short{
+    display:block
+  }
+
+  .swap .new-tor-id {
+    display:none
+  }
+  
+  
 }
 @media(min-width:992px){
   .withdraw .CoinTimeLeft .expiry-title,.swap .CoinTimeLeft .expiry-title{
     display:block;
   }
-
+  
   .withdraw .CoinFundingTxid, .swap .CoinFundingTxid{
     width:130px;
   }
@@ -293,6 +324,11 @@
     display: block;
     position:relative;
   }
+
+  .main-coin-wrap .swap-status{
+    width:175px;
+  }
+
 }
 
 .main-coin-wrap {

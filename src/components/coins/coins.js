@@ -31,6 +31,7 @@ import { CoinStatus } from '../../components'
 import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay'
 import CopiedButton from "../CopiedButton";
 import QRCodeGenerator from "../QRCodeGenerator/QRCodeGenerator";
+import SwapStatus from "./SwapStatus/SwapStatus";
 
 import './coins.css';
 import '../index.css';
@@ -54,6 +55,14 @@ const INITIAL_SORT_BY = {
 	by: 'value'
 };
 
+const SWAP_STATUS_INFO = {
+  Phase0: "Phase 0: registration",
+  Phase1: "Phase 1: awaiting swap commitments",
+  Phase2: "Phase 2: awaiting blind token",
+  Phase3: "Phase 3: awaiting transfers",
+  Phase4: "Phase 4: completing swap",
+}
+
 const Coins = (props) => {
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
@@ -65,6 +74,8 @@ const Coins = (props) => {
     
     const [description,setDescription] = useState("")
     const [dscpnConfirm,setDscrpnConfirm] = useState(false)
+
+    const [swapStatus,setSwapStatus] = useState("")
 
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
@@ -211,7 +222,7 @@ const Coins = (props) => {
           let new_unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
-          // check for change in the amount of blocks per item (where the main expiry date is set)
+          // check for change in the amount of blocks per item (where the main expiry date is set
 
           let [new_confirmed_coins_data,total] = callGetUnspentStatecoins();
           //Get all updated confirmed coins & coin statuses
@@ -310,6 +321,7 @@ const Coins = (props) => {
   		return 0;
   	});
 
+
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
       return (
@@ -399,7 +411,11 @@ const Coins = (props) => {
                             {item.funding_txid}
                         </b>
                       )
-                      : <CoinStatus data={item}/>}
+                      : (
+                      <div>
+                        <CoinStatus data={item}/>
+                        {item.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />):(null)}
+                      </div>)}
                     </div>
                   ) : (
                     <div className="coin-status-or-txid">
@@ -480,8 +496,9 @@ const Coins = (props) => {
             
               {showCoinDetails?.coin?.status &&
                 showCoinDetails.coin.status !== STATECOIN_STATUS.AVAILABLE && (
-                  <div className="item">
+                  <div className="item swap-status-container">
                     <CoinStatus data={showCoinDetails.coin} isDetails={true} />
+                    {showCoinDetails.coin.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[showCoinDetails.coin.swap_status]} />):(null)}
                   </div>
                 )}
 

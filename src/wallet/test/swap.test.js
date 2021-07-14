@@ -103,7 +103,7 @@ describe('Swaps', function() {
       .toThrowError("Coin is not in this phase of the swap protocol. In phase: null");
 
     // Set swap_status as if coin had already run Phase0
-    statecoin.swap_status = SWAP_STATUS.Phase1q
+    statecoin.swap_status = SWAP_STATUS.Phase1
     await expect(swapPhase1(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
       .rejects
       .toThrowError("No Swap ID found. Swap ID should be set in Phase0.");

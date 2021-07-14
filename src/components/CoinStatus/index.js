@@ -117,7 +117,7 @@ const CoinStatus = (props) => {
           )}
           {status === STATECOIN_STATUS.UNCONFIRMED && (
             <div className="coin-status-description">
-              {props?.data?.expiry_data.confirmations < 0 ? '--' : `${props?.data?.expiry_data.confirmations} out of 3 confirations`} 
+              {props?.data?.expiry_data.confirmations < 0 ? '--' : `${props?.data?.expiry_data.confirmations} out of 3 confirmations`} 
               {/* <span className="coin-status-copy-code">
                 view on block explorer
               </span> */}
