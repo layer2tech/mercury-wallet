@@ -64,6 +64,7 @@ const SWAP_STATUS_INFO = {
 }
 
 const Coins = (props) => {
+    const {selectedCoins} = props;
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
@@ -96,9 +97,12 @@ const Coins = (props) => {
         props.setCoinDetails(coin)
     }
 
-    function handleCloseCoinDetails (){
+    const handleCloseCoinDetails = () => {
+      if(!(selectedCoins.length > 0)){
+        // do not reset the selected coins if we already have selected coins
         props.setSelectedCoins([]);
-        setShowCoinDetails(DEFAULT_STATE_COIN_DETAILS);
+      }
+      setShowCoinDetails(DEFAULT_STATE_COIN_DETAILS);
     }
 
     const filterCoinsByStatus = (coins = [], status) => {
@@ -135,7 +139,7 @@ const Coins = (props) => {
 
     const displayExpiryTime = (expiry_data, show_days=false) => {
       if(validExpiryTime(expiry_data)){
-        if(show_days && expiry_data.days > 0){
+        if(show_days && (expiry_data.days % 30) > 0){
           return expiry_time_to_string(expiry_data) + " and " + getRemainingDays(expiry_data.days);
         }else{
           return expiry_time_to_string(expiry_data);
@@ -183,6 +187,14 @@ const Coins = (props) => {
       return expiry_data.months > 1 ? expiry_data.months + " months" : expiry_data.days + " days";
     }
 
+    const validCoinData = (coins_data) => {
+      // do not delete coins
+      if(coins_data === undefined || coins_data === null || coins_data.length === 0){
+        return false;
+      }
+      return true;
+    }
+
     //Load coins once component done render
     useEffect(() => {
       const [coins_data, total_balance] = callGetUnspentStatecoins();
@@ -194,10 +206,13 @@ const Coins = (props) => {
       let undeposited_coins_data = dispatch(callGetUnconfirmedAndUnmindeCoinsFundingTxData)
       //Load coins that haven't yet been sent BTC
 
-      setCoins({
+
+      if(validCoinData(coins_data)){
+        setCoins({
           unspentCoins: coins_data,
           unConfirmedCoins: unconfirmed_coins_data
-      })
+        })
+      }
 
       setInitCoins(undeposited_coins_data)
 
@@ -211,12 +226,12 @@ const Coins = (props) => {
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
-    }, [props.refresh, filterBy,showCoinDetails]);
+    }, [props.refresh, filterBy, showCoinDetails]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
     useEffect(() => {
-      
+
       if (coins.unConfirmedCoins.length) {
         const interval = setInterval(() => {
           let new_unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
@@ -238,11 +253,12 @@ const Coins = (props) => {
               !==
             new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
           ) {
-
-            setCoins({
-              unspentCoins: new_confirmed_coins_data,
-              unConfirmedCoins: new_unconfirmed_coins_data
-            })
+            if(validCoinData(new_confirmed_coins_data)){
+              setCoins({
+                unspentCoins: new_confirmed_coins_data,
+                unConfirmedCoins: new_unconfirmed_coins_data
+              })
+            }
           }
         }, 10000);
         return () => clearInterval(interval);
@@ -529,7 +545,7 @@ const Coins = (props) => {
                         </span>
                         <span className="expiry-time-left">
                           {displayExpiryTime(
-                            showCoinDetails.coin.expiry_data
+                            showCoinDetails.coin.expiry_data, true
                           )}
                         </span>
                       </div>
