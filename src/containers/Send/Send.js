@@ -60,8 +60,9 @@ const SendStatecoinPage = () => {
     
     try {
       input_pubkey = decodeSCEAddress(inputAddr);
-    } catch (e) {
-      dispatch(setError({msg: "Error: Invalid Statechain Address"}))
+    } 
+    catch (e) {
+      dispatch(setError({msg: "Error: " + e.message}))
       return
     }
     

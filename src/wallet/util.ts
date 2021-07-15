@@ -210,8 +210,15 @@ export const encodeSCEAddress = (proof_key: string) => {
 
 // Bech32 decode SCEAddress
 export const decodeSCEAddress = (sce_address: string): string => {
-  let decode =  bech32.decode(sce_address)
-  return Buffer.from(bech32.fromWords(decode.words)).toString('hex')
+  let SCEAddress;
+  try{
+    let decode =  bech32.decode(sce_address)
+    SCEAddress = Buffer.from(bech32.fromWords(decode.words)).toString('hex')
+  }
+  catch(e){
+    throw new Error("Invalid Statechain Address - " + e.message)
+  }
+  return SCEAddress
 }
 
 // Bech32 encode transfer message
@@ -246,9 +253,18 @@ export const encodeMessage = (message: TransferMsg3) => {
 
 // Bech32 decode transfer message
 export const decodeMessage = (enc_message: string, network: Network): TransferMsg3 => {
-  let decode =  bech32.decode(enc_message, 6000);
-  let buf = Buffer.from(bech32.fromWords(decode.words));
+  console.log("BECH32 RUN")
 
+  let buf;
+
+  try{
+    let decode =  bech32.decode(enc_message, 6000);
+    buf = Buffer.from(bech32.fromWords(decode.words));
+  } catch(e){
+    throw new Error("Invalid Transfer Key - " + e.message)
+  }
+  
+  
   // compact byte message deserialisation
   //bytes 0..129 encrypted t1
   let t1_bytes = buf.slice(0,125);

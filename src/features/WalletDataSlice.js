@@ -422,10 +422,10 @@ const WalletSlice = createSlice({
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callTransferReceiver.rejected]: (state, action) => {
-      state.error_dialogue = { seen: false, msg: action.error.name+": Invalid Transfer Key" }
+      state.error_dialogue = { seen: false, msg: action.error.name+": " + action.error.message }
     },
     [callGetTransfers.rejected]: (state, action) => {
-      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+ action.error.message }
     },
     [callDoSwap.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
