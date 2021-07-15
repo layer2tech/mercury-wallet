@@ -23,7 +23,6 @@ import Moment from 'react-moment';
 
 import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util'
 import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData,callGetUnconfirmedAndUnmindeCoinsFundingTxData, setError,callAddDescription,callGetStateCoin} from '../../features/WalletDataSlice'
-
 import SortBy from './SortBy/SortBy'
 import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
@@ -484,6 +483,26 @@ const Coins = (props) => {
       setDscrpnConfirm(!dscpnConfirm)
     }
 
+    // called when clicking on TXid link in modal window
+    const onClickTXID = txId => {
+      const NETWORK = require("../../settings.json").network;
+      let finalUrl = '';
+      switch(NETWORK){
+        case 'mainnet':
+          finalUrl = 'https://blockstream.info/tx/'  + txId;
+          break;
+        case 'testnet':
+          finalUrl = 'https://blockstream.info/testnet/tx/'  + txId;
+          break;
+        // do nothing for regtest and anything else then exit method
+        case 'regtest':
+        default:
+          return null;
+      }
+      // open the browser for both mainnet and testnet
+      window.require("electron").shell.openExternal(finalUrl);
+    }
+
     return (
         <div 
           className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}>
@@ -532,7 +551,7 @@ const Coins = (props) => {
                     <img src={utx} alt="icon" />
                     <div className="block">
                       <span>UTXO ID:</span>
-                      <span>{showCoinDetails.coin.funding_txid}:{showCoinDetails.coin.funding_vout}</span>
+                      <span><a href={'javascript:;'} onClick={() => onClickTXID(showCoinDetails.coin.funding_txid)}>{showCoinDetails.coin.funding_txid}</a>:{showCoinDetails.coin.funding_vout}</span>
                     </div>
                   </div>
 
