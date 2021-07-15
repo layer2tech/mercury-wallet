@@ -22,8 +22,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 
 import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util'
-import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData,callGetUnconfirmedAndUnmindeCoinsFundingTxData, setError,callAddDescription,callGetStateCoin} from '../../features/WalletDataSlice'
-
+import {callGetUnspentStatecoins, callGetConfig, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData,callGetUnconfirmedAndUnmindeCoinsFundingTxData, setError,callAddDescription,callGetStateCoin} from '../../features/WalletDataSlice'
 import SortBy from './SortBy/SortBy'
 import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
@@ -453,7 +452,12 @@ const Coins = (props) => {
     }
 
     const onClickTXID = txId => {
-      window.require("electron").shell.openExternal('https://blockstream.info/tx/'  + txId);
+      let current_config = callGetConfig();
+      let finalUrl = 'https://blockstream.info/testnet/tx/'  + txId;
+      if(current_config.network == 'testnet'){
+        finalUrl = 'https://blockstream.info/tx/'  + txId;
+      }
+      window.require("electron").shell.openExternal(finalUrl);
     }
 
     return (
