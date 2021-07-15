@@ -339,6 +339,7 @@ p.short{
   min-height: 50px;
 }
 .swap .coin-item.SWAPLIMIT, .swap .coin-item.UNCONFIRMED, .swap .coin-item.IN_MEMPOOL, .swap .coin-item.EXPIRED, .swap .coin-item.INITIALISED{
+
   opacity: .3;
 }
 .sendStatecoin .coin-item.SWAPLIMIT, .sendStatecoin .coin-item.UNCONFIRMED, .sendStatecoin .coin-item.IN_MEMPOOL, .sendStatecoin .coin-item.EXPIRED, .sendStatecoin .coin-item.INITIALISED{

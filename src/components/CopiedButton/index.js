@@ -13,8 +13,11 @@ function CopiedButton ({
 }) {
   const [copied, setCopied] = useState(false);
   const handleClick = (e) => {
-    handleCopy(e)
-    setCopied(true)
+    //Stops copy event propagation to Receive Index X button in Receive.js
+    if(!e.target.classList.contains("receive-btn")){
+      handleCopy(e)
+      setCopied(true)
+    }
   };
   useEffect(() => {
     clearTimeout(timeout);

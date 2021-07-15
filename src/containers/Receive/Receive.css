@@ -19,7 +19,7 @@
     background-color: #ECF2FF;
     padding: 20px;
 }
-.receiveStatecoin-scan-txid:hover .copy-btn-wrap .address {
+.receiveStatecoin-scan-txid .copy-btn-wrap .address:hover {
     cursor: pointer;
     color: #0054F4;
 }
@@ -52,13 +52,18 @@
     }
 }
 
-.receiveStatecoin-scan-content .btns-container .receive-btns button{
+.receiveStatecoin-scan-content .receive-btn{
     background: #666666;
     color: #ffffff;
     border-radius: 5px;
     font-size:15px;
 }
-.receiveStatecoin-scan-content .btns-container .receive-btns.active{
+
+.address-index .receive-btn{
+    width:170px;
+}
+
+.receiveStatecoin-scan-content .btns-container .receive-btn.active{
     background: #0054F4;
 }
 
@@ -75,6 +80,28 @@
     display: flex;
     justify-content: space-between;
 }
+
+.receiveStatecoin-scan-txid .copy-btn-wrap .address-index span.rec-address {
+    display: block;
+    width:500px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media only screen and (max-width: 991px) {
+    .receiveStatecoin-scan-txid .copy-btn-wrap .address-index span.rec-address {
+        width: 250px;
+    }
+
+}
+
+@media only screen and (max-width:768px){
+    .receiveStatecoin-scan-txid .copy-btn-wrap .address-index span.rec-address{
+        width: 200px;
+    }
+}
+
 
 .receiveStatecoin-scan-txid img {
     width: 16px;
@@ -200,4 +227,9 @@
     .receiveStatecoin-scan-content {
         margin-left: 0;
     }
+}
+
+.btn.receive-btn:hover{
+    color:white;
+
 }
