@@ -458,16 +458,17 @@ const Coins = (props) => {
       switch(NETWORK){
         case 'mainnet':
           finalUrl = 'https://blockstream.info/tx/'  + txId;
+          break;
         case 'testnet':
           finalUrl = 'https://blockstream.info/testnet/tx/'  + txId;
-          // open the browser for both mainnet and testnet
-          window.require("electron").shell.openExternal(finalUrl);
           break;
-        // do nothing for regtest and anything else
+        // do nothing for regtest and anything else then exit method
         case 'regtest':
         default:
           return null;
       }
+      // open the browser for both mainnet and testnet
+      window.require("electron").shell.openExternal(finalUrl);
     }
 
     return (
