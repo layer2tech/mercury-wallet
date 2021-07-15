@@ -451,13 +451,23 @@ const Coins = (props) => {
       setDscrpnConfirm(!dscpnConfirm)
     }
 
+    // called when clicking on TXid link in modal window
     const onClickTXID = txId => {
-      let current_config = callGetConfig();
-      let finalUrl = 'https://blockstream.info/testnet/tx/'  + txId;
-      if(current_config.network == 'testnet'){
-        finalUrl = 'https://blockstream.info/tx/'  + txId;
+      const NETWORK = require("../../settings.json").network;
+      let finalUrl = '';
+      switch(NETWORK){
+        case 'mainnet':
+          finalUrl = 'https://blockstream.info/tx/'  + txId;
+        case 'testnet':
+          finalUrl = 'https://blockstream.info/testnet/tx/'  + txId;
+          // open the browser for both mainnet and testnet
+          window.require("electron").shell.openExternal(finalUrl);
+          break;
+        // do nothing for regtest and anything else
+        case 'regtest':
+        default:
+          return null;
       }
-      window.require("electron").shell.openExternal(finalUrl);
     }
 
     return (
