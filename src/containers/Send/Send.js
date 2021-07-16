@@ -60,7 +60,8 @@ const SendStatecoinPage = () => {
     
     try {
       input_pubkey = decodeSCEAddress(inputAddr);
-    } catch (e) {
+    } 
+    catch (e) {
       dispatch(setError({msg: "Error: " + e.message}))
       return
     }
