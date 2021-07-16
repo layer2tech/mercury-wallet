@@ -39,7 +39,7 @@
     justify-content: space-between;
 }
 
-@media only screen and (max-width:995px){
+@media only screen and (max-width:991px){
     .receiveStatecoin-scan .btns-container{
         justify-content: center;
         flex-wrap:wrap;
@@ -50,6 +50,10 @@
     .receiveStatecoin-scan .btns-container button{
         margin-bottom:0px;
     }
+
+    .receiveStatecoin .receive-btn{
+        margin-right:0px;
+    }
 }
 
 .receiveStatecoin-scan-content .receive-btn{
@@ -57,11 +61,14 @@
     color: #ffffff;
     border-radius: 5px;
     font-size:15px;
+    width:180px;
+    box-shadow: 0 0 8px 2px rgba(0, 0, 0, 0.121569)
 }
 
-.address-index .receive-btn{
-    width:170px;
+.receiveStatecoin .btns-container .receive-btn{
+    margin-right:25px;
 }
+
 
 .receiveStatecoin-scan-content .btns-container .receive-btn.active{
     background: #0054F4;
@@ -142,7 +149,7 @@
 }
 
 
-@media only screen and (max-width: 995px){
+@media only screen and (max-width: 991px){
     .sendStatecoin.content .center{
         left:13.5%;
         width:73.5%;
@@ -179,11 +186,6 @@
     background: #0054F4;
 }
 
-/* .receiveStatecoin .receive-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-} */
 .receiveStatecoin .receive-bottom div:first-child {
     flex: 1;
     margin-bottom: 20px;
