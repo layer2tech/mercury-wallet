@@ -51,7 +51,7 @@ const HelpPage = (props) => {
                 <Tab eventKey="Privacy Policy" title="Privacy Policy">
                     <div className="content">
                         <span className="title">Privacy policy</span>
-                        <p>Mercy Wallet has developed this Privacy Statement to explain how it collects, stores, uses and protects personally identifiable information when users visit its website and use its services. This Privacy Statement does not apply to third-party websites or services which Mercury Wallet does not own or control including websites or services with advertisements or URL links hosted on the Mercury Wallet sites.</p>
+                        <p>Mercury Wallet has developed this Privacy Statement to explain how it collects, stores, uses and protects personally identifiable information when users visit its website and use its services. This Privacy Statement does not apply to third-party websites or services which Mercury Wallet does not own or control including websites or services with advertisements or URL links hosted on the Mercury Wallet sites.</p>
                         <p>Please contact the Mercury Wallet team (main@mercurywallet.com) if you have any questions about its privacy practices that are not addressed in this Privacy Statement.</p>
                         <p>Please note: Layer Two Limited provides written user support only. Mercury does not offer phone support and will never call, e-mail or get in touch in any form with users to offer any wallet recovery services. Users are advised to be safe and guard their wallet information and funds. If you see any signs of abuse in this regard, please contact our Legal Team (main@mercurywallet.com)</p>
                         <h6>Definitions</h6>
@@ -70,7 +70,7 @@ const HelpPage = (props) => {
                             <li>Users may voluntarily enrol or opt-in for notifications regarding potential technical problems or other information.</li>
                         </ul>
                         <p>Mercury Wallet will process this Personally Identifiable Information as necessary to offer and fulfil the customer support requested.</p>
-                        <p>At any time a user may “opt out” of the receipt of email communications related to technical information or customer support through emailing support@mercurywallet.com</p>
+                        <p>At any time a user may “opt out” of the receipt of email communications related to technical information or customer support through emailing main@mercurywallet.com</p>
                         <p>In all such cases, Personally Identifiable Information provided by the user is permanently erased one hundred (100) days after the resolution of the customer service query or the purpose for which it was provided to Mercury Wallet. Mercury Wallet does not retain any Personally Identifiable Information from interactions with users relating to their technical questions and issues.</p>
                         <p>Mercury Wallet cannot link User Wallets with Personally Identifiable Information including but not limited to names and IP addresses. Therefore, a user’s Personally Identifiable Information is not able to be accessed by the staff of Mercury Wallet, its subsidiaries or holding company. </p>
                         <h6>Third Party Sharing, links and social media plug-ins</h6>
