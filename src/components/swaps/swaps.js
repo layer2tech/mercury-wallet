@@ -44,7 +44,7 @@ const Swaps = (props) => {
         }
     }
     const swapData = props.swapGroupsData.map(([key,value], index) => (
-        <div key={key.amount} className="swap-item-wrap">
+        <div key={index} className="swap-item-wrap">
             <div className="SwapAmount-block">
                 <label>
                     <b>{fromSatoshi(key.amount)} {' '}</b> BTC
