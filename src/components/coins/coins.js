@@ -355,6 +355,9 @@ const Coins = (props) => {
                 if(item.status === STATECOIN_STATUS.INITIALISED && (props.swap || props.send)){
                   dispatch(setError({msg: `Coin uninitialised: send BTC to address displayed`}))
                 }
+                if(item.status === (STATECOIN_STATUS.IN_SWAP || STATECOIN_STATUS.AWAITING_SWAP) && (props.swap || props.send)){
+                  dispatch(setError({msg: `Coin uninitialised: send BTC to address displayed`}))
+                }
                 else{
                 selectCoin(item.shared_key_id)
                 }
