@@ -108,7 +108,7 @@ const ReceiveStatecoinPage = () => {
       return
     }
     else{
-      dispatch(setError({msg: `The Electrum network connection is lost`}))
+      dispatch(setError({msg: "The Electrum network connection is lost"}))
     }
   }
   
