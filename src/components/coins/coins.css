@@ -48,33 +48,33 @@ p.short{
 }
 
 @media(min-width:768px){
-  .withdraw .CoinTimeLeft .expiry-title,.swap .CoinTimeLeft .expiry-title{
+  .withdraw .CoinTimeLeft .expiry-title,.swap .CoinTimeLeft .expiry-title,.sendStatecoin .CoinTimeLeft .expiry-title{
     display:none
   }
 
-  .withdraw .CoinFundingTxid, .swap .CoinFundingTxid{
+  .withdraw .CoinFundingTxid, .swap .CoinFundingTxid,.sendStatecoin .CoinFundingTxid{
     width:70px;
   }
 
-  .swap .swap-status .main{
+  .swap .swap-status .main,.sendStatecoin .swap-status .main{
     display:none;
   }
-  .swap .swap-status .short{
+  .swap .swap-status .short,.sendStatecoin .swap-status .short{
     display:block
   }
 
-  .swap .new-tor-id {
+  .swap .new-tor-id,.sendStatecoin .new-tor-id {
     display:none
   }
   
   
 }
 @media(min-width:992px){
-  .withdraw .CoinTimeLeft .expiry-title,.swap .CoinTimeLeft .expiry-title{
+  .withdraw .CoinTimeLeft .expiry-title,.swap .CoinTimeLeft .expiry-title,.sendStatecoin .CoinTimeLeft .expiry-title{
     display:block;
   }
   
-  .withdraw .CoinFundingTxid, .swap .CoinFundingTxid{
+  .withdraw .CoinFundingTxid, .swap .CoinFundingTxid,.sendStatecoin .CoinFundingTxid{
     width:130px;
   }
 }

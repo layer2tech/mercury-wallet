@@ -1,11 +1,11 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
 import {StdButton, AddressInput, CopiedButton} from "../../components";
 import QRCode from 'qrcode.react';
 
-import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callGetNumSeAddr, callTransferReceiver, callGetTransfers, setError, setNotification} from '../../features/WalletDataSlice'
+import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callGetNumSeAddr, callTransferReceiver, callGetTransfers, setError, setNotification, callPingElectrum} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
 import arrow from "../../images/arrow-up.png"
@@ -16,6 +16,7 @@ import './Receive.css';
 import '../Send/Send.css';
 
 import { Transaction } from 'bitcoinjs-lib';
+import { TRANSFER_PUBKEY } from '../../wallet/mocks/mock_http_client';
 
 let addr_index = - 1;
 
@@ -24,6 +25,8 @@ const ReceiveStatecoinPage = () => {
 
   const [transfer_msg3, setTransferMsg3] = useState("");
   const [openTransferKey, setOpenTransferKey] = useState(false)
+  const [electrumServer, setElectrumServer] = useState(false)
+  const [counter,setCounter] = useState(0)
 
   const onTransferMsg3Change = (event) => {
     setTransferMsg3(event.target.value);
@@ -34,6 +37,32 @@ const ReceiveStatecoinPage = () => {
 
   const [rec_sce_addr, setRecAddr] = useState(callGetSeAddr(addr_index));
 
+  useEffect(()=> {
+    // Check if Electrum server connected on page open
+
+    checkElectrum();
+    const interval = setInterval(()=> {
+      //Check Electrum server every 5s
+      checkElectrum();
+
+      //Counter triggers interval to run every time it's called
+      setCounter(counter+1)
+
+    },10000)
+    return()=> clearInterval(interval)
+    
+  },[counter])
+
+  const checkElectrum = () => {
+    callPingElectrum().then((res) => {
+      if(res.height){
+        setElectrumServer(true)
+      }
+    }).catch((err)=> {
+      setElectrumServer(false)
+    })
+  }
+  
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
@@ -66,32 +95,42 @@ const ReceiveStatecoinPage = () => {
 
   const receiveButtonAction =() => {
     // if mgs box empty, then query server for transfer messages
-    
-    dispatch(callGetTransfers(addr_index)).then((res) => {
-      if (res.payload===0) {
-          dispatch(setError({msg: "No transfers to receive."}))
-       } else {
-        let nreceived = res.payload
-        dispatch(setNotification({msg:"Received "+nreceived+" statecoins."}))
-      }
-    })
-    return
+    if(electrumServer){
+
+      dispatch(callGetTransfers(addr_index)).then((res) => {
+        if (res.payload===0) {
+            dispatch(setError({msg: "No transfers to receive."}))
+         } else {
+          let nreceived = res.payload
+          dispatch(setNotification({msg:"Received "+nreceived+" statecoins."}))
+        }
+      })
+      return
+    }
+    else{
+      dispatch(setError({msg: "The Electrum network connection is lost"}))
+    }
   }
   
   const receiveWithKey = () => {
-    dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
-      if (res.error===undefined) {
-        setTransferMsg3("")
-        let amount = res.payload.state_chain_data.amount
-        let locktime = Transaction.fromHex(res.payload.tx_backup_psm.tx_hex).locktime
-        dispatch(setNotification({msg:"Transfer of "+fromSatoshi(amount)+" BTC complete! StateCoin expires at block height "+locktime+"."}))
-      }
-    })
+      dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
+        if (res.error===undefined) {
+          setTransferMsg3("")
+          let amount = res.payload.state_chain_data.amount
+          let locktime = Transaction.fromHex(res.payload.tx_backup_psm.tx_hex).locktime
+          dispatch(setNotification({msg:"Transfer of "+fromSatoshi(amount)+" BTC complete! StateCoin expires at block height "+locktime+"."}))
+        }
+      })
   }
 
 
   const handleOpenTransferKey = () => {
-    setOpenTransferKey(!openTransferKey)
+    if(electrumServer){
+      setOpenTransferKey(!openTransferKey)
+    }
+    else{
+      dispatch(setError({msg: `The Electrum network connection is lost`}))
+    }
   }
   
   const copySEAddressToClipboard = (e) => {
