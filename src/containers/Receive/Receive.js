@@ -16,7 +16,6 @@ import './Receive.css';
 import '../Send/Send.css';
 
 import { Transaction } from 'bitcoinjs-lib';
-import { TRANSFER_PUBKEY } from '../../wallet/mocks/mock_http_client';
 
 let addr_index = - 1;
 
@@ -59,6 +58,7 @@ const ReceiveStatecoinPage = () => {
         setElectrumServer(true)
       }
     }).catch((err)=> {
+      console.log("ERROR IN RECEIVE: ",err)
       setElectrumServer(false)
     })
   }
