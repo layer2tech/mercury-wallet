@@ -16,7 +16,6 @@ import './Receive.css';
 import '../Send/Send.css';
 
 import { Transaction } from 'bitcoinjs-lib';
-import { TRANSFER_PUBKEY } from '../../wallet/mocks/mock_http_client';
 
 let addr_index = - 1;
 
