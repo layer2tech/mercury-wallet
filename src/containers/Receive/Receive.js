@@ -58,7 +58,6 @@ const ReceiveStatecoinPage = () => {
         setElectrumServer(true)
       }
     }).catch((err)=> {
-      console.log("ERROR IN RECEIVE: ",err)
       setElectrumServer(false)
     })
   }

@@ -74,7 +74,6 @@ async function pingElectrum() {
     //If client already started
     if (wallet.electrum_client.isOpen()){
       wallet.electrum_client.serverPing().catch((err) => {
-      console.log(err);
       return false;
      });
      return true;
