@@ -146,7 +146,7 @@ ipcMain.on('select-backup-file', async (event, arg) => {
  app.on('before-quit', async function () {
   await kill_tor();
 });
-app.commandLine.appendSwitch('ignore-certificate-errors');
+
 // Electron Store
 const Store = require('electron-store');
 Store.initRenderer();
