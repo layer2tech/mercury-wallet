@@ -60,7 +60,8 @@ const SendStatecoinPage = () => {
     
     try {
       input_pubkey = decodeSCEAddress(inputAddr);
-    } catch (e) {
+    } 
+    catch (e) {
       dispatch(setError({msg: "Error: " + e.message}))
       return
     }
@@ -145,6 +146,7 @@ const SendStatecoinPage = () => {
                       <span className="sub">Click to select UTXO’s below</span>
                       <Coins
                         displayDetailsOnClick={false}
+                        showCoinStatus={true}
                         selectedCoin={selectedCoin}
                         setSelectedCoin={setSelectedCoin}
                         setCoinDetails={setCoinDetails}

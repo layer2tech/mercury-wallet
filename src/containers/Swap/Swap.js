@@ -15,7 +15,8 @@ import {
   callUpdateSwapGroupInfo,
   callUpdateSwapStatus,
   callGetConfig,
-  callGetStateCoin
+  callGetStateCoin,
+  callPingElectrum
 } from "../../features/WalletDataSlice";
 import {fromSatoshi} from '../../wallet'
 
@@ -28,6 +29,8 @@ const SwapPage = () => {
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
+  const [electrumServer,setElectrumServer] = useState(false); // Check Electrum server network status
+  const [counter,setCounter] = useState(0); //Re-run interval checks
 
   const [swapGroupsData, setSwapGroupsData] = useState([]);
 
@@ -58,6 +61,32 @@ const SwapPage = () => {
       return () => clearInterval(interval);
     },
     []);
+  
+  // Check if Electrum server connected on page open
+  useEffect(()=> {
+    checkElectrum();
+    const interval = setInterval(()=> {
+      //Check Electrum server every 5s
+      checkElectrum();
+
+      //Counter triggers interval to run every time it's called
+      setCounter(counter+1)
+
+    },10000)
+    return()=> clearInterval(interval)
+    
+  },[counter])
+
+  const checkElectrum = () => {
+    callPingElectrum().then((res) => {
+      if(res.height){
+        setElectrumServer(true)
+      }
+    }).catch((err)=> {
+      setElectrumServer(false)
+    })
+  }
+    
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -67,6 +96,11 @@ const SwapPage = () => {
 
   const swapButtonAction = async () => {
     // check statechain is chosen
+    if (electrumServer === false){
+      dispatch(setError({msg: "The Electrum network connection is lost"}))
+      return
+    }
+
     if (selectedCoins.length == 0) {
       dispatch(setError({msg: "Please choose a StateCoin to swap."}))
       return
@@ -94,6 +128,11 @@ const SwapPage = () => {
     );
   }
   const leavePoolButtonAction = (event) => {
+    if (electrumServer === false){
+      dispatch(setError({msg: "The Electrum network connection is lost"}))
+      return
+    }
+
     if (selectedCoins.length == 0) {
       dispatch(setError({msg: "Please choose a StateCoin to remove."}))
       return

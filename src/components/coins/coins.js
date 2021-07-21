@@ -186,12 +186,21 @@ const Coins = (props) => {
       return expiry_data.months > 1 ? expiry_data.months + " months" : expiry_data.days + " days";
     }
 
-    const validCoinData = (coins_data) => {
+    const validCoinData = (coins_data, new_unconfirmed_coins_data) => {
+      let validA =  true;
+      let validB = true;
+
       // do not delete coins
       if(coins_data === undefined || coins_data === null || coins_data.length === 0){
-        return false;
+        validA =  false;
       }
-      return true;
+
+      if(new_unconfirmed_coins_data === undefined || new_unconfirmed_coins_data === null || new_unconfirmed_coins_data.length === 0){
+        validB = false;
+      }
+
+      //  if either of these stay true, let it set coins as there is data
+      return (validA || validB);
     }
 
     //Load coins once component done render
@@ -206,7 +215,7 @@ const Coins = (props) => {
       //Load coins that haven't yet been sent BTC
 
 
-      if(validCoinData(coins_data)){
+      if(validCoinData(coins_data, unconfirmed_coins_data)){
         setCoins({
           unspentCoins: coins_data,
           unConfirmedCoins: unconfirmed_coins_data
@@ -252,7 +261,7 @@ const Coins = (props) => {
               !==
             new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
           ) {
-            if(validCoinData(new_confirmed_coins_data)){
+            if(validCoinData(new_confirmed_coins_data, new_unconfirmed_coins_data)){
               setCoins({
                 unspentCoins: new_confirmed_coins_data,
                 unConfirmedCoins: new_unconfirmed_coins_data
@@ -342,18 +351,25 @@ const Coins = (props) => {
       return (
           <div key={item.shared_key_id}>
             <div
-              className={`coin-item ${(props.swap||props.send) ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
+              className={`coin-item ${(props.swap||props.send||props.withdraw) ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
               onClick={() => {
-                if((item.status === STATECOIN_STATUS.SWAPLIMIT || item.status === STATECOIN_STATUS.EXPIRED) && (props.swap||props.send)) {
+                if((item.status === STATECOIN_STATUS.SWAPLIMIT) && (props.swap||props.send)) {
                   dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
                   return false;
                 }
+                if((item.status === STATECOIN_STATUS.SWAPLIMIT || item.status === STATECOIN_STATUS.EXPIRED) && (props.swap||props.send||props.withdraw)) {
+                  dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap and withdrawal'}))
+                  return false;
+                }
                 
-                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.UNCONFIRMED ) && (props.swap||props.send) && !TESTING_MODE){
+                if((item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.UNCONFIRMED ) && (props.swap||props.send || props.withdraw) && !TESTING_MODE){
                   dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
                 }
-                if(item.status === STATECOIN_STATUS.INITIALISED && (props.swap || props.send)){
+                if(item.status === STATECOIN_STATUS.INITIALISED && (props.swap || props.send|| props.withdraw)){
                   dispatch(setError({msg: `Coin uninitialised: send BTC to address displayed`}))
+                }
+                if(item.status === (STATECOIN_STATUS.IN_SWAP || STATECOIN_STATUS.AWAITING_SWAP) && (props.send || props.withdraw)){
+                  dispatch(setError({msg: `Unavailable while coin in swap group`}))
                 }
                 else{
                 selectCoin(item.shared_key_id)
