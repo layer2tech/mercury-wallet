@@ -186,12 +186,21 @@ const Coins = (props) => {
       return expiry_data.months > 1 ? expiry_data.months + " months" : expiry_data.days + " days";
     }
 
-    const validCoinData = (coins_data) => {
+    const validCoinData = (coins_data, new_unconfirmed_coins_data) => {
+      let validA =  true;
+      let validB = true;
+
       // do not delete coins
       if(coins_data === undefined || coins_data === null || coins_data.length === 0){
-        return false;
+        validA =  false;
       }
-      return true;
+
+      if(new_unconfirmed_coins_data === undefined || new_unconfirmed_coins_data === null || new_unconfirmed_coins_data.length === 0){
+        validB = false;
+      }
+
+      //  if either of these stay true, let it set coins as there is data
+      return (validA || validB);
     }
 
     //Load coins once component done render
@@ -206,7 +215,7 @@ const Coins = (props) => {
       //Load coins that haven't yet been sent BTC
 
 
-      if(validCoinData(coins_data)){
+      if(validCoinData(coins_data, unconfirmed_coins_data)){
         setCoins({
           unspentCoins: coins_data,
           unConfirmedCoins: unconfirmed_coins_data
@@ -252,7 +261,7 @@ const Coins = (props) => {
               !==
             new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
           ) {
-            if(validCoinData(new_confirmed_coins_data)){
+            if(validCoinData(new_confirmed_coins_data, new_unconfirmed_coins_data)){
               setCoins({
                 unspentCoins: new_confirmed_coins_data,
                 unConfirmedCoins: new_unconfirmed_coins_data
