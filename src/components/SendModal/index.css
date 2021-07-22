@@ -6,6 +6,7 @@
   flex-direction: column;
 }
 
+
 .send-modal .send-steps .step-item {
   margin-bottom: 20px;
   position: relative;
@@ -166,4 +167,33 @@
   margin-top: 50px;
   width: 100%;
   position: relative;
+}
+
+
+.transfer-code .tooltip {
+  visibility: hidden;
+  width: 350px;
+  background-color: #E0E0E0;
+  color: #000000;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  margin-left: -60px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.transfer-code .tooltip:after {
+  content: "";
+  position: fixed;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #E0E0E0 transparent transparent transparent;
+}
+.transfer-code:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }
