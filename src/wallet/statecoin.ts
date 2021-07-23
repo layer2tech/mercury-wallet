@@ -287,7 +287,9 @@ export const STATECOIN_STATUS = {
   // Coin has reached it's backup timelock and has been spent
   EXPIRED: "EXPIRED",
   // Coin has reached the locktime limit for inclusion in swap_status
-  SWAPLIMIT: "SWAPLIMIT"
+  SWAPLIMIT: "SWAPLIMIT",
+  // Coin has been deleted
+  DELETED: "DELETED"
 };
 Object.freeze(STATECOIN_STATUS);
 
