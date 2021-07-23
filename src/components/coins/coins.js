@@ -22,7 +22,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 
 import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util'
-import {callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData,callGetUnconfirmedAndUnmindeCoinsFundingTxData, setError,callAddDescription,callGetStateCoin} from '../../features/WalletDataSlice'
+import {callRemoveCoin,callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData,callGetUnconfirmedAndUnmindeCoinsFundingTxData, setError,callAddDescription,callGetStateCoin} from '../../features/WalletDataSlice'
 import SortBy from './SortBy/SortBy'
 import FilterBy from './FilterBy/FilterBy'
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
@@ -35,6 +35,10 @@ import SwapStatus from "./SwapStatus/SwapStatus";
 import './coins.css';
 import '../index.css';
 import CoinDescription from "../inputs/CoinDescription/CoinDescription";
+
+import close_img from "../../images/close-icon.png";
+import './DeleteCoin/DeleteCoin.css'
+
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -72,28 +76,32 @@ const Coins = (props) => {
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const [refreshCoins, setRefreshCoins] = useState(false);
     
-    const [description,setDescription] = useState("")
-    const [dscpnConfirm,setDscrpnConfirm] = useState(false)
+    const [description,setDescription] = useState("");
+    const [dscpnConfirm,setDscrpnConfirm] = useState(false);
 
-    const [swapStatus,setSwapStatus] = useState("")
+    const [swapStatus,setSwapStatus] = useState("");
+
+    // deleting coins
+    const [currentItem, setCurrentItem] = useState(null);
+    const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
 
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
 
     const handleOpenCoinDetails = (shared_key_id) => {
-        let coin = all_coins_data.find((coin) => {
-            return coin.shared_key_id === shared_key_id
-        })
-        coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
-        setShowCoinDetails({show: true, coin: coin});
+      let coin = all_coins_data.find((coin) => {
+          return coin.shared_key_id === shared_key_id
+      })
+      coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
+      setShowCoinDetails({show: true, coin: coin});
     }
 
     const handleSetCoinDetails = (shared_key_id) => {
-        let coin = all_coins_data.find((coin) => {
-            return coin.shared_key_id === shared_key_id
-        })
-        coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
-        props.setCoinDetails(coin)
+      let coin = all_coins_data.find((coin) => {
+          return coin.shared_key_id === shared_key_id
+      })
+      coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
+      props.setCoinDetails(coin);
     }
 
     const handleCloseCoinDetails = () => {
@@ -201,6 +209,24 @@ const Coins = (props) => {
 
       //  if either of these stay true, let it set coins as there is data
       return (validA || validB);
+    }
+
+    // deleting modals
+    const onDeleteCoinDetails = (item) => {
+      setCurrentItem(item);
+      setShowDeleteCoinDetails(true);
+    }
+
+    const handleDeleteCoinYes = (item) => {
+      item.status = "DELETED";
+      item.deleting = true;
+      item.privacy_data.msg = 'coin currently being deleted';
+      callRemoveCoin(item.shared_key_id);
+      setShowDeleteCoinDetails(false);
+    }
+
+    const handleDeleteCoinNo = () => {
+      setShowDeleteCoinDetails(false);
     }
 
     //Load coins once component done render
@@ -350,6 +376,9 @@ const Coins = (props) => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
       return (
           <div key={item.shared_key_id}>
+            {!item.deleting && item.status === "INITIALISED" && <div className="CoinTitleBar">
+              <img className='close' src={close_img} alt="arrow" onClick={() => onDeleteCoinDetails(item)}/>
+            </div>}
             <div
               className={`coin-item ${(props.swap||props.send||props.withdraw) ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
               onClick={() => {
@@ -490,7 +519,7 @@ const Coins = (props) => {
     }
   
     //Confirm description, submit redux state to change Statecoin
-    function confirmDescription() {
+    const confirmDescription = () => {
       if(dscpnConfirm === false) {
         callAddDescription(showCoinDetails.coin.shared_key_id,description)
 
@@ -684,6 +713,32 @@ const Coins = (props) => {
               Close
             </Button>
           </Modal.Footer>
+        </Modal>
+
+        <Modal
+          show={showDeleteCoinDetails}
+          onHide={handleCloseCoinDetails}
+          className="modal coin-details-modal"
+        >
+          <Modal.Body>
+            <div>
+              Are you sure you want to delete this coin?
+            </div>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                className="primary-btn ghost"
+                onClick={() => handleDeleteCoinYes(currentItem)}
+              >
+                Yes
+              </Button>
+              <Button
+                className="primary-btn ghost"
+                onClick={handleDeleteCoinNo}
+              >
+                No
+              </Button>
+            </Modal.Footer>
         </Modal>
       </div>
     );
