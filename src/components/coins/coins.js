@@ -393,15 +393,19 @@ const Coins = (props) => {
                 
                 if((item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.UNCONFIRMED ) && (props.swap||props.send || props.withdraw) && !TESTING_MODE){
                   dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
+                  return false
                 }
                 if(item.status === STATECOIN_STATUS.INITIALISED && (props.swap || props.send|| props.withdraw)){
                   dispatch(setError({msg: `Coin uninitialised: send BTC to address displayed`}))
+                  return false
                 }
                 if(item.status === (STATECOIN_STATUS.IN_SWAP || STATECOIN_STATUS.AWAITING_SWAP) && (props.send || props.withdraw)){
                   dispatch(setError({msg: `Unavailable while coin in swap group`}))
+                  return false
                 }
                 else{
-                selectCoin(item.shared_key_id)
+                  console.log("CALLED!")
+                  selectCoin(item.shared_key_id)
                 }
               }}
             >
