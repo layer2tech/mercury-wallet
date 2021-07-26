@@ -99,7 +99,9 @@ const WithdrawPage = () => {
     }
   }
 
-  const handleFeeSelection = (event) => setTxFeePerKB(event.target.value)
+  const handleFeeSelection = (event) => {
+    setTxFeePerKB(event.target.value)
+  }
 
   let current_config;
   try {

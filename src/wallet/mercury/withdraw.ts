@@ -84,7 +84,7 @@ export const withdraw = async (
   let txb_withdraw_unsigned;
 
   if(statecoins.length > 1) {
-      txb_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info)
+      txb_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info,fee_per_kb)
   } else {
       let statecoin = statecoins[0];
       let withdraw_fee = (statecoin.value * fee_info.withdraw) / 10000;

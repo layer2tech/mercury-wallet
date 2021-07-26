@@ -18,9 +18,13 @@ let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
 
 /// Temporary - fees should be calculated dynamically
-export const FEE = 300;
+export const FEE = 141;
+//FEE for backup transaction 2 outputs 1 input P2WPKH
 export const MINIMUM_DEPOSIT_SATOSHI = 200000;
-export const SIGNED_WITHDRAW_TX_SIZE_KB = 0.56;
+export const VIRTUAL_TX_SIZE_KB = 0.226;
+//VIRTUAL_TX: 2 outputs 1 input (max byte size P2PKH)
+export const INPUT_TX_SIZE_KB = 0.148;
+//INPUT_TX: 1 input (max byte size P2PKH)
 
 // Verify Spase Merkle Tree proof of inclusion
 export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {
@@ -142,7 +146,9 @@ export const txBackupBuild = (network: Network, funding_txid: string, funding_vo
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
 export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_kb: number): TransactionBuilder => {
-  let tx_fee = toSatoshi(Math.round(fee_per_kb*SIGNED_WITHDRAW_TX_SIZE_KB*10e7)/10e7);
+
+  let tx_fee = toSatoshi(Math.round(fee_per_kb*VIRTUAL_TX_SIZE_KB*10e7)/10e7);
+
   if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
 
   let txb = new TransactionBuilder(network);
@@ -158,7 +164,7 @@ export const txWithdrawBuild = (network: Network, funding_txid: string, funding_
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_address: string, fee_info: FeeInfo): TransactionBuilder => {
+export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_address: string, fee_info: FeeInfo, fee_per_kb: number): TransactionBuilder => {
   let txin = []
   let value = 0;
   let txb: TransactionBuilder = new TransactionBuilder(network);
@@ -177,11 +183,15 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
 
   value = value + fee_info.deposit;
 
-  let withdraw_fee = (value * fee_info.withdraw) / 10000;
+  let withdraw_fee = Math.round((value * fee_info.withdraw) / 10000)//(value * fee_info.withdraw) / 10000
+  let tx_fee = toSatoshi(Math.round(fee_per_kb*(VIRTUAL_TX_SIZE_KB+(INPUT_TX_SIZE_KB*(sc_infos.length-1)))*10e7)/10e7)
+  //FEE_PER_KB in units: 0.00001
 
   if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
 
-  txb.addOutput(rec_address, value - FEE - withdraw_fee);
+  // txb.addOutput(rec_address, value - FEE - withdraw_fee);
+  txb.addOutput(rec_address,value - txb.maximumFeeRate - FEE - withdraw_fee)
+
   txb.addOutput(fee_info.address, withdraw_fee);
 
   return txb
