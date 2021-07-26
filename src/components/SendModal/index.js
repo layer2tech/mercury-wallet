@@ -25,6 +25,14 @@ function SendModal({
     navigator.clipboard.writeText(transfer_code);
   };
 
+  const tooltipHover = (e) => {
+    var tooltipSpan = document.querySelector('.transfer-code span.tooltip');
+    var x = e.clientX;
+    var y = e.clientY;
+
+    tooltipSpan.style.top = `${y-398+25}px`;
+    tooltipSpan.style.left = `${x-230+62.5}px`;
+  }
 
 
   return (
@@ -70,7 +78,10 @@ function SendModal({
               </div>  
             ):(
             <div>
-              <div className="transfer-code">
+              <div className="transfer-code" onMouseMove={e => tooltipHover(e)}>
+                <span className="tooltip">
+                  <b>Transfer Key:</b> Send the receiver the transfer key to 'RECEIVE WITH KEY'
+                </span>
                 <span className="copy-note">Click to Copy Transfer Key</span>
                 <span className="copy-btn">{copyIcon()}</span>
                 <span className="copy-code">

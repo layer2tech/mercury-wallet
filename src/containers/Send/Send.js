@@ -104,7 +104,6 @@ const SendStatecoinPage = () => {
   }
 
   const handleConfirm = (pass) => {
-    console.log("FUNCTION CALLED!!")
     setInputAddr("")
     setSelectedCoin('')
     setRefreshCoins((prevState) => !prevState);
