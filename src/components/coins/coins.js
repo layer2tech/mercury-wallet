@@ -404,7 +404,6 @@ const Coins = (props) => {
                   return false
                 }
                 else{
-                  console.log("CALLED!")
                   selectCoin(item.shared_key_id)
                 }
               }}
