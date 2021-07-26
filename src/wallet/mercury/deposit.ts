@@ -36,6 +36,9 @@ export const depositInit = async (
   let shared_key_id = deposit_init_res.id;
   typeforce(typeforce.String, shared_key_id)
 
+  // solve VDF challenge
+  let vdf_solution = wasm_client.solve_vdf_challenge(Buffer.from(deposit_init_res.vdf_challenge).toString("hex"));
+    
   // 2P-ECDSA with state entity to create a Shared key
   let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
 

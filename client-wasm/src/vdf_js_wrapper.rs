@@ -3,14 +3,16 @@ use vdf::{VDFParams, WesolowskiVDFParams, VDF};
 use hex::FromHex;
 use hex::encode;
 
-// secp256_k1::GE to bitcoin public key
+const DIFFICULTY: u64 = 5000;
+
+// solve the vdf challenge using wesolowski
 #[wasm_bindgen]
 pub fn solve_vdf_challenge(challenge: String) -> Result<JsValue, JsValue> {
 
     let decoded = <[u8; 32]>::from_hex(challenge).expect("Decoding failed");
 
     let vdf = WesolowskiVDFParams(2048 as u16).new();
-    let solution = &vdf.solve(&decoded, 5000).unwrap()[..];
+    let solution = &vdf.solve(&decoded, DIFFICULTY).unwrap()[..];
 
-    Ok(encode(solution))
+    Ok(encode(solution).into())
 }
