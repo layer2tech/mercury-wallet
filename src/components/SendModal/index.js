@@ -33,8 +33,6 @@ function SendModal({
     var x = e.clientX;
     var y = e.clientY;
 
-    console.log(`(${x},${y}) = (x,y)`)
-
     tooltipSpan.style.top = `${y-(h/2)+52}px`;
     tooltipSpan.style.left = `${x-(w/2)+250}px`;
   }
