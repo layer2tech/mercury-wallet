@@ -56,3 +56,10 @@
   height: 100vh;
   z-index: 300;
 }
+
+.swap .sort-by-menu, .sendStatecoin .sort-by-menu, .withdraw .sort-by-menu{
+  right:0;
+}
+.swap .sort-by-options, .sendStatecoin .sort-by-options, .withdraw .sort-by-options{
+  right:30px;
+}

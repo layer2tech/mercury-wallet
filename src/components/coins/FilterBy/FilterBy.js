@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { STATECOIN_STATUS } from "../../../wallet/statecoin";
 import { updateFilter } from "../../../features/WalletDataSlice";
@@ -22,10 +22,18 @@ const FILTER_BY_OPTION = [
   },
 ];
 
-const FilterBy = () => {
+
+const FilterBy = (props) => {
   const dispatch = useDispatch();
   const [openFilterMenu, setOpenFilterMenu] = useState(false);
   const { filterBy } = useSelector((state) => state.walletData);
+
+  //Show spendable coins on page load
+  useEffect(()=> {
+    if(document.querySelector('.swap')|| document.querySelector('.withdraw')||document.querySelector('.sendStatecoin')){
+      dispatch(updateFilter("default"))
+    }
+  },[])
 
   const handleFilter = (filterBy) => {
     dispatch(updateFilter(filterBy));
