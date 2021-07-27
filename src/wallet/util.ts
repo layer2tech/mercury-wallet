@@ -190,7 +190,7 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
   if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
 
   // txb.addOutput(rec_address, value - FEE - withdraw_fee);
-  txb.addOutput(rec_address,value - txb.maximumFeeRate - FEE - withdraw_fee)
+  txb.addOutput(rec_address,value - tx_fee - FEE - withdraw_fee)
 
   txb.addOutput(fee_info.address, withdraw_fee);
 

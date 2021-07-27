@@ -3,7 +3,7 @@ import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, txBackupBuild, txWithdrawBuild, txCPFPBuild, StateChainSig, toSatoshi, fromSatoshi,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
   encryptECIES, decryptECIES, encryptAES, decryptAES, proofKeyToSCEAddress, encodeMessage,
-  decodeMessage, SIGNED_WITHDRAW_TX_SIZE_KB } from '../util';
+  decodeMessage, VIRTUAL_TX_SIZE_KB } from '../util';
 import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
 import { Wallet } from '../';
 
@@ -83,7 +83,7 @@ describe('txWithdrawBuild', function() {
     expect(tx_backup.outs[1].value).toBe(Number(fee_info.withdraw));
     let fee_value = value-tx_backup.outs[0].value-tx_backup.outs[1].value;
     // With a 1 s/b fee, tx fee should be equal to signed tx size
-    expect(fee_value).toBe(SIGNED_WITHDRAW_TX_SIZE_KB*1000)
+    expect(fee_value).toBe(VIRTUAL_TX_SIZE_KB *1000)
   });
 });
 
