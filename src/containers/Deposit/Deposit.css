@@ -366,8 +366,12 @@ ol.go2441762052 {
     background-color: #ECF2FF;
     padding: 20px 30px;
     margin-top: 10px;
-
 }
+
+.home-page .main-coin-wrap .deposit-scan-main-item{
+    width: 450px;
+}
+
 .deposit-scan-main-item img  {
     margin-right: 10px;
 }
@@ -475,15 +479,27 @@ ol.go2441762052 {
     }
 }
 
-@media only screen and (max-width: 991px) {
+@media only screen and (max-width: 1200px) {
     .long {
         display: block;
-        width: 130px;
+        /* width: 130px; */
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
+}
+@media only screen and (max-width: 991px) {
+    .long {
+        display: block;
+        /* width: 130px; */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .home-page .main-coin-wrap .deposit-scan-main-item{
+        width: 250px;
+    }
 }
 
 @media only screen and (max-width:768px){
@@ -493,5 +509,9 @@ ol.go2441762052 {
     .main-coin-wrap .deposit-scan-main-item{
         display:flex;
         justify-content: center;
+    }
+
+    .home-page .main-coin-wrap .deposit-scan-main-item{
+        width:auto;
     }
 }

@@ -1,3 +1,7 @@
+.CoinTitleBar {
+  height: 20px;
+}
+
 .CoinPanel {
   display: flex;
   justify-content: space-between;

@@ -12,7 +12,7 @@ import {
 import { CopiedButton } from '../../components';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
 import { encodeMessage } from '../../wallet/util';
-
+import Spinner from 'react-bootstrap/Spinner';
 import './coinStatus.css';
 
 const STATECOIN_STATUS_INFO = {
@@ -47,6 +47,10 @@ const STATECOIN_STATUS_INFO = {
   [STATECOIN_STATUS.INITIALISED]: {
     icon: <InitialisedIcon />,
     title: 'Awaiting Transaction'
+  },
+  [STATECOIN_STATUS.DELETED]:{
+    icon: <Spinner animation="border" variant="danger" size="sm"/>,
+    title: 'Deleting...'
   }
 };
 

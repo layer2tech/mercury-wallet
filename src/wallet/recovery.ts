@@ -4,7 +4,8 @@ import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin } from './statecoin';
 import { getRecoveryRequest, RecoveryDataMsg } from './mercury/info_api';
 
-let bitcoin = require('bitcoinjs-lib')
+let bitcoin = require('bitcoinjs-lib');
+let cloneDeep = require('lodash.clonedeep');
 
 // number of keys to generate per recovery call. If no statecoins are found for this number
 // of keys then assume there are no more statecoins owned by this wallet.
@@ -30,7 +31,7 @@ export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> =
 
   // No more keys found for this wallet. Remove the NUM_KEYS_PER_RECOVERY_ATTEMPT from
   // wallets account so that the wallet can use them.
-  wallet.account.chains[0].k = wallet.account.chains[0].k - NUM_KEYS_PER_RECOVERY_ATTEMPT;
+  wallet.account.chains[0].k = 1;
 
   return recovery_data
 }
@@ -55,11 +56,13 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
 
     let statecoin = new StateCoin(recoveredCoins[i].shared_key_id, master_key)
 
+    let tx_copy = cloneDeep(tx_backup);
+
     statecoin.proof_key = recoveredCoins[i].proof_key
     statecoin.tx_backup = tx_backup;
-    statecoin.backup_status = BACKUP_STATUS.CONFIRMED;
-    statecoin.funding_vout = tx_backup.ins[0].index;
-    statecoin.funding_txid = tx_backup.ins[0].hash.reverse().toString("hex");
+    statecoin.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
+    statecoin.funding_vout = tx_copy.ins[0].index;
+    statecoin.funding_txid = tx_copy.ins[0].hash.reverse().toString("hex");
     statecoin.statechain_id = recoveredCoins[i].statechain_id;
     statecoin.value = recoveredCoins[i].amount;
 
