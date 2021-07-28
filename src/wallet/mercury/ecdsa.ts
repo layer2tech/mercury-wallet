@@ -20,19 +20,13 @@ export const keyGen = async (
   shared_key_id: string,
   secret_key: string,
   protocol: string,
-  vdf_solution: any
+  solution: any
 ) => {
-
-  if (protocol === PROTOCOL.DEPOSIT) {
-    let vdf_sol = Array.from(Buffer.from(vdf_solution, "hex"));
-  } else {
-    let vdf_sol = null
-  }
 
   let keygen_msg1 = {
       shared_key_id: shared_key_id,
       protocol: protocol,
-      vdf_solution: vdf_sol,
+      solution: solution,
   };
 
   // server first

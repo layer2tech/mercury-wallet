@@ -8,9 +8,11 @@ export function keygen_set_master_key(a: number, b: number, c: number, d: number
 export function __wbg_sign_free(a: number): void;
 export function sign_first_message(): number;
 export function sign_second_message(a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number): number;
+export function solve_pow_challenge(a: number, b: number): number;
 export function test_wasm(): void;
 export function curv_ge_to_bitcoin_public_key(a: number, b: number): number;
 export function convert_bigint_to_client_curv_version(a: number, b: number, c: number, d: number): number;
+export function init(): void;
 export function verify_statechain_smt(a: number, b: number, c: number, d: number, e: number, f: number): number;
 export function __wbg_swap_free(a: number): void;
 export function swap_requester_calc_eprime(a: number, b: number, c: number, d: number): number;
@@ -22,7 +24,6 @@ export function bstrequestordata_make_blind_spend_token(a: number, b: number, c:
 export function bstrequestordata_requester_calc_s(a: number, b: number, c: number, d: number, e: number, f: number): number;
 export function __wbg_commitment_free(a: number): void;
 export function commitment_make_commitment(a: number, b: number): number;
-export function init(): void;
 export function rustsecp256k1_v0_2_0_ecdsa_recoverable_signature_serialize_compact(a: number, b: number, c: number, d: number): number;
 export function rustsecp256k1_v0_2_0_ecdsa_recoverable_signature_parse_compact(a: number, b: number, c: number, d: number): number;
 export function rustsecp256k1_v0_2_0_ec_seckey_verify(a: number, b: number): number;
