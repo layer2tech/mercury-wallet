@@ -51,7 +51,7 @@ export class MockElectrumClient {
 
     async getScriptHashListUnspent(_script: string): Promise<any> {
       return [ { tx_hash:
-           '4d0a3b1cf66942c40faf27ab898d31b2e4dc504eeb60585490764dc500cde16d',
+            "794610eff71928df4d6814843945dbe51d8d11cdbcbeb11eb1c42e8199298494",
           tx_pos: 0,
           height: 1936508,
           value: 500000 } ]

@@ -192,6 +192,7 @@ describe('StateChain Entity', function() {
   });
 
   describe('Withdraw Batch', function() {
+    let fee_per_kb = 0.00001
     test('Expect complete', async function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[0]))
@@ -216,7 +217,7 @@ describe('StateChain Entity', function() {
         bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D))];
 
 
-      let tx_withdraw = await withdraw(http_mock, wasm_mock, network, statecoins, proof_key_ders, BTC_ADDR);
+      let tx_withdraw = await withdraw(http_mock, wasm_mock, network, statecoins, proof_key_ders, BTC_ADDR,fee_per_kb);
 
       // check withdraw tx
       expect(tx_withdraw.ins.length).toBe(2);
