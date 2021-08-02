@@ -234,6 +234,15 @@ export class StateCoinList {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.tx_withdraw = tx_withdraw
+      coin.tx_hex = tx_withdraw.toHex()
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+  }
+  setCoinWithdrawTxId(shared_key_id: string, withdraw_txid: string) {
+    let coin = this.getCoin(shared_key_id)
+    if (coin) {
+      coin.withdraw_txid = withdraw_txid
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
@@ -331,6 +340,8 @@ export class StateCoin {
   interval: number;
   tx_cpfp: BTCTransaction | null;
   tx_withdraw: BTCTransaction | null;
+  withdraw_txid: string | null;
+  tx_hex: string | null;
   smt_proof: InclusionProofSMT | null;
   swap_rounds: number;
   status: string;
@@ -370,6 +381,8 @@ export class StateCoin {
     this.interval = 1;
     this.tx_cpfp = null;
     this.tx_withdraw = null;
+    this.withdraw_txid = null;
+    this.tx_hex = null;
     this.smt_proof = null;
     this.status = STATECOIN_STATUS.INITIALISED;
 
@@ -417,6 +430,8 @@ export class StateCoin {
       description:this.description,
       funding_txid: this.funding_txid,
       funding_vout: this.funding_vout,
+      tx_hex: this.tx_hex,
+      withdraw_txid: this.withdraw_txid,
       timestamp: this.timestamp,
       swap_rounds: this.swap_rounds,
       expiry_data: this.getExpiryData(block_height),
@@ -535,6 +550,8 @@ export interface StateCoinDisplayData {
   description:string,
   funding_txid: string,
   funding_vout: number,
+  tx_hex: string | null,
+  withdraw_txid: string | null, 
   timestamp: number,
   swap_rounds: number,
   expiry_data: ExpiryData,

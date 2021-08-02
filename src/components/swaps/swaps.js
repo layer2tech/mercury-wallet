@@ -87,7 +87,7 @@ const Swaps = (props) => {
                         </div>
                     </div>
                 </>
-            ) : <p>Loading swap group information...</p>}
+            ) : <p>No swap groups registered.</p>}
         </div>
     );
 }

@@ -11,6 +11,8 @@ import {Coins, StdButton, AddressInput, Tutorial} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
 
+import Loading from '../../components/Loading/Loading';
+
 import './Withdraw.css';
 
 export const DEFAULT_FEE = 0.00001;
@@ -21,6 +23,8 @@ const WithdrawPage = () => {
 
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
+  const [loading, setLoading] = useState(false)
+
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
@@ -74,14 +78,17 @@ const WithdrawPage = () => {
       return
     }
 
+    setLoading(true)
     dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr, "fee_per_kb": txFeePerKB})).then((res => {
-      if (res.error===undefined) {
-        setSelectedCoins([])
-        setInputAddr("")
-        setRefreshCoins((prevState) => !prevState);
-        dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
-      }
+        if (res.error===undefined) {
+          setSelectedCoins([])
+          setInputAddr("")
+          setRefreshCoins((prevState) => !prevState);
+          dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
+        }
+        setLoading(false)
     }))
+    
   }
 
   const filterByMsg = () => {
@@ -192,9 +199,9 @@ const WithdrawPage = () => {
                           </tbody>
                       </table>                
                       */}
-                      <button type="button" className="btn" onClick={withdrawButtonAction}>
-                          <img src={withdrowIcon} alt="withdrowIcon"/>
-                          Withdraw btc</button>
+                      <button type="button" className="btn" onClick={loading?(null):(withdrawButtonAction)}>
+                          {loading?(null):(<img src={withdrowIcon} alt="withdrowIcon"/>)}
+                          {loading?(<Loading/>):("Withdraw btc")}</button>
                   </div>
               </div>
           </div>
