@@ -93,7 +93,11 @@ const SendStatecoinPage = () => {
           coinAddress: inputAddr
         });
       }
-
+      if(res.error!==undefined){
+        setOpenSendModal({
+          show:false
+        })
+      }
     })
       // setPreventDoubleClick(true)
     // }
