@@ -6,6 +6,7 @@
   "files": [
     "client_wasm_bg.wasm",
     "client_wasm.js",
+    "client_wasm_bg.js",
     "client_wasm.d.ts"
   ],
   "module": "client_wasm.js",
