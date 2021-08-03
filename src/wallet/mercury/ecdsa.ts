@@ -19,13 +19,16 @@ export const keyGen = async (
   wasm_client: any,
   shared_key_id: string,
   secret_key: string,
-  protocol: string
+  protocol: string,
+  solution: any
 ) => {
 
   let keygen_msg1 = {
       shared_key_id: shared_key_id,
       protocol: protocol,
+      solution: solution,
   };
+
   // server first
   let server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
   let kg_party_one_first_message = server_resp_key_gen_first.msg;
