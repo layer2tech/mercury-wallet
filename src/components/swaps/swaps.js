@@ -1,8 +1,8 @@
 import coin from "../../images/table-icon1.png";
 import user from "../../images/table-icon-user.png";
 
-import React, {useState, useEffect} from 'react';
-import {Modal} from 'react-bootstrap';
+import React from 'react';
+
 
 import {fromSatoshi} from '../../wallet'
 
