@@ -8,6 +8,8 @@ import QRCode from 'qrcode.react';
 import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callGetNumSeAddr, callTransferReceiver, callGetTransfers, setError, setNotification, callPingElectrum} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
+import Loading from '../../components/Loading/Loading';
+
 import arrow from "../../images/arrow-up.png"
 import icon2 from "../../images/icon2.png";
 import closeIcon from "../../images/close-icon.png";
@@ -195,7 +197,7 @@ const ReceiveStatecoinPage = () => {
                           </span>
                         </div>
                         <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(receiveButtonAction):((e)=>{e.stopPropagation()})}>
-                          {transferLoading?(<p className="loading">Loading</p>) : (`RECEIVE Index: ${addr_index}`)}
+                          {transferLoading?(<Loading />) : (`RECEIVE Index: ${addr_index}`)}
                         </button>
                       </div>
                     </CopiedButton>
@@ -223,7 +225,7 @@ const ReceiveStatecoinPage = () => {
                     </button>   
                     <div className ="receive-btns">
                       <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(handleOpenTransferKey):(null)}>
-                        {transferKeyLoading? (<p className="loading">Loading</p>):("RECEIVE WITH KEY")}
+                        {transferKeyLoading? (<Loading/>):("RECEIVE WITH KEY")}
                       </button>
                     </div>           
                 </div>
@@ -247,7 +249,7 @@ const ReceiveStatecoinPage = () => {
                 placeholder='mm1...'
                 smallTxtMsg='Transfer Code'/>
               <button type="button" className={`btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(receiveWithKey):(null)}>
-                {transferKeyLoading? (<p className="loading">LOADING</p>):("RECEIVE")}
+                {transferKeyLoading? (<Loading/>):("RECEIVE")}
               </button>
             </div>
           </div>

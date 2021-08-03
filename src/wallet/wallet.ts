@@ -929,14 +929,15 @@ export class Wallet {
     // Perform withdraw with server
     let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_kb);
 
+    // Broadcast transcation
+    let withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
+    
     // Mark funds as withdrawn in wallet
     shared_key_ids.forEach( (shared_key_id) => {
       this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
       this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
+      this.statecoins.setCoinWithdrawTxId(shared_key_id,withdraw_txid)
     });
-
-    // Broadcast transcation
-    await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
 
     log.info("Withdrawing finished.");
     this.saveStateCoinsList();

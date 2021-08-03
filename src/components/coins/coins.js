@@ -12,7 +12,9 @@ import walleticon from "../../images/walletIcon.png";
 import txidIcon from "../../images/txid-icon.png";
 import timeIcon from "../../images/time.png";
 import copy_img from "../../images/icon2.png";
-import descripIcon from "../../images/description.png"
+import descripIcon from "../../images/description.png";
+import hashIcon from "../../images/hashtag.png";
+import hexIcon from "../../images/hexagon.png"
 
 
 import React, {useState, useEffect } from 'react';
@@ -42,7 +44,7 @@ import './DeleteCoin/DeleteCoin.css'
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
-const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}, privacy_data: {score_desc: ""}}}
+const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}, privacy_data: {score_desc: ""},tx_hex: null,withdraw_tx: null}}
 // privacy score considered "low"
 const LOW_PRIVACY = 3
 // style time left timer as red after this many days
@@ -75,6 +77,8 @@ const Coins = (props) => {
     const [initCoins, setInitCoins] = useState({})
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     const [refreshCoins, setRefreshCoins] = useState(false);
+    const [txHex,setTxHex] = useState(false);
+    //toggle show full tx_hex
     
     const [description,setDescription] = useState("");
     const [dscpnConfirm,setDscrpnConfirm] = useState(false);
@@ -86,11 +90,10 @@ const Coins = (props) => {
     const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
 
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
-
-
+    
     const handleOpenCoinDetails = (shared_key_id) => {
       let coin = all_coins_data.find((coin) => {
-          return coin.shared_key_id === shared_key_id
+        return coin.shared_key_id === shared_key_id
       })
       coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
       setShowCoinDetails({show: true, coin: coin});
@@ -240,7 +243,6 @@ const Coins = (props) => {
       let undeposited_coins_data = dispatch(callGetUnconfirmedAndUnmindeCoinsFundingTxData)
       //Load coins that haven't yet been sent BTC
 
-
       if(validCoinData(coins_data, unconfirmed_coins_data)){
         setCoins({
           unspentCoins: coins_data,
@@ -382,7 +384,7 @@ const Coins = (props) => {
             <div
               className={`coin-item ${(props.swap||props.send||props.withdraw) ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
               onClick={() => {
-                if((item.status === STATECOIN_STATUS.SWAPLIMIT) && (props.swap||props.send)) {
+                if((item.status === STATECOIN_STATUS.SWAPLIMIT) && (props.swap)) {
                   dispatch(setError({ msg: 'Locktime below limit for swap participation'}))
                   return false;
                 }
@@ -530,6 +532,12 @@ const Coins = (props) => {
       setDscrpnConfirm(!dscpnConfirm)
     }
 
+    const toggleTxShow = () => {
+      let modalContent = document.querySelector(".modal-content")
+      modalContent.classList.toggle("adjust-height")
+      setTxHex(!txHex)
+    }
+
     // called when clicking on TXid link in modal window
     const onClickTXID = txId => {
       const NETWORK = require("../../settings.json").network;
@@ -576,7 +584,7 @@ const Coins = (props) => {
                 </div>
               </div>
             
-              {showCoinDetails?.coin?.status &&
+              {showCoinDetails?.coin?.status && filterBy === "default" &&
                 showCoinDetails.coin.status !== STATECOIN_STATUS.AVAILABLE && (
                   <div className="item swap-status-container">
                     <CoinStatus data={showCoinDetails.coin} isDetails={true} />
@@ -597,11 +605,11 @@ const Coins = (props) => {
                   <div className="item">
                     <img src={utx} alt="icon" />
                     <div className="block">
-                      <span>UTXO ID:</span>
+                      <span>UTXO ID</span>
                       <span><a href={'javascript:;'} onClick={() => onClickTXID(showCoinDetails.coin.funding_txid)}>{showCoinDetails.coin.funding_txid}</a>:{showCoinDetails.coin.funding_vout}</span>
                     </div>
                   </div>
-
+                
                   <div className="item expiry-time">
                     <div className="expiry-time-wrap">
                       <img src={time} alt="icon" />
@@ -694,7 +702,37 @@ const Coins = (props) => {
                     </div>
                   </div>
                 </div>)}
-              <div className="item">
+              {showCoinDetails?.coin?.status && showCoinDetails.coin.status === STATECOIN_STATUS.WITHDRAWN ? 
+              (     
+                <div>
+                  <div className="item tx_hex">
+                    <img src={hexIcon} alt="hexagon"/>
+                    <div className="block">
+                      <span>Transaction Hex</span>
+                      <span>
+                        {txHex?(showCoinDetails.coin.tx_hex): (showCoinDetails.coin.tx_hex?.slice(0,70))}
+                        {txHex?
+                          (<span className = "close-hex" onClick = { () => toggleTxShow()}>Close</span>) 
+                          :
+                          <b className = "open-hex" onClick = { () => toggleTxShow() }>...</b>}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="item">
+                    <img src={hashIcon} alt ="hashtag"/>
+                    <div className="block">
+                      <span>Withdrawal TXID</span>
+                      <span>
+                        {showCoinDetails.coin.withdraw_txid}
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+
+              )
+              :
+              (<div className="item">
                 <img src={descripIcon} alt="description-icon"/>
                 <div className="block">
                   <span>Description</span>
@@ -705,7 +743,8 @@ const Coins = (props) => {
                     handleChange={handleChange}
                     />
                 </div>
-              </div>
+              </div>)}
+
             </div>
           </Modal.Body>
           <Modal.Footer>
