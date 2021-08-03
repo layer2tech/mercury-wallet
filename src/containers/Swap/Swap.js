@@ -17,7 +17,9 @@ import {
   callUpdateSwapStatus,
   callGetConfig,
   callGetStateCoin,
-  callPingElectrum
+  callPingElectrum,
+  addCoinToSwapRecords,
+  removeCoinFromSwapRecords
 } from "../../features/WalletDataSlice";
 import {fromSatoshi} from '../../wallet'
 
@@ -26,7 +28,6 @@ import './Swap.css';
 const SwapPage = () => {
   const dispatch = useDispatch();
   let disabled = false;
-
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
@@ -113,6 +114,7 @@ const SwapPage = () => {
 
     selectedCoins.forEach(
       (selectedCoin) => {
+        dispatch(addCoinToSwapRecords(selectedCoin));
         setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
         dispatch(callDoSwap({"shared_key_id": selectedCoin}))
           .then(res => {
@@ -122,7 +124,7 @@ const SwapPage = () => {
               if(statecoin === undefined || statecoin === null){
                 statecoin = selectedCoin;
               }
-              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
+              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
               return
             }
             if (res.error===undefined) {
@@ -158,6 +160,7 @@ const SwapPage = () => {
         (selectedCoin) => {
           dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}))
             .then(res => {
+              dispatch(removeCoinFromSwapRecords(selectedCoin));
               setSwapLoad({...swapLoad, leave: false})
             });
         }
