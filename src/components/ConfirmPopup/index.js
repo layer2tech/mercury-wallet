@@ -11,11 +11,11 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
   const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
   const [closeText, setCloseText] = useState('Are you sure?');
-  const swapCoins = useSelector(state => state.walletData.swappedCoins);
+  const swapRecords = useSelector(state => state.walletData.swapRecords);
 
   const handleClick = () => {
     setShowModal(true);
-    if(swapCoins.length > 0){
+    if(swapRecords.length > 0){
       setCloseText('Your swaps will be cancelled, are you sure?');
     }else{
       setCloseText('Are you sure?')
