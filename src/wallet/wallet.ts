@@ -907,7 +907,7 @@ export class Wallet {
     shared_key_ids: string[],
     rec_addr: string,
     fee_per_kb: number
-  ): Promise<Transaction> {
+  ): Promise <string> {
     log.info("Withdrawing "+shared_key_ids+" to "+rec_addr);
 
     // Check address format
@@ -941,7 +941,7 @@ export class Wallet {
 
     log.info("Withdrawing finished.");
     this.saveStateCoinsList();
-    return tx_withdraw
+    return withdraw_txid
   }
 }
 
