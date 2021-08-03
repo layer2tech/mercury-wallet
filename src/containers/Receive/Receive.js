@@ -8,6 +8,8 @@ import QRCode from 'qrcode.react';
 import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callGetNumSeAddr, callTransferReceiver, callGetTransfers, setError, setNotification, callPingElectrum} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
+import Loading from '../../components/Loading/Loading';
+
 import arrow from "../../images/arrow-up.png"
 import icon2 from "../../images/icon2.png";
 import closeIcon from "../../images/close-icon.png";
@@ -25,6 +27,8 @@ const ReceiveStatecoinPage = () => {
   const [transfer_msg3, setTransferMsg3] = useState("");
   const [openTransferKey, setOpenTransferKey] = useState(false)
   const [electrumServer, setElectrumServer] = useState(false)
+  const [transferLoading,setTransferLoading] = useState(false)
+  const [transferKeyLoading,setTransferKeyLoading] = useState(false)
   const [counter,setCounter] = useState(0)
 
   const onTransferMsg3Change = (event) => {
@@ -82,7 +86,7 @@ const ReceiveStatecoinPage = () => {
     }
     setRecAddr(callGetSeAddr(addr_index))
   }
-
+ 
   const nextAddrButtonAction = async () => {
     if (addr_index >= (num_addresses - 1)) {
       addr_index = num_addresses - 1
@@ -93,16 +97,18 @@ const ReceiveStatecoinPage = () => {
   }
 
   const receiveButtonAction =() => {
-    // if mgs box empty, then query server for transfer messages
+    // if transfer key box empty, then query server for transfer messages
     if(electrumServer){
-
+      setTransferLoading(true)
       dispatch(callGetTransfers(addr_index)).then((res) => {
+
         if (res.payload===0) {
             dispatch(setError({msg: "No transfers to receive."}))
-         } else {
-          let nreceived = res.payload
-          dispatch(setNotification({msg:"Received "+nreceived+" statecoins."}))
+          } else {
+            let nreceived = res.payload
+            dispatch(setNotification({msg:"Received "+nreceived+" statecoins."}))
         }
+        setTransferLoading(false)
       })
       return
     }
@@ -110,16 +116,20 @@ const ReceiveStatecoinPage = () => {
       dispatch(setError({msg: "The Electrum network connection is lost"}))
     }
   }
+
   
   const receiveWithKey = () => {
-      dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
-        if (res.error===undefined) {
-          setTransferMsg3("")
-          let amount = res.payload.state_chain_data.amount
-          let locktime = Transaction.fromHex(res.payload.tx_backup_psm.tx_hex).locktime
-          dispatch(setNotification({msg:"Transfer of "+fromSatoshi(amount)+" BTC complete! StateCoin expires at block height "+locktime+"."}))
-        }
-      })
+    // Receive with transfer key
+    setTransferKeyLoading(true)
+    dispatch(callTransferReceiver(transfer_msg3)).then((res) => {
+      if (res.error===undefined) {
+        setTransferMsg3("")
+        let amount = res.payload.state_chain_data.amount
+        let locktime = Transaction.fromHex(res.payload.tx_backup_psm.tx_hex).locktime
+        dispatch(setNotification({msg:"Transfer of "+fromSatoshi(amount)+" BTC complete! StateCoin expires at block height "+locktime+"."}))
+      }
+      setTransferKeyLoading(false)
+    })
   }
 
 
@@ -186,8 +196,8 @@ const ReceiveStatecoinPage = () => {
                             {rec_sce_addr}
                           </span>
                         </div>
-                        <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveButtonAction}>
-                          RECEIVE Index: {addr_index}
+                        <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(receiveButtonAction):((e)=>{e.stopPropagation()})}>
+                          {transferLoading?(<Loading />) : (`RECEIVE Index: ${addr_index}`)}
                         </button>
                       </div>
                     </CopiedButton>
@@ -214,8 +224,8 @@ const ReceiveStatecoinPage = () => {
                         GENERATE ANOTHER ADDRESS
                     </button>   
                     <div className ="receive-btns">
-                      <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={handleOpenTransferKey}>
-                        RECEIVE WITH KEY
+                      <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(handleOpenTransferKey):(null)}>
+                        {transferKeyLoading? (<Loading/>):("RECEIVE WITH KEY")}
                       </button>
                     </div>           
                 </div>
@@ -238,8 +248,8 @@ const ReceiveStatecoinPage = () => {
                 onChange={onTransferMsg3Change}
                 placeholder='mm1...'
                 smallTxtMsg='Transfer Code'/>
-              <button type="button" className={`btn ${transfer_msg3 ? 'active': ''}`} onClick={receiveWithKey}>
-                RECEIVE
+              <button type="button" className={`btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(receiveWithKey):(null)}>
+                {transferKeyLoading? (<Loading/>):("RECEIVE")}
               </button>
             </div>
           </div>

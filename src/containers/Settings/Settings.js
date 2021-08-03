@@ -190,15 +190,19 @@ const SettingsPage = (props) => {
                               <label className="control-label" htmlFor="conductor-address">Swap conductor
                                   endpoint</label>
                           </div>
-                          <div className="inputs-item def-number-input number-input">
-                              <span onClick={decreaseMinAnonSet} className="minus update-min-anon-set" />
+                          {
+                          /*
+                            <div className="inputs-item def-number-input number-input">
+                                <span onClick={decreaseMinAnonSet} className="minus update-min-anon-set" />
 
-                              <input className="quantity" name="quantity" value={minAnonSet}
-                                     type="text" placeholder="0 BTC"/>
-                              <label className="control-label"
-                                      htmlFor="Anonymity Set">Swap group size</label>
-                              <span onClick={increaseMinAnonSet} className="plus update-min-anon-set" />
-                          </div>
+                                <input className="quantity" name="quantity" value={minAnonSet}
+                                      type="text" placeholder="0 BTC"/>
+                                <label className="control-label"
+                                        htmlFor="Anonymity Set">Swap group size</label>
+                                <span onClick={increaseMinAnonSet} className="plus update-min-anon-set" />
+                            </div>
+                          */
+                          }
                       </form>
 
                   </div>

@@ -5,6 +5,7 @@ import {useDispatch} from 'react-redux'
 import React, {useState, useEffect} from 'react';
 
 import { Coins, Swaps, StdButton, Tutorial} from "../../components";
+import Loading from "../../components/Loading/Loading"
 import {
   isWalletLoaded,
   setNotification,
@@ -16,7 +17,9 @@ import {
   callUpdateSwapStatus,
   callGetConfig,
   callGetStateCoin,
-  callPingElectrum
+  callPingElectrum,
+  addCoinToSwapRecords,
+  removeCoinFromSwapRecords
 } from "../../features/WalletDataSlice";
 import {fromSatoshi} from '../../wallet'
 
@@ -25,12 +28,12 @@ import './Swap.css';
 const SwapPage = () => {
   const dispatch = useDispatch();
   let disabled = false;
-
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
   const [electrumServer,setElectrumServer] = useState(false); // Check Electrum server network status
   const [counter,setCounter] = useState(0); //Re-run interval checks
+  const [swapLoad, setSwapLoad] = useState({join: false,swapCoin: "", leave:false}) // set loading... onClick
 
   const [swapGroupsData, setSwapGroupsData] = useState([]);
 
@@ -105,8 +108,14 @@ const SwapPage = () => {
       dispatch(setError({msg: "Please choose a StateCoin to swap."}))
       return
     }
+    if(swapLoad.join === true){
+      return
+    }
+
     selectedCoins.forEach(
       (selectedCoin) => {
+        dispatch(addCoinToSwapRecords(selectedCoin));
+        setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
         dispatch(callDoSwap({"shared_key_id": selectedCoin}))
           .then(res => {
             if (res.payload===null) {
@@ -115,13 +124,16 @@ const SwapPage = () => {
               if(statecoin === undefined || statecoin === null){
                 statecoin = selectedCoin;
               }
-              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
+              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
               return
             }
             if (res.error===undefined) {
-              dispatch(setNotification({msg:"Swap complete for coin of value "+fromSatoshi(res.payload.value)+" with new id "+res.payload.shared_key_id}))
-            }
+              dispatch(setNotification({msg:"Swap complete for coin of value "+fromSatoshi(res.payload.value)+" with new id "+res.payload.shared_key_id}))}
+            
+            if(res.error!== undefined){
+              setSwapLoad({...swapLoad, join: false, swapCoin:""})}
           })
+
         // Refresh Coins list
         setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
       }
@@ -137,16 +149,27 @@ const SwapPage = () => {
       dispatch(setError({msg: "Please choose a StateCoin to remove."}))
       return
     }
+
+    if(swapLoad.leave === true){
+      return
+    }
+
+    setSwapLoad({...swapLoad, leave: true})
     try {
       selectedCoins.forEach(
         (selectedCoin) => {
-          dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}));
+          dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}))
+            .then(res => {
+              dispatch(removeCoinFromSwapRecords(selectedCoin));
+              setSwapLoad({...swapLoad, leave: false})
+            });
         }
       );
       // Refresh Coins list
       setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
     } catch (e) {
       event.preventDefault();
+      setSwapLoad({...swapLoad, leave: false})
       dispatch(setError({msg: e.message}))
     }
   }
@@ -157,6 +180,9 @@ const SwapPage = () => {
     console.warn('Can not get config', error)
   }
 
+  if(swapLoad.swapCoin.swap_status){
+    setSwapLoad({...swapLoad,join:false,swapCoin:""})
+  }
   return (
     <div className={`${current_config?.tutorials ? 'container-with-tutorials' : ''}`}>
       <div className="container ">
@@ -208,10 +234,10 @@ const SwapPage = () => {
                     </div>
                       <div className="swap-footer-btns">
                         <button type="button" className="btn" onClick={swapButtonAction}>
-                          Join Group
+                          {swapLoad.join? (<Loading />):("Join Group")}
                         </button>
                         <button type="button" className="btn" onClick={leavePoolButtonAction}>
-                          Leave Group
+                          {swapLoad.leave? (<Loading />):("Leave Group")}
                         </button>
                       </div>
                 </div>

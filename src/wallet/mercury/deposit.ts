@@ -36,8 +36,15 @@ export const depositInit = async (
   let shared_key_id = deposit_init_res.id;
   typeforce(typeforce.String, shared_key_id)
 
+
+  console.log("start pow");
+  // solve VDF challenge
+  let pow_solution = wasm_client.solve_pow_challenge(deposit_init_res.challenge);
+  console.log(pow_solution);
+  console.log("complete pow");
+
   // 2P-ECDSA with state entity to create a Shared key
-  let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT);
+  let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT, pow_solution);
 
   return statecoin
 }

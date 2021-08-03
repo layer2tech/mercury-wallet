@@ -26,7 +26,7 @@
     }
   },
   "repository": "github:layer2tech/mercury-wallet",
-  "version": "v0.4.3",
+  "version": "v0.4.5",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
@@ -125,7 +125,8 @@
     "testcafe-browser-provider-electron": "^0.0.16",
     "ts-jest": "^26.4.4",
     "typeforce": "^1.11.3",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "wasm-pack": "^0.10.0"
   },
   "browserslist": {
     "production": [

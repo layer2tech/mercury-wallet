@@ -368,6 +368,10 @@ ol.go2441762052 {
     margin-top: 10px;
 }
 
+.deposit .deposit-scan-main-item:first-child {
+    width:185px;
+}
+
 .home-page .main-coin-wrap .deposit-scan-main-item{
     width: 450px;
 }
@@ -497,6 +501,10 @@ ol.go2441762052 {
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    .deposit .long{
+        width:130px;
+    }
+
     .home-page .main-coin-wrap .deposit-scan-main-item{
         width: 250px;
     }
@@ -513,5 +521,9 @@ ol.go2441762052 {
 
     .home-page .main-coin-wrap .deposit-scan-main-item{
         width:auto;
+    }
+
+    .deposit .deposit-scan-main-item{
+        width:110px;
     }
 }
