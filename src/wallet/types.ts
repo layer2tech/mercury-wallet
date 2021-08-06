@@ -384,6 +384,11 @@ export const BSTRequestorData = typeforce.compile({
   m: String,
 })
 
+export const GroupInfo = typeforce.compile({
+  number:UInt64,
+  time:UInt64
+})
+
 export const SwapGroup = typeforce.compile({
   amount: UInt64,
   size: UInt64,

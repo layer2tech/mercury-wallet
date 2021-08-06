@@ -178,6 +178,7 @@ const SwapPage = () => {
   }
 
   if(swapLoad.swapCoin.swap_status){
+    //If coin selected for swap has swap_status, stop Loading...
     setSwapLoad({...swapLoad,join:false,swapCoin:""})
   }
   return (
@@ -223,10 +224,10 @@ const SwapPage = () => {
                 <div className="wallet-container right">
                     <div>
                         <Swaps
-                          swapGroupsData={swapGroupsData}
-                          displayDetailsOnClick={false}
-                          selectedSwap={selectedSwap}
-                          setSelectedSwap={setSelectedSwap}
+                          swapGroupsData = {swapGroupsData}
+                          displayDetailsOnClick = {false}
+                          selectedSwap = {selectedSwap}
+                          setSelectedSwap = {setSelectedSwap}
                         />
                     </div>
                       <div className="swap-footer-btns">
