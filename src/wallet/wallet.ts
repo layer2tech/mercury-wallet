@@ -10,7 +10,7 @@ import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
-import { SwapGroup, do_swap_poll } from './swap/swap'
+import { SwapGroup, do_swap_poll, GroupInfo, SwapInfo } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
@@ -60,7 +60,7 @@ export class Wallet {
   electrum_client: ElectrumClient | MockElectrumClient;
   block_height: number;
   current_sce_addr: string;
-  swap_group_info: Map<SwapGroup, number>;
+  swap_group_info: Map<SwapGroup, GroupInfo>;
 
   storage: Storage
 
@@ -73,7 +73,7 @@ export class Wallet {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
-    this.swap_group_info = new Map<SwapGroup, number>();
+    this.swap_group_info = new Map<SwapGroup, GroupInfo>();
     this.activity = new ActivityLog();
     this.electrum_client = this.newElectrumClient();
 
@@ -768,7 +768,7 @@ export class Wallet {
     }
   }
 
-  getSwapGroupInfo(): Map<SwapGroup, number>{
+  getSwapGroupInfo(): Map<SwapGroup, GroupInfo>{
     return this.swap_group_info;
   }
 
