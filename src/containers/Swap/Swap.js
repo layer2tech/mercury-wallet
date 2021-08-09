@@ -128,7 +128,7 @@ const SwapPage = () => {
               return
             }
             if (res.error===undefined) {
-              dispatch(setNotification({msg:"Swap complete for coin of value "+fromSatoshi(res.payload.value)+" with new id "+res.payload.shared_key_id}))}
+              dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))}
             
             if(res.error!== undefined){
               setSwapLoad({...swapLoad, join: false, swapCoin:""})}
