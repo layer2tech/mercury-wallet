@@ -38,13 +38,13 @@ const NotificationBar = () => {
   }
 
   // Display all notifications
-  const showNotifications = notifications_list.map((item, index) => (
+  const showNotifications = notifications_list != null ? notifications_list.map((item, index) => (
     <div key={index} className={`hideBar wallet-notification`} onDoubleClick={() => handleCloseNotification(item.msg)}>
       <div className="notification-content">
         <p>{item.msg}</p>
       </div>
     </div>
-  ))
+  )) : (<></>);
   return showNotifications;
 };
 

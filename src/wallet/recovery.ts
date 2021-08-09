@@ -65,6 +65,8 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
     statecoin.funding_txid = tx_copy.ins[0].hash.reverse().toString("hex");
     statecoin.statechain_id = recoveredCoins[i].statechain_id;
     statecoin.value = recoveredCoins[i].amount;
+    statecoin.tx_hex = recoveredCoins[i].tx_hex;
+    // statecoin.withdraw_txid = recoveredCoins[i].withdraw_txid;
 
     statecoin.setConfirmed();
     wallet.statecoins.addCoin(statecoin);

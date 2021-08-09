@@ -283,3 +283,84 @@ input.quantity {
         width: 100%;
     }
 }
+
+.withdraw-modal{
+    min-width: 384px;
+}
+
+.withdraw-modal .modal-body{
+    padding:25px;
+    z-index: 1100;
+}
+.withdraw-modal .modal-body .withdraw-confirm{
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+
+.withdraw-modal .modal-body .loading-container {
+    padding:16px;
+}
+
+.withdraw-modal .modal-body .loading-container .loading-txt {
+    text-align: center;
+}
+.withdraw-modal .modal-body .loading-container .loading-spinner{
+    justify-content: center;
+    text-align:center;
+    margin-bottom:15px;
+}
+  
+.withdraw-modal .confirm-btn {
+    text-transform: uppercase;
+    color: #fff;
+    border: none;
+    background: #666666;
+    border-radius: 4px;
+    padding: 19px 0;
+    width: 100%;
+    margin-top: 63px;
+    outline: none;
+}
+
+.copy-hex-wrap {
+    width: 100%;
+    display: block;
+    width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.copy-hex-wrap img{
+    height: 16px;
+    width: 16px;
+    align-self: center;
+    margin-right: 10px;
+}
+.txid-container{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    margin-left:13%;
+}
+
+@media only screen and (max-width: 500px){
+    .txid-container{
+        margin-left:0%;
+    }
+}
+
+.txid-container span{
+    width:70px;
+}
+
+.withdraw-modal .confirm-btn span {
+    margin-right: 8px;
+}
+.withdraw-modal .confirm-btn.active,
+.withdraw-modal .confirm-btn:hover
+{
+    background-color: #0054F4;
+}

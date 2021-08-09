@@ -776,6 +776,18 @@ export class Wallet {
     this.swap_group_info = await groupInfo(this.http_client);
   }
 
+  // force deregister of all coins in swap
+  deRegisterSwaps(){
+    this.statecoins.coins.forEach(
+      (statecoin) => {
+        if(statecoin.status == STATECOIN_STATUS.IN_SWAP || statecoin.status == STATECOIN_STATUS.AWAITING_SWAP){
+          swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+          this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
+        }
+      }
+    )
+  }
+
   //If there are no swaps running then set all the statecoin swap data to null
   async updateSwapStatus() {
     //If there are no do_swap processes running then the swap statuses should all be nullified
@@ -907,7 +919,7 @@ export class Wallet {
     shared_key_ids: string[],
     rec_addr: string,
     fee_per_kb: number
-  ): Promise<Transaction> {
+  ): Promise <string> {
     log.info("Withdrawing "+shared_key_ids+" to "+rec_addr);
 
     // Check address format
@@ -941,7 +953,7 @@ export class Wallet {
 
     log.info("Withdrawing finished.");
     this.saveStateCoinsList();
-    return tx_withdraw
+    return withdraw_txid
   }
 }
 

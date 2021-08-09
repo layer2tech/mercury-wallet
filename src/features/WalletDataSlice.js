@@ -25,7 +25,8 @@ const initialState = {
   fee_info: {deposit: "NA", withdraw: "NA"},
   ping_swap: null,
   filterBy: 'default',
-  depositLoading: false
+  depositLoading: false,
+  swapRecords: [],
 }
 
 // Check if a wallet is loaded in memory
@@ -117,6 +118,7 @@ function setBlockHeightCallBack(item) {
 // Load wallet from store
 export const walletLoad = (name, password) => {
   wallet = Wallet.load(name, password, testing_mode);
+  wallet.deRegisterSwaps();
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
   mutex.runExclusive(async () => {
@@ -326,6 +328,26 @@ const WalletSlice = createSlice({
   name: 'walletData',
   initialState,
   reducers: {
+    addCoinToSwapRecords(state, action){
+      if(state.swapRecords.indexOf(action.payload) ===  -1){
+        return {
+          ...state,
+          swapRecords:  [...state.swapRecords, action.payload]
+        }
+      }
+    },
+    removeCoinFromSwapRecords(state, action){
+      return{
+        ...state,
+        swapRecords: state.swapRecords.filter(item => item !== action.payload),
+      }
+    },
+    removeAllCoinsFromSwapRecords(state, action){
+      return{
+        ...state,
+        swapRecords: []
+      }
+    },
     // Update total_balance
     updateBalanceInfo(state, action) {
       if (state.balance_info.total_balance !== action.payload.total_balance) {
@@ -451,7 +473,7 @@ const WalletSlice = createSlice({
 }
 })
 
-export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, updateFeeInfo, updatePingSwap,
+export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingSwap,
   setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave, updateFilter,
   updateTxFeeEstimate } = WalletSlice.actions
   export default WalletSlice.reducer

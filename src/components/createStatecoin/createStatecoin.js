@@ -6,7 +6,7 @@ import {callGetFeeInfo} from '../../features/WalletDataSlice';
 import ValueSelectionPanel from "./valueSelection/valueSelection";
 import { FEE, MINIMUM_DEPOSIT_SATOSHI, fromSatoshi } from '../../wallet/util';
 
-const DEFAULT_LIQUIDITY_VALUES = [{value:200000, liquidity:0},{value:500000,liquidity:0},{value:1000000,liquidity:0},{value:5000000,liquidity:0},{value:10000000,liquidity:0},{value:50000000,liquidity:0}]
+const DEFAULT_LIQUIDITY_VALUES = [{value:100000, liquidity:0},{value:1000000,liquidity:0},{value:10000000,liquidity:0},{value:100000000,liquidity:0},{value:5000000,liquidity:0},{value:50000000,liquidity:0}]
 const LIQUIDITY_MED=10;
 const LIQUIDITY_HIGH=20;
 const NUM_HIGH_LIQUIDITY=3;
