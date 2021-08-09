@@ -118,18 +118,18 @@ const SwapPage = () => {
         setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
         dispatch(callDoSwap({"shared_key_id": selectedCoin}))
           .then(res => {
+            // get the statecoin for txId method
+            let statecoin = callGetStateCoin(selectedCoin);
+            if(statecoin === undefined || statecoin === null){
+              statecoin = selectedCoin;
+            }
             if (res.payload===null) {
-              // get the statecoin for txId method
-              let statecoin = callGetStateCoin(selectedCoin);
-              if(statecoin === undefined || statecoin === null){
-                statecoin = selectedCoin;
-              }
               dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
               return
             }
             if (res.error===undefined) {
-              dispatch(setNotification({msg:"Swap complete for coin of value "+fromSatoshi(res.payload.value)+" with new id "+res.payload.shared_key_id}))}
-            
+              dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+            }
             if(res.error!== undefined){
               setSwapLoad({...swapLoad, join: false, swapCoin:""})}
           })
