@@ -92,6 +92,7 @@ const SendStatecoinPage = () => {
           transfer_code: transferCode,
           coinAddress: inputAddr
         });
+        setRefreshCoins(!refreshCoins)
       }
       if(res.error!==undefined){
         setOpenSendModal({
