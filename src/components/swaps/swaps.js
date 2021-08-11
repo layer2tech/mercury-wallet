@@ -3,7 +3,7 @@ import user from "../../images/table-icon-user.png";
 
 import React, {useState, useEffect} from 'react';
 
-
+import { Spinner } from "react-bootstrap";
 
 import {fromSatoshi} from '../../wallet'
 
@@ -136,7 +136,12 @@ const Swaps = (props) => {
                         </div>
                     </div>
                 </>
-            ) : <p>No swap groups registered.</p>}
+            ) 
+            : 
+            (props.initFetchSwapGroups === true? 
+                    (<Spinner animation="border" variant="primary" />)
+                    :
+                    (<p>No swap groups registered.</p>))}
         </div>
     );
 }
