@@ -431,12 +431,17 @@ p.short{
 .dark-mode .coin-details-modal .block time {
   color: #666666;
 }
-.coin-item:hover,
-.coin-item.selected {
-  background: rgba(117, 117, 117, 0.101961);
+.coin-item:hover {
+  background: rgba(174, 213, 238, 0.102);
   cursor: pointer;
 }
-.dark-mode .coin-item:hover,
-.dark-mode .coin-item.selected {
+.coin-item.selected {
+  background:#DFEAFF;
+  cursor: pointer;
+}
+.dark-mode .coin-item:hover {
   background: rgba(102, 102, 102, 0.396078);
+}
+.dark-mode .coin-item.selected {
+  background: #192A4A;
 }

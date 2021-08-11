@@ -51,8 +51,9 @@ const PanelConnectivity = (props) => {
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
   let pending_swaps = swap_groups_array.length;
-  let participants = swap_groups_array.reduce((acc, item) => acc+item[1],0);
-  let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1] * item[0].amount),0);
+
+  let participants = swap_groups_array.reduce((acc,item)=> acc+item[1].number,0)
+  let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1].number * item[0].amount),0);
 
   // every 5s check if block_height changed and set a new value
   useEffect(() => {

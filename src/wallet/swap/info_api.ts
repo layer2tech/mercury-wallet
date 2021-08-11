@@ -1,5 +1,5 @@
 import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE } from "..";
-import { BSTMsg, SwapID, StatechainID, SwapGroup} from './swap';
+import { BSTMsg, SwapID, StatechainID, SwapGroup, GroupInfo} from './swap';
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -74,14 +74,20 @@ export const groupInfo = async(
   typeforce(types.SwapGroupMap, sgm_json);
 
   //let map: Map<SwapGroup, number> = sgm_json;
-  let map = new Map<SwapGroup, number>();
+  let map = new Map<SwapGroup, GroupInfo>();
   for (var value_str in sgm_json) {
     let value_arr = value_str.split(":");
+    let group_arr = sgm_json[value_str].split(":")
+
     let swap_group = {
       "amount": parseInt(value_arr[0]),
       "size": parseInt(value_arr[1])
     }
-    map.set(swap_group, sgm_json[value_str])
+    let group_info ={
+      "number": parseInt(group_arr[0]),
+      "time": parseInt(group_arr[1])
+    }
+    map.set(swap_group, group_info)
   }
   return map
 }

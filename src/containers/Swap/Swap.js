@@ -34,6 +34,7 @@ const SwapPage = () => {
   const [electrumServer,setElectrumServer] = useState(false); // Check Electrum server network status
   const [counter,setCounter] = useState(0); //Re-run interval checks
   const [swapLoad, setSwapLoad] = useState({join: false,swapCoin: "", leave:false}) // set loading... onClick
+  const [initFetchSwapGroups,setInitFetchSwapGroups] = useState(true)
 
   const [swapGroupsData, setSwapGroupsData] = useState([]);
 
@@ -60,6 +61,7 @@ const SwapPage = () => {
           let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
           setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
           setRefreshCoins((prevState) => !prevState);
+          setInitFetchSwapGroups(false)
       }, 3000);
       return () => clearInterval(interval);
     },
@@ -118,22 +120,22 @@ const SwapPage = () => {
         setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
         dispatch(callDoSwap({"shared_key_id": selectedCoin}))
           .then(res => {
+            // get the statecoin for txId method
+            let statecoin = callGetStateCoin(selectedCoin);
+            if(statecoin === undefined || statecoin === null){
+              statecoin = selectedCoin;
+            }
             if (res.payload===null) {
-              // get the statecoin for txId method
-              let statecoin = callGetStateCoin(selectedCoin);
-              if(statecoin === undefined || statecoin === null){
-                statecoin = selectedCoin;
-              }
-              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
+              dispatch(setNotification({msg:"Swap not Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
               return
             }
             if (res.error===undefined) {
-              dispatch(setNotification({msg:"Swap complete for coin of value "+fromSatoshi(res.payload.value)+" with new id "+res.payload.shared_key_id}))}
-            
-            if(res.error!== undefined){
-              setSwapLoad({...swapLoad, join: false, swapCoin:""})}
-          })
-
+              dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+            }else{
+              dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
+              setSwapLoad({...swapLoad, join: false, swapCoin:""});
+            } 
+          });
         // Refresh Coins list
         setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
       }
@@ -181,6 +183,7 @@ const SwapPage = () => {
   }
 
   if(swapLoad.swapCoin.swap_status){
+    //If coin selected for swap has swap_status, stop Loading...
     setSwapLoad({...swapLoad,join:false,swapCoin:""})
   }
   return (
@@ -226,10 +229,11 @@ const SwapPage = () => {
                 <div className="wallet-container right">
                     <div>
                         <Swaps
-                          swapGroupsData={swapGroupsData}
-                          displayDetailsOnClick={false}
-                          selectedSwap={selectedSwap}
-                          setSelectedSwap={setSelectedSwap}
+                          swapGroupsData = {swapGroupsData}
+                          displayDetailsOnClick = {false}
+                          selectedSwap = {selectedSwap}
+                          setSelectedSwap = {setSelectedSwap}
+                          initFetchSwapGroups = {initFetchSwapGroups}
                         />
                     </div>
                       <div className="swap-footer-btns">

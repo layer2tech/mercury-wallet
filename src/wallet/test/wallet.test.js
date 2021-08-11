@@ -325,6 +325,5 @@ describe("Recovery", () => {
     expect(wallet.statecoins.coins.length).toBe(1);
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
     expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
-    expect(wallet.statecoins.coins[0].tx_hex).toBe(RECOVERY_DATA[0].tx_hex);
   });
 })

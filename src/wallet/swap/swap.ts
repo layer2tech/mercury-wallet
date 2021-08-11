@@ -731,3 +731,8 @@ export interface SwapGroup{
   amount: number,
   size: number,
 }
+
+export interface GroupInfo{
+  number: number,
+  time: number,
+}
