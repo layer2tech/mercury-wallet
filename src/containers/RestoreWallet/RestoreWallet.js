@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {Link, withRouter } from "react-router-dom";
+import {withRouter } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import {Tabs, Tab} from 'react-bootstrap';
 import {setError, walletFromMnemonic, walletFromJson} from '../../features/WalletDataSlice'
@@ -32,23 +32,23 @@ const RestoreWalletPage = (props) => {
 
   // Confirm mnemonic is valid
   const onClickConf = () => {
-    if (wallet_names.indexOf(state.wallet_name)!=-1) {
-      dispatch(setError({msg: "Wallet with name "+state.wallet_name+" already exists."}))
-      return
+    if (wallet_names.indexOf(state.wallet_name)!==-1) {
+      dispatch(setError({msg: "Wallet with name "+state.wallet_name+" already exists."}));
+      return;
     }
 
     if (!bip39.validateMnemonic(state.mnemonic)) {
-      dispatch(setError({msg: "Invalid mnemonic"}))
-      return
+      dispatch(setError({msg: "Invalid mnemonic"}));
+      return;
     }
 
     
     // Create wallet and load into Redux state
     try {
-      walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true)
-      props.history.push('/home')
+      walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true);
+      props.history.push('/home');
     } catch (e) {
-      dispatch(setError({msg: e.message}))
+      dispatch(setError({msg: e.message}));
     }
     props.setWalletLoaded(true);
   }
@@ -70,15 +70,15 @@ const RestoreWalletPage = (props) => {
         props.setWalletLoaded(true);
       }
     } catch (error) {
-      console.error(error)
-      dispatch(setError({msg: "Invalid Backup File Format"}))
+      console.error(error);
+      dispatch(setError({msg: "Invalid Backup File Format"}));
     }
   }
 
   useEffect(() => {
     window.electron.ipcRenderer.on('received-backup-data', handleImportWalletData);
     return () => window.electron.ipcRenderer.removeListener('received-backup-data', handleImportWalletData);
-  }, [state])
+  }, [state, handleImportWalletData])
 
   return (
     <div className="restore-wallet-wrap">
@@ -104,7 +104,7 @@ const RestoreWalletPage = (props) => {
                   onChange={setStateWalletPassword}
                 />
                 <span className={'eye-icon'} onClick={toggleShowPass}>
-                    {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
+                    {showPass ? <img alt="eyeIconOff" src={eyeIconOff} /> : <img alt="eyeIcon" src={eyeIcon} />}
                 </span>
               </div>
 

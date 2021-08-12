@@ -1,13 +1,11 @@
 import React, {useState} from 'react';
 import {Link} from "react-router-dom";
-import {useDispatch} from 'react-redux'
-
+import {useDispatch} from 'react-redux';
 import {Storage} from '../../store';
-import {walletLoad, setError, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice'
-
+import {walletLoad, setError, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice';
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
-import  './LoadWallet.css'
+import  './LoadWallet.css';
 import { STATECOIN_STATUS } from '../../wallet';
 
 let store = new Storage();
@@ -90,7 +88,7 @@ const LoadWalletPage = (props) => {
           <div className="inputs-item">
             <input
               id="Passphrase"
-              type={showPass ? 'text' : 'password'} name="password"
+              type={showPass ? 'text' : 'password'}
               name="password"
               required
               placeholder="Passphrase "
@@ -98,7 +96,7 @@ const LoadWalletPage = (props) => {
               onChange={onPasswordChange}
             />
             <span className={'eye-icon'} onClick={toggleShowPass}>
-                {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
+                {showPass ? <img alt="eye icon off" src={eyeIconOff} /> : <img alt= "eye icon off" src={eyeIcon} />}
             </span>
           </div>
           <div className="footer-btns">

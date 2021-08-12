@@ -3,7 +3,7 @@
 import { BIP32Interface, Network, Transaction, script } from "bitcoinjs-lib";
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof, pubKeyTobtcAddr } from "..";
 import { FEE } from "../util";
-import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, StateChainDataAPI } from "./info_api";
+import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
 
@@ -153,10 +153,10 @@ export const transferReceiver = async (
 
   // 1. Verify backup transaction amount
   let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
-  if ((tx_backup.outs[0].value + tx_backup.outs[1].value + FEE) != statechain_data.amount) throw new Error("Backup tx invalid amount.");
+  if ((tx_backup.outs[0].value + tx_backup.outs[1].value + FEE) !== statechain_data.amount) throw new Error("Backup tx invalid amount.");
   // 2. Verify the input matches the specified outpoint
-  if (tx_backup.ins[0].hash.reverse().toString("hex") != statechain_data.utxo.txid) throw new Error("Backup tx invalid input.");
-  if (tx_backup.ins[0].index != statechain_data.utxo.vout) throw new Error("Backup tx invalid input.");
+  if (tx_backup.ins[0].hash.reverse().toString("hex") !== statechain_data.utxo.txid) throw new Error("Backup tx invalid input.");
+  if (tx_backup.ins[0].index !== statechain_data.utxo.vout) throw new Error("Backup tx invalid input.");
   // 3. Verify the input signature is valid
   tx_backup.ins[0].hash = tx_backup.ins[0].hash.reverse();
   let pk = tx_backup.ins[0].witness[1].toString("hex");

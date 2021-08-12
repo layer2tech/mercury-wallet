@@ -17,7 +17,7 @@ h1 {
 }
 .create-welcome-item {
     display: flex;
-    justify-content: start;
+    justify-content: flex-start;
     align-items: center;
     width: 49%;
     background-color: #ffffff;

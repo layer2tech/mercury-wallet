@@ -1,7 +1,5 @@
 import React from 'react';
-import { CopiedButton } from '../../components'
 
-import copy from '../../images/copy-image.png';
 import '../displaySeed/displaySeed.css'
 
 
@@ -14,9 +12,10 @@ const DisplaySeed = (props) => {
         <input key={index} type="text" placeholder={index + 1 + ". " + item} disabled/>
     ))
 
+    /*
     const copyMnemonicToClipboard = () => {
       navigator.clipboard.writeText(words.join(" "));
-    }
+    }*/
 
     return (
         <div className="wizard-form inputs">

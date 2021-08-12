@@ -1,12 +1,10 @@
 import React, {useState} from 'react';
-import {Link, withRouter} from "react-router-dom";
-import {useDispatch} from 'react-redux'
-
+import {withRouter} from "react-router-dom";
+import {useDispatch} from 'react-redux';
 import {CreateWizardForm, ConfirmSeed, DisplaySeed, Steppers} from "../../components";
-import {setError} from '../../features/WalletDataSlice'
+import {setError} from '../../features/WalletDataSlice';
 import {Storage} from '../../store';
-
-import './CreateWalletWizard.css'
+import './CreateWalletWizard.css';
 
 let bip39 = require('bip39');
 const mnemonic = bip39.generateMnemonic();
@@ -36,11 +34,13 @@ const STEPS = [
 
 // MultiStep wizard for wallet setup
 const CreateWizardPage = (props) => {
+
   const dispatch = useDispatch();
 
   let wallet_names = store.getWalletNames();
 
-  const [step, setStep] = useState(CreateWizardStep.FORM)
+  const [step, setStep] = useState(CreateWizardStep.FORM);
+
   const [wizardState, setWizardState] = useState(
     {
       wallet_name: "",
@@ -53,7 +53,7 @@ const CreateWizardPage = (props) => {
   const handleSubmit = () => {
     if (wallet_names.indexOf(wizardState.wallet_name)<0) {
       setStep(CreateWizardStep.DISPLAYSEED);
-      return
+      return;
     }
     dispatch(setError({msg: "Wallet with name "+wizardState.wallet_name+" already exists."}))
   }

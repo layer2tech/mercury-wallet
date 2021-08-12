@@ -4,25 +4,21 @@ import { Link } from "react-router-dom";
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 import CloseIcon from "../../images/close-icon.png";
-
 import TermsConditions from '../TermsConditions/TermsConditions';
-
 import './createWizardForm.css'
-import { taggedTemplateExpression } from '@babel/types';
-
 
 const CreateWizardForm = (props) => {
+
     const {register, errors, watch, handleSubmit} = useForm({mode: 'onChange', reValidateMode: 'onChange',});
     const [showPass, setShowPass] = useState(false);
-    const [toggleTCs, setToggleTCs] = useState(false)
-    const [walletNameError, setNameError] = useState(false)
+    const [toggleTCs, setToggleTCs] = useState(false);
+    const [walletNameError, setNameError] = useState(false);
     const password = useRef({});
     password.current = watch("password", "");
-
     const toggleShowPass = () => setShowPass(!showPass);
 
-    function onSubmit(data) {
-        props.onSubmit()
+    const onSubmit = (data) => {
+        props.onSubmit();
     }
 
     //Open/Close Terms and Conditions
@@ -33,11 +29,11 @@ const CreateWizardForm = (props) => {
         //Check if the page is createWallet or restoreWallet
         if(target.classList[0] === "restore-form"){
             if(toggleTCs === false){
-                target.style.width = "100%"
+                target.style.width = "100%";
                 //adjust styling
             }
             else{
-                target.style.width = "50%"
+                target.style.width = "50%";
             }
         }
 
@@ -47,10 +43,10 @@ const CreateWizardForm = (props) => {
     const handleKeyPress = e => {
         if(e.key.charCodeAt(0) === 46 || e.key.charCodeAt(0) === 47){
             e.preventDefault();
-            setNameError(true)
+            setNameError(true);
         }
         else{
-            setNameError(false)
+            setNameError(false);
         }
     }
 
@@ -93,7 +89,7 @@ const CreateWizardForm = (props) => {
                     })}
                     />
                     <span className={'eye-icon'} onClick={toggleShowPass}>
-                        {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
+                        {showPass ? <img alt="eyeIconOff" src={eyeIconOff} /> : <img alt="eyeIcon" src={eyeIcon} />}
                     </span>
                 </div>
                 <div className="error">
@@ -108,7 +104,7 @@ const CreateWizardForm = (props) => {
                            value===password.current || "The passwords do not match"
                     })}/>
                     <span className={'eye-icon'} onClick={toggleShowPass}>
-                        {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
+                        {showPass ? <img alt="eyeIconOff" src={eyeIconOff} /> : <img alt="eyeIcon" src={eyeIcon} />}
                     </span>
                 </div>
                 <div className="error">
@@ -117,7 +113,8 @@ const CreateWizardForm = (props) => {
                 <div className="inputs-item checkbox">
                     <input id="terms" type="checkbox" name="terms"
                            required/>
-                    <label htmlFor="terms">I have read and agree to the <a href="#" className ="tc-link" onClick = {handleTCs } >Terms of Use</a></label>
+                    
+                    <label htmlFor="terms">I have read and agree to the <a href="/#" className ="tc-link" onClick = {handleTCs } >Terms of Use</a></label>
                 </div>
                 {toggleTCs === true ? (
                     <div>
@@ -125,7 +122,7 @@ const CreateWizardForm = (props) => {
                         <div className = "terms-conditions">
                             <div className="group-btns tcs">
                                 <button className = "primary-btn ghost" onClick ={handleTCs}>
-                                    <img src={CloseIcon} alt ="close-icon"/>
+                                    <img src={CloseIcon} alt="close-icon"/>
                                 </button>
                             </div>
                             <TermsConditions/>

@@ -3,7 +3,6 @@ import {withRouter, Redirect} from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux'
 
 import {
-  setError,
   isWalletLoaded,
   updateFeeInfo,
   callGetFeeInfo,

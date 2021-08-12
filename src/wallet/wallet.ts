@@ -10,14 +10,14 @@ import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
-import { SwapGroup, do_swap_poll, GroupInfo, SwapInfo } from './swap/swap'
+import { SwapGroup, do_swap_poll, GroupInfo } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
-import { groupInfo, swapDeregisterUtxo, pollSwap, pollUtxo } from './swap/info_api';
+import { groupInfo, swapDeregisterUtxo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
-import os  from 'os';
+//import os  from 'os';
 //import { remote } from 'electron';
 
 import { AsyncSemaphore } from "@esfx/async-semaphore";
@@ -387,7 +387,7 @@ export class Wallet {
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
     backup_tx_data.key_wif = bip32.toWIF();
 
-    if (statecoin.tx_cpfp != null) {
+    if (statecoin.tx_cpfp !== null) {
        let fee_rate = (FEE + (backup_tx_data?.output_value ?? 0) - (statecoin.tx_cpfp?.outs[0]?.value ?? 0))/250;
        backup_tx_data.cpfp_status = "Set. Fee rate = "+fee_rate.toString();
     }
@@ -411,7 +411,7 @@ export class Wallet {
   updateBackupTxStatus() {
     for (let i=0; i<this.statecoins.coins.length; i++) {
     // check if there is a backup tx yet, if not do nothing
-      if (this.statecoins.coins[i].tx_backup == null) {
+      if (this.statecoins.coins[i].tx_backup === null) {
         continue;
       }
       if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED ||
@@ -749,7 +749,7 @@ export class Wallet {
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
       swapSemaphore.release();
-      if (new_statecoin==null) {
+      if (new_statecoin===null) {
         statecoin.setSwapDataToNull();
         this.saveStateCoinsList();
         return null;
@@ -780,7 +780,7 @@ export class Wallet {
   deRegisterSwaps(){
     this.statecoins.coins.forEach(
       (statecoin) => {
-        if(statecoin.status == STATECOIN_STATUS.IN_SWAP || statecoin.status == STATECOIN_STATUS.AWAITING_SWAP){
+        if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
           swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
           this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
         }
@@ -797,7 +797,7 @@ export class Wallet {
       if (swapSemaphore.count === MAX_SWAP_SEMAPHORE_COUNT - 1){
         this.statecoins.coins.forEach(
           async (statecoin) => {
-            if(statecoin.status == STATECOIN_STATUS.IN_SWAP || statecoin.status == STATECOIN_STATUS.AWAITING_SWAP){
+            if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
               statecoin.setSwapDataToNull();
             }
           }
@@ -903,8 +903,8 @@ export class Wallet {
     }
     //perform transfer receiver
     if (dotransfer) {
-       let transfer_data = await this.transfer_receiver(transfer_msgs[i]);
-       num_transfers += 1;
+      await this.transfer_receiver(transfer_msgs[i]);
+      num_transfers += 1;
     }
   }
 

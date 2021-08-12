@@ -1,12 +1,10 @@
-import React, {useEffect} from "react";
+import React from "react";
 import { Modal, Spinner} from "react-bootstrap";
-
-import { CopiedButton } from '../../components'
-import { CoinValueIcon, copyIcon, CoinAddressIcon} from './icons'
-import { fromSatoshi } from '../../wallet/util'
+import { CopiedButton } from '../../components';
+import { CoinValueIcon, copyIcon, CoinAddressIcon} from './icons';
+import { fromSatoshi } from '../../wallet/util';
 
 import "./index.css";
-import { propTypes } from "react-bootstrap/esm/Image";
 
 function SendModal({
   transfer_code = '',
@@ -16,10 +14,9 @@ function SendModal({
   onClose = () => false,
 }) {
 
-
   const handleClose = () => {
     // TODO: call cancel transfer_sender here.
-    onClose()
+    onClose();
   };
   const handleCopy = () => {
     navigator.clipboard.writeText(transfer_code);
@@ -29,10 +26,8 @@ function SendModal({
     var tooltipSpan = document.querySelector('.transfer-code span.tooltip');
     var w = window.innerWidth;
     var h = window.innerHeight;
-
     var x = e.clientX;
     var y = e.clientY;
-
     tooltipSpan.style.top = `${y-(h/2)+52}px`;
     tooltipSpan.style.left = `${x-(w/2)+250}px`;
   }

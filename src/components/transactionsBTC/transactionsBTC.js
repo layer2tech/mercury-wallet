@@ -54,8 +54,10 @@ const TransactionsBTC = (props) => {
       dispatch(callDepositInit(item.value))
       .then((res => {  // when finished update p_addr in GUI
         if (res.error===undefined) {
-          props.setValueSelectionAddr(id, res.payload[1])
-          setState({}) //update state to refresh TransactionDisplay render
+          props.setValueSelectionAddr(id, res.payload[1]);
+          if(state === {}){
+            setState({}); //update state to refresh TransactionDisplay render
+          }
         }
       }))
       props.setValueSelectionInitialised(id, true)
@@ -70,7 +72,7 @@ const TransactionsBTC = (props) => {
       let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
       if (JSON.stringify(deposit_inits)!==JSON.stringify(new_deposit_inits)) {
         deposit_inits = new_deposit_inits
-        setState({}) //update state to refresh TransactionDisplay render
+        setState({}); //update state to refresh TransactionDisplay render
       }
     }, 10000);
     return () => clearInterval(interval);

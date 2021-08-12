@@ -49,7 +49,7 @@ const PanelConnectivity = (props) => {
   const fee_info = useSelector(state => state.walletData).fee_info;
   const [block_height, setBlockHeight] = useState(callGetBlockHeight());
   const swap_groups_data = callGetSwapGroupInfo();
-  let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
+  let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
   let pending_swaps = swap_groups_array.length;
 
   let participants = swap_groups_array.reduce((acc,item)=> acc+item[1].number,0)

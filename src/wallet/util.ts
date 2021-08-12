@@ -165,7 +165,7 @@ export const txWithdrawBuild = (network: Network, funding_txid: string, funding_
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
 export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_address: string, fee_info: FeeInfo, fee_per_kb: number): TransactionBuilder => {
-  let txin = []
+  let txin = [];
   let value = 0;
   let txb: TransactionBuilder = new TransactionBuilder(network);
   let index = 0;

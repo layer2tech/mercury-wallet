@@ -1,10 +1,11 @@
-import '../../containers/Deposit/Deposit.css';
 import React, {useState, useEffect} from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 import plus from "../../images/plus-deposit.png";
 import {callGetFeeInfo} from '../../features/WalletDataSlice';
 import ValueSelectionPanel from "./valueSelection/valueSelection";
 import { FEE, MINIMUM_DEPOSIT_SATOSHI, fromSatoshi } from '../../wallet/util';
+
+import '../../containers/Deposit/Deposit.css';
 
 const DEFAULT_LIQUIDITY_VALUES = [{value:100000, liquidity:0},{value:1000000,liquidity:0},{value:10000000,liquidity:0},{value:100000000,liquidity:0},{value:5000000,liquidity:0},{value:50000000,liquidity:0}]
 const LIQUIDITY_MED=10;
@@ -34,6 +35,7 @@ const CreateStatecoin = (props) => {
       let defaults_missing = DEFAULT_LIQUIDITY_VALUES.filter((item) => {
         // checks if default value is already in liquidity_data. If not return item.
         if (liquidity_data_amounts.indexOf(item.value)<0) return item;
+        return null;
       });
       liquidity_data=liquidity_data.concat(defaults_missing)
 

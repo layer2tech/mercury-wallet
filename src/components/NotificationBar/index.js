@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setNotificationSeen } from "../../features/WalletDataSlice";
+
 import "./index.css";
 
 const NotificationBar = () => {
@@ -8,6 +9,13 @@ const NotificationBar = () => {
   const dispatch = useDispatch();
   const notification_dialogue = useSelector(state => state.walletData).notification_dialogue;
   let notifications_list = notification_dialogue;
+
+  const handleCloseAllNotifficcations = () => {
+    for(var i=0; i<notifications_list.length; i++){
+      dispatch(setNotificationSeen({msg: notifications_list[i].msg}));
+    }
+    notifications_list = [];
+  }
 
   useEffect(() => {
     // timer to close the notification after 5 seconds
@@ -18,14 +26,7 @@ const NotificationBar = () => {
     return () => {
       clearTimeout(timerPtr);
     }
-  }, [notifications_list]);
-
-  const handleCloseAllNotifficcations = () => {
-    for(var i=0; i<notifications_list.length; i++){
-      dispatch(setNotificationSeen({msg: notifications_list[i].msg}));
-    }
-    notifications_list = [];
-  }
+  }, [notifications_list, handleCloseAllNotifficcations]);
 
   const handleCloseNotification = (msg) => {
     // remove notificaiton message from WalletData state and local state
