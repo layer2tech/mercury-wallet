@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
@@ -10,7 +10,6 @@ import './CreateWalletWizard.css'
 
 let bip39 = require('bip39');
 const mnemonic = bip39.generateMnemonic();
-let store = new Storage();
 
 const CreateWizardStep = {
   FORM: 1,
@@ -37,9 +36,11 @@ const STEPS = [
 // MultiStep wizard for wallet setup
 const CreateWizardPage = (props) => {
   const dispatch = useDispatch();
+  const [walletNames,setWalletNames] = useState()
+  const [confirmDetails,setConfirmDetails] = useState(false)
+  const [startSeed,setStartSeed] = useState(false)
 
-  let wallet_names = store.getWalletNames();
-
+  
   const [step, setStep] = useState(CreateWizardStep.FORM)
   const [wizardState, setWizardState] = useState(
     {
@@ -47,15 +48,52 @@ const CreateWizardPage = (props) => {
       wallet_password: "",
       mnemonic: mnemonic,
     });
+    
+  useEffect(()=>{
+  
+    let store = new Storage(`wallets/${wizardState.wallet_name}/config`);
+    //Store wallet in own directory
+
+    let wallet_names = store.getWalletNames();
+    //Check for if wallet name already exists, check in above directory
+  
+    setWalletNames(wallet_names)
+    
+    if(confirmDetails === true) {
+      setStartSeed(true)
+      //When submit button pressed check applied by changing state of startSeed
+      setConfirmDetails(false)
+      //Reset submit button
+    }
+
+  },[confirmDetails])
+
+  useEffect(()=>{
+    if(startSeed === true){
+      let inputName = wizardState.wallet_name
+      //init wallet name check
+
+      if (walletNames.filter(wallet => wallet.name === inputName).length === 0) {
+      // Check for file with this wallet name
+        //if no file: move to next step
+        setStep(CreateWizardStep.DISPLAYSEED);
+        setStartSeed(false);
+        //Reset check
+        return
+      }
+      dispatch(setError({msg: "Wallet with name "+wizardState.wallet_name+" already exists."}));
+      setStartSeed(false);
+      //Reset check
+    }
+  },[startSeed])
+    
   const setStateWalletName = (event) => setWizardState({...wizardState, wallet_name: event.target.value});
   const setStateWalletPassword = (event) => setWizardState({...wizardState, wallet_password: event.target.value});
 
+
   const handleSubmit = () => {
-    if (wallet_names.indexOf(wizardState.wallet_name)<0) {
-      setStep(CreateWizardStep.DISPLAYSEED);
-      return
-    }
-    dispatch(setError({msg: "Wallet with name "+wizardState.wallet_name+" already exists."}))
+    setConfirmDetails(true)
+    //Initialise check to see if wallet name already exists
   }
 
   const Component = () => {
