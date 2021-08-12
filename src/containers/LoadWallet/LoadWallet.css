@@ -69,3 +69,17 @@
     margin: 0 auto;
     text-align: right;
 }
+
+.no-wallets{
+    padding:20px;
+    margin-top: 150px;
+}
+.no-wallets p {
+    font-size: 1.1rem;
+    margin-top:20px;
+}
+
+.no-wallets .footer-btns {
+    justify-content: center;
+    text-align: center;
+}
