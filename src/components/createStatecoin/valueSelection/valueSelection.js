@@ -39,34 +39,6 @@ const ValueSelectionPanel = (props) => {
       ]
     }
 
-    const validateModal = () => {
-      // convert fee and depositBTC to satoshi value
-      let depositBTCSatoshi = toSatoshi(depositBTC);
-      let errorMsg = '';
-      
-      if (depositBTC === "") {
-        errorMsg = 'value cannot be empty.';
-      } 
-      else if(depositBTC === 0){
-        errorMsg = 'value cannot be 0.';
-      }
-      else if(depositBTC < 0){
-        errorMsg = 'value cannot be negative.';
-      }
-      else if(depositBTCSatoshi < MINIMUM_DEPOSIT_SATOSHI){
-        errorMsg = `Not enough value to cover fee: ${fromSatoshi(MINIMUM_DEPOSIT_SATOSHI)} BTC`;       
-      }
-      else if(equalToArrayValue(depositBTCSatoshi, props.coinsLiquidityData)){
-        errorMsg = 'You can already select this value';
-      }
-      else {
-        setDepositError(null);
-        return false;
-      }
-      setDepositError(errorMsg);
-      return true;
-    }
-
     useEffect(() => {
       if(firstRender.current){
         firstRender.current = false;
@@ -76,9 +48,39 @@ const ValueSelectionPanel = (props) => {
         })
         return;
       }
+
+      const validateModal = () => {
+        // convert fee and depositBTC to satoshi value
+        let depositBTCSatoshi = toSatoshi(depositBTC);
+        let errorMsg = '';
+        
+        if (depositBTC === "") {
+          errorMsg = 'value cannot be empty.';
+        } 
+        else if(depositBTC === 0){
+          errorMsg = 'value cannot be 0.';
+        }
+        else if(depositBTC < 0){
+          errorMsg = 'value cannot be negative.';
+        }
+        else if(depositBTCSatoshi < MINIMUM_DEPOSIT_SATOSHI){
+          errorMsg = `Not enough value to cover fee: ${fromSatoshi(MINIMUM_DEPOSIT_SATOSHI)} BTC`;       
+        }
+        else if(equalToArrayValue(depositBTCSatoshi, props.coinsLiquidityData)){
+          errorMsg = 'You can already select this value';
+        }
+        else {
+          setDepositError(null);
+          return false;
+        }
+        setDepositError(errorMsg);
+        return true;
+      }
+
+
       // validate
       setDisabled(validateModal());
-    }, [depositBTC, withdrawFee, validateModal]) // Only re-run the effect if these change
+    }, [depositBTC, withdrawFee, props.coinsLiquidityData]) // Only re-run the effect if these change
 
     const equalToArrayValue = (value, arr) => {
       for(var i=0; i<arr.length; i++){

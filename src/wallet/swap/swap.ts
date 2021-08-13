@@ -1,6 +1,4 @@
 // Conductor Swap protocols
-
-import {mutex} from "../http_client"
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
@@ -8,8 +6,6 @@ import { getStateChain } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
-import { release } from 'os';
-
 
 let bitcoin = require("bitcoinjs-lib");
 

@@ -468,7 +468,7 @@ export class Wallet {
             } else if (err.toString().includes('already') && err.toString().includes('block')) {
                 this.statecoins.coins[i].setBackupConfirmed();
                 this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);              
-            } else if (err.toString().includes('conflict') && err.toString().includes('missingorspent') || err.toString().includes('Missing')) {
+            } else if ( (err.toString().includes('conflict') && err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
                 this.statecoins.coins[i].setBackupTaken();
                 this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);              
             }
@@ -560,7 +560,7 @@ export class Wallet {
   }
 
   addDescription(shared_key_id: string, description:string){
-    let statecoin = this .statecoins.getCoin(shared_key_id);
+    let statecoin = this.statecoins.getCoin(shared_key_id);
     if(statecoin) statecoin.description = description
   }
 

@@ -9,7 +9,9 @@ import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
 
+// eslint-disable-next-line
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
+// eslint-disable-next-line
 const OPEN = require('websocket').w3cwebsocket.OPEN;
 
 const log = window.require('electron-log');

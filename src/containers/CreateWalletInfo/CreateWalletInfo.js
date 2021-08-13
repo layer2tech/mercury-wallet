@@ -7,7 +7,7 @@ import {Link, withRouter} from "react-router-dom";
 import './CreateWalletInfo.css'
 
 let Store = window.require('electron-store');
-let store = new Store();
+new Store();
 
 const CreateWalletInfoPage = () => {
     const state = useState(false);

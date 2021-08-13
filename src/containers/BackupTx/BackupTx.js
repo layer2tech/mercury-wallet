@@ -74,7 +74,7 @@ const BackupTxPage = () => {
     switch (backup_status) {
       case BACKUP_STATUS.CONFIRMED:
         return (
-          <span style={{fontWeight: 'bold', color: 'green'}}>
+          <span style={{fontWeight: 'bold', color: 'green'}} role='img' aria-label='checkmark'>
             &#9989; {backup_status}
           </span>
         );
@@ -82,13 +82,13 @@ const BackupTxPage = () => {
       case BACKUP_STATUS.UNBROADCAST:
       case BACKUP_STATUS.IN_MEMPOOL:
         return (
-          <span style={{fontWeight: 'bold', color: 'orange'}}>
+          <span style={{fontWeight: 'bold', color: 'orange'}} role='img' aria-label='warning'>
             &#9888; {backup_status}
           </span>
         );
       case BACKUP_STATUS.TAKEN:
         return (
-          <span style={{fontWeight: 'bold', color: 'red'}}>
+          <span style={{fontWeight: 'bold', color: 'red'}} role='img' aria-label='cross'>
             &#10062; {backup_status}
           </span>
         );

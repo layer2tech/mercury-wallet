@@ -43,7 +43,7 @@ const SettingsPage = (props) => {
 
   // Change handlers
   const onNotificationChange = ({checked}) => { setNotification(checked) };
-  const onTutorialChange = ({checked}) => { setTutorials(checked) };
+  //const onTutorialChange = ({checked}) => { setTutorials(checked) };
   const onStateEntityAddrChange = (evt) => { setStateEntityAddr(evt.target.value) };
   const onSwapAddrChange = (evt) => { setSwapAddr(evt.target.value) };
   const onElecAddrChange = (evt) => {
@@ -58,8 +58,8 @@ const SettingsPage = (props) => {
       [evt.target.name]: evt.target.value
     });
   }
-  const decreaseMinAnonSet = (e) => { minAnonSet>3 ? (setMinAnonSet(minAnonSet-1)):(e.preventDefault()) };
-  const increaseMinAnonSet = (e) => { minAnonSet>=10?(e.preventDefault()):(setMinAnonSet(minAnonSet+1))};
+  //const decreaseMinAnonSet = (e) => { minAnonSet>3 ? (setMinAnonSet(minAnonSet-1)):(e.preventDefault()) };
+  //const increaseMinAnonSet = (e) => { minAnonSet>=10?(e.preventDefault()):(setMinAnonSet(minAnonSet+1))};
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {

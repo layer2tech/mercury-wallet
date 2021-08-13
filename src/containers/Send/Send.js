@@ -18,6 +18,7 @@ const SendStatecoinPage = () => {
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [coinDetails, setCoinDetails] = useState({}); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [transferMsg3, setTransferMsg3] = useState('');
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 

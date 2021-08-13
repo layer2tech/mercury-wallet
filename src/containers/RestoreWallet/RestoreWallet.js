@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import {withRouter } from "react-router-dom";
-import { useDispatch } from 'react-redux';
+import {withRouter} from "react-router-dom";
+import {useDispatch} from 'react-redux';
 import {Tabs, Tab} from 'react-bootstrap';
 import {setError, walletFromMnemonic, walletFromJson} from '../../features/WalletDataSlice'
-import { CreateWizardForm } from '../../components'
+import {CreateWizardForm} from '../../components'
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg"
 import {Storage} from '../../store';
@@ -59,26 +59,28 @@ const RestoreWalletPage = (props) => {
     })
   }
 
-  const handleImportWalletData = async (event, backupData) => {
-    try {
-      const walletJson = JSON.parse(backupData);
-      const wallet = await walletFromJson(walletJson, state.wallet_password);
-      if(!wallet) {
-        dispatch(setError({msg: "Incorrect password or invalid file format. Can not restore wallet from this file!"}));
-      } else {
-        props.history.push('/home');
-        props.setWalletLoaded(true);
-      }
-    } catch (error) {
-      console.error(error);
-      dispatch(setError({msg: "Invalid Backup File Format"}));
-    }
-  }
+
 
   useEffect(() => {
+    const handleImportWalletData = async (event, backupData) => {
+      try {
+        const walletJson = JSON.parse(backupData);
+        const wallet = await walletFromJson(walletJson, state.wallet_password);
+        if(!wallet) {
+          dispatch(setError({msg: "Incorrect password or invalid file format. Can not restore wallet from this file!"}));
+        } else {
+          props.history.push('/home');
+          props.setWalletLoaded(true);
+        }
+      } catch (error) {
+        console.error(error);
+        dispatch(setError({msg: "Invalid Backup File Format"}));
+      }
+    }
+
     window.electron.ipcRenderer.on('received-backup-data', handleImportWalletData);
     return () => window.electron.ipcRenderer.removeListener('received-backup-data', handleImportWalletData);
-  }, [state, handleImportWalletData])
+  }, [state, dispatch, props])
 
   return (
     <div className="restore-wallet-wrap">

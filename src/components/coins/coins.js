@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import anon_icon_none from "../../images/table-icon-grey.png";
 import anon_icon_low from "../../images/table-icon-medium.png";
 import anon_icon_high from "../../images/table-icon.png";
@@ -610,7 +611,7 @@ const Coins = (props) => {
                     <img src={utx} alt="icon" />
                     <div className="block">
                       <span>UTXO ID</span>
-                      <span><a href={'javascript:;'} onClick={() => onClickTXID(showCoinDetails.coin.funding_txid)}>{showCoinDetails.coin.funding_txid}</a>:{showCoinDetails.coin.funding_vout}</span>
+                      <span><button className='coinURLButton' onClick={() => onClickTXID(showCoinDetails.coin.funding_txid)}><div className='coinURLText'>{showCoinDetails.coin.funding_txid}:{showCoinDetails.coin.funding_vout}</div></button></span>
                     </div>
                   </div>
                 
