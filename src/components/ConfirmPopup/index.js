@@ -17,6 +17,8 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
     setShowModal(true);
     if(swapRecords.length > 0){
       setCloseText('Your swaps will be cancelled, are you sure?');
+    }if(children.props.className === 'header-logout'){
+      setCloseText('Are you sure you want to log out?')
     }else{
       setCloseText('Are you sure?')
     }

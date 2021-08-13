@@ -11,15 +11,11 @@ import {Storage} from '../../store';
 import  './RestoreWallet.css'
 
 let bip39 = require('bip39');
-let store = new Storage();
 
 const RestoreWalletPage = (props) => {
   const dispatch = useDispatch();
   const [showPass, setShowPass] = useState(false);
   const toggleShowPass = () => setShowPass(!showPass);
-
-  let wallet_names = store.getWalletNames();
-
   const [state, setState] = useState(
     {
       wallet_name: "",
@@ -35,6 +31,13 @@ const RestoreWalletPage = (props) => {
     if (wallet_names.indexOf(state.wallet_name)!==-1) {
       dispatch(setError({msg: "Wallet with name "+state.wallet_name+" already exists."}));
       return;
+    let store = new Storage("wallets/wallet_names");
+
+    let wallet_names = store.getWalletNames();
+    
+    if (wallet_names.filter(wallet => wallet.name === state.wallet_name).length > 0) {
+      dispatch(setError({msg: "Wallet with name "+state.wallet_name+" already exists."}))
+      return
     }
 
     if (!bip39.validateMnemonic(state.mnemonic)) {

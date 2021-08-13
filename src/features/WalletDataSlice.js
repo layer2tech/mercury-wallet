@@ -145,6 +145,7 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
     }
     callNewSeAddr();
     wallet.save();
+    wallet.saveName();
   });
 }
 // Try to decrypt wallet. Throw if invalid password

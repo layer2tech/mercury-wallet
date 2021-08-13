@@ -11,13 +11,16 @@ try {
 
 export class Storage {
   store: any;
-  constructor() {
-    this.store = new Store();
+  name:string;
+  constructor(fileName:string) {
+    this.name = fileName
+    this.store = new Store({name: this.name});
   }
 
   // return map of wallet names->passwords
   getWalletNames() {
-    let wallets = this.store.get('wallets')
+    let wallets = this.store.get()
+    
     if (wallets==null) { return [] }
     return Object.keys(wallets).map((name: string) => ({name: name, password: wallets[name].password}))
   }
@@ -50,6 +53,7 @@ export class Storage {
   storeWallet(wallet_json: any) {
     delete wallet_json.electrum_client;
     delete wallet_json.storage;
+
     // encrypt mnemonic
     wallet_json.mnemonic = encryptAES(wallet_json.mnemonic, wallet_json.password);
     // remove password and root keys
@@ -59,11 +63,16 @@ export class Storage {
     delete wallet_json.config.testing_mode;
     delete wallet_json.config.jest_testing_mode;
 
-    this.store.set('wallets.'+wallet_json.name, wallet_json);
+    this.store.set(wallet_json.name, wallet_json);
+  }
+
+  setName(wallet_name: Object){
+    this.store.set(wallet_name,{name: wallet_name})
   }
 
   getWallet(wallet_name: string) {
-    let wallet_json = this.store.get('wallets.'+wallet_name);
+    let wallet_json = this.store.get(wallet_name);
+
     if (wallet_json===undefined) throw Error("No wallet called "+wallet_name+" stored.");
     return wallet_json
   }
@@ -82,17 +91,17 @@ export class Storage {
 
 
   storeWalletStateCoinsList(wallet_name: string, statecoins: StateCoinList, activity: ActivityLog) {
-    this.store.set('wallets.'+wallet_name+'.statecoins', statecoins);
-    this.store.set('wallets.'+wallet_name+'.activity', activity);
+    this.store.set(wallet_name+'.statecoins', statecoins);
+    this.store.set(wallet_name+'.activity', activity);
   };
 
   storeWalletKeys(wallet_name: string, account: any) {
     // remove root keys
     let account_to_store = this.accountToAddrMap(account)
-    this.store.set('wallets.'+wallet_name+'.account', account_to_store);
+    this.store.set(wallet_name+'.account', account_to_store);
   };
 
   clearWallet(wallet_name: string) {
-    this.store.delete('wallets.'+wallet_name, {});
+    this.store.delete(wallet_name, {});
   }
 }
