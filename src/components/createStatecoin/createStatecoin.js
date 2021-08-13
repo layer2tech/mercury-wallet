@@ -1,11 +1,10 @@
+import '../../containers/Deposit/Deposit.css';
 import React, {useState, useEffect} from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 import plus from "../../images/plus-deposit.png";
 import {callGetCoinsInfo, callGetFeeInfo} from '../../features/WalletDataSlice';
 import ValueSelectionPanel from "./valueSelection/valueSelection";
-import { FEE, MINIMUM_DEPOSIT_SATOSHI, fromSatoshi } from '../../wallet/util';
-
-import '../../containers/Deposit/Deposit.css';
+import { FEE, fromSatoshi } from '../../wallet/util';
 
 const DEFAULT_LIQUIDITY_VALUES = [{value:100000, liquidity:0},{value:1000000,liquidity:0},{value:10000000,liquidity:0},{value:100000000,liquidity:0},{value:5000000,liquidity:0},{value:50000000,liquidity:0}]
 const LIQUIDITY_MED=10;
@@ -25,26 +24,6 @@ const CreateStatecoin = (props) => {
     }
 
     useEffect(() => {
-      // Update liquidity data state
-      let liquidity_data = Object.entries(DEFAULT_LIQUIDITY_VALUES.values).map(([amount, liquidity]) => {
-        return {value: parseInt(amount), liquidity: liquidity}
-      })
-
-      // Add list of defualt values if not already in list
-      let liquidity_data_amounts = liquidity_data.map((item) => item.value);
-      let defaults_missing = DEFAULT_LIQUIDITY_VALUES.filter((item) => {
-        // checks if default value is already in liquidity_data. If not return item.
-        if (liquidity_data_amounts.indexOf(item.value)<0) return item;
-        return null;
-      });
-      liquidity_data=liquidity_data.concat(defaults_missing)
-
-      // Sort
-      if (props.settings.sort_by==="Liquidity") {
-        liquidity_data.sort((a,b) => {
-          return b.liquidity - a.liquidity;
-      }
-          
       // Get coin liquidity data
       callGetCoinsInfo().then((liquidity_data_raw) => {
         // Update liquidity data state
@@ -57,6 +36,7 @@ const CreateStatecoin = (props) => {
         let defaults_missing = DEFAULT_LIQUIDITY_VALUES.filter((item) => {
           // checks if default value is already in liquidity_data. If not return item.
           if (liquidity_data_amounts.indexOf(item.value)<0) return item;
+          return null;
         });
         liquidity_data=liquidity_data.concat(defaults_missing)
 

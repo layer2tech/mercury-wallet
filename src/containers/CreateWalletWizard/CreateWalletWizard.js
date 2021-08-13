@@ -1,13 +1,11 @@
-import React, {useState} from 'react';
-import {withRouter} from "react-router-dom";
-import {useDispatch} from 'react-redux';
 import React, {useEffect, useState} from 'react';
-import {Link, withRouter} from "react-router-dom";
+import {withRouter} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 import {CreateWizardForm, ConfirmSeed, DisplaySeed, Steppers} from "../../components";
-import {setError} from '../../features/WalletDataSlice';
+import {setError} from '../../features/WalletDataSlice'
 import {Storage} from '../../store';
-import './CreateWalletWizard.css';
+
+import './CreateWalletWizard.css'
 
 let bip39 = require('bip39');
 const mnemonic = bip39.generateMnemonic();
@@ -36,14 +34,12 @@ const STEPS = [
 
 // MultiStep wizard for wallet setup
 const CreateWizardPage = (props) => {
-
   const dispatch = useDispatch();
   const [walletNames,setWalletNames] = useState()
   const [confirmDetails,setConfirmDetails] = useState(false)
   const [startSeed,setStartSeed] = useState(false)
+
   
-  let wallet_names = store.getWalletNames();
-  const [step, setStep] = useState(CreateWizardStep.FORM);
   const [step, setStep] = useState(CreateWizardStep.FORM)
   const [wizardState, setWizardState] = useState(
     {
@@ -69,7 +65,7 @@ const CreateWizardPage = (props) => {
       //Reset submit button
     }
 
-  },[confirmDetails])
+  },[confirmDetails, wizardState.wallet_name])
 
   useEffect(()=>{
     if(startSeed === true){
@@ -88,18 +84,13 @@ const CreateWizardPage = (props) => {
       setStartSeed(false);
       //Reset check
     }
-  },[startSeed])
+  },[startSeed, dispatch, walletNames, wizardState.wallet_name])
     
   const setStateWalletName = (event) => setWizardState({...wizardState, wallet_name: event.target.value});
   const setStateWalletPassword = (event) => setWizardState({...wizardState, wallet_password: event.target.value});
 
 
   const handleSubmit = () => {
-    if (wallet_names.indexOf(wizardState.wallet_name)<0) {
-      setStep(CreateWizardStep.DISPLAYSEED);
-      return;
-    }
-    dispatch(setError({msg: "Wallet with name "+wizardState.wallet_name+" already exists."}))
     setConfirmDetails(true)
     //Initialise check to see if wallet name already exists
   }

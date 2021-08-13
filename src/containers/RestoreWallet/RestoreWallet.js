@@ -28,12 +28,13 @@ const RestoreWalletPage = (props) => {
 
   // Confirm mnemonic is valid
   const onClickConf = () => {
+    let store = new Storage("wallets/wallet_names");
+    let wallet_names = store.getWalletNames();
+
     if (wallet_names.indexOf(state.wallet_name)!==-1) {
       dispatch(setError({msg: "Wallet with name "+state.wallet_name+" already exists."}));
       return;
-    let store = new Storage("wallets/wallet_names");
-
-    let wallet_names = store.getWalletNames();
+    }
     
     if (wallet_names.filter(wallet => wallet.name === state.wallet_name).length > 0) {
       dispatch(setError({msg: "Wallet with name "+state.wallet_name+" already exists."}))
