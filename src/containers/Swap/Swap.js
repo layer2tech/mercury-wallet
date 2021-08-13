@@ -30,6 +30,7 @@ const SwapPage = () => {
   const [electrumServer,setElectrumServer] = useState(false); // Check Electrum server network status
   const [counter,setCounter] = useState(0); //Re-run interval checks
   const [swapLoad, setSwapLoad] = useState({join: false,swapCoin: "", leave:false}) // set loading... onClick
+  const [initFetchSwapGroups,setInitFetchSwapGroups] = useState(true)
 
   const [swapGroupsData, setSwapGroupsData] = useState([]);
 
@@ -56,6 +57,7 @@ const SwapPage = () => {
           let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
           setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
           setRefreshCoins((prevState) => !prevState);
+          setInitFetchSwapGroups(false)
       }, 3000);
       return () => clearInterval(interval);
     },
@@ -227,6 +229,7 @@ const SwapPage = () => {
                           displayDetailsOnClick = {false}
                           selectedSwap = {selectedSwap}
                           setSelectedSwap = {setSelectedSwap}
+                          initFetchSwapGroups = {initFetchSwapGroups}
                         />
                     </div>
                       <div className="swap-footer-btns">

@@ -8,14 +8,16 @@ import eyeIconOff from "../../images/eye-icon-off.svg";
 import  './LoadWallet.css';
 import { STATECOIN_STATUS } from '../../wallet';
 
-let store = new Storage();
+
 
 
 const LoadWalletPage = (props) => {
   const [showPass, setShowPass] = useState(false);
   const dispatch = useDispatch();
   
-  let wallet_names = store.getWalletNames()
+  let store = new Storage("wallets/wallet_names");
+
+  let wallet_names = store.getWalletNames();
 
   const [selectedWallet, setSelected] = useState(wallet_names.length ? wallet_names[0] : "")
   const toggleShowPass = () => setShowPass(!showPass);
@@ -109,7 +111,27 @@ const LoadWalletPage = (props) => {
           </div>
         </div>
         :
-        <p>No Wallet in memory. Please create a new one.</p>
+        <div className="no-wallets">
+          <svg
+          width="100"
+          height="100"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className={"exclamation"}
+          >
+              <path
+                  d="M9.9999 19.9998C4.48594 19.9998 0 15.5139 0 9.9999C0 4.48594 4.48594 0 9.9999 0C15.5139 0 19.9998 4.48594 19.9998 9.9999C19.9998 15.5139 15.5139 19.9998 9.9999 19.9998ZM9 12.9996V15.0003H10.9998V12.9996H9ZM9 5.0004V10.9998H10.9998V5.0004H9Z"
+                  fill="#E0E0E0"
+              />
+          </svg>
+          <p>No Wallet in memory. Please create a new one.</p>
+          <div className="footer-btns">
+            <Link to="/" className="primary-btn blue">
+              Go Back
+            </Link>
+          </div>
+        </div>
       }
     </form>
   </div>

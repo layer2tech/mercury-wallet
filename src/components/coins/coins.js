@@ -378,7 +378,7 @@ const Coins = (props) => {
   		return 0;
   	});
 
-
+    
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
       return (

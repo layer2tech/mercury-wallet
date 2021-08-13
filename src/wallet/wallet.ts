@@ -17,9 +17,6 @@ import { Storage } from '../store';
 import { groupInfo, swapDeregisterUtxo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
-//import os  from 'os';
-//import { remote } from 'electron';
-
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { delay } from './mercury/info_api';
 
@@ -84,7 +81,7 @@ export class Wallet {
     this.block_height = 0;
     this.current_sce_addr = "";
 
-    this.storage = new Storage();
+    this.storage = new Storage(`wallets/${this.name}/config`);
   }
 
   set_tor_endpoints(){
@@ -125,6 +122,7 @@ export class Wallet {
 
   // Load wallet from JSON
   static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
+
     let network: Network = json_wallet.config.network;
     let config = new Config(json_wallet.config.network, json_wallet.config.testing_mode);
     config.update(json_wallet.config);
@@ -172,6 +170,15 @@ export class Wallet {
     let wallet_json = cloneDeep(this)
     this.storage.storeWallet(wallet_json)
   };
+
+  // Save wallet names in file
+
+  saveName(){
+    let store = new Storage("wallets/wallet_names")
+    //All wallet names in separate store
+    store.setName( this.name )
+  }
+
   // Update account in storage.
   saveKeys() {
     let account = cloneDeep(this.account)
@@ -190,7 +197,8 @@ export class Wallet {
 
   // Load wallet JSON from store
   static load(wallet_name: string, password: string, testing_mode: boolean) {
-    let store = new Storage();
+
+    let store = new Storage(`wallets/${wallet_name}/config`);
     // Fetch decrypted wallet json
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password=password;
