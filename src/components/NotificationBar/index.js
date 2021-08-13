@@ -8,7 +8,6 @@ const NotificationBar = () => {
 
   const dispatch = useDispatch();
   const notification_dialogue = useSelector(state => state.walletData).notification_dialogue;
-  // eslint-disable-next-line
   let notifications_list = useRef(notification_dialogue);
 
   useEffect(() => {

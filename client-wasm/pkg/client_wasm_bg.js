@@ -1,4 +1,3 @@
-// eslint-disable-next-line react/no-did-mount-set-state
 import * as wasm from './client_wasm_bg.wasm';
 
 const lTextDecoder = typeof TextDecoder === 'undefined' ? (0, module.require)('util').TextDecoder : TextDecoder;
