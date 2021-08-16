@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import anon_icon_none from "../../images/table-icon-grey.png";
 import anon_icon_low from "../../images/table-icon-medium.png";
 import anon_icon_high from "../../images/table-icon.png";
@@ -14,30 +15,34 @@ import timeIcon from "../../images/time.png";
 import copy_img from "../../images/icon2.png";
 import descripIcon from "../../images/description.png";
 import hashIcon from "../../images/hashtag.png";
-import hexIcon from "../../images/hexagon.png"
-
-
+import hexIcon from "../../images/hexagon.png";
 import React, {useState, useEffect } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import {Button, Modal} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
-
-import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util'
-import {callRemoveCoin,callGetUnspentStatecoins, callGetBlockHeight, updateBalanceInfo, callGetUnconfirmedStatecoinsDisplayData,callGetUnconfirmedAndUnmindeCoinsFundingTxData, setError,callAddDescription,callGetStateCoin} from '../../features/WalletDataSlice'
-import SortBy from './SortBy/SortBy'
-import FilterBy from './FilterBy/FilterBy'
-import { STATECOIN_STATUS } from '../../wallet/statecoin'
-import { CoinStatus } from '../../components'
-import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay'
+import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util';
+import {
+  callRemoveCoin,
+  callGetUnspentStatecoins, 
+  callGetBlockHeight, 
+  updateBalanceInfo, 
+  callGetUnconfirmedStatecoinsDisplayData,
+  callGetUnconfirmedAndUnmindeCoinsFundingTxData, 
+  setError,
+  callAddDescription,
+  callGetStateCoin} from '../../features/WalletDataSlice';
+import SortBy from './SortBy/SortBy';
+import FilterBy from './FilterBy/FilterBy';
+import { STATECOIN_STATUS } from '../../wallet/statecoin';
+import { CoinStatus } from '../../components';
+import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay';
 import CopiedButton from "../CopiedButton";
 import QRCodeGenerator from "../QRCodeGenerator/QRCodeGenerator";
 import SwapStatus from "./SwapStatus/SwapStatus";
-
 import './coins.css';
 import '../index.css';
 import CoinDescription from "../inputs/CoinDescription/CoinDescription";
-
 import close_img from "../../images/close-icon.png";
 import './DeleteCoin/DeleteCoin.css'
 
@@ -74,16 +79,16 @@ const Coins = (props) => {
     const { filterBy } = useSelector(state => state.walletData);
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
-    const [initCoins, setInitCoins] = useState({})
+    const [initCoins, setInitCoins] = useState({});
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
-    const [refreshCoins, setRefreshCoins] = useState(false);
+    //const [refreshCoins, setRefreshCoins] = useState(false);
     const [txHex,setTxHex] = useState(false);
     //toggle show full tx_hex
     
     const [description,setDescription] = useState("");
     const [dscpnConfirm,setDscrpnConfirm] = useState(false);
 
-    const [swapStatus,setSwapStatus] = useState("");
+    //const [swapStatus,setSwapStatus] = useState("");
 
     // deleting coins
     const [currentItem, setCurrentItem] = useState(null);
@@ -122,7 +127,7 @@ const Coins = (props) => {
     // Set selected coin
     const selectCoin = (shared_key_id) => {
       props.setSelectedCoin(shared_key_id);  
-      setRefreshCoins((prevState) => !prevState);
+      //setRefreshCoins((prevState) => !prevState); - not being used
       if (props.displayDetailsOnClick) {
           handleOpenCoinDetails(shared_key_id)
       }
@@ -133,8 +138,8 @@ const Coins = (props) => {
 
     const isSelected = (shared_key_id) => {
         let selected = false;
-        if(props.selectedCoins == undefined) {
-          selected = (props.selectedCoin == shared_key_id)
+        if(props.selectedCoins === undefined) {
+          selected = (props.selectedCoin === shared_key_id)
         } else {
             props.selectedCoins.forEach(
               (selectedCoin) =>  {
@@ -160,7 +165,7 @@ const Coins = (props) => {
 
     const getRemainingDays = (numberOfDays) => {
       let days = Math.floor(numberOfDays % 365 % 30);
-      let daysDisplay = days > 0 ? days + (days == 1 ? " day" : " days") : "";
+      let daysDisplay = days > 0 ? days + (days === 1 ? " day" : " days") : "";
       return daysDisplay; 
     }
 
@@ -185,7 +190,7 @@ const Coins = (props) => {
         return false;
       }
 
-      if(expiry_data.blocks == 0){
+      if(expiry_data.blocks === 0){
         return false;
       }
       
@@ -234,7 +239,7 @@ const Coins = (props) => {
 
     //Load coins once component done render
     useEffect(() => {
-      const [coins_data, total_balance] = callGetUnspentStatecoins();
+      const [coins_data] = callGetUnspentStatecoins();
       //Load all coins that aren't unconfirmed
 
       let unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
@@ -262,7 +267,7 @@ const Coins = (props) => {
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
-    }, [props.refresh, filterBy, showCoinDetails]);
+    }, [props.refresh, filterBy, showCoinDetails, dispatch]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
@@ -275,7 +280,7 @@ const Coins = (props) => {
           // of confirmations in unconfirmed coins list
           // check for change in the amount of blocks per item (where the main expiry date is set
 
-          let [new_confirmed_coins_data,total] = callGetUnspentStatecoins();
+          let [new_confirmed_coins_data] = callGetUnspentStatecoins();
           //Get all updated confirmed coins & coin statuses
           
           if (
@@ -606,7 +611,7 @@ const Coins = (props) => {
                     <img src={utx} alt="icon" />
                     <div className="block">
                       <span>UTXO ID</span>
-                      <span><a href={'javascript:;'} onClick={() => onClickTXID(showCoinDetails.coin.funding_txid)}>{showCoinDetails.coin.funding_txid}</a>:{showCoinDetails.coin.funding_vout}</span>
+                      <span><button className='coinURLButton' onClick={() => onClickTXID(showCoinDetails.coin.funding_txid)}><div className='coinURLText'>{showCoinDetails.coin.funding_txid}:{showCoinDetails.coin.funding_vout}</div></button></span>
                     </div>
                   </div>
                 

@@ -1,34 +1,27 @@
 import coin from "../../images/table-icon1.png";
 import user from "../../images/table-icon-user.png";
-
 import React, {useState, useEffect} from 'react';
-
 import { Spinner } from "react-bootstrap";
-
 import {fromSatoshi} from '../../wallet'
 
 import './swaps.css';
 import '../index.css';
 
-const DEFAULT_SWAP_DETAILS = {show: false, swap: {value: 0, participants: 0, capacity: 0, status: "none"}}
-
+// const DEFAULT_SWAP_DETAILS = {show: false, swap: {value: 0, participants: 0, capacity: 0, status: "none"}}
 
 const Swaps = (props) => {
-    const [countdown, setCountdown] = useState()
-    const [swapTime,setSwapTime] = useState("")
-    const [count,setCount] = useState(0)
+    const [countdown, setCountdown] = useState();
+    const [swapTime,setSwapTime] = useState("");
+    const [count,setCount] = useState(0);
 
     useEffect(() =>{
         if(props.swapGroupsData.length !== 0){
-            let time = props.swapGroupsData[0][1].time
-        
+            let time = props.swapGroupsData[0][1].time;
             if(swapTime !== time){
-                setSwapTime(props.swapGroupsData[0][1].time)
+                setSwapTime(props.swapGroupsData[0][1].time);
             }
-        
         }
-
-    },[props.swapGroupsData])
+    },[props.swapGroupsData, swapTime]);
 
     useEffect(()=> {
         if(swapTime!==""){

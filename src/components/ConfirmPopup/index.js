@@ -40,10 +40,10 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
           <p className="confirm-question">{closeText}</p>
         </Modal.Body>
         <div className="custom-modal-footer group-btns">
-          <button className="primary-btn ghost" onClick={handleClose}>
+          <button className="action-btn-normal" onClick={handleClose}>
             Cancel
           </button>
-          <button className="primary-btn blue" onClick={handleConfirm}>
+          <button className="action-btn-blue" onClick={handleConfirm}>
             Confirm
           </button>
         </div>

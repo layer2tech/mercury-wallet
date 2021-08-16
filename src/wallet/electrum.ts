@@ -1,5 +1,4 @@
 import {Mutex} from 'async-mutex';
-import ThemeSlice from '../features/ThemeSlice';
 let ElectrumClientLib = require('@keep-network/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')
 const W3CWebSocket = require('websocket').w3cwebsocket

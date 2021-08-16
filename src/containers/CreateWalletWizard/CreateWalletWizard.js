@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {Link, withRouter} from "react-router-dom";
+import {withRouter} from "react-router-dom";
 import {useDispatch} from 'react-redux'
-
 import {CreateWizardForm, ConfirmSeed, DisplaySeed, Steppers} from "../../components";
 import {setError} from '../../features/WalletDataSlice'
 import {Storage} from '../../store';
@@ -66,7 +65,7 @@ const CreateWizardPage = (props) => {
       //Reset submit button
     }
 
-  },[confirmDetails])
+  },[confirmDetails, wizardState.wallet_name])
 
   useEffect(()=>{
     if(startSeed === true){
@@ -85,7 +84,7 @@ const CreateWizardPage = (props) => {
       setStartSeed(false);
       //Reset check
     }
-  },[startSeed])
+  },[startSeed, dispatch, walletNames, wizardState.wallet_name])
     
   const setStateWalletName = (event) => setWizardState({...wizardState, wallet_name: event.target.value});
   const setStateWalletPassword = (event) => setWizardState({...wizardState, wallet_password: event.target.value});
