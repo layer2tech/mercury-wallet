@@ -237,7 +237,7 @@ const SettingsPage = (props) => {
                   </button>
                   <button
                     type="button"
-                    className="primary-btn blue"
+                    className="Body-button blue"
                     onClick={saveButtonOnClick}>
                       Save
                   </button>
