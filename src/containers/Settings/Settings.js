@@ -117,13 +117,13 @@ const SettingsPage = (props) => {
               <div className="wrap-btns">
                 <StdButton
                   label="Create wallet backup"
-                  className="primary-btn blue"
+                  className="Body-button blue"
                   onClick={() => setOpenBackupModal(true)}
                 />
                 <Link to="backup_tx">
                   <StdButton
                       label="Manage Back-up transactions"
-                      className="primary-btn blue"/>
+                      className="Body-button blue"/>
                 </Link>
                 <StdButton
                     label="Export activity log"
