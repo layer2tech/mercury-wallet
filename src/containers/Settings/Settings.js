@@ -127,7 +127,7 @@ const SettingsPage = (props) => {
                 </Link>
                 <StdButton
                     label="Export activity log"
-                    className="primary-btn ghost"/>
+                    className="Body-button"/>
               </div>
           </div>
           <div className="Body settings">
@@ -231,13 +231,13 @@ const SettingsPage = (props) => {
               <div className="action-btns">
                   <button
                     type="button"
-                    className="primary-btn-link back"
+                    className="action-btn-normal"
                     onClick={cancelButtonOnClick}>
                       Cancel
                   </button>
                   <button
                     type="button"
-                    className="Body-button blue"
+                    className="action-btn-blue"
                     onClick={saveButtonOnClick}>
                       Save
                   </button>
