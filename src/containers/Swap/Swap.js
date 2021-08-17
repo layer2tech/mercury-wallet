@@ -1,11 +1,8 @@
-import swapIcon from '../../images/swap_icon-blue.png';
-
 import {Link, withRouter, Redirect} from "react-router-dom";
-import {useDispatch} from 'react-redux'
+import {useDispatch} from 'react-redux';
 import React, {useState, useEffect} from 'react';
-
 import { Coins, Swaps, StdButton, Tutorial} from "../../components";
-import Loading from "../../components/Loading/Loading"
+import Loading from "../../components/Loading/Loading";
 import {
   isWalletLoaded,
   setNotification,
@@ -21,8 +18,7 @@ import {
   addCoinToSwapRecords,
   removeCoinFromSwapRecords
 } from "../../features/WalletDataSlice";
-import {fromSatoshi} from '../../wallet'
-
+import {fromSatoshi} from '../../wallet';
 import './Swap.css';
 
 const SwapPage = () => {
@@ -42,9 +38,9 @@ const SwapPage = () => {
     setSelectedCoins(
       prevSelectedCoins => {
         let newSelectedCoins=[];
-        const isStatechainId = (element) => element == statechain_id; 
+        const isStatechainId = (element) => element === statechain_id; 
         let index = prevSelectedCoins.findIndex(isStatechainId);
-        if (index == -1){
+        if (index === -1){
             newSelectedCoins=[statechain_id];
         }
         return newSelectedCoins;
@@ -58,14 +54,14 @@ const SwapPage = () => {
           dispatch(callUpdateSwapGroupInfo());
           dispatch(callUpdateSwapStatus());
           let swap_groups_data = callGetSwapGroupInfo();
-          let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : new Array();
+          let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
           setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
           setRefreshCoins((prevState) => !prevState);
           setInitFetchSwapGroups(false)
       }, 3000);
       return () => clearInterval(interval);
     },
-    []);
+    [dispatch]);
   
   // Check if Electrum server connected on page open
   useEffect(()=> {
@@ -106,7 +102,7 @@ const SwapPage = () => {
       return
     }
 
-    if (selectedCoins.length == 0) {
+    if (selectedCoins.length === 0) {
       dispatch(setError({msg: "Please choose a StateCoin to swap."}))
       return
     }
@@ -147,7 +143,7 @@ const SwapPage = () => {
       return
     }
 
-    if (selectedCoins.length == 0) {
+    if (selectedCoins.length === 0) {
       dispatch(setError({msg: "Please choose a StateCoin to remove."}))
       return
     }

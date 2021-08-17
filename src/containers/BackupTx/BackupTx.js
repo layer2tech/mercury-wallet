@@ -3,9 +3,13 @@ import React, {useState} from 'react';
 import {useDispatch} from 'react-redux';
 import QRCode from 'qrcode.react';
 import { Modal } from 'react-bootstrap';
-import { BACKUP_STATUS, STATECOIN_STATUS } from '../../wallet/statecoin';
-import { isWalletLoaded, setError, callGetCoinBackupTxData, callCreateBackupTxCPFP, callGetConfig } from '../../features/WalletDataSlice';
-import {Coins, StdButton, AddressInput, CopiedButton, Tutorial} from "../../components";
+import { BACKUP_STATUS } from '../../wallet/statecoin';
+import { isWalletLoaded, 
+  setError, 
+  callGetCoinBackupTxData, 
+  callCreateBackupTxCPFP, 
+  callGetConfig } from '../../features/WalletDataSlice';
+import {Coins, StdButton, CopiedButton, Tutorial} from "../../components";
 
 import settings from "../../images/settings.png";
 import icon2 from "../../images/icon2.png";
@@ -54,9 +58,12 @@ const BackupTxPage = () => {
   const copyBackupTxHexToClipboard = () => {
     navigator.clipboard.writeText(selectedCoinTxData.tx_backup_hex);
   }
+  
+  /*
   const copyPrivKeyToClipboard = () => {
     navigator.clipboard.writeText(selectedCoinTxData.priv_key_hex);
-  }
+  }*/
+
   const copyKeyWIFToClipboard = () => {
     navigator.clipboard.writeText(selectedCoinTxData.key_wif);
   }
@@ -67,30 +74,30 @@ const BackupTxPage = () => {
     switch (backup_status) {
       case BACKUP_STATUS.CONFIRMED:
         return (
-          <span style={{fontWeight: 'bold', color: 'green'}}>
+          <span style={{fontWeight: 'bold', color: 'green'}} role='img' aria-label='checkmark'>
             &#9989; {backup_status}
           </span>
-        )
+        );
       case BACKUP_STATUS.POST_INTERVAL:
       case BACKUP_STATUS.UNBROADCAST:
       case BACKUP_STATUS.IN_MEMPOOL:
         return (
-          <span style={{fontWeight: 'bold', color: 'orange'}}>
+          <span style={{fontWeight: 'bold', color: 'orange'}} role='img' aria-label='warning'>
             &#9888; {backup_status}
           </span>
-        )
+        );
       case BACKUP_STATUS.TAKEN:
         return (
-          <span style={{fontWeight: 'bold', color: 'red'}}>
+          <span style={{fontWeight: 'bold', color: 'red'}} role='img' aria-label='cross'>
             &#10062; {backup_status}
           </span>
-        )
+        );
       default:
         return (
           <span>
             {selectedCoinTxData.backup_status}
           </span>
-        )
+        );
     }
   }
 
@@ -98,22 +105,22 @@ const BackupTxPage = () => {
     // check statechain is chosen
     if (!selectedCoin) {
       dispatch(setError({msg: "Please choose a StateCoin."}))
-      return
+      return;
     }
     if (!cpfpAddr) {
       dispatch(setError({msg: "Please enter a pay to address."}))
-      return
+      return;
     }
     if (!txFee) {
       dispatch(setError({msg: "Please enter a fee rate."}))
-      return
+      return;
     }
 
     let sucess = callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
 
     if (!sucess) {
       dispatch(setError({msg: "CPFP build error: please check address is correct"}))
-      return
+      return;
     }
 
    }
@@ -122,7 +129,7 @@ const BackupTxPage = () => {
   try {
      current_config = callGetConfig();
   } catch(error) {
-     console.warn('Can not get config', error)
+     console.warn('Can not get config', error);
   } 
 
   return (

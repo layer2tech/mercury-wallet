@@ -1,17 +1,14 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux'
 import ReactLoading from 'react-loading';
-
 import {callDepositInit, callDepositConfirm, setNotification,
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin,
   callGetConfig,
   callAddDescription,
   callGetStateCoin} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
-
 import { CopiedButton } from '../../components'
 import QRCodeGenerator from '../QRCodeGenerator/QRCodeGenerator'
-
 import CoinDescription from '../inputs/CoinDescription/CoinDescription.js';
 
 import btc_img from "../../images/icon1.png";
@@ -54,8 +51,10 @@ const TransactionsBTC = (props) => {
       dispatch(callDepositInit(item.value))
       .then((res => {  // when finished update p_addr in GUI
         if (res.error===undefined) {
-          props.setValueSelectionAddr(id, res.payload[1])
-          setState({}) //update state to refresh TransactionDisplay render
+          props.setValueSelectionAddr(id, res.payload[1]);
+          if(state === {}){
+            setState({}); //update state to refresh TransactionDisplay render
+          }
         }
       }))
       props.setValueSelectionInitialised(id, true)
@@ -63,14 +62,15 @@ const TransactionsBTC = (props) => {
   })
 
   // Fetch all outstanding initialised deposit_inits from wallet
-  let deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData();
+  let deposit_inits = useRef(callGetUnconfirmedAndUnmindeCoinsFundingTxData()); 
+  
   // Re-fetch every 10 seconds and update state to refresh render
   useEffect(() => {
     const interval = setInterval(() => {
       let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
       if (JSON.stringify(deposit_inits)!==JSON.stringify(new_deposit_inits)) {
-        deposit_inits = new_deposit_inits
-        setState({}) //update state to refresh TransactionDisplay render
+        deposit_inits.current = new_deposit_inits
+        setState({}); //update state to refresh TransactionDisplay render
       }
     }, 10000);
     return () => clearInterval(interval);
@@ -89,7 +89,7 @@ const TransactionsBTC = (props) => {
     }));
   }
 
-  const populateWithTransactionDisplayPanels = deposit_inits.map((item, index) => {
+  const populateWithTransactionDisplayPanels = deposit_inits.current.map((item, index) => {
 
     if (item.value != null) {
       return (

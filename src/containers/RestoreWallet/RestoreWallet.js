@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import {Link, withRouter } from "react-router-dom";
-import { useDispatch } from 'react-redux';
+import {withRouter} from "react-router-dom";
+import {useDispatch} from 'react-redux';
 import {Tabs, Tab} from 'react-bootstrap';
 import {setError, walletFromMnemonic, walletFromJson} from '../../features/WalletDataSlice'
-import { CreateWizardForm } from '../../components'
+import {CreateWizardForm} from '../../components'
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg"
 import {Storage} from '../../store';
@@ -29,8 +29,12 @@ const RestoreWalletPage = (props) => {
   // Confirm mnemonic is valid
   const onClickConf = () => {
     let store = new Storage("wallets/wallet_names");
-
     let wallet_names = store.getWalletNames();
+
+    if (wallet_names.indexOf(state.wallet_name)!==-1) {
+      dispatch(setError({msg: "Wallet with name "+state.wallet_name+" already exists."}));
+      return;
+    }
     
     if (wallet_names.filter(wallet => wallet.name === state.wallet_name).length > 0) {
       dispatch(setError({msg: "Wallet with name "+state.wallet_name+" already exists."}))
@@ -38,17 +42,17 @@ const RestoreWalletPage = (props) => {
     }
 
     if (!bip39.validateMnemonic(state.mnemonic)) {
-      dispatch(setError({msg: "Invalid mnemonic"}))
-      return
+      dispatch(setError({msg: "Invalid mnemonic"}));
+      return;
     }
 
     
     // Create wallet and load into Redux state
     try {
-      walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true)
-      props.history.push('/home')
+      walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true);
+      props.history.push('/home');
     } catch (e) {
-      dispatch(setError({msg: e.message}))
+      dispatch(setError({msg: e.message}));
     }
     props.setWalletLoaded(true);
   }
@@ -59,26 +63,28 @@ const RestoreWalletPage = (props) => {
     })
   }
 
-  const handleImportWalletData = async (event, backupData) => {
-    try {
-      const walletJson = JSON.parse(backupData);
-      const wallet = await walletFromJson(walletJson, state.wallet_password);
-      if(!wallet) {
-        dispatch(setError({msg: "Incorrect password or invalid file format. Can not restore wallet from this file!"}));
-      } else {
-        props.history.push('/home');
-        props.setWalletLoaded(true);
-      }
-    } catch (error) {
-      console.error(error)
-      dispatch(setError({msg: "Invalid Backup File Format"}))
-    }
-  }
+
 
   useEffect(() => {
+    const handleImportWalletData = async (event, backupData) => {
+      try {
+        const walletJson = JSON.parse(backupData);
+        const wallet = await walletFromJson(walletJson, state.wallet_password);
+        if(!wallet) {
+          dispatch(setError({msg: "Incorrect password or invalid file format. Can not restore wallet from this file!"}));
+        } else {
+          props.history.push('/home');
+          props.setWalletLoaded(true);
+        }
+      } catch (error) {
+        console.error(error);
+        dispatch(setError({msg: "Invalid Backup File Format"}));
+      }
+    }
+
     window.electron.ipcRenderer.on('received-backup-data', handleImportWalletData);
     return () => window.electron.ipcRenderer.removeListener('received-backup-data', handleImportWalletData);
-  }, [state])
+  }, [state, dispatch, props])
 
   return (
     <div className="restore-wallet-wrap">
@@ -104,7 +110,7 @@ const RestoreWalletPage = (props) => {
                   onChange={setStateWalletPassword}
                 />
                 <span className={'eye-icon'} onClick={toggleShowPass}>
-                    {showPass ? <img src={eyeIconOff} /> : <img src={eyeIcon} />}
+                    {showPass ? <img alt="eyeIconOff" src={eyeIconOff} /> : <img alt="eyeIcon" src={eyeIcon} />}
                 </span>
               </div>
 
