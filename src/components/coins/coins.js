@@ -754,7 +754,7 @@ const Coins = (props) => {
           </Modal.Body>
           <Modal.Footer>
             <Button
-              className="primary-btn ghost"
+              className="action-btn-normal"
               onClick={handleCloseCoinDetails}
             >
               Close
