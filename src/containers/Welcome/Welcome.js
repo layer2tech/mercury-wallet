@@ -16,9 +16,9 @@ const Welcome = () => {
         <div className="welcome-first">
             <div>
                 <h1>Welcome to Mercury</h1>
-                <p>If you’re using Bitcoin for the first time, or are new to the privacy solutions by Mercury create a
+                <p>If you’re using Mercury wallet for the first time, create a
                     new wallet.
-                    If you already have an existing wallet, use your seed phrase to restore the wallet.</p>
+                    If you have an existing wallet, load the wallet from your device storage, or use your seed phrase or backup file to restore the wallet.</p>
             </div>
             <div className="welcome-btns">
                 <div onClick={() => changeCheckbox(1)} className={`${checked === 1 ? "selected" : ""}`}>

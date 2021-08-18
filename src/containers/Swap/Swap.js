@@ -98,7 +98,7 @@ const SwapPage = () => {
   const swapButtonAction = async () => {
     // check statechain is chosen
     if (electrumServer === false){
-      dispatch(setError({msg: "The Electrum network connection is lost"}))
+      dispatch(setError({msg: "The Electrum server network connection is lost"}))
       return
     }
 
@@ -122,7 +122,7 @@ const SwapPage = () => {
               statecoin = selectedCoin;
             }
             if (res.payload===null) {
-              dispatch(setNotification({msg:"Swap not Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
+              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
               return
             }
             if (res.error===undefined) {
@@ -139,7 +139,7 @@ const SwapPage = () => {
   }
   const leavePoolButtonAction = (event) => {
     if (electrumServer === false){
-      dispatch(setError({msg: "The Electrum network connection is lost"}))
+      dispatch(setError({msg: "The Electrum server network connection is lost"}))
       return
     }
 
@@ -198,7 +198,7 @@ const SwapPage = () => {
                       </svg>
                         Swap Statecoins
                     </h2>
-                    <h3 className="subtitle">Swap Statecoins to increase their Privacy Score</h3>
+                    <h3 className="subtitle">Swap statecoins to increase their anonymity set</h3>
                   </div>
                   <Link className="nav-link" to="/home">
                       <StdButton
@@ -209,7 +209,7 @@ const SwapPage = () => {
               <div className="swap content">
                 <div className="wallet-container left ">
                     <div>
-                        <span className="sub">Click to select UTXO’s below</span>
+                        <span className="sub">Click to select coins below</span>
                         <Coins
                           displayDetailsOnClick={false}
                           showCoinStatus={true}

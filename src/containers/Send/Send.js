@@ -144,8 +144,8 @@ const SendStatecoinPage = () => {
           <div className="sendStatecoin content">
               <div className="Body left ">
                   <div>
-                      <h3 className="subtitle">Select StateCoin UTXO’s to Send</h3>
-                      <span className="sub">Click to select UTXO’s below</span>
+                      <h3 className="subtitle">Select statecoin to end</h3>
+                      <span className="sub">Click to select coins below</span>
                       <Coins
                         displayDetailsOnClick={false}
                         showCoinStatus={true}
@@ -190,7 +190,7 @@ const SendStatecoinPage = () => {
                       </table>
                       */}
                       <button ref = {sendRef} type="button" className="btn" onClick={e => sendButtonAction(e)}>
-                          SEND STATECOIN UTXO’S
+                          SEND STATECOIN
                       </button>
                   </div>
               </div>

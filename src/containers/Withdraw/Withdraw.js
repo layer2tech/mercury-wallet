@@ -187,7 +187,7 @@ const WithdrawPage = () => {
                   </div>
               </div>
               <h3 className="subtitle">
-                  Withdraw Statecoin UTXO’s back to Bitcoin. <br/>
+                  Send statecoins to a Bitcoin address<br/>
                 <b> {fromSatoshi(balance_info.total_balance)} BTC</b> as <b>{balance_info.num_coins}</b> {filterByMsg()}
               </h3>
           </div>
@@ -195,8 +195,8 @@ const WithdrawPage = () => {
           <div className="withdraw content">
               <div className="Body left ">
                   <div>
-                      <h3 className="subtitle">Select Statecoin UTXO’s to withdraw</h3>
-                      <span className="sub">Click to select UTXO’s below</span>
+                      <h3 className="subtitle">Select statecoins to withdraw</h3>
+                      <span className="sub">Click to select coins below</span>
                       <Coins
                         showCoinStatus={true}
                         displayDetailsOnClick={false}

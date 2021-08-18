@@ -104,7 +104,7 @@ const BackupTxPage = () => {
   const addCPFP = () => {
     // check statechain is chosen
     if (!selectedCoin) {
-      dispatch(setError({msg: "Please choose a StateCoin."}))
+      dispatch(setError({msg: "Please choose a statecoin."}))
       return;
     }
     if (!cpfpAddr) {
@@ -176,13 +176,13 @@ const BackupTxPage = () => {
                       </Link>
                   </div>
               </div>
-              <h3 className="subtitle">Select StateCoin to view its backup transaction and associated private key</h3>
+              <h3 className="subtitle">Select statecoin to view its backup transaction and associated private key</h3>
           </div>
 
           <div className="backupTx content">
               <div className="Body left ">
                   <div>
-                      <span className="sub">Click to select UTXO’s below</span>
+                      <span className="sub">Click to select coins below</span>
                       <Coins
                         displayDetailsOnClick={false}
                         selectedCoin={selectedCoin}
