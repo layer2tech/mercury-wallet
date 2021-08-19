@@ -1,39 +1,38 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
-import {useSelector, useDispatch} from 'react-redux'
-
-import {Coins, StdButton, AddressInput, CopiedButton, SendModal} from "../../components";
-import {fromSatoshi} from '../../wallet/util'
-import {decodeSCEAddress, encodeMessage} from '../../wallet/util'
-import {isWalletLoaded, callTransferSender, setError, setNotification} from '../../features/WalletDataSlice'
-
-import orange from "../../images/wallet-orange.png";
+import {useSelector, useDispatch} from 'react-redux';
+import {Coins, StdButton, AddressInput, SendModal} from "../../components";
+import {fromSatoshi} from '../../wallet/util';
+import {decodeSCEAddress, encodeMessage} from '../../wallet/util';
+import {isWalletLoaded, callTransferSender, setError, setNotification} from '../../features/WalletDataSlice';
 import arrow from "../../images/arrow-up.png"
-import icon2 from "../../images/icon2.png";
 import './Send.css';
 
 const SendStatecoinPage = () => {
-  const dispatch = useDispatch();
-  const balance_info = useSelector(state => state.walletData).balance_info;
-  const [openSendModal, setOpenSendModal] = useState({ show: false });
 
+  const dispatch = useDispatch();
+
+  const balance_info = useSelector(state => state.walletData).balance_info;
+
+  const [openSendModal, setOpenSendModal] = useState({ show: false });
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
   const [coinDetails, setCoinDetails] = useState({}); // store selected coins shared_key_id
-
   const [inputAddr, setInputAddr] = useState("");
-  const onInputAddrChange = (event) => {
-    setInputAddr(event.target.value);
-  };
+  // eslint-disable-next-line no-unused-vars
   const [transferMsg3, setTransferMsg3] = useState('');
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
+  const onInputAddrChange = (event) => {
+    setInputAddr(event.target.value);
+  };
+
   //Reference set on send button
-  let sendRef = useRef()
+  let sendRef = useRef();
 
   //When Send Modal (with transfer key) opens send button reactivated 
   useEffect(()=> {
     if(openSendModal.show === true){
-      sendRef.current.removeAttribute("disabled")
+      sendRef.current.removeAttribute("disabled");
     }
   },[openSendModal])
 
@@ -42,9 +41,7 @@ const SendStatecoinPage = () => {
     return <Redirect to="/" />;
   }
  
-
   const sendButtonAction = async (event) => {
-
     // check statechain is chosen
     if (selectedCoin == null) {
       dispatch(setError({msg: "Please choose a StateCoin to send."}))
@@ -85,7 +82,7 @@ const SendStatecoinPage = () => {
     .then(res => {
       if (res.error===undefined) {
         const transferCode = encodeMessage(res.payload);
-        setTransferMsg3(transferCode)
+        setTransferMsg3(transferCode);
         setOpenSendModal({
           show: true,
           value: coinDetails.value,
@@ -104,9 +101,10 @@ const SendStatecoinPage = () => {
     // }
   }
 
+  /*
   const copyTransferMsgToClipboard = () => {
     navigator.clipboard.writeText(transferMsg3);
-  }
+  }*/
 
   const handleConfirm = (pass) => {
     setInputAddr("")
@@ -191,7 +189,7 @@ const SendStatecoinPage = () => {
                           </tbody>
                       </table>
                       */}
-                      <button ref = {sendRef} type="button" className="btn" onClick={e => sendButtonAction(e)}>
+                      <button ref = {sendRef} type="action-btn-normal" className="btn" onClick={e => sendButtonAction(e)}>
                           SEND STATECOIN UTXO’S
                       </button>
                   </div>

@@ -1,13 +1,10 @@
 import plus from "../../images/plus-deposit.png";
 import points from "../../images/points.png";
-
 import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
-import {useDispatch} from 'react-redux'
 import {Button, Modal} from "react-bootstrap";
-
 import {CreateStatecoin, TransactionsBTC, StdButton, Steppers, Tutorial} from "../../components";
-import {isWalletLoaded, setError, callGetConfig} from '../../features/WalletDataSlice'
+import {isWalletLoaded, callGetConfig} from '../../features/WalletDataSlice';
 
 import './Deposit.css';
 
@@ -30,8 +27,6 @@ const STEPS = [
 ];
 
 const DepositPage = () => {
-  const dispatch = useDispatch();
-
   // Show settings
   const [show, setShow] = useState(false);
   const [step, setStep] = useState(1)

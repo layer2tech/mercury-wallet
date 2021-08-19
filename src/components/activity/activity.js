@@ -1,18 +1,13 @@
 import React from 'react';
 import Moment from 'react-moment';
-
 import { fromSatoshi } from '../../wallet/util'
 import { callGetActivityLog } from '../../features/WalletDataSlice'
-
 import txidIcon from '../../images/txid-icon.png';
 import createIcon from '../../images/create-icon-dep.png';
 import transferIcon from '../../images/transfer-icon.png';
-import withdrowIcon from '../../images/withdrow-icon.png';
 import withrowIcon from '../../images/withrow-icon.png';
 import swapIcon from '../../images/swap-icon-grey.png';
-
 import EmptyCoinDisplay from '../coins/EmptyCoinDisplay/EmptyCoinDisplay';
-
 import './activity.css';
 
 const Activity = () => {

@@ -22,10 +22,10 @@ function BackupWalletPopup ({ close, show}) {
           </p>
         </Modal.Body>
         <div className="custom-modal-footer group-btns">
-          <button className="primary-btn blue" onClick={handleConfirm}>
+          <button className="action-btn-blue" onClick={handleConfirm}>
             Confirm
           </button>
-          <button className="primary-btn ghost" onClick={close}>
+          <button className="action-btn-normal" onClick={close}>
             Cancel
           </button>
         </div>

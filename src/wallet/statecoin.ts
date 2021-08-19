@@ -85,7 +85,7 @@ export class StateCoinList {
         item.status===STATECOIN_STATUS.EXPIRED
       ) {
         // Add all but withdrawn coins to total balance 
-        if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.IN_TRANSFER && item.status!=STATECOIN_STATUS.EXPIRED) {
+        if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.IN_TRANSFER && item.status!==STATECOIN_STATUS.EXPIRED) {
           total += item.value
         }
         return item
@@ -153,12 +153,13 @@ export class StateCoinList {
   removeCoin(shared_key_id: string, testing_mode: boolean) {
     this.coins = this.coins.filter(item => {
       if (item.shared_key_id!==shared_key_id) {
-        return item
-      } else {
-        if (item.status!==STATECOIN_STATUS.INITIALISED && !testing_mode) {
-          throw Error("Should not remove coin whose funding transaction has been broadcast.")
-        }
-      }})
+        return item;
+      }
+      if (item.status!==STATECOIN_STATUS.INITIALISED && !testing_mode) {
+        throw Error("Should not remove coin whose funding transaction has been broadcast.")
+      }
+      return null;
+    });
   };
 
 
@@ -261,8 +262,8 @@ export class StateCoinList {
 
   clearSwapStatus(){
     this.coins.forEach( (statecoin) => {
-      if (statecoin.status == STATECOIN_STATUS.AWAITING_SWAP ||
-          statecoin.status == STATECOIN_STATUS.IN_SWAP){
+      if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP ||
+          statecoin.status === STATECOIN_STATUS.IN_SWAP){
             statecoin.setConfirmed();
         }
     });

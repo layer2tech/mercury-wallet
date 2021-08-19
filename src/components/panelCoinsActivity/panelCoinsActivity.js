@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {Tabs, Tab} from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
-
 import { Coins, Activity } from "..";
 
 import './panelCoinsActivity.css';
@@ -11,15 +10,15 @@ import '../index.css';
 const PanelCoinsActivity = (props) => {
     const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
     const { filterBy } = useSelector(state => state.walletData);
-    const defaultTabTitle = filterBy === STATECOIN_STATUS.WITHDRAWN ? `WITHDRAWN STATECOINS` : `STATECOINS`
+    const defaultTabTitle = filterBy === STATECOIN_STATUS.WITHDRAWN ? `WITHDRAWN STATECOINS` : `STATECOINS`;
         
     const setSelectedCoin = (statechain_id) => {
         setSelectedCoins(
             prevSelectedCoins => {
                 let newSelectedCoins=[];
-                const isStatechainId = (element) => element == statechain_id; 
+                const isStatechainId = (element) => element === statechain_id; 
                 let index = prevSelectedCoins.findIndex(isStatechainId);
-                if (index == -1){
+                if (index === -1){
                     newSelectedCoins=[statechain_id];
                 }
                 return newSelectedCoins;
@@ -49,7 +48,6 @@ const PanelCoinsActivity = (props) => {
                 )}
                 {filterBy === STATECOIN_STATUS.WITHDRAWN && (
                     <>
-                        
                         <Tabs defaultActiveKey={defaultTabTitle}>
                             <Tab eventKey={defaultTabTitle} title={defaultTabTitle}>
                                 <Coins

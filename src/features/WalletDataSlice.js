@@ -9,7 +9,9 @@ import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
 
+// eslint-disable-next-line
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
+// eslint-disable-next-line
 const OPEN = require('websocket').w3cwebsocket.OPEN;
 
 const log = window.require('electron-log');
@@ -50,7 +52,7 @@ export const reloadWallet = () => {
 async function pingElectrumRestart() {
   if(wallet){
     //If client already started
-  if (pingElectrum() == false) {
+  if (pingElectrum() === false) {
       log.info(`Failed to ping electum server. Restarting client`);
         wallet.electrum_client.close().catch( (err) => {
         log.info(`Failed to close electrum client: ${err}`)
@@ -101,7 +103,7 @@ setInterval(async function() {
 setInterval(async function() {
     if (wallet) {
       //Exit the loop if the server cannot be pinged
-      if (pingElectrum() == false) {
+      if (pingElectrum() === false) {
         log.info(`Failed to ping electum server`);
         return;
       }

@@ -2,21 +2,14 @@ import key from '../../images/key-blue-img.png';
 import restore from '../../images/restore-red-img.png';
 import secure from '../../images/secure-blue-img.png';
 import store_img from '../../images/store-red-img.png';
-
 import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
-import { useDispatch } from 'react-redux'
-
-import { setError } from '../../features/WalletDataSlice'
-
 import './CreateWalletInfo.css'
 
 let Store = window.require('electron-store');
-let store = new Store();
+new Store();
 
 const CreateWalletInfoPage = () => {
-    const dispatch = useDispatch();
-
     const state = useState(false);
     const checked = state[0];
     const changeCheckbox = state[1]

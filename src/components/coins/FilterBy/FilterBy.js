@@ -33,7 +33,7 @@ const FilterBy = (props) => {
     if(document.querySelector('.swap')|| document.querySelector('.withdraw')||document.querySelector('.sendStatecoin')){
       dispatch(updateFilter("default"))
     }
-  },[])
+  },[dispatch]);
 
   const handleFilter = (filterBy) => {
     dispatch(updateFilter(filterBy));

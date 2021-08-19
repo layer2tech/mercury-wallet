@@ -16,7 +16,7 @@ function ErrorPopup () {
           <p className="custom-modal-info alert-danger">{error_dialogue.msg}</p>
         </Modal.Body>
         <div className="custom-modal-footer group-btns">
-          <button className="primary-btn ghost" onClick={handleCloseError}>
+          <button className="action-btn-normal" onClick={handleCloseError}>
             Close
           </button>
         </div>

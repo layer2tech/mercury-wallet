@@ -1,5 +1,4 @@
 import walletIcon from '../../images/walletIcon.png';
-import orange from "../../images/wallet-orange.png";
 import withdrowIcon from "../../images/withdrow-icon.png";
 import icon2 from "../../images/icon2.png";
 
@@ -41,14 +40,15 @@ const WithdrawPage = () => {
     }
     return [low_fee_value, low_fee_value*1.1, low_fee_value*1.2]
   }
-  const [txFeePerByteList, setTxFeePerByteList] = useState(calcTxFeePerKbList(DEFAULT_FEE)); // list of fee per kb options in satoshis
 
-  function addSelectedCoin(statechain_id) {
+  const txFeePerByteList = calcTxFeePerKbList(DEFAULT_FEE); // list of fee per kb options in satoshis
+
+  const addSelectedCoin = (statechain_id) => {
     setSelectedCoins( prevSelectedCoins => {
       let newSelectedCoins = prevSelectedCoins;
-      const isStatechainId = (element) => element == statechain_id;
+      const isStatechainId = (element) => element === statechain_id;
       let index = newSelectedCoins.findIndex(isStatechainId);
-      if (index != -1){
+      if (index !== -1){
         newSelectedCoins.splice(index,1);
       } else {
         newSelectedCoins.push(statechain_id);
@@ -64,7 +64,7 @@ const WithdrawPage = () => {
         setTxFeePerKB(tx_fee_estimate);
       }
     })
-  }, []);
+  }, [dispatch]);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -110,6 +110,8 @@ const WithdrawPage = () => {
         return return_str+ " already withdrawn";
       case FILTER_BY_OPTION[2].value:
         return return_str+ " in transfer process";
+      default:
+        return;
     }
   }
 

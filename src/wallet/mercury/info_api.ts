@@ -3,6 +3,47 @@ import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE } from "..";
 let types = require("../types")
 let typeforce = require('typeforce');
 
+export interface OutPoint {
+  txid: string,
+  vout: number,
+}
+
+export interface StateChainDataAPI {
+  utxo: OutPoint,
+  amount: number,
+  chain: any[],
+  locktime: number,
+}
+
+export interface Root {
+id: number,
+value: number[],
+commitment_info: any
+}
+
+export interface FeeInfo {
+address: string,
+deposit: number,
+withdraw: number,
+interval: number,
+initlock: number
+}
+
+export interface RecoveryRequest {
+key: string,
+sig: string
+}
+
+export interface RecoveryDataMsg {
+shared_key_id: string,
+statechain_id: string,
+amount: number,
+tx_hex: string,
+proof_key: string,
+shared_key_data: string
+}
+
+
 export const pingServer = async (
   http_client: HttpClient |  MockHttpClient,
 ) => {
@@ -82,7 +123,7 @@ export const getSmtProof = async (
     attempts++;
   }
   // proof still null - throw an error
-  throw('Proof returned null');
+  throw Error('Proof returned null');
 }
 
 export const getTransferBatchStatus = async (
@@ -92,11 +133,6 @@ export const getTransferBatchStatus = async (
   return await http_client.get(GET_ROUTE.TRANSFER_BATCH, batch_id);
 }
 
-export interface OutPoint {
-  txid: string,
-  vout: number,
-}
-
 export const getRecoveryRequest = async (
   http_client: HttpClient |  MockHttpClient,
   recovery_request: RecoveryRequest[]
@@ -104,45 +140,4 @@ export const getRecoveryRequest = async (
   let recovery_data = await http_client.post(POST_ROUTE.RECOVER, recovery_request);
   typeforce(types.Array, recovery_data);
   return recovery_data
-}
-
-
-export interface StateChainDataAPI {
-    utxo: OutPoint,
-    amount: number,
-    chain: any[],
-    locktime: number,
-}
-
-export interface Root {
-  id: number,
-  value: number[],
-  commitment_info: any
-}
-
-export interface FeeInfo {
-  address: string,
-  deposit: number,
-  withdraw: number,
-  interval: number,
-  initlock: number
-}
-
-export interface RecoveryRequest {
-  key: string,
-  sig: string
-}
-
-export interface RecoveryRequest {
-  key: string,
-  sig: string
-}
-
-export interface RecoveryDataMsg {
-  shared_key_id: string,
-  statechain_id: string,
-  amount: number,
-  tx_hex: string,
-  proof_key: string,
-  shared_key_data: string
 }

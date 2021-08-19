@@ -1,7 +1,5 @@
 import React from 'react';
 
-import {Tab} from 'react-bootstrap';
-
 const TermsConditions = () => {
     return(
     <div className="content">
