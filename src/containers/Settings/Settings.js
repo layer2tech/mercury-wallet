@@ -6,7 +6,7 @@ import {useDispatch} from 'react-redux'
 
 import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
-  callUpdateConfig, callClearSave, unloadWallet} from '../../features/WalletDataSlice'
+  callUpdateConfig, callClearSave, unloadWallet, callGetActivityLog} from '../../features/WalletDataSlice'
 
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
@@ -96,6 +96,19 @@ const SettingsPage = (props) => {
     props.setWalletLoaded(false);
   }
 
+  const downloadActivity = () => {
+    
+    let activity_data = callGetActivityLog();
+    activity_data = JSON.stringify(activity_data)
+
+    var a = document.createElement("a");
+    var file = new Blob([activity_data], {type: 'text/plain'}); //text/plain
+
+    a.href = URL.createObjectURL(file);
+    a.download = 'activity.txt';
+    a.click();
+  }
+
   return (
     <div className={`${current_config.tutorials ? 'container-with-tutorials' : ''}`}>
       <div className="container">
@@ -127,7 +140,8 @@ const SettingsPage = (props) => {
                 </Link>
                 <StdButton
                     label="Export activity log"
-                    className="Body-button"/>
+                    className="Body-button"
+                    onClick = {() => downloadActivity()}/>
               </div>
           </div>
           <div className="Body settings">
