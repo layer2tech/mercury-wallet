@@ -43,7 +43,7 @@ const SettingsPage = (props) => {
 
   // Change handlers
   const onNotificationChange = ({checked}) => { setNotification(checked) };
-  const onTutorialChange = ({checked}) => { setTutorials(checked) };
+  //const onTutorialChange = ({checked}) => { setTutorials(checked) };
   const onStateEntityAddrChange = (evt) => { setStateEntityAddr(evt.target.value) };
   const onSwapAddrChange = (evt) => { setSwapAddr(evt.target.value) };
   const onElecAddrChange = (evt) => {
@@ -58,8 +58,8 @@ const SettingsPage = (props) => {
       [evt.target.name]: evt.target.value
     });
   }
-  const decreaseMinAnonSet = (e) => { minAnonSet>3 ? (setMinAnonSet(minAnonSet-1)):(e.preventDefault()) };
-  const increaseMinAnonSet = (e) => { minAnonSet>=10?(e.preventDefault()):(setMinAnonSet(minAnonSet+1))};
+  //const decreaseMinAnonSet = (e) => { minAnonSet>3 ? (setMinAnonSet(minAnonSet-1)):(e.preventDefault()) };
+  //const increaseMinAnonSet = (e) => { minAnonSet>=10?(e.preventDefault()):(setMinAnonSet(minAnonSet+1))};
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -130,17 +130,17 @@ const SettingsPage = (props) => {
               <div className="wrap-btns">
                 <StdButton
                   label="Create wallet backup"
-                  className="primary-btn blue"
+                  className="Body-button blue"
                   onClick={() => setOpenBackupModal(true)}
                 />
                 <Link to="backup_tx">
                   <StdButton
                       label="Manage Back-up transactions"
-                      className="primary-btn blue"/>
+                      className="Body-button blue"/>
                 </Link>
                 <StdButton
                     label="Export activity log"
-                    className="primary-btn ghost"
+                    className="Body-button"
                     onClick = {() => downloadActivity()}/>
               </div>
           </div>
@@ -245,13 +245,13 @@ const SettingsPage = (props) => {
               <div className="action-btns">
                   <button
                     type="button"
-                    className="primary-btn-link back"
+                    className="action-btn-normal"
                     onClick={cancelButtonOnClick}>
                       Cancel
                   </button>
                   <button
                     type="button"
-                    className="primary-btn blue"
+                    className="action-btn-blue"
                     onClick={saveButtonOnClick}>
                       Save
                   </button>

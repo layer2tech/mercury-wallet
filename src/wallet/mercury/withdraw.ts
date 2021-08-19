@@ -121,7 +121,7 @@ export const withdraw = async (
     proof_key: null,
   };
 
-  if(shared_key_ids.length == 1) {
+  if(shared_key_ids.length === 1) {
     //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
     await sign(http_client, wasm_client, shared_key_ids[0], shared_keys[0], prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
   } else {

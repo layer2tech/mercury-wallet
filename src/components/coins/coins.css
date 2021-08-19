@@ -445,3 +445,16 @@ p.short{
 .dark-mode .coin-item.selected {
   background: #192A4A;
 }
+.coinURLButton{
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  /*input has OS specific font-family*/
+  color: #069;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.coinURLText:hover,
+.coinURLText:focus {
+    color: black;
+}
