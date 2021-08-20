@@ -890,33 +890,41 @@ export class Wallet {
 
   // Query server for any pending transfer messages for the sepcified address index
   // Check for unused proof keys
-  async get_transfers(addr_index: number): Promise<number> {
-  log.info("Retriving transfer messages")
-
-  let num_transfers = 0;
-  let addr = this.account.chains[0].addresses[addr_index];
-
-  let proofkey = this.account.derive(addr).publicKey.toString("hex");
-  let transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
-
-  for (let i=0; i<transfer_msgs.length; i++) {
-    // check if the coin is in the wallet
-    let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
-    let dotransfer = true;
-    for (let j=0; j<walletcoins.length; j++) {
-      if(walletcoins[j].status===STATECOIN_STATUS.AVAILABLE) {
-        dotransfer = false;
-        break;
+  async get_transfers(addr_index: number): Promise <string> {
+    log.info("Retriving transfer messages")
+    let error_message = ""
+    let transfer_data
+  
+    let num_transfers = 0;
+    let addr = this.account.chains[0].addresses[addr_index];
+  
+    let proofkey = this.account.derive(addr).publicKey.toString("hex");
+    let transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
+    
+    for (let i=0; i<transfer_msgs.length; i++) {
+      // check if the coin is in the wallet
+      let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
+      let dotransfer = true;
+      for (let j=0; j<walletcoins.length; j++) {
+        if(walletcoins[j].status===STATECOIN_STATUS.AVAILABLE) {
+          dotransfer = false;
+          break;
+        }
+      }
+      //perform transfer receiver
+      if (dotransfer) {
+        try{
+          transfer_data = await this.transfer_receiver(transfer_msgs[i]);
+          num_transfers += 1;
+        }
+        catch(e){
+          error_message=e.message
+        }
+        
       }
     }
-    //perform transfer receiver
-    if (dotransfer) {
-      await this.transfer_receiver(transfer_msgs[i]);
-      num_transfers += 1;
-    }
-  }
-
-    return num_transfers
+    return num_transfers + "../.." + error_message
+  
   }
 
 

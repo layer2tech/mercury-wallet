@@ -101,13 +101,18 @@ const ReceiveStatecoinPage = () => {
     if(electrumServer){
       setTransferLoading(true)
       dispatch(callGetTransfers(addr_index)).then((res) => {
+        let [nreceived, error ] = res.payload.split("../..")
+        // Set Number of received statecoins and error 
 
-        if (res.payload===0) {
+        if (nreceived===0) {
             dispatch(setError({msg: "No transfers to receive."}))
           } else {
-            let nreceived = res.payload
-            dispatch(setNotification({msg:"Received "+nreceived+" statecoins."}))
+            dispatch(setNotification({msg:`Received ${nreceived} statecoins.`}))
         }
+        if(error !== ""){
+          dispatch(setError({msg: "Requested Statecoin(s) Corrupted"}))
+        }
+
         setTransferLoading(false)
       })
       return
