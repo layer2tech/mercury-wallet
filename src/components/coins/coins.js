@@ -324,20 +324,28 @@ const Coins = (props) => {
     },[showCoinDetails.coin])
 
     // data to display in privacy related sections
-    const getPrivacyScoreDesc = (anon_set) => {
+    const getPrivacyScoreDesc = (anon_set, is_new) => {
       if (!anon_set) {
         return {
           icon1: anon_icon_none,
           icon2: anon_icon2_none,
-          score_desc: "Anon set: 0",
+          score_desc: "Swap set: 0",
           msg: "Withdrawn coin will have no anonymity set"
         }
       }
+      if (is_new) {
+        return {
+          icon1: anon_icon_high,
+          icon2: anon_icon2_high,
+          score_desc: "Swap set: " + anon_set.toString(),
+          msg: "Withdrawn coin will have an swap set of " + anon_set.toString()
+        }
+      }
       return {
-        icon1: anon_icon_high,
-        icon2: anon_icon2_high,
-        score_desc: "Anon set: " + anon_set.toString(),
-        msg: "Withdrawn coin will have an anonymity set of " + anon_set.toString()
+        icon1: anon_icon_none,
+        icon2: anon_icon2_none,
+        score_desc: "Swap set: " + anon_set.toString(),
+        msg: "Withdrawn coin will have an swap set of " + anon_set.toString()
       }
     }
 

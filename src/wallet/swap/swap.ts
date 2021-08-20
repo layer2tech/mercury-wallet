@@ -363,40 +363,16 @@ export const do_swap_poll = async(
             break;
           }
           case SWAP_STATUS.Phase1: {
-            if(swap1_count < EXIT_AFTER){
-              try{
-                await swapPhase1(http_client, wasm_client, statecoin, proof_key_der, new_proof_key_der);
-              } finally {
-                swap1_count++;
-              }
-            } else {
-              return null;
-            }
+            await swapPhase1(http_client, wasm_client, statecoin, proof_key_der, new_proof_key_der);
             break;
           }
           case SWAP_STATUS.Phase2: {
-            if(swap2_count < EXIT_AFTER){
-              try{
-                await swapPhase2(http_client, wasm_client, statecoin);
-              } finally {
-                swap2_count++;
-              }
-            } else {
-              return null;
-            }
+            await swapPhase2(http_client, wasm_client, statecoin);
             break;
           }
           case SWAP_STATUS.Phase3: {
             if (statecoin.swap_address===null) throw Error("No swap address found for coin. Swap address should be set in Phase1.");
-            if(swap3_count < EXIT_AFTER){
-              try{
-                await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations);
-              } finally {
-                swap3_count++;
-              }
-            } else {
-              return null;
-            }
+            await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations);
             break;
           }
           case SWAP_STATUS.Phase4: {

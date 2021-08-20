@@ -252,8 +252,6 @@ export class StateCoinList {
   removeCoinFromSwap(shared_key_id: string) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
-//      if (coin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Swap already begun. Cannot remove coin.");
-//      if (coin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
       coin.setSwapDataToNull();
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
@@ -346,6 +344,7 @@ export class StateCoin {
   smt_proof: InclusionProofSMT | null;
   swap_rounds: number;
   anon_set: number;
+  is_new: boolean;
   status: string;
 
   // Transfer data
@@ -377,6 +376,7 @@ export class StateCoin {
     this.block = -1; // marks tx has not been mined
     this.swap_rounds = 0
     this.anon_set = 0;
+    this.is_new = false;
     //this.swap_participants = 0
     this.tx_backup = null;
     this.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
@@ -438,6 +438,7 @@ export class StateCoin {
       timestamp: this.timestamp,
       swap_rounds: this.swap_rounds,
       anon_set: this.anon_set,
+      is_new: this.is_new,
       expiry_data: this.getExpiryData(block_height),
       transfer_msg: this.transfer_msg,
       swap_id: (this.swap_info ? this.swap_info.swap_token.id : null),
@@ -532,7 +533,7 @@ export class StateCoin {
   setSwapDataToNull() {
     this.setConfirmed();
     this.swap_status = null;
-    this.swap_id = null
+    this.swap_id = null;
     this.swap_address = null;
     this.swap_info = null;
     this.swap_my_bst_data = null;
@@ -559,6 +560,7 @@ export interface StateCoinDisplayData {
   timestamp: number,
   swap_rounds: number,
   anon_set: number,
+  is_new: boolean,
   expiry_data: ExpiryData,
   status: string,
   transfer_msg: TransferMsg3 | null,
