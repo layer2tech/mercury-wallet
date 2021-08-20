@@ -360,6 +360,7 @@ export class StateCoin {
   swap_transfer_msg: TransferMsg3 | null;
   swap_batch_data: BatchData | null;
   swap_transfer_finalized_data: TransferFinalizeData | null;
+  swap_auto: boolean;
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
     this.shared_key_id = shared_key_id;
@@ -398,6 +399,7 @@ export class StateCoin {
     this.swap_transfer_msg = null;
     this.swap_batch_data = null;
     this.swap_transfer_finalized_data = null;
+    this.swap_auto = false;
   }
 
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
