@@ -74,7 +74,7 @@ const SWAP_STATUS_INFO = {
 }
 
 const Coins = (props) => {
-    const {selectedCoins} = props;
+    const {selectedCoins, isMainPage} = props;
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
@@ -383,9 +383,12 @@ const Coins = (props) => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
       return (
           <div key={item.shared_key_id}>
-            {!item.deleting && item.status === "INITIALISED" && <div className="CoinTitleBar">
-              <img className='close' src={close_img} alt="arrow" onClick={() => onDeleteCoinDetails(item)}/>
-            </div>}
+            {
+              isMainPage && !item.deleting && item.status === "INITIALISED" && 
+              <div className="CoinTitleBar">
+                <img className='close' src={close_img} alt="arrow" onClick={() => onDeleteCoinDetails(item)}/>
+              </div>
+            }
             <div
               className={`coin-item ${(props.swap||props.send||props.withdraw) ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
               onClick={() => {
