@@ -727,53 +727,55 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
 
-    
     let new_statecoin=null;
-    await swapSemaphore.wait();
-    try{
-      await (async () => {
-        while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-          delay(100);
+    while (statecoin.swap_auto) {
+
+      await swapSemaphore.wait();
+      try{
+        await (async () => {
+          while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+            delay(100);
+          }
+        });
+        await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+        this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
+      } catch(e){
+        if (! e.message.includes("Coin is not in a swap pool")){
+          throw e;
         }
-      });
-      await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
-      this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
-    } catch(e){
-      if (! e.message.includes("Coin is not in a swap pool")){
-        throw e;
+      } finally {
+        swapSemaphore.release();
       }
-    } finally {
-      swapSemaphore.release();
-    }
-    await swapSemaphore.wait();
-    try{
-      await (async () => {
-        while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-          delay(100);
+      await swapSemaphore.wait();
+      try{
+        await (async () => {
+          while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+            delay(100);
+          }
+        });
+        new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
+      } catch(e){
+        log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
+      } finally {
+        swapSemaphore.release();
+        if (new_statecoin===null) {
+          statecoin.setSwapDataToNull();
+          this.saveStateCoinsList();
+          return null;
         }
-      });
-      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
-    } catch(e){
-      log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
-    } finally {
-      swapSemaphore.release();
-      if (new_statecoin===null) {
-        statecoin.setSwapDataToNull();
+        // Mark funds as spent in wallet
+        this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
+
+        // update in wallet
+        new_statecoin.swap_status = null;
+        new_statecoin.setConfirmed();
+        this.statecoins.addCoin(new_statecoin);
+
+        log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
         this.saveStateCoinsList();
-        return null;
       }
-      // Mark funds as spent in wallet
-      this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
-
-      // update in wallet
-      new_statecoin.swap_status = null;
-      new_statecoin.setConfirmed();
-      this.statecoins.addCoin(new_statecoin);
-
-      log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
-      this.saveStateCoinsList();
-      return new_statecoin;
     }
+    return new_statecoin;
   }
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo>{
