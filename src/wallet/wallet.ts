@@ -311,13 +311,41 @@ export class Wallet {
   // Getters
   getMnemonic(): string { return this.mnemonic }
   getBlockHeight(): number { return this.block_height }
-  getSEAddress(addr_index: number): string { 
+  getSEAddress(addr_index: number): Object { 
     if (addr_index >= this.account.chains[0].addresses.length) {
       return this.current_sce_addr
     } else {
       let addr = this.account.chains[0].addresses[addr_index];
       let proofkey = this.account.derive(addr).publicKey.toString("hex");
-      return encodeSCEAddress(proofkey)
+      
+      let used = false;
+      let coin_status = "";
+      let txid_vout = "";
+      let amount = 0;
+      // Get used addresses
+      
+      this.statecoins.coins.map(coin => {
+
+        if(coin.transfer_msg !== null){
+          if(coin.transfer_msg?.rec_se_addr.tx_backup_addr == addr){
+            coin_status = coin.status
+            used = true
+            amount = fromSatoshi(coin.value)
+            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
+          }
+        }
+
+        if(coin.status === "SWAPPED"){
+          
+          if(coin.swap_transfer_msg?.rec_se_addr.tx_backup_addr == addr){
+            coin_status = coin.status
+            used = true
+            amount = fromSatoshi(coin.value)
+            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
+          }
+        }
+      })
+      return { sce_address: encodeSCEAddress(proofkey), used: used, coin_status: coin_status, amount:amount, txid_vout: txid_vout}
     }
   }
 

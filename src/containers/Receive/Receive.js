@@ -148,9 +148,25 @@ const ReceiveStatecoinPage = () => {
   }
   
   const copySEAddressToClipboard = (e) => {
-    navigator.clipboard.writeText(rec_sce_addr);
+    navigator.clipboard.writeText(rec_sce_addr.sce_address);
   }
 
+  const tooltipHover = (e) => {
+    var tooltipSpan = document.querySelector('.receiveStatecoin-scan-txid span.tooltip');
+    if(tooltipSpan !== null){
+      var w = window.innerWidth;
+      var h = window.innerHeight;
+  
+      var x = e.clientX;
+      var y = e.clientY;
+  
+      tooltipSpan.style.top = `${y+16}px`;
+      tooltipSpan.style.left = `${x+72}px`;
+
+    }
+  }
+
+  
   return (
     <div className="container ">
         <div className="Body receiveStatecoin">
@@ -177,10 +193,10 @@ const ReceiveStatecoinPage = () => {
             <p className="receive-note">Statecoin Address</p>
             <div className="receiveStatecoin-scan">
               <div className="receive-qr-code">
-                <QRCode value={rec_sce_addr} />
+                <QRCode value={rec_sce_addr.sce_address} />
               </div>
               <div className="receiveStatecoin-scan-content">
-                  <div className="receiveStatecoin-scan-txid">
+                  <div className="receiveStatecoin-scan-txid" onMouseMove = {e => tooltipHover(e)}>
                     <CopiedButton 
                       handleCopy={copySEAddressToClipboard} 
                       style={{
@@ -193,12 +209,13 @@ const ReceiveStatecoinPage = () => {
                         fontWeight: 'bold'
                       }} 
                       message='Copied to Clipboard'
+                      className={rec_sce_addr.used === true ? (`copy-btn-wrap used`): ("copy-btn-wrap")}
                     >
                       <div className="address-index">
                         <div className="address">
                           <img type="button" src={icon2} alt="icon"/>
                           <span className="rec-address">
-                            {rec_sce_addr}
+                            {rec_sce_addr.sce_address}
                           </span>
                         </div>
                         <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(receiveButtonAction):((e)=>{e.stopPropagation()})}>
@@ -206,6 +223,13 @@ const ReceiveStatecoinPage = () => {
                         </button>
                       </div>
                     </CopiedButton>
+                    {rec_sce_addr.used === true ? (
+                    <span className="tooltip">
+                      <div><b>Used: </b> {rec_sce_addr.coin_status}</div>
+                      <div><b>Amount: </b> {rec_sce_addr.amount} BTC</div>
+                      <div><b>TxID-VOUT: </b> {rec_sce_addr.txid_vout}</div>
+                    </span>
+                    ):(null)}
                   </div>
                   <div className="btns-container">
                     <div className="prev-next">
