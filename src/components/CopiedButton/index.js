@@ -9,7 +9,8 @@ function CopiedButton ({
   handleCopy, 
   style = {}, 
   message = 'Copied!',
-  delay = 1000
+  delay = 1000,
+  className = "copy-btn-wrap"
 }) {
   const [copied, setCopied] = useState(false);
   const handleClick = (e) => {
@@ -25,7 +26,7 @@ function CopiedButton ({
     return () => clearTimeout(timeout);
   },[copied, delay]);
   return (
-    <div className="copy-btn-wrap">
+    <div className={className}>
       {copied && <span className="copied" style={style}>{message}</span>}
       {cloneElement(children, { onClick: handleClick })}
     </div>
