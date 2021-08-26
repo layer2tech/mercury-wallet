@@ -293,6 +293,14 @@ export const callGetTransfers = createAsyncThunk(
     return wallet.get_transfers(action)
   }
 )
+
+export const callDoAutoSwap = createAsyncThunk(
+  'DoSwap',
+  async (action, thunkAPI) => {
+    return wallet.setStateCoinAutoSwap(action.shared_key_id)
+  }
+)
+
 export const callDoSwap = createAsyncThunk(
   'DoSwap',
   async (action, thunkAPI) => {

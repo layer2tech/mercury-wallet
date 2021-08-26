@@ -74,7 +74,7 @@ const SWAP_STATUS_INFO = {
 }
 
 const Coins = (props) => {
-    const {selectedCoins} = props;
+    const {selectedCoins, swap} = props;
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
@@ -236,6 +236,8 @@ const Coins = (props) => {
     const handleDeleteCoinNo = () => {
       setShowDeleteCoinDetails(false);
     }
+
+    
 
     //Load coins once component done render
     useEffect(() => {
@@ -471,6 +473,21 @@ const Coins = (props) => {
                     </div>
                   )}
 
+                  {
+                    swap && 
+                    <div>
+                      <label className="toggle">
+                        <input
+                          className="toggle-checkbox"
+                          type="checkbox"
+                          onChange={e => props.handleAutoSwap(item)}
+                          checked={item.swap_auto}
+                        />
+                        <div className="toggle-switch" />
+                      </label>
+                    </div>
+                  }
+
                   {props.showCoinStatus ? (
                     <div className="coin-status-or-txid">
                       {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
@@ -596,6 +613,9 @@ const Coins = (props) => {
                     {showCoinDetails.coin.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[showCoinDetails.coin.swap_status]} />):(null)}
                   </div>
                 )}
+
+              
+                
 
               {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
                 <div className="item qr-container">

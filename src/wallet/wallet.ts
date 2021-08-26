@@ -579,6 +579,10 @@ export class Wallet {
     log.debug("Set Statecoin spent: "+id);
   }
 
+  setStateCoinAutoSwap(shared_key_id: string) {
+    this.statecoins.setAutoSwap(shared_key_id);
+  }
+
   // New BTC address
   genBtcAddress(): string {
     let addr = this.account.nextChainAddress(0);
@@ -709,6 +713,7 @@ export class Wallet {
 
     return statecoin_finalized
   }
+
 
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
