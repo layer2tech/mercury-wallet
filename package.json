@@ -27,7 +27,7 @@
   },
   "repository": "github:layer2tech/mercury-wallet",
 
-  "version": "v0.4.13",
+  "version": "v0.4.14",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
