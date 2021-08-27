@@ -18,7 +18,7 @@ declare const window: any;
 let log: any;
 try {
   log = window.require('electron-log');
-} catch (e) {
+} catch (e: any) {
   log = require('electron-log');
 }
 
@@ -433,7 +433,7 @@ export const do_transfer_receiver = async (
     while(true) {
       try{
         msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG,{"id":id});
-      }catch(err){
+      }catch(err: any){
         if (!err.message.includes("DB Error: No data for identifier")) {
           throw err;
         }
