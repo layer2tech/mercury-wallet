@@ -4,7 +4,7 @@ declare const window: any;
 let Store: any;
 try {
   Store = window.require('electron-store');
-} catch (e) {
+} catch (e : any) {
   Store = require('electron-store');
 }
 

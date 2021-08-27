@@ -37,7 +37,7 @@ declare const window: any;
 let log: any;
 try {
   log = window.require('electron-log');
-} catch (e) {
+} catch (e : any) {
   log = require('electron-log');
 }
 
@@ -213,7 +213,7 @@ export class Wallet {
     
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
-    } catch (e) {
+    } catch (e :any) {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
@@ -868,7 +868,7 @@ export class Wallet {
     log.info("Transfer Sender for "+shared_key_id)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.config.network) }
-      catch (e) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
+      catch (e : any) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);

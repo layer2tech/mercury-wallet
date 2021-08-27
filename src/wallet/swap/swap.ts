@@ -388,7 +388,7 @@ export const do_swap_poll = async(
             new_statecoin = await swapPhase4(http_client, wasm_client, statecoin);
           }
         }
-      } catch (e) {
+      } catch (e  : any) {
         throw new Error(`${e}`);
       }
       await delay(5);
