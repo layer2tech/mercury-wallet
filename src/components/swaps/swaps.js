@@ -9,6 +9,7 @@ import {fromSatoshi} from '../../wallet'
 
 import './swaps.css';
 import '../index.css';
+import Countdown from "./Countdown/Countdown";
 
 const DEFAULT_SWAP_DETAILS = {show: false, swap: {value: 0, participants: 0, capacity: 0, status: "none"}}
 
@@ -113,9 +114,10 @@ const Swaps = (props) => {
         <div className="swap-coin">
             <div className="swap-top">
                 <span>Swaps waiting to begin …</span>
-                <div className={"clock"}>
+                {/* <div className={"clock"}>
                     <span className={countdown<30? "red":(null)}>{countdown ? (`${handleCountdownTimer(countdown)}s`):(null)}</span>
-                </div>
+                </div> */}
+                <Countdown />
             </div>
             {swapData.length!==0 ? (
                 <>
