@@ -317,7 +317,6 @@ export class Wallet {
     } else {
       let addr = this.account.chains[0].addresses[addr_index];
       let proofkey = this.account.derive(addr).publicKey.toString("hex");
-      
       let used = false;
       let coin_status = "";
       let txid_vout = "";
@@ -326,11 +325,17 @@ export class Wallet {
       
       this.statecoins.coins.map(coin => {
 
+        if(coin.sc_address === addr){
+          coin_status = coin.status
+          used = true
+          amount += fromSatoshi(coin.value)
+        }
+
         if(coin.transfer_msg !== null){
           if(coin.transfer_msg?.rec_se_addr.tx_backup_addr == addr){
             coin_status = coin.status
             used = true
-            amount = fromSatoshi(coin.value)
+            amount += fromSatoshi(coin.value)
             txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
           }
         }
@@ -340,7 +345,7 @@ export class Wallet {
           if(coin.swap_transfer_msg?.rec_se_addr.tx_backup_addr == addr){
             coin_status = coin.status
             used = true
-            amount = fromSatoshi(coin.value)
+            amount += fromSatoshi(coin.value)
             txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
           }
         }
@@ -638,7 +643,7 @@ export class Wallet {
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
-
+    
     // Initisalise deposit - gen shared keys and create statecoin
     let statecoin = await depositInit(
       this.http_client,
@@ -646,9 +651,13 @@ export class Wallet {
       proof_key_pub,
       proof_key_priv!
     );
+     //add StateCoin address to coin info
+    let sc_addr_array = this.account.getChains()[0].addresses
+    statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
+
     // add proof key bip32 derivation to statecoin
     statecoin.proof_key = proof_key_pub;
-
+      
     statecoin.value = value;
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
@@ -755,6 +764,10 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
 
+
+    //New statecoin from proof key added to coin
+    let sc_addr_array = this.account.getChains()[0].addresses
+    statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
     
     let new_statecoin=null;
     await swapSemaphore.wait();

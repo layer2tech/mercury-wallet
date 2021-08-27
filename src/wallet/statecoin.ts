@@ -333,6 +333,7 @@ export class StateCoin {
   description: string;
   funding_txid: string;
   funding_vout: number;
+  sc_address: string; //StateCoin Address
   block: number;  // included in block number. 0 for unconfirmed.
   timestamp: number;
   tx_backup: BTCTransaction | null;
@@ -373,6 +374,7 @@ export class StateCoin {
 
     this.funding_txid = "";
     this.funding_vout = 0;
+    this.sc_address = ""; //deposited StateCoin address
     this.block = -1; // marks tx has not been mined
     this.swap_rounds = 0
     //this.swap_participants = 0
