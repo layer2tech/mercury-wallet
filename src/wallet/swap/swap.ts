@@ -312,7 +312,7 @@ export const swapPhase4 = async (
     statecoin.swap_status=SWAP_STATUS.End;
     statecoin_out.swap_rounds=statecoin.swap_rounds+1;
     return statecoin_out;
-  } catch(e){ 
+  } catch(e : any){ 
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
   } 
