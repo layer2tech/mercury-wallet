@@ -225,7 +225,7 @@ export const decodeSCEAddress = (sce_address: string): string => {
     let decode =  bech32.decode(sce_address)
     SCEAddress = Buffer.from(bech32.fromWords(decode.words)).toString('hex')
   }
-  catch(e){
+  catch(e : any){
     throw new Error("Invalid Statechain Address - " + e.message)
   }
   return SCEAddress
@@ -270,7 +270,7 @@ export const decodeMessage = (enc_message: string, network: Network): TransferMs
   try{
     let decode =  bech32.decode(enc_message, 6000);
     buf = Buffer.from(bech32.fromWords(decode.words));
-  } catch(e){
+  } catch(e : any){
     throw new Error("Invalid Transfer Key - " + e.message)
   }
   

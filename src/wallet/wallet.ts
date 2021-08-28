@@ -37,7 +37,7 @@ declare const window: any;
 let log: any;
 try {
   log = window.require('electron-log');
-} catch (e) {
+} catch (e : any) {
   log = require('electron-log');
 }
 
@@ -213,7 +213,7 @@ export class Wallet {
     
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
-    } catch (e) {
+    } catch (e :any) {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
@@ -270,7 +270,7 @@ export class Wallet {
           statecoin.value
         )
       })
-    }).catch((err) => {
+    }).catch((err : any) => {
       log.info(err);
       return;
     });
@@ -779,7 +779,7 @@ export class Wallet {
       });
       await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
       this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
-    } catch(e){
+    } catch(e : any){
       if (! e.message.includes("Coin is not in a swap pool")){
         throw e;
       }
@@ -794,7 +794,7 @@ export class Wallet {
         }
       });
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
-    } catch(e){
+    } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
       swapSemaphore.release();
@@ -868,7 +868,7 @@ export class Wallet {
     log.info("Transfer Sender for "+shared_key_id)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.config.network) }
-      catch (e) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
+      catch (e : any) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
@@ -958,7 +958,7 @@ export class Wallet {
           transfer_data = await this.transfer_receiver(transfer_msgs[i]);
           num_transfers += 1;
         }
-        catch(e){
+        catch(e : any){
           error_message=e.message
         }
         
