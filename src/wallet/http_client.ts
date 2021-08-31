@@ -83,7 +83,7 @@ export class HttpClient {
       release();
       return return_data
 
-    } catch (err) {
+    } catch (err : any) {
       release();
       throw err;
     }
@@ -108,7 +108,7 @@ export class HttpClient {
       release();
       return return_data
 
-    } catch (err) {
+    } catch (err : any) {
       release();
       throw err;
     }

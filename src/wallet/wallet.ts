@@ -37,7 +37,7 @@ declare const window: any;
 let log: any;
 try {
   log = window.require('electron-log');
-} catch (e) {
+} catch (e : any) {
   log = require('electron-log');
 }
 
@@ -213,7 +213,7 @@ export class Wallet {
     
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
-    } catch (e) {
+    } catch (e :any) {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
@@ -270,7 +270,7 @@ export class Wallet {
           statecoin.value
         )
       })
-    }).catch((err) => {
+    }).catch((err : any) => {
       log.info(err);
       return;
     });
@@ -311,13 +311,46 @@ export class Wallet {
   // Getters
   getMnemonic(): string { return this.mnemonic }
   getBlockHeight(): number { return this.block_height }
-  getSEAddress(addr_index: number): string { 
+  getSEAddress(addr_index: number): Object { 
     if (addr_index >= this.account.chains[0].addresses.length) {
       return this.current_sce_addr
     } else {
       let addr = this.account.chains[0].addresses[addr_index];
       let proofkey = this.account.derive(addr).publicKey.toString("hex");
-      return encodeSCEAddress(proofkey)
+      let used = false;
+      let coin_status = "";
+      let txid_vout = "";
+      let amount = 0;
+      // Get used addresses
+      
+      this.statecoins.coins.map(coin => {
+
+        if(coin.sc_address === addr){
+          coin_status = coin.status
+          used = true
+          amount += fromSatoshi(coin.value)
+        }
+
+        if(coin.transfer_msg !== null){
+          if(coin.transfer_msg?.rec_se_addr.tx_backup_addr == addr){
+            coin_status = coin.status
+            used = true
+            amount += fromSatoshi(coin.value)
+            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
+          }
+        }
+
+        if(coin.status === "SWAPPED"){
+          
+          if(coin.swap_transfer_msg?.rec_se_addr.tx_backup_addr == addr){
+            coin_status = coin.status
+            used = true
+            amount += fromSatoshi(coin.value)
+            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
+          }
+        }
+      })
+      return { sce_address: encodeSCEAddress(proofkey), used: used, coin_status: coin_status, amount:amount, txid_vout: txid_vout}
     }
   }
 
@@ -610,7 +643,7 @@ export class Wallet {
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
-
+    
     // Initisalise deposit - gen shared keys and create statecoin
     let statecoin = await depositInit(
       this.http_client,
@@ -618,9 +651,13 @@ export class Wallet {
       proof_key_pub,
       proof_key_priv!
     );
+     //add StateCoin address to coin info
+    let sc_addr_array = this.account.getChains()[0].addresses
+    statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
+
     // add proof key bip32 derivation to statecoin
     statecoin.proof_key = proof_key_pub;
-
+      
     statecoin.value = value;
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
@@ -727,6 +764,10 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
 
+
+    //New statecoin from proof key added to coin
+    let sc_addr_array = this.account.getChains()[0].addresses
+    statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
     
     let new_statecoin=null;
     await swapSemaphore.wait();
@@ -738,7 +779,7 @@ export class Wallet {
       });
       await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
       this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
-    } catch(e){
+    } catch(e : any){
       if (! e.message.includes("Coin is not in a swap pool")){
         throw e;
       }
@@ -753,7 +794,7 @@ export class Wallet {
         }
       });
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
-    } catch(e){
+    } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
       swapSemaphore.release();
@@ -827,7 +868,7 @@ export class Wallet {
     log.info("Transfer Sender for "+shared_key_id)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.config.network) }
-      catch (e) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
+      catch (e : any) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
@@ -890,33 +931,41 @@ export class Wallet {
 
   // Query server for any pending transfer messages for the sepcified address index
   // Check for unused proof keys
-  async get_transfers(addr_index: number): Promise<number> {
-  log.info("Retriving transfer messages")
-
-  let num_transfers = 0;
-  let addr = this.account.chains[0].addresses[addr_index];
-
-  let proofkey = this.account.derive(addr).publicKey.toString("hex");
-  let transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
-
-  for (let i=0; i<transfer_msgs.length; i++) {
-    // check if the coin is in the wallet
-    let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
-    let dotransfer = true;
-    for (let j=0; j<walletcoins.length; j++) {
-      if(walletcoins[j].status===STATECOIN_STATUS.AVAILABLE) {
-        dotransfer = false;
-        break;
+  async get_transfers(addr_index: number): Promise <string> {
+    log.info("Retriving transfer messages")
+    let error_message = ""
+    let transfer_data
+  
+    let num_transfers = 0;
+    let addr = this.account.chains[0].addresses[addr_index];
+  
+    let proofkey = this.account.derive(addr).publicKey.toString("hex");
+    let transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
+    
+    for (let i=0; i<transfer_msgs.length; i++) {
+      // check if the coin is in the wallet
+      let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
+      let dotransfer = true;
+      for (let j=0; j<walletcoins.length; j++) {
+        if(walletcoins[j].status===STATECOIN_STATUS.AVAILABLE) {
+          dotransfer = false;
+          break;
+        }
+      }
+      //perform transfer receiver
+      if (dotransfer) {
+        try{
+          transfer_data = await this.transfer_receiver(transfer_msgs[i]);
+          num_transfers += 1;
+        }
+        catch(e : any){
+          error_message=e.message
+        }
+        
       }
     }
-    //perform transfer receiver
-    if (dotransfer) {
-      await this.transfer_receiver(transfer_msgs[i]);
-      num_transfers += 1;
-    }
-  }
-
-    return num_transfers
+    return num_transfers + "../.." + error_message
+  
   }
 
 

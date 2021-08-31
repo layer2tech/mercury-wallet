@@ -189,7 +189,7 @@ const SendStatecoinPage = () => {
                           </tbody>
                       </table>
                       */}
-                      <button ref = {sendRef} type="button" className="btn" onClick={e => sendButtonAction(e)}>
+                      <button ref = {sendRef} type="action-btn-normal" className="btn" onClick={e => sendButtonAction(e)}>
                           SEND STATECOIN
                       </button>
                   </div>

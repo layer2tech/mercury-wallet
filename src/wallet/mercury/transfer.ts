@@ -189,7 +189,7 @@ export const transferReceiver = async (
   // 6. Check coin has the required confirmations
   let tx_data = await electrum_client.getTransaction(statechain_data.utxo.txid);
   if (tx_data===null)  throw new Error("TxID not found.");
-  if (tx_data.confirmations < req_confirmations) throw new Error("Coin has insufficient confirmations.");
+  if (tx_data?.confirmations < req_confirmations) throw new Error("Coin has insufficient confirmations.");
 
   // decrypt t1
   let t1 = decryptECIES(se_rec_addr_bip32.privateKey!.toString("hex"), transfer_msg3.t1.secret_bytes)

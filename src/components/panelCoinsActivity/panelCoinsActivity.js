@@ -39,6 +39,7 @@ const PanelCoinsActivity = (props) => {
                                 setSelectedCoin={setSelectedCoin}
                                 showCoinStatus={true}
                                 largeScreen
+                                isMainPage={true}
                             />
                         </Tab>
                         <Tab eventKey="ACTIVITY" title="ACTIVITY">
