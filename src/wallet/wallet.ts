@@ -161,6 +161,7 @@ export class Wallet {
     })
 
     new_wallet.account = new bip32utils.Account(chains);
+    console.log(new_wallet)
     return new_wallet
   }
 
@@ -316,7 +317,8 @@ export class Wallet {
       return this.current_sce_addr
     } else {
       let addr = this.account.chains[0].addresses[addr_index];
-      let proofkey = this.account.derive(addr).publicKey.toString("hex");
+      let encoded_sce_address = this.encryptSCEAddress(addr)
+      //let proofkey = this.account.derive(addr).publicKey.toString("hex");
       let used = false;
       let coin_status = "";
       let txid_vout = "";
@@ -350,8 +352,13 @@ export class Wallet {
           }
         }
       })
-      return { sce_address: encodeSCEAddress(proofkey), used: used, coin_status: coin_status, amount:amount, txid_vout: txid_vout}
+      return { sce_address: encoded_sce_address, used: used, coin_status: coin_status, amount:amount, txid_vout: txid_vout}
     }
+  }
+
+  encryptSCEAddress(addr: string){
+    let proofkey = this.account.derive(addr).publicKey.toString("hex");
+    return encodeSCEAddress(proofkey)
   }
 
   getNumSEAddress(): number { return this.account.chains[0].addresses.length }
@@ -640,7 +647,9 @@ export class Wallet {
   // Initialise deposit
   async depositInit(value: number) {
     log.info("Depositing Init. "+fromSatoshi(value) + " BTC");
+
     let proof_key_bip32 = this.genProofKey(); // Generate new proof key
+
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
     
@@ -651,14 +660,17 @@ export class Wallet {
       proof_key_pub,
       proof_key_priv!
     );
-     //add StateCoin address to coin info
-    let sc_addr_array = this.account.getChains()[0].addresses
-    statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
 
     // add proof key bip32 derivation to statecoin
     statecoin.proof_key = proof_key_pub;
-      
+    
     statecoin.value = value;
+
+    //add StateCoin address to coin info
+    let sc_addr_array = this.account.getChains()[0].addresses
+
+    //This address must be encrypted to convert into a Statecoin address
+    statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
 
@@ -768,6 +780,7 @@ export class Wallet {
     //New statecoin from proof key added to coin
     let sc_addr_array = this.account.getChains()[0].addresses
     statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
+    //This address must be encrypted to change into a Statecoin address
     
     let new_statecoin=null;
     await swapSemaphore.wait();

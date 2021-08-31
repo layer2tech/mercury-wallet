@@ -161,8 +161,7 @@ const ReceiveStatecoinPage = () => {
       var y = e.clientY;
   
       tooltipSpan.style.top = `${y+16}px`;
-      // tooltipSpan.style.left = `${x+72}px`;
-      console.log(x)
+
       if(x >= w-370){
         tooltipSpan.style.left = `${w-370+72}px`;
       }

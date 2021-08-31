@@ -454,6 +454,10 @@ p.short{
   text-decoration: underline;
   cursor: pointer;
 }
+.coinURLText{
+  text-align: left;
+}
+
 .coinURLText:hover,
 .coinURLText:focus {
     color: black;

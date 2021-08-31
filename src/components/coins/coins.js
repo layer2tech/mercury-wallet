@@ -31,7 +31,8 @@ import {
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, 
   setError,
   callAddDescription,
-  callGetStateCoin} from '../../features/WalletDataSlice';
+  callGetStateCoin,
+  callEncryptSCEAddress} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -480,7 +481,8 @@ const Coins = (props) => {
                       (
                         <b className="CoinFundingTxid">
                             <img src={txidIcon} alt="icon"/>
-                            {item.funding_txid}
+                            {/* {item.funding_txid} */}
+                            {callEncryptSCEAddress(item.sc_address)}
                         </b>
                       )
                       : (
@@ -493,7 +495,8 @@ const Coins = (props) => {
                     <div className="coin-status-or-txid">
                       <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
-                        {item.funding_txid}
+                        {/* {item.funding_txid} */}
+                        {callEncryptSCEAddress(item.sc_address)}
                       </b>
                     </div>
                   )}
