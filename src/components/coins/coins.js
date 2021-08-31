@@ -477,6 +477,7 @@ const Coins = (props) => {
                     swap && 
                     <div>
                       <label className="toggle">
+                        Auto-swap
                         <input
                           className="toggle-checkbox"
                           type="checkbox"
