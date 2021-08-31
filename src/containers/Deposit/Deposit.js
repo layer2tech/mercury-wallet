@@ -4,7 +4,7 @@ import React, {useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {Button, Modal} from "react-bootstrap";
 import {CreateStatecoin, TransactionsBTC, StdButton, Steppers, Tutorial} from "../../components";
-import {isWalletLoaded, callGetConfig} from '../../features/WalletDataSlice';
+import {isWalletLoaded, callGetConfig,callGetAccount} from '../../features/WalletDataSlice';
 
 import './Deposit.css';
 
