@@ -720,6 +720,7 @@ export class Wallet {
   async do_swap(
     shared_key_id: string,
   ): Promise<StateCoin | null> {
+    console.group('do_swap()');
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already in swap pool.");
@@ -778,9 +779,11 @@ export class Wallet {
       this.saveStateCoinsList();
 
       if(statecoin.swap_auto){
-        await this.do_swap(new_statecoin.shared_key_id);
+        this.do_swap(new_statecoin.shared_key_id);
       }
     }
+    console.log('do_swap() end')
+    console.groupEnd();
     return new_statecoin;
   }
 
@@ -792,12 +795,21 @@ export class Wallet {
     this.swap_group_info = await groupInfo(this.http_client);
   }
 
-  // force deregister of all coins in swap
+  disableAutoSwaps(){
+    this.statecoins.coins.forEach(
+      (statecoin) =>{
+        statecoin.swap_auto = false;
+      }
+    )
+  }
+
+  // force deregister of all coins in swap and also toggle auto swap off
   deRegisterSwaps(){
     this.statecoins.coins.forEach(
       (statecoin) => {
         if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
           swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+          statecoin.swap_auto = false;
           this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
         }
       }
