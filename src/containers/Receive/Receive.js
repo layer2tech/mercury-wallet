@@ -161,9 +161,23 @@ const ReceiveStatecoinPage = () => {
       var y = e.clientY;
   
       tooltipSpan.style.top = `${y+16}px`;
-      tooltipSpan.style.left = `${x+72}px`;
+
+      if(x >= w-370){
+        tooltipSpan.style.left = `${w-370+72}px`;
+      }
+      else{
+        tooltipSpan.style.left = `${x+72}px`;
+      }
 
     }
+  }
+
+  const usedMessage = (coin_status) => {
+    if(coin_status === "SWAPPED") return "In Swap"
+    if(coin_status === "IN_TRANSFER") return "In Transfer"
+    if(coin_status === "AWAITING_SWAP") return "Awaiting Swap"
+    if(coin_status == "INITIALISED") return "Initialised Coin"
+    else return `StateCoin Deposit`
   }
 
   
@@ -193,7 +207,7 @@ const ReceiveStatecoinPage = () => {
             <p className="receive-note">Statecoin Address</p>
             <div className="receiveStatecoin-scan">
               <div className="receive-qr-code">
-                <QRCode value={rec_sce_addr.sce_address} />
+                {rec_sce_addr.sce_address? (<QRCode value={rec_sce_addr.sce_address} />):(null)}
               </div>
               <div className="receiveStatecoin-scan-content">
                   <div className="receiveStatecoin-scan-txid" onMouseMove = {e => tooltipHover(e)}>
@@ -225,9 +239,9 @@ const ReceiveStatecoinPage = () => {
                     </CopiedButton>
                     {rec_sce_addr.used === true ? (
                     <span className="tooltip">
-                      <div><b>Used: </b> {rec_sce_addr.coin_status}</div>
+                      <div><b>Used: </b> {usedMessage(rec_sce_addr.coin_status)}</div>
                       <div><b>Amount: </b> {rec_sce_addr.amount} BTC</div>
-                      <div><b>TxID-VOUT: </b> {rec_sce_addr.txid_vout}</div>
+                      {rec_sce_addr.txid_vout !== "" ? (<div><b>TxID-VOUT: </b> {rec_sce_addr.txid_vout}</div>):(null)}
                     </span>
                     ):(null)}
                   </div>

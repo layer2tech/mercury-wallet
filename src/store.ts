@@ -4,7 +4,7 @@ declare const window: any;
 let Store: any;
 try {
   Store = window.require('electron-store');
-} catch (e) {
+} catch (e : any) {
   Store = require('electron-store');
 }
 
@@ -83,7 +83,7 @@ export class Storage {
     // Decrypt mnemonic
     try {
       wallet_json_decrypted.mnemonic = decryptAES(wallet_json_decrypted.mnemonic, password);
-    } catch (e) {
+    } catch (e: any) {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
     return wallet_json_decrypted
