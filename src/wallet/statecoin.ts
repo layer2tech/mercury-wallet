@@ -252,7 +252,7 @@ export class StateCoinList {
   removeCoinFromSwap(shared_key_id: string) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
-      if (coin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Swap already begun. Cannot remove coin.");
+      if (coin.status===STATECOIN_STATUS.IN_SWAP ) throw Error("Swap already begun. Cannot remove coin.");
       if (coin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
       coin.setSwapDataToNull();
     } else {

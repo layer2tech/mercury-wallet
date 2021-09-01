@@ -208,10 +208,6 @@ p.short{
   margin-right: 5px;
 }
 
-.modal-content.adjust-height{
-  margin-top:280px;
-}
-
 .modal .item {
   display: flex;
   align-items: flex-start;
@@ -238,16 +234,31 @@ p.short{
   margin-left: 0px;
 }
 
-.modal.coin-details-modal .item.tx_hex .block .close-hex{
-  cursor:pointer;
-  text-decoration: underline;
-  color: #007bff;
-  margin-top: 10px;
+.txhex-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 5px;
 }
-.modal .item.tx_hex .open-hex{
-  cursor: pointer;
-  text-decoration: underline;
+
+.txhex-container span{
+  width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+.copy-hex-wrap.coin-modal-hex {
+  width: 100%;
+  display: flex;
+}
+.copy-hex-wrap img{
+  height: 16px;
+  width: 16px;
+  align-self: center;
+  margin-right: 10px;
+}
+
 .modal .item.tx_hex .block{
   transition:height 2s;
 }
