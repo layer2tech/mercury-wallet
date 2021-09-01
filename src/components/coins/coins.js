@@ -471,9 +471,14 @@ const Coins = (props) => {
                         </div>
                         <div className="CoinTimeLeft">
                             <img src={timeIcon} alt="icon" />
-                            <span>
-                                Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
-                            </span>
+                            
+                            <div className="scoreAmount">
+                              Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
+                              <span className="tooltip">
+                                  <b>Important: </b>
+                                    The funds are not lost. This particular statecoin will no longer be able to swap after expiry.
+                              </span>
+                            </div>
                         </div>
                     </div>
                   )) : (
