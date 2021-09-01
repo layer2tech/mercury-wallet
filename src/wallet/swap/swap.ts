@@ -18,7 +18,7 @@ declare const window: any;
 let log: any;
 try {
   log = window.require('electron-log');
-} catch (e) {
+} catch (e: any) {
   log = require('electron-log');
 }
 
@@ -312,7 +312,7 @@ export const swapPhase4 = async (
     statecoin.swap_status=SWAP_STATUS.End;
     statecoin_out.swap_rounds=statecoin.swap_rounds+1;
     return statecoin_out;
-  } catch(e){ 
+  } catch(e : any){ 
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
   } 
@@ -388,7 +388,7 @@ export const do_swap_poll = async(
             new_statecoin = await swapPhase4(http_client, wasm_client, statecoin);
           }
         }
-      } catch (e) {
+      } catch (e  : any) {
         throw new Error(`${e}`);
       }
       await delay(5);
@@ -434,7 +434,7 @@ export const do_transfer_receiver = async (
     while(true) {
       try{
         msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG,{"id":id});
-      }catch(err){
+      }catch(err: any){
         if (!err.message.includes("DB Error: No data for identifier")) {
           throw err;
         }

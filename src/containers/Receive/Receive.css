@@ -19,6 +19,38 @@
     background-color: #ECF2FF;
     padding: 20px;
 }
+.receiveStatecoin-scan-txid .copy-btn-wrap.used {
+    background-color: #ffccbc;
+}
+
+.receiveStatecoin-scan-txid .tooltip{
+    visibility: hidden;
+    width: 350px;
+    background-color: #E0E0E0;
+    color: #000000;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.receiveStatecoin-scan-txid .tooltip:after {
+    content: "";
+    position: fixed;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #E0E0E0 transparent transparent transparent;
+  }
+.receiveStatecoin-scan-txid:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
 .receiveStatecoin-scan-txid .copy-btn-wrap .address:hover {
     cursor: pointer;
     color: #0054F4;

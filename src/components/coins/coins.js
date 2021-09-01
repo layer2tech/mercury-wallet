@@ -31,7 +31,8 @@ import {
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, 
   setError,
   callAddDescription,
-  callGetStateCoin} from '../../features/WalletDataSlice';
+  callGetStateCoin,
+  callEncryptSCEAddress} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -74,7 +75,7 @@ const SWAP_STATUS_INFO = {
 }
 
 const Coins = (props) => {
-    const {selectedCoins, swap} = props;
+    const {selectedCoins, isMainPage, swap} = props;
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
@@ -383,9 +384,12 @@ const Coins = (props) => {
       item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
       return (
           <div key={item.shared_key_id}>
-            {!item.deleting && item.status === "INITIALISED" && <div className="CoinTitleBar">
-              <img className='close' src={close_img} alt="arrow" onClick={() => onDeleteCoinDetails(item)}/>
-            </div>}
+            {
+              isMainPage && !item.deleting && item.status === "INITIALISED" && 
+              <div className="CoinTitleBar">
+                <img className='close' src={close_img} alt="arrow" onClick={() => onDeleteCoinDetails(item)}/>
+              </div>
+            }
             <div
               className={`coin-item ${(props.swap||props.send||props.withdraw) ? item.status : ''} ${isSelected(item.shared_key_id) ? 'selected' : ''}`}
               onClick={() => {
@@ -445,7 +449,19 @@ const Coins = (props) => {
                         <div className ="coin-description">
                           <p>{item.description}</p>
                         </div>
-                        {item.value < MINIMUM_DEPOSIT_SATOSHI && <div class='CoinAmountError'>Coin in error state: below minimum deposit value</div>} 
+                        {
+                          item.value < MINIMUM_DEPOSIT_SATOSHI &&
+                          (
+                            <div class='CoinAmountError'>
+                              <div className="scoreAmount">
+                                Coin in error state: below minimum deposit values
+                                <span className="tooltip">
+                                  This coin cannot be swapped but can be withdrawn in a batch with other coins.
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        } 
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
@@ -493,7 +509,8 @@ const Coins = (props) => {
                       (
                         <b className="CoinFundingTxid">
                             <img src={txidIcon} alt="icon"/>
-                            {item.funding_txid}
+                            {/* {item.funding_txid} */}
+                            {callEncryptSCEAddress(item.sc_address)}
                         </b>
                       )
                       : (
@@ -506,7 +523,8 @@ const Coins = (props) => {
                     <div className="coin-status-or-txid">
                       <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
-                        {item.funding_txid}
+                        {/* {item.funding_txid} */}
+                        {callEncryptSCEAddress(item.sc_address)}
                       </b>
                     </div>
                   )}
@@ -623,6 +641,19 @@ const Coins = (props) => {
               :
               (
                 <div>
+
+                  <div className='item'>
+                    <img src={utx} alt="icon" />
+                    <div className="block">
+                      <span>Statecoin Address</span>
+                      {
+                        showCoinDetails.coin.sc_address != undefined && (<span>
+                          {callEncryptSCEAddress(showCoinDetails.coin.sc_address)}
+                          </span>)
+                      }
+                    </div>     
+                  </div>
+
                   <div className="item">
                     <img src={utx} alt="icon" />
                     <div className="block">

@@ -171,7 +171,9 @@ export const walletFromJson = (wallet_json, password) => {
     });
   });
 }
-
+export const callGetAccount = () => {
+  return wallet.account
+}
 // Wallet data gets
 export const callGetConfig = () => {
   return wallet.config.getConfig()
@@ -217,6 +219,9 @@ export const callGetCoinBackupTxData = (shared_key_id) => {
 }
 export const callGetSeAddr = (addr_index) => {
   return wallet.getSEAddress(addr_index)
+}
+export const callEncryptSCEAddress = (addr) => {
+  return wallet.encryptSCEAddress(addr)
 }
 // Gen new SE Address
 export const callNewSeAddr = (state) => {
