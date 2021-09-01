@@ -84,7 +84,11 @@ export class Storage {
     try {
       wallet_json_decrypted.mnemonic = decryptAES(wallet_json_decrypted.mnemonic, password);
     } catch (e) {
-      if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
+      let result = (e as Error).message;
+      if(result){
+        if (result==="unable to decrypt data") throw Error("Incorrect password.");
+      }
+      
     }
     return wallet_json_decrypted
   }
