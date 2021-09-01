@@ -720,7 +720,6 @@ export class Wallet {
   async do_swap(
     shared_key_id: string,
   ): Promise<StateCoin | null> {
-    console.group('do_swap()');
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already in swap pool.");
@@ -779,11 +778,10 @@ export class Wallet {
       this.saveStateCoinsList();
 
       if(statecoin.swap_auto){
+        log.info('Auto swap  started, with new statecoin:' + new_statecoin.shared_key_id);
         this.do_swap(new_statecoin.shared_key_id);
       }
     }
-    console.log('do_swap() end')
-    console.groupEnd();
     return new_statecoin;
   }
 
