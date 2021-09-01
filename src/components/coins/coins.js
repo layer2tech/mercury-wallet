@@ -449,7 +449,19 @@ const Coins = (props) => {
                         <div className ="coin-description">
                           <p>{item.description}</p>
                         </div>
-                        {item.value < MINIMUM_DEPOSIT_SATOSHI && <div class='CoinAmountError'>Coin in error state: below minimum deposit value</div>} 
+                        {
+                          item.value < MINIMUM_DEPOSIT_SATOSHI &&
+                          (
+                            <div class='CoinAmountError'>
+                              <div className="scoreAmount">
+                                Coin in error state: below minimum deposit values
+                                <span className="tooltip">
+                                  This coin cannot be swapped but can be withdrawn in a batch with other coins.
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        } 
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
