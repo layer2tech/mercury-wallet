@@ -187,6 +187,10 @@ const SwapPage = () => {
           if(statecoin === undefined || statecoin === null){
             statecoin = selectedCoin;
           }
+
+          // turn off autoswap because final .then was called
+          statecoin.swap_auto = false;
+
           if (res.payload===null) {
             dispatch(setNotification({msg:"Swap not Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
             return
