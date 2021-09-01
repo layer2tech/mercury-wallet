@@ -192,14 +192,16 @@ const SwapPage = () => {
           statecoin.swap_auto = false;
 
           if (res.payload===null) {
-            dispatch(setNotification({msg:"Swap not Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))  
+            //dispatch(setNotification({msg:"Swap not Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))  
+            dispatch(setNotification({msg: "Swap not complete, coin is on punishment list try to rejoin the swap later."}))
             statecoin.swap_auto = false;      
             return
           }
           if (res.error===undefined) {
             dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
           }else{
-            dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
+            //dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
+            dispatch(setNotification({msg: "Swap not complete, coin is on punishment list try to rejoin the swap later."}))
             statecoin.swap_auto = false;
             setSwapLoad({...swapLoad, join: false, swapCoin:""});
           }
