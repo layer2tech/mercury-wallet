@@ -5,7 +5,8 @@ import {callDepositInit, callDepositConfirm, setNotification,
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin,
   callGetConfig,
   callAddDescription,
-  callGetStateCoin} from '../../features/WalletDataSlice'
+  callGetStateCoin,
+  callGetAccount} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 import { CopiedButton } from '../../components'
 import QRCodeGenerator from '../QRCodeGenerator/QRCodeGenerator'
@@ -34,7 +35,7 @@ const keyIcon = (
 
 const TransactionsBTC = (props) => {
   const [state, setState] = useState({});
-
+  console.log("TRANSACTION CALLED")
   const dispatch = useDispatch();
   const { depositLoading } = useSelector((state) => state.walletData);
 
@@ -44,7 +45,7 @@ const TransactionsBTC = (props) => {
   } catch {
     testing_mode = false;
   }
-
+  // console.log("TRANSACTION: ",callGetAccount())
   // First of all run depositInit for selected deposit amount if not already complete
   props.selectedValues.forEach((item, id) => {
     if (!item.initialised && item.value !== null) {
@@ -79,7 +80,7 @@ const TransactionsBTC = (props) => {
   // ** FOR TESTING **
   // Force confirm all outstanding depositInit's.
   // Get all unconfirmed coins and call depositConfirm with dummy txid value.
-  const despositConfirm = () => {
+  const depositConfirm = () => {
     callGetUnconfirmedAndUnmindeCoinsFundingTxData().forEach((statecoin => {
       dispatch(callDepositConfirm({shared_key_id: statecoin.shared_key_id})).then((res => {
         if (res.error===undefined) {
@@ -124,7 +125,7 @@ const TransactionsBTC = (props) => {
       {populateWithTransactionDisplayPanels}
       {testing_mode ?
         <div className="Body">
-          <button type="button" className="std-button" onClick={despositConfirm}>
+          <button type="button" className="std-button" onClick={depositConfirm}>
           PERFORM DEPOSIT CONFIRM
           </button>
         </div>
