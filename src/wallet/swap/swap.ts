@@ -299,6 +299,10 @@ export const swapPhase4 = async (
     statecoin.swap_status=SWAP_STATUS.End;
     statecoin_out.swap_rounds=statecoin.swap_rounds+1;
     statecoin_out.anon_set=statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
+    console.log(statecoin_out.statechain_id);
+    console.log(statecoin.statechain_id);
+    if(statecoin_out.statechain_id != statecoin.statechain_id) statecoin_out.is_new = true;
+    console.log(statecoin_out.is_new);
     return statecoin_out;
   } catch(e : any){ 
     //Keep retrying - an authentication error may occur at this stage depending on the

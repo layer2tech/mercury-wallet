@@ -100,7 +100,7 @@ const Coins = (props) => {
       let coin = all_coins_data.find((coin) => {
         return coin.shared_key_id === shared_key_id
       })
-      coin.privacy_data = getPrivacyScoreDesc(coin.anon_set);
+      coin.privacy_data = getPrivacyScoreDesc(coin.anon_set, coin.is_new);
       setShowCoinDetails({show: true, coin: coin});
     }
 
@@ -108,7 +108,7 @@ const Coins = (props) => {
       let coin = all_coins_data.find((coin) => {
           return coin.shared_key_id === shared_key_id
       })
-      coin.privacy_data = getPrivacyScoreDesc(coin.anon_set);
+      coin.privacy_data = getPrivacyScoreDesc(coin.anon_set, coin.is_new);
       props.setCoinDetails(coin);
     }
 
@@ -330,7 +330,7 @@ const Coins = (props) => {
           icon1: anon_icon_none,
           icon2: anon_icon2_none,
           score_desc: "Swap set: 0",
-          msg: "Withdrawn coin will have no anonymity set"
+          msg: " Cumulative swap group size"
         }
       }
       if (is_new) {
@@ -338,14 +338,14 @@ const Coins = (props) => {
           icon1: anon_icon_high,
           icon2: anon_icon2_high,
           score_desc: "Swap set: " + anon_set.toString(),
-          msg: "Withdrawn coin will have an swap set of " + anon_set.toString()
+          msg: " Cumulative swap group size"
         }
       }
       return {
         icon1: anon_icon_none,
-        icon2: anon_icon2_none,
+        icon2: anon_icon2_high,
         score_desc: "Swap set: " + anon_set.toString(),
-        msg: "Withdrawn coin will have an swap set of " + anon_set.toString()
+        msg: " Cumulative swap group size"
       }
     }
 
@@ -380,7 +380,7 @@ const Coins = (props) => {
 
     
     const statecoinData = all_coins_data.map(item => {
-      item.privacy_data = getPrivacyScoreDesc(item.anon_set);
+      item.privacy_data = getPrivacyScoreDesc(item.anon_set, item.is_new);
       return (
           <div key={item.shared_key_id}>
             {
@@ -420,7 +420,7 @@ const Coins = (props) => {
             >
                 <div className="CoinPanel">
                   <div className="CoinAmount-block">
-                      <img src={item.privacy_data.icon1} alt="icon"/>
+                      <img src={item.privacy_data.icon1} alt="icon" title={item.is_new ? "New coin received" : "Initial coin"}/>
                       <span className="sub">
                           <b className={item.value < MINIMUM_DEPOSIT_SATOSHI ?  "CoinAmountError" :  "CoinAmount"}>  {fromSatoshi(item.value)} BTC</b>
                           <div className="scoreAmount">

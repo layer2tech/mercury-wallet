@@ -150,9 +150,18 @@
 .swap-coin .swap-top {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 30px;
+  margin-top: 20px;  
+  margin-bottom: 10px;
 }
 .swap-coin .swap-top svg {
+  cursor: pointer;
+}
+.swap-coin .swap-mid {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 30px;
+}
+.swap-coin .swap-mid svg {
   cursor: pointer;
 }
 .swap-coin .swap-table-head {

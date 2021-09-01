@@ -265,7 +265,7 @@ const ReceiveStatecoinPage = () => {
                       type="button"
                       className="Body-button transparent"
                       onClick={genAddrButtonAction}>
-                        GENERATE ANOTHER ADDRESS
+                        GENERATE NEW ADDRESS
                     </button>   
                     <div className ="receive-btns">
                       <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(handleOpenTransferKey):(null)}>

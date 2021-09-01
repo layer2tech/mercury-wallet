@@ -109,16 +109,15 @@ const Swaps = (props) => {
 
     return (
         <div className="swap-coin">
-            <div className="swap-top">
-                <span>Pending swap groups</span>
+            <div className="swap-top">       
+                <span>Next swap start: </span>
                 <div className={"clock"}>
-                    <span className={countdown<30? "red":(null)}>{countdown ? (`${handleCountdownTimer(countdown)}s`):(null)}</span>
+                    <span className={countdown<30? "red":(null)}>{countdown ? (`${handleCountdownTimer(countdown)} s`):(null)}</span>
                 </div>
             </div>
-            <div className="swap-top">
-                <span>Next swap execution: </span>
-                <div className={"clock"}>
-                    <span className={countdown<30? "red":(null)}>{swapTime ? (`${utcTime(swapTime)} UTC`):(null)}</span>
+            <div className="swap-mid">
+                <div className={"utc_clock"}>
+                    <span className={countdown<30? "red":(null)}>{swapTime ? `(${utcTime(swapTime)} UTC)`:(null)}</span>
                 </div>
             </div>
             {swapData.length!==0 ? (

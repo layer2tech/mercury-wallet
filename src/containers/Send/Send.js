@@ -144,7 +144,7 @@ const SendStatecoinPage = () => {
           <div className="sendStatecoin content">
               <div className="Body left ">
                   <div>
-                      <h3 className="subtitle">Select statecoin to end</h3>
+                      <h3 className="subtitle">Select statecoin to send</h3>
                       <span className="sub">Click to select coins below</span>
                       <Coins
                         displayDetailsOnClick={false}

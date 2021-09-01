@@ -322,7 +322,7 @@ export class Wallet {
       let txid_vout = "";
       let amount = 0;
       // Get used addresses
-      
+
       this.statecoins.coins.map(coin => {
 
         if(coin.sc_address === addr){
