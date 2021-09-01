@@ -18,7 +18,7 @@ import hashIcon from "../../images/hashtag.png";
 import hexIcon from "../../images/hexagon.png";
 import React, {useState, useEffect } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
-import {Button, Modal} from 'react-bootstrap';
+import {Button, Modal, Spinner} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util';
@@ -75,7 +75,7 @@ const SWAP_STATUS_INFO = {
 }
 
 const Coins = (props) => {
-    const {selectedCoins, isMainPage} = props;
+    const {selectedCoins, isMainPage, swap} = props;
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
@@ -487,8 +487,28 @@ const Coins = (props) => {
                     </div>
                   )}
 
+                  {
+                    swap && 
+                    <div>
+                      <label className='toggle'>
+                      Auto-swap
+                      </label>
+                      <label className="toggle-sm">
+                        
+                        <input
+                          className="toggle-checkbox"
+                          type="checkbox"
+                          onChange={e => props.handleAutoSwap(item)}
+                          checked={item.swap_auto}
+                        />
+                        <div className="toggle-switch" />
+                      </label>
+                    </div>
+                  }
+
                   {props.showCoinStatus ? (
                     <div className="coin-status-or-txid">
+                      
                       {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
                       (
                         <b className="CoinFundingTxid">
@@ -499,7 +519,7 @@ const Coins = (props) => {
                       )
                       : (
                       <div>
-                        <CoinStatus data={item}/>
+                        <Spinner animation="border" variant="primary" size="sm"/>
                         {item.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />):(null)}
                       </div>)}
                     </div>
