@@ -150,7 +150,7 @@ const SwapPage = () => {
       return
     }
 
-    if (selectedCoins.length === 0) {
+    if (statecoin === undefined) {
       dispatch(setError({msg: "Please choose a StateCoin to swap."}))
       return
     }
