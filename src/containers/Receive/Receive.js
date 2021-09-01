@@ -168,7 +168,13 @@ const ReceiveStatecoinPage = () => {
       else{
         tooltipSpan.style.left = `${x+72}px`;
       }
-
+      
+      if(x>=w-120 && tooltipSpan.classList.contains("available")){
+        tooltipSpan.style.left = `${w-120+72}px`;
+      }
+      else{
+        tooltipSpan.style.left = `${x+72}px`;
+      }
     }
   }
 
@@ -243,7 +249,11 @@ const ReceiveStatecoinPage = () => {
                       <div><b>Amount: </b> {rec_sce_addr.amount} BTC</div>
                       {rec_sce_addr.txid_vout !== "" ? (<div><b>TxID-VOUT: </b> {rec_sce_addr.txid_vout}</div>):(null)}
                     </span>
-                    ):(null)}
+                    ):(
+                      <span className="tooltip available">
+                        <div><b>Available</b></div>
+                      </span>
+                    )}
                   </div>
                   <div className="btns-container">
                     <div className="prev-next">

@@ -351,6 +351,12 @@ export class Wallet {
             amount += fromSatoshi(coin.value)
             txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
           }
+          if(coin.sc_address === encoded_sce_address){
+            coin_status = coin.status
+            used = true
+            amount += fromSatoshi(coin.value)
+            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
+          }
         }
       })
       return { sce_address: encoded_sce_address, used: used, coin_status: coin_status, amount:amount, txid_vout: txid_vout}
@@ -827,6 +833,7 @@ export class Wallet {
       // update in wallet
       new_statecoin.swap_status = null;
       new_statecoin.setConfirmed();
+      new_statecoin.sc_address = encodeSCEAddress(new_statecoin.proof_key)
       this.statecoins.addCoin(new_statecoin);
 
       log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);

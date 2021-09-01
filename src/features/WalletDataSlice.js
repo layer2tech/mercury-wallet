@@ -119,16 +119,13 @@ function setBlockHeightCallBack(item) {
 
 // Load wallet from store
 export const walletLoad = (name, password) => {
-
   wallet = Wallet.load(name, password, testing_mode);
-
   try{
     wallet.deRegisterSwaps();
   }
   catch(e) {
     new Error({msg: e.message})
   }
-
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
   mutex.runExclusive(async () => {
