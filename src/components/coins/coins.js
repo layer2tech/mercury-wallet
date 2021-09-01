@@ -613,6 +613,19 @@ const Coins = (props) => {
               :
               (
                 <div>
+
+                  <div className='item'>
+                    <img src={utx} alt="icon" />
+                    <div className="block">
+                      <span>Statecoin Address</span>
+                      {
+                        showCoinDetails.coin.sc_address != undefined && (<span>
+                          {callEncryptSCEAddress(showCoinDetails.coin.sc_address)}
+                          </span>)
+                      }
+                    </div>     
+                  </div>
+
                   <div className="item">
                     <img src={utx} alt="icon" />
                     <div className="block">
