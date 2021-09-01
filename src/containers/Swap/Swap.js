@@ -117,7 +117,6 @@ const SwapPage = () => {
         setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
         dispatch(callDoSwap({"shared_key_id": selectedCoin}))
           .then(res => {
-            console.group('callDoSwap then()');
             // get the statecoin for txId method
             let statecoin = callGetStateCoin(selectedCoin);
             if(statecoin === undefined || statecoin === null){
@@ -133,7 +132,6 @@ const SwapPage = () => {
               dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
               setSwapLoad({...swapLoad, join: false, swapCoin:""});
             } 
-            console.groupEnd();
           });
         // Refresh Coins list
         setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
@@ -142,14 +140,8 @@ const SwapPage = () => {
   }
 
   const handleAutoSwap =  (item) => {
-
-    console.log('handleAutoSwap')
-    console.log('calling auto swap  in  swap.js');
-    console.log(item);
-
     let statecoin = callGetStateCoin(item.shared_key_id);
     // get the statecoin and set auto to true - then call auto_swap
-    console.log(statecoin);
     let selectedCoin = item.shared_key_id;
 
     // check statechain is chosen
@@ -162,6 +154,7 @@ const SwapPage = () => {
       dispatch(setError({msg: "Please choose a StateCoin to swap."}))
       return
     }
+
     if(swapLoad.join === true){
       return
     }
@@ -183,17 +176,12 @@ const SwapPage = () => {
         dispatch(setError({msg: e.message}))
       }
     }else{
-      console.log('Start auto swap')
-
       statecoin.swap_auto = true;
       dispatch(callDoAutoSwap(selectedCoin));
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
-
-      console.log('dispatch for callDoSwap is being  called...');
       dispatch(callDoSwap({"shared_key_id": selectedCoin}))
         .then(res => {
-          console.log('.then is being called');
           // get the statecoin for txId method
           let statecoin = callGetStateCoin(selectedCoin);
           if(statecoin === undefined || statecoin === null){
