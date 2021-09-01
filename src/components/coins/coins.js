@@ -237,8 +237,6 @@ const Coins = (props) => {
       setShowDeleteCoinDetails(false);
     }
 
-    
-
     //Load coins once component done render
     useEffect(() => {
       const [coins_data] = callGetUnspentStatecoins();
