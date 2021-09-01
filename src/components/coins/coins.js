@@ -31,7 +31,8 @@ import {
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, 
   setError,
   callAddDescription,
-  callGetStateCoin} from '../../features/WalletDataSlice';
+  callGetStateCoin,
+  callEncryptSCEAddress} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -448,7 +449,19 @@ const Coins = (props) => {
                         <div className ="coin-description">
                           <p>{item.description}</p>
                         </div>
-                        {item.value < MINIMUM_DEPOSIT_SATOSHI && <div class='CoinAmountError'>Coin in error state: below minimum deposit value</div>} 
+                        {
+                          item.value < MINIMUM_DEPOSIT_SATOSHI &&
+                          (
+                            <div class='CoinAmountError'>
+                              <div className="scoreAmount">
+                                Coin in error state: below minimum deposit values
+                                <span className="tooltip">
+                                  This coin cannot be swapped but can be withdrawn in a batch with other coins.
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        } 
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
@@ -480,7 +493,8 @@ const Coins = (props) => {
                       (
                         <b className="CoinFundingTxid">
                             <img src={txidIcon} alt="icon"/>
-                            {item.funding_txid}
+                            {/* {item.funding_txid} */}
+                            {callEncryptSCEAddress(item.sc_address)}
                         </b>
                       )
                       : (
@@ -493,7 +507,8 @@ const Coins = (props) => {
                     <div className="coin-status-or-txid">
                       <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
-                        {item.funding_txid}
+                        {/* {item.funding_txid} */}
+                        {callEncryptSCEAddress(item.sc_address)}
                       </b>
                     </div>
                   )}
@@ -610,6 +625,19 @@ const Coins = (props) => {
               :
               (
                 <div>
+
+                  <div className='item'>
+                    <img src={utx} alt="icon" />
+                    <div className="block">
+                      <span>Statecoin Address</span>
+                      {
+                        showCoinDetails.coin.sc_address != undefined && (<span>
+                          {callEncryptSCEAddress(showCoinDetails.coin.sc_address)}
+                          </span>)
+                      }
+                    </div>     
+                  </div>
+
                   <div className="item">
                     <img src={utx} alt="icon" />
                     <div className="block">
