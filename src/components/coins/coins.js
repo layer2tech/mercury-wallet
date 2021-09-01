@@ -615,9 +615,6 @@ const Coins = (props) => {
                   </div>
                 )}
 
-              
-                
-
               {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
                 <div className="item qr-container">
                   <div className="block qrcode">
