@@ -788,10 +788,9 @@ export class Wallet {
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
-
-
+      
     statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
-    
+      
     let new_statecoin=null;
     await swapSemaphore.wait();
     try{

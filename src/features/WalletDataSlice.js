@@ -119,7 +119,9 @@ function setBlockHeightCallBack(item) {
 
 // Load wallet from store
 export const walletLoad = (name, password) => {
+
   wallet = Wallet.load(name, password, testing_mode);
+
   wallet.disableAutoSwaps();
   try{
     wallet.deRegisterSwaps();
