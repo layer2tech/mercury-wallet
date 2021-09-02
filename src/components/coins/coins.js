@@ -18,7 +18,7 @@ import hashIcon from "../../images/hashtag.png";
 import hexIcon from "../../images/hexagon.png";
 import React, {useState, useEffect } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
-import {Button, Modal} from 'react-bootstrap';
+import {Button, Modal, Spinner} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util';
@@ -75,7 +75,7 @@ const SWAP_STATUS_INFO = {
 }
 
 const Coins = (props) => {
-    const {selectedCoins, isMainPage} = props;
+    const {selectedCoins, isMainPage, swap} = props;
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
@@ -449,7 +449,19 @@ const Coins = (props) => {
                         <div className ="coin-description">
                           <p>{item.description}</p>
                         </div>
-                        {item.value < MINIMUM_DEPOSIT_SATOSHI && <div class='CoinAmountError'>Coin in error state: below minimum deposit value</div>} 
+                        {
+                          item.value < MINIMUM_DEPOSIT_SATOSHI &&
+                          (
+                            <div class='CoinAmountError'>
+                              <div className="scoreAmount">
+                                Coin in error state: below minimum deposit values
+                                <span className="tooltip">
+                                  This coin cannot be swapped but can be withdrawn in a batch with other coins.
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        } 
                         <div className="sub">
                             <ProgressBar>
                                 <ProgressBar striped variant={item.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
@@ -459,9 +471,14 @@ const Coins = (props) => {
                         </div>
                         <div className="CoinTimeLeft">
                             <img src={timeIcon} alt="icon" />
-                            <span>
-                                Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
-                            </span>
+                            
+                            <div className="scoreAmount">
+                              Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
+                              <span className="tooltip">
+                                  <b>Important: </b>
+                                    The funds are not lost. This particular statecoin will no longer be able to swap after expiry.
+                              </span>
+                            </div>
                         </div>
                     </div>
                   )) : (
@@ -475,8 +492,28 @@ const Coins = (props) => {
                     </div>
                   )}
 
+                  {
+                    swap && 
+                    <div>
+                      <label className='toggle'>
+                      Auto-swap
+                      </label>
+                      <label className="toggle-sm">
+                        
+                        <input
+                          className="toggle-checkbox"
+                          type="checkbox"
+                          onChange={e => props.handleAutoSwap(item)}
+                          checked={item.swap_auto}
+                        />
+                        <div className="toggle-switch" />
+                      </label>
+                    </div>
+                  }
+
                   {props.showCoinStatus ? (
                     <div className="coin-status-or-txid">
+                      
                       {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
                       (
                         <b className="CoinFundingTxid">
@@ -487,7 +524,7 @@ const Coins = (props) => {
                       )
                       : (
                       <div>
-                        <CoinStatus data={item}/>
+                        <Spinner animation="border" variant="primary" size="sm"/>
                         {item.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />):(null)}
                       </div>)}
                     </div>
@@ -613,6 +650,19 @@ const Coins = (props) => {
               :
               (
                 <div>
+
+                  <div className='item'>
+                    <img src={utx} alt="icon" />
+                    <div className="block">
+                      <span>Statecoin Address</span>
+                      {
+                        showCoinDetails.coin.sc_address != undefined && (<span>
+                          {callEncryptSCEAddress(showCoinDetails.coin.sc_address)}
+                          </span>)
+                      }
+                    </div>     
+                  </div>
+
                   <div className="item">
                     <img src={utx} alt="icon" />
                     <div className="block">

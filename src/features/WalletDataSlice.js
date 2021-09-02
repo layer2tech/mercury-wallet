@@ -120,6 +120,7 @@ function setBlockHeightCallBack(item) {
 // Load wallet from store
 export const walletLoad = (name, password) => {
   wallet = Wallet.load(name, password, testing_mode);
+  wallet.disableAutoSwaps();
   wallet.deRegisterSwaps();
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
@@ -298,6 +299,14 @@ export const callGetTransfers = createAsyncThunk(
     return wallet.get_transfers(action)
   }
 )
+
+export const callDoAutoSwap = createAsyncThunk(
+  'DoSwap',
+  async (action, thunkAPI) => {
+    return wallet.setStateCoinAutoSwap(action.shared_key_id)
+  }
+)
+
 export const callDoSwap = createAsyncThunk(
   'DoSwap',
   async (action, thunkAPI) => {
