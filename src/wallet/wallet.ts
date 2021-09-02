@@ -816,6 +816,16 @@ export class Wallet {
         this.saveStateCoinsList();
         return null;
       }
+
+      let new_coin = true;
+      let new_statechain_id = new_statecoin.statechain_id;
+      // check if new coin
+      this.statecoins.coins.forEach(
+        (statecoin) => {
+          if(statecoin.statechain_id === new_statechain_id) new_coin = false
+        })
+      new_statecoin.is_new = new_coin;
+
       // Mark funds as spent in wallet
       this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 
@@ -932,6 +942,13 @@ export class Wallet {
   ): Promise<StateCoin> {
     log.info("Transfer Finalize for: "+finalize_data.new_shared_key_id)
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
+
+    statecoin_finalized.is_new = true;
+    // check if new coin
+    this.statecoins.coins.forEach(
+      (statecoin) => {
+        if(statecoin.statechain_id === statecoin_finalized.statechain_id) statecoin_finalized.is_new = false
+      })
 
     // update in wallet
     statecoin_finalized.setConfirmed();

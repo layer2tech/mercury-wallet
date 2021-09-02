@@ -327,12 +327,21 @@ const Coins = (props) => {
     // data to display in privacy related sections
     const getPrivacyScoreDesc = (anon_set, is_new) => {
       if (!anon_set) {
-        return {
-          icon1: anon_icon_none,
-          icon2: anon_icon2_none,
-          score_desc: "Swap set: 0",
-          msg: " Cumulative swap group size"
-        }
+        if (is_new) {
+          return {
+            icon1: anon_icon_none,
+            icon2: anon_icon2_high,
+            score_desc: "Swap set: 0",
+            msg: " Cumulative swap group size"
+          }
+        } else {
+            return {
+              icon1: anon_icon_none,
+              icon2: anon_icon2_none,
+              score_desc: "Swap set: 0",
+              msg: " Cumulative swap group size"
+            }
+          }
       }
       if (is_new) {
         return {
@@ -343,8 +352,8 @@ const Coins = (props) => {
         }
       }
       return {
-        icon1: anon_icon_none,
-        icon2: anon_icon2_high,
+        icon1: anon_icon_high,
+        icon2: anon_icon2_none,
         score_desc: "Swap set: " + anon_set.toString(),
         msg: " Cumulative swap group size"
       }
@@ -421,7 +430,7 @@ const Coins = (props) => {
             >
                 <div className="CoinPanel">
                   <div className="CoinAmount-block">
-                      <img src={item.privacy_data.icon1} alt="icon" title={item.is_new ? "New coin received" : "Initial coin"}/>
+                      <img src={item.privacy_data.icon1} alt="icon"/>
                       <span className="sub">
                           <b className={item.value < MINIMUM_DEPOSIT_SATOSHI ?  "CoinAmountError" :  "CoinAmount"}>  {fromSatoshi(item.value)} BTC</b>
                           <div className="scoreAmount">
