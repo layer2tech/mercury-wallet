@@ -37,6 +37,9 @@
     opacity: 0;
     transition: opacity 0.3s;
 }
+.receiveStatecoin-scan-txid .tooltip.available{
+    width: 100px;
+}
 
 .receiveStatecoin-scan-txid .tooltip:after {
     content: "";

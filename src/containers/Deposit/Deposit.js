@@ -32,7 +32,7 @@ const DepositPage = () => {
   const [step, setStep] = useState(1)
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  console.log("Transaction: ",callGetAccount())
+
   const [selectedValues, setSelectedValues] = useState([{value: null, initialised: false, p_addr: "Initialising.."}]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [smallestOption, setSmallestOption] = useState(DEFAULT_SETTINGS.min_value);
