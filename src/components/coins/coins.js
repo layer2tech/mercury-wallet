@@ -16,6 +16,7 @@ import copy_img from "../../images/icon2.png";
 import descripIcon from "../../images/description.png";
 import hashIcon from "../../images/hashtag.png";
 import hexIcon from "../../images/hexagon.png";
+import icon2 from "../../images/icon2.png"
 import React, {useState, useEffect } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import {Button, Modal, Spinner} from 'react-bootstrap';
@@ -31,8 +32,7 @@ import {
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, 
   setError,
   callAddDescription,
-  callGetStateCoin,
-  callEncryptSCEAddress} from '../../features/WalletDataSlice';
+  callGetStateCoin} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -83,8 +83,6 @@ const Coins = (props) => {
     const [initCoins, setInitCoins] = useState({});
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     //const [refreshCoins, setRefreshCoins] = useState(false);
-    const [txHex,setTxHex] = useState(false);
-    //toggle show full tx_hex
     
     const [description,setDescription] = useState("");
     const [dscpnConfirm,setDscrpnConfirm] = useState(false);
@@ -97,6 +95,8 @@ const Coins = (props) => {
 
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
     
+    console.log(all_coins_data)
+
     const handleOpenCoinDetails = (shared_key_id) => {
       let coin = all_coins_data.find((coin) => {
         return coin.shared_key_id === shared_key_id
@@ -518,8 +518,7 @@ const Coins = (props) => {
                       (
                         <b className="CoinFundingTxid">
                             <img src={txidIcon} alt="icon"/>
-                            {/* {item.funding_txid} */}
-                            {callEncryptSCEAddress(item.sc_address)}
+                            {item.sc_address}
                         </b>
                       )
                       : (
@@ -532,8 +531,7 @@ const Coins = (props) => {
                     <div className="coin-status-or-txid">
                       <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
-                        {/* {item.funding_txid} */}
-                        {callEncryptSCEAddress(item.sc_address)}
+                        {item.sc_address}
                       </b>
                     </div>
                   )}
@@ -580,10 +578,8 @@ const Coins = (props) => {
       setDscrpnConfirm(!dscpnConfirm)
     }
 
-    const toggleTxShow = () => {
-      let modalContent = document.querySelector(".modal-content")
-      modalContent.classList.toggle("adjust-height")
-      setTxHex(!txHex)
+    const copyWithdrawTxHexToClipboard = () => {
+      navigator.clipboard.writeText(showCoinDetails.coin.tx_hex);
     }
 
     // called when clicking on TXid link in modal window
@@ -657,7 +653,7 @@ const Coins = (props) => {
                       <span>Statecoin Address</span>
                       {
                         showCoinDetails.coin.sc_address != undefined && (<span>
-                          {callEncryptSCEAddress(showCoinDetails.coin.sc_address)}
+                          {showCoinDetails.coin.sc_address}
                           </span>)
                       }
                     </div>     
@@ -770,13 +766,18 @@ const Coins = (props) => {
                     <img src={hexIcon} alt="hexagon"/>
                     <div className="block">
                       <span>Transaction Hex</span>
-                      <span>
-                        {txHex?(showCoinDetails.coin.tx_hex): (showCoinDetails.coin.tx_hex?.slice(0,70))}
-                        {txHex?
-                          (<span className = "close-hex" onClick = { () => toggleTxShow()}>Close</span>) 
-                          :
-                          <b className = "open-hex" onClick = { () => toggleTxShow() }>...</b>}
-                      </span>
+                        <span>
+                          <div className = "txhex-container">
+                            <CopiedButton handleCopy={() => copyWithdrawTxHexToClipboard()}>
+                              <div className="copy-hex-wrap coin-modal-hex">
+                                <img type="button" src={icon2} alt="icon"/>
+                                <span>
+                                  {showCoinDetails.coin.tx_hex}
+                                </span>
+                              </div>
+                            </CopiedButton>
+                          </div>
+                        </span>
                     </div>
                   </div>
                   <div className="item">

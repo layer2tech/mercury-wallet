@@ -317,7 +317,8 @@ export class Wallet {
       return this.current_sce_addr
     } else {
       let addr = this.account.chains[0].addresses[addr_index];
-      let encoded_sce_address = this.encryptSCEAddress(addr)
+      let proofkey = this.account.derive(addr).publicKey.toString("hex");
+      let encoded_sce_address = encodeSCEAddress(proofkey)
       //let proofkey = this.account.derive(addr).publicKey.toString("hex");
       let used = false;
       let coin_status = "";
@@ -327,7 +328,7 @@ export class Wallet {
       
       this.statecoins.coins.map(coin => {
 
-        if(coin.sc_address === addr){
+        if(coin.sc_address === encoded_sce_address){
           coin_status = coin.status
           used = true
           amount += fromSatoshi(coin.value)
@@ -354,11 +355,6 @@ export class Wallet {
       })
       return { sce_address: encoded_sce_address, used: used, coin_status: coin_status, amount:amount, txid_vout: txid_vout}
     }
-  }
-
-  encryptSCEAddress(addr: string){
-    let proofkey = this.account.derive(addr).publicKey.toString("hex");
-    return encodeSCEAddress(proofkey)
   }
 
   getNumSEAddress(): number { return this.account.chains[0].addresses.length }
@@ -637,6 +633,7 @@ export class Wallet {
 
   // New Proof Key
   genProofKey(): BIP32Interface {
+    console.log(this.account)
     let addr = this.account.nextChainAddress(0);
     this.saveKeys()
     let proof_key = this.account.derive(addr);
@@ -670,11 +667,16 @@ export class Wallet {
     
     statecoin.value = value;
 
-    //add StateCoin address to coin info
-    let sc_addr_array = this.account.getChains()[0].addresses
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+    console.log("PROOF KEY: ",statecoin.proof_key)
+    console.log("SC ADDRRESS: ",statecoin.sc_address)
 
-    //This address must be encrypted to convert into a Statecoin address
-    statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
+    // DELETE//add StateCoin address to coin info
+    // DELETElet sc_addr_array = this.account.getChains()[0].addresses
+
+    // DELETE//This address must be encrypted to convert into a Statecoin address
+    // DELETEstatecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
+
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
 
@@ -780,11 +782,9 @@ export class Wallet {
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
+
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
       
-    //New statecoin from proof key added to coin
-    let sc_addr_array = this.account.getChains()[0].addresses
-    statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
-    //This address must be encrypted to change into a Statecoin address
     let new_statecoin=null;
     await swapSemaphore.wait();
     try{
@@ -861,6 +861,7 @@ export class Wallet {
         if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
           swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
           statecoin.swap_auto = false;
+          
           this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
         }
       }
