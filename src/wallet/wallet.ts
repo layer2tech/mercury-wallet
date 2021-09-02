@@ -472,70 +472,64 @@ export class Wallet {
         continue;
       }
       // check locktime
-      if(this?.statecoins?.coins[i]?.tx_backup?.locktime) {
-        console.log(this?.statecoins?.coins[i]?.tx_backup?.locktime);
-        let blocks_to_locktime = (this?.statecoins?.coins[i]?.tx_backup?.locktime ?? Number.MAX_SAFE_INTEGER) - this.block_height;
-        console.log(blocks_to_locktime);
-        // pre-locktime - update locktime swap limit status
-        if (blocks_to_locktime > 0) {
-          this.statecoins.coins[i].setBackupPreLocktime();
-          if (blocks_to_locktime < this.config.swaplimit && this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE) {
-            this.statecoins.coins[i].setSwapLimit();
-          }
-          continue;
-        // locktime reached
-        } else {
-          // set expired
-          if (this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPLIMIT || this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE) {
-              this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED)          
-          }
-          // in mempool - check if confirmed
-          if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
-            let txid = this!.statecoins!.coins[i]!.tx_backup!.getId();
-            if(txid != null) {
-              this.electrum_client.getTransaction(txid).then((tx_data: any) => {
-                if(tx_data.confirmations!==undefined && tx_data.confirmations > 2) {
-                  this.statecoins.coins[i].setBackupConfirmed();
-                  this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW)
-              }
-            })
-            }
-          } else {
-            // broadcast transaction
-            let backup_tx = this!.statecoins!.coins[i]!.tx_backup!.toHex();
-            this.electrum_client.broadcastTransaction(backup_tx).then((bresponse: any) => {
-              console.log(bresponse);
-              if(bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
-                this.statecoins.coins[i].setBackupInMempool();
-              } else if(bresponse.includes('already')) {
-                this.statecoins.coins[i].setBackupInMempool();
-              } else if(bresponse.includes('already') && bresponse.includes('block')) {
+      let blocks_to_locktime = (this?.statecoins?.coins[i]?.tx_backup?.locktime ?? Number.MAX_SAFE_INTEGER) - this.block_height;
+      // pre-locktime - update locktime swap limit status
+      if (blocks_to_locktime > 0) {
+        this.statecoins.coins[i].setBackupPreLocktime();
+        if (blocks_to_locktime < this.config.swaplimit && this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE) {
+          this.statecoins.coins[i].setSwapLimit();
+        }
+        continue;
+      // locktime reached
+      } else {
+        // set expired
+        if (this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPLIMIT || this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE) {
+            this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED)          
+        }
+        // in mempool - check if confirmed
+        if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
+          let txid = this!.statecoins!.coins[i]!.tx_backup!.getId();
+          if(txid != null) {
+            this.electrum_client.getTransaction(txid).then((tx_data: any) => {
+              if(tx_data.confirmations!==undefined && tx_data.confirmations > 2) {
                 this.statecoins.coins[i].setBackupConfirmed();
-                this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);  
-              } else if(bresponse.includes('confict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
+                this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW)
+            }
+          })
+          }
+        } else {
+          // broadcast transaction
+          let backup_tx = this!.statecoins!.coins[i]!.tx_backup!.toHex();
+          this.electrum_client.broadcastTransaction(backup_tx).then((bresponse: any) => {
+            if(bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
+              this.statecoins.coins[i].setBackupInMempool();
+            } else if(bresponse.includes('already')) {
+              this.statecoins.coins[i].setBackupInMempool();
+            } else if(bresponse.includes('already') && bresponse.includes('block')) {
+              this.statecoins.coins[i].setBackupConfirmed();
+              this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);  
+            } else if(bresponse.includes('confict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
+              this.statecoins.coins[i].setBackupTaken();
+              this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);
+            }
+          }).catch((err: any) => {
+            if (err.toString().includes('already') && err.toString().includes('mempool')) {
+              this.statecoins.coins[i].setBackupInMempool();
+            } else if (err.toString().includes('already') && err.toString().includes('block')) {
+                this.statecoins.coins[i].setBackupConfirmed();
+                this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);              
+            } else if ( (err.toString().includes('conflict') && err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
                 this.statecoins.coins[i].setBackupTaken();
-                this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);
-              }
-            }).catch((err: any) => {
-              console.log(err);
-              if (err.toString().includes('already') && err.toString().includes('mempool')) {
-                this.statecoins.coins[i].setBackupInMempool();
-              } else if (err.toString().includes('already') && err.toString().includes('block')) {
-                  this.statecoins.coins[i].setBackupConfirmed();
-                  this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);              
-              } else if ( (err.toString().includes('conflict') && err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
-                  this.statecoins.coins[i].setBackupTaken();
-                  this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);              
-              }
-            })
-          }
-          // if CPFP present, then broadcast this as well
-          if (this.statecoins.coins[i].tx_cpfp != null) {
-              try { 
-                let cpfp_tx = this!.statecoins!.coins[i]!.tx_cpfp!.toHex();
-                this.electrum_client.broadcastTransaction(cpfp_tx);
-              } catch { continue }
-          }
+                this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);              
+            }
+          })
+        }
+        // if CPFP present, then broadcast this as well
+        if (this.statecoins.coins[i].tx_cpfp != null) {
+            try { 
+              let cpfp_tx = this!.statecoins!.coins[i]!.tx_cpfp!.toHex();
+              this.electrum_client.broadcastTransaction(cpfp_tx);
+            } catch { continue }
         }
       }
     }
@@ -1042,19 +1036,26 @@ export class Wallet {
 
     // Perform withdraw with server
     let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_kb);
-
-    // Broadcast transcation
-    let withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
     
     // Mark funds as withdrawn in wallet
     shared_key_ids.forEach( (shared_key_id) => {
       this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
       this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
+    });
+
+    this.saveStateCoinsList();
+
+    // Broadcast transcation
+    let withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
+
+    // Add txid to coin
+    shared_key_ids.forEach( (shared_key_id) => {
       this.statecoins.setCoinWithdrawTxId(shared_key_id,withdraw_txid)
     });
 
     log.info("Withdrawing finished.");
     this.saveStateCoinsList();
+
     return withdraw_txid
   }
 }

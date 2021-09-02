@@ -94,8 +94,6 @@ const Coins = (props) => {
     const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
 
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
-    
-    console.log(all_coins_data)
 
     const handleOpenCoinDetails = (shared_key_id) => {
       let coin = all_coins_data.find((coin) => {
