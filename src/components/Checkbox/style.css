@@ -12,6 +12,13 @@
   display: inline-block;
 }
 
+.toggle-sm {
+  cursor: pointer;
+  padding: 0;
+  display: inline-block;
+  zoom: 0.65;
+}
+
 .toggle-switch {
   display: inline-block;
   background: #ccc;
