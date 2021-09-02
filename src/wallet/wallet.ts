@@ -910,6 +910,7 @@ export class Wallet {
   // Return: New wallet coin data
   async transfer_receiver(transfer_msg3: TransferMsg3): Promise<TransferFinalizeData> {
     let walletcoins = this.statecoins.getCoins(transfer_msg3.statechain_id);
+
     for (let i=0; i<walletcoins.length; i++) {
       if(walletcoins[i].status===STATECOIN_STATUS.AVAILABLE) throw new Error("Transfer completed.");
     }
@@ -937,6 +938,9 @@ export class Wallet {
     log.info("Transfer Finalize for: "+finalize_data.new_shared_key_id)
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
 
+    //Add statecoin address to coin
+    statecoin_finalized.sc_address = encodeSCEAddress(statecoin_finalized.proof_key)
+    
     // update in wallet
     statecoin_finalized.setConfirmed();
     this.statecoins.addCoin(statecoin_finalized);
