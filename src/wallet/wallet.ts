@@ -615,6 +615,10 @@ export class Wallet {
     log.debug("Set Statecoin spent: "+id);
   }
 
+  setStateCoinAutoSwap(shared_key_id: string) {
+    this.statecoins.setAutoSwap(shared_key_id);
+  }
+
   // New BTC address
   genBtcAddress(): string {
     let addr = this.account.nextChainAddress(0);
@@ -761,6 +765,7 @@ export class Wallet {
     return statecoin_finalized
   }
 
+
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
   async do_swap(
@@ -778,15 +783,8 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
 
-
-    // //New statecoin from proof key added to coin
-    // let sc_addr_array = this.account.getChains()[0].addresses
-
-    // //This address must be encrypted to change into a Statecoin address
-    // statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
-
     statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
-    
+      
     let new_statecoin=null;
     await swapSemaphore.wait();
     try{
@@ -831,8 +829,13 @@ export class Wallet {
 
       log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
       this.saveStateCoinsList();
-      return new_statecoin;
+
+      if(statecoin.swap_auto){
+        log.info('Auto swap  started, with new statecoin:' + new_statecoin.shared_key_id);
+        this.do_swap(new_statecoin.shared_key_id);
+      }
     }
+    return new_statecoin;
   }
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo>{
@@ -843,12 +846,21 @@ export class Wallet {
     this.swap_group_info = await groupInfo(this.http_client);
   }
 
-  // force deregister of all coins in swap
+  disableAutoSwaps(){
+    this.statecoins.coins.forEach(
+      (statecoin) =>{
+        statecoin.swap_auto = false;
+      }
+    )
+  }
+
+  // force deregister of all coins in swap and also toggle auto swap off
   deRegisterSwaps(){
     this.statecoins.coins.forEach(
       (statecoin) => {
         if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
           swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+          statecoin.swap_auto = false;
           
           this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
         }

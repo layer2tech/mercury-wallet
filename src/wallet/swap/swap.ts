@@ -393,6 +393,7 @@ export const do_swap_poll = async(
       }
       await delay(5);
     }
+    if (statecoin.swap_auto) new_statecoin.swap_auto = true;
   return new_statecoin;
 }
 

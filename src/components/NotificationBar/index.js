@@ -1,23 +1,19 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setNotificationSeen } from "../../features/WalletDataSlice";
-
 import "./index.css";
 
 const NotificationBar = () => {
-
   const dispatch = useDispatch();
-  const notification_dialogue = useSelector(state => state.walletData).notification_dialogue;
-  let notifications_list = useRef(notification_dialogue);
+  let notifications_list = useSelector(state => state.walletData).notification_dialogue;
 
   useEffect(() => {
     const handleCloseAllNotifficcations = () => {
-      for(var i=0; i<notifications_list.current.length; i++){
-        dispatch(setNotificationSeen({msg: notifications_list.current[i].msg}));
+      for(var i=0; i<notifications_list.length; i++){
+        dispatch(setNotificationSeen({msg: notifications_list[i].msg}));
       }
-      notifications_list.current = [];
+      notifications_list = [];
     }
-
     // timer to close the notification after 5 seconds
     const timerPtr = setTimeout(() => {
       handleCloseAllNotifficcations();
@@ -39,7 +35,7 @@ const NotificationBar = () => {
   }
 
   // Display all notifications
-  const showNotifications = notifications_list.current != null ? notifications_list.current.map((item, index) => (
+  const showNotifications = notifications_list != null ? notifications_list.map((item, index) => (
     <div key={index} className={`hideBar wallet-notification`} onDoubleClick={() => handleCloseNotification(item.msg)}>
       <div className="notification-content">
         <p>{item.msg}</p>
