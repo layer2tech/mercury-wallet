@@ -93,6 +93,9 @@ const WithdrawPage = () => {
           setWithdrawTxid(res.payload)
           dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
         }
+        if(res.error!== undefined){
+          setOpenModal(false)
+        }
         setLoading(false)
     }))
     
