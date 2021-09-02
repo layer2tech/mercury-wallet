@@ -161,7 +161,7 @@ export class Wallet {
     })
 
     new_wallet.account = new bip32utils.Account(chains);
-    console.log(new_wallet)
+
     return new_wallet
   }
 
@@ -639,7 +639,6 @@ export class Wallet {
 
   // New Proof Key
   genProofKey(): BIP32Interface {
-    console.log(this.account)
     let addr = this.account.nextChainAddress(0);
     this.saveKeys()
     let proof_key = this.account.derive(addr);
@@ -674,14 +673,6 @@ export class Wallet {
     statecoin.value = value;
 
     statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
-    console.log("PROOF KEY: ",statecoin.proof_key)
-    console.log("SC ADDRRESS: ",statecoin.sc_address)
-
-    // DELETE//add StateCoin address to coin info
-    // DELETElet sc_addr_array = this.account.getChains()[0].addresses
-
-    // DELETE//This address must be encrypted to convert into a Statecoin address
-    // DELETEstatecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
 
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);

@@ -13,6 +13,7 @@ import Loading from '../../components/Loading/Loading';
 import arrow from "../../images/arrow-up.png"
 import icon2 from "../../images/icon2.png";
 import closeIcon from "../../images/close-icon.png";
+import info from "../../images/info.png";
 
 import './Receive.css';
 import '../Send/Send.css';
@@ -152,6 +153,7 @@ const ReceiveStatecoinPage = () => {
   }
 
   const tooltipHover = (e) => {
+
     var tooltipSpan = document.querySelector('.receiveStatecoin-scan-txid span.tooltip');
     if(tooltipSpan !== null){
       var w = window.innerWidth;
@@ -209,8 +211,29 @@ const ReceiveStatecoinPage = () => {
         </div>
 
         <div className="receiveStatecoin content">
-          <div className="Body">
-            <p className="receive-note">Statecoin Address</p>
+          <div className = "Body">
+            <div className = "body-title">
+              <span className="title">
+                <p className="receive-note">Statecoin Address</p>
+              </span>
+              <span className = "arrows">
+                  <div className="prev-next">
+                    <button
+                      type="button"
+                      className="Body-button transparent left"
+                      onClick={prevAddrButtonAction}>
+                        <img src={arrow} alt="arrow"/>
+                    </button>
+                    <button
+                      type="button"
+                      className="Body-button transparent right"
+                      onClick={nextAddrButtonAction}>
+                        <img src={arrow} alt="arrow"/>
+                    </button>    
+                  </div>
+              </span>
+            </div>
+
             <div className="receiveStatecoin-scan">
               <div className="receive-qr-code">
                 {rec_sce_addr.sce_address? (<QRCode value={rec_sce_addr.sce_address} />):(null)}
@@ -238,9 +261,17 @@ const ReceiveStatecoinPage = () => {
                             {rec_sce_addr.sce_address}
                           </span>
                         </div>
-                        <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(receiveButtonAction):((e)=>{e.stopPropagation()})}>
-                          {transferLoading?(<Loading />) : (`RECEIVE Index: ${addr_index}`)}
-                        </button>
+                        <div className = "info-receive">
+                          <div className = "info-container">
+                            <img src = {info} alt = "info" />
+                            <span className = "tooltip-info index">
+                              <div>Receive any Statecoins sent to the address listed here</div>
+                            </span>
+                          </div>
+                          <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(receiveButtonAction):((e)=>{e.stopPropagation()})}>
+                            {transferLoading?(<Loading />) : (`RECEIVE Index: ${addr_index}`)}
+                          </button>
+                        </div>
                       </div>
                     </CopiedButton>
                     {rec_sce_addr.used === true ? (
@@ -256,27 +287,19 @@ const ReceiveStatecoinPage = () => {
                     )}
                   </div>
                   <div className="btns-container">
-                    <div className="prev-next">
-                      <button
-                        type="button"
-                        className="Body-button transparent"
-                        onClick={prevAddrButtonAction}>
-                          PREV
-                      </button>
-                      <button
-                        type="button"
-                        className="Body-button transparent"
-                        onClick={nextAddrButtonAction}>
-                          NEXT
-                      </button>    
-                    </div>
                     <button
                       type="button"
                       className="Body-button transparent"
                       onClick={genAddrButtonAction}>
-                        GENERATE ANOTHER ADDRESS
+                        GENERATE ADDRESS
                     </button>   
                     <div className ="receive-btns">
+                      <div className = "info-container">
+                        <span className = "tooltip-info index">
+                          <div>Receive Statecoins with unique key given by the transfer sender after transaction confirmation (mm1...)</div>
+                        </span>
+                        <img src = {info} alt = "info" className = "info-img"/>
+                      </div>
                       <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active': ''}`} onClick={(transferLoading||transferKeyLoading)===false?(handleOpenTransferKey):(null)}>
                         {transferKeyLoading? (<Loading/>):("RECEIVE WITH KEY")}
                       </button>
