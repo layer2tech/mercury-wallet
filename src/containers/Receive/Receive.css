@@ -11,6 +11,25 @@
 
 }
 
+.receiveStatecoin.content .body-title{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.receiveStatecoin.content .body-title .prev-next button{
+    margin-top:0px;
+    margin-bottom:0px;
+    border: 0px;
+}
+
+.receiveStatecoin.content .body-title .prev-next button.left img{
+    transform: rotate(-135deg)
+}
+.receiveStatecoin.content .body-title .prev-next button.right img{
+    transform: rotate(45deg)
+}
+
 .receiveStatecoin-scan {
     display: flex;
     align-items: flex-start;
@@ -21,6 +40,9 @@
 }
 .receiveStatecoin-scan-txid .copy-btn-wrap.used {
     background-color: #ffccbc;
+}
+.dark-mode .receiveStatecoin-scan-txid .copy-btn-wrap.used {
+    background-color: #616161;
 }
 
 .receiveStatecoin-scan-txid .tooltip{
@@ -37,6 +59,26 @@
     opacity: 0;
     transition: opacity 0.3s;
 }
+.receiveStatecoin-scan-txid .tooltip-info,.receive-btns .tooltip-info{
+    visibility: hidden;
+    width: 350px;
+    background-color: #E0E0E0;
+    color: #000000;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 10px 5px 10px;
+    position: absolute;
+    z-index: 1;
+    bottom:-8px;
+    right:0px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.receiveStatecoin-scan-txid .tooltip div,.receiveStatecoin-scan-txid .tooltip div b{
+    color:black;
+}
+
 .receiveStatecoin-scan-txid .tooltip.available{
     width: 100px;
 }
@@ -48,8 +90,20 @@
     border-width: 5px;
     border-style: solid;
     border-color: #E0E0E0 transparent transparent transparent;
-  }
+}
 .receiveStatecoin-scan-txid:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+.receiveStatecoin-scan-txid .tooltip-info:after,.receive-btns .info-container .tooltip-info:after {
+    content: "";
+    position: fixed;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #E0E0E0 transparent transparent transparent;
+}
+.receiveStatecoin-scan-txid .info-receive .info-container:hover .tooltip-info, .receive-btns .info-container:hover .tooltip-info {
     visibility: visible;
     opacity: 1;
 }
@@ -76,7 +130,7 @@
 
 @media only screen and (max-width:991px){
     .receiveStatecoin-scan .btns-container{
-        justify-content: center;
+        justify-content: space-between;
         flex-wrap:wrap;
     }
     .receiveStatecoin-scan .btns-container .prev-next button{
@@ -90,9 +144,39 @@
         margin-right:0px;
     }
 }
+.receiveStatecoin-scan-txid .copy-btn-wrap div.info-receive{
+    display:block;
+}
+
+.receiveStatecoin-scan-txid .copy-btn-wrap div .info-container{
+    margin-right: 0px;
+    position: relative;
+}
+
+.receiveStatecoin-scan-txid .copy-btn-wrap div .info-container img{
+    height: 10px;
+    width: 10px;
+    position: absolute;
+    right: -10px;
+    top: 10px;
+
+
+}
+
+.info-container{
+    margin-right: 8px;
+    position: relative;
+}
+
+.info-container img{
+    height: 10px;
+    position: absolute;
+    right: 7px;
+    top: 10px;
+}
 
 .receiveStatecoin-scan-content .receive-btn{
-    background: #666666;
+    background: #003bbe;
     color: #ffffff;
     border-radius: 5px;
     font-size:15px;
