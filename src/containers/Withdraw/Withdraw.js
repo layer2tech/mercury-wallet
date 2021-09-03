@@ -21,12 +21,12 @@ export const DEFAULT_FEE = 0.00001;
 const WithdrawPage = () => {
   const dispatch = useDispatch();
   const { balance_info, filterBy } = useSelector(state => state.walletData);
-
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
   const [loading, setLoading] = useState(false);
-  const [withdraw_txid,setWithdrawTxid] = useState("")
-  const [openModal,setOpenModal] = useState(false)
+  const [withdraw_txid,setWithdrawTxid] = useState("");
+  const [openModal,setOpenModal] = useState(false);
+  const [state, setState]  =  useState({});
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -40,21 +40,19 @@ const WithdrawPage = () => {
     }
     return [low_fee_value, low_fee_value*1.1, low_fee_value*1.2]
   }
-
   const txFeePerByteList = calcTxFeePerKbList(DEFAULT_FEE); // list of fee per kb options in satoshis
 
   const addSelectedCoin = (statechain_id) => {
-    setSelectedCoins( prevSelectedCoins => {
-      let newSelectedCoins = prevSelectedCoins;
-      const isStatechainId = (element) => element === statechain_id;
-      let index = newSelectedCoins.findIndex(isStatechainId);
-      if (index !== -1){
-        newSelectedCoins.splice(index,1);
-      } else {
-        newSelectedCoins.push(statechain_id);
-      }
-      return newSelectedCoins;
-    });
+    let newSelectedCoins = selectedCoins;
+    const isStatechainId = (element) => element === statechain_id;
+    let index = newSelectedCoins.findIndex(isStatechainId);
+    if (index !== -1){
+      newSelectedCoins.splice(index,1);
+    } else {
+      newSelectedCoins.push(statechain_id);
+    }
+    setSelectedCoins(newSelectedCoins);
+    setState({});
   }
 
   // Get Tx fee estimate

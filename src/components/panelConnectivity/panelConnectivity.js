@@ -61,7 +61,7 @@ const PanelConnectivity = (props) => {
           if(block_height !== callGetBlockHeight()){
             setBlockHeight(callGetBlockHeight());
           }
-      }, 5000);
+      }, 250);
       return () => clearInterval(interval);
   }, [block_height]);
 
