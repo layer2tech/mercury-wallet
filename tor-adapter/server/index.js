@@ -78,7 +78,8 @@ app.get('/', async function(req,res) {
   let response = {
     tor_proxy: config.tor_proxy,
     state_entity_endpoint: config.state_entity_endpoint,
-    swap_conductor_endpoint: config.swap_conductor_endpoint
+    swap_conductor_endpoint: config.swap_conductor_endpoint,
+    electrum_endpoint: config.electrum_endpoint
   };
   try{
     let response=await tor.confirmNewTorConnection();
@@ -100,7 +101,8 @@ app.post('/tor_settings', async function(req,res) {
     let response = {
       tor_proxy: config.tor_proxy,
       state_entity_endpoint: config.state_entity_endpoint,
-      swap_conductor_endpoint: config.swap_conductor_endpoint
+      swap_conductor_endpoint: config.swap_conductor_endpoint,
+      electrum_endpoint: config.electrum_endpoint
     };
     res.status(200).json(response);
 
@@ -115,7 +117,8 @@ app.get('/tor_settings', function(req,res) {
  let response = {
     tor_proxy: config.tor_proxy,
     state_entity_endpoint: config.state_entity_endpoint,
-    swap_conductor_endpoint: config.swap_conductor_endpoint
+    swap_conductor_endpoint: config.swap_conductor_endpoint,
+    electrum_endpoint: config.electrum_endpoint
   };
   res.status(200).json(response);
 });
@@ -126,7 +129,8 @@ app.post('/tor_endpoints', function(req,res) {
     config.update_endpoints(req.body);
     let response = {
       state_entity_endpoint: config.state_entity_endpoint,
-      swap_conductor_endpoint: config.swap_conductor_endpoint
+      swap_conductor_endpoint: config.swap_conductor_endpoint,
+      electrum_endpoint: config.electrum_endpoint
     };
     console.log(`setting endpoints response: ${JSON.stringify(response)}`)
     res.status(200).json(response);
@@ -139,7 +143,8 @@ app.get('/tor_endpoints', function(req,res) {
 
  let response = {
     state_entity_endpoint: config.state_entity_endpoint,
-    swap_conductor_endpoint: config.swap_conductor_endpoint
+    swap_conductor_endpoint: config.swap_conductor_endpoint,
+    electrum_endpoint: config.electrum_endpoint
   };
   res.status(200).json(response);
 });
@@ -162,6 +167,14 @@ app.get('/shutdown/tor', async function(req,res) {
     res.status(400).json(`Shutdown failed: ${err}`);
   }
 });
+
+app.get('/electrum/*', function(req,res) {
+  get_endpoint(req, res, config.electrum_endpoint)
+ });
+ 
+ app.post('/electrum/*', function(req,res) {
+   post_endpoint(req, res, config.electrum_endpoint)
+ });
 
 app.get('/swap/*', function(req,res) {
   get_endpoint(req, res, config.swap_conductor_endpoint)

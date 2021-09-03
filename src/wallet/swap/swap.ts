@@ -1,5 +1,6 @@
 // Conductor Swap protocols
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
+import { ElectrsClient } from '../electrs'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
 import { getStateChain } from "../mercury/info_api";
@@ -208,7 +209,7 @@ export const swapPhase2 = async (
 // and transfer_receiver
 export const swapPhase3 = async (
   http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient |  MockElectrumClient,
+  electrum_client: ElectrumClient | ElectrsClient | MockElectrumClient,
   wasm_client: any,
   statecoin: StateCoin,
   network: Network,
@@ -321,7 +322,7 @@ export const swapPhase4 = async (
 // Loop through swap protocol for some statecoin
 export const do_swap_poll = async(
   http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient |  MockElectrumClient,
+  electrum_client: ElectrumClient | ElectrsClient | MockElectrumClient,
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,
@@ -419,7 +420,7 @@ export const clear_statecoin_swap_info = (statecoin: StateCoin): null => {
 
 export const do_transfer_receiver = async (
   http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient |  MockElectrumClient,
+  electrum_client: ElectrumClient |  ElectrsClient | MockElectrumClient,
   network: Network,  
   batch_id: string,
   commit: string,
