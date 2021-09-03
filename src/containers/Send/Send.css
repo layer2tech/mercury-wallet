@@ -241,8 +241,9 @@ input.quantity {
     opacity: 1;
 }
 .sendStatecoin .right  .btn {
-    width: 100%;
-    padding: 20px;
+    margin-top: 20px;
+    width: 60%;
+    padding: 12px;
     border: none;
     background-color: #757575;
     font-size: 14px;

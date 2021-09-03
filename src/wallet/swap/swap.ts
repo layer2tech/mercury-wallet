@@ -177,9 +177,6 @@ export const swapPhase2 = async (
   // Poll swap until phase changes to Phase2.
   let phase: string = await pollSwap(http_client, statecoin.swap_id);
 
-
-  await delay(1);
-
   // If still in previous phase return nothing.
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase1) {
@@ -229,8 +226,6 @@ export const swapPhase3 = async (
 
   // We expect Phase4 here but should be Phase3. Server must slighlty deviate from protocol specification.
 
-  await delay(1);
-
   // If still in previous phase return nothing.
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase2 || phase === SWAP_STATUS.Phase3) {
@@ -247,11 +242,8 @@ export const swapPhase3 = async (
   // if this part has not yet been called, call it.
   if (statecoin.swap_transfer_msg==null || statecoin.swap_batch_data==null) {
     statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key);
-    await delay(1)
     statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);
   }
-
-  await delay(1);
 
   // Otherwise continue with attempt to comlete transfer_receiver
   let transfer_finalized_data = await do_transfer_receiver(
@@ -266,15 +258,12 @@ export const swapPhase3 = async (
     req_confirmations
   );
 
-  await delay(1);
-
   if(transfer_finalized_data !== null){
     // Update coin status
     statecoin.swap_transfer_finalized_data=transfer_finalized_data;
     statecoin.swap_status=SWAP_STATUS.Phase4;
   }
 }
-
 
 
 // Poll swap until phase changes to Phase End. In that case complete swap by performing transfer finalize.
@@ -303,19 +292,19 @@ export const swapPhase4 = async (
   }
   log.info("Swap Phase4: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
 
-  await delay(1);
-
   // Complete transfer for swap and receive new statecoin  
   try {
     let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
     // Update coin status and num swap rounds
     statecoin.swap_status=SWAP_STATUS.End;
     statecoin_out.swap_rounds=statecoin.swap_rounds+1;
+    statecoin_out.anon_set=statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
+
     return statecoin_out;
   } catch(e : any){ 
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
-  } 
+  }
 }
 
 // Loop through swap protocol for some statecoin
@@ -339,7 +328,8 @@ export const do_swap_poll = async(
   statecoin.swap_status = SWAP_STATUS.Init;
   statecoin.setAwaitingSwap();
 
-  const INIT_RETRY_AFTER=5
+  const INIT_RETRY_AFTER=600
+  const EXIT_AFTER=200
   let swap0_count=0;
 
   let new_statecoin = null;
@@ -391,7 +381,7 @@ export const do_swap_poll = async(
       } catch (e  : any) {
         throw new Error(`${e}`);
       }
-      await delay(5);
+      await delay(3);
     }
     if (statecoin.swap_auto) new_statecoin.swap_auto = true;
   return new_statecoin;

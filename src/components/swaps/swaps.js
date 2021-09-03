@@ -84,6 +84,11 @@ const Swaps = (props) => {
         return countdownTime
     }
 
+    const utcTime = (swaptime) => {
+        let utc = new Date(swaptime*1000).toISOString().slice(11,19);
+        return utc      
+    }
+
     const swapData = props.swapGroupsData.map(([key,value], index) => {
         if(count === 0){
             setCount(count+1);
@@ -104,10 +109,15 @@ const Swaps = (props) => {
 
     return (
         <div className="swap-coin">
-            <div className="swap-top">
-                <span>Swaps waiting to begin …</span>
+            <div className="swap-top">       
+                <span>Next swap start: </span>
                 <div className={"clock"}>
-                    <span className={countdown<30? "red":(null)}>{countdown ? (`${handleCountdownTimer(countdown)}s`):(null)}</span>
+                    <span className={countdown<30? "red":(null)}>{countdown ? (`${handleCountdownTimer(countdown)} s`):(null)}</span>
+                </div>
+            </div>
+            <div className="swap-mid">
+                <div className={"utc_clock"}>
+                    <span className={countdown<30? "red":(null)}>{swapTime ? `(${utcTime(swapTime)} UTC)`:(null)}</span>
                 </div>
             </div>
             {swapData.length!==0 ? (

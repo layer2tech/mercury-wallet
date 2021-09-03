@@ -89,6 +89,7 @@ input:checked ~ .checkmark:after {
     width: 49%;
 }
 .swap.content .left .sub,
+.swap.content .right .sub,
 .swap.content .left h3,
 .swap.content .right h3 {
     text-align: left;
