@@ -52,7 +52,7 @@ const TESTING_MODE = require("../../settings.json").testing_mode;
 
 const DEFAULT_STATE_COIN_DETAILS = {show: false, coin: {value: 0, expiry_data: {blocks: "", months: "", days: ""}, privacy_data: {score_desc: ""},tx_hex: null,withdraw_tx: null}}
 // privacy score considered "low"
-const LOW_PRIVACY = 3
+const LOW_PRIVACY = 2
 // style time left timer as red after this many days
 const DAYS_WARNING = 5
 
@@ -99,7 +99,7 @@ const Coins = (props) => {
       let coin = all_coins_data.find((coin) => {
         return coin.shared_key_id === shared_key_id
       })
-      coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
+      coin.privacy_data = getPrivacyScoreDesc(coin.anon_set, coin.is_new);
       setShowCoinDetails({show: true, coin: coin});
     }
 
@@ -107,7 +107,7 @@ const Coins = (props) => {
       let coin = all_coins_data.find((coin) => {
           return coin.shared_key_id === shared_key_id
       })
-      coin.privacy_data = getPrivacyScoreDesc(coin.swap_rounds);
+      coin.privacy_data = getPrivacyScoreDesc(coin.anon_set, coin.is_new);
       props.setCoinDetails(coin);
     }
 
@@ -327,28 +327,37 @@ const Coins = (props) => {
     },[showCoinDetails.coin])
 
     // data to display in privacy related sections
-    const getPrivacyScoreDesc = (swap_rounds) => {
-      if (!swap_rounds) {
-        return {
-          icon1: anon_icon_none,
-          icon2: anon_icon2_none,
-          score_desc: "No Privacy Score",
-          msg: "Withdrawn BTC will have no privacy"
-        }
+    const getPrivacyScoreDesc = (anon_set, is_new) => {
+      if (!anon_set) {
+        if (is_new) {
+          return {
+            icon1: anon_icon_none,
+            icon2: anon_icon2_high,
+            score_desc: "Swap set: 0",
+            msg: " Cumulative swap group size"
+          }
+        } else {
+            return {
+              icon1: anon_icon_none,
+              icon2: anon_icon2_none,
+              score_desc: "Swap set: 0",
+              msg: " Cumulative swap group size"
+            }
+          }
       }
-      if (swap_rounds < LOW_PRIVACY) {
+      if (is_new) {
         return {
-          icon1: anon_icon_low,
-          icon2: anon_icon2_low,
-          score_desc: "Low Privacy Score",
-          msg: "Withdrawn BTC will have low privacy"
+          icon1: anon_icon_high,
+          icon2: anon_icon2_high,
+          score_desc: "Swap set: " + anon_set.toString(),
+          msg: " Cumulative swap group size"
         }
       }
       return {
         icon1: anon_icon_high,
-        icon2: anon_icon2_high,
-        score_desc: "High Privacy Score",
-        msg: "Withdrawn BTC will be private"
+        icon2: anon_icon2_none,
+        score_desc: "Swap set: " + anon_set.toString(),
+        msg: " Cumulative swap group size"
       }
     }
 
@@ -383,7 +392,7 @@ const Coins = (props) => {
 
     
     const statecoinData = all_coins_data.map(item => {
-      item.privacy_data = getPrivacyScoreDesc(item.swap_rounds);
+      item.privacy_data = getPrivacyScoreDesc(item.anon_set, item.is_new);
       return (
           <div key={item.shared_key_id}>
             {
@@ -731,20 +740,6 @@ const Coins = (props) => {
                     <div className="block">
                       <span>Privacy Score</span>
                       <span>{showCoinDetails.coin.privacy_data.score_desc}</span>
-                      <span className="privacy-score-help">
-                        <svg
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M18.9996 3H4.99963C3.89978 3 2.99963 3.90002 2.99963 5V19C2.99963 20.1 3.89978 21 4.99963 21H18.9996C20.0997 21 20.9996 20.1 20.9996 19V5C20.9996 3.90002 20.0997 3 18.9996 3ZM12.0096 18C11.3097 18 10.7496 17.44 10.7496 16.74C10.7496 16.03 11.3097 15.49 12.0096 15.49C12.7199 15.49 13.2596 16.03 13.2596 16.74C13.2496 17.43 12.7199 18 12.0096 18ZM15.0197 10.6C14.2596 11.71 13.5397 12.06 13.1498 12.77C12.9896 13.06 12.9298 13.25 12.9298 14.18H11.1097C11.1097 13.69 11.0297 12.89 11.4198 12.2C11.9098 11.33 12.8397 10.81 13.3798 10.04C13.9498 9.22997 13.6298 7.71001 12.0096 7.71001C10.9498 7.71001 10.4298 8.51 10.2098 9.18999L8.55969 8.48998C9.00964 7.15001 10.2199 5.99999 11.9896 5.99999C13.4698 5.99999 14.4796 6.66997 14.9996 7.52001C15.4398 8.23998 15.6998 9.59002 15.0197 10.6Z"
-                            fill="#666666"
-                          />
-                        </svg>
-                      </span>
                     </div>
                   </div>
                   <div className="item">
