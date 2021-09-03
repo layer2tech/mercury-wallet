@@ -17,16 +17,15 @@
     justify-content: space-between;
 }
 
-.receiveStatecoin.content .body-title .prev-next button{
+.prev-next button{
     margin-top:0px;
     margin-bottom:0px;
-    border: 0px;
 }
 
-.receiveStatecoin.content .body-title .prev-next button.left img{
+.prev-next button.left img{
     transform: rotate(-135deg)
 }
-.receiveStatecoin.content .body-title .prev-next button.right img{
+.prev-next button.right img{
     transform: rotate(45deg)
 }
 
