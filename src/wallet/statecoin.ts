@@ -162,6 +162,13 @@ export class StateCoinList {
     });
   };
 
+  setAutoSwap(shared_key_id:string){
+    let coin = this.getCoin(shared_key_id);
+    if(coin){
+      coin.setAutoSwap(true);
+    }
+  }
+
 
   setCoinSpent(shared_key_id: string, action: string, transfer_msg?: TransferMsg3) {
     let coin = this.getCoin(shared_key_id)
@@ -252,6 +259,10 @@ export class StateCoinList {
   removeCoinFromSwap(shared_key_id: string) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
+
+      if (coin.status===STATECOIN_STATUS.IN_SWAP ) throw Error("Swap already begun. Cannot remove coin.");
+      if (coin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
+      
       coin.setSwapDataToNull();
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
@@ -361,6 +372,7 @@ export class StateCoin {
   swap_transfer_msg: TransferMsg3 | null;
   swap_batch_data: BatchData | null;
   swap_transfer_finalized_data: TransferFinalizeData | null;
+  swap_auto: boolean;
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
     this.shared_key_id = shared_key_id;
@@ -402,8 +414,10 @@ export class StateCoin {
     this.swap_transfer_msg = null;
     this.swap_batch_data = null;
     this.swap_transfer_finalized_data = null;
+    this.swap_auto = false;
   }
 
+  setAutoSwap(val:boolean) { this.swap_auto = val }
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
   setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
@@ -445,7 +459,8 @@ export class StateCoin {
       expiry_data: this.getExpiryData(block_height),
       transfer_msg: this.transfer_msg,
       swap_id: (this.swap_info ? this.swap_info.swap_token.id : null),
-      swap_status: this.swap_status
+      swap_status: this.swap_status,
+      swap_auto: this.swap_auto
     }
   };
 
@@ -570,6 +585,7 @@ export interface StateCoinDisplayData {
   transfer_msg: TransferMsg3 | null,
   swap_id: string | null,
   swap_status: string | null,
+  swap_auto: boolean
 }
 
 export interface SwapDisplayData {

@@ -16,9 +16,10 @@ import copy_img from "../../images/icon2.png";
 import descripIcon from "../../images/description.png";
 import hashIcon from "../../images/hashtag.png";
 import hexIcon from "../../images/hexagon.png";
+import icon2 from "../../images/icon2.png"
 import React, {useState, useEffect } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
-import {Button, Modal} from 'react-bootstrap';
+import {Button, Modal, Spinner} from 'react-bootstrap';
 import {useDispatch, useSelector} from 'react-redux';
 import Moment from 'react-moment';
 import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util';
@@ -31,8 +32,7 @@ import {
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, 
   setError,
   callAddDescription,
-  callGetStateCoin,
-  callEncryptSCEAddress} from '../../features/WalletDataSlice';
+  callGetStateCoin} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -75,7 +75,7 @@ const SWAP_STATUS_INFO = {
 }
 
 const Coins = (props) => {
-    const {selectedCoins, isMainPage} = props;
+    const {selectedCoins, isMainPage, swap} = props;
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
@@ -83,8 +83,6 @@ const Coins = (props) => {
     const [initCoins, setInitCoins] = useState({});
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
     //const [refreshCoins, setRefreshCoins] = useState(false);
-    const [txHex,setTxHex] = useState(false);
-    //toggle show full tx_hex
     
     const [description,setDescription] = useState("");
     const [dscpnConfirm,setDscrpnConfirm] = useState(false);
@@ -96,7 +94,7 @@ const Coins = (props) => {
     const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
 
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
-    
+
     const handleOpenCoinDetails = (shared_key_id) => {
       let coin = all_coins_data.find((coin) => {
         return coin.shared_key_id === shared_key_id
@@ -193,6 +191,10 @@ const Coins = (props) => {
 
       if(expiry_data.blocks === 0){
         return false;
+      }
+
+      if(expiry_data === -1){
+        return false
       }
       
       return true;
@@ -480,9 +482,14 @@ const Coins = (props) => {
                         </div>
                         <div className="CoinTimeLeft">
                             <img src={timeIcon} alt="icon" />
-                            <span>
-                                Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
-                            </span>
+                            
+                            <div className="scoreAmount">
+                              Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
+                              <span className="tooltip">
+                                  <b>Important: </b>
+                                    The funds are not lost. This particular statecoin will no longer be able to swap after expiry.
+                              </span>
+                            </div>
                         </div>
                     </div>
                   )) : (
@@ -496,19 +503,38 @@ const Coins = (props) => {
                     </div>
                   )}
 
+                  {
+                    swap && 
+                    <div>
+                      <label className='toggle'>
+                      Auto-swap
+                      </label>
+                      <label className="toggle-sm">
+                        
+                        <input
+                          className="toggle-checkbox"
+                          type="checkbox"
+                          onChange={e => props.handleAutoSwap(item)}
+                          checked={item.swap_auto}
+                        />
+                        <div className="toggle-switch" />
+                      </label>
+                    </div>
+                  }
+
                   {props.showCoinStatus ? (
                     <div className="coin-status-or-txid">
+                      
                       {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
                       (
                         <b className="CoinFundingTxid">
                             <img src={txidIcon} alt="icon"/>
-                            {/* {item.funding_txid} */}
-                            {callEncryptSCEAddress(item.sc_address)}
+                            {item.sc_address}
                         </b>
                       )
                       : (
                       <div>
-                        <CoinStatus data={item}/>
+                        <Spinner animation="border" variant="primary" size="sm"/>
                         {item.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />):(null)}
                       </div>)}
                     </div>
@@ -516,8 +542,7 @@ const Coins = (props) => {
                     <div className="coin-status-or-txid">
                       <b className="CoinFundingTxid">
                         <img src={txidIcon} alt="icon"/>
-                        {/* {item.funding_txid} */}
-                        {callEncryptSCEAddress(item.sc_address)}
+                        {item.sc_address}
                       </b>
                     </div>
                   )}
@@ -564,10 +589,8 @@ const Coins = (props) => {
       setDscrpnConfirm(!dscpnConfirm)
     }
 
-    const toggleTxShow = () => {
-      let modalContent = document.querySelector(".modal-content")
-      modalContent.classList.toggle("adjust-height")
-      setTxHex(!txHex)
+    const copyWithdrawTxHexToClipboard = () => {
+      navigator.clipboard.writeText(showCoinDetails.coin.tx_hex);
     }
 
     // called when clicking on TXid link in modal window
@@ -641,7 +664,7 @@ const Coins = (props) => {
                       <span>Statecoin Address</span>
                       {
                         showCoinDetails.coin.sc_address != undefined && (<span>
-                          {callEncryptSCEAddress(showCoinDetails.coin.sc_address)}
+                          {showCoinDetails.coin.sc_address}
                           </span>)
                       }
                     </div>     
@@ -740,13 +763,18 @@ const Coins = (props) => {
                     <img src={hexIcon} alt="hexagon"/>
                     <div className="block">
                       <span>Transaction Hex</span>
-                      <span>
-                        {txHex?(showCoinDetails.coin.tx_hex): (showCoinDetails.coin.tx_hex?.slice(0,70))}
-                        {txHex?
-                          (<span className = "close-hex" onClick = { () => toggleTxShow()}>Close</span>) 
-                          :
-                          <b className = "open-hex" onClick = { () => toggleTxShow() }>...</b>}
-                      </span>
+                        <span>
+                          <div className = "txhex-container">
+                            <CopiedButton handleCopy={() => copyWithdrawTxHexToClipboard()}>
+                              <div className="copy-hex-wrap coin-modal-hex">
+                                <img type="button" src={icon2} alt="icon"/>
+                                <span>
+                                  {showCoinDetails.coin.tx_hex}
+                                </span>
+                              </div>
+                            </CopiedButton>
+                          </div>
+                        </span>
                     </div>
                   </div>
                   <div className="item">

@@ -137,7 +137,7 @@ const WithdrawPage = () => {
   return (
     <div className={`${current_config?.tutorials ? 'container-with-tutorials' : ''}`}>
 
-      <Modal show ={openModal} className={"withdraw-modal"}>
+      <Modal show ={openModal} onHide = {() => setOpenModal(!openModal)} className={"withdraw-modal"}>
         <Modal.Body className={"modal-body"}>
           
           {withdraw_txid === "" ? (
