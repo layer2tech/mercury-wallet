@@ -35,7 +35,6 @@ const keyIcon = (
 
 const TransactionsBTC = (props) => {
   const [state, setState] = useState({});
-  console.log("TRANSACTION CALLED")
   const dispatch = useDispatch();
   const { depositLoading } = useSelector((state) => state.walletData);
 

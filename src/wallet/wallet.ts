@@ -169,7 +169,7 @@ export class Wallet {
     })
 
     new_wallet.account = new bip32utils.Account(chains);
-    console.log(new_wallet)
+
     return new_wallet
   }
 
@@ -326,17 +326,18 @@ export class Wallet {
       return this.current_sce_addr
     } else {
       let addr = this.account.chains[0].addresses[addr_index];
-      let encoded_sce_address = this.encryptSCEAddress(addr)
+      let proofkey = this.account.derive(addr).publicKey.toString("hex");
+      let encoded_sce_address = encodeSCEAddress(proofkey)
       //let proofkey = this.account.derive(addr).publicKey.toString("hex");
       let used = false;
       let coin_status = "";
       let txid_vout = "";
       let amount = 0;
       // Get used addresses
-      
+
       this.statecoins.coins.map(coin => {
 
-        if(coin.sc_address === addr){
+        if(coin.sc_address === encoded_sce_address){
           coin_status = coin.status
           used = true
           amount += fromSatoshi(coin.value)
@@ -359,15 +360,16 @@ export class Wallet {
             amount += fromSatoshi(coin.value)
             txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
           }
+          if(coin.sc_address === encoded_sce_address){
+            coin_status = coin.status
+            used = true
+            amount += fromSatoshi(coin.value)
+            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
+          }
         }
       })
       return { sce_address: encoded_sce_address, used: used, coin_status: coin_status, amount:amount, txid_vout: txid_vout}
     }
-  }
-
-  encryptSCEAddress(addr: string){
-    let proofkey = this.account.derive(addr).publicKey.toString("hex");
-    return encodeSCEAddress(proofkey)
   }
 
   getNumSEAddress(): number { return this.account.chains[0].addresses.length }
@@ -479,7 +481,7 @@ export class Wallet {
         continue;
       }
       // check locktime
-      let blocks_to_locktime = (this?.statecoins?.coins[i]?.tx_backup?.locktime ?? 0) - this.block_height;
+      let blocks_to_locktime = (this?.statecoins?.coins[i]?.tx_backup?.locktime ?? Number.MAX_SAFE_INTEGER) - this.block_height;
       // pre-locktime - update locktime swap limit status
       if (blocks_to_locktime > 0) {
         this.statecoins.coins[i].setBackupPreLocktime();
@@ -630,6 +632,10 @@ export class Wallet {
     log.debug("Set Statecoin spent: "+id);
   }
 
+  setStateCoinAutoSwap(shared_key_id: string) {
+    this.statecoins.setAutoSwap(shared_key_id);
+  }
+
   // New BTC address
   genBtcAddress(): string {
     let addr = this.account.nextChainAddress(0);
@@ -677,11 +683,8 @@ export class Wallet {
     
     statecoin.value = value;
 
-    //add StateCoin address to coin info
-    let sc_addr_array = this.account.getChains()[0].addresses
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
 
-    //This address must be encrypted to convert into a Statecoin address
-    statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
 
@@ -770,6 +773,7 @@ export class Wallet {
     return statecoin_finalized
   }
 
+
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
   async do_swap(
@@ -786,13 +790,9 @@ export class Wallet {
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
-
-
-    //New statecoin from proof key added to coin
-    let sc_addr_array = this.account.getChains()[0].addresses
-    statecoin.sc_address = sc_addr_array[sc_addr_array.length-1]
-    //This address must be encrypted to change into a Statecoin address
-    
+      
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+      
     let new_statecoin=null;
     await swapSemaphore.wait();
     try{
@@ -827,18 +827,34 @@ export class Wallet {
         this.saveStateCoinsList();
         return null;
       }
+
+      let new_coin = true;
+      let new_statechain_id = new_statecoin.statechain_id;
+      // check if new coin
+      this.statecoins.coins.forEach(
+        (statecoin) => {
+          if(statecoin.statechain_id === new_statechain_id) new_coin = false
+        })
+      new_statecoin.is_new = new_coin;
+
       // Mark funds as spent in wallet
       this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 
       // update in wallet
       new_statecoin.swap_status = null;
       new_statecoin.setConfirmed();
+      new_statecoin.sc_address = encodeSCEAddress(new_statecoin.proof_key)
       this.statecoins.addCoin(new_statecoin);
 
       log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
       this.saveStateCoinsList();
-      return new_statecoin;
+
+      if(statecoin.swap_auto){
+        log.info('Auto swap  started, with new statecoin:' + new_statecoin.shared_key_id);
+        this.do_swap(new_statecoin.shared_key_id);
+      }
     }
+    return new_statecoin;
   }
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo>{
@@ -849,12 +865,23 @@ export class Wallet {
     this.swap_group_info = await groupInfo(this.http_client);
   }
 
-  // force deregister of all coins in swap
+  disableAutoSwaps(){
+    this.statecoins.coins.forEach(
+      (statecoin) =>{
+        statecoin.swap_auto = false;
+      }
+    )
+  }
+
+  // force deregister of all coins in swap and also toggle auto swap off
   deRegisterSwaps(){
     this.statecoins.coins.forEach(
       (statecoin) => {
         if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
           swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+
+          statecoin.swap_auto = false;
+
           this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
         }
       }
@@ -917,6 +944,7 @@ export class Wallet {
   // Return: New wallet coin data
   async transfer_receiver(transfer_msg3: TransferMsg3): Promise<TransferFinalizeData> {
     let walletcoins = this.statecoins.getCoins(transfer_msg3.statechain_id);
+
     for (let i=0; i<walletcoins.length; i++) {
       if(walletcoins[i].status===STATECOIN_STATUS.AVAILABLE) throw new Error("Transfer completed.");
     }
@@ -944,6 +972,16 @@ export class Wallet {
     log.info("Transfer Finalize for: "+finalize_data.new_shared_key_id)
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
 
+    statecoin_finalized.is_new = true;
+    // check if new coin
+    this.statecoins.coins.forEach(
+      (statecoin) => {
+        if(statecoin.statechain_id === statecoin_finalized.statechain_id) statecoin_finalized.is_new = false
+      })
+
+    //Add statecoin address to coin
+    statecoin_finalized.sc_address = encodeSCEAddress(statecoin_finalized.proof_key)
+    
     // update in wallet
     statecoin_finalized.setConfirmed();
     this.statecoins.addCoin(statecoin_finalized);
@@ -1021,19 +1059,26 @@ export class Wallet {
 
     // Perform withdraw with server
     let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_kb);
-
-    // Broadcast transcation
-    let withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
     
     // Mark funds as withdrawn in wallet
     shared_key_ids.forEach( (shared_key_id) => {
       this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
       this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
+    });
+
+    this.saveStateCoinsList();
+
+    // Broadcast transcation
+    let withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
+
+    // Add txid to coin
+    shared_key_ids.forEach( (shared_key_id) => {
       this.statecoins.setCoinWithdrawTxId(shared_key_id,withdraw_txid)
     });
 
     log.info("Withdrawing finished.");
     this.saveStateCoinsList();
+
     return withdraw_txid
   }
 }

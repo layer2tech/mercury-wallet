@@ -106,8 +106,17 @@ function setBlockHeightCallBack(item) {
 
 // Load wallet from store
 export const walletLoad = (name, password) => {
+
   wallet = Wallet.load(name, password, testing_mode);
-  wallet.deRegisterSwaps();
+
+  wallet.disableAutoSwaps();
+  try{
+    wallet.deRegisterSwaps();
+  }
+  catch(e) {
+    new Error({msg: e.message})
+  }
+
   log.info("Wallet "+name+" loaded from memory. ");
   if (testing_mode) log.info("Testing mode set.");
   mutex.runExclusive(async () => {
@@ -206,9 +215,6 @@ export const callGetCoinBackupTxData = (shared_key_id) => {
 export const callGetSeAddr = (addr_index) => {
   return wallet.getSEAddress(addr_index)
 }
-export const callEncryptSCEAddress = (addr) => {
-  return wallet.encryptSCEAddress(addr)
-}
 // Gen new SE Address
 export const callNewSeAddr = (state) => {
   return wallet.newSEAddress()
@@ -285,6 +291,14 @@ export const callGetTransfers = createAsyncThunk(
     return wallet.get_transfers(action)
   }
 )
+
+export const callDoAutoSwap = createAsyncThunk(
+  'DoSwap',
+  async (action, thunkAPI) => {
+    return wallet.setStateCoinAutoSwap(action.shared_key_id)
+  }
+)
+
 export const callDoSwap = createAsyncThunk(
   'DoSwap',
   async (action, thunkAPI) => {

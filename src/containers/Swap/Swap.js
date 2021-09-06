@@ -7,6 +7,7 @@ import {
   isWalletLoaded,
   setNotification,
   setError,
+  callDoAutoSwap,
   callDoSwap,
   callSwapDeregisterUtxo,
   callGetSwapGroupInfo,
@@ -98,7 +99,7 @@ const SwapPage = () => {
   const swapButtonAction = async () => {
     // check statechain is chosen
     if (electrumServer === false){
-      dispatch(setError({msg: "The Electrum network connection is lost"}))
+      dispatch(setError({msg: "The Electrum server network connection is lost"}))
       return
     }
 
@@ -122,7 +123,7 @@ const SwapPage = () => {
               statecoin = selectedCoin;
             }
             if (res.payload===null) {
-              dispatch(setNotification({msg:"Swap not Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
+              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
               return
             }
             if (res.error===undefined) {
@@ -137,9 +138,80 @@ const SwapPage = () => {
       }
     );
   }
-  const leavePoolButtonAction = (event) => {
+
+  const handleAutoSwap =  (item) => {
+    let statecoin = callGetStateCoin(item.shared_key_id);
+    // get the statecoin and set auto to true - then call auto_swap
+    let selectedCoin = item.shared_key_id;
+
+    // check statechain is chosen
     if (electrumServer === false){
       dispatch(setError({msg: "The Electrum network connection is lost"}))
+      return
+    }
+
+    if (statecoin === undefined) {
+      dispatch(setError({msg: "Please choose a StateCoin to swap."}))
+      return
+    }
+
+    if(swapLoad.join === true){
+      return
+    }
+
+    // turn off swap_auto
+    if(item.swap_auto){
+      statecoin.swap_auto = false;
+      setSwapLoad({...swapLoad, leave: true})
+      try {
+        dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}))
+          .then(res => {
+            dispatch(removeCoinFromSwapRecords(selectedCoin));
+            setSwapLoad({...swapLoad, leave: false})
+        });
+        // Refresh Coins list
+        setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
+      } catch (e) {
+        setSwapLoad({...swapLoad, leave: false})
+        dispatch(setError({msg: e.message}))
+      }
+    }else{
+      statecoin.swap_auto = true;
+      dispatch(callDoAutoSwap(selectedCoin));
+      dispatch(addCoinToSwapRecords(selectedCoin));
+      setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
+      dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+        .then(res => {
+          // get the statecoin for txId method
+          let statecoin = callGetStateCoin(selectedCoin);
+          if(statecoin === undefined || statecoin === null){
+            statecoin = selectedCoin;
+          }
+
+          // turn off autoswap because final .then was called
+          statecoin.swap_auto = false;
+
+          if (res.payload===null) {
+            dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))  
+            statecoin.swap_auto = false;      
+            return
+          }
+          if (res.error===undefined) {
+            dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+          }else{
+            dispatch(setNotification({msg: "Swap for coin " + statecoin.getTXIdAndOut() + " failed, please try again later."}))
+            statecoin.swap_auto = false;
+            setSwapLoad({...swapLoad, join: false, swapCoin:""});
+          }
+        });
+      // Refresh Coins list
+      setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
+    }
+  }
+
+  const leavePoolButtonAction = (event) => {
+    if (electrumServer === false){
+      dispatch(setError({msg: "The Electrum server network connection is lost"}))
       return
     }
 
@@ -198,7 +270,7 @@ const SwapPage = () => {
                       </svg>
                         Swap Statecoins
                     </h2>
-                    <h3 className="subtitle">Swap Statecoins to increase their Privacy Score</h3>
+                    <h3 className="subtitle">Swap statecoins to increase their anonymity set</h3>
                   </div>
                   <Link className="nav-link" to="/home">
                       <StdButton
@@ -209,7 +281,7 @@ const SwapPage = () => {
               <div className="swap content">
                 <div className="wallet-container left ">
                     <div>
-                        <span className="sub">Click to select UTXO’s below</span>
+                        <span className="sub">Click to select coins below</span>
                         <Coins
                           displayDetailsOnClick={false}
                           showCoinStatus={true}
@@ -217,6 +289,7 @@ const SwapPage = () => {
                           setSelectedCoin={addSelectedCoin}
                           setSelectedCoins={setSelectedCoins}
                           refresh={refreshCoins}
+                          handleAutoSwap={handleAutoSwap}
                           swap
                         />
                     </div>
@@ -224,6 +297,7 @@ const SwapPage = () => {
                 </div>
                 <div className="wallet-container right">
                     <div>
+                        <span className="sub">Pending swap groups</span>
                         <Swaps
                           swapGroupsData = {swapGroupsData}
                           displayDetailsOnClick = {false}

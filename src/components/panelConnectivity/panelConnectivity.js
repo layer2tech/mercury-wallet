@@ -61,7 +61,7 @@ const PanelConnectivity = (props) => {
           if(block_height !== callGetBlockHeight()){
             setBlockHeight(callGetBlockHeight());
           }
-      }, 5000);
+      }, 250);
       return () => clearInterval(interval);
   }, [block_height]);
 
@@ -116,7 +116,7 @@ const PanelConnectivity = (props) => {
                           type="radio"
                           checked={block_height}
                       />
-                      {block_height?("Connected"):("Connecting") } to Electrum
+                      {block_height?("Connected"):("Connecting") } to Bitcoin
                       <span className="checkmark"></span>
                   </label>
               </div>
