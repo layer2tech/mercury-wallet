@@ -12,7 +12,7 @@
               },
   "electrum_config" : {
     "protocol": "http",
-    "host": "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion",
+    "host": "https://explorer.blockstream.com/testnet/api",
     "port": "" 
   }
 }

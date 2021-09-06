@@ -245,7 +245,7 @@ export class Wallet {
   newElectrumClient(){
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if ( this.config.testing_mode == true ) return new MockElectrumClient()
-    if ( this.config.electrum_config.protocol == 'http' ) return new ElectrsClient(this.http_client)
+    if ( this.config.electrum_config.protocol == 'http' ) return new ElectrsClient()
     return new ElectrumClient(this.config.electrum_config)
   }
 
@@ -495,7 +495,9 @@ export class Wallet {
         }
         // in mempool - check if confirmed
         if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
+          console.log(`in mempool.`)
           let txid = this!.statecoins!.coins[i]!.tx_backup!.getId();
+          console.log(`txid: ${txid}`)
           if(txid != null) {
             this.electrum_client.getTransaction(txid).then((tx_data: any) => {
               if(tx_data.confirmations!==undefined && tx_data.confirmations > 2) {
