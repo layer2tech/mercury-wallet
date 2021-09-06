@@ -1,7 +1,9 @@
 import { ElectrumTxData } from './electrum';
-import {HttpClient} from './http_client'
+import {Mutex} from 'async-mutex'
 import { MockHttpClient } from './mocks/mock_http_client';
 let bitcoin = require('bitcoinjs-lib')
+const axios = require('axios').default;
+export const mutex = new Mutex();
 
 class ElectrsClientError extends Error {
   constructor(message: string){
@@ -35,22 +37,79 @@ Object.freeze(POST_ROUTE);
 
 
 export class ElectrsClient {
+  endpoint: string
+  is_tor: boolean
   //client: HttpClient | MockHttpClient
   scriptIntervals: Map<string,any>
   scriptStatus: Map<string,any>
   blockHeightLatest: any
   
-  constructor(){
+  constructor(endpoint: string, is_tor = true){
     //this.client = new HttpClient('http://localhost:3001', true);
+    this.endpoint = endpoint
+    this.is_tor = is_tor
     this.scriptIntervals = new Map()
     this.scriptStatus = new Map()
     this.blockHeightLatest = 0
   }
 
+  async new_tor_id() {
+    console.log('new_tor_id');
+    if (this.is_tor) {
+      console.log('is tor, getting new id');
+      await ElectrsClient.get(this.endpoint,'newid', {});
+    }
+  };
+
+  static async get (endpoint: string, path: string, params: any){
+    const release = await mutex.acquire();
+    try {
+      const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
+      const config = {
+          method: 'get',
+          url: url,
+          headers: { 'Accept': 'application/json' }
+      };
+      let res = await axios(config)
+      let return_data = res.data
+
+      release();
+      return return_data
+
+    } catch (err : any) {
+      release();
+      throw err;
+    }
+  }
+
+  static async post (endpoint: string, path: string, body: any) {
+    const release = await mutex.acquire();
+    try {
+      let url = endpoint + "/" + path.replace(/^\/+/, '');
+      const config = {
+          method: 'post',
+          url: url,
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          data: body,
+      };
+      let res = await axios(config)
+      let return_data = res.data
+      
+      release();
+      return return_data
+
+    } catch (err : any) {
+      release();
+      throw err;
+    }
+  };
+
   async isClosed(): Promise<boolean>{
     let ping = await this.ping();
     let result = ping == false
-    console.log(`ping: ${ping}, ${result}`)
     return result
   }
 
@@ -68,9 +127,8 @@ export class ElectrsClient {
   }
 
   async ping(): Promise<boolean> {
-    let client = new HttpClient('http://localhost:3001', true)
     try {
-      await client.get(GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
+      await ElectrsClient.get(this.endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
       return true
     } catch(err){
       return false
@@ -79,27 +137,21 @@ export class ElectrsClient {
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<number> {
-    let client = new HttpClient('http://localhost:3001', true);
-    let latesthash = await client.get(GET_ROUTE.BLOCKS_TIP_HASH, {})
-    let header = await client.get(`${GET_ROUTE.BLOCK}/${latesthash}/${GET_ROUTE.HEADER}`, {})
-    console.log(`latestBlockHeader: ${header}`)
-    let info = await client.get(`${GET_ROUTE.BLOCK}/${latesthash}`, {})
+    let latesthash = await ElectrsClient.get(this.endpoint,GET_ROUTE.BLOCKS_TIP_HASH, {})
+    let header = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.BLOCK}/${latesthash}/${GET_ROUTE.HEADER}`, {})
+    let info = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.BLOCK}/${latesthash}`, {})
     info.header = header
-    console.log(`latestBlockHeader: ${JSON.stringify(info)}`)
     return info
   }
 
   async getTransaction(txHash: string): Promise<any> {
-    let client = new HttpClient('http://localhost:3001', true)
-    let result = await client.get(`${GET_ROUTE.TX}/${txHash}`, {})
-    console.log(`getTransaction: ${result}`)
+    let result = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.TX}/${txHash}`, {})
     return result
   }
 
   async getScriptHashListUnspent(script: string): Promise<any> {
     let scriptHash = ElectrsClient.scriptToScriptHash(script)
-    let client = new HttpClient('http://localhost:3001', true)
-    let data: Array<any> = await client.get(`${GET_ROUTE.SCRIPTHASH}/${scriptHash}/${GET_ROUTE.UTXO}`, {})
+    let data: Array<any> = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}/${GET_ROUTE.UTXO}`, {})
     let result = new Array<ElectrumTxData>()
 
     data.forEach((item, index) => {
@@ -108,30 +160,23 @@ export class ElectrsClient {
                     "value":item.value,
                     "height":item.status.block_height})
     })
-    console.log(`getScriptHashListUnspent: ${JSON.stringify(result)}`)
     return result
   }
 
-  async getScriptHashStatus(scriptHash: string, callBack: any) {
-    let client = new HttpClient('http://localhost:3001', true);
-    console.log(`${GET_ROUTE.SCRIPTHASH}/${scriptHash}`)
-    let status = await client.get(`${GET_ROUTE.SCRIPTHASH}/${scriptHash}`, {})
+  async getScriptHashStatus(scriptHash: string, callBack: any, endpoint: string) {
+    let status = await ElectrsClient.get(endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}`, {})
     if( status.chain_stats.tx_count > 0 || status.mempool_stats.tx_count > 0 ) {
-      console.log("getScriptHashStatus")
       if (callBack) { 
         callBack()
       }
     }
   }
 
-  async getLatestBlock(callBack: any): Promise<any> {
-    let client: HttpClient = new HttpClient('http://localhost:3001', true)
+  async getLatestBlock(callBack: any, endpoint: string): Promise<any> {
     //this.connect()
-    let blockHeight = await client.get(GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
-    console.log(`block height: ${blockHeight}`)
+    let blockHeight = await ElectrsClient.get(endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
     if (this.blockHeightLatest != blockHeight){
       this.blockHeightLatest = blockHeight
-      console.log(`blockHeightLatest: ${this.blockHeightLatest}`)
       callBack([{"height":blockHeight}])
     }
     return blockHeight
@@ -142,7 +187,7 @@ export class ElectrsClient {
     if ( this.scriptIntervals.has(scriptHash) ){
       throw new ElectrsClientError(`already subscribed to script: [${scriptHash}]`)
     }
-    let timer = setInterval(this.getScriptHashStatus, 5000, scriptHash, callBack)
+    let timer = setInterval(this.getScriptHashStatus, 10000, scriptHash, callBack, this.endpoint)
     this.scriptIntervals.set(scriptHash, timer)
     return timer
   }
@@ -153,17 +198,16 @@ export class ElectrsClient {
   }
 
   async blockHeightSubscribe(callBack: any): Promise<any> {
-    return setInterval(this.getLatestBlock, 5000, callBack)
+    return setInterval(this.getLatestBlock, 10000, callBack, this.endpoint)
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
-    let client = new HttpClient('http://localhost:3001', true)
-    return client.post(GET_ROUTE.TX, rawTX)
+    return ElectrsClient.post(this.endpoint,GET_ROUTE.TX, rawTX)
   }
 
   async getFeeHistogram(num_blocks: number): Promise<any> {
-    let client = new HttpClient('http://localhost:3001', true)
-    return client.get(GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
+    let result = await ElectrsClient.get(this.endpoint,GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
+    return result
   }
 
 }

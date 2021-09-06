@@ -245,7 +245,7 @@ export class Wallet {
   newElectrumClient(){
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if ( this.config.testing_mode == true ) return new MockElectrumClient()
-    if ( this.config.electrum_config.protocol == 'http' ) return new ElectrsClient()
+    if ( this.config.electrum_config.protocol == 'http' ) return new ElectrsClient('http://localhost:3001')
     return new ElectrumClient(this.config.electrum_config)
   }
 
