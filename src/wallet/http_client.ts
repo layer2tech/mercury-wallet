@@ -59,7 +59,7 @@ export class HttpClient {
     this.is_tor = is_tor;
   }
 
-  new_tor_id = async () => {
+  async new_tor_id() {
     console.log('new_tor_id');
     if (this.is_tor) {
       console.log('is tor, getting new id');
@@ -67,10 +67,10 @@ export class HttpClient {
     }
   };
 
-  get = async (path: string, params: any) => {
+  async get (path: string, params: any){
     const release = await mutex.acquire();
     try {
-      const url = this.endpoint + "/" + path + "/" + (Object.entries(params).length === 0 ? "" : params);
+      const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
           method: 'get',
           url: url,
@@ -89,10 +89,10 @@ export class HttpClient {
     }
   }
 
-  post = async (path: string, body: any) => {
+  async post (path: string, body: any) {
     const release = await mutex.acquire();
     try {
-      let url = this.endpoint + "/" + path;
+      let url = this.endpoint + "/" + path.replace(/^\/+/, '');
       const config = {
           method: 'post',
           url: url,

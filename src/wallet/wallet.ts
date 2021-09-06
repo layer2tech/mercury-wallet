@@ -86,10 +86,16 @@ export class Wallet {
   }
 
   set_tor_endpoints(){
+    let electr_ep=this.config.electrum_config.host;
+    let electr_port=this.config.electrum_config.port
+    if ( electr_port ) {
+      electr_ep=electr_ep+`:${electr_port}`
+    }
+    console.log(`electrum url: ${electr_ep}`)
     let endpoints_config = {
       swap_conductor_endpoint: this.config.swap_conductor_endpoint,
       state_entity_endpoint: this.config.state_entity_endpoint,
-      electrum_endpoint: `${this.config.electrum_config.host}:${this.config.electrum_config.port}`,
+      electrum_endpoint: electr_ep,
     }
     let tor_ep_set = this.http_client.post('tor_endpoints', endpoints_config);
     console.log(`Set tor endpoints: ${tor_ep_set}}`);
@@ -239,7 +245,7 @@ export class Wallet {
   newElectrumClient(){
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if ( this.config.testing_mode == true ) return new MockElectrumClient()
-    if ( this.config.electrum_config.protocol == 'http' ) return new ElectrsClient(this.http_client as HttpClient)
+    if ( this.config.electrum_config.protocol == 'http' ) return new ElectrsClient(this.http_client)
     return new ElectrumClient(this.config.electrum_config)
   }
 

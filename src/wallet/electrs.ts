@@ -1,4 +1,5 @@
 import {HttpClient} from './http_client'
+import { MockHttpClient } from './mocks/mock_http_client';
 let bitcoin = require('bitcoinjs-lib')
 
 class ElectrsClientError extends Error {
@@ -33,16 +34,23 @@ Object.freeze(POST_ROUTE);
 
 
 export class ElectrsClient {
-  client: HttpClient
+  client: HttpClient | MockHttpClient
   scriptIntervals: Map<string,any>
   scriptStatus: Map<string,any>
   blockHeightLatest: any
   
-  constructor(client: HttpClient){
-    this.client = client
+  constructor(client: HttpClient | MockHttpClient){
+    this.client = new HttpClient('http://localhost:3001', true);
     this.scriptIntervals = new Map()
     this.scriptStatus = new Map()
     this.blockHeightLatest = 0
+  }
+
+  async isClosed(): Promise<boolean>{
+    let ping = await this.ping();
+    let result = ping == false
+    console.log(`ping: ${ping}, ${result}`)
+    return result
   }
 
   // convert BTC address scipt to electrum script has
@@ -51,28 +59,45 @@ export class ElectrsClient {
       return script_hash.match(/[a-fA-F0-9]{2}/g).reverse().join(''); // reverse  
   }
 
+  //async getClient(): Promise<HttpClient>{
+  //  return new HttpClient('http://localhost:3001', true)
+  //}
+
   async connect() {
-    
+  }
+
+  async ping(): Promise<boolean> {
+    /*
+    let client = new HttpClient('http://localhost:3001', true)
+    try {
+      await client.get(GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
+    } catch(err){
+      return false
+    }
+    */
+    return true
   }
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<number> {
-    let latesthash = await this.client.get(GET_ROUTE.BLOCKS_TIP_HASH, null)
-    let header = await this.client.get(`${GET_ROUTE.BLOCK}/${latesthash}/${GET_ROUTE.HEADER}`, null)
+    let latesthash = await this.client.get(GET_ROUTE.BLOCKS_TIP_HASH, {})
+    let header = await this.client.get(`${GET_ROUTE.BLOCK}/${latesthash}/${GET_ROUTE.HEADER}`, {})
     return header
   }
 
   async getTransaction(txHash: string): Promise<any> {
-    this.client.get(`${GET_ROUTE.TX}/${txHash}`, null)
+    //let client = new HttpClient('http://localhost:3001', true)
+    this.client.get(`${GET_ROUTE.TX}/${txHash}`, {})
   }
 
   async getScriptHashListUnspent(script: string): Promise<any> {
-    let result: Promise<Array<any>> = this.client.get(`${GET_ROUTE.SCRIPTHASH}/${script}/${GET_ROUTE.UTXO}`, null)
+    //let client = new HttpClient('http://localhost:3001', true)
+    let result: Promise<Array<any>> = this.client.get(`${GET_ROUTE.SCRIPTHASH}/${script}/${GET_ROUTE.UTXO}`, {})
     return result
   }
 
   async getScriptHashStatus(script: string, callBack: any) {
-    let status = await this.client.get(`${GET_ROUTE.SCRIPTHASH}/${script}`, null)
+    let status = await this.client.get(`${GET_ROUTE.SCRIPTHASH}/${script}`, {})
     if( status == true ) {
       if (callBack) { 
         callBack()
@@ -82,10 +107,13 @@ export class ElectrsClient {
   }
 
   async getLatestBlock(callBack: any): Promise<any> {
-    let blockHeight = await this.client.get(GET_ROUTE.BLOCKS_TIP_HEIGHT, null)
+    let client: HttpClient = new HttpClient('http://localhost:3001', true)
+    //this.connect()
+    let blockHeight = await client.get(GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
+    console.log(`block height: ${blockHeight}`)
     if (this.blockHeightLatest != blockHeight){
       this.blockHeightLatest = blockHeight
-      callBack()
+      callBack([{"height":blockHeight}])
     }
     return blockHeight
   }
@@ -108,11 +136,13 @@ export class ElectrsClient {
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
+    //let client = new HttpClient('http://localhost:3001', true)
     return this.client.post(GET_ROUTE.TX, rawTX)
   }
 
   async getFeeHistogram(num_blocks: number): Promise<any> {
-    return this.client.get(GET_ROUTE.FEE_ESTIMATES, null).then((histo) => histo[`${num_blocks}`])
+    //let client = new HttpClient('http://localhost:3001', true)
+    return this.client.get(GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
   }
 
 }

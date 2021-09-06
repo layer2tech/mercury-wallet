@@ -42,9 +42,9 @@ if(config.tor_proxy.ip === 'mock'){
 
 tor.startTorNode(tor_cmd, torrc);
 
-async function get_endpoint(req, res, endpoint){
+async function get_endpoint(path, res, endpoint){
   try{
-    let result = await tor.get(req.path,undefined, endpoint);
+    let result = await tor.get(path,undefined, endpoint);
     res.status(200).json(result);
   } catch (err){
     let statusCode = err.stateCode == undefined ? 400 : err.statusCode;
@@ -52,9 +52,9 @@ async function get_endpoint(req, res, endpoint){
   }
 };
 
-async function post_endpoint(req, res, endpoint) {
+async function post_endpoint(path, body, res, endpoint) {
   try{
-    let result = await tor.post(req.path,req.body, endpoint);
+    let result = await tor.post(path,body, endpoint);
     res.status(200).json(result);
   } catch (err) {
     let statusCode = err.stateCode == undefined ? 400 : err.statusCode;
@@ -168,28 +168,30 @@ app.get('/shutdown/tor', async function(req,res) {
   }
 });
 
-app.get('/electrum/*', function(req,res) {
-  get_endpoint(req, res, config.electrum_endpoint)
+app.get('/electrs/*', function(req,res) {
+  let path = req.path.replace('\/electrs','') 
+  get_endpoint(path, res, config.electrum_endpoint)
  });
  
- app.post('/electrum/*', function(req,res) {
-   post_endpoint(req, res, config.electrum_endpoint)
+ app.post('/electrs/*', function(req,res) {
+   let path = req.path.replace('\/electrs','') 
+   post_endpoint(path, req.body, res, config.electrum_endpoint)
  });
 
 app.get('/swap/*', function(req,res) {
-  get_endpoint(req, res, config.swap_conductor_endpoint)
+  get_endpoint(req.path, res, config.swap_conductor_endpoint)
  });
  
  app.post('/swap/*', function(req,res) {
-   post_endpoint(req, res, config.swap_conductor_endpoint)
+   post_endpoint(req.path, req.body, res, config.swap_conductor_endpoint)
  });
 
  app.get('*', function(req,res) {
-   get_endpoint(req, res, config.state_entity_endpoint)
+   get_endpoint(req.path, res, config.state_entity_endpoint)
 });
 
 app.post('*', function(req,res) {
-   post_endpoint(req, res, config.state_entity_endpoint)
+   post_endpoint(req.path, req.body, res, config.state_entity_endpoint)
 });
 
 async function on_exit(){
