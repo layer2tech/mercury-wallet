@@ -1053,6 +1053,7 @@ export class Wallet {
     shared_key_ids.forEach( (shared_key_id) => {
       this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
       this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
+      this.statecoins.setCoinWithdrawTxId(shared_key_id,tx_withdraw.getId())
     });
 
     this.saveStateCoinsList();
@@ -1060,13 +1061,7 @@ export class Wallet {
     // Broadcast transcation
     let withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
 
-    // Add txid to coin
-    shared_key_ids.forEach( (shared_key_id) => {
-      this.statecoins.setCoinWithdrawTxId(shared_key_id,withdraw_txid)
-    });
-
     log.info("Withdrawing finished.");
-    this.saveStateCoinsList();
 
     return withdraw_txid
   }
