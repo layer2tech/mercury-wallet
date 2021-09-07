@@ -4,6 +4,7 @@ import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
   MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, GET_ROUTE, decryptAES,
   encodeSCEAddress} from './';
+import { ElectrsClient } from './electrs'
 
 import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
@@ -54,7 +55,7 @@ export class Wallet {
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
-  electrum_client: ElectrumClient | MockElectrumClient;
+  electrum_client: ElectrumClient | ElectrsClient | MockElectrumClient;
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
@@ -72,11 +73,11 @@ export class Wallet {
     this.statecoins = new StateCoinList();
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
     this.activity = new ActivityLog();
-    this.electrum_client = this.newElectrumClient();
-
+    
     this.http_client = new HttpClient('http://localhost:3001', true);
     this.set_tor_endpoints();
     
+    this.electrum_client = this.newElectrumClient();
     
     this.block_height = 0;
     this.current_sce_addr = "";
@@ -85,9 +86,15 @@ export class Wallet {
   }
 
   set_tor_endpoints(){
+    let electr_ep=this.config.electrum_config.host;
+    let electr_port=this.config.electrum_config.port
+    if ( electr_port ) {
+      electr_ep=electr_ep+`:${electr_port}`
+    }
     let endpoints_config = {
       swap_conductor_endpoint: this.config.swap_conductor_endpoint,
       state_entity_endpoint: this.config.state_entity_endpoint,
+      electrum_endpoint: electr_ep,
     }
     let tor_ep_set = this.http_client.post('tor_endpoints', endpoints_config);
     console.log(`Set tor endpoints: ${tor_ep_set}}`);
@@ -235,7 +242,10 @@ export class Wallet {
   }
 
   newElectrumClient(){
-    return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
+    //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
+    if ( this.config.testing_mode == true ) return new MockElectrumClient()
+    if ( this.config.electrum_config.protocol == 'http' ) return new ElectrsClient('http://localhost:3001')
+    return new ElectrumClient(this.config.electrum_config)
   }
 
   // Initialise electum server:
@@ -243,9 +253,7 @@ export class Wallet {
   initElectrumClient(blockHeightCallBack: any) {
     this.electrum_client.connect().then(() => {
       // Continuously update block height
-      this.electrum_client.blockHeightSubscribe(blockHeightCallBack).then((item) => {
-        blockHeightCallBack([item])
-      });
+      this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
       // Check if any deposit_inits are awaiting funding txs and create listeners if so
       this.statecoins.getInitialisedCoins().forEach((statecoin) => {
         this.awaitFundingTx(
@@ -488,7 +496,9 @@ export class Wallet {
         }
         // in mempool - check if confirmed
         if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
+          console.log(`in mempool.`)
           let txid = this!.statecoins!.coins[i]!.tx_backup!.getId();
+          console.log(`txid: ${txid}`)
           if(txid != null) {
             this.electrum_client.getTransaction(txid).then((tx_data: any) => {
               if(tx_data.confirmations!==undefined && tx_data.confirmations > 2) {
@@ -700,7 +710,7 @@ export class Wallet {
   }
   // Query funding txs list unspent and mark coin IN_MEMPOOL or UNCONFIRMED
   async checkFundingTxListUnspent(shared_key_id: string, p_addr: string, p_addr_script: string, value: number) {
-    this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data) => {
+    this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data: Array<any>) => {
       for (let i=0; i<funding_tx_data.length; i++) {
         // Verify amount of tx. Ignore if mock electrum
         if (!this.config.testing_mode && funding_tx_data[i].value!==value) {
