@@ -536,14 +536,15 @@ const Coins = (props) => {
                         </b>
                       )
                       : (
-                      <div>
-                        {item.swap_status !== null ? (
-                          <div>
-                            <Spinner animation="border" variant="primary" size="sm"/>
-                            <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]}/>
-                          </div>
-                        ):(null)}
-                      </div>)}
+                        <div>
+                          {item.swap_status !== null && (
+                            <div>
+                              <Spinner animation="border" variant="primary" size="sm"/>
+                              <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]}/>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="coin-status-or-txid">
