@@ -396,7 +396,7 @@ p.short{
     width:175px;
   }
 
-  .coin-status-or-txid .swap-status-container.coinslist .tooltip.side{
+  .coin-status-or-txid .swap-status-container.coinslist .tooltip.side, .coin-status-or-txid .swap-status-container.coinslist .tooltip.main {
     right:160px;
     left: auto;
   }
