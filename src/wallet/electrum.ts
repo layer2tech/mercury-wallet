@@ -7,7 +7,7 @@ export const mutex = new Mutex();
 
 export interface ElectrumClientConfig {
   host: string,
-  port: number,
+  port: number | null,
   protocol: string
 }
 

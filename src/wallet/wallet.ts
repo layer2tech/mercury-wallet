@@ -91,7 +91,6 @@ export class Wallet {
     if ( electr_port ) {
       electr_ep=electr_ep+`:${electr_port}`
     }
-    console.log(`electrum url: ${electr_ep}`)
     let endpoints_config = {
       swap_conductor_endpoint: this.config.swap_conductor_endpoint,
       state_entity_endpoint: this.config.state_entity_endpoint,

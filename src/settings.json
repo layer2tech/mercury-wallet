@@ -13,6 +13,6 @@
   "electrum_config" : {
     "protocol": "http",
     "host": "https://explorer.blockstream.com/testnet/api",
-    "port": "" 
+    "port": null
   }
 }
