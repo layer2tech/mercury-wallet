@@ -73,6 +73,13 @@ const SWAP_STATUS_INFO = {
   Phase3: "Phase 3: awaiting transfers",
   Phase4: "Phase 4: completing swap",
 }
+const SWAP_TOOLTIP_TXT = {
+  Phase0: "Coin registered for swap group - awaiting execution",
+  Phase1: "Swap group executing. Awaiting blind swap token",
+  Phase2: "Generating new Tor circuit. Awaiting send address",
+  Phase3: "Completing statecoin transfer protocol",
+  Phase4: "Finalizing coin swap transfers",
+}
 
 const Coins = (props) => {
     const {selectedCoins, isMainPage, swap} = props;
@@ -533,7 +540,13 @@ const Coins = (props) => {
                         </b>
                       )
                       : (
-                      <div>
+                      <div className = "swap-status-container coinslist" >
+
+                        {item.swap_status !== "Init" ? 
+                        (<span className = {`tooltip ${document.querySelector(".home-page") ? ("main"):("side")}`}>
+                          <b>{item.swap_status}: </b>{ SWAP_TOOLTIP_TXT[item.swap_status]}
+                        </span>):(null)}
+
                         <Spinner animation="border" variant="primary" size="sm"/>
                         {item.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />):(null)}
                       </div>)}
@@ -612,6 +625,8 @@ const Coins = (props) => {
       // open the browser for both mainnet and testnet
       window.require("electron").shell.openExternal(finalUrl);
     }
+
+
 
     return (
         <div 
