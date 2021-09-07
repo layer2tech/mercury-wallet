@@ -45,6 +45,9 @@ class Config{
                 case "swap_conductor_endpoint":
                     this.swap_conductor_endpoint = item[1];
                     break;
+                case "electrum_endpoint":
+                    this.electrum_endpoint = item[1];
+                    break;
             }
         })
     };
@@ -57,6 +60,9 @@ class Config{
                     break;
                 case "swap_conductor_endpoint":
                     this.swap_conductor_endpoint = item[1];
+                    break;
+                case "electrum_endpoint":
+                    this.electrum_endpoint = item[1];
                     break;
             }
         })

@@ -52,13 +52,13 @@ export const reloadWallet = () => {
 async function pingElectrumRestart() {
   if(wallet){
     //If client already started
-  if (pingElectrum() === false) {
+  if (wallet.electrum_client.ping() === false) {
       log.info(`Failed to ping electum server. Restarting client`);
         wallet.electrum_client.close().catch( (err) => {
         log.info(`Failed to close electrum client: ${err}`)
       });
   } 
-  if (wallet.electrum_client.isClosed()){
+  if (await wallet.electrum_client.isClosed()){
     log.info(`Electrum connection closed - attempting to reopen`);
     mutex.runExclusive(async () => {
           wallet.electrum_client = wallet.newElectrumClient();
@@ -70,19 +70,6 @@ async function pingElectrumRestart() {
     });
     }
   }
-}
-
-async function pingElectrum() {
-  if(wallet){
-    //If client already started
-    if (wallet.electrum_client.isOpen()){
-      wallet.electrum_client.serverPing().catch((err) => {
-      return false;
-     });
-     return true;
-    }
-  }
-  return false;
 }
 
 // Keep electrum server connection alive.
@@ -103,7 +90,7 @@ setInterval(async function() {
 setInterval(async function() {
     if (wallet) {
       //Exit the loop if the server cannot be pinged
-      if (pingElectrum() === false) {
+      if (wallet.electrum_client.ping() === false) {
         log.info(`Failed to ping electum server`);
         return;
       }
@@ -144,7 +131,6 @@ export const walletLoad = (name, password) => {
 export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   log.info("Wallet "+name+" created.");
-  console.log(try_restore)
   if (testing_mode) log.info("Testing mode set.");
   mutex.runExclusive(async () => {
     await wallet.set_tor_endpoints();

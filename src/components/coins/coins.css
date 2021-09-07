@@ -36,6 +36,40 @@
   margin-bottom: 0px;
 }
 
+.coin-status-or-txid .swap-status-container.coinslist .tooltip{
+  visibility: hidden;
+  width: 350px;
+  background-color: #E0E0E0;
+  color: #000000;
+  text-align: center;
+  border-radius: 6px;
+  padding: 6px 12px;
+  position: absolute;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.coin-status-or-txid .swap-status-container.coinslist .tooltip.side{
+  top: 0px;
+  left:64px
+}
+.coin-status-or-txid .swap-status-container.coinslist .tooltip.main{
+  right:144px
+}
+
+.coin-status-or-txid .swap-status-container.coinslist .tooltip:after{
+  content: "";
+  position: fixed;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #E0E0E0 transparent transparent transparent;
+}
+.coin-status-or-txid .swap-status-container.coinslist:hover .tooltip{
+  visibility: visible;
+  opacity: 1;
+}
+
 .item.swap-status-container{
   flex-direction: column;
 }
@@ -69,10 +103,10 @@ p.short{
 
   .swap .new-tor-id,.sendStatecoin .new-tor-id,.withdraw .new-tor-id {
     display:none
-  }
-  
+  }  
   
 }
+
 @media(min-width:992px){
   .withdraw .CoinTimeLeft .expiry-title,.swap .CoinTimeLeft .expiry-title,.sendStatecoin .CoinTimeLeft .expiry-title{
     display:block;
@@ -362,6 +396,10 @@ p.short{
     width:175px;
   }
 
+  .coin-status-or-txid .swap-status-container.coinslist .tooltip.side, .coin-status-or-txid .swap-status-container.coinslist .tooltip.main {
+    right:160px;
+    left: auto;
+  }
 }
 
 .main-coin-wrap {

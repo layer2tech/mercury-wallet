@@ -10,12 +10,14 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 | ----------------------- | ------- | ----------------------------------------------------------------------- |
 | state_entity_endpoint   | string  | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion   |
 | swap_conductor_endpoint | string  | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion   |
-| electrum_config         | object  | { host: 'wallet.mercurywallet.io', port: 50004, protocol: 'wss'}        |
+| electrum_config         | object  | { host: 'https://explorer.blockstream.com/testnet/api', port: null, protocol: 'http'}        |
 | tor_proxy               | object  | { ip: 'localhost', port: 9060, controlPassword: '', controlPort: 9061 } |
 | min_anon_set            | number  | 5                                                                       |
 | notifications           | boolean | true                                                                    |
 | tutorials               | boolean | false                                                                   |
 | testing_mode            | boolean | false                                                                   |
+
+In electrum_config, the protocol options are 'http' or 'wss'. http routes the connection via TOR and the 'port' should normally be set to 'null'. 
 
 # Development instructions
 
