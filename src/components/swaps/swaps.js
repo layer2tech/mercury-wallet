@@ -4,6 +4,8 @@ import React, {useState, useEffect} from 'react';
 import { Spinner } from "react-bootstrap";
 import {fromSatoshi} from '../../wallet'
 
+import CountdownTimer from './CountdownTimer/CountdownTimer';
+
 import './swaps.css';
 import '../index.css';
 
@@ -22,6 +24,7 @@ const Swaps = (props) => {
             }
         }
     },[props.swapGroupsData, swapTime]);
+
 
     useEffect(()=> {
         if(swapTime!==""){
@@ -64,26 +67,6 @@ const Swaps = (props) => {
     //     // }
     // }
 
-    const digits = (number) => number<10 ? ("0"+number):(number)
-
-    const handleCountdownTimer = (countdown) => {
-        let hours=0;
-        let minutes=0;
-        let seconds=0;
-        if(countdown>=0){
-            hours = Math.floor(countdown/(60*60))
-            minutes = Math.floor((countdown-(hours*3600))/60)
-            seconds = countdown%60
-        }
-        else{
-            hours = 0
-            minutes = 0
-            seconds = 0
-        }
-        let countdownTime = `${digits(hours)}:${digits(minutes)}:${digits(seconds)}`
-        return countdownTime
-    }
-
     const utcTime = (swaptime) => {
         let utc = new Date(swaptime*1000).toISOString().slice(11,19);
         return utc      
@@ -109,20 +92,21 @@ const Swaps = (props) => {
 
     return (
         <div className="swap-coin">
-            <div className="swap-top">       
-                <span>Next swap start: </span>
+            <div className="swap-top"> 
+                <div className = "swap-title-item"><h5>Next Swap: </h5></div>
                 <div className={"clock"}>
-                    <span className={countdown<30? "red":(null)}>{countdown ? (`${handleCountdownTimer(countdown)} s`):(null)}</span>
+                    <CountdownTimer swapTime = {swapTime}/>
                 </div>
-            </div>
-            <div className="swap-mid">
-                <div className={"utc_clock"}>
+                <div className={"utc_clock swap-title-item"}>
                     <span className={countdown<30? "red":(null)}>{swapTime ? `(${utcTime(swapTime)} UTC)`:(null)}</span>
                 </div>
             </div>
+
+            
             {swapData.length!==0 ? (
                 <>
                     <div className="swap-table">
+                        <h6 className="sub">Pending swap groups...</h6>
                         <div className="swap-table-head">
                             <span>
                                 <img src={coin} alt="coin"/>
