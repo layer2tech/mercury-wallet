@@ -98,7 +98,6 @@ setInterval(async function() {
   });
 }, 30000);
 
-
 // update backuptx status and broadcast if necessary
 setInterval(async function() {
     if (wallet) {
