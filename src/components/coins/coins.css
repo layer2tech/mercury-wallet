@@ -103,10 +103,10 @@ p.short{
 
   .swap .new-tor-id,.sendStatecoin .new-tor-id,.withdraw .new-tor-id {
     display:none
-  }
-  
+  }  
   
 }
+
 @media(min-width:992px){
   .withdraw .CoinTimeLeft .expiry-title,.swap .CoinTimeLeft .expiry-title,.sendStatecoin .CoinTimeLeft .expiry-title{
     display:block;
@@ -396,6 +396,10 @@ p.short{
     width:175px;
   }
 
+  .coin-status-or-txid .swap-status-container.coinslist .tooltip.side, .coin-status-or-txid .swap-status-container.coinslist .tooltip.main {
+    right:160px;
+    left: auto;
+  }
 }
 
 .main-coin-wrap {
