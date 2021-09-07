@@ -27,7 +27,7 @@ const ReceiveStatecoinPage = () => {
 
   const [transfer_msg3, setTransferMsg3] = useState("");
   const [openTransferKey, setOpenTransferKey] = useState(false)
-  const [electrumServer, setElectrumServer] = useState(false)
+  const [electrumServer, setElectrumServer] = useState(true)
   const [transferLoading,setTransferLoading] = useState(false)
   const [transferKeyLoading,setTransferKeyLoading] = useState(false)
   const [counter,setCounter] = useState(0)
@@ -58,7 +58,7 @@ const ReceiveStatecoinPage = () => {
   },[counter])
 
   const checkElectrum = () => {
-    callPingElectrum().then((res) => {
+      callPingElectrum().then((res) => {
       if(res.height){
         setElectrumServer(true)
       }

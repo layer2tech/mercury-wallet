@@ -7,7 +7,7 @@ export const mutex = new Mutex();
 
 export interface ElectrumClientConfig {
   host: string,
-  port: number,
+  port: number | null,
   protocol: string
 }
 
@@ -98,6 +98,15 @@ export class ElectrumClient {
     return script_hash.match(/[a-fA-F0-9]{2}/g).reverse().join(''); // reverse
   }
 
+  async ping(): Promise<boolean> {
+    if (this.isOpen()){
+      await this.serverPing().catch((err) => {
+        return false;
+      });
+      return true;
+    }
+    return false;
+  }
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<number> {

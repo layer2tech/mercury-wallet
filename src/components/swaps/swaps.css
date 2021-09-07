@@ -150,20 +150,25 @@
 .swap-coin .swap-top {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;  
-  margin-bottom: 10px;
+
+  margin-bottom: 20px;
 }
 .swap-coin .swap-top svg {
   cursor: pointer;
 }
-.swap-coin .swap-mid {
+.swap-coin .swap-title-item {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 30px;
+  align-items: center;
 }
+
 .swap-coin .swap-mid svg {
   cursor: pointer;
 }
+
+.swap.content .right .swap-coin .sub{
+  margin-bottom:16px
+}
+
 .swap-coin .swap-table-head {
   display: flex;
   justify-content: space-between;
@@ -253,6 +258,7 @@
 .swap-coin .swap-table-body .swap-item-wrap div { 
   text-align: center;
 }
+
 .swap-footer-btns {
   margin-top: 20px;
   display: flex;
