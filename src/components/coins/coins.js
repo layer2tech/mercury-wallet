@@ -75,6 +75,7 @@ const SWAP_STATUS_INFO = {
 }
 
 const Coins = (props) => {
+    const [state, setState] = useState({});
     const {selectedCoins, isMainPage, swap} = props;
     const dispatch = useDispatch();
     const { filterBy } = useSelector(state => state.walletData);
@@ -258,7 +259,7 @@ const Coins = (props) => {
         })
       }
 
-      setInitCoins(undeposited_coins_data)
+      setInitCoins(undeposited_coins_data);
 
       // Update total_balance in Redux state
       if(filterBy !== 'default') {
@@ -275,9 +276,9 @@ const Coins = (props) => {
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
     useEffect(() => {
-
-      if (coins.unConfirmedCoins.length) {
+      //if (coins.unConfirmedCoins.length) {
         const interval = setInterval(() => {
+          setState({});
           let new_unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
@@ -296,6 +297,8 @@ const Coins = (props) => {
             coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.blocks,0)
               !==
             new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
+              || 
+            coins.unConfirmedCoins.length !== new_confirmed_coins_data.length
           ) {
             if(validCoinData(new_confirmed_coins_data, new_unconfirmed_coins_data)){
               setCoins({
@@ -306,7 +309,7 @@ const Coins = (props) => {
           }
         }, 10000);
         return () => clearInterval(interval);
-      }
+      //}
     }, [coins.unConfirmedCoins]);
 
     //Initialised Coin description for coin modal

@@ -366,7 +366,7 @@ export class Wallet {
   getNumSEAddress(): number { return this.account.chains[0].addresses.length }
 
   getUnspentStatecoins() {
-    return this.statecoins.getUnspentCoins(this.getBlockHeight())
+    return this.statecoins.getUnspentCoins(this.getBlockHeight());
   }
   // Each time we get unconfirmed coins call this to check for confirmations
   checkReceivedTxStatus(unconfirmed_coins: StateCoin[]) {
