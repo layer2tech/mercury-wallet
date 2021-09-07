@@ -6,6 +6,7 @@ const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
+const axios = require('axios').default;
 
 function getPlatform(){
   switch (process.platform) {
