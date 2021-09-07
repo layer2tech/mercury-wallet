@@ -314,7 +314,7 @@ const Coins = (props) => {
               })
             }
           }
-        }, 10000);
+        }, 5000);
         return () => clearInterval(interval);
       //}
     }, [coins.unConfirmedCoins]);
@@ -543,24 +543,17 @@ const Coins = (props) => {
                         </b>
                       )
                       : (
-                        <div>
-                          {item.swap_status !== null && (
-                            <div>
-                              <Spinner animation="border" variant="primary" size="sm"/>
-                              <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]}/>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <div className = "swap-status-container coinslist" >
-
+                        <div className = "swap-status-container coinslist" >
                         {item.swap_status !== "Init" ? 
                         (<span className = {`tooltip ${document.querySelector(".home-page") ? ("main"):("side")}`}>
                           <b>{item.swap_status}: </b>{ SWAP_TOOLTIP_TXT[item.swap_status]}
                         </span>):(null)}
-
-                        <Spinner animation="border" variant="primary" size="sm"/>
-                        {item.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />):(null)}
+                        {item.swap_status !== null && (
+                          <div>
+                          <Spinner animation="border" variant="primary" size="sm"/>
+                          <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />
+                          </div>
+                        )}
                       </div>)}
                     </div>
                   ) : (
