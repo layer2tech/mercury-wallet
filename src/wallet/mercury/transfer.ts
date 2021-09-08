@@ -2,6 +2,7 @@
 
 import { BIP32Interface, Network, Transaction, script } from "bitcoinjs-lib";
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof, pubKeyTobtcAddr } from "..";
+import { ElectrsClient } from "../electrs"
 import { FEE } from "../util";
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
@@ -133,7 +134,7 @@ export const transferSender = async (
 
 export const transferReceiver = async (
   http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient |  MockElectrumClient, 
+  electrum_client: ElectrumClient | ElectrsClient | MockElectrumClient, 
   network: Network,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
