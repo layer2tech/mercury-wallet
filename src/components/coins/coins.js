@@ -11,6 +11,7 @@ import calendar from "../../images/calendar.png";
 import swapNumber from "../../images/swap-number.png";
 import walleticon from "../../images/walletIcon.png";
 import txidIcon from "../../images/txid-icon.png";
+import scAddrIcon from "../../images/sc_address_logo.png";
 import timeIcon from "../../images/time.png";
 import copy_img from "../../images/icon2.png";
 import descripIcon from "../../images/description.png";
@@ -538,7 +539,7 @@ const Coins = (props) => {
                       {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
                       (
                         <b className="CoinFundingTxid">
-                            <img src={txidIcon} alt="icon"/>
+                            <img src={scAddrIcon} className = "sc-address-icon" alt="icon"/>
                             {item.sc_address}
                         </b>
                       )
@@ -559,7 +560,7 @@ const Coins = (props) => {
                   ) : (
                     <div className="coin-status-or-txid">
                       <b className="CoinFundingTxid">
-                        <img src={txidIcon} alt="icon"/>
+                        <img src={scAddrIcon} className = "sc-address-icon" alt="icon"/>
                         {item.sc_address}
                       </b>
                     </div>
@@ -650,7 +651,7 @@ const Coins = (props) => {
           <Modal.Body>
             <div>
               <div className="item">
-                <img src={walleticon} alt="icon" />
+                <img src={walleticon} className = "btc-icon" alt="icon" />
                 <div className="block">
                   <span>Statecoin Value</span>
                   <span>
@@ -679,7 +680,7 @@ const Coins = (props) => {
                 <div>
 
                   <div className='item'>
-                    <img src={utx} alt="icon" />
+                    <img src={scAddrIcon} className = "sc-address-icon" alt="icon" />
                     <div className="block">
                       <span>Statecoin Address</span>
                       {

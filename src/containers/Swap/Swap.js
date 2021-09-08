@@ -123,7 +123,8 @@ const SwapPage = () => {
               statecoin = selectedCoin;
             }
             if (res.payload===null) {
-              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
+              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
+              setSwapLoad({...swapLoad, join: false, swapCoin:""});
               return
             }
             if (res.error===undefined) {
