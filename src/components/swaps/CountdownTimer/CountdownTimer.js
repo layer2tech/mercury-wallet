@@ -81,7 +81,7 @@ const CountdownTimer = (props) => {
         now.s1 = now.s[1]
 
         remainingPathColor(countdown)
-        if (countdown<0 && countdown > -16E8){
+        if (countdown<0 && countdown > - 20){
           //16E8 ensures that while loading props.swapTime, swap doesnt appear Live
           return "SWAPS LIVE!!"
         }
@@ -120,15 +120,15 @@ const CountdownTimer = (props) => {
       }
       
 
-      if(timeLeft <= warning.threshold && timeLeft > - 16E8){
+      if(timeLeft <= warning.threshold && timeLeft > - 20){
         setColour("orange")
       }
 
-      if(timeLeft <= alert.threshold && timeLeft > - 16E8){
+      if(timeLeft <= alert.threshold && timeLeft > - 20){
         setColour("red")
       }
 
-      if(timeLeft <= finish.threshold && timeLeft > - 16E8){
+      if(timeLeft <= finish.threshold && timeLeft > - 20){
         setColour("blue")
       }
 
