@@ -456,7 +456,10 @@ p.short{
 }
 
 .lower > div:first-child >div:first-child{
-  margin-top: 40px;
+  margin-top: 30px;
+}
+.coin-details-modal> div:first-child >div:first-child{
+  margin-top: 10px;
 }
 
 .modal-body .item img.sc-address-icon{

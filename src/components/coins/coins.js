@@ -647,7 +647,7 @@ const Coins = (props) => {
         <Modal
           show={showCoinDetails.show}
           onHide={handleCloseCoinDetails}
-          className = {(filterBy === STATECOIN_STATUS.WITHDRAWN) || (showCoinDetails?.coin?.sc_address!= undefined) ? "modal coin-details-modal lower": "modal coin-details-modal"}
+          className = {(filterBy === STATECOIN_STATUS.WITHDRAWN) || (showCoinDetails?.coin?.swap_status !== null) ? "modal coin-details-modal lower": "modal coin-details-modal"}
         >
           <Modal.Body >
             <div>
