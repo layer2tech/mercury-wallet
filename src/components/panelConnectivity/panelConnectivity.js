@@ -13,7 +13,7 @@ import '../index.css';
 const PanelConnectivity = (props) => {
   // Arrow down state and url hover state
   const [state, setState] = useState({isToggleOn: false,
-    isServerHover:false, isSwapsHover:false});
+    isServerHover:false, isSwapsHover:false, isBTCHover: false});
 
   const toggleContent = (event) => {
       setState({isToggleOn: !state.isToggleOn})
@@ -26,6 +26,9 @@ const PanelConnectivity = (props) => {
       }
       if(hostCheck.includes("swaps")){
         setState({...state,isSwapsHover:!state.isSwapsHover})
+      }
+      if(hostCheck.includes("btc")){
+        setState({...state,isBTCHover:!state.isBTCHover})
       }
   }
 
@@ -157,7 +160,15 @@ const PanelConnectivity = (props) => {
                 </div>
                 <div className="collapse-content-item">
                     <span>Block height: {block_height}</span>
-                    <span className="host">Host: {current_config.electrum_config.host}</span>
+                    <span className="host btc" onMouseEnter={toggleURL} onMouseLeave={toggleURL}>
+                        Host: 
+                        {state.isBTCHover ? 
+                        (
+                            <span className = {state.isBTCHover ? "url-hover btc" : "url-hide btc"}>
+                                {current_config.electrum_config.host}
+                            </span>
+                        ):(`${shortenURLs(current_config.electrum_config.host)}`)}
+                    </span>
                     <span>Port: {current_config.electrum_config.port}</span>
                     <span>Protocol: {current_config.electrum_config.protocol}</span>
                 </div>

@@ -47,6 +47,10 @@ input {
     margin: 0 0 0 44px;
 }
 
+.swap.content .btn .loading#loading {
+    font-size: 14px;
+}
+
 .swap-header h2 {
     font-weight: 500;
     font-size: 34px;
