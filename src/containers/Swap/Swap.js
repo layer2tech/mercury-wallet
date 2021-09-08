@@ -140,7 +140,7 @@ const SwapPage = () => {
   }
 
   const handleAutoSwap =  (item) => {
-    if(item.status === 'UNCONFIRMED'){
+    if(item.status === 'UNCONFIRMED' || item.status === 'IN_MEMPOOL'){
       return;
     }
 
