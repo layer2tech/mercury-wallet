@@ -140,6 +140,10 @@ const SwapPage = () => {
   }
 
   const handleAutoSwap =  (item) => {
+    if(item.status === 'UNCONFIRMED'){
+      return;
+    }
+
     let statecoin = callGetStateCoin(item.shared_key_id);
     // get the statecoin and set auto to true - then call auto_swap
     let selectedCoin = item.shared_key_id;

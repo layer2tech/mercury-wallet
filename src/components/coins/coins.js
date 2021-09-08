@@ -548,10 +548,11 @@ const Coins = (props) => {
                         (<span className = {`tooltip ${document.querySelector(".home-page") ? ("main"):("side")}`}>
                           <b>{item.swap_status}: </b>{ SWAP_TOOLTIP_TXT[item.swap_status]}
                         </span>):(null)}
+                        {item.swap_status == null && <CoinStatus data={item}/>}
                         {item.swap_status !== null && (
                           <div>
-                          <Spinner animation="border" variant="primary" size="sm"/>
-                          <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />
+                            <Spinner animation="border" variant="primary" size="sm"/>
+                            <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />
                           </div>
                         )}
                       </div>)}
