@@ -297,7 +297,6 @@ const SwapPage = () => {
                 </div>
                 <div className="wallet-container right">
                     <div>
-                        <span className="sub">Pending swap groups</span>
                         <Swaps
                           swapGroupsData = {swapGroupsData}
                           displayDetailsOnClick = {false}
