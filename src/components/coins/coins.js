@@ -649,9 +649,9 @@ const Coins = (props) => {
         <Modal
           show={showCoinDetails.show}
           onHide={handleCloseCoinDetails}
-          className="modal coin-details-modal"
+          className = {(filterBy === STATECOIN_STATUS.WITHDRAWN) || (showCoinDetails?.coin?.swap_status !== null) ? "modal coin-details-modal lower": "modal coin-details-modal"}
         >
-          <Modal.Body>
+          <Modal.Body >
             <div>
               <div className="item">
                 <img src={walleticon} className = "btc-icon" alt="icon" />

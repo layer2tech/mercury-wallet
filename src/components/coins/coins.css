@@ -455,6 +455,13 @@ p.short{
   padding: 30px 20px 20px 20px;
 }
 
+div.lower.coin-details-modal > div:first-child >div:first-child{
+  margin-top: 40px;
+}
+.coin-details-modal> div:first-child >div:first-child{
+  margin-top: 10px;
+}
+
 .modal-body .item img.sc-address-icon{
   height: 29px;
   width: 29px;
