@@ -42,7 +42,7 @@ export class Config {
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
-      host: 'https://explorer.blockstream.com/testnet/api',
+      host: 'https://explorer.blockstream.com/api',
       protocol: 'http',
       port: null,
     }

@@ -498,7 +498,7 @@ const Coins = (props) => {
                               Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
                               <span className="tooltip">
                                   <b>Important: </b>
-                                    The funds are not lost. This particular statecoin will no longer be able to swap after expiry.
+                                    Statecoin must be withdrawn before expiry.
                               </span>
                             </div>
                         </div>
