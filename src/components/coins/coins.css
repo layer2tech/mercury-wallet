@@ -455,6 +455,10 @@ p.short{
   padding: 30px 20px 20px 20px;
 }
 
+.lower > div:first-child >div:first-child{
+  margin-top: 40px;
+}
+
 .modal-body .item img.sc-address-icon{
   height: 29px;
   width: 29px;
