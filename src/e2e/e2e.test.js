@@ -32,10 +32,10 @@ test.meta('name','restoreSeed')
     await t
         .typeText(restore_form.child(0),'clinic shrug sock pumpkin cotton useful wise word solid enlist fix that')
         .typeText(restore_form.child(1),'test_restore_seed_wallet')
-        .typeText(restore_form.child(3),'password')
-        .typeText(restore_form.child(5),'password')
+        .typeText(restore_form.child(4).child(0),'password')
+        .typeText(restore_form.child(6).child(0),'password')
         .click(restore_form.child('.checkbox'))
-        .click(restore_form.child('.footer-step-btns').child(1));
+        .click(restore_form.child('.footer-step-btns').child(1))
 });
 
 test.meta('name','restoreMemory')
