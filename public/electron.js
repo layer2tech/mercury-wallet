@@ -6,6 +6,7 @@ const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
+const axios = require('axios').default;
 
 function getPlatform(){
   switch (process.platform) {
@@ -94,6 +95,22 @@ function createWindow() {
     await kill_tor();
     mainWindow = null;
   });
+
+  async function pingTorAdapter() {
+    const url = 'http://localhost:3001/ping'
+    const config = {
+      method: 'get',
+      url: url,
+      headers: { 'Accept': 'application/json' }
+    };
+    await axios(config)
+  }
+
+  setInterval(async function() {
+    await pingTorAdapter().catch((err) => {
+      log.info(`Failed to ping tor adapter: ${err}`);
+    });
+  }, 5000);
 }
 
 app.on('ready', createWindow);
