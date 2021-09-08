@@ -2,6 +2,11 @@
 
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "./electrum";
+const remote = window.require('electron').remote;
+
+//window.electron.ipcRenderer.on('settings', function(event, store){
+//  console.log(`coins received settings ${store}`)
+//});
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -59,6 +64,7 @@ export class Config {
     this.swaplimit = 1440;
 
     // update defaults with config in settings.json
+    //const settings = remote.getGlobal('sharedObject').settings
     this.update(require("../settings.json"))
   }
 

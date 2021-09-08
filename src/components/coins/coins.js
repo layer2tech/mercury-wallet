@@ -46,7 +46,13 @@ import '../index.css';
 import CoinDescription from "../inputs/CoinDescription/CoinDescription";
 import close_img from "../../images/close-icon.png";
 import './DeleteCoin/DeleteCoin.css'
+const remote = window.require('electron').remote
 
+window.electron.ipcRenderer.on('settings', function(event, store){
+  console.log(`coins received settings ${store}`)
+});
+
+//const settings = remote.getGlobal('sharedObject').settings
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 

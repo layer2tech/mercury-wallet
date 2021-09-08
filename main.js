@@ -1,6 +1,9 @@
 const electron = require('electron');
 const path = require('path');
 const url = require('url');
+const { join, dirname } = require('path');
+const joinPath = join;
+const rootPath = require('electron-root-path').rootPath;
 
 
 // Module to control application life.
@@ -13,6 +16,15 @@ const { BrowserWindow } = electron;
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
+// Create a global reference to the command line arguments
+let sets = app.commandLine.getSwitchValue("settings")
+if (sets.length == 0) {
+  sets = 'settings.json'
+} 
+sets = joinPath(dirname(rootPath), sets)
+global.sharedObject = { settings: sets };
+export default global;
+
 function createWindow() {  
     // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -20,11 +32,14 @@ function createWindow() {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      backgroundThrottling: false
+      backgroundThrottling: false,
+      enableRemoteModule: true,
     }
   });
     // Open the DevTools.
    mainWindow.webContents.openDevTools()
+
+   mainWindow.webContents.send('settings', sets)
 
   // and load the index.html of the app.
   mainWindow.loadURL(

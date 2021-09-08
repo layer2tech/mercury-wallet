@@ -7,6 +7,11 @@ import { FEE } from "../util";
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
+const remote = window.require('electron').remote;
+
+//window.electron.ipcRenderer.on('settings', function(event, store){
+//  console.log(`coins received settings ${store}`)
+//});
 
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require('lodash.clonedeep');
@@ -18,6 +23,7 @@ let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
 const n = secp256k1.curve.n
 
+//const settings="../../settings.json"//remote.getGlobal('sharedObject').settings
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
 // transfer() messages:

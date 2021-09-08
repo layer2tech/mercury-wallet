@@ -2,8 +2,16 @@ import React, { useState } from 'react';
 import { withRouter } from "react-router-dom";
 import {useDispatch} from 'react-redux'
 import {setError, walletFromMnemonic, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice'
-
 import './confirmSeed.css'
+const remote = window.require('electron').remote
+
+window.electron.ipcRenderer.on('settings', function(event, store){
+  console.log(`coins received settings ${store}`)
+});
+
+//const settings = remote.getGlobal('sharedObject').settings
+
+const TESTING_MODE = require("../../settings.json").testing_mode;
 
 const ConfirmSeed = (props) => {
   const dispatch = useDispatch();
@@ -17,7 +25,7 @@ const ConfirmSeed = (props) => {
     return arr;
   }
 
-  const [rands] = useState(() => !require("../../settings.json").testing_mode ?
+  const [rands] = useState(() => !TESTING_MODE ?
     generateUniqueSeedArr() : []
   );
 

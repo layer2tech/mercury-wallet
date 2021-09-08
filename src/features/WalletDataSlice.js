@@ -8,6 +8,13 @@ import {decodeMessage} from '../wallet/util'
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
+const remote = window.require('electron').remote;
+
+//const settings = "../settings.json"//remote.getGlobal('sharedObject').settings
+
+window.electron.ipcRenderer.on('settings', function(event, store){
+  console.log(`coins received settings ${store}`)
+});
 
 // eslint-disable-next-line
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
