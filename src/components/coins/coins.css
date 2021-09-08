@@ -439,6 +439,11 @@ p.short{
   width: max-content;
 }
 
+.coin-status-or-txid .sc-address-icon{
+  height: 16px;
+  width:16px
+}
+
 .sort-filter{
   height:30px;
 }
@@ -449,6 +454,12 @@ p.short{
 .coin-details-modal .modal-body {
   padding: 30px 20px 20px 20px;
 }
+
+.modal-body .item img.sc-address-icon{
+  height: 29px;
+  width: 29px;
+}
+
 .coin-details-modal .modal-body .item.expiry-time {
   flex-direction: column;
 }
