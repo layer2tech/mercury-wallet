@@ -241,7 +241,7 @@ class TorClient {
     }
 
     async post(path, body, endpoint) {
-        let url = endpoint + "/" + path.replace(/^\/+/, '');;
+        let url = endpoint + "/" + path.replace(/^\/+/, '');
         const rp_options = {
             method: 'POST',
             url: url,
@@ -255,6 +255,23 @@ class TorClient {
             },
             body: body,
             json: true,
+        };
+
+        let result = await rp(rp_options);
+        return result;
+    }
+
+    async post_plain(path, body, endpoint) {
+        let url = endpoint + "/" + path.replace(/^\/+/, '');
+        const rp_options = {
+            method: 'POST',
+            url: url,
+            agent: this.proxyConfig.agent,
+            headers: {
+              'Content-Type': 'text/plain',
+            },
+	        body: body,
+            json: false,
         };
 
         let result = await rp(rp_options);
