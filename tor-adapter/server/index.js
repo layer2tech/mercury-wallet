@@ -42,6 +42,19 @@ if(config.tor_proxy.ip === 'mock'){
 
 tor.startTorNode(tor_cmd, torrc);
 
+function close_timeout(t_secs=10) {
+  return setTimeout(function () {
+    on_exit()
+  }, t_secs*1000)
+}
+
+function restart_close_timeout(timeout) {
+  clearTimeout(timeout)
+  return close_timeout()
+}
+
+let timeout = close_timeout(30)
+
 async function get_endpoint(path, res, endpoint){
   try{
     let result = await tor.get(path,undefined, endpoint);
@@ -64,6 +77,7 @@ async function post_endpoint(path, body, res, endpoint) {
 
 app.get('/newid', async function(req,res) {
   try{
+    timeout = restart_close_timeout(timeout)
     console.log("getting new tor id...")
     let response=await tor.confirmNewTorConnection();
     console.log(`got new tor id: ${JSON.stringify(response)}`)
@@ -82,6 +96,7 @@ app.get('/', async function(req,res) {
     electrum_endpoint: config.electrum_endpoint
   };
   try{
+    timeout = restart_close_timeout(timeout)
     let response=await tor.confirmNewTorConnection();
     console.log(response);
     res.status(200).json(response);
@@ -91,8 +106,14 @@ app.get('/', async function(req,res) {
 });
 
 
+app.get('/ping', async function(req,res) {
+  timeout = restart_close_timeout(timeout)
+  res.status(200).json({});
+});
+
 app.post('/tor_settings', async function(req,res) {
   try {
+    timeout = restart_close_timeout(timeout)
     config.update(req.body);
 
    await tor.stopTorNode();
@@ -125,6 +146,7 @@ app.get('/tor_settings', function(req,res) {
 
 app.post('/tor_endpoints', function(req,res) {
   try {
+    timeout = restart_close_timeout(timeout)
     console.log(`setting endpoints: ${JSON.stringify(req.body)}`)
     config.update_endpoints(req.body);
     let response = {
@@ -140,7 +162,7 @@ app.post('/tor_endpoints', function(req,res) {
 });
 
 app.get('/tor_endpoints', function(req,res) {
-
+  timeout = restart_close_timeout(timeout)
  let response = {
     state_entity_endpoint: config.state_entity_endpoint,
     swap_conductor_endpoint: config.swap_conductor_endpoint,
@@ -179,18 +201,22 @@ app.get('/electrs/*', function(req,res) {
  });
 
 app.get('/swap/*', function(req,res) {
+  timeout = restart_close_timeout(timeout)
   get_endpoint(req.path, res, config.swap_conductor_endpoint)
  });
  
  app.post('/swap/*', function(req,res) {
+  timeout = restart_close_timeout(timeout)
    post_endpoint(req.path, req.body, res, config.swap_conductor_endpoint)
  });
 
  app.get('*', function(req,res) {
+  timeout = restart_close_timeout(timeout)
    get_endpoint(req.path, res, config.state_entity_endpoint)
 });
 
 app.post('*', function(req,res) {
+  timeout = restart_close_timeout(timeout)
    post_endpoint(req.path, req.body, res, config.state_entity_endpoint)
 });
 

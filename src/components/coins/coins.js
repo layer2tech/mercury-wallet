@@ -11,6 +11,7 @@ import calendar from "../../images/calendar.png";
 import swapNumber from "../../images/swap-number.png";
 import walleticon from "../../images/walletIcon.png";
 import txidIcon from "../../images/txid-icon.png";
+import scAddrIcon from "../../images/sc_address_logo.png";
 import timeIcon from "../../images/time.png";
 import copy_img from "../../images/icon2.png";
 import descripIcon from "../../images/description.png";
@@ -497,7 +498,7 @@ const Coins = (props) => {
                               Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
                               <span className="tooltip">
                                   <b>Important: </b>
-                                    The funds are not lost. This particular statecoin will no longer be able to swap after expiry.
+                                    Statecoin must be withdrawn before expiry.
                               </span>
                             </div>
                         </div>
@@ -538,28 +539,31 @@ const Coins = (props) => {
                       {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
                       (
                         <b className="CoinFundingTxid">
-                            <img src={txidIcon} alt="icon"/>
+                            <img src={scAddrIcon} className = "sc-address-icon" alt="icon"/>
                             {item.sc_address}
                         </b>
                       )
                       : (
+                      <div>
+                        {item.swap_status == null && <CoinStatus data={item}/>}
                         <div className = "swap-status-container coinslist" >
-                        {item.swap_status !== "Init" ? 
-                        (<span className = {`tooltip ${document.querySelector(".home-page") ? ("main"):("side")}`}>
-                          <b>{item.swap_status}: </b>{ SWAP_TOOLTIP_TXT[item.swap_status]}
-                        </span>):(null)}
-                        {item.swap_status !== null && (
-                          <div>
-                          <Spinner animation="border" variant="primary" size="sm"/>
-                          <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />
-                          </div>
-                        )}
+                          {item.swap_status !== "Init" ? 
+                          (<span className = {`tooltip ${document.querySelector(".home-page") ? ("main"):("side")}`}>
+                            <b>{item.swap_status}: </b>{ SWAP_TOOLTIP_TXT[item.swap_status]}
+                          </span>):(null)}
+                          {item.swap_status !== null && (
+                            <div>
+                              <Spinner animation="border" variant="primary" size="sm"/>
+                              <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />
+                            </div>
+                          )}
+                        </div>
                       </div>)}
                     </div>
                   ) : (
                     <div className="coin-status-or-txid">
                       <b className="CoinFundingTxid">
-                        <img src={txidIcon} alt="icon"/>
+                        <img src={scAddrIcon} className = "sc-address-icon" alt="icon"/>
                         {item.sc_address}
                       </b>
                     </div>
@@ -645,12 +649,12 @@ const Coins = (props) => {
         <Modal
           show={showCoinDetails.show}
           onHide={handleCloseCoinDetails}
-          className="modal coin-details-modal"
+          className = {(filterBy === STATECOIN_STATUS.WITHDRAWN) || (showCoinDetails?.coin?.swap_status !== null) ? "modal coin-details-modal lower": "modal coin-details-modal"}
         >
-          <Modal.Body>
+          <Modal.Body >
             <div>
               <div className="item">
-                <img src={walleticon} alt="icon" />
+                <img src={walleticon} className = "btc-icon" alt="icon" />
                 <div className="block">
                   <span>Statecoin Value</span>
                   <span>
@@ -679,7 +683,7 @@ const Coins = (props) => {
                 <div>
 
                   <div className='item'>
-                    <img src={utx} alt="icon" />
+                    <img src={scAddrIcon} className = "sc-address-icon" alt="icon" />
                     <div className="block">
                       <span>Statecoin Address</span>
                       {

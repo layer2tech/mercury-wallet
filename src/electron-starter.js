@@ -9,6 +9,7 @@ const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
 const ipc = require('electron').ipcMain;
 const execFile = require('child_process').execFile;
+const axios = require('axios').default;
 
 function getPlatform(){
   switch (process.platform) {
@@ -88,6 +89,23 @@ function createWindow() {
         // when you should delete the corresponding element.
         mainWindow = null
     })
+
+  async function pingTorAdapter() {
+      const url = 'http://localhost:3001/ping'
+      const config = {
+        method: 'get',
+        url: url,
+        headers: { 'Accept': 'application/json' }
+      };
+      await axios(config)
+  }
+
+  setInterval(async function() {
+    await pingTorAdapter().catch((err) => {
+      log.info(`Failed to ping tor adapter: ${err}`);
+    });
+  }, 5000);
+
 }
 
 
