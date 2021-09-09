@@ -75,6 +75,16 @@ async function post_endpoint(path, body, res, endpoint) {
   }
 };
 
+async function post_plain_endpoint(path, data, res, endpoint) {
+  try{
+    let result = await tor.post_plain(path,data, endpoint);
+    res.status(200).json(result);
+  } catch (err) {
+    let statusCode = err.stateCode == undefined ? 400 : err.statusCode;
+    res.status(statusCode).json(err);
+  }
+};
+
 app.get('/newid', async function(req,res) {
   try{
     timeout = restart_close_timeout(timeout)
@@ -197,7 +207,9 @@ app.get('/electrs/*', function(req,res) {
  
  app.post('/electrs/*', function(req,res) {
    let path = req.path.replace('\/electrs','') 
-   post_endpoint(path, req.body, res, config.electrum_endpoint)
+   let body = req.body
+   let data = body.data
+   post_plain_endpoint(path, data, res, config.electrum_endpoint)
  });
 
 app.get('/swap/*', function(req,res) {

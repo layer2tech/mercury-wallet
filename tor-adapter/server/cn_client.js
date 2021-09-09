@@ -81,6 +81,28 @@ class CNClient {
           }
     }
 
+    async post_plain (path, body, endpoint) {
+        try {
+            let url = endpoint + "/" + path.replace(/^\/+/, '');;
+            const config = {
+                method: 'POST',
+                url: url,
+                headers: {
+                  'Content-Type': 'text/plain',
+                  'Accept': 'application/json'
+                },
+                data: body,
+            };
+            let res = await axios(config)
+            let return_data = res.data
+      
+            return return_data
+      
+          } catch (err) {
+            throw err;
+          }
+    }
+
 }
 
 module.exports = CNClient;
