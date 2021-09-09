@@ -275,7 +275,7 @@ const SwapPage = () => {
                       </svg>
                         Swap Statecoins
                     </h2>
-                    <h3 className="subtitle">Swap statecoins to increase their anonymity set</h3>
+                    <h3 className="subtitle">Swap statecoins to increase their anonymity</h3>
                   </div>
                   <Link className="nav-link" to="/home">
                       <StdButton
