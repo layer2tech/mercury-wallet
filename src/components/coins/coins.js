@@ -33,6 +33,7 @@ import {
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, 
   setError,
   callAddDescription,
+  callGetConfig,
   callGetStateCoin} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -47,6 +48,7 @@ import '../index.css';
 import CoinDescription from "../inputs/CoinDescription/CoinDescription";
 import close_img from "../../images/close-icon.png";
 import './DeleteCoin/DeleteCoin.css'
+import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
@@ -103,6 +105,13 @@ const Coins = (props) => {
     const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
 
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
+
+    let current_config;
+    try {
+      current_config = callGetConfig();
+    } catch {
+      current_config = defaultWalletConfig()
+    }
 
     const handleOpenCoinDetails = (shared_key_id) => {
       let coin = all_coins_data.find((coin) => {
@@ -618,13 +627,14 @@ const Coins = (props) => {
     // called when clicking on TXid link in modal window
     const onClickTXID = txId => {
       const NETWORK = require("../../settings.json").network;
+      const block_explorer_endpoint  = current_config.block_explorer_endpoint;
       let finalUrl = '';
       switch(NETWORK){
         case 'mainnet':
-          finalUrl = 'https://blockstream.info/tx/'  + txId;
+          finalUrl = block_explorer_endpoint + '/tx/'  + txId;
           break;
         case 'testnet':
-          finalUrl = 'https://blockstream.info/testnet/tx/'  + txId;
+          finalUrl = block_explorer_endpoint + '/testnet/tx/'  + txId;
           break;
         // do nothing for regtest and anything else then exit method
         case 'regtest':
