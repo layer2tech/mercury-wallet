@@ -1069,8 +1069,27 @@ export class Wallet {
     this.saveStateCoinsList();
 
     // Broadcast transcation
-    let withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
-
+    let withdraw_txid: string = ""
+    let nTries=0;
+    let maxNTries=10
+    while (true){
+      try {
+        withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
+      } catch (error) {
+        nTries=nTries+1
+        if (nTries < maxNTries) {
+          log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          continue
+        } else {
+          let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`
+          log.info(errMsg)
+          throw new Error(errMsg)
+        }
+      }
+      break
+    }
+    
     log.info("Withdrawing finished.");
 
     return withdraw_txid
