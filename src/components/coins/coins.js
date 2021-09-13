@@ -627,7 +627,7 @@ const Coins = (props) => {
     // called when clicking on TXid link in modal window
     const onClickTXID = txId => {
       const NETWORK = require("../../settings.json").network;
-      const block_explorer_endpoint  = current_config.block_explorer_endpoint;
+      let block_explorer_endpoint  = current_config.block_explorer_endpoint;
 
       // ensure there is https
       if (block_explorer_endpoint.substring(0, 8) !== 'https://'){
