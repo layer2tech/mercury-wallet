@@ -628,6 +628,12 @@ const Coins = (props) => {
     const onClickTXID = txId => {
       const NETWORK = require("../../settings.json").network;
       const block_explorer_endpoint  = current_config.block_explorer_endpoint;
+
+      // ensure there is https
+      if (block_explorer_endpoint.substring(0, 8) !== 'https://'){
+        block_explorer_endpoint = 'https://' + block_explorer_endpoint;
+      }
+
       let finalUrl = '';
       switch(NETWORK){
         case 'mainnet':
