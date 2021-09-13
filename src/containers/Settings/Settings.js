@@ -58,7 +58,7 @@ const SettingsPage = (props) => {
   const onBlockExpChange = (evt) => {
     let url = evt.target.value;
     // ensure that https:// is added if it doesn't already exist
-    if (url.substring(0, 8) !== 'https://' || url.substring(0,7) !== 'http://'){
+    if (url.substring(0, 8) !== 'https://'){
       url = 'https://' + url;
     }
     setBlockExplorer(url);
