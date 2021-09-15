@@ -1,7 +1,7 @@
 {
   "min_anon_set": 3,
-  "state_entity_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
-  "swap_conductor_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  "state_entity_endpoint": "http://0.0.0.0:18000",
+  "swap_conductor_endpoint": "http://0.0.0.0:18000",
   "network": "testnet",
   "testing_mode": false,
   "required_confirmations": 0,
@@ -11,8 +11,8 @@
                 "controlPort": 9061
               },
   "electrum_config" : {
-    "protocol": "http",
-    "host": "https://explorer.blockstream.com/testnet/api",
-    "port": null
+    "protocol": "ssl",
+    "host": "localhost",
+    "port": "50002"
   }
 }

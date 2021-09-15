@@ -1,3 +1,4 @@
+var ElectrumClient = require('./electrum');
 var TorClient = require('./tor_client');
 var CNClient = require('./cn_client');
 var bodyParser = require('body-parser');
@@ -20,6 +21,29 @@ if (process.argv.length > 6) {
 console.log(`tor cmd: ${tor_cmd}`);
 console.log(`torrc: ${torrc}`);
 
+export const GET_ROUTE = {
+  PING: "/electrs/ping",
+  //latestBlockHeader "/Electrs/block/:hash/header",
+  BLOCK: "/electrs/block",
+  BLOCKS_TIP_HASH: "/electrs/blocks/tip/hash",
+  HEADER: "header",
+  BLOCKS_TIP_HEIGHT: "/electrs/blocks/tip/height",
+  //getTransaction /tx/:txid
+  TX: "/electrs/tx",
+  //getScriptHashListUnspent /scripthash/:hash/utxo
+  SCRIPTHASH: "/electrs/scripthash",
+  UTXO: "utxo",
+  //getFeeHistogram
+  FEE_ESTIMATES: "/electrs/fee-estimates",
+};
+Object.freeze(GET_ROUTE);
+
+export const POST_ROUTE = {
+  //broadcast transaction
+  TX: "/electrs/tx",
+};
+Object.freeze(POST_ROUTE);
+
 const PORT = 3001;
 
 const app = express();
@@ -39,6 +63,20 @@ if(config.tor_proxy.ip === 'mock'){
   tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, dataDir, geoIpFile, geoIpV6File);
 }
 
+
+//let epsConfig = { protocol: "tcp", host: "127.0.0.1", port: "50002" }
+let epsConfig = { protocol: "ssl", host: "127.0.0.1", port: "50002" }
+//Electrum personal server client
+let epsClient = new ElectrumClient(epsConfig)
+
+async function epsTest() {
+  await epsClient.connect()
+  await epsClient.ping()
+  let head = await epsClient.latestBlockHeader()
+  console.log(head)
+}
+
+epsTest()
 
 tor.startTorNode(tor_cmd, torrc);
 
@@ -193,6 +231,68 @@ app.get('/swap/*', function(req,res) {
 app.post('*', function(req,res) {
    post_endpoint(req.path, req.body, res, config.state_entity_endpoint)
 });
+
+app.get('/eps/ping', function(req, res) {
+  try {
+    let response = await epsClient.ping();
+    res.status(200).json(response);
+    process.exit();
+  } catch (err) {
+    res.status(400).json(`EPS ping failed: ${err}`);
+  }
+})
+
+app.get('latest_block_header', function(req, res) {
+  try{
+    let response = await epsClient.latestBlockHeader() 
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`EPS latestBlockHeader failed: ${err}`);
+  }
+})
+
+app.get('/eps/tx/*$/', function(req, res) {
+  try{
+    let response = await epsClient.getTransaction(req.path.basename()) 
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`EPS get tx failed: ${err}`);
+  }
+})
+
+app.get('/eps/get_scripthash_list_unspent/*$/', function(req, res) {
+  try{
+    let response = await epsClient.getScriptHashListUnspent(req.path.basename())
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`EPS scripthash failed: ${err}`);
+  }
+})
+
+app.get('/eps/scripthash_subscribe', function(req, res) {
+  try{
+    res = await epsClient.
+  } catch (err) {
+    res.status(400).json(`EPS scripthash failed: ${err}`);
+  }
+})
+
+app.get('/eps/fee-estimates', function(req, res) {
+  try{
+    let response  = await epsClient.getFeeHistogram(num_blocks)
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`EPS fee-estimates failed: ${err}`);
+  }
+})
+
+app.post('/eps/tx', function(req, res) {
+  try{
+    res = await epsClient.broadcastTransaction(req.body)
+  } catch (err) {
+    res.status(400).json(`EPS scripthash failed: ${err}`);
+  }
+})
 
 async function on_exit(){
   await tor.stopTorNode();

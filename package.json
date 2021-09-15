@@ -32,6 +32,7 @@
   "main": "src/electron-starter.js",
   "scripts": {
     "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
+    "e2e_testing_mode": "testcafe \"electron:.\" \"./src/e2e_testing_mode/**/*.js\"",
     "install-local": "yarn add file:./tor-adapter",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
@@ -103,6 +104,7 @@
     "msgpack-lite": "^0.1.26",
     "mutex-promise": "^0.1.0",
     "net": "^1.0.2",
+    "node-websockify": "^1.0.3",
     "qrcode.react": "^1.0.1",
     "react": "^16.1.1",
     "react-bootstrap": "^1.4.0",

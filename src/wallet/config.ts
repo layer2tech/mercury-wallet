@@ -1,7 +1,7 @@
 // History is a log of all Mercury protocol actions taken by the wallet.
 
 import { Network } from "bitcoinjs-lib/types/networks";
-import { ElectrumClientConfig } from "./electrum";
+import { ElectrumClientConfig } from "../wallet/electrum";
 const remote = window.require('electron').remote;
 
 //window.electron.ipcRenderer.on('settings', function(event, store){

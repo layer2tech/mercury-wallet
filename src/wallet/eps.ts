@@ -5,61 +5,51 @@ let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
 export const mutex = new Mutex();
 
-class ElectrsClientError extends Error {
+class EPSClientError extends Error {
   constructor(message: string){
     super(message);
-    this.name = "ElectrsClientError";
+    this.name = "EPSClientError";
   }
 }
 
 export const GET_ROUTE = {
-  PING: "/electrs/ping",
-  //latestBlockHeader "/Electrs/block/:hash/header",
-  BLOCK: "/electrs/block",
-  BLOCKS_TIP_HASH: "/electrs/blocks/tip/hash",
+  PING: "/eps/ping",
+  //latestBlockHeader "/EPS/block/:hash/header",
+  BLOCK: "/eps/block",
+  BLOCKS_TIP_HASH: "/eps/blocks/tip/hash",
   HEADER: "header",
-  BLOCKS_TIP_HEIGHT: "/electrs/blocks/tip/height",
+  BLOCKS_TIP_HEIGHT: "/eps/blocks/tip/height",
   //getTransaction /tx/:txid
-  TX: "/electrs/tx",
+  TX: "/eps/tx",
   //getScriptHashListUnspent /scripthash/:hash/utxo
-  SCRIPTHASH: "/electrs/scripthash",
+  SCRIPTHASH: "/eps/scripthash",
   UTXO: "utxo",
   //getFeeHistogram
-  FEE_ESTIMATES: "/electrs/fee-estimates",
+  FEE_ESTIMATES: "/eps/fee-estimates",
 };
 Object.freeze(GET_ROUTE);
 
 export const POST_ROUTE = {
   //broadcast transaction
-  TX: "/electrs/tx",
+  TX: "/eps/tx",
 };
 Object.freeze(POST_ROUTE);
 
 
-export class ElectrsClient {
+export class EPSClient {
   endpoint: string
-  is_tor: boolean
   //client: HttpClient | MockHttpClient
   scriptIntervals: Map<string,any>
   scriptStatus: Map<string,any>
   blockHeightLatest: any
   
-  constructor(endpoint: string, is_tor = true){
+  constructor(endpoint: string){
     //this.client = new HttpClient('http://localhost:3001', true);
     this.endpoint = endpoint
-    this.is_tor = is_tor
     this.scriptIntervals = new Map()
     this.scriptStatus = new Map()
     this.blockHeightLatest = 0
   }
-
-  async new_tor_id() {
-    console.log('new_tor_id');
-    if (this.is_tor) {
-      console.log('is tor, getting new id');
-      await ElectrsClient.get(this.endpoint,'newid', {});
-    }
-  };
 
   static async get (endpoint: string, path: string, params: any){
     const release = await mutex.acquire();
@@ -128,7 +118,7 @@ export class ElectrsClient {
 
   async ping(): Promise<boolean> {
     try {
-      await ElectrsClient.get(this.endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
+      await EPSClient.get(this.endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
       return true
     } catch(err){
       return false
@@ -137,18 +127,21 @@ export class ElectrsClient {
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<number> {
-    let header = await ElectrsClient.get(this.endpoint,'/eps/latest_block_header', {})
-    return header
+    let latesthash = await EPSClient.get(this.endpoint,GET_ROUTE.BLOCKS_TIP_HASH, {})
+    let header = await EPSClient.get(this.endpoint,`${GET_ROUTE.BLOCK}/${latesthash}/${GET_ROUTE.HEADER}`, {})
+    let info = await EPSClient.get(this.endpoint,`${GET_ROUTE.BLOCK}/${latesthash}`, {})
+    info.header = header
+    return info
   }
 
   async getTransaction(txHash: string): Promise<any> {
-    let result = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.TX}/${txHash}`, {})
+    let result = await EPSClient.get(this.endpoint,`${GET_ROUTE.TX}/${txHash}`, {})
     return result
   }
 
   async getScriptHashListUnspent(script: string): Promise<any> {
-    let scriptHash = ElectrsClient.scriptToScriptHash(script)
-    let data: Array<any> = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}/${GET_ROUTE.UTXO}`, {})
+    let scriptHash = EPSClient.scriptToScriptHash(script)
+    let data: Array<any> = await EPSClient.get(this.endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}/${GET_ROUTE.UTXO}`, {})
     let result = new Array<ElectrumTxData>()
 
     data.forEach((item, index) => {
@@ -161,7 +154,7 @@ export class ElectrsClient {
   }
 
   async getScriptHashStatus(scriptHash: string, callBack: any, endpoint: string) {
-    let status = await ElectrsClient.get(endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}`, {})
+    let status = await EPSClient.get(endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}`, {})
     if( status.chain_stats.tx_count > 0 || status.mempool_stats.tx_count > 0 ) {
       if (callBack) { 
         callBack()
@@ -171,7 +164,7 @@ export class ElectrsClient {
 
   async getLatestBlock(callBack: any, endpoint: string): Promise<any> {
     //this.connect()
-    let blockHeight = await ElectrsClient.get(endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
+    let blockHeight = await EPSClient.get(endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
     if (this.blockHeightLatest != blockHeight){
       this.blockHeightLatest = blockHeight
       callBack([{"height":blockHeight}])
@@ -180,9 +173,9 @@ export class ElectrsClient {
   }
 
   async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
-    let scriptHash = ElectrsClient.scriptToScriptHash(script)
+    let scriptHash = EPSClient.scriptToScriptHash(script)
     if ( this.scriptIntervals.has(scriptHash) ){
-      throw new ElectrsClientError(`already subscribed to script: [${scriptHash}]`)
+      throw new EPSClientError(`already subscribed to script: [${scriptHash}]`)
     }
     let timer = setInterval(this.getScriptHashStatus, 10000, scriptHash, callBack, this.endpoint)
     this.scriptIntervals.set(scriptHash, timer)
@@ -190,7 +183,7 @@ export class ElectrsClient {
   }
 
   async scriptHashUnsubscribe(script: string) {
-    let scriptHash = ElectrsClient.scriptToScriptHash(script)
+    let scriptHash = EPSClient.scriptToScriptHash(script)
     clearInterval(this.scriptIntervals.get(scriptHash))
   }
 
@@ -199,11 +192,11 @@ export class ElectrsClient {
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
-    return ElectrsClient.post(this.endpoint,GET_ROUTE.TX, rawTX)
+    return EPSClient.post(this.endpoint,GET_ROUTE.TX, rawTX)
   }
 
   async getFeeHistogram(num_blocks: number): Promise<any> {
-    let result = await ElectrsClient.get(this.endpoint,GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
+    let result = await EPSClient.get(this.endpoint,GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
     return result
   }
 
