@@ -50,11 +50,6 @@ import close_img from "../../images/close-icon.png";
 import './DeleteCoin/DeleteCoin.css'
 import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
-window.electron.ipcRenderer.on('settings', function(event, store){
-  console.log(`coins received settings ${store}`)
-});
-
-//const settings = remote.getGlobal('sharedObject').settings
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 

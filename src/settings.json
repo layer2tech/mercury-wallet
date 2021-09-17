@@ -10,5 +10,10 @@
                 "port": 9060,
                 "controlPassword": "",
                 "controlPort": 9061
-              }
+              },
+  "electrum_config" : {
+      "protocol": "http",
+      "host": "https://explorer.blockstream.com/api",
+      "port": null
+  }
 }

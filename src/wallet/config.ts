@@ -64,9 +64,7 @@ export class Config {
     this.notifications = true;
     this.tutorials = false;
     this.swaplimit = 1440;
-
-    // update defaults with config in settings.json
-    //const settings = remote.getGlobal('sharedObject').settings
+ 
     this.update(require("../settings.json"))
   }
 
