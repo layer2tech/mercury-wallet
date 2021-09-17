@@ -9,7 +9,7 @@ class Config{
                                 Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
             controlPort: 9061
         }
-        const settings = "./settings.json"//require(remote.getGlobal('sharedObject').settings)
+        
         this.update(require("./settings.json"))
     }
 
