@@ -1,6 +1,5 @@
 import { ElectrumTxData } from '../wallet/electrum';
 import {Mutex} from 'async-mutex'
-import { MockHttpClient } from './mocks/mock_http_client';
 let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
 export const mutex = new Mutex();
@@ -39,13 +38,11 @@ Object.freeze(POST_ROUTE);
 export class ElectrsClient {
   endpoint: string
   is_tor: boolean
-  //client: HttpClient | MockHttpClient
   scriptIntervals: Map<string,any>
   scriptStatus: Map<string,any>
   blockHeightLatest: any
   
   constructor(endpoint: string, is_tor = true){
-    //this.client = new HttpClient('http://localhost:3001', true);
     this.endpoint = endpoint
     this.is_tor = is_tor
     this.scriptIntervals = new Map()
@@ -62,7 +59,6 @@ export class ElectrsClient {
   };
 
   static async get (endpoint: string, path: string, params: any){
-    const release = await mutex.acquire();
     try {
       const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
@@ -73,17 +69,14 @@ export class ElectrsClient {
       let res = await axios(config)
       let return_data = res.data
 
-      release();
       return return_data
 
     } catch (err : any) {
-      release();
       throw err;
     }
   }
 
   static async post (endpoint: string, path: string, body: any) {
-    const release = await mutex.acquire();
     try {
       let url = endpoint + "/" + path.replace(/^\/+/, '');
       const config = {
@@ -98,11 +91,9 @@ export class ElectrsClient {
       let res = await axios(config)
       let return_data = res.data
       
-      release();
       return return_data
 
     } catch (err : any) {
-      release();
       throw err;
     }
   };
@@ -118,10 +109,6 @@ export class ElectrsClient {
     let script_hash = bitcoin.crypto.sha256(script).toString("hex"); // hash
     return script_hash.match(/[a-fA-F0-9]{2}/g).join(''); // reverse  
   }
-
-  //async getClient(): Promise<HttpClient>{
-  //  return new HttpClient('http://localhost:3001', true)
-  //}
 
   async connect() {
   }
@@ -199,7 +186,7 @@ export class ElectrsClient {
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
-    return ElectrsClient.post(this.endpoint,GET_ROUTE.TX, rawTX)
+    return ElectrsClient.post(this.endpoint,GET_ROUTE.TX, { "data": rawTX })
   }
 
   async getFeeHistogram(num_blocks: number): Promise<any> {

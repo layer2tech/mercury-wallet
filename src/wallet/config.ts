@@ -4,13 +4,10 @@ import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "../wallet/electrum";
 const remote = window.require('electron').remote;
 
-//window.electron.ipcRenderer.on('settings', function(event, store){
-//  console.log(`coins received settings ${store}`)
-//});
-
 let cloneDeep = require('lodash.clonedeep');
 
 const DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
+const DEFAULT_BLOCK_EXPLORER_ENDPOINT = "https://blockstream.info";
 
 export class Config {
   // Set at startup only
@@ -24,6 +21,8 @@ export class Config {
   state_entity_endpoint: string;
   swap_conductor_endpoint: string;
   electrum_config: ElectrumClientConfig;
+  block_explorer_endpoint:string;
+
   tor_proxy: {
     ip: string,
     port: number,
@@ -47,10 +46,13 @@ export class Config {
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
-      host: 'https://explorer.blockstream.com/testnet/api',
+      host: 'https://explorer.blockstream.com/api',
       protocol: 'http',
       port: null,
+      type: 'electrs'
     }
+    this.block_explorer_endpoint = DEFAULT_BLOCK_EXPLORER_ENDPOINT;
+
     this.tor_proxy = {
       ip: 'localhost',
       port: 9060,
@@ -98,6 +100,9 @@ export class Config {
           break;
         case "electrum_config":
           this.electrum_config = item[1];
+          break;
+        case "block_explorer_endpoint":
+          this.block_explorer_endpoint = item[1];
           break;
         case "tor_proxy":
           Object.entries(item[1]).forEach((tp_item) => {

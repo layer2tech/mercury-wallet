@@ -3,15 +3,11 @@
 import { BIP32Interface, Network, Transaction, script } from "bitcoinjs-lib";
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof, pubKeyTobtcAddr } from "..";
 import { ElectrsClient } from "../electrs"
+import { EPSClient } from "../eps"
 import { FEE } from "../util";
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
-const remote = window.require('electron').remote;
-
-//window.electron.ipcRenderer.on('settings', function(event, store){
-//  console.log(`coins received settings ${store}`)
-//});
 
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require('lodash.clonedeep');
@@ -140,7 +136,7 @@ export const transferSender = async (
 
 export const transferReceiver = async (
   http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient | ElectrsClient | MockElectrumClient, 
+  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient, 
   network: Network,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,

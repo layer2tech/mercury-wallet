@@ -20,6 +20,7 @@ import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { delay } from './mercury/info_api';
+import { EPSClient } from './eps';
 
 const MAX_SWAP_SEMAPHORE_COUNT=100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -55,7 +56,7 @@ export class Wallet {
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
-  electrum_client: ElectrumClient | ElectrsClient | MockElectrumClient;
+  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient;
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
@@ -244,7 +245,9 @@ export class Wallet {
   newElectrumClient(){
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if ( this.config.testing_mode == true ) return new MockElectrumClient()
+    if ( this.config.electrum_config.type == 'eps' ) return new EPSClient('http://localhost:3001')
     if ( this.config.electrum_config.protocol == 'http' ) return new ElectrsClient('http://localhost:3001')
+    
     return new ElectrumClient(this.config.electrum_config)
   }
 
@@ -1069,8 +1072,27 @@ export class Wallet {
     this.saveStateCoinsList();
 
     // Broadcast transcation
-    let withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
-
+    let withdraw_txid: string = ""
+    let nTries=0;
+    let maxNTries=10
+    while (true){
+      try {
+        withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
+      } catch (error) {
+        nTries=nTries+1
+        if (nTries < maxNTries) {
+          log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          continue
+        } else {
+          let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`
+          log.info(errMsg)
+          throw new Error(errMsg)
+        }
+      }
+      break
+    }
+    
     log.info("Withdrawing finished.");
 
     return withdraw_txid

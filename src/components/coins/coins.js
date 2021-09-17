@@ -11,6 +11,7 @@ import calendar from "../../images/calendar.png";
 import swapNumber from "../../images/swap-number.png";
 import walleticon from "../../images/walletIcon.png";
 import txidIcon from "../../images/txid-icon.png";
+import scAddrIcon from "../../images/sc_address_logo.png";
 import timeIcon from "../../images/time.png";
 import copy_img from "../../images/icon2.png";
 import descripIcon from "../../images/description.png";
@@ -32,6 +33,7 @@ import {
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, 
   setError,
   callAddDescription,
+  callGetConfig,
   callGetStateCoin} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -46,7 +48,7 @@ import '../index.css';
 import CoinDescription from "../inputs/CoinDescription/CoinDescription";
 import close_img from "../../images/close-icon.png";
 import './DeleteCoin/DeleteCoin.css'
-const remote = window.require('electron').remote
+import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
 window.electron.ipcRenderer.on('settings', function(event, store){
   console.log(`coins received settings ${store}`)
@@ -108,6 +110,13 @@ const Coins = (props) => {
     const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
 
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
+
+    let current_config;
+    try {
+      current_config = callGetConfig();
+    } catch {
+      current_config = defaultWalletConfig()
+    }
 
     const handleOpenCoinDetails = (shared_key_id) => {
       let coin = all_coins_data.find((coin) => {
@@ -503,7 +512,7 @@ const Coins = (props) => {
                               Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(item.expiry_data)}</span>
                               <span className="tooltip">
                                   <b>Important: </b>
-                                    The funds are not lost. This particular statecoin will no longer be able to swap after expiry.
+                                    Statecoin must be withdrawn before expiry.
                               </span>
                             </div>
                         </div>
@@ -544,28 +553,31 @@ const Coins = (props) => {
                       {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
                       (
                         <b className="CoinFundingTxid">
-                            <img src={txidIcon} alt="icon"/>
+                            <img src={scAddrIcon} className = "sc-address-icon" alt="icon"/>
                             {item.sc_address}
                         </b>
                       )
                       : (
+                      <div>
+                        {item.swap_status == null && <CoinStatus data={item}/>}
                         <div className = "swap-status-container coinslist" >
-                        {item.swap_status !== "Init" ? 
-                        (<span className = {`tooltip ${document.querySelector(".home-page") ? ("main"):("side")}`}>
-                          <b>{item.swap_status}: </b>{ SWAP_TOOLTIP_TXT[item.swap_status]}
-                        </span>):(null)}
-                        {item.swap_status !== null && (
-                          <div>
-                          <Spinner animation="border" variant="primary" size="sm"/>
-                          <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />
-                          </div>
-                        )}
+                          {item.swap_status !== "Init" ? 
+                          (<span className = {`tooltip ${document.querySelector(".home-page") ? ("main"):("side")}`}>
+                            <b>{item.swap_status}: </b>{ SWAP_TOOLTIP_TXT[item.swap_status]}
+                          </span>):(null)}
+                          {item.swap_status !== null && (
+                            <div>
+                              <Spinner animation="border" variant="primary" size="sm"/>
+                              <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />
+                            </div>
+                          )}
+                        </div>
                       </div>)}
                     </div>
                   ) : (
                     <div className="coin-status-or-txid">
                       <b className="CoinFundingTxid">
-                        <img src={txidIcon} alt="icon"/>
+                        <img src={scAddrIcon} className = "sc-address-icon" alt="icon"/>
                         {item.sc_address}
                       </b>
                     </div>
@@ -620,13 +632,20 @@ const Coins = (props) => {
     // called when clicking on TXid link in modal window
     const onClickTXID = txId => {
       const NETWORK = require("../../settings.json").network;
+      let block_explorer_endpoint  = current_config.block_explorer_endpoint;
+
+      // ensure there is https
+      if (block_explorer_endpoint.substring(0, 8) !== 'https://'){
+        block_explorer_endpoint = 'https://' + block_explorer_endpoint;
+      }
+
       let finalUrl = '';
       switch(NETWORK){
         case 'mainnet':
-          finalUrl = 'https://blockstream.info/tx/'  + txId;
+          finalUrl = block_explorer_endpoint + '/tx/'  + txId;
           break;
         case 'testnet':
-          finalUrl = 'https://blockstream.info/testnet/tx/'  + txId;
+          finalUrl = block_explorer_endpoint + '/testnet/tx/'  + txId;
           break;
         // do nothing for regtest and anything else then exit method
         case 'regtest':
@@ -651,12 +670,12 @@ const Coins = (props) => {
         <Modal
           show={showCoinDetails.show}
           onHide={handleCloseCoinDetails}
-          className="modal coin-details-modal"
+          className = {(filterBy === STATECOIN_STATUS.WITHDRAWN) || (showCoinDetails?.coin?.swap_status !== null) ? "modal coin-details-modal lower": "modal coin-details-modal"}
         >
-          <Modal.Body>
+          <Modal.Body >
             <div>
               <div className="item">
-                <img src={walleticon} alt="icon" />
+                <img src={walleticon} className = "btc-icon" alt="icon" />
                 <div className="block">
                   <span>Statecoin Value</span>
                   <span>
@@ -685,7 +704,7 @@ const Coins = (props) => {
                 <div>
 
                   <div className='item'>
-                    <img src={utx} alt="icon" />
+                    <img src={scAddrIcon} className = "sc-address-icon" alt="icon" />
                     <div className="block">
                       <span>Statecoin Address</span>
                       {

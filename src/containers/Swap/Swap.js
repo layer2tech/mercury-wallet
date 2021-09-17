@@ -123,7 +123,8 @@ const SwapPage = () => {
               statecoin = selectedCoin;
             }
             if (res.payload===null) {
-              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))        
+              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
+              setSwapLoad({...swapLoad, join: false, swapCoin:""});
               return
             }
             if (res.error===undefined) {
@@ -140,6 +141,10 @@ const SwapPage = () => {
   }
 
   const handleAutoSwap =  (item) => {
+    if(item.status === 'UNCONFIRMED' || item.status === 'IN_MEMPOOL'){
+      return;
+    }
+
     let statecoin = callGetStateCoin(item.shared_key_id);
     // get the statecoin and set auto to true - then call auto_swap
     let selectedCoin = item.shared_key_id;
@@ -270,7 +275,7 @@ const SwapPage = () => {
                       </svg>
                         Swap Statecoins
                     </h2>
-                    <h3 className="subtitle">Swap statecoins to increase their anonymity set</h3>
+                    <h3 className="subtitle">Swap statecoins to increase their anonymity</h3>
                   </div>
                   <Link className="nav-link" to="/home">
                       <StdButton

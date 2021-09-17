@@ -16,13 +16,13 @@ export const GET_ROUTE = {
   PING: "/eps/ping",
   //latestBlockHeader "/EPS/block/:hash/header",
   BLOCK: "/eps/block",
-  BLOCKS_TIP_HASH: "/eps/blocks/tip/hash",
   HEADER: "header",
-  BLOCKS_TIP_HEIGHT: "/eps/blocks/tip/height",
+  LATEST_BLOCK_HEADER: "/eps/latest_block_header",
   //getTransaction /tx/:txid
   TX: "/eps/tx",
   //getScriptHashListUnspent /scripthash/:hash/utxo
   SCRIPTHASH: "/eps/scripthash",
+  SCRIPTHASH_HISTORY: "/eps/scripthash_history",
   UTXO: "utxo",
   //getFeeHistogram
   FEE_ESTIMATES: "/eps/fee-estimates",
@@ -106,7 +106,7 @@ export class EPSClient {
   // convert BTC address scipt to electrum script has
   static scriptToScriptHash(script: string) {
     let script_hash = bitcoin.crypto.sha256(script).toString("hex"); // hash
-    return script_hash.match(/[a-fA-F0-9]{2}/g).join(''); // reverse  
+    return script_hash.match(/[a-fA-F0-9]{2}/g).reverse().join(''); // reverse  
   }
 
   //async getClient(): Promise<HttpClient>{
@@ -118,7 +118,7 @@ export class EPSClient {
 
   async ping(): Promise<boolean> {
     try {
-      await EPSClient.get(this.endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
+      await EPSClient.get(this.endpoint,GET_ROUTE.LATEST_BLOCK_HEADER, {})
       return true
     } catch(err){
       return false
@@ -127,11 +127,9 @@ export class EPSClient {
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<number> {
-    let latesthash = await EPSClient.get(this.endpoint,GET_ROUTE.BLOCKS_TIP_HASH, {})
-    let header = await EPSClient.get(this.endpoint,`${GET_ROUTE.BLOCK}/${latesthash}/${GET_ROUTE.HEADER}`, {})
-    let info = await EPSClient.get(this.endpoint,`${GET_ROUTE.BLOCK}/${latesthash}`, {})
-    info.header = header
-    return info
+    let header = await EPSClient.get(this.endpoint,GET_ROUTE.LATEST_BLOCK_HEADER, {})
+    header.height = header.block_height
+    return header
   }
 
   async getTransaction(txHash: string): Promise<any> {
@@ -141,21 +139,20 @@ export class EPSClient {
 
   async getScriptHashListUnspent(script: string): Promise<any> {
     let scriptHash = EPSClient.scriptToScriptHash(script)
-    let data: Array<any> = await EPSClient.get(this.endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}/${GET_ROUTE.UTXO}`, {})
-    let result = new Array<ElectrumTxData>()
-
-    data.forEach((item, index) => {
-      result.push({"tx_hash":item.txid, 
-                    "tx_pos":item.vout, 
-                    "value":item.value,
-                    "height":item.status.block_height})
-    })
+    let result = await EPSClient.get(this.endpoint,`/eps/get_scripthash_list_unspent/${scriptHash}`, {})
+ 
     return result
   }
 
   async getScriptHashStatus(scriptHash: string, callBack: any, endpoint: string) {
-    let status = await EPSClient.get(endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}`, {})
-    if( status.chain_stats.tx_count > 0 || status.mempool_stats.tx_count > 0 ) {
+    let history = null
+
+    try {
+      history = await EPSClient.get(endpoint,`${GET_ROUTE.SCRIPTHASH_HISTORY}/${scriptHash}`, {})
+    } catch (err){
+
+    }
+    if( history ) {
       if (callBack) { 
         callBack()
       }
@@ -164,12 +161,13 @@ export class EPSClient {
 
   async getLatestBlock(callBack: any, endpoint: string): Promise<any> {
     //this.connect()
-    let blockHeight = await EPSClient.get(endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
-    if (this.blockHeightLatest != blockHeight){
-      this.blockHeightLatest = blockHeight
-      callBack([{"height":blockHeight}])
+    let header = await EPSClient.get(endpoint,'/eps/latest_block_header', {})
+    header.height = header.block_height
+    if (this.blockHeightLatest != header.height){
+      this.blockHeightLatest = header.height
+      callBack([header])
     }
-    return blockHeight
+    return header
   }
 
   async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
