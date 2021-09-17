@@ -33,6 +33,19 @@ When running in development mode, a mock tor adapter can be used - the connectio
 
 `"tor_proxy": {"ip": "mock"}`
 
+### Using an electrum personal server
+
+A electrum personal server running on localhost can be used by setting the electrum_config.type to "eps" as in the following example:
+
+`"electrum_config" : {
+    "protocol": "http",
+    "host": "127.0.0.1",
+    "port": "50002",
+    "type": "eps"
+  }`
+
+Each address generated for deposit should be included in the electrum-personal-server config file and the "rescan" script run if necessary.
+
 ## Run tests
 
 ### Unit tests
