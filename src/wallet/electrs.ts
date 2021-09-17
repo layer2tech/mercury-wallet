@@ -23,7 +23,7 @@ export const GET_ROUTE = {
   //getScriptHashListUnspent /scripthash/:hash/utxo
   SCRIPTHASH: "/electrs/scripthash",
   UTXO: "utxo",
-  //getFeeHistogram
+  //getFeeEstimates
   FEE_ESTIMATES: "/electrs/fee-estimates",
 };
 Object.freeze(GET_ROUTE);
@@ -192,8 +192,19 @@ export class ElectrsClient {
     return ElectrsClient.post(this.endpoint,GET_ROUTE.TX, { "data": rawTX })
   }
 
-  async getFeeHistogram(num_blocks: number): Promise<any> {
-    let result = await ElectrsClient.get(this.endpoint,GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
+  async getFeeEstimation(num_blocks: number, net_config: string): Promise<any> {
+    let url : string
+    
+    switch(net_config){
+      case "tb":
+        url = "https://blockstream.info/testnet"
+        break
+      default:
+        url = "https://blockstream.info/"
+        //REMOVE TESTNET PART FOR MAIN NET
+    }
+
+    let result = await ElectrsClient.get(url,"api/fee-estimates", {}).then((histo) => histo[`${num_blocks}`])
     return result
   }
 

@@ -1036,7 +1036,7 @@ export class Wallet {
   async withdraw(
     shared_key_ids: string[],
     rec_addr: string,
-    fee_per_kb: number
+    fee_per_byte: number
   ): Promise <string> {
     log.info("Withdrawing "+shared_key_ids+" to "+rec_addr);
 
@@ -1057,7 +1057,7 @@ export class Wallet {
     });
 
     // Perform withdraw with server
-    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_kb);
+    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_byte);
     
     // Mark funds as withdrawn in wallet
     shared_key_ids.forEach( (shared_key_id) => {

@@ -268,7 +268,7 @@ export const callDepositConfirm = createAsyncThunk(
 export const callWithdraw = createAsyncThunk(
   'depositWithdraw',
   async (action, thunkAPI) => {
-    return wallet.withdraw(action.shared_key_ids, action.rec_addr, action.fee_per_kb)
+    return wallet.withdraw(action.shared_key_ids, action.rec_addr, action.fee_per_byte)
   }
 )
 export const callTransferSender = createAsyncThunk(
@@ -327,7 +327,7 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
 export const callGetFeeEstimation = createAsyncThunk(
   'GetFeeEstimation',
   async (action, thunkAPI) => {
-    return await wallet.electrum_client.getFeeHistogram(wallet.config.electrum_fee_estimation_blocks);
+    return await wallet.electrum_client.getFeeEstimation(action,wallet.config.network);
   }
 )
 
