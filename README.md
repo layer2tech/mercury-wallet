@@ -33,9 +33,9 @@ When running in development mode, a mock tor adapter can be used - the connectio
 
 `"tor_proxy": {"ip": "mock"}`
 
-### Using an electrum personal server
+### Using electrum-personal-server
 
-A electrum personal server running on localhost can be used by setting the electrum_config.type to "eps" as in the following example:
+A electrum personal server (the CommerceBlock fork of electrum-personal-server is currently required https://github.com/commerceblock/electrum-personal-server)running on localhost can be used by setting the electrum_config.type to "eps" as in the following example:
 
 `"electrum_config" : {
     "protocol": "http",
