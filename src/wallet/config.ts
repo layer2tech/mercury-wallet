@@ -2,7 +2,6 @@
 
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "../wallet/electrum";
-const remote = window.require('electron').remote;
 
 let cloneDeep = require('lodash.clonedeep');
 
