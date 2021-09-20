@@ -146,7 +146,16 @@ export const txBackupBuild = (network: Network, funding_txid: string, funding_vo
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
 export const txWithdrawBuild = (network: Network,    funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_byte: number): TransactionBuilder => {
-
+  console.group()
+  console.log("NETWORK: ", network)
+  console.log("FUNDING_TXID: ",funding_txid)
+  console.log("FUNDING_VOUT: ", funding_vout)
+  console.log("REC_ADDRESS: ", rec_address)
+  console.log("VALUE: ", value)
+  console.log("fee_address: ",fee_address)
+  console.log("fee_per_byte: ",fee_per_byte)
+  console.log("Withdraw Fee: ",withdraw_fee)
+  console.groupEnd()
   let tx_fee = Math.round(fee_per_byte*VIRTUAL_TX_SIZE*10e7)/10e7;
 
   if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
@@ -180,18 +189,13 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
     };
     index = index + 1;
   }
-  console.group("Withdrawal")
-  console.log("fee_info.deposit: ", fee_info.deposit)
+
   value = value + fee_info.deposit;
-  console.log("value: ",value)
   
   let withdraw_fee = Math.round((value * fee_info.withdraw) / 10000)//(value * fee_info.withdraw) / 10000
-  console.log("Withdraw Fee: ", withdraw_fee)
+
   let tx_fee = Math.round(fee_per_byte*(VIRTUAL_TX_SIZE+(INPUT_TX_SIZE*(sc_infos.length-1)))*10e7)/10e7
 
-  console.log("TX Fee: ", tx_fee)
-  //fee_per_kb in units: 0.00001
-  console.groupEnd()
   
   if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
   
