@@ -182,6 +182,10 @@ export class ElectrumClient {
       )
     return fee_histogram
   }
+
+  async importAddresses(addresses: [string]): Promise<string> {
+   return ""
+  }
 }
 
 

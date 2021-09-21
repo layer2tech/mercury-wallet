@@ -69,11 +69,13 @@ let epsConfig = { protocol: "ssl", host: "127.0.0.1", port: "50002" }
 let epsClient = new ElectrumClient(epsConfig)
 epsClient.connect()
 
+//epsClient.importAddresses([['tb1qfe3kfstrdk0u4zhp6rhljcnlpgekrr3a88y9tv','tb1q8w7s57a2acyhy6zz7mp4hvlgqehfdp4ecxw8a5'],-1])
+
 tor.startTorNode(tor_cmd, torrc);
 
 function close_timeout(t_secs=10) {
   return setTimeout(function () {
-    on_exit()
+    //on_exit()
   }, t_secs*1000)
 }
 
@@ -317,6 +319,16 @@ app.post('/eps/tx', async function(req, res) {
     res.status(400).json(`EPS scripthash failed: ${err}`);
   }
 })
+
+app.post('/eps/import_addresses', async function(req, res) {
+  try{
+    let response = await epsClient.importAddresses([req.body.addresses, -1])
+    res.status(200).json(response)
+  } catch (err) {
+    res.status(400).json(`importAddresses failed: ${err}`);
+  }
+})
+
 
 app.get('*', function(req,res) {
   timeout = restart_close_timeout(timeout)

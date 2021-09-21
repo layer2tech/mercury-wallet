@@ -693,6 +693,9 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
+    // Import the BTC address into the wallet if using the electum-personal-server
+    await this.electrum_client.importAddresses([p_addr])
+
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 

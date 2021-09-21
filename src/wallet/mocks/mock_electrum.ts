@@ -97,4 +97,7 @@ export class MockElectrumClient {
       return false;
     }
 
+    async importAddresses(addresses: [string]): Promise<string> {
+      return ""
+    }
 }

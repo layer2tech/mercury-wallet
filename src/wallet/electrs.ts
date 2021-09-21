@@ -194,4 +194,7 @@ export class ElectrsClient {
     return result
   }
 
+  async importAddresses(addresses: [string]): Promise<string> {
+    return ""
+  }  
 }

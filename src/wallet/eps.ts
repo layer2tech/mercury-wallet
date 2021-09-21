@@ -190,7 +190,10 @@ export class EPSClient {
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
-    return EPSClient.post(this.endpoint,GET_ROUTE.TX, rawTX)
+    return EPSClient.post(this.endpoint,GET_ROUTE.TX, {"data": rawTX})
+  }
+  async importAddresses(addresses: [string]): Promise<string> {
+    return EPSClient.post(this.endpoint,'/eps/import_addresses', { "addresses": addresses})
   }
 
   async getFeeHistogram(num_blocks: number): Promise<any> {
