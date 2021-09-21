@@ -5,8 +5,10 @@ import { ElectrumClientConfig } from "./electrum";
 
 let cloneDeep = require('lodash.clonedeep');
 
-const DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
+const DEFAULT_STATE_ENTITY_ENPOINT = "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion";
+
 const DEFAULT_BLOCK_EXPLORER_ENDPOINT = "https://blockstream.info";
+
 
 export class Config {
   // Set at startup only

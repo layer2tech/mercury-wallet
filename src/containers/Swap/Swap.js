@@ -7,6 +7,7 @@ import {
   isWalletLoaded,
   setNotification,
   setError,
+  setWarning,
   callDoAutoSwap,
   callDoSwap,
   callSwapDeregisterUtxo,
@@ -96,7 +97,9 @@ const SwapPage = () => {
     return <Redirect to="/" />;
   }
 
+
   const swapButtonAction = async () => {
+    
     // check statechain is chosen
     if (electrumServer === false){
       dispatch(setError({msg: "The Electrum server network connection is lost"}))
@@ -110,6 +113,8 @@ const SwapPage = () => {
     if(swapLoad.join === true){
       return
     }
+
+    dispatch(setWarning({key: "swap_punishment", msg: "WARNING! Exit the wallet whilst a swap is live causes the swap to fail and coins to be temporarily banned from entering swaps."}))
 
     selectedCoins.forEach(
       (selectedCoin) => {
