@@ -190,7 +190,7 @@ export class EPSClient {
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
-    return EPSClient.post(this.endpoint,GET_ROUTE.TX, rawTX)
+    return EPSClient.post(this.endpoint,GET_ROUTE.TX, { "data": rawTX })
   }
 
   async getFeeHistogram(num_blocks: number): Promise<any> {
