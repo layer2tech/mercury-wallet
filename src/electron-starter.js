@@ -17,25 +17,11 @@ const getNetwork = () => {
   let found = false;
 
   // check for build arguments
-  if(!found){
-    const remote = require('electron').remote;
-    const args2 = remote.process.argv; 
-    if(args2.length > 0){
-      args2.forEach(arg => {
-        if(arg.includes('testnet')){
-          network = 'testnet';
-          found = true;
-        }else if(arg.includes('mainnet')){
-          network = 'mainnet';
-          found = true;
-        }
-      });
-    }
-  }
+
 
   // check for command line args
   if(!found){
-    let args1 = process;
+    let args1 = process.argv;
     args1.forEach(arg => {
       if(arg.includes('testnet')){
         found = true

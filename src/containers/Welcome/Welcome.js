@@ -23,7 +23,6 @@ const Welcome = () => {
                 <br/>
                 <p>{JSON.stringify(electron.remote.process.argv)}</p>
                 
-                
                 <p>If you’re using Mercury wallet for the first time, create a
                     new wallet.
                     If you have an existing wallet, load the wallet from your device storage, or use your seed phrase or backup file to restore the wallet.</p>

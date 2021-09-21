@@ -1,8 +1,8 @@
 {
-  "network": "mainnet",
+  "network": "testnet",
   "min_anon_set": 5,
-  "state_entity_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
-  "swap_conductor_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  "state_entity_endpoint": "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
+  "swap_conductor_endpoint": "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
   "block_explorer_endpoint": "https://blockstream.info",
   "testing_mode": false,
   "required_confirmations": 3,
