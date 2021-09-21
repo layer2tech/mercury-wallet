@@ -1,9 +1,9 @@
+const fs = require('fs');
 const { join, dirname } = require('path');
 const joinPath = join;
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const path = require('path');
 const url = require('url');
-const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
@@ -11,7 +11,70 @@ const ipc = require('electron').ipcMain;
 const execFile = require('child_process').execFile;
 const axios = require('axios').default;
 
-function getPlatform(){
+const getNetwork = () => {
+  // check arguments passed into app
+  let network = 'mainnet'; // defaults to mainnet
+  let args1 = process.argv;
+  let found = false;
+
+  args1.forEach(arg => {
+    if(arg.includes('testnet')){
+      found = true
+      network = 'testnet';
+    }else if(arg.includes('mainnet')){
+      found = true;
+      network= 'mainnet';
+    }
+  });
+
+  if(!found){
+    // if it  wasn't found then check for build arguments
+    const remote = require('electron').remote
+    const args2 = remote.process.argv; 
+    args2.forEach(arg => {
+      if(arg.includes('testnet')){
+        network = 'testnet';
+      }else if(arg.includes('mainnet')){
+        network = 'mainnet';
+      }
+    });
+  }
+  return network;
+}
+
+const updateNetworkConfig = (network) => {
+
+  // get settings file
+  const settingFile = require('./settings.json');
+  const networkFile = require('./network.json');
+
+  // change network name
+  settingFile.network = network;
+
+  // update the current values to whatever  network was passed in
+  if(network === 'testnet'){
+    if (networkFile.testnet_state_entity_endpoint !== undefined && networkFile.testnet_swap_conductor_endpoint !== undefined){
+      settingFile.state_entity_endpoint =  networkFile.testnet_state_entity_endpoint;
+      settingFile.swap_conductor_endpoint = networkFile.testnet_swap_conductor_endpoint;
+    }
+  }else if(network === 'mainnet'){
+    if(networkFile.mainnet_state_entity_endpoint !== undefined && networkFile.mainnet_swap_conductor_endpoint !==  undefined){
+      settingFile.state_entity_endpoint =  networkFile.mainnet_state_entity_endpoint;
+      settingFile.swap_conductor_endpoint = networkFile.mainnet_swap_conductor_endpoint;
+    }
+  }
+
+  // write change to config
+  fs.writeFile('src/settings.json', JSON.stringify(settingFile, null, 2) , (err) => {
+    if(err){
+        console.log("An error ocurred creating the file "+ err.message)
+    }else{
+      console.log("The file has been succesfully saved");
+    }
+  });
+}
+
+const getPlatform = () => {
   switch (process.platform) {
     case 'aix':
     case 'freebsd':
@@ -57,8 +120,13 @@ function createWindow() {
       }
     );
 
+    mainWindow.once('ready-to-show', () => {
+      let network =  getNetwork();
+      updateNetworkConfig(network);
+    });
+
     if (process.platform !== 'darwin') {
-	mainWindow.setMenu(null);
+	    mainWindow.setMenu(null);
     }
     
     // Open links in systems default browser
@@ -112,7 +180,9 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', async function () {
