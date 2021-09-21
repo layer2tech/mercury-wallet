@@ -7,15 +7,23 @@ import {Link, withRouter} from "react-router-dom";
 
 import './Welcome.css'
 
+
 const Welcome = () => {
     const state = useState(0);
     const checked = state[0];
-    const changeCheckbox = state[1]
+    const changeCheckbox = state[1];
+    const electron = window.require('electron');
 
     return (
         <div className="welcome-first">
             <div>
                 <h1>Welcome to Mercury</h1>
+                <br/>
+                <p>{JSON.stringify(process.argv)}</p>
+                <br/>
+                <p>{JSON.stringify(electron.remote.process.argv)}</p>
+                
+                
                 <p>If you’re using Mercury wallet for the first time, create a
                     new wallet.
                     If you have an existing wallet, load the wallet from your device storage, or use your seed phrase or backup file to restore the wallet.</p>

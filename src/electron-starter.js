@@ -14,12 +14,11 @@ const axios = require('axios').default;
 const getNetwork = () => {
   // check arguments passed into app
   let network = 'mainnet'; // defaults to mainnet
-  let args1 = process.argv;
   let found = false;
 
   // check for build arguments
   if(!found){
-    const remote = require('electron').remote
+    const remote = require('electron').remote;
     const args2 = remote.process.argv; 
     if(args2.length > 0){
       args2.forEach(arg => {
@@ -36,6 +35,7 @@ const getNetwork = () => {
 
   // check for command line args
   if(!found){
+    let args1 = process;
     args1.forEach(arg => {
       if(arg.includes('testnet')){
         found = true
