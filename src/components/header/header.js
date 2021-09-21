@@ -3,6 +3,7 @@ import {Link, withRouter} from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import {Logo, Settings, Help, Logout} from './headerIcons';
 import {NotificationBar, ErrorPopup, ConfirmPopup} from "../../components";
+import WarningPopup from '../WarningPopup';
 import {unloadWallet} from '../../features/WalletDataSlice'
 import {toggleDarkMode} from '../../features/ThemeSlice'
 
@@ -66,6 +67,7 @@ const Header = (props) => {
       </div>
       <NotificationBar />
       <ErrorPopup />
+      <WarningPopup />
     </div>
   );
 }
