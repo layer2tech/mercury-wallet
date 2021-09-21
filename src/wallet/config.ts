@@ -7,6 +7,9 @@ let cloneDeep = require('lodash.clonedeep');
 
 const DEFAULT_STATE_ENTITY_ENPOINT = "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion";
 
+const DEFAULT_BLOCK_EXPLORER_ENDPOINT = "https://blockstream.info";
+
+
 export class Config {
   // Set at startup only
   network: Network;
@@ -19,6 +22,8 @@ export class Config {
   state_entity_endpoint: string;
   swap_conductor_endpoint: string;
   electrum_config: ElectrumClientConfig;
+  block_explorer_endpoint:string;
+
   tor_proxy: {
     ip: string,
     port: number,
@@ -42,10 +47,12 @@ export class Config {
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
-      host: 'https://explorer.blockstream.com/testnet/api',
+      host: 'https://explorer.blockstream.com/api',
       protocol: 'http',
       port: null,
     }
+    this.block_explorer_endpoint = DEFAULT_BLOCK_EXPLORER_ENDPOINT;
+
     this.tor_proxy = {
       ip: 'localhost',
       port: 9060,
@@ -92,6 +99,9 @@ export class Config {
           break;
         case "electrum_config":
           this.electrum_config = item[1];
+          break;
+        case "block_explorer_endpoint":
+          this.block_explorer_endpoint = item[1];
           break;
         case "tor_proxy":
           Object.entries(item[1]).forEach((tp_item) => {

@@ -14,9 +14,12 @@ import Tutorial from "../../components/Tutorial";
 export const defaultWalletConfig = () => ({
   notifications: false,
   tutorials: false,
-  state_entity_endpoint: "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
-  swap_conductor_endpoint: "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
-  electrum_config: {host: "https://explorer.blockstream.com/testnet/api", port: null, protocol: "http"},
+
+  state_entity_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  swap_conductor_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  block_explorer_endpoint: "https://blockstream.info",
+  electrum_config: {host: "https://explorer.blockstream.com/api", port: null, protocol: "http"},
+
   tor_proxy: { ip: "localhost", port: 9060, controlPassword: "password", controlPort: 9061 },
   min_anon_set: ""
 })
@@ -36,6 +39,7 @@ const SettingsPage = (props) => {
   const [stateEntityAddr, setStateEntityAddr] = useState(current_config.state_entity_endpoint);
   const [swapAddr, setSwapAddr] = useState(current_config.swap_conductor_endpoint);
   const [elecAddr, setElecAddr] = useState(current_config.electrum_config);
+  const [blockExplorer, setBlockExplorer] = useState(current_config.block_explorer_endpoint);
   const [torProxy, setTorProxy] = useState(current_config.tor_proxy);
   const [minAnonSet, setMinAnonSet] = useState(current_config.min_anon_set);
   const [openBackupModal, setOpenBackupModal] = useState(false);
@@ -52,6 +56,12 @@ const SettingsPage = (props) => {
       [evt.target.name]: evt.target.value
     });
   }
+
+  const onBlockExpChange = (evt) => {
+    let url = evt.target.value;
+    setBlockExplorer(url);
+  }
+
   const onTorProxyChange = (evt) => { 
     setTorProxy({
       ...torProxy,
@@ -71,6 +81,7 @@ const SettingsPage = (props) => {
     callUpdateConfig({
       state_entity_endpoint: stateEntityAddr,
       swap_conductor_endpoint: swapAddr,
+      block_explorer_endpoint: blockExplorer,
       electrum_config: elecAddr,
       tor_proxy: torProxy,
       min_anon_set: minAnonSet,
@@ -85,6 +96,7 @@ const SettingsPage = (props) => {
     setTutorials(current_config.tutorials);
     setStateEntityAddr(current_config.state_entity_endpoint);
     setSwapAddr(current_config.swap_conductor_endpoint);
+    setBlockExplorer(current_config.block_explorer_endpoint);
     setElecAddr(current_config.electrum_config);
     setTorProxy(current_config.tor_proxy);
     setMinAnonSet(current_config.min_anon_set);
@@ -155,6 +167,12 @@ const SettingsPage = (props) => {
                                      onChange={onElecAddrChange} required/>
                               <label className="control-label"
                                      htmlFor="address-host">Electrumx Server Host</label>
+                          </div>
+                          <div className="inputs-item">
+                              <input id="block-exp" type="text" name="blockExplorer" value={blockExplorer}
+                                     onChange={onBlockExpChange} required/>
+                              <label className="control-label"
+                                     htmlFor="block-exp">BlockExplorer URL</label>
                           </div>
                           <div className="d-flex input-group">
                             <div className="inputs-item">

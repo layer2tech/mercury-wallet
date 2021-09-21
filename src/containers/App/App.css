@@ -49,6 +49,8 @@
   text-align: center;
   background-color: #F5F5F5;
   padding-bottom: 20px;
+  position: relative;
+  overflow-x: hidden;
   min-height: 100vh;
   min-width:500px;
 }
