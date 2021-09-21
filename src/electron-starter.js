@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { join, dirname } = require('path');
 const joinPath = join;
-const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, shell, remote } = require('electron');
 const path = require('path');
 const url = require('url');
 const fixPath = require('fix-path');
@@ -11,13 +11,25 @@ const ipc = require('electron').ipcMain;
 const execFile = require('child_process').execFile;
 const axios = require('axios').default;
 
+
 const getNetwork = () => {
   // check arguments passed into app
   let network = 'mainnet'; // defaults to mainnet
   let found = false;
 
   // check for build arguments
-
+  if(!found && remote !== undefined){
+    let args2 = remote.process.argv;
+    args2.forEach(arg => {
+      if(arg.includes('testnet')){
+        found = true
+        network = 'testnet';
+      }else if(arg.includes('mainnet')){
+        found = true;
+        network= 'mainnet';
+      }
+    })
+  }
 
   // check for command line args
   if(!found){
