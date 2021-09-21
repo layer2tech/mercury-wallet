@@ -49,16 +49,18 @@ const CreateWizardPage = (props) => {
     });
     
   useEffect(()=>{
-  
-    let store = new Storage(`wallets/${wizardState.wallet_name}/config`);
-    //Store wallet in own directory
+    let store
 
-    let wallet_names = store.getWalletNames();
-    //Check for if wallet name already exists, check in above directory
-  
-    setWalletNames(wallet_names)
+    if(confirmDetails){
+      store = new Storage(`wallets/${wizardState.wallet_name}/config`);
+      //Store wallet in own directory
     
-    if(confirmDetails === true) {
+      let wallet_names = store.getWalletNames();
+      //Check for if wallet name already exists, check in above directory
+  
+      setWalletNames(wallet_names)
+    
+   
       setStartSeed(true)
       //When submit button pressed check applied by changing state of startSeed
       setConfirmDetails(false)
