@@ -706,6 +706,7 @@ export class Wallet {
 
   // Wait for tx to appear in mempool. Mark coin IN_MEMPOOL or UNCONFIRMED when it arrives.
   async awaitFundingTx(shared_key_id: string, p_addr: string, value: number) {
+    await this.electrum_client.importAddresses([p_addr])
     let p_addr_script = bitcoin.address.toOutputScript(p_addr, this.config.network)
     log.info("Subscribed to script hash for p_addr: ", p_addr);
     this.electrum_client.scriptHashSubscribe(p_addr_script, (_status: any) => {

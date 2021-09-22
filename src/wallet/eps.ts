@@ -146,11 +146,9 @@ export class EPSClient {
 
   async getScriptHashStatus(scriptHash: string, callBack: any, endpoint: string) {
     let history = null
-
     try {
       history = await EPSClient.get(endpoint,`${GET_ROUTE.SCRIPTHASH_HISTORY}/${scriptHash}`, {})
     } catch (err){
-
     }
     if( history ) {
       if (callBack) { 
