@@ -3,7 +3,7 @@
   "state_entity_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
   "swap_conductor_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
   "block_explorer_endpoint": "https://blockstream.info",
-  "network": "mainnet",
+  "network": "testnet",
   "testing_mode": false,
   "required_confirmations": 3,
   "tor_proxy": {"ip": "localhost",
@@ -13,7 +13,8 @@
               },
   "electrum_config" : {
     "protocol": "http",
-    "host": "https://explorer.blockstream.com/api",
-    "port": null
+    "host": "localhost",
+    "port": "50002",
+    "type": "eps"
   }
 }

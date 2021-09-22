@@ -190,12 +190,24 @@ export class EPSClient {
   async broadcastTransaction(rawTX: string): Promise<string> {
     return EPSClient.post(this.endpoint,GET_ROUTE.TX, {"data": rawTX})
   }
-  async importAddresses(addresses: [string]): Promise<string> {
-    return EPSClient.post(this.endpoint,'/eps/import_addresses', { "addresses": addresses})
+  async importAddresses(addresses: [string], rescan_height: number = -1): Promise<string> {
+        return EPSClient.post(this.endpoint,'/eps/import_addresses', { "addresses": addresses, "rescan_height": rescan_height})
   }
 
-  async getFeeHistogram(num_blocks: number): Promise<any> {
-    let result = await EPSClient.get(this.endpoint,GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
+  async getFeeEstimation(num_blocks: number, net_config: string): Promise<any> {
+      
+    let url : string
+    
+    switch(net_config){
+      case "tb":
+        url = "https://blockstream.info/testnet"
+        break
+      default:
+        url = "https://blockstream.info/"
+        //REMOVE TESTNET PART FOR MAIN NET
+    }
+
+    let result = await EPSClient.get(url,"api/fee-estimates", {}).then((histo) => histo[`${num_blocks}`])
     return result
   }
 

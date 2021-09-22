@@ -322,7 +322,11 @@ app.post('/eps/tx', async function(req, res) {
 
 app.post('/eps/import_addresses', async function(req, res) {
   try{
-    let response = await epsClient.importAddresses([req.body.addresses, -1])
+    let rescan_height = -1
+    if (req.body.rescan_height != undefined){
+        rescan_height = req.body.rescan_height
+    }
+    let response = await epsClient.importAddresses([req.body.addresses, rescan_height])
     res.status(200).json(response)
   } catch (err) {
     res.status(400).json(`importAddresses failed: ${err}`);
