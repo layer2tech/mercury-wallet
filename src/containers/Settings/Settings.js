@@ -14,9 +14,9 @@ import Tutorial from "../../components/Tutorial";
 export const defaultWalletConfig = () => ({
   notifications: false,
   tutorials: false,
-  state_entity_endpoint: "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
-  swap_conductor_endpoint: "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
-  electrum_config: {host: "https://explorer.blockstream.com/testnet/api", port: null, protocol: "http"},
+  state_entity_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  swap_conductor_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  electrum_config: {host: "https://explorer.blockstream.com/api", port: null, protocol: "http"},
   tor_proxy: { ip: "localhost", port: 9060, controlPassword: "password", controlPort: 9061 },
   min_anon_set: ""
 })

@@ -5,7 +5,7 @@ import { ElectrumClientConfig } from "./electrum";
 
 let cloneDeep = require('lodash.clonedeep');
 
-const DEFAULT_STATE_ENTITY_ENPOINT = "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion";
+const DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
 
 export class Config {
   // Set at startup only
@@ -42,7 +42,7 @@ export class Config {
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
-      host: 'https://explorer.blockstream.com/testnet/api',
+      host: 'https://explorer.blockstream.com/api',
       protocol: 'http',
       port: null,
     }
