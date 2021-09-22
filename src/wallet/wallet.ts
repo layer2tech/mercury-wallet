@@ -265,6 +265,7 @@ export class Wallet {
           statecoin.value
         )
         let p_addr = statecoin.getBtcAddress(this.config.network)
+        this.importAddress(p_addr)
         this.checkFundingTxListUnspent(
           statecoin.shared_key_id,
           p_addr,
@@ -275,6 +276,7 @@ export class Wallet {
       // Check if any deposit_inits are awaiting confirmations and mark unconfirmed/confirmed if complete
       this.statecoins.getInMempoolCoins().forEach((statecoin) => {
         let p_addr = statecoin.getBtcAddress(this.config.network)
+        this.importAddress(p_addr)
         this.checkFundingTxListUnspent(
           statecoin.shared_key_id,
           p_addr,
@@ -705,6 +707,7 @@ export class Wallet {
   async awaitFundingTx(shared_key_id: string, p_addr: string, value: number) {
     let p_addr_script = bitcoin.address.toOutputScript(p_addr, this.config.network)
     log.info("Subscribed to script hash for p_addr: ", p_addr);
+    this.importAddress(p_addr)
     this.electrum_client.scriptHashSubscribe(p_addr_script, (_status: any) => {
       log.info("Script hash status change for p_addr: ", p_addr);
         // Get p_addr list_unspent and verify tx
@@ -737,6 +740,10 @@ export class Wallet {
       }
     });
 
+  }
+
+  async import_address(p_addr: string){
+    this.electrum_client.importAddresses([p_addr])
   }
 
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
