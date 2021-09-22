@@ -327,7 +327,7 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
 export const callGetFeeEstimation = createAsyncThunk(
   'GetFeeEstimation',
   async (action, thunkAPI) => {
-    return await wallet.electrum_client.getFeeEstimation(action,wallet.config.network);
+    return await wallet.electrum_client.getFeeEstimation(action);
   }
 )
 
