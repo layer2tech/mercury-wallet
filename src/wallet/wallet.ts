@@ -975,7 +975,7 @@ export class Wallet {
     let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
 
     let batch_data = null;
-    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations);
+    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations, null);
 
     // Finalize protocol run by generating new shared key and updating wallet.
     this.transfer_receiver_finalize(finalize_data);
