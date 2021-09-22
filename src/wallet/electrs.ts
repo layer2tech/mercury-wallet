@@ -23,7 +23,7 @@ export const GET_ROUTE = {
   //getScriptHashListUnspent /scripthash/:hash/utxo
   SCRIPTHASH: "/electrs/scripthash",
   UTXO: "utxo",
-  //getFeeHistogram
+  //getFeeEstimates
   FEE_ESTIMATES: "/electrs/fee-estimates",
 };
 Object.freeze(GET_ROUTE);
@@ -192,7 +192,8 @@ export class ElectrsClient {
     return ElectrsClient.post(this.endpoint,GET_ROUTE.TX, { "data": rawTX })
   }
 
-  async getFeeHistogram(num_blocks: number): Promise<any> {
+  async getFeeEstimation(num_blocks: number): Promise<any> {
+    //improvement: load 
     let result = await ElectrsClient.get(this.endpoint,GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
     return result
   }

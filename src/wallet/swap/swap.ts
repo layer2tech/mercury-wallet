@@ -256,7 +256,8 @@ export const swapPhase3 = async (
     statecoin.swap_info.swap_token.statechain_ids,
     statecoin.swap_address,
     new_proof_key_der,
-    req_confirmations
+    req_confirmations,
+    statecoin.value
   );
 
   if(transfer_finalized_data !== null){
@@ -418,7 +419,8 @@ export const do_transfer_receiver = async (
   statechain_ids: Array<String>,
   rec_se_addr: SCEAddress,
   rec_se_addr_bip32: BIP32Interface,
-  req_confirmations: number
+  req_confirmations: number,
+  value: number
 ): Promise<TransferFinalizeData | null> => {
   for (var id of statechain_ids){
     let msg3;
@@ -440,7 +442,7 @@ export const do_transfer_receiver = async (
           "commitment":commit,
         }
         await delay(1);
-        let finalize_data = await transferReceiver(http_client, electrum_client, network, msg3,rec_se_addr_bip32,batch_data,req_confirmations);
+        let finalize_data = await transferReceiver(http_client, electrum_client, network, msg3,rec_se_addr_bip32,batch_data,req_confirmations,value);
         typeforce(types.TransferFinalizeData, finalize_data);
         return finalize_data;
       } else {

@@ -22,7 +22,7 @@ export const withdraw = async (
   statecoins: StateCoin[],
   proof_key_ders: BIP32Interface[],
   rec_addr: string,
-  fee_per_kb: number
+  fee_per_byte: number
 ): Promise<Transaction> => {
 
   let sc_infos: StateChainDataAPI[] = [];
@@ -84,7 +84,7 @@ export const withdraw = async (
   let txb_withdraw_unsigned;
 
   if(statecoins.length > 1) {
-      txb_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info,fee_per_kb)
+      txb_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info,fee_per_byte)
   } else {
       let statecoin = statecoins[0];
       let withdraw_fee = (statecoin.value * fee_info.withdraw) / 10000;
@@ -96,7 +96,7 @@ export const withdraw = async (
             statecoin.value,
             fee_info.address,
             withdraw_fee,
-            fee_per_kb
+            fee_per_byte
           );
   }
 
