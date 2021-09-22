@@ -59,6 +59,7 @@ export class Wallet {
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
+  warnings: [{name: string, show: boolean}]
 
   storage: Storage
 
@@ -81,6 +82,8 @@ export class Wallet {
     
     this.block_height = 0;
     this.current_sce_addr = "";
+
+    this.warnings = [{name: "swap_punishment", show: true}]
 
     this.storage = new Storage(`wallets/${this.name}/config`);
   }
@@ -135,10 +138,15 @@ export class Wallet {
     config.update(json_wallet.config);
     //Config needs to be included when constructing the wallet
     let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
+
     new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
     new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
     
     new_wallet.current_sce_addr = json_wallet.current_sce_addr;
+
+    if(json_wallet.warning !== undefined) new_wallet.warnings = json_wallet.warnings
+    // Make sure properties added to the wallet are handled
+    // New properties should not make old wallets break
 
     // Rederive root and root chain keys
     const seed = bip39.mnemonicToSeedSync(json_wallet.mnemonic);
@@ -372,6 +380,17 @@ export class Wallet {
   }
 
   getNumSEAddress(): number { return this.account.chains[0].addresses.length }
+  
+  showWarning(key: string){
+    const warningObject = this.warnings.filter(w => w.name === key)
+    return warningObject[0].show
+  }
+
+  dontShowWarning(key: string){
+    const warningObject = this.warnings.filter(w => w.name === key)
+    warningObject[0].show = false
+    this.save()
+  }
 
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.getBlockHeight());
@@ -1069,8 +1088,27 @@ export class Wallet {
     this.saveStateCoinsList();
 
     // Broadcast transcation
-    let withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
-
+    let withdraw_txid: string = ""
+    let nTries=0;
+    let maxNTries=10
+    while (true){
+      try {
+        withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
+      } catch (error) {
+        nTries=nTries+1
+        if (nTries < maxNTries) {
+          log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          continue
+        } else {
+          let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`
+          log.info(errMsg)
+          throw new Error(errMsg)
+        }
+      }
+      break
+    }
+    
     log.info("Withdrawing finished.");
 
     return withdraw_txid

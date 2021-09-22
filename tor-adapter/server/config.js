@@ -9,7 +9,7 @@ class Config{
                                 Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
             controlPort: 9061
         }
-
+        
         this.update(require("./settings.json"))
     }
 
