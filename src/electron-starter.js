@@ -72,7 +72,7 @@ const updateNetworkConfig = (network) => {
   }
 
   // write change to config
-  fs.writeFile('src/settings.json', JSON.stringify(settingFile, null, 2) , (err) => {
+  fs.writeFile('./settings.json', JSON.stringify(settingFile, null, 2) , (err) => {
     if(err){
         console.log("An error ocurred creating the file "+ err.message)
     }else{
