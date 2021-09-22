@@ -22,6 +22,7 @@ const Welcome = () => {
                 <p>{JSON.stringify(process.argv)}</p>
                 <br/>
                 <p>{JSON.stringify(electron.remote.process.argv)}</p>
+                <p>testnet address: {JSON.stringify(require('../../network.json').testnet_state_entity_endpoint)}</p>
                 
                 <p>If you’re using Mercury wallet for the first time, create a
                     new wallet.
