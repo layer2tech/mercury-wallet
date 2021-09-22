@@ -169,6 +169,17 @@ export const walletFromJson = (wallet_json, password) => {
 export const callGetAccount = () => {
   return wallet.account
 }
+
+export const callGetArgsHasTestnet =  () => {
+  let found  = false;
+  window.require('electron').remote.process.argv.forEach((arg) =>  {
+      if(arg.includes('testnet')){
+          found = true;
+      }     
+  });
+  return found;
+}
+
 // Wallet data gets
 export const callGetConfig = () => {
   return wallet.config.getConfig()

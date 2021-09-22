@@ -2,18 +2,31 @@
 
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "./electrum";
+const electron = window.require('electron');
 
 let cloneDeep = require('lodash.clonedeep');
 
 let DEFAULT_NETWORK = 'mainnet';
 let DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
 let DEFAULT_BLOCK_EXPLORER_ENDPOINT = "https://blockstream.info";
+let DEFAULT_ELECTRUM_ENDPOINT = "https://explorer.blockstream.com/api";
+
+const argsHasTestnet = () => {
+  let found  = false;
+  electron.remote.process.argv.forEach((arg: string) =>  {
+      if(arg.includes('testnet')){
+          found = true;
+      }     
+  });
+  return found;
+}
 
 // check values of arguments
-if(process.argv.includes('testnet')){
+if(argsHasTestnet()){
   DEFAULT_NETWORK = 'testnet';
   DEFAULT_STATE_ENTITY_ENPOINT =  "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion";
   DEFAULT_BLOCK_EXPLORER_ENDPOINT  = "https://blockstream.info"
+  DEFAULT_ELECTRUM_ENDPOINT = 'https://explorer.blockstream.com/testnet/api';
 }
 
 export class Config {
@@ -53,7 +66,7 @@ export class Config {
     this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
     this.electrum_config = {
-      host: 'https://explorer.blockstream.com/api',
+      host: DEFAULT_ELECTRUM_ENDPOINT,
       protocol: 'http',
       port: null,
     }

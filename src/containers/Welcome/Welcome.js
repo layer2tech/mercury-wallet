@@ -2,11 +2,11 @@ import plus from '../../images/plus-black.png';
 import restore from '../../images/restore-img.png';
 import check from '../../images/icon-action-check_circle.png';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 
 import './Welcome.css'
-
+const fs = require('fs');
 
 const Welcome = () => {
     const state = useState(0);
@@ -14,9 +14,34 @@ const Welcome = () => {
     const changeCheckbox = state[1];
     const electron = window.require('electron');
 
+    // check the arguments
+    const argsHasTestnet = () => {
+        let found  = false;
+        electron.remote.process.argv.forEach(arg =>  {
+            if(arg.includes('testnet')){
+                found = true;
+            }     
+        });
+        return found;
+    }
+
+    const buildArgsString = () =>  {
+        let str = "";
+        electron.remote.process.argv.forEach(arg => {
+            if(arg.includes('testnet')){
+                str+='fizz';
+            }else{
+                str+='buzz';
+            }
+        })
+        return str;
+    }
+
     return (
         <div className="welcome-first">
             <div>
+                <p>{argsHasTestnet() ? 'Argument has testnet' : 'argument doesnt  have testnet'}</p>
+                <p>{buildArgsString()}</p>
                 <h1>Welcome to Mercury</h1>
                 <br/>
                 <p>{JSON.stringify(process.argv)}</p>
