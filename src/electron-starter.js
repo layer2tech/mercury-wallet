@@ -49,6 +49,7 @@ const getNetwork = () => {
 }
 
 const updateNetworkConfig = (network) => {
+  network =  'testnet';
 
   // get settings file
   const settingFile = require('./settings.json');
