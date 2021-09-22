@@ -85,7 +85,9 @@ export class Config {
     this.swaplimit = 1440;
 
     // update defaults with config in settings.json
-    this.update(require("../settings.json"))
+    if(!argsHasTestnet()){
+      this.update(require("../settings.json"))
+    }
   }
 
   getConfig() {

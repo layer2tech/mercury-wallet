@@ -8,6 +8,8 @@ import {Link, withRouter} from "react-router-dom";
 import './Welcome.css'
 const fs = require('fs');
 
+const resolve = require('path').resolve;
+
 const Welcome = () => {
     const state = useState(0);
     const checked = state[0];
@@ -40,6 +42,9 @@ const Welcome = () => {
     return (
         <div className="welcome-first">
             <div>
+                <p>{__dirname}</p>
+                <p>{__filename}np</p>
+                <p>{resolve('../../settings.json')}</p>
                 <p>{argsHasTestnet() ? 'Argument has testnet' : 'argument doesnt  have testnet'}</p>
                 <p>{buildArgsString()}</p>
                 <h1>Welcome to Mercury</h1>

@@ -10,6 +10,7 @@ class Config{
             controlPort: 9061
         }
         
+        // todo - only if  testnet  was not  passed
         this.update(require("./settings.json"))
     }
 
