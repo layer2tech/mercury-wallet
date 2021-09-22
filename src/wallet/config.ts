@@ -2,7 +2,6 @@
 
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "./electrum";
-const electron = window.require('electron');
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -13,7 +12,7 @@ let DEFAULT_ELECTRUM_ENDPOINT = "https://explorer.blockstream.com/api";
 
 const argsHasTestnet = () => {
   let found  = false;
-  electron.remote.process.argv.forEach((arg: string) =>  {
+  window.require('electron').remote.process.argv.forEach((arg: string) =>  {
       if(arg.includes('testnet')){
           found = true;
       }     

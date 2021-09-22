@@ -1,3 +1,5 @@
+window.require = require;
+
 const { ipcRenderer } = require('electron')
 
 const SELECT_DIR = 'select-dirs';
