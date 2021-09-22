@@ -24,7 +24,6 @@ const CoinDescription = (props) => {
                         onChange={props.handleChange}
                         onKeyPress={handleSubmit}/>
 
-
                     {/* <span className="close-icon">
                         <img src={close_img} />
                     </span> */}

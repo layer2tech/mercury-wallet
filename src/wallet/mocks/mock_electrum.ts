@@ -72,7 +72,7 @@ export class MockElectrumClient {
     }
     async scriptHashUnsubscribe(_script: string): Promise<any> {
     }
-    async getFeeHistogram(_num_blocks: number): Promise<any> {
+    async getFeeEstimation(_num_blocks: number): Promise<any> {
     }
 
     async close(): Promise<any>{      
@@ -81,6 +81,10 @@ export class MockElectrumClient {
     async serverPing(): Promise<any>{
     }
 
+    ping(): boolean{
+      return true
+    }
+    
     isOpen(): boolean {
       return true;
     }

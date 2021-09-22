@@ -29,10 +29,7 @@ export class ElectrumClient {
   // Connect to Electrum Server if not already connected or in the process of connecting
   async connect() {
 
-
-
     await mutex.runExclusive(async () => {
-
       
       await this.client.connect(
         "mercury-electrum-client-js",  // optional client name
@@ -172,7 +169,7 @@ export class ElectrumClient {
     return txHash
   }
 
-  async getFeeHistogram(num_blocks: number): Promise<any> {
+  async getFeeEstimation(num_blocks: number): Promise<any> {
     this.connect();
     const fee_histogram = await this.client
       .blockchainEstimatefee(num_blocks)
