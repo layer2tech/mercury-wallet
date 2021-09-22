@@ -48,7 +48,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({width: 1200, height: 800,
       webPreferences:
         {
-          nodeIntegration: true,
+          nodeIntegration: false,
           webSecurity: false,
           enableRemoteModule: true,
           backgroundThrottling: false,
@@ -56,7 +56,7 @@ function createWindow() {
         }
       }
     );
-    
+
     if (process.platform !== 'darwin') {
 	    mainWindow.setMenu(null);
     }
