@@ -101,7 +101,9 @@ setInterval(async function() {
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
 function setBlockHeightCallBack(item) {
-  wallet.setBlockHeight(item);
+  if(wallet) {
+    wallet.setBlockHeight(item);
+  }
 }
 
 // Load wallet from store
