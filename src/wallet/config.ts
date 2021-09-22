@@ -5,7 +5,6 @@ import { ElectrumClientConfig } from "./electrum";
 
 let cloneDeep = require('lodash.clonedeep');
 
-
 let DEFAULT_NETWORK = 'mainnet';
 let DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
 let DEFAULT_BLOCK_EXPLORER_ENDPOINT = "https://blockstream.info";
@@ -16,8 +15,6 @@ if(process.argv.includes('testnet')){
   DEFAULT_STATE_ENTITY_ENPOINT =  "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion";
   DEFAULT_BLOCK_EXPLORER_ENDPOINT  = "https://blockstream.info"
 }
-
-
 
 export class Config {
   // Set at startup only
