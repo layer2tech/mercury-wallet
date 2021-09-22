@@ -626,7 +626,6 @@ const Coins = (props) => {
 
     // called when clicking on TXid link in modal window
     const onClickTXID = txId => {
-      const NETWORK = require("../../settings.json").network;
       let block_explorer_endpoint  = current_config.block_explorer_endpoint;
 
       // ensure there is https
@@ -635,18 +634,8 @@ const Coins = (props) => {
       }
 
       let finalUrl = '';
-      switch(NETWORK){
-        case 'mainnet':
-          finalUrl = block_explorer_endpoint + '/tx/'  + txId;
-          break;
-        case 'testnet':
-          finalUrl = block_explorer_endpoint + '/testnet/tx/'  + txId;
-          break;
-        // do nothing for regtest and anything else then exit method
-        case 'regtest':
-        default:
-          return null;
-      }
+      finalUrl = block_explorer_endpoint  + txId;
+      
       // open the browser for both mainnet and testnet
       window.require("electron").shell.openExternal(finalUrl);
     }

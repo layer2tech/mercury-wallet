@@ -2,58 +2,20 @@ import plus from '../../images/plus-black.png';
 import restore from '../../images/restore-img.png';
 import check from '../../images/icon-action-check_circle.png';
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 
 import './Welcome.css'
-const fs = require('fs');
-
-const resolve = require('path').resolve;
 
 const Welcome = () => {
     const state = useState(0);
     const checked = state[0];
     const changeCheckbox = state[1];
-    const electron = window.require('electron');
-
-    // check the arguments
-    const argsHasTestnet = () => {
-        let found  = false;
-        electron.remote.process.argv.forEach(arg =>  {
-            if(arg.includes('testnet')){
-                found = true;
-            }     
-        });
-        return found;
-    }
-
-    const buildArgsString = () =>  {
-        let str = "";
-        electron.remote.process.argv.forEach(arg => {
-            if(arg.includes('testnet')){
-                str+='fizz';
-            }else{
-                str+='buzz';
-            }
-        })
-        return str;
-    }
 
     return (
         <div className="welcome-first">
             <div>
-                <p>{__dirname}</p>
-                <p>{__filename}np</p>
-                <p>{resolve('../../settings.json')}</p>
-                <p>{argsHasTestnet() ? 'Argument has testnet' : 'argument doesnt  have testnet'}</p>
-                <p>{buildArgsString()}</p>
                 <h1>Welcome to Mercury</h1>
-                <br/>
-                <p>{JSON.stringify(process.argv)}</p>
-                <br/>
-                <p>{JSON.stringify(electron.remote.process.argv)}</p>
-                <p>testnet address: {JSON.stringify(require('../../network.json').testnet_state_entity_endpoint)}</p>
-                
                 <p>If you’re using Mercury wallet for the first time, create a
                     new wallet.
                     If you have an existing wallet, load the wallet from your device storage, or use your seed phrase or backup file to restore the wallet.</p>

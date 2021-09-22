@@ -8,7 +8,7 @@ let cloneDeep = require('lodash.clonedeep');
 
 let DEFAULT_NETWORK = 'mainnet';
 let DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
-let DEFAULT_BLOCK_EXPLORER_ENDPOINT = "https://blockstream.info";
+let DEFAULT_BLOCK_EXPLORER_ENDPOINT = "https://blockstream.info/tx/";
 let DEFAULT_ELECTRUM_ENDPOINT = "https://explorer.blockstream.com/api";
 
 const argsHasTestnet = () => {
@@ -25,7 +25,7 @@ const argsHasTestnet = () => {
 if(argsHasTestnet()){
   DEFAULT_NETWORK = 'testnet';
   DEFAULT_STATE_ENTITY_ENPOINT =  "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion";
-  DEFAULT_BLOCK_EXPLORER_ENDPOINT  = "https://blockstream.info"
+  DEFAULT_BLOCK_EXPLORER_ENDPOINT  = "https://blockstream.info/testnet/tx/"
   DEFAULT_ELECTRUM_ENDPOINT = 'https://explorer.blockstream.com/testnet/api';
 }
 

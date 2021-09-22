@@ -27,7 +27,6 @@ const Header = (props) => {
         <Link className="navbar-brand" to={props.walletLoaded ? "/home" : "/"}>
           <Logo />  
         </Link>
-        {require('../../settings.json').network}
         <div className="menu">
           <div>
             <label className="toggle">

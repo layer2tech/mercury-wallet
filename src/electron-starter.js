@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { join, dirname } = require('path');
 const joinPath = join;
-const { app, BrowserWindow, dialog, ipcMain, shell, remote } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const path = require('path');
 const url = require('url');
 const fixPath = require('fix-path');
@@ -10,76 +10,6 @@ const rootPath = require('electron-root-path').rootPath;
 const ipc = require('electron').ipcMain;
 const execFile = require('child_process').execFile;
 const axios = require('axios').default;
-
-
-const getNetwork = () => {
-  // check arguments passed into app
-  let network = 'mainnet'; // defaults to mainnet
-  let found = false;
-
-  // check for build arguments
-  if(!found && remote !== undefined){
-    let args2 = remote.process.argv;
-    args2.forEach(arg => {
-      if(arg.includes('testnet')){
-        found = true
-        network = 'testnet';
-      }else if(arg.includes('mainnet')){
-        found = true;
-        network= 'mainnet';
-      }
-    })
-  }
-
-  // check for command line args
-  if(!found){
-    let args1 = process.argv;
-    args1.forEach(arg => {
-      if(arg.includes('testnet')){
-        found = true
-        network = 'testnet';
-      }else if(arg.includes('mainnet')){
-        found = true;
-        network= 'mainnet';
-      }
-    });
-  }
-  
-  return network;
-}
-
-const updateNetworkConfig = (network) => {
-  network =  'testnet';
-
-  // get settings file
-  const settingFile = require('./settings.json');
-  const networkFile = require('./network.json');
-
-  // change network name
-  settingFile.network = network;
-
-  // update the current values to whatever  network was passed in
-  if(network === 'testnet'){
-    if (networkFile.testnet_state_entity_endpoint !== undefined && networkFile.testnet_swap_conductor_endpoint !== undefined){
-      settingFile.state_entity_endpoint =  networkFile.testnet_state_entity_endpoint;
-      settingFile.swap_conductor_endpoint = networkFile.testnet_swap_conductor_endpoint;
-    }
-  }else if(network === 'mainnet'){
-    if(networkFile.mainnet_state_entity_endpoint !== undefined && networkFile.mainnet_swap_conductor_endpoint !==  undefined){
-      settingFile.state_entity_endpoint =  networkFile.mainnet_state_entity_endpoint;
-      settingFile.swap_conductor_endpoint = networkFile.mainnet_swap_conductor_endpoint;
-    }
-  }
-
-  // write change to config
-  fs.writeFile('./settings.json', JSON.stringify(settingFile, null, 2) , (err) => {
-    if(err){
-        console.log("An error ocurred creating the file "+ err.message)
-    }else{
-      console.log("The file has been succesfully saved");
-    }
-  });
-}
 
 const getPlatform = () => {
   switch (process.platform) {
@@ -126,12 +56,7 @@ function createWindow() {
         }
       }
     );
-
-    mainWindow.once('ready-to-show', () => {
-      let network =  getNetwork();
-      updateNetworkConfig(network);
-    });
-
+    
     if (process.platform !== 'darwin') {
 	    mainWindow.setMenu(null);
     }
