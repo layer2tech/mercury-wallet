@@ -3,6 +3,10 @@
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "./electrum";
 
+// Logger import.
+// Node friendly importing required for Jest tests.
+declare const window: any;
+
 let cloneDeep = require('lodash.clonedeep');
 
 let DEFAULT_NETWORK = 'mainnet';
@@ -12,11 +16,19 @@ let DEFAULT_ELECTRUM_ENDPOINT = "https://explorer.blockstream.com/api";
 
 const argsHasTestnet = () => {
   let found  = false;
-  window.require('electron').remote.process.argv.forEach((arg: string) =>  {
+  let remote: any
+  try {
+    remote = window.require('electron').remote
+  } catch (e:any) {
+    remote = require('electron').remote
+  }
+  if (remote) {
+    remote.process.argv.forEach((arg: string) =>  {
       if(arg.includes('testnet')){
           found = true;
       }     
-  });
+    });
+  }
   return found;
 }
 
