@@ -1,3 +1,13 @@
+const argsHasTestnet =  () => {
+    let found  = false;
+    window.require('electron').remote.process.argv.forEach((arg) =>  {
+        if(arg.includes('testnet')){
+            found = true;
+        }     
+    });
+    return found;
+}
+
 class Config{
     
     constructor() {
@@ -10,7 +20,12 @@ class Config{
             controlPort: 9061
         }
         
-        this.update(require("./settings.json"))
+        // if testnet was not passed
+        if(!argsHasTestnet()){
+            this.update(require("./settings.json"));
+        }else{
+            this.update(require('./testnet_settings.json'));
+        }
     }
 
     update(config_changes){

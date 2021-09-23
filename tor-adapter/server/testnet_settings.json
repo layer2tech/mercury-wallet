@@ -1,0 +1,9 @@
+{
+  "state_entity_endpoint": "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
+  "swap_conductor_endpoint": "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
+  "tor_proxy": {"ip": "localhost",
+                "port": 9060,
+                "controlPassword": "",
+                "controlPort": 9061
+              }
+}
