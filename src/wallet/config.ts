@@ -2,23 +2,21 @@
 
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "./electrum";
+const NETWORK_CONFIG = require('../network.json');
 
-// Logger import.
 // Node friendly importing required for Jest tests.
-declare const window: any;
+declare const WINDOW: any;
 
 let cloneDeep = require('lodash.clonedeep');
-
-let DEFAULT_NETWORK = 'mainnet';
-let DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
-let DEFAULT_BLOCK_EXPLORER_ENDPOINT = "https://blockstream.info/tx/";
-let DEFAULT_ELECTRUM_ENDPOINT = "https://explorer.blockstream.com/api";
+let current_state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;
+let current_block_explorer_endpoint = NETWORK_CONFIG.mainnet_block_explorer_endpoint;
+let current_electrum_endpoint = NETWORK_CONFIG.mainnet_electrum_config.host;
 
 const argsHasTestnet = () => {
   let found  = false;
   let remote: any
   try {
-    remote = window.require('electron').remote
+    remote = WINDOW.require('electron').remote
   } catch (e:any) {
     remote = require('electron').remote
   }
@@ -34,10 +32,9 @@ const argsHasTestnet = () => {
 
 // check values of arguments
 if(argsHasTestnet()){
-  DEFAULT_NETWORK = 'testnet';
-  DEFAULT_STATE_ENTITY_ENPOINT =  "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion";
-  DEFAULT_BLOCK_EXPLORER_ENDPOINT  = "https://blockstream.info/testnet/tx/"
-  DEFAULT_ELECTRUM_ENDPOINT = 'https://explorer.blockstream.com/testnet/api';
+  current_state_entity_endpoint =  NETWORK_CONFIG.testnet_state_entity_endpoint;
+  current_block_explorer_endpoint  = NETWORK_CONFIG.testnet_block_explorer_endpoint;
+  current_electrum_endpoint = NETWORK_CONFIG.testnet_electrum_config.host;
 }
 
 export class Config {
@@ -74,14 +71,14 @@ export class Config {
     this.required_confirmations = 3;
     this.electrum_fee_estimation_blocks = 6;
 
-    this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
-    this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
+    this.state_entity_endpoint = current_state_entity_endpoint;
+    this.swap_conductor_endpoint = current_state_entity_endpoint;
     this.electrum_config = {
-      host: DEFAULT_ELECTRUM_ENDPOINT,
+      host: current_electrum_endpoint,
       protocol: 'http',
       port: null,
     }
-    this.block_explorer_endpoint = DEFAULT_BLOCK_EXPLORER_ENDPOINT;
+    this.block_explorer_endpoint = current_block_explorer_endpoint;
 
     this.tor_proxy = {
       ip: 'localhost',

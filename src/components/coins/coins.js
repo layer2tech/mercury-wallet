@@ -633,9 +633,7 @@ const Coins = (props) => {
         block_explorer_endpoint = 'https://' + block_explorer_endpoint;
       }
 
-      let finalUrl = '';
-      finalUrl = block_explorer_endpoint  + txId;
-      
+      let finalUrl = block_explorer_endpoint  + txId;
       // open the browser for both mainnet and testnet
       window.require("electron").shell.openExternal(finalUrl);
     }
