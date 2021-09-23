@@ -25,7 +25,7 @@ const Header = (props) => {
 
       <div className="container block">
         <Link className="navbar-brand" to={props.walletLoaded ? "/home" : "/"}>
-          <Logo />
+          <Logo />  
         </Link>
         <div className="menu">
           <div>

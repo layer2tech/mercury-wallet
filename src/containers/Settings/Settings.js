@@ -6,23 +6,40 @@ import {useDispatch} from 'react-redux'
 
 import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
-  callUpdateConfig, callClearSave, unloadWallet, callGetActivityLog} from '../../features/WalletDataSlice'
+  callUpdateConfig, callClearSave, unloadWallet, callGetActivityLog, callGetArgsHasTestnet} from '../../features/WalletDataSlice'
 
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
 
-export const defaultWalletConfig = () => ({
-  notifications: false,
-  tutorials: false,
+const NETWORK_CONFIG =  require('../../network.json');
 
-  state_entity_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
-  swap_conductor_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
-  block_explorer_endpoint: "https://blockstream.info",
-  electrum_config: {host: "https://explorer.blockstream.com/api", port: null, protocol: "http"},
-
-  tor_proxy: { ip: "localhost", port: 9060, controlPassword: "password", controlPort: 9061 },
-  min_anon_set: ""
-})
+export const defaultWalletConfig = () => {
+  if(callGetArgsHasTestnet()){
+    return ({
+      network: 'testnet',
+      notifications: false,
+      tutorials: false,
+      state_entity_endpoint: NETWORK_CONFIG.testnet_state_entity_endpoint,
+      swap_conductor_endpoint: NETWORK_CONFIG.testnet_swap_conductor_endpoint,
+      block_explorer_endpoint: NETWORK_CONFIG.testnet_block_explorer_endpoint,
+      electrum_config: NETWORK_CONFIG.testnet_electrum_config,
+      tor_proxy: { ip: "localhost", port: 9060, controlPassword: "password", controlPort: 9061 },
+      min_anon_set: ""
+    });
+  }else{
+    return ({
+      network: 'mainnet',
+      notifications: false,
+      tutorials: false,
+      state_entity_endpoint: NETWORK_CONFIG.mainnet_state_entity_endpoint,
+      swap_conductor_endpoint: NETWORK_CONFIG.mainnet_swap_conductor_endpoint,
+      block_explorer_endpoint: NETWORK_CONFIG.mainnet_block_explorer_endpoint,
+      electrum_config: NETWORK_CONFIG.mainnet_electrum_config,
+      tor_proxy: { ip: "localhost", port: 9060, controlPassword: "password", controlPort: 9061 },
+      min_anon_set: ""
+    });
+  }
+}
 
 const SettingsPage = (props) => {
   const dispatch = useDispatch();

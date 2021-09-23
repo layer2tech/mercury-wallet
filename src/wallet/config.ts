@@ -2,13 +2,40 @@
 
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "./electrum";
+const NETWORK_CONFIG = require('../network.json');
+
+// Node friendly importing required for Jest tests.
+declare const window: any;
 
 let cloneDeep = require('lodash.clonedeep');
+let current_state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;
+let current_block_explorer_endpoint = NETWORK_CONFIG.mainnet_block_explorer_endpoint;
+let current_electrum_endpoint = NETWORK_CONFIG.mainnet_electrum_config.host;
 
-const DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
+const argsHasTestnet = () => {
+  let found  = false;
+  let remote: any
+  try {
+    remote = window.require('electron').remote
+  } catch (e:any) {
+    remote = require('electron').remote
+  }
+  if (remote) {
+    remote.process.argv.forEach((arg: string) =>  {
+      if(arg.includes('testnet')){
+          found = true;
+      }     
+    });
+  }
+  return found;
+}
 
-const DEFAULT_BLOCK_EXPLORER_ENDPOINT = "https://blockstream.info";
-
+// check values of arguments
+if(argsHasTestnet()){
+  current_state_entity_endpoint =  NETWORK_CONFIG.testnet_state_entity_endpoint;
+  current_block_explorer_endpoint  = NETWORK_CONFIG.testnet_block_explorer_endpoint;
+  current_electrum_endpoint = NETWORK_CONFIG.testnet_electrum_config.host;
+}
 
 export class Config {
   // Set at startup only
@@ -44,14 +71,14 @@ export class Config {
     this.required_confirmations = 3;
     this.electrum_fee_estimation_blocks = 6;
 
-    this.state_entity_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
-    this.swap_conductor_endpoint = DEFAULT_STATE_ENTITY_ENPOINT;
+    this.state_entity_endpoint = current_state_entity_endpoint;
+    this.swap_conductor_endpoint = current_state_entity_endpoint;
     this.electrum_config = {
-      host: 'https://explorer.blockstream.com/api',
+      host: current_electrum_endpoint,
       protocol: 'http',
       port: null,
     }
-    this.block_explorer_endpoint = DEFAULT_BLOCK_EXPLORER_ENDPOINT;
+    this.block_explorer_endpoint = current_block_explorer_endpoint;
 
     this.tor_proxy = {
       ip: 'localhost',
@@ -66,7 +93,9 @@ export class Config {
     this.swaplimit = 1440;
 
     // update defaults with config in settings.json
-    this.update(require("../settings.json"))
+    if(!argsHasTestnet()){
+      this.update(require("../settings.json"))
+    }
   }
 
   getConfig() {

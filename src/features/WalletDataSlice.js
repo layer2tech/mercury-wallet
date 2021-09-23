@@ -13,9 +13,25 @@ import {mutex} from '../wallet/electrum';
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
 // eslint-disable-next-line
 const OPEN = require('websocket').w3cwebsocket.OPEN;
-
 const log = window.require('electron-log');
-const network = bitcoin.networks[require("../settings.json").network];
+
+
+export const callGetArgsHasTestnet =  () => {
+  let found  = false;
+  window.require('electron').remote.process.argv.forEach((arg) =>  {
+      if(arg.includes('testnet')){
+          found = true;
+      }     
+  });
+  return found;
+}
+
+let network;
+if(callGetArgsHasTestnet()){
+  network = bitcoin.networks["testnet"];
+}else{
+  network = bitcoin.networks["mainnet"];
+}
 
 let wallet;
 let testing_mode = require("../settings.json").testing_mode;
@@ -171,6 +187,7 @@ export const walletFromJson = (wallet_json, password) => {
 export const callGetAccount = () => {
   return wallet.account
 }
+
 // Wallet data gets
 export const callGetConfig = () => {
   return wallet.config.getConfig()

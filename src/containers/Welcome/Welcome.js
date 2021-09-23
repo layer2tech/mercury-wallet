@@ -10,7 +10,7 @@ import './Welcome.css'
 const Welcome = () => {
     const state = useState(0);
     const checked = state[0];
-    const changeCheckbox = state[1]
+    const changeCheckbox = state[1];
 
     return (
         <div className="welcome-first">
