@@ -5,7 +5,7 @@ import { ElectrumClientConfig } from "./electrum";
 const NETWORK_CONFIG = require('../network.json');
 
 // Node friendly importing required for Jest tests.
-declare const WINDOW: any;
+declare const window: any;
 
 let cloneDeep = require('lodash.clonedeep');
 let current_state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;
@@ -16,7 +16,7 @@ const argsHasTestnet = () => {
   let found  = false;
   let remote: any
   try {
-    remote = WINDOW.require('electron').remote
+    remote = window.require('electron').remote
   } catch (e:any) {
     remote = require('electron').remote
   }
