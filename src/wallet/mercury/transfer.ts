@@ -142,7 +142,7 @@ export const transferReceiver = async (
   se_rec_addr_bip32: BIP32Interface,
   batch_data: any,
   req_confirmations: number,
-  rescan_height: number = -1
+  block_height: number
 ): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
@@ -176,7 +176,9 @@ export const transferReceiver = async (
 
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);
-  await electrum_client.importAddresses([addr], rescan_height)
+  // Get state entity fee info
+  let fee_info: FeeInfo = await getFeeInfo(http_client);
+  await electrum_client.importAddresses([addr], block_height - fee_info.initlock)
   let out_script = bitcoin.address.toOutputScript(addr, network);
   let match = TESTING_MODE;
   let funding_tx_data = await electrum_client.getScriptHashListUnspent(out_script);
