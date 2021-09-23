@@ -975,7 +975,7 @@ export class Wallet {
     let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
 
     let batch_data = null;
-    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations);
+    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations, null);
 
     // Finalize protocol run by generating new shared key and updating wallet.
     this.transfer_receiver_finalize(finalize_data);
@@ -1055,7 +1055,7 @@ export class Wallet {
   async withdraw(
     shared_key_ids: string[],
     rec_addr: string,
-    fee_per_kb: number
+    fee_per_byte: number
   ): Promise <string> {
     log.info("Withdrawing "+shared_key_ids+" to "+rec_addr);
 
@@ -1076,7 +1076,7 @@ export class Wallet {
     });
 
     // Perform withdraw with server
-    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_kb);
+    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_byte);
     
     // Mark funds as withdrawn in wallet
     shared_key_ids.forEach( (shared_key_id) => {

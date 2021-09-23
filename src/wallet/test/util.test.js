@@ -3,7 +3,7 @@ import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, txBackupBuild, txWithdrawBuild, txCPFPBuild, StateChainSig, toSatoshi, fromSatoshi,
   encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
   encryptECIES, decryptECIES, encryptAES, decryptAES, proofKeyToSCEAddress, encodeMessage,
-  decodeMessage, VIRTUAL_TX_SIZE_KB } from '../util';
+  decodeMessage, VIRTUAL_TX_SIZE } from '../util';
 import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
 import { Wallet } from '../';
 
@@ -47,7 +47,7 @@ describe('txBackupBuild', function() {
     }).toThrowError('Not enough value to cover fee.');
   });
 
-  test('Check built tx correct', async function() {
+  test('Check built tx correct 1', async function() {
     let tx_backup = txBackupBuild(network, funding_txid, funding_vout, backup_receive_addr, value, backup_receive_addr, 100, locktime).buildIncomplete();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
@@ -63,19 +63,20 @@ describe('txWithdrawBuild', function() {
   let rec_address = BTC_ADDR
   let value = 10000;
   let fee_info = FEE_INFO
-  let fee_per_kb = 0.00001
+  let fee_per_byte = 1 // 1 sat/byte 
 
   test('Throw on invalid value', async function() {
     expect(() => {  // not enough value
-      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 0, fee_info.address, Number(fee_info.withdraw), fee_per_kb);
+      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 0, fee_info.address, Number(fee_info.withdraw), fee_per_byte);
     }).toThrowError('Not enough value to cover fee.');
     expect(() => {  // not enough value
-      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 100, fee_info.address, Number(fee_info.withdraw), fee_per_kb); // should be atleast + value of network FEE also
+      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 100, fee_info.address, Number(fee_info.withdraw), fee_per_byte); // should be atleast + value of network FEE also
     }).toThrowError('Not enough value to cover fee.');
   });
 
-  test('Check built tx correct', async function() {
-    let tx_backup = txWithdrawBuild(network, funding_txid, funding_vout, rec_address, value, rec_address, Number(fee_info.withdraw), fee_per_kb).buildIncomplete();
+  test('Check built tx correct 2', async function() {
+    let tx_backup = txWithdrawBuild(network, funding_txid, funding_vout, rec_address, value, rec_address, Number(fee_info.withdraw), fee_per_byte).buildIncomplete();
+
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
     expect(tx_backup.outs.length).toBe(2);
@@ -83,7 +84,7 @@ describe('txWithdrawBuild', function() {
     expect(tx_backup.outs[1].value).toBe(Number(fee_info.withdraw));
     let fee_value = value-tx_backup.outs[0].value-tx_backup.outs[1].value;
     // With a 1 s/b fee, tx fee should be equal to signed tx size
-    expect(fee_value).toBe(VIRTUAL_TX_SIZE_KB *1000)
+    expect(fee_value).toBe(VIRTUAL_TX_SIZE)
   });
 });
 
@@ -106,7 +107,7 @@ describe('txCPFPBuild', function() {
     }).toThrowError('Not enough value to cover fee.');
   });
 
-  test('Check built tx correct', async function() {
+  test('Check built tx correct 3', async function() {
     let tx_backup = txCPFPBuild(network, funding_txid, funding_vout, rec_address, value, fee_rate, p2wpkh).buildIncomplete();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);

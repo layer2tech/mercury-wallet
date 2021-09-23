@@ -16,31 +16,31 @@ import Loading from '../../components/Loading/Loading';
 
 import './Withdraw.css';
 
-export const DEFAULT_FEE = 0.00001;
-
 const WithdrawPage = () => {
   const dispatch = useDispatch();
+
   const { balance_info, filterBy } = useSelector(state => state.walletData);
+
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [withdraw_txid,setWithdrawTxid] = useState("");
-  const [openModal,setOpenModal] = useState(false);
-  const [state, setState]  =  useState({});
 
+  const [openModal,setOpenModal] = useState(false);
+  
+  const [state, setState]  =  useState({});
+  const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
+
+  const [txFeePerB, setTxFeePerB] = useState(7); // chosen fee per kb value
+
+  const [txFees,setTxFees] = useState([{block: 6, fee: 7,id:1},{block: 3, fee:8,id:2},{block:1, fee:9,id:3}])
+
+  const [customFee,setCustomFee] = useState(false)
+  
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
-  const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
-  const [txFeePerKB, setTxFeePerKB] = useState(DEFAULT_FEE); // chosen fee per kb value
-  // Calc Med and High fee values and convert to satoshis
-  const calcTxFeePerKbList = (low_fee_value) => {
-    if (low_fee_value<0.0001) { // < 10 satoshis per byte
-      return [low_fee_value, low_fee_value*2, low_fee_value*4]
-    }
-    return [low_fee_value, low_fee_value*1.1, low_fee_value*1.2]
-  }
-  const txFeePerByteList = calcTxFeePerKbList(DEFAULT_FEE); // list of fee per kb options in satoshis
 
   const addSelectedCoin = (statechain_id) => {
     let newSelectedCoins = selectedCoins;
@@ -57,10 +57,29 @@ const WithdrawPage = () => {
 
   // Get Tx fee estimate
   useEffect(() => {
-    dispatch(callGetFeeEstimation()).then(tx_fee_estimate => {
-      if (tx_fee_estimate>0) {
-        setTxFeePerKB(tx_fee_estimate);
-      }
+    let blocks = txFees.map(item => item.block)
+    // list of # of blocks untill confirmation
+
+    let txFeeEstimations = []
+
+    blocks.map(block => {
+      dispatch(callGetFeeEstimation(parseInt(block))).then(tx_fee_estimate => {
+
+        if (tx_fee_estimate.payload>0) {
+          // Add fee to list
+          let feeEst = tx_fee_estimate.payload
+          
+          txFeeEstimations = [... txFeeEstimations,
+            {block: block, fee:feeEst, id: (txFeeEstimations.length+1)}]
+
+          if(parseInt(block) === 6) setTxFeePerB(Math.ceil(feeEst))
+        }
+
+        if(txFeeEstimations.length === 3){
+          //Initial Tx Fee estimations set
+          setTxFees(txFeeEstimations)
+        }
+      })
     })
   }, [dispatch]);
 
@@ -68,6 +87,7 @@ const WithdrawPage = () => {
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
   }
+
 
   const withdrawButtonAction = async () => {
     // check statechain is chosen
@@ -82,7 +102,7 @@ const WithdrawPage = () => {
 
     setLoading(true)
     setOpenModal(true)
-    dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr, "fee_per_kb": txFeePerKB})).then((res => {
+    dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr, "fee_per_byte": txFeePerB})).then((res => {
         if (res.error===undefined) {
           setSelectedCoins([])
           setInputAddr("")
@@ -117,7 +137,26 @@ const WithdrawPage = () => {
   }
 
   const handleFeeSelection = (event) => {
-    setTxFeePerKB(event.target.value)
+    if(event.target.value === "custom"){
+      setCustomFee(true)
+    }
+    
+    else setTxFeePerB(parseInt(event.target.value))
+  }
+
+  const handleKeyPress = (e) => {
+    if( e.key.charCodeAt(0) === 69 ){
+      // Add value to txFee list
+      // set Tx fee per B
+      // reset customFee
+      setTxFees([...txFees,
+        {block: "custom", fee : txFeePerB,id: (txFees.length+1)}])
+      setCustomFee(false)
+      return
+    }
+    if( e.key.charCodeAt(0) < 48 || e.key.charCodeAt(0) > 57  ){
+      e.preventDefault();
+    }
   }
 
   const handleClose = () => {
@@ -212,14 +251,35 @@ const WithdrawPage = () => {
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>
                       <div>
+                        {
+                          !customFee ? (
                           <select
                             onChange={handleFeeSelection}
-                            value={txFeePerKB}
-                          >
-                          <option value={txFeePerByteList[0]}>Low {toSatoshi(txFeePerByteList[0]/1000)} sat/B</option>
-                          <option value={txFeePerByteList[1]}>Med {toSatoshi(txFeePerByteList[1]/1000)} sat/B</option>
-                          <option value={txFeePerByteList[2]}>High {toSatoshi(txFeePerByteList[2]/1000)} sat/B</option>
+                            value={txFeePerB}>
+                            {txFees.map(feeObj => {
+                              let fee = Math.ceil(feeObj.fee)
+                              //Round up fee to nearest Satoshi
+                              return (
+                              <option value = {fee} key = {feeObj.id}>
+                                {feeObj.block === 6  ? ("Low "):
+                                  (feeObj.block === 3 ? ("Med "):
+                                  (feeObj.block === 1 ? ("High ") : (null)))}
+                                {fee} sat/B
+                              </option>)
+                            })}
+                            <option value={"custom"}>Custom...</option>
                           </select>
+                          )
+                          :
+                          (
+                            <input 
+                              placeholder = "Enter value..." 
+                              type = "text" 
+                              onKeyPress={handleKeyPress}
+                              onChange={handleFeeSelection}/>
+                          )
+                        }
+
                           <span className="small">Transaction Fee</span>
                       </div>
                   </div>

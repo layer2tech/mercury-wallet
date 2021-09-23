@@ -60,12 +60,19 @@
 .withdraw.content  .right .header .subtitle {
     padding-left: 0;
 }
-.withdraw.content  .right .header select {
+.withdraw.content  .right .header select, .withdraw.content  .right .header input {
     border: none;
     box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
     padding: 10px;
     width: 145px;
 }
+
+.withdraw.content  .right .header input {
+    position: relative;
+    opacity: 1;
+    cursor: auto;
+}
+
 .withdraw.content .left .sub,
 .withdraw.content .left h3 {
     text-align: left;
