@@ -48,10 +48,11 @@ function createWindow() {
     mainWindow = new BrowserWindow({width: 1200, height: 800,
       webPreferences:
         {
-          nodeIntegration: false,
+          nodeIntegration: true,
           webSecurity: false,
           enableRemoteModule: true,
           backgroundThrottling: false,
+          contextIsolation: false,
           preload: __dirname + '/preload.js'
         }
       }
