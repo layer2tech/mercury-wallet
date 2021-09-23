@@ -134,6 +134,7 @@ export class ElectrsClient {
   }
 
   async getScriptHashListUnspent(script: string): Promise<any> {
+    console.log("getScriptHashListUnspent...")
     let scriptHash = ElectrsClient.scriptToScriptHash(script)
     let data: Array<any> = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}/${GET_ROUTE.UTXO}`, {})
     let result = new Array<ElectrumTxData>()
@@ -144,6 +145,7 @@ export class ElectrsClient {
                     "value":item.value,
                     "height":item.status.block_height})
     })
+    console.log("finished getScriptHashListUnspent")
     return result
   }
 
@@ -189,19 +191,9 @@ export class ElectrsClient {
     return ElectrsClient.post(this.endpoint,GET_ROUTE.TX, { "data": rawTX })
   }
 
-  async getFeeEstimation(num_blocks: number, net_config: string): Promise<any> {
-    let url : string
-    
-    switch(net_config){
-      case "tb":
-        url = "https://blockstream.info/testnet"
-        break
-      default:
-        url = "https://blockstream.info/"
-        //REMOVE TESTNET PART FOR MAIN NET
-    }
-
-    let result = await ElectrsClient.get(url,"api/fee-estimates", {}).then((histo) => histo[`${num_blocks}`])
+  async getFeeEstimation(num_blocks: number): Promise<any> {
+    //improvement: load 
+    let result = await ElectrsClient.get(this.endpoint,GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
     return result
   }
 

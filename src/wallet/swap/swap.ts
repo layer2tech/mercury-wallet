@@ -260,6 +260,7 @@ export const swapPhase3 = async (
     new_proof_key_der,
     req_confirmations,
     block_height,
+    statecoin.value
   );
 
   if(transfer_finalized_data !== null){
@@ -376,7 +377,10 @@ export const do_swap_poll = async(
           }
           case SWAP_STATUS.Phase3: {
             if (statecoin.swap_address===null) throw Error("No swap address found for coin. Swap address should be set in Phase1.");
-            await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, getBlockHeight());
+            console.log("get block height...")
+            let header = await electrum_client.latestBlockHeader();
+            console.log("finished get block height.")
+            await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, header.block_height);
             break;
           }
           case SWAP_STATUS.Phase4: {
@@ -423,7 +427,8 @@ export const do_transfer_receiver = async (
   rec_se_addr: SCEAddress,
   rec_se_addr_bip32: BIP32Interface,
   req_confirmations: number,
-  block_height: number
+  block_height: number,
+  value: number
 ): Promise<TransferFinalizeData | null> => {
   for (var id of statechain_ids){
     let msg3;
@@ -445,7 +450,7 @@ export const do_transfer_receiver = async (
           "commitment":commit,
         }
         await delay(1);
-        let finalize_data = await transferReceiver(http_client, electrum_client, network, msg3,rec_se_addr_bip32,batch_data,req_confirmations,block_height);
+        let finalize_data = await transferReceiver(http_client, electrum_client, network, msg3,rec_se_addr_bip32,batch_data,req_confirmations,block_height, value);
         typeforce(types.TransferFinalizeData, finalize_data);
         return finalize_data;
       } else {

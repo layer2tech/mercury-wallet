@@ -88,7 +88,7 @@ export class ElectrumClient {
   }
 
   // Get header of the latest mined block.
-  async latestBlockHeader(): Promise<number> {
+  async latestBlockHeader(): Promise<any> {
     this.connect().catch((err : any)=> {
       console.error(err)
     });

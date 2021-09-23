@@ -14,10 +14,12 @@ import Tutorial from "../../components/Tutorial";
 export const defaultWalletConfig = () => ({
   notifications: false,
   tutorials: false,
+
   state_entity_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
   swap_conductor_endpoint: "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
   block_explorer_endpoint: "https://blockstream.info",
   electrum_config: {host: "https://explorer.blockstream.com/api", port: null, protocol: "http", type: "electrs"},
+
   tor_proxy: { ip: "localhost", port: 9060, controlPassword: "password", controlPort: 9061 },
   min_anon_set: ""
 })

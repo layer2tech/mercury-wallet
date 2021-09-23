@@ -23,6 +23,7 @@ let testing_mode = require("../settings.json").testing_mode;
 const initialState = {
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
+  warning_dialogue: {key: "", msg: "", seen: false},
   balance_info: {total_balance: null, num_coins: null},
   fee_info: {deposit: "NA", withdraw: "NA"},
   ping_swap: null,
@@ -100,7 +101,9 @@ setInterval(async function() {
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
 function setBlockHeightCallBack(item) {
-  wallet.setBlockHeight(item);
+  if(wallet) {
+    wallet.setBlockHeight(item);
+  }
 }
 
 // Load wallet from store
@@ -117,6 +120,7 @@ export const walletLoad = (name, password) => {
   }
 
   log.info("Wallet "+name+" loaded from memory. ");
+  console.log(wallet)
   if (testing_mode) log.info("Testing mode set.");
   mutex.runExclusive(async () => {
     await wallet.set_tor_endpoints();
@@ -182,6 +186,19 @@ export const callGetUnspentStatecoins = () => {
 }
 export const callGetSwapGroupInfo = () => {
   return wallet.getSwapGroupInfo()
+}
+
+export const showWarning = (key) =>  {
+  if(wallet){
+    if(!key){
+      //if no key defined, stop warning popup loading by returning true
+      return false
+    }
+    return wallet.showWarning(key)
+  }
+}
+export const dontShowWarning = (key) =>  {
+  return wallet.dontShowWarning(key)
 }
 
 export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
@@ -327,7 +344,7 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
 export const callGetFeeEstimation = createAsyncThunk(
   'GetFeeEstimation',
   async (action, thunkAPI) => {
-    return await wallet.electrum_client.getFeeEstimation(action,wallet.config.network);
+    return await wallet.electrum_client.getFeeEstimation(action);
   }
 )
 
@@ -420,6 +437,17 @@ const WalletSlice = createSlice({
         ]
       }
     },
+    setWarning(state,action) {
+      return {
+        ...state,
+        warning_dialogue: { ...state.warning_dialogue,
+          key: action.payload.key,
+          msg: action.payload.msg}
+      }
+    },
+    setWarningSeen(state){
+      state.warning_dialogue.seen = true
+    },
     callClearSave(state) {
       wallet.clearSave()
       return {
@@ -480,7 +508,7 @@ const WalletSlice = createSlice({
 }
 })
 
-export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingSwap,
+export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingSwap,
   setNotification, setNotificationSeen, callPingServer, updateBalanceInfo, callClearSave, updateFilter,
   updateTxFeeEstimate } = WalletSlice.actions
   export default WalletSlice.reducer

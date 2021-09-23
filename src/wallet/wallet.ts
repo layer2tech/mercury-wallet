@@ -61,6 +61,7 @@ export class Wallet {
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
+  warnings: [{name: string, show: boolean}]
 
   storage: Storage
 
@@ -83,6 +84,8 @@ export class Wallet {
     
     this.block_height = 0;
     this.current_sce_addr = "";
+
+    this.warnings = [{name: "swap_punishment", show: true}]
 
     this.storage = new Storage(`wallets/${this.name}/config`);
   }
@@ -137,10 +140,15 @@ export class Wallet {
     config.update(json_wallet.config);
     //Config needs to be included when constructing the wallet
     let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
+
     new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
     new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
     
     new_wallet.current_sce_addr = json_wallet.current_sce_addr;
+
+    if(json_wallet.warning !== undefined) new_wallet.warnings = json_wallet.warnings
+    // Make sure properties added to the wallet are handled
+    // New properties should not make old wallets break
 
     // Rederive root and root chain keys
     const seed = bip39.mnemonicToSeedSync(json_wallet.mnemonic);
@@ -274,7 +282,7 @@ export class Wallet {
         statecoins.push(statecoin) 
       })
       //Import the addresses if using electrum personal server
-      this.electrum_client.importAddresses(p_addrs,this.getBlockHeight() - fee_info.initlock)
+      this.electrum_client.importAddresses(p_addrs,this.block_height - fee_info.initlock)
       // Create listeners for deposit inits awaiting funding
       for (let i in p_addrs) {
         this.checkFundingTxListUnspent(
@@ -294,7 +302,7 @@ export class Wallet {
       })
 
       //Import the addresses if using electrum personal server
-      this.electrum_client.importAddresses(p_addrs_mp,this.getBlockHeight() - fee_info.initlock)
+      this.electrum_client.importAddresses(p_addrs_mp,this.block_height - fee_info.initlock)
 
       // Create listeners for deposit inits awaiting funding
       for (let i in p_addrs_mp) {
@@ -397,9 +405,20 @@ export class Wallet {
   }
 
   getNumSEAddress(): number { return this.account.chains[0].addresses.length }
+  
+  showWarning(key: string){
+    const warningObject = this.warnings.filter(w => w.name === key)
+    return warningObject[0].show
+  }
+
+  dontShowWarning(key: string){
+    const warningObject = this.warnings.filter(w => w.name === key)
+    warningObject[0].show = false
+    this.save()
+  }
 
   getUnspentStatecoins() {
-    return this.statecoins.getUnspentCoins(this.getBlockHeight());
+    return this.statecoins.getUnspentCoins(this.block_height);
   }
   // Each time we get unconfirmed coins call this to check for confirmations
   checkReceivedTxStatus(unconfirmed_coins: StateCoin[]) {
@@ -458,7 +477,7 @@ export class Wallet {
     if (statecoin.status===STATECOIN_STATUS.INITIALISED) throw Error("StateCoin is not availble.");
 
     // Get tx hex
-    let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
+    let backup_tx_data = statecoin.getBackupTxData(this.block_height);
     //extract receive address private key
     let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
 
@@ -988,7 +1007,7 @@ export class Wallet {
     let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
 
     let batch_data = null;
-    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations, this.getBlockHeight());
+    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations, this.block_height, null);
 
     // Finalize protocol run by generating new shared key and updating wallet.
     this.transfer_receiver_finalize(finalize_data);

@@ -126,7 +126,7 @@ export class EPSClient {
   }
 
   // Get header of the latest mined block.
-  async latestBlockHeader(): Promise<number> {
+  async latestBlockHeader(): Promise<any> {
     let header = await EPSClient.get(this.endpoint,GET_ROUTE.LATEST_BLOCK_HEADER, {})
     header.height = header.block_height
     return header

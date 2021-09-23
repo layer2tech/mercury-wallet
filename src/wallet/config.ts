@@ -6,7 +6,9 @@ import { ElectrumClientConfig } from "../wallet/electrum";
 let cloneDeep = require('lodash.clonedeep');
 
 const DEFAULT_STATE_ENTITY_ENPOINT = "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion";
+
 const DEFAULT_BLOCK_EXPLORER_ENDPOINT = "https://blockstream.info";
+
 
 export class Config {
   // Set at startup only

@@ -32,7 +32,7 @@ export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> =
 
   let fee_info: FeeInfo = await getFeeInfo(wallet.http_client)
   // Import the addresses if using electrum-personal-server
-  wallet.electrum_client.importAddresses(addrs, wallet.block_height - fee_info.initlock)
+  wallet.electrum_client.importAddresses(addrs, wallet.getBlockHeight() - fee_info.initlock)
 
   // No more keys found for this wallet. Remove the NUM_KEYS_PER_RECOVERY_ATTEMPT from
   // wallets account so that the wallet can use them.
