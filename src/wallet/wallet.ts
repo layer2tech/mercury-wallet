@@ -19,8 +19,9 @@ import { groupInfo, swapDeregisterUtxo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
 import { AsyncSemaphore } from "@esfx/async-semaphore";
-import { delay } from './mercury/info_api';
+import { delay, FeeInfo, getFeeInfo } from './mercury/info_api';
 import { EPSClient } from './eps';
+import { FEE_INFO } from './mocks/mock_http_client';
 
 const MAX_SWAP_SEMAPHORE_COUNT=100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -253,11 +254,15 @@ export class Wallet {
 
   // Initialise electum server:
   // Setup subscribe for block height and outstanding initialised deposits
-  initElectrumClient(blockHeightCallBack: any) {
-    this.electrum_client.connect().then(() => {
+  async initElectrumClient(blockHeightCallBack: any) {
+    this.electrum_client.connect().then(async () => {
       // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
-      // Check if any deposit_inits are awaiting funding txs and create listeners if so
+      // Get fee info
+      let fee_info: FeeInfo = await getFeeInfo(this.http_client)
+      // Check if any deposit_inits are awaiting funding txs and add them to a list if so
+      let p_addrs: any = []
+      let statecoins: any = []
       this.statecoins.getInitialisedCoins().forEach((statecoin) => {
         this.awaitFundingTx(
           statecoin.shared_key_id,
@@ -265,30 +270,45 @@ export class Wallet {
           statecoin.value
         )
         let p_addr = statecoin.getBtcAddress(this.config.network)
-        this.importAddress(p_addr)
-        this.checkFundingTxListUnspent(
-          statecoin.shared_key_id,
-          p_addr,
-          bitcoin.address.toOutputScript(p_addr, this.config.network),
-          statecoin.value
-        )        
+        p_addrs.push(p_addr)  
+        statecoins.push(statecoin) 
       })
-      // Check if any deposit_inits are awaiting confirmations and mark unconfirmed/confirmed if complete
-      this.statecoins.getInMempoolCoins().forEach((statecoin) => {
-        let p_addr = statecoin.getBtcAddress(this.config.network)
-        this.importAddress(p_addr)
+      //Import the addresses if using electrum personal server
+      this.electrum_client.importAddresses(p_addrs,this.getBlockHeight() - fee_info.initlock)
+      // Create listeners for deposit inits awaiting funding
+      for (let i in p_addrs) {
         this.checkFundingTxListUnspent(
-          statecoin.shared_key_id,
-          p_addr,
-          bitcoin.address.toOutputScript(p_addr, this.config.network),
-          statecoin.value
+          statecoins[i].shared_key_id,
+          p_addrs[i],
+          bitcoin.address.toOutputScript(p_addrs[i], this.config.network),
+          statecoins[i].value
         )
+      }
+
+      // Check if any deposit_inits are in the mempool
+      let p_addrs_mp: any = []
+      let statecoins_mp: any = []
+      this.statecoins.getInMempoolCoins().forEach((statecoin) => {
+        p_addrs_mp.push(statecoin.getBtcAddress(this.config.network))
+        statecoins_mp.push(statecoin)
       })
-    }).catch((err : any) => {
-      log.info(err);
-      return;
-    });
-  }
+
+      //Import the addresses if using electrum personal server
+      this.electrum_client.importAddresses(p_addrs_mp,this.getBlockHeight() - fee_info.initlock)
+
+      // Create listeners for deposit inits awaiting funding
+      for (let i in p_addrs_mp) {
+        this.checkFundingTxListUnspent(
+          statecoins_mp[i].shared_key_id,
+          p_addrs_mp[i],
+          bitcoin.address.toOutputScript(p_addrs_mp[i], this.config.network),
+          statecoins_mp[i].value
+        ).catch((err : any) => {
+            log.info(err);
+            return;
+          })
+      }
+  })}
 
 
   // Set Wallet.block_height
@@ -708,7 +728,6 @@ export class Wallet {
 
   // Wait for tx to appear in mempool. Mark coin IN_MEMPOOL or UNCONFIRMED when it arrives.
   async awaitFundingTx(shared_key_id: string, p_addr: string, value: number) {
-    await this.importAddress(p_addr)
     let p_addr_script = bitcoin.address.toOutputScript(p_addr, this.config.network)
     log.info("Subscribed to script hash for p_addr: ", p_addr);
     this.electrum_client.scriptHashSubscribe(p_addr_script, (_status: any) => {
@@ -719,7 +738,6 @@ export class Wallet {
   }
   // Query funding txs list unspent and mark coin IN_MEMPOOL or UNCONFIRMED
   async checkFundingTxListUnspent(shared_key_id: string, p_addr: string, p_addr_script: string, value: number) {
-    //await this.importAddress(p_addr)
     this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data: Array<any>) => {
       for (let i=0; i<funding_tx_data.length; i++) {
         // Verify amount of tx. Ignore if mock electrum

@@ -2,8 +2,7 @@
 
 import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin } from './statecoin';
-import { getRecoveryRequest, RecoveryDataMsg } from './mercury/info_api';
-
+import { getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo } from './mercury/info_api';
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');
 
@@ -17,17 +16,23 @@ export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> =
   let recovery_data: any = [];
   let new_recovery_data_load = [null];
   let recovery_request = [];
+  let addrs: any = [];
 
   // Keep grabbing data until NUM_KEYS_PER_RECOVERY_ATTEMPT keys have no statecoins
   while (new_recovery_data_load.length > 0) {
     recovery_request = [];
     for (let i=0; i<NUM_KEYS_PER_RECOVERY_ATTEMPT; i++) {
       let addr = wallet.account.nextChainAddress(0);
+      addrs.push(addr)
       recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
     }
     new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
     recovery_data = recovery_data.concat(new_recovery_data_load);
   }
+
+  let fee_info: FeeInfo = await getFeeInfo(wallet.http_client)
+  // Import the addresses if using electrum-personal-server
+  wallet.electrum_client.importAddresses(addrs, wallet.block_height - fee_info.initlock)
 
   // No more keys found for this wallet. Remove the NUM_KEYS_PER_RECOVERY_ATTEMPT from
   // wallets account so that the wallet can use them.
