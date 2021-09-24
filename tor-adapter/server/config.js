@@ -21,11 +21,11 @@ class Config{
         }
         
         // if testnet was not passed
-        if(!argsHasTestnet()){
+        //if(!argsHasTestnet()){
             this.update(require("./settings.json"));
-        }else{
-            this.update(require('./testnet_settings.json'));
-        }
+        //}else{
+        //    this.update(require('./testnet_settings.json'));
+        //}
     }
 
     update(config_changes){
