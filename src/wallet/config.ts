@@ -10,7 +10,7 @@ declare const window: any;
 let cloneDeep = require('lodash.clonedeep');
 let current_state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;
 let current_block_explorer_endpoint = NETWORK_CONFIG.mainnet_block_explorer_endpoint;
-let current_electrum_endpoint = NETWORK_CONFIG.mainnet_electrum_config.host;
+let current_electrum_config = NETWORK_CONFIG.mainnet_electrum_config;
 
 const argsHasTestnet = () => {
   let found  = false;
@@ -34,7 +34,7 @@ const argsHasTestnet = () => {
 if(argsHasTestnet()){
   current_state_entity_endpoint =  NETWORK_CONFIG.testnet_state_entity_endpoint;
   current_block_explorer_endpoint  = NETWORK_CONFIG.testnet_block_explorer_endpoint;
-  current_electrum_endpoint = NETWORK_CONFIG.testnet_electrum_config.host;
+  current_electrum_config = NETWORK_CONFIG.testnet_electrum_config;
 }
 
 export class Config {
@@ -73,12 +73,7 @@ export class Config {
 
     this.state_entity_endpoint = current_state_entity_endpoint;
     this.swap_conductor_endpoint = current_state_entity_endpoint;
-    this.electrum_config = {
-      host: current_electrum_endpoint,
-      protocol: 'http',
-      port: null,
-      type: 'electrs'
-    }
+    this.electrum_config = current_electrum_config;
     this.block_explorer_endpoint = current_block_explorer_endpoint;
 
     this.tor_proxy = {
@@ -93,9 +88,8 @@ export class Config {
     this.tutorials = false;
     this.swaplimit = 1440;
  
-    if(!argsHasTestnet()){
-      this.update(require("../settings.json"))
-    }
+    
+    this.update(require("../settings.json"))
   }
 
   getConfig() {
