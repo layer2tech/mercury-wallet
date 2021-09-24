@@ -8,9 +8,9 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 
 | Name                    | Type    | Default                                                                 |
 | ----------------------- | ------- | ----------------------------------------------------------------------- |
-| state_entity_endpoint   | string  | http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion   |
-| swap_conductor_endpoint | string  | http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion   |
-| electrum_config         | object  | { host: 'https://explorer.blockstream.com/testnet/api', port: null, protocol: 'http'}        |
+| state_entity_endpoint   | string  | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion   |
+| swap_conductor_endpoint | string  | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion   |
+| electrum_config         | object  | { host: 'https://explorer.blockstream.com/api', port: null, protocol: 'http'}        |
 | tor_proxy               | object  | { ip: 'localhost', port: 9060, controlPassword: '', controlPort: 9061 } |
 | min_anon_set            | number  | 5                                                                       |
 | notifications           | boolean | true                                                                    |
