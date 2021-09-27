@@ -32,7 +32,6 @@
   "main": "src/electron-starter.js",
   "scripts": {
     "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
-    "e2e_testing_mode": "testcafe \"electron:.\" \"./src/e2e_testing_mode/**/*.js\"",
     "install-local": "yarn add file:./tor-adapter",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
@@ -45,8 +44,7 @@
     "build-wasm": "wasm-pack build --dev client-wasm",
     "app-windows": "yarn install-local && yarn install && yarn build && electron-builder -w -p always",
     "app-linux": "yarn install-local && yarn install && yarn build && electron-builder -l AppImage -p always",
-    "app-linux-local-test": "yarn install-local && yarn install && yarn build && DEBUG=electron-builder electron-builder -l AppImage -p never",
-    "app-macos": "yarn install-local && yarn install && yarn build &&       electron-builder -m -p always",
+    "app-macos": "yarn install-local && yarn install && yarn build && electron-builder -m -p always",
     "app-macos-local-test": "yarn install-local && yarn install && yarn build && DEBUG=electron-builder electron-builder -m -p never",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
   },

@@ -124,11 +124,11 @@ export class ElectrsClient {
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<number> {
-    let header = await ElectrsClient.get(this.endpoint,'/eps/latest_block_header', {})
-    if(header){
-      header.height=header.block_height
-    }
-    return header
+     let latesthash = await ElectrsClient.get(this.endpoint,GET_ROUTE.BLOCKS_TIP_HASH, {})
+     let header = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.BLOCK}/${latesthash}/${GET_ROUTE.HEADER}`, {})
+     let info = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.BLOCK}/${latesthash}`, {})
+     info.header = header
+     return info
   }
 
   async getTransaction(txHash: string): Promise<any> {
