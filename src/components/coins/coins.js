@@ -196,7 +196,9 @@ const Coins = (props) => {
     const getAddress = (shared_key_id) => {
       let coin = initCoins.filter(coin => coin.shared_key_id === shared_key_id)
       if (coin != undefined) {
-        return coin[0].p_addr
+        if (coin[0]){
+          return coin[0].p_addr
+        }
       }
       return null
     } 

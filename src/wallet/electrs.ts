@@ -125,6 +125,9 @@ export class ElectrsClient {
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<number> {
     let header = await ElectrsClient.get(this.endpoint,'/eps/latest_block_header', {})
+    if(header){
+      header.height=header.block_height
+    }
     return header
   }
 

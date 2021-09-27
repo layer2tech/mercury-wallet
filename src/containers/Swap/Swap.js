@@ -90,7 +90,6 @@ const SwapPage = () => {
     })
   }
     
-
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     dispatch(setError({msg: "No Wallet loaded."}))
