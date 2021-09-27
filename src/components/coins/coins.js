@@ -49,6 +49,7 @@ import CoinDescription from "../inputs/CoinDescription/CoinDescription";
 import close_img from "../../images/close-icon.png";
 import './DeleteCoin/DeleteCoin.css'
 import {defaultWalletConfig} from '../../containers/Settings/Settings'
+import { Null } from "../../wallet/types";
 
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
@@ -193,7 +194,13 @@ const Coins = (props) => {
     }
 
     const getAddress = (shared_key_id) => {
-      return initCoins.filter(coin => coin.shared_key_id === shared_key_id)[0].p_addr
+      let coin = initCoins.filter(coin => coin.shared_key_id === shared_key_id)
+      if (coin != undefined) {
+        if (coin[0]){
+          return coin[0].p_addr
+        }
+      }
+      return null
     } 
 
     const validExpiryTime = (expiry_data) => {

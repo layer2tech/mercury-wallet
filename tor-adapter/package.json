@@ -11,11 +11,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async-mutex": "^0.3.2",
     "axios": "^0.21.1",
+    "bitcoinjs-lib": "^5.2.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "default-shell": "^1.0.1",
     "electron-root-path": "^1.0.16",
+    "electrum-client-js": "^3.0.0",
     "express": "^4.17.1",
     "fs": "0.0.1-security",
     "netcat": "^1.5.0",
@@ -23,6 +26,7 @@
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "socks-proxy-agent": "^5.0.0",
-    "tor-control": "0.0.3"
+    "tor-control": "0.0.3",
+    "websocket": "^1.0.34"
   }
 }

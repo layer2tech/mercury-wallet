@@ -101,4 +101,12 @@ export class MockElectrumClient {
       return false;
     }
 
+    async importAddresses(addresses: [string]): Promise<string> {
+      return ""
+    }
+
+    // Get header of the latest mined block.
+    async latestBlockHeader(): Promise<any> {
+      return {"block_height": -1, "height": -1, "hex": "00000020890208a0ae3a3892aa047c5468725846577cfcd9b512b50000000000000000005dc2b02f2d297a9064ee103036c14d678f9afc7e3d9409cf53fd58b82e938e8ecbeca05a2d2103188ce804c4"}
+  }
 }

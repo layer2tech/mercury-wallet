@@ -110,7 +110,6 @@ setInterval(async function() {
         log.info(`Failed to ping electum server`);
         return;
       }
-       wallet.updateBackupTxStatus();
     }
   }, 60000);
 

@@ -204,6 +204,12 @@ const SettingsPage = (props) => {
                                 <label className="control-label"
                                       htmlFor="address-protocol">Server Protocol</label>
                             </div>
+                            <div className="inputs-item type">
+                                <input id="address-type" type="text" name="type" value={elecAddr.type}
+                                      onChange={onElecAddrChange} required/>
+                                <label className="control-label"
+                                      htmlFor="address-type">Server Type</label>
+                            </div>
                           </div>
                           <div className="inputs-item">
                               <input id="proxy-ip" type="text" name="ip" 

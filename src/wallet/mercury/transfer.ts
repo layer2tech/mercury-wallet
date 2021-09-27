@@ -3,6 +3,7 @@
 import { BIP32Interface, Network, Transaction, script } from "bitcoinjs-lib";
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_ROUTE, StateCoin, verifySmtProof, pubKeyTobtcAddr } from "..";
 import { ElectrsClient } from "../electrs"
+import { EPSClient } from "../eps"
 import { FEE } from "../util";
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
@@ -18,6 +19,7 @@ let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
 const n = secp256k1.curve.n
 
+//const settings="../../settings.json"//remote.getGlobal('sharedObject').settings
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
 // transfer() messages:
@@ -134,12 +136,13 @@ export const transferSender = async (
 
 export const transferReceiver = async (
   http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient | ElectrsClient | MockElectrumClient, 
+  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient, 
   network: Network,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
   batch_data: any,
   req_confirmations: number,
+  block_height: number,
   value: any
 ): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
@@ -177,6 +180,9 @@ export const transferReceiver = async (
 
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);
+  // Get state entity fee info
+  let fee_info: FeeInfo = await getFeeInfo(http_client);
+  await electrum_client.importAddresses([addr], block_height - fee_info.initlock)
   let out_script = bitcoin.address.toOutputScript(addr, network);
   let match = TESTING_MODE;
   let funding_tx_data = await electrum_client.getScriptHashListUnspent(out_script);

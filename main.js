@@ -1,6 +1,9 @@
 const electron = require('electron');
 const path = require('path');
 const url = require('url');
+const { join, dirname } = require('path');
+const joinPath = join;
+const rootPath = require('electron-root-path').rootPath;
 
 
 // Module to control application life.
@@ -20,7 +23,8 @@ function createWindow() {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      backgroundThrottling: false
+      backgroundThrottling: false,
+      enableRemoteModule: true,
     }
   });
     // Open the DevTools.

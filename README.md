@@ -10,14 +10,15 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 | ----------------------- | ------- | ----------------------------------------------------------------------- |
 | state_entity_endpoint   | string  | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion   |
 | swap_conductor_endpoint | string  | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion   |
-| electrum_config         | object  | { host: 'https://explorer.blockstream.com/api', port: null, protocol: 'http'}        |
+| electrum_config         | object  | { host: 'https://explorer.blockstream.com/api', port: null, protocol: 'http', type: '' }        |
 | tor_proxy               | object  | { ip: 'localhost', port: 9060, controlPassword: '', controlPort: 9061 } |
 | min_anon_set            | number  | 5                                                                       |
 | notifications           | boolean | true                                                                    |
 | tutorials               | boolean | false                                                                   |
 | testing_mode            | boolean | false                                                                   |
 
-In electrum_config, the protocol options are 'http' or 'wss'. http routes the connection via TOR and the 'port' should normally be set to 'null'. 
+In electrum_config, the protocol options are 'http' or 'wss'. http routes the connection via TOR and the 'port' should normally be set to 'null'. The 'type' setting indicates the server type, and should be set to 'eps' if using the "electrum personal server".
+
 
 # Development instructions
 
@@ -27,11 +28,31 @@ In electrum_config, the protocol options are 'http' or 'wss'. http routes the co
 
 `yarn run dev`
 
+
+## Run development in `testnet` mode
+The testnet network configuration can be set by editing `/src/network.json`. To run in testnet mod, first edit `package.json` and edit the to include the `electron` script to include the `--testnet` flag as follows:
+
+`"electron": "electron --inspect=5858 --testnet .",`
+
+
 ### Using a local mercury server and mock tor adapter
 
 When running in development mode, a mock tor adapter can be used - the connection will not be done via a tor circuit - this allows connection to a mercury server on localhost. To use the mock tor adapter edit tor-adapter/server/settings.json and change the tor-proxy ip to 'mock' as in the following example:
 
 `"tor_proxy": {"ip": "mock"}`
+
+### Using electrum-personal-server
+
+A electrum personal server (the CommerceBlock fork of electrum-personal-server is currently required https://github.com/commerceblock/electrum-personal-server)running on localhost can be used by setting the electrum_config.type to "eps" as in the following example:
+
+`"electrum_config" : {
+    "protocol": "http",
+    "host": "127.0.0.1",
+    "port": "50002",
+    "type": "eps"
+  }`
+
+Each address generated for deposit should be included in the electrum-personal-server config file and the "rescan" script run if necessary.
 
 ## Run tests
 

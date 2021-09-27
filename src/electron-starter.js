@@ -195,9 +195,6 @@ stdio: 'ignore',
     if(error){
       app.exit(error);
     };
-    //if(stdout){
-    //  console.log(stdout);
-    //};
   }
 );
   
