@@ -3,7 +3,7 @@
 import { Network, Transaction } from "bitcoinjs-lib";
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { ACTION } from ".";
-import { ElectrumTxData } from "./electrum";
+import { ElectrumTxData } from "../wallet/electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
 import { BatchData, BSTRequestorData, SwapID, SwapInfo } from "./swap/swap";

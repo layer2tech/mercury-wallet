@@ -1,6 +1,7 @@
 // Conductor Swap protocols
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
 import { ElectrsClient } from '../electrs'
+import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
 import { getStateChain } from "../mercury/info_api";
@@ -206,13 +207,14 @@ export const swapPhase2 = async (
 // and transfer_receiver
 export const swapPhase3 = async (
   http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient | ElectrsClient | MockElectrumClient,
+  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient,
   wasm_client: any,
   statecoin: StateCoin,
   network: Network,
   proof_key_der: BIP32Interface,
   new_proof_key_der: BIP32Interface,
-  req_confirmations: number
+  req_confirmations: number,
+  block_height: number
 ) => {
   // check statecoin is IN_SWAP
   if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Coin status is not IN_SWAP. Status: "+statecoin.status);
@@ -257,6 +259,7 @@ export const swapPhase3 = async (
     statecoin.swap_address,
     new_proof_key_der,
     req_confirmations,
+    block_height,
     statecoin.value
   );
 
@@ -312,14 +315,15 @@ export const swapPhase4 = async (
 // Loop through swap protocol for some statecoin
 export const do_swap_poll = async(
   http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient | ElectrsClient | MockElectrumClient,
+  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient,
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,
   proof_key_der: BIP32Interface,
   swap_size: number,
   new_proof_key_der: BIP32Interface,
-  req_confirmations: number
+  req_confirmations: number,
+  getBlockHeight: Function
 ): Promise<StateCoin | null> => {
   if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already in swap pool.");
   if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already involved in swap.");
@@ -373,7 +377,10 @@ export const do_swap_poll = async(
           }
           case SWAP_STATUS.Phase3: {
             if (statecoin.swap_address===null) throw Error("No swap address found for coin. Swap address should be set in Phase1.");
-            await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations);
+            console.log("get block height...")
+            let header = await electrum_client.latestBlockHeader();
+            console.log("finished get block height.")
+            await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, header.block_height);
             break;
           }
           case SWAP_STATUS.Phase4: {
@@ -412,7 +419,7 @@ export const clear_statecoin_swap_info = (statecoin: StateCoin): null => {
 
 export const do_transfer_receiver = async (
   http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient |  ElectrsClient | MockElectrumClient,
+  electrum_client: ElectrumClient |  ElectrsClient | EPSClient | MockElectrumClient,
   network: Network,  
   batch_id: string,
   commit: string,
@@ -420,6 +427,7 @@ export const do_transfer_receiver = async (
   rec_se_addr: SCEAddress,
   rec_se_addr_bip32: BIP32Interface,
   req_confirmations: number,
+  block_height: number,
   value: number
 ): Promise<TransferFinalizeData | null> => {
   for (var id of statechain_ids){
@@ -442,7 +450,7 @@ export const do_transfer_receiver = async (
           "commitment":commit,
         }
         await delay(1);
-        let finalize_data = await transferReceiver(http_client, electrum_client, network, msg3,rec_se_addr_bip32,batch_data,req_confirmations,value);
+        let finalize_data = await transferReceiver(http_client, electrum_client, network, msg3,rec_se_addr_bip32,batch_data,req_confirmations,block_height, value);
         typeforce(types.TransferFinalizeData, finalize_data);
         return finalize_data;
       } else {

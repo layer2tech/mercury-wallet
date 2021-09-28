@@ -1,21 +1,10 @@
 {
-
   "min_anon_set": 5,
-  "state_entity_endpoint": "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
-  "swap_conductor_endpoint": "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
-  "block_explorer_endpoint": "https://blockstream.info",
-  "network": "testnet",
-
   "testing_mode": false,
-  "required_confirmations": 1,
+  "required_confirmations": 3,
   "tor_proxy": {"ip": "localhost",
-                "port": 9060,
-                "controlPassword": "",
-                "controlPort": 9061
-              },
-  "electrum_config" : {
-    "protocol": "http",
-    "host": "https://explorer.blockstream.com/testnet/api",
-    "port": null
+    "port": 9060,
+    "controlPassword": "",
+    "controlPort": 9061
   }
 }

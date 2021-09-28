@@ -8,7 +8,8 @@ export const mutex = new Mutex();
 export interface ElectrumClientConfig {
   host: string,
   port: number | null,
-  protocol: string
+  protocol: string,
+  type: string
 }
 
 class ElectrumClientError extends Error {
@@ -37,25 +38,6 @@ export class ElectrumClient {
         throw new Error(`failed to connect: [${err}]`)
       })
 
-
-/*      
-      console.log("checking if open..");
-      if (this.isOpen() === true ){ return; }
-      //console.log("checking if connecting..");
-      //if (this.isConnecting() === true ){ return; }
-      // Wait for 'timeout' to close if already closing
-      //console.log("waiting if closing..");
-      await setTimeout(async function(this: ElectrumClient){
-       // while (this.isClosing() === true) { };
-        console.log("connecting...");
-        await this.client.connect(
-          "mercury-electrum-client-js",  // optional client name
-          "1.4.2"                        // optional protocol version
-        ).catch((err: any) => {
-          throw new ElectrumClientError(`failed to connect: [${err}]`)
-        })
-      }, 5000);
-*/
           });
     
 
@@ -106,7 +88,7 @@ export class ElectrumClient {
   }
 
   // Get header of the latest mined block.
-  async latestBlockHeader(): Promise<number> {
+  async latestBlockHeader(): Promise<any> {
     this.connect().catch((err : any)=> {
       console.error(err)
     });
@@ -196,6 +178,10 @@ export class ElectrumClient {
         }
       )
     return fee_histogram
+  }
+
+  async importAddresses(addresses: [string]): Promise<string> {
+   return ""
   }
 }
 

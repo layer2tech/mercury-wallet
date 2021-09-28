@@ -5,6 +5,7 @@ import store_img from '../../images/store-red-img.png';
 import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 import './CreateWalletInfo.css'
+import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 
 let Store = window.require('electron-store');
 new Store();
@@ -18,6 +19,7 @@ const CreateWalletInfoPage = () => {
     return (
         <div className="welcome-second ">
             <h1>Create a New Wallet</h1>
+            {callGetArgsHasTestnet() && <b><p className="red">IMPORTANT: Wallet was opened in testnet, therefore new wallets will be created in testnet. Existing wallets are not changed.</p></b>}
             <div className="create-welcome">
                 <div className="create-welcome-item">
                     <img src={secure} alt="secure"/>

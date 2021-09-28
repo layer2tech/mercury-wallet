@@ -1,9 +1,9 @@
+const fs = require('fs');
 const { join, dirname } = require('path');
 const joinPath = join;
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const path = require('path');
 const url = require('url');
-const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
@@ -11,7 +11,7 @@ const ipc = require('electron').ipcMain;
 const execFile = require('child_process').execFile;
 const axios = require('axios').default;
 
-function getPlatform(){
+const getPlatform = () => {
   switch (process.platform) {
     case 'aix':
     case 'freebsd':
@@ -52,13 +52,14 @@ function createWindow() {
           webSecurity: false,
           enableRemoteModule: true,
           backgroundThrottling: false,
+          contextIsolation: false,
           preload: __dirname + '/preload.js'
         }
       }
     );
 
     if (process.platform !== 'darwin') {
-	mainWindow.setMenu(null);
+	    mainWindow.setMenu(null);
     }
     
     // Open links in systems default browser
@@ -112,7 +113,9 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', async function () {
@@ -192,9 +195,6 @@ stdio: 'ignore',
     if(error){
       app.exit(error);
     };
-    //if(stdout){
-    //  console.log(stdout);
-    //};
   }
 );
   
