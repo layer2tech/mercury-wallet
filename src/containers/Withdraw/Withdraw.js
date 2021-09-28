@@ -43,6 +43,10 @@ const WithdrawPage = () => {
   };
 
   const addSelectedCoin = (statechain_id) => {
+    if(loading){
+      dispatch(setError({msg: "Coin not selectable while withdrawal in progress!"}))
+      return
+    }
     let newSelectedCoins = selectedCoins;
     const isStatechainId = (element) => element === statechain_id;
     let index = newSelectedCoins.findIndex(isStatechainId);
