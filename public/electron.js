@@ -108,7 +108,7 @@ function createWindow() {
 
   setInterval(async function() {
     await pingTorAdapter().catch((err) => {
-      log.info(`Failed to ping tor adapter: ${err}`);
+      console.log(`Failed to ping tor adapter: ${err}`);
     });
   }, 5000);
 }

@@ -1,3 +1,5 @@
+var path = require('path');
+var ElectrumClient = require('./electrum');
 var TorClient = require('./tor_client');
 var CNClient = require('./cn_client');
 var bodyParser = require('body-parser');
@@ -20,6 +22,27 @@ if (process.argv.length > 6) {
 console.log(`tor cmd: ${tor_cmd}`);
 console.log(`torrc: ${torrc}`);
 
+const GET_ROUTE = {
+  PING: "/eps/ping",
+  //latestBlockHeader "/Electrs/block/:hash/header",
+  BLOCK: "/eps/block",
+  HEADER: "header",
+  //getTransaction /tx/:txid
+  TX: "/eps/tx",
+  //getScriptHashListUnspent /scripthash/:hash/utxo
+  SCRIPTHASH: "/eps/scripthash",
+  UTXO: "utxo",
+  //getFeeHistogram
+  FEE_ESTIMATES: "/eps/fee-estimates",
+};
+Object.freeze(GET_ROUTE);
+
+const POST_ROUTE = {
+  //broadcast transaction
+  TX: "/eps/tx",
+};
+Object.freeze(POST_ROUTE);
+
 const PORT = 3001;
 
 const app = express();
@@ -40,17 +63,27 @@ if(config.tor_proxy.ip === 'mock'){
 }
 
 
+//let epsConfig = { protocol: "tcp", host: "127.0.0.1", port: "50002" }
+let epsConfig = { protocol: "ssl", host: "127.0.0.1", port: "50002" }
+//Electrum personal server client
+let epsClient = new ElectrumClient(epsConfig)
+epsClient.connect()
+
+//epsClient.importAddresses([['tb1qfe3kfstrdk0u4zhp6rhljcnlpgekrr3a88y9tv','tb1q8w7s57a2acyhy6zz7mp4hvlgqehfdp4ecxw8a5'],-1])
+
 tor.startTorNode(tor_cmd, torrc);
 
 function close_timeout(t_secs=10) {
   return setTimeout(function () {
-    on_exit()
+    //on_exit()
   }, t_secs*1000)
 }
 
-function restart_close_timeout(timeout) {
-  clearTimeout(timeout)
-  return close_timeout()
+function restart_close_timeout(timeout, t_secs=10) {
+  if(timeout){
+    clearTimeout(timeout)
+  }
+  return close_timeout(t_secs)
 }
 
 let timeout = close_timeout(30)
@@ -91,7 +124,6 @@ app.get('/newid', async function(req,res) {
     console.log("getting new tor id...")
     let response=await tor.confirmNewTorConnection();
     console.log(`got new tor id: ${JSON.stringify(response)}`)
-    console.log(response);
     res.status(200).json(response);
   } catch(err) {
     res.status(400).json(err);
@@ -222,7 +254,89 @@ app.get('/swap/*', function(req,res) {
    post_endpoint(req.path, req.body, res, config.swap_conductor_endpoint)
  });
 
- app.get('*', function(req,res) {
+
+
+app.get('/eps/ping', async function(req, res) {
+  try {
+    let response = await epsClient.ping();
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`EPS ping failed: ${err}`);
+  }
+})
+
+app.get('/eps/latest_block_header', async function(req, res) {
+  try{
+    let response = await epsClient.latestBlockHeader() 
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`EPS latestBlockHeader failed: ${err}`);
+  }
+})
+
+app.get('/eps/tx/*$/', async function(req, res) {
+  try{
+    let response = await epsClient.getTransaction(path.parse(req.path).base) 
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`EPS get tx failed: ${err}`);
+  }
+})
+
+app.get('/eps/scripthash_history/*$/', async function(req, res) {
+  try{
+    let p = path.parse(req.path)
+    let response = await epsClient.getScripthashHistory(p.base)
+    //await epsClient.getScriptHashListUnspent(path.parse(req.path).base)
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`EPS scripthash failed: ${err}`);
+  }
+})
+
+app.get('/eps/get_scripthash_list_unspent/*$/', async function(req, res) {
+  try{
+    let scriptHash = path.parse(req.path).base
+    let response = await epsClient.getScriptHashListUnspent(scriptHash)
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`EPS scripthash failed: ${err}`);
+  }
+})
+
+app.get('/eps/fee-estimates', async function(req, res) {
+  try{
+    let response  = await epsClient.getFeeHistogram(num_blocks)
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(400).json(`EPS fee-estimates failed: ${err}`);
+  }
+})
+
+app.post('/eps/tx', async function(req, res) {
+  try{
+    let response = await epsClient.broadcastTransaction(req.body.data)
+    res.status(200).json(response)
+  } catch (err) {
+    res.status(400).json(`EPS scripthash failed: ${err}`);
+  }
+})
+
+app.post('/eps/import_addresses', async function(req, res) {
+  try{
+    let rescan_height = -1
+    if (req.body.rescan_height != undefined){
+        rescan_height = req.body.rescan_height
+    }
+    let response = await epsClient.importAddresses([req.body.addresses, rescan_height])
+    res.status(200).json(response)
+  } catch (err) {
+    res.status(400).json(`importAddresses failed: ${err}`);
+  }
+})
+
+
+app.get('*', function(req,res) {
   timeout = restart_close_timeout(timeout)
    get_endpoint(req.path, res, config.state_entity_endpoint)
 });

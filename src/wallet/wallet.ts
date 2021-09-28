@@ -19,7 +19,9 @@ import { groupInfo, swapDeregisterUtxo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
 import { AsyncSemaphore } from "@esfx/async-semaphore";
-import { delay } from './mercury/info_api';
+import { delay, FeeInfo, getFeeInfo } from './mercury/info_api';
+import { EPSClient } from './eps';
+import { FEE_INFO } from './mocks/mock_http_client';
 
 const MAX_SWAP_SEMAPHORE_COUNT=100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -55,7 +57,7 @@ export class Wallet {
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
-  electrum_client: ElectrumClient | ElectrsClient | MockElectrumClient;
+  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient;
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
@@ -252,17 +254,23 @@ export class Wallet {
   newElectrumClient(){
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if ( this.config.testing_mode == true ) return new MockElectrumClient()
+    if ( this.config.electrum_config.type == 'eps' ) return new EPSClient('http://localhost:3001')
     if ( this.config.electrum_config.protocol == 'http' ) return new ElectrsClient('http://localhost:3001')
+    
     return new ElectrumClient(this.config.electrum_config)
   }
 
   // Initialise electum server:
   // Setup subscribe for block height and outstanding initialised deposits
-  initElectrumClient(blockHeightCallBack: any) {
-    this.electrum_client.connect().then(() => {
+  async initElectrumClient(blockHeightCallBack: any) {
+    this.electrum_client.connect().then(async () => {
       // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
-      // Check if any deposit_inits are awaiting funding txs and create listeners if so
+      // Get fee info
+      let fee_info: FeeInfo = await getFeeInfo(this.http_client)
+      // Check if any deposit_inits are awaiting funding txs and add them to a list if so
+      let p_addrs: any = []
+      let statecoins: any = []
       this.statecoins.getInitialisedCoins().forEach((statecoin) => {
         this.awaitFundingTx(
           statecoin.shared_key_id,
@@ -270,28 +278,45 @@ export class Wallet {
           statecoin.value
         )
         let p_addr = statecoin.getBtcAddress(this.config.network)
-        this.checkFundingTxListUnspent(
-          statecoin.shared_key_id,
-          p_addr,
-          bitcoin.address.toOutputScript(p_addr, this.config.network),
-          statecoin.value
-        )        
+        p_addrs.push(p_addr)  
+        statecoins.push(statecoin) 
       })
-      // Check if any deposit_inits are awaiting confirmations and mark unconfirmed/confirmed if complete
-      this.statecoins.getInMempoolCoins().forEach((statecoin) => {
-        let p_addr = statecoin.getBtcAddress(this.config.network)
+      //Import the addresses if using electrum personal server
+      this.electrum_client.importAddresses(p_addrs,this.block_height - fee_info.initlock)
+      // Create listeners for deposit inits awaiting funding
+      for (let i in p_addrs) {
         this.checkFundingTxListUnspent(
-          statecoin.shared_key_id,
-          p_addr,
-          bitcoin.address.toOutputScript(p_addr, this.config.network),
-          statecoin.value
+          statecoins[i].shared_key_id,
+          p_addrs[i],
+          bitcoin.address.toOutputScript(p_addrs[i], this.config.network),
+          statecoins[i].value
         )
+      }
+
+      // Check if any deposit_inits are in the mempool
+      let p_addrs_mp: any = []
+      let statecoins_mp: any = []
+      this.statecoins.getInMempoolCoins().forEach((statecoin) => {
+        p_addrs_mp.push(statecoin.getBtcAddress(this.config.network))
+        statecoins_mp.push(statecoin)
       })
-    }).catch((err : any) => {
-      log.info(err);
-      return;
-    });
-  }
+
+      //Import the addresses if using electrum personal server
+      this.electrum_client.importAddresses(p_addrs_mp,this.block_height - fee_info.initlock)
+
+      // Create listeners for deposit inits awaiting funding
+      for (let i in p_addrs_mp) {
+        this.checkFundingTxListUnspent(
+          statecoins_mp[i].shared_key_id,
+          p_addrs_mp[i],
+          bitcoin.address.toOutputScript(p_addrs_mp[i], this.config.network),
+          statecoins_mp[i].value
+        ).catch((err : any) => {
+            log.info(err);
+            return;
+          })
+      }
+  })}
 
 
   // Set Wallet.block_height
@@ -393,7 +418,7 @@ export class Wallet {
   }
 
   getUnspentStatecoins() {
-    return this.statecoins.getUnspentCoins(this.getBlockHeight());
+    return this.statecoins.getUnspentCoins(this.block_height);
   }
   // Each time we get unconfirmed coins call this to check for confirmations
   checkReceivedTxStatus(unconfirmed_coins: StateCoin[]) {
@@ -452,7 +477,7 @@ export class Wallet {
     if (statecoin.status===STATECOIN_STATUS.INITIALISED) throw Error("StateCoin is not availble.");
 
     // Get tx hex
-    let backup_tx_data = statecoin.getBackupTxData(this.getBlockHeight());
+    let backup_tx_data = statecoin.getBackupTxData(this.block_height);
     //extract receive address private key
     let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
 
@@ -709,6 +734,9 @@ export class Wallet {
     // Co-owned key address to send funds to (P_addr)
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
+    // Import the BTC address into the wallet if using the electum-personal-server
+    await this.importAddress(p_addr)
+
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 
@@ -753,6 +781,10 @@ export class Wallet {
       }
     });
 
+  }
+
+  async importAddress(p_addr: string){
+    this.electrum_client.importAddresses([p_addr], -1)
   }
 
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
@@ -835,7 +867,7 @@ export class Wallet {
           delay(100);
         }
       });
-      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations);
+      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this.getBlockHeight);
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
@@ -975,7 +1007,7 @@ export class Wallet {
     let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
 
     let batch_data = null;
-    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations, null);
+    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations, this.block_height, null);
 
     // Finalize protocol run by generating new shared key and updating wallet.
     this.transfer_receiver_finalize(finalize_data);

@@ -49,6 +49,7 @@ import CoinDescription from "../inputs/CoinDescription/CoinDescription";
 import close_img from "../../images/close-icon.png";
 import './DeleteCoin/DeleteCoin.css'
 import {defaultWalletConfig} from '../../containers/Settings/Settings'
+import { Null } from "../../wallet/types";
 
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
@@ -193,7 +194,13 @@ const Coins = (props) => {
     }
 
     const getAddress = (shared_key_id) => {
-      return initCoins.filter(coin => coin.shared_key_id === shared_key_id)[0].p_addr
+      let coin = initCoins.filter(coin => coin.shared_key_id === shared_key_id)
+      if (coin != undefined) {
+        if (coin[0]){
+          return coin[0].p_addr
+        }
+      }
+      return null
     } 
 
     const validExpiryTime = (expiry_data) => {
@@ -626,7 +633,6 @@ const Coins = (props) => {
 
     // called when clicking on TXid link in modal window
     const onClickTXID = txId => {
-      const NETWORK = require("../../settings.json").network;
       let block_explorer_endpoint  = current_config.block_explorer_endpoint;
 
       // ensure there is https
@@ -634,19 +640,7 @@ const Coins = (props) => {
         block_explorer_endpoint = 'https://' + block_explorer_endpoint;
       }
 
-      let finalUrl = '';
-      switch(NETWORK){
-        case 'mainnet':
-          finalUrl = block_explorer_endpoint + '/tx/'  + txId;
-          break;
-        case 'testnet':
-          finalUrl = block_explorer_endpoint + '/testnet/tx/'  + txId;
-          break;
-        // do nothing for regtest and anything else then exit method
-        case 'regtest':
-        default:
-          return null;
-      }
+      let finalUrl = block_explorer_endpoint  + txId;
       // open the browser for both mainnet and testnet
       window.require("electron").shell.openExternal(finalUrl);
     }
