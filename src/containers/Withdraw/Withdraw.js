@@ -43,6 +43,9 @@ const WithdrawPage = () => {
   };
 
   const addSelectedCoin = (statechain_id) => {
+    if(loading) return
+    // Stop coins removing if clicked while pending transaction
+    
     let newSelectedCoins = selectedCoins;
     const isStatechainId = (element) => element === statechain_id;
     let index = newSelectedCoins.findIndex(isStatechainId);
