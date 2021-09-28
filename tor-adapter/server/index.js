@@ -48,9 +48,11 @@ function close_timeout(t_secs=10) {
   }, t_secs*1000)
 }
 
-function restart_close_timeout(timeout) {
-  clearTimeout(timeout)
-  return close_timeout()
+function restart_close_timeout(timeout, t_secs=10) {
+  if(timeout){
+    clearTimeout(timeout)
+  }
+  return close_timeout(t_secs)
 }
 
 let timeout = close_timeout(30)
