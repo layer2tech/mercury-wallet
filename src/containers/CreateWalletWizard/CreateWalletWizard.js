@@ -19,7 +19,7 @@ const CreateWizardStep = {
 const STEPS = [
   {
     id: 1,
-    description: 'Create Passphrase',
+    description: 'Create Password',
   },
   {
     id: 2,
