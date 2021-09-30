@@ -54,7 +54,6 @@ export const getFeeInfo = async (
   http_client: HttpClient |  MockHttpClient,
 ) => {
   let fee_info = await http_client.get(GET_ROUTE.FEES, {});
-  console.log(JSON.stringify(fee_info))
   typeforce(types.FeeInfo, fee_info);  
 
   return fee_info

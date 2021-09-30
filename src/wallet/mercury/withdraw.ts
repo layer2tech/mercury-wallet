@@ -78,7 +78,6 @@ export const withdraw = async (
   await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
 
   // Get state entity fee info
-  console.log("withdraw getFeeInfo")
   let fee_info: FeeInfo = await getFeeInfo(http_client);
 
   // Construct withdraw tx

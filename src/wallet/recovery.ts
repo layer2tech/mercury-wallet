@@ -29,7 +29,7 @@ export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> =
     new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
     recovery_data = recovery_data.concat(new_recovery_data_load);
   }
-  console.log("recover coins getFeeInfo")
+  
   let fee_info: FeeInfo = await getFeeInfo(wallet.http_client)
   // Import the addresses if using electrum-personal-server
   wallet.electrum_client.importAddresses(addrs, wallet.getBlockHeight() - fee_info.initlock)
