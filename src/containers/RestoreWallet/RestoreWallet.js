@@ -106,7 +106,7 @@ const RestoreWalletPage = (props) => {
               <div className="inputs-item">
                 <input 
                   type={showPass ? 'text' : 'password'} name="password"
-                  placeholder="Passphrase"
+                  placeholder="Password"
                   onChange={setStateWalletPassword}
                 />
                 <span className={'eye-icon'} onClick={toggleShowPass}>
