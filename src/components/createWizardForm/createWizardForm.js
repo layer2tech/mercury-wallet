@@ -79,7 +79,7 @@ const CreateWizardForm = (props) => {
                   <input 
                     id="Passphrase" 
                     type={showPass ? 'text' : 'password'} name="password"
-                    placeholder="Passphrase (min 8 characters)"
+                    placeholder="Password (min 8 characters)"
                     onChange={props.setStateWalletPassword}
                     ref={register({
                        minLength: {
@@ -98,7 +98,7 @@ const CreateWizardForm = (props) => {
 
                 <div className="inputs-item">
                   <input id="password_repeat" type={showPass ? 'text': 'password'} name="password_repeat"
-                    placeholder="Confirm Passphrase"
+                    placeholder="Confirm Password"
                     ref={register({
                        validate: value =>
                            value===password.current || "The passwords do not match"

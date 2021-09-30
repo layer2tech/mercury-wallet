@@ -93,7 +93,7 @@ const LoadWalletPage = (props) => {
               type={showPass ? 'text' : 'password'}
               name="password"
               required
-              placeholder="Passphrase "
+              placeholder="Password "
               value={passwordEntered}
               onChange={onPasswordChange}
             />
