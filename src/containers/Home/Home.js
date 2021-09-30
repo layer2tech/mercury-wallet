@@ -29,6 +29,7 @@ const HomePage = () => {
 
   // Initiliase wallet data in Redux state
   const initWalletInRedux = () => {
+    console.log("init wallet getFeeInfo")
     // Get fee info
     fee_info = callGetFeeInfo().then((fee_info) => {
       dispatch(updateFeeInfo(fee_info));

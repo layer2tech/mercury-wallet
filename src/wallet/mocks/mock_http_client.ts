@@ -13,6 +13,7 @@ export class MockHttpClient {
       case GET_ROUTE.PING:
         return true
       case GET_ROUTE.FEES:
+        console.log("mock http: GET_ROUTE.FEES")
         return cloneDeep(FEE_INFO)
       case GET_ROUTE.ROOT:
         return cloneDeep(ROOT_INFO)

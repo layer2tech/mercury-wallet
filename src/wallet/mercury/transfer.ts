@@ -54,6 +54,7 @@ export const transferSender = async (
   }
 
   // Get state entity fee info
+  console.log("transfer sender getFeeInfo")
   let fee_info: FeeInfo = await getFeeInfo(http_client);
 
   // Get statechain from SE and check ownership
@@ -181,6 +182,7 @@ export const transferReceiver = async (
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);
   // Get state entity fee info
+  console.log("transfer receiver getFeeInfo")
   let fee_info: FeeInfo = await getFeeInfo(http_client);
   await electrum_client.importAddresses([addr], block_height - fee_info.initlock)
   let out_script = bitcoin.address.toOutputScript(addr, network);

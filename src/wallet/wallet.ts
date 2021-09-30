@@ -267,6 +267,7 @@ export class Wallet {
       // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
       // Get fee info
+      console.log("init electrum client getFeeInfo")
       let fee_info: FeeInfo = await getFeeInfo(this.http_client)
       // Check if any deposit_inits are awaiting funding txs and add them to a list if so
       let p_addrs: any = []
