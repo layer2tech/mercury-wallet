@@ -69,22 +69,22 @@ export const reloadWallet = () => {
 async function pingElectrumRestart() {
   if(wallet){
     //If client already started
-  if (wallet.electrum_client.ping() === false) {
-      log.info(`Failed to ping electum server. Restarting client`);
+    if (!wallet.electrum_client || wallet.electrum_client.ping() === false) {
+        log.info(`Failed to ping electum server. Restarting client`);
         wallet.electrum_client.close().catch( (err) => {
         log.info(`Failed to close electrum client: ${err}`)
       });
-  } 
-  if (await wallet.electrum_client.isClosed()){
-    log.info(`Electrum connection closed - attempting to reopen`);
-    mutex.runExclusive(async () => {
+    } 
+    if (!wallet.electrum_client || await wallet.electrum_client.isClosed()){
+      log.info(`Electrum connection closed - attempting to reopen`);
+      mutex.runExclusive(async () => {
           wallet.electrum_client = wallet.newElectrumClient();
           try{
             wallet.initElectrumClient(setBlockHeightCallBack);
           } catch(err){
               log.info(`Failed to initialize electrum client: ${err}`);
           }
-    });
+      });
     }
   }
 }
