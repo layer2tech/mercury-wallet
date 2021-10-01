@@ -146,7 +146,7 @@ export class Wallet {
     
     new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
-    if(json_wallet.warning !== undefined) new_wallet.warnings = json_wallet.warnings
+    if(json_wallet.warnings !== undefined) new_wallet.warnings = json_wallet.warnings
     // Make sure properties added to the wallet are handled
     // New properties should not make old wallets break
 
@@ -215,7 +215,7 @@ export class Wallet {
 
   // Load wallet JSON from store
   static load(wallet_name: string, password: string, testing_mode: boolean) {
-
+    
     let store = new Storage(`wallets/${wallet_name}/config`);
     // Fetch decrypted wallet json
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
@@ -412,8 +412,7 @@ export class Wallet {
   }
 
   dontShowWarning(key: string){
-    const warningObject = this.warnings.filter(w => w.name === key)
-    warningObject[0].show = false
+    this.warnings.filter(w => w.name === key)[0].show = false
     this.save()
   }
 
