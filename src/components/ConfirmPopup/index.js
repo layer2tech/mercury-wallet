@@ -12,7 +12,7 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
   const [showModal, setShowModal] = useState(false);
   const [closeText, setCloseText] = useState('Are you sure?');
   const swapRecords = useSelector(state => state.walletData.swapRecords);
-
+  
   const handleClick = () => {
     setShowModal(true);
     if(children.props.className === 'header-logout'){

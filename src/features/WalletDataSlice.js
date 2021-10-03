@@ -214,7 +214,8 @@ export const showWarning = (key) =>  {
   }
 }
 export const dontShowWarning = (key) =>  {
-  return wallet.dontShowWarning(key)
+  wallet.dontShowWarning(key)
+  return 
 }
 
 export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
