@@ -238,10 +238,6 @@ async function init_tor_adapter(){
 async function on_exit(){
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 process.on('SIGINT',on_exit);
 process.on('exit',on_exit);
 
