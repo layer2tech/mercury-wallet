@@ -365,41 +365,45 @@ export class Wallet {
       let coin_status = "";
       let txid_vout = "";
       let amount = 0;
+      
+      let swapped_list = []
+      // keeping a tally of the coin statechain ID prevents double counting
+
       // Get used addresses
-
-      this.statecoins.coins.map(coin => {
-
-        if(coin.sc_address === encoded_sce_address){
-          coin_status = coin.status
-          used = true
-          amount += fromSatoshi(coin.value)
-        }
+      for(let coin of this.statecoins.coins){
 
         if(coin.transfer_msg !== null){
           if(coin.transfer_msg?.rec_se_addr.tx_backup_addr == addr){
-            coin_status = coin.status
-            used = true
-            amount += fromSatoshi(coin.value)
-            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
+            coin_status = coin.status;
+            used = true;
+            amount +=1
+            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`;
+            continue
           }
         }
-
+        
         if(coin.status === "SWAPPED"){
           
           if(coin.swap_transfer_msg?.rec_se_addr.tx_backup_addr == addr){
-            coin_status = coin.status
+            swapped_list.push(coin.statechain_id)
+            //add to swap list
             used = true
-            amount += fromSatoshi(coin.value)
+            // amount += fromSatoshi(coin.value)
+            amount +=1
             txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
-          }
-          if(coin.sc_address === encoded_sce_address){
-            coin_status = coin.status
-            used = true
-            amount += fromSatoshi(coin.value)
-            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
+            continue
           }
         }
-      })
+
+        if(coin.sc_address === encoded_sce_address){
+          coin_status = "SWAPPED"
+          used = true
+          if(!swapped_list.includes(coin.statechain_id)) {
+            amount +=1
+            coin_status = "AVAILABLE"
+          }
+        }
+      }
       return { sce_address: encoded_sce_address, used: used, coin_status: coin_status, amount:amount, txid_vout: txid_vout}
     }
   }

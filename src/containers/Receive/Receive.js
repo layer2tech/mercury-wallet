@@ -182,7 +182,7 @@ const ReceiveStatecoinPage = () => {
 
   const usedMessage = (coin_status) => {
     if(coin_status === "SWAPPED") return "Swap"
-    if(coin_status === "IN_TRANSFER") return "Transfer"
+    // if(coin_status === "IN_TRANSFER") return "Transfer"
     if(coin_status === "AWAITING_SWAP") return "Awaiting Swap"
     if(coin_status == "INITIALISED") return "Initialised Coin"
     else return `Deposit`
@@ -277,8 +277,9 @@ const ReceiveStatecoinPage = () => {
                     {rec_sce_addr.used === true ? (
                     <span className="tooltip">
                       <div><b>Privacy Warning!</b></div>
-                      <div><b>Address Used: </b> {usedMessage(rec_sce_addr.coin_status)}</div>
-                      <div><b>Amount: </b> {rec_sce_addr.amount} BTC</div>
+                      {/* <div><b>Amount: </b> {rec_sce_addr.amount} BTC</div> */}
+                      <div><b>Last Used: </b> {usedMessage(rec_sce_addr.coin_status)}</div>
+                      <div>Address used <b>{rec_sce_addr.amount}</b> time(s)</div>
                       {/* {rec_sce_addr.txid_vout !== "" ? (<div><b>TxID-VOUT: </b> {rec_sce_addr.txid_vout}</div>):(null)} */}
                     </span>
                     ):(
