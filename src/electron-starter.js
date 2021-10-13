@@ -209,7 +209,7 @@ const wrapPromise = (promise, delay, reason) =>
   Promise.race([promise, awaitTimeout(delay, reason)]);
 
 console.log('awaiting kill promise...')
-await wrapPromise(execFile('curl', ['http://localhost:3001/shutdown']), 1000, {
+await wrapPromise(execFile('curl', ['http://localhost:3001/shutdown']), 100, {
     reason: 'Fetch timeout',
 }).catch(data => console.log(`Failed with reason: ${data.reason}`));
 console.log('kill promise finished.')
