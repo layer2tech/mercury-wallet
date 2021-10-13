@@ -79,12 +79,10 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
 
   mainWindow.on('close', async function () {
-        await kill_tor();
   });
 
     // Emitted when the window is closed.
     mainWindow.on('closed', async function () {
-        await kill_tor();
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
@@ -127,7 +125,6 @@ app.on('ready', () => {
 
 // Quit when all windows are closed.
 app.on('window-all-closed', async function () {
-    await kill_tor();
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -209,7 +206,7 @@ const wrapPromise = (promise, delay, reason) =>
   Promise.race([promise, awaitTimeout(delay, reason)]);
 
 console.log('awaiting kill promise...')
-await wrapPromise(execFile('curl', ['http://localhost:3001/shutdown']), 100, {
+await wrapPromise(execFile('curl', ['http://localhost:3001/shutdown']), 1000, {
     reason: 'Fetch timeout',
 }).catch(data => console.log(`Failed with reason: ${data.reason}`));
 console.log('kill promise finished.')
@@ -277,15 +274,10 @@ stdio: 'ignore',
 }
   
 async function on_exit(){
-  await kill_tor();
 }
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function kill_tor(){
-    await execFile('curl', ['http://localhost:3001/shutdown/tor']);
 }
 
 process.on('SIGINT',on_exit);
