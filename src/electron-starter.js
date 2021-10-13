@@ -91,24 +91,32 @@ function createWindow() {
         mainWindow = null
     })
 
-  async function pingTorAdapter() {
-      const url = 'http://localhost:3001/ping'
-      const config = {
-        method: 'get',
-        url: url,
-        headers: { 'Accept': 'application/json' }
-      };
-      await axios(config)
-  }
+  init_tor_adapter();
 
   setInterval(async function() {
-    await pingTorAdapter().catch((err) => {
+
+    await Promise.race([timedPromise, pingTorAdapter]).catch((err) => {
       log.info(`Failed to ping tor adapter: ${err}`);
     });
+
+    //await pingTorAdapter()
   }, 5000);
 
 }
 
+async function getTorAdapter(path) {
+  const url = `http://localhost:3001${path}`
+  const config = {
+    method: 'get',
+    url: url,
+    headers: { 'Accept': 'application/json' }
+  };
+  await axios(config)
+}
+
+async function pingTorAdapter() {
+  await getTorAdapter('/ping')
+}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -172,6 +180,8 @@ app.commandLine.appendSwitch('ignore-certificate-errors');
 const Store = require('electron-store');
 Store.initRenderer();
 
+async function init_tor_adapter(){
+
 const fork = require('child_process').fork;
 
 fixPath();
@@ -186,6 +196,72 @@ if (getPlatform() === 'win'){
   tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
   tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
 }
+
+const awaitTimeout = (delay, reason) =>
+  new Promise((resolve, reject) =>
+    setTimeout(
+      () => (reason === undefined ? resolve() : reject(reason)),
+      delay
+    )
+  );
+
+const wrapPromise = (promise, delay, reason) =>
+  Promise.race([promise, awaitTimeout(delay, reason)]);
+
+console.log('awaiting kill promise...')
+await wrapPromise(execFile('curl', ['http://localhost:3001/shutdown']), 1000, {
+    reason: 'Fetch timeout',
+}).catch(data => console.log(`Failed with reason: ${data.reason}`));
+console.log('kill promise finished.')
+
+//Stop the tor adapter if is already running
+const timedPromise = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    let timeout_ms = 1;
+    console.log('timed promise 1')
+    resolve(`gave up waiting for tor shutdown after ${timeout_ms} ms`);
+    }, timeout_ms);
+})
+
+const timedPromise2 = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    let timeout_ms = 2;
+    console.log('timed promise 2')
+    resolve(`gave up waiting for tor shutdown after ${timeout_ms} ms`);
+    }, timeout_ms);
+})
+
+
+//const pingResult = await pingTorAdapter().catch((err) => {
+//    log.info(`Failed to ping tor adapter: ${err}`);
+//});
+
+// Kill the tor adapter if it is running
+const killPromise = new Promise((resolve, reject) => {
+  try {
+    //await execFile('curl', ['http://localhost:3001/ping']);
+    //resolve(execFile('curl', ['http://localhost:3001/shutdown']))
+    resolve('ok')
+  } catch (err){
+  }
+});
+
+//console.log('starting race...')
+//const _result = await 
+//Promise.race([timedPromise, timedPromise2]); 
+//console.log('race over.')
+/*
+  execFile('curl', ['http://localhost:3001/shutdown/tor'])).catch((err)
+    => {
+      log.info(`Error shutting down tor adapter: ${err}`);
+    } 
+  );
+*/
+
+//await pingTorAdapter().catch((err) => {
+//  log.info(`Running check - failed to ping tor adapter: ${err}`);
+//});
+
 fork(`${tor_adapter_path}`, tor_adapter_args,
 {
 detached: false,
@@ -197,6 +273,8 @@ stdio: 'ignore',
     };
   }
 );
+
+}
   
 async function on_exit(){
   await kill_tor();
