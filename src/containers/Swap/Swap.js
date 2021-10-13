@@ -128,13 +128,16 @@ const SwapPage = () => {
             }
             if (res.payload===null) {
               dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
+              dispatch(removeCoinFromSwapRecords(selectedCoin));// added this
               setSwapLoad({...swapLoad, join: false, swapCoin:""});
               return
             }
             if (res.error===undefined) {
               dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+              dispatch(removeCoinFromSwapRecords(selectedCoin));
             }else{
               dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
+              dispatch(removeCoinFromSwapRecords(selectedCoin)); // Added this
               setSwapLoad({...swapLoad, join: false, swapCoin:""});
             } 
           });
