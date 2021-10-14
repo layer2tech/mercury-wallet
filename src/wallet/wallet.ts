@@ -353,54 +353,63 @@ export class Wallet {
   // Getters
   getMnemonic(): string { return this.mnemonic }
   getBlockHeight(): number { return this.block_height }
+
   getSEAddress(addr_index: number): Object { 
     if (addr_index >= this.account.chains[0].addresses.length) {
       return this.current_sce_addr
     } else {
       let addr = this.account.chains[0].addresses[addr_index];
+      // Address at index shown on receive page
+
       let proofkey = this.account.derive(addr).publicKey.toString("hex");
+      // Proof key associated with address
+
       let encoded_sce_address = encodeSCEAddress(proofkey)
-      //let proofkey = this.account.derive(addr).publicKey.toString("hex");
+      // Encode proof key to generate SC address
+
       let used = false;
       let coin_status = "";
       let txid_vout = "";
-      let amount = 0;
+      let count = 0;
+      
+      let swapped_list = []
+      // keeping a tally of the coin statechain ID prevents double counting
+
       // Get used addresses
-
-      this.statecoins.coins.map(coin => {
-
-        if(coin.sc_address === encoded_sce_address){
-          coin_status = coin.status
-          used = true
-          amount += fromSatoshi(coin.value)
-        }
-
+      for(let coin of this.statecoins.coins){
         if(coin.transfer_msg !== null){
-          if(coin.transfer_msg?.rec_se_addr.tx_backup_addr == addr){
-            coin_status = coin.status
-            used = true
-            amount += fromSatoshi(coin.value)
-            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
+          if(coin.transfer_msg?.rec_se_addr.tx_backup_addr == addr && coin.status !== "IN_TRANSFER"){
+            coin_status = coin.status;
+            used = true;
+            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`;
+            continue
           }
         }
-
+        
         if(coin.status === "SWAPPED"){
           
           if(coin.swap_transfer_msg?.rec_se_addr.tx_backup_addr == addr){
-            coin_status = coin.status
+            swapped_list.push(coin.statechain_id)
+            //add to swap list
             used = true
-            amount += fromSatoshi(coin.value)
+            
+            count +=1
             txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
-          }
-          if(coin.sc_address === encoded_sce_address){
-            coin_status = coin.status
-            used = true
-            amount += fromSatoshi(coin.value)
-            txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
+            continue
           }
         }
-      })
-      return { sce_address: encoded_sce_address, used: used, coin_status: coin_status, amount:amount, txid_vout: txid_vout}
+
+        if(coin.sc_address === encoded_sce_address){
+          coin_status = "SWAPPED"
+          used = true
+          if(!swapped_list.includes(coin.statechain_id)) {
+            // Prevents double counting
+            count +=1
+            coin_status = "AVAILABLE"
+          }
+        }
+      }
+      return { sce_address: encoded_sce_address, used: used, coin_status: coin_status, count:count, txid_vout: txid_vout}
     }
   }
 
