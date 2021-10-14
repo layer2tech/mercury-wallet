@@ -79,47 +79,56 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
 
   mainWindow.on('close', async function () {
-        await kill_tor();
   });
 
     // Emitted when the window is closed.
     mainWindow.on('closed', async function () {
-        await kill_tor();
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
         mainWindow = null
     })
 
-  async function pingTorAdapter() {
-      const url = 'http://localhost:3001/ping'
-      const config = {
-        method: 'get',
-        url: url,
-        headers: { 'Accept': 'application/json' }
-      };
-      await axios(config)
-  }
 
-  setInterval(async function() {
-    await pingTorAdapter().catch((err) => {
-      log.info(`Failed to ping tor adapter: ${err}`);
-    });
-  }, 5000);
 
 }
 
+async function getTorAdapter(path) {
+  const url = `http://localhost:3001${path}`
+  const config = {
+    method: 'get',
+    url: url,
+    headers: { 'Accept': 'application/json' }
+  };
+  await axios(config)
+}
+
+async function pingTorAdapter() {
+  await getTorAdapter('/ping')
+}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-  createWindow();
+
+  //Limit app to one instance
+  if(!app.requestSingleInstanceLock()){
+    alert("Cannot start mercury wallet - an instance of the app is already running.")
+    app.quit();
+  }
+
+  init_tor_adapter();
+
+  setInterval(async function() {
+    await pingTorAdapter()
+  }, 5000);
+
+  createWindow(); 
 });
 
 // Quit when all windows are closed.
 app.on('window-all-closed', async function () {
-    await kill_tor();
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -172,42 +181,61 @@ app.commandLine.appendSwitch('ignore-certificate-errors');
 const Store = require('electron-store');
 Store.initRenderer();
 
-const fork = require('child_process').fork;
+async function check_tor_adapter(){
+  const awaitTimeout = (delay, reason) =>
+  new Promise((resolve, reject) =>
+    setTimeout(
+      () => (reason === undefined ? resolve() : reject(reason)),
+      delay
+    )
+  );
 
-fixPath();
-let tor_adapter_path = `${__dirname}/../tor-adapter/server/index.js`
-console.log(`starting tor adapter from: ${tor_adapter_path}`);
-console.log(`tor_cmd: ${tor_cmd}`);
-console.log(`torrc: ${torrc}`);
-let tor_data_path = joinPath(app.getPath('userData'),'tor');
-console.log(`tor data path: ${tor_data_path}`);
-let tor_adapter_args=[tor_cmd, torrc, tor_data_path];
-if (getPlatform() === 'win'){
-  tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
-  tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
+  const wrapPromise = (promise, delay, reason) =>
+    Promise.race([promise, awaitTimeout(delay, reason)]);
+
+    console.log(`Requesting shutdown of existing tor adapter process, if any`)
+    await wrapPromise(getTorAdapter('/shutdown'), 10000, {
+        reason: 'Fetch timeout',
+      }).catch(data => {
+        console.log(`Tor adapter shutdown failed with reason: ${data.reason}`);
+      }
+    );
 }
-fork(`${tor_adapter_path}`, tor_adapter_args,
-{
-detached: false,
-stdio: 'ignore',
+
+async function init_tor_adapter(){
+  await check_tor_adapter();
+
+  const fork = require('child_process').fork;
+
+  fixPath();
+  let tor_adapter_path = `${__dirname}/../tor-adapter/server/index.js`
+  console.log(`starting tor adapter from: ${tor_adapter_path}`);
+  console.log(`tor_cmd: ${tor_cmd}`);
+  console.log(`torrc: ${torrc}`);
+  let tor_data_path = joinPath(app.getPath('userData'),'tor');
+  console.log(`tor data path: ${tor_data_path}`);
+  let tor_adapter_args=[tor_cmd, torrc, tor_data_path];
+  if (getPlatform() === 'win'){
+    tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
+    tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
+  }
+
+
+  fork(`${tor_adapter_path}`, tor_adapter_args,
+  {
+    detached: false,
+    stdio: 'ignore',
   },
   (error, stdout, _stderr)  => {
-    if(error){
-      app.exit(error);
-    };
-  }
-);
+      if(error){
+        app.exit(error);
+      };
+    }
+  );
+
+}
   
 async function on_exit(){
-  await kill_tor();
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function kill_tor(){
-    await execFile('curl', ['http://localhost:3001/shutdown/tor']);
 }
 
 process.on('SIGINT',on_exit);
