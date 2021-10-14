@@ -378,10 +378,9 @@ export class Wallet {
       // Get used addresses
       for(let coin of this.statecoins.coins){
         if(coin.transfer_msg !== null){
-          if(coin.transfer_msg?.rec_se_addr.tx_backup_addr == addr){
+          if(coin.transfer_msg?.rec_se_addr.tx_backup_addr == addr && coin.status !== "IN_TRANSFER"){
             coin_status = coin.status;
             used = true;
-            count +=1
             txid_vout = `${coin.funding_txid}:${coin.funding_vout}`;
             continue
           }
