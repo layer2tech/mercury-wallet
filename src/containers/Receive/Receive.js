@@ -276,10 +276,8 @@ const ReceiveStatecoinPage = () => {
                     {rec_sce_addr.used === true ? (
                     <span className="tooltip">
                       <div><b>Privacy Warning!</b></div>
-                      {/* <div><b>Amount: </b> {rec_sce_addr.amount} BTC</div> */}
                       <div><b>Last Used: </b> {usedMessage(rec_sce_addr.coin_status)}</div>
-                      <div>Address used <b>{rec_sce_addr.amount}</b> time(s)</div>
-                      {/* {rec_sce_addr.txid_vout !== "" ? (<div><b>TxID-VOUT: </b> {rec_sce_addr.txid_vout}</div>):(null)} */}
+                      <div>Address used <b>{rec_sce_addr.count}</b> time(s)</div>
                     </span>
                     ):(
                       <span className="tooltip available">

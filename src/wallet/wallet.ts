@@ -370,7 +370,7 @@ export class Wallet {
       let used = false;
       let coin_status = "";
       let txid_vout = "";
-      let amount = 0;
+      let count = 0;
       
       let swapped_list = []
       // keeping a tally of the coin statechain ID prevents double counting
@@ -381,7 +381,7 @@ export class Wallet {
           if(coin.transfer_msg?.rec_se_addr.tx_backup_addr == addr){
             coin_status = coin.status;
             used = true;
-            amount +=1
+            count +=1
             txid_vout = `${coin.funding_txid}:${coin.funding_vout}`;
             continue
           }
@@ -393,8 +393,8 @@ export class Wallet {
             swapped_list.push(coin.statechain_id)
             //add to swap list
             used = true
-            // amount += fromSatoshi(coin.value)
-            amount +=1
+            
+            count +=1
             txid_vout = `${coin.funding_txid}:${coin.funding_vout}`
             continue
           }
@@ -405,12 +405,12 @@ export class Wallet {
           used = true
           if(!swapped_list.includes(coin.statechain_id)) {
             // Prevents double counting
-            amount +=1
+            count +=1
             coin_status = "AVAILABLE"
           }
         }
       }
-      return { sce_address: encoded_sce_address, used: used, coin_status: coin_status, amount:amount, txid_vout: txid_vout}
+      return { sce_address: encoded_sce_address, used: used, coin_status: coin_status, count:count, txid_vout: txid_vout}
     }
   }
 
