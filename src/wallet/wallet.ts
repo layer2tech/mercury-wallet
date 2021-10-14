@@ -371,7 +371,6 @@ export class Wallet {
 
       // Get used addresses
       for(let coin of this.statecoins.coins){
-
         if(coin.transfer_msg !== null){
           if(coin.transfer_msg?.rec_se_addr.tx_backup_addr == addr){
             coin_status = coin.status;

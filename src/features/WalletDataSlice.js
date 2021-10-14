@@ -135,7 +135,7 @@ export const walletLoad = (name, password) => {
   }
 
   log.info("Wallet "+name+" loaded from memory. ");
-  console.log(wallet)
+  
   if (testing_mode) log.info("Testing mode set.");
   mutex.runExclusive(async () => {
     await wallet.set_tor_endpoints();

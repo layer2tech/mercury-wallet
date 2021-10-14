@@ -182,10 +182,9 @@ const ReceiveStatecoinPage = () => {
 
   const usedMessage = (coin_status) => {
     if(coin_status === "SWAPPED") return "Swap"
-    // if(coin_status === "IN_TRANSFER") return "Transfer"
     if(coin_status === "AWAITING_SWAP") return "Awaiting Swap"
     if(coin_status == "INITIALISED") return "Initialised Coin"
-    else return `Deposit`
+    else return "Transfer"
   }
 
   
