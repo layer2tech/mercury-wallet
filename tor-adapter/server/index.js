@@ -16,7 +16,7 @@ let geoIpV6File = undefined;
 if (process.argv.length > 5) {
   geoIpFile = process.argv[5];
 }
-if (process.argv.length > cd6) {
+if (process.argv.length > 6) {
   geoIpV6File = process.argv[6];
 }
 console.log(`tor cmd: ${tor_cmd}`);
