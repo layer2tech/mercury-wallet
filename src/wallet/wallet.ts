@@ -366,7 +366,7 @@ export class Wallet {
 
       let encoded_sce_address = encodeSCEAddress(proofkey)
       // Encode proof key to generate SC address
-      //let proofkey = this.account.derive(addr).publicKey.toString("hex");
+
       let used = false;
       let coin_status = "";
       let txid_vout = "";
