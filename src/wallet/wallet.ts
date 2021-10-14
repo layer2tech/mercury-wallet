@@ -353,13 +353,19 @@ export class Wallet {
   // Getters
   getMnemonic(): string { return this.mnemonic }
   getBlockHeight(): number { return this.block_height }
+
   getSEAddress(addr_index: number): Object { 
     if (addr_index >= this.account.chains[0].addresses.length) {
       return this.current_sce_addr
     } else {
       let addr = this.account.chains[0].addresses[addr_index];
+      // Address at index shown on receive page
+
       let proofkey = this.account.derive(addr).publicKey.toString("hex");
+      // Proof key associated with address
+
       let encoded_sce_address = encodeSCEAddress(proofkey)
+      // Encode proof key to generate SC address
       //let proofkey = this.account.derive(addr).publicKey.toString("hex");
       let used = false;
       let coin_status = "";
@@ -398,6 +404,7 @@ export class Wallet {
           coin_status = "SWAPPED"
           used = true
           if(!swapped_list.includes(coin.statechain_id)) {
+            // Prevents double counting
             amount +=1
             coin_status = "AVAILABLE"
           }
