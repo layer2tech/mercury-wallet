@@ -28,7 +28,7 @@ const Header = (props) => {
           <Logo />  
         </Link>
         <div className="menu">
-          <div>
+          <div title="Light/Dark mode">
             <label className="toggle">
               <input
                 className="toggle-checkbox"
@@ -39,14 +39,14 @@ const Header = (props) => {
               <div className="toggle-switch" />
             </label>
           </div>
-          <div className={`nav-item  ${props.location.pathname === "/" ? "active" : ""}`}>
+          <div title="Help" className={`nav-item  ${props.location.pathname === "/" ? "active" : ""}`}>
             <Link className="nav-link" to="/help">
               <Help />
             </Link>
           </div>
 
           {props.walletLoaded ?
-            <div className={`nav-item  ${props.location.pathname === "/settings" ? "active" : ""}`}>
+            <div title="Settings" className={`nav-item  ${props.location.pathname === "/settings" ? "active" : ""}`}>
               <Link className="nav-link" to="/settings">
                 <Settings />
               </Link>
@@ -57,7 +57,7 @@ const Header = (props) => {
           {props.walletLoaded && (
             <div className={`nav-item`}>
               <ConfirmPopup onOk={handleLogout}>
-                <div className="header-logout">
+                <div title="Exit wallet" className="header-logout">
                   <Logout />
                 </div>
               </ConfirmPopup>
