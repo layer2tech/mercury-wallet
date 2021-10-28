@@ -22,6 +22,8 @@ if (process.argv.length > 6) {
 console.log(`tor cmd: ${tor_cmd}`);
 console.log(`torrc: ${torrc}`);
 
+var errors = require('request-promise/errors');
+
 const GET_ROUTE = {
   PING: "/eps/ping",
   //latestBlockHeader "/Electrs/block/:hash/header",
@@ -89,33 +91,39 @@ function restart_close_timeout(timeout, t_secs=10) {
 let timeout = close_timeout(30)
 
 async function get_endpoint(path, res, endpoint){
-  try{
-    let result = await tor.get(path,undefined, endpoint);
-    res.status(200).json(result);
-  } catch (err){
-    let statusCode = err.stateCode == undefined ? 400 : err.statusCode;
-    res.status(statusCode).json(err);
-  }
+  let result = await tor.get(path,undefined, endpoint)
+  .catch (errors.StatusCodeError, function (reason) {
+    res.status(reason.statusCode).json(reason);
+  })
+  .catch(errors.RequestError, function (reason) {
+    res.json(reason.cause);
+    }
+  )
+  res.status(200).json(result);
 };
 
 async function post_endpoint(path, body, res, endpoint) {
-  try{
-    let result = await tor.post(path,body, endpoint);
+    let result = await tor.post(path,body, endpoint)
+      .catch (errors.StatusCodeError, function (reason) {
+        res.status(reason.statusCode).json(reason);
+      })
+      .catch(errors.RequestError, function (reason) {
+        res.json(reason.cause);
+      }
+    )
     res.status(200).json(result);
-  } catch (err) {
-    let statusCode = err.stateCode == undefined ? 400 : err.statusCode;
-    res.status(statusCode).json(err);
-  }
 };
 
 async function post_plain_endpoint(path, data, res, endpoint) {
-  try{
-    let result = await tor.post_plain(path,data, endpoint);
+  let result = await tor.post_plain(path,data, endpoint)
+      .catch (errors.StatusCodeError, function (reason) {
+        res.status(reason.statusCode).json(reason);
+      })
+      .catch(errors.RequestError, function (reason) {
+        res.json(reason.cause);
+      }
+    )
     res.status(200).json(result);
-  } catch (err) {
-    let statusCode = err.stateCode == undefined ? 400 : err.statusCode;
-    res.status(statusCode).json(err);
-  }
 };
 
 app.get('/newid', async function(req,res) {

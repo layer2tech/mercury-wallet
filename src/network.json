@@ -4,8 +4,13 @@
     "mainnet_block_explorer_endpoint":  "https://blockstream.info/tx/",
     "mainnet_electrum_config": {"host": "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/api", "port": null, "protocol": "http"},
     
-    "testnet_state_entity_endpoint": "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
-    "testnet_swap_conductor_endpoint": "http://pslackfq3eiuk5pckcykldunuuyzhe3lcbrtqp6kl36e37lwrgbzurad.onion",
+    "testnet_state_entity_endpoint": "http://0.0.0.0:18000",
+    "testnet_swap_conductor_endpoint": "http://0.0.0.0:18000",
     "testnet_block_explorer_endpoint": "https://blockstream.info/testnet/tx/",
-    "testnet_electrum_config": {"host": "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/testnet/api", "port": null, "protocol": "http"}
+    "testnet_electrum_config" : {
+      "protocol": "http",
+      "host": "https://explorer.blockstream.com/testnet/api",
+      "port": null,
+      "type": "electrs"
+    }
   }

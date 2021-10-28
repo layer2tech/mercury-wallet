@@ -88,9 +88,11 @@ function createWindow() {
   }
   
   mainWindow.on('close', async () => {
+    await kill_tor();
   });
 
   mainWindow.on('closed', async () => {
+    await kill_tor();
     mainWindow = null;
   });
 
@@ -136,6 +138,7 @@ app.on('ready', () => {
 
 app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
+    await kill_tor();
     app.quit();
   }
 });
@@ -179,6 +182,7 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 
  // You can use 'before-quit' instead of (or with) the close event
  app.on('before-quit', async function () {
+  await kill_tor();
 });
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
@@ -240,6 +244,11 @@ async function init_tor_adapter() {
 }
   
 async function on_exit(){
+  await kill_tor();
+}
+
+async function kill_tor(){
+  await execFile('curl', ['http://localhost:3001/shutdown/tor']);
 }
 
 process.on('SIGINT',on_exit);

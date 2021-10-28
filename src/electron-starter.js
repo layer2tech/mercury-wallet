@@ -79,6 +79,7 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
 
   mainWindow.on('close', async function () {
+    await kill_tor();
   });
 
     // Emitted when the window is closed.
@@ -86,6 +87,7 @@ function createWindow() {
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
+        await kill_tor();
         mainWindow = null
     })
 
@@ -132,6 +134,7 @@ app.on('window-all-closed', async function () {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
+        await kill_tor();
         app.quit()
     }
 });
@@ -236,6 +239,11 @@ async function init_tor_adapter(){
 }
   
 async function on_exit(){
+  await kill_tor();
+}
+
+async function kill_tor(){
+  await execFile('curl', ['http://localhost:3001/shutdown/tor']);
 }
 
 process.on('SIGINT',on_exit);
