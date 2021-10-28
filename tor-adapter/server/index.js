@@ -96,21 +96,33 @@ async function get_endpoint(path, res, endpoint){
     res.status(reason.statusCode).json(reason);
   })
   .catch(errors.RequestError, function (reason) {
-    res.json(reason.cause);
-    }
-  )
+    res.json(reason);
+  })
+  .catch(errors.TransformError, function(reason){
+    res.json(reason);
+  })
+  .catch(err, function(reason){
+    res.json(reason);
+  })
+
   res.status(200).json(result);
 };
 
 async function post_endpoint(path, body, res, endpoint) {
     let result = await tor.post(path,body, endpoint)
-      .catch (errors.StatusCodeError, function (reason) {
-        res.status(reason.statusCode).json(reason);
-      })
-      .catch(errors.RequestError, function (reason) {
-        res.json(reason.cause);
-      }
-    )
+    .catch (errors.StatusCodeError, function (reason) {
+      res.status(reason.statusCode).json(reason);
+    })
+    .catch(errors.RequestError, function (reason) {
+      res.json(reason);
+    })
+    .catch(errors.TransformError, function(reason){
+      res.json(reason);
+    })
+    .catch(err, function(reason){
+      res.json(reason);
+    })
+
     res.status(200).json(result);
 };
 
@@ -120,9 +132,14 @@ async function post_plain_endpoint(path, data, res, endpoint) {
         res.status(reason.statusCode).json(reason);
       })
       .catch(errors.RequestError, function (reason) {
-        res.json(reason.cause);
-      }
-    )
+        res.json(reason);
+      })
+      .catch(errors.TransformError, function(reason){
+        res.json(reason);
+      })
+      .catch(err, function(reason){
+        res.json(reason);
+      })
     res.status(200).json(result);
 };
 
