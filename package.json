@@ -38,7 +38,7 @@
     "test": "react-app-rewired test --env=jsdom",
     "test-node": "react-app-rewired test --env=node",
     "eject": "react-scripts eject",
-    "electron": "electron --inspect=5858 --testnet .",
+    "electron": "electron --inspect=5858 .",
     "dev": "BROWSER=none nf start -p 3000",
     "postinstall": "electron-builder install-app-deps",
     "build-wasm": "wasm-pack build --dev client-wasm",
