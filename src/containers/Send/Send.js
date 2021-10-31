@@ -72,7 +72,9 @@ const SendStatecoinPage = () => {
       dispatch(setError({msg: "Error: invalid proof public key"}))
       return
     }
-    setOpenSendModal({show:true})
+    setOpenSendModal({show:true,
+                      value: coinDetails.value,
+                      coinAddress: inputAddr})
 
     if(sendRef.current){
       //Send button disabled after press

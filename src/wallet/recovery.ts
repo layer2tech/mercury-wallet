@@ -3,6 +3,7 @@
 import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin } from './statecoin';
 import { getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo } from './mercury/info_api';
+import { encodeSCEAddress } from './util';
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');
 
@@ -18,15 +19,18 @@ export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> =
   let recovery_request = [];
   let addrs: any = [];
 
+  let addr = wallet.account.getChainAddress(0);
+  addrs.push(addr);
+  recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
   // Keep grabbing data until NUM_KEYS_PER_RECOVERY_ATTEMPT keys have no statecoins
   while (new_recovery_data_load.length > 0) {
-    recovery_request = [];
     for (let i=0; i<NUM_KEYS_PER_RECOVERY_ATTEMPT; i++) {
       let addr = wallet.account.nextChainAddress(0);
-      addrs.push(addr)
+      addrs.push(addr);
       recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
     }
     new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
+    recovery_request = [];
     recovery_data = recovery_data.concat(new_recovery_data_load);
   }
   
@@ -36,7 +40,7 @@ export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> =
 
   // No more keys found for this wallet. Remove the NUM_KEYS_PER_RECOVERY_ATTEMPT from
   // wallets account so that the wallet can use them.
-  wallet.account.chains[0].k = 1;
+  for (let i = 1; i < NUM_KEYS_PER_RECOVERY_ATTEMPT; ++i) wallet.account.chains[0].pop();
 
   return recovery_data
 }

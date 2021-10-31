@@ -263,7 +263,6 @@ export const encodeMessage = (message: TransferMsg3) => {
 
 // Bech32 decode transfer message
 export const decodeMessage = (enc_message: string, network: Network): TransferMsg3 => {
-  console.log("BECH32 RUN")
 
   let buf;
 

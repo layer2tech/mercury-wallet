@@ -4,6 +4,7 @@ import {Wallet, ACTION} from '../wallet'
 import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
 import {pingServer, swapDeregisterUtxo} from '../wallet/swap/info_api'
 import {decodeMessage} from '../wallet/util'
+import {resetIndex} from '../containers/Receive/Receive'
 
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
@@ -56,6 +57,7 @@ export const isWalletLoaded = () => {
   return true
 }
 export const unloadWallet = () => {
+  resetIndex();
   wallet = undefined;
 }
 export const reloadWallet = () => {
