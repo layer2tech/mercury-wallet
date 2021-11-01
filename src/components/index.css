@@ -25,6 +25,7 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   outline: none;
+  box-shadow: 0 4px 6px -6px #222;
 }
 .Body-button.blue {
   background-color:#0F54F4;
