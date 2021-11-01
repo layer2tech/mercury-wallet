@@ -44,7 +44,6 @@ try {
   log = require('electron-log');
 }
 
-
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;

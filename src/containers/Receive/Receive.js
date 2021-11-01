@@ -22,6 +22,10 @@ import { Transaction } from 'bitcoinjs-lib';
 
 let addr_index = - 1;
 
+export const resetIndex = () => {
+  addr_index = -1;
+}
+
 const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
 

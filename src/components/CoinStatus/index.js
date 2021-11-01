@@ -46,7 +46,7 @@ const STATECOIN_STATUS_INFO = {
   },
   [STATECOIN_STATUS.INITIALISED]: {
     icon: <InitialisedIcon />,
-    title: 'Awaiting Transaction'
+    title: 'Awaiting BTC Deposit'
   },
   [STATECOIN_STATUS.DELETED]:{
     icon: <Spinner animation="border" variant="danger" size="sm"/>,

@@ -35,12 +35,12 @@ const LoadWalletPage = (props) => {
     let unspent_coins_data = callGetUnspentStatecoins();
     let coins_data = unspent_coins_data[0];
     for (let i=0; i<coins_data.length; i++) {
-      if (coins_data[i].wallet_version !== callGetVersion()) {
-        dispatch(setError({msg: "Warning: Coin in wallet was created in previous wallet version. Due to rapid development some backward incompatible changes may break old coins. We recommend withdrawing testnet coins and creating a fresh wallet."}))
-        break;
-      };
+//      if (coins_data[i].wallet_version !== callGetVersion()) {
+//        dispatch(setError({msg: "Warning: Coin in wallet was created in previous wallet version. Due to rapid development some backward incompatible changes may break old coins. We recommend withdrawing testnet coins and creating a fresh wallet."}))
+//        break;
+//      };
       if(coins_data[i].status === STATECOIN_STATUS.SWAPLIMIT){
-        dispatch(setError({msg: "Warning: Coin in wallet is close to expiring. Expiring coins not eligible for swap deals. Withdraw as soon as possible."}))
+        dispatch(setError({msg: "Warning: Coin in wallet is close to expiring. Expiring coins not eligible for swaps. Withdraw as soon as possible."}))
       }
       if (coins_data[i].expiry_data.months <= 1) {
         dispatch(setError({msg: "Warning: Coin in wallet is close to expiring."}))

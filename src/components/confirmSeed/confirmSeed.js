@@ -70,7 +70,7 @@ const ConfirmSeed = (props) => {
       let coins_data = unspent_coins_data[0];
       for (let i=0; i<coins_data.length; i++) {
         if (coins_data[i].wallet_version !== callGetVersion()) {
-          dispatch(setError({msg: "Warning: Coin in wallet was created in previous wallet version. Due to rapid development some backward incompatible changes may break old coins. We recommend withdrawing testnet coins and creating a fresh wallet."}))
+          dispatch(setError({msg: "Warning: Coin in wallet was created in previous wallet version."}))
           break;
         };
       }

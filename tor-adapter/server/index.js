@@ -91,37 +91,48 @@ function restart_close_timeout(timeout, t_secs=10) {
 let timeout = close_timeout(30)
 
 async function get_endpoint(path, res, endpoint){
-  let result = await tor.get(path,undefined, endpoint)
-  .catch (errors.StatusCodeError, function (reason) {
-    res.status(reason.statusCode).json(reason);
-  })
-  .catch(errors.RequestError, function (reason) {
-    res.json(reason.cause);
+  try{
+    let result = await tor.get(path, undefined, endpoint);
+    res.status(200).json(result);
+  } catch (err){
+    if (err instanceof errors.StatusCodeError){
+      res.status(err.statusCode).json(err);
+    } else if (err instanceof errors.RequestError){
+      res.status(400).json(err.cause);
+    } else {
+      res.status(400).json(err);
     }
-  )
-  res.status(200).json(result);
+  }   
 };
 
 async function post_endpoint(path, body, res, endpoint) {
-    let result = await tor.post(path,body, endpoint)
-      .catch (errors.StatusCodeError, function (reason) {
-        res.status(reason.statusCode).json(reason);
-      })
-      .catch(errors.RequestError, function (reason) {
-        res.json(reason.cause);
-      }
-    )
+  try{
+    let result = await tor.post(path,body, endpoint);
     res.status(200).json(result);
+  } catch (err){
+    if (err instanceof errors.StatusCodeError){
+      res.status(err.statusCode).json(err);
+    } else if (err instanceof errors.RequestError){
+      res.status(400).json(err.cause);
+    } else {
+      res.status(400).json(err);
+    }
+  }    
 };
 
 async function post_plain_endpoint(path, data, res, endpoint) {
-      try{
-          let result = await tor.post_plain(path,data, endpoint);
-                 res.status(200).json(result);
-        } catch (err) {
-          let statusCode = err.stateCode == undefined ? 400 : err.statusCode;
-          res.status(statusCode).json(err);
-        }
+  try{
+    let result = await tor.post_plain(path,data, endpoint);
+    res.status(200).json(result);
+  } catch (err){
+    if (err instanceof errors.StatusCodeError){
+      res.status(err.statusCode).json(err);
+    } else if (err instanceof errors.RequestError){
+      res.status(400).json(err.cause);
+    } else {
+      res.status(400).json(err);
+    }
+  }  
 };
 
 app.get('/newid', async function(req,res) {
