@@ -77,7 +77,7 @@ tor.startTorNode(tor_cmd, torrc);
 
 function close_timeout(t_secs=10) {
   return setTimeout(function () {
-    //on_exit()
+    on_exit()
   }, t_secs*1000)
 }
 
@@ -137,7 +137,7 @@ async function post_plain_endpoint(path, data, res, endpoint) {
 
 app.get('/newid', async function(req,res) {
   try{
-    timeout = restart_close_timeout(timeout)
+    timeout = restart_close_timeout(60)
     console.log("getting new tor id...")
     let response=await tor.confirmNewTorConnection();
     console.log(`got new tor id: ${JSON.stringify(response)}`)
@@ -147,25 +147,7 @@ app.get('/newid', async function(req,res) {
   }
 });
 
-app.get('/', async function(req,res) {
-  let response = {
-    tor_proxy: config.tor_proxy,
-    state_entity_endpoint: config.state_entity_endpoint,
-    swap_conductor_endpoint: config.swap_conductor_endpoint,
-    electrum_endpoint: config.electrum_endpoint
-  };
-  try{
-    timeout = restart_close_timeout(timeout)
-    let response=await tor.confirmNewTorConnection();
-    console.log(response);
-    res.status(200).json(response);
-  } catch(err) {
-    res.status(400).json(err);
-  }
-});
-
-
-app.get('/ping', async function(req,res) {
+app.get('/tor_adapter/ping', async function(req,res) {
   timeout = restart_close_timeout(timeout)
   res.status(200).json({});
 });
@@ -230,7 +212,7 @@ app.get('/tor_endpoints', function(req,res) {
   res.status(200).json(response);
 });
 
-app.get('/shutdown', async function(req,res) {
+app.get('/tor_adapter/shutdown', async function(req,res) {
   try {
     let response = await tor.stopTorNode();
     res.status(200).json(response);
@@ -240,7 +222,7 @@ app.get('/shutdown', async function(req,res) {
   }
 });
 
-app.get('/shutdown/tor', async function(req,res) {
+app.get('/tor_adapter/shutdown/tor', async function(req,res) {
   try {
     let response = await tor.stopTorNode();
     res.status(200).json(response);
@@ -352,7 +334,6 @@ app.post('/eps/import_addresses', async function(req, res) {
   }
 })
 
-
 app.get('*', function(req,res) {
   timeout = restart_close_timeout(timeout)
    get_endpoint(req.path, res, config.state_entity_endpoint)
@@ -362,6 +343,7 @@ app.post('*', function(req,res) {
   timeout = restart_close_timeout(timeout)
    post_endpoint(req.path, req.body, res, config.state_entity_endpoint)
 });
+
 
 async function on_exit(){
   await tor.stopTorNode();

@@ -12,6 +12,8 @@ export class MockHttpClient {
     switch(path) {
       case GET_ROUTE.PING:
         return true
+      case GET_ROUTE.SWAP_PING:
+        return true
       case GET_ROUTE.FEES:
         return cloneDeep(FEE_INFO)
       case GET_ROUTE.ROOT:
