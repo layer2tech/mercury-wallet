@@ -1,5 +1,5 @@
 {
-    "mainnet_state_entity_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+    "mainnet_state_entity_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion",
     "mainnet_swap_conductor_endpoint": "http://5q4bfk46or5kopl4hrwmjclk6aharjetumegjcx7vcjlko6euuvjyjad.onion",
     "mainnet_block_explorer_endpoint":  "https://blockstream.info/tx/",
     "mainnet_electrum_config": {"host": "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion/api", "port": null, "protocol": "http", "type": "electrs"},
