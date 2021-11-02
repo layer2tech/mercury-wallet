@@ -147,7 +147,7 @@ app.get('/newid', async function(req,res) {
   }
 });
 
-app.get('/ping', async function(req,res) {
+app.get('/tor_adapter/ping', async function(req,res) {
   timeout = restart_close_timeout(timeout)
   res.status(200).json({});
 });
@@ -212,7 +212,7 @@ app.get('/tor_endpoints', function(req,res) {
   res.status(200).json(response);
 });
 
-app.get('/shutdown', async function(req,res) {
+app.get('/tor_adapter/shutdown', async function(req,res) {
   try {
     let response = await tor.stopTorNode();
     res.status(200).json(response);
@@ -222,7 +222,7 @@ app.get('/shutdown', async function(req,res) {
   }
 });
 
-app.get('/shutdown/tor', async function(req,res) {
+app.get('/tor_adapter/shutdown/tor', async function(req,res) {
   try {
     let response = await tor.stopTorNode();
     res.status(200).json(response);
@@ -334,7 +334,6 @@ app.post('/eps/import_addresses', async function(req, res) {
   }
 })
 
-
 app.get('*', function(req,res) {
   timeout = restart_close_timeout(timeout)
    get_endpoint(req.path, res, config.state_entity_endpoint)
@@ -344,6 +343,7 @@ app.post('*', function(req,res) {
   timeout = restart_close_timeout(timeout)
    post_endpoint(req.path, req.body, res, config.state_entity_endpoint)
 });
+
 
 async function on_exit(){
   await tor.stopTorNode();

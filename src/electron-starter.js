@@ -106,7 +106,7 @@ async function getTorAdapter(path) {
 }
 
 async function pingTorAdapter() {
-  await getTorAdapter('/ping')
+  await getTorAdapter('/tor_adapter/ping')
 }
 
 // This method will be called when Electron has finished
@@ -197,7 +197,7 @@ async function check_tor_adapter(){
     Promise.race([promise, awaitTimeout(delay, reason)]);
 
     console.log(`Requesting shutdown of existing tor adapter process, if any`)
-    await wrapPromise(getTorAdapter('/shutdown'), 10000, {
+    await wrapPromise(getTorAdapter('/tor_adapter/shutdown'), 10000, {
         reason: 'Fetch timeout',
       }).catch(data => {
         console.log(`Tor adapter shutdown failed with reason: ${data.reason}`);
@@ -243,7 +243,7 @@ async function on_exit(){
 }
 
 async function kill_tor(){
-  await execFile('curl', ['http://localhost:3001/shutdown/tor']);
+  await execFile('curl', ['http://localhost:3001/tor_adapter/shutdown/tor']);
 }
 
 process.on('SIGINT',on_exit);

@@ -4,6 +4,7 @@ export const mutex = new Mutex();
 
 export const GET_ROUTE = {
   PING: "ping",
+  SWAP_PING: "swap/ping",
   FEES: "info/fee",
   ROOT: "info/root",
   STATECHAIN: "info/statechain",

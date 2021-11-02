@@ -19,7 +19,7 @@ import { groupInfo, swapDeregisterUtxo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
 import { AsyncSemaphore } from "@esfx/async-semaphore";
-import { delay, FeeInfo, getFeeInfo } from './mercury/info_api';
+import { delay, FeeInfo, getFeeInfo, pingServer } from './mercury/info_api';
 import { EPSClient } from './eps';
 import { FEE_INFO } from './mocks/mock_http_client';
 
@@ -60,7 +60,9 @@ export class Wallet {
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
-  warnings: [{name: string, show: boolean}]
+  warnings: [{name: string, show: boolean}];
+  ping_server_ms: number | null;
+  ping_conductor_ms: number | null;
 
   storage: Storage
 
@@ -87,6 +89,8 @@ export class Wallet {
     this.warnings = [{name: "swap_punishment", show: true}]
 
     this.storage = new Storage(`wallets/${this.name}/config`);
+    this.ping_conductor_ms = null;
+    this.ping_server_ms = null;
   }
 
   set_tor_endpoints(){
@@ -919,7 +923,35 @@ export class Wallet {
   }
 
   async updateSwapGroupInfo() {
-    this.swap_group_info = await groupInfo(this.http_client);
+    try{
+      this.swap_group_info = await groupInfo(this.http_client);
+    } catch(err){
+      this.swap_group_info.clear()
+      throw err
+    }
+  }
+
+  async updateSpeedInfo() {
+    try {
+      this.ping_server_ms=await pingServer(this.http_client)
+    } catch (err) {
+      this.ping_server_ms=null
+      throw err
+    }
+    try {
+      this.ping_conductor_ms=await pingServer(this.http_client)
+    } catch (err) {
+      this.ping_conductor_ms=null
+      throw err
+    }
+  }
+
+  getPingConductorms(): number | null {
+    return this.ping_conductor_ms
+  }
+
+  getPingServerms(): number | null {
+    return this.ping_server_ms
   }
 
   disableAutoSwaps(){
