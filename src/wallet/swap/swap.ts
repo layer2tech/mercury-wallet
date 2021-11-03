@@ -336,7 +336,9 @@ export const do_swap_poll = async(
 
   const INIT_RETRY_AFTER=600
   const EXIT_AFTER=200
+  const MAX_ERRS=100
   let swap0_count=0;
+  let n_errs=0;
 
   let new_statecoin = null;
     while (new_statecoin==null) {
@@ -348,12 +350,14 @@ export const do_swap_poll = async(
           }
           case SWAP_STATUS.Init: {
             await swapInit(http_client, statecoin, proof_key_der, swap_size);
+            n_errs=0;
             break;
           }
           case SWAP_STATUS.Phase0: {
             if(swap0_count < INIT_RETRY_AFTER){
               try{
                 await swapPhase0(http_client, statecoin);
+                n_errs=0;
               } finally {
                 swap0_count++;
               }
@@ -363,16 +367,19 @@ export const do_swap_poll = async(
               statecoin.setSwapDataToNull();
               statecoin.swap_status = SWAP_STATUS.Init;
               statecoin.setAwaitingSwap();
+              n_errs=0;
             }
             
             break;
           }
           case SWAP_STATUS.Phase1: {
             await swapPhase1(http_client, wasm_client, statecoin, proof_key_der, new_proof_key_der);
+            n_errs=0;
             break;
           }
           case SWAP_STATUS.Phase2: {
             await swapPhase2(http_client, wasm_client, statecoin);
+            n_errs=0;
             break;
           }
           case SWAP_STATUS.Phase3: {
@@ -381,14 +388,20 @@ export const do_swap_poll = async(
             let header = await electrum_client.latestBlockHeader();
             console.log("finished get block height.")
             await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, header.block_height);
+            n_errs=0;
             break;
           }
           case SWAP_STATUS.Phase4: {
             new_statecoin = await swapPhase4(http_client, wasm_client, statecoin);
+            n_errs=0;
           }
         }
       } catch (e  : any) {
-        throw new Error(`${e}`);
+        n_errs = n_errs + 1;
+        if ( n_errs > MAX_ERRS){
+          throw new Error(`${e}`);
+        }
+        console.log(`Error during swap: ${e} - retrying...`);
       }
       await delay(3);
     }

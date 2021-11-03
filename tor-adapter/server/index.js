@@ -77,7 +77,7 @@ tor.startTorNode(tor_cmd, torrc);
 
 function close_timeout(t_secs=10) {
   return setTimeout(function () {
-    on_exit()
+    //on_exit()
   }, t_secs*1000)
 }
 
