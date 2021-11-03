@@ -1,9 +1,9 @@
 import arrow from '../../images/arrow-accordion.png';
 
 import React, {useState, useEffect} from "react";
-import {useSelector} from 'react-redux'
+import {useSelector, useDispatch} from 'react-redux'
 
-import {callGetBlockHeight, callGetConfig, callGetSwapGroupInfo} from '../../features/WalletDataSlice'
+import {callGetBlockHeight, callGetConfig, callGetSwapGroupInfo,callGetPingServerms, callGetPingConductorms, callUpdateSpeedInfo } from '../../features/WalletDataSlice'
 import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
 import './panelConnectivity.css';
@@ -11,6 +11,7 @@ import '../index.css';
 
 
 const PanelConnectivity = (props) => {
+  const dispatch = useDispatch();
   // Arrow down state and url hover state
   const [state, setState] = useState({isToggleOn: false,
     isServerHover:false, isSwapsHover:false, isBTCHover: false});
@@ -58,7 +59,24 @@ const PanelConnectivity = (props) => {
   let participants = swap_groups_array.reduce((acc,item)=> acc+item[1].number,0)
   let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1].number * item[0].amount),0);
 
-  // every 5s check if block_height changed and set a new value
+  const [server_ping_ms, setServerPingMs] = useState(callGetPingServerms());
+  const [conductor_ping_ms, setConductorPingMs] = useState(callGetPingConductorms());
+
+  // every 30s check speed
+  useEffect(() => {
+    const interval = setInterval(() => {
+        dispatch(callUpdateSpeedInfo());
+        if(server_ping_ms !== callGetPingServerms()){
+            setServerPingMs(callGetPingServerms())
+        }
+        if(conductor_ping_ms !== callGetPingConductorms()){
+            setConductorPingMs(callGetPingConductorms())
+        }
+    }, 30000);
+    return () => clearInterval(interval);
+    }, [server_ping_ms, conductor_ping_ms,dispatch]);
+
+  // every 250ms check if block_height changed and set a new value
   useEffect(() => {
       const interval = setInterval(() => {
           if(block_height !== callGetBlockHeight()){
@@ -85,7 +103,7 @@ const PanelConnectivity = (props) => {
     
     //Add spinner for loading connection to Electrum server
     block_height ? (connection_pending[2].classList.add("connected")):(connection_pending[2].classList.remove("connected")) 
-  },[fee_info.deposit,swap_groups_array.length,block_height])
+  },[fee_info.deposit,swap_groups_array.length,block_height, server_ping_ms, conductor_ping_ms])
 
   return (
       <div className="Body small accordion connection-wrap">
@@ -142,6 +160,7 @@ const PanelConnectivity = (props) => {
                     </span>
                     <span>Deposit Fee: <b>{fee_info.deposit /100}%</b></span>
                     <span>Withdraw Fee: <b>{fee_info.withdraw/100}%</b></span>
+                    <span>Ping: <b>{server_ping_ms !== null ? server_ping_ms.toLocaleString(undefined, { maximumFractionDigits:0}):""} ms</b></span>
                     <span>{fee_info.endpoint}</span>
                 </div>
                 <div className="collapse-content-item">
@@ -157,6 +176,7 @@ const PanelConnectivity = (props) => {
                     <span>Pending Swaps: <b>{pending_swaps}</b></span>
                     <span>Participants: <b>{participants}</b></span>
                     <span>Total pooled BTC: <b>{total_pooled_btc / Math.pow(10, 8)}</b></span>
+                    <span>Ping: <b>{conductor_ping_ms !== null ? conductor_ping_ms.toLocaleString(undefined, { maximumFractionDigits:0}):""} ms</b></span>
                 </div>
                 <div className="collapse-content-item">
                     <span>Block height: {block_height}</span>

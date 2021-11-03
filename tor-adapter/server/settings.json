@@ -1,5 +1,5 @@
 {
-  "state_entity_endpoint": "http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion",
+  "state_entity_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion",
   "swap_conductor_endpoint": "http://5q4bfk46or5kopl4hrwmjclk6aharjetumegjcx7vcjlko6euuvjyjad.onion",
   "tor_proxy": {"ip": "localhost",
                 "port": 9060,

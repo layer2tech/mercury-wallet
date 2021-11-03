@@ -32,7 +32,7 @@ In electrum_config, the protocol options are 'http' or 'wss'. http routes the co
 ## Run development in `testnet` mode
 The testnet network configuration can be set by editing `/src/network.json`. To run in testnet mod, first edit `package.json` and edit the to include the `electron` script to include the `--testnet` flag as follows:
 
-`"electron": "electron --inspect=5858 --testnet .",`
+`"electron": "electron --inspect=5858 .",`
 
 
 ### Using a local mercury server and mock tor adapter

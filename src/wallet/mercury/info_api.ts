@@ -43,11 +43,22 @@ proof_key: string,
 shared_key_data: string
 }
 
-
 export const pingServer = async (
   http_client: HttpClient |  MockHttpClient,
 ) => {
-  return await http_client.get(GET_ROUTE.PING, {})
+  var startTime = performance.now()
+  await http_client.get(GET_ROUTE.PING, {})
+  var endTime = performance.now()
+  return endTime - startTime
+}
+
+export const pingConductor = async (
+  http_client: HttpClient |  MockHttpClient,
+) => {
+  var startTime = performance.now()
+  await http_client.get(GET_ROUTE.SWAP_PING, {})
+  var endTime = performance.now()
+  return endTime - startTime
 }
 
 export const getFeeInfo = async (

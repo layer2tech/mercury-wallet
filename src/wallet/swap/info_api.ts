@@ -8,7 +8,10 @@ let typeforce = require('typeforce');
 export const pingServer = async (
   http_client: HttpClient |  MockHttpClient,
 ) => {
-  return await http_client.get(GET_ROUTE.PING, {})
+  var startTime = performance.now()
+  await http_client.get(GET_ROUTE.SWAP_PING, {})
+  var endTime = performance.now()
+  return endTime - startTime
 }
 
 export const pollUtxo = async (

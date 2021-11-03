@@ -1,5 +1,6 @@
 import walletIcon from '../../images/walletIcon.png';
 import walletIconSmall from '../../images/walletIconsmallIcon.png';
+import minusIcon from '../../images/minus.svg'
 import pluseIcon from '../../images/pluseIcon.png';
 import swapIcon from '../../images/swap-icon.png';
 import arrowUp from '../../images/arrow-up.png';
@@ -71,20 +72,19 @@ const PanelControl = () => {
                   label="Deposit"  icon={pluseIcon}
                   className="Body-button blue"/>
           </Link>
+          <Link to="/withdraw">
+            <StdButton
+                label="Withdraw" icon={minusIcon}
+                className="Body-button blue"/>
+          </Link>
+
+        </div>
+        <div className="ActionGroupRight">
           <Link to="/swap_statecoin">
             <StdButton
                 label="Swap" icon={swapIcon}
                 className="Body-button blue"/>
           </Link>
-          <Link to="/withdraw">
-            <StdButton
-                label="Withdraw" icon={walletIconSmall}
-                className="Body-button yellow"/>
-          </Link>
-
-        </div>
-        <div className="ActionGroupRight">
-
           <Link to="/send_statecoin">
             <StdButton
                 label="Send" icon={arrowUp}

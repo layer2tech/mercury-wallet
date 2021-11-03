@@ -296,6 +296,7 @@
   font-size: 14px;
   color: #ffffff;
   text-transform: uppercase;
+  box-shadow: 0 4px 6px -4px #222
 }
 .swap .right  .btn  img {
   margin-right: 10px;

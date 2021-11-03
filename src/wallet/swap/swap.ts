@@ -27,7 +27,7 @@ try {
 export const pingServer = async (
   http_client: HttpClient |  MockHttpClient,
 ) => {
-  return await http_client.get(GET_ROUTE.PING, {})
+  return await http_client.get(GET_ROUTE.SWAP_PING, {})
 }
 
 function delay(s: number) {
