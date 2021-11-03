@@ -137,7 +137,7 @@ async function post_plain_endpoint(path, data, res, endpoint) {
 
 app.get('/newid', async function(req,res) {
   try{
-    timeout = restart_close_timeout(60)
+    timeout = restart_close_timeout(timeout, 60)
     console.log("getting new tor id...")
     let response=await tor.confirmNewTorConnection();
     console.log(`got new tor id: ${JSON.stringify(response)}`)
