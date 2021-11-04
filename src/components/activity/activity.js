@@ -1,7 +1,7 @@
 import React from 'react';
 import Moment from 'react-moment';
 import { fromSatoshi } from '../../wallet/util'
-import { callGetActivityLog } from '../../features/WalletDataSlice'
+import { callGetActivityLog,callGetAllStatecoins } from '../../features/WalletDataSlice'
 import txidIcon from '../../images/txid-icon.png';
 import createIcon from '../../images/create-icon-dep.png';
 import transferIcon from '../../images/transfer-icon.png';
@@ -12,6 +12,40 @@ import './activity.css';
 
 const Activity = () => {
     let activity_data = callGetActivityLog();
+	let statecoins = callGetAllStatecoins();
+
+	function shortenString(long){
+		let short = ""
+		short = short.concat(long.slice(0,6),"...")
+		return short
+	}
+
+	function swapTxid(funding_txid, date){
+		let dateIndexArray = activity_data.filter(item => item.funding_txid === funding_txid && item.action === "S" )
+		// Filter activity for txid and swap actions
+
+		dateIndexArray = dateIndexArray.map(item => item.date).sort((a,b) => b-a)
+		//sort filtered activity by date (most recent to least recent)
+
+		let dateIndex = dateIndexArray.indexOf(date)
+		// Get index of swapped coin
+		
+		let swappedCoins = statecoins.filter(coin => coin.funding_txid === funding_txid && coin.status === "SWAPPED").sort((a,b) => a.date - b.date).reverse()
+		// Filter all statecoins for swapped TxID and sort by date (most recent to least recent)
+
+		if(swappedCoins.length > 0){
+		// Check data exists : some unforeseen error
+
+			let finalSwapData = swappedCoins[dateIndex].swap_transfer_finalized_data
+			//Get the data for the swap of coin with funding_txid
+
+			return shortenString(finalSwapData.state_chain_data.utxo.txid)
+		}
+		else{
+			return "Data not found"
+		}
+	}
+
 	if(activity_data?.length) {
 		activity_data = activity_data.sort((a, b) => {
 			return b?.date - a?.date;
@@ -32,7 +66,7 @@ const Activity = () => {
 	};
 
 	const activityDataMergeDate = mergeActivityByDate();
-    const activitiesTableData = activityDataMergeDate.map((activityGroup, groupIndex) => (
+    const activitiesTableData = activityDataMergeDate.map((activityGroup, groupIndex) =>(
         <div key={groupIndex}>
             <div className="date">
                 <Moment format="MMMM D, YYYY">{activityGroup[0]?.date}</Moment>
@@ -110,9 +144,14 @@ const Activity = () => {
 					</table>
 					: null }
 					{item.action === 'S' ?
-					<table>
+					<table className = "swap-row-table" >
+
 						<tbody>
-							<tr >
+							<span className = "tooltip" >
+								<div><b>New TxID: </b>{swapTxid(item.funding_txid,item.date)}</div>
+								<div><b>Swapped TxId: </b>{shortenString(item.funding_txid)}</div>
+							</span>
+							<tr>
 								<td>
 									<img src={withrowIcon} alt="withrowIcon"/>
 									<span className="grey"><Moment format="HH:mm A">{item.date}</Moment> </span>

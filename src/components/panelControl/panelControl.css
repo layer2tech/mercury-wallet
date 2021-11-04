@@ -149,6 +149,10 @@
   }
   .ActionGroupRight {
     justify-content: center;
+    padding-bottom:15px;
+  }
+  .Body-button {
+    box-shadow: 0 4px 6px -6px #222;
   }
   .WalletAmount {
     justify-content: center;

@@ -431,6 +431,11 @@ export class Wallet {
   getUnspentStatecoins() {
     return this.statecoins.getUnspentCoins(this.block_height);
   }
+
+  getAllStatecoins(){
+    return this.statecoins.coins
+  }
+
   // Each time we get unconfirmed coins call this to check for confirmations
   checkReceivedTxStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
