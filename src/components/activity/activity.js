@@ -13,15 +13,6 @@ import './activity.css';
 const Activity = () => {
     let activity_data = callGetActivityLog();
 	let statecoins = callGetAllStatecoins();
-	// FOR PULL REQUEST:
-	// • Function added to walletDataSlice to get all statecoins
-	// • Activity log FIX: now will display 10 most recent rather than 10 random
-	// • Funding TX shown in tooltip for coin before and after swap for comparison if new coin received
-	// • Tooltip for swapped activity item
-	// • button styling shadow to all buttons
-
-	//function shortens urls to fit better with styling
-
 
 	function shortenString(long){
 		let short = ""
