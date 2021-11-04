@@ -76,4 +76,37 @@ table span.grey {
    .table td, .table th {
       width: 100%;
    }
+   table .tooltip {
+      margin-top:45px;
+      margin-left:15%;
+   }
+
+}
+@media only screen and (min-width: 1055px) {
+   table .tooltip {
+      margin-left:5px;
+      margin-top: 1%!important;;
+   }
+}
+
+
+table .tooltip {
+   visibility: hidden;
+   width: 350px;
+   background-color: #E0E0E0;
+   color: #000000;
+   text-align: center;
+   border-radius: 6px;
+   padding: 5px 0;
+   position: absolute;
+   z-index: 1;
+   opacity: 0;
+   margin-top: 2%;
+   transition: opacity 0.3s;
+}
+
+
+table.swap-row-table:hover .tooltip {
+   visibility: visible;
+   opacity: 1;
 }
