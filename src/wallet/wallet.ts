@@ -1091,8 +1091,23 @@ export class Wallet {
     let addr = this.account.chains[0].addresses[addr_index];
   
     let proofkey = this.account.derive(addr).publicKey.toString("hex");
-    let transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
+    const MAX_RETRIES=10
+    let n_retries=0
+    let transfer_msgs = []
     
+    while(true){
+      try{
+        transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
+        break;
+      } catch (err: any) {
+        n_retries = n_retries + 1
+        if (n_retries === MAX_RETRIES) {
+          error_message = err.message
+          break;
+        }
+      }
+    }
+
     for (let i=0; i<transfer_msgs.length; i++) {
       // check if the coin is in the wallet
       let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
@@ -1106,7 +1121,18 @@ export class Wallet {
       //perform transfer receiver
       if (dotransfer) {
         try{
-          transfer_data = await this.transfer_receiver(transfer_msgs[i]);
+          n_retries = 0
+          while(true){
+            try {
+              transfer_data = await this.transfer_receiver(transfer_msgs[i]);
+              break;
+            } catch (err: any) {
+              n_retries = n_retries + 1
+              if (n_retries === MAX_RETRIES) {
+                  throw err
+              }
+            }
+          } 
           num_transfers += 1;
         }
         catch(e : any){
