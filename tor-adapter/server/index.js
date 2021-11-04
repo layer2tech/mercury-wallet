@@ -75,13 +75,13 @@ epsClient.connect()
 
 tor.startTorNode(tor_cmd, torrc);
 
-function close_timeout(t_secs=10) {
+function close_timeout(t_secs=30) {
   return setTimeout(function () {
-    //on_exit()
+    on_exit()
   }, t_secs*1000)
 }
 
-function restart_close_timeout(timeout, t_secs=10) {
+function restart_close_timeout(timeout, t_secs=30) {
   if(timeout){
     clearTimeout(timeout)
   }
