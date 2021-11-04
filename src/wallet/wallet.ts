@@ -1095,7 +1095,7 @@ export class Wallet {
     let n_retries=0
     let transfer_msgs = []
     
-    while(true){
+    while(n_retries < MAX_RETRIES){
       try{
         transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
         break;
@@ -1122,7 +1122,7 @@ export class Wallet {
       if (dotransfer) {
         try{
           n_retries = 0
-          while(true){
+          while(n_retries < MAX_RETRIES){
             try {
               transfer_data = await this.transfer_receiver(transfer_msgs[i]);
               break;
