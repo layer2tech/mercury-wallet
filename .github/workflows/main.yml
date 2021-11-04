@@ -30,9 +30,6 @@ jobs:
         env:
           CI: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          overwrite: true
-
         run: |
           pwd
           id
@@ -61,8 +58,6 @@ jobs:
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           API_KEY_ID: ${{ secrets.API_KEY_ID }}
           API_KEY_ISSUER_ID: ${{ secrets.API_KEY_ISSUER_ID }}
-        with:
-          overwrite: true
         run: |
           mkdir -p ~/private_keys/
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
