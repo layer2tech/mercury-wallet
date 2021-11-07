@@ -115,7 +115,7 @@ const ReceiveStatecoinPage = () => {
             dispatch(setNotification({msg:`Received ${nreceived} statecoins.`}))
         }
         if(error !== ""){
-          dispatch(setError({msg: "Requested Statecoin(s) Corrupted"}))
+          dispatch(setError({msg: `Error receiving statecoins: ${error}`}))
         }
 
         setTransferLoading(false)
