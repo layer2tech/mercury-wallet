@@ -8,6 +8,7 @@ export const GET_ROUTE = {
   FEES: "info/fee",
   ROOT: "info/root",
   STATECHAIN: "info/statechain",
+  STATECHAIN_OWNER: "info/owner",
   COINS_INFO: "info/coins",
   TRANSFER_BATCH: "info/transfer-batch",
   SWAP_GROUPINFO: "swap/groupinfo",
