@@ -324,7 +324,6 @@ export const swapPhase3 = async (
     );
     
     if(transfer_finalized_data !== null){
-      console.log(`proceeding to phase 4 with transfer_finalized_data: ${JSON.stringify(transfer_finalized_data)}`)
       // Update coin status
       statecoin.swap_transfer_finalized_data=transfer_finalized_data;
       statecoin.swap_status=SWAP_STATUS.Phase4;

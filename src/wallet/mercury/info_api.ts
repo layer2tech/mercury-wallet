@@ -87,13 +87,22 @@ export const getStateChain = async (
   if (typeof statechain.utxo == "string"){
     let outpoint = {
       txid: statechain.utxo.substring(0,64),
-      vout:parseInt(statechain.utxo.substring(65,66))
+      vout:parseInt(statechain.utxo.substring(65))
     }
     statechain.utxo=outpoint;
   }
 
   typeforce(types.StateChainDataAPI, statechain);
   return statechain
+}
+
+export const getOwner = async (
+  http_client: HttpClient |  MockHttpClient,
+  statechain_id: string
+) => {
+  let owner_id = await http_client.get(GET_ROUTE.STATECHAIN_OWNER, statechain_id);
+  
+  return owner_id.shared_key_id
 }
 
 export const getRoot = async (

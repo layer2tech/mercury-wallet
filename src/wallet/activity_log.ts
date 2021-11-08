@@ -18,7 +18,7 @@ export class ActivityLog {
 
   // Return most recent items up to given depth
   getItems(depth: number) {
-    return this.items.reverse().slice(0,depth)
+    return this.items.sort((a,b) => b.date - a.date).slice(0,depth)
   }
 
   addItem(statecoin_id: string, action: string) {
