@@ -72,7 +72,7 @@ const PanelConnectivity = (props) => {
         if(conductor_ping_ms !== callGetPingConductorms()){
             setConductorPingMs(callGetPingConductorms())
         }
-    }, 5000);
+    }, 30000);
     return () => clearInterval(interval);
     }, [server_ping_ms, conductor_ping_ms,dispatch]);
 
