@@ -142,7 +142,7 @@ export const transferReceiver = async (
   se_rec_addr_bip32: BIP32Interface,
   batch_data: any,
   req_confirmations: number,
-  block_height: number,
+  block_height: number | null,
   value: any
 ): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
@@ -182,7 +182,9 @@ export const transferReceiver = async (
   let addr = pubKeyTobtcAddr(pk, network);
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
-  await electrum_client.importAddresses([addr], block_height - fee_info.initlock)
+  if(typeof block_height === 'number'){
+      await electrum_client.importAddresses([addr], block_height - fee_info.initlock)
+  }
   let out_script = bitcoin.address.toOutputScript(addr, network);
   let match = TESTING_MODE;
   let funding_tx_data = await electrum_client.getScriptHashListUnspent(out_script);
@@ -266,7 +268,9 @@ export const transferReceiverFinalize = async (
 ): Promise<StateCoin> => {
   // Make shared key with new private share
   // 2P-ECDSA with state entity to create a Shared key
+  console.log("transfer receiver finalize - keygen...")
   let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER, null);
+  console.log("transfer receiver finalize - keygen finished.")
   statecoin.funding_txid = finalize_data.state_chain_data.utxo.txid;
   statecoin.funding_vout = finalize_data.state_chain_data.utxo.vout;
 
@@ -281,8 +285,11 @@ export const transferReceiverFinalize = async (
   //         .get_element()
 
   // Verify proof key inclusion in SE sparse merkle tree
+  console.log("transfer receiver finalize - get root.")
   let root = await getRoot(http_client);
+  console.log("transfer receiver finalize - get proof.")
   let proof = await getSmtProof(http_client, root, statecoin.funding_txid);
+  console.log("transfer receiver finalize - verify proof.")
   if (!verifySmtProof(wasm_client, root, finalize_data.proof_key, proof)) throw Error("SMT verification failed.");
 
   // Add state chain id, value, proof key and SMT inclusion proofs to local SharedKey data
@@ -294,6 +301,7 @@ export const transferReceiverFinalize = async (
   statecoin.proof_key = finalize_data.proof_key;
   statecoin.funding_vout = statecoin.tx_backup.ins[0].index;
 
+  console.log("transfer receiver finalize - finished.")
   return statecoin
 }
 

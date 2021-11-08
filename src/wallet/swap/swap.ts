@@ -260,7 +260,7 @@ export const swapPhase3 = async (
   proof_key_der: BIP32Interface,
   new_proof_key_der: BIP32Interface,
   req_confirmations: number,
-  block_height: number
+  block_height: number | null
 ) => {
   // check statecoin is IN_SWAP
   if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Coin status is not IN_SWAP. Status: "+statecoin.status);
@@ -289,17 +289,25 @@ export const swapPhase3 = async (
     throw new Error("Swap halted at phase 3"); 
   }
   else if (phase !== SWAP_STATUS.Phase4){
-    throw new Error("Swap error: swapPhase3: Expected swap phase4. Received: "+phase);
+    throw new Error("Swap error: swapPhase3: Expected swap phase4. Received: "+ phase);
   }
   log.info("Swap Phase3: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
 
-  // if this part has not yet been called, call it.
-  if (statecoin.swap_transfer_msg==null || statecoin.swap_batch_data==null) {
-    statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key);
-    statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);
-  }
-
   try{
+    // if this part has not yet been called, call it.
+    if (statecoin.swap_transfer_msg===null) {
+      statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key);
+    }
+    if (statecoin.swap_batch_data===null) {
+      statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);
+    }
+
+    if (statecoin.swap_transfer_msg===null || statecoin.swap_batch_data===null){
+      console.log("do not yet have swap_transfer_msg or swap_batch_data - retrying...")
+      return;
+    }
+    console.log("do_transfer_receiver...")
+
     // Otherwise continue with attempt to comlete transfer_receiver
     let transfer_finalized_data = await do_transfer_receiver(
       http_client,
@@ -314,8 +322,9 @@ export const swapPhase3 = async (
       block_height,
       statecoin.value
     );
-
+    
     if(transfer_finalized_data !== null){
+      console.log(`proceeding to phase 4 with transfer_finalized_data: ${JSON.stringify(transfer_finalized_data)}`)
       // Update coin status
       statecoin.swap_transfer_finalized_data=transfer_finalized_data;
       statecoin.swap_status=SWAP_STATUS.Phase4;
@@ -345,7 +354,11 @@ export const swapPhase4 = async (
   try{ 
     phase = await pollSwap(http_client, statecoin.swap_id);
   } catch(err) {
-    throw new SwapRetryError(err.message)
+    if(!err.message.includes("No data for identifier")){
+      console.log(`Phase 4 pollSwap error: ${err.message}`)
+      throw new SwapRetryError(err.message)
+    }
+    phase = null
   }
   // If still in previous phase return nothing.
 
@@ -353,7 +366,7 @@ export const swapPhase4 = async (
   if (phase === SWAP_STATUS.Phase3) {
     return null
   } else if (phase !== SWAP_STATUS.Phase4 && phase !== null) {
-    throw new Error("Swap error: swapPhase4: Expected swap phase4. Received: "+phase);
+    throw new Error("Swap error: swapPhase4: Expected swap phase4 or null. Received: "+phase);
   }
   log.info("Swap Phase4: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
 
@@ -369,9 +382,7 @@ export const swapPhase4 = async (
   } catch(err) {
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
-    if (!err.message.includes("No data for id")){
-      throw new SwapRetryError(err.message)
-    }
+    throw new SwapRetryError(`Phase 4 transferReceiverFinalize error: ${err.message}`)
   }
 }
 
@@ -399,7 +410,7 @@ export const do_swap_poll = async(
 
   const INIT_RETRY_AFTER=600
   const EXIT_AFTER=200
-  const MAX_ERRS=10
+  const MAX_ERRS=100
   let swap0_count=0;
   let n_errs=0;
 
@@ -446,11 +457,19 @@ export const do_swap_poll = async(
             break;
           }
           case SWAP_STATUS.Phase3: {
-            if (statecoin.swap_address===null) throw Error("No swap address found for coin. Swap address should be set in Phase1.");
-            console.log("get block height...")
-            let header = await electrum_client.latestBlockHeader();
-            console.log("finished get block height.")
-            await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, header.block_height);
+            if (statecoin.swap_address===null) throw Error("No swap address found for coin. Swap address should be set in Phase1.");            
+            let block_height = null
+            if (electrum_client instanceof EPSClient){  
+              console.log("get block height...")
+              try {
+                let header = await electrum_client.latestBlockHeader();
+                block_height = header.block_height;
+              } catch(err) {
+                throw new SwapRetryError(err.message)
+              }
+              console.log("finished get block height.")
+            }
+            await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, block_height);
             n_errs=0;
             break;
           }
@@ -507,7 +526,7 @@ export const do_transfer_receiver = async (
   rec_se_addr: SCEAddress,
   rec_se_addr_bip32: BIP32Interface,
   req_confirmations: number,
-  block_height: number,
+  block_height: number | null,
   value: number
 ): Promise<TransferFinalizeData | null> => {
   for (var id of statechain_ids){

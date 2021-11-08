@@ -9,7 +9,7 @@ let cloneDeep = require('lodash.clonedeep');
 
 // number of keys to generate per recovery call. If no statecoins are found for this number
 // of keys then assume there are no more statecoins owned by this wallet.
-const NUM_KEYS_PER_RECOVERY_ATTEMPT = 1000;
+const NUM_KEYS_PER_RECOVERY_ATTEMPT = 25;
 
 // Send all proof keys to server to check for statecoins owned by this wallet.
 // Should be used as a last resort only due to privacy leakage.
