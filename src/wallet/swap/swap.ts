@@ -408,14 +408,24 @@ export const do_swap_poll = async(
   statecoin.setAwaitingSwap();
 
   const INIT_RETRY_AFTER=600
-  const EXIT_AFTER=200
-  const MAX_ERRS=100
-  let swap0_count=0;
-  let n_errs=0;
+  const MAX_ERRS=10
+  const MAX_REPS_PER_PHASE=50
+  let swap0_count=0
+  let n_errs=0
+  let n_reps=0
+  let prev_phase = SWAP_STATUS.Init
 
-  let new_statecoin = null;
+  let new_statecoin = null
     while (new_statecoin==null) {
       try {
+        if ( n_reps >= MAX_REPS_PER_PHASE ){
+          throw new Error(`Number of tries exceeded in phase ${statecoin.swap_status}`)
+        }
+        if(statecoin.swap_status != prev_phase){
+          n_reps=0
+          prev_phase = statecoin.swap_status
+        }
+        n_reps = n_reps + 1
         console.log(`swap status: ${statecoin.swap_status}`);
         switch (statecoin.swap_status) {
           case null: {  // Coin has been removed from swap
