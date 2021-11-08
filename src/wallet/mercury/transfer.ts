@@ -5,7 +5,7 @@ import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_RO
 import { ElectrsClient } from "../electrs"
 import { EPSClient } from "../eps"
 import { FEE } from "../util";
-import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain } from "./info_api";
+import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, getOwner } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
 
@@ -152,7 +152,39 @@ export const transferReceiver = async (
   let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
   let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
   let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
-  if (!statechain_sig.verify(prev_owner_proof_key_der)) throw new Error("Invalid StateChainSig.");
+  if (!statechain_sig.verify(prev_owner_proof_key_der)) {
+    //if the signature matches the transfer message, then transfer already completed
+    if (statechain_data.chain.length > 1) {
+      if (statechain_data.chain[statechain_data.chain.length-2].next_state.sig == transfer_msg3.statechain_sig.sig) {
+        // transfer already (partially) completed
+
+        let new_shared_key_id = await getOwner(http_client, transfer_msg3.statechain_id);        
+
+        // get o2 private key and corresponding 02 public key
+        let o2_keypair = se_rec_addr_bip32;
+        let o2 = o2_keypair.privateKey!.toString("hex");
+
+        // Update tx_backup_psm shared_key_id with new one
+        let tx_backup_psm = transfer_msg3.tx_backup_psm;
+        tx_backup_psm.shared_key_id = new_shared_key_id;
+
+        let finalize_data = {
+            new_shared_key_id: new_shared_key_id,
+            o2: o2,
+            s2_pub: null,
+            state_chain_data: statechain_data,
+            proof_key: transfer_msg3.rec_se_addr.proof_key,
+            statechain_id: transfer_msg3.statechain_id,
+            tx_backup_psm: tx_backup_psm,
+        };
+        return finalize_data
+      } else {
+        throw new Error("Invalid StateChainSig.");
+      }
+    } else {
+      throw new Error("Invalid StateChainSig.");
+    }
+  }
 
   // Backup tx verification
 
@@ -281,9 +313,15 @@ export const transferReceiverFinalize = async (
   //         .get_element()
 
   // Verify proof key inclusion in SE sparse merkle tree
-  let root = await getRoot(http_client);
-  let proof = await getSmtProof(http_client, root, statecoin.funding_txid);
-  if (!verifySmtProof(wasm_client, root, finalize_data.proof_key, proof)) throw Error("SMT verification failed.");
+  let root = null;
+  let proof = null;
+  try {
+    root = await getRoot(http_client);
+    proof = await getSmtProof(http_client, root, statecoin.funding_txid);
+    if (!verifySmtProof(wasm_client, root, finalize_data.proof_key, proof)) throw Error("SMT verification failed.");
+  } catch (smt_error) {
+    console.log(smt_error)
+  }
 
   // Add state chain id, value, proof key and SMT inclusion proofs to local SharedKey data
   // Add proof and state chain id to Shared key
@@ -296,7 +334,6 @@ export const transferReceiverFinalize = async (
 
   return statecoin
 }
-
 
 export const transferBatchSign = (
   http_client: HttpClient |  MockHttpClient,
