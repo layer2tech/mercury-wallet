@@ -45,7 +45,6 @@ export const keyGen = async (
       typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
       break;
     } catch(err){
-      console.log(`keygen first err: ${err.message}`)
       n_tries = n_tries + 1
       if (n_tries === MAX_TRIES){
         throw err
@@ -74,7 +73,6 @@ export const keyGen = async (
       typeforce(types.KeyGenParty1Message2, kg_party_one_second_message.msg);
       break;
     } catch(err) {
-      console.log(`keygen second err: ${err.message}`)
       n_tries = n_tries + 1
       if (n_tries === MAX_TRIES){
         throw err
