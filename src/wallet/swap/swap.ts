@@ -47,8 +47,18 @@ export const SWAP_STATUS = {
 Object.freeze(SWAP_STATUS);
 
 class SwapRetryError extends Error {
-  constructor(message: string) {
-    super(message); 
+  constructor(err: any, reason: string | null = null) {
+    const msg = err?.message
+    let message: string
+    if(msg) {
+      message = JSON.stringify(msg)
+    } else {
+      message = JSON.stringify(err)
+    }
+    if (reason) {
+      message = reason.concat(message)
+    }
+    super(message)
     this.name="SwapRetryError"; 
   }
 }
@@ -74,8 +84,8 @@ export const swapInit = async (
   
   try {
     await swapRegisterUtxo(http_client, registerUtxo);
-  } catch(err){
-    throw new SwapRetryError(err.message)
+  } catch(err: any){
+    throw new SwapRetryError(err)
   }
   
   log.info("Coin registered for Swap. Coin ID: ", statecoin.shared_key_id)
@@ -105,8 +115,8 @@ export const swapPhase0 = async (
       statecoin.swap_id = swap_id
       statecoin.swap_status=SWAP_STATUS.Phase1;
     }
-  } catch(err) {
-    throw new SwapRetryError(err.message)
+  } catch(err: any) {
+    throw new SwapRetryError(err)
   }
 }
 
@@ -134,8 +144,8 @@ export const swapPhase1 = async (
   let swap_id;
   try{
     swap_id = await pollUtxo(http_client, statechain_id);
-  } catch(err) {
-    throw new SwapRetryError(err.message)
+  } catch(err: any) {
+    throw new SwapRetryError(err)
   }
     
   statecoin.swap_id = swap_id
@@ -146,8 +156,8 @@ export const swapPhase1 = async (
   let swap_info
   try{
     swap_info = await getSwapInfo(http_client, statecoin.swap_id);
-  } catch(err) {
-    throw new SwapRetryError(err.message)
+  } catch(err: any) {
+    throw new SwapRetryError(err)
   }
 
   // Drop out of function if swap info not yet available
@@ -184,8 +194,8 @@ export const swapPhase1 = async (
     statecoin.swap_address=address;
     statecoin.swap_my_bst_data=my_bst_data;
     statecoin.swap_status=SWAP_STATUS.Phase2;
-  } catch(err) {
-    throw new SwapRetryError(err.message)
+  } catch(err: any) {
+    throw new SwapRetryError(err)
   }
 }
 
@@ -208,8 +218,8 @@ export const swapPhase2 = async (
   let phase: string
   try {
     phase = await pollSwap(http_client, statecoin.swap_id);
-  } catch(err) {
-    throw new SwapRetryError(err.message)
+  } catch(err: any) {
+    throw new SwapRetryError(err)
   }
   
   // If still in previous phase return nothing.
@@ -226,14 +236,14 @@ export const swapPhase2 = async (
   let bss
   try {
     bss = await get_blinded_spend_signature(http_client, statecoin.swap_id.id, statecoin.statechain_id);
-  } catch(err) {
-    throw new SwapRetryError(err.message)
+  } catch(err: any) {
+    throw new SwapRetryError(err)
   }
 
   try {
     await http_client.new_tor_id(); 
-  } catch(err) {
-    throw new SwapRetryError(`Error getting new TOR id: ${err.message}`)
+  } catch(err: any) {
+    throw new SwapRetryError(err, "Error getting new TOR id: ")
   }
 
   await delay(1);
@@ -243,8 +253,8 @@ export const swapPhase2 = async (
     // Update coin with receiver_addr and update status
     statecoin.swap_receiver_addr=receiver_addr;
     statecoin.swap_status=SWAP_STATUS.Phase3;  
-  } catch(err) {
-    throw new SwapRetryError(err.message)
+  } catch(err: any) {
+    throw new SwapRetryError(err)
   }
 }
 
@@ -274,8 +284,8 @@ export const swapPhase3 = async (
   let phase
   try{
    phase = await pollSwap(http_client, statecoin.swap_id);
-  } catch(err) {
-    throw new SwapRetryError(err.message)
+  } catch(err: any) {
+    throw new SwapRetryError(err)
   }
 
   // We expect Phase4 here but should be Phase3. Server must slighlty deviate from protocol specification.
@@ -306,7 +316,6 @@ export const swapPhase3 = async (
       console.log("do not yet have swap_transfer_msg or swap_batch_data - retrying...")
       return;
     }
-    console.log("do_transfer_receiver...")
 
     // Otherwise continue with attempt to comlete transfer_receiver
     let transfer_finalized_data = await do_transfer_receiver(
@@ -328,8 +337,8 @@ export const swapPhase3 = async (
       statecoin.swap_transfer_finalized_data=transfer_finalized_data;
       statecoin.swap_status=SWAP_STATUS.Phase4;
     }
-  } catch(err) {
-    throw new SwapRetryError(err.message)
+  } catch(err: any) {
+    throw new SwapRetryError(err)
   }
 }
 
@@ -352,11 +361,11 @@ export const swapPhase4 = async (
   let phase
   try{ 
     phase = await pollSwap(http_client, statecoin.swap_id);
-  } catch(err) {
-    if(!err.message.includes("No data for identifier")){
-      console.log(`Phase 4 pollSwap error: ${err.message}`)
-      throw new SwapRetryError(err.message)
-    }
+  } catch(err: any) {
+    let rte = new SwapRetryError(err, "Phase4 pollSwap error: ")
+    if(!rte.message.includes("No data for identifier")){
+        throw rte
+    } 
     phase = null
   }
   // If still in previous phase return nothing.
@@ -378,10 +387,10 @@ export const swapPhase4 = async (
     statecoin_out.anon_set=statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
 
     return statecoin_out;
-  } catch(err) {
+  } catch(err: any) {
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
-    throw new SwapRetryError(`Phase 4 transferReceiverFinalize error: ${err.message}`)
+    throw new SwapRetryError(err, "Phase 4 transferReceiverFinalize error: ")
   }
 }
 
@@ -473,8 +482,8 @@ export const do_swap_poll = async(
               try {
                 let header = await electrum_client.latestBlockHeader();
                 block_height = header.block_height;
-              } catch(err) {
-                throw new SwapRetryError(err.message)
+              } catch(err: any) {
+                throw new SwapRetryError(err)
               }
               console.log("finished get block height.")
             }
@@ -488,11 +497,12 @@ export const do_swap_poll = async(
           }
         }
       } catch (err  : any) {
-        if(err.message.includes("timed out")){
+        let message: string | undefined = err?.message
+        if(message && message.includes("timed out")){
           throw err
         } else if (err instanceof SwapRetryError && n_errs < MAX_ERRS) {
           n_errs = n_errs+1
-          console.log(`Error during swap: ${err.message} - retrying...`);
+          console.log(`Error during swap: ${message} - retrying...`);
         } else {
           throw err
         }
@@ -544,7 +554,8 @@ export const do_transfer_receiver = async (
       try{
         msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG,{"id":id});
       }catch(err: any){
-        if (!err.message.includes("DB Error: No data for identifier")) {
+        let message: string | undefined = err?.message
+        if (message && !message.includes("DB Error: No data for identifier")) {
           throw err;
         }
         await delay(3); 
