@@ -12,9 +12,6 @@ export const PROTOCOL = {
 };
 Object.freeze(PROTOCOL);
 
-function delay(s: number) {
-  return new Promise( resolve => setTimeout(resolve, s*1000) );
-}
 
 // 2P-ECDSA Key generation. Output SharedKey struct.
 export const keyGen = async (
@@ -31,9 +28,6 @@ export const keyGen = async (
       protocol: protocol,
       solution: solution,
   };
-
-  const MAX_TRIES = 100
-  let n_tries = 0;
 
   // server first
   let server_resp_key_gen_first
