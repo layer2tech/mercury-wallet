@@ -19,6 +19,17 @@ let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
 const n = secp256k1.curve.n
 
+// Logger import.
+// Node friendly importing required for Jest tests.
+declare const window: any;
+let log: any;
+try {
+  log = window.require('electron-log');
+} catch (e : any) {
+  log = require('electron-log');
+}
+
+
 //const settings="../../settings.json"//remote.getGlobal('sharedObject').settings
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -94,7 +105,7 @@ export const transferSender = async (
 
   // Sign new back up tx
   let signature: string[] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
-
+  
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;
   new_tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]),Buffer.from(signature[1])];
@@ -129,7 +140,27 @@ export const transferSender = async (
 
   // Update server database with transfer message 3 so that
   // the receiver can get the message
-  await http_client.post(POST_ROUTE.TRANSFER_UPDATE_MSG, transfer_msg3);
+  const MAX_TRIES = 10
+  let n_tries = 0
+
+  while(true){
+    try {
+      await http_client.post(POST_ROUTE.TRANSFER_UPDATE_MSG, transfer_msg3)
+      break
+    } catch(err: any){
+      n_tries = n_tries + 1
+      if (n_tries >= MAX_TRIES) {
+        let err_msg = err?.message
+        if (typeof err_msg === "undefined"){
+          err_msg = JSON.stringify(err)
+        }
+        const warning = `Warning: failed to send the transfer message to the server due to error: ${err_msg}. Please send it to the statecoin recipient manually.`
+        log.warn(warning);
+        alert(warning)
+        break
+      }
+    }
+  }
 
   return transfer_msg3
 }

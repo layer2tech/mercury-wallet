@@ -7,6 +7,7 @@ const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
 const axios = require('axios').default;
+const execFile = require('child_process').execFile;
 
 function getPlatform(){
   switch (process.platform) {
@@ -216,7 +217,6 @@ async function init_tor_adapter() {
   await check_tor_adapter();
 
   const fork = require('child_process').fork;
-  const execFile = require('child_process').execFile;
 
   fixPath();
   console.log(tor_cmd);
