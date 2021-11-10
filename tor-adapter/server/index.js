@@ -245,15 +245,23 @@ app.get('/electrs/*', function(req,res) {
    post_plain_endpoint(path, data, res, config.electrum_endpoint)
  });
 
+
+ app.get('/swap/ping', function(req,res) {
+  timeout = restart_close_timeout(timeout)
+  get_endpoint('/ping', res, config.swap_conductor_endpoint)
+ });
+
 app.get('/swap/*', function(req,res) {
   timeout = restart_close_timeout(timeout)
   get_endpoint(req.path, res, config.swap_conductor_endpoint)
  });
+
  
  app.post('/swap/*', function(req,res) {
    timeout = restart_close_timeout(timeout)
    post_endpoint(req.path, req.body, res, config.swap_conductor_endpoint)
  });
+
 
 
 

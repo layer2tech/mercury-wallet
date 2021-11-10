@@ -263,7 +263,7 @@ export const transferReceiver = async (
    }
   if (!match) throw new Error("Backup tx input incorrect or spent.");
   // 6. Check coin has the required confirmations
-  let tx_data = await electrum_client.getTransaction(statechain_data.utxo.txid);
+  let tx_data: any = await electrum_client.getTransaction(statechain_data.utxo.txid);
   if (tx_data===null)  throw new Error("TxID not found.");
   if (tx_data?.confirmations < req_confirmations) throw new Error("Coin has insufficient confirmations.");
 

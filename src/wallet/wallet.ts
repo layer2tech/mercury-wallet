@@ -19,7 +19,7 @@ import { groupInfo, swapDeregisterUtxo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
 import { AsyncSemaphore } from "@esfx/async-semaphore";
-import { delay, FeeInfo, getFeeInfo, pingServer } from './mercury/info_api';
+import { delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum } from './mercury/info_api';
 import { EPSClient } from './eps';
 import { FEE_INFO } from './mocks/mock_http_client';
 
@@ -63,6 +63,7 @@ export class Wallet {
   warnings: [{name: string, show: boolean}];
   ping_server_ms: number | null;
   ping_conductor_ms: number | null;
+  ping_electrum_ms: number | null;
 
   storage: Storage
 
@@ -91,6 +92,7 @@ export class Wallet {
     this.storage = new Storage(`wallets/${this.name}/config`);
     this.ping_conductor_ms = null;
     this.ping_server_ms = null;
+    this.ping_electrum_ms = null;
   }
 
   set_tor_endpoints(){
@@ -941,13 +943,16 @@ export class Wallet {
       this.ping_server_ms=await pingServer(this.http_client)
     } catch (err) {
       this.ping_server_ms=null
-      throw err
     }
     try {
-      this.ping_conductor_ms=await pingServer(this.http_client)
+      this.ping_conductor_ms=await pingConductor(this.http_client)
     } catch (err) {
       this.ping_conductor_ms=null
-      throw err
+    }
+    try {
+      this.ping_electrum_ms=await pingElectrum(this.electrum_client)
+    } catch (err) {
+      this.ping_conductor_ms=null
     }
   }
 
@@ -958,6 +963,11 @@ export class Wallet {
   getPingServerms(): number | null {
     return this.ping_server_ms
   }
+
+  getPingElectrumms(): number | null {
+    return this.ping_electrum_ms
+  }
+
 
   disableAutoSwaps(){
     this.statecoins.coins.forEach(

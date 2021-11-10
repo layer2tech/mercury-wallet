@@ -1,4 +1,4 @@
-import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE } from "..";
+import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE, ElectrumClient, MockElectrumClient  } from "..";
 import { BSTMsg, SwapID, StatechainID, SwapGroup, GroupInfo} from './swap';
 
 let types = require("../types")
@@ -10,6 +10,15 @@ export const pingServer = async (
 ) => {
   var startTime = performance.now()
   await http_client.get(GET_ROUTE.SWAP_PING, {})
+  var endTime = performance.now()
+  return endTime - startTime
+}
+
+export const pingElectrum = async (
+  electrum_client: ElectrumClient |  MockElectrumClient,
+) => {
+  var startTime = performance.now()
+  await electrum_client.ping()
   var endTime = performance.now()
   return endTime - startTime
 }
