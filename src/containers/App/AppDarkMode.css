@@ -58,7 +58,7 @@
 .dark-mode .CoinFundingTxid{
   color: #ADADAD;
 }
-.dark-mode .scoreAmount .tooltip {
+.dark-mode .scoreAmount .tooltip, .dark-mode .tooltip-info.index{
   background-color: #121212;
   color: #E7E7E7;
 }
