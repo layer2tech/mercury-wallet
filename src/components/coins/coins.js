@@ -34,7 +34,8 @@ import {
   setError,
   callAddDescription,
   callGetConfig,
-  callGetStateCoin} from '../../features/WalletDataSlice';
+  callGetStateCoin,
+  callGetActivityLog} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -105,6 +106,7 @@ const Coins = (props) => {
     const [currentItem, setCurrentItem] = useState(null);
     const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
 
+    let activityData = callGetActivityLog()
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
     let current_config;
@@ -419,6 +421,20 @@ const Coins = (props) => {
 
     const statecoinData = all_coins_data.map(item => {
       item.privacy_data = getPrivacyScoreDesc(item.anon_set, item.is_new);
+      let transferDate
+      if(item.status === STATECOIN_STATUS.IN_TRANSFER){
+        transferDate = 'DATE'
+        let date = activityData.filter(e => e.funding_txid === item.funding_txid && e.action === "T" && e.date > item.timestamp )
+        // filter Activity Log for txid, transferred icon and activity sent after coin created (timestamp)
+        date = date.sort((a,b) => b.date - a.date).reverse()[0].date
+        // Sort by most recent i.e. coin most recently created with same txid
+        // prevents retrieving old date item from activity log if coin transferred more than once
+
+        date = new Date(date).toString().split('+')[0]
+
+        transferDate = date
+      }
+
       return (
           <div key={item.shared_key_id}>
             {
@@ -461,6 +477,11 @@ const Coins = (props) => {
                       <img src={item.privacy_data.icon1} alt="icon"/>
                       <span className="sub">
                           <b className={item.value < MINIMUM_DEPOSIT_SATOSHI ?  "CoinAmountError" :  "CoinAmount"}>  {fromSatoshi(item.value)} BTC</b>
+                          { filterBy === STATECOIN_STATUS.IN_TRANSFER ? (
+                            <div className = "scoreAmount">
+                              {transferDate}
+                            </div>
+                          ):(
                           <div className="scoreAmount">
                               <img src={item.privacy_data.icon2} alt="icon"/>
                               {item.privacy_data.score_desc}
@@ -468,7 +489,7 @@ const Coins = (props) => {
                                   <b>{item.privacy_data.score_desc}:</b>
                                     {item.privacy_data.msg}
                               </span>
-                          </div>
+                          </div>)}
                       </span>
                   </div>
                   {filterBy !== STATECOIN_STATUS.WITHDRAWN ? (

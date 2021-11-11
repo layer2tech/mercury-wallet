@@ -19,6 +19,17 @@ let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
 const n = secp256k1.curve.n
 
+// Logger import.
+// Node friendly importing required for Jest tests.
+declare const window: any;
+let log: any;
+try {
+  log = window.require('electron-log');
+} catch (e : any) {
+  log = require('electron-log');
+}
+
+
 //const settings="../../settings.json"//remote.getGlobal('sharedObject').settings
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -94,7 +105,7 @@ export const transferSender = async (
 
   // Sign new back up tx
   let signature: string[] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
-
+  
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;
   new_tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]),Buffer.from(signature[1])];
@@ -129,7 +140,27 @@ export const transferSender = async (
 
   // Update server database with transfer message 3 so that
   // the receiver can get the message
-  await http_client.post(POST_ROUTE.TRANSFER_UPDATE_MSG, transfer_msg3);
+  const MAX_TRIES = 10
+  let n_tries = 0
+
+  while(true){
+    try {
+      await http_client.post(POST_ROUTE.TRANSFER_UPDATE_MSG, transfer_msg3)
+      break
+    } catch(err: any){
+      n_tries = n_tries + 1
+      if (n_tries >= MAX_TRIES) {
+        let err_msg = err?.message
+        if (typeof err_msg === "undefined"){
+          err_msg = JSON.stringify(err)
+        }
+        const warning = `Warning: failed to send the transfer message to the server due to error: ${err_msg}. Please send it to the statecoin recipient manually.`
+        log.warn(warning);
+        alert(warning)
+        break
+      }
+    }
+  }
 
   return transfer_msg3
 }
@@ -142,7 +173,7 @@ export const transferReceiver = async (
   se_rec_addr_bip32: BIP32Interface,
   batch_data: any,
   req_confirmations: number,
-  block_height: number,
+  block_height: number | null,
   value: any
 ): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
@@ -214,7 +245,9 @@ export const transferReceiver = async (
   let addr = pubKeyTobtcAddr(pk, network);
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
-  await electrum_client.importAddresses([addr], block_height - fee_info.initlock)
+  if(typeof block_height === 'number'){
+      await electrum_client.importAddresses([addr], block_height - fee_info.initlock)
+  }
   let out_script = bitcoin.address.toOutputScript(addr, network);
   let match = TESTING_MODE;
   let funding_tx_data = await electrum_client.getScriptHashListUnspent(out_script);
@@ -298,7 +331,9 @@ export const transferReceiverFinalize = async (
 ): Promise<StateCoin> => {
   // Make shared key with new private share
   // 2P-ECDSA with state entity to create a Shared key
+  console.log("transfer receiver finalize - keygen...")
   let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER, null);
+  console.log("transfer receiver finalize - keygen finished.")
   statecoin.funding_txid = finalize_data.state_chain_data.utxo.txid;
   statecoin.funding_vout = finalize_data.state_chain_data.utxo.vout;
 
@@ -332,6 +367,7 @@ export const transferReceiverFinalize = async (
   statecoin.proof_key = finalize_data.proof_key;
   statecoin.funding_vout = statecoin.tx_backup.ins[0].index;
 
+  console.log("transfer receiver finalize - finished.")
   return statecoin
 }
 
