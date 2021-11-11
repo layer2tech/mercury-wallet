@@ -96,12 +96,6 @@ function createWindow() {
     await kill_tor();
     mainWindow = null;
   });
-
-  setInterval(async function() {
-    await pingTorAdapter().catch((err) => {
-      console.log(`Failed to ping tor adapter: ${err}`);
-    });
-  }, 5000);
 }
 
 async function getTorAdapter(path) {
@@ -114,10 +108,6 @@ async function getTorAdapter(path) {
   await axios(config)
 }
 
-async function pingTorAdapter() {
-  await getTorAdapter('/tor_adapter/ping')
-}
-
 app.on('ready', () => {
   
     //Limit app to one instance
@@ -127,11 +117,6 @@ app.on('ready', () => {
     }
   
     init_tor_adapter();
-  
-    setInterval(async function() {
-      await pingTorAdapter()
-    }, 5000);
-
 
     createWindow();
   }
