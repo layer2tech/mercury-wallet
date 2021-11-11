@@ -1,4 +1,4 @@
-import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE } from "..";
+import { ElectrumClient, ElectrsClient, EPSClient, MockElectrumClient, HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE } from "..";
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -57,6 +57,18 @@ export const pingConductor = async (
 ) => {
   var startTime = performance.now()
   await http_client.get(GET_ROUTE.SWAP_PING, {})
+  var endTime = performance.now()
+  return endTime - startTime
+}
+
+export const pingElectrum = async (
+  electrum_client: ElectrumClient | ElectrsClient | EPSClient |  MockElectrumClient,
+) => {
+  var startTime = performance.now()
+  let result = await electrum_client.ping()
+  if (result !== true){
+    throw Error("failed to ping electrum server")
+  }
   var endTime = performance.now()
   return endTime - startTime
 }
