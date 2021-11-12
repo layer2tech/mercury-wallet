@@ -225,15 +225,13 @@ app.get('/electrs/*', function(req,res) {
 
 
  app.get('/swap/ping', function(req,res) {
-  timeout = restart_close_timeout(timeout)
   get_endpoint('/ping', res, config.swap_conductor_endpoint)
  });
 
-app.get('/swap/*', function(req,res) {
+ app.get('/swap/*', function(req,res) {
   get_endpoint(req.path, res, config.swap_conductor_endpoint)
  });
 
- 
  app.post('/swap/*', function(req,res) {
    post_endpoint(req.path, req.body, res, config.swap_conductor_endpoint)
  });
