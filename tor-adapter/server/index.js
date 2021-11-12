@@ -75,21 +75,6 @@ epsClient.connect()
 
 tor.startTorNode(tor_cmd, torrc);
 
-function close_timeout(t_secs=60) {
-  return setTimeout(function () {
-    on_exit()
-  }, t_secs*1000)
-}
-
-function restart_close_timeout(timeout, t_secs=60) {
-  if(timeout){
-    clearTimeout(timeout)
-  }
-  return close_timeout(t_secs)
-}
-
-let timeout = close_timeout(60)
-
 async function get_endpoint(path, res, endpoint){
   try{
     let result = await tor.get(path, undefined, endpoint);
@@ -137,7 +122,6 @@ async function post_plain_endpoint(path, data, res, endpoint) {
 
 app.get('/newid', async function(req,res) {
   try{
-    timeout = restart_close_timeout(timeout, 120)
     console.log("getting new tor id...")
     let response=await tor.confirmNewTorConnection();
     console.log(`got new tor id: ${JSON.stringify(response)}`)
@@ -148,13 +132,11 @@ app.get('/newid', async function(req,res) {
 });
 
 app.get('/tor_adapter/ping', async function(req,res) {
-  timeout = restart_close_timeout(timeout)
   res.status(200).json({});
 });
 
 app.post('/tor_settings', async function(req,res) {
   try {
-    timeout = restart_close_timeout(timeout)
     config.update(req.body);
 
    await tor.stopTorNode();
@@ -187,7 +169,6 @@ app.get('/tor_settings', function(req,res) {
 
 app.post('/tor_endpoints', function(req,res) {
   try {
-    timeout = restart_close_timeout(timeout)
     console.log(`setting endpoints: ${JSON.stringify(req.body)}`)
     config.update_endpoints(req.body);
     let response = {
@@ -203,7 +184,6 @@ app.post('/tor_endpoints', function(req,res) {
 });
 
 app.get('/tor_endpoints', function(req,res) {
- timeout = restart_close_timeout(timeout)
  let response = {
     state_entity_endpoint: config.state_entity_endpoint,
     swap_conductor_endpoint: config.swap_conductor_endpoint,
@@ -232,34 +212,37 @@ app.get('/tor_adapter/shutdown/tor', async function(req,res) {
 });
 
 app.get('/electrs/*', function(req,res) {
-  timeout = restart_close_timeout(timeout)
   let path = req.path.replace('\/electrs','') 
   get_endpoint(path, res, config.electrum_endpoint)
  });
  
  app.post('/electrs/*', function(req,res) {
-   timeout = restart_close_timeout(timeout)
    let path = req.path.replace('\/electrs','') 
    let body = req.body
    let data = body.data
    post_plain_endpoint(path, data, res, config.electrum_endpoint)
  });
 
-app.get('/swap/*', function(req,res) {
+
+ app.get('/swap/ping', function(req,res) {
   timeout = restart_close_timeout(timeout)
+  get_endpoint('/ping', res, config.swap_conductor_endpoint)
+ });
+
+app.get('/swap/*', function(req,res) {
   get_endpoint(req.path, res, config.swap_conductor_endpoint)
  });
+
  
  app.post('/swap/*', function(req,res) {
-   timeout = restart_close_timeout(timeout)
    post_endpoint(req.path, req.body, res, config.swap_conductor_endpoint)
  });
 
 
 
+
 app.get('/eps/ping', async function(req, res) {
   try {
-    timeout = restart_close_timeout(timeout)
     let response = await epsClient.ping();
     res.status(200).json(response);
   } catch (err) {
@@ -269,7 +252,6 @@ app.get('/eps/ping', async function(req, res) {
 
 app.get('/eps/latest_block_header', async function(req, res) {
   try{
-    timeout = restart_close_timeout(timeout)
     let response = await epsClient.latestBlockHeader() 
     res.status(200).json(response);
   } catch (err) {
@@ -279,7 +261,6 @@ app.get('/eps/latest_block_header', async function(req, res) {
 
 app.get('/eps/tx/*$/', async function(req, res) {
   try{
-    timeout = restart_close_timeout(timeout)
     let response = await epsClient.getTransaction(path.parse(req.path).base) 
     res.status(200).json(response);
   } catch (err) {
@@ -289,7 +270,6 @@ app.get('/eps/tx/*$/', async function(req, res) {
 
 app.get('/eps/scripthash_history/*$/', async function(req, res) {
   try{
-    timeout = restart_close_timeout(timeout)
     let p = path.parse(req.path)
     let response = await epsClient.getScripthashHistory(p.base)
     //await epsClient.getScriptHashListUnspent(path.parse(req.path).base)
@@ -301,7 +281,6 @@ app.get('/eps/scripthash_history/*$/', async function(req, res) {
 
 app.get('/eps/get_scripthash_list_unspent/*$/', async function(req, res) {
   try{
-    timeout = restart_close_timeout(timeout)
     let scriptHash = path.parse(req.path).base
     let response = await epsClient.getScriptHashListUnspent(scriptHash)
     res.status(200).json(response);
@@ -312,7 +291,6 @@ app.get('/eps/get_scripthash_list_unspent/*$/', async function(req, res) {
 
 app.get('/eps/fee-estimates', async function(req, res) {
   try{
-    timeout = restart_close_timeout(timeout)
     let response  = await epsClient.getFeeHistogram(num_blocks)
     res.status(200).json(response);
   } catch (err) {
@@ -322,7 +300,6 @@ app.get('/eps/fee-estimates', async function(req, res) {
 
 app.post('/eps/tx', async function(req, res) {
   try{
-    timeout = restart_close_timeout(timeout)
     let response = await epsClient.broadcastTransaction(req.body.data)
     res.status(200).json(response)
   } catch (err) {
@@ -332,7 +309,6 @@ app.post('/eps/tx', async function(req, res) {
 
 app.post('/eps/import_addresses', async function(req, res) {
   try{
-    timeout = restart_close_timeout(timeout)
     let rescan_height = -1
     if (req.body.rescan_height != undefined){
         rescan_height = req.body.rescan_height
@@ -345,12 +321,10 @@ app.post('/eps/import_addresses', async function(req, res) {
 })
 
 app.get('*', function(req,res) {
-  timeout = restart_close_timeout(timeout)
    get_endpoint(req.path, res, config.state_entity_endpoint)
 });
 
 app.post('*', function(req,res) {
-  timeout = restart_close_timeout(timeout)
    post_endpoint(req.path, req.body, res, config.state_entity_endpoint)
 });
 

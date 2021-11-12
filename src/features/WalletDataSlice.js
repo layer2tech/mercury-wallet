@@ -219,6 +219,9 @@ export const callGetPingServerms = () => {
 export const callGetPingConductorms = () => {
   return wallet.getPingConductorms()
 }
+export const callGetPingElectrumms = () => {
+  return wallet.getPingElectrumms()
+}
 
 export const showWarning = (key) =>  {
   if(wallet){

@@ -47,6 +47,22 @@ table .txid {
    text-overflow: ellipsis;
 }
 
+table .txid:hover{
+   background-color: #fff;
+   display: inline-block !important;
+   position:absolute;
+   box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+   border:0.5px solid rgba(0, 0, 0, 0.15);
+   z-index: 1;
+   font-size:0.725rem;
+   margin-left: 0.5%;
+   width:auto;
+}
+.dark-mode table .txid:hover {
+   background-color: #202020;
+   box-shadow: rgba(0, 0, 0, 1) 0px 3px 3px 0px;
+}
+
 .table td, .table th {
    border: none !important;
 }

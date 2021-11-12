@@ -1,5 +1,7 @@
 export { HttpClient, GET_ROUTE, POST_ROUTE } from "./http_client";
 export { ElectrumClient } from './electrum'
+export { ElectrsClient } from './electrs'
+export { EPSClient } from './eps'
 
 export { MockHttpClient } from "./mocks/mock_http_client";
 export { MockElectrumClient } from './mocks/mock_electrum';

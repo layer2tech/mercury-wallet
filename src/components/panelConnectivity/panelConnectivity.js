@@ -3,7 +3,7 @@ import arrow from '../../images/arrow-accordion.png';
 import React, {useState, useEffect} from "react";
 import {useSelector, useDispatch} from 'react-redux'
 
-import {callGetBlockHeight, callGetConfig, callGetSwapGroupInfo,callGetPingServerms, callGetPingConductorms, callUpdateSpeedInfo } from '../../features/WalletDataSlice'
+import {callGetBlockHeight, callGetConfig, callGetSwapGroupInfo,callGetPingServerms, callGetPingConductorms, callGetPingElectrumms, callUpdateSpeedInfo } from '../../features/WalletDataSlice'
 import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
 import './panelConnectivity.css';
@@ -61,6 +61,7 @@ const PanelConnectivity = (props) => {
 
   const [server_ping_ms, setServerPingMs] = useState(callGetPingServerms());
   const [conductor_ping_ms, setConductorPingMs] = useState(callGetPingConductorms());
+  const [electrum_ping_ms, setElectrumPingMs] = useState(callGetPingElectrumms());
 
   // every 30s check speed
   useEffect(() => {
@@ -72,9 +73,12 @@ const PanelConnectivity = (props) => {
         if(conductor_ping_ms !== callGetPingConductorms()){
             setConductorPingMs(callGetPingConductorms())
         }
-    }, 5000);
+        if(electrum_ping_ms !== callGetPingElectrumms()){
+            setElectrumPingMs(callGetPingElectrumms())
+        }
+    }, 10000);
     return () => clearInterval(interval);
-    }, [server_ping_ms, conductor_ping_ms,dispatch]);
+    }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch]);
 
   // every 250ms check if block_height changed and set a new value
   useEffect(() => {
@@ -91,10 +95,10 @@ const PanelConnectivity = (props) => {
     let connection_pending = document.getElementsByClassName("checkmark")
 
     //Add spinner for loading connection to Server
-    fee_info.deposit !== "NA" ? (connection_pending[0].classList.add("connected")):(connection_pending[0].classList.remove("connected"))
+    server_ping_ms !== null  ? (connection_pending[0].classList.add("connected")):(connection_pending[0].classList.remove("connected"))
 
     //Add spinner for loading connection to Swaps
-    if(swap_groups_array.length){
+    if(conductor_ping_ms !== null){
         connection_pending[1].classList.add("connected")
     }
     else{
@@ -102,8 +106,8 @@ const PanelConnectivity = (props) => {
     }
     
     //Add spinner for loading connection to Electrum server
-    block_height ? (connection_pending[2].classList.add("connected")):(connection_pending[2].classList.remove("connected")) 
-  },[fee_info.deposit,swap_groups_array.length,block_height, server_ping_ms, conductor_ping_ms])
+    electrum_ping_ms !== null? (connection_pending[2].classList.add("connected")):(connection_pending[2].classList.remove("connected")) 
+  },[fee_info.deposit,swap_groups_array.length,block_height, server_ping_ms, conductor_ping_ms, electrum_ping_ms])
 
   return (
       <div className="Body small accordion connection-wrap">
@@ -115,7 +119,7 @@ const PanelConnectivity = (props) => {
                           type="radio"
                           checked={fee_info.deposit !== "NA"}
                       />
-                      {fee_info.deposit !== "NA" ?("Connected"):("Connecting") } to Server
+                      {server_ping_ms !== null ?("Connected"):("Connecting") } to Server
                       <span className="checkmark"></span>
                   </label>
               </div>
@@ -126,7 +130,7 @@ const PanelConnectivity = (props) => {
                         type="radio"
                         checked={swap_groups_array.length}
                       />
-                      {swap_groups_array.length ? ("Connected"):("Connecting")} to Swaps
+                      {conductor_ping_ms !== null ? ("Connected"):("Connecting")} to Swaps
                       <span className="checkmark"></span>
                   </label>
               </div>
@@ -137,7 +141,7 @@ const PanelConnectivity = (props) => {
                           type="radio"
                           checked={block_height}
                       />
-                      {block_height?("Connected"):("Connecting") } to Bitcoin
+                      {electrum_ping_ms !== null?("Connected"):("Connecting") } to Bitcoin
                       <span className="checkmark"></span>
                   </label>
               </div>
@@ -160,7 +164,7 @@ const PanelConnectivity = (props) => {
                     </span>
                     <span>Deposit Fee: <b>{fee_info.deposit /100}%</b></span>
                     <span>Withdraw Fee: <b>{fee_info.withdraw/100}%</b></span>
-                    <span>Ping: <b>{server_ping_ms !== null ? server_ping_ms.toLocaleString(undefined, { maximumFractionDigits:0}):""} ms</b></span>
+                    <span>Ping: <b>{server_ping_ms !== null ? server_ping_ms.toLocaleString(undefined, { maximumFractionDigits:0}) + " ms":"N/A"} </b></span>
                     <span>{fee_info.endpoint}</span>
                 </div>
                 <div className="collapse-content-item">
@@ -176,7 +180,7 @@ const PanelConnectivity = (props) => {
                     <span>Pending Swaps: <b>{pending_swaps}</b></span>
                     <span>Participants: <b>{participants}</b></span>
                     <span>Total pooled BTC: <b>{total_pooled_btc / Math.pow(10, 8)}</b></span>
-                    <span>Ping: <b>{conductor_ping_ms !== null ? conductor_ping_ms.toLocaleString(undefined, { maximumFractionDigits:0}):""} ms</b></span>
+                    <span>Ping: <b>{conductor_ping_ms !== null ? conductor_ping_ms.toLocaleString(undefined, { maximumFractionDigits:0}) + " ms":"N/A"} </b></span>
                 </div>
                 <div className="collapse-content-item">
                     <span>Block height: {block_height}</span>
@@ -191,7 +195,8 @@ const PanelConnectivity = (props) => {
                     </span>
                     <span>Port: {current_config.electrum_config.port}</span>
                     <span>Protocol: {current_config.electrum_config.protocol}</span>
-                </div>
+                    <span>Ping: <b>{electrum_ping_ms !== null ? electrum_ping_ms.toLocaleString(undefined, { maximumFractionDigits:0}) + " ms":"N/A"} </b></span>
+              </div>
               </div>
           </div>
       </div>
