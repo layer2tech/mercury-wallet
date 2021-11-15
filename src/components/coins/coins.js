@@ -357,11 +357,8 @@ const Coins = (props) => {
 
     // data to display in privacy related sections
     const getPrivacyScoreDesc = (coin) => {
-      let anon_set=0
-      if (coin.anon_set){
-        anon_set = anon_set_in
-      } 
-      
+      let anon_set = coin.anon_set ? coin.anon_set : 0
+    
       if (coin.is_new && !coin.is_deposited){
         return {
           icon1: anon_icon_high,
