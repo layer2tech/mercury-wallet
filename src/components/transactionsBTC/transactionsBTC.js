@@ -182,7 +182,6 @@ const TransactionDisplay = (props) => {
     setDscrpnConfirm(!dscpnConfirm)
   }
 
-
   return (
     <div className="Body">
       <div className="deposit-scan">
@@ -202,7 +201,7 @@ const TransactionDisplay = (props) => {
 
             <div className="deposit-scan-status">
               <span>{getCofirmationsDisplayString()}</span>
-              <img src={close_img} alt="arrow" onClick={onCloseArrowClick}/>
+              {props.confirmations === -1 ? <img src={close_img} alt="arrow" onClick={onCloseArrowClick}/> : null}
             </div>
           </div>
 
