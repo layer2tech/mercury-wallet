@@ -83,9 +83,9 @@ async function get_endpoint(path, res, endpoint){
     if (err instanceof errors.StatusCodeError){
       res.status(err.statusCode).json(err);
     } else if (err instanceof errors.RequestError){
-      res.status(400).json(err.cause);
+      res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
     } else {
-      res.status(400).json(err);
+      res.json(JSON.parse(err ? err : "Error"));
     }
   }   
 };
@@ -98,9 +98,9 @@ async function post_endpoint(path, body, res, endpoint) {
     if (err instanceof errors.StatusCodeError){
       res.status(err.statusCode).json(err);
     } else if (err instanceof errors.RequestError){
-      res.status(400).json(err.cause);
+      res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
     } else {
-      res.status(400).json(err);
+      res.json(JSON.parse(err ? err : "Error"));
     }
   }    
 };
@@ -113,9 +113,9 @@ async function post_plain_endpoint(path, data, res, endpoint) {
     if (err instanceof errors.StatusCodeError){
       res.status(err.statusCode).json(err);
     } else if (err instanceof errors.RequestError){
-      res.status(400).json(err.cause);
+      res.status(400).json(JSON.parse(err?.cause ? err?.cause : "Error"));
     } else {
-      res.status(400).json(err);
+      res.status(400).json(JSON.parse(err ? err : "Error"));
     }
   }  
 };

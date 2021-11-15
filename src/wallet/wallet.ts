@@ -64,6 +64,7 @@ export class Wallet {
   ping_server_ms: number | null;
   ping_conductor_ms: number | null;
   ping_electrum_ms: number | null;
+  statechain_id_set: Set<string>;
 
   storage: Storage
 
@@ -93,6 +94,8 @@ export class Wallet {
     this.ping_conductor_ms = null;
     this.ping_server_ms = null;
     this.ping_electrum_ms = null;
+
+    this.statechain_id_set = new Set();
   }
 
   set_tor_endpoints(){
@@ -920,13 +923,20 @@ export class Wallet {
       }
 
       this.setIfNewCoin(new_statecoin)
-     
-      if (new_statecoin.is_new && statecoin.swap_info){
-        new_statecoin.anon_set = statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
-      } else {
-        new_statecoin.anon_set = statecoin.anon_set
-      }
 
+      //Update the anonymity set
+      let anon_set_new = 0
+      if(statecoin.swap_info){
+        let walletSet = this.statecoins.getStatechainIdSet()
+        statecoin.swap_info.swap_token.statechain_ids.forEach( (new_statechain_id) => {
+          if (! walletSet.has(new_statechain_id)){
+            anon_set_new = anon_set_new + 1
+          } 
+        })
+      }
+     
+      new_statecoin.anon_set = statecoin.anon_set + anon_set_new
+      
       // Mark funds as spent in wallet
       this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 

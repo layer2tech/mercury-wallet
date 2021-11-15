@@ -71,6 +71,14 @@ export class StateCoinList {
     })
   };
 
+  getStatechainIdSet(): Set<string> {
+    let result = new Set<string>()
+    this.coins.forEach((item: StateCoin) => {
+      result.add(item.statechain_id)
+    })
+    return result
+  }
+
   getUnspentCoins(block_height: number) {
     let total = 0
     let coins = this.coins.filter((item: StateCoin) => {
