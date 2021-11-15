@@ -746,6 +746,8 @@ export class Wallet {
 
     statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
 
+    statecoin.is_deposited = true
+
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
 
@@ -897,13 +899,20 @@ export class Wallet {
       }
 
       let new_coin = true;
+      let is_deposited = false;
       let new_statechain_id = new_statecoin.statechain_id;
       // check if new coin
       this.statecoins.coins.forEach(
         (statecoin) => {
-          if(statecoin.statechain_id === new_statechain_id) new_coin = false
+          if(statecoin.statechain_id === new_statechain_id) {
+            new_coin = false
+            if(statecoin.is_deposited){
+              is_deposited = true
+            }
+          }
         })
       new_statecoin.is_new = new_coin;
+      new_statecoin.is_deposited = is_deposited;
       
       if (new_statecoin.is_new && statecoin.swap_info){
         new_statecoin.anon_set = statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;

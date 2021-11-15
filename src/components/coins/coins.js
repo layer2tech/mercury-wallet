@@ -120,7 +120,7 @@ const Coins = (props) => {
       let coin = all_coins_data.find((coin) => {
         return coin.shared_key_id === shared_key_id
       })
-      coin.privacy_data = getPrivacyScoreDesc(coin.anon_set, coin.is_new);
+      coin.privacy_data = getPrivacyScoreDesc(coin);
       setShowCoinDetails({show: true, coin: coin});
     }
 
@@ -128,7 +128,7 @@ const Coins = (props) => {
       let coin = all_coins_data.find((coin) => {
           return coin.shared_key_id === shared_key_id
       })
-      coin.privacy_data = getPrivacyScoreDesc(coin.anon_set, coin.is_new);
+      coin.privacy_data = getPrivacyScoreDesc(coin);
       props.setCoinDetails(coin);
     }
 
@@ -356,25 +356,13 @@ const Coins = (props) => {
     },[showCoinDetails.coin])
 
     // data to display in privacy related sections
-    const getPrivacyScoreDesc = (anon_set, is_new) => {
-      if (!anon_set) {
-        if (is_new) {
-          return {
-            icon1: anon_icon_none,
-            icon2: anon_icon2_high,
-            score_desc: "Swap set: 0",
-            msg: " Cumulative swap group size"
-          }
-        } else {
-            return {
-              icon1: anon_icon_none,
-              icon2: anon_icon2_none,
-              score_desc: "Statecoin not new to wallet",
-              msg: ""
-            }
-          }
-      }
-      if (is_new) {
+    const getPrivacyScoreDesc = (coin) => {
+      let anon_set=0
+      if (coin.anon_set){
+        anon_set = anon_set_in
+      } 
+      
+      if (coin.is_new && !coin.is_deposited){
         return {
           icon1: anon_icon_high,
           icon2: anon_icon2_high,
@@ -382,11 +370,23 @@ const Coins = (props) => {
           msg: " Cumulative swap group size"
         }
       }
-      return {
-        icon1: anon_icon_none,
-        icon2: anon_icon2_none,
-        score_desc: "Statecoin not new to wallet",
-        msg: ""
+
+      if (!coin.is_new && !coin.is_deposited){
+        return {
+          icon1: anon_icon_none,
+          icon2: anon_icon2_none,
+          score_desc: "Statecoin not new to this wallet",
+          msg: ""
+        }
+      }
+
+      if (coin.is_deposited){
+        return {
+          icon1: anon_icon_none,
+          icon2: anon_icon2_none,
+          score_desc: "Statecoin was originally deposited in this wallet",
+          msg: ""
+        }
       }
     }
 
