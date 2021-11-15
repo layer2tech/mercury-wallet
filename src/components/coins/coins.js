@@ -363,7 +363,7 @@ const Coins = (props) => {
           icon1: anon_icon_none,
           icon2: anon_icon2_none,
           score_desc: "Statecoin created in wallet",
-          msg: "This statecoin was created in this wallet"
+          msg: " this statecoin was created in this wallet"
         }
       }
 
@@ -374,7 +374,7 @@ const Coins = (props) => {
           icon1: anon_icon_high,
           icon2: anon_icon2_high,
           score_desc: "Swap set: " + anon_set.toString(),
-          msg: " Cumulative swap group size"
+          msg: " cumulative swap group size"
         }
       } 
 
@@ -382,7 +382,7 @@ const Coins = (props) => {
           icon1: anon_icon_low,
           icon2: anon_icon2_high,
           score_desc: "Swap set: " + anon_set.toString(),
-          msg: " Cumulative swap group size"
+          msg: " cumulative swap group size"
       }
     }
 
