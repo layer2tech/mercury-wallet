@@ -821,6 +821,14 @@ export class Wallet {
     if (statecoin.status === STATECOIN_STATUS.AVAILABLE) throw Error("Already confirmed Coin "+statecoin.getTXIdAndOut()+".");
     if (statecoin.status === STATECOIN_STATUS.INITIALISED) throw Error("Awaiting funding transaction for StateCoin "+statecoin.getTXIdAndOut()+".");
 
+    // check that blockheight is recent
+    // if not, update it
+    if (this.block_height < 709862) {
+      let header = await this.electrum_client.latestBlockHeader();
+      this.setBlockHeight(header);
+    }
+    if (this.block_height < 709862) throw Error("Block height not updated");
+
     let statecoin_finalized = await depositConfirm(
       this.http_client,
       await this.getWasm(),
