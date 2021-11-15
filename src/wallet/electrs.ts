@@ -13,10 +13,7 @@ class ElectrsClientError extends Error {
 
 // Check if returned value from server is an error. Throw if so.
 const checkForServerError = (return_val: any) => {
-  if (typeof(return_val)=="string" && return_val.includes("Error")) {
-    if(return_val.includes("Not available until")){
-      throw Error("The server is currently unavailable due to a high request rate. Please try again.")
-    }
+  if (typeof(return_val)=="string" && ( return_val.includes("Error") ||return_val.includes("error") )) {
     throw Error(return_val)
   }
 }

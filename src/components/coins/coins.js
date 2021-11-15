@@ -362,8 +362,8 @@ const Coins = (props) => {
         return {
           icon1: anon_icon_none,
           icon2: anon_icon2_none,
-          score_desc: "Deposit",
-          msg: "Statecoin was deposited in this wallet"
+          score_desc: "Statecoin created in wallet",
+          msg: "This statecoin was created in this wallet"
         }
       }
 
