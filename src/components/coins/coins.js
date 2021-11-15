@@ -426,7 +426,7 @@ const Coins = (props) => {
         transferDate = 'DATE'
         let date = activityData.filter(e => e.funding_txid === item.funding_txid && e.action === "T" && e.date > item.timestamp )
         // filter Activity Log for txid, transferred icon and activity sent after coin created (timestamp)
-        date = date.sort((a,b) => b.date - a.date).reverse()[0].date
+        date = date.sort((a,b) => b.date - a.date).reverse()[0]?.date
         // Sort by most recent i.e. coin most recently created with same txid
         // prevents retrieving old date item from activity log if coin transferred more than once
 
