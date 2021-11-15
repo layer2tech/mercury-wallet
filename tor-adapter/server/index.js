@@ -111,9 +111,9 @@ async function post_plain_endpoint(path, data, res, endpoint) {
     res.status(200).json(result);
   } catch (err){
     if (err instanceof errors.StatusCodeError){
-      res.status(err.statusCode).json(err);
+      res.status(200).json(err?.message ? err.message : err);
     } else if (err instanceof errors.RequestError){
-      res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
+      res.json(JSON.parse(err?.cause ? err?.cause : "RequestError"));
     } else {
       res.json(JSON.parse(err ? err : "Error"));
     }
@@ -219,7 +219,7 @@ app.get('/electrs/*', function(req,res) {
  app.post('/electrs/*', function(req,res) {
    let path = req.path.replace('\/electrs','') 
    let body = req.body
-   let data = body.data
+   let data = body?.data ? body.data : ""
    post_plain_endpoint(path, data, res, config.electrum_endpoint)
  });
 
