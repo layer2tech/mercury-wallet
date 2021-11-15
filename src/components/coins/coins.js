@@ -369,8 +369,8 @@ const Coins = (props) => {
             return {
               icon1: anon_icon_none,
               icon2: anon_icon2_none,
-              score_desc: "Swap set: 0",
-              msg: " Cumulative swap group size"
+              score_desc: "Statecoin not new to wallet",
+              msg: ""
             }
           }
       }
@@ -383,10 +383,10 @@ const Coins = (props) => {
         }
       }
       return {
-        icon1: anon_icon_high,
+        icon1: anon_icon_none,
         icon2: anon_icon2_none,
-        score_desc: "Swap set: " + anon_set.toString(),
-        msg: " Cumulative swap group size"
+        score_desc: "Statecoin not new to wallet",
+        msg: ""
       }
     }
 

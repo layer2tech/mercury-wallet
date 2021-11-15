@@ -904,6 +904,12 @@ export class Wallet {
           if(statecoin.statechain_id === new_statechain_id) new_coin = false
         })
       new_statecoin.is_new = new_coin;
+      
+      if (new_statecoin.is_new && statecoin.swap_info){
+        new_statecoin.anon_set = statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
+      } else {
+        new_statecoin.anon_set = statecoin.anon_set
+      }
 
       // Mark funds as spent in wallet
       this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
@@ -1032,7 +1038,7 @@ export class Wallet {
     if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for Transfer.");
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-
+    
     let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr)
 
     // Mark funds as spent in wallet

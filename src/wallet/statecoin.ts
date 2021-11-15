@@ -357,6 +357,7 @@ export class StateCoin {
   swap_rounds: number;
   anon_set: number;
   is_new: boolean;
+  is_deposited: boolean;
   status: string;
 
   // Transfer data
@@ -391,6 +392,7 @@ export class StateCoin {
     this.swap_rounds = 0
     this.anon_set = 0;
     this.is_new = false;
+    this.is_deposited = false;
     //this.swap_participants = 0
     this.tx_backup = null;
     this.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
@@ -456,6 +458,7 @@ export class StateCoin {
       swap_rounds: this.swap_rounds,
       anon_set: this.anon_set,
       is_new: this.is_new,
+      is_deposited: this.is_deposited,
       expiry_data: this.getExpiryData(block_height),
       transfer_msg: this.transfer_msg,
       swap_id: (this.swap_info ? this.swap_info.swap_token.id : null),
@@ -580,6 +583,7 @@ export interface StateCoinDisplayData {
   swap_rounds: number,
   anon_set: number,
   is_new: boolean,
+  is_deposited: boolean,
   expiry_data: ExpiryData,
   status: string,
   transfer_msg: TransferMsg3 | null,

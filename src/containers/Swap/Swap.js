@@ -133,8 +133,14 @@ const SwapPage = () => {
               return
             }
             if (res.error===undefined) {
-              dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-              dispatch(removeCoinFromSwapRecords(selectedCoin));
+              if (statecoin.is_new){
+                dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+                dispatch(removeCoinFromSwapRecords(selectedCoin));
+              } else {
+                dispatch(setNotification({msg:"Warning - received coin in swap that is not new to this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+                dispatch(removeCoinFromSwapRecords(selectedCoin));
+              }
+              
             }else{
               dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
               dispatch(removeCoinFromSwapRecords(selectedCoin)); // Added this

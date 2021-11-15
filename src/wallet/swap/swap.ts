@@ -384,8 +384,6 @@ export const swapPhase4 = async (
     // Update coin status and num swap rounds
     statecoin.swap_status=SWAP_STATUS.End;
     statecoin_out.swap_rounds=statecoin.swap_rounds+1;
-    statecoin_out.anon_set=statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
-
     return statecoin_out;
   } catch(err: any) {
     //Keep retrying - an authentication error may occur at this stage depending on the

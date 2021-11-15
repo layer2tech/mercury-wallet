@@ -71,6 +71,7 @@ export const transferSender = async (
   let statechain_data = await getStateChain(http_client, statecoin.statechain_id);
   if (statechain_data.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
   let sc_statecoin = statechain_data.chain.pop();
+  console.log(`ts - sc_statecoin: ${JSON.stringify(sc_statecoin)}`)
   if (sc_statecoin.data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key: chain has " + sc_statecoin.data + ", expected " + statecoin.proof_key);
 
   // Sign statecoin to signal desire to Transfer
@@ -80,6 +81,7 @@ export const transferSender = async (
       shared_key_id: statecoin.shared_key_id,
       statechain_sig: statechain_sig
   }
+  console.log(`ts - post transfer sender - transfer_msg1: ${JSON.stringify(transfer_msg1)}`)
   let transfer_msg2 = await http_client.post(POST_ROUTE.TRANSFER_SENDER, transfer_msg1);
   typeforce(types.TransferMsg2, transfer_msg2);
 
@@ -145,6 +147,7 @@ export const transferSender = async (
 
   while(true){
     try {
+      console.log("ts - transfer update message..")
       await http_client.post(POST_ROUTE.TRANSFER_UPDATE_MSG, transfer_msg3)
       break
     } catch(err: any){
