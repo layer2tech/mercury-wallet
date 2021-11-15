@@ -818,6 +818,14 @@ export class Wallet {
     if (statecoin.status === STATECOIN_STATUS.AVAILABLE) throw Error("Already confirmed Coin "+statecoin.getTXIdAndOut()+".");
     if (statecoin.status === STATECOIN_STATUS.INITIALISED) throw Error("Awaiting funding transaction for StateCoin "+statecoin.getTXIdAndOut()+".");
 
+    // check that blockheight is recent
+    // if not, update it
+    if (this.block_height < 709862) {
+      let header = await this.electrum_client.latestBlockHeader();
+      this.setBlockHeight(header);
+    }
+    if (this.block_height < 709862) throw Error("Block height not updated");
+
     let statecoin_finalized = await depositConfirm(
       this.http_client,
       await this.getWasm(),
@@ -893,6 +901,11 @@ export class Wallet {
       if (new_statecoin===null) {
         statecoin.setSwapDataToNull();
         this.saveStateCoinsList();
+        //If the swap fails for a coin in auto_swap then restart it
+        if(statecoin.swap_auto){
+          log.info('Auto swap - swap restarted, with statecoin:' + statecoin.shared_key_id);
+          this.do_swap(statecoin.shared_key_id);
+        }
         return null;
       }
 

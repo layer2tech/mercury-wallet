@@ -70,6 +70,12 @@ export const reloadWallet = () => {
   walletLoad(name,password);
 }
 
+export const getWalletName = () => {
+  if(wallet){
+    return wallet.name
+  }
+}
+
 //Restart the electrum server if ping fails
 async function pingElectrumRestart() {
   if(wallet){

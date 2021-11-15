@@ -441,11 +441,13 @@ export const do_swap_poll = async(
             return null;
           }
           case SWAP_STATUS.Init: {
+            n_reps = n_reps - 1
             await swapInit(http_client, statecoin, proof_key_der, swap_size);
             n_errs=0;
             break;
           }
           case SWAP_STATUS.Phase0: {
+            n_reps = n_reps - 1
             if(swap0_count < INIT_RETRY_AFTER){
               try{
                 await swapPhase0(http_client, statecoin);

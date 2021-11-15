@@ -3,6 +3,7 @@ import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import { useSelector } from 'react-redux';
 import { WelcomePage, CreateWalletInfoPage, CreateWalletWizardPage, HomePage, DepositPage, WithdrawPage, SettingsPage, HelpPage,
 SendStatecoinPage, ReceiveStatecoinPage, SwapPage, BackupTxPage, LoadWalletPage, RestoreWalletPage } from '../index'
+import { getWalletName } from '../../features/WalletDataSlice';
 import { Header } from '../../components'
 
 import './App.css';
@@ -13,6 +14,10 @@ const App = () => {
   // or not: home is Welcome screen
   const [walletLoaded, setWalletLoaded] = useState(false);
   const { dark_mode } = useSelector(state => state.themeData);
+
+  let walletName
+  if(walletLoaded){ walletName = getWalletName() }
+
   useEffect(() => {
     if(dark_mode === '1') {
       document.body.classList.add('dark-mode');
@@ -22,6 +27,7 @@ const App = () => {
   }, [dark_mode]);
   return (
     <div className={`App ${dark_mode === '1' ? 'dark-mode': ''}`}>
+      {walletLoaded ? <title>Mercury Wallet - {walletName}</title> : <title>Mercury Wallet</title>}
       <Router>
       <Header walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded} />
       <Switch>
