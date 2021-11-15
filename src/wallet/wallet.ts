@@ -911,6 +911,11 @@ export class Wallet {
       if (new_statecoin===null) {
         statecoin.setSwapDataToNull();
         this.saveStateCoinsList();
+        //If the swap fails for a coin in auto_swap then restart it
+        if(statecoin.swap_auto){
+          log.info('Auto swap - swap restarted, with statecoin:' + statecoin.shared_key_id);
+          this.do_swap(statecoin.shared_key_id);
+        }
         return null;
       }
 
