@@ -457,7 +457,7 @@ export class Wallet {
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           if (statecoin.tx_backup===null) this.depositConfirm(statecoin.shared_key_id);
-          statecoin.setConfirmed();
+          statecoin.setConfirmed()
           // update in wallet
           this.statecoins.setCoinFinalized(statecoin);
       }
@@ -746,8 +746,6 @@ export class Wallet {
 
     statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
 
-    statecoin.is_deposited = true
-
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
 
@@ -843,6 +841,24 @@ export class Wallet {
     return statecoin_finalized
   }
 
+  setIfNewCoin(
+    new_statecoin: StateCoin
+  ) {
+    let new_coin = true;
+    let is_deposited = false;
+    let new_statechain_id = new_statecoin.statechain_id;
+    this.statecoins.coins.forEach(
+            (statecoin) => {
+              if(statecoin.statechain_id === new_statechain_id) {
+                new_coin = false
+                if(statecoin.is_deposited){
+                  is_deposited = true
+                }
+              }
+            })
+          new_statecoin.is_new = new_coin;
+          new_statecoin.is_deposited = is_deposited;
+  }
 
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
@@ -898,22 +914,8 @@ export class Wallet {
         return null;
       }
 
-      let new_coin = true;
-      let is_deposited = false;
-      let new_statechain_id = new_statecoin.statechain_id;
-      // check if new coin
-      this.statecoins.coins.forEach(
-        (statecoin) => {
-          if(statecoin.statechain_id === new_statechain_id) {
-            new_coin = false
-            if(statecoin.is_deposited){
-              is_deposited = true
-            }
-          }
-        })
-      new_statecoin.is_new = new_coin;
-      new_statecoin.is_deposited = is_deposited;
-      
+      this.setIfNewCoin(new_statecoin)
+     
       if (new_statecoin.is_new && statecoin.swap_info){
         new_statecoin.anon_set = statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
       } else {
@@ -1090,14 +1092,8 @@ export class Wallet {
   ): Promise<StateCoin> {
     log.info("Transfer Finalize for: "+finalize_data.new_shared_key_id)
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
-
-    statecoin_finalized.is_new = true;
-    // check if new coin
-    this.statecoins.coins.forEach(
-      (statecoin) => {
-        if(statecoin.statechain_id === statecoin_finalized.statechain_id) statecoin_finalized.is_new = false
-      })
-
+    this.setIfNewCoin(statecoin_finalized)
+ 
     //Add statecoin address to coin
     statecoin_finalized.sc_address = encodeSCEAddress(statecoin_finalized.proof_key)
     

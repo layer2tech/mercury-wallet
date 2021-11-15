@@ -357,33 +357,32 @@ const Coins = (props) => {
 
     // data to display in privacy related sections
     const getPrivacyScoreDesc = (coin) => {
-      let anon_set = coin.anon_set ? coin.anon_set : 0
-    
-      if (coin.is_new && !coin.is_deposited){
+
+      if (coin?.is_deposited){
+        return {
+          icon1: anon_icon_none,
+          icon2: anon_icon2_none,
+          score_desc: "Statecoin was deposited in this wallet",
+          msg: ""
+        }
+      }
+
+      let anon_set = coin?.anon_set ? coin?.anon_set : 0
+
+      if(anon_set){
         return {
           icon1: anon_icon_high,
           icon2: anon_icon2_high,
           score_desc: "Swap set: " + anon_set.toString(),
           msg: " Cumulative swap group size"
         }
-      }
+      } 
 
-      if (!coin.is_new && !coin.is_deposited){
-        return {
-          icon1: anon_icon_none,
-          icon2: anon_icon2_none,
-          score_desc: "Statecoin not new to this wallet",
-          msg: ""
-        }
-      }
-
-      if (coin.is_deposited){
-        return {
-          icon1: anon_icon_none,
-          icon2: anon_icon2_none,
-          score_desc: "Statecoin was originally deposited in this wallet",
-          msg: ""
-        }
+      return {
+          icon1: anon_icon_low,
+          icon2: anon_icon2_high,
+          score_desc: "Swap set: " + anon_set.toString(),
+          msg: " Cumulative swap group size"
       }
     }
 
@@ -417,7 +416,7 @@ const Coins = (props) => {
   	});
 
     const statecoinData = all_coins_data.map(item => {
-      item.privacy_data = getPrivacyScoreDesc(item.anon_set, item.is_new);
+      item.privacy_data = getPrivacyScoreDesc(item);
       let transferDate
       if(item.status === STATECOIN_STATUS.IN_TRANSFER){
         transferDate = 'DATE'
