@@ -28,13 +28,13 @@ const Welcome = () => {
                 </div>
                 <div onClick={() => changeCheckbox(2)} className={`${checked === 2 ? "selected" : ""}`}>
                     <img src={restore} alt="restore"/>
-                    <span>Restore Existing Wallet</span>
+                    <span>Restore From Seed/Backup</span>
                     <img className="check-img" src={check} alt="plus"/>
                 </div>
 
                 <div onClick={() => changeCheckbox(3)} className={`${checked === 3 ? "selected" : ""}`}>
                     <img src={restore} alt="restore"/>
-                    <span>Load From Memory</span>
+                    <span>Load Existing Wallet</span>
                     <img className="check-img" src={check} alt="plus"/>
                 </div>
             </div>
