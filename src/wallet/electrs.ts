@@ -11,6 +11,17 @@ class ElectrsClientError extends Error {
   }
 }
 
+// Check if returned value from server is an error. Throw if so.
+const checkForServerError = (return_val: any) => {
+  if (typeof(return_val)=="string" && return_val.includes("Error")) {
+    if(return_val.includes("Not available until")){
+      throw Error("The server is currently unavailable due to a high request rate. Please try again.")
+    }
+    throw Error(return_val)
+  }
+}
+
+
 export const GET_ROUTE = {
   PING: "/electrs/ping",
   //latestBlockHeader "/Electrs/block/:hash/header",
@@ -68,6 +79,7 @@ export class ElectrsClient {
       };
       let res = await axios(config)
       let return_data = res.data
+      checkForServerError(return_data)
 
       return return_data
 
@@ -90,7 +102,8 @@ export class ElectrsClient {
       };
       let res = await axios(config)
       let return_data = res.data
-      
+      checkForServerError(return_data)
+
       return return_data
 
     } catch (err : any) {

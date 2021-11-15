@@ -113,9 +113,9 @@ async function post_plain_endpoint(path, data, res, endpoint) {
     if (err instanceof errors.StatusCodeError){
       res.status(err.statusCode).json(err);
     } else if (err instanceof errors.RequestError){
-      res.status(400).json(JSON.parse(err?.cause ? err?.cause : "Error"));
+      res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
     } else {
-      res.status(400).json(JSON.parse(err ? err : "Error"));
+      res.json(JSON.parse(err ? err : "Error"));
     }
   }  
 };
