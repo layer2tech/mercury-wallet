@@ -7,6 +7,7 @@ var Config = new require('./config');
 const config = new Config();
 const tpc = config.tor_proxy;
 const express = require("express");
+const winston = require('winston');
 
 const tor_cmd = process.argv[2];
 const torrc = process.argv[3];
@@ -22,7 +23,23 @@ if (process.argv.length > 6) {
 console.log(`tor cmd: ${tor_cmd}`);
 console.log(`torrc: ${torrc}`);
 
+// Hidden service indices for hidden service switching
+let i_elect_hs={i:0}
+let i_merc_hs={i:0}
+let i_cond_hs={i:0}
+
 var errors = require('request-promise/errors');
+
+const logger = winston.createLogger({
+  level: 'debug',
+  format: winston.format.json(),
+  defaultMeta: { service: 'user-service' },
+  transports: [
+    new winston.transports.File({ filename: '/home/ldeacon/Projects/mercury-wallet/tor-adapter/error.log', level: 'error' }),
+    new winston.transports.File({ filename: '/home/ldeacon/Projects/mercury-wallet/tor-adapter/debug.log', level: 'debug' }),
+    new winston.transports.File({ filename: '/home/ldeacon/Projects/mercury-wallet/tor-adapter/combined.log' }),
+  ]
+})
 
 const GET_ROUTE = {
   PING: "/eps/ping",
@@ -51,9 +68,8 @@ const app = express();
 app.use(bodyParser.json());
 
 app.listen(PORT, () => {
-     console.log(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`);
-     console.log("control port password: " + tpc.controlPassword);
-     console.log("tor data dir: " + dataDir);
+     logger.info(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`);
+     logger.info("tor data dir: " + dataDir);
 });
 
 let tor;
@@ -75,49 +91,64 @@ epsClient.connect()
 
 tor.startTorNode(tor_cmd, torrc);
 
-async function get_endpoint(path, res, endpoint){
+async function get_endpoint(path, res, endpoint, i_hs){
   try{
-    let result = await tor.get(path, undefined, endpoint);
+    logger.log('debug',`get_endpoint ${endpoint}, ${i_hs.i}`)
+    let result = await tor.get(path, undefined, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err){
     if (err instanceof errors.StatusCodeError){
       res.status(err.statusCode).json(err);
-    } else if (err instanceof errors.RequestError){
-      res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
     } else {
-      res.json(JSON.parse(err ? err : "Error"));
-    }
-  }   
+	i_hs['i'] = (i_hs.i + 1) % endpoint.length
+      	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
+	if (err instanceof errors.RequestError){
+      		res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
+    	} else {
+      		res.json(JSON.parse(err ? err : "Error"));
+    	}
+     }
+  }
 };
 
-async function post_endpoint(path, body, res, endpoint) {
+async function post_endpoint(path, body, res, endpoint, i_hs) {
   try{
-    let result = await tor.post(path,body, endpoint);
+    logger.log('debug',`post_endpoint ${endpoint}, ${i_hs.i}`)
+    let result = await tor.post(path,body, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err){
     if (err instanceof errors.StatusCodeError){
       res.status(err.statusCode).json(err);
-    } else if (err instanceof errors.RequestError){
-      res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
     } else {
-      res.json(JSON.parse(err ? err : "Error"));
+	i_hs['i'] = (i_hs.i + 1) % endpoint.length
+        logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
+	if (err instanceof errors.RequestError){
+      		res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
+    	} else {
+      		res.json(JSON.parse(err ? err : "Error"));
+    	}
     }
-  }    
+   }
 };
 
-async function post_plain_endpoint(path, data, res, endpoint) {
+async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
   try{
-    let result = await tor.post_plain(path,data, endpoint);
+    logger.log('debug',`post_plain_endpoint ${endpoint}, ${i_hs.i}`)
+    let result = await tor.post_plain(path,data, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err){
     if (err instanceof errors.StatusCodeError){
       res.status(200).json(err?.message ? err.message : err);
-    } else if (err instanceof errors.RequestError){
-      res.json(JSON.parse(err?.cause ? err?.cause : "RequestError"));
     } else {
-      res.json(JSON.parse(err ? err : "Error"));
-    }
-  }  
+        i_hs['i'] = (i_hs.i + 1) % endpoint.length
+        logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
+	if (err instanceof errors.RequestError){
+          res.json(JSON.parse(err?.cause ? err?.cause : "RequestError"));
+        } else {
+           res.json(JSON.parse(err ? err : "Error"));
+         }
+     }  
+   }
 };
 
 app.get('/newid', async function(req,res) {
@@ -137,7 +168,9 @@ app.get('/tor_adapter/ping', async function(req,res) {
 
 app.post('/tor_settings', async function(req,res) {
   try {
+    logger.log('debug',`tor _settings ${JSON.stringify(req.body)}`)
     config.update(req.body);
+    logger.log('debug',`tor _settings - config: ${JSON.stringify(config)}`)
 
    await tor.stopTorNode();
     tor.set(config.tor_proxy);
@@ -169,14 +202,14 @@ app.get('/tor_settings', function(req,res) {
 
 app.post('/tor_endpoints', function(req,res) {
   try {
-    console.log(`setting endpoints: ${JSON.stringify(req.body)}`)
+    logger.log('debug',`setting endpoints: ${JSON.stringify(req.body)}`)
     config.update_endpoints(req.body);
     let response = {
       state_entity_endpoint: config.state_entity_endpoint,
       swap_conductor_endpoint: config.swap_conductor_endpoint,
       electrum_endpoint: config.electrum_endpoint
     };
-    console.log(`setting endpoints response: ${JSON.stringify(response)}`)
+    logger.log('debug',`setting endpoints response: ${JSON.stringify(response)}`)
     res.status(200).json(response);
   } catch (err) {
     res.status(400).json(`Bad request: ${err}`);
@@ -212,28 +245,28 @@ app.get('/tor_adapter/shutdown/tor', async function(req,res) {
 });
 
 app.get('/electrs/*', function(req,res) {
-  let path = req.path.replace('\/electrs','') 
-  get_endpoint(path, res, config.electrum_endpoint)
+  let path = req.path.replace('\/electrs','')
+  get_endpoint(path, res, config.electrum_endpoint, i_elect_hs)
  });
  
  app.post('/electrs/*', function(req,res) {
    let path = req.path.replace('\/electrs','') 
    let body = req.body
    let data = body?.data ? body.data : ""
-   post_plain_endpoint(path, data, res, config.electrum_endpoint)
+   post_plain_endpoint(path, data, res, config.electrum_endpoint, i_elect_hs)
  });
 
 
  app.get('/swap/ping', function(req,res) {
-  get_endpoint('/ping', res, config.swap_conductor_endpoint)
+  get_endpoint('/ping', res, config.swap_conductor_endpoint, i_cond_hs)
  });
 
  app.get('/swap/*', function(req,res) {
-  get_endpoint(req.path, res, config.swap_conductor_endpoint)
+  get_endpoint(req.path, res, config.swap_conductor_endpoint, i_cond_hs)
  });
 
  app.post('/swap/*', function(req,res) {
-   post_endpoint(req.path, req.body, res, config.swap_conductor_endpoint)
+   post_endpoint(req.path, req.body, res, config.swap_conductor_endpoint, i_cond_hs)
  });
 
 
@@ -319,11 +352,11 @@ app.post('/eps/import_addresses', async function(req, res) {
 })
 
 app.get('*', function(req,res) {
-   get_endpoint(req.path, res, config.state_entity_endpoint)
+  get_endpoint(req.path, res, config.state_entity_endpoint, i_merc_hs)
 });
 
 app.post('*', function(req,res) {
-   post_endpoint(req.path, req.body, res, config.state_entity_endpoint)
+  post_endpoint(req.path, req.body, res, config.state_entity_endpoint, i_merc_hs)
 });
 
 

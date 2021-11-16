@@ -99,11 +99,27 @@ export class Wallet {
   }
 
   set_tor_endpoints(){
-    let electr_ep=this.config.electrum_config.host;
+    let electr_ep = this.config.electrum_config.host
+    let electr_ep_arr=electr_ep.split(',');
     let electr_port=this.config.electrum_config.port
-    if ( electr_port ) {
-      electr_ep=electr_ep+`:${electr_port}`
+    
+    console.log(`electr host: ${electr_ep}`)
+    if(electr_port) {
+      if (Array.isArray(electr_port)){
+        if(electr_port.length !== electr_ep_arr.length){
+          throw new Error("config error: electrum_config.host array length differs from electrum_config.port length")
+        }
+        for (let i = 0; i < electr_port.length; i++){
+          if ( electr_port[i] ) {
+            electr_ep_arr[i]=electr_ep_arr[i]+`:${electr_port[i]}`
+          }
+        }
+        electr_ep = electr_ep_arr.toString()
+      } else {
+        electr_ep=electr_ep+`:${electr_port}`
+      }
     }
+    
     let endpoints_config = {
       swap_conductor_endpoint: this.config.swap_conductor_endpoint,
       state_entity_endpoint: this.config.state_entity_endpoint,
