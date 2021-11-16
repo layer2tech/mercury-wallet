@@ -136,9 +136,6 @@ const SwapPage = () => {
               if(statecoin.is_deposited){
                 dispatch(setNotification({msg:"Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
                 dispatch(removeCoinFromSwapRecords(selectedCoin));
-              } else if(!statecoin.is_new){
-                dispatch(setNotification({msg:"Warning - received the same coin back in swap: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-                dispatch(removeCoinFromSwapRecords(selectedCoin));
               } else {
                 dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
                 dispatch(removeCoinFromSwapRecords(selectedCoin));
@@ -219,9 +216,6 @@ const SwapPage = () => {
           if (res.error===undefined) {
             if(statecoin.is_deposited){
               dispatch(setNotification({msg:"Swap complete - Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-              dispatch(removeCoinFromSwapRecords(selectedCoin));
-            } else if(!statecoin.is_new){
-              dispatch(setNotification({msg:"Warning - received the same coin back in swap: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
               dispatch(removeCoinFromSwapRecords(selectedCoin));
             } else {
               dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
