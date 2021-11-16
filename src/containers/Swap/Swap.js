@@ -214,7 +214,13 @@ const SwapPage = () => {
             return
           }
           if (res.error===undefined) {
-            dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+            if(statecoin.is_deposited){
+              dispatch(setNotification({msg:"Swap complete - Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+              dispatch(removeCoinFromSwapRecords(selectedCoin));
+            } else {
+              dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+              dispatch(removeCoinFromSwapRecords(selectedCoin));
+            } 
           }else{
             dispatch(setNotification({msg: "Swap for coin " + statecoin.getTXIdAndOut() + " failed, please try again later."}))
             statecoin.swap_auto = false;
