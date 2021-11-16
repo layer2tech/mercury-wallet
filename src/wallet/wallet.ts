@@ -867,8 +867,8 @@ export class Wallet {
                 }
               }
             })
-          new_statecoin.is_new = new_coin;
-          new_statecoin.is_deposited = is_deposited;
+          new_statecoin['is_new'] = new_coin;
+          new_statecoin['is_deposited'] = is_deposited;
   }
 
   // Perform do_swap
@@ -932,19 +932,11 @@ export class Wallet {
 
       this.setIfNewCoin(new_statecoin)
 
-      //Update the anonymity set
-      let anon_set_new = 0
-      if(statecoin.swap_info){
-        let walletSet = this.statecoins.getStatechainIdSet()
-        statecoin.swap_info.swap_token.statechain_ids.forEach( (new_statechain_id) => {
-          if (! walletSet.has(new_statechain_id)){
-            anon_set_new = anon_set_new + 1
-          } 
-        })
+      //Update the anonymity set     
+      if(new_statecoin.swap_info){
+        new_statecoin.anon_set=statecoin.anon_set+new_statecoin.swap_info.swap_token.statechain_ids.length;
       }
-     
-      new_statecoin.anon_set = statecoin.anon_set + anon_set_new
-      
+         
       // Mark funds as spent in wallet
       this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 
