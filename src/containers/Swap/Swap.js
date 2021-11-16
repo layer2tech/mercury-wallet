@@ -133,17 +133,13 @@ const SwapPage = () => {
               return
             }
             if (res.error===undefined) {
-              if (statecoin.is_new){
-                dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-                dispatch(removeCoinFromSwapRecords(selectedCoin));
-              } else if(statecoin.is_deposited){
-                dispatch(setNotification({msg:"Warning - received coin in swap that is not new to this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value) + ". Swap set has not increased."}))
-                dispatch(removeCoinFromSwapRecords(selectedCoin));
-              } else { 
+              if(statecoin.is_deposited){
                 dispatch(setNotification({msg:"Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
                 dispatch(removeCoinFromSwapRecords(selectedCoin));
-              }
-              
+              } else {
+                dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+                dispatch(removeCoinFromSwapRecords(selectedCoin));
+              }  
             }else{
               dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
               dispatch(removeCoinFromSwapRecords(selectedCoin)); // Added this
