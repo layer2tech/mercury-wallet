@@ -59,9 +59,7 @@ export class ElectrsClient {
   }
 
   async new_tor_id() {
-    console.log('new_tor_id');
     if (this.is_tor) {
-      console.log('is tor, getting new id');
       await ElectrsClient.get(this.endpoint,'newid', {});
     }
   };
@@ -147,7 +145,6 @@ export class ElectrsClient {
   }
 
   async getScriptHashListUnspent(script: string): Promise<any> {
-    console.log("getScriptHashListUnspent...")
     let scriptHash = ElectrsClient.scriptToScriptHash(script)
     let data: Array<any> = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}/${GET_ROUTE.UTXO}`, {})
     let result = new Array<ElectrumTxData>()
@@ -158,7 +155,6 @@ export class ElectrsClient {
                     "value":item.value,
                     "height":item.status.block_height})
     })
-    console.log("finished getScriptHashListUnspent")
     return result
   }
 

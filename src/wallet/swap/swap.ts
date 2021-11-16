@@ -384,6 +384,7 @@ export const swapPhase4 = async (
     // Update coin status and num swap rounds
     statecoin.swap_status=SWAP_STATUS.End;
     statecoin_out.swap_rounds=statecoin.swap_rounds+1;
+    statecoin_out.anon_set=statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
     return statecoin_out;
   } catch(err: any) {
     //Keep retrying - an authentication error may occur at this stage depending on the
@@ -478,14 +479,12 @@ export const do_swap_poll = async(
             if (statecoin.swap_address===null) throw Error("No swap address found for coin. Swap address should be set in Phase1.");            
             let block_height = null
             if (electrum_client instanceof EPSClient){  
-              console.log("get block height...")
               try {
                 let header = await electrum_client.latestBlockHeader();
                 block_height = header.block_height;
               } catch(err: any) {
                 throw new SwapRetryError(err)
               }
-              console.log("finished get block height.")
             }
             await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, block_height);
             n_errs=0;

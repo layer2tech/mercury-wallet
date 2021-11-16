@@ -931,11 +931,6 @@ export class Wallet {
       }
 
       this.setIfNewCoin(new_statecoin)
-
-      //Update the anonymity set     
-      if(new_statecoin.swap_info){
-        new_statecoin.anon_set=statecoin.anon_set+new_statecoin.swap_info.swap_token.statechain_ids.length;
-      }
          
       // Mark funds as spent in wallet
       this.setStateCoinSpent(shared_key_id, ACTION.SWAP);

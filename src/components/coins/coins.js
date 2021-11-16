@@ -358,23 +358,30 @@ const Coins = (props) => {
     // data to display in privacy related sections
     const getPrivacyScoreDesc = (coin) => {
 
+      let anon_set = coin?.anon_set ? coin.anon_set : 0
+      let swap_rounds = coin?.swap_rounds ? coin.swap_rounds : 0
+
       if (coin?.is_deposited){
         return {
           icon1: anon_icon_none,
           icon2: anon_icon2_none,
           score_desc: "Statecoin created in wallet",
-          msg: " this statecoin was created in this wallet"
+          msg: " this statecoin was created in this wallet",
+          rounds: "Statecoin created in wallet",
+          rounds_msg: " this statecoin was created in this wallet",
         }
       }
 
-      let anon_set = coin?.anon_set ? coin?.anon_set : 0
+     
 
       if(anon_set){
         return {
           icon1: anon_icon_high,
           icon2: anon_icon2_high,
           score_desc: "Swap set: " + anon_set.toString(),
-          msg: " cumulative swap group size"
+          rounds: `Swaps: ${swap_rounds}`,
+          msg: " cumulative swap group size",
+          rounds_msg: " number of swap rounds completed",
         }
       } 
 
@@ -382,7 +389,9 @@ const Coins = (props) => {
           icon1: anon_icon_low,
           icon2: anon_icon2_high,
           score_desc: "Swap set: " + anon_set.toString(),
-          msg: " cumulative swap group size"
+          rounds: `Swaps: ${swap_rounds}`,
+          msg: " cumulative swap group size",
+          rounds_msg: " number of swap rounds completed",
       }
     }
 
@@ -480,10 +489,10 @@ const Coins = (props) => {
                           ):(
                           <div className="scoreAmount">
                               <img src={item.privacy_data.icon2} alt="icon"/>
-                              {item.privacy_data.score_desc}
+                              {item.privacy_data.rounds}
                               <span className="tooltip">
-                                  <b>{item.privacy_data.score_desc}:</b>
-                                    {item.privacy_data.msg}
+                                  <b>{item.privacy_data.rounds}:</b>
+                                    {item.privacy_data.rounds_msg}
                               </span>
                           </div>)}
                       </span>

@@ -71,7 +71,6 @@ export const transferSender = async (
   let statechain_data = await getStateChain(http_client, statecoin.statechain_id);
   if (statechain_data.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
   let sc_statecoin = statechain_data.chain.pop();
-  console.log(`ts - sc_statecoin: ${JSON.stringify(sc_statecoin)}`)
   if (sc_statecoin.data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key: chain has " + sc_statecoin.data + ", expected " + statecoin.proof_key);
 
   // Sign statecoin to signal desire to Transfer
@@ -81,7 +80,6 @@ export const transferSender = async (
       shared_key_id: statecoin.shared_key_id,
       statechain_sig: statechain_sig
   }
-  console.log(`ts - post transfer sender - transfer_msg1: ${JSON.stringify(transfer_msg1)}`)
   let transfer_msg2 = await http_client.post(POST_ROUTE.TRANSFER_SENDER, transfer_msg1);
   typeforce(types.TransferMsg2, transfer_msg2);
 
@@ -147,7 +145,6 @@ export const transferSender = async (
 
   while(true){
     try {
-      console.log("ts - transfer update message..")
       await http_client.post(POST_ROUTE.TRANSFER_UPDATE_MSG, transfer_msg3)
       break
     } catch(err: any){
@@ -334,9 +331,7 @@ export const transferReceiverFinalize = async (
 ): Promise<StateCoin> => {
   // Make shared key with new private share
   // 2P-ECDSA with state entity to create a Shared key
-  console.log("transfer receiver finalize - keygen...")
   let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER, null);
-  console.log("transfer receiver finalize - keygen finished.")
   statecoin.funding_txid = finalize_data.state_chain_data.utxo.txid;
   statecoin.funding_vout = finalize_data.state_chain_data.utxo.vout;
 
@@ -370,7 +365,6 @@ export const transferReceiverFinalize = async (
   statecoin.proof_key = finalize_data.proof_key;
   statecoin.funding_vout = statecoin.tx_backup.ins[0].index;
 
-  console.log("transfer receiver finalize - finished.")
   return statecoin
 }
 
