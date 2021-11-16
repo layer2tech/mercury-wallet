@@ -10,7 +10,7 @@ declare const window: any;
 let cloneDeep = require('lodash.clonedeep');
 let current_state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;
 let current_block_explorer_endpoint = NETWORK_CONFIG.mainnet_block_explorer_endpoint;
-let current_electrum_config = NETWORK_CONFIG.mainnet_electrum_config;
+let current_electrum_config: ElectrumClientConfig = NETWORK_CONFIG.mainnet_electrum_config;
 
 const argsHasTestnet = () => {
   let found  = false;
@@ -47,7 +47,7 @@ export class Config {
 
   // Editable while wallet running from Settings page
   state_entity_endpoint: string;
-  swap_conductor_endpoint: string;
+  swap_conductor_endpoint: string ;
   electrum_config: ElectrumClientConfig;
   block_explorer_endpoint:string;
 

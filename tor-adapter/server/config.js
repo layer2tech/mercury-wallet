@@ -19,12 +19,8 @@ class Config{
                                 Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
             controlPort: 9061
         }
-        // if testnet was not passed
-        //if(!argsHasTestnet()){
-            this.update(require("./settings.json"));
-        //}else{
-        //    this.update(require('./testnet_settings.json'));
-        //}
+  
+        this.update(require("./settings.json"));
     }
 
     update(config_changes){
@@ -54,13 +50,13 @@ class Config{
                       });
                       break;
                 case "state_entity_endpoint":
-                    this.state_entity_endpoint = item[1];
+                    this.state_entity_endpoint = item[1].split(',');
                     break;
                 case "swap_conductor_endpoint":
-                    this.swap_conductor_endpoint = item[1];
+                    this.swap_conductor_endpoint = item[1].split(',');
                     break;
                 case "electrum_endpoint":
-                    this.electrum_endpoint = item[1];
+                    this.electrum_endpoint = item[1].split(',');
                     break;
             }
         })
@@ -70,13 +66,13 @@ class Config{
         Object.entries(config_changes).forEach( (item) => {  
             switch(item[0]) {
                 case "state_entity_endpoint":
-                    this.state_entity_endpoint = item[1];
+                    this.state_entity_endpoint = item[1].split(',');
                     break;
                 case "swap_conductor_endpoint":
-                    this.swap_conductor_endpoint = item[1];
+                    this.swap_conductor_endpoint = item[1].split(',');
                     break;
                 case "electrum_endpoint":
-                    this.electrum_endpoint = item[1];
+                    this.electrum_endpoint = item[1].split(',');
                     break;
             }
         })
