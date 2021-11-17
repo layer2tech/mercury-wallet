@@ -83,7 +83,7 @@
     "bip32": "^2.0.6",
     "bip32-utils": "^0.11.1",
     "bip39": "^3.0.3",
-    "bitcoinjs-lib": "^5.2.0",
+    "bitcoinjs-lib": "^6.0.0",
     "bn": "^1.0.5",
     "body-parser": "^1.19.0",
     "bootstrap": "^4.5.3",

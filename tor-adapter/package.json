@@ -14,7 +14,7 @@
     "winston": "^3.3.3",
     "async-mutex": "^0.3.2",
     "axios": "^0.21.1",
-    "bitcoinjs-lib": "^5.2.0",
+    "bitcoinjs-lib": "^6.0.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "default-shell": "^1.0.1",
