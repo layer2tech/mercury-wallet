@@ -4,6 +4,7 @@ var TorClient = require('./tor_client');
 var CNClient = require('./cn_client');
 var bodyParser = require('body-parser');
 var Config = new require('./config');
+var fs = require('fs')
 const config = new Config();
 const tpc = config.tor_proxy;
 const express = require("express");
@@ -30,14 +31,23 @@ let i_cond_hs={i:0}
 
 var errors = require('request-promise/errors');
 
+//const logDir = path.join(dataDir,'tor-adapter', 'log')
+const torDataDir = path.join(dataDir, 'tor')
+const logDir = path.join(dataDir, 'tor-adapter-log')
+console.log(`logDir: ${logDir}`)
+if (!fs.existsSync(logDir.toString())){
+  fs.mkdirSync(logDir.toString())
+}
+
 const logger = winston.createLogger({
-  level: 'debug',
+  level: 'error',
   format: winston.format.json(),
   defaultMeta: { service: 'user-service' },
   transports: [
-    new winston.transports.File({ filename: '/home/ldeacon/Projects/mercury-wallet/tor-adapter/error.log', level: 'error' }),
-    new winston.transports.File({ filename: '/home/ldeacon/Projects/mercury-wallet/tor-adapter/debug.log', level: 'debug' }),
-    new winston.transports.File({ filename: '/home/ldeacon/Projects/mercury-wallet/tor-adapter/combined.log' }),
+    new winston.transports.File({ filename: path.join(logDir, 'info.log'), level: 'info' }),
+    new winston.transports.File({ filename: path.join(logDir, 'error.log'), level: 'error' }),
+    new winston.transports.File({ filename: path.join(logDir, 'debug.log'), level: 'debug' }),
+    new winston.transports.File({ filename: path.join(logDir, 'combined.log') }),
   ]
 })
 
@@ -69,7 +79,7 @@ app.use(bodyParser.json());
 
 app.listen(PORT, () => {
      logger.info(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`);
-     logger.info("tor data dir: " + dataDir);
+     logger.info("tor data dir: " + torDataDir);
 });
 
 let tor;
@@ -77,7 +87,7 @@ let tor;
 if(config.tor_proxy.ip === 'mock'){
   tor = new CNClient();
 } else {
-  tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, dataDir, geoIpFile, geoIpV6File);
+  tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, torDataDir, geoIpFile, geoIpV6File);
 }
 
 
@@ -93,15 +103,15 @@ tor.startTorNode(tor_cmd, torrc);
 
 async function get_endpoint(path, res, endpoint, i_hs){
   try{
-    logger.log('debug',`get_endpoint ${endpoint}, ${i_hs.i}`)
     let result = await tor.get(path, undefined, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err){
+    i_hs['i'] = (i_hs.i + 1) % endpoint.length
+      	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
     if (err instanceof errors.StatusCodeError){
       res.status(err.statusCode).json(err);
     } else {
-	i_hs['i'] = (i_hs.i + 1) % endpoint.length
-      	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
+	
 	if (err instanceof errors.RequestError){
       		res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
     	} else {
@@ -113,15 +123,15 @@ async function get_endpoint(path, res, endpoint, i_hs){
 
 async function post_endpoint(path, body, res, endpoint, i_hs) {
   try{
-    logger.log('debug',`post_endpoint ${endpoint}, ${i_hs.i}`)
     let result = await tor.post(path,body, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err){
+    i_hs['i'] = (i_hs.i + 1) % endpoint.length
+      	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
     if (err instanceof errors.StatusCodeError){
       res.status(err.statusCode).json(err);
     } else {
-	i_hs['i'] = (i_hs.i + 1) % endpoint.length
-        logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
+
 	if (err instanceof errors.RequestError){
       		res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
     	} else {
@@ -133,15 +143,15 @@ async function post_endpoint(path, body, res, endpoint, i_hs) {
 
 async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
   try{
-    logger.log('debug',`post_plain_endpoint ${endpoint}, ${i_hs.i}`)
     let result = await tor.post_plain(path,data, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err){
+    i_hs['i'] = (i_hs.i + 1) % endpoint.length
+      	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
     if (err instanceof errors.StatusCodeError){
       res.status(200).json(err?.message ? err.message : err);
     } else {
-        i_hs['i'] = (i_hs.i + 1) % endpoint.length
-        logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
+
 	if (err instanceof errors.RequestError){
           res.json(JSON.parse(err?.cause ? err?.cause : "RequestError"));
         } else {
