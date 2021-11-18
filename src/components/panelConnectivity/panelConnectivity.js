@@ -160,7 +160,7 @@ const PanelConnectivity = (props) => {
                         {state.isServerHover ? 
                         (<span className ={state.isServerHover ? "url-hover server": "url-hide server"}>{ current_config.state_entity_endpoint}</span>)
                         :
-                        (` ${shortenURLs(current_config.state_entity_endpoint)}`)}
+                        (` ${shortenURLs(current_config.state_entity_endpoint[0])}`)}
 
                     </span>
                     <span>Deposit Fee: <b>{fee_info.deposit /100}%</b></span>
@@ -175,7 +175,7 @@ const PanelConnectivity = (props) => {
                         {state.isSwapsHover ? 
                         (<span className ={state.isSwapsHover ? "url-hover swaps": 'url-hide swaps'}>{ current_config.swap_conductor_endpoint}</span>)
                         :
-                        (` ${shortenURLs(current_config.swap_conductor_endpoint)}`)}
+                        (` ${shortenURLs(current_config.swap_conductor_endpoint[0])}`)}
 
                     </span>
                     <span>Pending Swaps: <b>{pending_swaps}</b></span>
@@ -192,7 +192,7 @@ const PanelConnectivity = (props) => {
                             <span className = {state.isBTCHover ? "url-hover btc" : "url-hide btc"}>
                                 {current_config.electrum_config.host}
                             </span>
-                        ):(`${shortenURLs(current_config.electrum_config.host)}`)}
+                        ):(`${shortenURLs(current_config.electrum_config.host[0])}`)}
                     </span>
                     <span>Port: {current_config.electrum_config.port}</span>
                     <span>Protocol: {current_config.electrum_config.protocol}</span>

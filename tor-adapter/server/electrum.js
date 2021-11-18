@@ -5,14 +5,6 @@ const W3CWebSocket = require('websocket').w3cwebsocket
 
 const mutex = new Mutex();
 
-/*
-export interface ElectrumClientConfig {
-  host: string,
-  port: number | null,
-  protocol: string
-}
-*/
-
 class ElectrumClientError extends Error {
   constructor(message){
     super(message);

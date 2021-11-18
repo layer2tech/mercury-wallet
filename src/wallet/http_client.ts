@@ -65,9 +65,7 @@ export class HttpClient {
   }
 
   async new_tor_id() {
-    console.log('new_tor_id');
     if (this.is_tor) {
-      console.log('is tor, getting new id');
       await this.get('newid', {});
     }
   };
