@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Link} from "react-router-dom";
 import {useDispatch} from 'react-redux';
 import {Storage} from '../../store';
-import {walletLoad, setError, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice';
+import {walletLoad, setError, callGetVersion, callGetUnspentStatecoins, callUpdateStatecoinsStatus} from '../../features/WalletDataSlice';
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 import  './LoadWallet.css';
@@ -32,8 +32,12 @@ const LoadWalletPage = (props) => {
   // Quick check for expiring or potentially dangerous coins.
   // If so display error dialogue
   const checkForCoinsHealth = () => {
+    dispatch(callUpdateStatecoinsStatus()).then(() => {
     let unspent_coins_data = callGetUnspentStatecoins();
     let coins_data = unspent_coins_data[0];
+    if(!coins_data){
+      return
+    }
     for (let i=0; i<coins_data.length; i++) {
 //      if (coins_data[i].wallet_version !== callGetVersion()) {
 //        dispatch(setError({msg: "Warning: Coin in wallet was created in previous wallet version. Due to rapid development some backward incompatible changes may break old coins. We recommend withdrawing testnet coins and creating a fresh wallet."}))
@@ -47,6 +51,7 @@ const LoadWalletPage = (props) => {
         break;
       };
     }
+  })
   }
 
   // Attempt to load wallet. If fail display error.

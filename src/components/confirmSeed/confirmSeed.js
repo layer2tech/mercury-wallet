@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { withRouter } from "react-router-dom";
 import {useDispatch} from 'react-redux'
-import {setError, walletFromMnemonic, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice'
+import {setError, walletFromMnemonic, callGetVersion, callGetUnspentStatecoins, callUpdateStatecoinsStatus} from '../../features/WalletDataSlice'
 import './confirmSeed.css'
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
@@ -66,6 +66,7 @@ const ConfirmSeed = (props) => {
     // Quick check for expiring coins.
     // If so display error dialogue
     const checkForCoinsHealth = () => {
+      dispatch(callUpdateStatecoinsStatus()).then(() => {
       let unspent_coins_data = callGetUnspentStatecoins();
       let coins_data = unspent_coins_data[0];
       for (let i=0; i<coins_data.length; i++) {
@@ -74,6 +75,7 @@ const ConfirmSeed = (props) => {
           break;
         };
       }
+    })
     }
 
     // Create wallet and load into Redux state

@@ -27,6 +27,7 @@ import {MINIMUM_DEPOSIT_SATOSHI, fromSatoshi} from '../../wallet/util';
 import {
   callRemoveCoin,
   callGetUnspentStatecoins, 
+  callUpdateStatecoinsStatus,
   callGetBlockHeight, 
   updateBalanceInfo, 
   callGetUnconfirmedStatecoinsDisplayData,
@@ -269,6 +270,9 @@ const Coins = (props) => {
 
     //Load coins once component done render
     useEffect(() => {
+      dispatch(callUpdateStatecoinsStatus()).then(() => { 
+
+      
       const [coins_data] = callGetUnspentStatecoins();
       //Load all coins that aren't unconfirmed
 
@@ -297,6 +301,7 @@ const Coins = (props) => {
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
+    })
     }, [props.refresh, filterBy, showCoinDetails, dispatch]);
 
     // Re-fetch every 10 seconds and update state to refresh render
@@ -310,6 +315,7 @@ const Coins = (props) => {
           // of confirmations in unconfirmed coins list
           // check for change in the amount of blocks per item (where the main expiry date is set
 
+          dispatch(callUpdateStatecoinsStatus()).then( () => {
           let [new_confirmed_coins_data] = callGetUnspentStatecoins();
           //Get all updated confirmed coins & coin statuses
           
@@ -336,6 +342,7 @@ const Coins = (props) => {
         }, 5000);
         return () => clearInterval(interval);
       //}
+      })
     }, [coins.unConfirmedCoins]);
 
     //Initialised Coin description for coin modal

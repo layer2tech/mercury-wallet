@@ -74,12 +74,14 @@ export const transferSender = async (
   if (sc_statecoin.data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key: chain has " + sc_statecoin.data + ", expected " + statecoin.proof_key);
 
   // Sign statecoin to signal desire to Transfer
+  console.log("sign statecoin to signal desire to transfer...");
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
   // Init transfer: Send statechain signature or batch data
   let transfer_msg1 = {
       shared_key_id: statecoin.shared_key_id,
       statechain_sig: statechain_sig
   }
+  console.log("init transfer...");
   let transfer_msg2 = await http_client.post(POST_ROUTE.TRANSFER_SENDER, transfer_msg1);
   typeforce(types.TransferMsg2, transfer_msg2);
 
@@ -104,6 +106,7 @@ export const transferSender = async (
   };
 
   // Sign new back up tx
+  console.log("sign new backup tx...");
   let signature: string[] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
   
   // Set witness data as signature
@@ -145,6 +148,7 @@ export const transferSender = async (
 
   while(true){
     try {
+      console.log("post transfer msg 3...");
       await http_client.post(POST_ROUTE.TRANSFER_UPDATE_MSG, transfer_msg3)
       break
     } catch(err: any){

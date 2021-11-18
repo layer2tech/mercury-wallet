@@ -212,6 +212,13 @@ export const callGetBlockHeight = () => {
 export const callGetUnspentStatecoins = () => {
   return wallet.getUnspentStatecoins()
 }
+
+export const callUpdateStatecoinsStatus =createAsyncThunk(
+ 'updateStatecoinsStatus',
+  async(action, thunkAPI) => {
+  return wallet.updateStatecoinsStatus()
+})
+
 export const callGetAllStatecoins = () => {
 return wallet.getAllStatecoins()
 }
@@ -529,6 +536,9 @@ const WalletSlice = createSlice({
     },
     [callDepositInit.fulfilled]: (state) => {
       state.depositLoading = false;
+    },
+    [callUpdateStatecoinsStatus.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callDepositConfirm.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }

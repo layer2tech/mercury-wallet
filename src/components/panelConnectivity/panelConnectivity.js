@@ -66,7 +66,7 @@ const PanelConnectivity = (props) => {
   // every 30s check speed
   useEffect(() => {
     const interval = setInterval(() => {
-        dispatch(callUpdateSpeedInfo());
+        dispatch(callUpdateSpeedInfo()).then( () => {
         if(server_ping_ms !== callGetPingServerms()){
             setServerPingMs(callGetPingServerms())
         }
@@ -76,6 +76,7 @@ const PanelConnectivity = (props) => {
         if(electrum_ping_ms !== callGetPingElectrumms()){
             setElectrumPingMs(callGetPingElectrumms())
         }
+        })
     }, 10000);
     return () => clearInterval(interval);
     }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch]);
