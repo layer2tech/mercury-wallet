@@ -23,6 +23,7 @@ import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum } from './mercury/info_api';
 import { EPSClient } from './eps';
 import { FEE_INFO } from './mocks/mock_http_client';
+import ValueSelectionPanel from '../components/createStatecoin/valueSelection/valueSelection';
 
 const MAX_SWAP_SEMAPHORE_COUNT=100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -454,33 +455,39 @@ export class Wallet {
     return this.statecoins.getUnspentCoins(this.block_height);
   }
 
+  async sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   //Returns true if any coin status changed
   async updateStatecoinsStatus(): Promise<boolean> {
-    console.log("updating statecoin status...");
     let changed = false;
     //Update coin status
     for (let i = 0; i<this.statecoins.coins.length; i++) {
       let item = this.statecoins.coins[i];
       if (
-        item.status===STATECOIN_STATUS.AVAILABLE 
+        item?.status===STATECOIN_STATUS.AVAILABLE 
       ){
-        try{
-          let statechain_data: StateChainDataAPI = await getStateChain(this.http_client, item.statechain_id);
-          if(isWithdrawn(statechain_data)){
-            console.log("coin is withdrawn");
+          let statechain_data = null
+          while(statechain_data === null){
+            try {
+              statechain_data = await getStateChain(this.http_client, item.statechain_id);
+            } catch(err){
+              await this.sleep(5000)
+            } 
+          }
+          if(isWithdrawn(statechain_data) === true){
+            log.info(`Statecoin is withdrawn - updating coin status to WITHDRAWN - statechain_id: ${item?.statechain_id}`);
             this.statecoins.coins[i].setWithdrawn()
             changed=true
             continue
           }
-          if (!isMine(statechain_data, item)){
-            console.log("coin is not mine");
+          if (isMine(statechain_data, item) !== true){
+            log.info(`Statecoin does not belong to wallet - updating coin status to IN_TRANSFER - statechain_id: ${item?.statechain_id}`);
             this.statecoins.coins[i].setInTransfer()
             changed=true
             continue
           }
-        } catch(err){
-          return changed
-        }
       }
     }   
     return changed
@@ -1332,13 +1339,14 @@ export const segwitAddr = (node: any, network: Network) => {
 
 export const isMine = (
   statechain_data: any,
-  statecoin: StateCoin): any => { 
-  let sc_statecoin = statechain_data.chain.last();
+  statecoin: StateCoin): boolean => { 
+    let chain: [any] =  statechain_data.chain
+  let sc_statecoin = chain[chain.length - 1];
   return (sc_statecoin.data === statecoin.proof_key)
 }
 
 export const isWithdrawn = (
-  statechain_data: any): any => { 
+  statechain_data: any): boolean => { 
   return  (statechain_data.amount === 0)
 }
 

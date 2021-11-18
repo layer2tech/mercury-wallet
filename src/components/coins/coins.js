@@ -270,9 +270,7 @@ const Coins = (props) => {
 
     //Load coins once component done render
     useEffect(() => {
-      dispatch(callUpdateStatecoinsStatus()).then(() => { 
-
-      
+  
       const [coins_data] = callGetUnspentStatecoins();
       //Load all coins that aren't unconfirmed
 
@@ -301,21 +299,20 @@ const Coins = (props) => {
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
-    })
     }, [props.refresh, filterBy, showCoinDetails, dispatch]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
     useEffect(() => {
-      //if (coins.unConfirmedCoins.length) {
+      if (coins.unConfirmedCoins.length) {
         const interval = setInterval(() => {
+          console.log("update unconfirmed coins timed...")
           setState({});
           let new_unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
           // of confirmations in unconfirmed coins list
           // check for change in the amount of blocks per item (where the main expiry date is set
 
-          dispatch(callUpdateStatecoinsStatus()).then( () => {
           let [new_confirmed_coins_data] = callGetUnspentStatecoins();
           //Get all updated confirmed coins & coin statuses
           
@@ -330,7 +327,7 @@ const Coins = (props) => {
               !==
             new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
               || 
-            coins.unConfirmedCoins.length !== new_confirmed_coins_data.length
+            coins.unspentCoins.length !== new_confirmed_coins_data.length
           ) {
             if(validCoinData(new_confirmed_coins_data, new_unconfirmed_coins_data)){
               setCoins({
@@ -341,9 +338,16 @@ const Coins = (props) => {
           }
         }, 5000);
         return () => clearInterval(interval);
-      //}
-      })
-    }, [coins.unConfirmedCoins]);
+      }
+    }, [coins.unConfirmedCoins, coins.unspentCoins]);
+
+    // Update unspent coin status every minute 
+    useEffect(() => {
+        const interval = setInterval(async () => {
+          await dispatch(callUpdateStatecoinsStatus())
+        }, 60000);
+        return () => clearInterval(interval);
+    }, [coins.unConfirmedCoins, coins.unspentCoins]);
 
     //Initialised Coin description for coin modal
     useEffect(() => {
