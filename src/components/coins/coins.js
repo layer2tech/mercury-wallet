@@ -120,7 +120,7 @@ const Coins = (props) => {
       let coin = all_coins_data.find((coin) => {
         return coin.shared_key_id === shared_key_id
       })
-      coin.privacy_data = getPrivacyScoreDesc(coin.anon_set, coin.is_new);
+      coin.privacy_data = getPrivacyScoreDesc(coin);
       setShowCoinDetails({show: true, coin: coin});
     }
 
@@ -128,7 +128,7 @@ const Coins = (props) => {
       let coin = all_coins_data.find((coin) => {
           return coin.shared_key_id === shared_key_id
       })
-      coin.privacy_data = getPrivacyScoreDesc(coin.anon_set, coin.is_new);
+      coin.privacy_data = getPrivacyScoreDesc(coin);
       props.setCoinDetails(coin);
     }
 
@@ -356,37 +356,42 @@ const Coins = (props) => {
     },[showCoinDetails.coin])
 
     // data to display in privacy related sections
-    const getPrivacyScoreDesc = (anon_set, is_new) => {
-      if (!anon_set) {
-        if (is_new) {
-          return {
-            icon1: anon_icon_none,
-            icon2: anon_icon2_high,
-            score_desc: "Swap set: 0",
-            msg: " Cumulative swap group size"
-          }
-        } else {
-            return {
-              icon1: anon_icon_none,
-              icon2: anon_icon2_none,
-              score_desc: "Swap set: 0",
-              msg: " Cumulative swap group size"
-            }
-          }
+    const getPrivacyScoreDesc = (coin) => {
+
+      let anon_set = coin?.anon_set ? coin.anon_set : 0
+      let swap_rounds = coin?.swap_rounds ? coin.swap_rounds : 0
+
+      if (coin?.is_deposited){
+        return {
+          icon1: anon_icon_none,
+          icon2: anon_icon2_none,
+          score_desc: "Statecoin created in wallet",
+          msg: " this statecoin was created in this wallet",
+          rounds: "Statecoin created in wallet",
+          rounds_msg: " this statecoin was created in this wallet",
+        }
       }
-      if (is_new) {
+
+     
+
+      if(anon_set){
         return {
           icon1: anon_icon_high,
           icon2: anon_icon2_high,
           score_desc: "Swap set: " + anon_set.toString(),
-          msg: " Cumulative swap group size"
+          rounds: `Swaps: ${swap_rounds}`,
+          msg: " cumulative swap group size",
+          rounds_msg: " number of swap rounds completed",
         }
-      }
+      } 
+
       return {
-        icon1: anon_icon_high,
-        icon2: anon_icon2_none,
-        score_desc: "Swap set: " + anon_set.toString(),
-        msg: " Cumulative swap group size"
+          icon1: anon_icon_low,
+          icon2: anon_icon2_high,
+          score_desc: "Swap set: " + anon_set.toString(),
+          rounds: `Swaps: ${swap_rounds}`,
+          msg: " cumulative swap group size",
+          rounds_msg: " number of swap rounds completed",
       }
     }
 
@@ -420,7 +425,7 @@ const Coins = (props) => {
   	});
 
     const statecoinData = all_coins_data.map(item => {
-      item.privacy_data = getPrivacyScoreDesc(item.anon_set, item.is_new);
+      item.privacy_data = getPrivacyScoreDesc(item);
       let transferDate
       if(item.status === STATECOIN_STATUS.IN_TRANSFER){
         transferDate = 'DATE'
@@ -484,10 +489,10 @@ const Coins = (props) => {
                           ):(
                           <div className="scoreAmount">
                               <img src={item.privacy_data.icon2} alt="icon"/>
-                              {item.privacy_data.score_desc}
+                              {item.privacy_data.rounds}
                               <span className="tooltip">
-                                  <b>{item.privacy_data.score_desc}:</b>
-                                    {item.privacy_data.msg}
+                                  <b>{item.privacy_data.rounds}:</b>
+                                    {item.privacy_data.rounds_msg}
                               </span>
                           </div>)}
                       </span>

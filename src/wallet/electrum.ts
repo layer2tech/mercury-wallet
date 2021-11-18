@@ -7,7 +7,7 @@ export const mutex = new Mutex();
 
 export interface ElectrumClientConfig {
   host: string,
-  port: number | null,
+  port: [number | null] | number | null,
   protocol: string,
   type: string
 }
@@ -23,7 +23,7 @@ export class ElectrumClient {
   client = ElectrumClientLib;
 
   constructor(config: ElectrumClientConfig) {
-    this.client = new ElectrumClientLib(config.host, config.port, config.protocol)
+    this.client = new ElectrumClientLib(Array.isArray(config.host) ? config.host[0] : config.host, Array.isArray(config.port) ? config.port[0]: config.port, config.protocol)
   }
 
   // Connect to Electrum Server if not already connected or in the process of connecting
