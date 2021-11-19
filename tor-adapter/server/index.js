@@ -245,6 +245,7 @@ process.once('SIGTERM', async function (code) {
   await shutdown()
 });
 
+
 async function shutdown() {
   try{
     await tor.stopTorNode();

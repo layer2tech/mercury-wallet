@@ -249,10 +249,8 @@ async function kill_process(pid, init_new){
     //check if still running
     process.kill(pid, 0)
     //if still running wait, check again and send the kill signal
-    console.log("process still running - waiting 1 second...")
     await new Promise(resolve => setTimeout(resolve, 1000))
     process.kill(pid, 0)
-    console.log("process still running - waiting 1 second...")
     await new Promise(resolve => setTimeout(resolve, 1000))
     process.kill(pid, 0)
     console.log("process still running - sending kill signal...")
