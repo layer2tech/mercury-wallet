@@ -64,6 +64,7 @@ export class Wallet {
   ping_server_ms: number | null;
   ping_conductor_ms: number | null;
   ping_electrum_ms: number | null;
+  statechain_id_set: Set<string>;
 
   storage: Storage
 
@@ -93,14 +94,32 @@ export class Wallet {
     this.ping_conductor_ms = null;
     this.ping_server_ms = null;
     this.ping_electrum_ms = null;
+
+    this.statechain_id_set = new Set();
   }
 
   set_tor_endpoints(){
-    let electr_ep=this.config.electrum_config.host;
+    let electr_ep = this.config.electrum_config.host
+    let electr_ep_arr=electr_ep.split(',');
     let electr_port=this.config.electrum_config.port
-    if ( electr_port ) {
-      electr_ep=electr_ep+`:${electr_port}`
+    
+    console.log(`electr host: ${electr_ep}`)
+    if(electr_port) {
+      if (Array.isArray(electr_port)){
+        if(electr_port.length !== electr_ep_arr.length){
+          throw new Error("config error: electrum_config.host array length differs from electrum_config.port length")
+        }
+        for (let i = 0; i < electr_port.length; i++){
+          if ( electr_port[i] ) {
+            electr_ep_arr[i]=electr_ep_arr[i]+`:${electr_port[i]}`
+          }
+        }
+        electr_ep = electr_ep_arr.toString()
+      } else {
+        electr_ep=electr_ep+`:${electr_port}`
+      }
     }
+    
     let endpoints_config = {
       swap_conductor_endpoint: this.config.swap_conductor_endpoint,
       state_entity_endpoint: this.config.state_entity_endpoint,
@@ -457,7 +476,7 @@ export class Wallet {
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
           if (statecoin.tx_backup===null) this.depositConfirm(statecoin.shared_key_id);
-          statecoin.setConfirmed();
+          statecoin.setConfirmed()
           // update in wallet
           this.statecoins.setCoinFinalized(statecoin);
       }
@@ -849,6 +868,24 @@ export class Wallet {
     return statecoin_finalized
   }
 
+  setIfNewCoin(
+    new_statecoin: StateCoin
+  ) {
+    let new_coin = true;
+    let is_deposited = false;
+    let new_statechain_id = new_statecoin.statechain_id;
+    this.statecoins.coins.forEach(
+            (statecoin) => {
+              if(statecoin.statechain_id === new_statechain_id) {
+                new_coin = false
+                if(statecoin.is_deposited){
+                  is_deposited = true
+                }
+              }
+            })
+          new_statecoin['is_new'] = new_coin;
+          new_statecoin['is_deposited'] = is_deposited;
+  }
 
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
@@ -909,15 +946,8 @@ export class Wallet {
         return null;
       }
 
-      let new_coin = true;
-      let new_statechain_id = new_statecoin.statechain_id;
-      // check if new coin
-      this.statecoins.coins.forEach(
-        (statecoin) => {
-          if(statecoin.statechain_id === new_statechain_id) new_coin = false
-        })
-      new_statecoin.is_new = new_coin;
-
+      this.setIfNewCoin(new_statecoin)
+         
       // Mark funds as spent in wallet
       this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
 
@@ -1045,7 +1075,7 @@ export class Wallet {
     if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for Transfer.");
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-
+    
     let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr)
 
     // Mark funds as spent in wallet
@@ -1088,14 +1118,8 @@ export class Wallet {
   ): Promise<StateCoin> {
     log.info("Transfer Finalize for: "+finalize_data.new_shared_key_id)
     let statecoin_finalized = await transferReceiverFinalize(this.http_client, await this.getWasm(), finalize_data);
-
-    statecoin_finalized.is_new = true;
-    // check if new coin
-    this.statecoins.coins.forEach(
-      (statecoin) => {
-        if(statecoin.statechain_id === statecoin_finalized.statechain_id) statecoin_finalized.is_new = false
-      })
-
+    this.setIfNewCoin(statecoin_finalized)
+ 
     //Add statecoin address to coin
     statecoin_finalized.sc_address = encodeSCEAddress(statecoin_finalized.proof_key)
     

@@ -215,9 +215,9 @@ async function init_tor_adapter(){
   console.log(`starting tor adapter from: ${tor_adapter_path}`);
   console.log(`tor_cmd: ${tor_cmd}`);
   console.log(`torrc: ${torrc}`);
-  let tor_data_path = joinPath(app.getPath('userData'),'tor');
-  console.log(`tor data path: ${tor_data_path}`);
-  let tor_adapter_args=[tor_cmd, torrc, tor_data_path];
+  let user_data_path = app.getPath('userData');
+  console.log(`user data path: ${user_data_path}`);
+  let tor_adapter_args=[tor_cmd, torrc, user_data_path];
   if (getPlatform() === 'win'){
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);

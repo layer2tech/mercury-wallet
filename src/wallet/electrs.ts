@@ -11,6 +11,14 @@ class ElectrsClientError extends Error {
   }
 }
 
+// Check if returned value from server is an error. Throw if so.
+const checkForServerError = (return_val: any) => {
+  if (typeof(return_val)=="string" && ( return_val.includes("Error") ||return_val.includes("error") )) {
+    throw Error(return_val)
+  }
+}
+
+
 export const GET_ROUTE = {
   PING: "/electrs/ping",
   //latestBlockHeader "/Electrs/block/:hash/header",
@@ -51,9 +59,7 @@ export class ElectrsClient {
   }
 
   async new_tor_id() {
-    console.log('new_tor_id');
     if (this.is_tor) {
-      console.log('is tor, getting new id');
       await ElectrsClient.get(this.endpoint,'newid', {});
     }
   };
@@ -68,6 +74,7 @@ export class ElectrsClient {
       };
       let res = await axios(config)
       let return_data = res.data
+      checkForServerError(return_data)
 
       return return_data
 
@@ -90,7 +97,8 @@ export class ElectrsClient {
       };
       let res = await axios(config)
       let return_data = res.data
-      
+      checkForServerError(return_data)
+
       return return_data
 
     } catch (err : any) {
@@ -137,7 +145,6 @@ export class ElectrsClient {
   }
 
   async getScriptHashListUnspent(script: string): Promise<any> {
-    console.log("getScriptHashListUnspent...")
     let scriptHash = ElectrsClient.scriptToScriptHash(script)
     let data: Array<any> = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}/${GET_ROUTE.UTXO}`, {})
     let result = new Array<ElectrumTxData>()
@@ -148,7 +155,6 @@ export class ElectrsClient {
                     "value":item.value,
                     "height":item.status.block_height})
     })
-    console.log("finished getScriptHashListUnspent")
     return result
   }
 

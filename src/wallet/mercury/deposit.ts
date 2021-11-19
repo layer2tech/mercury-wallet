@@ -45,7 +45,7 @@ export const depositInit = async (
 
   // 2P-ECDSA with state entity to create a Shared key
   let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT, pow_solution);
-
+  statecoin.is_deposited=true
   return statecoin
 }
 
@@ -114,6 +114,7 @@ export const depositConfirm = async (
   statecoin.statechain_id = statechain_id.id;
   statecoin.tx_backup = tx_backup_signed;
   statecoin.interval = fee_info.interval;
+  statecoin.is_deposited = true
 
   return statecoin
 }
