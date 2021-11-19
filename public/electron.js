@@ -7,7 +7,8 @@ const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
 const axios = require('axios').default;
-const execFile = require('child_process').execFile;
+const process = require('process')
+const fork = require('child_process').fork;
 
 function getPlatform(){
   switch (process.platform) {
@@ -28,6 +29,7 @@ function getPlatform(){
 
 const isDev = (process.env.NODE_ENV == 'development');
 
+let ta_process=undefined
 
 let resourcesPath = undefined;
 if(getPlatform() == 'linux') {
@@ -89,11 +91,9 @@ function createWindow() {
   }
   
   mainWindow.on('close', async () => {
-    await kill_tor();
   });
 
   mainWindow.on('closed', async () => {
-    await kill_tor();
     mainWindow = null;
   });
 }
@@ -124,7 +124,6 @@ app.on('ready', () => {
 
 app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
-    await kill_tor();
     app.quit();
   }
 });
@@ -168,7 +167,6 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 
  // You can use 'before-quit' instead of (or with) the close event
  app.on('before-quit', async function () {
-  await kill_tor();
 });
 
 app.commandLine.appendSwitch('ignore-certificate-errors');
@@ -177,32 +175,7 @@ app.commandLine.appendSwitch('ignore-certificate-errors');
 const Store = require('electron-store');
 Store.initRenderer();
 
-async function check_tor_adapter(){
-  const awaitTimeout = (delay, reason) =>
-  new Promise((resolve, reject) =>
-    setTimeout(
-      () => (reason === undefined ? resolve() : reject(reason)),
-      delay
-    )
-  );
-
-  const wrapPromise = (promise, delay, reason) =>
-    Promise.race([promise, awaitTimeout(delay, reason)]);
-
-    console.log(`Requesting shutdown of existing tor adapter process, if any`)
-    await wrapPromise(getTorAdapter('/tor_adapter/shutdown'), 10000, {
-        reason: 'Fetch timeout',
-      }).catch(data => {
-        console.log(`Tor adapter shutdown failed with reason: ${data.reason}`);
-      }
-    );
-}
-
 async function init_tor_adapter() {
-  await check_tor_adapter();
-
-  const fork = require('child_process').fork;
-
   fixPath();
   console.log(tor_cmd);
   console.log(torrc);
@@ -214,16 +187,15 @@ async function init_tor_adapter() {
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
   }
-  fork(`${tor_adapter_path}`, tor_adapter_args,
+  ta_process = fork(`${tor_adapter_path}`, tor_adapter_args,
   {
     detached: false,
     stdio: 'ignore',
   },
-  (error) => {
-    if(error){
-      console.log(error);
-      app.exit(error);
-    };
+  (error, stdout, _stderr)  => {
+      if(error){
+        app.exit(error);
+      };
     }
   );
 }
@@ -233,8 +205,30 @@ async function on_exit(){
 }
 
 async function kill_tor(){
-  await execFile('curl', ['http://localhost:3001/tor_adapter/shutdown/tor']);
+  console.log("terminating the tor adapter process...")
+  await kill_process(ta_process.pid)
+}
+
+async function kill_process(pid){
+  console.log(`terminating process with pid ${pid}`)
+  process.kill(pid, "SIGTERM")
+  try {
+    //check if still running
+    process.kill(pid, 0)
+    //if still running wait, check again and send the kill signal
+    console.log("process still running - waiting 1 second...")
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    process.kill(pid, 0)
+    console.log("process still running - waiting 1 second...")
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    process.kill(pid, 0)
+    console.log("process still running - sending kill signal...")
+    process.kill(pid, "SIGKILL")
+  } catch (err) {
+    console.log(err?.message)
+  }
 }
 
 process.on('SIGINT',on_exit);
+process.on('SIGTERM',on_exit);
 process.on('exit',on_exit);

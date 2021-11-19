@@ -7,9 +7,9 @@ const url = require('url');
 const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
-const ipc = require('electron').ipcMain;
-const execFile = require('child_process').execFile;
 const axios = require('axios').default;
+const process = require('process')
+const fork = require('child_process').fork;
 
 const getPlatform = () => {
   switch (process.platform) {
@@ -27,6 +27,8 @@ const getPlatform = () => {
   }
 
 }
+
+let ta_process=undefined
 
 let resourcesPath = undefined;
 resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
@@ -79,7 +81,6 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
 
   mainWindow.on('close', async function () {
-    await kill_tor();
   });
 
     // Emitted when the window is closed.
@@ -87,7 +88,6 @@ function createWindow() {
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
-        await kill_tor();
         mainWindow = null
     })
 
@@ -105,10 +105,6 @@ async function getTorAdapter(path) {
   await axios(config)
 }
 
-async function pingTorAdapter() {
-  await getTorAdapter('/tor_adapter/ping')
-}
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -122,10 +118,6 @@ app.on('ready', () => {
 
   init_tor_adapter();
 
-  setInterval(async function() {
-    await pingTorAdapter()
-  }, 5000);
-
   createWindow(); 
 });
 
@@ -134,7 +126,6 @@ app.on('window-all-closed', async function () {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
-        await kill_tor();
         app.quit()
     }
 });
@@ -184,32 +175,7 @@ app.commandLine.appendSwitch('ignore-certificate-errors');
 const Store = require('electron-store');
 Store.initRenderer();
 
-async function check_tor_adapter(){
-  const awaitTimeout = (delay, reason) =>
-  new Promise((resolve, reject) =>
-    setTimeout(
-      () => (reason === undefined ? resolve() : reject(reason)),
-      delay
-    )
-  );
-
-  const wrapPromise = (promise, delay, reason) =>
-    Promise.race([promise, awaitTimeout(delay, reason)]);
-
-    console.log(`Requesting shutdown of existing tor adapter process, if any`)
-    await wrapPromise(getTorAdapter('/tor_adapter/shutdown'), 10000, {
-        reason: 'Fetch timeout',
-      }).catch(data => {
-        console.log(`Tor adapter shutdown failed with reason: ${data.reason}`);
-      }
-    );
-}
-
 async function init_tor_adapter(){
-  await check_tor_adapter();
-
-  const fork = require('child_process').fork;
-
   fixPath();
   let tor_adapter_path = `${__dirname}/../tor-adapter/server/index.js`
   console.log(`starting tor adapter from: ${tor_adapter_path}`);
@@ -224,7 +190,7 @@ async function init_tor_adapter(){
   }
 
 
-  fork(`${tor_adapter_path}`, tor_adapter_args,
+  ta_process = fork(`${tor_adapter_path}`, tor_adapter_args,
   {
     detached: false,
     stdio: 'ignore',
@@ -235,7 +201,6 @@ async function init_tor_adapter(){
       };
     }
   );
-
 }
   
 async function on_exit(){
@@ -243,10 +208,32 @@ async function on_exit(){
 }
 
 async function kill_tor(){
-  await execFile('curl', ['http://localhost:3001/tor_adapter/shutdown/tor']);
+    console.log("terminating the tor adapter process...")
+    await kill_process(ta_process.pid)
+}
+
+async function kill_process(pid){
+  console.log(`terminating process with pid ${pid}`)
+  process.kill(pid, "SIGTERM")
+  try {
+    //check if still running
+    process.kill(pid, 0)
+    //if still running wait, check again and send the kill signal
+    console.log("process still running - waiting 1 second...")
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    process.kill(pid, 0)
+    console.log("process still running - waiting 1 second...")
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    process.kill(pid, 0)
+    console.log("process still running - sending kill signal...")
+    process.kill(pid, "SIGKILL")
+  } catch (err) {
+    console.log(err?.message)
+  }
 }
 
 process.on('SIGINT',on_exit);
+process.on('SIGTERM',on_exit);
 process.on('exit',on_exit);
 
 
