@@ -10,6 +10,7 @@ const rootPath = require('electron-root-path').rootPath;
 const axios = require('axios').default;
 const process = require('process')
 const fork = require('child_process').fork;
+const exec = require('child_process').exec;
 
 const getPlatform = () => {
   switch (process.platform) {
@@ -116,8 +117,12 @@ app.on('ready', () => {
     app.quit();
   }
 
-  init_tor_adapter();
-
+  if(getPlatform() === 'linux' || getPlatform() === 'mac'){
+    kill_existing_tor_adapter(init_tor_adapter);
+  } else {
+    init_tor_adapter()
+  }
+  
   createWindow(); 
 });
 
@@ -176,6 +181,7 @@ const Store = require('electron-store');
 Store.initRenderer();
 
 async function init_tor_adapter(){
+  console.log("init tor adapter")
   fixPath();
   let tor_adapter_path = `${__dirname}/../tor-adapter/server/index.js`
   console.log(`starting tor adapter from: ${tor_adapter_path}`);
@@ -189,7 +195,6 @@ async function init_tor_adapter(){
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
   }
 
-
   ta_process = fork(`${tor_adapter_path}`, tor_adapter_args,
   {
     detached: false,
@@ -202,6 +207,30 @@ async function init_tor_adapter(){
     }
   );
 }
+
+function kill_existing_tor_adapter(init_new) {
+  let command = 'ps ux | grep mercury-wallet | grep -v grep | grep tor-adapter | awk -F \' \' \'{print $2}\''
+  exec(command, (error, stdout, stderr) => {
+    if(error) {
+      console.error(`kill_existing_tor_adapter - exec error: ${error}`)
+      return
+    }
+    if(stderr){
+      console.log(`kill_existing_tor_adapter - error: ${stderr}`)
+      return
+    }
+    if(stdout.slice(0,-1).match(/^[0-9]+$/) != null){
+      let pid = parseInt(stdout)
+      if(typeof pid === 'number'){
+        console.log(`killing existing tor adapter process: ${pid}`)
+        kill_process(pid, init_new)
+        return
+      } 
+    }
+    init_new()
+    return  
+  })
+}
   
 async function on_exit(){
   await kill_tor();
@@ -212,10 +241,11 @@ async function kill_tor(){
     await kill_process(ta_process.pid)
 }
 
-async function kill_process(pid){
+async function kill_process(pid, init_new){
   console.log(`terminating process with pid ${pid}`)
   process.kill(pid, "SIGTERM")
   try {
+    await new Promise(resolve => setTimeout(resolve, 1000))
     //check if still running
     process.kill(pid, 0)
     //if still running wait, check again and send the kill signal
@@ -229,6 +259,9 @@ async function kill_process(pid){
     process.kill(pid, "SIGKILL")
   } catch (err) {
     console.log(err?.message)
+  }
+  if(init_new){
+    init_new()
   }
 }
 
