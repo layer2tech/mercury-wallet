@@ -356,3 +356,10 @@
     color:white;
 
 }
+
+.btn{
+    padding: .375rem .75rem !important;
+    text-align: center !important;
+    border: 1px solid transparent !important;
+    line-height: 1.5 !important;
+}
