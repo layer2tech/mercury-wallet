@@ -5,7 +5,6 @@ const url = require('url');
 const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
-const confirm = require('confirm');
 const rootPath = require('electron-root-path').rootPath;
 const axios = require('axios').default;
 const process = require('process')
@@ -117,19 +116,10 @@ async function getTorAdapter(path) {
 app.on('ready', () => {
   //Limit app to one instance
   if(!app.requestSingleInstanceLock()){
-    let bconfirm=false
-    if(getPlatform() == 'win'){
-      bconfirm = confirm("An instance of mercurywallet is already running. Close the existing mercurywallet process?")
-    } else {
-      alert('An instance of mercurywallet is already running. Not opening app.')
-    }
-
-    if(!bconfirm){
+      alert('mercurywallet is already running. Not opening app.')
       app.quit()
     } 
-  }
-
-    
+  
   terminate_mercurywallet_process(init_tor_adapter);
   createWindow()
   }
