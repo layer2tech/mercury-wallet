@@ -5,6 +5,7 @@ const url = require('url');
 const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
+const confirm = require('confirm');
 const rootPath = require('electron-root-path').rootPath;
 const axios = require('axios').default;
 const process = require('process')
@@ -123,7 +124,7 @@ app.on('ready', () => {
       alert('An instance of mercurywallet is already running. Not opening app.')
     }
 
-    if(!confirm){
+    if(!bconfirm){
       app.quit()
     } 
   }

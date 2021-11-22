@@ -43,6 +43,7 @@
     "postinstall": "electron-builder install-app-deps",
     "build-wasm": "wasm-pack build --dev client-wasm",
     "app-windows": "yarn install-local && yarn install && yarn build && electron-builder -w -p always",
+    "app-windows-local-test": "yarn install-local && yarn install && yarn build && DEBUG=electron-builder electron-builder -w -p never",
     "app-linux": "yarn install-local && yarn install && yarn build && electron-builder -l AppImage -p always",
     "app-linux-local-test": "yarn install-local && yarn install && yarn build && DEBUG=electron-builder electron-builder -l AppImage -p never",
     "app-macos": "yarn install-local && yarn install && yarn build && electron-builder -m -p always",
