@@ -1203,8 +1203,9 @@ export class Wallet {
         
       }
     }
+
+    //this.activity.addItem(addr, ACTION.RECEIVED);
     return num_transfers + "../.." + error_message
-  
   }
 
 
