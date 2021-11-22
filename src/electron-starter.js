@@ -112,7 +112,7 @@ async function getTorAdapter(path) {
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   //Limit app to one instance
-  if(!app.requestSingleInstanceLock()){
+  if(!app.requestSingleInstanceLock() && getPlatform() !== 'win' ){
     alert('mercurywallet is already running. Not opening app.')
     app.quit()
   }
