@@ -117,12 +117,8 @@ app.on('ready', () => {
     app.quit();
   }
 
-  if(getPlatform() === 'linux' || getPlatform() === 'mac'){
-    kill_existing_tor_adapter(init_tor_adapter);
-  } else {
-    init_tor_adapter()
-  }
-  
+  kill_existing_tor_adapter(init_tor_adapter);
+ 
   createWindow(); 
 });
 
@@ -209,7 +205,12 @@ async function init_tor_adapter(){
 }
 
 function kill_existing_tor_adapter(init_new) {
-  let command = 'ps ux | grep mercury-wallet | grep -v grep | grep tor-adapter | awk -F \' \' \'{print $2}\''
+  let command
+  if(getPlatform() === 'win'){
+    command = 'wmic process where name=\'mercurywallet.exe\' get ProcessId'
+  } else {
+    command = 'ps ux | grep mercury-wallet | grep -v grep | grep tor-adapter | awk -F \' \' \'{print $2}\''
+  }
   exec(command, (error, stdout, stderr) => {
     if(error) {
       console.error(`kill_existing_tor_adapter - exec error: ${error}`)

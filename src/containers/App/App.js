@@ -6,6 +6,7 @@ SendStatecoinPage, ReceiveStatecoinPage, SwapPage, BackupTxPage, LoadWalletPage,
 import { getWalletName } from '../../features/WalletDataSlice';
 import { Header } from '../../components'
 
+
 import './App.css';
 import './AppDarkMode.css';
 
@@ -27,7 +28,7 @@ const App = () => {
   }, [dark_mode]);
   return (
     <div className={`App ${dark_mode === '1' ? 'dark-mode': ''}`}>
-      {walletLoaded ? <title>Mercury Wallet - {walletName}</title> : <title>Mercury Wallet</title>}
+      {walletLoaded ? <title>{app.getName()} {app.getVersion()} - {walletName}</title> : <title>{app.getName()} {app.getVersion()}</title>}
       <Router>
       <Header walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded} />
       <Switch>
