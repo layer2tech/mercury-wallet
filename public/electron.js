@@ -207,11 +207,12 @@ function terminate_mercurywallet_process(init_new) {
   if(getPlatform() === 'win'){
     command = 'wmic process where name=\'mercurywallet.exe\' get ParentProcessId,ProcessId'
   } else {
-    command = 'ps axo \"pid,ppid,command\" | grep mercury | grep tor | grep -v grep'
+    command = 'echo `ps axo \"pid,ppid,command\" | grep mercury | grep tor | grep -v grep`'
   }
   exec(command, (error, stdout, stderr) => {
     if(error) {
       console.error(`terminate_mercurywallet_process- exec error: ${error}`)
+      console.log(`terminate_mercurywallet_process- exec error: ${error}`)
       return
     }
     if(stderr){
@@ -236,10 +237,12 @@ function terminate_mercurywallet_process(init_new) {
       }
     } else {
       pid_str=pid_arr[0].trim().replace(/\s+/g,' ').split(' ')[0]
-      pid=parseInt(pid_str)
+      if(pid_str){
+        pid=parseInt(pid_str)
+      }
     }
 
-    if(typeof pid === 'number'){
+    if(pid){
       console.log(`terminating existing mercurywallet process: ${pid}`)
       kill_process(pid, init_new)
       return
@@ -249,6 +252,59 @@ function terminate_mercurywallet_process(init_new) {
     return  
   })
 }
+  
+// Terminate the parent process of any running mercurywallet processes.
+function terminate_mercurywallet_process(init_new) {
+  let command
+  if(getPlatform() === 'win'){
+    command = 'wmic process where name=\'mercurywallet.exe\' get ParentProcessId,ProcessId'
+  } else {
+    command = 'echo `ps axo \"pid,ppid,command\" | grep mercury | grep tor | grep -v grep`'
+  }
+  exec(command, (error, stdout, stderr) => {
+    if(error) {
+      console.error(`terminate_mercurywallet_process- exec error: ${error}`)
+      console.log(`terminate_mercurywallet_process- exec error: ${error}`)
+      return
+    }
+    if(stderr){
+      console.log(`terminate_mercurywallet_process- error: ${stderr}`)
+      return
+    }
+  
+    let pid=null
+    //Split by new line
+    const pid_arr = stdout.split(/\r\n|\n\r|\n|\r/)
+    //If windows check this is not the current process or one of its child processes
+    if(getPlatform() === 'win'){
+      for(i=1; i<pid_arr.length; i++){
+        const tmp_arr = pid_arr[i].trim().replace(/\s+/g,' ').split(' ')
+        const ppid = parseInt(tmp_arr[0])
+        pid = ParseInt(tmp_arr[1])
+        if (ppid !== process.pid && pid !== process.pid) {
+          break;
+        } else {
+          pid=null
+        }
+      }
+    } else {
+      pid_str=pid_arr[0].trim().replace(/\s+/g,' ').split(' ')[0]
+      if(pid_str){
+        pid=parseInt(pid_str)
+      }
+    }
+
+    if(pid){
+      console.log(`terminating existing mercurywallet process: ${pid}`)
+      kill_process(pid, init_new)
+      return
+    } 
+
+    init_new()
+    return  
+  })
+}
+  
 
 async function on_exit(){
   await kill_tor();

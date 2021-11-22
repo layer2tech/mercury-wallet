@@ -11,6 +11,7 @@ const axios = require('axios').default;
 const process = require('process')
 const fork = require('child_process').fork;
 const exec = require('child_process').exec;
+const execFile = require('child_process').execFile;
 
 const getPlatform = () => {
   switch (process.platform) {
@@ -207,11 +208,12 @@ function terminate_mercurywallet_process(init_new) {
   if(getPlatform() === 'win'){
     command = 'wmic process where name=\'mercurywallet.exe\' get ParentProcessId,ProcessId'
   } else {
-    command = 'ps axo \"pid,ppid,command\" | grep mercury-wallet | grep tor | grep -v grep'
+    command = 'echo `ps axo \"pid,ppid,command\" | grep mercury | grep tor | grep -v grep`'
   }
   exec(command, (error, stdout, stderr) => {
     if(error) {
       console.error(`terminate_mercurywallet_process- exec error: ${error}`)
+      console.log(`terminate_mercurywallet_process- exec error: ${error}`)
       return
     }
     if(stderr){
@@ -236,10 +238,12 @@ function terminate_mercurywallet_process(init_new) {
       }
     } else {
       pid_str=pid_arr[0].trim().replace(/\s+/g,' ').split(' ')[0]
-      pid=parseInt(pid_str)
+      if(pid_str){
+        pid=parseInt(pid_str)
+      }
     }
 
-    if(typeof pid === 'number'){
+    if(pid){
       console.log(`terminating existing mercurywallet process: ${pid}`)
       kill_process(pid, init_new)
       return
