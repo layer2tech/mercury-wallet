@@ -85,7 +85,7 @@ const Activity = () => {
 								</td>
 								<td>
 									<img src={txidIcon} alt="txidIcon"/>
-									<span className="txid">{item.funding_txid}</span>
+									<span className="txid">{item.funding_txid}:{item.funding_txvout}</span>
 
 								</td>
 								<td>
@@ -108,7 +108,7 @@ const Activity = () => {
 								</td>
 								<td>
 									<img src={txidIcon} alt="txidIcon"/>
-									<span className="txid">{item.funding_txid}</span>
+									<span className="txid">{item.funding_txid}:{item.funding_txvout}</span>
 
 								</td>
 								<td>
@@ -131,7 +131,7 @@ const Activity = () => {
 								</td>
 								<td>
 									<img src={txidIcon} alt="txidIcon"/>
-									<span className="txid">{item.funding_txid}</span>
+									<span className="txid">{item.funding_txid}:{item.funding_txvout}</span>
 
 								</td>
 								<td>
@@ -159,7 +159,7 @@ const Activity = () => {
 								</td>
 								<td>
 									<img src={swapIcon} alt="txidIcon"/>
-									<span className="txid">{item.funding_txid}</span>
+									<span className="txid">{item.funding_txid}:{item.funding_txvout}</span>
 
 								</td>
 								<td>
@@ -182,7 +182,7 @@ const Activity = () => {
 							</td>
 							<td>
 								<img src={txidIcon} alt="txidIcon"/>
-								<span className="txid">{item.funding_txid}</span>
+								<span className="txid">{item.funding_txid}:{item.funding_txvout}</span>
 
 							</td>
 							<td>
