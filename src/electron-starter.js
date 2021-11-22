@@ -219,7 +219,7 @@ function terminate_mercurywallet_process(init_new) {
       return
     }
   
-    let pids=null
+    let pid=null
     //Split by new line
     const pid_arr = stdout.split(/\r\n|\n\r|\n|\r/)
     //If windows check this is not the current process or one of its child processes
