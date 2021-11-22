@@ -28,7 +28,7 @@ const App = () => {
   }, [dark_mode]);
   return (
     <div className={`App ${dark_mode === '1' ? 'dark-mode': ''}`}>
-      {walletLoaded ? <title>{app.getName()} {app.getVersion()} - {walletName}</title> : <title>{app.getName()} {app.getVersion()}</title>}
+      {walletLoaded ? <title>Mercury Wallet - {walletName}</title> : <title>Mercury Wallet</title>}
       <Router>
       <Header walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded} />
       <Switch>

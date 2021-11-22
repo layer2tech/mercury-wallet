@@ -70,9 +70,10 @@ function createWindow() {
       }
     });
 
-  if (process.platform !== 'darwin') {
-        mainWindow.setMenu(null);
-  }
+    if (process.platform !== 'darwin') {
+      mainWindow.setMenu(null);
+    }
+    
     
   // Open links in systems default browser
   mainWindow.webContents.on('new-window', function(e, url) {
@@ -117,20 +118,14 @@ app.on('ready', () => {
       app.quit();
     }
   
-    if(getPlatform() === 'linux' || getPlatform() === 'mac'){
-      kill_existing_tor_adapter(init_tor_adapter);
-    } else {
-      init_tor_adapter()
-    }
-
+    terminate_mercurywallet_process(init_tor_adapter);
+    
     createWindow();
   }
 );
 
 app.on('window-all-closed', async () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 app.on('activate', () => {
@@ -205,30 +200,39 @@ async function init_tor_adapter() {
   );
 }
 
-function kill_existing_tor_adapter(init_new) {
-  let command = 'ps ux | grep mercury-wallet | grep -v grep | grep tor-adapter | awk -F \' \' \'{print $2}\''
+// Terminate the parent process of any running mercurywallet processes.
+function terminate_mercurywallet_process(init_new) {
+  let command
+  if(getPlatform() === 'win'){
+    command = 'wmic process where name=\'mercurywallet.exe\' get ProcessId'
+  } else if(getPlatform() === 'mac') {
+    command = 'ps ux | grep mercurywallet.app | awk -F \' \' \'{print $2}\''
+  } else {
+    command = 'ps ux | grep mercurywallet | awk -F \' \' \'{print $2}\''
+  }
   exec(command, (error, stdout, stderr) => {
     if(error) {
-      console.error(`kill_existing_tor_adapter - exec error: ${error}`)
+      console.error(`terminate_mercurywallet_process- exec error: ${error}`)
       return
     }
     if(stderr){
-      console.log(`kill_existing_tor_adapter - error: ${stderr}`)
+      console.log(`terminate_mercurywallet_process- error: ${stderr}`)
       return
     }
-    let pid = parseInt(stdout)
-    if(stdout.slice(0,-1).match(/^[0-9]+$/) != null && typeof pid === 'number'){
-        console.log(`killing existing tor adapter process: ${pid}`)
+    const pid_str = stdout.split('\r\n|\n\r|\n|\r')[0]
+    if(pid_str.match(/^[0-9]+$/) != null){
+      const pid = parseInt(stdout)
+      if(typeof pid === 'number'){
+        console.log(`terminating existing mercurywallet process: ${pid}`)
         kill_process(pid, init_new)
         return
-    } else {
-      init_new()
-      return  
+      } 
     }
-        
+    init_new()
+    return  
   })
 }
-  
+
 async function on_exit(){
   await kill_tor();
 }
