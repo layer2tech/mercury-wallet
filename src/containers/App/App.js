@@ -18,6 +18,8 @@ const App = () => {
   let walletName
   if(walletLoaded){ walletName = getWalletName() }
 
+  const version = require("../../../package.json").version;
+
   useEffect(() => {
     if(dark_mode === '1') {
       document.body.classList.add('dark-mode');
@@ -27,7 +29,7 @@ const App = () => {
   }, [dark_mode]);
   return (
     <div className={`App ${dark_mode === '1' ? 'dark-mode': ''}`}>
-      {walletLoaded ? <title>Mercury Wallet - {walletName}</title> : <title>Mercury Wallet</title>}
+      {walletLoaded ? <title>Mercury Wallet {version} - {walletName} </title> : <title>Mercury Wallet {version}</title>}
       <Router>
       <Header walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded} />
       <Switch>
