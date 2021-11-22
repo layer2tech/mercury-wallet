@@ -46,5 +46,6 @@ export const ACTION = {
    WITHDRAW: "W",
    SWAP: "S",
    EXPIRED: "E",
+   RECEIVED: "R"
 };
 Object.freeze(ACTION);
