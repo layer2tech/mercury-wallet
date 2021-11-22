@@ -533,8 +533,17 @@ export class Wallet {
 
     return backup_tx_data
   }
+
+  getActivityLog(){
+    return this.activity;
+  }
+
+  addActivityItem(id:string, action:string){
+    this.activity.addItem(id, action);
+  }
+
   // ActivityLog data with relevant Coin data
-  getActivityLog(depth: number) {
+  getActivityLogItems(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
       let coin = this.statecoins.getCoin(item.statecoin_id) // should err here if no coin found
       return {

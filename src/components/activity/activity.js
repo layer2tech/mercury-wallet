@@ -1,7 +1,7 @@
 import React from 'react';
 import Moment from 'react-moment';
 import { fromSatoshi } from '../../wallet/util'
-import { callGetActivityLog,callGetAllStatecoins } from '../../features/WalletDataSlice'
+import { callGetActivityLogItems,callGetAllStatecoins } from '../../features/WalletDataSlice'
 import txidIcon from '../../images/txid-icon.png';
 import createIcon from '../../images/create-icon-dep.png';
 import transferIcon from '../../images/transfer-icon.png';
@@ -11,7 +11,7 @@ import EmptyCoinDisplay from '../coins/EmptyCoinDisplay/EmptyCoinDisplay';
 import './activity.css';
 
 const Activity = () => {
-    let activity_data = callGetActivityLog();
+    let activity_data = callGetActivityLogItems();
 	let statecoins = callGetAllStatecoins();
 
 	function shortenString(long){
@@ -187,14 +187,32 @@ const Activity = () => {
 							</td>
 							<td>
 								<span>Coin Initialized</span>
-								{/* <span className="green"> Initialized</span> */}
-
 							</td>
 						</tr>
 					</tbody>
-				</table>
-				:null}
-				</div>
+					</table>
+					:null}
+					{item.action === 'R'?
+    				<table>
+						<tbody>
+							<tr>
+								<td>
+									<img src={withrowIcon} alt="receiveIcon"/>
+									<span><Moment format="HH:mm A">{item.date}</Moment> </span>
+									<span >Received 1 Statecoin</span>
+								</td>
+									<td>
+										<img src={txidIcon} alt="txidIcon"/>
+										<span className="txid">{item.funding_txid}:{item.funding_txvout}</span>
+									</td>
+									<td>
+										<span>Coin Received</span>
+									</td>
+							</tr>
+						</tbody>
+					</table>
+					:null}
+			</div>
 			))}
         </div>
     ))

@@ -35,7 +35,7 @@ import {
   callAddDescription,
   callGetConfig,
   callGetStateCoin,
-  callGetActivityLog} from '../../features/WalletDataSlice';
+  callGetActivityLogItems} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -106,7 +106,7 @@ const Coins = (props) => {
     const [currentItem, setCurrentItem] = useState(null);
     const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
 
-    let activityData = callGetActivityLog()
+    let activityData = callGetActivityLogItems()
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
     let current_config;

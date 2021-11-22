@@ -249,8 +249,17 @@ export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
 export const callGetUnconfirmedStatecoinsDisplayData = () => {
   return wallet.getUnconfirmedStatecoinsDisplayData()
 }
+
+export const callAddActivityItem = (id, action) =>{
+  wallet.addActivityItem(id, action);
+}
+
 export const callGetActivityLog = () => {
-  return wallet.getActivityLog(10)
+  return wallet.getActivityLog();
+}
+
+export const callGetActivityLogItems = () => {
+  return wallet.getActivityLogItems(10)
 }
 export const callGetFeeInfo = () => {
   return getFeeInfo(wallet.http_client)
