@@ -541,7 +541,8 @@ export class Wallet {
         date: item.date,
         action: item.action,
         value: coin ? coin.value : "",
-        funding_txid: coin? coin.funding_txid: ""
+        funding_txid: coin? coin.funding_txid: "",
+        funding_txvout: coin? coin.funding_vout: "",
       }
     })
   }

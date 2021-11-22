@@ -148,8 +148,8 @@ const Activity = () => {
 
 						<tbody>
 							<span className = "tooltip" >
-								<div><b>New TxID: </b>{swapTxid(item.funding_txid,item.date)}</div>
-								<div><b>Swapped TxId: </b>{shortenString(item.funding_txid)}</div>
+								<div><b>New TxID: </b>{swapTxid(item.funding_txid,item.date)}:{item.funding_txvout}</div>
+								<div><b>Swapped TxId: </b>{shortenString(item.funding_txid)}:{item.funding_txvout}</div>
 							</span>
 							<tr>
 								<td>
