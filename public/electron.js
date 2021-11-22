@@ -120,12 +120,7 @@ app.on('ready', () => {
       app.quit()
     } 
   
-    if(getPlatform() !== 'win'){
-      terminate_mercurywallet_process(init_tor_adapter);
-    } else {
-      init_tor_adapter()
-    }
-  
+  terminate_mercurywallet_process(init_tor_adapter);
   createWindow()
   }
 );
