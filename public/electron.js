@@ -215,10 +215,8 @@ function terminate_mercurywallet_process(init_new) {
   let command
   if(getPlatform() === 'win'){
     command = 'wmic process where name=\'mercurywallet.exe\' get ParentProcessId,ProcessId'
-  } else if(getPlatform() === 'mac') {
-    command = 'ps axo pid,ppid,command | grep mercurywallet.app | grep tor | grep -v grep'
   } else {
-    command = 'ps axo pid,ppid,command | grep mercurywallet | grep tor | grep -v grep'
+    command = 'ps axo \"pid,ppid,command\" | grep mercury | grep tor | grep -v grep'
   }
   exec(command, (error, stdout, stderr) => {
     if(error) {
