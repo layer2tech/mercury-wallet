@@ -115,7 +115,7 @@ async function getTorAdapter(path) {
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   //Limit app to one instance
-  if(!app.requestSingleInstanceLock()){
+  if(!app.requestSingleInstanceLock() && getPlatform() !== 'win'){
       alert('mercurywallet is already running. Not opening app.')
       app.quit()
     } 
@@ -312,9 +312,7 @@ async function on_exit(){
 
 async function kill_tor(){
   console.log("terminating the tor adapter process...")
-  if(ta_process){
-    await kill_process(ta_process.pid)
-  }
+  await kill_process(ta_process.pid)
 }
 
 async function kill_process(pid, init_new){
