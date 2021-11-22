@@ -43,6 +43,13 @@ torrc = joinPath(resourcesPath, 'etc', 'torrc');
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
 
+let term_existing = false;
+for(let i=0; i<process.argv.length;i++){
+  if (process.argv[i].includes('term_existing')){
+    term_existing=true
+  }
+}
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -112,17 +119,12 @@ async function getTorAdapter(path) {
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   //Limit app to one instance
-  if(!app.requestSingleInstanceLock()){
+  if(!app.requestSingleInstanceLock() && !(term_existing && getPlatform() === 'win') ){
     alert('mercurywallet is already running. Not opening app.')
     app.quit()
   }
 
-  if(getPlatform() !== 'win'){
-    terminate_mercurywallet_process(init_tor_adapter);
-  } else {
-    init_tor_adapter()
-  }
-
+  terminate_mercurywallet_process(init_tor_adapter);
   createWindow()
   }
 );
@@ -265,7 +267,9 @@ async function on_exit(){
 
 async function kill_tor(){
     console.log("terminating the tor adapter process...")
-    await kill_process(ta_process.pid)
+    if(ta_process){
+      await kill_process(ta_process.pid)
+    }
 }
 
 async function kill_process(pid, init_new){
