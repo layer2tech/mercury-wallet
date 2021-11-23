@@ -54,6 +54,14 @@ if(isDev) {
 }
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}`: `${joinPath(execPath, 'tor')}`;
+
+let term_existing = false;
+for(let i=0; i<process.argv.length;i++){
+  if (process.argv[i].includes('term_existing')){
+    term_existing=true
+  }
+}
+
 let mainWindow;
 
 function createWindow() {
@@ -228,7 +236,7 @@ function terminate_mercurywallet_process(init_new) {
       for(i=1; i<pid_arr.length; i++){
         const tmp_arr = pid_arr[i].trim().replace(/\s+/g,' ').split(' ')
         const ppid = parseInt(tmp_arr[0])
-        pid = ParseInt(tmp_arr[1])
+        pid = parseInt(tmp_arr[1])
         if (ppid !== process.pid && pid !== process.pid) {
           break;
         } else {
