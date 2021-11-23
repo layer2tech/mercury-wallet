@@ -146,29 +146,55 @@ class TorClient {
     }
 
     async stopTorNode(){
-        console.log("stop tor node");
-        while(true){
-                        
-            console.log("sending shutdown signal")
-   
-            await this.control.signalShutdown(function (err, status) {
-                if(err){
-                    let err_out = new Error( 'Error communicating with Tor ControlPort\n' + err )
-                    throw err_out;
-                }
-            });              
-         
-            console.log(await this.isNodeRunning());
-            if(await this.isNodeRunning() == false){  
-                console.log("shutdown complete");
-                break;
-            }            
-
-
-            await this.sleep(1000);
+        console.log(`terminating tor node process with SIGTERM signal`)
+        this.term_proc()
+        try {
+            //check if still running
+            this.signal_proc(0)
+            //if still running wait, check again and send the kill signal
+            console.log("tor node process still running - waiting 1 second...")
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            this.signal_proc(0)
+            console.log("tor node process still running - waiting 1 second...")
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            this.signal_proc(0)
+            console.log("tor node process still running - sending kill signal...")
+            this.kill_proc()
+        } catch (err) {
+            console.log(err?.message)
+            return
         }
-        await this.sleep(1000);
+        throw new Error(`Unable to shut down tor node with process id ${this.tor_proc.pid}\n`)
     }
+
+    signal_proc(signal) {
+        const pid = this?.tor_proc?.pid
+        if(pid){
+            process.kill(pid, signal)
+        }
+    }
+
+    term_proc() {
+        this.signal_proc("SIGTERM")
+    }
+
+    int_proc() {
+        this.signal_proc("SIGINT")
+    }
+
+    kill_proc() {
+        this.signal_proc("SIGKILL")
+    }
+
+    async exists_proc() {
+        try {
+            this.signal_proc(0)
+            return true
+        } catch(err){
+            return false
+        }
+    }
+
 
     async newTorConnection() {
         //await this.sendSignal('NEWNYM');

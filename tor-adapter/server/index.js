@@ -235,24 +235,26 @@ app.get('/tor_endpoints', function(req,res) {
   res.status(200).json(response);
 });
 
-app.get('/tor_adapter/shutdown', async function(req,res) {
-  try {
-    let response = await tor.stopTorNode();
-    res.status(200).json(response);
-    process.exit();
-  } catch (err) {
-    res.status(400).json(`Shutdown failed: ${err}`);
-  }
+process.once('SIGINT', async function (code) {
+  console.log('SIGINT received...');
+  await shutdown()
 });
 
-app.get('/tor_adapter/shutdown/tor', async function(req,res) {
-  try {
-    let response = await tor.stopTorNode();
-    res.status(200).json(response);
-  } catch (err) {
-    res.status(400).json(`Shutdown failed: ${err}`);
-  }
+process.once('SIGTERM', async function (code) {
+  console.log('SIGTERM received...');
+  await shutdown()
 });
+
+
+async function shutdown() {
+  try{
+    await tor.stopTorNode();
+  } catch (err) {
+    console.log('error stopping to node - sending the kill signal...');
+    tor.kill_proc()
+  }
+  process.exit(0);
+}
 
 app.get('/electrs/*', function(req,res) {
   let path = req.path.replace('\/electrs','')

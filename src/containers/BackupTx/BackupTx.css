@@ -235,8 +235,12 @@
     padding: 8px 8px;
     border-radius: 4px;
     cursor: pointer;
-
 }
+
+.dark-mode .private-key-code .copy-btn-wrap > div{
+    background:black;
+}
+
 .minus {
     background-image: url("../../images/decrease.png");
     background-repeat: no-repeat;

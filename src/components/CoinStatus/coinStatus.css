@@ -37,6 +37,13 @@
     display:none;
   }
 }
+@media(max-width:768px){
+  .IN_TRANSFER .coin-status{
+    align-items: flex-start; 
+  }
+}
+
+
 
 @media(min-width:992px){
   .withdraw .Body .coin-status .coin-status-details{
@@ -47,7 +54,6 @@
     display:block;
   }
 }
-
 
 .coin-status.coin-status-modal .coin-status-title {
   font-size: 1rem;

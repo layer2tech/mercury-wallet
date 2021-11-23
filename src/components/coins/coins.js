@@ -35,7 +35,7 @@ import {
   callAddDescription,
   callGetConfig,
   callGetStateCoin,
-  callGetActivityLog} from '../../features/WalletDataSlice';
+  callGetActivityLogItems} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -106,7 +106,7 @@ const Coins = (props) => {
     const [currentItem, setCurrentItem] = useState(null);
     const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
 
-    let activityData = callGetActivityLog()
+    let activityData = callGetActivityLogItems()
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
     let current_config;
@@ -365,9 +365,9 @@ const Coins = (props) => {
         return {
           icon1: anon_icon_none,
           icon2: anon_icon2_none,
-          score_desc: "Statecoin created in wallet",
+          score_desc: "Original",
           msg: " this statecoin was created in this wallet",
-          rounds: "Statecoin created in wallet",
+          rounds: "Original",
           rounds_msg: " this statecoin was created in this wallet",
         }
       }

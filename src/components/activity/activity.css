@@ -85,6 +85,13 @@ table span.grey {
    font-size: 14px;
    font-weight: 400;
 }
+
+.dark-mode table .tooltip:hover {
+   background-color: #202020;
+   box-shadow: rgba(0, 0, 0, 1) 0px 3px 3px 0px;
+}
+
+
 @media only screen and (max-width: 768px) {
    table tbody tr {
       display: block;

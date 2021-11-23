@@ -108,7 +108,7 @@ const PanelConnectivity = (props) => {
     //Add spinner for loading connection to Electrum server
     electrum_ping_ms !== null? (connection_pending[2].classList.add("connected")):(connection_pending[2].classList.remove("connected")) 
   },[fee_info.deposit,swap_groups_array.length,block_height, server_ping_ms, conductor_ping_ms, electrum_ping_ms])
-
+  
   return (
       <div className="Body small accordion connection-wrap">
           <div className="Collapse">
@@ -159,7 +159,7 @@ const PanelConnectivity = (props) => {
                         {state.isServerHover ? 
                         (<span className ={state.isServerHover ? "url-hover server": "url-hide server"}>{ current_config.state_entity_endpoint}</span>)
                         :
-                        (` ${shortenURLs(current_config.state_entity_endpoint[0])}`)}
+                        (` ${shortenURLs(current_config.state_entity_endpoint)}`)}
 
                     </span>
                     <span>Deposit Fee: <b>{fee_info.deposit /100}%</b></span>
@@ -174,7 +174,7 @@ const PanelConnectivity = (props) => {
                         {state.isSwapsHover ? 
                         (<span className ={state.isSwapsHover ? "url-hover swaps": 'url-hide swaps'}>{ current_config.swap_conductor_endpoint}</span>)
                         :
-                        (` ${shortenURLs(current_config.swap_conductor_endpoint[0])}`)}
+                        (` ${shortenURLs(current_config.swap_conductor_endpoint)}`)}
 
                     </span>
                     <span>Pending Swaps: <b>{pending_swaps}</b></span>
@@ -191,7 +191,7 @@ const PanelConnectivity = (props) => {
                             <span className = {state.isBTCHover ? "url-hover btc" : "url-hide btc"}>
                                 {current_config.electrum_config.host}
                             </span>
-                        ):(`${shortenURLs(current_config.electrum_config.host[0])}`)}
+                        ):(`${shortenURLs(current_config.electrum_config.host)}`)}
                     </span>
                     <span>Port: {current_config.electrum_config.port}</span>
                     <span>Protocol: {current_config.electrum_config.protocol}</span>

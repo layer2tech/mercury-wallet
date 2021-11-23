@@ -61,12 +61,12 @@ describe('Wallet', function() {
     expect(proof_key_bip32.privateKey).toEqual(bip32.privateKey)
   });
 
-  test('getActivityLog', function() {
-    let activity_log = wallet.getActivityLog(0);
+  test('getActivityLogItems', function() {
+    let activity_log = wallet.getActivityLogItems(0);
     expect(activity_log.length).toBe(0)
-    activity_log = wallet.getActivityLog(2);
+    activity_log = wallet.getActivityLogItems(2);
     expect(activity_log.length).toBe(2)
-    activity_log = wallet.getActivityLog(10);
+    activity_log = wallet.getActivityLogItems(10);
     expect(activity_log.length).toBeLessThan(10)
     for (let i = 0; i < activity_log.length; i++) {
       expect(activity_log[i]).toEqual(expect.objectContaining(
@@ -81,10 +81,10 @@ describe('Wallet', function() {
 
   test('addStatecoin', function() {
     let [coins_before_add, total_before] = wallet.getUnspentStatecoins()
-    let activity_log_before_add = wallet.getActivityLog(100)
+    let activity_log_before_add = wallet.getActivityLogItems(100)
     wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""}, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
     let [coins_after_add, total_after] = wallet.getUnspentStatecoins()
-    let activity_log_after_add = wallet.getActivityLog(100)
+    let activity_log_after_add = wallet.getActivityLogItems(100)
     expect(coins_before_add.length).toEqual(coins_after_add.length - 1)
     expect(activity_log_before_add.length).toEqual(activity_log_after_add.length - 1)
   });
