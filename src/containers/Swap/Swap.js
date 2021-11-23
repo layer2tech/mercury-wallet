@@ -133,7 +133,7 @@ const SwapPage = () => {
               return
             }
             if (res.error===undefined) {
-              if(statecoin.is_deposited){
+              if(res.payload?.is_deposited){
                 dispatch(setNotification({msg:"Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
                 dispatch(removeCoinFromSwapRecords(selectedCoin));
               } else {
