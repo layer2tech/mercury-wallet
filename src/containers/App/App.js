@@ -6,6 +6,7 @@ SendStatecoinPage, ReceiveStatecoinPage, SwapPage, BackupTxPage, LoadWalletPage,
 import { getWalletName } from '../../features/WalletDataSlice';
 import { Header } from '../../components'
 
+
 import './App.css';
 import './AppDarkMode.css';
 
