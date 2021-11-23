@@ -1,7 +1,8 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux';
-import {Coins, StdButton, AddressInput, SendModal} from "../../components";
+import {Coins, StdButton, AddressInput, SendModal, ConfirmPopup, Loading} from "../../components";
+
 import {fromSatoshi} from '../../wallet/util';
 import {decodeSCEAddress, encodeMessage} from '../../wallet/util';
 import {isWalletLoaded, callTransferSender, setError, setNotification} from '../../features/WalletDataSlice';
@@ -21,27 +22,24 @@ const SendStatecoinPage = () => {
   // eslint-disable-next-line no-unused-vars
   const [transferMsg3, setTransferMsg3] = useState('');
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
+  const [loading, setLoading] = useState(false)
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
   };
-
-  //Reference set on send button
-  let sendRef = useRef();
-
   //When Send Modal (with transfer key) opens send button reactivated 
   useEffect(()=> {
-    if(openSendModal.show === true){
-      sendRef.current.removeAttribute("disabled");
+    if(transferMsg3 !== ''){
+      setLoading(false)
     }
-  },[openSendModal])
+  },[transferMsg3])
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
   }
- 
-  const sendButtonAction = async (event) => {
+
+  const sendButtonCheck = async () => {
     // check statechain is chosen
     if (selectedCoin == null) {
       dispatch(setError({msg: "Please choose a StateCoin to send."}))
@@ -51,6 +49,21 @@ const SendStatecoinPage = () => {
       dispatch(setError({msg: "Please enter an StateCoin address to send to."}))
       return
     }
+    else{
+      await sendButtonAction()
+    }
+  }
+ 
+  const sendButtonAction = async () => {
+    // check statechain is chosen
+    // if (selectedCoin == null) {
+    //   dispatch(setError({msg: "Please choose a StateCoin to send."}))
+    //   return
+    // }
+    // if (!inputAddr) {
+    //   dispatch(setError({msg: "Please enter an StateCoin address to send to."}))
+    //   return
+    // }
     
     var input_pubkey = "";
     
@@ -73,13 +86,10 @@ const SendStatecoinPage = () => {
       return
     }
     setOpenSendModal({show:true,
-                      value: coinDetails.value,
-                      coinAddress: inputAddr})
+      value: coinDetails.value,
+      coinAddress: inputAddr})
 
-    if(sendRef.current){
-      //Send button disabled after press
-      sendRef.current.setAttribute("disabled","disabled");
-    }
+    setLoading(true)
     dispatch(callTransferSender({"shared_key_id": selectedCoin, "rec_addr": input_pubkey}))
     .then(res => {
       if (res.error===undefined) {
@@ -99,8 +109,6 @@ const SendStatecoinPage = () => {
         })
       }
     })
-      // setPreventDoubleClick(true)
-    // }
   }
 
   /*
@@ -116,6 +124,7 @@ const SendStatecoinPage = () => {
     setCoinDetails({})
     dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer key to finalise."}))
   }
+  console.log('loading: ',loading)
 
   return (
       <div className="container">
@@ -191,9 +200,11 @@ const SendStatecoinPage = () => {
                           </tbody>
                       </table>
                       */}
-                      <button ref = {sendRef} type="action-btn-normal" className="btn" onClick={e => sendButtonAction(e)}>
-                          SEND STATECOIN
-                      </button>
+                      <ConfirmPopup onOk = {sendButtonCheck}>
+                        <button type="action-btn-normal"  className={`btn send-action-button ${loading}`} >
+                          {loading? (<Loading />) : "SEND STATECOIN"}
+                        </button>
+                      </ConfirmPopup >
                   </div>
               </div>
           </div>

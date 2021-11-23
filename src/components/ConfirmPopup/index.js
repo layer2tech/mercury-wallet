@@ -1,4 +1,4 @@
-import React, { cloneElement, useState } from "react";
+import React, { cloneElement, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Modal } from "react-bootstrap";
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,14 +12,27 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
   const [showModal, setShowModal] = useState(false);
   const [closeText, setCloseText] = useState('Are you sure?');
   const swapRecords = useSelector(state => state.walletData.swapRecords);
+
+  useEffect(()=> {
+
+    if(children.props.className.includes('true')){
+      setShowModal(false)
+    }
+
+  },[children.props.className,showModal])
   
   const handleClick = () => {
     setShowModal(true);
     if(children.props.className === 'header-logout'){
       setCloseText('Are you sure you want to log out?')
-    }if(swapRecords.length > 0){
+    }else if(swapRecords.length > 0){
       setCloseText('Your swaps will be cancelled, are you sure?');
-    } else{
+    } else if(children.props.className.includes('send-action-button')){
+      setCloseText('Confirm send, statecoin ready to be sent immediately.')
+    } else if(children.props.className.includes('withdraw-button')){
+      setCloseText('Confirm withdraw, statecoin(s) ready to be sent immediately.')
+    } 
+    else{
       setCloseText('Are you sure?')
     }
   }
@@ -28,11 +41,14 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
     setShowModal(false);
   };
   const handleConfirm = (event) => {
-    // ensure to delete all recorded swapped coins then close wallet
-    dispatch(removeAllCoinsFromSwapRecords());
+    if(children.props.className === 'header-logout'){
+      // ensure to delete all recorded swapped coins then close wallet
+      dispatch(removeAllCoinsFromSwapRecords());
+    }
     onOk && onOk();
     handleClose();
   };
+
   return (
     <>
       <Modal show={showModal} onHide={handleClose} className="modal">
@@ -48,6 +64,7 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
           </button>
         </div>
       </Modal>
+
       {cloneElement(children, { onClick: handleClick })}
     </>
   );
