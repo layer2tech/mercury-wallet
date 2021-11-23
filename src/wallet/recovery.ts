@@ -9,8 +9,7 @@ let cloneDeep = require('lodash.clonedeep');
 
 // number of keys to generate per recovery call. If no statecoins are found for this number
 // of keys then assume there are no more statecoins owned by this wallet.
-const NUM_KEYS_PER_RECOVERY_ATTEMPT = 100;
-const TOTAL_NUM_KEYS = 900;
+const NUM_KEYS_PER_RECOVERY_ATTEMPT = 250;
 
 // Send all proof keys to server to check for statecoins owned by this wallet.
 // Should be used as a last resort only due to privacy leakage.
@@ -24,15 +23,12 @@ export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> =
   addrs.push(addr);
   recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
   // Keep grabbing data until NUM_KEYS_PER_RECOVERY_ATTEMPT keys have no statecoins
-  let total_keys=0
-  while (total_keys < TOTAL_NUM_KEYS || new_recovery_data_load.length > 0) {
+  while (new_recovery_data_load.length > 0) {
     for (let i=0; i<NUM_KEYS_PER_RECOVERY_ATTEMPT; i++) {
       let addr = wallet.account.nextChainAddress(0);
       addrs.push(addr);
       recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
     }
-    total_keys = total_keys + NUM_KEYS_PER_RECOVERY_ATTEMPT
-    console.log(`get keys up to ${total_keys}`)
     new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
     recovery_request = [];
     recovery_data = recovery_data.concat(new_recovery_data_load);
