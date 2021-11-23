@@ -7,7 +7,7 @@ import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification, callGetConfig} from '../../features/WalletDataSlice';
-import {Coins, StdButton, AddressInput, Tutorial, CopiedButton} from "../../components";
+import {Coins, StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
 import {Modal, Spinner} from 'react-bootstrap';
@@ -315,9 +315,11 @@ const WithdrawPage = () => {
                           </tbody>
                       </table>                
                       */}
-                      <button type="button" className="btn" onClick={loading?(null):(withdrawButtonAction)}>
-                          {loading?(null):(<img src={withdrowIcon} alt="withdrowIcon"/>)}
-                          {loading?(<Loading/>):("Withdraw btc")}</button>
+                      <ConfirmPopup onOk = {withdrawButtonAction}>
+                        <button type="button" className={`btn withdraw-button ${loading}`} >
+                            {loading?(null):(<img src={withdrowIcon} alt="withdrowIcon"/>)}
+                            {loading?(<Loading/>):("Withdraw btc")}</button>
+                      </ConfirmPopup>
                   </div>
               </div>
           </div>
