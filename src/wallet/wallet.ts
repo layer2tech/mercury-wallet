@@ -815,6 +815,15 @@ export class Wallet {
         }
         if (!funding_tx_data[i].height) {
           log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
+          // check if coin txid has changed (due to RBF)
+          let coin = this.statecoins.getCoin(shared_key_id);
+          if (coin) {
+            if (coin.funding_txid != funding_tx_data[i].tx_hash && coin.value == funding_tx_data[i].value) {
+              console.log("RBF tx replacement");
+              coin.tx_backup = null;
+              coin.backup_confirm = false;
+            }
+          }
           this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i])
           this.saveStateCoinsList()
         } else {
