@@ -124,7 +124,6 @@ const SendStatecoinPage = () => {
     setCoinDetails({})
     dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer key to finalise."}))
   }
-  console.log('loading: ',loading)
 
   return (
       <div className="container">

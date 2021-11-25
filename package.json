@@ -1,5 +1,5 @@
 {
-  "name": "MercuryWallet",
+  "name": "mercurywallet",
   "jest": {
     "moduleDirectories": [
       "node_modules",
@@ -26,7 +26,7 @@
     }
   },
   "repository": "github:layer2tech/mercury-wallet",
-  "version": "v0.4.53",
+  "version": "v0.4.54",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "src/electron-starter.js",
@@ -40,6 +40,7 @@
     "eject": "react-scripts eject",
     "electron": "electron --inspect=5858 --testnet --term_existing .",
     "dev": "BROWSER=none nf start -p 3000",
+    "dev-windows": "cross-env BROWSER=none nf start -p 3000",
     "postinstall": "electron-builder install-app-deps",
     "build-wasm": "wasm-pack build --dev client-wasm",
     "app-windows": "yarn install-local && yarn install && yarn build && electron-builder -w -p always",
@@ -90,6 +91,7 @@
     "bootstrap": "^4.5.3",
     "buffer-json": "^2.0.0",
     "client-wasm": "file:client-wasm/pkg",
+    "cross-env": "^7.0.3",
     "eciesjs12b": "^0.3.11",
     "electron-devtools-installer": "^3.1.1",
     "electron-log": "^4.3.1",

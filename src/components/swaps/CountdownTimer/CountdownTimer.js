@@ -3,7 +3,7 @@ import './CountdownTimer.css';
 // Credit: Mateusz Rybczonec
 
 const CountdownTimer = (props) => {
-    const [initTime,setInitTime] = useState(60*60)
+    const [initTime,setInitTime] = useState(60*6)
     //Time needs updating when swap frequency changes
 
     const [timeRemaining,setTimeRemaining] = useState("")
@@ -14,11 +14,11 @@ const CountdownTimer = (props) => {
           },
           warning: {
             color: "orange",
-            threshold: 300
+            threshold: 120
           },
           alert: {
             color: "red",
-            threshold: 120
+            threshold: 60
           },
           finish: {
             color: "blue",
