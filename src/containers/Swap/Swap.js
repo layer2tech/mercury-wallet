@@ -99,20 +99,23 @@ const SwapPage = () => {
 
   const swapButtonAction = async () => {
     
-    // check statechain is chosen
+    // check electrum connection before swap start
     if (electrumServer === false){
       dispatch(setError({msg: "The Electrum server network connection is lost"}))
       return
     }
-
+    
+    // check statecoin is chosen before swap start
     if (selectedCoins.length === 0) {
       dispatch(setError({msg: "Please choose a StateCoin to swap."}))
       return
     }
     if(swapLoad.join === true){
+      // If swap Join Group button loading, then no action
       return
     }
 
+    // Warning on first swap group enter, to not exit wallet mid-swap
     dispatch(setWarning({key: "swap_punishment", msg: "WARNING! Exit the wallet whilst a swap is live causes the swap to fail and coins to be temporarily banned from entering swaps."}))
 
     selectedCoins.forEach(
