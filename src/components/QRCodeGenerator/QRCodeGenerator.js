@@ -9,7 +9,7 @@ const QRCodeGenerator = (props) => {
     const makeQRCodeString = (address, amount) => "bitcoin:"+address+"?amount="+amount;
 
     return(
-      <div class='qr-code'>
+      <div className='qr-code'>
         <QRCode value={makeQRCodeString(props.address, props.amount)}
         level='H'
       />
