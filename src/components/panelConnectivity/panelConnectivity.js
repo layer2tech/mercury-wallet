@@ -128,7 +128,7 @@ const PanelConnectivity = (props) => {
                       <input
                         readOnly
                         type="radio"
-                        checked={swap_groups_array.length}
+                        checked={swap_groups_array.length || conductor_ping_ms}
                       />
                       {conductor_ping_ms !== null ? ("Connected"):("Connecting")} to Swaps
                       <span className="checkmark"></span>
