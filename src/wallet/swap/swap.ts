@@ -8,6 +8,8 @@ import { getStateChain } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
+import { Wallet } from '../wallet'
+import { ACTION } from '../activity_log';
 
 let bitcoin = require("bitcoinjs-lib");
 
@@ -270,7 +272,8 @@ export const swapPhase3 = async (
   proof_key_der: BIP32Interface,
   new_proof_key_der: BIP32Interface,
   req_confirmations: number,
-  block_height: number | null
+  block_height: number | null,
+  wallet: Wallet
 ) => {
   // check statecoin is IN_SWAP
   if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Coin status is not IN_SWAP. Status: "+statecoin.status);
@@ -306,7 +309,7 @@ export const swapPhase3 = async (
   try{
     // if this part has not yet been called, call it.
     if (statecoin.swap_transfer_msg===null) {
-      statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key);
+      statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key, wallet, true);
     }
     if (statecoin.swap_batch_data===null) {
       statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);
@@ -348,6 +351,7 @@ export const swapPhase4 = async (
   http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
   statecoin: StateCoin,
+  wallet: Wallet
 ) => {
   // check statecoin is IN_SWAP
   if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Coin status is not IN_SWAP. Status: "+statecoin.status);
@@ -381,6 +385,8 @@ export const swapPhase4 = async (
   // Complete transfer for swap and receive new statecoin  
   try {
     let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
+    // Mark funds as spent in wallet
+    wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP);
     // Update coin status and num swap rounds
     statecoin.swap_status=SWAP_STATUS.End;
     statecoin_out.swap_rounds=statecoin.swap_rounds+1;
@@ -404,7 +410,7 @@ export const do_swap_poll = async(
   swap_size: number,
   new_proof_key_der: BIP32Interface,
   req_confirmations: number,
-  getBlockHeight: Function
+  wallet: Wallet
 ): Promise<StateCoin | null> => {
   if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already in swap pool.");
   if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already involved in swap.");
@@ -486,12 +492,12 @@ export const do_swap_poll = async(
                 throw new SwapRetryError(err)
               }
             }
-            await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, block_height);
+            await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, block_height, wallet);
             n_errs=0;
             break;
           }
           case SWAP_STATUS.Phase4: {
-            new_statecoin = await swapPhase4(http_client, wasm_client, statecoin);
+            new_statecoin = await swapPhase4(http_client, wasm_client, statecoin, wallet);
             n_errs=0;
           }
         }

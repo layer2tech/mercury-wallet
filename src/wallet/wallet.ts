@@ -949,7 +949,7 @@ export class Wallet {
           delay(100);
         }
       });
-      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this.getBlockHeight);
+      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this);
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
@@ -967,9 +967,6 @@ export class Wallet {
 
       this.setIfNewCoin(new_statecoin)
          
-      // Mark funds as spent in wallet
-      this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
-
       // update in wallet
       new_statecoin.swap_status = null;
       new_statecoin.setConfirmed();
