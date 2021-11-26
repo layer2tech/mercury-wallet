@@ -335,6 +335,9 @@ export const swapPhase3 = async (
       statecoin.value
     );
     
+    // Mark funds as spent in wallet
+    wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP);
+
     if(transfer_finalized_data !== null){
       // Update coin status
       statecoin.swap_transfer_finalized_data=transfer_finalized_data;
@@ -350,8 +353,7 @@ export const swapPhase3 = async (
 export const swapPhase4 = async (
   http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
-  statecoin: StateCoin,
-  wallet: Wallet
+  statecoin: StateCoin
 ) => {
   // check statecoin is IN_SWAP
   if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Coin status is not IN_SWAP. Status: "+statecoin.status);
@@ -385,8 +387,6 @@ export const swapPhase4 = async (
   // Complete transfer for swap and receive new statecoin  
   try {
     let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
-    // Mark funds as spent in wallet
-    wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP);
     // Update coin status and num swap rounds
     statecoin.swap_status=SWAP_STATUS.End;
     statecoin_out.swap_rounds=statecoin.swap_rounds+1;
@@ -497,7 +497,7 @@ export const do_swap_poll = async(
             break;
           }
           case SWAP_STATUS.Phase4: {
-            new_statecoin = await swapPhase4(http_client, wasm_client, statecoin, wallet);
+            new_statecoin = await swapPhase4(http_client, wasm_client, statecoin);
             n_errs=0;
           }
         }
