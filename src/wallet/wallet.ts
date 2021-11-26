@@ -975,9 +975,10 @@ export class Wallet {
       new_statecoin.setConfirmed();
       new_statecoin.sc_address = encodeSCEAddress(new_statecoin.proof_key)
       this.statecoins.addCoin(new_statecoin);
+      this.saveStateCoinsList();
 
       log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
-      this.saveStateCoinsList();
+      
 
       if(statecoin.swap_auto){
         log.info('Auto swap  started, with new statecoin:' + new_statecoin.shared_key_id);
@@ -1095,10 +1096,7 @@ export class Wallet {
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     
-    let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr)
-
-    // Mark funds as spent in wallet
-    this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER, transfer_sender);
+    let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, this)
 
     log.info("Transfer Sender complete.");
     this.saveStateCoinsList();
@@ -1145,9 +1143,10 @@ export class Wallet {
     // update in wallet
     statecoin_finalized.setConfirmed();
     this.statecoins.addCoin(statecoin_finalized);
+    this.saveStateCoinsList();
 
     log.info("Transfer Finalize complete.")
-    this.saveStateCoinsList();
+    
     return statecoin_finalized
   }
 

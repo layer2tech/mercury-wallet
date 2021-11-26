@@ -120,7 +120,7 @@ async function getTorAdapter(path) {
 app.on('ready', () => {
   //Limit app to one instance
   if(!app.requestSingleInstanceLock() && !(term_existing && getPlatform() === 'win') ){
-    alert('mercurywallet is already running. Not opening app.')
+    alert('mercurywallet is ing. Not opening app.')
     app.quit()
   }
 
