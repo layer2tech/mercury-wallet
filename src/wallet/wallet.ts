@@ -971,19 +971,18 @@ export class Wallet {
       log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
       this.saveStateCoinsList();
 
-      if(statecoin.swap_auto){
-        
+      if(statecoin.swap_auto){        
+
         const rejoinSwap = setInterval(()=> {
           if(new_statecoin.swap_status && new_statecoin.swap_status  !== null){
+            // If new statecoin has already been entered in swap, leave interval
             clearInterval(rejoinSwap)
           } else{
-            log.info('Retrying join auto swap:' + new_statecoin.shared_key_id);
+            // Keep re-trying until auto-swap coin is back in a swap group
+            log.info('Retrying join auto swap, with new statecoin:' + new_statecoin.shared_key_id);
             this.do_swap(new_statecoin.shared_key_id);
           }
         },2000)
-        
-        // log.info('Auto swap  started, with new statecoin:' + new_statecoin.shared_key_id);
-        // new_statecoin = await this.do_swap(new_statecoin.shared_key_id);
         
       }
     }
