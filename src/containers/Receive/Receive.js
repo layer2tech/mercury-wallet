@@ -5,7 +5,7 @@ import {useDispatch} from 'react-redux'
 import {StdButton, AddressInput, CopiedButton} from "../../components";
 import QRCode from 'qrcode.react';
 
-import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callGetNumSeAddr, callTransferReceiver, callGetTransfers, setError, setNotification, callPingElectrum, callGetActivityLog, callAddActivityItem} from '../../features/WalletDataSlice'
+import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callGetNumSeAddr, callTransferReceiver, callGetTransfers, setError, setNotification, callPingElectrum} from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
 import Loading from '../../components/Loading/Loading';

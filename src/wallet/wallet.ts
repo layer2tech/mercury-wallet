@@ -535,7 +535,16 @@ export class Wallet {
   }
 
   getActivityLog(){
-    return this.activity;
+    return this.activity.getItems(this.activity.items.length).map((item: ActivityLogItem) => {
+      let coin = this.statecoins.getCoin(item.statecoin_id) // should err here if no coin found
+      return {
+        date: item.date,
+        action: item.action,
+        value: coin ? coin.value : "",
+        funding_txid: coin? coin.funding_txid: "",
+        funding_txvout: coin? coin.funding_vout: "",
+      }
+    })
   }
 
   addActivityItem(id:string, action:string){
