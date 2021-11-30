@@ -143,7 +143,7 @@ export const transferSender = async (
   typeforce(types.TransferMsg3, transfer_msg3);
 
   // Mark funds as spent in wallet if this isn't a batch transfer
-  if(!is_batch && typeof wallet === "Wallet"){
+  if(!is_batch){
     wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.TRANSFER, transfer_msg3);
   }
   

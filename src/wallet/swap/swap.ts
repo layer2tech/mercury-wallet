@@ -10,6 +10,7 @@ import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
 import { Wallet } from '../wallet'
 import { ACTION } from '../activity_log';
+import { encodeSCEAddress} from '../';
 
 let bitcoin = require("bitcoinjs-lib");
 
@@ -339,6 +340,7 @@ export const swapPhase3 = async (
       // Update coin status
       statecoin.swap_transfer_finalized_data=transfer_finalized_data;
       statecoin.swap_status=SWAP_STATUS.Phase4;
+      wallet.saveStateCoinsList()
     }
   } catch(err: any) {
     throw new SwapRetryError(err)
@@ -387,8 +389,20 @@ export const swapPhase4 = async (
     // Update coin status and num swap rounds
     statecoin.swap_status=SWAP_STATUS.End;
     wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP, statecoin?.swap_transfer_msg ? statecoin.swap_transfer_msg : undefined)
+    
     statecoin_out.swap_rounds=statecoin.swap_rounds+1;
     statecoin_out.anon_set=statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
+    
+    wallet.setIfNewCoin(statecoin_out)
+         
+    // update in wallet
+    statecoin_out.swap_status = null;
+    statecoin_out.setConfirmed();
+    statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key)
+    wallet.statecoins.addCoin(statecoin);
+    wallet.saveStateCoinsList();
+    log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+ statecoin_out.shared_key_id);
+    
     return statecoin_out;
   } catch(err: any) {
     //Keep retrying - an authentication error may occur at this stage depending on the

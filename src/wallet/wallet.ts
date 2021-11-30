@@ -966,17 +966,6 @@ export class Wallet {
         return null;
       }
             
-      this.setIfNewCoin(new_statecoin)
-         
-      // update in wallet
-      new_statecoin.swap_status = null;
-      new_statecoin.setConfirmed();
-      new_statecoin.sc_address = encodeSCEAddress(new_statecoin.proof_key)
-      this.statecoins.addCoin(new_statecoin);
-      this.saveStateCoinsList();
-
-      log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
-      
       if(statecoin.swap_auto){        
 
         const rejoinSwap = setInterval(()=> {
