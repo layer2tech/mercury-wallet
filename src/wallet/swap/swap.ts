@@ -335,9 +335,6 @@ export const swapPhase3 = async (
       statecoin.value
     );
     
-    // Mark funds as spent in wallet
-    wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP);
-
     if(transfer_finalized_data !== null){
       // Update coin status
       statecoin.swap_transfer_finalized_data=transfer_finalized_data;
@@ -353,11 +350,11 @@ export const swapPhase3 = async (
 export const swapPhase4 = async (
   http_client: HttpClient |  MockHttpClient,
   wasm_client: any,
-  statecoin: StateCoin
+  statecoin: StateCoin,
+  wallet: Wallet
 ) => {
   // check statecoin is IN_SWAP
   if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Coin status is not IN_SWAP. Status: "+statecoin.status);
-
   if (statecoin.swap_status!==SWAP_STATUS.Phase4) throw Error("Coin is not in this phase of the swap protocol. In phase: "+statecoin.swap_status);
   if (statecoin.swap_id===null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
   if (statecoin.swap_info===null) throw Error("No swap info found for coin. Swap info should be set in Phase1.");
@@ -389,6 +386,7 @@ export const swapPhase4 = async (
     let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
     // Update coin status and num swap rounds
     statecoin.swap_status=SWAP_STATUS.End;
+    wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP, statecoin?.swap_transfer_msg ? statecoin.swap_transfer_msg : undefined)
     statecoin_out.swap_rounds=statecoin.swap_rounds+1;
     statecoin_out.anon_set=statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
     return statecoin_out;
@@ -497,7 +495,7 @@ export const do_swap_poll = async(
             break;
           }
           case SWAP_STATUS.Phase4: {
-            new_statecoin = await swapPhase4(http_client, wasm_client, statecoin);
+            new_statecoin = await swapPhase4(http_client, wasm_client, statecoin, wallet);
             n_errs=0;
           }
         }

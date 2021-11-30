@@ -93,7 +93,7 @@ export class StateCoinList {
         item.status===STATECOIN_STATUS.EXPIRED
       ) {
         // Add all but withdrawn coins to total balance 
-        if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.IN_TRANSFER && item.status!==STATECOIN_STATUS.EXPIRED) {
+        if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.IN_TRANSFER && item.status!==STATECOIN_STATUS.EXPIRED){
           total += item.value
         }
         return item

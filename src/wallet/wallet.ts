@@ -965,7 +965,7 @@ export class Wallet {
         }
         return null;
       }
-
+            
       this.setIfNewCoin(new_statecoin)
          
       // update in wallet
@@ -977,7 +977,6 @@ export class Wallet {
 
       log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
       
-
       if(statecoin.swap_auto){        
 
         const rejoinSwap = setInterval(()=> {
@@ -1052,7 +1051,8 @@ export class Wallet {
   deRegisterSwaps(){
     this.statecoins.coins.forEach(
       (statecoin) => {
-        if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
+        if(statecoin.status === STATECOIN_STATUS.IN_SWAP 
+          || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
           swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
 
           statecoin.swap_auto = false;
