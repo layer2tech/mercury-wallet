@@ -377,6 +377,12 @@ export const callDoSwap = createAsyncThunk(
     return wallet.do_swap(action.shared_key_id)
   }
 )
+export const callResumeSwap = createAsyncThunk(
+  'ResumeSwap',
+  async (action, thunkAPI) => {
+    return wallet.resume_swap(action.shared_key_id)
+  }
+)
 export const callUpdateSwapGroupInfo = createAsyncThunk(
   'UpdateSwapGroupInfo',
   async (action, thunkAPI) => {
@@ -558,6 +564,9 @@ const WalletSlice = createSlice({
       state.error_dialogue = { seen: false, msg: action.error.name+": "+ action.error.message }
     },
     [callDoSwap.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
+    [callResumeSwap.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
     [callUpdateSwapGroupInfo.rejected]: (state, action) => {

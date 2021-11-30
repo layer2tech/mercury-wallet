@@ -256,6 +256,7 @@ export const swapPhase2 = async (
     // Update coin with receiver_addr and update status
     statecoin.swap_receiver_addr=receiver_addr;
     statecoin.swap_status=SWAP_STATUS.Phase3;  
+    log.info("Swap Phase3: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
   } catch(err: any) {
     throw new SwapRetryError(err)
   }
@@ -305,15 +306,17 @@ export const swapPhase3 = async (
   else if (phase !== SWAP_STATUS.Phase4){
     throw new Error("Swap error: swapPhase3: Expected swap phase4. Received: "+ phase);
   }
-  log.info("Swap Phase3: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
+  
 
   try{
     // if this part has not yet been called, call it.
     if (statecoin.swap_transfer_msg===null) {
       statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key, true, wallet);
+      wallet.saveStateCoinsList()
     }
     if (statecoin.swap_batch_data===null) {
       statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);
+      wallet.saveStateCoinsList()
     }
 
     if (statecoin.swap_transfer_msg===null || statecoin.swap_batch_data===null){
@@ -341,6 +344,7 @@ export const swapPhase3 = async (
       statecoin.swap_transfer_finalized_data=transfer_finalized_data;
       statecoin.swap_status=SWAP_STATUS.Phase4;
       wallet.saveStateCoinsList()
+      log.info("Swap Phase4: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
     }
   } catch(err: any) {
     throw new SwapRetryError(err)
@@ -419,25 +423,37 @@ export const do_swap_poll = async(
   swap_size: number,
   new_proof_key_der: BIP32Interface,
   req_confirmations: number,
-  wallet: Wallet
+  wallet: Wallet,
+  resume: boolean = false
 ): Promise<StateCoin | null> => {
-  if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already in swap pool.");
-  if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already involved in swap.");
-  if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.shared_key_id+" not available for swap.");
-
+  if (resume){
+    if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin "+statecoin.shared_key_id+" - not in swap.");
+    if (statecoin.swap_status!==SWAP_STATUS.Phase4) 
+      throw Error("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status);
+  } else {
+    if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already in swap pool.");
+    if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already involved in swap.");
+    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.shared_key_id+" not available for swap.");
+  }
+  
   // Reset coin's swap data
-  statecoin.setSwapDataToNull()
-  statecoin.swap_status = SWAP_STATUS.Init;
-  statecoin.setAwaitingSwap();
-
+  let prev_phase;
+  if(!resume){
+    statecoin.setSwapDataToNull()
+    statecoin.swap_status = SWAP_STATUS.Init;
+    statecoin.setAwaitingSwap();
+    prev_phase = SWAP_STATUS.Init;
+  } else {
+    prev_phase = statecoin.swap_status;
+  }
+  
   const INIT_RETRY_AFTER=600
   const MAX_ERRS=10
   const MAX_REPS_PER_PHASE=50
   let swap0_count=0
   let n_errs=0
   let n_reps=0
-  let prev_phase = SWAP_STATUS.Init
-
+  
   let new_statecoin = null
     while (new_statecoin==null) {
       try {

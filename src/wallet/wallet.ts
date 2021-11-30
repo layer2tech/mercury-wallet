@@ -11,7 +11,7 @@ import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
-import { SwapGroup, do_swap_poll, GroupInfo } from './swap/swap'
+import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
@@ -21,7 +21,6 @@ import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum } from './mercury/info_api';
 import { EPSClient } from './eps';
-import { FEE_INFO } from './mocks/mock_http_client';
 
 const MAX_SWAP_SEMAPHORE_COUNT=100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -934,18 +933,17 @@ export class Wallet {
       swapSemaphore.release();
     }
 
-    return await this.resume_swap(shared_key_id)
+    return await this.resume_swap(statecoin, false)
   }
 
   // Perform resume_swap
   // Args: shared_key_id of coin to swap.
   async resume_swap(
-    shared_key_id: string,
+    statecoin: StateCoin,
+    resume: boolean = true,
   ): Promise<StateCoin | null> {
 
-    let statecoin = this.statecoins.getCoin(shared_key_id);
-    if (!statecoin) throw Error("No coin found with id " + shared_key_id);
-    log.info("Swapping coin: "+shared_key_id);
+    log.info("Swapping coin: "+statecoin.shared_key_id);
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     let new_proof_key_der = this.genProofKey();
@@ -962,7 +960,7 @@ export class Wallet {
           delay(100);
         }
       });
-      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this);
+      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
@@ -993,6 +991,7 @@ export class Wallet {
         
       }
     }
+    
     return new_statecoin;
   }
 
@@ -1049,16 +1048,17 @@ export class Wallet {
   }
 
   // force deregister of all coins in swap and also toggle auto swap off
-  deRegisterSwaps(){
+  // except for in swap phase 4
+  deRegisterSwaps(force: boolean = false){
     this.statecoins.coins.forEach(
       (statecoin) => {
         if(statecoin.status === STATECOIN_STATUS.IN_SWAP 
           || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
-          swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
-
-          statecoin.swap_auto = false;
-
-          this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
+            if(!force && (statecoin.swap_status !== SWAP_STATUS.Phase4 )){
+              swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+              statecoin.swap_auto = false;
+              this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
+            }
         }
       }
     )
@@ -1074,7 +1074,12 @@ export class Wallet {
         this.statecoins.coins.forEach(
           async (statecoin) => {
             if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
-              statecoin.setSwapDataToNull();
+              if(statecoin.swap_status !== SWAP_STATUS.Phase4){
+                statecoin.setSwapDataToNull();
+              } else {
+                console.log(`resuming swap for statechain id: ${statecoin.statechain_id}`)
+                this.resume_swap(statecoin)
+              }
             }
           }
         );
