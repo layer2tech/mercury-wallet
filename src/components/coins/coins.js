@@ -72,11 +72,11 @@ const INITIAL_SORT_BY = {
 };
 
 const SWAP_STATUS_INFO = {
-  Phase0: "Phase 0: registration",
-  Phase1: "Phase 1: awaiting swap commitments",
-  Phase2: "Phase 2: awaiting blind token",
-  Phase3: "Phase 3: awaiting transfers",
-  Phase4: "Phase 4: completing swap",
+  Phase0: "Phase 0/4: registration",
+  Phase1: "Phase 1/4: awaiting swap commitments",
+  Phase2: "Phase 2/4: awaiting blind token",
+  Phase3: "Phase 3/4: awaiting transfers",
+  Phase4: "Phase 4/4: completing swap",
 }
 const SWAP_TOOLTIP_TXT = {
   Phase0: "Coin registered for swap group - awaiting execution",
