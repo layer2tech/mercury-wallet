@@ -917,16 +917,6 @@ export class Wallet {
     if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already involved in swap.");
     if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for swap.");
 
-    log.info("Swapping coin: "+shared_key_id);
-
-    let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-    let new_proof_key_der = this.genProofKey();
-    let wasm = await this.getWasm();
-      
-    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
-      
-    let new_statecoin: StateCoin | any | null=null;
-    
     await swapSemaphore.wait();
     try{
       await (async () => {
@@ -943,6 +933,28 @@ export class Wallet {
     } finally {
       swapSemaphore.release();
     }
+
+    return await this.resume_swap(shared_key_id)
+  }
+
+  // Perform resume_swap
+  // Args: shared_key_id of coin to swap.
+  async resume_swap(
+    shared_key_id: string,
+  ): Promise<StateCoin | null> {
+
+    let statecoin = this.statecoins.getCoin(shared_key_id);
+    if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+    log.info("Swapping coin: "+shared_key_id);
+
+    let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+    let new_proof_key_der = this.genProofKey();
+    let wasm = await this.getWasm();
+      
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+      
+    let new_statecoin: StateCoin | any | null=null;
+
     await swapSemaphore.wait();
     try{
       await (async () => {
@@ -965,7 +977,7 @@ export class Wallet {
         }
         return null;
       }
-            
+
       if(statecoin.swap_auto){        
 
         const rejoinSwap = setInterval(()=> {
