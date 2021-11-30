@@ -309,7 +309,7 @@ export const swapPhase3 = async (
   try{
     // if this part has not yet been called, call it.
     if (statecoin.swap_transfer_msg===null) {
-      statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key, wallet, true);
+      statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key, true, wallet);
     }
     if (statecoin.swap_batch_data===null) {
       statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);

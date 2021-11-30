@@ -1104,7 +1104,7 @@ export class Wallet {
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     
-    let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, this)
+    let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, false, this)
 
     log.info("Transfer Sender complete.");
     this.saveStateCoinsList();

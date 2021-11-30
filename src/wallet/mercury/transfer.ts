@@ -57,8 +57,8 @@ export const transferSender = async (
   statecoin: StateCoin,
   proof_key_der: BIP32Interface,
   receiver_addr: string,
+  is_batch: boolean = false,
   wallet: Wallet,
-  is_batch: boolean = false
 ): Promise<TransferMsg3> => {
   // Checks for spent, owned etc here
   let new_tx_backup;
@@ -143,7 +143,7 @@ export const transferSender = async (
   typeforce(types.TransferMsg3, transfer_msg3);
 
   // Mark funds as spent in wallet if this isn't a batch transfer
-  if(!is_batch){
+  if(!is_batch && typeof wallet === "Wallet"){
     wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.TRANSFER, transfer_msg3);
   }
   
