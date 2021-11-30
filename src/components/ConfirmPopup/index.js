@@ -25,12 +25,12 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
     setShowModal(true);
     if(children.props.className === 'header-logout'){
       setCloseText('Are you sure you want to log out?')
-    }else if(swapRecords.length > 0){
-      setCloseText('Your swaps will be cancelled, are you sure?');
     } else if(children.props.className.includes('send-action-button')){
       setCloseText('Confirm send, statecoin ready to be sent immediately.')
     } else if(children.props.className.includes('withdraw-button')){
       setCloseText('Confirm withdraw, statecoin(s) ready to be sent immediately.')
+    } else if(swapRecords.length > 0){
+      setCloseText('Your swaps will be cancelled, are you sure?');
     } 
     else{
       setCloseText('Are you sure?')

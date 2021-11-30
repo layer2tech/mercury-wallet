@@ -925,7 +925,8 @@ export class Wallet {
       
     statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
       
-    let new_statecoin=null;
+    let new_statecoin: StateCoin | any | null=null;
+    
     await swapSemaphore.wait();
     try{
       await (async () => {
@@ -977,9 +978,19 @@ export class Wallet {
       log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
       
 
-      if(statecoin.swap_auto){
-        log.info('Auto swap  started, with new statecoin:' + new_statecoin.shared_key_id);
-        this.do_swap(new_statecoin.shared_key_id);
+      if(statecoin.swap_auto){        
+
+        const rejoinSwap = setInterval(()=> {
+          if(new_statecoin.swap_status && new_statecoin.swap_status  !== null){
+            // If new statecoin has already been entered in swap, leave interval
+            clearInterval(rejoinSwap)
+          } else{
+            // Keep re-trying until auto-swap coin is back in a swap group
+            log.info('Retrying join auto swap, with new statecoin:' + new_statecoin.shared_key_id);
+            this.do_swap(new_statecoin.shared_key_id);
+          }
+        },2000)
+        
       }
     }
     return new_statecoin;
