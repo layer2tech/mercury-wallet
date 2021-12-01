@@ -89,11 +89,13 @@ export class StateCoinList {
         item.status===STATECOIN_STATUS.AWAITING_SWAP ||
         item.status===STATECOIN_STATUS.IN_TRANSFER ||
         item.status===STATECOIN_STATUS.WITHDRAWN ||
+        item.status===STATECOIN_STATUS.WITHDRAWING ||
         item.status===STATECOIN_STATUS.SWAPLIMIT ||
         item.status===STATECOIN_STATUS.EXPIRED
       ) {
-        // Add all but withdrawn coins to total balance 
-        if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.IN_TRANSFER && item.status!==STATECOIN_STATUS.EXPIRED) {
+        // Add all but withdrawn or awaiting withdrawal coins to total balance 
+        if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.WITHDRAWING 
+          && item.status!==STATECOIN_STATUS.IN_TRANSFER && item.status!==STATECOIN_STATUS.EXPIRED) {
           total += item.value
         }
         return item
@@ -183,7 +185,7 @@ export class StateCoinList {
     if (coin) {
       switch (action) {
         case ACTION.WITHDRAW:
-          coin.setWithdrawn();
+          coin.setWithdrawing();
           return;
         case ACTION.TRANSFER:
           coin.setInTransfer();
@@ -305,6 +307,8 @@ export const STATECOIN_STATUS = {
   IN_SWAP: "IN_SWAP",
   // Coin used to belonged to wallet but has been transferred
   SPENT: "SPENT",
+  // A withdrawal transaction has been broadcast but has not yet been confirmed
+  WITHDRAWING: "WITHDRAWING",
   // Coin used to belonged to wallet but has been withdraw
   WITHDRAWN: "WITHDRAWN",
   // Coin used to belonged to wallet but has been swapped
@@ -436,6 +440,7 @@ export class StateCoin {
   setInTransfer() { this.status = STATECOIN_STATUS.IN_TRANSFER; }
   setSpent() { this.status = STATECOIN_STATUS.SPENT; }
   setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
+  setWithdrawing() { this.status = STATECOIN_STATUS.WITHDRAWING; }
   setSwapped() { this.status = STATECOIN_STATUS.SWAPPED; }
   setSpendPending() { this.status = STATECOIN_STATUS.SPEND_PENDING; }
   setExpired() { this.status = STATECOIN_STATUS.EXPIRED; }

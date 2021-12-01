@@ -293,7 +293,9 @@ const Coins = (props) => {
         const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsByStatus.length}));
       } else {
-        const coinsNotWithdraw = coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER));
+        const coinsNotWithdraw = coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && 
+          coin.status !== STATECOIN_STATUS.WITHDRAWING && 
+          coin.status !== STATECOIN_STATUS.IN_TRANSFER));
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
@@ -402,6 +404,9 @@ const Coins = (props) => {
       if(filterBy === STATECOIN_STATUS.WITHDRAWN) {
         all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.WITHDRAWN);
       }
+      if(filterBy === STATECOIN_STATUS.WITHDRAWING) {
+        all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.WITHDRAWING);
+      }
       if(filterBy === STATECOIN_STATUS.IN_TRANSFER) {
         all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.IN_TRANSFER);
       }
@@ -497,7 +502,8 @@ const Coins = (props) => {
                           </div>)}
                       </span>
                   </div>
-                  {filterBy !== STATECOIN_STATUS.WITHDRAWN ? (
+                  {(filterBy !== STATECOIN_STATUS.WITHDRAWN
+                  && filterBy !== STATECOIN_STATUS.WITHDRAWING) ? (
                     item.status === STATECOIN_STATUS.INITIALISED ?
                     <div>                 
                       <div className ="deposit-scan-main-item">
@@ -577,7 +583,10 @@ const Coins = (props) => {
                   {props.showCoinStatus ? (
                     <div className="coin-status-or-txid">
                       
-                      {(item.status === STATECOIN_STATUS.AVAILABLE || item.status === STATECOIN_STATUS.WITHDRAWN) ?
+                      {(item.status === STATECOIN_STATUS.AVAILABLE 
+                        || item.status === STATECOIN_STATUS.WITHDRAWN
+                        || item.status === STATECOIN_STATUS.WITHDRAWING
+                      ) ?
                       (
                         <b className="CoinFundingTxid">
                             <img src={scAddrIcon} className = "sc-address-icon" alt="icon"/>
@@ -618,7 +627,9 @@ const Coins = (props) => {
 
       let displayMessage = "Your wallet is empty";
 
-      if(filterBy === STATECOIN_STATUS.WITHDRAWN){
+      if(filterBy === STATECOIN_STATUS.WITHDRAWN ||
+        filterBy === STATECOIN_STATUS.WITHDRAWING
+        ){
         displayMessage = "No coins withdrawn."
       }
 
@@ -677,14 +688,19 @@ const Coins = (props) => {
           className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}>
           <div className="sort-filter">
             <FilterBy/>
-            {(all_coins_data.length && filterBy !== STATECOIN_STATUS.WITHDRAWN) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
+            {(all_coins_data.length && 
+              filterBy !== STATECOIN_STATUS.WITHDRAWN &&
+              filterBy !== STATECOIN_STATUS.WITHDRAWING
+              ) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
           </div>
         {statecoinData}
 
         <Modal
           show={showCoinDetails.show}
           onHide={handleCloseCoinDetails}
-          className = {(filterBy === STATECOIN_STATUS.WITHDRAWN) || (showCoinDetails?.coin?.swap_status !== null) ? "modal coin-details-modal lower": "modal coin-details-modal"}
+          className = {(filterBy === STATECOIN_STATUS.WITHDRAWN
+            || filterBy === STATECOIN_STATUS.WITHDRAWING
+            ) || (showCoinDetails?.coin?.swap_status !== null) ? "modal coin-details-modal lower": "modal coin-details-modal"}
         >
           <Modal.Body >
             <div>
@@ -815,7 +831,8 @@ const Coins = (props) => {
                     </div>
                   </div>
                 </div>)}
-              {showCoinDetails?.coin?.status && showCoinDetails.coin.status === STATECOIN_STATUS.WITHDRAWN ? 
+              {showCoinDetails?.coin?.status && (showCoinDetails.coin.status === STATECOIN_STATUS.WITHDRAWN ||
+              showCoinDetails.coin.status === STATECOIN_STATUS.WITHDRAWING) ? 
               (     
                 <div>
                   <div className="item tx_hex">
