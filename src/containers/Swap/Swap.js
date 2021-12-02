@@ -141,7 +141,7 @@ const SwapPage = () => {
             if(new_statecoin && new_statecoin?.swap_auto){
               dispatch(setNotification({msg:"Retrying join auto swap with new statecoin:' + new_statecoin.shared_key_id"}));
               dispatch(addCoinToSwapRecords(new_statecoin))
-              addSwapPendingCoin(statecoin.shared_key_id)
+              addSwapPendingCoin(new_statecoin.shared_key_id)
             }
           }  
         });
