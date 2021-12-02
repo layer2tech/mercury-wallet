@@ -148,6 +148,7 @@ const SwapPage = () => {
       }
       )  
     }, 3000);
+    setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
     return () => clearInterval(interval);
   },
   [dispatch, swapPendingCoins, autoswapCoins]);
@@ -295,11 +296,12 @@ const SwapPage = () => {
             dispatch(removeCoinFromSwapRecords(selectedCoin));
             setSwapLoad({...swapLoad, leave: false})
         });
-        // Refresh Coins list
-        setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
       } catch (e) {
         setSwapLoad({...swapLoad, leave: false})
         dispatch(setError({msg: e.message}))
+      } finally {
+        // Refresh Coins list
+        setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
       }
       return
     } else{
@@ -308,11 +310,13 @@ const SwapPage = () => {
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
      
-      // Refresh Coins list
-      setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
+      
       addAutoswapCoin(item.shared_key_id)
       addSwapPendingCoin(item.shared_key_id)
     }
+
+    // Refresh Coins list
+    setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
   }
 
 
