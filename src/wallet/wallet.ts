@@ -967,11 +967,13 @@ export class Wallet {
         }
       });
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
+      this.setIfNewCoin(new_statecoin)
+      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
       if (new_statecoin || statecoin.swap_status !== SWAP_STATUS.Phase4) {   
-        statecoin.setSwapDataToNull();
+        new_statecoin.setSwapDataToNull();
       }
       this.saveStateCoinsList(); 
       swapSemaphore.release();

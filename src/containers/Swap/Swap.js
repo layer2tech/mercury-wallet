@@ -106,26 +106,27 @@ const SwapPage = () => {
         callDoSwap({"shared_key_id": selectedCoin}))
         .then(res => {
           let statecoin = callGetStateCoin(selectedCoin);
+          // get the statecoin for txId method
+          if(statecoin === undefined || statecoin === null){
+            statecoin = selectedCoin;
+          }
+          
           if(statecoin.swap_auto === false){ 
             // If user switches off swap auto, exit callDoSwap smoothly
             removeAutoswapCoin(selectedCoin)
             return
           }
-          // get the statecoin for txId method
-          if(statecoin === undefined || statecoin === null){
-            statecoin = selectedCoin;
-          }
           let new_statecoin = res?.payload;
           // turn off autoswap because final .then was called
           if (!new_statecoin) {
-            dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))
+            // dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))
               if (statecoin.swap_status === SWAP_STATUS.Phase4) {
-                dispatch(setNotification({msg:"Retrying resume swap phase 4 with statecoin:' + statecoin.shared_key_id"}));
+                // dispatch(setNotification({msg:"Retrying resume swap phase 4 with statecoin:' + statecoin.shared_key_id"}));
                 dispatch(addCoinToSwapRecords(statecoin))
                 addSwapPendingCoin(statecoin.shared_key_id)
               } else{
                 if(statecoin.swap_auto){
-                  dispatch(setNotification({msg:"Retrying join auto swap with statecoin:' + statecoin.shared_key_id"}));
+                  // dispatch(setNotification({msg:"Retrying join auto swap with statecoin:' + statecoin.shared_key_id"}));
                   dispatch(addCoinToSwapRecords(statecoin))
                   addSwapPendingCoin(statecoin.shared_key_id)
                 }
@@ -139,7 +140,7 @@ const SwapPage = () => {
               dispatch(removeCoinFromSwapRecords(selectedCoin));
             } 
             if(new_statecoin && new_statecoin?.swap_auto){
-              dispatch(setNotification({msg:"Retrying join auto swap with new statecoin:' + new_statecoin.shared_key_id"}));
+              // dispatch(setNotification({msg:"Retrying join auto swap with new statecoin:' + new_statecoin.shared_key_id"}));
               dispatch(addCoinToSwapRecords(new_statecoin))
               addSwapPendingCoin(new_statecoin.shared_key_id)
             }
