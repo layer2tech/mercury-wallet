@@ -64,11 +64,9 @@ export const depositConfirm = async (
 
   // Calculate initial locktime
   let init_locktime = (chaintip_height) + (fee_info.initlock);
-  console.log(init_locktime);
   // if previously set (RBF) use initial height
   if (statecoin.init_locktime) {
     init_locktime = statecoin.init_locktime;
-    console.log(init_locktime);
   } else {
     statecoin.init_locktime = init_locktime;
   }
