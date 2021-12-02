@@ -919,24 +919,24 @@ export class Wallet {
     
     //Always try and resume coins in swap phase 4
     if (statecoin.swap_status !== SWAP_STATUS.Phase4){
-    await swapSemaphore.wait();
-    try{
-      await (async () => {
-        while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-          delay(100);
-        }
-      });
-      await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
-      this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
-    } catch(e : any){
-      if (! e.message.includes("Coin is not in a swap pool")){
-        throw e;
-      }
-    } finally {
+      await swapSemaphore.wait();
+      try{
+        await (async () => {
+          while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+            delay(100);
+          }
+        });
+        await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+        this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
+      } catch(e : any){
+        if (! e.message.includes("Coin is not in a swap pool")){
+          throw e;
+       }
+      } finally {
       swapSemaphore.release();
-    }
+      }
 
-    return await this.resume_swap(statecoin, false)
+      return await this.resume_swap(statecoin, false)
     } else {
       return await this.resume_swap(statecoin, true)
     }
