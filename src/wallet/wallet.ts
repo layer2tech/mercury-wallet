@@ -967,6 +967,8 @@ export class Wallet {
         }
       });
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
+      let sc = this.statecoins.getCoin(statecoin.shared_key_id);
+      console.log(`spent coin status: ${sc?.status}`) 
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
