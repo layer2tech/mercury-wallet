@@ -916,6 +916,9 @@ export class Wallet {
     if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already involved in swap.");
     if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for swap.");
 
+    
+    //Always try and resume coins in swap phase 4
+    if (statecoin.swap_status !== SWAP_STATUS.Phase4){
     await swapSemaphore.wait();
     try{
       await (async () => {
@@ -934,6 +937,9 @@ export class Wallet {
     }
 
     return await this.resume_swap(statecoin, false)
+    } else {
+      return await this.resume_swap(statecoin, true)
+    }
   }
 
   // Perform resume_swap
@@ -964,52 +970,13 @@ export class Wallet {
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
-      swapSemaphore.release();
-      if (new_statecoin===null) {
-        
-        //If the swap fails for a coin in auto_swap then restart it
-        if(statecoin.swap_auto){
-          // log.info('Auto swap - swap restarted, with statecoin:' + statecoin.shared_key_id);
-          // this.do_swap(statecoin.shared_key_id);
-          let statecoin_shared_key_id = statecoin.shared_key_id
-          // swapDeregisterUtxo(this.http_client, statecoin.statechain_id)
-          const rejoinSwap = setInterval(()=> {
-            
-            if(statecoin && statecoin.swap_status && statecoin.swap_status  !== null){
-              // If new statecoin has already been entered in swap, leave interval
-              clearInterval(rejoinSwap)
-            } else{
-              // Keep re-trying until auto-swap coin is back in a swap group
-              log.info('Retrying join auto swap, with new statecoin:' + statecoin_shared_key_id);
-              try{
-                this.do_swap(statecoin_shared_key_id);
-              }
-              catch{ }
-            }
-          },2000)
-        }
+      if (new_statecoin || statecoin.swap_status !== SWAP_STATUS.Phase4) {   
         statecoin.setSwapDataToNull();
-        this.saveStateCoinsList();
-        return null;
       }
-
-      if(statecoin.swap_auto){        
-
-        const rejoinSwap = setInterval(()=> {
-          if(new_statecoin.swap_status && new_statecoin.swap_status  !== null){
-            // If new statecoin has already been entered in swap, leave interval
-            clearInterval(rejoinSwap)
-          } else{
-            // Keep re-trying until auto-swap coin is back in a swap group
-            log.info('Retrying join auto swap, with new statecoin:' + new_statecoin.shared_key_id);
-            this.resume_swap(new_statecoin);
-          }
-        },2000)
-        
-      }
+      this.saveStateCoinsList(); 
+      swapSemaphore.release();
+      return new_statecoin
     }
-    
-    return new_statecoin;
   }
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo>{

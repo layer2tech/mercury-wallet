@@ -408,7 +408,8 @@ export const swapPhase4 = async (
   } catch(err: any) {
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
-    throw new SwapRetryError(err, "Phase 4 transferReceiverFinalize error: ")
+    //throw new SwapRetryError(err, "Phase 4 transferReceiverFinalize error: ")
+    log.error(`Phase 4 transferReceiverFinalize error: ${err}. Retrying...`)
   }
 }
 
@@ -448,8 +449,9 @@ export const do_swap_poll = async(
   }
   
   const INIT_RETRY_AFTER=600
-  const MAX_ERRS=10
-  const MAX_REPS_PER_PHASE=50
+  const MAX_ERRS=100
+  const MAX_REPS_PER_PHASE=100
+  const MAX_REPS_PHASE4=1000
   let swap0_count=0
   let n_errs=0
   let n_reps=0
@@ -457,7 +459,10 @@ export const do_swap_poll = async(
   let new_statecoin = null
     while (new_statecoin==null) {
       try {
-        if ( n_reps >= MAX_REPS_PER_PHASE ){
+        if ( statecoin.swap_status !== SWAP_STATUS.Phase4 && n_reps >= MAX_REPS_PER_PHASE ){
+          throw new Error(`Number of tries exceeded in phase ${statecoin.swap_status}`)
+        }
+        if ( statecoin.swap_status === SWAP_STATUS.Phase4 && n_reps >= MAX_REPS_PHASE4 ){
           throw new Error(`Number of tries exceeded in phase ${statecoin.swap_status}`)
         }
         if(statecoin.swap_status != prev_phase){
