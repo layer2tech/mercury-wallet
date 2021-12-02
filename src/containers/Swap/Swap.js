@@ -195,13 +195,18 @@ const SwapPage = () => {
         setSwapLoad({...swapLoad, leave: false})
         dispatch(setError({msg: e.message}))
       }
-    }else{
+      return
+    } else{
       statecoin.swap_auto = true;
       dispatch(callDoAutoSwap(selectedCoin));
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
       dispatch(callDoSwap({"shared_key_id": selectedCoin}))
         .then(res => {
+          if(item.swap_auto === false){ 
+            // If user switches off swap auto, exit callDoSwap smoothly
+            return
+          }
           // get the statecoin for txId method
           let statecoin = callGetStateCoin(selectedCoin);
           if(statecoin === undefined || statecoin === null){
@@ -209,26 +214,30 @@ const SwapPage = () => {
           }
 
           // turn off autoswap because final .then was called
-          statecoin.swap_auto = false;
-
+          
+          console.group('locate where .then goes')
           if (res.payload===null) {
-            dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))  
-            statecoin.swap_auto = false;      
+            dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))
+            console.log('res.payload === null')
             return
           }
           if (res.error===undefined) {
             if(statecoin.is_deposited){
               dispatch(setNotification({msg:"Swap complete - Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
               dispatch(removeCoinFromSwapRecords(selectedCoin));
+              console.log('statecoin deposited')
             } else {
               dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
               dispatch(removeCoinFromSwapRecords(selectedCoin));
+              console.log('statecoin not deposited')
             } 
           }else{
             dispatch(setNotification({msg: "Swap for coin " + statecoin.getTXIdAndOut() + " failed, please try again later."}))
             statecoin.swap_auto = false;
             setSwapLoad({...swapLoad, join: false, swapCoin:""});
+            console.log('else')
           }
+          console.groupEnd()
         });
       // Refresh Coins list
       setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);

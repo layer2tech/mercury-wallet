@@ -79,8 +79,8 @@ const SWAP_STATUS_INFO = {
   Phase4: "Phase 4/4: completing swap",
 }
 const SWAP_TOOLTIP_TXT = {
-  Phase0: "Coin registered for swap group - awaiting execution",
-  Phase1: "Swap group executing. Awaiting blind swap token",
+  Phase0: "Coin registered for swap group - awaiting swap start",
+  Phase1: "Swap group start. Awaiting blind swap token",
   Phase2: "Generating new Tor circuit. Awaiting send address",
   Phase3: "Completing statecoin transfer protocol",
   Phase4: "Finalizing coin swap transfers",

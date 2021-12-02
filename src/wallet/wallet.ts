@@ -201,7 +201,7 @@ export class Wallet {
     })
 
     new_wallet.account = new bip32utils.Account(chains);
-
+    console.log(new_wallet)
     return new_wallet
   }
 
@@ -966,13 +966,30 @@ export class Wallet {
     } finally {
       swapSemaphore.release();
       if (new_statecoin===null) {
-        statecoin.setSwapDataToNull();
-        this.saveStateCoinsList();
+        
         //If the swap fails for a coin in auto_swap then restart it
         if(statecoin.swap_auto){
-          log.info('Auto swap - swap restarted, with statecoin:' + statecoin.shared_key_id);
-          this.do_swap(statecoin.shared_key_id);
+          // log.info('Auto swap - swap restarted, with statecoin:' + statecoin.shared_key_id);
+          // this.do_swap(statecoin.shared_key_id);
+          let statecoin_shared_key_id = statecoin.shared_key_id
+          // swapDeregisterUtxo(this.http_client, statecoin.statechain_id)
+          const rejoinSwap = setInterval(()=> {
+            
+            if(statecoin && statecoin.swap_status && statecoin.swap_status  !== null){
+              // If new statecoin has already been entered in swap, leave interval
+              clearInterval(rejoinSwap)
+            } else{
+              // Keep re-trying until auto-swap coin is back in a swap group
+              log.info('Retrying join auto swap, with new statecoin:' + statecoin_shared_key_id);
+              try{
+                this.do_swap(statecoin_shared_key_id);
+              }
+              catch{ }
+            }
+          },2000)
         }
+        statecoin.setSwapDataToNull();
+        this.saveStateCoinsList();
         return null;
       }
 
@@ -985,7 +1002,7 @@ export class Wallet {
           } else{
             // Keep re-trying until auto-swap coin is back in a swap group
             log.info('Retrying join auto swap, with new statecoin:' + new_statecoin.shared_key_id);
-            this.do_swap(new_statecoin.shared_key_id);
+            this.resume_swap(new_statecoin);
           }
         },2000)
         
