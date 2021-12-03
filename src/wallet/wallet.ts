@@ -975,6 +975,7 @@ export class Wallet {
       if (new_statecoin) {   
         new_statecoin.setSwapDataToNull();
       }
+      statecoin.setSwapDataToNull();
       this.saveStateCoinsList(); 
       swapSemaphore.release();
       return new_statecoin
@@ -1071,6 +1072,7 @@ export class Wallet {
         );
       }
     } finally {
+      this.saveStateCoinsList(); 
       swapSemaphore.release();
       updateSwapSemaphore.release();
     }
