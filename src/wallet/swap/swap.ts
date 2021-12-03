@@ -372,7 +372,9 @@ export const swapPhase4 = async (
     phase = await pollSwap(http_client, statecoin.swap_id);
   } catch(err: any) {
     let rte = new SwapRetryError(err, "Phase4 pollSwap error: ")
-    if(!rte.message.includes("No data for identifier")){
+    if(rte.message.includes('Network') || rte.message.includes('network') || rte.message.includes('net::ERR')){
+      log.error(`Logging phase4 network error: ${rte.message}`)
+    } else if(!rte.message.includes("No data for identifier")){
         throw rte
     } 
     phase = null
@@ -409,8 +411,13 @@ export const swapPhase4 = async (
   } catch(err: any) {
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
-    //throw new SwapRetryError(err, "Phase 4 transferReceiverFinalize error: ")
-    log.error(`Phase 4 transferReceiverFinalize error: ${err}. Retrying...`)
+
+    let rte = new SwapRetryError(err, "Phase4 transferFinalize error: ")
+    if(rte.message.includes('Network') || rte.message.includes('network') || rte.message.includes('net::ERR')){
+      log.error(`Logging phase4 network error: ${rte.message}`)
+    } else {
+      throw rte
+    }
   }
 }
 

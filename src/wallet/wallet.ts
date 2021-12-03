@@ -972,7 +972,7 @@ export class Wallet {
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
-      if (new_statecoin || statecoin.swap_status !== SWAP_STATUS.Phase4) {   
+      if (new_statecoin) {   
         new_statecoin.setSwapDataToNull();
       }
       this.saveStateCoinsList(); 
