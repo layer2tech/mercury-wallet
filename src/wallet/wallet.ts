@@ -967,13 +967,13 @@ export class Wallet {
         }
       });
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
-      let sc = this.statecoins.getCoin(statecoin.shared_key_id);
-      console.log(`spent coin status: ${sc?.status}`) 
+      this.setIfNewCoin(new_statecoin)
+      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
       if (new_statecoin || statecoin.swap_status !== SWAP_STATUS.Phase4) {   
-        statecoin.setSwapDataToNull();
+        new_statecoin.setSwapDataToNull();
       }
       this.saveStateCoinsList(); 
       swapSemaphore.release();
@@ -1060,7 +1060,7 @@ export class Wallet {
         this.statecoins.coins.forEach(
           async (statecoin) => {
             if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
-              if(statecoin.swap_status !== SWAP_STATUS.Phase4){
+              if(statecoin && statecoin?.swap_status !== SWAP_STATUS.Phase4){
                 statecoin.setSwapDataToNull();
               } else {
                 console.log(`resuming swap for statechain id: ${statecoin.statechain_id}`)

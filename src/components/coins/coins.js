@@ -35,7 +35,9 @@ import {
   callAddDescription,
   callGetConfig,
   callGetStateCoin,
-  callGetActivityLogItems} from '../../features/WalletDataSlice';
+  callGetActivityLogItems,
+  addSwapPendingCoin,
+  removeSwapPendingCoin} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -51,6 +53,13 @@ import close_img from "../../images/close-icon.png";
 import './DeleteCoin/DeleteCoin.css'
 import {defaultWalletConfig} from '../../containers/Settings/Settings'
 import { Null } from "../../wallet/types";
+import {
+  setNotification,
+  callDoSwap,
+  addCoinToSwapRecords,
+  removeCoinFromSwapRecords
+} from "../../features/WalletDataSlice";
+import { SWAP_STATUS } from "../../wallet/swap/swap";
 
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
@@ -88,9 +97,10 @@ const SWAP_TOOLTIP_TXT = {
 
 const Coins = (props) => {
     const [state, setState] = useState({});
+    
     const {selectedCoins, isMainPage, swap} = props;
     const dispatch = useDispatch();
-    const { filterBy } = useSelector(state => state.walletData);
+    const { filterBy, swapPendingCoins } = useSelector(state => state.walletData);
   	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
     const [initCoins, setInitCoins] = useState({});
@@ -115,7 +125,7 @@ const Coins = (props) => {
     } catch {
       current_config = defaultWalletConfig()
     }
-
+  
     const handleOpenCoinDetails = (shared_key_id) => {
       let coin = all_coins_data.find((coin) => {
         return coin.shared_key_id === shared_key_id
@@ -266,6 +276,68 @@ const Coins = (props) => {
     const handleDeleteCoinNo = () => {
       setShowDeleteCoinDetails(false);
     }
+
+    // Initiate auto swap
+   useEffect(() => {
+    const interval = setInterval(() => {
+      if(!swapPendingCoins?.length){
+        return
+      }
+      let selectedCoin = swapPendingCoins[swapPendingCoins.length - 1]
+      dispatch(removeSwapPendingCoin(selectedCoin))
+      //dispatch(updateSwapPendingCoins([]))
+      
+      //pending.forEach((selectedCoin) => {
+        dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+        .then(res => {
+          let statecoin = callGetStateCoin(selectedCoin);
+          // get the statecoin for txId method
+          if(statecoin === undefined || statecoin === null){
+            statecoin = selectedCoin;
+          }
+          
+          if(!statecoin?.swap_auto){ 
+            // If user switches off swap auto, exit callDoSwap smoothly
+            return
+          }
+          
+          let new_statecoin = res?.payload;
+          // turn off autoswap because final .then was called
+          if (!new_statecoin) {
+            // dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))
+              if (statecoin.swap_status === SWAP_STATUS.Phase4) {
+                // dispatch(setNotification({msg:"Retrying resume swap phase 4 with statecoin:' + statecoin.shared_key_id"}));
+                dispatch(addCoinToSwapRecords(statecoin))
+                dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+                return
+              } else{
+                if(statecoin.swap_auto){
+                  // dispatch(setNotification({msg:"Retrying join auto swap with statecoin:' + statecoin.shared_key_id"}));
+                  dispatch(addCoinToSwapRecords(statecoin))
+                  dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+                  //return
+                }
+              }
+          } else {
+            if(new_statecoin?.is_deposited){
+              dispatch(setNotification({msg:"Swap complete - Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+              dispatch(removeCoinFromSwapRecords(selectedCoin));
+            } else {
+              dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+              dispatch(removeCoinFromSwapRecords(selectedCoin));
+            } 
+            if(new_statecoin && new_statecoin?.swap_auto){
+              // dispatch(setNotification({msg:"Retrying join auto swap with new statecoin:' + new_statecoin.shared_key_id"}));
+              dispatch(addCoinToSwapRecords(new_statecoin))
+              dispatch(addSwapPendingCoin(new_statecoin.shared_key_id))
+            }
+          }
+        }
+        );  
+    }, 3000);
+    return () => clearInterval(interval);
+  },
+  [swapPendingCoins]);
 
     //Load coins once component done render
     useEffect(() => {

@@ -1,5 +1,5 @@
 import {Link, withRouter, Redirect} from "react-router-dom";
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import React, {useState, useEffect} from 'react';
 import { Coins, Swaps, StdButton, Tutorial} from "../../components";
 import Loading from "../../components/Loading/Loading";
@@ -18,7 +18,9 @@ import {
   callGetStateCoin,
   callPingElectrum,
   addCoinToSwapRecords,
-  removeCoinFromSwapRecords
+  removeCoinFromSwapRecords,
+  addSwapPendingCoin,
+  removeSwapPendingCoin
 } from "../../features/WalletDataSlice";
 import {fromSatoshi} from '../../wallet';
 import './Swap.css';
@@ -28,8 +30,6 @@ const SwapPage = () => {
   const dispatch = useDispatch();
   let disabled = false;
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
-  const [autoswapCoins, setAutoswapCoins] = useState([]); // store selected coins shared_key_id
-  const [swapPendingCoins, setSwapPendingCoins] = useState([]); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
   const [electrumServer,setElectrumServer] = useState(false); // Check Electrum server network status
@@ -52,106 +52,6 @@ const SwapPage = () => {
       }
     );
   }
-
-  function addAutoswapCoin(shared_key_id) {
-    setAutoswapCoins(
-      prevAutoswapCoins => {
-      let newAutoswapCoins = prevAutoswapCoins;
-      newAutoswapCoins.push(shared_key_id);
-      return newAutoswapCoins;
-    }
-    );
-  }
-
-  function removeAutoswapCoin(shared_key_id) {
-    setAutoswapCoins(
-      prevAutoswapCoins => {
-      function isNot(value) {
-        return value !== shared_key_id
-      }
-      let newAutoswapCoins = prevAutoswapCoins.filter(isNot);
-      return newAutoswapCoins;
-    }
-    );
-  }
-
-    function addSwapPendingCoin(shared_key_id) {
-    setSwapPendingCoins(
-      prevSwapPendingCoins => {
-      let newSwapPendingCoins = prevSwapPendingCoins;
-      newSwapPendingCoins.push(shared_key_id);
-      return newSwapPendingCoins;
-    }
-    );
-  }
-
-  function removeSwapPendingCoin(shared_key_id) {
-    setSwapPendingCoins(
-    prevSwapPendingCoins => {
-      function isNot(value) {
-        return value !== shared_key_id
-      }
-      let newSwapPendingCoins = prevSwapPendingCoins.filter(isNot);
-      return newSwapPendingCoins;
-    });
-  }
-
-   // Initiate auto swap
-   useEffect(() => {
-    const interval = setInterval(() => {
-      let pending = [...swapPendingCoins]
-      setSwapPendingCoins([])
-      pending.forEach((selectedCoin) => {
-        dispatch(
-        callDoSwap({"shared_key_id": selectedCoin}))
-        .then(res => {
-          let statecoin = callGetStateCoin(selectedCoin);
-          if(statecoin.swap_auto === false){ 
-            // If user switches off swap auto, exit callDoSwap smoothly
-            removeAutoswapCoin(selectedCoin)
-            return
-          }
-          // get the statecoin for txId method
-          if(statecoin === undefined || statecoin === null){
-            statecoin = selectedCoin;
-          }
-          let new_statecoin = res?.payload;
-          // turn off autoswap because final .then was called
-          if (!new_statecoin) {
-            dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))
-              if (statecoin.swap_status === SWAP_STATUS.Phase4) {
-                dispatch(setNotification({msg:"Retrying resume swap phase 4 with statecoin:' + statecoin.shared_key_id"}));
-                dispatch(addCoinToSwapRecords(statecoin))
-                addSwapPendingCoin(statecoin.shared_key_id)
-              } else{
-                if(statecoin.swap_auto){
-                  dispatch(setNotification({msg:"Retrying join auto swap with statecoin:' + statecoin.shared_key_id"}));
-                  dispatch(addCoinToSwapRecords(statecoin))
-                  addSwapPendingCoin(statecoin.shared_key_id)
-                }
-              }
-          } else {
-            if(new_statecoin?.is_deposited){
-              dispatch(setNotification({msg:"Swap complete - Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-              dispatch(removeCoinFromSwapRecords(selectedCoin));
-            } else {
-              dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-              dispatch(removeCoinFromSwapRecords(selectedCoin));
-            } 
-            if(new_statecoin && new_statecoin?.swap_auto){
-              dispatch(setNotification({msg:"Retrying join auto swap with new statecoin:' + new_statecoin.shared_key_id"}));
-              dispatch(addCoinToSwapRecords(new_statecoin))
-              addSwapPendingCoin(new_statecoin.shared_key_id)
-            }
-          }  
-        });
-      }
-      )  
-    }, 3000);
-    setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
-    return () => clearInterval(interval);
-  },
-  [dispatch, swapPendingCoins, autoswapCoins]);
 
   // Re-fetch swaps group data every 3 seconds and update swaps component
   useEffect(() => {
@@ -286,8 +186,7 @@ const SwapPage = () => {
 
     // turn off swap_auto
     if(item.swap_auto){
-      removeAutoswapCoin(item.shared_key_id)
-      removeSwapPendingCoin(item.shared_key_id)
+      dispatch(removeSwapPendingCoin(item.shared_key_id))
       statecoin.swap_auto = false;
       setSwapLoad({...swapLoad, leave: true})
       try {
@@ -311,8 +210,7 @@ const SwapPage = () => {
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
      
       
-      addAutoswapCoin(item.shared_key_id)
-      addSwapPendingCoin(item.shared_key_id)
+      dispatch(addSwapPendingCoin(item.shared_key_id))
     }
 
     // Refresh Coins list
