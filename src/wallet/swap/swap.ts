@@ -429,7 +429,9 @@ export const do_swap_poll = async(
         if ( n_reps >= MAX_REPS_PER_PHASE ){
           throw new Error(`Number of tries exceeded in phase ${statecoin.swap_status}`)
         }
-        if(statecoin.swap_status != prev_phase){
+        if(statecoin.swap_status == SWAP_STATUS.Init ||
+          statecoin.swap_status == SWAP_STATUS.Phase0 ||
+          statecoin.swap_status != prev_phase){
           n_reps=0
           prev_phase = statecoin.swap_status
         }
