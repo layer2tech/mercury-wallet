@@ -452,9 +452,10 @@ export const do_swap_poll = async(
   }
   
   const INIT_RETRY_AFTER=600
-  const MAX_ERRS=100
-  const MAX_REPS_PER_PHASE=100
-  const MAX_REPS_PHASE4=1000
+  const MAX_ERRS=10
+  const MAX_ERRS_PHASE4 = 100
+  const MAX_REPS_PER_PHASE = 50
+  const MAX_REPS_PHASE4 = 100
   let swap0_count=0
   let n_errs=0
   let n_reps=0
@@ -540,7 +541,11 @@ export const do_swap_poll = async(
         let message: string | undefined = err?.message
         if(message && message.includes("timed out")){
           throw err
-        } else if (err instanceof SwapRetryError && n_errs < MAX_ERRS) {
+        } else if (err instanceof SwapRetryError && n_errs < MAX_ERRS && statecoin.swap_status !== SWAP_STATUS.Phase4) {
+          n_errs = n_errs+1
+          console.log(`Error during swap: ${message} - retrying...`);
+        } 
+        else if (err instanceof SwapRetryError && n_errs < MAX_ERRS_PHASE4 && statecoin.swap_status === SWAP_STATUS.Phase4) {
           n_errs = n_errs+1
           console.log(`Error during swap: ${message} - retrying...`);
         } else {

@@ -283,57 +283,60 @@ const Coins = (props) => {
       if(!swapPendingCoins?.length){
         return
       }
-      let selectedCoin = swapPendingCoins[swapPendingCoins.length - 1]
-      dispatch(removeSwapPendingCoin(selectedCoin))
-      //dispatch(updateSwapPendingCoins([]))
-      
-      //pending.forEach((selectedCoin) => {
-        dispatch(callDoSwap({"shared_key_id": selectedCoin}))
-        .then(res => {
-          let statecoin = callGetStateCoin(selectedCoin);
-          // get the statecoin for txId method
-          if(statecoin === undefined || statecoin === null){
-            statecoin = selectedCoin;
-          }
-          
-          if(!statecoin?.swap_auto){ 
-            // If user switches off swap auto, exit callDoSwap smoothly
-            return
-          }
-          
-          let new_statecoin = res?.payload;
-          // turn off autoswap because final .then was called
-          if (!new_statecoin) {
-            // dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))
-              if (statecoin.swap_status === SWAP_STATUS.Phase4) {
-                // dispatch(setNotification({msg:"Retrying resume swap phase 4 with statecoin:' + statecoin.shared_key_id"}));
-                dispatch(addCoinToSwapRecords(statecoin))
-                dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+      // let selectedCoin = swapPendingCoins[swapPendingCoins.length - 1]
+
+      swapPendingCoins.forEach((selectedCoin) => {
+        let statecoin = callGetStateCoin(selectedCoin);
+        if(statecoin.swap_status === null){
+          dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+            .then(res => {
+              dispatch(removeSwapPendingCoin(selectedCoin))
+              // get the statecoin for txId method
+              if(statecoin === undefined || statecoin === null){
+                statecoin = selectedCoin;
+              }
+
+              if(!statecoin?.swap_auto){ 
+                // If user switches off swap auto, exit callDoSwap smoothly
                 return
-              } else{
-                if(statecoin.swap_auto){
-                  // dispatch(setNotification({msg:"Retrying join auto swap with statecoin:' + statecoin.shared_key_id"}));
-                  dispatch(addCoinToSwapRecords(statecoin))
-                  dispatch(addSwapPendingCoin(statecoin.shared_key_id))
-                  //return
+              }
+              
+              let new_statecoin = res?.payload;
+              // turn off autoswap because final .then was called
+  
+              if (!new_statecoin) {
+                // dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))
+                  if (statecoin.swap_status === SWAP_STATUS.Phase4) {
+                    // dispatch(setNotification({msg:"Retrying resume swap phase 4 with statecoin:' + statecoin.shared_key_id"}));
+                    dispatch(addCoinToSwapRecords(statecoin))
+                    dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+                    return
+                  } else{
+                    if(statecoin.swap_auto){
+                      // dispatch(setNotification({msg:"Retrying join auto swap with statecoin:' + statecoin.shared_key_id"}));
+                      dispatch(addCoinToSwapRecords(statecoin))
+                      dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+                      //return
+                    }
+                  }
+              } else {
+                if(new_statecoin?.is_deposited){
+                  dispatch(setNotification({msg:"Swap complete - Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+                  dispatch(removeCoinFromSwapRecords(selectedCoin));
+                } else {
+                  dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+                  dispatch(removeCoinFromSwapRecords(selectedCoin));
+                } 
+                if(new_statecoin && new_statecoin?.swap_auto){
+                  // dispatch(setNotification({msg:"Retrying join auto swap with new statecoin:' + new_statecoin.shared_key_id"}));
+                  dispatch(addCoinToSwapRecords(new_statecoin))
+                  dispatch(addSwapPendingCoin(new_statecoin.shared_key_id))
                 }
               }
-          } else {
-            if(new_statecoin?.is_deposited){
-              dispatch(setNotification({msg:"Swap complete - Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-              dispatch(removeCoinFromSwapRecords(selectedCoin));
-            } else {
-              dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-              dispatch(removeCoinFromSwapRecords(selectedCoin));
-            } 
-            if(new_statecoin && new_statecoin?.swap_auto){
-              // dispatch(setNotification({msg:"Retrying join auto swap with new statecoin:' + new_statecoin.shared_key_id"}));
-              dispatch(addCoinToSwapRecords(new_statecoin))
-              dispatch(addSwapPendingCoin(new_statecoin.shared_key_id))
             }
-          }
+          );
         }
-        );  
+      })
     }, 3000);
     return () => clearInterval(interval);
   },
