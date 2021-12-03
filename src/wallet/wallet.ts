@@ -971,9 +971,10 @@ export class Wallet {
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
-      if (new_statecoin || statecoin.swap_status !== SWAP_STATUS.Phase4 && new_statecoin !== null) {
+      if (new_statecoin) {   
         new_statecoin.setSwapDataToNull();
       }
+      statecoin.setSwapDataToNull();
       this.saveStateCoinsList(); 
       swapSemaphore.release();
       return new_statecoin
@@ -1070,6 +1071,7 @@ export class Wallet {
         );
       }
     } finally {
+      this.saveStateCoinsList(); 
       swapSemaphore.release();
       updateSwapSemaphore.release();
     }
