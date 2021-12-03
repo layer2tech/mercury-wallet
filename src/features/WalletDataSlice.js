@@ -50,6 +50,7 @@ const initialState = {
   filterBy: 'default',
   depositLoading: false,
   swapRecords: [],
+  swapPendingCoins: [],
 }
 
 // Check if a wallet is loaded in memory
@@ -477,6 +478,24 @@ const WalletSlice = createSlice({
         filterBy: action.payload
       }
     },
+    updateSwapPendingCoins(state, action) {
+      return {
+        ...state,
+        swapPendingCoins: action.payload
+      }
+    },
+    addSwapPendingCoin(state, action) {
+      let prev = state.swapPendingCoins
+      if(!prev.includes(action.payload)){
+        prev.push(action.payload)
+      }
+    },
+    removeSwapPendingCoin(state, action) {
+      function isNot(value){
+        return value !== action.payload
+      }
+      state.swapPendingCoins = state.swapPendingCoins.filter(isNot);
+    },
     // Deposit
     dummyDeposit() {
       let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
@@ -591,7 +610,7 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
-  setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter,
+  setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin, 
   updateTxFeeEstimate } = WalletSlice.actions
   export default WalletSlice.reducer
 
