@@ -487,7 +487,10 @@ const WalletSlice = createSlice({
     addSwapPendingCoin(state, action) {
       let prev = state.swapPendingCoins
       if(!prev.includes(action.payload)){
-        prev.push(action.payload)
+        return{
+          ...state,
+          swapPendingCoins: state.swapPendingCoins.concat(action.payload)
+        }
       }
     },
     removeSwapPendingCoin(state, action) {
