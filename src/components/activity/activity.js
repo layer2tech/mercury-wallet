@@ -33,13 +33,13 @@ const Activity = () => {
 		let swappedCoins = statecoins.filter(coin => coin.funding_txid === funding_txid && coin.status === "SWAPPED").sort((a,b) => a.date - b.date).reverse()
 		// Filter all statecoins for swapped TxID and sort by date (most recent to least recent)
 
-		if(swappedCoins.length > 0){
 		// Check data exists : some unforeseen error
-
-			let finalSwapData = swappedCoins[dateIndex].swap_transfer_finalized_data
-			//Get the data for the swap of coin with funding_txid
-
-			return shortenString(finalSwapData.state_chain_data.utxo.txid)
+		//Get the data for the swap of coin with funding_txid
+		let datedSwappedCoins = swappedCoins[dateIndex];
+		let finalTxid = datedSwappedCoins ? datedSwappedCoins?.swap_transfer_finalized_data?.state_chain_data?.utxo?.txid :
+			undefined;
+		if(finalTxid){
+			return shortenString(finalTxid)
 		}
 		else{
 			return "Data not found"
