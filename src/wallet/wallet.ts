@@ -970,11 +970,11 @@ export class Wallet {
       this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
+      statecoin.setSwapDataToNull();
     } finally {
       if (new_statecoin) {   
         new_statecoin.setSwapDataToNull();
-      }
-      statecoin.setSwapDataToNull();
+      } 
       this.saveStateCoinsList(); 
       swapSemaphore.release();
       return new_statecoin
