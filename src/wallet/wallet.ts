@@ -201,7 +201,6 @@ export class Wallet {
     })
 
     new_wallet.account = new bip32utils.Account(chains);
-    console.log(new_wallet)
     return new_wallet
   }
 
@@ -972,9 +971,10 @@ export class Wallet {
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
     } finally {
-      if (new_statecoin || statecoin.swap_status !== SWAP_STATUS.Phase4) {   
+      if (new_statecoin) {   
         new_statecoin.setSwapDataToNull();
       }
+      statecoin.setSwapDataToNull();
       this.saveStateCoinsList(); 
       swapSemaphore.release();
       return new_statecoin
@@ -1071,6 +1071,7 @@ export class Wallet {
         );
       }
     } finally {
+      this.saveStateCoinsList(); 
       swapSemaphore.release();
       updateSwapSemaphore.release();
     }

@@ -372,7 +372,9 @@ export const swapPhase4 = async (
     phase = await pollSwap(http_client, statecoin.swap_id);
   } catch(err: any) {
     let rte = new SwapRetryError(err, "Phase4 pollSwap error: ")
-    if(!rte.message.includes("No data for identifier")){
+    if(rte.message.includes('Network') || rte.message.includes('network') || rte.message.includes('net::ERR')){
+      log.error(`Logging phase4 network error: ${rte.message}`)
+    } else if(!rte.message.includes("No data for identifier")){
         throw rte
     } 
     phase = null
@@ -409,8 +411,13 @@ export const swapPhase4 = async (
   } catch(err: any) {
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
-    //throw new SwapRetryError(err, "Phase 4 transferReceiverFinalize error: ")
-    log.error(`Phase 4 transferReceiverFinalize error: ${err}. Retrying...`)
+
+    let rte = new SwapRetryError(err, "Phase4 transferFinalize error: ")
+    if(rte.message.includes('Network') || rte.message.includes('network') || rte.message.includes('net::ERR')){
+      log.error(`Logging phase4 network error: ${rte.message}`)
+    } else {
+      throw rte
+    }
   }
 }
 
@@ -452,9 +459,10 @@ export const do_swap_poll = async(
   }
   
   const INIT_RETRY_AFTER=600
-  const MAX_ERRS=100
-  const MAX_REPS_PER_PHASE=100
-  const MAX_REPS_PHASE4=1000
+  const MAX_ERRS=10
+  const MAX_ERRS_PHASE4 = 100
+  const MAX_REPS_PER_PHASE = 50
+  const MAX_REPS_PHASE4 = 100
   let swap0_count=0
   let n_errs=0
   let n_reps=0
@@ -540,7 +548,11 @@ export const do_swap_poll = async(
         let message: string | undefined = err?.message
         if(message && message.includes("timed out")){
           throw err
-        } else if (err instanceof SwapRetryError && n_errs < MAX_ERRS) {
+        } else if (err instanceof SwapRetryError && n_errs < MAX_ERRS && statecoin.swap_status !== SWAP_STATUS.Phase4) {
+          n_errs = n_errs+1
+          console.log(`Error during swap: ${message} - retrying...`);
+        } 
+        else if (err instanceof SwapRetryError && n_errs < MAX_ERRS_PHASE4 && statecoin.swap_status === SWAP_STATUS.Phase4) {
           n_errs = n_errs+1
           console.log(`Error during swap: ${message} - retrying...`);
         } else {
