@@ -93,7 +93,7 @@ export class StateCoinList {
         item.status===STATECOIN_STATUS.EXPIRED
       ) {
         // Add all but withdrawn coins to total balance 
-        if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.IN_TRANSFER && item.status!==STATECOIN_STATUS.EXPIRED) {
+        if (item.status!==STATECOIN_STATUS.WITHDRAWN && item.status!==STATECOIN_STATUS.IN_TRANSFER && item.status!==STATECOIN_STATUS.EXPIRED){
           total += item.value
         }
         return item
@@ -356,6 +356,7 @@ export class StateCoin {
   tx_backup: BTCTransaction | null;
   backup_status: string;
   backup_confirm: boolean;
+  init_locktime: number | null;
   interval: number;
   tx_cpfp: BTCTransaction | null;
   tx_withdraw: BTCTransaction | null;
@@ -405,6 +406,7 @@ export class StateCoin {
     this.tx_backup = null;
     this.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
     this.backup_confirm = false;
+    this.init_locktime = null;
     this.interval = 1;
     this.tx_cpfp = null;
     this.tx_withdraw = null;
