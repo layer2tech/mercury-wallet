@@ -179,10 +179,13 @@
     color: #ffffff;
     border-radius: 5px;
     font-size:15px;
-    width:182px;
+    width:200px;
     box-shadow: 0 0 8px 2px rgba(0, 0, 0, 0.121569)
 }
 
+.receiveStatecoin .btns-container button{
+    width:200px;
+}
 
 
 

@@ -716,6 +716,20 @@ export class Wallet {
     if(statecoin) statecoin.description = description
   }
 
+  // Returns aggregate sum of statecoin amounts from list of shared key ids
+  sumStatecoinValues(shared_key_ids: string[]){
+    let totalSum = 0
+
+    shared_key_ids.map( id => {
+      let statecoin = this.getStatecoin(id)
+      if(statecoin){
+        totalSum += statecoin.value
+      }
+    })
+
+    return totalSum
+  }
+
   // Mark statecoin as spent after transfer or withdraw
   setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
     this.statecoins.setCoinSpent(id, action, transfer_msg);

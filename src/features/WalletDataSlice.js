@@ -215,6 +215,10 @@ export const callGetAllStatecoins = () => {
 return wallet.getAllStatecoins()
 }
 
+export const callSumStatecoinValues = (shared_key_ids) => {
+  return wallet.sumStatecoinValues(shared_key_ids)
+}
+
 export const callGetSwapGroupInfo = () => {
   return wallet.getSwapGroupInfo()
 }

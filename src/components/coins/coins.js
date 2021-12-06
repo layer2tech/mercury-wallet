@@ -786,7 +786,7 @@ const Coins = (props) => {
               {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
                 <div className="item qr-container">
                   <div className="block qrcode">
-                      <QRCodeGenerator address = {getAddress(showCoinDetails.coin.shared_key_id)} amount={fromSatoshi(showCoinDetails.coin.amount)}/>
+                      <QRCodeGenerator address = {getAddress(showCoinDetails.coin.shared_key_id)} amount={fromSatoshi(showCoinDetails.coin.value)}/>
                   </div>
                 </div>
               )
