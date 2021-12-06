@@ -50,6 +50,7 @@ const initialState = {
   filterBy: 'default',
   depositLoading: false,
   swapRecords: [],
+  swapPendingCoins: [],
 }
 
 // Check if a wallet is loaded in memory
@@ -216,6 +217,10 @@ export const callGetAllStatecoins = () => {
 return wallet.getAllStatecoins()
 }
 
+export const callSumStatecoinValues = (shared_key_ids) => {
+  return wallet.sumStatecoinValues(shared_key_ids)
+}
+
 export const callGetSwapGroupInfo = () => {
   return wallet.getSwapGroupInfo()
 }
@@ -377,6 +382,12 @@ export const callDoSwap = createAsyncThunk(
     return wallet.do_swap(action.shared_key_id)
   }
 )
+export const callResumeSwap = createAsyncThunk(
+  'ResumeSwap',
+  async (action, thunkAPI) => {
+    return wallet.resume_swap(action.shared_key_id)
+  }
+)
 export const callUpdateSwapGroupInfo = createAsyncThunk(
   'UpdateSwapGroupInfo',
   async (action, thunkAPI) => {
@@ -471,6 +482,27 @@ const WalletSlice = createSlice({
         filterBy: action.payload
       }
     },
+    updateSwapPendingCoins(state, action) {
+      return {
+        ...state,
+        swapPendingCoins: action.payload
+      }
+    },
+    addSwapPendingCoin(state, action) {
+      let prev = state.swapPendingCoins
+      if(!prev.includes(action.payload)){
+        return{
+          ...state,
+          swapPendingCoins: state.swapPendingCoins.concat(action.payload)
+        }
+      }
+    },
+    removeSwapPendingCoin(state, action) {
+      function isNot(value){
+        return value !== action.payload
+      }
+      state.swapPendingCoins = state.swapPendingCoins.filter(isNot);
+    },
     // Deposit
     dummyDeposit() {
       let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
@@ -560,6 +592,9 @@ const WalletSlice = createSlice({
     [callDoSwap.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
+    [callResumeSwap.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
+    },
     [callUpdateSwapGroupInfo.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name+": "+action.error.message }
     },
@@ -582,7 +617,7 @@ const WalletSlice = createSlice({
 })
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
-  setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter,
+  setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin, 
   updateTxFeeEstimate } = WalletSlice.actions
   export default WalletSlice.reducer
 

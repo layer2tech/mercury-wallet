@@ -8,6 +8,8 @@ import { FEE } from "../util";
 import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, getOwner } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
+import { Wallet } from "../wallet";
+import { ACTION } from '../activity_log';
 
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require('lodash.clonedeep');
@@ -54,7 +56,9 @@ export const transferSender = async (
   network: Network,
   statecoin: StateCoin,
   proof_key_der: BIP32Interface,
-  receiver_addr: string
+  receiver_addr: string,
+  is_batch: boolean = false,
+  wallet: Wallet,
 ): Promise<TransferMsg3> => {
   // Checks for spent, owned etc here
   let new_tx_backup;
@@ -105,7 +109,7 @@ export const transferSender = async (
 
   // Sign new back up tx
   let signature: string[] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
-  
+ 
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;
   new_tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]),Buffer.from(signature[1])];
@@ -138,6 +142,11 @@ export const transferSender = async (
   };
   typeforce(types.TransferMsg3, transfer_msg3);
 
+  // Mark funds as spent in wallet if this isn't a batch transfer
+  if(!is_batch){
+    wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.TRANSFER, transfer_msg3);
+  }
+  
   // Update server database with transfer message 3 so that
   // the receiver can get the message
   const MAX_TRIES = 10

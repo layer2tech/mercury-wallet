@@ -11,7 +11,7 @@ import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
-import { SwapGroup, do_swap_poll, GroupInfo } from './swap/swap'
+import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
@@ -21,7 +21,6 @@ import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum } from './mercury/info_api';
 import { EPSClient } from './eps';
-import { FEE_INFO } from './mocks/mock_http_client';
 
 const MAX_SWAP_SEMAPHORE_COUNT=100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -202,7 +201,6 @@ export class Wallet {
     })
 
     new_wallet.account = new bip32utils.Account(chains);
-
     return new_wallet
   }
 
@@ -716,6 +714,20 @@ export class Wallet {
     if(statecoin) statecoin.description = description
   }
 
+  // Returns aggregate sum of statecoin amounts from list of shared key ids
+  sumStatecoinValues(shared_key_ids: string[]){
+    let totalSum = 0
+
+    shared_key_ids.map( id => {
+      let statecoin = this.getStatecoin(id)
+      if(statecoin){
+        totalSum += statecoin.value
+      }
+    })
+
+    return totalSum
+  }
+
   // Mark statecoin as spent after transfer or withdraw
   setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
     this.statecoins.setCoinSpent(id, action, transfer_msg);
@@ -814,17 +826,18 @@ export class Wallet {
           let statecoin = this.statecoins.getCoin(shared_key_id);
           statecoin!.value = funding_tx_data[i].value;
         }
-        if (!funding_tx_data[i].height) {
-          log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
-          // check if coin txid has changed (due to RBF)
-          let coin = this.statecoins.getCoin(shared_key_id);
+        // check if coin txid has changed (due to RBF)
+        let coin = this.statecoins.getCoin(shared_key_id);
+        if (coin!.backup_confirm) {
           if (coin) {
             if (coin.funding_txid != funding_tx_data[i].tx_hash && coin.value == funding_tx_data[i].value) {
-              console.log("RBF tx replacement");
               coin.tx_backup = null;
               coin.backup_confirm = false;
             }
           }
+        }
+        if (!funding_tx_data[i].height) {
+          log.info("Found funding tx for p_addr "+p_addr+" in mempool. txid: "+funding_tx_data[i].tx_hash)
           this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i])
           this.saveStateCoinsList()
         } else {
@@ -918,7 +931,40 @@ export class Wallet {
     if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already involved in swap.");
     if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for swap.");
 
-    log.info("Swapping coin: "+shared_key_id);
+    
+    //Always try and resume coins in swap phase 4
+    if (statecoin.swap_status !== SWAP_STATUS.Phase4){
+      await swapSemaphore.wait();
+      try{
+        await (async () => {
+          while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+            delay(100);
+          }
+        });
+        await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+        this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
+      } catch(e : any){
+        if (! e.message.includes("Coin is not in a swap pool")){
+          throw e;
+       }
+      } finally {
+      swapSemaphore.release();
+      }
+
+      return await this.resume_swap(statecoin, false)
+    } else {
+      return await this.resume_swap(statecoin, true)
+    }
+  }
+
+  // Perform resume_swap
+  // Args: shared_key_id of coin to swap.
+  async resume_swap(
+    statecoin: StateCoin,
+    resume: boolean = true,
+  ): Promise<StateCoin | null> {
+
+    log.info("Swapping coin: "+statecoin.shared_key_id);
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     let new_proof_key_der = this.genProofKey();
@@ -927,7 +973,7 @@ export class Wallet {
     statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
       
     let new_statecoin: StateCoin | any | null=null;
-    
+
     await swapSemaphore.wait();
     try{
       await (async () => {
@@ -935,68 +981,20 @@ export class Wallet {
           delay(100);
         }
       });
-      await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
-      this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
-    } catch(e : any){
-      if (! e.message.includes("Coin is not in a swap pool")){
-        throw e;
-      }
-    } finally {
-      swapSemaphore.release();
-    }
-    await swapSemaphore.wait();
-    try{
-      await (async () => {
-        while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-          delay(100);
-        }
-      });
-      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this.getBlockHeight);
+      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
+      this.setIfNewCoin(new_statecoin)
+      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
+      statecoin.setSwapDataToNull();
     } finally {
+      if (new_statecoin) {   
+        new_statecoin.setSwapDataToNull();
+      } 
+      this.saveStateCoinsList(); 
       swapSemaphore.release();
-      if (new_statecoin===null) {
-        statecoin.setSwapDataToNull();
-        this.saveStateCoinsList();
-        //If the swap fails for a coin in auto_swap then restart it
-        if(statecoin.swap_auto){
-          log.info('Auto swap - swap restarted, with statecoin:' + statecoin.shared_key_id);
-          this.do_swap(statecoin.shared_key_id);
-        }
-        return null;
-      }
-
-      this.setIfNewCoin(new_statecoin)
-         
-      // Mark funds as spent in wallet
-      this.setStateCoinSpent(shared_key_id, ACTION.SWAP);
-
-      // update in wallet
-      new_statecoin.swap_status = null;
-      new_statecoin.setConfirmed();
-      new_statecoin.sc_address = encodeSCEAddress(new_statecoin.proof_key)
-      this.statecoins.addCoin(new_statecoin);
-
-      log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+new_statecoin.shared_key_id);
-      this.saveStateCoinsList();
-
-      if(statecoin.swap_auto){        
-
-        const rejoinSwap = setInterval(()=> {
-          if(new_statecoin.swap_status && new_statecoin.swap_status  !== null){
-            // If new statecoin has already been entered in swap, leave interval
-            clearInterval(rejoinSwap)
-          } else{
-            // Keep re-trying until auto-swap coin is back in a swap group
-            log.info('Retrying join auto swap, with new statecoin:' + new_statecoin.shared_key_id);
-            this.do_swap(new_statecoin.shared_key_id);
-          }
-        },2000)
-        
-      }
+      return new_statecoin
     }
-    return new_statecoin;
   }
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo>{
@@ -1052,15 +1050,17 @@ export class Wallet {
   }
 
   // force deregister of all coins in swap and also toggle auto swap off
-  deRegisterSwaps(){
+  // except for in swap phase 4
+  deRegisterSwaps(force: boolean = false){
     this.statecoins.coins.forEach(
       (statecoin) => {
-        if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
-          swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
-
-          statecoin.swap_auto = false;
-
-          this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
+        if(statecoin.status === STATECOIN_STATUS.IN_SWAP 
+          || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
+            if(!force && (statecoin.swap_status !== SWAP_STATUS.Phase4 )){
+              swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+              statecoin.swap_auto = false;
+              this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
+            }
         }
       }
     )
@@ -1076,12 +1076,18 @@ export class Wallet {
         this.statecoins.coins.forEach(
           async (statecoin) => {
             if(statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
-              statecoin.setSwapDataToNull();
+              if(statecoin && statecoin?.swap_status !== SWAP_STATUS.Phase4){
+                statecoin.setSwapDataToNull();
+              } else {
+                console.log(`resuming swap for statechain id: ${statecoin.statechain_id}`)
+                this.resume_swap(statecoin)
+              }
             }
           }
         );
       }
     } finally {
+      this.saveStateCoinsList(); 
       swapSemaphore.release();
       updateSwapSemaphore.release();
     }
@@ -1107,10 +1113,7 @@ export class Wallet {
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     
-    let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr)
-
-    // Mark funds as spent in wallet
-    this.setStateCoinSpent(shared_key_id, ACTION.TRANSFER, transfer_sender);
+    let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, false, this)
 
     log.info("Transfer Sender complete.");
     this.saveStateCoinsList();
@@ -1157,9 +1160,10 @@ export class Wallet {
     // update in wallet
     statecoin_finalized.setConfirmed();
     this.statecoins.addCoin(statecoin_finalized);
+    this.saveStateCoinsList();
 
     log.info("Transfer Finalize complete.")
-    this.saveStateCoinsList();
+    
     return statecoin_finalized
   }
 
