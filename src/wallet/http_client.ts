@@ -1,7 +1,6 @@
 import {Mutex} from 'async-mutex';
 const axios = require('axios').default;
 export const mutex = new Mutex();
-const log = window.require('electron-log');
 
 export const GET_ROUTE = {
   PING: "ping",
@@ -54,13 +53,7 @@ const checkForServerError = (return_val: any) => {
       throw Error("The server is currently unavailable due to a high request rate. Please try again.")
     }
     throw Error(return_val)
-  }
-  
-  if(return_val?.message && return_val.message.includes("Network Error")){
-      log.error(return_val)
-      return
-  }
-  
+  }  
 }
 
 export class HttpClient {
