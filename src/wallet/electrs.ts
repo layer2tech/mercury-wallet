@@ -3,6 +3,7 @@ import {Mutex} from 'async-mutex'
 let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
 export const mutex = new Mutex();
+const log = window.require('electron-log');
 
 class ElectrsClientError extends Error {
   constructor(message: string){
@@ -13,11 +14,14 @@ class ElectrsClientError extends Error {
 
 // Check if returned value from server is an error. Throw if so.
 const checkForServerError = (return_val: any) => {
-  if (typeof(return_val)=="string" && ( return_val.includes("Error") ||return_val.includes("error") )) {
+  if (typeof(return_val)==="string" && ( return_val.includes("Error") ||return_val.includes("error") )) {
+    if(return_val.includes("Network Error")){
+      log.error(return_val)
+      return
+    }
     throw Error(return_val)
   }
 }
-
 
 export const GET_ROUTE = {
   PING: "/electrs/ping",
@@ -169,12 +173,23 @@ export class ElectrsClient {
 
   async getLatestBlock(callBack: any, endpoint: string): Promise<any> {
     //this.connect()
+    try{
     let blockHeight = await ElectrsClient.get(endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
     if (this.blockHeightLatest != blockHeight){
       this.blockHeightLatest = blockHeight
       callBack([{"height":blockHeight}])
     }
     return blockHeight
+    } catch(err) {
+      this.blockHeightLatest = null
+      callBack([{"height":null}])
+      console.log(`err in getLatestBlock: ${err}`)
+      let err_str = typeof err === 'string' ? err : err?.message
+      if (err_str && err_str.includes('Network Error')){
+        return null
+      }
+      throw err
+    }
   }
 
   async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
@@ -193,7 +208,20 @@ export class ElectrsClient {
   }
 
   async blockHeightSubscribe(callBack: any): Promise<any> {
-    return setInterval(this.getLatestBlock, 10000, callBack, this.endpoint)
+    return setInterval(
+      (cb, ep) => {
+        try{
+        this.getLatestBlock(cb, ep)
+        } catch (err){
+          console.log(`err in blockHeightSubscribe: ${err}`)
+          let err_str = typeof err === 'string' ? err : err?.message
+          if (err_str && err_str.includes('Network Error')){
+            return null
+          }
+          throw err
+        }
+      }, 
+      10000, callBack, this.endpoint)
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
