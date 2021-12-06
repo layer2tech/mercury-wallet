@@ -178,7 +178,7 @@ export class ElectrsClient {
     return blockHeight
     } catch(err) {
       this.blockHeightLatest = null
-      callBack([{"height":null}])q
+      callBack([{"height":null}])
       let err_str = typeof err === 'string' ? err : err?.message
       if (err_str && err_str.includes('Network Error')){
         return null
