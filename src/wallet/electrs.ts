@@ -3,7 +3,6 @@ import {Mutex} from 'async-mutex'
 let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
 export const mutex = new Mutex();
-const log = window.require('electron-log');
 
 class ElectrsClientError extends Error {
   constructor(message: string){
