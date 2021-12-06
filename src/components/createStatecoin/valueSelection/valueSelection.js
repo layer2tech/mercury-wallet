@@ -45,13 +45,6 @@ const ValueSelectionPanel = (props) => {
         // set the fee value
         callGetFeeInfo().then(fee => {
           setWithdrawFee(fee?.withdraw);
-        }).catch(err => {
-          console.log(`err in blockHeightSubscribe: ${err}`)
-          let err_str = typeof err === 'string' ? err : err?.message
-          if (err_str && err_str.includes('Network Error')){
-            return null
-          }
-          throw err
         })
         return;
       }

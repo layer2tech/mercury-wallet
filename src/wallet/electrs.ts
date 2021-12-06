@@ -15,10 +15,6 @@ class ElectrsClientError extends Error {
 // Check if returned value from server is an error. Throw if so.
 const checkForServerError = (return_val: any) => {
   if (typeof(return_val)==="string" && ( return_val.includes("Error") ||return_val.includes("error") )) {
-    if(return_val.includes("Network Error")){
-      log.error(return_val)
-      return
-    }
     throw Error(return_val)
   }
 }
@@ -183,7 +179,6 @@ export class ElectrsClient {
     } catch(err) {
       this.blockHeightLatest = null
       callBack([{"height":null}])
-      console.log(`err in getLatestBlock: ${err}`)
       let err_str = typeof err === 'string' ? err : err?.message
       if (err_str && err_str.includes('Network Error')){
         return null
@@ -210,16 +205,7 @@ export class ElectrsClient {
   async blockHeightSubscribe(callBack: any): Promise<any> {
     return setInterval(
       (cb, ep) => {
-        try{
         this.getLatestBlock(cb, ep)
-        } catch (err){
-          console.log(`err in blockHeightSubscribe: ${err}`)
-          let err_str = typeof err === 'string' ? err : err?.message
-          if (err_str && err_str.includes('Network Error')){
-            return null
-          }
-          throw err
-        }
       }, 
       10000, callBack, this.endpoint)
   }

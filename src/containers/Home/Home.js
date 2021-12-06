@@ -32,13 +32,6 @@ const HomePage = () => {
     // Get fee info
     fee_info = callGetFeeInfo().then((fee_info) => {
       dispatch(updateFeeInfo(fee_info));
-    }).catch(err => {
-      console.log(`err in blockHeightSubscribe: ${err}`)
-      let err_str = typeof err === 'string' ? err : err?.message
-      if (err_str && err_str.includes('Network Error')){
-        return null
-      }
-      throw err
     })
   }
   // Check if wallet initialised

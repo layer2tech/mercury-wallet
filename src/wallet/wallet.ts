@@ -288,7 +288,6 @@ export class Wallet {
   // Setup subscribe for block height and outstanding initialised deposits
   async initElectrumClient(blockHeightCallBack: any) {
     this.electrum_client.connect().then(async () => {
-      try{
       // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
       // Get fee info
@@ -341,14 +340,7 @@ export class Wallet {
             return;
           })
       }
-  } catch(err) {
-    console.log(`err in blockHeightSubscribe: ${err}`)
-    let err_str = typeof err === 'string' ? err : err?.message
-    if (err_str && err_str.includes('Network Error')){
-      return null
-    }
-    throw err
-  }})
+  })
 }
 
 
@@ -567,7 +559,6 @@ export class Wallet {
 
   // update statuts of backup transactions and broadcast if neccessary
   updateBackupTxStatus() {
-    try{
     for (let i=0; i<this.statecoins.coins.length; i++) {
     // check if there is a backup tx yet, if not do nothing
       if (this.statecoins.coins[i].tx_backup === null) {
@@ -643,15 +634,8 @@ export class Wallet {
             } catch { continue }
         }
       }
-    }
     this.saveStateCoinsList();
-    } catch (err){
-      let err_str = typeof err === 'string' ? err : err?.message
-      if (err_str && err_str.includes('Network Error')){
-        return
-      }
-      throw err
-    }
+    } 
   }
 
   // create CPFP transaction to spend from backup tx

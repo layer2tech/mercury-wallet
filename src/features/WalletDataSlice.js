@@ -80,8 +80,7 @@ export const getWalletName = () => {
 //Restart the electrum server if ping fails
 async function pingElectrumRestart() {
     //If client already started
-    try{
-    if (!wallet.electrum_client || wallet.electrum_client.ping() === false) {
+    if (!wallet.electrum_client || !wallet.ping_electrum_ms) {
         log.info(`Failed to ping electum server. Restarting client`);
         wallet.electrum_client.close().catch( (err) => {
         log.info(`Failed to close electrum client: ${err}`)
@@ -97,12 +96,6 @@ async function pingElectrumRestart() {
               log.info(`Failed to initialize electrum client: ${err}`);
           }
       });
-    }} catch (err){
-      let err_str = typeof err === 'string' ? err : err?.message
-      if (err_str && err_str.includes('Network Error')){
-        return
-      }
-      throw err
     }
 }
 
@@ -114,34 +107,18 @@ export async function callPingElectrum(){
 
 setInterval(async function() {
   //Restart server if connection lost
-  try{
   await pingElectrumRestart().catch((err) => {
     log.info(`Failed to restart electum server: ${err}`);
   });
-  } catch (err){
-    let err_str = typeof err === 'string' ? err : err?.message
-    console.log(`err_str: ${err_str}, err: ${err}`)
-    if (err_str && err_str.includes('Network Error')){
-      return
-    }
-    throw err
-  }
 }, 30000);
 
 // update backuptx status and broadcast if necessary
 setInterval(async function() {
     if (wallet) {
       //Exit the loop if the server cannot be pinged
-      try{
       if (wallet.electrum_client.ping() === false) {
         log.info(`Failed to ping electum server`);
         return;
-      }} catch (err){
-        let err_str = typeof err === 'string' ? err : err?.message
-        if (err_str && err_str.includes('Network Error')){
-          return
-        }
-        throw err
       }
     }
   }, 60000);
@@ -171,19 +148,11 @@ export const walletLoad = (name, password) => {
   
   if (testing_mode) log.info("Testing mode set.");
   mutex.runExclusive(async () => {
-    try{
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapStatus();
     wallet.updateSwapGroupInfo();
     wallet.updateSpeedInfo();
-    } catch (err){
-      let err_str = typeof err === 'string' ? err : err?.message
-      if (err_str && err_str.includes('Network Error')){
-        return null
-      }
-      throw err
-    }
   });
 }
 

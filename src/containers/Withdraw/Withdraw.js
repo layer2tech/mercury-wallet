@@ -64,7 +64,7 @@ const WithdrawPage = () => {
     // list of # of blocks untill confirmation
 
     let txFeeEstimations = []
-    try{
+
     blocks.map(block => {
       dispatch(callGetFeeEstimation(parseInt(block))).then(tx_fee_estimate => {
 
@@ -84,13 +84,6 @@ const WithdrawPage = () => {
         }
       })
     })
-    } catch (err){
-      let err_str = typeof err === 'string' ? err : err?.message
-      if (err_str && err_str.includes('Network Error')){
-        return
-      }
-      throw err
-    }
   }, [dispatch]);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.

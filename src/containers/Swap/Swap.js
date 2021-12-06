@@ -70,27 +70,12 @@ const SwapPage = () => {
   
   // Check if Electrum server connected on page open
   useEffect(()=> {
-    try{
     checkElectrum();
-    } catch (err){
-      let err_str = typeof err === 'string' ? err : err?.message
-      if (err_str && err_str.includes('Network Error')){
-        return
-      }
-      throw err
-    }
+  
     const interval = setInterval(()=> {
       //Check Electrum server every 5s
-      try{
       checkElectrum();
-      }catch (err){
-        let err_str = typeof err === 'string' ? err : err?.message
-        if (err_str && err_str.includes('Network Error')){
-          return
-        }
-        throw err
-      }
-
+    
       //Counter triggers interval to run every time it's called
       setCounter(counter+1)
 

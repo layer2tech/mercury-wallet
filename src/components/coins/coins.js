@@ -344,7 +344,7 @@ const Coins = (props) => {
 
     //Load coins once component done render
     useEffect(() => {
-      try{
+      
       const [coins_data] = callGetUnspentStatecoins();
       //Load all coins that aren't unconfirmed
 
@@ -373,13 +373,7 @@ const Coins = (props) => {
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
-    } catch (err){
-      let err_str = typeof err === 'string' ? err : err?.message
-      if (err_str && err_str.includes('Network Error')){
-        return
-      }
-      throw err
-    }}
+    }
     , [props.refresh, filterBy, showCoinDetails, dispatch]);
 
     // Re-fetch every 10 seconds and update state to refresh render
@@ -387,7 +381,6 @@ const Coins = (props) => {
     useEffect(() => {
       //if (coins.unConfirmedCoins.length) {
         const interval = setInterval(() => {
-          try{
           setState({});
           let new_unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
           // check for change in length of unconfirmed coins list and total number
@@ -417,13 +410,7 @@ const Coins = (props) => {
               })
             }
           }
-        } catch (err){
-          let err_str = typeof err === 'string' ? err : err?.message
-          if (err_str && err_str.includes('Network Error')){
-            return
-          }
-          throw err
-        }}, 5000);
+        }, 5000);
         return () => clearInterval(interval);
       //}
     }, [coins.unConfirmedCoins]);

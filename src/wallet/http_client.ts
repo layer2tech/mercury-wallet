@@ -53,10 +53,6 @@ const checkForServerError = (return_val: any) => {
     if(return_val.includes("Not available until")){
       throw Error("The server is currently unavailable due to a high request rate. Please try again.")
     }
-    if(return_val.includes("Network Error")){
-      log.error(return_val)
-      return
-    }
     throw Error(return_val)
   }
   
