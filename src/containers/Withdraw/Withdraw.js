@@ -6,7 +6,7 @@ import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification, callGetConfig} from '../../features/WalletDataSlice';
+import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification, callGetConfig, callSumStatecoinValues} from '../../features/WalletDataSlice';
 import {Coins, StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
@@ -100,6 +100,12 @@ const WithdrawPage = () => {
     }
     if (!inputAddr) {
       dispatch(setError({msg: "Please enter an address to withdraw to."}))
+      return
+    }
+
+    // if total coin sum is less that 0.001BTC then return error
+    if(callSumStatecoinValues(selectedCoins) < 100000){
+      dispatch(setError({msg: "Mininum withdrawal size is 0.001 BTC."}))
       return
     }
 
