@@ -7,6 +7,7 @@ import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
 
 import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
+import { callGetConfig } from '../features/WalletDataSlice';
 
 let bech32 = require('bech32')
 let bitcoin = require('bitcoinjs-lib')
@@ -214,8 +215,17 @@ export const txCPFPBuild = (network: Network, funding_txid: string, funding_vout
 
 // Bech32 encode SCEAddress (StateChain Entity Address)
 export const encodeSCEAddress = (proof_key: string) => {
+  let config = callGetConfig()
+  let network = config.electrum_config.host
+  
+  if(network.includes('testnet')){
+    network = 'tc'
+  } else {
+    network = 'sc'
+  }
+
   let words = bech32.toWords(Buffer.from(proof_key, 'hex'))
-  return bech32.encode('sc', words)
+  return bech32.encode(network, words)
 }
 
 // Bech32 decode SCEAddress
