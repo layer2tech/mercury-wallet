@@ -6,7 +6,7 @@ import {useDispatch} from 'react-redux'
 
 import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
-  callUpdateConfig, callClearSave, unloadWallet, callGetActivityLogItems, callGetArgsHasTestnet} from '../../features/WalletDataSlice'
+  callUpdateConfig, callClearSave, unloadWallet, callGetAllActivityLogItems, callGetArgsHasTestnet} from '../../features/WalletDataSlice'
 
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
@@ -127,7 +127,7 @@ const SettingsPage = (props) => {
 
   const downloadActivity = () => {
     
-    let activity_data = callGetActivityLogItems();
+    let activity_data = callGetAllActivityLogItems();
     activity_data = JSON.stringify(activity_data)
 
     var a = document.createElement("a");
