@@ -411,8 +411,13 @@ export const swapPhase4 = async (
   } catch(err: any) {
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
-
     let rte = new SwapRetryError(err, "Phase4 transferFinalize error: ")
+    //If the swap phase is null and no data is found for the swap
+    //id then the swap timed out due to the failure of other paticipants
+    //to complete transfer.
+    if (phase === null && rte.message.includes('DB Error: No data for identifier')){
+      throw Error(`swap id: ${statecoin.swap_id}, shared key id: ${statecoin.shared_key_id} - swap failed with coin at phase 4/4`)
+    }
     if(rte.message.includes('Network') || rte.message.includes('network') || rte.message.includes('net::ERR')){
       log.error(`Logging phase4 network error: ${rte.message}`)
     } else {
