@@ -116,7 +116,7 @@ const Coins = (props) => {
     const [currentItem, setCurrentItem] = useState(null);
     const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
 
-    let activityData = callGetActivityLogItems()
+    let activityData = callGetActivityLogItems(10)
     let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
     let current_config;

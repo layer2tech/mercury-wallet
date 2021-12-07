@@ -11,7 +11,7 @@ import EmptyCoinDisplay from '../coins/EmptyCoinDisplay/EmptyCoinDisplay';
 import './activity.css';
 
 const Activity = () => {
-    let activity_data = callGetActivityLogItems();
+    let activity_data = callGetActivityLogItems(10);
 	let statecoins = callGetAllStatecoins();
 
 	function shortenString(long){
