@@ -43,6 +43,8 @@ try {
   log = require('electron-log');
 }
 
+
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -260,10 +262,10 @@ export class Wallet {
     return wallet;
   }
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
-  async recoverCoinsFromServer() {
+  async recoverCoinsFromServer(gap_limit: number) {
     log.info("Recovering StateCoins from server for mnemonic.");
 
-    let recoveredCoins = await recoverCoins(this);
+    let recoveredCoins = await recoverCoins(this, gap_limit);
     if (recoveredCoins.length>0) {
       log.info("Found "+recoveredCoins.length+" StateCoins. Saving to wallet.");
       this.saveKeys();
@@ -338,7 +340,8 @@ export class Wallet {
             return;
           })
       }
-  })}
+  })
+}
 
 
   // Set Wallet.block_height
@@ -632,8 +635,8 @@ export class Wallet {
             } catch { continue }
         }
       }
-    }
     this.saveStateCoinsList();
+    } 
   }
 
   // create CPFP transaction to spend from backup tx
@@ -930,6 +933,7 @@ export class Wallet {
     if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already in swap pool.");
     if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already involved in swap.");
     if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for swap.");
+    
 
     
     //Always try and resume coins in swap phase 4
@@ -987,6 +991,8 @@ export class Wallet {
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
       statecoin.setSwapDataToNull();
+      // remove generated address
+      this.account.chains[0].pop();
     } finally {
       if (new_statecoin) {   
         new_statecoin.setSwapDataToNull();
@@ -1004,8 +1010,12 @@ export class Wallet {
   async updateSwapGroupInfo() {
     try{
       this.swap_group_info = await groupInfo(this.http_client);
-    } catch(err){
+    } catch(err: any){
       this.swap_group_info.clear()
+      let err_str = typeof err === 'string' ? err : err?.message
+      if (err_str && err_str.includes('Network Error')){
+        return
+      }
       throw err
     }
   }
@@ -1024,7 +1034,7 @@ export class Wallet {
     try {
       this.ping_electrum_ms=await pingElectrum(this.electrum_client)
     } catch (err) {
-      this.ping_conductor_ms=null
+      this.ping_electrum_ms=null
     }
   }
 

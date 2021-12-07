@@ -62,6 +62,13 @@ const CreateWizardForm = (props) => {
                     </div>
                 )}
                 <div className="inputs-item">
+                  <input id="GapLimit" type="text" name="Address gap limit" placeholder="Address limit" title="Number of derived address to check for coins"
+                    value={props.wizardState.gap_limit}
+                    onChange={props.setStateGapLimit}
+                    onKeyPress={handleKeyPress}
+                    required/>
+                </div>                
+                <div className="inputs-item">
                   <input id="Name" type="text" name="Wallet Name" placeholder="Wallet Name"
                     value={props.wizardState.wallet_name}
                     onChange={props.setStateWalletName}

@@ -21,10 +21,12 @@ const RestoreWalletPage = (props) => {
       wallet_name: "",
       wallet_password: "",
       mnemonic: "",
+      gap_limit: ""
     });
   const setStateWalletName = (event) => setState({...state, wallet_name: event.target.value});
   const setStateWalletPassword = (event) => setState({...state, wallet_password: event.target.value});
   const setStateMnemonic = (event) => setState({...state, mnemonic: event.target.value});
+  const setStateGapLimit = (event) => setState({...state, gap_limit: event.target.value});
 
   // Confirm mnemonic is valid
   const onClickConf = () => {
@@ -46,10 +48,15 @@ const RestoreWalletPage = (props) => {
       return;
     }
 
+    if (state.gap_limit === parseInt(state.gap_limit, 10)) {
+      dispatch(setError({msg: "Address limit must be a positive integer"}));
+      return;
+    }
+
     
     // Create wallet and load into Redux state
     try {
-      walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true);
+      walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true, Number(state.gap_limit));
       props.history.push('/home');
     } catch (e) {
       dispatch(setError({msg: e.message}));
@@ -97,6 +104,7 @@ const RestoreWalletPage = (props) => {
                 setStateWalletName={setStateWalletName}
                 setStateWalletPassword={setStateWalletPassword}
                 setStateMnemonic={setStateMnemonic}
+                setStateGapLimit={setStateGapLimit}
                 submitTitle="Confirm"
               />
             </div>
