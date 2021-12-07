@@ -159,7 +159,7 @@ export const walletLoad = (name, password) => {
 }
 
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
-export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
+export const walletFromMnemonic = (name, password, mnemonic, try_restore, gap_limit) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   log.info("Wallet "+name+" created.");
   if (testing_mode) log.info("Testing mode set.");
@@ -167,7 +167,7 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
-      wallet.recoverCoinsFromServer();
+      wallet.recoverCoinsFromServer(gap_limit);
     }
     callNewSeAddr();
     wallet.save();
