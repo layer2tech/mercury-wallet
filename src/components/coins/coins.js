@@ -344,6 +344,7 @@ const Coins = (props) => {
 
     //Load coins once component done render
     useEffect(() => {
+      
       const [coins_data] = callGetUnspentStatecoins();
       //Load all coins that aren't unconfirmed
 
@@ -372,7 +373,8 @@ const Coins = (props) => {
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value , 0);
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
-    }, [props.refresh, filterBy, showCoinDetails, dispatch]);
+    }
+    , [props.refresh, filterBy, showCoinDetails, dispatch]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED

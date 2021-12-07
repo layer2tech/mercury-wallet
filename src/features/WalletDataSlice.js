@@ -79,9 +79,8 @@ export const getWalletName = () => {
 
 //Restart the electrum server if ping fails
 async function pingElectrumRestart() {
-  if(wallet){
     //If client already started
-    if (!wallet.electrum_client || wallet.electrum_client.ping() === false) {
+    if (!wallet.electrum_client || !wallet.ping_electrum_ms) {
         log.info(`Failed to ping electum server. Restarting client`);
         wallet.electrum_client.close().catch( (err) => {
         log.info(`Failed to close electrum client: ${err}`)
@@ -98,7 +97,6 @@ async function pingElectrumRestart() {
           }
       });
     }
-  }
 }
 
 // Keep electrum server connection alive.
