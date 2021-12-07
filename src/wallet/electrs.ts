@@ -175,7 +175,7 @@ export class ElectrsClient {
       callBack([{"height":blockHeight}])
     }
     return blockHeight
-    } catch(err) {
+    } catch(err: any) {
       this.blockHeightLatest = null
       callBack([{"height":null}])
       let err_str = typeof err === 'string' ? err : err?.message
