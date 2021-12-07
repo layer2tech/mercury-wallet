@@ -261,9 +261,10 @@ export const callGetActivityLog = () => {
   return wallet.getActivityLog();
 }
 
-export const callGetActivityLogItems = () => {
-  return wallet.getActivityLogItems(10)
+export const callGetActivityLogItems = (num_of_items) => {
+  return wallet.getActivityLogItems(num_of_items)
 }
+
 export const callGetFeeInfo = () => {
   return getFeeInfo(wallet.http_client)
 }
