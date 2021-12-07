@@ -33,6 +33,11 @@ export const FILTER_BY_OPTION = [
     value: STATECOIN_STATUS.IN_TRANSFER,
     text: 'Transferred coins'
   },
+  {
+    id: 4,
+    value: STATECOIN_STATUS.WITHDRAWING,
+    text: 'Withdrawal awaiting confirmation'
+  },
 ]
 
 const PanelControl = () => {
