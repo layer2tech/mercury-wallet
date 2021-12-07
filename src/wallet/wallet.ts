@@ -990,6 +990,8 @@ export class Wallet {
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
       statecoin.setSwapDataToNull();
+      // remove generated address
+      this.account.chains[0].pop();
     } finally {
       if (new_statecoin) {   
         new_statecoin.setSwapDataToNull();
@@ -1007,7 +1009,7 @@ export class Wallet {
   async updateSwapGroupInfo() {
     try{
       this.swap_group_info = await groupInfo(this.http_client);
-    } catch(err){
+    } catch(err: any){
       this.swap_group_info.clear()
       let err_str = typeof err === 'string' ? err : err?.message
       if (err_str && err_str.includes('Network Error')){
