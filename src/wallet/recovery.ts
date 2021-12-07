@@ -9,26 +9,30 @@ let cloneDeep = require('lodash.clonedeep');
 
 // number of keys to generate per recovery call. If no statecoins are found for this number
 // of keys then assume there are no more statecoins owned by this wallet.
-const NUM_KEYS_PER_RECOVERY_ATTEMPT = 250;
+const NUM_KEYS_PER_RECOVERY_ATTEMPT = 200;
 
 // Send all proof keys to server to check for statecoins owned by this wallet.
 // Should be used as a last resort only due to privacy leakage.
-export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> => {
+export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<RecoveryDataMsg[]> => {
   let recovery_data: any = [];
   let new_recovery_data_load = [null];
   let recovery_request = [];
   let addrs: any = [];
 
+  console.log(gap_limit);
+
   let addr = wallet.account.getChainAddress(0);
   addrs.push(addr);
   recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
-  // Keep grabbing data until NUM_KEYS_PER_RECOVERY_ATTEMPT keys have no statecoins
-  while (new_recovery_data_load.length > 0) {
+  let count = 0;
+  while (count < gap_limit) {
     for (let i=0; i<NUM_KEYS_PER_RECOVERY_ATTEMPT; i++) {
       let addr = wallet.account.nextChainAddress(0);
       addrs.push(addr);
       recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
+      count++;
     }
+    console.log(count);
     new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
     recovery_request = [];
     recovery_data = recovery_data.concat(new_recovery_data_load);
@@ -36,11 +40,7 @@ export const recoverCoins = async (wallet: Wallet): Promise<RecoveryDataMsg[]> =
   
   let fee_info: FeeInfo = await getFeeInfo(wallet.http_client)
   // Import the addresses if using electrum-personal-server
-  wallet.electrum_client.importAddresses(addrs, wallet.getBlockHeight() - fee_info.initlock)
-
-  // No more keys found for this wallet. Remove the NUM_KEYS_PER_RECOVERY_ATTEMPT from
-  // wallets account so that the wallet can use them.
-  for (let i = 1; i < NUM_KEYS_PER_RECOVERY_ATTEMPT; ++i) wallet.account.chains[0].pop();
+  wallet.electrum_client.importAddresses(addrs, wallet.getBlockHeight() - fee_info.initlock);
 
   return recovery_data
 }

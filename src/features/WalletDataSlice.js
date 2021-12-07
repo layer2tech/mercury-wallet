@@ -79,9 +79,8 @@ export const getWalletName = () => {
 
 //Restart the electrum server if ping fails
 async function pingElectrumRestart() {
-  if(wallet){
     //If client already started
-    if (!wallet.electrum_client || wallet.electrum_client.ping() === false) {
+    if (!wallet.electrum_client || !wallet.ping_electrum_ms) {
         log.info(`Failed to ping electum server. Restarting client`);
         wallet.electrum_client.close().catch( (err) => {
         log.info(`Failed to close electrum client: ${err}`)
@@ -98,7 +97,6 @@ async function pingElectrumRestart() {
           }
       });
     }
-  }
 }
 
 // Keep electrum server connection alive.
@@ -159,7 +157,7 @@ export const walletLoad = (name, password) => {
 }
 
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
-export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
+export const walletFromMnemonic = (name, password, mnemonic, try_restore, gap_limit) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   log.info("Wallet "+name+" created.");
   if (testing_mode) log.info("Testing mode set.");
@@ -167,7 +165,7 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore) => {
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
-      wallet.recoverCoinsFromServer();
+      wallet.recoverCoinsFromServer(gap_limit);
     }
     callNewSeAddr();
     wallet.save();
@@ -215,6 +213,10 @@ export const callGetUnspentStatecoins = () => {
 }
 export const callGetAllStatecoins = () => {
 return wallet.getAllStatecoins()
+}
+
+export const callSumStatecoinValues = (shared_key_ids) => {
+  return wallet.sumStatecoinValues(shared_key_ids)
 }
 
 export const callGetSwapGroupInfo = () => {

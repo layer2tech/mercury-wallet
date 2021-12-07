@@ -71,10 +71,11 @@ const SwapPage = () => {
   // Check if Electrum server connected on page open
   useEffect(()=> {
     checkElectrum();
+  
     const interval = setInterval(()=> {
       //Check Electrum server every 5s
       checkElectrum();
-
+    
       //Counter triggers interval to run every time it's called
       setCounter(counter+1)
 
