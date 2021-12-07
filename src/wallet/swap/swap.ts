@@ -367,17 +367,14 @@ export const swapPhase4 = async (
   if (statecoin.swap_transfer_finalized_data===null) throw Error("No transfer finalize data found for coin. Transfer finalize data should be set in Phase1.");
 
   
-  let phase
+  let phase = null
   try{ 
     phase = await pollSwap(http_client, statecoin.swap_id);
   } catch(err: any) {
     let rte = new SwapRetryError(err, "Phase4 pollSwap error: ")
-    if(rte.message.includes('Network') || rte.message.includes('network') || rte.message.includes('net::ERR')){
-      log.error(`Logging phase4 network error: ${rte.message}`)
-    } else if(!rte.message.includes("No data for identifier")){
-        throw rte
+    if(!rte.message.includes("No data for identifier")){
+      throw rte
     } 
-    phase = null
   }
   // If still in previous phase return nothing.
 
@@ -387,7 +384,7 @@ export const swapPhase4 = async (
   } else if (phase !== SWAP_STATUS.Phase4 && phase !== null) {
     throw new Error("Swap error: swapPhase4: Expected swap phase4 or null. Received: "+phase);
   }
-  log.info("Swap Phase4: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
+  log.info(`Swap Phase: ${phase} - Coin ${statecoin.shared_key_id} in Swap ${statecoin.swap_id}`);
 
   // Complete transfer for swap and receive new statecoin  
   try {
@@ -418,11 +415,7 @@ export const swapPhase4 = async (
     if (phase === null && rte.message.includes('DB Error: No data for identifier')){
       throw Error(`swap id: ${statecoin.swap_id}, shared key id: ${statecoin.shared_key_id} - swap failed with coin at phase 4/4`)
     }
-    if(rte.message.includes('Network') || rte.message.includes('network') || rte.message.includes('net::ERR')){
-      log.error(`Logging phase4 network error: ${rte.message}`)
-    } else {
-      throw rte
-    }
+    throw rte
   }
 }
 
@@ -560,7 +553,11 @@ export const do_swap_poll = async(
           console.log(`Error during swap: ${message} - retrying...`);
         } 
         else if (err instanceof SwapRetryError && n_errs < MAX_ERRS_PHASE4 && statecoin.swap_status === SWAP_STATUS.Phase4) {
-          n_errs = n_errs+1
+          //An unlimited number of netowrk errors permitted in stage 4 as swap 
+          //transfers may have completed
+          if(!(err.message.includes('Network') || err.message.includes('network') || err.message.includes('net::ERR'))){
+            n_errs = n_errs+1
+          }
           console.log(`Error during swap: ${message} - retrying...`);
         } else {
           throw err
