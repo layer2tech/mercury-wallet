@@ -9,6 +9,9 @@ const config = new Config();
 const tpc = config.tor_proxy;
 const express = require("express");
 const winston = require('winston');
+var geoip = require('geoip-country');
+var countries = require("i18n-iso-countries");
+countries.registerLocale(require("i18n-iso-countries/langs/en.json"));
 
 const tor_cmd = process.argv[2];
 const torrc = process.argv[3];
@@ -197,6 +200,99 @@ app.post('/tor_settings', async function(req,res) {
   } catch (err) {
     res.status(400).json(`Bad request: ${err}`);
   }
+});
+
+app.get('/tor_country/:id', function(req, res) {
+  tor.control.getInfo(['ip-to-country/'+req.params.id], function(err, status) {
+    let circuit = status;
+    let response = {
+      circuit: circuit
+    };
+    res.status(200).json(response);
+  })
+})
+
+
+// with the id  of the  current tor circuit, return further details
+// TODO -  string data needs to be validated (rArray)
+app.get('/tor_circuit/:id', (req,res) => {
+  tor.control.getInfo(['ns/id/'+req.params.id], (err, status) => {
+    // split the string starting with r
+    var rArray =  status.messages[1].split(' ');
+    var name = rArray[1]; // validate this
+    var ip = rArray[rArray.length-3]; // validate this
+    var geo = geoip.lookup(ip);
+    var country = countries.getName(geo.country, "en", {select: "official"});
+    var retArray = { 
+      name,
+      ip,
+      country
+    };
+    res.status(200).json(retArray);
+  });
+})
+
+// returns the ids of the current tor circuit
+app.get('/tor_circuit/',  (req,res) => {
+  tor.control.getInfo(['circuit-status'], (err, status) => { // Get info like describe in chapter 3.9 in tor-control specs.
+    if (err) {
+       return console.error(err);
+    }
+    // cycle through messages until we get the latest value
+    let circuitMessages = status.messages;
+    var len = circuitMessages.length;
+
+    // finding the highest number, and saving its index
+    var highest = 0;
+    var highestIndex = 0;
+    for(var i=0; i<len; i++){
+      // find the strings that start with a number
+      if (!isNaN(circuitMessages[i].charAt(0))){
+        var val = circuitMessages[i];
+        // now find the string that contains the highest number
+        var number = parseInt(val.substr(0,val.indexOf(' ')));
+        if(number > highest){
+          highest = number;
+          highestIndex = i; // save this index
+        }
+      }
+    }
+
+    // now that we have the highest, manipulate data from its string
+    var latest = circuitMessages[highestIndex];
+    // now split the string into commas
+    var circuitData = latest.split(',');
+
+    /* circuitData: Data looks like this
+    [0] : 9 BUILT $31D270A38505D4BFBBCABF717E9FB4BCA6DDF2FF~Belgium,
+    [1] : $CC8B218ED3615827A5DCF008FC62598DEF533B4F~mikrogravitation02,
+    [2] : $14FAE5D6645A97DE054FBE4AA8D3931302E05ADC~Poznan BUILD_FLAGS=NEED_CAPACITY PURPOSE=GENERAL TIME_CREATED=2021-12-08T12:07:51.477355
+    */
+
+    // find the ids  which are between $ and ~
+    var circuitIds =  [];
+    for(var i=0;  i<circuitData.length; i++){
+      var circuitId = circuitData[i].substring(
+        circuitData[i].indexOf("$") + 1, 
+        circuitData[i].lastIndexOf("~")
+      );
+      if(circuitId !== ""){
+        circuitIds.push(circuitId);
+      }
+    }
+
+    /*  circuitIds: looks like this
+      [0]: "31D270A38505D4BFBBCABF717E9FB4BCA6DDF2FF",
+      [1]: "A5FF60CEAC8154C851AEFDAD40B421CFC97297A4",
+      [2]: "ADB98B27D7A3FB5732068FD23602A1BCB3BE9F38"
+    */
+
+    let response = {
+      latest: latest,
+      circuitData: circuitIds
+    };
+    res.status(200).json(response);
+  });
 });
 
 app.get('/tor_settings', function(req,res) {
