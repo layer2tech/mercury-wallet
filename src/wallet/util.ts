@@ -214,8 +214,16 @@ export const txCPFPBuild = (network: Network, funding_txid: string, funding_vout
 }
 
 // Bech32 encode SCEAddress (StateChain Entity Address)
-export const encodeSCEAddress = (proof_key: string) => {
-  let config = callGetConfig()
+export const encodeSCEAddress = (proof_key: string, wallet: any = 'normal') => {
+  let config
+  if(wallet !== 'normal'){
+    // For Jest testing, preset wallet
+    config = callGetConfig(wallet)
+  }
+  else{
+    config = callGetConfig()
+  }
+  
   let network = config.electrum_config.host
   
   if(network.includes('testnet')){
