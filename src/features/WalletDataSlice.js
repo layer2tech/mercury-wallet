@@ -16,16 +16,27 @@ import {mutex} from '../wallet/electrum';
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
 // eslint-disable-next-line
 const OPEN = require('websocket').w3cwebsocket.OPEN;
-const log = window.require('electron-log');
+
+let log;
+try{
+  log = window.require('electron-log');
+} catch ( e ) {
+  log = require('electron-log');
+}
 
 
 export const callGetArgsHasTestnet =  () => {
   let found  = false;
-  window.require('electron').remote.process.argv.forEach((arg) =>  {
-      if(arg.includes('testnet')){
-          found = true;
-      }     
-  });
+  try{
+    window.require('electron').remote.process.argv.forEach((arg) =>  {
+        if(arg.includes('testnet')){
+            found = true;
+        }     
+    });
+  } catch ( e ){
+    // set testnet for testing
+    found = true
+  }
   return found;
 }
 
@@ -199,9 +210,16 @@ export const callGetAccount = () => {
 }
 
 // Wallet data gets
-export const callGetConfig = () => {
-  return wallet.config.getConfig()
+export const callGetConfig = (test_wallet = 'normal') => {
+  if(test_wallet !== 'normal'){
+    // Jest testing: preset wallet
+    return test_wallet.config.getConfig()
+  }
+  else{
+    return wallet.config.getConfig()
+  }
 }
+
 export const callGetVersion = () => {
   return wallet.version
 }
