@@ -5,7 +5,7 @@ import {NotificationBar, ErrorPopup, ConfirmPopup} from "../../components";
 import WarningPopup from '../WarningPopup';
 import {unloadWallet} from '../../features/WalletDataSlice'
 import './header.css';
-import TorInfo from './TorInfo/TorInfo';
+import TorInfo from './TorInfo/TorCircuit';
 
 const Header = (props) => {
   

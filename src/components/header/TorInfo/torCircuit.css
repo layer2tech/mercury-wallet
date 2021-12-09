@@ -1,3 +1,7 @@
+/* 
+  TODO - this css is affecting other parts of the wallet - needs to be unique to torcircuit only 
+*/
+
 .dropdown {
   position: absolute;
   display: inline-block;
