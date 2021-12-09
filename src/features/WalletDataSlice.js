@@ -253,10 +253,6 @@ export const callGetUnconfirmedStatecoinsDisplayData = () => {
   return wallet.getUnconfirmedStatecoinsDisplayData()
 }
 
-export const callAddActivityItem = (id, action) =>{
-  wallet.addActivityItem(id, action);
-}
-
 export const callGetActivityLog = () => {
   return wallet.getActivityLog();
 }
