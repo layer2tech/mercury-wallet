@@ -394,7 +394,7 @@ export const swapPhase4 = async (
     statecoin_out.swap_rounds = statecoin.swap_rounds+1;
     statecoin_out.anon_set = statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
     wallet.setIfNewCoin(statecoin_out)
-    wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
+    wallet.statecoins.setCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
     // update in wallet
     statecoin_out.swap_status = null;
     statecoin_out.swap_auto = statecoin.swap_auto

@@ -113,7 +113,7 @@ const Activity = () => {
 								</td>
 								<td>
 									<span>Transferred</span>
-									<span className="green">+ {fromSatoshi(item.value)} BTC</span>
+									<span className="red">- {fromSatoshi(item.value)} BTC</span>
 								</td>
 							</tr>
 							</tbody>
@@ -135,7 +135,7 @@ const Activity = () => {
 
 								</td>
 								<td>
-									<span>Withdraw</span>
+									<span>Withdrawn</span>
 									<span className="red">- {fromSatoshi(item.value)} BTC</span>
 
 								</td>
@@ -181,9 +181,7 @@ const Activity = () => {
 								<span >Initialized 1 Statecoin</span>
 							</td>
 							<td>
-								<img src={txidIcon} alt="txidIcon"/>
-								<span className="txid">{item.funding_txid}:{item.funding_txvout}</span>
-
+								<span className="">No Transaction ID before Deposit</span>
 							</td>
 							<td>
 								<span>Coin Initialized</span>
@@ -207,6 +205,7 @@ const Activity = () => {
 									</td>
 									<td>
 										<span>Coin Received</span>
+										<span className="green">+ {fromSatoshi(item.value)} BTC</span>
 									</td>
 							</tr>
 						</tbody>

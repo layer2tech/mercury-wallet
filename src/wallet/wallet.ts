@@ -539,10 +539,6 @@ export class Wallet {
     return this.activity;
   }
 
-  addActivityItem(id:string, action:string){
-    this.activity.addItem(id, action);
-  }
-
   // ActivityLog data with relevant Coin data
   getActivityLogItems(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
@@ -1170,6 +1166,7 @@ export class Wallet {
     // update in wallet
     statecoin_finalized.setConfirmed();
     this.statecoins.addCoin(statecoin_finalized);
+    this.activity.addItem(statecoin_finalized.shared_key_id, ACTION.RECEIVED)
     this.saveStateCoinsList();
 
     log.info("Transfer Finalize complete.")
