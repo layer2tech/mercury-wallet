@@ -3,7 +3,7 @@
 import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin } from './statecoin';
 import { getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo } from './mercury/info_api';
-import { encodeSCEAddress } from './util';
+
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');
 
