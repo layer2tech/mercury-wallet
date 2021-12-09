@@ -113,19 +113,17 @@ export class Wallet {
     }
   }
 
+  // TODO - add additional checks and error handling
   async updateTorcircuitInfo(){
     try{
       let torcircuit_ids = await getTorCircuitIds(this.http_client);
-
       let torcircuit  = [];
       for(var i=0; i<torcircuit_ids.length; i++){
         torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids[i]));
       }
-      console.log(torcircuit);
-
+      //console.log(torcircuit);
       this.tor_circuit = torcircuit;
-
-      console.log(this.tor_circuit);
+      //console.log(this.tor_circuit);
     }catch(err : any){
       throw err
     }

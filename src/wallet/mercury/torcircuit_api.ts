@@ -27,7 +27,7 @@ export const getNewTorId = async (http_client: HttpClient |  MockHttpClient) => 
 // parent
 export const getTorCircuitIds = async (http_client: HttpClient |  MockHttpClient) => {
     let tor_circuit_ids = await http_client.get(GET_ROUTE.TOR_CIRCUITS, {});
-    console.log(tor_circuit_ids);
+    //console.log(tor_circuit_ids);
     //typeforce(types.TorCircuitData, tor_circuit_ids);
     return tor_circuit_ids.circuitData;
 }
