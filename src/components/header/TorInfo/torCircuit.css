@@ -1,7 +1,7 @@
 /* 
   TODO - this css is affecting other parts of the wallet - needs to be unique to torcircuit only 
   This css is also rendering incorrectly - the circle should be in the center, I think another style somewhere else is being added
-
+  Look at help page for instance, the li are changed due to this css file
 */
 
 .dropdown {
