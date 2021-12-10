@@ -172,7 +172,7 @@ app.get('/newid', async function(req,res) {
   }
 });
 
-app.get('/tor_adapter/ping', async function(req,res) {
+app.get('lsof -i', async function(req,res) {
   res.status(200).json({});
 });
 

@@ -9,7 +9,7 @@ import { ElectrsClient } from './electrs'
 import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
-import { withdraw } from './mercury/withdraw';
+import { withdraw, withdraw_init, withdraw_confirm } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
 import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
@@ -472,6 +472,19 @@ export class Wallet {
   }
 
   // Each time we get unconfirmed coins call this to check for confirmations
+  checkWithdrawingTxStatus(withdrawing_coins: StateCoin[]) {
+    withdrawing_coins.forEach((statecoin) => {
+      // if the withdrawal transaction is confirmed, confirm it with the server and update
+      // the wallet
+      if (statecoin.withdraw_txid) {
+        if ((statecoin.status===STATECOIN_STATUS.WITHDRAWING) && this.checkWithdrawalTx(statecoin.withdraw_txid) && !this.config.testing_mode) {
+          this.withdraw_confirm(statecoin.shared_key_id)
+        }
+      }
+    })
+  }
+
+  // Each time we get unconfirmed coins call this to check for confirmations
   checkUnconfirmedCoinsStatus(unconfirmed_coins: StateCoin[]) {
     unconfirmed_coins.forEach((statecoin) => {
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
@@ -856,6 +869,17 @@ export class Wallet {
 
   }
 
+  // Query withdrawal txs list unspent and mark coin WITHDRAWN
+  async checkWithdrawalTx(tx_hash: string): Promise<boolean> {
+    let withdrawal_tx_data = await this.electrum_client.getTransaction(tx_hash)
+    let status = withdrawal_tx_data?.status;
+    if(status && status.confirmed){
+      log.info(`Withdrawal tx ${tx_hash} confirmed`);
+      return true
+    }
+    return false
+  }
+    
   async importAddress(p_addr: string){
     this.electrum_client.importAddresses([p_addr], -1)
   }
@@ -1252,6 +1276,16 @@ export class Wallet {
     rec_addr: string,
     fee_per_byte: number
   ): Promise <string> {
+    let [txid, withdraw_msg_2] = await this.withdraw_init(shared_key_ids, rec_addr, fee_per_byte);
+    await this.withdraw_confirm(withdraw_msg_2);
+    return txid
+  }
+
+  async withdraw_init(
+    shared_key_ids: string[],
+    rec_addr: string,
+    fee_per_byte: number
+  ): Promise <[string, any]> {
     log.info("Withdrawing "+shared_key_ids+" to "+rec_addr);
 
     // Check address format
@@ -1265,48 +1299,61 @@ export class Wallet {
       if (!statecoin) throw Error("No coin found with id " + shared_key_id)
       if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" currenlty involved in swap protocol.");
       if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" waiting in  swap pool. Remove from pool to withdraw.");
-      if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) if(statecoin.status!==STATECOIN_STATUS.SWAPLIMIT) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for withdraw.");
+      if (statecoin.status!==STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.WITHDRAWING) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for withdraw.");
       statecoins.push(statecoin);
       proof_key_ders.push(this.getBIP32forProofKeyPubKey(statecoin.proof_key));
     });
 
-    // Perform withdraw with server
-    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_byte);
+    // Perform withdraw init with server
+    let [tx_withdraw, withdraw_msg_2] = await withdraw_init(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_byte);
     
     // Mark funds as withdrawn in wallet
     shared_key_ids.forEach( (shared_key_id) => {
-      this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+      let statecoin = this.statecoins.getCoin(shared_key_id);
+      if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+      if (statecoin.status !== STATECOIN_STATUS.WITHDRAWING &&
+        statecoin.status !== STATECOIN_STATUS.WITHDRAWN){
+        this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+      }
       this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
       this.statecoins.setCoinWithdrawTxId(shared_key_id,tx_withdraw.getId())
     });
 
     this.saveStateCoinsList();
 
-    // Broadcast transcation
-    let withdraw_txid: string = ""
-    let nTries=0;
-    let maxNTries=10
-    while (true){
-      try {
-        withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
-      } catch (error) {
-        nTries=nTries+1
-        if (nTries < maxNTries) {
-          log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          continue
-        } else {
-          let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`
-          log.info(errMsg)
-          throw new Error(errMsg)
-        }
-      }
-      break
-    }
-    
-    log.info("Withdrawing finished.");
+       // Broadcast transcation
+       let withdraw_txid: string = ""
+       let nTries=0;
+       let maxNTries=10
+       while (true){
+         try {
+           withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
+         } catch (error) {
+           nTries=nTries+1
+           if (nTries < maxNTries) {
+             log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
+             await new Promise(resolve => setTimeout(resolve, 1000))
+             continue
+           } else {
+             let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`
+             log.info(errMsg)
+             throw new Error(errMsg)
+           }
+         }
+         break
+       }
+       
+       log.info("Withdraw init finished.");
+   
 
-    return withdraw_txid
+    return [withdraw_txid, withdraw_msg_2]
+  }
+
+
+  async withdraw_confirm(
+    withdraw_msg_2: any
+  ) {
+    await withdraw_confirm(this.http_client, withdraw_msg_2)
   }
 }
 

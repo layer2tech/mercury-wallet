@@ -8,7 +8,7 @@ import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
 import { BatchData, BSTRequestorData, SwapID, SwapInfo } from "./swap/swap";
 import { SCEAddress, TransferFinalizeData, TransferMsg3 } from "./mercury/transfer";
-
+import { WithdrawMsg2 } from "./mercury/withdraw"
 export class StateCoinList {
   coins: StateCoin[]
 
@@ -131,6 +131,17 @@ export class StateCoinList {
     return this.coins.filter((item: StateCoin) => {
 
       if (item.status === STATECOIN_STATUS.UNCONFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.INITIALISED) {
+        return item
+      }
+      return null
+    })
+  };
+
+  getWithdrawingCoins() {
+    
+    return this.coins.filter((item: StateCoin) => {
+
+      if (item.status === STATECOIN_STATUS.WITHDRAWING) {
         return item
       }
       return null
@@ -266,6 +277,21 @@ export class StateCoinList {
     }
   }
 
+  setCoinWithdrawBroadcastTx(shared_key_id: string, 
+      tx_withdraw: BTCTransaction, 
+      tx_fee_per_byte: number,
+      withdraw_msg_2: WithdrawMsg2) {
+    let coin = this.getCoin(shared_key_id)
+    if (coin) {
+      coin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
+          tx_fee_per_byte, tx_withdraw, withdraw_msg_2
+      ))
+      return
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+  }
+ 
   removeCoinFromSwap(shared_key_id: string) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
@@ -343,6 +369,19 @@ export const BACKUP_STATUS = {
 };
 Object.freeze(BACKUP_STATUS);
 
+//A withdrawal transaction the has been broadcast
+export class WithdrawalTxBroadcastInfo{
+  fee_per_byte: number; 
+  tx: BTCTransaction;
+  withdraw_msg_2: WithdrawMsg2;
+
+  constructor(fee_per_byte: number, tx: BTCTransaction, withdraw_msg_2: WithdrawMsg2) {
+    this.fee_per_byte = fee_per_byte;
+    this.tx = tx;
+    this.withdraw_msg_2 = withdraw_msg_2;
+  }
+}
+
 // Each individual StateCoin
 export class StateCoin {
   shared_key_id: string;    // SharedKeyId
@@ -363,7 +402,10 @@ export class StateCoin {
   init_locktime: number | null;
   interval: number;
   tx_cpfp: BTCTransaction | null;
+  //Confirmed withdrawal transaction
   tx_withdraw: BTCTransaction | null;
+  //Broadcasted withdrawal transactions
+  tx_withdraw_broadcast: WithdrawalTxBroadcastInfo[];
   withdraw_txid: string | null;
   tx_hex: string | null;
   smt_proof: InclusionProofSMT | null;
@@ -414,6 +456,7 @@ export class StateCoin {
     this.interval = 1;
     this.tx_cpfp = null;
     this.tx_withdraw = null;
+    this.tx_withdraw_broadcast = [];
     this.withdraw_txid = null;
     this.tx_hex = null;
     this.smt_proof = null;
@@ -455,6 +498,15 @@ export class StateCoin {
   setBackupPostInterval() { this.backup_status = BACKUP_STATUS.POST_INTERVAL }
   setBackupTaken() { this.backup_status = BACKUP_STATUS.TAKEN }
   setBackupSpent() { this.backup_status = BACKUP_STATUS.SPENT }
+
+  getBroadcastTxInfo(id: string) {
+    return this.tx_withdraw_broadcast.filter((item: WithdrawalTxBroadcastInfo) => {
+      if (item.tx.getId() === id) {
+        return item
+      }
+      return null
+    })
+  }
 
   // Get data to display in GUI
   getDisplayInfo(block_height: number): StateCoinDisplayData {

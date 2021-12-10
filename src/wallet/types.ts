@@ -398,3 +398,10 @@ export const SwapGroupMap = typeforce.compile(
     //Map::<SwapGroup, UInt64>
     Object
 )
+
+
+ // Complete confirm to get witness
+export const WithdrawMsg2 = typeforce.compile({
+  shared_key_ids: Array,
+  address: String
+})

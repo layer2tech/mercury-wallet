@@ -13,6 +13,10 @@ import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
 // 2. Co-sign withdraw tx
 // 3. Broadcast withdraw tx
 
+export interface WithdrawMsg2{
+  shared_key_ids: string[],
+  address: string,
+}
 
 // Withdraw coins from state entity. Returns signed withdraw transaction
 export const withdraw = async (
@@ -24,6 +28,21 @@ export const withdraw = async (
   rec_addr: string,
   fee_per_byte: number
 ): Promise<Transaction> => {
+  let [tx, msg2] = await withdraw_init(http_client, wasm_client, network, statecoins, proof_key_ders,
+    rec_addr, fee_per_byte);
+  await withdraw_confirm(http_client, msg2);
+  return tx
+}
+
+export const withdraw_init = async (
+  http_client: HttpClient |  MockHttpClient,
+  wasm_client: any,
+  network: Network,
+  statecoins: StateCoin[],
+  proof_key_ders: BIP32Interface[],
+  rec_addr: string,
+  fee_per_byte: number
+): Promise<[Transaction, WithdrawMsg2]> => {
 
   let sc_infos: StateChainDataAPI[] = [];
   let pks: any[] = [];
@@ -121,11 +140,12 @@ export const withdraw = async (
     proof_key: null,
   };
 
+  let signatures: any[][] = new Array(new Array());
   if(shared_key_ids.length === 1) {
     //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
-    await sign(http_client, wasm_client, shared_key_ids[0], shared_keys[0], prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
+    signatures.push(await sign(http_client, wasm_client, shared_key_ids[0], shared_keys[0], prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW));
   } else {
-    await sign_batch(http_client, wasm_client, shared_key_ids, shared_keys, prepare_sign_msg, signatureHashes, PROTOCOL.WITHDRAW);
+    signatures = await sign_batch(http_client, wasm_client, shared_key_ids, shared_keys, prepare_sign_msg, signatureHashes, PROTOCOL.WITHDRAW);
   }
   // Complete confirm to get witness
   let withdraw_msg_2 = {
@@ -133,16 +153,22 @@ export const withdraw = async (
       address: rec_addr
   }
 
-  let signatures: any[][] = await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
+    // set witness data with signature
+    let tx_backup_signed = tx_withdraw_unsigned;
 
-  // set witness data with signature
-  let tx_backup_signed = tx_withdraw_unsigned;
+    signatures.forEach((signature, index) => {
+      let sig0 = signatures[index][0];
+      let sig1 = signatures[index][1];
+      tx_backup_signed.ins[index].witness = [Buffer.from(sig0),Buffer.from(sig1)];
+    });
+  
+  return [tx_backup_signed, withdraw_msg_2]
+}
 
-  signatures.forEach((signature, index) => {
-    let sig0 = signatures[index][0];
-    let sig1 = signatures[index][1];
-    tx_backup_signed.ins[index].witness = [Buffer.from(sig0),Buffer.from(sig1)];
-  });
 
-  return tx_backup_signed
+export const withdraw_confirm = async (
+  http_client: HttpClient |  MockHttpClient,
+  withdraw_msg_2: WithdrawMsg2
+) => {
+  await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
 }
