@@ -152,11 +152,22 @@ export class StateCoinList {
 
   // creates new coin with Date.now()
   addNewCoin(shared_key_id: string, shared_key: MasterKey2) {
-    this.coins.push(new StateCoin(shared_key_id, shared_key))
+    if(this.getCoin(shared_key_id)) {
+      console.log('Cannot add coin, repeated shared_key_id: ' + shared_key_id);
+      return null
+    }
+    this.coins.push(new StateCoin(shared_key_id, shared_key));
+    return true;
   };
+  
   // Add already constructed statecoin
   addCoin(statecoin: StateCoin) {
-    this.coins.push(statecoin)
+    if(this.getCoin(statecoin.shared_key_id)) {
+      console.log('Cannot add coin, repeated shared_key_id: ' + statecoin.shared_key_id);
+      return null      
+    }
+    this.coins.push(statecoin);
+    return true;
   };
 
   // Remove coin from list
