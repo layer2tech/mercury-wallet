@@ -26,7 +26,7 @@ const BackupTxPage = () => {
   const [txFee, setTxFee] = useState("");
   const [showPrivateKey, setShowPrivateKey] = useState(false);
 
-  // Check if wallet is loaded. Avoids crash when Electrorn real-time updates
+  // Check if wallet is loaded. Avoids crash when Electron real-time updates
   // in developer mode.
   if (!isWalletLoaded()) {
     dispatch(setError({msg: "No Wallet loaded."}))
@@ -42,6 +42,7 @@ const BackupTxPage = () => {
         const txData = callGetCoinBackupTxData(id);
         setSelectedCoinTxData(txData);
       } catch(error) {
+        setSelectedCoinTxData(DEFAULT_TX_DATA)
         console.warn('Something wrong with get coin backup tx data', error);
       }
     }
