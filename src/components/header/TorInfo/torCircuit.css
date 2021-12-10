@@ -4,31 +4,46 @@
   Look at help page for instance, the li are changed due to this css file
 */
 
-.dropdown {
-  position: absolute;
+.tor.dropdown {
+  /* position: absolute; */
   display: inline-block;
-  top:0;
+  top:1px;
   right:0;
+  margin-right:14px
 }
 
-.dropdown-content {
+.tor .dropdown-content {
   display: none;
   position: absolute;
   top:-20;
   right:0;
   min-width: 260px;
-  min-height:300px;
+  min-height:250px;
   padding: 12px 16px;
   z-index: 1;
   background-color: #ffffff;
   border: none;
   box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
   border-radius: 4px;
+  margin-top:0px;
 }
-
-.dropdown:hover .dropdown-content {
+.dark-mode .tor .dropdown-content {
+  background-color: #202020;
+  border: none;
+  box-shadow: rgba(0, 0, 0, 0.15) 10px 10px 10px 10px;
+}
+.tor.dropdown:hover .dropdown-content, .tor .dropdown-content:hover{
   display: block;
 }
+
+.tor button{
+  margin:0px;
+}
+.tor button:focus{
+  outline: 0;
+  box-shadow: 0 0 0 0.1rem rgba(0,123,255,.25);
+}
+
 ul {
   list-style: none;
   margin:0px;
@@ -36,12 +51,14 @@ ul {
   font: normal 16px/22px Arial;
   color: #999;
 }
+
 li {
   overflow: hidden;
   position: relative;
   padding: 0 0 10px 35px;
-  }
-  li::before {
+}
+
+li::before {
     content: '';
     position: absolute;
     left: 9px;
@@ -50,33 +67,45 @@ li {
     height: 999px;
     border: 2px solid #0054F4;
     border-width: 0 0 0 2px;
-    }
-    li:last-child::before {
-      border-width: 0px 0 0;
-      }
-  li::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 16px;
-    height: 16px;
-    background: #fff;
-    border: 2px solid #0054F4;
-    border-radius: 50%;
-    }
-  li.current,
-  li.passed {
-    color: #666666;
-    }
-    li.current::before {
-      border-top-color: #0054F4;
-      }
-    li.current::after {
-      border-color: #0054F4;
-      background: #0054F4;
-      }
-    li.passed::before,
-    li.passed::after {
-      border-color: #0054F4;
-  }
+}
+
+li:last-child::before {
+  border-width: 0px 0 0;
+}
+
+li::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border: 2px solid #0054F4;
+  border-radius: 50%;
+}
+
+li.current,
+li.passed {
+  color: #666666;
+}
+
+li.current::before {
+  border-top-color: #0054F4;
+}
+
+li.current::after {
+  border-color: #0054F4;
+  background: #0054F4;
+}
+
+li.passed::before,
+li.passed::after {
+  border-color: #0054F4;
+}
+.tor #loading.loading {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin-bottom: 0px;
+  color: #666666;
+}

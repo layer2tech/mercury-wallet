@@ -14,6 +14,7 @@ import './torCircuit.css'
 import TorCircuitNode from './TorCircuitNode'
 import {callGetConfig} from '../../../features/WalletDataSlice'
 import {defaultWalletConfig} from '../../../containers/Settings/Settings'
+import { Loading } from '../..';
 
 
 const TorCircuit = (props) => {
@@ -22,6 +23,7 @@ const TorCircuit = (props) => {
 
     const [torLoaded, setTorLoaded] = useState(false);
     const [torcircuitData, setTorcircuitData] = useState([]);
+    // const [loading, setLoading] = useState(false)
 
     let current_config;
     try {
@@ -30,10 +32,10 @@ const TorCircuit = (props) => {
       current_config = defaultWalletConfig()
     }
 
+
     const getTorCircuitInfo = () => {
         dispatch(callUpdateTorCircuit());
         let torcircuit_data = callGetTorcircuitInfo();
-        //console.log('useEffect: ', torcircuit_data);
         let torcircuit_array = torcircuit_data ? torcircuit_data : [];
         if(torcircuitData !== []){
             setTorcircuitData(torcircuit_array);
@@ -42,39 +44,55 @@ const TorCircuit = (props) => {
     }
 
     useEffect(() => {
-        // every 3 seconds check tor circuit info - TODO check if can optimize this
         const interval = setInterval(() => {
             getTorCircuitInfo();
         }, 3000);
         return () => clearInterval(interval);
     }, [dispatch]);
+    
+    // useEffect(() => {
+    //     if(loading === true){
+    //         const interval = setInterval(() => {
+    //             setLoading(false)
+    //         }, 3000);
+    //         return () => clearInterval(interval);
+    //     }
+    // }, [torcircuitData]);
 
     const newCircuit = () => {
-        // call /newId or new_tor_id()
-        //dispatch(callGetNewTorId());
         dispatch(callGetNewTorId()).then(() => {
             getTorCircuitInfo();
         });
     }
 
+
+    function shortenURL(url){
+        let shortURL = ""
+        
+        url = url.replace("http://","")
+        shortURL = shortURL.concat(url.slice(0,3),"...",url.slice(url.length-8,url.length))
+        
+        return shortURL
+    }
+
     return (
-        <div class="dropdown">
+        <div class="dropdown tor">
             <TorIcon/>
             <div class="dropdown-content">
                 { torLoaded ? ( 
                 <div>
                     <ul>
-                        <TorCircuitNode className='passed' name='Mercury Wallet'></TorCircuitNode>
+                        <TorCircuitNode class='passed' name='Mercury Wallet'></TorCircuitNode>
                         {torcircuitData.map((circuit, index) => (
-                            <TorCircuitNode className='passed' name={circuit.country} ip={circuit.ip}></TorCircuitNode>
+                            <TorCircuitNode className='passed' name={circuit.country} ip={circuit.ip} key ={circuit.ip}></TorCircuitNode>
                         ))}
-                        <TorCircuitNode className='passed' name='Relay'></TorCircuitNode>
-                        <TorCircuitNode className='passed' name='Relay'></TorCircuitNode>
-                        <TorCircuitNode className='passed' name='Relay'></TorCircuitNode>
+                        <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
+                        <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
+                        <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
                         {/* <TorCircuitNode className='current' name={current_config.state_entity_endpoint}></TorCircuitNode> */}
-                        {<TorCircuitNode className='current' name='Onion Address'></TorCircuitNode>}
+                        {<TorCircuitNode class='current' name={shortenURL(current_config.state_entity_endpoint)}></TorCircuitNode>}
                     </ul>
-                    <button class='Body-button' onClick={newCircuit}>New circuit</button>
+                    <button class='Body-button' onClick={newCircuit}>New Circuit</button>
                 </div>) :  
                 (<div>
                     <p>Couldn't establish connection to tor</p>
@@ -86,6 +104,38 @@ const TorCircuit = (props) => {
 }
 
 export const TorIcon = () => (
-    <svg fill="#ffffff" xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 100 100" width="30px" height="30px"><path d="M 50 19.779297 C 33.321237 19.779297 19.779297 33.321249 19.779297 50 C 19.779297 66.678751 33.321237 80.220703 50 80.220703 C 66.678764 80.220703 80.220703 66.678752 80.220703 50 C 80.220703 33.321248 66.678764 19.779297 50 19.779297 z M 50 21.779297 C 65.597884 21.779297 78.220703 34.402127 78.220703 50 C 78.220703 65.597873 65.597884 78.220703 50 78.220703 C 34.402116 78.220703 21.779297 65.597873 21.779297 50 C 21.779297 34.402127 34.402116 21.779297 50 21.779297 z M 50 25.5 A 0.50005 0.50005 0 0 0 49.5 26 L 49.5 31 L 49.5 41 L 49.5 58 L 49.5 64 L 49.5 69 L 49.5 74 A 0.50005 0.50005 0 0 0 50 74.5 C 58.958967 74.5 66.80007 69.688456 71.072266 62.505859 A 0.50009517 0.50009517 0 1 0 70.212891 61.994141 C 66.197552 68.744899 58.884163 73.252466 50.5 73.433594 L 50.5 69.488281 C 61.031582 69.221658 69.5 60.595404 69.5 50 C 69.5 46.236515 68.431509 42.71684 66.582031 39.736328 A 0.50005 0.50005 0 1 0 65.732422 40.263672 C 67.486945 43.09116 68.5 46.425485 68.5 50 C 68.5 60.051467 60.485615 68.178233 50.5 68.449219 L 50.5 64.480469 C 53.330803 64.383888 55.961674 63.485559 58.15625 61.990234 A 0.50005 0.50005 0 1 0 57.59375 61.164062 C 55.563546 62.547388 53.118771 63.324703 50.5 63.423828 L 50.5 58.476562 C 55.494834 58.228679 59.5 54.319473 59.5 49.5 C 59.5 48.1241 59.173127 46.818911 58.589844 45.652344 A 0.50005 0.50005 0 1 0 57.695312 46.097656 C 58.212029 47.131089 58.5 48.2819 58.5 49.5 C 58.5 53.741809 54.966652 57.147601 50.5 57.404297 L 50.5 41.574219 C 52.122302 41.666169 53.638791 42.126298 54.886719 42.953125 A 0.50005 0.50005 0 1 0 55.4375 42.119141 C 54.024173 41.182726 52.328145 40.607769 50.5 40.517578 L 50.5 36.550781 C 57.724232 36.819292 63.5 42.709527 63.5 50 C 63.5 52.977166 62.538132 55.723329 60.908203 57.955078 A 0.50005 0.50005 0 1 0 61.714844 58.544922 C 63.464915 56.148671 64.5 53.192834 64.5 50 C 64.5 42.166477 58.269258 35.791404 50.5 35.525391 L 50.5 31.546875 C 55.020366 31.669299 59.143152 33.370341 62.292969 36.173828 A 0.50005 0.50005 0 1 0 62.957031 35.427734 C 59.630023 32.466538 55.273261 30.644822 50.5 30.523438 L 50.5 26.550781 C 63.247818 26.823168 73.5 37.186504 73.5 50 C 73.5 53.258151 72.837994 56.360045 71.640625 59.179688 A 0.50005 0.50005 0 1 0 72.560547 59.570312 C 73.809178 56.629956 74.5 53.393849 74.5 50 C 74.5 36.474788 63.525212 25.5 50 25.5 z"/></svg>);
+<svg width="24px" height="24px" viewBox="0 0 512 512 " version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient x1="50%" y1="100%" x2="50%" y2="0%" id="linearGradient-1">
+            <stop stopColor="white" offset="0%"></stop>
+            <stop stopColor="white" offset="100%"></stop>
+        </linearGradient>
+        <path d="M25,29 C152.577777,29 256,131.974508 256,259 C256,386.025492 152.577777,489 25,489 L25,29 Z" id="path-2"></path>
+        <filter x="-18.2%" y="-7.4%" width="129.4%" height="114.8%" filterUnits="objectBoundingBox" id="filter-3">
+            <feOffset dx="-8" dy="0" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="10" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0.250980392   0 0 0 0 0.250980392   0 0 0 0 0.250980392  0 0 0 0.2 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="tor-browser-icon" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+        <g id="icon_512x512">
+            <g id="Group">
+                <g id="tb_icon/Stable">
+                    <g id="Stable">
+                        <circle id="background" fill="none" fillRule="nonzero" cx="256" cy="256" r="246"></circle>
+                        <path d="M256.525143,465.439707 L256.525143,434.406609 C354.826191,434.122748 434.420802,354.364917 434.420802,255.992903 C434.420802,157.627987 354.826191,77.8701558 256.525143,77.5862948 L256.525143,46.5531962 C371.964296,46.8441537 465.446804,140.489882 465.446804,255.992903 C465.446804,371.503022 371.964296,465.155846 256.525143,465.439707 Z M256.525143,356.820314 C311.970283,356.529356 356.8487,311.516106 356.8487,255.992903 C356.8487,200.476798 311.970283,155.463547 256.525143,155.17259 L256.525143,124.146588 C329.115485,124.430449 387.881799,183.338693 387.881799,255.992903 C387.881799,328.654211 329.115485,387.562455 256.525143,387.846316 L256.525143,356.820314 Z M256.525143,201.718689 C286.266674,202.00255 310.3026,226.180407 310.3026,255.992903 C310.3026,285.812497 286.266674,309.990353 256.525143,310.274214 L256.525143,201.718689 Z M0,255.992903 C0,397.384044 114.60886,512 256,512 C397.384044,512 512,397.384044 512,255.992903 C512,114.60886 397.384044,0 256,0 C114.60886,0 0,114.60886 0,255.992903 Z" id="center" fill="url(#linearGradient-1)"></path>
+                        <g id="half" transform="translate(140.500000, 259.000000) scale(-1, 1) translate(-140.500000, -259.000000) ">
+                            <use fill="black" fillOpacity="1" filter="url(#filter-3)" ></use>
+                            <use fill="url(#linearGradient-1)" fillRule="evenodd" ></use>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
+
+);
+
   
 export default TorCircuit

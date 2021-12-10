@@ -39,6 +39,10 @@ const Header = (props) => {
           
 
         <div className="menu">
+              {
+                props.walletLoaded &&
+                <TorInfo/>
+              }
           <div title="Light/Dark mode">
             <label className="toggle">
               <input
@@ -51,10 +55,6 @@ const Header = (props) => {
             </label>
           </div>
 
-          {
-            props.walletLoaded &&
-            <TorInfo/>
-          }
 
           <div title="Help" className={`nav-item  ${props.location.pathname === "/" ? "active" : ""}`}>
             <Link className="nav-link" to="/help">
