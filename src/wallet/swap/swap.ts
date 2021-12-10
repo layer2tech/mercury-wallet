@@ -400,10 +400,12 @@ export const swapPhase4 = async (
     statecoin_out.swap_auto = statecoin.swap_auto
     statecoin_out.setConfirmed();
     statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key)
-    wallet.statecoins.addCoin(statecoin_out);
-    wallet.saveStateCoinsList();
-    log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+ statecoin_out.shared_key_id);
-    
+    if(wallet.statecoins.addCoin(statecoin_out)) {
+      wallet.saveStateCoinsList();
+      log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+ statecoin_out.shared_key_id);
+    } else {
+      log.info("Error on swap complete for coin: "+statecoin.shared_key_id+" statechain_id: "+ statecoin_out.shared_key_id + "Coin duplicate");      
+    }
     return statecoin_out;
   } catch(err: any) {
     //Keep retrying - an authentication error may occur at this stage depending on the

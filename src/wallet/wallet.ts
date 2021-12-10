@@ -684,10 +684,14 @@ export class Wallet {
 
   // Add confirmed Statecoin to wallet
   addStatecoin(statecoin: StateCoin, action: string) {
-    this.statecoins.addCoin(statecoin);
-    this.activity.addItem(statecoin.shared_key_id, action);
-    log.debug("Added Statecoin: "+statecoin.shared_key_id);
+    if(this.statecoins.addCoin(statecoin)) {
+      this.activity.addItem(statecoin.shared_key_id, action);
+      log.debug("Added Statecoin: "+statecoin.shared_key_id);
+    } else {
+      log.debug("Replica, did not add Statecoin: "+statecoin.shared_key_id);
+    }
   }
+
   addStatecoinFromValues(id: string, shared_key: MasterKey2, value: number, txid: string, vout: number, proof_key: string, action: string) {
     let statecoin = new StateCoin(id, shared_key);
     statecoin.proof_key = proof_key;
@@ -696,9 +700,12 @@ export class Wallet {
     statecoin.funding_vout = vout;
     statecoin.tx_backup = new Transaction();
     statecoin.setConfirmed();
-    this.statecoins.addCoin(statecoin)
-    this.activity.addItem(id, action);
-    log.debug("Added Statecoin: "+statecoin.shared_key_id);
+    if(this.statecoins.addCoin(statecoin)) {
+      this.activity.addItem(id, action);
+      log.debug("Added Statecoin: "+statecoin.shared_key_id);
+    } else {
+      log.debug("Replica, did not add Statecoin: "+statecoin.shared_key_id);
+    }
   }
   removeStatecoin(shared_key_id: string) {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode)
@@ -1165,12 +1172,14 @@ export class Wallet {
     
     // update in wallet
     statecoin_finalized.setConfirmed();
-    this.statecoins.addCoin(statecoin_finalized);
-    this.activity.addItem(statecoin_finalized.shared_key_id, ACTION.RECEIVED)
-    this.saveStateCoinsList();
 
-    log.info("Transfer Finalize complete.")
-    
+    if(this.statecoins.addCoin(statecoin_finalized)) {
+      this.activity.addItem(statecoin_finalized.shared_key_id, ACTION.RECEIVED)
+      this.saveStateCoinsList();
+      log.info("Transfer Finalize complete.")
+    } else {
+      log.info("Transfer finalize error: replica coin")
+    }
     return statecoin_finalized
   }
 
