@@ -22,6 +22,14 @@ export class StateCoinList {
       let coin = new StateCoin(item.shared_key_id, item.shared_key);
       coin.wallet_version = "";
 
+      let replca = false;
+      statecoins.coins.filter((existing_coin: StateCoin) => {
+        if (item.shared_key_id === existing_coin.shared_key_id) {
+          console.log("Replica coin " + item.statechain_id + " ignored");
+          replca = true;
+        }
+      });
+
       // re-build tx_backup as Transaction
       if (item.tx_backup!==undefined && item.tx_backup !== null) {
         let tx_backup_any: any = item.tx_backup;
@@ -60,7 +68,7 @@ export class StateCoinList {
         }
         item.tx_cpfp = tx_cpfp;
       }
-      statecoins.coins.push(Object.assign(coin, item));
+      if(!replca) statecoins.coins.push(Object.assign(coin, item));
     })
     return statecoins
   }
@@ -159,7 +167,7 @@ export class StateCoinList {
     this.coins.push(new StateCoin(shared_key_id, shared_key));
     return true;
   };
-  
+
   // Add already constructed statecoin
   addCoin(statecoin: StateCoin) {
     if(this.getCoin(statecoin.shared_key_id)) {
