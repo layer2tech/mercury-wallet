@@ -24,7 +24,7 @@ export class StateCoinList {
 
       let replca = false;
       statecoins.coins.filter((existing_coin: StateCoin) => {
-        if (item.shared_key_id === existing_coin.shared_key_id) {
+        if (item.shared_key_id === existing_coin.shared_key_id && item.status === STATECOIN_STATUS.AVAILABLE && existing_coin.status === STATECOIN_STATUS.AVAILABLE) {
           console.log("Replica coin " + item.statechain_id + " ignored");
           replca = true;
         }
@@ -146,7 +146,17 @@ export class StateCoinList {
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
-    return this.coins.find(coin => coin.shared_key_id === shared_key_id)
+    let coin_arr = this.coins.filter(coin => coin.shared_key_id === shared_key_id);
+    if (coin_arr.length > 0) {
+      let coin = this.coins.find(coin => coin.status === STATECOIN_STATUS.AVAILABLE);
+      if (coin) {
+        return coin
+      } else {
+        return coin_arr[0]
+      }
+    } else {
+      return undefined
+    }
   }
 
   getCoins(statechain_id: string) {
@@ -156,13 +166,14 @@ export class StateCoinList {
       }
       return null
     })
-  }  
+  }
 
   // creates new coin with Date.now()
   addNewCoin(shared_key_id: string, shared_key: MasterKey2) {
-    if(this.getCoin(shared_key_id)) {
-      console.log('Cannot add coin, repeated shared_key_id: ' + shared_key_id);
-      return null
+    let existing_coin = this.getCoin(shared_key_id);
+    if(existing_coin) {
+      console.log('Repeated coin - shared_key_id: ' + shared_key_id);
+      existing_coin.status = STATECOIN_STATUS.IN_TRANSFER;
     }
     this.coins.push(new StateCoin(shared_key_id, shared_key));
     return true;
@@ -170,9 +181,10 @@ export class StateCoinList {
 
   // Add already constructed statecoin
   addCoin(statecoin: StateCoin) {
-    if(this.getCoin(statecoin.shared_key_id)) {
-      console.log('Cannot add coin, repeated shared_key_id: ' + statecoin.shared_key_id);
-      return null      
+    let existing_coin = this.getCoin(statecoin.shared_key_id);
+    if(existing_coin) {
+      console.log('Repeated coin - shared_key_id: ' + statecoin.shared_key_id);
+      existing_coin.status = STATECOIN_STATUS.IN_TRANSFER;
     }
     this.coins.push(statecoin);
     return true;
