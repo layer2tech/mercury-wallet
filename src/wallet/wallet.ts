@@ -9,7 +9,7 @@ import { ElectrsClient } from './electrs'
 import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
-import { withdraw, withdraw_init, withdraw_confirm } from './mercury/withdraw';
+import { withdraw, withdraw_init, withdraw_confirm, WithdrawMsg2 } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
 import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS } from './swap/swap'
 import { v4 as uuidv4 } from 'uuid';
@@ -451,6 +451,8 @@ export class Wallet {
   }
 
   getUnspentStatecoins() {
+    let withdrawing_coins = this.statecoins.getWithdrawingCoins()
+    this.checkWithdrawingTxStatus(withdrawing_coins)
     return this.statecoins.getUnspentCoins(this.block_height);
   }
 
@@ -478,7 +480,8 @@ export class Wallet {
       // the wallet
       if (statecoin.withdraw_txid) {
         if ((statecoin.status===STATECOIN_STATUS.WITHDRAWING) && this.checkWithdrawalTx(statecoin.withdraw_txid) && !this.config.testing_mode) {
-          this.withdraw_confirm(statecoin.shared_key_id)
+          let tx_info = statecoin.getWithdrawalBroadcastTxInfo(statecoin.withdraw_txid)
+          this.withdraw_confirm(tx_info.withdraw_msg_2, statecoin.withdraw_txid)
         }
       }
     })
@@ -1277,7 +1280,7 @@ export class Wallet {
     fee_per_byte: number
   ): Promise <string> {
     let [txid, withdraw_msg_2] = await this.withdraw_init(shared_key_ids, rec_addr, fee_per_byte);
-    await this.withdraw_confirm(withdraw_msg_2);
+    await this.withdraw_confirm(withdraw_msg_2, txid);
     return txid
   }
 
@@ -1294,6 +1297,7 @@ export class Wallet {
 
     let statecoins : StateCoin[] = [];
     let proof_key_ders: BIP32Interface[] = [];
+    let fee_max = -1
     shared_key_ids.forEach( (shared_key_id) => {
       let statecoin = this.statecoins.getCoin(shared_key_id);
       if (!statecoin) throw Error("No coin found with id " + shared_key_id)
@@ -1304,6 +1308,21 @@ export class Wallet {
       proof_key_ders.push(this.getBIP32forProofKeyPubKey(statecoin.proof_key));
     });
 
+    //Check that the replacement transaction is a valid one
+    let statecoin = this.statecoins.getCoin(shared_key_ids[0]);
+    if (!statecoin) throw Error("No coin found with id " + shared_key_ids[0])
+    let broadcastTxInfos = statecoin.tx_withdraw_broadcast
+    if(broadcastTxInfos.length){
+      fee_max = statecoin.getWithdrawalMaxTxFee()
+      if(fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`)
+      if (shared_key_ids !== broadcastTxInfos[0].withdraw_msg_2.shared_key_ids){
+        throw Error(`Replacement transaction shared key ids do not match`)
+      }
+      if (rec_addr !== broadcastTxInfos[0].withdraw_msg_2.address){
+        throw Error(`Replacement transaction recipient address does not match`)
+      }
+    }
+    
     // Perform withdraw init with server
     let [tx_withdraw, withdraw_msg_2] = await withdraw_init(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_byte);
     
@@ -1315,8 +1334,7 @@ export class Wallet {
         statecoin.status !== STATECOIN_STATUS.WITHDRAWN){
         this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
       }
-      this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
-      this.statecoins.setCoinWithdrawTxId(shared_key_id,tx_withdraw.getId())
+      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
     });
 
     this.saveStateCoinsList();
@@ -1351,9 +1369,13 @@ export class Wallet {
 
 
   async withdraw_confirm(
-    withdraw_msg_2: any
+    withdraw_msg_2: WithdrawMsg2,
+    txid: string
   ) {
     await withdraw_confirm(this.http_client, withdraw_msg_2)
+    withdraw_msg_2.shared_key_ids.forEach( (shared_key_id) => {
+      this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
+    })
   }
 }
 

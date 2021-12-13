@@ -259,19 +259,17 @@ export class StateCoinList {
     }
   }
 
-  setCoinWithdrawTx(shared_key_id: string, tx_withdraw: BTCTransaction) {
-    let coin = this.getCoin(shared_key_id)
-    if (coin) {
-      coin.tx_withdraw = tx_withdraw
-      coin.tx_hex = tx_withdraw.toHex()
-    } else {
-      throw Error("No coin found with shared_key_id " + shared_key_id);
-    }
-  }
   setCoinWithdrawTxId(shared_key_id: string, withdraw_txid: string) {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
-      coin.withdraw_txid = withdraw_txid
+      let tx_info: WithdrawalTxBroadcastInfo = coin.getWithdrawalBroadcastTxInfo(withdraw_txid)
+      if(tx_info) {  
+        coin.tx_withdraw = tx_info.tx
+        coin.tx_hex = tx_info.tx.toHex()
+        coin.status = STATECOIN_STATUS.WITHDRAWN
+      } else {
+        throw Error("No withdrawal broadcast found with id " + withdraw_txid);
+      }
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
@@ -499,15 +497,25 @@ export class StateCoin {
   setBackupTaken() { this.backup_status = BACKUP_STATUS.TAKEN }
   setBackupSpent() { this.backup_status = BACKUP_STATUS.SPENT }
 
-  getBroadcastTxInfo(id: string) {
-    return this.tx_withdraw_broadcast.filter((item: WithdrawalTxBroadcastInfo) => {
+  getWithdrawalBroadcastTxInfo(id: string): WithdrawalTxBroadcastInfo {
+    let found =  this.tx_withdraw_broadcast.filter((item: WithdrawalTxBroadcastInfo) => {
       if (item.tx.getId() === id) {
         return item
       }
       return null
-    })
+    });
+    return found[0]
   }
 
+  getWithdrawalMaxTxFee(): number {
+    let fee_max = -1
+    for(let i=0; i<this.tx_withdraw_broadcast.length; i++){
+      let fee = this.tx_withdraw_broadcast[i].fee_per_byte
+      fee_max = (fee > fee_max) ? fee : fee_max
+    }
+    return fee_max
+  }
+  
   // Get data to display in GUI
   getDisplayInfo(block_height: number): StateCoinDisplayData {
     return {
