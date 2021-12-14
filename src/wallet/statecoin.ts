@@ -146,11 +146,12 @@ export class StateCoinList {
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
+    // return first available coin, if no then first matching coin
     let coin_arr = this.coins.filter(coin => coin.shared_key_id === shared_key_id);
     if (coin_arr.length > 0) {
-      let coin = this.coins.find(coin => coin.status === STATECOIN_STATUS.AVAILABLE);
-      if (coin) {
-        return coin
+      let avail_coin = coin_arr.find(coin => coin.status === STATECOIN_STATUS.AVAILABLE);
+      if (avail_coin) {
+        return avail_coin
       } else {
         return coin_arr[0]
       }
