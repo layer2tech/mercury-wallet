@@ -16,16 +16,27 @@ import {mutex} from '../wallet/electrum';
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
 // eslint-disable-next-line
 const OPEN = require('websocket').w3cwebsocket.OPEN;
-const log = window.require('electron-log');
+
+let log;
+try{
+  log = window.require('electron-log');
+} catch ( e ) {
+  log = require('electron-log');
+}
 
 
 export const callGetArgsHasTestnet =  () => {
   let found  = false;
-  window.require('electron').remote.process.argv.forEach((arg) =>  {
-      if(arg.includes('testnet')){
-          found = true;
-      }     
-  });
+  try{
+    window.require('electron').remote.process.argv.forEach((arg) =>  {
+        if(arg.includes('testnet')){
+            found = true;
+        }     
+    });
+  } catch ( e ){
+    // set testnet for testing
+    found = true
+  }
   return found;
 }
 
@@ -199,9 +210,16 @@ export const callGetAccount = () => {
 }
 
 // Wallet data gets
-export const callGetConfig = () => {
-  return wallet.config.getConfig()
+export const callGetConfig = (test_wallet = 'normal') => {
+  if(test_wallet !== 'normal'){
+    // Jest testing: preset wallet
+    return test_wallet.config.getConfig()
+  }
+  else{
+    return wallet.config.getConfig()
+  }
 }
+
 export const callGetVersion = () => {
   return wallet.version
 }
@@ -217,6 +235,10 @@ return wallet.getAllStatecoins()
 
 export const callSumStatecoinValues = (shared_key_ids) => {
   return wallet.sumStatecoinValues(shared_key_ids)
+}
+
+export const callGetTorcircuitInfo = () => {
+  return wallet.getTorcircuitInfo();
 }
 
 export const callGetSwapGroupInfo = () => {
@@ -253,17 +275,14 @@ export const callGetUnconfirmedStatecoinsDisplayData = () => {
   return wallet.getUnconfirmedStatecoinsDisplayData()
 }
 
-export const callAddActivityItem = (id, action) =>{
-  wallet.addActivityItem(id, action);
-}
-
 export const callGetActivityLog = () => {
   return wallet.getActivityLog();
 }
 
-export const callGetActivityLogItems = () => {
-  return wallet.getActivityLogItems(10)
+export const callGetActivityLogItems = (num_of_items) => {
+  return wallet.getActivityLogItems(num_of_items)
 }
+
 export const callGetFeeInfo = () => {
   return getFeeInfo(wallet.http_client)
 }
@@ -392,6 +411,21 @@ export const callUpdateSwapGroupInfo = createAsyncThunk(
     wallet.updateSwapGroupInfo();
   }
 )
+
+export const callGetNewTorId = createAsyncThunk(
+  'UpdateTorId',
+  async (action, thunkAPI) => {
+    wallet.updateTorId();
+  }
+)
+
+export const callUpdateTorCircuit = createAsyncThunk(
+  'UpdateTorCircuit',
+  async (action, thunkAPI) => {
+    wallet.updateTorcircuitInfo();
+  }
+)
+
 export const callUpdateSpeedInfo = createAsyncThunk(
   'UpdateSpeedInfo',
   async (action, thunkAPI) => {
