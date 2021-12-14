@@ -37,7 +37,22 @@ function delay(s: number) {
   return new Promise( resolve => setTimeout(resolve, s*1000) );
 }
 
-// SWAP_STATUS represent each stage in the lifecycle of a coin in a swap.
+export const UI_SWAP_STATUS = {
+  Init: "Init",
+  Phase0: "Phase0",
+  Phase1: "Phase1",
+  Phase2: "Phase2",
+  Phase3: "Phase3",
+  Phase4: "Phase4",
+  Phase5: "Phase5",
+  Phase6: "Phase6",
+  Phase7: "Phase7",
+  Phase8: "Phase8",
+  End: "End",
+}
+Object.freeze(UI_SWAP_STATUS);
+
+// SWAP_STATUS represent each technical stage in the lifecycle of a coin in a swap.
 export const SWAP_STATUS = {
   Init: "Init",
   Phase0: "Phase0",
@@ -94,6 +109,7 @@ export const swapInit = async (
   log.info("Coin registered for Swap. Coin ID: ", statecoin.shared_key_id)
 
   statecoin.swap_status=SWAP_STATUS.Phase0;
+  statecoin.ui_swap_status  = UI_SWAP_STATUS.Phase0;
 }
 
 
@@ -117,6 +133,7 @@ export const swapPhase0 = async (
       log.info("Swap Phase0: Swap ID received: ", swap_id)
       statecoin.swap_id = swap_id
       statecoin.swap_status=SWAP_STATUS.Phase1;
+      statecoin.ui_swap_status=UI_SWAP_STATUS.Phase1;
     }
   } catch(err: any) {
     throw new SwapRetryError(err)
@@ -197,6 +214,7 @@ export const swapPhase1 = async (
     statecoin.swap_address=address;
     statecoin.swap_my_bst_data=my_bst_data;
     statecoin.swap_status=SWAP_STATUS.Phase2;
+    statecoin.ui_swap_status=UI_SWAP_STATUS.Phase2;
   } catch(err: any) {
     throw new SwapRetryError(err)
   }
@@ -239,12 +257,14 @@ export const swapPhase2 = async (
   let bss
   try {
     bss = await get_blinded_spend_signature(http_client, statecoin.swap_id.id, statecoin.statechain_id);
+    statecoin.ui_swap_status=UI_SWAP_STATUS.Phase3;
   } catch(err: any) {
     throw new SwapRetryError(err)
   }
 
   try {
-    await http_client.new_tor_id(); 
+    await http_client.new_tor_id();
+    statecoin.ui_swap_status=UI_SWAP_STATUS.Phase4;
   } catch(err: any) {
     throw new SwapRetryError(err, "Error getting new TOR id: ")
   }
@@ -253,6 +273,7 @@ export const swapPhase2 = async (
 
   try{
     let receiver_addr = await second_message(http_client, wasm_client, statecoin.swap_id.id, statecoin.swap_my_bst_data, bss);
+    statecoin.ui_swap_status=UI_SWAP_STATUS.Phase5;
     // Update coin with receiver_addr and update status
     statecoin.swap_receiver_addr=receiver_addr;
     statecoin.swap_status=SWAP_STATUS.Phase3;  
@@ -312,6 +333,7 @@ export const swapPhase3 = async (
     // if this part has not yet been called, call it.
     if (statecoin.swap_transfer_msg===null) {
       statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key, true, wallet);
+      statecoin.ui_swap_status=UI_SWAP_STATUS.Phase6;
       wallet.saveStateCoinsList()
     }
     if (statecoin.swap_batch_data===null) {
@@ -338,6 +360,7 @@ export const swapPhase3 = async (
       block_height,
       statecoin.value
     );
+    statecoin.ui_swap_status=UI_SWAP_STATUS.Phase7;
     
     if(transfer_finalized_data !== null){
       // Update coin status
@@ -388,8 +411,10 @@ export const swapPhase4 = async (
 
   // Complete transfer for swap and receive new statecoin  
   try {
+    statecoin.ui_swap_status=UI_SWAP_STATUS.Phase8;
     let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
     // Update coin status and num swap rounds
+    statecoin.ui_swap_status=UI_SWAP_STATUS.End;
     statecoin.swap_status=SWAP_STATUS.End;
     statecoin_out.swap_rounds = statecoin.swap_rounds+1;
     statecoin_out.anon_set = statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
@@ -397,6 +422,7 @@ export const swapPhase4 = async (
     wallet.statecoins.setCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
     // update in wallet
     statecoin_out.swap_status = null;
+    statecoin_out.ui_swap_status = null;
     statecoin_out.swap_auto = statecoin.swap_auto
     statecoin_out.setConfirmed();
     statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key)
@@ -451,6 +477,7 @@ export const do_swap_poll = async(
     if(statecoin){
       statecoin.setSwapDataToNull()
       statecoin.swap_status = SWAP_STATUS.Init;
+      statecoin.ui_swap_status = SWAP_STATUS.Init;
       statecoin.setAwaitingSwap();
     }
     prev_phase = SWAP_STATUS.Init;
@@ -590,6 +617,7 @@ export const make_swap_commitment = (statecoin: any,
 export const clear_statecoin_swap_info = (statecoin: StateCoin): null => {
   statecoin.swap_info=null;
   statecoin.swap_status=null;
+  statecoin.ui_swap_status=null;
   return null;
 }
 
@@ -889,6 +917,21 @@ export interface SwapStatus {
   Phase4: "Phase4",
   End: "End",
 }
+
+export interface UISwapStatus{
+  Init: "Init",
+  Phase0: "Phase0",
+  Phase1: "Phase1",
+  Phase2: "Phase2",
+  Phase3: "Phase3",
+  Phase4: "Phase4",
+  Phase5: "Phase5",
+  Phase6: "Phase6",
+  Phase7: "Phase7",
+  Phase8: "Phase8",
+  End: "End",
+}
+
 export interface BSTMsg {
   swap_id: string, //Uuid,
   statechain_id: String, //Uuid,
