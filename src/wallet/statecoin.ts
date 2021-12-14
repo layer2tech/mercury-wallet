@@ -410,6 +410,7 @@ export class StateCoin {
 
  // Swap data
   swap_status: string | null;
+  ui_swap_status: string | null;
   swap_id: SwapID | null;
   swap_info: SwapInfo | null;
   swap_address: SCEAddress | null;
@@ -454,6 +455,7 @@ export class StateCoin {
     this.transfer_msg = null;
 
     this.swap_status = null;
+    this.ui_swap_status = null;
     this.swap_id = null
     this.swap_address = null;
     this.swap_info = null;
@@ -510,6 +512,7 @@ export class StateCoin {
       transfer_msg: this.transfer_msg,
       swap_id: (this.swap_info ? this.swap_info.swap_token.id : null),
       swap_status: this.swap_status,
+      ui_swap_status: this.ui_swap_status,
       swap_auto: this.swap_auto
     }
   };
@@ -636,6 +639,7 @@ export interface StateCoinDisplayData {
   transfer_msg: TransferMsg3 | null,
   swap_id: string | null,
   swap_status: string | null,
+  ui_swap_status: string | null,
   swap_auto: boolean
 }
 
