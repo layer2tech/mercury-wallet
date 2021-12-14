@@ -25,8 +25,6 @@ export class StateCoinList {
       let replca = false;
       statecoins.coins.filter((existing_coin: StateCoin) => {
         if (item.shared_key_id === existing_coin.shared_key_id && item.status === STATECOIN_STATUS.AVAILABLE && existing_coin.status === STATECOIN_STATUS.AVAILABLE) {
-          console.log(item);
-          console.log(existing_coin);
           console.log("Replica coin " + item.statechain_id + " ignored");
           replca = true;
         }
