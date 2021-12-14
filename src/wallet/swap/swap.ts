@@ -335,6 +335,7 @@ export const swapPhase3 = async (
       statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key, true, wallet);
       statecoin.ui_swap_status=UI_SWAP_STATUS.Phase6;
       wallet.saveStateCoinsList()
+      await delay(1);
     }
     if (statecoin.swap_batch_data===null) {
       statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);
@@ -468,7 +469,7 @@ export const do_swap_poll = async(
   } else {
     if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already in swap pool.");
     if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already involved in swap.");
-    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.shared_key_id+" not available for swap.");
+    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.shared_key_id+" not available.");
   }
   
   // Reset coin's swap data
@@ -593,7 +594,7 @@ export const do_swap_poll = async(
         }
       }
 
-      await delay(3);
+      await delay(2);
     }
     if (statecoin.swap_auto) new_statecoin.swap_auto = true;
   return new_statecoin;
@@ -644,7 +645,7 @@ export const do_transfer_receiver = async (
         if (message && !message.includes("DB Error: No data for identifier")) {
           throw err;
         }
-        await delay(3); 
+        await delay(2); 
         continue;
       } 
 
