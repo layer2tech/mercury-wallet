@@ -81,18 +81,28 @@ const INITIAL_SORT_BY = {
 };
 
 const SWAP_STATUS_INFO = {
-  Phase0: "Phase 0/4: registration",
-  Phase1: "Phase 1/4: awaiting swap commitments",
-  Phase2: "Phase 2/4: awaiting blind token",
-  Phase3: "Phase 3/4: awaiting transfers",
-  Phase4: "Phase 4/4: completing swap",
+  Phase0: "Phase 0/8: registration",
+  Phase1: "Phase 1/8: awaiting swap commitments",
+  Phase2: "Phase 2/8: awaiting blind token",
+  Phase3: "Phase 3/8: new Tor circuit",
+  Phase4: "Phase 4/8: awaiting transfer address",
+  Phase5: "Phase 5/8: transferring statecoin",
+  Phase6: "Phase 6/8: receiving new statecoin",
+  Phase7: "Phase 7/8: finalizing transfers",
+  Phase8: "Phase 8/8: completing swap",
+  End: "End",
 }
 const SWAP_TOOLTIP_TXT = {
   Phase0: "Coin registered for swap group - awaiting swap start",
   Phase1: "Swap group start. Awaiting blind swap token",
-  Phase2: "Generating new Tor circuit. Awaiting send address",
-  Phase3: "Completing statecoin transfer protocol",
-  Phase4: "Finalizing coin swap transfers",
+  Phase2: "Awaiting signature for coin transfer",
+  Phase3: "Generating new Tor circuit.",
+  Phase4: "Awaiting address for coin transfer",
+  Phase5: "Transferring statecoin",
+  Phase6: "Receiving new statecoin",
+  Phase7: "Finalizing transfers",
+  Phase8: "Completing statecoin swap",
+  End: "Finalizing coin swap transfers",
 }
 
 const Coins = (props) => {
@@ -477,7 +487,7 @@ const Coins = (props) => {
 
     // Filter coins by status
     if(filterBy === 'default') {
-      all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER))
+      all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER && coin.status !== STATECOIN_STATUS.WITHDRAWING))
     } else {
       if(filterBy === STATECOIN_STATUS.WITHDRAWN) {
         all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.WITHDRAWN);
@@ -677,12 +687,12 @@ const Coins = (props) => {
                         <div className = "swap-status-container coinslist" >
                           {item.swap_status !== "Init" ? 
                           (<span className = {`tooltip ${document.querySelector(".home-page") ? ("main"):("side")}`}>
-                            <b>{item.swap_status}: </b>{ SWAP_TOOLTIP_TXT[item.swap_status]}
+                            <b>{item.ui_swap_status}: </b>{ SWAP_TOOLTIP_TXT[item.ui_swap_status]}
                           </span>):(null)}
                           {item.swap_status !== null && (
                             <div>
                               <Spinner animation="border" variant="primary" size="sm"/>
-                              <SwapStatus swapStatus={SWAP_STATUS_INFO[item.swap_status]} />
+                              <SwapStatus swapStatus={SWAP_STATUS_INFO[item.ui_swap_status]} />
                             </div>
                           )}
                         </div>
@@ -796,7 +806,7 @@ const Coins = (props) => {
                 showCoinDetails.coin.status !== STATECOIN_STATUS.AVAILABLE && (
                   <div className="item swap-status-container">
                     <CoinStatus data={showCoinDetails.coin} isDetails={true} />
-                    {showCoinDetails.coin.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[showCoinDetails.coin.swap_status]} />):(null)}
+                    {showCoinDetails.coin.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[showCoinDetails.coin.ui_swap_status]} />):(null)}
                   </div>
                 )}
 

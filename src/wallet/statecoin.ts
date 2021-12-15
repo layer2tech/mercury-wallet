@@ -22,6 +22,14 @@ export class StateCoinList {
       let coin = new StateCoin(item.shared_key_id, item.shared_key);
       coin.wallet_version = "";
 
+      let replca = false;
+      statecoins.coins.filter((existing_coin: StateCoin) => {
+        if (item.shared_key_id === existing_coin.shared_key_id && item.status === STATECOIN_STATUS.AVAILABLE && existing_coin.status === STATECOIN_STATUS.AVAILABLE) {
+          console.log("Replica coin " + item.statechain_id + " ignored");
+          replca = true;
+        }
+      });
+
       // re-build tx_backup as Transaction
       if (item.tx_backup!==undefined && item.tx_backup !== null) {
         let tx_backup_any: any = item.tx_backup;
@@ -60,7 +68,7 @@ export class StateCoinList {
         }
         item.tx_cpfp = tx_cpfp;
       }
-      statecoins.coins.push(Object.assign(coin, item));
+      if(!replca) statecoins.coins.push(Object.assign(coin, item));
     })
     return statecoins
   }
@@ -138,7 +146,18 @@ export class StateCoinList {
   };
 
   getCoin(shared_key_id: string): StateCoin | undefined {
-    return this.coins.find(coin => coin.shared_key_id === shared_key_id)
+    // return first available coin, if no then first matching coin
+    let coin_arr = this.coins.filter(coin => coin.shared_key_id === shared_key_id);
+    if (coin_arr.length > 0) {
+      let avail_coin = coin_arr.find(coin => coin.status === STATECOIN_STATUS.AVAILABLE);
+      if (avail_coin) {
+        return avail_coin
+      } else {
+        return coin_arr[0]
+      }
+    } else {
+      return undefined
+    }
   }
 
   getCoins(statechain_id: string) {
@@ -148,15 +167,28 @@ export class StateCoinList {
       }
       return null
     })
-  }  
+  }
 
   // creates new coin with Date.now()
   addNewCoin(shared_key_id: string, shared_key: MasterKey2) {
-    this.coins.push(new StateCoin(shared_key_id, shared_key))
+    let existing_coin = this.getCoin(shared_key_id);
+    if(existing_coin) {
+      console.log('Repeated coin - shared_key_id: ' + shared_key_id);
+      existing_coin.status = STATECOIN_STATUS.IN_TRANSFER;
+    }
+    this.coins.push(new StateCoin(shared_key_id, shared_key));
+    return true;
   };
+
   // Add already constructed statecoin
   addCoin(statecoin: StateCoin) {
-    this.coins.push(statecoin)
+    let existing_coin = this.getCoin(statecoin.shared_key_id);
+    if(existing_coin) {
+      console.log('Repeated coin - shared_key_id: ' + statecoin.shared_key_id);
+      existing_coin.status = STATECOIN_STATUS.IN_TRANSFER;
+    }
+    this.coins.push(statecoin);
+    return true;
   };
 
   // Remove coin from list
@@ -378,6 +410,7 @@ export class StateCoin {
 
  // Swap data
   swap_status: string | null;
+  ui_swap_status: string | null;
   swap_id: SwapID | null;
   swap_info: SwapInfo | null;
   swap_address: SCEAddress | null;
@@ -422,6 +455,7 @@ export class StateCoin {
     this.transfer_msg = null;
 
     this.swap_status = null;
+    this.ui_swap_status = null;
     this.swap_id = null
     this.swap_address = null;
     this.swap_info = null;
@@ -478,6 +512,7 @@ export class StateCoin {
       transfer_msg: this.transfer_msg,
       swap_id: (this.swap_info ? this.swap_info.swap_token.id : null),
       swap_status: this.swap_status,
+      ui_swap_status: this.ui_swap_status,
       swap_auto: this.swap_auto
     }
   };
@@ -604,6 +639,7 @@ export interface StateCoinDisplayData {
   transfer_msg: TransferMsg3 | null,
   swap_id: string | null,
   swap_status: string | null,
+  ui_swap_status: string | null,
   swap_auto: boolean
 }
 
