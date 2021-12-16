@@ -12,6 +12,7 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
   const [showModal, setShowModal] = useState(false);
   const [closeText, setCloseText] = useState('Are you sure?');
   const swapRecords = useSelector(state => state.walletData.swapRecords);
+  const withdraw_fee = useSelector(state => state.walletData).fee_info.withdraw;
 
   useEffect(()=> {
 
@@ -28,7 +29,7 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
     } else if(children.props.className.includes('send-action-button')){
       setCloseText('Confirm send, statecoin ready to be sent immediately.')
     } else if(children.props.className.includes('withdraw-button')){
-      setCloseText('Confirm withdraw, statecoin(s) ready to be sent immediately.')
+      setCloseText('Confirm withdrawal. Withdrawal fee: ' + withdraw_fee/100 + '%')
     } else if(swapRecords.length > 0){
       setCloseText('Your swaps will be cancelled, are you sure?');
     } 

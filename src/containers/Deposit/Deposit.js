@@ -1,6 +1,7 @@
 import plus from "../../images/plus-deposit.png";
 import points from "../../images/points.png";
 import React, {useState} from 'react';
+import {useSelector} from 'react-redux'
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {Button, Modal} from "react-bootstrap";
 import {CreateStatecoin, TransactionsBTC, StdButton, Steppers, Tutorial} from "../../components";
@@ -11,7 +12,7 @@ import './Deposit.css';
 // sort_by 0=liquidity, 1=amount.
 const DEFAULT_SETTINGS = {
   sort_by: "Liquidity",
-  min_value: 0.000001,
+  min_value: 0.001,
   picks: 8
 }
 
@@ -27,6 +28,8 @@ const STEPS = [
 ];
 
 const DepositPage = () => {
+
+  const fee_info = useSelector(state => state.walletData).fee_info;
   // Show settings
   const [show, setShow] = useState(false);
   const [step, setStep] = useState(1)
@@ -123,7 +126,7 @@ const DepositPage = () => {
 
                  </div>
              </div>
-              <h3 className="subtitle">Deposit BTC to create new Statecoins</h3>
+              <h3 className="subtitle">Create new statecoins. Withdraw Fee: <b>{fee_info.withdraw/100}%</b></h3>
           </div>
           <div className="wizard">
               <Steppers steps={STEPS} total={2} current={step} />
