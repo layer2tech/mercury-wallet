@@ -487,7 +487,7 @@ const Coins = (props) => {
 
     // Filter coins by status
     if(filterBy === 'default') {
-      all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER && coin.status !== STATECOIN_STATUS.WITHDRAWING))
+      all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER))
     } else {
       if(filterBy === STATECOIN_STATUS.WITHDRAWN) {
         all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.WITHDRAWN);

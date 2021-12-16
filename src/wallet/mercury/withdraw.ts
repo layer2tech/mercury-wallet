@@ -147,12 +147,12 @@ export const withdraw_init = async (
     proof_key: null,
   };
 
-  let signatures: any[][] = new Array(new Array());
+  let signatures: any[] = new Array()
   console.log("get signatures")
   if(shared_key_ids.length === 1) {
     //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
     let signature = await sign(http_client, wasm_client, shared_key_ids[0], shared_keys[0], prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
-    console.log(`signature: ${signatures}`)
+    
     signatures.push(signature);
   } else {
     signatures = await sign_batch(http_client, wasm_client, shared_key_ids, shared_keys, prepare_sign_msg, signatureHashes, PROTOCOL.WITHDRAW);
