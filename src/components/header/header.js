@@ -5,6 +5,7 @@ import {NotificationBar, ErrorPopup, ConfirmPopup} from "../../components";
 import WarningPopup from '../WarningPopup';
 import {unloadWallet} from '../../features/WalletDataSlice'
 import './header.css';
+import TorInfo from './TorInfo/TorCircuit';
 
 const Header = (props) => {
   
@@ -33,7 +34,15 @@ const Header = (props) => {
         <Link className="navbar-brand" to={props.walletLoaded ? "/home" : "/"}>
           <Logo />  
         </Link>
+
+       
+          
+
         <div className="menu">
+              {
+                props.walletLoaded &&
+                <TorInfo/>
+              }
           <div title="Light/Dark mode">
             <label className="toggle">
               <input
@@ -45,6 +54,8 @@ const Header = (props) => {
               <div className="toggle-switch" />
             </label>
           </div>
+
+
           <div title="Help" className={`nav-item  ${props.location.pathname === "/" ? "active" : ""}`}>
             <Link className="nav-link" to="/help">
               <Help />
@@ -60,6 +71,8 @@ const Header = (props) => {
             :
             null
           }
+
+
           {props.walletLoaded && (
             <div className={`nav-item`}>
               <ConfirmPopup onOk={handleLogout}>
