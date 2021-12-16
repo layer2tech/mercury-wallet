@@ -76,6 +76,9 @@ const RestoreWalletPage = (props) => {
     const handleImportWalletData = async (event, backupData) => {
       try {
         const walletJson = JSON.parse(backupData);
+
+        walletJson.name = walletJson.name + '-backup';
+
         const wallet = await walletFromJson(walletJson, state.wallet_password);
         if(!wallet) {
           dispatch(setError({msg: "Incorrect password or invalid file format. Can not restore wallet from this file!"}));
@@ -85,7 +88,7 @@ const RestoreWalletPage = (props) => {
         }
       } catch (error) {
         console.error(error);
-        dispatch(setError({msg: "Invalid Backup File Format"}));
+        dispatch(setError({msg: "Incorrect password or invalid file format."}));
       }
     }
 
