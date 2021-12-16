@@ -21,8 +21,6 @@ import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum } from './mercury/info_api';
 import { EPSClient } from './eps';
-import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './mercury/torcircuit_api';
-import { callGetNewTorId } from '../features/WalletDataSlice';
 
 const MAX_SWAP_SEMAPHORE_COUNT=100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -63,7 +61,6 @@ export class Wallet {
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
-  tor_circuit: TorCircuit[];
   warnings: [{name: string, show: boolean}];
   ping_server_ms: number | null;
   ping_conductor_ms: number | null;
@@ -82,7 +79,6 @@ export class Wallet {
     this.account = account;
     this.statecoins = new StateCoinList();
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
-
     this.activity = new ActivityLog();
     
     this.http_client = new HttpClient('http://localhost:3001', true);
@@ -101,32 +97,6 @@ export class Wallet {
     this.ping_electrum_ms = null;
 
     this.statechain_id_set = new Set();
-
-    this.tor_circuit = [];
-  }
-
-  async updateTorId(){
-    try{
-      let new_id = await getNewTorId(this.http_client);
-    }catch(err : any){
-      throw err
-    }
-  }
-
-  // TODO - add additional checks and error handling
-  async updateTorcircuitInfo(){
-    try{
-      let torcircuit_ids = await getTorCircuitIds(this.http_client);
-      let torcircuit  = [];
-      for(var i=0; i<torcircuit_ids.length; i++){
-        torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids[i]));
-      }
-      //console.log(torcircuit);
-      this.tor_circuit = torcircuit;
-      //console.log(this.tor_circuit);
-    }catch(err : any){
-      throw err
-    }
   }
 
   set_tor_endpoints(){
@@ -1046,15 +1016,15 @@ export class Wallet {
         }
       });
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
-      this.setIfNewCoin(new_statecoin)
-      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
       statecoin.setSwapDataToNull();
       // remove generated address
       this.account.chains[0].pop();
     } finally {
-      if (new_statecoin) {   
+      if (new_statecoin) {
+        this.setIfNewCoin(new_statecoin)
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)  
         new_statecoin.setSwapDataToNull();
       } 
       this.saveStateCoinsList(); 
@@ -1065,10 +1035,6 @@ export class Wallet {
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo>{
     return this.swap_group_info;
-  }
-
-  getTorcircuitInfo(): TorCircuit[]{
-    return this.tor_circuit;
   }
 
   async updateSwapGroupInfo() {
@@ -1182,7 +1148,7 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" currenlty involved in swap protocol.");
-    if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" waiting in  swap pool. Remove from pool to transfer.");
+    if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" waiting in swap pool. Remove from pool to transfer.");
     if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for Transfer.");
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
