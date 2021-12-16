@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "winston": "^3.3.3",
     "async-mutex": "^0.3.2",
     "axios": "^0.21.1",
     "body-parser": "^1.19.0",
@@ -20,15 +21,12 @@
     "electrum-client-js": "^3.0.0",
     "express": "^4.17.1",
     "fs": "0.0.1-security",
-    "geoip-country": "^4.0.98",
-    "i18n-iso-countries": "^7.1.0",
     "netcat": "^1.5.0",
     "node-tor-control": "0.0.2",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "socks-proxy-agent": "^5.0.0",
     "tor-control": "0.0.3",
-    "websocket": "^1.0.34",
-    "winston": "^3.3.3"
+    "websocket": "^1.0.34"
   }
 }
