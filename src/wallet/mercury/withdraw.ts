@@ -53,7 +53,7 @@ export const withdraw_init = async (
   let amount = 0;
   let index = 0;
 
-
+    console.log("withdraw init.")
     for (const sc of statecoins) {
     if (sc.funding_txid == null) {
       throw Error("StateChain undefined already withdrawn.");
@@ -63,6 +63,7 @@ export const withdraw_init = async (
 
     let proof_key_der: BIP32Interface = proof_key_ders[index];
     // Get statechain from SE and check ownership
+    console.log("get statechain")
     let statechain: StateChainDataAPI = await getStateChain(http_client, statecoin.statechain_id);
     sc_infos.push(statechain);
 
@@ -76,6 +77,7 @@ export const withdraw_init = async (
     }
 
     // Sign statecoin to signal desire to Withdraw
+    console.log("create sig")
     let statechain_sig = StateChainSig.create(proof_key_der, "WITHDRAW", rec_addr);
     statechain_sigs.push(statechain_sig);
     shared_key_ids.push(statecoin.shared_key_id)
@@ -94,14 +96,17 @@ export const withdraw_init = async (
     statechain_sigs: statechain_sigs
   }
 
+  console.log("post withdraw init")
   await http_client.post(POST_ROUTE.WITHDRAW_INIT, withdraw_msg_1);
 
   // Get state entity fee info
+  console.log("get fee info")
   let fee_info: FeeInfo = await getFeeInfo(http_client);
 
   // Construct withdraw tx
   let txb_withdraw_unsigned;
 
+  console.log("build withdrawal tx")
   if(statecoins.length > 1) {
       txb_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info,fee_per_byte)
   } else {
@@ -119,11 +124,13 @@ export const withdraw_init = async (
           );
   }
 
+  console.log("build unsigned")
   let tx_withdraw_unsigned = txb_withdraw_unsigned.buildIncomplete();
 
   let signatureHashes: string[] = [];
 
   // tx_withdraw_unsigned
+  console.log("get signature hashes")
   sc_infos.forEach((info, index) => {
     let pk = pks[index];
     signatureHashes.push(getSigHash(tx_withdraw_unsigned, index, pk, info.amount, network));
@@ -141,12 +148,16 @@ export const withdraw_init = async (
   };
 
   let signatures: any[][] = new Array(new Array());
+  console.log("get signatures")
   if(shared_key_ids.length === 1) {
     //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
-    signatures.push(await sign(http_client, wasm_client, shared_key_ids[0], shared_keys[0], prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW));
+    let signature = await sign(http_client, wasm_client, shared_key_ids[0], shared_keys[0], prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
+    console.log(`signature: ${signatures}`)
+    signatures.push(signature);
   } else {
     signatures = await sign_batch(http_client, wasm_client, shared_key_ids, shared_keys, prepare_sign_msg, signatureHashes, PROTOCOL.WITHDRAW);
   }
+  console.log(`signatures: ${signatures}`)
   // Complete confirm to get witness
   let withdraw_msg_2 = {
       shared_key_ids: shared_key_ids,
@@ -156,9 +167,12 @@ export const withdraw_init = async (
     // set witness data with signature
     let tx_backup_signed = tx_withdraw_unsigned;
 
+    console.log("insert signatures into tx")
     signatures.forEach((signature, index) => {
       let sig0 = signatures[index][0];
+      console.log(`sig0: ${sig0}`)
       let sig1 = signatures[index][1];
+      console.log(`sig1: ${sig1}`)
       tx_backup_signed.ins[index].witness = [Buffer.from(sig0),Buffer.from(sig1)];
     });
   
