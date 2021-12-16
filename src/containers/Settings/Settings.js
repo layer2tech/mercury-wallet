@@ -1,12 +1,12 @@
 import settings from "../../images/settings.png";
 
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 
 import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
-  callUpdateConfig, callClearSave, unloadWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet} from '../../features/WalletDataSlice'
+  callUpdateConfig, callClearSave, unloadWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic} from '../../features/WalletDataSlice'
 
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
@@ -60,7 +60,15 @@ const SettingsPage = (props) => {
   const [torProxy, setTorProxy] = useState(current_config.tor_proxy);
   const [minAnonSet, setMinAnonSet] = useState(current_config.min_anon_set);
   const [openBackupModal, setOpenBackupModal] = useState(false);
+  const [password, setPassword] = useState(false);
+  const [passwordConfirm, setPasswordConfirm] = useState(false);
+  const [showSeed, setShowSeed] = useState(false)
 
+  useEffect(() => {
+    if(password === callGetPassword()){
+      setPasswordConfirm(true)
+    }
+  }, [ password ])
 
   // Change handlers
   const onNotificationChange = ({checked}) => { setNotification(checked) };
@@ -123,6 +131,13 @@ const SettingsPage = (props) => {
     dispatch(callClearSave());
     unloadWallet();
     props.setWalletLoaded(false);
+  }
+
+  const onPasswordChange = (event) => {
+    setPassword(event.target.value)
+  }
+  const onButtonPress= (event) => {
+    setShowSeed(!showSeed)
   }
 
   const downloadActivity = () => {
@@ -280,7 +295,35 @@ const SettingsPage = (props) => {
                           onChange={onTutorialChange}
                         /> */}
                       </div>
-
+                      <div className="seed-phrase">
+                        <h2>Seed Phrase</h2>
+                        {
+                          passwordConfirm ? (
+                            showSeed ? (
+                              <div>
+                                <p>{callGetMnemonic()}</p>
+                                <button onClick = {() => onButtonPress()} className = "Body-button" > Hide </button>
+                              </div>
+                            
+                            )
+                            :
+                            (
+                              <div>
+                                <button onClick = {() => onButtonPress()} className = "Body-button" > Show </button>
+                              </div>
+                            )
+                          )
+                          :
+                          (
+                            <div className = "inputs-item">
+                              <input 
+                                    type = "text" 
+                                    onChange={onPasswordChange}/>
+                              <label> Enter password </label>
+                            </div>
+                          )
+                        }
+                      </div>
                   </div>
               </div>
               <div className="action-btns">
