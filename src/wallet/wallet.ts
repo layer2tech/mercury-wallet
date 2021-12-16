@@ -118,12 +118,17 @@ export class Wallet {
     try{
       let torcircuit_ids = await getTorCircuitIds(this.http_client);
       let torcircuit  = [];
-      for(var i=0; i<torcircuit_ids.length; i++){
-        torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids[i]));
+      if(torcircuit_ids){
+        for(var i=0; i<torcircuit_ids.length; i++){
+          torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids[i]));
+        }
+        this.tor_circuit = torcircuit;
       }
-      //console.log(torcircuit);
-      this.tor_circuit = torcircuit;
-      //console.log(this.tor_circuit);
+      else{
+        this.tor_circuit = []
+      }
+      
+      
     }catch(err : any){
       throw err
     }
@@ -569,10 +574,6 @@ export class Wallet {
     return this.activity;
   }
 
-  addActivityItem(id:string, action:string){
-    this.activity.addItem(id, action);
-  }
-
   // ActivityLog data with relevant Coin data
   getActivityLogItems(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
@@ -598,6 +599,7 @@ export class Wallet {
         this.statecoins.coins[i].backup_status === BACKUP_STATUS.TAKEN ||
         this.statecoins.coins[i].backup_status === BACKUP_STATUS.SPENT ||
         this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWN ||
+        this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWING ||
         this.statecoins.coins[i].status === STATECOIN_STATUS.IN_TRANSFER) {
         continue;
       }
@@ -717,10 +719,14 @@ export class Wallet {
 
   // Add confirmed Statecoin to wallet
   addStatecoin(statecoin: StateCoin, action: string) {
-    this.statecoins.addCoin(statecoin);
-    this.activity.addItem(statecoin.shared_key_id, action);
-    log.debug("Added Statecoin: "+statecoin.shared_key_id);
+    if(this.statecoins.addCoin(statecoin)) {
+      this.activity.addItem(statecoin.shared_key_id, action);
+      log.debug("Added Statecoin: "+statecoin.shared_key_id);
+    } else {
+      log.debug("Replica, did not add Statecoin: "+statecoin.shared_key_id);
+    }
   }
+
   addStatecoinFromValues(id: string, shared_key: MasterKey2, value: number, txid: string, vout: number, proof_key: string, action: string) {
     let statecoin = new StateCoin(id, shared_key);
     statecoin.proof_key = proof_key;
@@ -729,9 +735,12 @@ export class Wallet {
     statecoin.funding_vout = vout;
     statecoin.tx_backup = new Transaction();
     statecoin.setConfirmed();
-    this.statecoins.addCoin(statecoin)
-    this.activity.addItem(id, action);
-    log.debug("Added Statecoin: "+statecoin.shared_key_id);
+    if(this.statecoins.addCoin(statecoin)) {
+      this.activity.addItem(id, action);
+      log.debug("Added Statecoin: "+statecoin.shared_key_id);
+    } else {
+      log.debug("Replica, did not add Statecoin: "+statecoin.shared_key_id);
+    }
   }
   removeStatecoin(shared_key_id: string) {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode)
@@ -1015,15 +1024,15 @@ export class Wallet {
         }
       });
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
-      this.setIfNewCoin(new_statecoin)
-      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
       statecoin.setSwapDataToNull();
       // remove generated address
       this.account.chains[0].pop();
     } finally {
-      if (new_statecoin) {   
+      if (new_statecoin) {
+        this.setIfNewCoin(new_statecoin)
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)  
         new_statecoin.setSwapDataToNull();
       } 
       this.saveStateCoinsList(); 
@@ -1151,7 +1160,7 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" currenlty involved in swap protocol.");
-    if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" waiting in  swap pool. Remove from pool to transfer.");
+    if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" waiting in swap pool. Remove from pool to transfer.");
     if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for Transfer.");
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
@@ -1202,11 +1211,14 @@ export class Wallet {
     
     // update in wallet
     statecoin_finalized.setConfirmed();
-    this.statecoins.addCoin(statecoin_finalized);
-    this.saveStateCoinsList();
 
-    log.info("Transfer Finalize complete.")
-    
+    if(this.statecoins.addCoin(statecoin_finalized)) {
+      this.activity.addItem(statecoin_finalized.shared_key_id, ACTION.RECEIVED)
+      this.saveStateCoinsList();
+      log.info("Transfer Finalize complete.")
+    } else {
+      log.info("Transfer finalize error: replica coin")
+    }
     return statecoin_finalized
   }
 

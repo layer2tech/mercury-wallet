@@ -27,8 +27,18 @@ const CreateStatecoin = (props) => {
       // Get coin liquidity data
       callGetCoinsInfo().then((liquidity_data_raw) => {
         // Update liquidity data state
-        let liquidity_data = Object.entries(liquidity_data_raw.values).map(([amount, liquidity]) => {
-          return {value: parseInt(amount), liquidity: liquidity}
+
+        let liquidity_data = []
+        //get most liquid coin amounts
+        Object.entries(liquidity_data_raw.values).map(([amount, liquidity]) => {
+          let coin_value = parseInt(amount)
+          if( coin_value >= 100000 ){
+            // Only display coin values over dust limit
+            if(liquidity >= 3 || Math.round(coin_value/100000) === coin_value/100000){
+              // this condition removes accidental strange deposit values
+              liquidity_data.push({value: parseInt(amount), liquidity: liquidity})
+            }
+          }
         })
 
         // Add list of defualt values if not already in list

@@ -19,7 +19,13 @@ export interface TorCircuit {
 }
 
 export const getNewTorId = async (http_client: HttpClient |  MockHttpClient) => {
-    let tor_id = await http_client.get(GET_ROUTE.NEW_TOR_ID, {});
+    let tor_id
+    try{
+        tor_id = await http_client.get(GET_ROUTE.NEW_TOR_ID, {});
+
+    } catch(e){
+        throw e
+    }
     // TODO - check for types
     return tor_id;
 }
@@ -28,13 +34,12 @@ export const getNewTorId = async (http_client: HttpClient |  MockHttpClient) => 
 export const getTorCircuitIds = async (http_client: HttpClient |  MockHttpClient) => {
     let tor_circuit_ids
     try{
-        tor_circuit_ids = await http_client.get(GET_ROUTE.TOR_CIRCUITS, {});
-    } catch (e){
-        throw e
+        tor_circuit_ids = await http_client.get(GET_ROUTE.TOR_CIRCUITS, {})
+        return tor_circuit_ids.circuitData;
+    }catch(e){
+        console.error(e)        
+        return []
     }
-    //console.log(tor_circuit_ids);
-    //typeforce(types.TorCircuitData, tor_circuit_ids);
-    return tor_circuit_ids.circuitData;
 }
 
 // child
@@ -42,7 +47,19 @@ export const getTorCircuit = async (
     http_client: HttpClient |  MockHttpClient,
     circuit_id: string
   ) => {
-    let circuit = await http_client.get(GET_ROUTE.TOR_CIRCUITS, circuit_id);
-    // typeforce(types.TorCircuit, circuit);
+    let circuit 
+    try{
+        circuit = await http_client.get(GET_ROUTE.TOR_CIRCUITS, circuit_id)
+        return circuit
+    }
+    catch(e){
+        console.error(e)
+        circuit = {
+            name: "",
+            ip: "",
+            country: "",
+        }
+        return circuit
+    }
     return circuit;
 }
