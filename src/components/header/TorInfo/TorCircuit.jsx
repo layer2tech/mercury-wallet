@@ -83,9 +83,10 @@ const TorCircuit = (props) => {
                 <div>
                     <ul>
                         <TorCircuitNode class='passed' name='Mercury Wallet'></TorCircuitNode>
-                        {torcircuitData.map((circuit, index) => (
-                            <TorCircuitNode className='passed' name={circuit.country} ip={circuit.ip} key ={circuit.ip}></TorCircuitNode>
-                        ))}
+                        {torcircuitData.map((circuit, index) => {
+                            if(circuit.ip === "") return
+                            return <TorCircuitNode className='passed' name={circuit.country} ip={circuit.ip} key ={circuit.ip}></TorCircuitNode>
+                        })}
                         <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
                         <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
                         <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
