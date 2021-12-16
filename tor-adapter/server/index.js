@@ -291,6 +291,7 @@ app.get('/tor_circuit/',  (req,res) => {
           var len = circuitMessages.length;
           var latest
           var circuitData
+          var circuitIds =  [];
         try{
           if(len > 0) {
             // finding the highest number, and saving its index
@@ -321,7 +322,6 @@ app.get('/tor_circuit/',  (req,res) => {
             */
         
             // find the ids  which are between $ and ~
-            var circuitIds =  [];
             for(var i=0;  i<circuitData.length; i++){
               var circuitId = circuitData[i].substring(
                 circuitData[i].indexOf("$") + 1, 
@@ -342,12 +342,12 @@ app.get('/tor_circuit/',  (req,res) => {
           latest = ""
           circuitData = []
         }
-            let response = {
-              latest: latest,
-              circuitData: circuitIds
-            };
-            res.status(200).json(response);
-          }
+        let response = {
+            latest: latest,
+            circuitData: circuitIds
+          };
+        res.status(200).json(response);
+      }
         
       } catch(e){
         res.status(400).json(`Bad request: ${err}`);

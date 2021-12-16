@@ -122,11 +122,8 @@ export class Wallet {
         for(var i=0; i<torcircuit_ids.length; i++){
           torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids[i]));
         }
-        this.tor_circuit = torcircuit;
       }
-      else{
-        this.tor_circuit = []
-      }
+      this.tor_circuit = torcircuit;
       
       
     }catch(err : any){
