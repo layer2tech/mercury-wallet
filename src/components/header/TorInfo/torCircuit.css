@@ -44,7 +44,7 @@
   box-shadow: 0 0 0 0.1rem rgba(0,123,255,.25);
 }
 
-ul {
+.tor ul {
   list-style: none;
   margin:0px;
   padding: 0;
@@ -52,13 +52,13 @@ ul {
   color: #999;
 }
 
-li {
+.tor li {
   overflow: hidden;
   position: relative;
   padding: 0 0 10px 35px;
 }
 
-li::before {
+.tor li::before {
     content: '';
     position: absolute;
     left: 9px;
@@ -69,11 +69,11 @@ li::before {
     border-width: 0 0 0 2px;
 }
 
-li:last-child::before {
+.tor li:last-child::before {
   border-width: 0px 0 0;
 }
 
-li::after {
+.tor li::after {
   content: '';
   position: absolute;
   left: 2px;
@@ -85,22 +85,22 @@ li::after {
   border-radius: 50%;
 }
 
-li.current,
-li.passed {
+.tor li.current,
+.tor li.passed {
   color: #666666;
 }
 
-li.current::before {
+.tor li.current::before {
   border-top-color: #0054F4;
 }
 
-li.current::after {
+.tor li.current::after {
   border-color: #0054F4;
   background: #0054F4;
 }
 
-li.passed::before,
-li.passed::after {
+.tor li.passed::before,
+.tor li.passed::after {
   border-color: #0054F4;
 }
 .tor #loading.loading {
