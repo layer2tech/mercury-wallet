@@ -9,6 +9,17 @@ import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
 import { BatchData, BSTRequestorData, SwapID, SwapInfo } from "./swap/swap";
 import { SCEAddress, TransferFinalizeData, TransferMsg3 } from "./mercury/transfer";
 import { WithdrawMsg2 } from "./mercury/withdraw"
+
+// Logger import.
+// Node friendly importing required for Jest tests.
+declare const window: any;
+let log: any;
+try {
+  log = window.require('electron-log');
+} catch (e : any) {
+  log = require('electron-log');
+}
+
 export class StateCoinList {
   coins: StateCoin[]
 
@@ -311,8 +322,10 @@ export class StateCoinList {
       tx_withdraw: BTCTransaction, 
       tx_fee_per_byte: number,
       withdraw_msg_2: WithdrawMsg2) {
+    console.log("getting coin...")
     let coin = this.getCoin(shared_key_id)
     if (coin) {
+      console.log(`got coin - pushing broadcast tx info...`)
       coin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
           tx_fee_per_byte, tx_withdraw, withdraw_msg_2
       ))
@@ -532,12 +545,16 @@ export class StateCoin {
   setBackupSpent() { this.backup_status = BACKUP_STATUS.SPENT }
 
   getWithdrawalBroadcastTxInfo(id: string): WithdrawalTxBroadcastInfo {
+    console.log(`withdraw_broadcast: ${JSON.stringify(this.tx_withdraw_broadcast)}`);
     let found =  this.tx_withdraw_broadcast.filter((item: WithdrawalTxBroadcastInfo) => {
+      console.log(`id: ${id},  txid: ${item.tx.getId()}`);
       if (item.tx.getId() === id) {
+        console.log(`Found item for id: ${id}: ${item}`);
         return item
       }
       return null
     });
+    console.log(`found: ${JSON.stringify(found)}`);
     return found[0]
   }
 

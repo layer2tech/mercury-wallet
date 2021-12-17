@@ -481,7 +481,11 @@ export class Wallet {
       if (statecoin.withdraw_txid) {
         if ((statecoin.status===STATECOIN_STATUS.WITHDRAWING) && this.checkWithdrawalTx(statecoin.withdraw_txid) && !this.config.testing_mode) {
           let tx_info = statecoin.getWithdrawalBroadcastTxInfo(statecoin.withdraw_txid)
-          this.withdraw_confirm(tx_info.withdraw_msg_2, statecoin.withdraw_txid)
+          if(tx_info){
+            log.info(`found tx_info: ${tx_info}, doing withdraw confirm`)
+            this.withdraw_confirm(tx_info.withdraw_msg_2, statecoin.withdraw_txid)
+            log.info(`withdraw confirm finished`)
+          }
         }
       }
     })
@@ -1322,7 +1326,7 @@ export class Wallet {
       fee_max = statecoin.getWithdrawalMaxTxFee()
       if(fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`)
       if (shared_key_ids !== broadcastTxInfos[0].withdraw_msg_2.shared_key_ids){
-        throw Error(`Replacement transaction shared key ids do not match`)
+        throw Error(`Replacement transaction shared key ids do not match ${shared_key_ids}, ${broadcastTxInfos[0].withdraw_msg_2.shared_key_ids}`)
       }
       if (rec_addr !== broadcastTxInfos[0].withdraw_msg_2.address){
         throw Error(`Replacement transaction recipient address does not match`)
@@ -1342,7 +1346,7 @@ export class Wallet {
       }
       this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
     });
-
+    console.log("saving satecoin list...")
     this.saveStateCoinsList();
 
        // Broadcast transcation
@@ -1381,6 +1385,7 @@ export class Wallet {
     await withdraw_confirm(this.http_client, withdraw_msg_2)
     withdraw_msg_2.shared_key_ids.forEach( (shared_key_id) => {
       this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
+      this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
     })
   }
 }
