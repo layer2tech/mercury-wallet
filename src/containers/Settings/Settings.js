@@ -10,6 +10,7 @@ import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
 
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
+import { hashScript } from "../../wallet/util";
 
 const NETWORK_CONFIG =  require('../../network.json');
 
@@ -65,9 +66,11 @@ const SettingsPage = (props) => {
   const [showSeed, setShowSeed] = useState(false)
 
   useEffect(() => {
-    if(password === callGetPassword()){
+
+    if((password && hashScript(password) === callGetPassword()) || hashScript("") === callGetPassword()){
       setPasswordConfirm(true)
     }
+    
   }, [ password ])
 
   // Change handlers
@@ -317,7 +320,7 @@ const SettingsPage = (props) => {
                           (
                             <div className = "inputs-item">
                               <input 
-                                    type = "text" 
+                                    type = "password" 
                                     onChange={onPasswordChange}/>
                               <label> Enter password </label>
                             </div>
