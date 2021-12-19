@@ -475,19 +475,42 @@ export class Wallet {
 
   // Each time we get unconfirmed coins call this to check for confirmations
   checkWithdrawingTxStatus(withdrawing_coins: StateCoin[]) {
-    withdrawing_coins.forEach((statecoin) => {
+    withdrawing_coins.forEach(async (statecoin) => {
       // if the withdrawal transaction is confirmed, confirm it with the server and update
       // the wallet
-      if (statecoin.withdraw_txid) {
-        if ((statecoin.status===STATECOIN_STATUS.WITHDRAWING) && this.checkWithdrawalTx(statecoin.withdraw_txid) && !this.config.testing_mode) {
-          let tx_info = statecoin.getWithdrawalBroadcastTxInfo(statecoin.withdraw_txid)
-          if(tx_info){
-            log.info(`found tx_info: ${tx_info}, doing withdraw confirm`)
-            this.withdraw_confirm(tx_info.withdraw_msg_2, statecoin.withdraw_txid)
-            log.info(`withdraw confirm finished`)
+      if (statecoin.status===STATECOIN_STATUS.WITHDRAWING) {
+        let length =statecoin.tx_withdraw_broadcast.length
+        if (length > 0){
+    //console.log(`broadcast transactions: ${JSON.stringify(statecoin.tx_withdraw_broadcast)}`)
+          console.log(`last broadcast transactions txid: ${JSON.stringify(statecoin.tx_withdraw_broadcast[length - 1]?.txid)}`)
+          let broadcast_txid = statecoin.tx_withdraw_broadcast[length-1]?.txid
+          log.info(`checking withdrawal tx status...`)
+          if(broadcast_txid){
+            const tx_confirmed = await this.checkWithdrawalTx(broadcast_txid)
+            if (tx_confirmed) {
+              log.info(`tx confirmed: ${statecoin.withdraw_txid}`)  
+              if (!this.config.testing_mode) {
+                log.info(`withdrawal tx confirmed!`)
+                let tx_info = statecoin.getWithdrawalBroadcastTxInfo(broadcast_txid)
+                if(tx_info){
+                log.info(`found tx_info: ${tx_info}, doing withdraw confirm`)
+                await this.withdraw_confirm(tx_info.withdraw_msg_2, broadcast_txid)
+                log.info(`withdraw confirm finished`)
+            }
           }
         }
+      } 
+    
+        
+        
+        }
+        
+      
+      
+      
       }
+  
+      
     })
   }
 
@@ -1325,9 +1348,9 @@ export class Wallet {
     if(broadcastTxInfos.length){
       fee_max = statecoin.getWithdrawalMaxTxFee()
       if(fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`)
-      if (shared_key_ids !== broadcastTxInfos[0].withdraw_msg_2.shared_key_ids){
-        throw Error(`Replacement transaction shared key ids do not match ${shared_key_ids}, ${broadcastTxInfos[0].withdraw_msg_2.shared_key_ids}`)
-      }
+      //if (shared_key_ids !== broadcastTxInfos[0].withdraw_msg_2.shared_key_ids){
+      //  throw Error(`Replacement transaction shared key ids do not match ${shared_key_ids}, ${broadcastTxInfos[0].withdraw_msg_2.shared_key_ids}`)
+      //}
       if (rec_addr !== broadcastTxInfos[0].withdraw_msg_2.address){
         throw Error(`Replacement transaction recipient address does not match`)
       }
@@ -1382,11 +1405,16 @@ export class Wallet {
     withdraw_msg_2: WithdrawMsg2,
     txid: string
   ) {
-    await withdraw_confirm(this.http_client, withdraw_msg_2)
-    withdraw_msg_2.shared_key_ids.forEach( (shared_key_id) => {
-      this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
-      this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
-    })
+    log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`)
+    try{
+      await withdraw_confirm(this.http_client, withdraw_msg_2)
+      withdraw_msg_2.shared_key_ids.forEach( (shared_key_id) => {
+        this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
+        this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+      })
+    } catch(e){
+      log.error(`withdraw confirm error: ${e}`);
+    }
   }
 }
 

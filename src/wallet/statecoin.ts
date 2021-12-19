@@ -310,6 +310,7 @@ export class StateCoinList {
         coin.tx_withdraw = tx_info.tx
         coin.tx_hex = tx_info.tx.toHex()
         coin.status = STATECOIN_STATUS.WITHDRAWN
+        coin.withdraw_txid = withdraw_txid
       } else {
         throw Error("No withdrawal broadcast found with id " + withdraw_txid);
       }
@@ -325,9 +326,8 @@ export class StateCoinList {
     console.log("getting coin...")
     let coin = this.getCoin(shared_key_id)
     if (coin) {
-      console.log(`got coin - pushing broadcast tx info...`)
       coin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
-          tx_fee_per_byte, tx_withdraw, withdraw_msg_2
+          tx_fee_per_byte, tx_withdraw, tx_withdraw.getId(), withdraw_msg_2
       ))
       return
     } else {
@@ -416,11 +416,13 @@ Object.freeze(BACKUP_STATUS);
 export class WithdrawalTxBroadcastInfo{
   fee_per_byte: number; 
   tx: BTCTransaction;
+  txid: string;
   withdraw_msg_2: WithdrawMsg2;
 
-  constructor(fee_per_byte: number, tx: BTCTransaction, withdraw_msg_2: WithdrawMsg2) {
+  constructor(fee_per_byte: number, tx: BTCTransaction, txid: string, withdraw_msg_2: WithdrawMsg2) {
     this.fee_per_byte = fee_per_byte;
     this.tx = tx;
+    this.txid = txid;
     this.withdraw_msg_2 = withdraw_msg_2;
   }
 }
@@ -547,8 +549,8 @@ export class StateCoin {
   getWithdrawalBroadcastTxInfo(id: string): WithdrawalTxBroadcastInfo {
     console.log(`withdraw_broadcast: ${JSON.stringify(this.tx_withdraw_broadcast)}`);
     let found =  this.tx_withdraw_broadcast.filter((item: WithdrawalTxBroadcastInfo) => {
-      console.log(`id: ${id},  txid: ${item.tx.getId()}`);
-      if (item.tx.getId() === id) {
+      console.log(`id: ${id},  txid: ${item.txid}`);
+      if (item.txid === id) {
         console.log(`Found item for id: ${id}: ${item}`);
         return item
       }
