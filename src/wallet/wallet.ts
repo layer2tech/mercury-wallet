@@ -1365,7 +1365,7 @@ export class Wallet {
       if (!statecoin) throw Error("No coin found with id " + shared_key_id)
       if (statecoin.status !== STATECOIN_STATUS.WITHDRAWING &&
         statecoin.status !== STATECOIN_STATUS.WITHDRAWN){
-        this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+        statecoin.setWithdrawing()
       }
       this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
     });
@@ -1407,9 +1407,13 @@ export class Wallet {
   ) {
     log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`)
     try{
+      console.log(`wallet - withdraw_confirm...`)
       await withdraw_confirm(this.http_client, withdraw_msg_2)
+      console.log(`wallet - withdraw_confirm ok.`)
       withdraw_msg_2.shared_key_ids.forEach( (shared_key_id) => {
+        console.log(`wallet - setCoinWithdrawTxId...`)
         this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
+        console.log(`wallet - setStateCoinSpent ACTION.WITHDRAW...`)
         this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
       })
     } catch(e){
