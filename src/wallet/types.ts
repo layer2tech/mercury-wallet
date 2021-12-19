@@ -39,7 +39,9 @@ export const FeeInfo = typeforce.compile({
   deposit: UInt32,
   withdraw: UInt32,
   interval: UInt32,
-  initlock: UInt32
+  initlock: UInt32,
+  wallet_version: String,
+  wallet_message: String
 })
 
 export const CoinsInfo = typeforce.compile({
