@@ -30,7 +30,7 @@ const App = () => {
   }, [dark_mode]);
   return (
     <div className={`App ${dark_mode === '1' ? 'dark-mode': ''}`}>
-      {walletLoaded ? <title>Mercury Wallet {version} - {walletName} </title> : <title>Mercury Wallet {version}</title>}
+      {walletLoaded ? <title>Mercury Wallet {version} - {walletName} </title> : <title>Mercury Wallet {version} - BETA</title>}
       <Router>
       <Header walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded} />
       <Switch>

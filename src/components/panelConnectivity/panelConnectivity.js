@@ -9,7 +9,6 @@ import {defaultWalletConfig} from '../../containers/Settings/Settings'
 import './panelConnectivity.css';
 import '../index.css';
 
-
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();
   // Arrow down state and url hover state
@@ -76,17 +75,17 @@ const PanelConnectivity = (props) => {
         if(electrum_ping_ms !== callGetPingElectrumms()){
             setElectrumPingMs(callGetPingElectrumms())
         }
-    }, 10000);
+    }, 30000);
     return () => clearInterval(interval);
     }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch]);
 
-  // every 250ms check if block_height changed and set a new value
+  // every 500ms check if block_height changed and set a new value
   useEffect(() => {
       const interval = setInterval(() => {
           if(block_height !== callGetBlockHeight()){
             setBlockHeight(callGetBlockHeight());
           }
-      }, 250);
+      }, 500);
       return () => clearInterval(interval);
   }, [block_height]);
 

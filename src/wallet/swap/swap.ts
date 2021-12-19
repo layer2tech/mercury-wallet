@@ -16,6 +16,7 @@ let bitcoin = require("bitcoinjs-lib");
 
 let types = require("../types")
 let typeforce = require('typeforce');
+const version = require("../../../package.json").version;
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -97,9 +98,10 @@ export const swapInit = async (
   let registerUtxo = {
     statechain_id: statecoin.statechain_id,
     signature: sc_sig,
-    swap_size: swap_size
+    swap_size: swap_size,
+    wallet_version: version.replace("v","")
   };
-  
+
   try {
     await swapRegisterUtxo(http_client, registerUtxo);
   } catch(err: any){
@@ -581,7 +583,13 @@ export const do_swap_poll = async(
         } else if (err instanceof SwapRetryError && n_errs < MAX_ERRS && statecoin.swap_status !== SWAP_STATUS.Phase4) {
           n_errs = n_errs+1
           console.log(`Error during swap: ${message} - retrying...`);
-        } 
+          if(message!.includes("Incompatible")) {
+            alert(message)
+          }
+          if(message!.includes("punishment")) {
+            alert(message)
+          }
+        }
         else if (err instanceof SwapRetryError && n_errs < MAX_ERRS_PHASE4 && statecoin.swap_status === SWAP_STATUS.Phase4) {
           //An unlimited number of netowrk errors permitted in stage 4 as swap 
           //transfers may have completed

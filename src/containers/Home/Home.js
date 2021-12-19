@@ -33,6 +33,7 @@ const HomePage = () => {
     fee_info = callGetFeeInfo().then((fee_info) => {
       dispatch(updateFeeInfo(fee_info));
     })
+    
   }
   // Check if wallet initialised
   if (fee_info.deposit==="NA") { initWalletInRedux() }
