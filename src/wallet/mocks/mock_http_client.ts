@@ -72,7 +72,9 @@ export const FEE_INFO = {
   deposit: 300,
   withdraw: 141,
   interval: 100,
-  initlock: 10000
+  initlock: 10000,
+  wallet_version: "0.4.66",
+  wallet_message: ""
 }
 
 export const ROOT_INFO = {

@@ -381,6 +381,21 @@ input.quantity {
     }
 }
 
+.seed-phrase{
+    margin-top:40px;
+}
+
+.seed-phrase button{
+    margin:0px;
+}
+
+.seed-phrase div.input-password{
+    border: none;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+    padding: 10px;
+    width: 145px;
+}
+
 @media only screen and (max-width: 768px) {
     .input-group {
         flex-direction: column;
