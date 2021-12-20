@@ -405,7 +405,3 @@ export const decryptAES = (encryption: EncryptionAES, password: string) => {
 
   return decrypted
 }
-
-export const hashScript = (password: string) => {
-  return crypto.createHash('sha512').update(password).digest('hex')
-}

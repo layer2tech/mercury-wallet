@@ -10,7 +10,6 @@ import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
 
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
-import { hashScript } from "../../wallet/util";
 
 const NETWORK_CONFIG =  require('../../network.json');
 
@@ -67,7 +66,7 @@ const SettingsPage = (props) => {
 
   useEffect(() => {
 
-    if((password && hashScript(password) === callGetPassword()) || hashScript("") === callGetPassword()){
+    if(password && password === callGetPassword()){
       setPasswordConfirm(true)
     }
     
