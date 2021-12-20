@@ -37,7 +37,7 @@ const TorCircuit = (props) => {
         dispatch(callUpdateTorCircuit());
         let torcircuit_data = callGetTorcircuitInfo();
         let torcircuit_array = torcircuit_data ? torcircuit_data : [];
-        if(torcircuitData !== []){
+        if(torcircuit_data.length > 0){
             setTorcircuitData(torcircuit_array);
             setTorLoaded(true);
         }
