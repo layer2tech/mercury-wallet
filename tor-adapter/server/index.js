@@ -212,7 +212,7 @@ app.get('/tor_country/:id', function(req, res) {
       res.status(200).json(response);
     })
   } catch(err){
-    res.status(400).json(`Bad request: ${err}`)
+    res.status(500).json(`Error getting country info: ${err}`)
   }
 })
 
@@ -269,11 +269,11 @@ app.get('/tor_circuit/:id', (req,res) => {
         }
 
       } catch(e){
-        res.status(400).json(err)
+        res.status(500).json(`Error parsing tor circuit info: ${err}`)
       }
     });
   } catch(err){
-    res.status(400).json(err)
+    res.status(500).json(`Error getting tor circuit info: ${err}`)
   }
 })
 
@@ -350,12 +350,12 @@ app.get('/tor_circuit/',  (req,res) => {
       }
         
       } catch(e){
-        res.status(400).json(`Bad request: ${err}`);
+        res.status(500).json(`Error parsing tor circuit status: ${err}`)
       }
   
     });
   } catch(err){
-    res.status(400).json(`Bad request: ${err}`);
+    res.status(500).json(`Error getting tor circuit status: ${err}`)
   }
 });
 
