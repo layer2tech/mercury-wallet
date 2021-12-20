@@ -275,7 +275,7 @@ export class Wallet {
     
     let store = new Storage(`wallets/${wallet_name}/config`);
     // Fetch decrypted wallet json
-    let wallet_json = store.getWalletDecrypted(wallet_name, password);
+    let wallet_json = store.getWalletDecrypted(wallet_name, hashScript(password));
     wallet_json.password=password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     return wallet;
