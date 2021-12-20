@@ -87,9 +87,6 @@ const TorCircuit = (props) => {
                             if(circuit.ip === "") return
                             return <TorCircuitNode className='passed' name={circuit.country} ip={circuit.ip} key ={circuit.ip}></TorCircuitNode>
                         })}
-                        <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
--                       <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
--                       <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
                         {/* <TorCircuitNode className='current' name={current_config.state_entity_endpoint}></TorCircuitNode> */}
                         {<TorCircuitNode class='current' name={shortenURL(current_config.state_entity_endpoint)}></TorCircuitNode>}
                     </ul>
