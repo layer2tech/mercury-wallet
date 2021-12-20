@@ -6,7 +6,7 @@ import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCo
   encodeSCEAddress} from './';
 import { ElectrsClient } from './electrs'
 
-import { txCPFPBuild, FEE, hashScript } from './util';
+import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -165,7 +165,7 @@ export class Wallet {
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(name: string, password: string, mnemonic: string, network: Network, testing_mode: boolean): Wallet {
     log.debug("New wallet named "+name+" created. Testing mode: "+testing_mode+".");
-    let wallet = new Wallet(name, hashScript(password), mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), new Config(network, testing_mode));
+    let wallet = new Wallet(name, password, mnemonic, mnemonic_to_bip32_root_account(mnemonic, network), new Config(network, testing_mode));
     return wallet;
   }
 
@@ -196,7 +196,7 @@ export class Wallet {
     let config = new Config(json_wallet.config.network, json_wallet.config.testing_mode);
     config.update(json_wallet.config);
     //Config needs to be included when constructing the wallet
-    let new_wallet = new Wallet(json_wallet.name, hashScript(json_wallet.password), json_wallet.mnemonic, json_wallet.account, config);
+    let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
 
     new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
     new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
