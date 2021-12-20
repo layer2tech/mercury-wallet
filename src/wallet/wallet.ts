@@ -116,13 +116,38 @@ export class Wallet {
   // TODO - add additional checks and error handling
   async updateTorcircuitInfo(){
     try{
-      let torcircuit_ids = await getTorCircuitIds(this.http_client);
+      let torcircuit_ids: any[] = await getTorCircuitIds(this.http_client);
       let torcircuit  = [];
-      if(torcircuit_ids){
-        for(var i=0; i<torcircuit_ids.length; i++){
-          torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids[i]));
+
+      //Only get tor circuit info if not already obtained
+      let torcircuit_ids_req = []
+      let torcircuit_ids_existing = []
+      for (var i=0; i<this.tor_circuit.length; i++ ){
+        if(torcircuit_ids.indexOf(this.tor_circuit[i].id) >= 0){
+          if(this.tor_circuit[i].ip.length === 0){
+            torcircuit_ids_req.push(this.tor_circuit[i].id)
+          } else {
+            //Already have data for this circuit - do not re-request
+            console.log(`already have info for id: ${this.tor_circuit[i].id}`)
+            torcircuit.push(this.tor_circuit[i])
+          }
+          torcircuit_ids_existing.push(this.tor_circuit[i].id)
         }
       }
+
+      for (var i=0; i<torcircuit_ids.length; i++ ){
+        console.log(`tor circuit id: ${torcircuit_ids[i]}`)
+        //Unknown tor circuit - request data
+        if(torcircuit_ids_existing.indexOf(torcircuit_ids[i]) < 0){
+          torcircuit_ids_req.push(torcircuit_ids[i])
+        }
+      }
+
+      
+      for(var i=0; i<torcircuit_ids_req.length; i++){
+        torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids_req[i]));
+      }
+      
       this.tor_circuit = torcircuit;
       
       
