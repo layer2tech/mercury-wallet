@@ -66,7 +66,7 @@ const SettingsPage = (props) => {
 
   useEffect(() => {
 
-    if(password && password === callGetPassword()){
+    if(password && password === callGetPassword() || "" === callGetPassword()){
       setPasswordConfirm(true)
     }
     
