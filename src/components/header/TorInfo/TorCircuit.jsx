@@ -45,10 +45,12 @@ const TorCircuit = (props) => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            getTorCircuitInfo();
+            if(torLoaded === false){
+                getTorCircuitInfo();
+            }
         }, 3000);
         return () => clearInterval(interval);
-    }, [dispatch]);
+    }, [dispatch, torLoaded]);
     
     // useEffect(() => {
     //     if(loading === true){
