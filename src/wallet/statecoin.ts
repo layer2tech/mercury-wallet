@@ -306,9 +306,10 @@ export class StateCoinList {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       let tx_info: WithdrawalTxBroadcastInfo = coin.getWithdrawalBroadcastTxInfo(withdraw_txid)
+      let tx: BTCTransaction = tx_info.tx
       if(tx_info) {  
-        coin.tx_withdraw = tx_info.tx
-        coin.tx_hex = tx_info.tx.toHex()
+        coin.tx_withdraw = tx
+        coin.tx_hex = tx_info.tx_hex
         coin.status = STATECOIN_STATUS.WITHDRAWN
         coin.withdraw_txid = withdraw_txid
       } else {
@@ -327,7 +328,7 @@ export class StateCoinList {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
-          tx_fee_per_byte, tx_withdraw, tx_withdraw.getId(), withdraw_msg_2
+          tx_fee_per_byte, tx_withdraw, withdraw_msg_2
       ))
       return
     } else {
@@ -417,12 +418,14 @@ export class WithdrawalTxBroadcastInfo{
   fee_per_byte: number; 
   tx: BTCTransaction;
   txid: string;
+  tx_hex: string;
   withdraw_msg_2: WithdrawMsg2;
 
-  constructor(fee_per_byte: number, tx: BTCTransaction, txid: string, withdraw_msg_2: WithdrawMsg2) {
+  constructor(fee_per_byte: number, tx: BTCTransaction, withdraw_msg_2: WithdrawMsg2) {
     this.fee_per_byte = fee_per_byte;
     this.tx = tx;
-    this.txid = txid;
+    this.txid = tx.getId();
+    this.tx_hex = tx.toHex()
     this.withdraw_msg_2 = withdraw_msg_2;
   }
 }

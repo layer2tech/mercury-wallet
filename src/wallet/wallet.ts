@@ -487,7 +487,7 @@ export class Wallet {
           log.info(`checking withdrawal tx status...`)
           if(broadcast_txid){
             const tx_confirmed = await this.checkWithdrawalTx(broadcast_txid)
-            if (tx_confirmed) {
+            if (tx_confirmed && tx_confirmed !== null) {
               log.info(`tx confirmed: ${statecoin.withdraw_txid}`)  
               if (!this.config.testing_mode) {
                 log.info(`withdrawal tx confirmed!`)
@@ -1417,7 +1417,19 @@ export class Wallet {
         this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
       })
     } catch(e){
-      log.error(`withdraw confirm error: ${e}`);
+      if(`${e}`.includes('No data for id')){
+        withdraw_msg_2.shared_key_ids.forEach( (shared_key_id) => {
+          console.log(`wallet - setCoinWithdrawTxId...`)
+          this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
+          console.log(`wallet - setStateCoinSpent ACTION.WITHDRAW...`)
+          this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+        })
+      } else {
+        log.error(`withdraw confirm error: ${e}`);
+        throw e
+      }
+
+      
     }
   }
 }

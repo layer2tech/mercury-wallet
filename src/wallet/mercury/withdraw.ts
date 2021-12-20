@@ -184,6 +184,8 @@ export const withdraw_confirm = async (
   withdraw_msg_2: WithdrawMsg2
 ) => {
   console.log(`withdraw - withdraw_confirm - withdraw_msg_2: ${withdraw_msg_2}`)
-  await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
-  console.log(`withdraw - withdraw_confirm ok.`)
+  let signatures: any[][] = await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
+  console.log(`withdraw - withdraw_confirm ok - signatures: ${signatures}`)
 }
+
+
