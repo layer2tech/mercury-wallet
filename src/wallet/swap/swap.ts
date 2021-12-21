@@ -4,7 +4,7 @@ import { ElectrsClient } from '../electrs'
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { getStateChain } from "../mercury/info_api";
+import { getStateChain, getStateCoin } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
@@ -789,8 +789,7 @@ export const first_message = async (
 ): Promise<BSTRequestorData> => {
 
   let swap_token = swap_info.swap_token;
-  let statechain_data = await getStateChain(http_client, statechain_id);
-  typeforce(types.StateChainDataAPI, statechain_data);
+  let statecoin_data = await getStateCoin(http_client, statechain_id);
 
   let swap_token_class = new SwapToken(swap_token.id, swap_token.amount, swap_token.time_out, swap_token.statechain_ids);
   let swap_token_sig = swap_token_class.sign(proof_key_der);

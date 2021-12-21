@@ -28,6 +28,31 @@ export const StateChainDataAPI = typeforce.compile({
     locktime: Number,
 })
 
+/// State change signature object
+/// Data necessary to create ownership transfer signatures
+export const StateChainSig = typeforce.compile({
+  /// Purpose: "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
+  purpose: String, // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
+  /// The new owner proof public key (if transfer) or address (if withdrawal)
+  data: String,    // proof key, state chain id or address
+  /// Current owner signature (DER encoded).
+  sig: String,
+})
+
+// StateChain Entity API
+//export const State = typeforce.compile({
+//  data: String,
+//  next_state: Any
+//})
+
+// StateChain Entity API
+export const StateCoinDataAPI = typeforce.compile({
+  utxo: OutPoint,
+  amount: Number,
+  statecoin: Object,
+  locktime: Number,
+})
+
 export const Root = typeforce.compile({
   id: UInt32,
   value: Array,
@@ -307,16 +332,7 @@ export const SwapInfo = typeforce.compile({
     bst_sender_data: BSTSenderData,
 })
 
-/// State change signature object
-/// Data necessary to create ownership transfer signatures
-export const StateChainSig = typeforce.compile({
-    /// Purpose: "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
-    purpose: String, // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
-    /// The new owner proof public key (if transfer) or address (if withdrawal)
-    data: String,    // proof key, state chain id or address
-    /// Current owner signature (DER encoded).
-    sig: String,
-})
+
 
 
 /// Owner -> Conductor

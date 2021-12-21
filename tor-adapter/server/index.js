@@ -238,7 +238,7 @@ app.get('/tor_circuit/:id', (req,res) => {
           };
           
           res.status(200).json(retArray);
-          return console.error(err)
+          return
         }
         if(status && status.messages){
           try{
@@ -283,7 +283,8 @@ app.get('/tor_circuit/',  (req,res) => {
     tor.control.getInfo(['circuit-status'], (err, status) => { // Get info like describe in chapter 3.9 in tor-control specs.
       try{
         if (err) {
-          return console.error(err);
+          res.status(500).json(`Error getting tor circuit status: ${err}`)
+          return
         }
         if(status && status.messages){
           // cycle through messages until we get the latest value
@@ -411,7 +412,7 @@ async function shutdown() {
   try{
     await tor.stopTorNode();
   } catch (err) {
-    console.log('error stopping to node - sending the kill signal...');
+    console.log('error stopping tor node - sending the kill signal...');
     tor.kill_proc()
   }
   process.exit(0);
