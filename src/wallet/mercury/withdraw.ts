@@ -5,7 +5,7 @@ import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from ".
 import { PrepareSignTxMsg } from "./ecdsa";
 import { getSigHash, StateChainSig, txWithdrawBuildBatch, txWithdrawBuild } from "../util";
 import { PROTOCOL, sign, sign_batch } from "./ecdsa";
-import { FeeInfo, getStateChain, StateChainDataAPI, getStateCoin, StateCoinDataAPI } from "./info_api";
+import { FeeInfo, getStateChain, StateChainDataAPI, State, getStateCoin, StateCoinDataAPI } from "./info_api";
 
 // withdraw() messages:
 // 0. request withdraw and provide withdraw tx data
@@ -51,7 +51,9 @@ export const withdraw = async (
       throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
     }
 
-    let chain_data = statecoin_data.statecoin.data;
+    console.log(`withdraw - statecoin_data: ${JSON.stringify(statecoin_data)}`)
+    let sc_statecoin: State = statecoin_data.statecoin;
+    let chain_data = sc_statecoin.data;
     if (chain_data !== statecoin.proof_key) {
       throw Error("StateChain not owned by this Wallet. Incorrect proof key. Expected " + statecoin.proof_key + ", got " + chain_data);
     }
