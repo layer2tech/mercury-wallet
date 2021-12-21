@@ -1,7 +1,7 @@
 // wallet utilities
 
 import { BIP32Interface, Network, TransactionBuilder, crypto as crypto_btc, script, Transaction } from 'bitcoinjs-lib';
-import { Root, StateCoinDataAPI, FeeInfo, OutPoint } from './mercury/info_api';
+import { Root, StateChainDataAPI, FeeInfo, OutPoint } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
 
@@ -165,7 +165,7 @@ export const txWithdrawBuild = (network: Network,    funding_txid: string, fundi
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateCoinDataAPI>, rec_address: string, fee_info: FeeInfo, fee_per_byte: number): TransactionBuilder => {
+export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_address: string, fee_info: FeeInfo, fee_per_byte: number): TransactionBuilder => {
   // let txin = []; - not being used
   let value = 0;
   let txb: TransactionBuilder = new TransactionBuilder(network);

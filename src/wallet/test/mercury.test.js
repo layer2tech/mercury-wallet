@@ -124,7 +124,7 @@ describe('StateChain Entity', function() {
     let fee_per_byte = 1;
     test('Expect complete', async function() {
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECOIN_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
         .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO));
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
@@ -152,7 +152,7 @@ describe('StateChain Entity', function() {
       expect(tx_withdraw.locktime).toBe(0);
     });
     test('Already withdrawn.', async function() {
-      let statechain_info = cloneDeep(MOCK_SERVER.STATECOIN_INFO);
+      let statechain_info = cloneDeep(MOCK_SERVER.STATECHAIN_INFO);
 
       statechain_info.amount = 0;
       http_mock.get = jest.fn().mockReset()
@@ -165,7 +165,7 @@ describe('StateChain Entity', function() {
 
     test('StateChain not owned by this wallet.', async function() {
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECOIN_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
 
       let statecoin = makeTesterStatecoin();
       statecoin.proof_key = "aaa";
@@ -179,7 +179,7 @@ describe('StateChain Entity', function() {
       fee_info.withdraw = 10000;
 
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECOIN_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
         .mockReturnValueOnce(fee_info)
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
@@ -197,8 +197,8 @@ describe('StateChain Entity', function() {
     let fee_per_byte = 1
     test('Expect complete', async function() {
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECOIN_INFOS[0]))
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECOIN_INFOS[1]))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[0]))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[1]))
         .mockReturnValueOnce(MOCK_SERVER.FEE_INFO)
         .mockReturnValueOnce(MOCK_SERVER.FEE_INFO);
       http_mock.post = jest.fn().mockReset()
@@ -230,7 +230,7 @@ describe('StateChain Entity', function() {
       expect(tx_withdraw.locktime).toBe(0);
     });
     test('Already withdrawn.', async function() {
-      let statechain_info = cloneDeep(MOCK_SERVER.STATECOIN_INFO);
+      let statechain_info = cloneDeep(MOCK_SERVER.STATECHAIN_INFO);
       statechain_info.amount = 0;
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(statechain_info)
@@ -241,7 +241,7 @@ describe('StateChain Entity', function() {
     });
     test('StateChain not owned by this wallet.', async function() {
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECOIN_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
 
       let statecoin = cloneDeep(makeTesterStatecoins()[0]);
       statecoin.proof_key = "aaa";
@@ -254,8 +254,8 @@ describe('StateChain Entity', function() {
       fee_info.withdraw = 10000;
 
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECOIN_INFOS[0]))
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECOIN_INFOS[1]))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[0]))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[1]))
         .mockReturnValueOnce(fee_info)
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(true)   //POST.WITHDRAW_INIT
