@@ -15,7 +15,8 @@ export interface TorCircuitData {
 export interface TorCircuit {
     name: string,
     ip: string,
-    country: string
+    country: string,
+    id: string
 }
 
 export const getNewTorId = async (http_client: HttpClient |  MockHttpClient) => {
@@ -50,6 +51,7 @@ export const getTorCircuit = async (
     let circuit 
     try{
         circuit = await http_client.get(GET_ROUTE.TOR_CIRCUITS, circuit_id)
+        circuit.id = circuit_id
         return circuit
     }
     catch(e){
@@ -58,6 +60,7 @@ export const getTorCircuit = async (
             name: "",
             ip: "",
             country: "",
+            id: circuit_id
         }
         return circuit
     }

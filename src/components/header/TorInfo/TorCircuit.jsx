@@ -37,18 +37,18 @@ const TorCircuit = (props) => {
         dispatch(callUpdateTorCircuit());
         let torcircuit_data = callGetTorcircuitInfo();
         let torcircuit_array = torcircuit_data ? torcircuit_data : [];
-        if(torcircuitData !== []){
-            setTorcircuitData(torcircuit_array);
-            setTorLoaded(true);
-        }
+        setTorLoaded(torcircuit_data.length > 0)
+        setTorcircuitData(torcircuit_array);
     }
 
     useEffect(() => {
-        const interval = setInterval(() => {
+        const interval = setInterval(() => {       
             getTorCircuitInfo();
         }, 3000);
-        return () => clearInterval(interval);
-    }, [dispatch]);
+        return () => {
+            clearInterval(interval);
+        }
+    }, [dispatch, torLoaded]);
     
     // useEffect(() => {
     //     if(loading === true){
@@ -87,9 +87,6 @@ const TorCircuit = (props) => {
                             if(circuit.ip === "") return
                             return <TorCircuitNode className='passed' name={circuit.country} ip={circuit.ip} key ={circuit.ip}></TorCircuitNode>
                         })}
-                        <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
-                        <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
-                        <TorCircuitNode class='passed' name='Relay'></TorCircuitNode>
                         {/* <TorCircuitNode className='current' name={current_config.state_entity_endpoint}></TorCircuitNode> */}
                         {<TorCircuitNode class='current' name={shortenURL(current_config.state_entity_endpoint)}></TorCircuitNode>}
                     </ul>
