@@ -136,10 +136,7 @@ export const getStateCoin = async (
   http_client: HttpClient |  MockHttpClient,
   statechain_id: string
 ) => {
-  console.log(`getStateCoin...`)
   let statecoin = await http_client.get(GET_ROUTE.STATECOIN, statechain_id);
-
-  console.log(`gotStateCoin: ${JSON.stringify(statecoin)}`)
 
   if (typeof statecoin.utxo == "string"){
     let outpoint = {
@@ -149,12 +146,7 @@ export const getStateCoin = async (
     statecoin.utxo=outpoint;
   }
   
-  console.log(`gotStateCoin 2: ${JSON.stringify(statecoin)}`)
-
   typeforce(types.StateCoinDataAPI, statecoin);
-
-
-  console.log(`gotStateCoin: typeforce done`)
   return statecoin
 }
 
