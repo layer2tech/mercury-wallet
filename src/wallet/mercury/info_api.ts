@@ -20,6 +20,13 @@ export interface StateChainDataAPI {
   locktime: number,
 }
 
+export interface StateCoinDataAPI {
+  utxo: OutPoint,
+  amount: number,
+  statecoin: any,
+  locktime: number,
+}
+
 export interface Root {
 id: number,
 value: number[],
@@ -112,7 +119,7 @@ export const getStateChain = async (
   statechain_id: string
 ) => {
   let statechain = await http_client.get(GET_ROUTE.STATECHAIN, statechain_id);
-  
+
   if (typeof statechain.utxo == "string"){
     let outpoint = {
       txid: statechain.utxo.substring(0,64),
@@ -123,6 +130,32 @@ export const getStateChain = async (
 
   typeforce(types.StateChainDataAPI, statechain);
   return statechain
+}
+
+export const getStateCoin = async (
+  http_client: HttpClient |  MockHttpClient,
+  statechain_id: string
+) => {
+  console.log(`getStateCoin...`)
+  let statecoin = await http_client.get(GET_ROUTE.STATECOIN, statechain_id);
+
+  console.log(`gotStateCoin: ${JSON.stringify(statecoin)}`)
+
+  if (typeof statecoin.utxo == "string"){
+    let outpoint = {
+      txid: statecoin.utxo.substring(0,64),
+      vout:parseInt(statecoin.utxo.substring(65))
+    }
+    statecoin.utxo=outpoint;
+  }
+  
+  console.log(`gotStateCoin 2: ${JSON.stringify(statecoin)}`)
+
+  typeforce(types.StateCoinDataAPI, statecoin);
+
+
+  console.log(`gotStateCoin: typeforce done`)
+  return statecoin
 }
 
 export const getOwner = async (

@@ -5,7 +5,7 @@ import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from ".
 import { PrepareSignTxMsg } from "./ecdsa";
 import { getSigHash, StateChainSig, txWithdrawBuildBatch, txWithdrawBuild } from "../util";
 import { PROTOCOL, sign, sign_batch } from "./ecdsa";
-import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
+import { FeeInfo, getStateChain, StateChainDataAPI, getStateCoin, StateCoinDataAPI } from "./info_api";
 
 // withdraw() messages:
 // 0. request withdraw and provide withdraw tx data
@@ -25,7 +25,7 @@ export const withdraw = async (
   fee_per_byte: number
 ): Promise<Transaction> => {
 
-  let sc_infos: StateChainDataAPI[] = [];
+  let sc_infos: StateCoinDataAPI[] = [];
   let pks: any[] = [];
   let statechain_sigs: StateChainSig[] = [];
   let shared_key_ids: string[] = [];
@@ -44,14 +44,14 @@ export const withdraw = async (
 
     let proof_key_der: BIP32Interface = proof_key_ders[index];
     // Get statechain from SE and check ownership
-    let statechain: StateChainDataAPI = await getStateChain(http_client, statecoin.statechain_id);
-    sc_infos.push(statechain);
+    let statecoin_data: StateCoinDataAPI = await getStateCoin(http_client, statecoin.statechain_id);
+    sc_infos.push(statecoin_data);
 
-    if (statechain.amount === 0) {
+    if (statecoin_data.amount === 0) {
       throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
     }
 
-    let chain_data = statechain.chain.pop().data;
+    let chain_data = statecoin_data.statecoin.data;
     if (chain_data !== statecoin.proof_key) {
       throw Error("StateChain not owned by this Wallet. Incorrect proof key. Expected " + statecoin.proof_key + ", got " + chain_data);
     }
