@@ -81,8 +81,8 @@ const app = express();
 app.use(bodyParser.json());
 
 app.listen(PORT, () => {
-     logger.info(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`);
-     logger.info("tor data dir: " + torDataDir);
+    logger.info(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`);
+    logger.info("tor data dir: " + torDataDir);
 });
 
 let tor;
@@ -111,10 +111,11 @@ async function get_endpoint(path, res, endpoint, i_hs){
   } catch (err){
     i_hs['i'] = (i_hs.i + 1) % endpoint.length
       	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
-    if (err instanceof errors.StatusCodeError){
-      logger.error(`${err}`);
-      res.status(err.statusCode).json(err);
-    } else {
+      if (err instanceof errors.StatusCodeError){
+	  const err_msg =  `Get endpoint error: - path: ${path} endpoint: ${endpoint} err: ${err}`;
+	  logger.error(err_msg);
+	  res.status(err.statusCode).json(err_msg);
+      } else {
 	
 	if (err instanceof errors.RequestError){
       		res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
@@ -132,9 +133,10 @@ async function post_endpoint(path, body, res, endpoint, i_hs) {
   } catch (err){
     i_hs['i'] = (i_hs.i + 1) % endpoint.length
       	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
-    if (err instanceof errors.StatusCodeError){
-      logger.error(`${err}`);
-      res.status(err.statusCode).json(err);
+      if (err instanceof errors.StatusCodeError){
+	  const err_msg =  `Post endpoint error: - path: ${path} endpoint: ${endpoint} err: ${err}`;
+	  logger.error(err_msg);
+	  res.status(err.statusCode).json(err_msg);
     } else {
 
 	if (err instanceof errors.RequestError){
@@ -153,8 +155,10 @@ async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
   } catch (err){
     i_hs['i'] = (i_hs.i + 1) % endpoint.length
       	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
-    if (err instanceof errors.StatusCodeError){
-      res.status(200).json(err?.message ? err.message : err);
+      if (err instanceof errors.StatusCodeError){
+	  const err_msg =  `Post plain endpoint error: - path: ${path} endpoint: ${endpoint} err: ${err?.message ? err.message : err}`;
+	  logger.error(err_msg)
+	  res.status(200).json(err_msg);
     } else {
 
 	if (err instanceof errors.RequestError){
@@ -173,8 +177,9 @@ app.get('/newid', async function(req,res) {
     console.log(`got new tor id: ${JSON.stringify(response)}`)
     res.status(200).json(response);
   } catch(err) {
-    logger.log(`${err}`);
-    res.status(400).json(err);
+      const err_msg = `Get new tor id error: ${err}`;
+      logger.error(err_msg);
+      res.status(500).json(err_msg);
   }
 });
 
@@ -247,7 +252,7 @@ app.get('/tor_circuit/:id', (req,res) => {
           res.status(200).json(retArray);
           return
         }
-        if(status && status.messages){
+        if(status && status?.messages){
           try{
             // split the string starting with r
             var rArray =  status.messages[1].split(' ');
@@ -293,15 +298,19 @@ app.get('/tor_circuit/',  (req,res) => {
   try{
     tor.control.getInfo(['circuit-status'], (err, status) => { // Get info like describe in chapter 3.9 in tor-control specs.
       try{
-        if (err) {
-          const err_msg = `Error getting tor circuit status: ${err}`;
-          logger.error(err_msg);
-          res.status(500).json(err_msg);
-          return
-        }
-        if(status && status.messages){
+         if (!status && !status?.messages && err) {
+	    let response = {
+		latest: "",
+		circuitData: []
+            };
+            res.status(200).json(response);	      
+            const err_msg = `Error getting tor circuit status: ${err}`;
+            logger.error(err_msg);
+            return
+         }
+        if(status && status?.messages){
           // cycle through messages until we get the latest value
-          let circuitMessages = status.messages;
+          let circuitMessages = status?.messages;
           var len = circuitMessages.length;
           var latest
           var circuitData
@@ -372,8 +381,12 @@ app.get('/tor_circuit/',  (req,res) => {
     });
   } catch(err){
     const err_msg = `Error getting tor circuit status: ${err}`;
-    logger.error(err_msg);
-    res.status(500).json(err_msg);
+      logger.error(err_msg);
+      	    let response = {
+		latest: "",
+		circuitData: []
+            };
+            res.status(200).json(response);	      
   }
 });
 
