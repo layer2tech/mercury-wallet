@@ -112,6 +112,7 @@ async function get_endpoint(path, res, endpoint, i_hs){
     i_hs['i'] = (i_hs.i + 1) % endpoint.length
       	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
     if (err instanceof errors.StatusCodeError){
+      logger.error(`${err}`);
       res.status(err.statusCode).json(err);
     } else {
 	
@@ -132,6 +133,7 @@ async function post_endpoint(path, body, res, endpoint, i_hs) {
     i_hs['i'] = (i_hs.i + 1) % endpoint.length
       	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
     if (err instanceof errors.StatusCodeError){
+      logger.error(`${err}`);
       res.status(err.statusCode).json(err);
     } else {
 
@@ -171,6 +173,7 @@ app.get('/newid', async function(req,res) {
     console.log(`got new tor id: ${JSON.stringify(response)}`)
     res.status(200).json(response);
   } catch(err) {
+    logger.log(`${err}`);
     res.status(400).json(err);
   }
 });
@@ -198,7 +201,9 @@ app.post('/tor_settings', async function(req,res) {
 
  
   } catch (err) {
-    res.status(400).json(`Bad request: ${err}`);
+    const err_msg = `Bad request: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -212,7 +217,9 @@ app.get('/tor_country/:id', function(req, res) {
       res.status(200).json(response);
     })
   } catch(err){
-    res.status(500).json(`Error getting country info: ${err}`)
+    const err_msg = `Error getting country info: ${err}`;
+    logger.error(err_msg);
+    res.status(500).json(err_msg);
   }
 })
 
@@ -269,11 +276,15 @@ app.get('/tor_circuit/:id', (req,res) => {
         }
 
       } catch(e){
-        res.status(500).json(`Error parsing tor circuit info: ${err}`)
+        const err_msg = `Error parsing tor circuit info: ${e}`;
+        logger.error(err_msg);
+        res.status(500).json(err_msg);
       }
     });
   } catch(err){
-    res.status(500).json(`Error getting tor circuit info: ${err}`)
+    const err_msg = `Error getting tor circuit info: ${err}`;
+    logger.error(err_msg);
+    res.status(500).json(err_msg);
   }
 })
 
@@ -283,7 +294,9 @@ app.get('/tor_circuit/',  (req,res) => {
     tor.control.getInfo(['circuit-status'], (err, status) => { // Get info like describe in chapter 3.9 in tor-control specs.
       try{
         if (err) {
-          res.status(500).json(`Error getting tor circuit status: ${err}`)
+          const err_msg = `Error getting tor circuit status: ${err}`;
+          logger.error(err_msg);
+          res.status(500).json(err_msg);
           return
         }
         if(status && status.messages){
@@ -351,12 +364,16 @@ app.get('/tor_circuit/',  (req,res) => {
       }
         
       } catch(e){
-        res.status(500).json(`Error parsing tor circuit status: ${err}`)
+        const err_msg = `Error parsing tor circuit status: ${e}`;
+        logger.error(err_msg);
+        res.status(500).json(err_msg);
       }
   
     });
   } catch(err){
-    res.status(500).json(`Error getting tor circuit status: ${err}`)
+    const err_msg = `Error getting tor circuit status: ${err}`;
+    logger.error(err_msg);
+    res.status(500).json(err_msg);
   }
 });
 
@@ -384,7 +401,9 @@ app.post('/tor_endpoints', function(req,res) {
     logger.log('debug',`setting endpoints response: ${JSON.stringify(response)}`)
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`Bad request: ${err}`);
+    const err_msg = `Error setting tor endpoints: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -451,7 +470,9 @@ app.get('/eps/ping', async function(req, res) {
     let response = await epsClient.ping();
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS ping failed: ${err}`);
+    const err_msg = `EPS ping failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -460,7 +481,9 @@ app.get('/eps/latest_block_header', async function(req, res) {
     let response = await epsClient.latestBlockHeader() 
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS latestBlockHeader failed: ${err}`);
+    const err_msg = `EPS latestBlockHeader failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -469,7 +492,9 @@ app.get('/eps/tx/*$/', async function(req, res) {
     let response = await epsClient.getTransaction(path.parse(req.path).base) 
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS get tx failed: ${err}`);
+    const err_msg = `EPS get tx failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -480,7 +505,9 @@ app.get('/eps/scripthash_history/*$/', async function(req, res) {
     //await epsClient.getScriptHashListUnspent(path.parse(req.path).base)
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS scripthash failed: ${err}`);
+    const err_msg = `EPS scripthash failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -490,7 +517,9 @@ app.get('/eps/get_scripthash_list_unspent/*$/', async function(req, res) {
     let response = await epsClient.getScriptHashListUnspent(scriptHash)
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS scripthash failed: ${err}`);
+    const err_msg = `EPS scripthash failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -499,7 +528,9 @@ app.get('/eps/fee-estimates', async function(req, res) {
     let response  = await epsClient.getFeeHistogram(num_blocks)
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS fee-estimates failed: ${err}`);
+    const err_msg = `EPS fee-estimates failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -508,7 +539,9 @@ app.post('/eps/tx', async function(req, res) {
     let response = await epsClient.broadcastTransaction(req.body.data)
     res.status(200).json(response)
   } catch (err) {
-    res.status(400).json(`EPS scripthash failed: ${err}`);
+    const err_msg = `EPS scripthash failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -521,6 +554,8 @@ app.post('/eps/import_addresses', async function(req, res) {
     let response = await epsClient.importAddresses([req.body.addresses, rescan_height])
     res.status(200).json(response)
   } catch (err) {
+    const err_msg = `importAddresses failed: ${err}`;
+    logger.error(err_msg);
     res.status(400).json(`importAddresses failed: ${err}`);
   }
 })
