@@ -569,7 +569,7 @@ app.post('/eps/import_addresses', async function(req, res) {
   } catch (err) {
     const err_msg = `importAddresses failed: ${err}`;
     logger.error(err_msg);
-    res.status(400).json(`importAddresses failed: ${err}`);
+    res.status(400).json(err_msg);
   }
 })
 
