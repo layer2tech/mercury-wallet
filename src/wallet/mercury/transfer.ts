@@ -81,9 +81,14 @@ export const transferSender = async (
   // Sign statecoin to signal desire to Transfer
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
   // Init transfer: Send statechain signature or batch data
+  let batch_id = null;
+  if (is_batch) {
+    let batch_id = statecoin.swap_id
+  }
   let transfer_msg1 = {
       shared_key_id: statecoin.shared_key_id,
-      statechain_sig: statechain_sig
+      statechain_sig: statechain_sig,
+      batch_id: batch_id
   }
   let transfer_msg2 = await http_client.post(POST_ROUTE.TRANSFER_SENDER, transfer_msg1);
   typeforce(types.TransferMsg2, transfer_msg2);
