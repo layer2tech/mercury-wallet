@@ -297,7 +297,7 @@ const Coins = (props) => {
 
       swapPendingCoins.forEach((selectedCoin) => {
         let statecoin = callGetStateCoin(selectedCoin);
-        if(statecoin.swap_status === null){
+        if(statecoin && statecoin.swap_status === null){
           dispatch(callDoSwap({"shared_key_id": selectedCoin}))
             .then(res => {
               dispatch(removeSwapPendingCoin(selectedCoin))

@@ -72,7 +72,9 @@ export const FEE_INFO = {
   deposit: 300,
   withdraw: 141,
   interval: 100,
-  initlock: 10000
+  initlock: 10000,
+  wallet_version: "0.4.66",
+  wallet_message: ""
 }
 
 export const ROOT_INFO = {
@@ -95,12 +97,33 @@ export const STATECHAIN_INFOS = [{
 }
 ]
 
+export const STATECOIN_INFOS = [{
+  utxo: "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce:1",
+  amount: 1000,
+  statecoin: { data: "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", next_state: null },
+  locktime: 1000
+},
+{
+  utxo: "f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3de:1",
+  amount: 1000,
+  statecoin: { data: "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984478", next_state: null },
+  locktime: 1000
+}
+]
+
 
 
 export const STATECHAIN_INFO =  {
   utxo: "794610eff71928df4d6814843945dbe51d8d11cdbcbeb11eb1c42e8199298494:0",
   amount: 500000,
   chain: [{ data: "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", next_state: null }],
+  locktime: 1000
+}
+
+export const STATECOIN_INFO =  {
+  utxo: "794610eff71928df4d6814843945dbe51d8d11cdbcbeb11eb1c42e8199298494:0",
+  amount: 500000,
+  statecoin: { data: "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", next_state: null },
   locktime: 1000
 }
 

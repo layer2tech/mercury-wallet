@@ -273,7 +273,7 @@ describe('StateChain Entity', function() {
     test('Expect complete', async function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.FEE_INFO)
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECOIN_INFO))
       http_mock.post = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.TRANSFER_SENDER)
       //Sign

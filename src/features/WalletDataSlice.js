@@ -209,6 +209,18 @@ export const callGetAccount = () => {
   return wallet.account
 }
 
+export const callGetPassword = () => {
+  if(wallet){
+    return wallet.password
+  }
+}
+
+export const callGetMnemonic = () => {
+  if(wallet){
+    return wallet.mnemonic
+  }
+}
+
 // Wallet data gets
 export const callGetConfig = (test_wallet = 'normal') => {
   if(test_wallet !== 'normal'){
@@ -235,6 +247,10 @@ return wallet.getAllStatecoins()
 
 export const callSumStatecoinValues = (shared_key_ids) => {
   return wallet.sumStatecoinValues(shared_key_ids)
+}
+
+export const callGetTorcircuitInfo = () => {
+  return wallet.getTorcircuitInfo();
 }
 
 export const callGetSwapGroupInfo = () => {
@@ -407,6 +423,21 @@ export const callUpdateSwapGroupInfo = createAsyncThunk(
     wallet.updateSwapGroupInfo();
   }
 )
+
+export const callGetNewTorId = createAsyncThunk(
+  'UpdateTorId',
+  async (action, thunkAPI) => {
+    wallet.updateTorId();
+  }
+)
+
+export const callUpdateTorCircuit = createAsyncThunk(
+  'UpdateTorCircuit',
+  async (action, thunkAPI) => {
+    wallet.updateTorcircuitInfo();
+  }
+)
+
 export const callUpdateSpeedInfo = createAsyncThunk(
   'UpdateSpeedInfo',
   async (action, thunkAPI) => {

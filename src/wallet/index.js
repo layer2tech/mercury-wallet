@@ -16,5 +16,5 @@ export { txBackupBuild, verifySmtProof, pubKeyToScriptPubKey, pubKeyTobtcAddr,
   fromSatoshi, encryptAES, decryptAES, encodeSCEAddress } from "./util"
 
 export { depositInit, depositConfirm } from "./mercury/deposit"
-export { getFeeInfo, getRoot, getStateChain, getSmtProof, getTransferBatchStatus,
+export { getFeeInfo, getRoot, getStateChain, getStateCoin, getSmtProof, getTransferBatchStatus,
   getRecoveryRequest } from "./mercury/info_api"

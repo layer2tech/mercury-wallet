@@ -4,7 +4,7 @@ import { ElectrsClient } from '../electrs'
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { getStateChain } from "../mercury/info_api";
+import { getStateChain, getStateCoin } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,6 +16,7 @@ let bitcoin = require("bitcoinjs-lib");
 
 let types = require("../types")
 let typeforce = require('typeforce');
+const version = require("../../../package.json").version;
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -97,9 +98,10 @@ export const swapInit = async (
   let registerUtxo = {
     statechain_id: statecoin.statechain_id,
     signature: sc_sig,
-    swap_size: swap_size
+    swap_size: swap_size,
+    wallet_version: version.replace("v","")
   };
-  
+
   try {
     await swapRegisterUtxo(http_client, registerUtxo);
   } catch(err: any){
@@ -390,7 +392,6 @@ export const swapPhase4 = async (
   if (statecoin.swap_info===null) throw Error("No swap info found for coin. Swap info should be set in Phase1.");
   if (statecoin.swap_transfer_finalized_data===null) throw Error("No transfer finalize data found for coin. Transfer finalize data should be set in Phase1.");
 
-  
   let phase = null
   try{ 
     phase = await pollSwap(http_client, statecoin.swap_id);
@@ -581,7 +582,13 @@ export const do_swap_poll = async(
         } else if (err instanceof SwapRetryError && n_errs < MAX_ERRS && statecoin.swap_status !== SWAP_STATUS.Phase4) {
           n_errs = n_errs+1
           console.log(`Error during swap: ${message} - retrying...`);
-        } 
+          if(message!.includes("Incompatible")) {
+            alert(message)
+          }
+          if(message!.includes("punishment")) {
+            alert(message)
+          }
+        }
         else if (err instanceof SwapRetryError && n_errs < MAX_ERRS_PHASE4 && statecoin.swap_status === SWAP_STATUS.Phase4) {
           //An unlimited number of netowrk errors permitted in stage 4 as swap 
           //transfers may have completed
@@ -781,8 +788,7 @@ export const first_message = async (
 ): Promise<BSTRequestorData> => {
 
   let swap_token = swap_info.swap_token;
-  let statechain_data = await getStateChain(http_client, statechain_id);
-  typeforce(types.StateChainDataAPI, statechain_data);
+  let statecoin_data = await getStateCoin(http_client, statechain_id);
 
   let swap_token_class = new SwapToken(swap_token.id, swap_token.amount, swap_token.time_out, swap_token.statechain_ids);
   let swap_token_sig = swap_token_class.sign(proof_key_der);

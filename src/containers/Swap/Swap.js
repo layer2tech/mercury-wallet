@@ -128,6 +128,7 @@ const SwapPage = () => {
         setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
         dispatch(callDoSwap({"shared_key_id": selectedCoin}))
           .then(res => {
+            dispatch(removeSwapPendingCoin(selectedCoin))
             // get the statecoin for txId method
             let statecoin = callGetStateCoin(selectedCoin)
 
@@ -138,6 +139,11 @@ const SwapPage = () => {
               dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
               dispatch(removeCoinFromSwapRecords(selectedCoin));// added this
               setSwapLoad({...swapLoad, join: false, swapCoin:""});
+              if(statecoin.swap_auto){
+                dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+                dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
+              }
+              
               return
             }
             if (res.error===undefined) {
@@ -147,11 +153,18 @@ const SwapPage = () => {
               } else {
                 dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
                 dispatch(removeCoinFromSwapRecords(selectedCoin));
-              }  
+              }
             }else{
               dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
               dispatch(removeCoinFromSwapRecords(selectedCoin)); // Added this
               setSwapLoad({...swapLoad, join: false, swapCoin:""});
+            }
+            if(res?.payload){
+              let statecoin = res.payload
+              if(statecoin.swap_auto){
+                dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+                dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
+              }
             }
             
           });

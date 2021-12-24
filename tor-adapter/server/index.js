@@ -9,6 +9,9 @@ const config = new Config();
 const tpc = config.tor_proxy;
 const express = require("express");
 const winston = require('winston');
+var geoip = require('geoip-country');
+var countries = require("i18n-iso-countries");
+countries.registerLocale(require("i18n-iso-countries/langs/en.json"));
 
 const tor_cmd = process.argv[2];
 const torrc = process.argv[3];
@@ -78,8 +81,8 @@ const app = express();
 app.use(bodyParser.json());
 
 app.listen(PORT, () => {
-     logger.info(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`);
-     logger.info("tor data dir: " + torDataDir);
+    logger.info(`mercury-wallet-tor-adapter listening at http://localhost:${PORT}`);
+    logger.info("tor data dir: " + torDataDir);
 });
 
 let tor;
@@ -108,9 +111,11 @@ async function get_endpoint(path, res, endpoint, i_hs){
   } catch (err){
     i_hs['i'] = (i_hs.i + 1) % endpoint.length
       	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
-    if (err instanceof errors.StatusCodeError){
-      res.status(err.statusCode).json(err);
-    } else {
+      if (err instanceof errors.StatusCodeError){
+	  const err_msg =  `Get endpoint error: - path: ${path} endpoint: ${endpoint} err: ${err}`;
+	  logger.error(err_msg);
+	  res.status(err.statusCode).json(err_msg);
+      } else {
 	
 	if (err instanceof errors.RequestError){
       		res.json(JSON.parse(err?.cause ? err?.cause : "Error"));
@@ -128,8 +133,10 @@ async function post_endpoint(path, body, res, endpoint, i_hs) {
   } catch (err){
     i_hs['i'] = (i_hs.i + 1) % endpoint.length
       	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
-    if (err instanceof errors.StatusCodeError){
-      res.status(err.statusCode).json(err);
+      if (err instanceof errors.StatusCodeError){
+	  const err_msg =  `Post endpoint error: - path: ${path} endpoint: ${endpoint} err: ${err}`;
+	  logger.error(err_msg);
+	  res.status(err.statusCode).json(err_msg);
     } else {
 
 	if (err instanceof errors.RequestError){
@@ -148,8 +155,10 @@ async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
   } catch (err){
     i_hs['i'] = (i_hs.i + 1) % endpoint.length
       	logger.log('debug',`get_endpoint - new i_hs: ${i_hs.i}`)
-    if (err instanceof errors.StatusCodeError){
-      res.status(200).json(err?.message ? err.message : err);
+      if (err instanceof errors.StatusCodeError){
+	  const err_msg =  `Post plain endpoint error: - path: ${path} endpoint: ${endpoint} err: ${err?.message ? err.message : err}`;
+	  logger.error(err_msg)
+	  res.status(200).json(err_msg);
     } else {
 
 	if (err instanceof errors.RequestError){
@@ -168,7 +177,9 @@ app.get('/newid', async function(req,res) {
     console.log(`got new tor id: ${JSON.stringify(response)}`)
     res.status(200).json(response);
   } catch(err) {
-    res.status(400).json(err);
+      const err_msg = `Get new tor id error: ${err}`;
+      logger.error(err_msg);
+      res.status(500).json(err_msg);
   }
 });
 
@@ -195,9 +206,190 @@ app.post('/tor_settings', async function(req,res) {
 
  
   } catch (err) {
-    res.status(400).json(`Bad request: ${err}`);
+    const err_msg = `Bad request: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 });
+
+app.get('/tor_country/:id', function(req, res) {
+  try {
+    tor.control.getInfo(['ip-to-country/'+req.params.id], function(err, status) {
+      let circuit = status;
+      let response = {
+        circuit: circuit
+      };
+      res.status(200).json(response);
+    })
+  } catch(err){
+    const err_msg = `Error getting country info: ${err}`;
+    logger.error(err_msg);
+    res.status(500).json(err_msg);
+  }
+})
+
+
+// with the id  of the  current tor circuit, return further details
+// TODO -  string data needs to be validated (yrArra)
+app.get('/tor_circuit/:id', (req,res) => {
+  try{
+    tor.control.getInfo(['ns/id/'+req.params.id], (err, status) => {
+      try{
+        var rArray
+        var name
+        var ip
+
+        if (err) {
+          name = ""
+          ip = ""
+          country = ""
+          var retArray = { 
+            name,
+            ip,
+            country
+          };
+          
+          res.status(200).json(retArray);
+          return
+        }
+        if(status && status?.messages){
+          try{
+            // split the string starting with r
+            var rArray =  status.messages[1].split(' ');
+            var name = rArray[1];
+            var ip = rArray[rArray.length-3];
+          } catch{
+            name = ""
+            ip = ""
+          }
+          var country = "" 
+          try{
+            var geo = geoip.lookup(ip);
+            country = countries.getName(geo.country, "en", {select: "official"})
+            //countries.getName(geo.country, "en", {select: "official"})
+      
+          } catch { }
+          // if(!country){
+          //   country = "";
+          // }
+          var retArray = { 
+            name,
+            ip,
+            country
+          };
+          res.status(200).json(retArray);
+        }
+
+      } catch(e){
+        const err_msg = `Error parsing tor circuit info: ${e}`;
+        logger.error(err_msg);
+        res.status(500).json(err_msg);
+      }
+    });
+  } catch(err){
+    const err_msg = `Error getting tor circuit info: ${err}`;
+    logger.error(err_msg);
+    res.status(500).json(err_msg);
+  }
+})
+
+// returns the ids of the current tor circuit
+app.get('/tor_circuit/',  (req,res) => {
+  try{
+    tor.control.getInfo(['circuit-status'], (err, status) => { // Get info like describe in chapter 3.9 in tor-control specs.
+      try{
+         if (!status && !status?.messages && err) {
+	    let response = {
+		latest: "",
+		circuitData: []
+            };
+            res.status(200).json(response);	      
+            const err_msg = `Error getting tor circuit status: ${err}`;
+            logger.error(err_msg);
+            return
+         }
+        if(status && status?.messages){
+          // cycle through messages until we get the latest value
+          let circuitMessages = status?.messages;
+          var len = circuitMessages.length;
+          var latest
+          var circuitData
+          var circuitIds =  [];
+        try{
+          if(len > 0) {
+            // finding the highest number, and saving its index
+            var highest = 0;
+            var highestIndex = 0;
+            for(var i=0; i<len; i++){
+              // find the strings that start with a number
+              if (!isNaN(circuitMessages[i].charAt(0))){
+                var val = circuitMessages[i];
+                // now find the string that contains the highest number
+                var number = parseInt(val.substr(0,val.indexOf(' ')));
+                if(number > highest){
+                  highest = number;
+                  highestIndex = i; // save this index
+                }
+              }
+            }
+        
+            // now that we have the highest, manipulate data from its string
+            latest = circuitMessages[highestIndex];
+            // now split the string into commas
+            circuitData = latest.split(',');
+        
+            /* circuitData: Data looks like this
+            [0] : 9 BUILT $31D270A38505D4BFBBCABF717E9FB4BCA6DDF2FF~Belgium,
+            [1] : $CC8B218ED3615827A5DCF008FC62598DEF533B4F~mikrogravitation02,
+            [2] : $14FAE5D6645A97DE054FBE4AA8D3931302E05ADC~Poznan BUILD_FLAGS=NEED_CAPACITY PURPOSE=GENERAL TIME_CREATED=2021-12-08T12:07:51.477355
+            */
+        
+            // find the ids  which are between $ and ~
+            for(var i=0;  i<circuitData.length; i++){
+              var circuitId = circuitData[i].substring(
+                circuitData[i].indexOf("$") + 1, 
+                circuitData[i].lastIndexOf("~")
+              );
+              if(circuitId !== ""){
+                circuitIds.push(circuitId);
+              }
+            }
+        
+            /*  circuitIds: looks like this
+              [0]: "31D270A38505D4BFBBCABF717E9FB4BCA6DDF2FF",
+              [1]: "A5FF60CEAC8154C851AEFDAD40B421CFC97297A4",
+              [2]: "ADB98B27D7A3FB5732068FD23602A1BCB3BE9F38"
+            */
+          }
+        } catch {
+          latest = ""
+          circuitData = []
+        }
+        let response = {
+            latest: latest,
+            circuitData: circuitIds
+          };
+        res.status(200).json(response);
+      }
+        
+      } catch(e){
+        const err_msg = `Error parsing tor circuit status: ${e}`;
+        logger.error(err_msg);
+        res.status(500).json(err_msg);
+      }
+  
+    });
+  } catch(err){
+    const err_msg = `Error getting tor circuit status: ${err}`;
+      logger.error(err_msg);
+      	    let response = {
+		latest: "",
+		circuitData: []
+            };
+            res.status(200).json(response);	      
+  }
+});
+
 
 app.get('/tor_settings', function(req,res) {
 
@@ -222,7 +414,9 @@ app.post('/tor_endpoints', function(req,res) {
     logger.log('debug',`setting endpoints response: ${JSON.stringify(response)}`)
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`Bad request: ${err}`);
+    const err_msg = `Error setting tor endpoints: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -250,7 +444,7 @@ async function shutdown() {
   try{
     await tor.stopTorNode();
   } catch (err) {
-    console.log('error stopping to node - sending the kill signal...');
+    console.log('error stopping tor node - sending the kill signal...');
     tor.kill_proc()
   }
   process.exit(0);
@@ -289,7 +483,9 @@ app.get('/eps/ping', async function(req, res) {
     let response = await epsClient.ping();
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS ping failed: ${err}`);
+    const err_msg = `EPS ping failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -298,7 +494,9 @@ app.get('/eps/latest_block_header', async function(req, res) {
     let response = await epsClient.latestBlockHeader() 
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS latestBlockHeader failed: ${err}`);
+    const err_msg = `EPS latestBlockHeader failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -307,7 +505,9 @@ app.get('/eps/tx/*$/', async function(req, res) {
     let response = await epsClient.getTransaction(path.parse(req.path).base) 
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS get tx failed: ${err}`);
+    const err_msg = `EPS get tx failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -318,7 +518,9 @@ app.get('/eps/scripthash_history/*$/', async function(req, res) {
     //await epsClient.getScriptHashListUnspent(path.parse(req.path).base)
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS scripthash failed: ${err}`);
+    const err_msg = `EPS scripthash failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -328,7 +530,9 @@ app.get('/eps/get_scripthash_list_unspent/*$/', async function(req, res) {
     let response = await epsClient.getScriptHashListUnspent(scriptHash)
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS scripthash failed: ${err}`);
+    const err_msg = `EPS scripthash failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -337,7 +541,9 @@ app.get('/eps/fee-estimates', async function(req, res) {
     let response  = await epsClient.getFeeHistogram(num_blocks)
     res.status(200).json(response);
   } catch (err) {
-    res.status(400).json(`EPS fee-estimates failed: ${err}`);
+    const err_msg = `EPS fee-estimates failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -346,7 +552,9 @@ app.post('/eps/tx', async function(req, res) {
     let response = await epsClient.broadcastTransaction(req.body.data)
     res.status(200).json(response)
   } catch (err) {
-    res.status(400).json(`EPS scripthash failed: ${err}`);
+    const err_msg = `EPS scripthash failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 
@@ -359,7 +567,9 @@ app.post('/eps/import_addresses', async function(req, res) {
     let response = await epsClient.importAddresses([req.body.addresses, rescan_height])
     res.status(200).json(response)
   } catch (err) {
-    res.status(400).json(`importAddresses failed: ${err}`);
+    const err_msg = `importAddresses failed: ${err}`;
+    logger.error(err_msg);
+    res.status(400).json(err_msg);
   }
 })
 

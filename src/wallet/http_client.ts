@@ -8,11 +8,14 @@ export const GET_ROUTE = {
   FEES: "info/fee",
   ROOT: "info/root",
   STATECHAIN: "info/statechain",
+  STATECOIN: "info/statecoin",
   STATECHAIN_OWNER: "info/owner",
   COINS_INFO: "info/coins",
   TRANSFER_BATCH: "info/transfer-batch",
   SWAP_GROUPINFO: "swap/groupinfo",
   TRANSFER_GET_MSG_ADDR: "transfer/get_msg_addr",
+  TOR_CIRCUITS: "tor_circuit",
+  NEW_TOR_ID: "newid"
 };
 Object.freeze(GET_ROUTE);
 

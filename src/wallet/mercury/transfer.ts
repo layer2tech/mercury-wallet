@@ -5,7 +5,8 @@ import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_RO
 import { ElectrsClient } from "../electrs"
 import { EPSClient } from "../eps"
 import { FEE } from "../util";
-import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, getOwner } from "./info_api";
+import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, 
+  getStateCoin, getOwner } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
 import { Wallet } from "../wallet";
@@ -72,18 +73,27 @@ export const transferSender = async (
   let fee_info: FeeInfo = await getFeeInfo(http_client);
 
   // Get statechain from SE and check ownership
-  let statechain_data = await getStateChain(http_client, statecoin.statechain_id);
-  if (statechain_data.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
-  let sc_statecoin = statechain_data.chain.pop();
+  let statecoin_data = await getStateCoin(http_client, statecoin.statechain_id);
+  if (statecoin_data.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
+  let sc_statecoin = statecoin_data.statecoin;
   if (sc_statecoin.data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key: chain has " + sc_statecoin.data + ", expected " + statecoin.proof_key);
 
   // Sign statecoin to signal desire to Transfer
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
+  
   // Init transfer: Send statechain signature or batch data
+  let batch_id = null;
+  if (is_batch) {
+    if(statecoin.swap_id) {
+      batch_id = statecoin.swap_id.id
+    }
+  }
   let transfer_msg1 = {
       shared_key_id: statecoin.shared_key_id,
-      statechain_sig: statechain_sig
+      statechain_sig: statechain_sig,
+      batch_id: batch_id
   }
+
   let transfer_msg2 = await http_client.post(POST_ROUTE.TRANSFER_SENDER, transfer_msg1);
   typeforce(types.TransferMsg2, transfer_msg2);
 
@@ -91,7 +101,7 @@ export const transferSender = async (
 
   // Edit backup tx with new owners proof-key address and sign
   new_tx_backup.outs[0].script = pubKeyToScriptPubKey(receiver_addr, network);
-  new_tx_backup.locktime = statechain_data.locktime - fee_info.interval;
+  new_tx_backup.locktime = statecoin_data.locktime - fee_info.interval;
 
   let pk = statecoin.getSharedPubKey();
   let signatureHash = getSigHash(new_tx_backup, 0, pk, statecoin.value, network);

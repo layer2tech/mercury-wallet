@@ -21,6 +21,8 @@ import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum } from './mercury/info_api';
 import { EPSClient } from './eps';
+import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './mercury/torcircuit_api';
+import { callGetNewTorId } from '../features/WalletDataSlice';
 
 const MAX_SWAP_SEMAPHORE_COUNT=100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -61,6 +63,7 @@ export class Wallet {
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
+  tor_circuit: TorCircuit[];
   warnings: [{name: string, show: boolean}];
   ping_server_ms: number | null;
   ping_conductor_ms: number | null;
@@ -79,6 +82,7 @@ export class Wallet {
     this.account = account;
     this.statecoins = new StateCoinList();
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
+
     this.activity = new ActivityLog();
     
     this.http_client = new HttpClient('http://localhost:3001', true);
@@ -97,6 +101,57 @@ export class Wallet {
     this.ping_electrum_ms = null;
 
     this.statechain_id_set = new Set();
+
+    this.tor_circuit = [];
+  }
+
+  async updateTorId(){
+    try{
+      let new_id = await getNewTorId(this.http_client);
+    }catch(err : any){
+      throw err
+    }
+  }
+
+  // TODO - add additional checks and error handling
+  async updateTorcircuitInfo(){
+    try{
+      let torcircuit_ids: any[] = await getTorCircuitIds(this.http_client);
+      let torcircuit  = [];
+
+      //Only get tor circuit info if not already obtained
+      let torcircuit_ids_req = []
+      let torcircuit_ids_existing = []
+      for (var i=0; i<this.tor_circuit.length; i++ ){
+        if(torcircuit_ids.indexOf(this.tor_circuit[i].id) >= 0){
+          if(this.tor_circuit[i].ip.length === 0){
+            torcircuit_ids_req.push(this.tor_circuit[i].id)
+          } else {
+            //Already have data for this circuit - do not re-request
+            torcircuit.push(this.tor_circuit[i])
+          }
+          torcircuit_ids_existing.push(this.tor_circuit[i].id)
+        }
+      }
+
+      for (var i=0; i<torcircuit_ids.length; i++ ){
+        //Unknown tor circuit - request data
+        if(torcircuit_ids_existing.indexOf(torcircuit_ids[i]) < 0){
+          torcircuit_ids_req.push(torcircuit_ids[i])
+        }
+      }
+
+      
+      for(var i=0; i<torcircuit_ids_req.length; i++){
+        torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids_req[i]));
+      }
+      
+      this.tor_circuit = torcircuit;
+      
+      
+    }catch(err : any){
+      throw err
+    }
   }
 
   set_tor_endpoints(){
@@ -1062,6 +1117,10 @@ export class Wallet {
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo>{
     return this.swap_group_info;
+  }
+
+  getTorcircuitInfo(): TorCircuit[]{
+    return this.tor_circuit;
   }
 
   async updateSwapGroupInfo() {

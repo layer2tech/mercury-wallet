@@ -33,7 +33,7 @@ class TorClient {
 
         this.control = new TorControl({
             password: this.torConfig.controlPassword,
-            persistent: false,
+            persistent: true,
             port: this.torConfig.controlPort,
             host: this.torConfig.ip
         });
