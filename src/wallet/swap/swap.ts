@@ -392,7 +392,6 @@ export const swapPhase4 = async (
   if (statecoin.swap_info===null) throw Error("No swap info found for coin. Swap info should be set in Phase1.");
   if (statecoin.swap_transfer_finalized_data===null) throw Error("No transfer finalize data found for coin. Transfer finalize data should be set in Phase1.");
 
-  
   let phase = null
   try{ 
     phase = await pollSwap(http_client, statecoin.swap_id);
