@@ -313,6 +313,7 @@ export class Wallet {
     } catch (e :any) {
       if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
     }
+    wallet_json.password=password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     return wallet;
   }

@@ -77,8 +77,17 @@ const RestoreWalletPage = (props) => {
       try {
         const walletJson = JSON.parse(backupData);
 
-        walletJson.name = walletJson.name + '-backup';
+        walletJson.name = walletJson.name + '_backup';
 
+        let store = new Storage("wallets/wallet_names");
+        let wallet_names = store.getWalletNames();
+        //Check for if wallet name already exists, check in above directory
+        if (wallet_names.filter(wallet => wallet.name === walletJson.name).length > 0) {
+          // Check for file with this wallet name
+          dispatch(setError({msg: "Wallet with name "+walletJson.name+" already exists."}));
+          return
+        }
+       
         const wallet = await walletFromJson(walletJson, state.wallet_password);
         if(!wallet) {
           dispatch(setError({msg: "Incorrect password or invalid file format. Can not restore wallet from this file!"}));

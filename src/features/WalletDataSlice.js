@@ -198,7 +198,8 @@ export const walletFromJson = (wallet_json, password) => {
       await wallet.set_tor_endpoints();
       wallet.initElectrumClient(setBlockHeightCallBack);
       callNewSeAddr();
-      wallet.save()
+      wallet.save();
+      wallet.saveName();
       return wallet;
     }).catch(error => {
         console.error('Can not load wallet from json!', error);
