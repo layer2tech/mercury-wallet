@@ -104,4 +104,5 @@ export class Storage {
   clearWallet(wallet_name: string) {
     this.store.delete(wallet_name, {});
   }
+
 }

@@ -46,6 +46,8 @@ try {
 }
 
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890"
+export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7"
+export const MOCK_WALLET_MNEMONIC = "praise you muffin lion enable neck grocery crumble super myself license ghost"
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
@@ -200,7 +202,7 @@ export class Wallet {
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
   static buildMock(network: Network): Wallet {
-    var wallet = Wallet.fromMnemonic('mock', MOCK_WALLET_PASSWORD, 'praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
+    var wallet = Wallet.fromMnemonic(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, MOCK_WALLET_MNEMONIC, network, true);
     // add some statecoins
     let proof_key1 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
