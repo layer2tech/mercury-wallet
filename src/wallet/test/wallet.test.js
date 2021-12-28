@@ -122,7 +122,7 @@ describe('Storage 2', function() {
     //The mock and mock_backup wallets should be the same except for name and storage
     loaded_wallet_mod.name=MOCK_WALLET_NAME_BACKUP;
     loaded_wallet_mod.storage=loaded_wallet_backup.storage
-    expect(loaded_wallet_mod).toEqual(loaded_wallet_backup);
+    expect(JSON.stringify(loaded_wallet_mod)).toEqual(JSON.stringify(loaded_wallet_backup));
   });
 
   test('decrypt mnemonic', async function() {
