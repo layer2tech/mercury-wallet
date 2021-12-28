@@ -45,7 +45,7 @@ try {
   log = require('electron-log');
 }
 
-
+export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890"
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
@@ -200,7 +200,7 @@ export class Wallet {
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
   static buildMock(network: Network): Wallet {
-    var wallet = Wallet.fromMnemonic('mock', '', 'praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
+    var wallet = Wallet.fromMnemonic('mock', MOCK_WALLET_PASSWORD, 'praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
     // add some statecoins
     let proof_key1 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
@@ -311,7 +311,7 @@ export class Wallet {
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
     } catch (e :any) {
-      if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
+      throw Error("Incorrect password.")
     }
     wallet_json.password=password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);

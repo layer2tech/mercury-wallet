@@ -83,8 +83,8 @@ export class Storage {
     // Decrypt mnemonic
     try {
       wallet_json_decrypted.mnemonic = decryptAES(wallet_json_decrypted.mnemonic, password);
-    } catch (e: any) {
-      if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
+    } catch (_e: any) {
+      throw Error("Incorrect password.")
     }
     return wallet_json_decrypted
   }

@@ -90,14 +90,14 @@ const RestoreWalletPage = (props) => {
        
         const wallet = await walletFromJson(walletJson, state.wallet_password);
         if(!wallet) {
-          dispatch(setError({msg: "Incorrect password or invalid file format. Can not restore wallet from this file!"}));
+          throw new Error("error loading wallet")
         } else {
           props.history.push('/home');
           props.setWalletLoaded(true);
         }
       } catch (error) {
         console.error(error);
-        dispatch(setError({msg: "Incorrect password or invalid file format."}));
+        dispatch(setError({msg: `Error restoring wallet from file. ${error}`}));
       }
     }
 
