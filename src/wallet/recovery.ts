@@ -3,6 +3,8 @@
 import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin } from './statecoin';
 import { getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo } from './mercury/info_api';
+import { GET_ROUTE } from '.';
+import { getFinalizeData4Recovery } from './mercury/transfer';
 
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');
@@ -51,34 +53,57 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
     let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
     let shared_key= JSON.parse(recoveredCoins[i].shared_key_data)
 
-    // convert c_key item to be clinet curv library compatible
-    shared_key.c_key = JSON.parse(wasm.convert_bigint_to_client_curv_version(JSON.stringify({c_key: shared_key.c_key}), "c_key")).c_key
-
-    // construct MasterKey1
-    let master_key = {
-      chain_code: [0,[]],
-      private: {
-        x2: wallet.getBIP32forProofKeyPubKey(recoveredCoins[i].proof_key).privateKey!.toString("hex")
-      },
-      public: shared_key
+    // if shared_key === 'None' && transfer_msg3 available
+    if(shared_key === 'None'){
+      for(let i = 0; i < 10 ; i++){
+        // If connection fails try again for transfer msg
+        let transfer_msgs
+        let finalize_data
+        try{
+          transfer_msgs = await wallet.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, recoveredCoins[i].proof_key);
+          // make new function that return statechain id and does relevant check
+          finalize_data = await getFinalizeData4Recovery(transfer_msgs[0], recoveredCoins[i].shared_key_id, wallet)
+          if(finalize_data){
+            await wallet.transfer_receiver_finalize(finalize_data)
+            break
+          }
+        }
+        catch(err){
+          console.error(`Connection error: retrying statecoin receive`)
+        }
+      }
+    }
+    else{
+      // convert c_key item to be clinet curv library compatible
+      shared_key.c_key = JSON.parse(wasm.convert_bigint_to_client_curv_version(JSON.stringify({c_key: shared_key.c_key}), "c_key")).c_key
+  
+      // construct MasterKey1
+      let master_key = {
+        chain_code: [0,[]],
+        private: {
+          x2: wallet.getBIP32forProofKeyPubKey(recoveredCoins[i].proof_key).privateKey!.toString("hex")
+        },
+        public: shared_key
+      }
+  
+      let statecoin = new StateCoin(recoveredCoins[i].shared_key_id, master_key)
+  
+      let tx_copy = cloneDeep(tx_backup);
+  
+      statecoin.proof_key = recoveredCoins[i].proof_key
+      statecoin.tx_backup = tx_backup;
+      statecoin.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
+      statecoin.funding_vout = tx_copy.ins[0].index;
+      statecoin.funding_txid = tx_copy.ins[0].hash.reverse().toString("hex");
+      statecoin.statechain_id = recoveredCoins[i].statechain_id;
+      statecoin.value = recoveredCoins[i].amount;
+      statecoin.tx_hex = recoveredCoins[i].tx_hex;
+      // statecoin.withdraw_txid = recoveredCoins[i].withdraw_txid;
+  
+      statecoin.setConfirmed();
+      wallet.statecoins.addCoin(statecoin);
     }
 
-    let statecoin = new StateCoin(recoveredCoins[i].shared_key_id, master_key)
-
-    let tx_copy = cloneDeep(tx_backup);
-
-    statecoin.proof_key = recoveredCoins[i].proof_key
-    statecoin.tx_backup = tx_backup;
-    statecoin.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
-    statecoin.funding_vout = tx_copy.ins[0].index;
-    statecoin.funding_txid = tx_copy.ins[0].hash.reverse().toString("hex");
-    statecoin.statechain_id = recoveredCoins[i].statechain_id;
-    statecoin.value = recoveredCoins[i].amount;
-    statecoin.tx_hex = recoveredCoins[i].tx_hex;
-    // statecoin.withdraw_txid = recoveredCoins[i].withdraw_txid;
-
-    statecoin.setConfirmed();
-    wallet.statecoins.addCoin(statecoin);
   }
 
   wallet.saveStateCoinsList();

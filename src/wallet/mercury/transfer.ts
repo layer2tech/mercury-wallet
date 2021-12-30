@@ -11,6 +11,7 @@ import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
 import { Wallet } from "../wallet";
 import { ACTION } from '../activity_log';
+import { TransferFinalizeData } from "../types";
 
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require('lodash.clonedeep');
@@ -182,6 +183,50 @@ export const transferSender = async (
   }
 
   return transfer_msg3
+}
+
+export async function getFinalizeData4Recovery(
+  transfer_msg3: any,
+  shared_key_id: string,
+  wallet: Wallet
+):Promise<TransferFinalizeData| undefined> {
+  // Get statechain data (will Err if statechain not yet finalized)
+  let statechain_data = await getStateChain(wallet.http_client, transfer_msg3.statechain_id);
+  let finalize_data
+
+  // Verify state chain represents this address as new owner
+  let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
+  let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
+  let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
+  if (!statechain_sig.verify(prev_owner_proof_key_der)) {
+    //if the signature matches the transfer message, then transfer already completed
+
+    let tx_backup_psm = transfer_msg3.tx_backup_psm;
+    tx_backup_psm.shared_key_id = shared_key_id;
+
+    let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
+
+    // Get SE address that funds are being sent to.
+    let back_up_rec_addr = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, wallet.config.network);
+    let se_rec_addr_bip32 = wallet.getBIP32forBtcAddress(back_up_rec_addr);
+
+    let o2_keypair = se_rec_addr_bip32;
+    let o2 = o2_keypair.privateKey!.toString("hex");
+
+    
+    let finalize_data: TransferFinalizeData = {
+      new_shared_key_id: shared_key_id,
+      o2: o2,
+      s2_pub: null,
+      state_chain_data: statechain_data,
+      proof_key: transfer_msg3.rec_se_addr.proof_key,
+      statechain_id: transfer_msg3.statechain_id,
+      tx_backup_psm: tx_backup_psm
+    }
+  
+    return finalize_data
+  }
+  
 }
 
 export const transferReceiver = async (
