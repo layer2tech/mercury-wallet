@@ -51,10 +51,9 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<R
 export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[]) => {
   for (let i=0;i<recoveredCoins.length;i++) {
     let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
-    let shared_key= JSON.parse(recoveredCoins[i].shared_key_data)
-
+    
     // if shared_key === 'None' && transfer_msg3 available
-    if(shared_key === 'None'){
+    if(recoveredCoins[i].shared_key_data === 'None'){
       for(let i = 0; i < 10 ; i++){
         // If connection fails try again for transfer msg
         let transfer_msgs
@@ -78,6 +77,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
       }
     }
     else{
+      let shared_key= JSON.parse(recoveredCoins[i].shared_key_data)
       // convert c_key item to be clinet curv library compatible
       shared_key.c_key = JSON.parse(wasm.convert_bigint_to_client_curv_version(JSON.stringify({c_key: shared_key.c_key}), "c_key")).c_key
   
