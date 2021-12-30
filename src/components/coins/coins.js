@@ -715,18 +715,20 @@ const Coins = (props) => {
 
       let displayMessage = "Your wallet is empty";
 
-      if(filterBy === STATECOIN_STATUS.WITHDRAWN ||
+      if(filterBy === STATECOIN_STATUS.WITHDRAWN
+        ){
+        displayMessage = "No coins confirmed withdrawn."
+      }
+
+      if(
         filterBy === STATECOIN_STATUS.WITHDRAWING
         ){
-        displayMessage = "No coins withdrawn."
+        displayMessage = "No coins withdrawing and awaiting confirmation."
       }
 
       if(filterBy === STATECOIN_STATUS.IN_TRANSFER){
         displayMessage = "No coins transferred."
       }
-
-      // filterBy === STATECOIN_STATUS.WITHDRAWN ? (displayMessage = "No coins withdrawn.") : ('')
-      // filterBy === STATECOIN_STATUS.IN_TRANSFER ? (displayMessage = "No coins transferred.") : ('')
 
       return (
         <EmptyCoinDisplay message={displayMessage}/>
