@@ -192,7 +192,6 @@ export async function getFinalizeData4Recovery(
 ):Promise<TransferFinalizeData| undefined> {
   // Get statechain data (will Err if statechain not yet finalized)
   let statechain_data = await getStateChain(wallet.http_client, transfer_msg3.statechain_id);
-  let finalize_data
 
   // Verify state chain represents this address as new owner
   let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;

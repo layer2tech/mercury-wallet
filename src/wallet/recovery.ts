@@ -68,7 +68,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
           }
         }
         catch(err){
-          console.error(`Connection error: retrying statecoin receive`)
+          console.error(err)
         }
       }
     }
