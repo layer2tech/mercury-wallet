@@ -60,11 +60,15 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         let transfer_msgs
         let finalize_data
         try{
+          console.log(`getting transfer message recovered statecoin`)
           transfer_msgs = await wallet.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, recoveredCoins[i].proof_key);
           // make new function that return statechain id and does relevant check
+          console.log(`getting finalize data recovered statecoin`)
           finalize_data = await getFinalizeData4Recovery(transfer_msgs[0], recoveredCoins[i].shared_key_id, wallet)
           if(finalize_data){
+            console.log(`finalizing recovered statecoin`)
             await wallet.transfer_receiver_finalize(finalize_data)
+            console.log(`finished finalizing recovered statecoin`)
             break
           }
         }
