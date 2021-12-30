@@ -186,7 +186,7 @@ export const transferSender = async (
 }
 
 export async function getFinalizeData4Recovery(
-  transfer_msg3: any,
+  transfer_msg3: TransferMsg3,
   shared_key_id: string,
   wallet: Wallet
 ):Promise<TransferFinalizeData| undefined> {
@@ -202,7 +202,7 @@ export async function getFinalizeData4Recovery(
     //if the signature matches the transfer message, then transfer already completed
 
     let tx_backup_psm = transfer_msg3.tx_backup_psm;
-    tx_backup_psm.shared_key_id = shared_key_id;
+    tx_backup_psm.shared_key_ids = [shared_key_id];
 
     let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
 

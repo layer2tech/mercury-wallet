@@ -51,18 +51,19 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<R
 export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[]) => {
   for (let i=0;i<recoveredCoins.length;i++) {
     let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
-    
+
     // if shared_key === 'None' && transfer_msg3 available
     if(recoveredCoins[i].shared_key_data === 'None'){
-      for(let i = 0; i < 10 ; i++){
+      for(let j = 0; j < 10 ; j++){
         // If connection fails try again for transfer msg
         let transfer_msgs
         let finalize_data
         try{
-          console.log(`getting transfer message recovered statecoin`)
-          transfer_msgs = await wallet.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, recoveredCoins[i].proof_key);
+          const proof_key = recoveredCoins[i].proof_key;
+          console.log(`getting transfer message recovered statecoin with proof key ${proof_key}`)
+          transfer_msgs = await wallet.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proof_key);
           // make new function that return statechain id and does relevant check
-          console.log(`getting finalize data recovered statecoin`)
+          console.log(`getting finalize data recovered statecoin for transfer_msgs ${JSON.stringify(transfer_msgs)}`)
           finalize_data = await getFinalizeData4Recovery(transfer_msgs[0], recoveredCoins[i].shared_key_id, wallet)
           if(finalize_data){
             console.log(`finalizing recovered statecoin`)
@@ -72,7 +73,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
           }
         }
         catch(err){
-          console.error(`Connection error: retrying statecoin receive`)
+          console.error(`Error finalizing recovered coin: ${err}`)
         }
       }
     }
