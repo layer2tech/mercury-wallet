@@ -412,8 +412,6 @@ export const swapPhase4 = async (
   log.info(`Swap Phase: ${phase} - Coin ${statecoin.shared_key_id} in Swap ${statecoin.swap_id}`);
 
   // Complete transfer for swap and receive new statecoin  
-  throw new Error("swap terminated before transferReceiverFinalize");
-  /*
   try {
     statecoin.ui_swap_status=UI_SWAP_STATUS.Phase8;
     let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
@@ -438,7 +436,6 @@ export const swapPhase4 = async (
     }
     return statecoin_out;
   } catch(err: any) {
-    throw err
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
     let rte = new SwapRetryError(err, "Phase4 transferFinalize error: ")
@@ -450,7 +447,6 @@ export const swapPhase4 = async (
     }
     throw rte
   }
-  */
 }
 
 // Loop through swap protocol for some statecoin
@@ -607,7 +603,7 @@ export const do_swap_poll = async(
 
       await delay(2);
     }
-    //if (statecoin.swap_auto) new_statecoin.swap_auto = true;
+    if (statecoin.swap_auto) new_statecoin.swap_auto = true;
   return new_statecoin;
 }
 
