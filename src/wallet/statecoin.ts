@@ -239,7 +239,7 @@ export class StateCoinList {
     if (coin) {
       switch (action) {
         case ACTION.WITHDRAW:
-          coin.setWithdrawing();
+          coin.setWithdrawn();
           return;
         case ACTION.TRANSFER:
           coin.setInTransfer();
