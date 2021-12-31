@@ -1,10 +1,17 @@
+import React from 'react';
 import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA} from './test_data.js'
 import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment} from "../swap/swap";
 import {STATECOIN_STATUS} from '../statecoin'
+import reducers from '../../reducers';
+import { configureStore } from '@reduxjs/toolkit';
 
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 
-import {fromSeed} from 'bip32';
+import  TestComponent, { render } from './test-utils'
+
+import { handleEndSwap } from '../../features/WalletDataSlice.js';
+import { fromSatoshi } from '../util.ts';
+import { fireEvent, screen } from '@testing-library/dom';
 
 let bitcoin = require('bitcoinjs-lib')
 
@@ -121,4 +128,42 @@ describe('Swaps', function() {
     // expect(statecoin.swap_address).toBe(SWAP_STATUS.Phase1)
     // expect(statecoin.swap_my_bst_data).toBe(swap_info)
   })
+})
+
+
+describe('After Swaps Complete', function() {
+  
+  let statecoin = makeTesterStatecoin();
+  // Editable statecoin
+  statecoin.shared_key_id = '06a8c4a3-9cfc-49ce-a9b2-62fba0cbb860'
+  // shared_key_id of statecoin in mock created wallet
+  let store = configureStore({reducer: reducers,})
+  test('Auto-swap clicked after Join Group button', async function(){
+
+  // test redux state before and after handleEndSwap
+  // check: if swap_auto = true then the coin should be added to swapPendingGroup
+    let setSwapLoad = jest.fn()
+    let swapLoad = {join: false,swapCoin: "", leave:false}
+    let reduxState
+
+    statecoin.swap_auto = true
+    // Turn auto swap on for coin
+    
+    const { renderedObj }  = render( store,
+      <TestComponent
+      dispatchUsed = {true} 
+      fn = {handleEndSwap} 
+      args = {[statecoin.shared_key_id, { payload: statecoin }, setSwapLoad, swapLoad, fromSatoshi]}
+      />
+    )
+
+    fireEvent(screen.getByText(/FireFunction/i), new MouseEvent ('click', {
+      bubbles: true,
+      cancelable: true
+    }))
+    
+    expect(store.getState().walletData.swapPendingCoins[0]).toBe(statecoin.shared_key_id)
+    
+  })
+
 })
