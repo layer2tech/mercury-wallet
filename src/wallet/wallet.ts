@@ -1046,9 +1046,13 @@ export class Wallet {
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
-      statecoin.setSwapDataToNull();
-      // remove generated address
-      this.account.chains[0].pop();
+      // Do not delete swap data for statecoins with transfer
+      // completed server side
+      if(statecoin?.swap_status !== SWAP_STATUS.Phase4){
+        statecoin.setSwapDataToNull();
+        // remove generated address
+        this.account.chains[0].pop();
+      }
     } finally {
       if (new_statecoin) {
         this.setIfNewCoin(new_statecoin)
