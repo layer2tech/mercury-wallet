@@ -9,7 +9,7 @@ import * as MOCK_SERVER from '../mocks/mock_http_client'
 
 import  TestComponent, { render } from './test-utils'
 
-import { handleEndSwap } from '../../features/WalletDataSlice.js';
+import { callGetStateCoin, handleEndSwap } from '../../features/WalletDataSlice.js';
 import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 
@@ -134,12 +134,10 @@ describe('Swaps', function() {
 describe('After Swaps Complete', function() {
   
   test('Auto-swap clicked after Join Group button', async function(){
-    console.log('begin auto-swap test')
+
     let statecoin = makeTesterStatecoin();
-    console.log('makeTester statecoin', statecoin)
     // Editable statecoin
     statecoin.shared_key_id = '06a8c4a3-9cfc-49ce-a9b2-62fba0cbb860'
-    console.log('check changed shared key ID', statecoin)
     // shared_key_id of statecoin in mock created wallet
     let store = configureStore({reducer: reducers,})
 
@@ -150,7 +148,7 @@ describe('After Swaps Complete', function() {
 
     statecoin.swap_auto = true
     // Turn auto swap on for coin
-    
+
     const { renderedObj }  = render( store,
       <TestComponent
       dispatchUsed = {true} 

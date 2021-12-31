@@ -335,6 +335,7 @@ export const callRemoveCoin = (shared_key_id) => {
 }
 
 export const callGetStateCoin = (shared_key_id) => {
+  console.log('in call get statecoin: ', shared_key_id)
   return wallet.getStatecoin(shared_key_id);
 }
 
@@ -362,8 +363,7 @@ export const callGetWalletJsonToBackup = () => {
 //Swap Functions
 
 export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, fromSatoshi) => {
-  console.log('res: ',res)
-  console.log('selectedCoin: ',selectedCoin)
+
   dispatch(removeSwapPendingCoin(selectedCoin))
   // get the statecoin for txId method
   let statecoin = callGetStateCoin(selectedCoin)

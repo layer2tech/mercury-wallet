@@ -767,6 +767,7 @@ export class Wallet {
   }
   
   getStatecoin(shared_key_id:string){
+    console.log('this.statecoins: ',this.statecoins)
     return this.statecoins.getCoin(shared_key_id);
   }
 
