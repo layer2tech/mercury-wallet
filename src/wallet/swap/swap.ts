@@ -436,22 +436,34 @@ export const swapPhase4 = async (
     }
     return statecoin_out;
   } catch(err: any) {
+    let phase = null
+    let batch_status
     try{
-      let batch_status = await getTransferBatchStatus(http_client, statecoin.swap_id.id);
-      if(batch_status.finalized !== true){
-        throw new Error(`transfer batch status - finalized: ${batch_status.finalized}`)
+      try{ 
+        phase = await pollSwap(http_client, statecoin.swap_id);
+      } catch(err: any) {
+        let rte = new SwapRetryError(err, "Phase4 pollSwap error: ")
+        if(!rte.message.includes("No data for identifier")){
+          throw rte
+        } 
+      }
+      if(phase === null){
+        batch_status = await getTransferBatchStatus(http_client, statecoin.swap_id.id);
       }
     } catch (err2: any){
-      if (phase === null && err2.message.includes('Transfer batch ended. Timeout')){
+      if (err2.message.includes('Transfer batch ended. Timeout')){
         let error = new Error(`swap id: ${statecoin.swap_id}, shared key id: ${statecoin.shared_key_id} - swap failed at phase 4/4 
         due to Error: ${err2.message}`);
         throw error
       }
     }
+    if(batch_status && batch_status?.finalized !== true){
+      throw new SwapRetryError(`${err}, transfer batch status - finalized: ${batch_status.finalized}`,
+      "Phase4 transferFinalize error: ");
+    }
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
-    let rte = new SwapRetryError(err, "Phase4 transferFinalize error: ")
-    throw rte
+    throw new SwapRetryError(err, "Phase4 transferFinalize error: ")
   }
 }
 
