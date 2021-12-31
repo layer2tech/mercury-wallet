@@ -476,6 +476,9 @@ export const do_swap_poll = async(
   // Reset coin's swap data
   let prev_phase;
   if(!resume){
+    if(statecoin.swap_status === SWAP_STATUS.Phase4){
+      throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
+    }
     if(statecoin){
       statecoin.setSwapDataToNull()
       statecoin.swap_status = SWAP_STATUS.Init;
