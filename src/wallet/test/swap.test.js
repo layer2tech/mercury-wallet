@@ -137,7 +137,7 @@ describe('After Swaps Complete', function() {
 
     let statecoin = makeTesterStatecoin();
     // Editable statecoin
-    statecoin.shared_key_id = '06a8c4a3-9cfc-49ce-a9b2-62fba0cbb860'
+    statecoin.shared_key_id = '36f3315f-50c2-409e-90ea-b9a1c3924e97'
     // shared_key_id of statecoin in mock created wallet
     let store = configureStore({reducer: reducers,})
 
