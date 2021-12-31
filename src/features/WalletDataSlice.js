@@ -162,7 +162,7 @@ export const walletLoad = (name, password) => {
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapStatus();
-    wallet.updateSwapGroupInfo();
+    await wallet.updateSwapGroupInfo();
     wallet.updateSpeedInfo();
   });
 }
@@ -420,7 +420,7 @@ export const callResumeSwap = createAsyncThunk(
 export const callUpdateSwapGroupInfo = createAsyncThunk(
   'UpdateSwapGroupInfo',
   async (action, thunkAPI) => {
-    wallet.updateSwapGroupInfo();
+    await wallet.updateSwapGroupInfo();
   }
 )
 

@@ -45,6 +45,9 @@ export const keyGen = async (
       typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
       break;
     } catch(err){
+      if(`${err}`.includes("No data for identifier")){
+        throw err;
+      }
       n_tries = n_tries + 1
       if (n_tries === MAX_TRIES){
         throw err

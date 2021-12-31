@@ -4,7 +4,7 @@ import { ElectrsClient } from '../electrs'
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { getStateChain, getStateCoin } from "../mercury/info_api";
+import { getStateChain, getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
@@ -414,6 +414,10 @@ export const swapPhase4 = async (
   // Complete transfer for swap and receive new statecoin  
   try {
     statecoin.ui_swap_status=UI_SWAP_STATUS.Phase8;
+    let batch_status = await getTransferBatchStatus(http_client, statecoin.swap_id.id);
+    if(batch_status.finalized !== true){
+      throw new Error(`transfer batch status - finalized: ${batch_status.finalized}`)
+    }
     let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
     // Update coin status and num swap rounds
     statecoin.ui_swap_status=UI_SWAP_STATUS.End;
@@ -442,8 +446,9 @@ export const swapPhase4 = async (
     //If the swap phase is null and no data is found for the swap
     //id then the swap timed out due to the failure of other paticipants
     //to complete transfer.
-    if (phase === null && rte.message.includes('DB Error: No data for identifier')){
-      throw Error(`swap id: ${statecoin.swap_id}, shared key id: ${statecoin.shared_key_id} - swap failed with coin at phase 4/4`)
+    if (phase === null && rte.message.includes('Transfer batch ended. Timeout')){
+      let error = new Error(`swap id: ${statecoin.swap_id}, shared key id: ${statecoin.shared_key_id} - swap failed at phase 4/4 
+      due to Error: ${rte.message}`);
     }
     throw rte
   }
@@ -580,7 +585,7 @@ export const do_swap_poll = async(
         }
       } catch (err  : any) {
         let message: string | undefined = err?.message
-        if(message && message.includes("timed out")){
+        if(message && (message.includes("timed out") || message.includes("Transfer batch ended. Timeout"))){
           throw err
         } else if (err instanceof SwapRetryError && n_errs < MAX_ERRS && statecoin.swap_status !== SWAP_STATUS.Phase4) {
           n_errs = n_errs+1
