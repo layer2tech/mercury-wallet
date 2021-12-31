@@ -37,7 +37,7 @@ const TestComponent = ({dispatchUsed = false, fn, args = []}) => {
     if(!isWalletLoaded()){
         walletLoad('mock', '')
     }
-
+    console.log('Function rendered args: ', args)
     const fireEvent = () => {
         if(dispatchUsed){
             fn(dispatch,...args)
