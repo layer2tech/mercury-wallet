@@ -604,11 +604,6 @@ export class StateCoin {
 
   // Set all StateCoin swap data to null.
   setSwapDataToNull() {
-    // Do not allow if swap is in phase 4 as the transfer
-    // has already been completed server side and 
-    // swap_transfer_finalized_data is required to
-    // complete the transfer
-    if(this.swap_status !== SWAP_STATUS.Phase4){
       this.setConfirmed();
       this.swap_status = null;
       this.swap_id = null;
@@ -619,7 +614,6 @@ export class StateCoin {
       this.swap_transfer_msg = null;
       this.swap_batch_data = null;
       this.swap_transfer_finalized_data = null;
-    }
   }
 
   getTXIdAndOut(): string {

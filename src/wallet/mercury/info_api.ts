@@ -215,7 +215,9 @@ export const getTransferBatchStatus = async (
   http_client: HttpClient | MockHttpClient,
   batch_id: string
 ) => {
-  return await http_client.get(GET_ROUTE.TRANSFER_BATCH, batch_id);
+  let transfer_batch_status =  await http_client.get(GET_ROUTE.TRANSFER_BATCH, batch_id);
+  typeforce(types.TransferBatchStatus, transfer_batch_status);
+  return transfer_batch_status;
 }
 
 export const getRecoveryRequest = async (
