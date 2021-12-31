@@ -414,10 +414,6 @@ export const swapPhase4 = async (
   // Complete transfer for swap and receive new statecoin  
   try {
     statecoin.ui_swap_status=UI_SWAP_STATUS.Phase8;
-    let batch_status = await getTransferBatchStatus(http_client, statecoin.swap_id.id);
-    if(batch_status.finalized !== true){
-      throw new Error(`transfer batch status - finalized: ${batch_status.finalized}`)
-    }
     let statecoin_out = await transferReceiverFinalize(http_client, wasm_client, statecoin.swap_transfer_finalized_data);
     // Update coin status and num swap rounds
     statecoin.ui_swap_status=UI_SWAP_STATUS.End;
@@ -440,16 +436,21 @@ export const swapPhase4 = async (
     }
     return statecoin_out;
   } catch(err: any) {
+    try{
+      let batch_status = await getTransferBatchStatus(http_client, statecoin.swap_id.id);
+      if(batch_status.finalized !== true){
+        throw new Error(`transfer batch status - finalized: ${batch_status.finalized}`)
+      }
+    } catch (err2){
+      if (phase === null && err2.message.includes('Transfer batch ended. Timeout')){
+        let error = new Error(`swap id: ${statecoin.swap_id}, shared key id: ${statecoin.shared_key_id} - swap failed at phase 4/4 
+        due to Error: ${err2.message}`);
+        throw error
+      }
+    }
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
     let rte = new SwapRetryError(err, "Phase4 transferFinalize error: ")
-    //If the swap phase is null and no data is found for the swap
-    //id then the swap timed out due to the failure of other paticipants
-    //to complete transfer.
-    if (phase === null && rte.message.includes('Transfer batch ended. Timeout')){
-      let error = new Error(`swap id: ${statecoin.swap_id}, shared key id: ${statecoin.shared_key_id} - swap failed at phase 4/4 
-      due to Error: ${rte.message}`);
-    }
     throw rte
   }
 }
