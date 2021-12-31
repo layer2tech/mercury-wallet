@@ -441,7 +441,7 @@ export const swapPhase4 = async (
       if(batch_status.finalized !== true){
         throw new Error(`transfer batch status - finalized: ${batch_status.finalized}`)
       }
-    } catch (err2){
+    } catch (err2: any){
       if (phase === null && err2.message.includes('Transfer batch ended. Timeout')){
         let error = new Error(`swap id: ${statecoin.swap_id}, shared key id: ${statecoin.shared_key_id} - swap failed at phase 4/4 
         due to Error: ${err2.message}`);
