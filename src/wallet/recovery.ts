@@ -48,6 +48,9 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<R
 // Gen proof key. Address: tb1qgl76l9gg9qrgv9e9unsxq40dee5gvue0z2uxe2. Proof key: 03b2483ab9bea9843bd9bfb941e8c86c1308e77aa95fccd0e63c2874c0e3ead3f5
 export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[]) => {
   for (let i=0;i<recoveredCoins.length;i++) {
+    if(recoveredCoins[i].shared_key_data === "None"){
+      continue;
+    }
     let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
     let shared_key= JSON.parse(recoveredCoins[i].shared_key_data)
 
