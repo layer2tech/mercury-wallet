@@ -190,15 +190,16 @@ export const checkWalletPassword = (password) => {
 
 // Create wallet from backup file
 export const walletFromJson = (wallet_json, password) => {
+  wallet = Wallet.loadFromBackup(wallet_json, password, testing_mode);
+  log.info("Wallet " + wallet.name + " loaded from backup.");
+  if (testing_mode) log.info("Testing mode set.");
   return Promise.resolve().then(() => {
-    wallet = Wallet.loadFromBackup(wallet_json, password, testing_mode);
-    log.info("Wallet " + wallet.name + " loaded from backup.");
-    if (testing_mode) log.info("Testing mode set.");
     return mutex.runExclusive(async () => {
       await wallet.set_tor_endpoints();
       wallet.initElectrumClient(setBlockHeightCallBack);
       callNewSeAddr();
-      wallet.save()
+      wallet.save();
+      wallet.saveName();
       return wallet;
     }).catch(error => {
         console.error('Can not load wallet from json!', error);
