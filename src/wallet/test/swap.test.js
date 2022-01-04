@@ -9,7 +9,7 @@ import * as MOCK_SERVER from '../mocks/mock_http_client'
 
 import  TestComponent, { render } from './test-utils'
 
-import { callGetStateCoin, handleEndSwap } from '../../features/WalletDataSlice.js';
+import { handleEndSwap } from '../../features/WalletDataSlice.js';
 import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 
@@ -137,7 +137,7 @@ describe('After Swaps Complete', function() {
 
     let statecoin = makeTesterStatecoin();
     // Editable statecoin
-    statecoin.shared_key_id = '36f3315f-50c2-409e-90ea-b9a1c3924e97'
+    statecoin.shared_key_id = '06a8c4a3-9cfc-49ce-a9b2-62fba0cbb860'
     // shared_key_id of statecoin in mock created wallet
     let store = configureStore({reducer: reducers,})
 

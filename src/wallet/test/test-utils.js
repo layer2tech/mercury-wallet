@@ -3,7 +3,6 @@ import { render as rtlRender } from '@testing-library/react';
 import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import { Wallet } from '../wallet.ts';
 
 import reducers from '../../reducers';
 import { isWalletLoaded, walletLoad } from '../../features/WalletDataSlice';

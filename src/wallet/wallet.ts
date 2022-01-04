@@ -223,6 +223,8 @@ export class Wallet {
 
     new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
     new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
+
+    console.log(new_wallet.statecoins)
     
     new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
