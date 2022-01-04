@@ -4,7 +4,7 @@ import { ElectrsClient } from '../electrs'
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { getStateChain, getStateCoin } from "../mercury/info_api";
+import { getStateChain, getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
@@ -436,16 +436,34 @@ export const swapPhase4 = async (
     }
     return statecoin_out;
   } catch(err: any) {
+    let phase = null
+    let batch_status
+    try{
+      try{ 
+        phase = await pollSwap(http_client, statecoin.swap_id);
+      } catch(err: any) {
+        let rte = new SwapRetryError(err, "Phase4 pollSwap error: ")
+        if(!rte.message.includes("No data for identifier")){
+          throw rte
+        } 
+      }
+      if(phase === null){
+        batch_status = await getTransferBatchStatus(http_client, statecoin.swap_id.id);
+      }
+    } catch (err2: any){
+      if (err2.message.includes('Transfer batch ended. Timeout')){
+        let error = new Error(`swap id: ${statecoin.swap_id}, shared key id: ${statecoin.shared_key_id} - swap failed at phase 4/4 
+        due to Error: ${err2.message}`);
+        throw error
+      }
+    }
+    if(batch_status && batch_status?.finalized !== true){
+      throw new SwapRetryError(`${err}, transfer batch status - finalized: ${batch_status.finalized}`,
+      "Phase4 transferFinalize error: ");
+    }
     //Keep retrying - an authentication error may occur at this stage depending on the
     //server state
-    let rte = new SwapRetryError(err, "Phase4 transferFinalize error: ")
-    //If the swap phase is null and no data is found for the swap
-    //id then the swap timed out due to the failure of other paticipants
-    //to complete transfer.
-    if (phase === null && rte.message.includes('DB Error: No data for identifier')){
-      throw Error(`swap id: ${statecoin.swap_id}, shared key id: ${statecoin.shared_key_id} - swap failed with coin at phase 4/4`)
-    }
-    throw rte
+    throw new SwapRetryError(err, "Phase4 transferFinalize error: ")
   }
 }
 
@@ -476,6 +494,9 @@ export const do_swap_poll = async(
   // Reset coin's swap data
   let prev_phase;
   if(!resume){
+    if(statecoin.swap_status === SWAP_STATUS.Phase4){
+      throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
+    }
     if(statecoin){
       statecoin.setSwapDataToNull()
       statecoin.swap_status = SWAP_STATUS.Init;
@@ -577,7 +598,7 @@ export const do_swap_poll = async(
         }
       } catch (err  : any) {
         let message: string | undefined = err?.message
-        if(message && message.includes("timed out")){
+        if(message && (message.includes("timed out") || message.includes("Transfer batch ended. Timeout"))){
           throw err
         } else if (err instanceof SwapRetryError && n_errs < MAX_ERRS && statecoin.swap_status !== SWAP_STATUS.Phase4) {
           n_errs = n_errs+1

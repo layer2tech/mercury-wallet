@@ -1,12 +1,13 @@
 let bitcoin = require('bitcoinjs-lib')
-import { Wallet, StateCoinList, ACTION, Config, STATECOIN_STATUS, BACKUP_STATUS } from '../';
-import { segwitAddr } from '../wallet';
+import { Wallet, StateCoinList, ACTION, Config, STATECOIN_STATUS, BACKUP_STATUS, decryptAES } from '../';
+import { segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
 import { txWithdrawBuild, txBackupBuild } from '../util';
 import { addRestoredCoinDataToWallet } from '../recovery';
 import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
 import { MockElectrumClient } from "../mocks/mock_electrum";
+import { Storage } from '../../store';
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -14,26 +15,122 @@ const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: ""
 
 // electrum mock
 let electrum_mock = new MockElectrumClient;
+const MOCK_WALLET_NAME_BACKUP = MOCK_WALLET_NAME+"_backup"
 
 describe('Wallet', function() {
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+  wallet.storage.clearWallet(MOCK_WALLET_NAME)
+  wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
+  wallet = Wallet.buildMock(bitcoin.networks.bitcoin);  
 
+  describe('Storage 1', function() {
+    test('save/load', async function() {
+      expect(() => {
+        wallet.storage.clearWallet(MOCK_WALLET_NAME)
+        let _ = Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      }).toThrow("No wallet called mock_e4c93acf-2f49-414f-b124-65c882eea7e7 stored.");
+    
+      wallet.save()
+
+      expect(() => {
+        let _ = Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD+" ", true);
+      }).toThrow("Incorrect password.");
+    
+      expect(() => {
+        let _ = Wallet.load(MOCK_WALLET_NAME, "", true);
+      }).toThrow("Incorrect password.");
+
+      let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
+    });
+  });
+
+describe('Storage 2', function() {
+  wallet.save();
   test('toJSON', function() {
-    wallet.config.update({min_anon_set: 1000}); // update config to ensure defaults are not revered to after fromJSON.
     let json_wallet = JSON.parse(JSON.stringify(wallet));
+    let invalid_json_wallet = JSON.parse("{}");
 
-    json_wallet.password = ""
+    expect(() => {
+      Wallet.fromJSON(invalid_json_wallet, true)
+    }).toThrow("Cannot read property 'network' of undefined");
+      
+    json_wallet.password = MOCK_WALLET_PASSWORD
     // redefine password as hashing passwords is one-way
-    let from_json = Wallet.fromJSON(json_wallet, bitcoin.networks.bitcoin, segwitAddr, true);
+    let from_json = Wallet.fromJSON(json_wallet, true);
     // check wallets serialize to same values (since deep equal on recursive objects is messy)
 
     expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet));
   });
 
-  test('save/load', async function() {
-    wallet.save()
-    let loaded_wallet = await Wallet.load('mock', '', true)
-    expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
+  
+  test('saveName', async function() {
+    let name_store = new Storage("wallets/wallet_names");
+    name_store.clearWallet(MOCK_WALLET_NAME)
+    name_store.clearWallet(MOCK_WALLET_NAME_BACKUP)
+
+    let wallet_names = name_store.getWalletNames();
+    if (wallet_names.filter(w => w.name === wallet.name).length !== 0) {
+      throw Error("Do not expect wallet name to be in wallet_names until saveName() is called")
+    }
+    wallet.saveName();
+    wallet_names = name_store.getWalletNames();
+    if (wallet_names.filter(w => w.name === wallet.name).length !== 1) {
+      throw Error("Expect wallet name to be in wallet_names after saveName() is called")
+    }
+    wallet.saveName();
+    wallet_names = name_store.getWalletNames();
+    if (wallet_names.filter(w => w.name === wallet.name).length !== 1) {
+      throw Error("Do not expect duplicates in wallet_names after saveName() is called for a second time")
+    }
+  })
+  
+
+  test('load from backup and save', async function() {
+    let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
+    let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
+    let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
+    json_wallet.name = MOCK_WALLET_NAME_BACKUP
+
+    let invalid_json_wallet = JSON.parse("{}");
+
+    expect(() => {
+      let _ = Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD+" ", true)
+    }).toThrow("Incorrect password.");
+
+    expect(() => {
+      let _ = Wallet.loadFromBackup(json_wallet, "", true)
+    }).toThrow("Incorrect password.");
+   
+    expect(() => {
+      let _ = Wallet.loadFromBackup(invalid_json_wallet, "", true)
+    }).toThrow("Incorrect password."); 
+    
+    expect(() => {
+      Wallet.loadFromBackup("", "", true)
+    }).toThrow("Something went wrong with backup file!"); 
+
+
+    let loaded_wallet_from_backup = await Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD, true);
+
+    loaded_wallet_from_backup.save();
+
+    let loaded_wallet_mod = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true);
+    expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet_mod))
+
+    let loaded_wallet_backup = await Wallet.load(MOCK_WALLET_NAME_BACKUP, MOCK_WALLET_PASSWORD, true);
+    //The mock and mock_backup wallets should be the same except for name and storage
+    loaded_wallet_mod.name=MOCK_WALLET_NAME_BACKUP;
+    loaded_wallet_mod.storage=loaded_wallet_backup.storage
+    expect(JSON.stringify(loaded_wallet_mod)).toEqual(JSON.stringify(loaded_wallet_backup));
+  });
+
+  test('decrypt mnemonic', async function() {
+    let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
+    let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
+    let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
+    let mnemonic = decryptAES(json_wallet.mnemonic, MOCK_WALLET_PASSWORD)
+    expect(mnemonic).toEqual(MOCK_WALLET_MNEMONIC)
   });
 
   test('save coins list', async function() {
@@ -44,12 +141,17 @@ describe('Wallet', function() {
     wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", SHARED_KEY_DUMMY, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
     wallet.saveStateCoinsList();
 
-    let loaded_wallet = await Wallet.load('mock', '', true);
+    let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true);
     let num_coins_after = loaded_wallet.statecoins.coins.length;
     expect(num_coins_after).toEqual(num_coins_before+1)
     expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
   });
+});
+});
 
+
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+  
   test('genBtcAddress', function() {
     let addr1 = wallet.genBtcAddress();
     let addr2 = wallet.genBtcAddress();
@@ -126,7 +228,7 @@ describe('Wallet', function() {
     expect(wallet.createBackupTxCPFP(cpfp_data)).toBe(true);
     expect(wallet.statecoins.coins[0].tx_cpfp.outs.length).toBe(1);
   });
-})
+
 
 describe('updateBackupTxStatus', function() {
 
@@ -173,7 +275,6 @@ describe('updateBackupTxStatus', function() {
       // verify tx confirmed
       expect(wallet.statecoins.coins[0].backup_status).toBe(BACKUP_STATUS.TAKEN); 
     })    
-
 })
 
 describe("Statecoins/Coin", () => {
