@@ -11,6 +11,7 @@ import  { RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
 } from '../mocks/mock_http_client';
 import { MockElectrumClient } from "../mocks/mock_electrum";
 import { Storage } from '../../store';
+import { getFinalizeDataForRecovery } from '../recovery';
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -438,11 +439,12 @@ describe("Recovery", () => {
 })
 
 describe("Recovery unfinalized", () => {
+    const MNEMONIC ="eagle flee theory title special gold chapter unveil west monitor judge melt"
     // client side's mock
     let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
     // server side's mock
     let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
-    let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+    let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock, MNEMONIC);
     wallet.statecoins.coins = [];
     wallet.genProofKey();
     wallet.genProofKey();
@@ -462,10 +464,15 @@ describe("Recovery unfinalized", () => {
 
     let rec_arr = [RECOVERY_DATA_MSG_UNFINALIZED]
 
-    await addRestoredCoinDataToWallet(wallet, wasm_mock, rec_arr);
+    let data = await getFinalizeDataForRecovery(wallet, wasm_mock, rec_arr);
 
-    expect(wallet.statecoins.coins.length).toBe(2);
-    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
-    expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
+    expect(data).toEqual(TRANSFER_FINALIZE_DATA_FOR_RECOVERY)
+
+    /*
+      await addRestoredCoinDataToWallet(wallet, wasm_mock, rec_arr);
+      expect(wallet.statecoins.coins.length).toBe(2);
+      expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
+      expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
+    */
   });
 })

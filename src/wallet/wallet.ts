@@ -209,8 +209,9 @@ export class Wallet {
   }
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
-  static buildMock(network: Network, http_client: any = undefined, wasm: any = undefined): Wallet {
-    var wallet = Wallet.fromMnemonic(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, MOCK_WALLET_MNEMONIC, network, true,
+  static buildMock(network: Network, http_client: any = undefined, wasm: any = undefined, mnemonic: string | undefined = undefined): Wallet {
+    mnemonic = mnemonic ? mnemonic : MOCK_WALLET_MNEMONIC;
+    var wallet = Wallet.fromMnemonic(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, mnemonic, network, true,
       http_client, wasm);
     // add some statecoins
     let proof_key1 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
