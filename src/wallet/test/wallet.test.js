@@ -6,6 +6,9 @@ import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
 import { txWithdrawBuild, txBackupBuild } from '../util';
 import { addRestoredCoinDataToWallet } from '../recovery';
 import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
+import  { RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
+  RECOVERY_STATECHAIN_DATA, TRANSFER_FINALIZE_DATA_FOR_RECOVERY,   
+} from '../mocks/mock_http_client';
 import { MockElectrumClient } from "../mocks/mock_electrum";
 import { Storage } from '../../store';
 
@@ -408,14 +411,15 @@ describe("Config", () => {
 
 
 describe("Recovery", () => {
-  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
-  wallet.statecoins.coins = [];
-  wallet.genProofKey();
-  wallet.genProofKey();
   // client side's mock
   let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
   // server side's mock
   let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+  wallet.statecoins.coins = [];
+  wallet.genProofKey();
+  wallet.genProofKey();
+  
 
   test('run recovery', async () => {
     http_mock.post = jest.fn().mockReset()
@@ -428,6 +432,39 @@ describe("Recovery", () => {
     await addRestoredCoinDataToWallet(wallet, wasm_mock, RECOVERY_DATA);
 
     expect(wallet.statecoins.coins.length).toBe(1);
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
+    expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
+  });
+})
+
+describe("Recovery unfinalized", () => {
+    // client side's mock
+    let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+    // server side's mock
+    let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+    let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+    wallet.statecoins.coins = [];
+    wallet.genProofKey();
+    wallet.genProofKey();
+    test('run recovery unfinalized', async () => {
+    http_mock.get = jest.fn().mockReset()
+      .mockReturnValueOnce(RECOVERY_TRANSFER_FINALIZE_DATA_API)
+      //.mockReturnValueOnce(RECOVERY_DATA)
+      //.mockReturnValue([])
+      //.mockReturnValue(RECOVERY_TRANSFER_FINALIZE_DATA_API);
+      .mockReturnValueOnce(RECOVERY_STATECHAIN_DATA)
+      //.mockReturnValue(RECOVERY_TRANSFER_FINALIZE_DATA_API);
+      //.mockReturnValue(RECOVERY_STATECHAIN_DATA)
+    
+    //wasm_mock.convert_bigint_to_client_curv_version = jest.fn(() => RECOVERY_DATA_C_KEY_CONVERTED);
+
+    expect(wallet.statecoins.coins.length).toBe(0);
+
+    let rec_arr = [RECOVERY_DATA_MSG_UNFINALIZED]
+
+    await addRestoredCoinDataToWallet(wallet, wasm_mock, rec_arr);
+
+    expect(wallet.statecoins.coins.length).toBe(2);
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
     expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
   });

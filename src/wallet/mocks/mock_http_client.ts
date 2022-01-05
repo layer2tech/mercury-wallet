@@ -2,13 +2,16 @@
 // Mock Classes  are followed by mock data for full protocol runs.
 
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
+import { RecoveryDataMsg, StateChainDataAPI } from "../mercury/info_api";
+import { TransferFinalizeDataAPI, TransferFinalizeDataForRecovery, transferReceiverFinalizeRecovery } from "../mercury/transfer";
 import { SwapID } from "../swap/swap";
+import { StateChainSig } from "../util"
 // import { SIGNSWAPTOKEN_DATA, BST_DATA } from "../test/test_data";
 
 let cloneDeep = require('lodash.clonedeep');
 
 export class MockHttpClient {
-  get = async (path: string, _params: any) => {
+  get = async (path: string, params: any) => {
     switch(path) {
       case GET_ROUTE.PING:
         return true
@@ -19,11 +22,18 @@ export class MockHttpClient {
       case GET_ROUTE.ROOT:
         return cloneDeep(ROOT_INFO)
       case GET_ROUTE.STATECHAIN:
-        return cloneDeep(STATECHAIN_INFO)
+        switch(params){
+          case RECOVERY_TRANSFER_FINALIZE_DATA_API.statechain_id:
+            return cloneDeep(RECOVERY_STATECHAIN_DATA)
+          default:
+            return cloneDeep(STATECHAIN_INFO)
+        }
       case GET_ROUTE.TRANSFER_BATCH:
         return {
           status: true
         }
+      case GET_ROUTE.SC_TRANSFER_FINALIZE_DATA:
+        return cloneDeep(RECOVERY_TRANSFER_FINALIZE_DATA_API)
     }
   }
 
@@ -59,6 +69,8 @@ export class MockHttpClient {
           return TRANSFER_PUBKEY
         case POST_ROUTE.SWAP_POLL_UTXO:
           return POLL_UTXO
+        case POST_ROUTE.RECOVER:
+          return RECOVERY_STATECHAIN_DATA
       }
     }
 
@@ -168,6 +180,70 @@ export const POLL_SWAP_END = "End"
 //   swap_token: cloneDeep(SIGNSWAPTOKEN_DATA)[0].swap_token,
 //   bst_sender_data: BST_DATA.bst_sender_data,
 // }
+
+export const RECOVERY_DATA_MSG_UNFINALIZED: RecoveryDataMsg = {
+  shared_key_id: "84d5a1e9-77ea-4fd5-9625-9583bac56c53",
+  statechain_id: "c9f48e3f-408a-4199-87d9-9a8d4b5927c9",
+  amount: 20000,
+  tx_hex: "0200000000010122c21dc6c3c50a3f74cc2797f6f4e83859da2184743905310851dae0537757500000000000feffffff02434d0000000000001600149df45e5e1e422a031eaaab1648e6863566aab7095000000000000000160014949d650ede9f0cbd63c55c0cbba6830cec47c1b702473044022017973c37e160417ebf12f6af636f80f8767a17eec3753be89646a45e81d524d6022016c9bb0bcc5fbca9410ab4140ec28a06f9d932fbdf1f8e96cfca53fc15664f4301210240b85d13d8968c9b82c55c54d5766ce898dae267b6ac54d58396d2be08dd6449e5560000",
+  proof_key: "039afb8b85ba5c1b6664df7e68d4d79ea194e7022c76f0f9f3dadc3f94d8c79211",
+  shared_key_data: "None"
+}
+
+export const RECOVERY_DATA_MSG: RecoveryDataMsg = {
+  shared_key_id: "84d5a1e9-77ea-4fd5-9625-9583bac56c53",
+  statechain_id: "c9f48e3f-408a-4199-87d9-9a8d4b5927c9",
+  amount: 20000,
+  tx_hex: "0200000000010122c21dc6c3c50a3f74cc2797f6f4e83859da2184743905310851dae0537757500000000000feffffff02434d0000000000001600149df45e5e1e422a031eaaab1648e6863566aab7095000000000000000160014949d650ede9f0cbd63c55c0cbba6830cec47c1b702473044022017973c37e160417ebf12f6af636f80f8767a17eec3753be89646a45e81d524d6022016c9bb0bcc5fbca9410ab4140ec28a06f9d932fbdf1f8e96cfca53fc15664f4301210240b85d13d8968c9b82c55c54d5766ce898dae267b6ac54d58396d2be08dd6449e5560000",
+  proof_key: "039afb8b85ba5c1b6664df7e68d4d79ea194e7022c76f0f9f3dadc3f94d8c79211",
+  shared_key_data: "{\"q\":{\"x\":\"40b85d13d8968c9b82c55c54d5766ce898dae267b6ac54d58396d2be08dd6449\",\"y\":\"6e4730816710d69a4dfbe5f9628b36cf70b8f84885d017b7a5bcafe39930670a\"},\"p1\":{\"x\":\"2837fbf219cbb06919831b66ce27c12d2dc1a721f26e17a486896d9c9c64ee7a\",\"y\":\"4ca4aa1b15491a9c21d760e1665933d1a83741f6f7681d4d57fb3d72a859bd80\"},\"p2\":{\"x\":\"ac1070841ed41b2d5497621645f7cfb3186143a9f21bcae45eafba73482ae981\",\"y\":\"1d74be235d627c54fd241aeb768ad70d2cd9b35b2dfd1b30fb82fcd436213c79\"},\"paillier_pub\":{\"n\":\"12200999790138535027463038883410575040838136252450309299294588312650874947248420954551419705908273841919989243847122274585328088892240402674053734102825542950582911550285925403885935170284747788605730732592354843705541518643767118256309259170800492566272134718539735724881113750743208262415867339853892897167761426099248674283014261430388151087824259053770395424307609500443693259719094887131084260098104582194391163142094716279103015108221492500297114768290428585054535020819054904324027404872225045076438305398273518227404542605459227375773139404796200097889762132148350882428626382016681452638677129310123853635593\"},\"c_key\":\"ada61b701883cb3d7e76dfbc5404609f64791b1584d83bb41cf716887d69d551b917094077651e23381eb75b827760afef187915fa8aa0a0baeaece025b8b4d1f66538a3aff49426f092b656e75daf89a577bd09c9329981f47aeba99da81f6b1f99d89ed21824f134511fd84bac2733af34d0d2c6ac9e11f0eeb108feb8a5a2136a2ca8cdfe753c7fa29f00aea951043edf92fc9171bcaec9bc1979c1f366f50a44d02bc8f7113179a8336017547fc6c4f504a7dde1071efb6aa7c948579b52ef297f342a03ab083e3c5bb71ef4fa160a2c95121f3e1b2c2a6be78c2530a6a365c3add808b54b131e56066bd99d4011f7d51fbf73e9e7c8c4de0add304be9fc355eb850ec731a51340d8974b43cdab885a4ce5f23edf61193db526c9a86211178f98d71166223ed67ec2ad2ca93eb8571eb4248806612db6f3f129b308becae0a5b49a1614af42b46289f77fa2386e30b05f94d30da76842a275579234dae74c637dad13a539e22b1279707d66733f27bc58a85f21783f3470ead82f64e0f2c353e142af7b6bb220ba59025eca6a90148a5ccfe8e5dcfa01511bc49dbe1e52bb83061c2425f7d9eee35dcd93167c68107f37ddac39b15ca5d9e9f2d4827d7de18a7934c6ffc1ad88ceb255c3c59182bc8b617af3b563cccfbd05c231aa93d4e56507f50cb0b19a8dab69e133e6f629ba064f30fcd0e4ce43e5601b2d970fc6\"}",
+}
+
+export const RECOVERY_TRANSFER_FINALIZE_DATA_API: TransferFinalizeDataAPI = {
+  new_shared_key_id: "84d5a1e9-77ea-4fd5-9625-9583bac56c53",
+  statechain_id: "c9f48e3f-408a-4199-87d9-9a8d4b5927c9",
+  statechain_sig: {
+    purpose: "TRANSFER",
+    data: "039afb8b85ba5c1b6664df7e68d4d79ea194e7022c76f0f9f3dadc3f94d8c79211",
+    sig: "3045022100c77e17905b46c2f1c26ffb567ecb446b31723ecad0214f385bcab422bcb1940e0220259c886e3679b1ba195f61f0389a7a0b45e06daa61f426f806f52d62c9472fe8",
+  },
+  s2: "",
+  new_tx_backup_hex: "0200000000010122c21dc6c3c50a3f74cc2797f6f4e83859da2184743905310851dae0537757500000000000feffffff02434d0000000000001600149df45e5e1e422a031eaaab1648e6863566aab7095000000000000000160014949d650ede9f0cbd63c55c0cbba6830cec47c1b702473044022017973c37e160417ebf12f6af636f80f8767a17eec3753be89646a45e81d524d6022016c9bb0bcc5fbca9410ab4140ec28a06f9d932fbdf1f8e96cfca53fc15664f4301210240b85d13d8968c9b82c55c54d5766ce898dae267b6ac54d58396d2be08dd6449e5560000",
+  batch_data: "",
+}
+
+export const RECOVERY_STATECHAIN_DATA : StateChainDataAPI = {
+  utxo: {
+      txid: "50577753e0da5108310539748421da5938e8f4f69727cc743f0ac5c3c61dc222",
+      vout: 0,
+  },
+  amount: 20000,
+  chain: [
+      {
+          data: "022d7ea3d286541ed593e0158e315d73908646abcfa46aa56c12229a2910cce48c",
+          next_state: 
+              {
+                  purpose: "TRANSFER",
+                  data: "039afb8b85ba5c1b6664df7e68d4d79ea194e7022c76f0f9f3dadc3f94d8c79211",
+                  sig: "3045022100c77e17905b46c2f1c26ffb567ecb446b31723ecad0214f385bcab422bcb1940e0220259c886e3679b1ba195f61f0389a7a0b45e06daa61f426f806f52d62c9472fe8",
+              },
+      },
+      {
+          data: "039afb8b85ba5c1b6664df7e68d4d79ea194e7022c76f0f9f3dadc3f94d8c79211",
+          next_state: null,
+      },
+  ],
+  locktime: 22245,
+}
+
+export const TRANSFER_FINALIZE_DATA_FOR_RECOVERY : TransferFinalizeDataForRecovery  = {
+  new_shared_key_id: "84d5a1e9-77ea-4fd5-9625-9583bac56c53",
+  o2: "280416f6ef2be18ccbf854ceaa648710314ffa5c1c1545ae6cd1fda5956897fd",
+  statechain_data: RECOVERY_STATECHAIN_DATA,
+  proof_key: "039afb8b85ba5c1b6664df7e68d4d79ea194e7022c76f0f9f3dadc3f94d8c79211",
+  statechain_id: "c9f48e3f-408a-4199-87d9-9a8d4b5927c9",
+  tx_backup_hex: "0200000000010122c21dc6c3c50a3f74cc2797f6f4e83859da2184743905310851dae0537757500000000000feffffff02434d0000000000001600149df45e5e1e422a031eaaab1648e6863566aab7095000000000000000160014949d650ede9f0cbd63c55c0cbba6830cec47c1b702473044022017973c37e160417ebf12f6af636f80f8767a17eec3753be89646a45e81d524d6022016c9bb0bcc5fbca9410ab4140ec28a06f9d932fbdf1f8e96cfca53fc15664f4301210240b85d13d8968c9b82c55c54d5766ce898dae267b6ac54d58396d2be08dd6449e5560000",
+}
 
 export const GET_BLINDED_SPEND_SIGNATURE = {
   //s_prime: "",

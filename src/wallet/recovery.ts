@@ -4,7 +4,7 @@ import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin } from './statecoin';
 import { getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo } from './mercury/info_api';
 import { GET_ROUTE } from '.';
-import { getFinalizeData4Recovery } from './mercury/transfer';
+import { getFinalizeDataForRecovery, transferReceiverFinalizeRecovery } from './mercury/transfer';
 
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');
@@ -50,32 +50,27 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<R
 // Gen proof key. Address: tb1qgl76l9gg9qrgv9e9unsxq40dee5gvue0z2uxe2. Proof key: 03b2483ab9bea9843bd9bfb941e8c86c1308e77aa95fccd0e63c2874c0e3ead3f5
 export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[]) => {
   for (let i=0;i<recoveredCoins.length;i++) {
-    if(recoveredCoins[i].shared_key_data === "None"){
-      continue;
-    }
     let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
-
+    let statecoin
     // if shared_key === 'None' && transfer_msg3 available
     if(recoveredCoins[i].shared_key_data === 'None'){
-      for(let i = 0; i < 10 ; i++){
+      console.log(`recovery data: ${JSON.stringify(recoveredCoins[i])}`)
+      for(let j = 0; j < 10 ; j++){
         // If connection fails try again for transfer msg
-        let transfer_msgs
-        let finalize_data
         try{
-          transfer_msgs = await wallet.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, recoveredCoins[i].proof_key);
           // make new function that return statechain id and does relevant check
-          finalize_data = await getFinalizeData4Recovery(transfer_msgs[0], recoveredCoins[i].shared_key_id, wallet)
-          if(finalize_data){
-            await wallet.transfer_receiver_finalize(finalize_data)
-            break
-          }
+          console.log(`get finalize data for recovery...`)
+          let finalize_data_for_recovery = await getFinalizeDataForRecovery(recoveredCoins[i], wallet)
+          console.log(`finalize data for recovery: ${JSON.stringify(finalize_data_for_recovery)}`)
+          statecoin = await transferReceiverFinalizeRecovery(wallet.http_client, wasm, finalize_data_for_recovery);
+          break;
         }
         catch(err){
+          throw err
           console.error(err)
         }
       }
-    }
-    else{
+    } else{
       let shared_key= JSON.parse(recoveredCoins[i].shared_key_data)
       // convert c_key item to be clinet curv library compatible
       shared_key.c_key = JSON.parse(wasm.convert_bigint_to_client_curv_version(JSON.stringify({c_key: shared_key.c_key}), "c_key")).c_key
@@ -89,8 +84,10 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         public: shared_key
       }
   
-      let statecoin = new StateCoin(recoveredCoins[i].shared_key_id, master_key)
+      statecoin = new StateCoin(recoveredCoins[i].shared_key_id, master_key)
+    }
   
+    if(statecoin){
       let tx_copy = cloneDeep(tx_backup);
   
       statecoin.proof_key = recoveredCoins[i].proof_key
@@ -101,12 +98,10 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
       statecoin.statechain_id = recoveredCoins[i].statechain_id;
       statecoin.value = recoveredCoins[i].amount;
       statecoin.tx_hex = recoveredCoins[i].tx_hex;
-      // statecoin.withdraw_txid = recoveredCoins[i].withdraw_txid;
   
       statecoin.setConfirmed();
       wallet.statecoins.addCoin(statecoin);
     }
-
   }
 
   wallet.saveStateCoinsList();
