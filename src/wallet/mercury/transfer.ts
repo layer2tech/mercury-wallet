@@ -371,7 +371,6 @@ export const transferReceiverFinalizeRecovery = async (
 ): Promise<StateCoin> => {
   // Make shared key with new private share
   // 2P-ECDSA with state entity to create a Shared key
-  console.log('get statecoin from keyGen...')
   let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER, null);
   statecoin.funding_txid = finalize_data.statechain_data.utxo.txid;
   statecoin.funding_vout = finalize_data.statechain_data.utxo.vout;

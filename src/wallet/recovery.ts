@@ -54,18 +54,13 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<R
 export const getFinalizeDataForRecovery= async (wallet: Wallet, wasm: any, recovery_data: RecoveryDataMsg): 
   Promise<TransferFinalizeDataForRecovery> => {
     // make new function that return statechain id and does relevant check
-    console.log(`get TransferFinalizeDataAPI...`);
     let sc_tf_data: TransferFinalizeDataAPI = await getStateChainTransferFinalizeData(wallet.http_client, recovery_data.statechain_id);
-    console.log(`${sc_tf_data}`);
-    console.log(`get StateChainDataAPI...`);
     let state_chain_data = await getStateChain(wallet.http_client, recovery_data.statechain_id);
-    console.log(`${state_chain_data}`);
     
     const chain = state_chain_data.chain;
-  //console.log(`chain: ${JSON.stringify(chain)}`);
-  const last = chain[chain.length - 2].next_state;
-  let sig = new StateChainSig(last.purpose, last.data, last.sig);
-  
+    const last = chain[chain.length - 2].next_state;
+    let sig = new StateChainSig(last.purpose, last.data, last.sig);
+    
   if(sig.purpose !== sc_tf_data.statechain_sig.purpose) {
     throw new Error(`expected statechain sig purpose ${JSON.stringify(sig.purpose)}, 
       got ${JSON.stringify(sc_tf_data.statechain_sig.purpose)}}`)
@@ -92,13 +87,6 @@ export const getFinalizeDataForRecovery= async (wallet: Wallet, wasm: any, recov
   let o2_keypair = se_rec_addr_bip32;
   let o2 = o2_keypair.privateKey!.toString("hex");
   
-  /*
-  if(!sc_tf_data.statechain_sig.verify(se_rec_addr_bip32)){
-    throw new Error(`statecoin with statechain_id ${sc_tf_data.statechain_id} is not verified by statechain sig 
-    ${JSON.stringify(sc_tf_data.statechain_sig)} for address ${back_up_rec_addr}}`)
-  }
-  */
-
   let finalize_data: TransferFinalizeDataForRecovery = {
     new_shared_key_id: sc_tf_data.new_shared_key_id,
     o2: o2,
@@ -108,8 +96,6 @@ export const getFinalizeDataForRecovery= async (wallet: Wallet, wasm: any, recov
     tx_backup_hex: recovery_data.tx_hex,
   }
 
-  console.log(`${finalize_data}`);
-
   return finalize_data
 }
 
@@ -117,20 +103,17 @@ export const getFinalizeDataForRecovery= async (wallet: Wallet, wasm: any, recov
 export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[]) => {
   for (let i=0;i<recoveredCoins.length;i++) {
     let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
-    let statecoin
+    let statecoin = null
     // if shared_key === 'None' && transfer_msg3 available
     if(recoveredCoins[i].shared_key_data === 'None'){
-      console.log(`recovery data: ${JSON.stringify(recoveredCoins[i])}`)
       for(let j = 0; j < 10 ; j++){
         // If connection fails try again for transfer msg
         try{
           let finalize_data_for_recovery = await getFinalizeDataForRecovery(wallet, wasm, recoveredCoins[i]);
-          console.log(`finalize data for recovery: ${JSON.stringify(finalize_data_for_recovery)}`)
           statecoin = await transferReceiverFinalizeRecovery(wallet.http_client, wasm, finalize_data_for_recovery);
           break;
         }
         catch(err){
-          throw err
           console.error(err)
         }
       }
