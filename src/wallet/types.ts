@@ -45,8 +45,14 @@ export const StateChainSig = typeforce.compile({
 //  next_state: Any
 //})
 
+// Transfer batch status
+export const TransferBatchStatus= typeforce.compile({
+  state_chains: Array,
+  finalized: Boolean
+})
+
 // StateChain Entity API
-export const StateCoinDataAPI = typeforce.compile({
+export const  StateCoinDataAPI = typeforce.compile({
   utxo: OutPoint,
   amount: Number,
   statecoin: Object,

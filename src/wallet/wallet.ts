@@ -45,7 +45,9 @@ try {
   log = require('electron-log');
 }
 
-
+export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890"
+export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7"
+export const MOCK_WALLET_MNEMONIC = "praise you muffin lion enable neck grocery crumble super myself license ghost"
 
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
@@ -200,7 +202,7 @@ export class Wallet {
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
   static buildMock(network: Network): Wallet {
-    var wallet = Wallet.fromMnemonic('mock', '', 'praise you muffin lion enable neck grocery crumble super myself license ghost', network, true);
+    var wallet = Wallet.fromMnemonic(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, MOCK_WALLET_MNEMONIC, network, true);
     // add some statecoins
     let proof_key1 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
@@ -311,8 +313,9 @@ export class Wallet {
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
     } catch (e :any) {
-      if (e.message==="unable to decrypt data") throw Error("Incorrect password.")
+      throw Error("Incorrect password.")
     }
+    wallet_json.password=password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     return wallet;
   }
@@ -1046,9 +1049,14 @@ export class Wallet {
       new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
-      statecoin.setSwapDataToNull();
-      // remove generated address
-      this.account.chains[0].pop();
+      // Do not delete swap data for statecoins with transfer
+      // completed server side
+      if((statecoin?.swap_status !== SWAP_STATUS.Phase4) 
+        || `${e}`.includes("Transfer batch ended. Timeout")){
+        statecoin.setSwapDataToNull();
+        // remove generated address
+        this.account.chains[0].pop();
+      }
     } finally {
       if (new_statecoin) {
         this.setIfNewCoin(new_statecoin)
