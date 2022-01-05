@@ -106,17 +106,8 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
     let statecoin = null
     // if shared_key === 'None' && transfer_msg3 available
     if(recoveredCoins[i].shared_key_data === 'None'){
-      for(let j = 0; j < 10 ; j++){
-        // If connection fails try again for transfer msg
-        try{
-          let finalize_data_for_recovery = await getFinalizeDataForRecovery(wallet, wasm, recoveredCoins[i]);
-          statecoin = await transferReceiverFinalizeRecovery(wallet.http_client, wasm, finalize_data_for_recovery);
-          break;
-        }
-        catch(err){
-          console.error(err)
-        }
-      }
+      let finalize_data_for_recovery = await getFinalizeDataForRecovery(wallet, wasm, recoveredCoins[i]);
+      statecoin = await transferReceiverFinalizeRecovery(wallet.http_client, wasm, finalize_data_for_recovery);
     } else{
       let shared_key= JSON.parse(recoveredCoins[i].shared_key_data)
       // convert c_key item to be clinet curv library compatible
