@@ -63,7 +63,7 @@ export const keyGen = async (
       wasm_client.KeyGen.first_message(secret_key)
     );
   typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
-
+  
   // server second
   let key_gen_msg2 = {
     shared_key_id: shared_key_id,
