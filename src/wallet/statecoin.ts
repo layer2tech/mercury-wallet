@@ -6,7 +6,7 @@ import { ACTION } from ".";
 import { ElectrumTxData } from "../wallet/electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
-import { BatchData, BSTRequestorData, SwapID, SwapInfo } from "./swap/swap";
+import { BatchData, BSTRequestorData, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap";
 import { SCEAddress, TransferFinalizeData, TransferMsg3 } from "./mercury/transfer";
 
 export class StateCoinList {
@@ -304,7 +304,9 @@ export class StateCoinList {
 
       if (coin.status===STATECOIN_STATUS.IN_SWAP ) throw Error("Swap already begun. Cannot remove coin.");
       if (coin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
-      
+      if(coin.swap_status === SWAP_STATUS.Phase4){
+        throw new Error(`Coin ${coin.shared_key_id} is in swap phase 4. Cannot remove coin.`)
+      }
       coin.setSwapDataToNull();
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
@@ -602,16 +604,16 @@ export class StateCoin {
 
   // Set all StateCoin swap data to null.
   setSwapDataToNull() {
-    this.setConfirmed();
-    this.swap_status = null;
-    this.swap_id = null;
-    this.swap_address = null;
-    this.swap_info = null;
-    this.swap_my_bst_data = null;
-    this.swap_receiver_addr = null;
-    this.swap_transfer_msg = null;
-    this.swap_batch_data = null;
-    this.swap_transfer_finalized_data = null;
+      this.setConfirmed();
+      this.swap_status = null;
+      this.swap_id = null;
+      this.swap_address = null;
+      this.swap_info = null;
+      this.swap_my_bst_data = null;
+      this.swap_receiver_addr = null;
+      this.swap_transfer_msg = null;
+      this.swap_batch_data = null;
+      this.swap_transfer_finalized_data = null;
   }
 
   getTXIdAndOut(): string {

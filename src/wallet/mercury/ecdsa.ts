@@ -45,6 +45,9 @@ export const keyGen = async (
       typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
       break;
     } catch(err){
+      if(`${err}`.includes("No data for identifier")){
+        throw err;
+      }
       n_tries = n_tries + 1
       if (n_tries === MAX_TRIES){
         throw err
@@ -60,7 +63,7 @@ export const keyGen = async (
       wasm_client.KeyGen.first_message(secret_key)
     );
   typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
-
+  
   // server second
   let key_gen_msg2 = {
     shared_key_id: shared_key_id,
