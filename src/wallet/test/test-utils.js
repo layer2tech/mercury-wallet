@@ -5,7 +5,9 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 
 import reducers from '../../reducers';
-import { isWalletLoaded, walletLoad } from '../../features/WalletDataSlice';
+import { callGetAllStatecoins, isWalletLoaded, walletFromJson, walletLoad } from '../../features/WalletDataSlice';
+import { Wallet } from '..';
+import { MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD } from '../wallet';
 let bitcoin = require('bitcoinjs-lib')
 
 function render(
@@ -25,7 +27,7 @@ function render(
 // edit preloaded state to test different state variables
 
 
-const TestComponent = ({dispatchUsed = false, fn, args = []}) => {
+const TestComponent = ({wallet_json ,dispatchUsed = false, fn, args = []}) => {
     // Mock component for testing redux function
     // Instructions:
     // 1) Pass the function to be tested as 'fn'
@@ -34,8 +36,9 @@ const TestComponent = ({dispatchUsed = false, fn, args = []}) => {
     // b) Pass dispatchUsed = true
     const dispatch = useDispatch()
     if(!isWalletLoaded()){
-        walletLoad('mock', '')
+        walletFromJson(wallet_json, MOCK_WALLET_PASSWORD)
     }
+
     console.log('Function rendered args: ', args)
     const fireEvent = () => {
         if(dispatchUsed){

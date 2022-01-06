@@ -12,6 +12,8 @@ import  TestComponent, { render } from './test-utils'
 import { handleEndSwap } from '../../features/WalletDataSlice.js';
 import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
+import { Wallet } from '../wallet.ts';
+import { encryptAES } from '../util.ts';
 
 let bitcoin = require('bitcoinjs-lib')
 
@@ -134,23 +136,27 @@ describe('Swaps', function() {
 describe('After Swaps Complete', function() {
   
   test('Auto-swap clicked after Join Group button', async function(){
+    let wallet_json = Wallet.buildMockToJSON(jest)
 
-    let statecoin = makeTesterStatecoin();
-    // Editable statecoin
-    statecoin.shared_key_id = '06a8c4a3-9cfc-49ce-a9b2-62fba0cbb860'
     // shared_key_id of statecoin in mock created wallet
+
+    //add statecoin to wallet
+    let statecoin = wallet_json.statecoins.coins[0]
+
     let store = configureStore({reducer: reducers,})
 
-  // test redux state before and after handleEndSwap
-  // check: if swap_auto = true then the coin should be added to swapPendingGroup
+    // test redux state before and after handleEndSwap
+    // check: if swap_auto = true then the coin should be added to swapPendingGroup
     let setSwapLoad = jest.fn()
     let swapLoad = {join: false,swapCoin: "", leave:false}
 
     statecoin.swap_auto = true
     // Turn auto swap on for coin
 
+
     const { renderedObj }  = render( store,
       <TestComponent
+      wallet_json = {wallet_json}
       dispatchUsed = {true} 
       fn = {handleEndSwap} 
       args = {[statecoin.shared_key_id, { payload: statecoin }, setSwapLoad, swapLoad, fromSatoshi]}
