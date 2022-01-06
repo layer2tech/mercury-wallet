@@ -1,6 +1,6 @@
 import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA} from './test_data.js'
 import {swapInit, swapPhase0, swapPhase1, swapPhase2, SWAP_STATUS, POLL_UTXO, SwapToken, 
-  make_swap_commitment, SwapRetryError} from "../swap/swap";
+  make_swap_commitment, SwapRetryError, UI_SWAP_STATUS} from "../swap/swap";
 import {STATECOIN_STATUS} from '../statecoin'
 
 import * as MOCK_SERVER from '../mocks/mock_http_client'
@@ -268,5 +268,314 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
     expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
   
     })
+
+    test('swapPhase2 test 4 - server responds with Error to request for blinded spend signature', async function() {
+    
+      let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
+
+
+      const server_bst_error = () => { return new Error("Misc server error retrieving BST")}
+      
+      http_mock.post = jest.fn((path, body) => {
+        if(path === POST_ROUTE.SWAP_POLL_SWAP){
+          return SWAP_STATUS.Phase2
+        }
+        if(path === POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE){
+          throw server_bst_error()
+        }
+      })
+
+
+      let statecoin = makeTesterStatecoin();
+      let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+      
+      
+      //Set valid statecoin status
+      statecoin.status = STATECOIN_STATUS.IN_SWAP
+      //Set valid swap status
+      statecoin.swap_status = SWAP_STATUS.Phase2
+      //Set swap_id to some value
+      statecoin.swap_id = "a swap id"
+      //Set my_bst_data to some value
+      statecoin.swap_my_bst_data = "a my bst data"
+    
+      const INIT_STATECOIN = cloneDeep(statecoin)
+      const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+    
+     
+      await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+        .rejects.toThrow(Error)
+      await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+        .rejects.toThrowError(server_bst_error())
+      
+      //Expect statecoin and proof_key_der to be unchanged
+      expect(statecoin).toEqual(INIT_STATECOIN)
+      expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+    
+      })
+
+      test('swapPhase2 test 5 - an invalid data type is returned from request for BST', async function() {
+    
+        let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
+  
+  
+        let statecoin = makeTesterStatecoin();
+        let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+        
+        
+        //Set valid statecoin status
+        statecoin.status = STATECOIN_STATUS.IN_SWAP
+        //Set valid swap status
+        statecoin.swap_status = SWAP_STATUS.Phase2
+        //Set swap_id to some value
+        statecoin.swap_id = "a swap id"
+        //Set my_bst_data to some value
+        statecoin.swap_my_bst_data = "a my bst data"
+      
+        const INIT_STATECOIN = cloneDeep(statecoin)
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+        
+        const bst_missing_s_prime_error = () => { return new Error("Expected property \"s_prime\" of type String, got undefined")}
+        
+        http_mock.post = jest.fn((path, body) => {
+          if(path === POST_ROUTE.SWAP_POLL_SWAP){
+            return SWAP_STATUS.Phase2
+          }
+          if(path === POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE){
+            return {some_invalid_bst: "data"}
+          }
+        })
+
+        await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+          .rejects.toThrow(Error)
+        expect(statecoin).toEqual(INIT_STATECOIN)
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+        
+        await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+          .rejects.toThrowError(bst_missing_s_prime_error())
+        expect(statecoin).toEqual(INIT_STATECOIN)
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER) 
+        })
+
+        test('swapPhase2 test 6 - an Error is returned from the new_torid() function', async function() {
+    
+          let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
+    
+    
+          let statecoin = makeTesterStatecoin();
+          let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+          
+          
+          //Set valid statecoin status
+          statecoin.status = STATECOIN_STATUS.IN_SWAP
+          //Set valid swap status
+          statecoin.swap_status = SWAP_STATUS.Phase2
+          //Set swap_id to some value
+          statecoin.swap_id = "a swap id"
+          //Set my_bst_data to some value
+          statecoin.swap_my_bst_data = "a my bst data"
+        
+          const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+          
+          http_mock.post = jest.fn((path, body) => {
+            if(path === POST_ROUTE.SWAP_POLL_SWAP){
+              return SWAP_STATUS.Phase2
+            }
+            if(path === POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE){
+              return {s_prime: "some sprime value"}
+            }
+          })
+  
+          const tor_id_error = () => { return new Error("Could not get new TOR ID")}
+          http_mock.new_tor_id = jest.fn(() => {
+            throw tor_id_error()
+          })
+  
+          //The statecoin ui swap status is expected to be update to phase 3
+          let phase3_statecoin = cloneDeep(statecoin)
+          phase3_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase3
+          const UI_PHASE3_STATECOIN = cloneDeep(phase3_statecoin)
+  
+          await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+            .rejects.toThrow(Error)
+          expect(statecoin).toEqual(UI_PHASE3_STATECOIN)
+          expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+          
+          await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+            .rejects.toThrowError(`Error getting new TOR id: ${tor_id_error().message}`)
+          expect(statecoin).toEqual(UI_PHASE3_STATECOIN)
+          expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+          
+          })
+
+          test('swapPhase2 test 7 - Error making blind spend token in requester_calc_s()', async function() {
+    
+            let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
+      
+      
+            let statecoin = makeTesterStatecoin();
+            let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+            
+            
+            //Set valid statecoin status
+            statecoin.status = STATECOIN_STATUS.IN_SWAP
+            //Set valid swap status
+            statecoin.swap_status = SWAP_STATUS.Phase2
+            //Set swap_id to some value
+            statecoin.swap_id = "a swap id"
+            //Set my_bst_data to some value
+            statecoin.swap_my_bst_data = "a my bst data"
+          
+            const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+            
+            http_mock.post = jest.fn((path, body) => {
+              if(path === POST_ROUTE.SWAP_POLL_SWAP){
+                return SWAP_STATUS.Phase2
+              }
+              if(path === POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE){
+                return {s_prime: "some sprime value"}
+              }
+            })
+            
+            http_mock.new_tor_id = jest.fn(() => {
+            })
+
+            const make_rcs_error = () => { return new Error("Error in requester_calc_s")}
+            //wasm_mock.BSTRequestorData = jest.
+            wasm_mock.BSTRequestorData.requester_calc_s = jest.fn((_s_prime, _u, _v) => {
+              throw make_rcs_error()
+            })
+            
+            //The statecoin ui swap status is expected to be update to phase 3
+            let phase4_statecoin = cloneDeep(statecoin)
+            phase4_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase4
+            const UI_PHASE4_STATECOIN = cloneDeep(phase4_statecoin)
+    
+            await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
+              .rejects.toThrow(Error)
+            expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
+            expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+            
+            await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
+              .rejects.toThrowError(`${make_rcs_error().message}`)
+            expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
+            expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+            
+            })
+
+            test.skip('swapPhase2 test 8 - Error making blind spend token in make_blind_spend_token()', async function() {
+    
+              let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
+        
+        
+              let statecoin = makeTesterStatecoin();
+              let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+              
+              
+              //Set valid statecoin status
+              statecoin.status = STATECOIN_STATUS.IN_SWAP
+              //Set valid swap status
+              statecoin.swap_status = SWAP_STATUS.Phase2
+              //Set swap_id to some value
+              statecoin.swap_id = "a swap id"
+              //Set my_bst_data to some value
+              statecoin.swap_my_bst_data = "a my bst data"
+            
+              const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+              
+              http_mock.post = jest.fn((path, body) => {
+                if(path === POST_ROUTE.SWAP_POLL_SWAP){
+                  return SWAP_STATUS.Phase2
+                }
+                if(path === POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE){
+                  return {s_prime: "some sprime value"}
+                }
+              })
+              
+              http_mock.new_tor_id = jest.fn(() => {
+              })
+  
+              wasm_mock.BSTRequestorData.requester_calc_s = jest.fn((_bst_requestor_data_str, _signature_str) => {
+                return { "unblinded_sig": "an_unblinded_sig_value"} 
+              })
+
+              const make_mbst_error = () => { return new Error("Error in make_blind_spend_token")}
+              //wasm_mock.BSTRequestorData = jest.
+              wasm_mock.BSTRequestorData.make_blind_spend_token = jest.fn((_bst_requestor_data_str, _signature_str) => {
+                throw make_mbst_error()
+              })
+              
+              //The statecoin ui swap status is expected to be update to phase 3
+              let phase4_statecoin = cloneDeep(statecoin)
+              phase4_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase4
+              const UI_PHASE4_STATECOIN = cloneDeep(phase4_statecoin)
+      
+              await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
+                .rejects.toThrow(Error)
+              expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
+              expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+              
+              await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
+                .rejects.toThrowError(`${make_mbst_error().message}`)
+              expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
+              expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+              
+              })
+
+              test(`swapPhase2 test 9 - Error calling server API ${POST_ROUTE.SWAP_SECOND}`, async function() {
+    
+                let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
+          
+          
+                let statecoin = makeTesterStatecoin();
+                let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+                
+                
+                //Set valid statecoin status
+                statecoin.status = STATECOIN_STATUS.IN_SWAP
+                //Set valid swap status
+                statecoin.swap_status = SWAP_STATUS.Phase2
+                //Set swap_id to some value
+                statecoin.swap_id = "a swap id"
+                //Set my_bst_data to some value
+                statecoin.swap_my_bst_data = "a my bst data"
+              
+                const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+                
+                const make_post_error = (path, body) => { 
+                  return new Error(`Error from POST request - path: ${path}, body: ${body}`)
+                }
+                http_mock.post = jest.fn((path, body) => {
+                  if(path === POST_ROUTE.SWAP_POLL_SWAP){
+                    return SWAP_STATUS.Phase2
+                  }
+                  if(path === POST_ROUTE.SWAP_BLINDED_SPEND_SIGNATURE){
+                    return {s_prime: "some sprime value"}
+                  }
+                  if(path === POST_ROUTE.SWAP_SECOND){
+                    throw make_post_error(path, body)
+                  }
+                })
+                
+                http_mock.new_tor_id = jest.fn(() => {
+                })
+       
+                //The statecoin ui swap status is expected to be update to phase 3
+                let phase4_statecoin = cloneDeep(statecoin)
+                phase4_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase4
+                const UI_PHASE4_STATECOIN = cloneDeep(phase4_statecoin)
+        
+                await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
+                  .rejects.toThrow(Error)
+                expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
+                expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+                
+                await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
+                  .rejects.toThrowError(`${make_post_error(POST_ROUTE.SWAP_SECOND,"some body").message}`)
+                expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
+                expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+                
+                })
+  
 
 })
