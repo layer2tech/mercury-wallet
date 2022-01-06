@@ -7,7 +7,13 @@ import {Link, withRouter} from "react-router-dom";
 import './CreateWalletInfo.css'
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 
-let Store = window.require('electron-store');
+
+let Store
+try {
+  Store = window.require('electron-store');
+} catch (e) {
+  Store = require('electron-store');
+}
 new Store();
 
 const CreateWalletInfoPage = () => {
