@@ -11,7 +11,7 @@ import { StateChainSig } from "../util"
 let cloneDeep = require('lodash.clonedeep');
 
 export class MockHttpClient {
-  get = async (path: string, params: any) => {
+  get = async (path: string, params: any): Promise<any> => {
     switch(path) {
       case GET_ROUTE.PING:
         return true
@@ -37,7 +37,7 @@ export class MockHttpClient {
     }
   }
 
-  post = async (path: string, _body: any) => {
+  post = async (path: string, _body: any): Promise<any> => {
     switch(path) {
       case POST_ROUTE.KEYGEN_FIRST:
         return KEYGEN_FIRST;
