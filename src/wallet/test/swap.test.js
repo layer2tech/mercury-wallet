@@ -139,7 +139,6 @@ describe('After Swaps Complete', function() {
     let wallet_json = Wallet.buildMockToJSON(jest)
 
     // shared_key_id of statecoin in mock created wallet
-
     //add statecoin to wallet
     let statecoin = wallet_json.statecoins.coins[0]
 

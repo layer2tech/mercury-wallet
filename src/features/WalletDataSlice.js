@@ -336,7 +336,6 @@ export const callRemoveCoin = (shared_key_id) => {
 }
 
 export const callGetStateCoin = (shared_key_id) => {
-  console.log('in call get statecoin: ', shared_key_id)
   return wallet.getStatecoin(shared_key_id);
 }
 
@@ -368,7 +367,6 @@ export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, 
   dispatch(removeSwapPendingCoin(selectedCoin))
   // get the statecoin for txId method
   let statecoin = callGetStateCoin(selectedCoin)
-  console.log('call get statecoin: ', statecoin)
   if(statecoin === undefined || statecoin === null){
     statecoin = selectedCoin;
   }
@@ -393,7 +391,6 @@ export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, 
       dispatch(removeCoinFromSwapRecords(selectedCoin));
     }
   }else{
-    console.log('statecoin at end: ', statecoin)
     dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
     dispatch(removeCoinFromSwapRecords(selectedCoin)); // Added this
     setSwapLoad({...swapLoad, join: false, swapCoin:""});

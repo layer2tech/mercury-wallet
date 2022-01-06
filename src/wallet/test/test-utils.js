@@ -28,18 +28,25 @@ function render(
 
 
 const TestComponent = ({wallet_json ,dispatchUsed = false, fn, args = []}) => {
-    // Mock component for testing redux function
-    // Instructions:
-    // 1) Pass the function to be tested as 'fn'
-    // 2) The arguments of the function should be passed in order in a list (excluding dispatch)
-    // 3a) If dispatch is used, ensure it is the first argument of the function
-    // b) Pass dispatchUsed = true
+    /*
+
+    Mock Component for Testing function that manipulates redux state
+
+    Instructions:
+
+        1) Pass the wallet_json file to be loaded to state
+        2) Pass the function to be tested as 'fn'
+        3) The arguments of the function should be passed in order in a list (excluding dispatch)
+        4a) If dispatch is used, ensure it is the first argument of the function used in 2) as fn
+        b) Pass dispatchUsed = true
+
+    */
+
     const dispatch = useDispatch()
     if(!isWalletLoaded()){
         walletFromJson(wallet_json, MOCK_WALLET_PASSWORD)
     }
 
-    console.log('Function rendered args: ', args)
     const fireEvent = () => {
         if(dispatchUsed){
             fn(dispatch,...args)
