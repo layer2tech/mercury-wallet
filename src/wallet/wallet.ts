@@ -6,7 +6,7 @@ import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCo
   encodeSCEAddress} from './';
 import { ElectrsClient } from './electrs'
 
-import { txCPFPBuild, FEE, encryptAES } from './util';
+import { txCPFPBuild, FEE } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
@@ -222,12 +222,6 @@ export class Wallet {
     wallet.addStatecoinFromValues(uuid2, dummy_master_key, 20000, "5c2cf407970d7213f2b4289901958f2978e3b2fe3ef6aca531316cdcf347cc41", 0, proof_key2, ACTION.DEPOSIT)
     wallet.activity.addItem(uuid2, ACTION.TRANSFER);
     return wallet
-  }
-
-  toEncryptedJSON() {
-    let wallet_json = JSON.parse(JSON.stringify(this))
-    wallet_json.mnemonic = encryptAES(this.mnemonic,this.password)
-    return wallet_json
   }
 
   // Load wallet from JSON

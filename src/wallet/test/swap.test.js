@@ -1,19 +1,10 @@
-import React from 'react';
 import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA} from './test_data.js'
 import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment} from "../swap/swap";
 import {STATECOIN_STATUS} from '../statecoin'
-import reducers from '../../reducers';
-import { configureStore } from '@reduxjs/toolkit';
 
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 
-import  TestComponent, { render } from './test-utils'
-
-import { handleEndSwap } from '../../features/WalletDataSlice.js';
-import { fromSatoshi } from '../util.ts';
-import { fireEvent, screen } from '@testing-library/dom';
-import { Wallet } from '../wallet.ts';
-import { encryptAES } from '../util.ts';
+import {fromSeed} from 'bip32';
 
 let bitcoin = require('bitcoinjs-lib')
 
@@ -130,53 +121,4 @@ describe('Swaps', function() {
     // expect(statecoin.swap_address).toBe(SWAP_STATUS.Phase1)
     // expect(statecoin.swap_my_bst_data).toBe(swap_info)
   })
-})
-
-
-describe('After Swaps Complete', function() {
-  // client side's mock
-  let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
-  // server side's mock
-  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
-
-  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock)
-  
-  let wallet_json = wallet.toEncryptedJSON()
-
-  test('Auto-swap clicked after Join Group button', async function(){
-    // let wallet_json = Wallet.buildMockToJSON(jest)
-
-    // shared_key_id of statecoin in mock created wallet
-    //add statecoin to wallet
-    let statecoin = wallet_json.statecoins.coins[0]
-
-    let store = configureStore({reducer: reducers,})
-
-    // test redux state before and after handleEndSwap
-    // check: if swap_auto = true then the coin should be added to swapPendingGroup
-    let setSwapLoad = jest.fn()
-    let swapLoad = {join: false,swapCoin: "", leave:false}
-
-    statecoin.swap_auto = true
-    // Turn auto swap on for coin
-
-
-    const { renderedObj }  = render( store,
-      <TestComponent
-      wallet_json = {wallet_json}
-      dispatchUsed = {true} 
-      fn = {handleEndSwap} 
-      args = {[statecoin.shared_key_id, { payload: statecoin }, setSwapLoad, swapLoad, fromSatoshi]}
-      />
-    )
-
-    fireEvent(screen.getByText(/FireFunction/i), new MouseEvent ('click', {
-      bubbles: true,
-      cancelable: true
-    }))
-    
-    expect(store.getState().walletData.swapPendingCoins[0]).toBe(statecoin.shared_key_id)
-    
-  })
-
 })
