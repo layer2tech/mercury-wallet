@@ -131,6 +131,7 @@ describe('phase 2', function() {
   test('swapPhase2 test 1 - invalid initial statecoin state', async function() {
     
   let statecoin = makeTesterStatecoin();
+  let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
   //Test invalid statecoin statuses
   for (let i=0; i< STATECOIN_STATUS.length; i++){
@@ -463,7 +464,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
             
             })
 
-            test.skip('swapPhase2 test 8 - Error making blind spend token in make_blind_spend_token()', async function() {
+            test('swapPhase2 test 8 - Error making blind spend token in make_blind_spend_token()', async function() {
     
               let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
         
