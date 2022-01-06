@@ -134,9 +134,17 @@ describe('Swaps', function() {
 
 
 describe('After Swaps Complete', function() {
+  // client side's mock
+  let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+  // server side's mock
+  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock)
   
+  let wallet_json = wallet.toEncryptedJSON()
+
   test('Auto-swap clicked after Join Group button', async function(){
-    let wallet_json = Wallet.buildMockToJSON(jest)
+    // let wallet_json = Wallet.buildMockToJSON(jest)
 
     // shared_key_id of statecoin in mock created wallet
     //add statecoin to wallet

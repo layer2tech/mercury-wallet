@@ -224,14 +224,9 @@ export class Wallet {
     return wallet
   }
 
-  static buildMockToJSON(jest: any): Wallet {
-    // client side's mock
-    let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
-    // server side's mock
-    let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
-    let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
-    let wallet_json = JSON.parse(JSON.stringify(wallet))
-    wallet_json.mnemonic = encryptAES(wallet.mnemonic,wallet.password)
+  toEncryptedJSON() {
+    let wallet_json = JSON.parse(JSON.stringify(this))
+    wallet_json.mnemonic = encryptAES(this.mnemonic,this.password)
     return wallet_json
   }
 
