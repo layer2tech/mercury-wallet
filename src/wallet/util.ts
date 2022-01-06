@@ -70,6 +70,11 @@ export class StateChainSig {
       this.sig = sig;
     }
 
+    static construct(purpose: string, data: string, sig: string) : StateChainSig {
+      let result = new StateChainSig(purpose, data, sig);
+      return result
+    }
+
     static create(
       proof_key_der: BIP32Interface,
       purpose: string,

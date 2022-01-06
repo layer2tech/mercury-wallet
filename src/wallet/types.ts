@@ -290,6 +290,15 @@ export const TransferFinalizeData = typeforce.compile({
   tx_backup_psm: PrepareSignTxMsg,
 })
 
+export const TransferFinalizeDataAPI = typeforce.compile({
+  new_shared_key_id: String,
+  statechain_id: String,
+  statechain_sig: StateChainSig,
+  s2: String,
+  new_tx_backup_hex: String,
+  batch_data: Object
+})
+
 export const TransferBatchdataAPI = typeforce.compile({
   new_shared_key_id: String,
   o2: String,
