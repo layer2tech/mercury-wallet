@@ -6,6 +6,7 @@ import {STATECOIN_STATUS} from '../statecoin'
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 
 import {fromSeed} from 'bip32';
+import { POST_ROUTE } from '../http_client';
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -178,7 +179,11 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
   let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
   
   const server_error = () => { return new Error("Misc server error")}
-  http_mock.post = jest.fn((path, body) => {throw server_error()})
+  http_mock.post = jest.fn((path, body) => {
+    if(path === POST_ROUTE.SWAP_POLL_SWAP){
+      throw server_error()
+    }
+  })
 
   let statecoin = makeTesterStatecoin();
   let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
@@ -211,5 +216,57 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
   expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
 
   })
+
+  test('swapPhase2 test 3 - server responds to pollSwap with null or invalid status', async function() {
+    
+    let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
+    
+    let statecoin = makeTesterStatecoin();
+    let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+    
+    
+    //Set valid statecoin status
+    statecoin.status = STATECOIN_STATUS.IN_SWAP
+    //Set valid swap status
+    statecoin.swap_status = SWAP_STATUS.Phase2
+    //Set swap_id to some value
+    statecoin.swap_id = "a swap id"
+    //Set my_bst_data to some value
+    statecoin.swap_my_bst_data = "a my bst data"
+  
+    const INIT_STATECOIN = cloneDeep(statecoin)
+    const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+  
+    http_mock.post = jest.fn((path, body) => {
+      if(path === POST_ROUTE.SWAP_POLL_SWAP){
+        return null
+      }
+    })
+    await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+      .rejects.toThrow(Error)
+    await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+      .rejects.toThrowError("Swap halted at phase 1")
+
+    //Test unexpected phases
+    for(let i=0; i<SWAP_STATUS.length; i++){
+      const phase = SWAP_STATUS[i]
+      if (phase !== SWAP_STATUS.Phase2){
+        http_mock.post = jest.fn((path, body) => {
+          if(path === POST_ROUTE.SWAP_POLL_SWAP){
+            return phase
+          }
+        })
+        await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+          .rejects.toThrow(Error)
+        await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+          .rejects.toThrowError(`Swap error: Expected swap phase2. Received: ${phase}`)
+      }
+    }
+      
+    //Expect statecoin and proof_key_der to be unchanged
+    expect(statecoin).toEqual(INIT_STATECOIN)
+    expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+  
+    })
 
 })
