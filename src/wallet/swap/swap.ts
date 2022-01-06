@@ -70,7 +70,7 @@ class SwapRetryError extends Error {
     const msg = err?.message
     let message: string
     if(msg) {
-      message = JSON.stringify(msg)
+      message = msg
     } else {
       message = JSON.stringify(err)
     }
@@ -221,6 +221,7 @@ export const swapPhase1 = async (
     throw new SwapRetryError(err)
   }
 }
+
 
 
 // Poll swap until phase changes to Phase2. In that case all participants have completed Phase1
