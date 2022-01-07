@@ -302,8 +302,8 @@ export class StateCoinList {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
 
-      if (coin.status===STATECOIN_STATUS.IN_SWAP ) throw Error("Swap already begun. Cannot remove coin.");
-      if (coin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
+      if (coin.status === STATECOIN_STATUS.IN_SWAP ) throw Error("Swap already begun. Cannot remove coin.");
+      if (coin.status !== STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
       if(coin.swap_status === SWAP_STATUS.Phase4){
         throw new Error(`Coin ${coin.shared_key_id} is in swap phase 4. Cannot remove coin.`)
       }
@@ -614,6 +614,7 @@ export class StateCoin {
       this.swap_transfer_msg = null;
       this.swap_batch_data = null;
       this.swap_transfer_finalized_data = null;
+      this.ui_swap_status = null
   }
 
   getTXIdAndOut(): string {
