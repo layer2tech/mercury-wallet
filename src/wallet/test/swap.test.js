@@ -1,18 +1,18 @@
 import React from 'react';
-import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA} from './test_data.js'
-import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment} from "../swap/swap";
+import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails} from './test_data.js'
+import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment, checkEligibleForSwap, asyncSemaphoreRun} from "../swap/swap";
+
 import {STATECOIN_STATUS} from '../statecoin'
 import reducers from '../../reducers';
 import { configureStore } from '@reduxjs/toolkit';
-
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 
 import  TestComponent, { render } from './test-utils'
-
 import { handleEndSwap } from '../../features/WalletDataSlice.js';
 import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 import { Wallet } from '../wallet.ts';
+import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { encryptAES } from '../util.ts';
 
 let bitcoin = require('bitcoinjs-lib')
@@ -46,6 +46,7 @@ describe('swapToken', function() {
      });
   })
 });
+
 
 describe('Swaps', function() {
   test('swapInit', async function() {
@@ -132,7 +133,6 @@ describe('Swaps', function() {
   })
 })
 
-
 describe('After Swaps Complete', function() {
   // client side's mock
   let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
@@ -140,7 +140,7 @@ describe('After Swaps Complete', function() {
   let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock)
-  
+
   let wallet_json = wallet.toEncryptedJSON()
 
   test('Auto-swap clicked after Join Group button', async function(){
@@ -174,9 +174,9 @@ describe('After Swaps Complete', function() {
       bubbles: true,
       cancelable: true
     }))
-    
+
     expect(store.getState().walletData.swapPendingCoins[0]).toBe(statecoin.shared_key_id)
-    
+
   })
 
 })
