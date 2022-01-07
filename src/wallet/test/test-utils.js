@@ -1,13 +1,12 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
-import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { Provider, useDispatch, useSelector } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 
 import reducers from '../../reducers';
-import { callGetAllStatecoins, isWalletLoaded, walletFromJson, walletLoad } from '../../features/WalletDataSlice';
-import { Wallet } from '..';
-import { MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD } from '../wallet';
+import { isWalletLoaded, walletFromJson } from '../../features/WalletDataSlice';
+
+import { MOCK_WALLET_PASSWORD } from '../wallet';
 let bitcoin = require('bitcoinjs-lib')
 
 function render(
