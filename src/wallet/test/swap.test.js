@@ -506,7 +506,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
                 throw make_mbst_error()
               })
               
-              //The statecoin ui swap status is expected to be update to phase 3
+              //The statecoin ui swap status is expected to be updated to phase 3
               let phase4_statecoin = cloneDeep(statecoin)
               phase4_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase4
               const UI_PHASE4_STATECOIN = cloneDeep(phase4_statecoin)
@@ -521,9 +521,9 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
               expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
               expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
               
-              })
+            })
 
-              test(`swapPhase2 test 9 - Error calling server API ${POST_ROUTE.SWAP_SECOND}`, async function() {
+            test(`swapPhase2 test 9 - Error calling server API ${POST_ROUTE.SWAP_SECOND}`, async function() {
     
                 let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
           
@@ -576,7 +576,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
                 expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
                 expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
                 
-                })
+            })
   
 
 })
