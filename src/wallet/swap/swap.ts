@@ -261,6 +261,7 @@ export const swapPhase2 = async (
   try {
     bss = await get_blinded_spend_signature(http_client, statecoin.swap_id.id, statecoin.statechain_id);
     statecoin.ui_swap_status=UI_SWAP_STATUS.Phase3;
+    log.info("Swap Phase3: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
   } catch(err: any) {
     throw new SwapRetryError(err)
   }
@@ -280,7 +281,6 @@ export const swapPhase2 = async (
     // Update coin with receiver_addr and update status
     statecoin.swap_receiver_addr=receiver_addr;
     statecoin.swap_status=SWAP_STATUS.Phase3;  
-    log.info("Swap Phase3: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
   } catch(err: any) {
     throw new SwapRetryError(err)
   }
@@ -871,15 +871,16 @@ export const second_message = async (
   my_bst_data: BSTRequestorData,
   blinded_spend_signature: BlindedSpendSignature,
 ): Promise<SCEAddress> => {
-  let unblinded_sig = JSON.parse(wasm_client.BSTRequestorData.requester_calc_s(
+
+  let unblinded_sig_json = wasm_client.BSTRequestorData.requester_calc_s(
     JSON.stringify(blinded_spend_signature.s_prime),
     JSON.stringify(my_bst_data.u),
-    JSON.stringify(my_bst_data.v)
-  ));
+    JSON.stringify(my_bst_data.v));
+  let unblinded_sig = JSON.parse(unblinded_sig_json);
 
-  let bst_json = wasm_client.BSTRequestorData.make_blind_spend_token(JSON.stringify(my_bst_data),JSON.stringify(unblinded_sig.unblinded_sig));
+  let bst_json = wasm_client.BSTRequestorData.make_blind_spend_token(JSON.stringify(my_bst_data),JSON.stringify(unblinded_sig.unblinded_sig));  
   let bst: BlindedSpendToken = JSON.parse(bst_json);
-
+  
   let swapMsg2 = {
     "swap_id":swap_id,
     "blinded_spend_token":bst,

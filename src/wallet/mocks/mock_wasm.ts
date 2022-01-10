@@ -90,8 +90,18 @@ export const SIGN_SECOND = JSON.stringify( {"partial_sig":{"c3":"5b312c5b3838353
 // Swap phase 2
 export const REQUESTOR_CALC_S = { "unblinded_sig": "an_unblinded_sig_value"} 
 
+
 export const MAKE_BST = {
-  "s": "an_s_value",
-  "r": "an_r_value",
-  "m": "an_m_value",
+    "s": "an_s_value",
+    "r": "an_r_value",
+    "m": "an_m_value"
+} 
+
+export const POST_BST = {
+  "swap_id": "a swap id",
+  "blinded_spend_token": {
+    "s": "an_s_value",
+    "r": "an_r_value",
+    "m": "an_m_value"
+  },
 } 

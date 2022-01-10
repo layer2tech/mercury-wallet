@@ -1,11 +1,14 @@
 // Mocks out server side calls to cryptographic protocols and other APIs.
 // Mock Classes  are followed by mock data for full protocol runs.
 
+import { createTypeReferenceDirectiveResolutionCache } from "typescript";
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
 import { RecoveryDataMsg, StateChainDataAPI } from "../mercury/info_api";
 import { TransferFinalizeDataAPI, TransferFinalizeDataForRecovery, transferReceiverFinalizeRecovery } from "../mercury/transfer";
 import { SwapID } from "../swap/swap";
 import { StateChainSig } from "../util"
+let types = require("../types")
+let typeforce = require('typeforce');
 // import { SIGNSWAPTOKEN_DATA, BST_DATA } from "../test/test_data";
 
 let cloneDeep = require('lodash.clonedeep');
@@ -726,3 +729,10 @@ export const GET_BLINDED_SPEND_SIGNATURE = {
 }
 
 export const REGISTER_UTXO = null;
+
+export const SWAP_SECOND_SCE_ADDRESS = {
+  "tx_backup_addr": "a tx backup addr",
+  "proof_key": "a proof key",
+}
+typeforce(types.SCEAddress, SWAP_SECOND_SCE_ADDRESS);
+
