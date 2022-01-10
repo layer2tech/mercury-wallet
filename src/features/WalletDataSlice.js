@@ -360,6 +360,52 @@ export const callGetWalletJsonToBackup = () => {
   return wallet.storage.getWallet(wallet.name);
 }
 
+//Swap Functions
+
+export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, fromSatoshi) => {
+
+  dispatch(removeSwapPendingCoin(selectedCoin))
+  // get the statecoin for txId method
+  let statecoin = callGetStateCoin(selectedCoin)
+  if(statecoin === undefined || statecoin === null){
+    statecoin = selectedCoin;
+  }
+  if (res.payload===null) {
+    dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
+    dispatch(removeCoinFromSwapRecords(selectedCoin));// added this
+    setSwapLoad({...swapLoad, join: false, swapCoin:""});
+    if(statecoin.swap_auto){
+      dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+      dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
+      setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
+    }
+    
+    return
+  }
+  if (res.error===undefined) {
+    if(res.payload?.is_deposited){
+      dispatch(setNotification({msg:"Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+      dispatch(removeCoinFromSwapRecords(selectedCoin));
+    } else {
+      dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+      dispatch(removeCoinFromSwapRecords(selectedCoin));
+    }
+  }else{
+    dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
+    dispatch(removeCoinFromSwapRecords(selectedCoin)); // Added this
+    setSwapLoad({...swapLoad, join: false, swapCoin:""});
+  }
+  if(res?.payload){
+    let statecoin = res.payload
+    if(statecoin.swap_auto){
+      dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+      dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
+      setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
+    }
+  }
+}
+
+
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
 export const callDepositInit = createAsyncThunk(
