@@ -25,7 +25,6 @@ import {
 } from "../../features/WalletDataSlice";
 import {fromSatoshi} from '../../wallet';
 import './Swap.css';
-import { SWAP_STATUS } from "../../wallet/swap/swap";
 
 const SwapPage = () => {
   const dispatch = useDispatch();
@@ -129,6 +128,7 @@ const SwapPage = () => {
         setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
         dispatch(callDoSwap({"shared_key_id": selectedCoin}))
           .then(res => {
+
             handleEndSwap(dispatch,selectedCoin,res,setSwapLoad,swapLoad,fromSatoshi)
             
           });
@@ -182,11 +182,10 @@ const SwapPage = () => {
       }
       return
     } else{
-      statecoin.swap_auto = true;
+      statecoin.swap_auto = true
       dispatch(callDoAutoSwap(selectedCoin));
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
-     
       
       dispatch(addSwapPendingCoin(item.shared_key_id))
     }
