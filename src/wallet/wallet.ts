@@ -227,6 +227,7 @@ export class Wallet {
   }
 
   // convert wallet to encrypted JSON with encrypted mnemonic
+
   toEncryptedJSON() {
     let wallet_json = JSON.parse(JSON.stringify(this))
     wallet_json.mnemonic = encryptAES(this.mnemonic,this.password)

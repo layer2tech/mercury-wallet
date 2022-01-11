@@ -1,9 +1,8 @@
 import React from 'react';
-
 import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails} from './test_data.js'
 import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment, checkEligibleForSwap, asyncSemaphoreRun} from "../swap/swap";
+import {STATECOIN_STATUS} from '../statecoin'
 
-import {STATECOIN_STATUS} from '../statecoin';
 import reducers from '../../reducers';
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -16,9 +15,10 @@ import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 import { Wallet } from '../wallet.ts';
 
-
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 
+
+import { encryptAES } from '../util.ts';
 
 let bitcoin = require('bitcoinjs-lib')
 
@@ -220,4 +220,5 @@ describe('After Swaps Complete', function() {
 
   })
 
-}) 
+})
+
