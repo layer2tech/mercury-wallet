@@ -233,9 +233,9 @@ export const swapPhase2 = async (
 ) => {
   // check statecoin is IN_SWAP
   if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Coin status is not IN_SWAP. Status: "+statecoin.status);
-
   if (statecoin.swap_status!==SWAP_STATUS.Phase2) throw Error("Coin is not in this phase of the swap protocol. In phase: "+statecoin.swap_status);
   if (statecoin.swap_id===null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
+  if (statecoin.swap_info===null) throw Error("No swap info found for coin. Swap info should be set in Phase1.");
   if (statecoin.swap_my_bst_data===null) throw Error("No BST data found for coin. BST data should be set in Phase1.");
 
   // Poll swap until phase changes to Phase2.
@@ -406,7 +406,7 @@ export const swapPhase4 = async (
 
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase3) {
-    return null
+    throw new SwapRetryError("Client in swap phase 4. Server in phase 3. Awaiting phase 4. Retrying...", "")
   } else if (phase !== SWAP_STATUS.Phase4 && phase !== null) {
     throw new Error("Swap error: swapPhase4: Expected swap phase4 or null. Received: "+phase);
   }

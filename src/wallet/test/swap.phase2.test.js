@@ -44,6 +44,9 @@ describe('Swap phase 2', function() {
     }
   }
 
+  await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+        .rejects.toThrowError(`Coin is not in this phase of the swap protocol. In phase: ${swap_status}`)
+
   //Set valid swap status
   statecoin.swap_status = SWAP_STATUS.Phase2
 
@@ -65,8 +68,6 @@ describe('Swap phase 2', function() {
 })
       
 test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error', async function() {
-    
-  let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
   
   const server_error = () => { return new Error("Misc server error")}
   http_mock.post = jest.fn((path, body) => {
@@ -99,7 +100,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
 
   //The error should contain the message in server_error()
   await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-    .rejects.toThrowError(server_error())
+    .rejects.toThrowError(new SwapRetryError(server_error(), "Phase2 pollSwap error:"))
 
   //Expect statecoin and proof_key_der to be unchanged
   expect(statecoin).toEqual(INIT_STATECOIN)
@@ -108,8 +109,6 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
   })
 
   test('swapPhase2 test 3 - server responds to pollSwap with null or invalid status', async function() {
-    
-    let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
     
     let statecoin = makeTesterStatecoin();
     let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
@@ -161,9 +160,6 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
 
     test('swapPhase2 test 4 - server responds with Error to request for blinded spend signature', async function() {
     
-      let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
-
-
       const server_bst_error = () => { return new Error("Misc server error retrieving BST")}
       
       http_mock.post = jest.fn((path, body) => {
@@ -204,11 +200,8 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
     
       })
 
-      test('swapPhase2 test 5 - an invalid data type is returned from request for BST', async function() {
+    test('swapPhase2 test 5 - an invalid data type is returned from request for BST', async function() {
     
-        let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
-  
-  
         let statecoin = makeTesterStatecoin();
         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
         
@@ -248,9 +241,6 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
         })
 
         test('swapPhase2 test 6 - an Error is returned from the new_torid() function', async function() {
-    
-          let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
-    
     
           let statecoin = makeTesterStatecoin();
           let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
@@ -299,13 +289,9 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
           })
 
           test('swapPhase2 test 7 - Error making blind spend token in requester_calc_s()', async function() {
-    
-            let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
-      
       
             let statecoin = makeTesterStatecoin();
             let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-            
             
             //Set valid statecoin status
             statecoin.status = STATECOIN_STATUS.IN_SWAP
@@ -354,14 +340,10 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
             })
 
             test('swapPhase2 test 8 - Error making blind spend token in make_blind_spend_token()', async function() {
-    
-              let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
-        
-        
+      
               let statecoin = makeTesterStatecoin();
               let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-              
-              
+                        
               //Set valid statecoin status
               statecoin.status = STATECOIN_STATUS.IN_SWAP
               //Set valid swap status
@@ -414,9 +396,6 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
 
             test(`swapPhase2 test 9 - Error calling server API ${POST_ROUTE.SWAP_SECOND}`, async function() {
     
-                let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
-          
-          
                 let statecoin = makeTesterStatecoin();
                 let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
                 
@@ -483,14 +462,10 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
             })
 
             test(`swapPhase2 test 10 - complete swap phase 2`, async function() {
-    
-              let http_mock = jest.genMockFromModule('../mocks/swap/phase2/test1/mock_http_client')
-        
         
               let statecoin = makeTesterStatecoin();
               let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-              
-              
+                          
               //Set valid statecoin status
               statecoin.status = STATECOIN_STATUS.IN_SWAP
               //Set valid swap status
