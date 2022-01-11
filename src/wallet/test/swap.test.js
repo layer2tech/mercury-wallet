@@ -20,6 +20,7 @@ import { Wallet } from '../wallet.ts';
 
 
 import { AsyncSemaphore } from "@esfx/async-semaphore";
+import { ACTION } from '../activity_log.ts';
 
 
 let bitcoin = require('bitcoinjs-lib')
@@ -247,7 +248,7 @@ describe('resume_swap', function(){
 
     new_statecoin = await wallet.resume_swap(statecoin)
 
-    expect(statecoin.status).toBe(STATECOIN_STATUS.SWAPPED)
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPPED)
     
     spy.mockRestore()
   })

@@ -815,40 +815,7 @@ export class Wallet {
     this.statecoins.setCoinSpent(id, action, transfer_msg);
     this.activity.addItem(id, action);
     log.debug("Set Statecoin spent: "+id);
-  }
-
-  setCoinSpent(shared_key_id: string, action: string, transfer_msg?: TransferMsg3) {
-    let coin = this.statecoins.getCoin(shared_key_id)
-    if (coin) {
-      switch (action) {
-        case ACTION.WITHDRAW:
-          coin.setWithdrawing();
-          return;
-        case ACTION.TRANSFER:
-          coin.setInTransfer();
-          coin.transfer_msg = transfer_msg!;
-          return;
-        case ACTION.SWAP:
-          coin.setSwapped();
-          return;
-        case ACTION.EXPIRED:
-          coin.setExpired();
-      }
-    } else {
-      throw Error("No coin found with shared_key_id " + shared_key_id);
-    }
-  }
-
-  setStatecoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
-    let statecoin = this.statecoins.getCoin(id)
-    if(statecoin){
-      console.log('statecoin before: ', statecoin.status)
-      this.setCoinSpent(id, action, transfer_msg)
-      console.log('statecoin after: ', statecoin.status)
-      this.activity.addItem(id, action);
-      log.debug("Set Statecoin spent: "+id);
-      this.saveStateCoinsList()
-    }
+    this.saveStateCoinsList()
   }
 
   setStateCoinAutoSwap(shared_key_id: string) {
@@ -1017,7 +984,7 @@ export class Wallet {
     return statecoin_finalized
   }
 
-    setIfNewCoin(
+  setIfNewCoin(
     new_statecoin: StateCoin
   ) {
     let new_coin = true;
@@ -1154,7 +1121,7 @@ export class Wallet {
     } finally {
       if ( new_statecoin && new_statecoin instanceof StateCoin ) {
         this.setIfNewCoin(new_statecoin)
-        this.setStatecoinSpent(statecoin.shared_key_id, ACTION.SWAP)
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
         new_statecoin.setSwapDataToNull();
       } 
       this.saveStateCoinsList(); 
