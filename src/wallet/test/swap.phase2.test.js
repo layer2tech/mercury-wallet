@@ -16,6 +16,20 @@ let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 // server side's mock
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 
+//Set a valid initial statecoin status for phase2
+function init_phase2_status(statecoin) {
+  //Set valid statecoin status
+  statecoin.status = STATECOIN_STATUS.IN_SWAP
+  //Set valid swap status
+  statecoin.swap_status = SWAP_STATUS.Phase2
+  //Set swap_id to some value
+  statecoin.swap_id = "a swap id"
+  //Set my_bst_data to some value
+  statecoin.swap_my_bst_data = "a my bst data"
+  //Set swap_info to some value
+  statecoin.swap_info = "a swap info"
+}
+
 describe('Swap phase 2', function() {
   test('swapPhase2 test 1 - invalid initial statecoin state', async function() {
     
@@ -30,10 +44,10 @@ describe('Swap phase 2', function() {
       await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der)).rejects.toThrowError(`Coin status is not IN_SWAP. Status: ${sc_status}`)
     }
   }
-  
+
   //Set valid statecoin status
   statecoin.status = STATECOIN_STATUS.IN_SWAP
-
+  
   //Test invalid statecoin swap statuses
   for (let i=0; i< SWAP_STATUS.length; i++){
     if(SWAP_STATUS[i] !== SWAP_STATUS.Phase2){
@@ -44,8 +58,9 @@ describe('Swap phase 2', function() {
     }
   }
 
+  statecoin.swap_status = null
   await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-        .rejects.toThrowError(`Coin is not in this phase of the swap protocol. In phase: ${swap_status}`)
+        .rejects.toThrowError(`Coin is not in this phase of the swap protocol. In phase: ${null}`)
 
   //Set valid swap status
   statecoin.swap_status = SWAP_STATUS.Phase2
@@ -53,6 +68,7 @@ describe('Swap phase 2', function() {
   //Test invalid swap_id and swap_my_bst_data
   statecoin.swap_id=null
   statecoin.swap_my_bst_data=null
+  statecoin.swap_info= null
 
   await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
     .rejects.toThrowError("No Swap ID found. Swap ID should be set in Phase0.")
@@ -61,9 +77,13 @@ describe('Swap phase 2', function() {
   statecoin.swap_id = "a swap id"
 
   await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-    .rejects.toThrowError("No BST data found for coin. BST data should be set in Phase1.")
+  .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
 
-  statecoin.swap_my_bst_data = "a my bst data"
+  //Set swap_id to some value
+  statecoin.swap_info = "a swap info"
+
+  await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+    .rejects.toThrowError("No BST data found for coin. BST data should be set in Phase1.")
 
 })
       
@@ -81,13 +101,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
   
   
   //Set valid statecoin status
-  statecoin.status = STATECOIN_STATUS.IN_SWAP
-  //Set valid swap status
-  statecoin.swap_status = SWAP_STATUS.Phase2
-  //Set swap_id to some value
-  statecoin.swap_id = "a swap id"
-  //Set my_bst_data to some value
-  statecoin.swap_my_bst_data = "a my bst data"
+  init_phase2_status(statecoin)
 
   const INIT_STATECOIN = cloneDeep(statecoin)
   const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
@@ -100,7 +114,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
 
   //The error should contain the message in server_error()
   await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-    .rejects.toThrowError(new SwapRetryError(server_error(), "Phase2 pollSwap error:"))
+    .rejects.toThrowError(`${server_error().message}`)
 
   //Expect statecoin and proof_key_der to be unchanged
   expect(statecoin).toEqual(INIT_STATECOIN)
@@ -115,13 +129,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
     
     
     //Set valid statecoin status
-    statecoin.status = STATECOIN_STATUS.IN_SWAP
-    //Set valid swap status
-    statecoin.swap_status = SWAP_STATUS.Phase2
-    //Set swap_id to some value
-    statecoin.swap_id = "a swap id"
-    //Set my_bst_data to some value
-    statecoin.swap_my_bst_data = "a my bst data"
+    init_phase2_status(statecoin)
   
     const INIT_STATECOIN = cloneDeep(statecoin)
     const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
@@ -175,15 +183,8 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
       let statecoin = makeTesterStatecoin();
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
       
-      
       //Set valid statecoin status
-      statecoin.status = STATECOIN_STATUS.IN_SWAP
-      //Set valid swap status
-      statecoin.swap_status = SWAP_STATUS.Phase2
-      //Set swap_id to some value
-      statecoin.swap_id = "a swap id"
-      //Set my_bst_data to some value
-      statecoin.swap_my_bst_data = "a my bst data"
+      init_phase2_status(statecoin)
     
       const INIT_STATECOIN = cloneDeep(statecoin)
       const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
@@ -204,16 +205,9 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
     
         let statecoin = makeTesterStatecoin();
         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-        
-        
+                
         //Set valid statecoin status
-        statecoin.status = STATECOIN_STATUS.IN_SWAP
-        //Set valid swap status
-        statecoin.swap_status = SWAP_STATUS.Phase2
-        //Set swap_id to some value
-        statecoin.swap_id = "a swap id"
-        //Set my_bst_data to some value
-        statecoin.swap_my_bst_data = "a my bst data"
+        init_phase2_status(statecoin)
       
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
@@ -245,15 +239,8 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
           let statecoin = makeTesterStatecoin();
           let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
           
-          
           //Set valid statecoin status
-          statecoin.status = STATECOIN_STATUS.IN_SWAP
-          //Set valid swap status
-          statecoin.swap_status = SWAP_STATUS.Phase2
-          //Set swap_id to some value
-          statecoin.swap_id = "a swap id"
-          //Set my_bst_data to some value
-          statecoin.swap_my_bst_data = "a my bst data"
+          init_phase2_status(statecoin)
         
           const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
           
@@ -294,13 +281,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
             let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
             
             //Set valid statecoin status
-            statecoin.status = STATECOIN_STATUS.IN_SWAP
-            //Set valid swap status
-            statecoin.swap_status = SWAP_STATUS.Phase2
-            //Set swap_id to some value
-            statecoin.swap_id = "a swap id"
-            //Set my_bst_data to some value
-            statecoin.swap_my_bst_data = "a my bst data"
+            init_phase2_status(statecoin)
           
             const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
             
@@ -345,13 +326,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
               let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
                         
               //Set valid statecoin status
-              statecoin.status = STATECOIN_STATUS.IN_SWAP
-              //Set valid swap status
-              statecoin.swap_status = SWAP_STATUS.Phase2
-              //Set swap_id to some value
-              statecoin.swap_id = "a swap id"
-              //Set my_bst_data to some value
-              statecoin.swap_my_bst_data = "a my bst data"
+              init_phase2_status(statecoin)
             
               const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
               
@@ -399,15 +374,8 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
                 let statecoin = makeTesterStatecoin();
                 let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
                 
-                
                 //Set valid statecoin status
-                statecoin.status = STATECOIN_STATUS.IN_SWAP
-                //Set valid swap status
-                statecoin.swap_status = SWAP_STATUS.Phase2
-                //Set swap_id to some value
-                statecoin.swap_id = "a swap id"
-                //Set my_bst_data to some value
-                statecoin.swap_my_bst_data = "a my bst data"
+                init_phase2_status(statecoin)
               
                 const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
                 
@@ -467,13 +435,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
               let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
                           
               //Set valid statecoin status
-              statecoin.status = STATECOIN_STATUS.IN_SWAP
-              //Set valid swap status
-              statecoin.swap_status = SWAP_STATUS.Phase2
-              //Set swap_id to some value
-              statecoin.swap_id = "a swap id"
-              //Set my_bst_data to some value
-              statecoin.swap_my_bst_data = "a my bst data"
+              init_phase2_status(statecoin)
             
               const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
               

@@ -421,14 +421,20 @@ export const swapPhase4 = async (
     statecoin.swap_status=SWAP_STATUS.End;
     statecoin_out.swap_rounds = statecoin.swap_rounds+1;
     statecoin_out.anon_set = statecoin.anon_set+statecoin.swap_info.swap_token.statechain_ids.length;
+    console.log(`setting if new coin: ${JSON.stringify(statecoin_out)}`)
     wallet.setIfNewCoin(statecoin_out)
+    console.log("set coin spent...")
     wallet.statecoins.setCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
     // update in wallet
+    console.log("update statecoin_out...")
     statecoin_out.swap_status = null;
     statecoin_out.ui_swap_status = null;
     statecoin_out.swap_auto = statecoin.swap_auto
+    console.log("setConfirmed...")
     statecoin_out.setConfirmed();
+    console.log("encode sce address...")
     statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key)
+    console.log("add coin to wallet...")
     if(wallet.statecoins.addCoin(statecoin_out)) {
       wallet.saveStateCoinsList();
       log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+ statecoin_out.shared_key_id);
