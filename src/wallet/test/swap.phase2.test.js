@@ -73,17 +73,17 @@ describe('Swap phase 2', function() {
   await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
     .rejects.toThrowError("No Swap ID found. Swap ID should be set in Phase0.")
 
-  //Set swap_id to some value
+  
   statecoin.swap_id = "a swap id"
 
   await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-  .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
+    .rejects.toThrowError("No BST data found for coin. BST data should be set in Phase1.")
 
-  //Set swap_id to some value
-  statecoin.swap_info = "a swap info"
+  
+  statecoin.swap_my_bst_data = "a bst data"
 
   await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-    .rejects.toThrowError("No BST data found for coin. BST data should be set in Phase1.")
+  .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
 
 })
       

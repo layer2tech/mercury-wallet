@@ -282,7 +282,7 @@ export const swapPhase2 = async (
   if (statecoin.swap_status!==SWAP_STATUS.Phase2) throw Error("Coin is not in this phase of the swap protocol. In phase: "+statecoin.swap_status);
   if (statecoin.swap_id===null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
   if (statecoin.swap_my_bst_data===null) throw Error("No BST data found for coin. BST data should be set in Phase1.");
-
+  if (statecoin.swap_info===null) throw Error("No swap info found for coin. Swap info should be set in Phase1.")
   // Poll swap until phase changes to Phase2.
   let phase: string
   try {
