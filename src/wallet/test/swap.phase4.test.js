@@ -10,6 +10,8 @@ import { Wallet, MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD } from '../wallet';
 import { ACTION } from '../';
 import { Transaction } from 'bitcoinjs-lib';
 
+let walletName = `${MOCK_WALLET_NAME}_phase4_tests`
+
 let mock_http_client = require('../mocks/mock_http_client')
 
 let mock_wasm = require('../mocks/mock_wasm')
@@ -470,7 +472,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
 
       let sc_clone_1 = cloneDeep(statecoin)
   
-      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
       wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90", 
         SHARED_KEY_DUMMY, 0.1, 
         "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 
@@ -531,7 +533,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
 
       let sc_clone_1 = cloneDeep(statecoin)
   
-      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
       wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90", 
         SHARED_KEY_DUMMY, 0.1, 
         "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 
@@ -598,7 +600,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
 
       let sc_clone_1 = cloneDeep(statecoin)
   
-      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
       wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90", 
         SHARED_KEY_DUMMY, 0.1, 
         "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 
@@ -665,7 +667,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
 
       let sc_clone_1 = cloneDeep(statecoin)
   
-      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
       wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90", 
         SHARED_KEY_DUMMY, 0.1, 
         "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 
