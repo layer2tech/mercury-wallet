@@ -255,6 +255,61 @@ describe('resume_swap', function(){
   // test for statecoin.setSwapDataToNull()
 })
 
+describe('Do Swap Poll', function(){
+
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+  // loading test wallet
+    
+  // wallet.config.update({"jest_testing_mode": true})
+
+  test('On Start or Resume Swap', async function(){
+    // Test prev phase changes correctly
+    // Prev Phase changes to Init:
+
+    let statecoin = wallet.statecoins.coins[0]
+
+    statecoin.swap_id = {id: "000-000-00-00"};
+
+    let prev_phase = swap.handleResumeOrStartSwap(false, statecoin)
+
+    expect(prev_phase).toBe(SWAP_STATUS.Init)
+    // Check prev phase swap status changed
+    expect(prev_phase).toBe(statecoin.swap_status)
+    // Check that statecoin swap status changed outside of function call
+    expect(statecoin.swap_id).toBe(null)
+    // Ensure swap data set to null
+
+    // Phase 4 Swap coin resuming swap:
+
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],8)
+    // Resume swap coin on phase 4
+
+    statecoin = wallet.statecoins.coins[0]
+
+    expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase4)
+    // Check the correct swap status is set for the test coin
+
+    prev_phase = swap.handleResumeOrStartSwap(true, statecoin)
+
+    expect(prev_phase).toBe(SWAP_STATUS.Phase4)
+
+    // Test resume swap only works for phase4 coins
+
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],2)
+    // set swap phase not === swap Phase 4
+
+    statecoin = wallet.statecoins.coins[0]
+
+    expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase2)
+
+    expect(() => swap.handleResumeOrStartSwap(true, statecoin))
+      .toThrow("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status)
+    // Throw error for trying to resume swap on phase !== Phase4
+
+
+  })
+})
+
 describe('Swaps', function() {
   test('swapInit', async function() {
     http_mock.post = jest.fn().mockReset()

@@ -510,6 +510,36 @@ export const swapPhase4 = async (
   }
 }
 
+// do_swap_poll modular functions:
+
+export const handleResumeOrStartSwap = (resume: boolean, statecoin: StateCoin) : string | null => {
+  // Coins in Phase4 resume all other coins start swap
+
+  let prev_phase;
+  //coin previous swap phase
+
+  if (resume){
+    if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin "+statecoin.shared_key_id+" - not in swap.");
+    if (statecoin.swap_status!==SWAP_STATUS.Phase4) 
+      throw Error("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status);
+    prev_phase = statecoin.swap_status;
+  } else {
+    checkEligibleForSwap(statecoin)
+    if(statecoin.swap_status === SWAP_STATUS.Phase4){
+      throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
+    }
+    if(statecoin){
+      statecoin.setSwapDataToNull()
+      statecoin.swap_status = SWAP_STATUS.Init;
+      statecoin.ui_swap_status = SWAP_STATUS.Init;
+      statecoin.setAwaitingSwap();
+    }
+    prev_phase = SWAP_STATUS.Init;
+  }
+  
+  return prev_phase
+}
+
 // Loop through swap protocol for some statecoin
 export const do_swap_poll = async(
   http_client: HttpClient |  MockHttpClient,
@@ -524,30 +554,10 @@ export const do_swap_poll = async(
   wallet: Wallet,
   resume: boolean = false
 ): Promise<StateCoin | null> => {
-  if (resume){
-    if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin "+statecoin.shared_key_id+" - not in swap.");
-    if (statecoin.swap_status!==SWAP_STATUS.Phase4) 
-      throw Error("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status);
-  } else {
-    checkEligibleForSwap(statecoin)
-  }
-  
-  // Reset coin's swap data
-  let prev_phase;
-  if(!resume){
-    if(statecoin.swap_status === SWAP_STATUS.Phase4){
-      throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
-    }
-    if(statecoin){
-      statecoin.setSwapDataToNull()
-      statecoin.swap_status = SWAP_STATUS.Init;
-      statecoin.ui_swap_status = SWAP_STATUS.Init;
-      statecoin.setAwaitingSwap();
-    }
-    prev_phase = SWAP_STATUS.Init;
-  } else {
-    prev_phase = statecoin.swap_status;
-  }
+
+  let prev_phase = handleResumeOrStartSwap(resume, statecoin)
+  // Coins previous phase
+
   
   const INIT_RETRY_AFTER=600
   const MAX_ERRS=10
@@ -558,6 +568,7 @@ export const do_swap_poll = async(
   let n_errs=0
   let n_reps=0
   let new_statecoin = null
+
     while (new_statecoin==null) {
       try {
         if ( statecoin.swap_status !== SWAP_STATUS.Phase4 && n_reps >= MAX_REPS_PER_PHASE ){
