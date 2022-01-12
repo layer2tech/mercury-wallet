@@ -428,12 +428,8 @@ export class Wallet {
     this.block_height = header_data[0].height;
   }
 
-  encodeSCEAddress(proof_key: string) {
-    return encodeSCEAddress(proof_key, this.config.electrum_config.host);
-  }
-
   genSEAddress() {
-    return this.encodeSCEAddress(this.genProofKey().publicKey.toString('hex'));
+    return encodeSCEAddress(this.genProofKey().publicKey.toString('hex'));
   }
   // Gen new SCEAddress and set in this.current_sce_addr
   newSEAddress() {
@@ -470,7 +466,7 @@ export class Wallet {
       let proofkey = this.account.derive(addr).publicKey.toString("hex");
       // Proof key associated with address
 
-      let encoded_sce_address = this.encodeSCEAddress(proofkey)
+      let encoded_sce_address = encodeSCEAddress(proofkey)
       // Encode proof key to generate SC address
 
       let used = false;
@@ -874,7 +870,7 @@ export class Wallet {
     
     statecoin.value = value;
 
-    statecoin.sc_address = this.encodeSCEAddress(statecoin.proof_key)
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
 
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
@@ -1051,7 +1047,7 @@ export class Wallet {
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
   async do_swap(
-    shared_key_id: string,
+    shared_key_id: string
   ): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
@@ -1099,7 +1095,7 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
       
-    statecoin.sc_address = this.encodeSCEAddress(statecoin.proof_key)
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key, this)
       
     let new_statecoin: StateCoin | null=null;
 
@@ -1301,7 +1297,7 @@ export class Wallet {
     this.setIfNewCoin(statecoin_finalized)
  
     //Add statecoin address to coin
-    statecoin_finalized.sc_address = this.encodeSCEAddress(statecoin_finalized.proof_key)
+    statecoin_finalized.sc_address = encodeSCEAddress(statecoin_finalized.proof_key)
     
     // update in wallet
     statecoin_finalized.setConfirmed();

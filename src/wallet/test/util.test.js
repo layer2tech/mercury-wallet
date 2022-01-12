@@ -1,9 +1,10 @@
 import { TransactionBuilder, networks, ECPair, BIP32Interface } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
 import { FEE, txBackupBuild, txWithdrawBuild, txCPFPBuild, StateChainSig, toSatoshi, fromSatoshi,
-  encodeSCEAddress, decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
+  decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
   encryptECIES, decryptECIES, encryptAES, decryptAES, proofKeyToSCEAddress, encodeMessage,
   decodeMessage, VIRTUAL_TX_SIZE } from '../util';
+import { encodeSCEAddress } from '../util';
 import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
 import { Wallet } from '../';
 
@@ -122,9 +123,7 @@ test('bech32 encode/decode', function() {
   wallet.save()
 
   let proof_key = PROOF_KEY;
-  let encode = encodeSCEAddress(proof_key, wallet.config.electrum_config.network);
-  let encode_2 = wallet.encodeSCEAddress(proof_key);
-  expect(encode).toEqual(encode_2)
+  let encode = encodeSCEAddress(proof_key, wallet);
   expect(encode.slice(0,2)).toBe("sc");
   let decode = decodeSCEAddress(encode, wallet);
   expect(proof_key).toBe(decode);

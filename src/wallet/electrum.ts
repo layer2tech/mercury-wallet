@@ -14,7 +14,7 @@ export interface ElectrumClientConfig {
 
 class ElectrumClientError extends Error {
   constructor(message: string){
-    super(message);
+    super(message);q
     this.name = "ElectrumClientError";
   }
 }
