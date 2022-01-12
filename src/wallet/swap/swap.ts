@@ -4,7 +4,7 @@ import { ElectrsClient } from '../electrs'
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { getStateChain, getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
+import { getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,6 +13,8 @@ import { ACTION } from '../activity_log';
 import { encodeSCEAddress} from '../';
 import { AsyncSemaphore } from '@esfx/async-semaphore';
 import { List } from 'reselect/es/types';
+import { callGetConfig } from '../../features/WalletDataSlice';
+
 
 let bitcoin = require("bitcoinjs-lib");
 
@@ -471,7 +473,20 @@ export const swapPhase4 = async (
     statecoin_out.ui_swap_status = null;
     statecoin_out.swap_auto = statecoin.swap_auto
     statecoin_out.setConfirmed();
-    statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key, wallet)
+    console.log(`getting SCE address - wallet:${wallet}...`)
+    console.log(`${wallet.config.jest_testing_mode}`)
+    let config
+    if(wallet && wallet.config.jest_testing_mode){
+      // For Jest testing, preset wallet
+      // Prevents needing a redux state loaded
+      config = callGetConfig(wallet)
+    }
+      else{
+        config = callGetConfig()
+    }
+    
+    statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key, config.electrum_config.host)
+    console.log("got SCE address.")
     if(wallet.statecoins.addCoin(statecoin_out)) {
       wallet.saveStateCoinsList();
       log.info("Swap complete for Coin: "+statecoin.shared_key_id+". New statechain_id: "+ statecoin_out.shared_key_id);

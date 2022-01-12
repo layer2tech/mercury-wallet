@@ -38,20 +38,47 @@ const wasm_err = (message) => {
 const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
 
 //Set a valid initial statecoin status for phase4
-function init_phase4_status(statecoin) {
+function get_statecoin_in() {
+  let statecoin = makeTesterStatecoin();
   statecoin.status = STATECOIN_STATUS.IN_SWAP
   statecoin.swap_status = SWAP_STATUS.Phase4
   statecoin.swap_id = "a swap id"
   statecoin.swap_my_bst_data = "a my bst data"
   statecoin.swap_info = mock_http_client.SWAP_INFO
   statecoin.swap_transfer_finalized_data = mock_http_client.TRANSFER_FINALIZE_DATA
+  return statecoin
+}
+
+function get_statecoin_out_expected(statecoin_out, smt_proof = null){
+  let statecoin_out_expected = get_statecoin_in()
+  statecoin_out_expected.value = 100000
+  statecoin_out_expected.swap_rounds = 1
+  statecoin_out_expected.anon_set = 5
+  statecoin_out_expected.swap_status = null
+  statecoin_out_expected.swap_transfer_finalized_data = null
+  statecoin_out_expected.status = STATECOIN_STATUS.AVAILABLE
+  statecoin_out_expected.shared_key_id = mock_http_client.TRANSFER_FINALIZE_DATA.new_shared_key_id
+  statecoin_out_expected.statechain_id = mock_http_client.TRANSFER_FINALIZE_DATA.statechain_id
+  statecoin_out_expected.funding_txid = mock_http_client.RECOVERY_STATECHAIN_DATA.utxo.txid
+  statecoin_out_expected.is_new = true
+  statecoin_out_expected.proof_key = 
+    mock_http_client.RECOVERY_STATECHAIN_DATA.chain[mock_http_client.RECOVERY_STATECHAIN_DATA.chain.length-1].data
+  statecoin_out_expected.sc_address = "sc1qvl2s57h77wr93wjvtgdtkzetv2ypjw67k8qysz82zltvjgds29vq3ahfez"
+  statecoin_out_expected.shared_key = SWAP_SHARED_KEY_OUT
+  statecoin_out_expected.swap_my_bst_data = null
+  statecoin_out_expected.swap_id = null
+  statecoin_out_expected.swap_info = null
+  statecoin_out_expected.timestamp = statecoin_out.timestamp
+  statecoin_out_expected.tx_backup =  Transaction.fromHex(
+    mock_http_client.TRANSFER_FINALIZE_DATA.tx_backup_psm.tx_hex);
+  statecoin_out_expected.smt_proof = smt_proof
+  return statecoin_out_expected;
 }
 
 describe('Swap phase 4', function() {
   test('swapPhase4 test 1 - invalid initial statecoin state', async function() {
     
-  let statecoin = makeTesterStatecoin();
-  statecoin.status = STATECOIN_STATUS.IN_SWAP
+  let statecoin = get_statecoin_in()
   const INIT_STATECOIN = cloneDeep(statecoin)
 
   //Test invalid statecoin statuses
@@ -84,11 +111,13 @@ describe('Swap phase 4', function() {
   statecoin.swap_status=null
   await expect(swapPhase4(http_mock, null, statecoin, null))
     .rejects.toThrowError(`Coin is not in this phase of the swap protocol. In phase: ${statecoin.swap_status}`)
-    expect(statecoin).toEqual(INIT_STATECOIN)
+    let sc_null_swap_status=cloneDeep(INIT_STATECOIN)
+    sc_null_swap_status.swap_status=null
+    expect(statecoin).toEqual(sc_null_swap_status)
     
   await expect(swapPhase4(http_mock, null, statecoin, null))
     .rejects.toThrow(Error)
-    expect(statecoin).toEqual(INIT_STATECOIN)
+    expect(statecoin).toEqual(sc_null_swap_status)
       
   //Set valid swap status
   statecoin.swap_status = SWAP_STATUS.Phase4
@@ -123,8 +152,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
     }
   })
 
-  let statecoin = makeTesterStatecoin();
-  init_phase4_status(statecoin)
+  let statecoin = get_statecoin_in()
  
   const INIT_STATECOIN = cloneDeep(statecoin)
    
@@ -147,8 +175,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
 
   test('swapPhase4 test 3 - server responds to pollSwap with invalid status', async function() {
     
-    let statecoin = makeTesterStatecoin();
-    init_phase4_status(statecoin);
+    let statecoin = get_statecoin_in()
   
     const INIT_STATECOIN = cloneDeep(statecoin)
     
@@ -173,8 +200,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
 
   test('swapPhase4 test 4 - error requesting keygen first in transferReceiverFinalize', async function() {
     
-    let statecoin = makeTesterStatecoin();
-    init_phase4_status(statecoin);
+    let statecoin = get_statecoin_in()
    
     let updated_statecoin = cloneDeep(statecoin)
     updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
@@ -207,8 +233,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
   })
 
   test('swapPhase4 test 5 - error from client keygen first message transferReceiverFinalize', async function() {
-    let statecoin = makeTesterStatecoin();
-    init_phase4_status(statecoin);
+    let statecoin = get_statecoin_in()
    
     let updated_statecoin = cloneDeep(statecoin)
     updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
@@ -244,8 +269,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
   })
 
   test('swapPhase4 test 6 - error requesting keygen second in transferReceiverFinalize', async function() {
-    let statecoin = makeTesterStatecoin();
-    init_phase4_status(statecoin);
+    let statecoin = get_statecoin_in()
        
     let updated_statecoin = cloneDeep(statecoin)
     updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
@@ -281,8 +305,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
   })
 
   test('swapPhase4 test 7 - error requesting keygen second in transferReceiverFinalize', async function() {
-    let statecoin = makeTesterStatecoin();
-    init_phase4_status(statecoin);
+    let statecoin = get_statecoin_in()
    
     let updated_statecoin = cloneDeep(statecoin)
     updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
@@ -318,8 +341,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
   })
 
   test('swapPhase4 test 8 - error client keygen second in transferReceiverFinalize', async function() {
-    let statecoin = makeTesterStatecoin();
-    init_phase4_status(statecoin);
+    let statecoin = get_statecoin_in()
    
     let updated_statecoin = cloneDeep(statecoin)
     updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
@@ -359,8 +381,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
   })
 
   test('swapPhase4 test 9 - error from client set master key in transferReceiverFinalize', async function() {
-    let statecoin = makeTesterStatecoin();
-    init_phase4_status(statecoin);
+    let statecoin = get_statecoin_in()
    
     let updated_statecoin = cloneDeep(statecoin)
     updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
@@ -403,9 +424,8 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
     }
   })
 
-  test('swapPhase4 test 10 - error from getRoot', async function() {
-    let statecoin = makeTesterStatecoin();
-    init_phase4_status(statecoin);
+  test('swapPhase4 test 10 - error getting SMT root', async function() {
+    let statecoin = get_statecoin_in()
    
     let updated_statecoin = cloneDeep(statecoin)
     updated_statecoin.ui_swap_status = UI_SWAP_STATUS.End
@@ -456,33 +476,208 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
         "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 
         0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", 
         ACTION.DEPOSIT)
-      wallet.saveStateCoinsList();
+      wallet.config.update({"jest_testing_mode": true})
 
       let statecoin_out = await swapPhase4(http_mock, wasm_mock, sc_clone_1, wallet);
       expect(sc_clone_1).toEqual(UPDATED_STATECOIN)
     
-      let statecoin_out_expected = cloneDeep(statecoin);
-      statecoin_out_expected.value = 100000
-      statecoin_out_expected.swap_rounds = 1
-      statecoin_out_expected.anon_set = 5
-      statecoin_out_expected.swap_status = null
-      statecoin_out_expected.swap_transfer_finalized_data = null
-      statecoin_out_expected.status = STATECOIN_STATUS.AVAILABLE
-      statecoin_out_expected.shared_key_id = mock_http_client.TRANSFER_FINALIZE_DATA.new_shared_key_id
-      statecoin_out_expected.statechain_id = mock_http_client.TRANSFER_FINALIZE_DATA.statechain_id
-      statecoin_out_expected.funding_txid = mock_http_client.RECOVERY_STATECHAIN_DATA.utxo.txid
-      statecoin_out_expected.is_new = true
-      statecoin_out_expected.proof_key = 
-        mock_http_client.RECOVERY_STATECHAIN_DATA.chain[mock_http_client.RECOVERY_STATECHAIN_DATA.chain.length-1].data
-      statecoin_out_expected.sc_address = "sc1qvl2s57h77wr93wjvtgdtkzetv2ypjw67k8qysz82zltvjgds29vq3ahfez"
-      statecoin_out_expected.shared_key = SWAP_SHARED_KEY_OUT
-      statecoin_out_expected.swap_my_bst_data = null
-      statecoin_out_expected.swap_id = null
-      statecoin_out_expected.swap_info = null
-      statecoin_out_expected.timestamp = statecoin_out.timestamp
-      statecoin_out_expected.tx_backup =  Transaction.fromHex(
-        mock_http_client.TRANSFER_FINALIZE_DATA.tx_backup_psm.tx_hex);
+      let statecoin_out_expected = get_statecoin_out_expected(statecoin_out);
   
+      expect(statecoin_out).toEqual(statecoin_out_expected)
+    }
+  })
+
+  test('swapPhase4 test 11 - error getting SMT proof', async function() {
+    let statecoin = get_statecoin_in()
+   
+    let updated_statecoin = cloneDeep(statecoin)
+    updated_statecoin.ui_swap_status = UI_SWAP_STATUS.End
+    updated_statecoin.swap_status = SWAP_STATUS.End
+    const UPDATED_STATECOIN = cloneDeep(updated_statecoin)
+  
+    let valid_phases = [SWAP_STATUS.Phase4, null]
+
+    wasm_mock.KeyGen.first_message = jest.fn((_secret_key) => {
+      return mock_wasm.KEYGEN_FIRST
+    })
+
+    wasm_mock.KeyGen.second_message = jest.fn((_param1, _param2) => {
+      return mock_wasm.KEYGEN_SECOND
+    })
+
+    wasm_mock.KeyGen.set_master_key = jest.fn((_param1, _param2, _param3) => {
+      return mock_wasm.KEYGEN_SET_MASTER_KEY
+    })
+
+    for (let i=0; i < valid_phases.length; i++) {
+      http_mock.post = jest.fn((path, body) => {
+        if(path === POST_ROUTE.SWAP_POLL_SWAP){
+          return valid_phases[i]
+        }
+        if(path === POST_ROUTE.KEYGEN_FIRST){
+          return mock_http_client.KEYGEN_FIRST
+        }
+        if(path === POST_ROUTE.KEYGEN_SECOND){
+          return mock_http_client.KEYGEN_SECOND
+        }
+        if(path === POST_ROUTE.SMT_PROOF){
+          throw post_error(path)
+        }
+      })
+
+      http_mock.get = jest.fn((path, params) => {
+        return mock_http_client.ROOT_INFO
+      })
+
+      let sc_clone_1 = cloneDeep(statecoin)
+  
+      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+      wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90", 
+        SHARED_KEY_DUMMY, 0.1, 
+        "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 
+        0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", 
+        ACTION.DEPOSIT)
+      wallet.config.update({"jest_testing_mode": true})
+
+      let statecoin_out = await swapPhase4(http_mock, wasm_mock, sc_clone_1, wallet);
+      expect(sc_clone_1).toEqual(UPDATED_STATECOIN)
+    
+      let statecoin_out_expected = get_statecoin_out_expected(statecoin_out)
+      
+      expect(statecoin_out).toEqual(statecoin_out_expected)
+    }
+  })
+
+  test('swapPhase4 test 12 - error verifying SMT root', async function() {
+    let statecoin = get_statecoin_in()
+   
+    let updated_statecoin = cloneDeep(statecoin)
+    updated_statecoin.ui_swap_status = UI_SWAP_STATUS.End
+    updated_statecoin.swap_status = SWAP_STATUS.End
+    const UPDATED_STATECOIN = cloneDeep(updated_statecoin)
+  
+    let valid_phases = [SWAP_STATUS.Phase4, null]
+
+    wasm_mock.KeyGen.first_message = jest.fn((_secret_key) => {
+      return mock_wasm.KEYGEN_FIRST
+    })
+
+    wasm_mock.KeyGen.second_message = jest.fn((_param1, _param2) => {
+      return mock_wasm.KEYGEN_SECOND
+    })
+
+    wasm_mock.KeyGen.set_master_key = jest.fn((_param1, _param2, _param3) => {
+      return mock_wasm.KEYGEN_SET_MASTER_KEY
+    })
+
+    wasm_mock.verify_statechain_smt = jest.fn((_param1, _param2, _param3) => {
+      return false
+    })
+
+    for (let i=0; i < valid_phases.length; i++) {
+      http_mock.post = jest.fn((path, body) => {
+        if(path === POST_ROUTE.SWAP_POLL_SWAP){
+          return valid_phases[i]
+        }
+        if(path === POST_ROUTE.KEYGEN_FIRST){
+          return mock_http_client.KEYGEN_FIRST
+        }
+        if(path === POST_ROUTE.KEYGEN_SECOND){
+          return mock_http_client.KEYGEN_SECOND
+        }
+        if(path === POST_ROUTE.SMT_PROOF){
+          return mock_http_client.SMT_PROOF
+        }
+      })
+
+      http_mock.get = jest.fn((path, params) => {
+        if(path === GET_ROUTE.ROOT){
+          return mock_http_client.ROOT_INFO
+        }
+      })
+
+      let sc_clone_1 = cloneDeep(statecoin)
+  
+      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+      wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90", 
+        SHARED_KEY_DUMMY, 0.1, 
+        "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 
+        0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", 
+        ACTION.DEPOSIT)
+      wallet.config.update({"jest_testing_mode": true})
+
+      let statecoin_out = await swapPhase4(http_mock, wasm_mock, sc_clone_1, wallet);
+      expect(sc_clone_1).toEqual(UPDATED_STATECOIN)
+    
+      let statecoin_out_expected = get_statecoin_out_expected(statecoin_out, mock_http_client.SMT_PROOF)
+      
+      expect(statecoin_out).toEqual(statecoin_out_expected)
+    }
+  })
+
+  test('swapPhase4 test 13 - no errors', async function() {
+    let statecoin = get_statecoin_in()
+   
+    let updated_statecoin = cloneDeep(statecoin)
+    updated_statecoin.ui_swap_status = UI_SWAP_STATUS.End
+    updated_statecoin.swap_status = SWAP_STATUS.End
+    const UPDATED_STATECOIN = cloneDeep(updated_statecoin)
+  
+    let valid_phases = [SWAP_STATUS.Phase4, null]
+
+    wasm_mock.KeyGen.first_message = jest.fn((_secret_key) => {
+      return mock_wasm.KEYGEN_FIRST
+    })
+
+    wasm_mock.KeyGen.second_message = jest.fn((_param1, _param2) => {
+      return mock_wasm.KEYGEN_SECOND
+    })
+
+    wasm_mock.KeyGen.set_master_key = jest.fn((_param1, _param2, _param3) => {
+      return mock_wasm.KEYGEN_SET_MASTER_KEY
+    })
+
+    wasm_mock.verify_statechain_smt = jest.fn((_param1, _param2, _param3) => {
+      return true
+    })
+
+    for (let i=0; i < valid_phases.length; i++) {
+      http_mock.post = jest.fn((path, body) => {
+        if(path === POST_ROUTE.SWAP_POLL_SWAP){
+          return valid_phases[i]
+        }
+        if(path === POST_ROUTE.KEYGEN_FIRST){
+          return mock_http_client.KEYGEN_FIRST
+        }
+        if(path === POST_ROUTE.KEYGEN_SECOND){
+          return mock_http_client.KEYGEN_SECOND
+        }
+        if(path === POST_ROUTE.SMT_PROOF){
+          return mock_http_client.SMT_PROOF
+        }
+      })
+
+      http_mock.get = jest.fn((path, params) => {
+        if(path === GET_ROUTE.ROOT){
+          return mock_http_client.ROOT_INFO
+        }
+      })
+
+      let sc_clone_1 = cloneDeep(statecoin)
+  
+      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+      wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90", 
+        SHARED_KEY_DUMMY, 0.1, 
+        "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 
+        0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", 
+        ACTION.DEPOSIT)
+      wallet.config.update({"jest_testing_mode": true})
+
+      let statecoin_out = await swapPhase4(http_mock, wasm_mock, sc_clone_1, wallet);
+      expect(sc_clone_1).toEqual(UPDATED_STATECOIN)
+    
+      let statecoin_out_expected = get_statecoin_out_expected(statecoin_out, mock_http_client.SMT_PROOF)
+      
       expect(statecoin_out).toEqual(statecoin_out_expected)
     }
   })

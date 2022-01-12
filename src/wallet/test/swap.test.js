@@ -2,6 +2,7 @@ import React from 'react';
 import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails} from './test_data.js'
 import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment, checkEligibleForSwap, asyncSemaphoreRun} from "../swap/swap";
 import {STATECOIN_STATUS} from '../statecoin'
+import * as swap from "../swap/swap"
 import reducers from '../../reducers';
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -15,6 +16,7 @@ import { fireEvent, screen } from '@testing-library/dom';
 import { Wallet } from '../wallet.ts';
 
 import { AsyncSemaphore } from "@esfx/async-semaphore";
+import { ACTION } from '../activity_log.ts';
 
 
 import { encryptAES } from '../util.ts';
@@ -26,6 +28,8 @@ let bitcoin = require('bitcoinjs-lib')
 let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 // server side's mock
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+//electrum mock
+let electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
 
 describe('swapToken', function() {
   test('Gen and Verify', async function() {
@@ -51,7 +55,7 @@ describe('swapToken', function() {
   })
 });
 
-describe('Main Swap Fns', function(){
+describe('Do Swap', function(){
 
   test('do_swap', async function(){
 
@@ -85,6 +89,168 @@ describe('Main Swap Fns', function(){
 
   })
 
+})
+
+describe('resume_swap', function(){
+
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+    
+  wallet.config.update({"jest_testing_mode": true})
+  
+  const spy = jest.spyOn(swap, 'do_swap_poll');
+  
+  // For each phase, check expected output:
+  // check statecoin && check new_statecoin
+
+  test('Swap Break UI Phase 0', async function() {    
+    // do_swap_poll no error thrown && returns null new_statecoin
+    // check statecoin returned with all swap values set to null ?
+    spy.mockReset().mockReturnValueOnce(null)
+    
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],0)
+    
+    let statecoin = wallet.statecoins.coins[0]
+    
+    let new_statecoin = await wallet.resume_swap(statecoin)
+
+    expect(new_statecoin).toBe(null)
+
+    // Error thrown from do_swap_poll
+    spy.mockReset().mockImplementation(() => {
+      throw new Error()
+    })
+
+    wallet.statecoins.coins[0] = setSwapDetails( wallet.statecoins.coins[0] , "Reset" )
+
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],0)
+
+    // Test correct values set before fn call:
+    expect(statecoin.status).toBe(STATECOIN_STATUS.AWAITING_SWAP)
+    expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase0)
+    expect(statecoin.ui_swap_status).toBe(swap.UI_SWAP_STATUS.Phase0)
+
+    
+    new_statecoin = await wallet.resume_swap(statecoin)
+    
+    expect(new_statecoin).toBe(null)
+
+    statecoin = wallet.statecoins.coins[0]
+    // Get statecoin value after function call
+
+    expect(statecoin.status).toBe(STATECOIN_STATUS.AVAILABLE)
+    expect(statecoin.swap_status).toBe(null)
+    expect(statecoin.ui_swap_status).toBe(null)
+  })
+  test('Swap Break UI Phase 7', async function() {    
+    // do_swap_poll no error thrown && returns null new_statecoin
+    // check statecoin returned with all swap values set to null ?
+    spy.mockReset().mockReturnValueOnce(null)
+    
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],1)
+    
+    let statecoin = wallet.statecoins.coins[0]
+    
+    let new_statecoin = await wallet.resume_swap(statecoin)
+
+    expect(new_statecoin).toBe(null)
+
+    // Error thrown from do_swap_poll
+    spy.mockReset().mockImplementation(() => {
+      throw new Error()
+    })
+
+    wallet.statecoins.coins[0] = setSwapDetails( wallet.statecoins.coins[0] , "Reset" )
+
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],"7-Phase4")
+
+    // Test correct values set before fn call:
+    expect(statecoin.status).toBe(STATECOIN_STATUS.IN_SWAP)
+    expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase4)
+    expect(statecoin.ui_swap_status).toBe(swap.UI_SWAP_STATUS.Phase7)
+
+    
+    new_statecoin = await wallet.resume_swap(statecoin)
+    
+    expect(new_statecoin).toBe(null)
+
+    let statecoin_out = wallet.statecoins.coins[0]
+    // Get statecoin value after function call
+
+    expect(statecoin_out.status).toBe(statecoin.status)
+    expect(statecoin_out.swap_status).toBe(statecoin.swap_status)
+    expect(statecoin_out.ui_swap_status).toBe(statecoin.ui_swap_status)
+  })
+  test('Swap Break UI Phase 8', async function() {    
+    // do_swap_poll no error thrown && returns null new_statecoin
+    // check statecoin returned with all swap values set to null ?
+    spy.mockReset().mockReturnValueOnce(null)
+
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],8)
+    
+    let statecoin = wallet.statecoins.coins[0]
+    
+    let new_statecoin = await wallet.resume_swap(statecoin)
+
+    expect(new_statecoin).toBe(null)
+
+    // Error thrown from do_swap_poll
+    spy.mockReset().mockImplementation(() => {
+      throw new Error()
+    })
+
+    wallet.statecoins.coins[0] = setSwapDetails( wallet.statecoins.coins[0] , "Reset" )
+
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],8)
+
+    // Test correct values set before fn call:
+    expect(statecoin.status).toBe(STATECOIN_STATUS.IN_SWAP)
+    expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase4)
+    expect(statecoin.ui_swap_status).toBe(swap.UI_SWAP_STATUS.Phase8)
+
+    
+    new_statecoin = await wallet.resume_swap(statecoin)
+    
+    expect(new_statecoin).toBe(null)
+
+    let statecoin_out = wallet.statecoins.coins[0]
+    // Get statecoin value after function call
+
+    expect(statecoin_out.status).toBe(statecoin.status)
+    expect(statecoin_out.swap_status).toBe(statecoin.swap_status)
+    expect(statecoin_out.ui_swap_status).toBe(statecoin.ui_swap_status)
+
+  })
+  test('Swap Successful', async function(){
+    // New statecoin received:
+    let returned_statecoin = makeTesterStatecoin()
+
+    spy.mockReset().mockReturnValueOnce(returned_statecoin)
+
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],"End")
+    let statecoin = wallet.statecoins.coins[0]
+
+    let new_statecoin = await wallet.resume_swap(statecoin)
+
+    expect(returned_statecoin).toBe(new_statecoin)
+
+    expect(new_statecoin.status).toBe(returned_statecoin.status)
+
+    // statecoin deposited by wallet received:
+    
+    // Check statecoin status set to SWAPPED
+    spy.mockReset().mockReturnValueOnce(returned_statecoin)
+
+    wallet.statecoins.coins[0].status = STATECOIN_STATUS.AVAILABLE
+
+    statecoin = wallet.statecoins.coins[0]
+
+    new_statecoin = await wallet.resume_swap(statecoin)
+
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPPED)
+    
+    spy.mockRestore()
+  })
+  // test for statecoin.setSwapDataToNull()
 })
 
 describe('Swaps', function() {

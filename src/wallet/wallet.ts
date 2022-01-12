@@ -3,7 +3,7 @@ import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
   MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, GET_ROUTE, decryptAES,
-  encodeSCEAddress} from './';
+  encodeSCEAddress } from './';
 import { ElectrsClient } from './electrs'
 
 import { txCPFPBuild, FEE, encryptAES } from './util';
@@ -428,8 +428,12 @@ export class Wallet {
     this.block_height = header_data[0].height;
   }
 
+  encodeSCEAddress(proof_key: string) {
+    return encodeSCEAddress(proof_key, this.config.electrum_config.host);
+  }
+
   genSEAddress() {
-    return encodeSCEAddress(this.genProofKey().publicKey.toString('hex'));
+    return this.encodeSCEAddress(this.genProofKey().publicKey.toString('hex'));
   }
   // Gen new SCEAddress and set in this.current_sce_addr
   newSEAddress() {
@@ -466,7 +470,7 @@ export class Wallet {
       let proofkey = this.account.derive(addr).publicKey.toString("hex");
       // Proof key associated with address
 
-      let encoded_sce_address = encodeSCEAddress(proofkey)
+      let encoded_sce_address = this.encodeSCEAddress(proofkey)
       // Encode proof key to generate SC address
 
       let used = false;
@@ -816,6 +820,7 @@ export class Wallet {
     this.statecoins.setCoinSpent(id, action, transfer_msg);
     this.activity.addItem(id, action);
     log.debug("Set Statecoin spent: "+id);
+    this.saveStateCoinsList()
   }
 
   setStateCoinAutoSwap(shared_key_id: string) {
@@ -869,7 +874,7 @@ export class Wallet {
     
     statecoin.value = value;
 
-    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+    statecoin.sc_address = this.encodeSCEAddress(statecoin.proof_key)
 
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
@@ -1094,9 +1099,9 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
       
-    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+    statecoin.sc_address = this.encodeSCEAddress(statecoin.proof_key)
       
-    let new_statecoin: StateCoin | any | null=null;
+    let new_statecoin: StateCoin | null=null;
 
     await swapSemaphore.wait();
     try{
@@ -1112,14 +1117,16 @@ export class Wallet {
       // completed server side
       if((statecoin?.swap_status !== SWAP_STATUS.Phase4) 
         || `${e}`.includes("Transfer batch ended. Timeout")){
+
         statecoin.setSwapDataToNull();
+
         // remove generated address
         this.account.chains[0].pop();
       }
     } finally {
-      if (new_statecoin) {
+      if ( new_statecoin && new_statecoin instanceof StateCoin ) {
         this.setIfNewCoin(new_statecoin)
-        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)  
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
         new_statecoin.setSwapDataToNull();
       } 
       this.saveStateCoinsList(); 
@@ -1294,7 +1301,7 @@ export class Wallet {
     this.setIfNewCoin(statecoin_finalized)
  
     //Add statecoin address to coin
-    statecoin_finalized.sc_address = encodeSCEAddress(statecoin_finalized.proof_key)
+    statecoin_finalized.sc_address = this.encodeSCEAddress(statecoin_finalized.proof_key)
     
     // update in wallet
     statecoin_finalized.setConfirmed();
