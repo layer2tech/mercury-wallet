@@ -1,3 +1,4 @@
+import { STATECOIN_STATUS } from '../../wallet/statecoin';
 import React, { useState } from 'react'
 import {
   InTransferIcon,
@@ -10,7 +11,6 @@ import {
   ExpiredIcon
 } from './statusIcons';
 import { CopiedButton } from '../../components';
-import { STATECOIN_STATUS } from '../../wallet/statecoin';
 import { encodeMessage } from '../../wallet/util';
 import Spinner from 'react-bootstrap/Spinner';
 import './coinStatus.css';

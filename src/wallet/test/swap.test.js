@@ -3,7 +3,6 @@ import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails
 import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment, checkEligibleForSwap, asyncSemaphoreRun} from "../swap/swap";
 import {STATECOIN_STATUS} from '../statecoin'
 import * as swap from "../swap/swap"
-
 import reducers from '../../reducers';
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -21,6 +20,7 @@ import { ACTION } from '../activity_log.ts';
 
 
 import { encryptAES } from '../util.ts';
+import {fromSeed} from 'bip32';
 
 let bitcoin = require('bitcoinjs-lib')
 
@@ -30,7 +30,6 @@ let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 //electrum mock
 let electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
-
 
 describe('swapToken', function() {
   test('Gen and Verify', async function() {

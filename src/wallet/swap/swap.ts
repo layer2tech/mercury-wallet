@@ -4,7 +4,7 @@ import { ElectrsClient } from '../electrs'
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress } from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { getStateChain, getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
+import { getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,6 +13,8 @@ import { ACTION } from '../activity_log';
 import { encodeSCEAddress } from '../';
 import { AsyncSemaphore } from '@esfx/async-semaphore';
 import { List } from 'reselect/es/types';
+import { callGetConfig } from '../../features/WalletDataSlice';
+
 
 let bitcoin = require("bitcoinjs-lib");
 
@@ -72,7 +74,7 @@ class SwapRetryError extends Error {
     const msg = err?.message
     let message: string
     if (msg) {
-      message = JSON.stringify(msg)
+      message = msg
     } else {
       message = JSON.stringify(err)
     }
@@ -267,6 +269,7 @@ export const swapPhase1 = async (
 }
 
 
+
 // Poll swap until phase changes to Phase2. In that case all participants have completed Phase1
 // and swap second message can be performed.
 export const swapPhase2 = async (
@@ -276,11 +279,10 @@ export const swapPhase2 = async (
 ) => {
   // check statecoin is IN_SWAP
   if (statecoin.status !== STATECOIN_STATUS.IN_SWAP) throw Error("Coin status is not IN_SWAP. Status: " + statecoin.status);
-
-  if (statecoin.swap_status !== SWAP_STATUS.Phase2) throw Error("Coin is not in this phase of the swap protocol. In phase: " + statecoin.swap_status);
-  if (statecoin.swap_id === null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
-  if (statecoin.swap_my_bst_data === null) throw Error("No BST data found for coin. BST data should be set in Phase1.");
-
+  if (statecoin.swap_status!==SWAP_STATUS.Phase2) throw Error("Coin is not in this phase of the swap protocol. In phase: "+statecoin.swap_status);
+  if (statecoin.swap_id===null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
+  if (statecoin.swap_my_bst_data===null) throw Error("No BST data found for coin. BST data should be set in Phase1.");
+  if (statecoin.swap_info===null) throw Error("No swap info found for coin. Swap info should be set in Phase1.")
   // Poll swap until phase changes to Phase2.
   let phase: string
   try {
@@ -303,8 +305,8 @@ export const swapPhase2 = async (
   let bss
   try {
     bss = await get_blinded_spend_signature(http_client, statecoin.swap_id.id, statecoin.statechain_id);
-    statecoin.ui_swap_status = UI_SWAP_STATUS.Phase3;
-  } catch (err: any) {
+    statecoin.ui_swap_status=UI_SWAP_STATUS.Phase3;
+  } catch(err: any) {
     throw new SwapRetryError(err)
   }
 
@@ -321,10 +323,10 @@ export const swapPhase2 = async (
     let receiver_addr = await second_message(http_client, wasm_client, statecoin.swap_id.id, statecoin.swap_my_bst_data, bss);
     statecoin.ui_swap_status = UI_SWAP_STATUS.Phase5;
     // Update coin with receiver_addr and update status
-    statecoin.swap_receiver_addr = receiver_addr;
-    statecoin.swap_status = SWAP_STATUS.Phase3;
-    log.info("Swap Phase3: Coin " + statecoin.shared_key_id + " in Swap ", statecoin.swap_id, ".");
-  } catch (err: any) {
+    statecoin.swap_receiver_addr=receiver_addr;
+    statecoin.swap_status=SWAP_STATUS.Phase3;  
+    log.info("Swap Phase3: Coin "+statecoin.shared_key_id+" in Swap ",statecoin.swap_id,".");
+  } catch(err: any) {
     throw new SwapRetryError(err)
   }
 }
@@ -449,7 +451,7 @@ export const swapPhase4 = async (
 
   // If in any other than expected Phase return Error.
   if (phase === SWAP_STATUS.Phase3) {
-    return null
+    throw new SwapRetryError("Client in swap phase 4. Server in phase 3. Awaiting phase 4. Retrying...", "")
   } else if (phase !== SWAP_STATUS.Phase4 && phase !== null) {
     throw new Error("Swap error: swapPhase4: Expected swap phase4 or null. Received: " + phase);
   }
@@ -470,8 +472,9 @@ export const swapPhase4 = async (
     statecoin_out.swap_status = null;
     statecoin_out.ui_swap_status = null;
     statecoin_out.swap_auto = statecoin.swap_auto
-    statecoin_out.setConfirmed();
-    statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key)
+    statecoin_out.setConfirmed(); 
+    statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key, wallet)
+    console.log("got SCE address.")
     if (wallet.statecoins.addCoin(statecoin_out)) {
       wallet.saveStateCoinsList();
       log.info("Swap complete for Coin: " + statecoin.shared_key_id + ". New statechain_id: " + statecoin_out.shared_key_id);
@@ -915,15 +918,16 @@ export const second_message = async (
   my_bst_data: BSTRequestorData,
   blinded_spend_signature: BlindedSpendSignature,
 ): Promise<SCEAddress> => {
-  let unblinded_sig = JSON.parse(wasm_client.BSTRequestorData.requester_calc_s(
+
+  let unblinded_sig_json = wasm_client.BSTRequestorData.requester_calc_s(
     JSON.stringify(blinded_spend_signature.s_prime),
     JSON.stringify(my_bst_data.u),
-    JSON.stringify(my_bst_data.v)
-  ));
+    JSON.stringify(my_bst_data.v));
+  let unblinded_sig = JSON.parse(unblinded_sig_json);
 
   let bst_json = wasm_client.BSTRequestorData.make_blind_spend_token(JSON.stringify(my_bst_data), JSON.stringify(unblinded_sig.unblinded_sig));
   let bst: BlindedSpendToken = JSON.parse(bst_json);
-
+  
   let swapMsg2 = {
     "swap_id": swap_id,
     "blinded_spend_token": bst,
