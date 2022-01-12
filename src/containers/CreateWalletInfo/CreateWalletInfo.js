@@ -7,7 +7,6 @@ import {Link, withRouter} from "react-router-dom";
 import './CreateWalletInfo.css'
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 
-
 let Store
 try {
   Store = window.require('electron-store');

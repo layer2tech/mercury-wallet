@@ -1,8 +1,8 @@
 import React from 'react';
-import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA} from './test_data.js'
-import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, SwapToken, 
-  make_swap_commitment} from "../swap/swap";
+import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails} from './test_data.js'
+import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment, checkEligibleForSwap, asyncSemaphoreRun} from "../swap/swap";
 import {STATECOIN_STATUS} from '../statecoin'
+
 import reducers from '../../reducers';
 import { configureStore } from '@reduxjs/toolkit';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
@@ -13,6 +13,10 @@ import { handleEndSwap } from '../../features/WalletDataSlice.js';
 import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 import { Wallet } from '../wallet.ts';
+
+import { AsyncSemaphore } from "@esfx/async-semaphore";
+
+
 import { encryptAES } from '../util.ts';
 import {fromSeed} from 'bip32';
 
@@ -46,6 +50,42 @@ describe('swapToken', function() {
      });
   })
 });
+
+describe('Main Swap Fns', function(){
+
+  test('do_swap', async function(){
+
+    http_mock.post = jest.fn().mockReset()
+    .mockReturnValueOnce({id: null})  
+
+    let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+
+    // if in swap phase 4 i.e. swap has timed out but still not complete, resume swap 
+    // if in swap phases 0-3
+    // test it joins swap
+
+    const MAX_SWAP_SEMAPHORE_COUNT=100;
+    const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
+    const MAX_UPDATE_SWAP_SEMAPHORE_COUNT=1;
+    const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
+
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],1)
+  
+    expect(() => {
+      checkEligibleForSwap(wallet.statecoins.coins[0])
+    }).toThrow("Coin "+wallet.statecoins.coins[0].getTXIdAndOut()+" already in swap pool.")
+
+
+    expect(checkEligibleForSwap(wallet.statecoins.coins[1])).toBe()
+    // Passes through checks
+
+    await wallet.deRegisterSwapCoin(http_mock, wallet.statecoins.coins[0])
+    // Should set all swap data to null e.g. (swap_status & ui_swap_status)
+    expect(wallet.statecoins.coins[0].swap_status).toBe(null)
+
+  })
+
+})
 
 describe('Swaps', function() {
   test('swapInit', async function() {
@@ -140,7 +180,7 @@ describe('After Swaps Complete', function() {
   let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock)
-  
+
   let wallet_json = wallet.toEncryptedJSON()
 
   test('Auto-swap clicked after Join Group button', async function(){
@@ -174,9 +214,10 @@ describe('After Swaps Complete', function() {
       bubbles: true,
       cancelable: true
     }))
-    
+
     expect(store.getState().walletData.swapPendingCoins[0]).toBe(statecoin.shared_key_id)
-    
+
   })
 
 })
+

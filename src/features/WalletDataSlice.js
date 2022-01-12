@@ -379,7 +379,7 @@ export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, 
       dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
     }
-    
+
     return
   }
   if (res.error===undefined) {
@@ -448,7 +448,7 @@ export const callGetTransfers = createAsyncThunk(
 export const callDoAutoSwap = createAsyncThunk(
   'DoSwap',
   async (action, thunkAPI) => {
-    return wallet.setStateCoinAutoSwap(action.shared_key_id)
+    return wallet.setStateCoinAutoSwap(action)
   }
 )
 

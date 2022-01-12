@@ -74,6 +74,8 @@ export class MockHttpClient {
           return POLL_UTXO
         case POST_ROUTE.RECOVER:
           return RECOVERY_STATECHAIN_DATA
+        case POST_ROUTE.SWAP_DEREGISTER_UTXO:
+          return
       }
     }
 
