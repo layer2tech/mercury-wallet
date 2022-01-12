@@ -557,6 +557,7 @@ export const do_swap_poll = async(
 
   let prev_phase = handleResumeOrStartSwap(resume, statecoin)
   // Coins previous phase
+  // init statecoin for resume or start swap
 
   
   const INIT_RETRY_AFTER=600
@@ -578,7 +579,7 @@ export const do_swap_poll = async(
           throw new Error(`Number of tries exceeded in phase ${statecoin.swap_status}`)
         }
         if(statecoin.status === STATECOIN_STATUS.AVAILABLE){
-          throw new Error("Coin removed from swap pool")
+          throw new Error("Coin removed from swap pool - coin status changed to Available")
         }
         if(statecoin.swap_status == SWAP_STATUS.Init ||
           statecoin.swap_status == SWAP_STATUS.Phase0 ||

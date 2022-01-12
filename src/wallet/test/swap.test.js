@@ -23,6 +23,7 @@ import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { ACTION } from '../activity_log.ts';
 
 
+
 let bitcoin = require('bitcoinjs-lib')
 
 // client side's mock
@@ -305,7 +306,23 @@ describe('Do Swap Poll', function(){
     expect(() => swap.handleResumeOrStartSwap(true, statecoin))
       .toThrow("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status)
     // Throw error for trying to resume swap on phase !== Phase4
+  })
 
+  test('do_swap_poll successful', async function() {
+
+    const spyInit = jest.spyOn(swap, 'swapInit');
+    const spyPhase0 = jest.spyOn(swap, 'swapPhase0');
+    const spyPhase1 = jest.spyOn(swap, 'swapPhase1');
+    const spyPhase2 = jest.spyOn(swap, 'swapPhase2');
+    const spyPhase3 = jest.spyOn(swap, 'swapPhase3');
+    const spyPhase4 = jest.spyOn(swap, 'swapPhase4');
+
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],8)
+    
+
+    spy.mockReset().mockReturnValueOnce(returned_statecoin)
+
+    spy.mockRestore()
 
   })
 })
