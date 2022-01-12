@@ -816,6 +816,7 @@ export class Wallet {
     this.statecoins.setCoinSpent(id, action, transfer_msg);
     this.activity.addItem(id, action);
     log.debug("Set Statecoin spent: "+id);
+    this.saveStateCoinsList()
   }
 
   setStateCoinAutoSwap(shared_key_id: string) {
@@ -1094,9 +1095,9 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
       
-    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key,this)
       
-    let new_statecoin: StateCoin | any | null=null;
+    let new_statecoin: StateCoin | null=null;
 
     await swapSemaphore.wait();
     try{
@@ -1112,14 +1113,16 @@ export class Wallet {
       // completed server side
       if((statecoin?.swap_status !== SWAP_STATUS.Phase4) 
         || `${e}`.includes("Transfer batch ended. Timeout")){
+
         statecoin.setSwapDataToNull();
+
         // remove generated address
         this.account.chains[0].pop();
       }
     } finally {
-      if (new_statecoin) {
+      if ( new_statecoin && new_statecoin instanceof StateCoin ) {
         this.setIfNewCoin(new_statecoin)
-        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)  
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
         new_statecoin.setSwapDataToNull();
       } 
       this.saveStateCoinsList(); 

@@ -223,8 +223,8 @@ export const callGetMnemonic = () => {
 }
 
 // Wallet data gets
-export const callGetConfig = (test_wallet = 'normal') => {
-  if(test_wallet !== 'normal'){
+export const callGetConfig = (test_wallet = null) => {
+  if(test_wallet){
     // Jest testing: preset wallet
     return test_wallet.config.getConfig()
   }
