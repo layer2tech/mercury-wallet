@@ -390,9 +390,7 @@ export const transferReceiverFinalizeRecovery = async (
   let proof = null;
   console.log('verifySmtProof...')
   try {
-    console.log('get root...')
     root = await getRoot(http_client);
-    console.log('get smt proof...')
     proof = await getSmtProof(http_client, root, statecoin.funding_txid);
     if (!verifySmtProof(wasm_client, root, finalize_data.proof_key, proof)) throw Error("SMT verification failed.");
   } catch (smt_error) {
@@ -404,7 +402,6 @@ export const transferReceiverFinalizeRecovery = async (
   statecoin.statechain_id = finalize_data.statechain_id;
   statecoin.value = finalize_data.statechain_data.amount;
   statecoin.smt_proof = proof;
-  console.log(`tx_backup_hex: ${finalize_data.tx_backup_hex}`)
   statecoin.tx_backup = Transaction.fromHex(finalize_data.tx_backup_hex);
   statecoin.proof_key = finalize_data.proof_key;
   statecoin.funding_vout = statecoin.tx_backup.ins[0].index;
