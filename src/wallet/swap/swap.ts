@@ -197,10 +197,12 @@ export const swapPhase1 = async (
   new_proof_key_der: BIP32Interface,
 ) => {
   // check statecoin is still AWAITING_SWAP
-  if (statecoin.status !== STATECOIN_STATUS.AWAITING_SWAP) return null;
-
+  if (statecoin.status !== STATECOIN_STATUS.AWAITING_SWAP) throw Error("Statecoin status is not in awaiting swap");
   if (statecoin.swap_status !== SWAP_STATUS.Phase1) throw Error("Coin is not in this phase of the swap protocol. In phase: " + statecoin.swap_status);
   if (statecoin.swap_id === null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
+
+  // make sure statechain_id is not null or undefined
+  if (statecoin.statechain_id === null || statecoin.statechain_id === undefined) throw Error("statechain id is invalid");
 
   //Check swap id again to confirm that the coin is still awaiting swap
   //according to the server
