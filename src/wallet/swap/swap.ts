@@ -1,5 +1,5 @@
 // Conductor Swap protocols
-import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS } from '..';
+import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS, StateCoinList } from '..';
 import { ElectrsClient } from '../electrs'
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress} from "../mercury/transfer"
@@ -11,6 +11,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { Wallet } from '../wallet'
 import { ACTION } from '../activity_log';
 import { encodeSCEAddress} from '../';
+import { AsyncSemaphore } from '@esfx/async-semaphore';
+import { List } from 'reselect/es/types';
 
 let bitcoin = require("bitcoinjs-lib");
 
@@ -81,6 +83,47 @@ class SwapRetryError extends Error {
     this.name="SwapRetryError"; 
   }
 }
+
+// Check statecoin is eligible for entering a swap group
+export const checkEligibleForSwap = ( statecoin: StateCoin ) => {
+  if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already in swap pool.");
+  if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already involved in swap.");
+  if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for swap.");
+}
+
+// Limit total swap instances and only run if updateSwapInfo is not running
+// run deRegister SwapCoin if above criteria met
+
+// Semaphore 1 triggered and semaphore 1 count adds 1 for each call of this function
+// Semaphore 2 is counted separately from this function but there is a check to make 
+// sure the sem. 2 limit has not  been reached
+export const asyncSemaphoreRun = async (
+  semaphore1: AsyncSemaphore,
+  semaphore2: AsyncSemaphore,
+  SEM_2_LIMIT: number,
+  func1: Function,
+  args1: List
+) => {
+  await semaphore1.wait();
+  try{
+    await (async () => {
+      while(semaphore2.count < SEM_2_LIMIT) {
+        delay(100);
+      }
+    });
+    func1(...args1)
+  } 
+  catch(e : any){
+    if (! e.message.includes("Coin is not in a swap pool")){
+      //this error is thrown when sc status = Awaiting Swap
+      throw e;
+    }
+  } finally {
+      semaphore1.release();
+  }
+}
+
+
 
 // Register coin to swap pool and set to phase0
 export const swapInit = async (
@@ -433,7 +476,7 @@ export const swapPhase4 = async (
     console.log("setConfirmed...")
     statecoin_out.setConfirmed();
     console.log("encode sce address...")
-    statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key)
+    statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key, wallet)
     console.log("add coin to wallet...")
     if(wallet.statecoins.addCoin(statecoin_out)) {
       wallet.saveStateCoinsList();
@@ -493,9 +536,7 @@ export const do_swap_poll = async(
     if (statecoin.swap_status!==SWAP_STATUS.Phase4) 
       throw Error("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status);
   } else {
-    if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already in swap pool.");
-    if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.shared_key_id+" already involved in swap.");
-    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.shared_key_id+" not available.");
+    checkEligibleForSwap(statecoin)
   }
   
   // Reset coin's swap data
@@ -523,7 +564,6 @@ export const do_swap_poll = async(
   let swap0_count=0
   let n_errs=0
   let n_reps=0
-  
   let new_statecoin = null
     while (new_statecoin==null) {
       try {
@@ -533,6 +573,9 @@ export const do_swap_poll = async(
         if ( statecoin.swap_status === SWAP_STATUS.Phase4 && n_reps >= MAX_REPS_PHASE4 ){
           throw new Error(`Number of tries exceeded in phase ${statecoin.swap_status}`)
         }
+        if(statecoin.status === STATECOIN_STATUS.AVAILABLE){
+          throw new Error("Coin removed from swap pool")
+        }
         if(statecoin.swap_status == SWAP_STATUS.Init ||
           statecoin.swap_status == SWAP_STATUS.Phase0 ||
           statecoin.swap_status != prev_phase){
@@ -541,6 +584,7 @@ export const do_swap_poll = async(
         }
         n_reps = n_reps + 1
         console.log(`swap status: ${statecoin.swap_status}`);
+        
         switch (statecoin.swap_status) {
           case null: {  // Coin has been removed from swap
             return null;

@@ -1,6 +1,7 @@
 // Mocks out server side calls to cryptographic protocols and other APIs.
 // Mock Classes  are followed by mock data for full protocol runs.
 
+import { Transaction } from 'bitcoinjs-lib';
 import { createTypeReferenceDirectiveResolutionCache } from "typescript";
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
 import { RecoveryDataMsg, StateChainDataAPI } from "../mercury/info_api";
@@ -49,39 +50,41 @@ export class MockHttpClient {
         return KEYGEN_FIRST;
       case POST_ROUTE.KEYGEN_SECOND:
         return KEYGEN_SECOND
-      case POST_ROUTE.SIGN_FIRST:
-        return SIGN_FIRST
-      case POST_ROUTE.PREPARE_SIGN:
-        return true
-      case POST_ROUTE.SIGN_SECOND:
-        return SIGN_SECOND
-      case POST_ROUTE.SMT_PROOF:
-        return SMT_PROOF
-      case POST_ROUTE.DEPOSIT_INIT:
-        return { id: "861d2223-7d84-44f1-ba3e-4cd7dd418560" };
-      case POST_ROUTE.DEPOSIT_CONFIRM:
-        return DEPOSIT_CONFIRM
-      case POST_ROUTE.WITHDRAW_INIT:
-        return
-      case POST_ROUTE.WITHDRAW_CONFIRM:
-        return WITHDRAW_SIG
-      case POST_ROUTE.TRANSFER_SENDER:
-        return TRANSFER_SENDER
-      case POST_ROUTE.TRANSFER_RECEIVER:
-        return TRANSFER_RECEIVER
-      case POST_ROUTE.TRANSFER_UPDATE_MSG:
-        return
-      case POST_ROUTE.TRANSFER_GET_MSG:
-        return TRANSFER_PUBKEY
-      case POST_ROUTE.SWAP_POLL_UTXO:
-        return POLL_UTXO
-      case POST_ROUTE.RECOVER:
-        return RECOVERY_STATECHAIN_DATA
+        case POST_ROUTE.SIGN_FIRST:
+          return SIGN_FIRST
+        case POST_ROUTE.PREPARE_SIGN:
+          return true
+        case POST_ROUTE.SIGN_SECOND:
+          return SIGN_SECOND
+        case POST_ROUTE.SMT_PROOF:
+          return SMT_PROOF
+        case POST_ROUTE.DEPOSIT_INIT:
+          return {id:"861d2223-7d84-44f1-ba3e-4cd7dd418560"};
+        case POST_ROUTE.DEPOSIT_CONFIRM:
+          return DEPOSIT_CONFIRM
+        case POST_ROUTE.WITHDRAW_INIT:
+          return
+        case POST_ROUTE.WITHDRAW_CONFIRM:
+          return WITHDRAW_SIG
+        case POST_ROUTE.TRANSFER_SENDER:
+          return TRANSFER_SENDER
+        case POST_ROUTE.TRANSFER_RECEIVER:
+          return TRANSFER_RECEIVER
+        case POST_ROUTE.TRANSFER_UPDATE_MSG:
+          return
+        case POST_ROUTE.TRANSFER_GET_MSG:
+          return TRANSFER_PUBKEY
+        case POST_ROUTE.SWAP_POLL_UTXO:
+          return POLL_UTXO
+        case POST_ROUTE.RECOVER:
+          return RECOVERY_STATECHAIN_DATA
+        case POST_ROUTE.SWAP_DEREGISTER_UTXO:
+          return
+      }
     }
-  }
-
-  new_tor_id = async () => {
-  }
+    
+    new_tor_id = async () => {
+    }
 }
 
 

@@ -1,4 +1,4 @@
-import {makeTesterStatecoin} from './test_data.js'
+import {makeTesterStatecoin, STATECOIN_SWAP_DATA, SWAP_SHARED_KEY_OUT} from './test_data.js'
 import {swapPhase4, SWAP_STATUS,
    SwapRetryError, UI_SWAP_STATUS} from "../swap/swap";
 import {STATECOIN_STATUS} from '../statecoin'
@@ -8,6 +8,7 @@ import * as MOCK_SERVER from '../mocks/mock_http_client'
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
 import { Wallet, MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD } from '../wallet';
 import { ACTION } from '../';
+import { Transaction } from 'bitcoinjs-lib';
 
 let mock_http_client = require('../mocks/mock_http_client')
 
@@ -448,20 +449,41 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
       })
 
       let sc_clone_1 = cloneDeep(statecoin)
-      let sc_clone_2 = cloneDeep(statecoin)
-
-      Wallet.buildMock(bitcoin.networks.bitcoin);
-      let wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
-      wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEY_DUMMY, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+  
+      let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+      wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90", 
+        SHARED_KEY_DUMMY, 0.1, 
+        "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 
+        0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", 
+        ACTION.DEPOSIT)
       wallet.saveStateCoinsList();
 
-      await expect(swapPhase4(http_mock, wasm_mock, sc_clone_1, wallet))
-        .rejects.toThrow(SwapRetryError)
-        expect(sc_clone_1).toEqual(UPDATED_STATECOIN)
-
-      await expect(swapPhase4(http_mock, wasm_mock, sc_clone_2, wallet))
-        .rejects.toThrowError(`Phase4 transferFinalize error: ${wasm_err("KeyGen.set_master_key").message}`)
-        expect(sc_clone_2).toEqual(UPDATED_STATECOIN)
+      let statecoin_out = await swapPhase4(http_mock, wasm_mock, sc_clone_1, wallet);
+      expect(sc_clone_1).toEqual(UPDATED_STATECOIN)
+    
+      let statecoin_out_expected = cloneDeep(statecoin);
+      statecoin_out_expected.value = 100000
+      statecoin_out_expected.swap_rounds = 1
+      statecoin_out_expected.anon_set = 5
+      statecoin_out_expected.swap_status = null
+      statecoin_out_expected.swap_transfer_finalized_data = null
+      statecoin_out_expected.status = STATECOIN_STATUS.AVAILABLE
+      statecoin_out_expected.shared_key_id = mock_http_client.TRANSFER_FINALIZE_DATA.new_shared_key_id
+      statecoin_out_expected.statechain_id = mock_http_client.TRANSFER_FINALIZE_DATA.statechain_id
+      statecoin_out_expected.funding_txid = mock_http_client.RECOVERY_STATECHAIN_DATA.utxo.txid
+      statecoin_out_expected.is_new = true
+      statecoin_out_expected.proof_key = 
+        mock_http_client.RECOVERY_STATECHAIN_DATA.chain[mock_http_client.RECOVERY_STATECHAIN_DATA.chain.length-1].data
+      statecoin_out_expected.sc_address = "sc1qvl2s57h77wr93wjvtgdtkzetv2ypjw67k8qysz82zltvjgds29vq3ahfez"
+      statecoin_out_expected.shared_key = SWAP_SHARED_KEY_OUT
+      statecoin_out_expected.swap_my_bst_data = null
+      statecoin_out_expected.swap_id = null
+      statecoin_out_expected.swap_info = null
+      statecoin_out_expected.timestamp = statecoin_out.timestamp
+      statecoin_out_expected.tx_backup =  Transaction.fromHex(
+        mock_http_client.TRANSFER_FINALIZE_DATA.tx_backup_psm.tx_hex);
+  
+      expect(statecoin_out).toEqual(statecoin_out_expected)
     }
   })
 })
