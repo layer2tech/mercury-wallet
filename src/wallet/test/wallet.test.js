@@ -17,6 +17,7 @@ import { Storage } from '../../store';
 import { getFinalizeDataForRecovery } from '../recovery';
 
 let cloneDeep = require('lodash.clonedeep');
+let bip32 = require('bip32')
 
 const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
 

@@ -6,7 +6,7 @@ import { transferSender, transferReceiver, TransferFinalizeData, transferReceive
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
 import { getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
 import { StateChainSig } from "../util";
-import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
+import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
 import { Wallet } from '../wallet'
 import { ACTION } from '../activity_log';
@@ -134,8 +134,16 @@ export const swapInit = async (
   proof_key_der: BIP32Interface,
   swap_size: number
 ) => {
+  if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Statecoin not available for swap");
   if (statecoin.swap_status !== null && statecoin.swap_status !== SWAP_STATUS.Init)
     throw Error("Coin is already involved in a swap. Swap status: " + statecoin.swap_status);
+
+  try {
+    typeforce(typeforce.compile(typeforce.Buffer), proof_key_der?.publicKey);
+    typeforce(typeforce.compile(typeforce.Function), proof_key_der?.sign);
+  } catch(err) {
+    throw Error(`swapInit: proof_key_der type error: ${err}`)
+  }  
 
   let publicKey = proof_key_der.publicKey.toString('hex');
   let sc_sig = StateChainSig.create(proof_key_der, "SWAP", publicKey);
@@ -157,6 +165,7 @@ export const swapInit = async (
 
   statecoin.swap_status = SWAP_STATUS.Phase0;
   statecoin.ui_swap_status = UI_SWAP_STATUS.Phase0;
+  statecoin.setAwaitingSwap();
 }
 
 
