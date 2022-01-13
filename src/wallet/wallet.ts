@@ -12,7 +12,7 @@ import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData  } from './mercury/transfer';
-import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS, checkEligibleForSwap, asyncSemaphoreRun } from './swap/swap';
+import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS, checkEligibleForSwap } from './swap/swap';
 
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
@@ -24,7 +24,6 @@ import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum } from './mercury/info_api';
 import { EPSClient } from './eps';
 import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './mercury/torcircuit_api';
-import { callGetNewTorId } from '../features/WalletDataSlice';
 
 const MAX_SWAP_SEMAPHORE_COUNT=100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);

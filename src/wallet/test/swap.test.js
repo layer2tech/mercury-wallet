@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails} from './test_data.js'
-import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment, checkEligibleForSwap, asyncSemaphoreRun} from "../swap/swap";
+import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, SwapToken, make_swap_commitment, checkEligibleForSwap } from "../swap/swap";
 
 import * as swap from "../swap/swap"
 
@@ -20,7 +20,7 @@ import { Wallet } from '../wallet.ts';
 
 
 import { AsyncSemaphore } from "@esfx/async-semaphore";
-import { ACTION } from '../activity_log.ts';
+
 
 
 
