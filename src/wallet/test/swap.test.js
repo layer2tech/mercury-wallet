@@ -1,9 +1,11 @@
 import React from 'react';
 
 import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails} from './test_data.js'
-import {swapInit, swapPhase0, swapPhase1, SWAP_STATUS, SwapToken, make_swap_commitment, checkEligibleForSwap } from "../swap/swap";
-
+import { SWAP_STATUS, SwapToken, make_swap_commitment, checkEligibleForSwap, handleResumeOrStartSwap, do_swap_poll } from "../swap/swap";
+import { swapInit, swapPhase0, swapPhase1, swapPhase2, swapPhase3, swapPhase4 } from '../swap/swap_phases'
 import * as swap from "../swap/swap"
+
+import * as swapPhases from "../swap/swap_phases"
 
 import {STATECOIN_STATUS} from '../statecoin';
 import reducers from '../../reducers';
@@ -271,7 +273,7 @@ describe('Do Swap Poll', function(){
 
     statecoin.swap_id = {id: "000-000-00-00"};
 
-    let prev_phase = swap.handleResumeOrStartSwap(false, statecoin)
+    let prev_phase = handleResumeOrStartSwap(false, statecoin)
 
     expect(prev_phase).toBe(SWAP_STATUS.Init)
     // Check prev phase swap status changed
@@ -290,7 +292,7 @@ describe('Do Swap Poll', function(){
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase4)
     // Check the correct swap status is set for the test coin
 
-    prev_phase = swap.handleResumeOrStartSwap(true, statecoin)
+    prev_phase = handleResumeOrStartSwap(true, statecoin)
 
     expect(prev_phase).toBe(SWAP_STATUS.Phase4)
 
@@ -303,29 +305,77 @@ describe('Do Swap Poll', function(){
 
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase2)
 
-    expect(() => swap.handleResumeOrStartSwap(true, statecoin))
+    expect(() => handleResumeOrStartSwap(true, statecoin))
       .toThrow("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status)
     // Throw error for trying to resume swap on phase !== Phase4
   })
-
   test('do_swap_poll successful', async function() {
 
-    const spyInit = jest.spyOn(swap, 'swapInit');
-    const spyPhase0 = jest.spyOn(swap, 'swapPhase0');
-    const spyPhase1 = jest.spyOn(swap, 'swapPhase1');
-    const spyPhase2 = jest.spyOn(swap, 'swapPhase2');
-    const spyPhase3 = jest.spyOn(swap, 'swapPhase3');
-    const spyPhase4 = jest.spyOn(swap, 'swapPhase4');
+    // const spyInit = jest.spyOn(swap, 'swapInit');
+    
+    jest.setTimeout(50000)
+    
+    const spyPhase0 = jest.spyOn(swapPhases, 'swapPhase0');
+    const spyPhase1 = jest.spyOn(swapPhases, 'swapPhase1');
+    const spyPhase2 = jest.spyOn(swapPhases, 'swapPhase2');
+    const spyPhase3 = jest.spyOn(swapPhases, 'swapPhase3');
+    const spyPhase4 = jest.spyOn(swapPhases, 'swapPhase4');
 
-    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0],8)
+    let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+    let swap_size = 5 // swap size constant
+
+    let test_statecoin = makeTesterStatecoin()
+
+    let statecoin = wallet.statecoins.coins[0]
+    
+    spyPhase0.mockImplementation((http_mock, CoinPhase0) => {
+      CoinPhase0 = setSwapDetails(CoinPhase0, 1)
+    })
+    spyPhase1.mockImplementation((http_mock, wasm_mock, statecoin, proof_key_der, new_proof_key_der) => {
+      statecoin = setSwapDetails(statecoin, 2)
+    })
+    spyPhase2.mockImplementation((http_mock, wasm_mock, statecoin) => {
+      statecoin = setSwapDetails(statecoin, 6)
+    })
+    spyPhase3.mockImplementation((http_mock, electrum_mock, wasm_mock, statecoin, net, proof_key_der, new_proof_key_der, conf, block, wallet) => {
+      statecoin = setSwapDetails(statecoin, 8)
+    })
+    spyPhase4.mockImplementation((http_mock,wasm_mock,statecoin,wallet) => {
+      statecoin = setSwapDetails(statecoin, "End")
+      return test_statecoin
+    })
+    
+    statecoin = setSwapDetails(statecoin,"Reset")
+    
+    
+    let new_statecoin = await do_swap_poll(http_mock, electrum_mock, wasm_mock, bitcoin.networks.bitcoin, statecoin, proof_key_der, swap_size, proof_key_der, 3, wallet)
+    
+    expect(new_statecoin).toBe(test_statecoin)
+    
+    statecoin = setSwapDetails(statecoin,"Reset")
     
 
-    spy.mockReset().mockReturnValueOnce(returned_statecoin)
+    spyPhase1.mockReset().mockImplementation((http_mock, wasm_mock, statecoin, proof_key_der, new_proof_key_der) => {
+      throw "error"
+    })
 
-    spy.mockRestore()
+
+    // await expect(
+    //  do_swap_poll(http_mock, electrum_mock, wasm_mock, bitcoin.networks.bitcoin, statecoin,proof_key_der, swap_size, bitcoin, 3, wallet )
+    // ).toThrow("error")
+    
+    // await swapPhase4(http_mock,wasm_mock, statecoin, wallet)
+
+
+    spyPhase0.mockRestore()
+    spyPhase1.mockRestore()
+    spyPhase2.mockRestore()
+    spyPhase3.mockRestore()
+    spyPhase4.mockRestore()
 
   })
 })
+
 
 describe('Swaps', function() {
   test('swapInit', async function() {

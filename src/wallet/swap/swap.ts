@@ -37,169 +37,6 @@ function delay(s: number) {
   return new Promise( resolve => setTimeout(resolve, s*1000) );
 }
 
-export const UI_SWAP_STATUS = {
-  Init: "Init",
-  Phase0: "Phase0",
-  Phase1: "Phase1",
-  Phase2: "Phase2",
-  Phase3: "Phase3",
-  Phase4: "Phase4",
-  Phase5: "Phase5",
-  Phase6: "Phase6",
-  Phase7: "Phase7",
-  Phase8: "Phase8",
-  End: "End",
-}
-Object.freeze(UI_SWAP_STATUS);
-
-// SWAP_STATUS represent each technical stage in the lifecycle of a coin in a swap.
-export const SWAP_STATUS = {
-  Init: "Init",
-  Phase0: "Phase0",
-  Phase1: "Phase1",
-  Phase2: "Phase2",
-  Phase3: "Phase3",
-  Phase4: "Phase4",
-  End: "End",
-}
-Object.freeze(SWAP_STATUS);
-
-// Constants used for retrying swap phases
-export const SWAP_RETRY = {
-  INIT_RETRY_AFTER: 600,
-  MAX_ERRS_PER_PHASE: 10,
-  MAX_ERRS_PHASE4: 100,
-  MAX_REPS_PER_PHASE: 50,
-  MAX_REPS_PHASE4: 100
-}
-Object.freeze(SWAP_RETRY);
-
-export class SwapRetryError extends Error {
-  constructor(err: any, reason: string | null = null) {
-    const msg = err?.message
-    let message: string
-    if(msg) {
-      message = JSON.stringify(msg)
-    } else {
-      message = JSON.stringify(err)
-    }
-    if (reason) {
-      message = reason.concat(message)
-    }
-    super(message)
-    this.name="SwapRetryError"; 
-  }
-}
-
-// Check statecoin is eligible for entering a swap group
-export const checkEligibleForSwap = ( statecoin: StateCoin ) => {
-  if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already in swap pool.");
-  if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already involved in swap.");
-  if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for swap.");
-}
-// do_swap_poll modular functions:
-
-export const handleResumeOrStartSwap = (resume: boolean, statecoin: StateCoin) : string | null => {
-  // Coins in Phase4 resume all other coins start swap
-
-  let prev_phase;
-  //coin previous swap phase
-
-  if (resume){
-    if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin "+statecoin.shared_key_id+" - not in swap.");
-    if (statecoin.swap_status!==SWAP_STATUS.Phase4) 
-      throw Error("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status);
-    prev_phase = statecoin.swap_status;
-  } else {
-    checkEligibleForSwap(statecoin)
-    if(statecoin.swap_status === SWAP_STATUS.Phase4){
-      throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
-    }
-    if(statecoin){
-      statecoin.setSwapDataToNull()
-      statecoin.swap_status = SWAP_STATUS.Init;
-      statecoin.ui_swap_status = SWAP_STATUS.Init;
-      statecoin.setAwaitingSwap();
-    }
-    prev_phase = SWAP_STATUS.Init;
-  }
-  
-  return prev_phase
-}
-
-export const runSwapPhase = async(
-  statecoin: StateCoin, 
-  http_client: HttpClient | MockHttpClient,
-  n_reps: number,
-  n_errs: number,
-  proof_key_der: BIP32Interface,
-  swap_size: number
-  ) => {
-  switch (statecoin.swap_status) {
-    case null: {  // Coin has been removed from swap
-      return null;
-    }
-    case SWAP_STATUS.Init: {
-      n_reps = n_reps - 1
-      // init phase has no max reps
-      await swapInit(http_client, statecoin, proof_key_der, swap_size);
-      n_errs=0;
-      break;
-    }
-  }
-  //   case SWAP_STATUS.Phase0: {
-  //     n_reps = n_reps - 1
-  //     if(swap0_count < SWAP_RETRY.INIT_RETRY_AFTER){
-  //       try{
-  //         await swapPhase0(http_client, statecoin);
-  //         n_errs=0;
-  //       } finally {
-  //         swap0_count++;
-  //       }
-  //     } else {
-  //       swap0_count = 0;
-  //       await swapDeregisterUtxo(http_client, {id: statecoin.statechain_id});
-  //       if(statecoin){
-  //         statecoin.setSwapDataToNull();
-  //         statecoin.swap_status = SWAP_STATUS.Init;
-  //         statecoin.setAwaitingSwap();
-  //       }
-  //       n_errs=0;
-  //     }
-      
-  //     break;
-  //   }
-  //   case SWAP_STATUS.Phase1: {
-  //     await swapPhase1(http_client, wasm_client, statecoin, proof_key_der, new_proof_key_der);
-  //     n_errs=0;
-  //     break;
-  //   }
-  //   case SWAP_STATUS.Phase2: {
-  //     await swapPhase2(http_client, wasm_client, statecoin);
-  //     n_errs=0;
-  //     break;
-  //   }
-  //   case SWAP_STATUS.Phase3: {
-  //     if (statecoin.swap_address===null) throw Error("No swap address found for coin. Swap address should be set in Phase1.");            
-  //     let block_height = null
-  //     if (electrum_client instanceof EPSClient){  
-  //       try {
-  //         let header = await electrum_client.latestBlockHeader();
-  //         block_height = header.block_height;
-  //       } catch(err: any) {
-  //         throw new SwapRetryError(err)
-  //       }
-  //     }
-  //     await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, block_height, wallet);
-  //     n_errs=0;
-  //     break;
-  //   }
-  //   case SWAP_STATUS.Phase4: {
-  //     new_statecoin = await swapPhase4(http_client, wasm_client, statecoin, wallet);
-  //     n_errs=0;
-  //   }
-}
-
 // Loop through swap protocol for some statecoin
 export const do_swap_poll = async(
   http_client: HttpClient |  MockHttpClient,
@@ -339,6 +176,41 @@ export const do_swap_poll = async(
   return new_statecoin;
 }
 
+// Check statecoin is eligible for entering a swap group
+export const checkEligibleForSwap = ( statecoin: StateCoin ) => {
+  if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already in swap pool.");
+  if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already involved in swap.");
+  if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for swap.");
+}
+// do_swap_poll modular functions:
+
+export const handleResumeOrStartSwap = (resume: boolean, statecoin: StateCoin) : string | null => {
+  // Coins in Phase4 resume all other coins start swap
+
+  let prev_phase;
+  //coin previous swap phase
+
+  if (resume){
+    if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin "+statecoin.shared_key_id+" - not in swap.");
+    if (statecoin.swap_status!==SWAP_STATUS.Phase4) 
+      throw Error("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status);
+    prev_phase = statecoin.swap_status;
+  } else {
+    checkEligibleForSwap(statecoin)
+    if(statecoin.swap_status === SWAP_STATUS.Phase4){
+      throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
+    }
+    if(statecoin){
+      statecoin.setSwapDataToNull()
+      statecoin.swap_status = SWAP_STATUS.Init;
+      statecoin.ui_swap_status = SWAP_STATUS.Init;
+      statecoin.setAwaitingSwap();
+    }
+    prev_phase = SWAP_STATUS.Init;
+  }
+  
+  return prev_phase
+}
 
 export const make_swap_commitment = (statecoin: any,
   swap_info: any, wasm_client: any): BatchData => {
@@ -404,6 +276,23 @@ export const do_transfer_receiver = async (
     }
   }
   return null;
+}
+
+export class SwapRetryError extends Error {
+  constructor(err: any, reason: string | null = null) {
+    const msg = err?.message
+    let message: string
+    if(msg) {
+      message = JSON.stringify(msg)
+    } else {
+      message = JSON.stringify(err)
+    }
+    if (reason) {
+      message = reason.concat(message)
+    }
+    super(message)
+    this.name="SwapRetryError"; 
+  }
 }
 
 //conductor::register_utxo,
@@ -670,6 +559,43 @@ export interface UISwapStatus{
   Phase8: "Phase8",
   End: "End",
 }
+
+export const UI_SWAP_STATUS = {
+  Init: "Init",
+  Phase0: "Phase0",
+  Phase1: "Phase1",
+  Phase2: "Phase2",
+  Phase3: "Phase3",
+  Phase4: "Phase4",
+  Phase5: "Phase5",
+  Phase6: "Phase6",
+  Phase7: "Phase7",
+  Phase8: "Phase8",
+  End: "End",
+}
+Object.freeze(UI_SWAP_STATUS);
+
+// SWAP_STATUS represent each technical stage in the lifecycle of a coin in a swap.
+export const SWAP_STATUS = {
+  Init: "Init",
+  Phase0: "Phase0",
+  Phase1: "Phase1",
+  Phase2: "Phase2",
+  Phase3: "Phase3",
+  Phase4: "Phase4",
+  End: "End",
+}
+Object.freeze(SWAP_STATUS);
+
+// Constants used for retrying swap phases
+export const SWAP_RETRY = {
+  INIT_RETRY_AFTER: 600,
+  MAX_ERRS_PER_PHASE: 10,
+  MAX_ERRS_PHASE4: 100,
+  MAX_REPS_PER_PHASE: 50,
+  MAX_REPS_PHASE4: 100
+}
+Object.freeze(SWAP_RETRY);
 
 export interface BSTMsg {
   swap_id: string, //Uuid,

@@ -1,10 +1,11 @@
 // Mocks out server side calls to cryptographic protocols and other APIs.
 // Mock Classes  are followed by mock data for full protocol runs.
 
+import { STATECOIN_STATUS } from "..";
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
 import { RecoveryDataMsg, StateChainDataAPI } from "../mercury/info_api";
 import { TransferFinalizeDataAPI, TransferFinalizeDataForRecovery, transferReceiverFinalizeRecovery } from "../mercury/transfer";
-import { SwapID } from "../swap/swap";
+import { SwapID, SWAP_STATUS } from "../swap/swap";
 import { StateChainSig } from "../util"
 // import { SIGNSWAPTOKEN_DATA, BST_DATA } from "../test/test_data";
 
