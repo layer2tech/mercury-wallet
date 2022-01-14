@@ -49,6 +49,7 @@ describe('swapPhase0 test 2 - correct initial statecoin phase', () => {
     // swap begun
     await swapPhase0(http_mock, statecoin)
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase1)
+    expect(statecoin.swap_id).not.toBe(null)
     expect(statecoin.swap_id.id).toBe(swap_id)
   })
 })
