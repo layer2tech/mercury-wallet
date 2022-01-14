@@ -134,7 +134,7 @@ export const swapInit = async (
   proof_key_der: BIP32Interface,
   swap_size: number
 ) => {
-  if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Statecoin not available for swap");
+  if (statecoin.status !== STATECOIN_STATUS.AWAITING_SWAP) throw Error(`swapInit - expected statecoin status ${STATECOIN_STATUS.AWAITING_SWAP}, got status: ${statecoin.status}`);
   if (statecoin.swap_status !== null && statecoin.swap_status !== SWAP_STATUS.Init)
     throw Error("Coin is already involved in a swap. Swap status: " + statecoin.swap_status);
 
@@ -142,7 +142,7 @@ export const swapInit = async (
     typeforce(typeforce.compile(typeforce.Buffer), proof_key_der?.publicKey);
     typeforce(typeforce.compile(typeforce.Function), proof_key_der?.sign);
   } catch(err) {
-    throw Error(`swapInit: proof_key_der type error: ${err}`)
+    throw new Error(`swapInit: proof_key_der type error: ${err}`)
   }  
 
   let publicKey = proof_key_der.publicKey.toString('hex');
@@ -165,7 +165,6 @@ export const swapInit = async (
 
   statecoin.swap_status = SWAP_STATUS.Phase0;
   statecoin.ui_swap_status = UI_SWAP_STATUS.Phase0;
-  statecoin.setAwaitingSwap();
 }
 
 
