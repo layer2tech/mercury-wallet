@@ -131,8 +131,6 @@ export const ClientKeyGenFirstMsg = typeforce.compile({
   kg_ec_key_pair_party2: EcKeyPair
 })
 
-
-
 // multi-party-ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::KeyGenSecondMsg
 export const KeyGenSecondMsg = typeforce.compile({
   comm_witness: {
@@ -431,3 +429,5 @@ export const SwapGroupMap = typeforce.compile(
     //Map::<SwapGroup, UInt64>
     Object
 )
+
+export const BIP32Interface = typeforce.compile(Object)

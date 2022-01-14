@@ -254,22 +254,6 @@ describe('resume_swap', function(){
 })
 
 describe('Swaps', function() {
-  test('swapInit', async function() {
-    http_mock.post = jest.fn().mockReset()
-      .mockReturnValueOnce()
-    let statecoin = makeTesterStatecoin();
-    let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-    statecoin.status = STATECOIN_STATUS.AVAILABLE
-
-    let init = await swapInit(http_mock, statecoin, proof_key_der, 10)
-    expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase0)
-
-    // try again with swap_status != null
-    await expect(swapInit(http_mock, statecoin, proof_key_der, 10))
-      .rejects
-      .toThrowError("Coin is already involved in a swap. Swap status: Phase0");
-  })
-
   test('swapPhase0', async function() {
     let swap_id = "12345";
     http_mock.post = jest.fn().mockReset()

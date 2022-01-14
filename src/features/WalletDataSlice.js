@@ -17,6 +17,7 @@ const CLOSED = require('websocket').w3cwebsocket.CLOSED;
 // eslint-disable-next-line
 const OPEN = require('websocket').w3cwebsocket.OPEN;
 
+
 let log;
 try{
   log = window.require('electron-log');
@@ -500,9 +501,22 @@ export const callUpdateSwapStatus = createAsyncThunk(
 export const callSwapDeregisterUtxo = createAsyncThunk(
   'SwapDeregisterUtxo',
   async (action, thunkAPI) => {
-    let statechain_id = wallet.statecoins.getCoin(action.shared_key_id).statechain_id
+    let statecoin = wallet.statecoins.getCoin(action.shared_key_id)
+    let statechain_id = statecoin.statechain_id
     await swapDeregisterUtxo(wallet.http_client, {id: statechain_id});
-    wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
+    try{  
+      wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
+    } catch(e) {
+      if(e?.message.includes("Cannot remove coin.")){
+        if(action?.autoswap === true){
+          action.dispatch(setNotification({msg: `Deactivated auto-swap for coin: ${statecoin.getTXIdAndOut()}. This coin is participating in a swap. Swapping will cease at the end of the current round.`}))
+        } else {
+          action.dispatch(setNotification({msg: `Statecoin: ${statecoin.getTXIdAndOut()}: ${e?.message ? e?.message : e}`}))
+        }
+      } else {
+        throw e
+      }
+    }
   }
 )
 

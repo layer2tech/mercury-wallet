@@ -167,10 +167,12 @@ const SwapPage = () => {
       dispatch(removeSwapPendingCoin(item.shared_key_id))
       statecoin.swap_auto = false;
       setSwapLoad({...swapLoad, leave: true})
-      try {
-        dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}))
+      try{
+        dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin, "dispatch": dispatch, "autoswap": true}))
           .then(res => {
-            dispatch(removeCoinFromSwapRecords(selectedCoin));
+            dispatch(() => {
+              removeCoinFromSwapRecords(selectedCoin)
+            });
             setSwapLoad({...swapLoad, leave: false})
         });
       } catch (e) {
@@ -215,7 +217,7 @@ const SwapPage = () => {
     try {
       selectedCoins.forEach(
         (selectedCoin) => {
-          dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}))
+          dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin, "dispatch": dispatch}))
             .then(res => {
               dispatch(removeCoinFromSwapRecords(selectedCoin));
               setSwapLoad({...swapLoad, leave: false})
