@@ -4,11 +4,10 @@ import { BIP32Interface, Network, TransactionBuilder, crypto as crypto_btc, scri
 import { Root, StateChainDataAPI, FeeInfo, OutPoint } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
-
+import { callGetConfig } from '../features/WalletDataSlice'
 import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
-import { callGetConfig } from '../features/WalletDataSlice';
-import { Wallet } from '.';
+
 
 let bech32 = require('bech32')
 let bitcoin = require('bitcoinjs-lib')
@@ -222,17 +221,16 @@ export const txCPFPBuild = (network: Network, funding_txid: string, funding_vout
 // Bech32 encode SCEAddress (StateChain Entity Address)
 export const encodeSCEAddress = (proof_key: string, test_wallet: any = null) => {
   let config
-  if(test_wallet?.config.jest_testing_mode){
-    // For Jest testing, preset wallet
-    // Prevents needing a redux state loaded
-    config = callGetConfig(test_wallet)
-  }
-  else{
-    config = callGetConfig()
-  }
-  
+    if(test_wallet?.config.jest_testing_mode){
+      // For Jest testing, preset wallet
+      // Prevents needing a redux state loaded
+      config = callGetConfig(test_wallet)
+    }
+    else{
+      config = callGetConfig()
+    }
+    
   let network = config.electrum_config.host
-  
   if(network.includes('testnet')){
     network = 'tc'
   } else {
