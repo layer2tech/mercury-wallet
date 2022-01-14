@@ -507,13 +507,14 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
     try{  
       wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
     } catch(e) {
-      console.log(`caught error: ${e}`)
       if(e?.message.includes("Cannot remove coin.")){
         if(action?.autoswap === true){
           action.dispatch(setNotification({msg: `Deactivated auto-swap for coin: ${statecoin.getTXIdAndOut()}. This coin is participating in a swap. Swapping will cease at the end of the current round.`}))
         } else {
           action.dispatch(setNotification({msg: `Statecoin: ${statecoin.getTXIdAndOut()}: ${e?.message ? e?.message : e}`}))
         }
+      } else {
+        throw e
       }
     }
   }
