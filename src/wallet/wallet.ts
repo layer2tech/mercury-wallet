@@ -3,7 +3,7 @@ import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
   MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, GET_ROUTE, decryptAES,
-  encodeSCEAddress} from './';
+  encodeSCEAddress } from './';
 import { ElectrsClient } from './electrs'
 
 import { txCPFPBuild, FEE, encryptAES } from './util';
@@ -226,6 +226,7 @@ export class Wallet {
   }
 
   // convert wallet to encrypted JSON with encrypted mnemonic
+
   toEncryptedJSON() {
     let wallet_json = JSON.parse(JSON.stringify(this))
     wallet_json.mnemonic = encryptAES(this.mnemonic,this.password)
@@ -1045,7 +1046,7 @@ export class Wallet {
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
   async do_swap(
-    shared_key_id: string,
+    shared_key_id: string
   ): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
@@ -1093,7 +1094,7 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
       
-    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key,this)
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key, this)
       
     let new_statecoin: StateCoin | null=null;
 

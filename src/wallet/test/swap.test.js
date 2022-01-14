@@ -1,6 +1,6 @@
 import React from 'react';
-
 import {makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails} from './test_data.js'
+
 import { SWAP_STATUS, SwapToken, make_swap_commitment, checkEligibleForSwap, handleResumeOrStartSwap, do_swap_poll } from "../swap/swap";
 import { swapInit, swapPhase0, swapPhase1, swapPhase2, swapPhase3, swapPhase4 } from '../swap/swap_phases'
 import * as swap from "../swap/swap"
@@ -8,6 +8,7 @@ import * as swap from "../swap/swap"
 import * as swapPhases from "../swap/swap_phases"
 
 import {STATECOIN_STATUS} from '../statecoin';
+
 import reducers from '../../reducers';
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -20,11 +21,13 @@ import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 import { Wallet } from '../wallet.ts';
 
-
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 
 
 
+
+import { encryptAES } from '../util.ts';
+import {fromSeed} from 'bip32';
 
 let bitcoin = require('bitcoinjs-lib')
 
@@ -34,7 +37,6 @@ let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 //electrum mock
 let electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
-
 
 describe('swapToken', function() {
   test('Gen and Verify', async function() {
@@ -509,4 +511,5 @@ describe('After Swaps Complete', function() {
 
   })
 
-}) 
+})
+
