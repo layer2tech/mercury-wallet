@@ -177,7 +177,7 @@ export const do_swap_poll = async(
 }
 
 // Check statecoin is eligible for entering a swap group
-export const checkEligibleForSwap = ( statecoin: StateCoin ) => {
+export const validateSwap = ( statecoin: StateCoin ) => {
   if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already in swap pool.");
   if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already involved in swap.");
   if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for swap.");
@@ -196,7 +196,7 @@ export const handleResumeOrStartSwap = (resume: boolean, statecoin: StateCoin) :
       throw Error("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status);
     prev_phase = statecoin.swap_status;
   } else {
-    checkEligibleForSwap(statecoin)
+    validateSwap(statecoin)
     if(statecoin.swap_status === SWAP_STATUS.Phase4){
       throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
     }
