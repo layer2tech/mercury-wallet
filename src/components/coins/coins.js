@@ -76,8 +76,8 @@ const INITIAL_COINS = {
 }
 
 const INITIAL_SORT_BY = {
-	direction: 0,
-	by: 'value'
+  direction: 0,
+  by: 'value'
 };
 
 const SWAP_STATUS_INFO = {
@@ -111,7 +111,7 @@ const Coins = (props) => {
     const {selectedCoins, isMainPage, swap} = props;
     const dispatch = useDispatch();
     const { filterBy, swapPendingCoins } = useSelector(state => state.walletData);
-  	const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
+    const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
     const [initCoins, setInitCoins] = useState({});
     const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
@@ -297,7 +297,7 @@ const Coins = (props) => {
 
       swapPendingCoins.forEach((selectedCoin) => {
         let statecoin = callGetStateCoin(selectedCoin);
-        if(statecoin && statecoin.swap_status === null){
+        if(statecoin && statecoin.status === STATECOIN_STATUS.AVAILABLE){
           dispatch(callDoSwap({"shared_key_id": selectedCoin}))
             .then(res => {
               dispatch(removeSwapPendingCoin(selectedCoin))
@@ -1010,3 +1010,5 @@ const Coins = (props) => {
 }
 
 export default Coins;
+
+

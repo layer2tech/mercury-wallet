@@ -3,15 +3,17 @@ import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoinList,
   MockWasm, StateCoin, pubKeyTobtcAddr, fromSatoshi, STATECOIN_STATUS, BACKUP_STATUS, GET_ROUTE, decryptAES,
-  encodeSCEAddress} from './';
+  encodeSCEAddress } from './';
 import { ElectrsClient } from './electrs'
 
-import { txCPFPBuild, FEE } from './util';
+import { txCPFPBuild, FEE, encryptAES } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
-import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData, TransferFinalizeDataForRecovery, transferReceiverFinalizeRecovery } from './mercury/transfer';
-import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS } from './swap/swap'
+
+import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData  } from './mercury/transfer';
+import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS, checkEligibleForSwap, asyncSemaphoreRun } from './swap/swap';
+
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
 import { Storage } from '../store';
@@ -223,6 +225,15 @@ export class Wallet {
     wallet.activity.addItem(uuid2, ACTION.TRANSFER);
     return wallet
   }
+
+  // convert wallet to encrypted JSON with encrypted mnemonic
+
+  toEncryptedJSON() {
+    let wallet_json = JSON.parse(JSON.stringify(this))
+    wallet_json.mnemonic = encryptAES(this.mnemonic,this.password)
+    return wallet_json
+  }
+
 
   // Load wallet from JSON
   static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
@@ -805,6 +816,7 @@ export class Wallet {
     this.statecoins.setCoinSpent(id, action, transfer_msg);
     this.activity.addItem(id, action);
     log.debug("Set Statecoin spent: "+id);
+    this.saveStateCoinsList()
   }
 
   setStateCoinAutoSwap(shared_key_id: string) {
@@ -992,37 +1004,77 @@ export class Wallet {
           new_statecoin['is_deposited'] = is_deposited;
   }
 
+
+  removeCoinFromSwap(
+    shared_key_id: string
+  ) {
+    let statecoin = this.statecoins.getCoin(shared_key_id)
+    if (statecoin) {
+
+      if (statecoin.status===STATECOIN_STATUS.IN_SWAP ) throw Error("Swap already begun. Cannot remove coin.");
+      if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
+      if(statecoin.swap_status === SWAP_STATUS.Phase4){
+        throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Cannot remove coin.`)
+      }
+      statecoin.setConfirmed();
+      statecoin.swap_status = null;
+      statecoin.swap_id = null;
+      statecoin.swap_address = null;
+      statecoin.swap_info = null;
+      statecoin.swap_my_bst_data = null;
+      statecoin.swap_receiver_addr = null;
+      statecoin.swap_transfer_msg = null;
+      statecoin.swap_batch_data = null;
+      statecoin.swap_transfer_finalized_data = null;
+      statecoin.ui_swap_status = null
+      this.saveStateCoinsList()
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+
+  }
+  // De register coin from swap on server and set statecoin swap data to null
+  async deRegisterSwapCoin(
+    httpClient: HttpClient | MockHttpClient,
+    statecoin: StateCoin,
+  ) {
+    await swapDeregisterUtxo(httpClient, {id: statecoin.statechain_id});
+    this.removeCoinFromSwap(statecoin.shared_key_id);
+    // reset swap data
+    // if in a swap or awaiting swap this throws err
+  }
+
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
   async do_swap(
-    shared_key_id: string,
+    shared_key_id: string
   ): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
-    if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already in swap pool.");
-    if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" already involved in swap.");
-    if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for swap.");
     
+    checkEligibleForSwap( statecoin )
+    // Checks statecoin is available and not already in swap group
+    
+    //Always try and resume coins in swap phase 4 so transfer is completed
+       //Always try and resume coins in swap phase 4
+       if (statecoin.swap_status !== SWAP_STATUS.Phase4){
+        await swapSemaphore.wait();
+        try{
+          await (async () => {
+            while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+              delay(100);
+            }
+          });
+          
+          await this.deRegisterSwapCoin(this.http_client,statecoin)
 
-    
-    //Always try and resume coins in swap phase 4
-    if (statecoin.swap_status !== SWAP_STATUS.Phase4){
-      await swapSemaphore.wait();
-      try{
-        await (async () => {
-          while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-            delay(100);
-          }
-        });
-        await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
-        this.statecoins.removeCoinFromSwap(statecoin.shared_key_id);
-      } catch(e : any){
-        if (! e.message.includes("Coin is not in a swap pool")){
-          throw e;
-       }
-      } finally {
-      swapSemaphore.release();
-      }
+        } catch(e : any){
+          if (! e.message.includes("Coin is not in a swap pool")){
+            throw e;
+         }
+        } finally {
+        swapSemaphore.release();
+        }
 
       return await this.resume_swap(statecoin, false)
     } else {
@@ -1043,9 +1095,9 @@ export class Wallet {
     let new_proof_key_der = this.genProofKey();
     let wasm = await this.getWasm();
       
-    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key, this)
       
-    let new_statecoin: StateCoin | any | null=null;
+    let new_statecoin: StateCoin | null=null;
 
     await swapSemaphore.wait();
     try{
@@ -1061,14 +1113,16 @@ export class Wallet {
       // completed server side
       if((statecoin?.swap_status !== SWAP_STATUS.Phase4) 
         || `${e}`.includes("Transfer batch ended. Timeout")){
+
         statecoin.setSwapDataToNull();
+
         // remove generated address
         this.account.chains[0].pop();
       }
     } finally {
-      if (new_statecoin) {
+      if ( new_statecoin && new_statecoin instanceof StateCoin ) {
         this.setIfNewCoin(new_statecoin)
-        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)  
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
         new_statecoin.setSwapDataToNull();
       } 
       this.saveStateCoinsList(); 
