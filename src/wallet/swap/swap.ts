@@ -47,6 +47,7 @@ function delay(s: number) {
   return new Promise(resolve => setTimeout(resolve, s * 1000));
 }
 
+
 // Loop through swap protocol for some statecoin
 export const do_swap_poll = async (
   http_client: HttpClient | MockHttpClient,
