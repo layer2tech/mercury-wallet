@@ -44,7 +44,7 @@ function get_statecoin_in() {
   let statecoin = makeTesterStatecoin();
   statecoin.status = STATECOIN_STATUS.IN_SWAP
   statecoin.swap_status = SWAP_STATUS.Phase4
-  statecoin.swap_id = "a swap id"
+  statecoin.swap_id = { "id": "a swap id" }
   statecoin.swap_my_bst_data = "a my bst data"
   statecoin.swap_info = mock_http_client.SWAP_INFO
   statecoin.swap_transfer_finalized_data = mock_http_client.TRANSFER_FINALIZE_DATA
@@ -133,7 +133,7 @@ describe('Swap phase 4', function() {
     .rejects.toThrowError("No Swap ID found. Swap ID should be set in Phase0.")
 
   //Set swap_id to some value
-  statecoin.swap_id = "a swap id"
+  statecoin.swap_id = { "id": "a swap id" }
 
   await expect(swapPhase4(http_mock, null, statecoin, null))
     .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
@@ -683,5 +683,151 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
       expect(statecoin_out).toEqual(statecoin_out_expected)
     }
   })
+
+  test('swapPhase4 test 14 - error from client keygen first message transferReceiverFinalize - No data for identifier', async function() {
+    let statecoin = get_statecoin_in()
+   
+    let updated_statecoin = cloneDeep(statecoin)
+    updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
+    const UPDATED_STATECOIN = cloneDeep(updated_statecoin)
+  
+    let valid_phases = [SWAP_STATUS.Phase4, null]
+
+
+    for (let i=0; i < valid_phases.length; i++) {
+      http_mock.post = jest.fn((path, body) => {
+        if(path === POST_ROUTE.SWAP_POLL_SWAP){
+          return valid_phases[i]
+        }
+        if(path === POST_ROUTE.KEYGEN_FIRST){
+          throw new Error("No data for identifier")
+        }
+      })
+
+      http_mock.get = jest.fn((path, params) => {
+        if(path === GET_ROUTE.TRANSFER_BATCH){
+          return "tb return"
+          //{
+          //  "state_chains": ["sc1","sc2"],
+          //  "finalized": false,
+          //}
+        }
+      })
+
+      await expect(swapPhase4(http_mock, wasm_mock, statecoin, null))
+        .rejects.toThrow(SwapRetryError)
+        expect(statecoin).toEqual(UPDATED_STATECOIN)
+
+      await expect(swapPhase4(http_mock, wasm_mock, statecoin, null))
+        .rejects.toThrowError(
+          `Phase4 transferFinalize error: \"statecoin ${UPDATED_STATECOIN.shared_key_id} waiting for completion of batch transfer in swap ID ${UPDATED_STATECOIN.swap_id.id}\"`
+        )
+        expect(statecoin).toEqual(UPDATED_STATECOIN)
+    }
+  })
+
+  test('swapPhase4 test 15 - error from client keygen first message transferReceiverFinalize - batch transfer status: not finalized', async function() {
+    let statecoin = get_statecoin_in()
+   
+    let updated_statecoin = cloneDeep(statecoin)
+    updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
+    const UPDATED_STATECOIN = cloneDeep(updated_statecoin)
+  
+      http_mock.post = jest.fn((path, body) => {
+        if(path === POST_ROUTE.SWAP_POLL_SWAP){
+          return null
+        }
+        if(path === POST_ROUTE.KEYGEN_FIRST){
+          throw new Error("keygen first error")
+        }
+      })
+
+      http_mock.get = jest.fn((path, params) => {
+        if(path === GET_ROUTE.TRANSFER_BATCH){
+          return {
+            "state_chains": ["sc1", "sc2"],
+            "finalized": false,
+          }
+        }
+      })
+
+      await expect(swapPhase4(http_mock, wasm_mock, statecoin, null))
+        .rejects.toThrow(SwapRetryError)
+        expect(statecoin).toEqual(UPDATED_STATECOIN)
+
+      await expect(swapPhase4(http_mock, wasm_mock, statecoin, null))
+        .rejects.toThrowError(
+          `Phase4 transferFinalize error: \"statecoin ${UPDATED_STATECOIN.shared_key_id} waiting for completion of batch transfer in swap ID ${UPDATED_STATECOIN.swap_id.id}\"`
+        )
+        expect(statecoin).toEqual(UPDATED_STATECOIN)
+  })
+
+  test('swapPhase4 test 16 - error from client keygen first message transferReceiverFinalize - batch transfer status: finalized', async function() {
+    let statecoin = get_statecoin_in()
+   
+    let updated_statecoin = cloneDeep(statecoin)
+    updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
+    const UPDATED_STATECOIN = cloneDeep(updated_statecoin)
+  
+      http_mock.post = jest.fn((path, body) => {
+        if(path === POST_ROUTE.SWAP_POLL_SWAP){
+          return null
+        }
+        if(path === POST_ROUTE.KEYGEN_FIRST){
+          throw new Error("keygen first error")
+        }
+      })
+
+      http_mock.get = jest.fn((path, params) => {
+        if(path === GET_ROUTE.TRANSFER_BATCH){
+          return {
+            "state_chains": ["sc1", "sc2"],
+            "finalized": true,
+          }
+        }
+      })
+
+      await expect(swapPhase4(http_mock, wasm_mock, statecoin, null))
+        .rejects.toThrow(SwapRetryError)
+        expect(statecoin).toEqual(UPDATED_STATECOIN)
+
+      await expect(swapPhase4(http_mock, wasm_mock, statecoin, null))
+        .rejects.toThrowError("Phase4 transferFinalize error: keygen first error")
+        expect(statecoin).toEqual(UPDATED_STATECOIN)
+  })
+
+  test('swapPhase4 test 17 - batch transfer timeout', async function() {
+    let statecoin = get_statecoin_in()
+   
+    let updated_statecoin = cloneDeep(statecoin)
+    updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
+    const UPDATED_STATECOIN = cloneDeep(updated_statecoin)
+  
+      http_mock.post = jest.fn((path, body) => {
+        if(path === POST_ROUTE.SWAP_POLL_SWAP){
+          return null
+        }
+        if(path === POST_ROUTE.KEYGEN_FIRST){
+          throw new Error("keygen first error")
+        }
+      })
+
+      http_mock.get = jest.fn((path, params) => {
+        if(path === GET_ROUTE.TRANSFER_BATCH){
+          throw new Error("Transfer batch ended. Timeout")
+        }
+      })
+
+      await expect(swapPhase4(http_mock, wasm_mock, statecoin, null))
+        .rejects.toThrow(Error)
+        expect(statecoin).toEqual(UPDATED_STATECOIN)
+
+      await expect(swapPhase4(http_mock, wasm_mock, statecoin, null))
+        .rejects.toThrowError(
+          `swap id: ${UPDATED_STATECOIN.swap_id.id}, shared key id: ${UPDATED_STATECOIN.shared_key_id} - swap failed at phase 4/4`
+        ) 
+        expect(statecoin).toEqual(UPDATED_STATECOIN)
+  })
+
 })
   
