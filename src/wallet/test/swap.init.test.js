@@ -43,7 +43,7 @@ const wasm_err = (message) => {
 
 const SHARED_KEY_DUMMY = { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" };
 
-const WALLET_VERSION = require("../../../package.json").version;
+const WALLET_VERSION = require("../../../package.json").version.substring(1);
 
 //Set a valid initial statecoin status for phase4
 function get_statecoin_in() {
@@ -146,7 +146,7 @@ describe('Swap init', function () {
 
 
     await expect(swapInit(http_mock, statecoin, proof_key_der, SWAP_SIZE))
-      .rejects.toThrowError("Error from POST request - path: swap/register-utxo, body: {\"statechain_id\":\"\",\"signature\":{\"purpose\":\"SWAP\",\"data\":\"03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477\",\"sig\":\"304402200594cf179e90dfb81b3f997c0cb0ff6c8181ed76a119884779dece35c22fa6ac022042c32b8228dd40f57f049197af59f1585b048bd4c12611bd34e5f3cd7ed3a5e1\"},\"swap_size\":3,\"wallet_version\":\"v" + WALLET_VERSION + "\"}");
+      .rejects.toThrowError("Error from POST request - path: swap/register-utxo, body: {\"statechain_id\":\"\",\"signature\":{\"purpose\":\"SWAP\",\"data\":\"03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477\",\"sig\":\"304402200594cf179e90dfb81b3f997c0cb0ff6c8181ed76a119884779dece35c22fa6ac022042c32b8228dd40f57f049197af59f1585b048bd4c12611bd34e5f3cd7ed3a5e1\"},\"swap_size\":3,\"wallet_version\":\"" + WALLET_VERSION + "\"}");
     expect(statecoin).toEqual(INIT_STATECOIN)
 
     await expect(swapInit(http_mock, statecoin, proof_key_der, SWAP_SIZE))
