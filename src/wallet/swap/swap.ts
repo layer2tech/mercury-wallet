@@ -10,8 +10,6 @@ import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
 import { Wallet } from '../wallet'
 import { ACTION } from '../activity_log';
-import { encodeSCEAddress } from '../';
-import { AsyncSemaphore } from '@esfx/async-semaphore';
 import { List } from 'reselect/es/types';
 import { callGetConfig } from '../../features/WalletDataSlice';
 import { swapPhase0 } from './swap.phase0';
@@ -73,6 +71,16 @@ export enum SWAP_STATUS {
 }
 Object.freeze(SWAP_STATUS);
 
+// Constants used for retrying swap phases
+export const SWAP_RETRY = {
+  INIT_RETRY_AFTER: 600,
+  MAX_ERRS_PER_PHASE: 10,
+  MAX_ERRS_PHASE4: 100,
+  MAX_REPS_PER_PHASE: 50,
+  MAX_REPS_PHASE4: 100
+}
+Object.freeze(SWAP_RETRY);
+
 export class SwapRetryError extends Error {
   constructor(err: any, reason: string | null = null) {
     const msg = err?.message
@@ -114,44 +122,11 @@ export const validateStatecoinState = (_statecoin: StateCoin, _phase: SWAP_STATU
 }
 
 // Check statecoin is eligible for entering a swap group
-export const checkEligibleForSwap = (statecoin: StateCoin) => {
+export const validateSwap = (statecoin: StateCoin) => {
   if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " already in swap pool.");
   if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " already involved in swap.");
   if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for swap.");
 }
-
-// Limit total swap instances and only run if updateSwapInfo is not running
-// run deRegister SwapCoin if above criteria met
-
-// Semaphore 1 triggered and semaphore 1 count adds 1 for each call of this function
-// Semaphore 2 is counted separately from this function but there is a check to make 
-// sure the sem. 2 limit has not  been reached
-export const asyncSemaphoreRun = async (
-  semaphore1: AsyncSemaphore,
-  semaphore2: AsyncSemaphore,
-  SEM_2_LIMIT: number,
-  func1: Function,
-  args1: List
-) => {
-  await semaphore1.wait();
-  try {
-    await (async () => {
-      while (semaphore2.count < SEM_2_LIMIT) {
-        delay(100);
-      }
-    });
-    func1(...args1)
-  }
-  catch (e: any) {
-    if (!e.message.includes("Coin is not in a swap pool")) {
-      //this error is thrown when sc status = Awaiting Swap
-      throw e;
-    }
-  } finally {
-    semaphore1.release();
-  }
-}
-
 
 
 // Register coin to swap pool and set to phase0
@@ -228,46 +203,18 @@ export const do_swap_poll = async (
 
   let swapPhaseClient = new SwapPhaseClients(http_client, wasm_client, electrum_client);
 
-  if (resume) {
-    if (statecoin.status !== STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin " + statecoin.shared_key_id + " - not in swap.");
-    if (statecoin.swap_status !== SWAP_STATUS.Phase4)
-      throw Error("Cannot resume coin " + statecoin.shared_key_id + " - swap status: " + statecoin.swap_status);
-  } else {
-    checkEligibleForSwap(statecoin)
-  }
+  let prev_phase = handleResumeOrStartSwap(resume, statecoin)
 
-  // Reset coin's swap data
-  let prev_phase;
-  if (!resume) {
-    if (statecoin.swap_status === SWAP_STATUS.Phase4) {
-      throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
-    }
-    if (statecoin) {
-      statecoin.setSwapDataToNull()
-      statecoin.swap_status = SWAP_STATUS.Init;
-      statecoin.ui_swap_status = SWAP_STATUS.Init;
-      statecoin.setAwaitingSwap();
-    }
-    prev_phase = SWAP_STATUS.Init;
-  } else {
-    prev_phase = statecoin.swap_status;
-  }
-
-  const INIT_RETRY_AFTER = 600
-  const MAX_ERRS = 10
-  const MAX_ERRS_PHASE4 = 100
-  const MAX_REPS_PER_PHASE = 50
-  const MAX_REPS_PHASE4 = 100
   let swap0_count = 0
   let n_errs = 0
   let n_reps = 0
   let new_statecoin = null
   while (new_statecoin == null) {
     try {
-      if (statecoin.swap_status !== SWAP_STATUS.Phase4 && n_reps >= MAX_REPS_PER_PHASE) {
+      if (statecoin.swap_status !== SWAP_STATUS.Phase4 && n_reps >= SWAP_RETRY.MAX_REPS_PER_PHASE) {
         throw new Error(`Number of tries exceeded in phase ${statecoin.swap_status}`)
       }
-      if (statecoin.swap_status === SWAP_STATUS.Phase4 && n_reps >= MAX_REPS_PHASE4) {
+      if (statecoin.swap_status === SWAP_STATUS.Phase4 && n_reps >= SWAP_RETRY.MAX_REPS_PHASE4) {
         throw new Error(`Number of tries exceeded in phase ${statecoin.swap_status}`)
       }
       if (statecoin.status === STATECOIN_STATUS.AVAILABLE) {
@@ -294,7 +241,7 @@ export const do_swap_poll = async (
         }
         case SWAP_STATUS.Phase0: {
           n_reps = n_reps - 1
-          if (swap0_count < INIT_RETRY_AFTER) {
+          if (swap0_count < SWAP_RETRY.INIT_RETRY_AFTER) {
             try {
               await swapPhase0(swapPhaseClient, statecoin);
               n_errs = 0;
@@ -348,7 +295,7 @@ export const do_swap_poll = async (
       let message: string | undefined = err?.message
       if (message && (message.includes("timed out") || message.includes("Transfer batch ended. Timeout"))) {
         throw err
-      } else if (err instanceof SwapRetryError && n_errs < MAX_ERRS && statecoin.swap_status !== SWAP_STATUS.Phase4) {
+      } else if (err instanceof SwapRetryError && n_errs < SWAP_RETRY.MAX_ERRS_PER_PHASE && statecoin.swap_status !== SWAP_STATUS.Phase4) {
         n_errs = n_errs + 1
         console.log(`Error during swap: ${message} - retrying...`);
         if (message!.includes("Incompatible")) {
@@ -358,7 +305,7 @@ export const do_swap_poll = async (
           alert(message)
         }
       }
-      else if (err instanceof SwapRetryError && n_errs < MAX_ERRS_PHASE4 && statecoin.swap_status === SWAP_STATUS.Phase4) {
+      else if (err instanceof SwapRetryError && n_errs < SWAP_RETRY.MAX_ERRS_PHASE4 && statecoin.swap_status === SWAP_STATUS.Phase4) {
         //An unlimited number of netowrk errors permitted in stage 4 as swap 
         //transfers may have completed
         if (!(err.message.includes('Network') || err.message.includes('network') || err.message.includes('net::ERR'))) {
@@ -376,6 +323,34 @@ export const do_swap_poll = async (
   return new_statecoin;
 }
 
+
+export const handleResumeOrStartSwap = (resume: boolean, statecoin: StateCoin) : string | null => {
+  // Coins in Phase4 resume all other coins start swap
+
+  let prev_phase;
+  //coin previous swap phase
+
+  if (resume){
+    if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin "+statecoin.shared_key_id+" - not in swap.");
+    if (statecoin.swap_status!==SWAP_STATUS.Phase4) 
+      throw Error("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status);
+    prev_phase = statecoin.swap_status;
+  } else {
+    validateSwap(statecoin)
+    if(statecoin.swap_status === SWAP_STATUS.Phase4){
+      throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
+    }
+    if(statecoin){
+      statecoin.setSwapDataToNull()
+      statecoin.swap_status = SWAP_STATUS.Init;
+      statecoin.ui_swap_status = SWAP_STATUS.Init;
+      statecoin.setAwaitingSwap();
+    }
+    prev_phase = SWAP_STATUS.Init;
+  }
+
+  return prev_phase
+}
 
 export const make_swap_commitment = (statecoin: any,
   swap_info: any, wasm_client: any): BatchData => {
