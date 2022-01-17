@@ -62,14 +62,14 @@ export const UI_SWAP_STATUS = {
 Object.freeze(UI_SWAP_STATUS);
 
 // SWAP_STATUS represent each technical stage in the lifecycle of a coin in a swap.
-export const SWAP_STATUS = {
-  Init: "Init",
-  Phase0: "Phase0",
-  Phase1: "Phase1",
-  Phase2: "Phase2",
-  Phase3: "Phase3",
-  Phase4: "Phase4",
-  End: "End",
+export enum SWAP_STATUS {
+  Init = "Init",
+  Phase0 = "Phase0",
+  Phase1 = "Phase1",
+  Phase2 = "Phase2",
+  Phase3 = "Phase3",
+  Phase4 = "Phase4",
+  End = "End",
 }
 Object.freeze(SWAP_STATUS);
 
@@ -88,6 +88,29 @@ export class SwapRetryError extends Error {
     super(message)
     this.name = "SwapRetryError";
   }
+}
+
+export const validateStatecoinState = (_statecoin: StateCoin, _phase: SWAP_STATUS) => {
+  // assume statecoin state is valid because it will throw if invalid
+  let valid = true;
+
+  if (_statecoin.status !== STATECOIN_STATUS.AWAITING_SWAP) throw Error("Statecoin status is not in awaiting swap");
+  if (_statecoin.swap_status !== _phase) throw Error("Coin is not yet in this phase of the swap protocol. In phase: " + _statecoin.swap_status);
+
+  switch (_phase) {
+    case SWAP_STATUS.Phase0:
+      break;
+    case SWAP_STATUS.Phase1:
+      break;
+    case SWAP_STATUS.Phase2:
+      break;
+    case SWAP_STATUS.Phase3:
+      break;
+    case SWAP_STATUS.Phase4:
+      break;
+  }
+
+  return valid;
 }
 
 // Check statecoin is eligible for entering a swap group
