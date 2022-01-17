@@ -8,7 +8,7 @@ import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo }
 import { getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
 
 import { StateChainSig } from "../util";
-import { BIP32Interface, Network, script } from 'bitcoinjs-lib';
+import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
 import { Wallet } from '../wallet'
 import { swapInit, swapPhase0, swapPhase1, swapPhase2, swapPhase3, swapPhase4 } from './swap_phases';
