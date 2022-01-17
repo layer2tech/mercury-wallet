@@ -99,6 +99,7 @@ export const validateStatecoinState = (_statecoin: StateCoin, _phase: SWAP_STATU
 
   switch (_phase) {
     case SWAP_STATUS.Phase0:
+      if (_statecoin.statechain_id === null || _statecoin.statechain_id === undefined) throw Error("statechain id is invalid");
       break;
     case SWAP_STATUS.Phase1:
       break;
