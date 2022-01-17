@@ -92,6 +92,7 @@
     "bootstrap": "^4.5.3",
     "buffer-json": "^2.0.0",
     "client-wasm": "file:client-wasm/pkg",
+    "collections": "^5.1.13",
     "cross-env": "^7.0.3",
     "eciesjs12b": "^0.3.11",
     "electron-devtools-installer": "^3.1.1",
