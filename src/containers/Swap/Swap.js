@@ -188,8 +188,13 @@ const SwapPage = () => {
       dispatch(callDoAutoSwap(selectedCoin));
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
-      
       dispatch(addSwapPendingCoin(item.shared_key_id))
+      dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+      .then(res => {
+        handleEndSwap(dispatch,selectedCoin,res,setSwapLoad,swapLoad,fromSatoshi)
+      });
+    // Refres
+
     }
 
     // Refresh Coins list
