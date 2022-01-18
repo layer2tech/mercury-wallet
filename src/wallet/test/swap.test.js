@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails } from './test_data.js'
-import { SWAP_STATUS, POLL_UTXO, SwapToken, make_swap_commitment } from "../swap/swap";
+import { SWAP_STATUS, SwapPhaseClients, SwapToken, make_swap_commitment } from "../swap/swap";
 import { STATECOIN_STATUS } from '../statecoin'
 import * as swap from "../swap/swap"
 import reducers from '../../reducers';
