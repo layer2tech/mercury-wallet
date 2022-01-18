@@ -26,18 +26,31 @@ import {
 import {fromSatoshi} from '../../wallet';
 import './Swap.css';
 
+
 const SwapPage = () => {
   const dispatch = useDispatch();
   let disabled = false;
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
-  const [electrumServer,setElectrumServer] = useState(false); // Check Electrum server network status
-  const [counter,setCounter] = useState(0); //Re-run interval checks
+
   const [swapLoad, setSwapLoad] = useState({join: false,swapCoin: "", leave:false}) // set loading... onClick
   const [initFetchSwapGroups,setInitFetchSwapGroups] = useState(true)
-
+  
   const [swapGroupsData, setSwapGroupsData] = useState([]);
+
+  const [online, networkStatus] = useState(navigator.onLine);
+
+  useEffect(() => {
+
+    if (window.addEventListener) {
+        window.addEventListener("online", () => networkStatus(true), false);
+        window.addEventListener("offline", () => networkStatus(false), false);
+    } else {
+        document.body.ononline = () => networkStatus(true);
+        document.body.onoffline = () => networkStatus(false);
+    }
+  }, []);
 
   function addSelectedCoin(statechain_id) {
     setSelectedCoins(
@@ -64,35 +77,11 @@ const SwapPage = () => {
           setRefreshCoins((prevState) => !prevState);
           setInitFetchSwapGroups(false)
       }, 3000);
-      return () => clearInterval(interval);
+      if(online){
+        return () => clearInterval(interval);
+      }
     },
     [dispatch]);
-  
-  // Check if Electrum server connected on page open
-  useEffect(()=> {
-    checkElectrum();
-  
-    const interval = setInterval(()=> {
-      //Check Electrum server every 5s
-      checkElectrum();
-    
-      //Counter triggers interval to run every time it's called
-      setCounter(counter+1)
-
-    },10000)
-    return()=> clearInterval(interval)
-    
-  },[counter])
-
-  const checkElectrum = () => {
-    callPingElectrum().then((res) => {
-      if(res.height){
-        setElectrumServer(true)
-      }
-    }).catch((err)=> {
-      setElectrumServer(false)
-    })
-  }
     
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -104,7 +93,7 @@ const SwapPage = () => {
   const swapButtonAction = async () => {
     
     // check electrum connection before swap start
-    if (electrumServer === false){
+    if (online === false){
       dispatch(setError({msg: "The Electrum server network connection is lost"}))
       return
     }
@@ -148,7 +137,7 @@ const SwapPage = () => {
     let selectedCoin = item.shared_key_id;
 
     // check statechain is chosen
-    if (electrumServer === false){
+    if (online === false){
       dispatch(setError({msg: "The Electrum network connection is lost"}))
       return
     }
@@ -199,7 +188,7 @@ const SwapPage = () => {
 
 
   const leavePoolButtonAction = (event) => {
-    if (electrumServer === false){
+    if (online === false){
       dispatch(setError({msg: "The Electrum server network connection is lost"}))
       return
     }
