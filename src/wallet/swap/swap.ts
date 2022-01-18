@@ -110,6 +110,7 @@ export const validateStatecoinState = (_statecoin: StateCoin, _phase: SWAP_STATU
       if (_statecoin.statechain_id === null || _statecoin.statechain_id === undefined) throw Error("statechain id is invalid");
       break;
     case SWAP_STATUS.Phase1:
+      if (_statecoin.swap_id === null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
       break;
     case SWAP_STATUS.Phase2:
       break;
@@ -263,7 +264,7 @@ export const do_swap_poll = async (
           break;
         }
         case SWAP_STATUS.Phase1: {
-          await swapPhase1(http_client, wasm_client, statecoin, proof_key_der, new_proof_key_der);
+          await swapPhase1(swapPhaseClient, statecoin, proof_key_der, new_proof_key_der);
           n_errs = 0;
           break;
         }
@@ -325,23 +326,23 @@ export const do_swap_poll = async (
 }
 
 
-export const handleResumeOrStartSwap = (resume: boolean, statecoin: StateCoin) : string | null => {
+export const handleResumeOrStartSwap = (resume: boolean, statecoin: StateCoin): string | null => {
   // Coins in Phase4 resume all other coins start swap
 
   let prev_phase;
   //coin previous swap phase
 
-  if (resume){
-    if (statecoin.status!==STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin "+statecoin.shared_key_id+" - not in swap.");
-    if (statecoin.swap_status!==SWAP_STATUS.Phase4) 
-      throw Error("Cannot resume coin "+statecoin.shared_key_id+" - swap status: " + statecoin.swap_status);
+  if (resume) {
+    if (statecoin.status !== STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin " + statecoin.shared_key_id + " - not in swap.");
+    if (statecoin.swap_status !== SWAP_STATUS.Phase4)
+      throw Error("Cannot resume coin " + statecoin.shared_key_id + " - swap status: " + statecoin.swap_status);
     prev_phase = statecoin.swap_status;
   } else {
     validateSwap(statecoin)
-    if(statecoin.swap_status === SWAP_STATUS.Phase4){
+    if (statecoin.swap_status === SWAP_STATUS.Phase4) {
       throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
     }
-    if(statecoin){
+    if (statecoin) {
       statecoin.setSwapDataToNull()
       statecoin.swap_status = SWAP_STATUS.Init;
       statecoin.ui_swap_status = SWAP_STATUS.Init;

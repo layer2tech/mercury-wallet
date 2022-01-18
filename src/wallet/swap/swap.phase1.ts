@@ -2,7 +2,7 @@ import { BIP32Interface } from "bip32";
 import { HttpClient, MockHttpClient, StateCoin, STATECOIN_STATUS } from "..";
 import { StateChainSig } from "../util";
 import { pollUtxo, getSwapInfo } from "./info_api";
-import { SWAP_STATUS, StatechainID, SwapRetryError, first_message, UI_SWAP_STATUS } from "./swap";
+import { SWAP_STATUS, StatechainID, SwapRetryError, first_message, UI_SWAP_STATUS, SwapPhaseClients, validateStatecoinState } from "./swap";
 import { log } from './swap';
 
 let types = require("../types")
@@ -14,17 +14,13 @@ let typeforce = require('typeforce');
 // Return an SCE-Address and produce a signature over the swap_token with the
 //  proof key that currently owns the state chain they are transferring in the swap.
 export const swapPhase1 = async (
-    http_client: HttpClient | MockHttpClient,
-    wasm_client: any,
+    client: SwapPhaseClients,
     statecoin: StateCoin,
     proof_key_der: BIP32Interface,
     new_proof_key_der: BIP32Interface,
 ) => {
-    // check statecoin is still AWAITING_SWAP
-    if (statecoin.status !== STATECOIN_STATUS.AWAITING_SWAP) return null;
 
-    if (statecoin.swap_status !== SWAP_STATUS.Phase1) throw Error("Coin is not in this phase of the swap protocol. In phase: " + statecoin.swap_status);
-    if (statecoin.swap_id === null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
+    validateStatecoinState(statecoin, SWAP_STATUS.Phase1);
 
     //Check swap id again to confirm that the coin is still awaiting swap
     //according to the server
@@ -33,7 +29,7 @@ export const swapPhase1 = async (
     };
     let swap_id;
     try {
-        swap_id = await pollUtxo(http_client, statechain_id);
+        swap_id = await pollUtxo(client.http_client, statechain_id);
     } catch (err: any) {
         throw new SwapRetryError(err)
     }
@@ -45,7 +41,7 @@ export const swapPhase1 = async (
 
     let swap_info
     try {
-        swap_info = await getSwapInfo(http_client, statecoin.swap_id);
+        swap_info = await getSwapInfo(client.http_client, statecoin.swap_id);
     } catch (err: any) {
         throw new SwapRetryError(err)
     }
@@ -71,8 +67,8 @@ export const swapPhase1 = async (
     let transfer_batch_sig = StateChainSig.new_transfer_batch_sig(proof_key_der, statecoin.swap_id.id, statecoin.statechain_id);
     try {
         let my_bst_data = await first_message(
-            http_client,
-            wasm_client,
+            client.http_client,
+            client.wasm_client,
             swap_info,
             statecoin.statechain_id,
             transfer_batch_sig,
