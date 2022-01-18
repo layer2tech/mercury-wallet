@@ -1154,17 +1154,17 @@ export class Wallet {
 
   async updateSpeedInfo() {
     try {
-      this.ping_server_ms=await pingServer(this.http_client)
+      this.ping_server_ms = await pingServer(this.http_client)
     } catch (err) {
       this.ping_server_ms=null
     }
     try {
-      this.ping_conductor_ms=await pingConductor(this.http_client)
+      this.ping_conductor_ms = await pingConductor(this.http_client)
     } catch (err) {
-      this.ping_conductor_ms=null
+      this.ping_conductor_ms = null
     }
     try {
-      this.ping_electrum_ms=await pingElectrum(this.electrum_client)
+      this.ping_electrum_ms = await pingElectrum(this.electrum_client)
     } catch (err) {
       this.ping_electrum_ms=null
     }

@@ -100,7 +100,7 @@ label {
     display: none;
 }
 
-.ConnectionStateChain input:checked ~ .checkmark:after {
+.ConnectionServer input:checked ~ .checkmark:after {
     display: block;
 }
 
