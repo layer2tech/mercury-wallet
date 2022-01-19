@@ -6,14 +6,12 @@ import { HttpClient, MockHttpClient, ElectrumClient, ElectrsClient, EPSClient, M
 import { delay } from "../mercury/info_api";
 import { transferSender } from "../mercury/transfer";
 import { pollSwap } from "./info_api";
-import { SWAP_STATUS, SwapRetryError, UI_SWAP_STATUS, make_swap_commitment, do_transfer_receiver } from "./swap";
+import { SWAP_STATUS, SwapRetryError, UI_SWAP_STATUS, make_swap_commitment, do_transfer_receiver, SwapPhaseClients } from "./swap";
 import { log } from './swap';
 
 // and transfer_receiver
 export const swapPhase3 = async (
-    http_client: HttpClient | MockHttpClient,
-    electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient,
-    wasm_client: any,
+    client: SwapPhaseClients,
     statecoin: StateCoin,
     network: Network,
     proof_key_der: BIP32Interface,
@@ -22,9 +20,9 @@ export const swapPhase3 = async (
     block_height: number | null,
     wallet: Wallet
 ) => {
+    
     // check statecoin is IN_SWAP
     if (statecoin.status !== STATECOIN_STATUS.IN_SWAP) throw Error("Coin status is not IN_SWAP. Status: " + statecoin.status);
-
     if (statecoin.swap_status !== SWAP_STATUS.Phase3) throw Error("Coin is not in this phase of the swap protocol. In phase: " + statecoin.swap_status);
     if (statecoin.swap_id === null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
     if (statecoin.swap_info === null) throw Error("No swap info found for coin. Swap info should be set in Phase1.");
@@ -33,13 +31,12 @@ export const swapPhase3 = async (
 
     let phase
     try {
-        phase = await pollSwap(http_client, statecoin.swap_id);
+        phase = await pollSwap(client.http_client, statecoin.swap_id);
     } catch (err: any) {
         throw new SwapRetryError(err)
     }
 
     // We expect Phase4 here but should be Phase3. Server must slighlty deviate from protocol specification.
-
     // If still in previous phase return nothing.
     // If in any other than expected Phase return Error.
     if (phase === SWAP_STATUS.Phase2 || phase === SWAP_STATUS.Phase3) {
@@ -56,13 +53,13 @@ export const swapPhase3 = async (
     try {
         // if this part has not yet been called, call it.
         if (statecoin.swap_transfer_msg === null) {
-            statecoin.swap_transfer_msg = await transferSender(http_client, wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key, true, wallet);
+            statecoin.swap_transfer_msg = await transferSender(client.http_client, client.wasm_client, network, statecoin, proof_key_der, statecoin.swap_receiver_addr.proof_key, true, wallet);
             statecoin.ui_swap_status = UI_SWAP_STATUS.Phase6;
             wallet.saveStateCoinsList()
             await delay(1);
         }
         if (statecoin.swap_batch_data === null) {
-            statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, wasm_client);
+            statecoin.swap_batch_data = make_swap_commitment(statecoin, statecoin.swap_info, client.wasm_client);
             wallet.saveStateCoinsList()
         }
 
@@ -73,8 +70,8 @@ export const swapPhase3 = async (
 
         // Otherwise continue with attempt to comlete transfer_receiver
         let transfer_finalized_data = await do_transfer_receiver(
-            http_client,
-            electrum_client,
+            client.http_client,
+            client.electrum_client,
             network,
             statecoin.swap_id.id,
             statecoin.swap_batch_data.commitment,
