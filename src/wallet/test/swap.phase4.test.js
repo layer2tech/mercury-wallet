@@ -687,6 +687,7 @@ describe('Swap phase 4', function () {
     }
   })
 
+
   test('swapPhase4 test 14 - error from client keygen first message transferReceiverFinalize - No data for identifier', async function () {
     let statecoin = get_statecoin_in()
 
@@ -703,6 +704,7 @@ describe('Swap phase 4', function () {
           return valid_phases[i]
         }
         if (path === POST_ROUTE.KEYGEN_FIRST) {
+
           throw new Error("No data for identifier")
         }
       })
@@ -719,6 +721,7 @@ describe('Swap phase 4', function () {
 
       await expect(swapPhase4(http_mock, wasm_mock, statecoin, null))
         .rejects.toThrow(SwapRetryError)
+
       expect(statecoin).toEqual(UPDATED_STATECOIN)
 
       await expect(swapPhase4(http_mock, wasm_mock, statecoin, null))

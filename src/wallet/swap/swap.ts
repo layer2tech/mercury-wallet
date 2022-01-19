@@ -145,6 +145,7 @@ export const swapInit = async (
   try {
     typeforce(typeforce.compile(typeforce.Buffer), proof_key_der?.publicKey);
     typeforce(typeforce.compile(typeforce.Function), proof_key_der?.sign);
+
   } catch (err) {
     throw new Error(`swapInit: proof_key_der type error: ${err}`)
   }

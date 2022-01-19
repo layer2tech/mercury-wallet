@@ -261,6 +261,7 @@ describe('resume_swap', function () {
   // test for statecoin.setSwapDataToNull()
 })
 
+
 describe('Do Swap Poll', function () {
 
   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
@@ -383,7 +384,6 @@ describe('Do Swap Poll', function () {
 
 /*
 describe('Swaps', function() {
-
   test('swapPhase0', async function() {
     let swap_id = "12345";
     http_mock.post = jest.fn().mockReset()
