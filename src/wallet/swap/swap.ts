@@ -200,7 +200,7 @@ export class Swap {
       this.wallet = wallet
       this.http_client = wallet.http_client
       this.electrum_client = wallet.electrum_client
-      this.wasm_client = wallet.getWasm()
+      this.wasm_client = wallet.wasm
       this.proof_key_der = proof_key_der
       this.new_proof_key_der = new_proof_key_der
       this.timing_constants = new SwapTimingConstants()
@@ -467,25 +467,27 @@ getBSTData = async (): Promise<SwapStepResult> => {
 // and swap second message can be performed.
 pollSwapPhase2 = async (): Promise<SwapStepResult> => {
   // Poll swap until phase changes to Phase2.
-  let phase: string
-  try {
-    phase = await pollSwap(this.http_client, this.getSwapID());
-  } catch (err: any) {
-    return SwapStepResult.Retry(err.message)
-  }
-  return this.checkSwapPhase2(phase)
+    console.log('getting phase...')
+    let phase = null
+    try{
+      phase = await pollSwap(this.http_client, this.getSwapID());
+    } catch(err){
+      return SwapStepResult.Retry(err.message)
+    }
+    console.log(`got phase: ${phase}`)
+    console.log(`checking phase: ${phase}`)
+    if (phase === SWAP_STATUS.Phase1) {
+      return SwapStepResult.Retry("awaiting server phase 2...")
+    } else if (phase === null) {
+      throw new Error("Swap halted at phase 1");
+    } else if (phase !== SWAP_STATUS.Phase2) {
+      throw new Error("Swap error: Expected swap phase1 or phase2. Received: " + phase);
+    }
+    return SwapStepResult.Ok(`Swap Phase2: Coin ${this.statecoin.shared_key_id} + " in Swap ", ${this.statecoin.swap_id}`)
 }
 
-checkSwapPhase2 = (phase: string): SwapStepResult => {
-  if (phase === SWAP_STATUS.Phase1) {
-    return SwapStepResult.Retry("awaiting server phase 2...")
-  } else if (phase == null) {
-    throw new Error("Swap halted at phase 1");
-  } else if (phase !== SWAP_STATUS.Phase2) {
-    throw new Error("Swap error: Expected swap phase1 or phase2. Received: " + phase);
-  }
-  return SwapStepResult.Ok(`Swap Phase2: Coin ${this.statecoin.shared_key_id} + " in Swap ", ${this.statecoin.swap_id}`)
-}
+
+  
 
 getBSS = async (): Promise<SwapStepResult> => { 
   let bss
