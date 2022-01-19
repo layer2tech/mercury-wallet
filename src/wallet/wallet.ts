@@ -12,7 +12,7 @@ import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData  } from './mercury/transfer';
-import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS, checkEligibleForSwap, asyncSemaphoreRun } from './swap/swap';
+import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS, validateSwap } from './swap/swap';
 
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
@@ -1052,7 +1052,7 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     
-    checkEligibleForSwap( statecoin )
+    validateSwap( statecoin )
     // Checks statecoin is available and not already in swap group
     
     //Always try and resume coins in swap phase 4 so transfer is completed
@@ -1154,17 +1154,17 @@ export class Wallet {
 
   async updateSpeedInfo() {
     try {
-      this.ping_server_ms=await pingServer(this.http_client)
+      this.ping_server_ms = await pingServer(this.http_client)
     } catch (err) {
       this.ping_server_ms=null
     }
     try {
-      this.ping_conductor_ms=await pingConductor(this.http_client)
+      this.ping_conductor_ms = await pingConductor(this.http_client)
     } catch (err) {
-      this.ping_conductor_ms=null
+      this.ping_conductor_ms = null
     }
     try {
-      this.ping_electrum_ms=await pingElectrum(this.electrum_client)
+      this.ping_electrum_ms = await pingElectrum(this.electrum_client)
     } catch (err) {
       this.ping_electrum_ms=null
     }

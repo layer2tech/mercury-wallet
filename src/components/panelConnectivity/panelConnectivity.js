@@ -8,6 +8,7 @@ import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
 import './panelConnectivity.css';
 import '../index.css';
+import RadioButton from './RadioButton';
 
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();
@@ -15,52 +16,20 @@ const PanelConnectivity = (props) => {
   const [state, setState] = useState({isToggleOn: false,
     isServerHover:false, isSwapsHover:false, isBTCHover: false});
 
-  const toggleContent = (event) => {
-      setState({isToggleOn: !state.isToggleOn})
-  }
-  const toggleURL = (event) => {
-      let hostCheck = event.target.classList.value
-
-      if (hostCheck.includes("server")){
-        setState({...state,isServerHover:!state.isServerHover})
-      }
-      if(hostCheck.includes("swaps")){
-        setState({...state,isSwapsHover:!state.isSwapsHover})
-      }
-      if(hostCheck.includes("btc")){
-        setState({...state,isBTCHover:!state.isBTCHover})
-      }
-  }
-
-  //function shortens urls to fit better with styling
-  function shortenURLs(url){
-    let shortURL = ""
-    
-    url = url.replace("http://","")
-    shortURL = shortURL.concat(url.slice(0,3),"...",url.slice(url.length-8,url.length))
-    
-    return shortURL
-    }
-
-  let current_config;
-  try {
-    current_config = callGetConfig();
-  } catch {
-    current_config = defaultWalletConfig()
-  }
 
   const fee_info = useSelector(state => state.walletData).fee_info;
   const [block_height, setBlockHeight] = useState(callGetBlockHeight());
+  
+  const [server_ping_ms, setServerPingMs] = useState(callGetPingServerms());
+  const [conductor_ping_ms, setConductorPingMs] = useState(callGetPingConductorms());
+  const [electrum_ping_ms, setElectrumPingMs] = useState(callGetPingElectrumms());
+
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
   let pending_swaps = swap_groups_array.length;
 
   let participants = swap_groups_array.reduce((acc,item)=> acc+item[1].number,0)
   let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1].number * item[0].amount),0);
-
-  const [server_ping_ms, setServerPingMs] = useState(callGetPingServerms());
-  const [conductor_ping_ms, setConductorPingMs] = useState(callGetPingConductorms());
-  const [electrum_ping_ms, setElectrumPingMs] = useState(callGetPingElectrumms());
 
   // every 30s check speed
   useEffect(() => {
@@ -107,46 +76,62 @@ const PanelConnectivity = (props) => {
     //Add spinner for loading connection to Electrum server
     electrum_ping_ms !== null? (connection_pending[2].classList.add("connected")):(connection_pending[2].classList.remove("connected")) 
   },[fee_info.deposit,swap_groups_array.length,block_height, server_ping_ms, conductor_ping_ms, electrum_ping_ms])
+
+
+  //function shortens urls to fit better with styling
+  function shortenURLs(url){
+    let shortURL = ""
+    
+    url = url.replace("http://","")
+    shortURL = shortURL.concat(url.slice(0,3),"...",url.slice(url.length-8,url.length))
+    
+    return shortURL
+    }
+
+  let current_config;
+  try {
+    current_config = callGetConfig();
+  } catch {
+    current_config = defaultWalletConfig()
+  }
   
+
+  const toggleContent = (event) => {
+    setState({isToggleOn: !state.isToggleOn})
+}
+const toggleURL = (event) => {
+    let hostCheck = event.target.classList.value
+
+    if (hostCheck.includes("server")){
+      setState({...state,isServerHover:!state.isServerHover})
+    }
+    if(hostCheck.includes("swaps")){
+      setState({...state,isSwapsHover:!state.isSwapsHover})
+    }
+    if(hostCheck.includes("btc")){
+      setState({...state,isBTCHover:!state.isBTCHover})
+    }
+}
+
   return (
-      <div className="Body small accordion connection-wrap">
-          <div className="Collapse">
-              <div className="connection-title ConnectionStateChain">
-                  <label>
-                      <input
-                          readOnly
-                          type="radio"
-                          checked={fee_info.deposit !== "NA"}
-                      />
-                      {server_ping_ms !== null ?("Connected"):("Connecting") } to Server
-                      <span className="checkmark"></span>
-                  </label>
-              </div>
-              <div className="connection-title ConnectionSwaps">
-                  <label>
-                      <input
-                        readOnly
-                        type="radio"
-                        checked={swap_groups_array.length || conductor_ping_ms}
-                      />
-                      {conductor_ping_ms !== null ? ("Connected"):("Connecting")} to Swaps
-                      <span className="checkmark"></span>
-                  </label>
-              </div>
-              <div className="connection-title ConnectionElectrum">
-                  <label>
-                      <input
-                          readOnly
-                          type="radio"
-                          checked={block_height}
-                      />
-                      {electrum_ping_ms !== null?("Connected"):("Connecting") } to Bitcoin
-                      <span className="checkmark"></span>
-                  </label>
-              </div>
-              <div onClick={toggleContent} className={state.isToggleOn ? "image rotate" : ' image '}>
+        <div className="Body small accordion connection-wrap">
+            <div className="Collapse">
+            <RadioButton 
+                connection = "Server"
+                checked = { fee_info.deposit !== "NA" }
+                condition = { server_ping_ms !== null }/>
+            <RadioButton 
+                connection = "Swaps"
+                checked = { swap_groups_array.length || conductor_ping_ms }
+                condition = { conductor_ping_ms !== null }/>
+            <RadioButton 
+                connection = "Bitcoin"
+                checked = { block_height }
+                condition = { electrum_ping_ms !== null }/>
+
+            <div onClick={toggleContent} className={ state.isToggleOn ? "image rotate" : ' image ' }>
                   <img src={arrow} alt="arrowIcon"/>
-              </div>
+            </div>
           </div>
 
         <div className={state.isToggleOn ? "show" : ' hide'}>

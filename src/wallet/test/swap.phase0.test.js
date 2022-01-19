@@ -1,10 +1,12 @@
 import { makeTesterStatecoin } from './test_data.js'
-import { swapPhase0, SWAP_STATUS } from "../swap/swap";
+import { SwapPhaseClients, SWAP_STATUS } from "../swap/swap";
+import { swapPhase0 } from '../swap/swap.phase0';
 import { STATECOIN_STATUS } from '../statecoin'
 import { SwapRetryError } from '../swap/swap'
 
 // server side's mock
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+let swapPhaseClient = new SwapPhaseClients(http_mock);
 
 describe('swapPhase0 test 1 - incorrect initial statecoin phase', () => {
   // input data ////////////////////////////////////
@@ -15,7 +17,7 @@ describe('swapPhase0 test 1 - incorrect initial statecoin phase', () => {
 
   it('should throw coin is in wrong swap protocol', async () => {
     const input = () => {
-      return swapPhase0(http_mock, statecoin);
+      return swapPhase0(swapPhaseClient, statecoin);
     }
     const output = 'Coin is not yet in this phase of the swap protocol. In phase: Phase1';
     await expect(input()).rejects.toThrowError(output);
@@ -40,14 +42,14 @@ describe('swapPhase0 test 2 - correct initial statecoin phase', () => {
 
   it('should have swap_status Phase0, swap_id null', async () => {
     // swap not yet begun
-    await swapPhase0(http_mock, statecoin)
+    await swapPhase0(swapPhaseClient, statecoin)
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase0)
     expect(statecoin.swap_id).toBe(null)
   })
 
   it('should have swap_status Phase1, swap_id not null', async () => {
     // swap begun
-    await swapPhase0(http_mock, statecoin)
+    await swapPhase0(swapPhaseClient, statecoin)
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase1)
     expect(statecoin.swap_id.id).toBe(swap_id)
   })
@@ -61,7 +63,7 @@ describe('swapPhase0 test 3 - coin is not awaiting swap', () => {
 
   it('should throw coin not in awaiting swap', async () => {
     const input = () => {
-      return swapPhase0(http_mock, statecoin);
+      return swapPhase0(swapPhaseClient, statecoin);
     }
     const output = 'Statecoin status is not in awaiting swap';
     await expect(input()).rejects.toThrowError(output);
@@ -77,7 +79,7 @@ describe('swapPhase0 test 4 - poll with no swap_id', () => {
 
   it('should throw SwapRetryError', async () => {
     const input = () => {
-      return swapPhase0(http_mock, statecoin);
+      return swapPhase0(swapPhaseClient, statecoin);
     }
     await expect(input()).rejects.toThrow(SwapRetryError);
   })
@@ -93,7 +95,7 @@ describe('swapPhase0 test 5 - incorrect statechain_id', () => {
 
   it('should throw error incorrect statechain_id', async () => {
     const input = () => {
-      return swapPhase0(http_mock, statecoin);
+      return swapPhase0(swapPhaseClient, statecoin);
     }
     const output = 'statechain id is invalid';
     await expect(input()).rejects.toThrow(output);

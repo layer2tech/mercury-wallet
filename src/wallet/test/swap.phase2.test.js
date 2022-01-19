@@ -1,6 +1,7 @@
 import {makeTesterStatecoin} from './test_data.js'
-import {swapPhase2, SWAP_STATUS,
+import {SWAP_STATUS,
    SwapRetryError, UI_SWAP_STATUS} from "../swap/swap";
+import {swapPhase2} from '../swap/swap.phase2';
 import {STATECOIN_STATUS} from '../statecoin'
 import { REQUESTOR_CALC_S, MAKE_BST, POST_BST } from '../mocks/mock_wasm'
 import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client';
