@@ -250,7 +250,9 @@ export class Swap {
       this.checkStatecoinProperties(step)
     }
 
-    doNext = async () => {
+    doNext = async (): Promise<SwapStepResult> => {
+      this.checkNReps()
+      this.checkSwapLoopStatus()
       this.checkCurrentStatus()
       let step_result = await this.getNextStep().doit()
       log.info(`${JSON.stringify(step_result)}`)
@@ -266,7 +268,8 @@ export class Swap {
         if (step_result.includes("punishment")) {
           alert(step_result.message)
         }
-      }   
+      }
+      return step_result   
     }
 
     incrementRetries = (step_result:SwapStepResult) => {
@@ -297,6 +300,7 @@ export class Swap {
   }
 
   swapRegisterUtxo = async (): Promise<SwapStepResult> => {
+    console.log("doing swapRegisterUtxo")
     let publicKey = this.proof_key_der.publicKey.toString('hex');
     let sc_sig = StateChainSig.create(this.proof_key_der, "SWAP", publicKey);
   
@@ -804,8 +808,6 @@ do_swap_poll = async (resume: boolean = false): Promise<StateCoin | null> => {
   let statecoin = this.statecoin
 
   while (this.statecoin_out === null){
-    this.checkNReps()
-    this.checkSwapLoopStatus()
     this.doNext()
     await delay(this.timing_constants.MEDIUM_DELAY_S)
   }
