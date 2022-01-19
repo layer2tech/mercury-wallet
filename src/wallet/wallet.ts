@@ -12,7 +12,7 @@ import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData  } from './mercury/transfer';
-import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS, checkEligibleForSwap, asyncSemaphoreRun } from './swap/swap';
+import { SwapGroup, Swap, GroupInfo, SWAP_STATUS, checkEligibleForSwap, asyncSemaphoreRun } from './swap/swap';
 
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
@@ -1106,7 +1106,8 @@ export class Wallet {
           delay(100);
         }
       });
-      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
+      let swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der)
+      new_statecoin = await swap.do_swap_poll()
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
       // Do not delete swap data for statecoins with transfer
