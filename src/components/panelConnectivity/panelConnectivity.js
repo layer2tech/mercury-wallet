@@ -24,8 +24,6 @@ const PanelConnectivity = (props) => {
   const [conductor_ping_ms, setConductorPingMs] = useState(callGetPingConductorms());
   const [electrum_ping_ms, setElectrumPingMs] = useState(callGetPingElectrumms());
 
-  console.log('Call Made')
-
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
   let pending_swaps = swap_groups_array.length;

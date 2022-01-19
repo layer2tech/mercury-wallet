@@ -23,7 +23,7 @@ import {
   removeSwapPendingCoin,
   handleEndSwap
 } from "../../features/WalletDataSlice";
-import {fromSatoshi} from '../../wallet';
+import {fromSatoshi, STATECOIN_STATUS} from '../../wallet';
 import './Swap.css';
 
 
@@ -177,11 +177,14 @@ const SwapPage = () => {
       dispatch(callDoAutoSwap(selectedCoin));
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
-      // dispatch(addSwapPendingCoin(item.shared_key_id))
-      dispatch(callDoSwap({"shared_key_id": selectedCoin}))
-      .then(res => {
-        handleEndSwap(dispatch,selectedCoin,res,setSwapLoad,swapLoad,fromSatoshi)
-      });
+      
+      if(statecoin.status === STATECOIN_STATUS.AVAILABLE){
+      // if StateCoin in not already in swap group
+        dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+        .then(res => {
+          handleEndSwap(dispatch,selectedCoin,res,setSwapLoad,swapLoad,fromSatoshi)
+        });
+      } else{ dispatch(addSwapPendingCoin(item.shared_key_id)) }
     // Refres
 
     }
@@ -214,6 +217,7 @@ const SwapPage = () => {
           dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin, "dispatch": dispatch}))
             .then(res => {
               dispatch(removeCoinFromSwapRecords(selectedCoin));
+              dispatch(removeSwapPendingCoin(selectedCoin))
               setSwapLoad({...swapLoad, leave: false})
             });
         }
