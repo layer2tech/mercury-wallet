@@ -332,16 +332,16 @@ describe('Do Swap Poll', function () {
 
     let statecoin = wallet.statecoins.coins[0]
 
-    spyPhase0.mockImplementation((swapPhaseclient, CoinPhase0) => {
+    spyPhase0.mockImplementation((swapPhaseClient, CoinPhase0) => {
       CoinPhase0 = setSwapDetails(CoinPhase0, 1)
     })
-    spyPhase1.mockImplementation((swapPhaseclient, statecoin, proof_key_der, new_proof_key_der) => {
+    spyPhase1.mockImplementation((swapPhaseClient, statecoin, proof_key_der, new_proof_key_der) => {
       statecoin = setSwapDetails(statecoin, 2)
     })
     spyPhase2.mockImplementation((http_mock, wasm_mock, statecoin) => {
       statecoin = setSwapDetails(statecoin, 6)
     })
-    spyPhase3.mockImplementation((http_mock, electrum_mock, wasm_mock, statecoin, net, proof_key_der, new_proof_key_der, conf, block, wallet) => {
+    spyPhase3.mockImplementation((swapPhaseClient, statecoin, net, proof_key_der, new_proof_key_der, conf, block, wallet) => {
       statecoin = setSwapDetails(statecoin, 8)
     })
     spyPhase4.mockImplementation((http_mock, wasm_mock, statecoin, wallet) => {
