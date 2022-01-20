@@ -98,23 +98,21 @@ export class SwapRetryError extends Error {
   }
 }
 
-export const validateStatecoinState = (_statecoin: StateCoin, _phase: SWAP_STATUS) => {
+export const validateStatecoinState = (statecoin: StateCoin, phase: SWAP_STATUS) => {
   // assume statecoin state is valid because it will throw if invalid
   let valid = true;
 
-  if (_statecoin.status !== STATECOIN_STATUS.AWAITING_SWAP) throw Error("Statecoin status is not in awaiting swap");
-  if (_statecoin.swap_status !== _phase) throw Error("Coin is not yet in this phase of the swap protocol. In phase: " + _statecoin.swap_status);
+  if (statecoin.status !== STATECOIN_STATUS.AWAITING_SWAP) throw Error("Statecoin status is not in awaiting swap");
+  if (statecoin.swap_status !== phase) throw Error("Coin is not yet in this phase of the swap protocol. In phase: " + statecoin.swap_status);
 
-  switch (_phase) {
+  switch (phase) {
     case SWAP_STATUS.Phase0:
-      if (_statecoin.statechain_id === null || _statecoin.statechain_id === undefined) throw Error("statechain id is invalid");
+      if (statecoin.statechain_id === null || statecoin.statechain_id === undefined) throw Error("statechain id is invalid");
       break;
     case SWAP_STATUS.Phase1:
-      if (_statecoin.swap_id === null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
-      break;
     case SWAP_STATUS.Phase2:
-      break;
     case SWAP_STATUS.Phase3:
+      if (statecoin.swap_id === null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
       break;
     case SWAP_STATUS.Phase4:
       break;
@@ -285,7 +283,7 @@ export const do_swap_poll = async (
               throw new SwapRetryError(err)
             }
           }
-          await swapPhase3(http_client, electrum_client, wasm_client, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, block_height, wallet);
+          await swapPhase3(swapPhaseClient, statecoin, network, proof_key_der, new_proof_key_der, req_confirmations, block_height, wallet);
           n_errs = 0;
           break;
         }
