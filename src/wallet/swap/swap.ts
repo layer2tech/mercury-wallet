@@ -251,11 +251,12 @@ export class Swap {
     }
 
     doNext = async (): Promise<SwapStepResult> => {
+      log.debug('do next...')
       this.checkNReps()
       this.checkSwapLoopStatus()
       this.checkCurrentStatus()
       let step_result = await this.getNextStep().doit()
-      log.info(`${JSON.stringify(step_result)}`)
+      log.debug(`${JSON.stringify(step_result)} - next step: ${this.next_step}`)
       if(step_result.is_ok()){
         this.incrementStep()
         this.incrementCounters()
