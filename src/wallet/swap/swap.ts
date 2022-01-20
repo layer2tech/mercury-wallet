@@ -606,6 +606,10 @@ transferSender = async (): Promise<SwapStepResult> => {
       return SwapStepResult.Retry(`Received null or undefined transfer finalized data. Retrying.`)
     }
   } catch (err: any) {
+    if(err?.message && (err.message.includes("wasm_client") ||
+      err.message.includes(POST_ROUTE.KEYGEN_SECOND))){
+      throw err
+    }
     return SwapStepResult.Retry(err.message)
   }
   }
@@ -618,6 +622,8 @@ swapPhase4PollSwap = async () => {
   } catch (err: any) {
     if (!err.message.includes("No data for identifier")) {
       return SwapStepResult.Retry(err.message)
+    } else {
+      throw err
     }
   }
 }
@@ -675,7 +681,7 @@ handleTimeoutError = (err: any) => {
 }
 
   
-checkBatchStatus = async (phase: string): Promise<SwapStepResult> => {
+checkBatchStatus = async (phase: string, err_msg: "string"): Promise<SwapStepResult> => {
   let batch_status = null
     try{
       if (phase === null) {
@@ -685,8 +691,8 @@ checkBatchStatus = async (phase: string): Promise<SwapStepResult> => {
       this.handleTimeoutError(err)
       return SwapStepResult.Retry(err.message)
     }
-    if(batch_status?.finalized) {
-      return SwapStepResult.Ok("batch transfer finalized")
+    if(batch_status?.finalized === true) {
+      return SwapStepResult.Retry(`${err_msg}: statecoin ${this.statecoin.shared_key_id} - batch transfer complete for swap ID ${this.getSwapID().id}`)
     } else {
       return SwapStepResult.Retry(`statecoin ${this.statecoin.shared_key_id} waiting for completion of batch transfer in swap ID ${this.getSwapID().id}`)
     }
@@ -704,8 +710,13 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
     if(!result.is_ok()) {
       return result
     } else {
+      if(err?.message && (err.message.includes("wasm_client") ||
+        err.message.includes(POST_ROUTE.KEYGEN_SECOND))){
+        return SwapStepResult.Retry(err.message)
+      }
       let phase = result.message
-      return this.checkBatchStatus(phase)
+      log.debug(`checking batch status - phase: ${phase}`)
+      return this.checkBatchStatus(phase, err.message) 
     }
   }
 }

@@ -41,22 +41,34 @@ export const keyGen = async (
   typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
 
   // client first
-  let client_resp_key_gen_first: ClientKeyGenFirstMsg =
-    JSON.parse(
-      wasm_client.KeyGen.first_message(secret_key)
-    );
-  typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
-  
+  let client_resp_key_gen_first: ClientKeyGenFirstMsg
+  try{
+    client_resp_key_gen_first =
+      JSON.parse(
+        wasm_client.KeyGen.first_message(secret_key)
+      );
+    typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
+  } catch(err) {
+    throw new Error(`wasm_client.KeyGen.first_message: ${err}`)
+  }
+
   // server second
   let key_gen_msg2 = {
     shared_key_id: shared_key_id,
     dlog_proof:client_resp_key_gen_first.kg_party_two_first_message.d_log_proof,
   }
-  let kg_party_one_second_message = await http_client.post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
+  let kg_party_one_second_message 
+  try{
+      kg_party_one_second_message = await http_client.post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
       typeforce(types.KeyGenParty1Message2, kg_party_one_second_message.msg); 
- 
+  } catch (err){
+    throw new Error(`${POST_ROUTE.KEYGEN_SECOND}: ${err}`)
+  }
+
   // client second
-  let key_gen_second_message =
+  let key_gen_second_message
+  try{
+  key_gen_second_message =
     JSON.parse(
       wasm_client.KeyGen.second_message(
         JSON.stringify(kg_party_one_first_message),
@@ -64,9 +76,14 @@ export const keyGen = async (
       )
     );
   typeforce(types.ClientKeyGenSecondMsg, key_gen_second_message);
+  } catch (err) {
+    throw new Error(`wasm_client.KeyGen.second_message: ${err}`)
+  }
 
   // Construct Rust MasterKey struct
-  let master_key: MasterKey2 =
+  let master_key: MasterKey2 
+  try{
+  master_key =
     JSON.parse(
       wasm_client.KeyGen.set_master_key(
         JSON.stringify(client_resp_key_gen_first.kg_ec_key_pair_party2),
@@ -77,6 +94,9 @@ export const keyGen = async (
         JSON.stringify(key_gen_second_message.party_two_paillier)
     ));
   typeforce(types.MasterKey2, master_key);
+  } catch(err) {
+    throw new Error(`wasm_client.KeyGen.set_master_key: ${err}`)
+  }
 
   return new StateCoin(shared_key_id, master_key)
 }
