@@ -257,6 +257,7 @@ export class Swap {
       this.checkCurrentStatus()
       let step_result = await this.getNextStep().doit()
       log.debug(`${JSON.stringify(step_result)} - next step: ${this.next_step}`)
+      if(!step_result) throw new Error(`Swap halted at ${this.getNextStep().description()}`)
       if(step_result.is_ok()){
         this.incrementStep()
         this.incrementCounters()
@@ -541,12 +542,13 @@ getBlockHeight = async () => {
 
 
 pollSwapPhase3 = async (): Promise<SwapStepResult> => {
+  let phase
   try {
-    let phase = await pollSwap(this.http_client, this.getSwapID());
-    return this.checkServerPhase4(phase)
+    phase = await pollSwap(this.http_client, this.getSwapID());
   } catch (err: any) {
     return SwapStepResult.Retry(err.message)
   }
+  return this.checkServerPhase4(phase)
 }
 
 checkServerPhase4 = (phase: string): SwapStepResult => {
