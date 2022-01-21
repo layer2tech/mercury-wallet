@@ -257,7 +257,6 @@ export class Swap {
       this.checkCurrentStatus()
       let step_result = await this.getNextStep().doit()
       log.debug(`${JSON.stringify(step_result)} - next step: ${this.next_step}`)
-      if(!step_result) throw new Error(`Swap halted at ${this.getNextStep().description()}`)
       if(step_result.is_ok()){
         this.incrementStep()
         this.incrementCounters()
@@ -724,11 +723,11 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
 }
 
 // Check statecoin is eligible for entering a swap group
-checkEligibleForSwap = () => {
-  checkEligibleForSwap(this.statecoin)
+validateSwap = () => {
+  validateSwap(this.statecoin)
 }
 
-checkEligibleForResumeSwap = () => {
+validateResumeSwap = () => {
   const statecoin = this.statecoin
   if (statecoin.status !== STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin " + statecoin.shared_key_id + " - not in swap.");
   if (statecoin.swap_status !== SWAP_STATUS.Phase4)
@@ -816,9 +815,9 @@ incrementCounters = () => {
 // Loop through swap protocol for some statecoin
 do_swap_poll = async (resume: boolean = false): Promise<StateCoin | null> => {
   if(resume) {
-    this.checkEligibleForResumeSwap()
+    this.validateResumeSwap()
   } else {
-    this.checkEligibleForSwap()
+    this.validateSwap()
   }
   this.prepare_statecoin(resume)
   let statecoin = this.statecoin
@@ -1228,7 +1227,7 @@ export interface GroupInfo {
   time: number,
 }
 
-export const checkEligibleForSwap = (statecoin: StateCoin) => {
+export const validateSwap = (statecoin: StateCoin) => {
   if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " already in swap pool.");
   if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " already involved in swap.");
   if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for swap.");
