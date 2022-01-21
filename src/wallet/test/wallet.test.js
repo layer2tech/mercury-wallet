@@ -54,6 +54,7 @@ describe('Wallet', function() {
   });
 
 describe('Storage 2', function() {
+  wallet.save();
   test('toJSON', function() {
     let json_wallet = JSON.parse(JSON.stringify(wallet));
     let invalid_json_wallet = JSON.parse("{}");
@@ -101,22 +102,21 @@ describe('Storage 2', function() {
 
     let invalid_json_wallet = JSON.parse("{}");
 
-    
     expect(() => {
       let _ = Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD+" ", true)
-    }).toThrow(Error("Incorrect password."));
-    
+    }).toThrow("Incorrect password.");
+
     expect(() => {
       let _ = Wallet.loadFromBackup(json_wallet, "", true)
-    }).toThrow(Error("Incorrect password."));
+    }).toThrow("Incorrect password.");
    
     expect(() => {
       let _ = Wallet.loadFromBackup(invalid_json_wallet, "", true)
-    }).toThrow(Error("Incorrect password.")); 
+    }).toThrow("Incorrect password."); 
     
     expect(() => {
       Wallet.loadFromBackup("", "", true)
-    }).toThrow(Error("Something went wrong with backup file!")); 
+    }).toThrow("Something went wrong with backup file!"); 
 
 
     let loaded_wallet_from_backup = await Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD, true);
@@ -131,7 +131,6 @@ describe('Storage 2', function() {
     loaded_wallet_mod.name=MOCK_WALLET_NAME_BACKUP;
     loaded_wallet_mod.storage=loaded_wallet_backup.storage
     expect(JSON.stringify(loaded_wallet_mod)).toEqual(JSON.stringify(loaded_wallet_backup));
-    
   });
 
   test('decrypt mnemonic', async function() {

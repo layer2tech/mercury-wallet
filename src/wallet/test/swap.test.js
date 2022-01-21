@@ -295,7 +295,7 @@ describe('Do Swap Poll', function () {
 
     statecoin.swap_id = { id: "000-000-00-00" };
 
-    let prev_phase = swap_lib.handleResumeOrStartSwap(false, statecoin)
+    //let prev_phase = swap_lib.handleResumeOrStartSwap(false, statecoin)
 
 
     expect(prev_phase).toBe(SWAP_STATUS.Init)
