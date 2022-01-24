@@ -226,17 +226,11 @@ const Coins = (props) => {
     } 
 
     const validExpiryTime = (expiry_data) => {
-      if(callGetBlockHeight() === 0){
+      let block_height = callGetBlockHeight()
+
+      if(block_height === 0 || expiry_data.block === 0 || !block_height){
         // set its actual block to 0 so next time we can return  '--' until an actual block is received
         expiry_data.blocks = 0;
-        return false;
-      }
-
-      if(expiry_data === undefined){
-        return false;
-      }
-
-      if(expiry_data.blocks === 0){
         return false;
       }
 
