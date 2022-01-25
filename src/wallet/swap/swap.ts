@@ -17,6 +17,7 @@ import { swapPhase1 } from './swap.phase1';
 import { swapPhase2 } from './swap.phase2';
 import { swapPhase3 } from './swap.phase3';
 import { swapPhase4 } from './swap.phase4';
+let cloneDeep = require('lodash.clonedeep');
 
 
 let bitcoin = require("bitcoinjs-lib");
@@ -522,50 +523,59 @@ export interface StateChainDataAPI {
   locktime: number,
 }
 
-export const first_message = async (
-  http_client: HttpClient | MockHttpClient,
+export const get_swap_msg_1 = async (
+  statecoin: StateCoin,
   wasm_client: any,
   swap_info: SwapInfo,
   statechain_id: string,
   transfer_batch_sig: StateChainSig,
   new_address: SCEAddress,
   proof_key_der: BIP32Interface,
-): Promise<BSTRequestorData> => {
-
+): Promise<any> => {
   let swap_token = swap_info.swap_token;
-  let statecoin_data = await getStateCoin(http_client, statechain_id);
-
   let swap_token_class = new SwapToken(swap_token.id, swap_token.amount, swap_token.time_out, swap_token.statechain_ids);
   let swap_token_sig = swap_token_class.sign(proof_key_der);
-  if (!swap_token_class.verify_sig(proof_key_der, swap_token_sig)) throw Error("Swap token error. Verification failure.");
 
-  let blindedspenttokenmessage = new BlindedSpentTokenMessage(swap_token.id);
+  if(statecoin.swap_address !== new_address || statecoin.swap_my_bst_data === null || !statecoin.swap_my_bst_data) {
+    if (!swap_token_class.verify_sig(proof_key_der, swap_token_sig)) throw Error("Swap token error. Verification failure.");
 
-  //Requester
-  let m = JSON.stringify(blindedspenttokenmessage);
+    let blindedspenttokenmessage = new BlindedSpentTokenMessage(swap_token.id);
 
-  // Requester setup BST generation
-  //let bst_req_class = new BSTRequestorData();
-  let r_prime_str: string = JSON.stringify(swap_info.bst_sender_data.r_prime);
-  let bst_req_json = wasm_client.BSTRequestorData.setup(r_prime_str, m)
-  let my_bst_data: BSTRequestorData = JSON.parse(
-    bst_req_json
-  );
-  typeforce(types.BSTRequestorData, my_bst_data);
+    //Requester
+    let m = JSON.stringify(blindedspenttokenmessage);
 
+    // Requester setup BST generation
+    //let bst_req_class = new BSTRequestorData();
+    let r_prime_str: string = JSON.stringify(swap_info.bst_sender_data.r_prime);
+    let bst_req_json = wasm_client.BSTRequestorData.setup(r_prime_str, m)
+    let my_bst_data: BSTRequestorData = JSON.parse(
+      bst_req_json
+    );
+    typeforce(types.BSTRequestorData, my_bst_data);
+    
+    statecoin.swap_address = new_address
+    statecoin.swap_my_bst_data = my_bst_data
+  } 
+  
   let swapMsg1 = {
     "swap_id": swap_token.id,
     "statechain_id": statechain_id,
     "swap_token_sig": swap_token_sig,
     "transfer_batch_sig": transfer_batch_sig,
-    "address": new_address,
-    "bst_e_prime": my_bst_data.e_prime,
+    "address": statecoin.swap_address,
+    "bst_e_prime": statecoin.swap_my_bst_data.e_prime,
   }
   typeforce(types.SwapMsg1, swapMsg1);
 
-  await http_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1)
+  return swapMsg1;
+}
 
-  return my_bst_data;
+export const first_message = async (
+  http_client: HttpClient | MockHttpClient,
+  swapMsg1: SwapMsg1
+) => {
+  typeforce(types.SwapMsg1, swapMsg1);
+  await http_client.post(POST_ROUTE.SWAP_FIRST, swapMsg1)
 }
 
 /// blind spend signature

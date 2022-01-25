@@ -1,8 +1,9 @@
 import { makeTesterStatecoin } from './test_data.js'
-import { SwapPhaseClients, SWAP_STATUS } from "../swap/swap";
+import { SwapPhaseClients, SWAP_STATUS, first_message, get_swap_msg_1 } from "../swap/swap";
 import { STATECOIN_STATUS } from '../statecoin'
 import * as MOCK_SERVER from '../mocks/mock_http_client'
-import { swapPhase1 } from '../swap/swap.phase1';
+import { swapPhase1} from '../swap/swap.phase1';
+import { StateChainSig } from "../util";
 
 let bitcoin = require('bitcoinjs-lib')
 // client side's mock
@@ -186,4 +187,37 @@ describe('swapPhase1 test 7 - in phase 1 no swap id', () => {
 
         await expect(input()).rejects.toThrowError(output);
     })*/
+})
+
+describe('get_swap_msg_1', async () => {
+    let statecoin = makeTesterStatecoin();
+    statecoin.swap_id = { id: "12345"};
+    let swap_info = {
+        status: SWAP_STATUS.Phase1,
+        swap_token: { id: "12345", amount: 10, time_out: 15, statechain_ids: [] },
+        bst_sender_data: { x: "1", q: { x: "1", y: "1" }, k: "1", r_prime: { x: "1", y: "1" }, }
+    }
+    let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+    let transfer_batch_sig = StateChainSig.new_transfer_batch_sig(proof_key_der, 
+        statecoin.swap_id.id, statecoin.statechain_id);
+    let address = {
+        "tx_backup_addr": null,
+        "proof_key": proof_key_der.publicKey.toString("hex"),
+    };
+    wasm_client.BSTRequestorData.setup(r_prime_str, m)
+    wasm_mock.BSTRequestorData.setup = jest.fn((_r_prime_str, _m) => {
+        //throw wasm_err("KeyGen.keygen_first")
+
+      })
+
+    let msg1 = await get_swap_msg_1(
+        statecoin,
+        wasm_mock,
+        swap_info,
+        statecoin.statechain_id,
+        transfer_batch_sig,
+        address,
+        proof_key_der
+    )
+    console.log(`${JSON.stringify(msg1)}`)
 })
