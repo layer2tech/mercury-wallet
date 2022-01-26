@@ -3,11 +3,16 @@ import { GET_ROUTE, POST_ROUTE } from '../http_client';
 import { makeTesterStatecoin } from './test_data.js'
 import {
     SWAP_STATUS,
-    SwapRetryError, UI_SWAP_STATUS, SwapPhaseClients
+    SwapRetryError, UI_SWAP_STATUS
 } from "../swap/swap";
 import { STATECOIN_STATUS } from '../statecoin'
+import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import * as MOCK_SERVER from '../mocks/mock_http_client'
-import { swapPhase3 } from '../swap/swap.phase3';
+import Swap from '../../containers/Swap/Swap';
+import { Swap as Swp } from '../swap/swap'
+import { swapPhase3 as swapPhase3Steps } from '../swap/swap.phase3'
+
+let walletName = `${MOCK_WALLET_NAME}_swap_phase3_tests`
 
 let cloneDeep = require('lodash.clonedeep');
 let bitcoin = require('bitcoinjs-lib')
@@ -19,8 +24,6 @@ let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 //electrum mock
 let electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
-
-let swapPhaseClient = new SwapPhaseClients(http_mock, wasm_mock, electrum_mock);
 
 
 const post_error = (path, body) => {
@@ -49,20 +52,51 @@ const init_phase3_status = (statecoin) => {
     statecoin.swap_receiver_addr = SWAP_SECOND_SCE_ADDRESS
 }
 
+
+async function swapPhase3(statecoin, proof_key_der, new_proof_key_der) {
+    let swap = new Swp(getWallet(), statecoin, proof_key_der, new_proof_key_der)
+    swap.setSwapSteps(swapPhase3Steps(swap))
+    let result
+    for(let i=0; i< swap.swap_steps.length; i++){
+      result =  await swap.doNext()
+      if(result.is_ok() !== true) {
+          console.log(`retry at step: ${swap.getNextStep().description()}`)
+          return result
+      }
+    }
+    return result
+  }
+  
+  function getWallet() {
+    let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+    wallet.config.min_anon_set = 3
+    wallet.config.jest_testing_mode = true
+    wallet.http_client = http_mock
+    wallet.electrum_mock = electrum_mock
+    wallet.wasm = wasm_mock
+    return wallet
+  }
+
+  function checkRetryMessage(swapStepResult, message) {
+    expect(swapStepResult.is_ok()).toEqual(false)
+    expect(swapStepResult.message).toEqual(message)
+  }
+
 describe('swapPhase3', () => {
     test('swapPhase3 test 1 - invalid initial statecoin state', async () => {
 
         let statecoin = makeTesterStatecoin();
         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+        
 
         //Test invalid statecoin statuses
         for (let i = 0; i < STATECOIN_STATUS.length; i++) {
             if (STATECOIN_STATUS[i] !== STATECOIN_STATUS.IN_SWAP) {
                 const sc_status = STATECOIN_STATUS[i]
                 statecoin.status = cloneDeep(sc_status)
-                await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
+                await expect(swapPhase3(statecoin, proof_key_der, proof_key_der)) 
                     .rejects
-                    .toThrowError(`Coin is not in this phase of the swap protocol. In phase: null`)
+                    .toThrowError(`phase Phase3:pollSwapPhase3: invalid swap status: ${statecoin.swap_status}`)
             }
         }
 
@@ -74,14 +108,15 @@ describe('swapPhase3', () => {
             if (SWAP_STATUS[i] !== SWAP_STATUS.Phase3) {
                 const swap_status = STATECOIN_STATUS[i]
                 statecoin.swap_status = cloneDeep(swap_status)
-                await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
-                    .rejects.toThrowError(`Coin is not in this phase of the swap protocol. In phase: ${swap_status}`)
+                await expect(swapPhase3(statecoin, proof_key_der, proof_key_der))
+                    .rejects.toThrowError(`phase Phase3:pollSwapPhase3: invalid swap status: ${statecoin.swap_status}`)
             }
         }
 
         statecoin.swap_status = null
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
-            .rejects.toThrowError(`Coin is not in this phase of the swap protocol. In phase: ${null}`)
+        
+        await expect(swapPhase3(statecoin, proof_key_der, proof_key_der))
+            .rejects.toThrowError(`phase Phase3:pollSwapPhase3: invalid swap status: ${statecoin.swap_status}`)
 
         //Set valid swap status
         statecoin.swap_status = SWAP_STATUS.Phase3
@@ -91,22 +126,22 @@ describe('swapPhase3', () => {
         statecoin.swap_my_bst_data = null
         statecoin.swap_info = null
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
+        await expect(swapPhase3(statecoin, proof_key_der, proof_key_der))
             .rejects.toThrowError("No Swap ID found. Swap ID should be set in Phase0.")
 
         statecoin.swap_id = "a swap id"
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
+        await expect(swapPhase3(statecoin, proof_key_der, proof_key_der))
             .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
 
         statecoin.swap_info = mock_http_client.SWAP_INFO;
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
+        await expect(swapPhase3(statecoin, proof_key_der, proof_key_der))
             .rejects.toThrowError("No swap address found for coin. Swap address should be set in Phase1")
 
         statecoin.swap_address = "a swap address"
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
+        await expect(swapPhase3(statecoin, proof_key_der, proof_key_der))
             .rejects.toThrowError("No receiver address found for coin. Receiver address should be set in Phase1")
 
         statecoin.swap_receiver_addr = mock_http_client.SWAP_SECOND_SCE_ADDRESS;
@@ -129,15 +164,9 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
-
-        //A server error will now be throw from an API call
-        //The error type should be SwapRetryError 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
-            .rejects.toThrow(SwapRetryError)
-
-        //The error should contain the message in server_error()
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
-            .rejects.toThrowError(`${server_error().message}`)
+        
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+        `${server_error().message}`)
 
         //Expect statecoin and proof_key_der to be unchanged
         expect(statecoin).toEqual(INIT_STATECOIN)
@@ -161,9 +190,10 @@ describe('swapPhase3', () => {
                 return null
             }
         })
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
+
+        await expect(swapPhase3(statecoin, proof_key_der, proof_key_der))
             .rejects.toThrow(Error)
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der, null, null, null))
+        await expect(swapPhase3(statecoin, proof_key_der, proof_key_der))
             .rejects.toThrowError("Swap halted at phase 3")
 
         //Test unexpected phases
@@ -175,9 +205,9 @@ describe('swapPhase3', () => {
                         return phase
                     }
                 })
-                await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
+                await expect(swapPhase3(statecoin, proof_key_der, proof_key_der))
                     .rejects.toThrow(Error)
-                await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
+                await expect(swapPhase3(statecoin, proof_key_der, proof_key_der))
                     .rejects.toThrowError(`Swap error: Expected swap phase3. Received: ${phase}`)
             }
         }
@@ -211,11 +241,9 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin);
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der);
 
-
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow("Error from GET request - path: info/fee, params: undefined")
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(SwapRetryError)
+        
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+            "Error from GET request - path: info/fee, params: undefined")
 
         //Expect statecoin and proof_key_der to be unchanged
         expect(statecoin).toEqual(INIT_STATECOIN)
@@ -247,12 +275,12 @@ describe('swapPhase3', () => {
 
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+        
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow("Error from GET request - path: info/statecoin, params: undefined")
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(SwapRetryError)
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+            "Error from GET request - path: info/statecoin, params: undefined")
 
+    
         //Expect statecoin and proof_key_der to be unchanged
         expect(statecoin).toEqual(INIT_STATECOIN)
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
@@ -264,7 +292,7 @@ describe('swapPhase3', () => {
                 return SWAP_STATUS.Phase4
             }
             if (path === POST_ROUTE.TRANSFER_SENDER) {
-                return post_error(path);
+                throw post_error(path);
             }
         })
 
@@ -286,11 +314,9 @@ describe('swapPhase3', () => {
 
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
-
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(Error)
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(SwapRetryError)
+        
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+            `${post_error(POST_ROUTE.TRANSFER_SENDER).message}`)
 
         //Expect statecoin and proof_key_der to be unchanged
         expect(statecoin).toEqual(INIT_STATECOIN)
@@ -326,14 +352,10 @@ describe('swapPhase3', () => {
 
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+        
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+            `Expected property \"x1\" of type Object, got undefined`)
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(Error);
-        expect(statecoin).toEqual(INIT_STATECOIN);
-        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
-
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrowError(transfer_missing_x1_error());
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
     })
@@ -347,7 +369,7 @@ describe('swapPhase3', () => {
                 return MOCK_SERVER.TRANSFER_SENDER;
             }
             if (path === POST_ROUTE.PREPARE_SIGN) {
-                return post_error(path);
+                throw post_error(path);
             }
         })
 
@@ -360,8 +382,6 @@ describe('swapPhase3', () => {
             }
         })
 
-        const expected_error = () => { return new Error("Expected property \"pubkey\" of type ?isPoint, got Buffer") }
-
         let statecoin = makeTesterStatecoin();
         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
@@ -370,14 +390,10 @@ describe('swapPhase3', () => {
 
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+        
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+            "Expected property \"pubkey\" of type ?isPoint, got Buffer")
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(Error);
-        expect(statecoin).toEqual(INIT_STATECOIN);
-        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
-
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrowError(expected_error());
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
     })
@@ -394,7 +410,7 @@ describe('swapPhase3', () => {
                 return MOCK_SERVER.PREPARE_SIGN;
             }
             if (path === POST_ROUTE.SIGN_FIRST) {
-                return post_error(path);
+                throw post_error(path);
             }
         })
 
@@ -407,8 +423,6 @@ describe('swapPhase3', () => {
             }
         })
 
-        const expected_error = () => { return new Error("Expected property \"pubkey\" of type ?isPoint, got Buffer") }
-
         let statecoin = makeTesterStatecoin();
         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
@@ -417,14 +431,11 @@ describe('swapPhase3', () => {
 
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+        
+        
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+            "Expected property \"pubkey\" of type ?isPoint, got Buffer")
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(Error);
-        expect(statecoin).toEqual(INIT_STATECOIN);
-        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
-
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrowError(expected_error());
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
     })
@@ -444,7 +455,7 @@ describe('swapPhase3', () => {
                 return MOCK_SERVER.SIGN_FIRST;
             }
             if (path === POST_ROUTE.SIGN_SECOND) {
-                return post_error(path);
+                throw post_error(path);
             }
         })
 
@@ -457,8 +468,6 @@ describe('swapPhase3', () => {
             }
         })
 
-        const expected_error = () => { return new Error("Expected property \"pubkey\" of type ?isPoint, got Buffer") }
-
         let statecoin = makeTesterStatecoin();
         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
@@ -467,14 +476,10 @@ describe('swapPhase3', () => {
 
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+        
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+            "Expected property \"pubkey\" of type ?isPoint, got Buffer")
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(Error);
-        expect(statecoin).toEqual(INIT_STATECOIN);
-        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
-
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrowError(expected_error());
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
     })
@@ -497,7 +502,7 @@ describe('swapPhase3', () => {
                 return MOCK_SERVER.SIGN_SECOND;
             }
             if (path === POST_ROUTE.TRANSFER_UPDATE_MSG) {
-                return post_error(path);
+                throw post_error(path);
             }
         })
 
@@ -510,8 +515,6 @@ describe('swapPhase3', () => {
             }
         })
 
-        const expected_error = () => { return new Error("Expected property \"pubkey\" of type ?isPoint, got Buffer") }
-
         let statecoin = makeTesterStatecoin();
         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
@@ -520,14 +523,10 @@ describe('swapPhase3', () => {
 
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+        
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+            "Expected property \"pubkey\" of type ?isPoint, got Buffer")
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(Error);
-        expect(statecoin).toEqual(INIT_STATECOIN);
-        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
-
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrowError(expected_error());
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
     })
@@ -563,8 +562,6 @@ describe('swapPhase3', () => {
             }
         })
 
-        const expected_error = () => { return new Error("Expected property \"pubkey\" of type ?isPoint, got Buffer") }
-
         let statecoin = makeTesterStatecoin();
         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
@@ -573,14 +570,10 @@ describe('swapPhase3', () => {
 
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+        
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+            "Expected property \"pubkey\" of type ?isPoint, got Buffer")
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(Error);
-        expect(statecoin).toEqual(INIT_STATECOIN);
-        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
-
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrowError(expected_error());
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
 
@@ -623,8 +616,6 @@ describe('swapPhase3', () => {
             }
         })
 
-        const expected_error = () => { return new Error("Expected property \"pubkey\" of type ?isPoint, got Buffer") }
-
         let statecoin = makeTesterStatecoin();
         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
@@ -633,14 +624,10 @@ describe('swapPhase3', () => {
 
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+        
+        checkRetryMessage(await swapPhase3(statecoin, proof_key_der, proof_key_der), 
+            "Expected property \"pubkey\" of type ?isPoint, got Buffer")
 
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrow(Error);
-        expect(statecoin).toEqual(INIT_STATECOIN);
-        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
-
-        await expect(swapPhase3(swapPhaseClient, statecoin, null, proof_key_der, proof_key_der))
-            .rejects.toThrowError(expected_error());
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
     })
