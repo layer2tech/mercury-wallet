@@ -2,7 +2,8 @@ import { BIP32Interface } from "bip32";
 import { HttpClient, MockHttpClient, StateCoin, STATECOIN_STATUS } from "..";
 import { StateChainSig } from "../util";
 import { pollUtxo, getSwapInfo } from "./info_api";
-import { SWAP_STATUS, StatechainID, SwapRetryError, first_message, UI_SWAP_STATUS, SwapPhaseClients, validateStatecoinState } from "./swap";
+import { SWAP_STATUS, StatechainID, SwapRetryError, first_message, 
+    UI_SWAP_STATUS, SwapPhaseClients, validateStatecoinState, get_swap_msg_1 } from "./swap";
 import { log } from './swap';
 
 let types = require("../types")
@@ -66,19 +67,21 @@ export const swapPhase1 = async (
 
     let transfer_batch_sig = StateChainSig.new_transfer_batch_sig(proof_key_der, statecoin.swap_id.id, statecoin.statechain_id);
     try {
-        let my_bst_data = await first_message(
-            client.http_client,
+        let swap_msg_1 = await get_swap_msg_1(
+            statecoin,
             client.wasm_client,
             swap_info,
             statecoin.statechain_id,
             transfer_batch_sig,
             address,
             proof_key_der
-        );
+        )
 
-        // Update coin with address, bst data and update status
-        statecoin.swap_address = address;
-        statecoin.swap_my_bst_data = my_bst_data;
+        await first_message(
+            client.http_client,
+            swap_msg_1
+        );
+  
         statecoin.swap_status = SWAP_STATUS.Phase2;
         statecoin.ui_swap_status = UI_SWAP_STATUS.Phase2;
     } catch (err: any) {
