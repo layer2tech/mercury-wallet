@@ -1,5 +1,6 @@
 import { makeTesterStatecoin } from './test_data.js'
-import { SWAP_STATUS, Swap } from "../swap/swap";
+import { SWAP_STATUS } from "../swap/swap_utils";
+import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'

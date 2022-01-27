@@ -1,6 +1,7 @@
-import { SWAP_STATUS }  from "./swap";
-import { log, SwapStep, Swap } from './swap';
+import { SWAP_STATUS }  from "./swap_utils";
+import { log, SwapStep } from './swap_utils';
 import { STATECOIN_STATUS } from '..'
+import Swap from "./swap"
 
 export function swapPhase1(swap: Swap): SwapStep[] {
     return [

@@ -6,7 +6,7 @@ import { ACTION } from ".";
 import { ElectrumTxData } from "../wallet/electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
-import { BatchData, BSTRequestorData, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap";
+import { BatchData, BSTRequestorData, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap_utils";
 import { SCEAddress, TransferFinalizeData, TransferMsg3 } from "./mercury/transfer";
 
 export class StateCoinList {

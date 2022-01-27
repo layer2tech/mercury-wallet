@@ -1,6 +1,7 @@
 
-import { SWAP_STATUS, Swap, SwapStep } from "./swap";
+import { SWAP_STATUS, SwapStep } from "./swap_utils";
 import { STATECOIN_STATUS } from ".."
+import Swap from "./swap"
 
 // Poll swap until phase changes to Phase3/4. In that case all carry out transfer_sender
 export function swapPhase3(swap: Swap): SwapStep[] {

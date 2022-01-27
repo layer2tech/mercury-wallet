@@ -1,8 +1,9 @@
 // Poll swap until phase changes to Phase2. In that case all participants have completed Phase1
 
-import { SWAP_STATUS } from "./swap";
-import { Swap, SwapStep } from './swap';
+import { SWAP_STATUS } from "./swap_utils";
+import { SwapStep } from './swap_utils';
 import { STATECOIN_STATUS } from '..'
+import Swap from "./swap"
 
 export function swapPhase2(swap: Swap): SwapStep[] {
     return [

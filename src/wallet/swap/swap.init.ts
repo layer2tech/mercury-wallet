@@ -1,4 +1,5 @@
-import { SWAP_STATUS, Swap, SwapStep } from "./swap";
+import { SWAP_STATUS, SwapStep } from "./swap_utils";
+import Swap from "./swap";
 import { STATECOIN_STATUS } from '..'
 
 export function swapInit(swap: Swap): SwapStep[] {

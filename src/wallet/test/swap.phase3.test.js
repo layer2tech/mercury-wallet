@@ -4,12 +4,11 @@ import { makeTesterStatecoin } from './test_data.js'
 import {
     SWAP_STATUS,
     SwapRetryError, UI_SWAP_STATUS
-} from "../swap/swap";
+} from "../swap/swap_utils";
 import { STATECOIN_STATUS } from '../statecoin'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import * as MOCK_SERVER from '../mocks/mock_http_client'
-import Swap from '../../containers/Swap/Swap';
-import { Swap as Swp } from '../swap/swap'
+import { Swap as Swp } from '../swap/swap_utils'
 import { swapPhase3 as swapPhase3Steps } from '../swap/swap.phase3'
 
 let walletName = `${MOCK_WALLET_NAME}_swap_phase3_tests`
