@@ -20,8 +20,8 @@ export function swapPhase3(swap: Swap): SwapStep[] {
   ),
   new SwapStep(
     SWAP_STATUS.Phase3, "transferSender",
-    () => {return true},
-    () => {return true},
+    () => {return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP},
+    () => {return swap.statecoin.swap_status === SWAP_STATUS.Phase3},
     () => { return true },
     swap.transferSender
   ),
@@ -30,7 +30,7 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     () => {return true},
     () => {return true},
     () => { 
-      if (swap.statecoin.swap_transfer_msg !== null) throw Error("No swap transfer message for coin")
+      if (swap.statecoin.swap_transfer_msg === null) throw Error("No swap transfer message for coin")
       return true;
     },
     swap.makeSwapCommitment
@@ -40,7 +40,7 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     () => {return true},
     () => {return true},
     () => { 
-      if (swap.statecoin.swap_batch_data !== null) throw Error("No swap batch transfer data for coin")
+      if (!swap.statecoin.swap_batch_data === null) throw Error("No swap batch transfer data for coin")
       return true
     },
     swap.transferReceiver

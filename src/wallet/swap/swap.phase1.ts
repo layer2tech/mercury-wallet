@@ -21,5 +21,12 @@ export function swapPhase1(swap: Swap): SwapStep[] {
             () => {return true},
             swap.loadSwapInfo
           ),
+          new SwapStep(
+            SWAP_STATUS.Phase1, "getBSTData",
+            () => {return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP},
+            () => {return swap.statecoin.swap_status === SWAP_STATUS.Phase1},
+            () => {return true},
+            swap.getBSTData
+          ),
     ]
 }
