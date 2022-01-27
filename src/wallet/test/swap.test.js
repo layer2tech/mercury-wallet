@@ -1,88 +1,92 @@
-// import React from 'react';
-// import { makeTesterStatecoin, SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails } from './test_data.js'
-// import { SWAP_STATUS, SwapToken } from "../swap/swap_utils";
+import { makeTesterStatecoin } from './test_data.js'
+import { SwapStepResult, SWAP_STATUS } from "../swap/swap_utils";
+import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
-// import * as swap_lib from "../swap/swap_utils"
-// import reducers from '../../reducers';
-// import { configureStore } from '@reduxjs/toolkit';
+import { Wallet, MOCK_WALLET_NAME } from '../wallet'
+import React from 'react';
+import { SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails } from './test_data.js'
+import { SwapToken } from "../swap/swap_utils";
+import * as swap_lib from "../swap/swap_utils"
+import reducers from '../../reducers';
+import { configureStore } from '@reduxjs/toolkit';
 
-// import * as MOCK_SERVER from '../mocks/mock_http_client'
+import * as MOCK_SERVER from '../mocks/mock_http_client'
 
-// import TestComponent, { render } from './test-utils'
+import TestComponent, { render } from './test-utils'
 
-// import { handleEndSwap } from '../../features/WalletDataSlice.js';
-// import { fromSatoshi } from '../util.ts';
-// import { fireEvent, screen } from '@testing-library/dom';
-import { Wallet } from '../wallet';
-// import Swap from '../swap/swap';
+ import { handleEndSwap } from '../../features/WalletDataSlice.js';
+ import { fromSatoshi } from '../util.ts';
+ import { fireEvent, screen } from '@testing-library/dom';
 
-export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7"
 
-// jest.mock('../swap/swap')
+//jest.mock('../swap/swap')
 
-// beforeEach(() => {
-//   Swap.mockClear()
-// })
+//beforeEach(() => {
+ //  Swap.mockClear()
+ //})
 
-// let bitcoin = require('bitcoinjs-lib')
+ let bitcoin = require('bitcoinjs-lib')
 
 // // client side's mock
-// let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+ let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 // // server side's mock
-// let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+ let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 // //electrum mock
-// let electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
+ let electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
 
-// let walletName = `${MOCK_WALLET_NAME}_swap_tests`
+ let walletName = `${MOCK_WALLET_NAME}_swap_tests`
 
-// function getWallet() {
-//   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
-//   wallet.config.min_anon_set = 3
-//   wallet.config.jest_testing_mode = true
-//   wallet.http_client = http_mock
-//   wallet.electrum_mock = electrum_mock
-//   wallet.wasm = wasm_mock
-//   return wallet
-// }
+ function getWallet() {
+   let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+   wallet.config.min_anon_set = 3
+   wallet.config.jest_testing_mode = true
+   wallet.http_client = http_mock
+   wallet.electrum_mock = electrum_mock
+   wallet.wasm = wasm_mock
+   return wallet
+ }
 
-it('tes', () => {
-  expect(1).toBe(1)
+describe('swap dummy tests', () => {
+  test('swap dummy test', async function () {
+    expect(1).toBe(1)
+  })
 })
+/*
+ describe('Test Class Mock', function(){
+   let wallet = getWallet()
+   test('has been called', () => {
+     const swap = new Swap(wallet,wallet.statecoins.coins[0], "asdfzgGSDFD","DSafwe3rewfsd")
+     expect(Swap).toHaveBeenCalledTimes(1)
+   })
+ })
+*/
+ /*
+ describe('swapToken', function () {
+   test('Gen and Verify', async function () {
+     SIGNSWAPTOKEN_DATA.forEach(data => {
+       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(data.priv, "hex"));
+       expect(proof_key_der.publicKey.toString('hex')).toBe(data.pub);
+       let st = data.swap_token;
+       let st_cls = new SwapToken(st.id, st.amount, st.time_out, st.statechain_ids);
 
-// describe('Test Class Mock', function(){
-//   let wallet = getWallet()
-//   test('has been called', () => {
-//     const swap = new Swap(wallet,wallet.statecoins.coins[0], "asdfzgGSDFD","DSafwe3rewfsd")
-//     expect(Swap).toHaveBeenCalledTimes(1)
-//   })
-// })
+       let swap_sig = st_cls.sign(proof_key_der, data.swap_token, data.priv);
+       expect(swap_sig).toBe(data.swap_token_sig);
+     })
+   });
 
-// describe('swapToken', function () {
-//   test('Gen and Verify', async function () {
-//     SIGNSWAPTOKEN_DATA.forEach(data => {
-//       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(data.priv, "hex"));
-//       expect(proof_key_der.publicKey.toString('hex')).toBe(data.pub);
-//       let st = data.swap_token;
-//       let st_cls = new SwapToken(st.id, st.amount, st.time_out, st.statechain_ids);
-
-//       let swap_sig = st_cls.sign(proof_key_der, data.swap_token, data.priv);
-//       expect(swap_sig).toBe(data.swap_token_sig);
-//     })
-//   });
-
-//   describe('commitment', function () {
-//     test('Gen and Verify', async function () {
-//       wasm_mock.Commitment.make_commitment = jest.fn(() => JSON.stringify(COMMITMENT_DATA[0].batch_data));
-//       COMMITMENT_DATA.forEach(data => {
-//         data.statecoin.swap_info = data.swap_info
-//         let swap = new Swap(getWallet(), data.statecoin)
-//         let batch_data = swap.make_swap_commitment();
-//         expect(batch_data.commitment).toBe(data.batch_data.commitment);
-//       })
-//     });
-//   })
-// });
-
+   describe('commitment', function () {
+     test('Gen and Verify', async function () {
+       wasm_mock.Commitment.make_commitment = jest.fn(() => JSON.stringify(COMMITMENT_DATA[0].batch_data));
+       COMMITMENT_DATA.forEach(data => {
+         data.statecoin.swap_info = data.swap_info
+         let swap = new Swap(getWallet(), data.statecoin)
+         let batch_data = swap.make_swap_commitment();
+         expect(batch_data.commitment).toBe(data.batch_data.commitment);
+       })
+     });
+   })
+ });
+*/
 // describe('Do Swap', function () {
 
 //   test('do_swap', async function () {
