@@ -40,7 +40,7 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     () => {return true},
     () => {return true},
     () => { 
-      if (!swap.statecoin.swap_batch_data === null) throw Error("No swap batch transfer data for coin")
+      if (swap.statecoin.swap_batch_data === null) throw Error("No swap batch transfer data for coin")
       return true
     },
     swap.transferReceiver
