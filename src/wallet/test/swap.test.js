@@ -18,12 +18,18 @@ import TestComponent, { render } from './test-utils'
  import { fromSatoshi } from '../util.ts';
  import { fireEvent, screen } from '@testing-library/dom';
 
+ 
+ const mockGetNextStep = jest.fn();
+ jest.mock('../swap/swap', () => {
+  return jest.fn().mockImplementation(() => {
+    return {getNextStep: mockGetNextStep};
+  });
+});
 
-//jest.mock('../swap/swap')
-
-//beforeEach(() => {
- //  Swap.mockClear()
- //})
+beforeEach(() => {
+   Swap.mockClear()
+   mockGetNextStep.mockClear()
+})
 
  let bitcoin = require('bitcoinjs-lib')
 
@@ -51,7 +57,7 @@ describe('swap dummy tests', () => {
     expect(1).toBe(1)
   })
 })
-/*
+
  describe('Test Class Mock', function(){
    let wallet = getWallet()
    test('has been called', () => {
@@ -59,7 +65,7 @@ describe('swap dummy tests', () => {
      expect(Swap).toHaveBeenCalledTimes(1)
    })
  })
-*/
+ 
  /*
  describe('swapToken', function () {
    test('Gen and Verify', async function () {
