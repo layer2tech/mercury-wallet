@@ -9,7 +9,7 @@ import {
   TransferFinalizeDataAPI, TransferFinalizeDataForRecovery,
   transferReceiverFinalizeRecovery, TransferFinalizeData, PrepareSignTxMsg
 } from "../mercury/transfer";
-import { SwapID } from "../swap/swap";
+import { SwapID } from "../swap/swap_utils";
 import { StateChainSig } from "../util"
 let types = require("../types")
 let typeforce = require('typeforce');

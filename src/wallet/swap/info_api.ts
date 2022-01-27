@@ -1,5 +1,5 @@
 import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE, ElectrumClient, MockElectrumClient  } from "..";
-import { BSTMsg, SwapID, StatechainID, SwapGroup, GroupInfo} from './swap';
+import { BSTMsg, SwapID, StatechainID, SwapGroup, GroupInfo} from './swap_utils';
 
 let types = require("../types")
 let typeforce = require('typeforce');

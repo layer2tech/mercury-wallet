@@ -12,7 +12,8 @@ import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData  } from './mercury/transfer';
-import { SwapGroup, Swap, GroupInfo, SWAP_STATUS, validateSwap } from './swap/swap';
+import { SwapGroup, GroupInfo, SWAP_STATUS, validateSwap } from './swap/swap_utils';
+import Swap from './swap/swap';
 
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';

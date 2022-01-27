@@ -1,5 +1,6 @@
 import { makeTesterStatecoin } from './test_data.js'
-import { Swap, SwapStepResult, SWAP_STATUS } from "../swap/swap";
+import { SwapStepResult, SWAP_STATUS } from "../swap/swap_utils";
+import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import { swapPhase0 as swapPhase0Steps } from '../swap/swap.phase0'
