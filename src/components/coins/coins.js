@@ -59,7 +59,7 @@ import {
   addCoinToSwapRecords,
   removeCoinFromSwapRecords
 } from "../../features/WalletDataSlice";
-import { SWAP_STATUS } from "../../wallet/swap/swap";
+import { SWAP_STATUS } from "../../wallet/swap/swap_utils";
 
 
 const TESTING_MODE = require("../../settings.json").testing_mode;

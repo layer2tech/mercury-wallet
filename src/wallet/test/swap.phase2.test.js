@@ -1,12 +1,15 @@
 import {makeTesterStatecoin} from './test_data.js'
-import {SWAP_STATUS,
-   SwapRetryError, UI_SWAP_STATUS} from "../swap/swap";
-import {swapPhase2} from '../swap/swap.phase2';
+import { SWAP_STATUS, UI_SWAP_STATUS} from "../swap/swap_utils";
+import Swap from "../swap/swap"
 import {STATECOIN_STATUS} from '../statecoin'
 import { REQUESTOR_CALC_S, MAKE_BST, POST_BST } from '../mocks/mock_wasm'
 import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 import { POST_ROUTE } from '../http_client';
+import { Wallet, MOCK_WALLET_NAME } from '../wallet'
+import { swapPhase2 as swapPhase2Steps } from '../swap/swap.phase2';
+
+let walletName = `${MOCK_WALLET_NAME}_swap_phase2_tests`
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -31,18 +34,43 @@ function init_phase2_status(statecoin) {
   statecoin.swap_info = "a swap info"
 }
 
+async function swapPhase2(swap) {
+  swap.setSwapSteps(swapPhase2Steps(swap))
+  let result
+  for(let i=0; i< swap.swap_steps.length; i++){
+    result =  await swap.doNext()
+    if(result.is_ok() === false){
+        return result
+    }
+  }
+  return result
+}
+
+function getWallet() {
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+  wallet.config.min_anon_set = 3
+  wallet.config.jest_testing_mode = true
+  wallet.http_client = http_mock
+  wallet.wasm = wasm_mock
+  return wallet
+}
+
 describe('Swap phase 2', function() {
   test('swapPhase2 test 1 - invalid initial statecoin state', async function() {
     
   let statecoin = makeTesterStatecoin();
   let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
+  let wallet = getWallet()
+  let swap
+
   //Test invalid statecoin statuses
   for (let i=0; i< STATECOIN_STATUS.length; i++){
     if(STATECOIN_STATUS[i] !== STATECOIN_STATUS.IN_SWAP){
       const sc_status = STATECOIN_STATUS[i]
       statecoin.status=cloneDeep(sc_status)
-      await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der)).rejects.toThrowError(`Coin status is not IN_SWAP. Status: ${sc_status}`)
+      swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+      await expect(swapPhase2(swap)).rejects.toThrowError(`Coin status is not IN_SWAP. Status: ${sc_status}`)
     }
   }
 
@@ -54,14 +82,16 @@ describe('Swap phase 2', function() {
     if(SWAP_STATUS[i] !== SWAP_STATUS.Phase2){
       const swap_status = STATECOIN_STATUS[i]
       statecoin.swap_status=cloneDeep(swap_status)
-      await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-        .rejects.toThrowError(`Coin is not in this phase of the swap protocol. In phase: ${swap_status}`)
+      swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+      await expect(swapPhase2(swap))
+        .rejects.toThrowError(`phase Phase2:pollSwapPhase2: invalid swap status: ${swap_status}`)
     }
   }
 
   statecoin.swap_status = null
-  await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-        .rejects.toThrowError(`Coin is not in this phase of the swap protocol. In phase: ${null}`)
+  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+  await expect(swapPhase2(swap))
+        .rejects.toThrowError(`phase Phase2:pollSwapPhase2: invalid swap status: ${null}`)
 
   //Set valid swap status
   statecoin.swap_status = SWAP_STATUS.Phase2
@@ -71,19 +101,22 @@ describe('Swap phase 2', function() {
   statecoin.swap_my_bst_data=null
   statecoin.swap_info= null
 
-  await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+  await expect(swapPhase2(swap))
     .rejects.toThrowError("No Swap ID found. Swap ID should be set in Phase0.")
 
   
   statecoin.swap_id = "a swap id"
 
-  await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+  await expect(swapPhase2(swap))
     .rejects.toThrowError("No BST data found for coin. BST data should be set in Phase1.")
 
   
   statecoin.swap_my_bst_data = "a bst data"
 
-  await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+  await expect(swapPhase2(swap))
   .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
 
 })
@@ -91,6 +124,7 @@ describe('Swap phase 2', function() {
 test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error', async function() {
   
   const server_error = () => { return new Error("Misc server error")}
+
   http_mock.post = jest.fn((path, body) => {
     if(path === POST_ROUTE.SWAP_POLL_SWAP){
       throw server_error()
@@ -107,20 +141,22 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
   const INIT_STATECOIN = cloneDeep(statecoin)
   const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
+  let wallet = getWallet()
+  wallet.http_client = http_mock
+  let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
   
   //A server error will now be throw from an API call
   //The error type should be SwapRetryError 
-  await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-    .rejects.toThrow(SwapRetryError)
+  let result = await swapPhase2(swap)
+  expect(result.is_ok()).toEqual(false)
 
   //The error should contain the message in server_error()
-  await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-    .rejects.toThrowError(`${server_error().message}`)
-
+  result = await swapPhase2(swap)
+  expect(result.message).toEqual(`Misc server error`)
+  
   //Expect statecoin and proof_key_der to be unchanged
   expect(statecoin).toEqual(INIT_STATECOIN)
   expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
-
   })
 
   test('swapPhase2 test 3 - server responds to pollSwap with null or invalid status', async function() {
@@ -140,9 +176,14 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
         return null
       }
     })
-    await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+
+    let wallet = getWallet()
+    let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+    await expect(swapPhase2(swap))
       .rejects.toThrow(Error)
-    await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+      
+    swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+    await expect(swapPhase2(swap))
       .rejects.toThrowError("Swap halted at phase 1")
 
     //Test unexpected phases
@@ -154,9 +195,11 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
             return phase
           }
         })
-        await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        await expect(swapPhase2(swap))
           .rejects.toThrow(Error)
-        await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
+        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        await expect(swapPhase2(swap))
           .rejects.toThrowError(`Swap error: Expected swap phase2. Received: ${phase}`)
       }
     }
@@ -190,17 +233,19 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
       const INIT_STATECOIN = cloneDeep(statecoin)
       const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
     
+      let wallet = getWallet()
+      wallet.http_mock = http_mock
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
      
-      await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-        .rejects.toThrow(Error)
-      await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-        .rejects.toThrowError(server_bst_error())
-      
+      let result = await swapPhase2(swap)
+      expect(result.is_ok()).toEqual(false)
+      expect(result.message).toEqual(server_bst_error().message)
+
       //Expect statecoin and proof_key_der to be unchanged
       expect(statecoin).toEqual(INIT_STATECOIN)
       expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
     
-      })
+    })
 
     test('swapPhase2 test 5 - an invalid data type is returned from request for BST', async function() {
     
@@ -215,7 +260,9 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
         
         const bst_missing_s_prime_error = () => { return new Error("Expected property \"s_prime\" of type String, got undefined")}
         
-        http_mock.post = jest.fn((path, body) => {
+        let wallet = getWallet()
+
+        wallet.http_client.post = jest.fn((path, body) => {
           if(path === POST_ROUTE.SWAP_POLL_SWAP){
             return SWAP_STATUS.Phase2
           }
@@ -224,17 +271,17 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
           }
         })
 
-        await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-          .rejects.toThrow(Error)
+        statecoin = cloneDeep(INIT_STATECOIN)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let result = await swapPhase2(swap)
+        expect(result.is_ok()).toEqual(false)
+        expect(result.message).toEqual(bst_missing_s_prime_error().message)
         expect(statecoin).toEqual(INIT_STATECOIN)
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
-        
-        await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-          .rejects.toThrowError(bst_missing_s_prime_error())
-        expect(statecoin).toEqual(INIT_STATECOIN)
-        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER) 
-        })
-
+      
+    })
+    
+     
         test('swapPhase2 test 6 - an Error is returned from the new_torid() function', async function() {
     
           let statecoin = makeTesterStatecoin();
@@ -264,13 +311,11 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
           phase3_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase3
           const UI_PHASE3_STATECOIN = cloneDeep(phase3_statecoin)
   
-          await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-            .rejects.toThrow(Error)
-          expect(statecoin).toEqual(UI_PHASE3_STATECOIN)
-          expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
-          
-          await expect(swapPhase2(http_mock, null, statecoin, proof_key_der, proof_key_der))
-            .rejects.toThrowError(`Error getting new TOR id: ${tor_id_error().message}`)
+          let wallet = getWallet()
+          let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+          let result = await swapPhase2(swap)
+          expect(result.is_ok()).toEqual(false)
+          expect(result.message).toEqual(`Error getting new TOR id: ${tor_id_error()}`)
           expect(statecoin).toEqual(UI_PHASE3_STATECOIN)
           expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
           
@@ -285,8 +330,9 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
             init_phase2_status(statecoin)
           
             const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
-            
-            http_mock.post = jest.fn((path, body) => {
+            let wallet = getWallet()
+
+            wallet.http_client.post = jest.fn((path, body) => {
               if(path === POST_ROUTE.SWAP_POLL_SWAP){
                 return SWAP_STATUS.Phase2
               }
@@ -295,12 +341,12 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
               }
             })
             
-            http_mock.new_tor_id = jest.fn(() => {
+            wallet.http_client.new_tor_id = jest.fn(() => {
             })
 
             const make_rcs_error = () => { return new Error("Error in requester_calc_s")}
             //wasm_mock.BSTRequestorData = jest.
-            wasm_mock.BSTRequestorData.requester_calc_s = jest.fn((_s_prime, _u, _v) => {
+            wallet.wasm.BSTRequestorData.requester_calc_s = jest.fn((_s_prime, _u, _v) => {
               throw make_rcs_error()
             })
             
@@ -308,17 +354,15 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
             let phase4_statecoin = cloneDeep(statecoin)
             phase4_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase4
             const UI_PHASE4_STATECOIN = cloneDeep(phase4_statecoin)
+
+            
+            let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
     
-            await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
-              .rejects.toThrow(Error)
+            let result = await swapPhase2(swap)
+            expect(result.is_ok()).toEqual(false)
+            expect(result.message).toEqual(`${make_rcs_error().message}`)
             expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
-            expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
-            
-            await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
-              .rejects.toThrowError(`${make_rcs_error().message}`)
-            expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
-            expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
-            
+            expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)            
             })
 
             test('swapPhase2 test 8 - Error making blind spend token in make_blind_spend_token()', async function() {
@@ -358,16 +402,14 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
               phase4_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase4
               const UI_PHASE4_STATECOIN = cloneDeep(phase4_statecoin)
       
-              await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
-                .rejects.toThrow(Error)
+              let wallet = getWallet()
+              let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+              let result = await swapPhase2(swap)
+              expect(result.is_ok()).toEqual(false)
+              expect(result.message).toEqual(`${make_mbst_error().message}`)
               expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
               expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
-              
-              await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
-                .rejects.toThrowError(`${make_mbst_error().message}`)
-              expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
-              expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
-              
             })
 
             test(`swapPhase2 test 9 - Error calling server API ${POST_ROUTE.SWAP_SECOND}`, async function() {
@@ -418,16 +460,13 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
                 phase4_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase4
                 const UI_PHASE4_STATECOIN = cloneDeep(phase4_statecoin)
         
-                await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
-                  .rejects.toThrow(Error)
+                let wallet = getWallet()
+                let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+                let result = await swapPhase2(swap)
+                expect(result.is_ok()).toEqual(false)
+                expect(result.message).toEqual(`${make_post_error(POST_ROUTE.SWAP_SECOND, `${JSON.stringify(POST_BST)}`).message}`)
                 expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
                 expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
-                
-                await expect(swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der))
-                  .rejects.toThrowError(`${make_post_error(POST_ROUTE.SWAP_SECOND, `${JSON.stringify(POST_BST)}`).message}`)
-                expect(statecoin).toEqual(UI_PHASE4_STATECOIN)
-                expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
-                
             })
 
             test(`swapPhase2 test 10 - complete swap phase 2`, async function() {
@@ -478,8 +517,11 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
               phase5_statecoin.swap_receiver_addr = SWAP_SECOND_SCE_ADDRESS
               const UI_PHASE5_STATECOIN = cloneDeep(phase5_statecoin)
       
-              let result =  await swapPhase2(http_mock, wasm_mock, statecoin, proof_key_der, proof_key_der);
-              expect(result).toBe(undefined)
+              let wallet = getWallet()
+              let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+              let result =  await swapPhase2(swap);
+              expect(result.is_ok()).toBe(true)
               expect(statecoin).toEqual(UI_PHASE5_STATECOIN)
               expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)              
           })
