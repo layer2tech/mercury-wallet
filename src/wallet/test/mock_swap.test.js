@@ -58,6 +58,9 @@ function getWallet() {
 }
 
 describe('Do Swap', function () {
+
+  let wallet = getWallet()
+
   test('do_swap', async function () {
 
     http_mock.post = jest.fn().mockReset()
