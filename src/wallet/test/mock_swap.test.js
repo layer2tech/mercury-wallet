@@ -181,9 +181,9 @@ describe('resume_swap', function () {
     let statecoin_out = wallet.statecoins.coins[0]
     // Get statecoin value after function call
 
-    expect(statecoin_out.status).toBe(statecoin.status)
-    expect(statecoin_out.swap_status).toBe(statecoin.swap_status)
-    expect(statecoin_out.ui_swap_status).toBe(statecoin.ui_swap_status)
+    expect(statecoin_out.status).toBe(STATECOIN_STATUS.IN_SWAP)
+    expect(statecoin_out.swap_status).toBe(SWAP_STATUS.Phase4)
+    expect(statecoin_out.ui_swap_status).toBe(UI_SWAP_STATUS.Phase7)
   })
   test('Swap Break UI Phase 8', async function () {
     // do_swap_poll no error thrown && returns null new_statecoin
@@ -222,9 +222,9 @@ describe('resume_swap', function () {
     let statecoin_out = wallet.statecoins.coins[0]
     // Get statecoin value after function call
 
-    expect(statecoin_out.status).toBe(statecoin.status)
-    expect(statecoin_out.swap_status).toBe(statecoin.swap_status)
-    expect(statecoin_out.ui_swap_status).toBe(statecoin.ui_swap_status)
+    expect(statecoin_out.status).toBe(STATECOIN_STATUS.IN_SWAP)
+    expect(statecoin_out.swap_status).toBe(SWAP_STATUS.Phase4)
+    expect(statecoin_out.ui_swap_status).toBe(UI_SWAP_STATUS.Phase8)
 
   })
 })
