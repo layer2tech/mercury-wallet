@@ -166,9 +166,13 @@ export class SwapPhaseClients {
 
   static from_wallet(wallet: Wallet){
     let wasm = null
-    if (wallet.config.jest_testing_mode) {
+    if (wallet.config.jest_testing_mode === true) {
+      if(wallet.wasm){
+        wasm = wallet.wasm
+      } else {
         wasm = new MockWasm()
         wasm.init()
+      }
     }     
     return new SwapPhaseClients(wallet.http_client, wasm, wallet.electrum_client)
   }

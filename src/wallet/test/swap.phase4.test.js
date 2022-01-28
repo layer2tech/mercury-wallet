@@ -45,7 +45,7 @@ const get_error = (path, params) => {
 }
 
 const wasm_err = (message) => {
-  return new Error(`Error from wasm_mock: ${message}`)
+  return new Error(`Error from wasm_client: ${message}`)
 }
 
 const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
@@ -116,7 +116,6 @@ describe('Swap phase 4', function() {
   const INIT_STATECOIN = cloneDeep(statecoin)
 
   let wallet = getWallet()
-  let swap
 
   //Test invalid statecoin statuses
   for (let i=0; i< STATECOIN_STATUS.length; i++){
@@ -290,6 +289,9 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
     })
 
     let wallet = getWallet()
+    wallet.wasm.KeyGen.first_message = jest.fn((_secret_key) => {
+      throw wasm_err("KeyGen.keygen_first")
+    })
 
     for (let i=0; i < valid_phases.length; i++) {
       http_mock.post = jest.fn((path, body) => {
@@ -305,9 +307,17 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
       })
 
       let swap = new Swap(wallet, statecoin, null, null) 
+      swap.wasm = wasm_mock
+      swap.clients.wasm_client = wasm_mock
+      swap.clients.wasm_client.KeyGen.first_message = jest.fn((_secret_key) => {
+        throw wasm_err("KeyGen.keygen_first")
+      })
+      swap.wasm.KeyGen.first_message = jest.fn((_secret_key) => {
+        throw wasm_err("KeyGen.keygen_first")
+      })
       let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
-      expect(result.message).toEqual(`wasm_client.KeyGen.first_message: Error: Error from wasm_mock: KeyGen.keygen_first`)
+      expect(result.message).toEqual(`wasm_client.KeyGen.first_message: Error: Error from wasm_client: KeyGen.keygen_first`)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
     }
   })
