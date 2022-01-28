@@ -1108,7 +1108,7 @@ export class Wallet {
         }
       });
       let swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der)
-      new_statecoin = await swap.do_swap_poll()
+      new_statecoin = await swap.do_swap_poll(resume)
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
       // Do not delete swap data for statecoins with transfer
