@@ -163,19 +163,31 @@ export default class Swap {
     }
     
     reset = async () => {
-      this.resetCounters()
       let statecoin = this.statecoin
       await swapDeregisterUtxo(this.clients.http_client, { id: statecoin.statechain_id });
       statecoin.setSwapDataToNull();
       statecoin.swap_status = SWAP_STATUS.Init;
       statecoin.setAwaitingSwap();
+      this.resetCounters()
     }
     
     resetCounters = () => {
       this.swap0_count = 0
       this.n_reps=0
-      this.next_step=0
       this.n_retries = 0
+      this.next_step=this.get_next_step_from_swap_status()
+    }
+
+    get_next_step_from_swap_status = () => {
+      let status = this.statecoin.swap_status
+      for(let i=0; i < this.swap_steps.length; i++){
+        let step = this.swap_steps[i]
+        if (step.phase === status) {
+          return i
+        }
+      }
+      // Reset to initial step by default
+      return 0
     }
     
     incrementCounters = () => {
@@ -709,7 +721,6 @@ validateResumeSwap = () => {
 prepare_statecoin = (resume: boolean) => {
   let statecoin = this.statecoin
    // Reset coin's swap data
-   let prev_phase;
    if (!resume) {
      if (statecoin.swap_status === SWAP_STATUS.Phase4) {
        throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
@@ -720,10 +731,9 @@ prepare_statecoin = (resume: boolean) => {
        statecoin.ui_swap_status = SWAP_STATUS.Init;
        statecoin.setAwaitingSwap();
      }
-     prev_phase = SWAP_STATUS.Init;
-   } else {
-     prev_phase = statecoin.swap_status;
-   }
+     
+   } 
+  this.resetCounters()
 }
 
   do_swap_poll = async (resume: boolean = false): Promise<StateCoin | null> => {

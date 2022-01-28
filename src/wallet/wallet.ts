@@ -1057,12 +1057,10 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     
-    validateSwap( statecoin )
-    // Checks statecoin is available and not already in swap group
-    
     //Always try and resume coins in swap phase 4 so transfer is completed
-       //Always try and resume coins in swap phase 4
-       if (statecoin.swap_status !== SWAP_STATUS.Phase4){
+    if (statecoin.swap_status !== SWAP_STATUS.Phase4){
+        // Checks statecoin is available and not already in swap group
+        validateSwap( statecoin )
         await swapSemaphore.wait();
         try{
           await (async () => {
