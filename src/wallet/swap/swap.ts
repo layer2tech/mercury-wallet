@@ -672,10 +672,12 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8;
     let wasm = await this.wallet.getWasm();
     let statecoin_out = await transferReceiverFinalize(this.clients.http_client, wasm, this.getTransferFinalizedData());
+    log.info(`setting statecoin out...`)
     this.setStatecoinOut(statecoin_out)
+    log.info(`transfer complete.`)
     return SwapStepResult.Ok("transfer complete")
   } catch (err: any) {
-    console.log(`transferReceiverFinalize error: ${err}`)
+    log.info(`transferReceiverFinalize error: ${err}`)
     let result = await this.swapPhase4HandleErrPollSwap()
     if(!result.is_ok()) {
       return result

@@ -61,7 +61,7 @@ const get_error = (path, params) => {
 }
 
 const wasm_err = (message) => {
-  return new Error(`Error from wasm_mock: ${message}`)
+  return new Error(`Error from wasm_client: ${message}`)
 }
 
 const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
@@ -104,11 +104,13 @@ function get_statecoin_out_expected(statecoin_out, smt_proof = null){
   return statecoin_out_expected;
 }
 
-async function swapPhase4(swap, wasm) {
+const proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+
+async function swapPhase4(swap) {
   swap.setSwapSteps(swapPhase4Steps(swap))
   let result
   for(let i=0; i< swap.swap_steps.length; i++){
-    result =  await swap.doNext(wasm)
+    result =  await swap.doNext()
     if(result.is_ok() === false){
         return result
     }
@@ -140,7 +142,7 @@ describe('Swap phase 4', function() {
       const sc_status = STATECOIN_STATUS[i]
       statecoin.status=cloneDeep(sc_status)
       swap = new Swap(wallet, statecoin, null, null) 
-      await expect(swapPhase4(swap,wasm_mock)).rejects.toThrowError(`Coin status is not IN_SWAP. Status: ${sc_status}`)
+      await expect(swapPhase4(swap)).rejects.toThrowError(`Coin status is not IN_SWAP. Status: ${sc_status}`)
     }
   }
   
@@ -153,12 +155,12 @@ describe('Swap phase 4', function() {
       const swap_status = STATECOIN_STATUS[i]
       statecoin.swap_status=cloneDeep(swap_status)
         swap = new Swap(wallet, statecoin, null, null) 
-        await expect(swapPhase4(swap,wasm_mock))
+        await expect(swapPhase4(swap))
         .rejects.toThrowError(`phase Phase4:swapPhase4PollSwap: invalid swap status: ${statecoin.swap_status}`);
         expect(statecoin).toEqual(INIT_STATECOIN)
         
         swap = new Swap(wallet, statecoin, null, null) 
-        await expect(swapPhase4(swap,wasm_mock))
+        await expect(swapPhase4(swap))
         .rejects.toThrow(Error);
         expect(statecoin).toEqual(INIT_STATECOIN)
     }
@@ -166,14 +168,14 @@ describe('Swap phase 4', function() {
 
   statecoin.swap_status=null
   swap = new Swap(wallet, statecoin, null, null) 
-  await expect(swapPhase4(swap,wasm_mock))
+  await expect(swapPhase4(swap))
     .rejects.toThrowError(`phase Phase4:swapPhase4PollSwap: invalid swap status: ${statecoin.swap_status}`)
     let sc_null_swap_status=cloneDeep(INIT_STATECOIN)
     sc_null_swap_status.swap_status=null
     expect(statecoin).toEqual(sc_null_swap_status)
     
   swap = new Swap(wallet, statecoin, null, null) 
-  await expect(swapPhase4(swap,wasm_mock))
+  await expect(swapPhase4(swap))
     .rejects.toThrow(Error)
     expect(statecoin).toEqual(sc_null_swap_status)
       
@@ -186,20 +188,20 @@ describe('Swap phase 4', function() {
   statecoin.swap_transfer_finalized_data=null
 
   swap = new Swap(wallet, statecoin, null, null) 
-  await expect(swapPhase4(swap,wasm_mock))
+  await expect(swapPhase4(swap))
     .rejects.toThrowError("No Swap ID found. Swap ID should be set in Phase0.")
 
   //Set swap_id to some value
   statecoin.swap_id = { "id": "a swap id" }
 
   swap = new Swap(wallet, statecoin, null, null) 
-  await expect(swapPhase4(swap,wasm_mock))
+  await expect(swapPhase4(swap))
     .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
 
   statecoin.swap_info = "a swap info"
 
   swap = new Swap(wallet, statecoin, null, null) 
-  await expect(swapPhase4(swap,wasm_mock))
+  await expect(swapPhase4(swap))
     .rejects.toThrowError("No transfer finalize data found for coin. Transfer finalize data should be set in Phase1.")
 
 })
@@ -220,7 +222,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
   let wallet = getWallet()
   let swap = new Swap(wallet, statecoin, null, null) 
 
-  let result = await swapPhase4(swap,wasm_mock)
+  let result = await swapPhase4(swap)
   expect(result.is_ok()).toEqual(false)
   expect(result.message).toEqual(`${server_error().message}`)
 
@@ -285,7 +287,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
       let wallet = getWallet()
       let swap = new Swap(wallet, statecoin, null, null) 
 
-      let result = await swapPhase4(swap,wasm_mock)
+      let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
       expect(result.message).toEqual(`statecoin ${statecoin.shared_key_id} waiting for completion of batch transfer in swap ID ${statecoin.swap_id.id}`)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
@@ -304,13 +306,13 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
     wasm_mock.KeyGen.first_message = jest.fn((_secret_key) => {
       throw wasm_err("KeyGen.keygen_first")
     })
-
+ 
     let wallet = getWallet()
-    wallet.wasm=wasm_mock
-    wallet.wasm.KeyGen.first_message = jest.fn((_secret_key) => {
+    let wasm = await wallet.getWasm()
+    wasm.KeyGen.first_message = jest.fn((_secret_key) => {
       throw wasm_err("KeyGen.keygen_first")
     })
-
+    
     for (let i=0; i < valid_phases.length; i++) {
       http_mock.post = jest.fn((path, body) => {
         if(path === POST_ROUTE.SWAP_POLL_SWAP){
@@ -320,14 +322,14 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
           return mock_http_client.KEYGEN_FIRST
         }
         if(path === POST_ROUTE.KEYGEN_SECOND){
-          throw post_error(path)
+          return mock_http_client.KEYGEN_SECOND
         }
       })
 
-      let swap = new Swap(wallet, statecoin, null, null) 
-      let result = await swapPhase4(swap,wasm_mock)
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+      let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
-      expect(result.message).toEqual(`wasm_client.KeyGen.first_message: Error: Error from wasm_mock: KeyGen.keygen_first`)
+      expect(result.message).toEqual(wasm_err("KeyGen.keygen_first").message)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
     }
   })
@@ -360,10 +362,10 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
         }
       })
 
-      let swap = new Swap(wallet, statecoin, null, null)
-      let result = await swapPhase4(swap,wasm_mock)
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+      let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
-      expect(result.message).toEqual(`ecdsa/keygen/second: Error: ${post_error(POST_ROUTE.KEYGEN_SECOND).message}`)
+      expect(result.message).toEqual(post_error(POST_ROUTE.KEYGEN_SECOND).message)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
     }
   })
@@ -396,10 +398,10 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
         }
       })
 
-      let swap = new Swap(wallet, statecoin, null, null)
-      let result = await swapPhase4(swap,wasm_mock)
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+      let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
-      expect(result.message).toEqual(`ecdsa/keygen/second: Error: ${post_error(POST_ROUTE.KEYGEN_SECOND).message}`)
+      expect(result.message).toEqual(post_error(POST_ROUTE.KEYGEN_SECOND).message)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
     }
   })
@@ -436,10 +438,10 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
         }
       })
 
-      let swap = new Swap(wallet, statecoin, null, null)
-      let result = await swapPhase4(swap,wasm_mock)
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+      let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
-      expect(result.message).toEqual(`wasm_client.KeyGen.second_message: Error: ${wasm_err("KeyGen.second_message").message}`)
+      expect(result.message).toEqual(wasm_err("KeyGen.second_message").message)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
     }
   })
@@ -480,10 +482,10 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
         }
       })
 
-      let swap = new Swap(wallet, statecoin, null, null)
-      let result = await swapPhase4(swap,wasm_mock)
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+      let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
-      expect(result.message).toEqual(`wasm_client.KeyGen.set_master_key: Error: ${wasm_err("KeyGen.set_master_key").message}`)
+      expect(result.message).toEqual(wasm_err("KeyGen.set_master_key").message)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
     }
   })
@@ -542,8 +544,8 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
         ACTION.DEPOSIT)
       wallet.config.update({"jest_testing_mode": true})
 
-      let swap = new Swap(wallet, sc_clone_1, null, null)
-      let result = await swapPhase4(swap,wasm_mock);
+      let swap = new Swap(wallet, sc_clone_1, proof_key_der, proof_key_der)
+      let result = await swapPhase4(swap);
       expect(result.is_ok()).toEqual(true)
       expect(sc_clone_1).toEqual(UPDATED_STATECOIN)
     
@@ -605,8 +607,8 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
         ACTION.DEPOSIT)
       wallet.config.update({"jest_testing_mode": true})
 
-      let swap = new Swap(wallet, sc_clone_1, null, null)
-      let result = await swapPhase4(swap,wasm_mock);
+      let swap = new Swap(wallet, sc_clone_1, proof_key_der, proof_key_der)
+      let result = await swapPhase4(swap);
       expect(result.is_ok()).toEqual(true)
       expect(sc_clone_1).toEqual(UPDATED_STATECOIN)
     
@@ -674,8 +676,8 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
         ACTION.DEPOSIT)
       wallet.config.update({"jest_testing_mode": true})
 
-      let swap = new Swap(wallet, sc_clone_1, null, null)
-      let result = await swapPhase4(swap,wasm_mock);
+      let swap = new Swap(wallet, sc_clone_1, proof_key_der, proof_key_der)
+      let result = await swapPhase4(swap);
       expect(result.is_ok()).toEqual(true)
       expect(sc_clone_1).toEqual(UPDATED_STATECOIN)
     
@@ -743,8 +745,8 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
         ACTION.DEPOSIT)
       wallet.config.update({"jest_testing_mode": true})
 
-      let swap = new Swap(wallet, sc_clone_1, null, null)
-      let result = await swapPhase4(swap,wasm_mock);
+      let swap = new Swap(wallet, sc_clone_1, proof_key_der, proof_key_der)
+      let result = await swapPhase4(swap);
 
       expect(result.is_ok()).toEqual(true)
       expect(sc_clone_1).toEqual(UPDATED_STATECOIN)
@@ -785,8 +787,8 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
       })
 
       let wallet = getWallet();
-      let swap = new Swap(wallet, statecoin, null, null)
-      let result = await swapPhase4(swap,wasm_mock)
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+      let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
       expect(result.message).toEqual(`statecoin ${UPDATED_STATECOIN.shared_key_id} waiting for completion of batch transfer in swap ID ${UPDATED_STATECOIN.swap_id.id}`)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
@@ -819,9 +821,9 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
       })
 
       let wallet = getWallet()
-      let swap = new Swap(wallet, statecoin, null, null)
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
-      let result = await swapPhase4(swap,wasm_mock)
+      let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
       expect(result.message).toEqual(`statecoin ${UPDATED_STATECOIN.shared_key_id} waiting for completion of batch transfer in swap ID ${UPDATED_STATECOIN.swap_id.id}`)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
@@ -853,9 +855,9 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
       })
 
       let wallet = getWallet()
-      let swap = new Swap(wallet, statecoin, null, null)
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
-      let result = await swapPhase4(swap,wasm_mock)
+      let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
       expect(result.message).toEqual(`keygen first error: statecoin ${statecoin.shared_key_id} - batch transfer complete for swap ID ${statecoin.swap_id.id}`)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
@@ -884,14 +886,14 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
       })
 
       let wallet = getWallet()
-      let swap = new Swap(wallet, statecoin, null, null)
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
-      await expect(swapPhase4(swap,wasm_mock))
+      await expect(swapPhase4(swap))
         .rejects.toThrow(Error)
         expect(statecoin).toEqual(UPDATED_STATECOIN)
 
-      swap = new Swap(wallet, statecoin, null, null)
-      await expect(swapPhase4(swap,wasm_mock))
+      swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+      await expect(swapPhase4(swap))
         .rejects.toThrowError(
           `swap id: ${UPDATED_STATECOIN.swap_id.id}, shared key id: ${UPDATED_STATECOIN.shared_key_id} - swap failed at phase 4/4`
         ) 

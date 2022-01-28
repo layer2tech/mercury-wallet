@@ -444,7 +444,11 @@ export class Wallet {
   async getWasm() {
     let wasm;
     if (this.config.jest_testing_mode) {
-      wasm = new MockWasm()
+      if (this.wasm !== undefined && this.wasm !== null) {
+        return this.wasm
+      } else {
+        wasm = new MockWasm()
+      }
     } else {
       wasm = await import('client-wasm');
     }
