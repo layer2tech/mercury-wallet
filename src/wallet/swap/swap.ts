@@ -525,7 +525,7 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
       }
 
       typeforce(types.TransferMsg3, msg3);
-      if (msg3.rec_se_addr.proof_key === rec_se_addr_bip32.publicKey) {
+      if (msg3.rec_se_addr.proof_key === rec_se_addr.proof_key) {
         let batch_data = {
           "id": batch_id,
           "commitment": commit,
