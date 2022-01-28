@@ -1,9 +1,10 @@
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress } from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { delay, getTransferBatchStatus } from "../mercury/info_api";
+import { delay, getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
 import { StateChainSig } from "../util";
-import { BIP32Interface, Network } from 'bitcoinjs-lib';
+import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
+import { v4 as uuidv4 } from 'uuid';
 import { Wallet } from '../wallet'
 import { ACTION } from '../activity_log';
 import { encodeSCEAddress, POST_ROUTE,GET_ROUTE, StateCoin, STATECOIN_STATUS } from '..';
