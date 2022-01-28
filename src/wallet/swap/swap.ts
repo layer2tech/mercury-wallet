@@ -20,7 +20,7 @@ const version = require("../../../package.json").version;
 // Logger import.
 // Node friendly importing required for Jest tests.
 declare const window: any;
-export let log: any;
+let log: any;
 try {
   log = window.require('electron-log');
 } catch (e: any) {

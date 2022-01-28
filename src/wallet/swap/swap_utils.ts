@@ -159,38 +159,6 @@ export class SwapPhaseClients {
   }
 }
 
-export const validateStateCoin = (statecoin: StateCoin) => {
-
-}
-
-export const handleResumeOrStartSwap = (resume: boolean, statecoin: StateCoin): string | null => {
-  // Coins in Phase4 resume all other coins start swap
-
-  let prev_phase;
-  //coin previous swap phase
-
-  if (resume) {
-    if (statecoin.status !== STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin " + statecoin.shared_key_id + " - not in swap.");
-    if (statecoin.swap_status !== SWAP_STATUS.Phase4)
-      throw Error("Cannot resume coin " + statecoin.shared_key_id + " - swap status: " + statecoin.swap_status);
-    prev_phase = statecoin.swap_status;
-  } else {
-    validateSwap(statecoin)
-    if (statecoin.swap_status === SWAP_STATUS.Phase4) {
-      throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
-    }
-    if (statecoin) {
-      statecoin.setSwapDataToNull()
-      statecoin.swap_status = SWAP_STATUS.Init;
-      statecoin.ui_swap_status = SWAP_STATUS.Init;
-      statecoin.setAwaitingSwap();
-    }
-    prev_phase = SWAP_STATUS.Init;
-  }
-
-  return prev_phase
-}
-
 export const make_swap_commitment = (statecoin: any,
   swap_info: any, wasm_client: any): BatchData => {
 
