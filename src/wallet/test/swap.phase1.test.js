@@ -213,7 +213,7 @@ describe('swapPhase1 test 7 - in phase 1 no swap id', () => {
 })
 
 describe('swap first message', () => {
-    test('get_swap_msg_1', async () => {
+    test.skip('get_swap_msg_1', async () => {
     let statecoin = makeTesterStatecoin();
     statecoin.swap_id = { id: "12345"};
     let swap_info = {
