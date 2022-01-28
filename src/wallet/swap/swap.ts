@@ -19,7 +19,7 @@ const version = require("../../../package.json").version;
 // Logger import.
 // Node friendly importing required for Jest tests.
 declare const window: any;
-export let log: any;
+let log: any;
 try {
   log = window.require('electron-log');
 } catch (e: any) {
@@ -705,7 +705,7 @@ validateResumeSwap = () => {
 prepare_statecoin = (resume: boolean) => {
   let statecoin = this.statecoin
    // Reset coin's swap data
-   let prev_phase;
+
    if (!resume) {
      if (statecoin.swap_status === SWAP_STATUS.Phase4) {
        throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
@@ -716,9 +716,6 @@ prepare_statecoin = (resume: boolean) => {
        statecoin.ui_swap_status = SWAP_STATUS.Init;
        statecoin.setAwaitingSwap();
      }
-     prev_phase = SWAP_STATUS.Init;
-   } else {
-     prev_phase = statecoin.swap_status;
    }
 }
 
