@@ -30,7 +30,6 @@ try {
 export default class Swap {
   swap_steps: SwapStep[]
   clients: SwapPhaseClients
-  wasm: any
   wallet: Wallet
   statecoin: StateCoin
   network: Network
@@ -50,7 +49,6 @@ export default class Swap {
     statecoin: StateCoin, proof_key_der: BIP32Interface, 
     new_proof_key_der: BIP32Interface) {
       this.wallet = wallet
-      this.wasm = wallet.wasm
       this.clients = SwapPhaseClients.from_wallet(wallet)
       this.proof_key_der = proof_key_der
       this.new_proof_key_der = new_proof_key_der
@@ -338,7 +336,7 @@ getBSTData = async (): Promise<SwapStepResult> => {
   try {
     let my_bst_data = await first_message(
       this.clients.http_client,
-      this.wasm,
+      await this.clients.getWasm(),
       this.getSwapInfo(),
       this.statecoin.statechain_id,
       transfer_batch_sig,
@@ -406,7 +404,7 @@ getNewTorID = async (): Promise<SwapStepResult> => {
 
 doSwapSecondMessage = async (): Promise<SwapStepResult> => {
   try {
-    let receiver_addr = await second_message(this.clients.http_client, this.wasm, this.getSwapID().id, 
+    let receiver_addr = await second_message(this.clients.http_client, await this.clients.getWasm(), this.getSwapID().id, 
       this.getBSTRequestorData(), this.getBlindedSpendSignature());
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase5;
     // Update coin with receiver_addr and update status
@@ -450,7 +448,7 @@ transferSender = async (): Promise<SwapStepResult> => {
   try {
     // if this part has not yet been called, call it.
     this.statecoin.swap_transfer_msg = await transferSender(this.clients.http_client, 
-    this.wasm, this.network, this.statecoin, this.proof_key_der, 
+    await this.clients.getWasm(), this.network, this.statecoin, this.proof_key_der, 
     this.getSwapReceiverAddr().proof_key, true, this.wallet);
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase6;
     this.wallet.saveStateCoinsList()
@@ -478,7 +476,7 @@ getSwapInfo(): SwapInfo {
 make_swap_commitment = async (): Promise<BatchData> => {
   let statecoin = this.statecoin
   let swap_info = this.getSwapInfo()
-  let wasm_client = this.wasm
+  let wasm_client = await this.clients.getWasm()
 
   let commitment_str: string = statecoin.statechain_id;
   swap_info.swap_token.statechain_ids.forEach(function (item: string) {
@@ -527,7 +525,7 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
       }
 
       typeforce(types.TransferMsg3, msg3);
-      if (msg3.rec_se_addr.proof_key === rec_se_addr.proof_key) {
+      if (msg3.rec_se_addr.proof_key === rec_se_addr_bip32.publicKey) {
         let batch_data = {
           "id": batch_id,
           "commitment": commit,
@@ -680,7 +678,6 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
     if(!result.is_ok()) {
       return result
     } else {
-      log.info(`error message: ${err.message}`)
       if(err?.message && (err.message.includes("wasm_client") ||
         err.message.includes(POST_ROUTE.KEYGEN_SECOND))){
         return SwapStepResult.Retry(err.message)
