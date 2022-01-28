@@ -95,6 +95,7 @@ describe('Storage 2', function() {
   
 
   test('load from backup and save', async function() {
+    wallet.save();
     let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
     let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
     let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));

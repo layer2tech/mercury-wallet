@@ -145,32 +145,17 @@ export class SwapStepResult{
 
 export class SwapPhaseClients {
   http_client: HttpClient | MockHttpClient;
-  wasm_client: any;
   electrum_client: ElectrsClient | ElectrumClient | EPSClient | MockElectrumClient
 
   constructor(http_client: HttpClient | MockHttpClient, 
-    wasm_client: any = null, electrum_client: ElectrsClient | ElectrumClient | EPSClient | MockElectrumClient ) {
+    electrum_client: ElectrsClient | ElectrumClient | EPSClient | MockElectrumClient ) {
     this.http_client = http_client;
     // todo check these
-    this.wasm_client = wasm_client;
     this.electrum_client = electrum_client;
   }
 
-  getWasm = async () => {
-    if(!this.wasm_client) {
-      this.wasm_client = await import('client-wasm')
-      this.wasm_client.init()
-    }
-    return this.wasm_client
-  }
-
-  static from_wallet(wallet: Wallet){
-    let wasm = null
-    if (wallet.config.jest_testing_mode) {
-        wasm = new MockWasm()
-        wasm.init()
-    }     
-    return new SwapPhaseClients(wallet.http_client, wasm, wallet.electrum_client)
+  static from_wallet(wallet: Wallet){  
+    return new SwapPhaseClients(wallet.http_client, wallet.electrum_client)
   }
 }
 
