@@ -259,7 +259,10 @@ export const transferReceiver = async (
   if (!pk_der.verify(sighash_bytes, decoded.signature)) throw new Error("Backup tx invalid signature.");
   // 4. Ensure backup tx funds are sent to address owned by this wallet
   if (se_rec_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
-  if (se_rec_addr_bip32.publicKey.toString("hex") !== transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
+  let pk_expected = se_rec_addr_bip32.publicKey.toString("hex");
+  let pk_received = transfer_msg3.rec_se_addr.proof_key
+  if (pk_expected !== pk_received) 
+    throw new Error(`Backup tx not sent to addr derived from receivers proof key. Expected proof key ${pk_expected}, got ${pk_received}. Transfer not made to this wallet.`);
 
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);

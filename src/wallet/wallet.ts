@@ -444,7 +444,11 @@ export class Wallet {
   async getWasm() {
     let wasm;
     if (this.config.jest_testing_mode) {
-      wasm = new MockWasm()
+      if (this.wasm !== undefined && this.wasm !== null) {
+        return this.wasm
+      } else {
+        wasm = new MockWasm()
+      }
     } else {
       wasm = await import('client-wasm');
     }
@@ -1053,12 +1057,10 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     
-    validateSwap( statecoin )
-    // Checks statecoin is available and not already in swap group
-    
     //Always try and resume coins in swap phase 4 so transfer is completed
-       //Always try and resume coins in swap phase 4
-       if (statecoin.swap_status !== SWAP_STATUS.Phase4){
+    if (statecoin.swap_status !== SWAP_STATUS.Phase4){
+        // Checks statecoin is available and not already in swap group
+        validateSwap( statecoin )
         await swapSemaphore.wait();
         try{
           await (async () => {
@@ -1108,7 +1110,7 @@ export class Wallet {
         }
       });
       let swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der)
-      new_statecoin = await swap.do_swap_poll()
+      new_statecoin = await swap.do_swap_poll(resume)
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
       // Do not delete swap data for statecoins with transfer
