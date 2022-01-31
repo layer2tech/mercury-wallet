@@ -96,15 +96,15 @@ describe('Do Swap Poll', function () {
         // Check swap details initialised to null
         
         statecoin = setSwapDetails(wallet.statecoins.coins[0], 8)
-        swap = new Swap(wallet, statecoin, mock_proof_key_der);
+        swap = new Swap(wallet, statecoin, mock_proof_key_der, null, true);
 
-        swap.prepare_statecoin(true)
+        swap.prepare_statecoin()
         
         expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase4)
         expect(statecoin.ui_swap_status).toBe(UI_SWAP_STATUS.Phase8)
         // Check Phase 4 Statecoin Unchanged
         
-
+        swap.resume = false
         expect(() => swap.prepare_statecoin()).toThrow(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
         // Don't wipe swap Phase 4 details
 

@@ -77,11 +77,8 @@ Object.freeze(SWAP_RETRY);
 
 
 // Check statecoin is eligible for entering a swap group
-export const validateSwap = (statecoin: StateCoin) => {
-  if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " already in swap pool.");
-  if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " already involved in swap.");
-  if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for swap.");
-}
+
+
 
 // Each step in the swap has an expected initial statecoin status and a function to be performed
 export class SwapStep {

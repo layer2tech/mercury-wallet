@@ -10,7 +10,7 @@ import { ACTION } from '../activity_log';
 import { encodeSCEAddress, POST_ROUTE,GET_ROUTE, StateCoin, STATECOIN_STATUS } from '..';
 
 import { get_swap_steps } from './swap_steps'
-import { BatchData, BlindedSpendSignature, BSTRequestorData, first_message, get_blinded_spend_signature, second_message, SwapID, SwapInfo, SwapPhaseClients, SwapStep, SwapStepResult, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS, validateSwap } from './swap_utils';
+import { BatchData, BlindedSpendSignature, BSTRequestorData, first_message, get_blinded_spend_signature, second_message, SwapID, SwapInfo, SwapPhaseClients, SwapStep, SwapStepResult, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS } from './swap_utils';
 
 let cloneDeep = require('lodash.clonedeep');
 let bitcoin = require("bitcoinjs-lib");
@@ -46,10 +46,11 @@ export default class Swap {
   n_reps: number
   swap0_count: number
   n_retries: number
+  resume: boolean
 
   constructor(wallet: Wallet, 
     statecoin: StateCoin, proof_key_der: BIP32Interface, 
-    new_proof_key_der: BIP32Interface) {
+    new_proof_key_der: BIP32Interface, resume: boolean = false) {
       this.wallet = wallet
       this.clients = SwapPhaseClients.from_wallet(wallet)
       this.proof_key_der = proof_key_der
@@ -65,6 +66,7 @@ export default class Swap {
       this.n_reps = 0
       this.swap0_count = 0
       this.n_retries = 0
+      this.resume = resume
     }
 
     setSwapSteps = (steps: SwapStep[]) => {
@@ -708,42 +710,28 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
 
 
 // Check statecoin is eligible for entering a swap group
-validateSwap = () => {
-  validateSwap(this.statecoin)
+validate = () => {
+  this.resume ? this.statecoin.validateResumeSwap() : this.statecoin.validateSwap() 
 }
 
-validateResumeSwap = () => {
-  const statecoin = this.statecoin
-  if (statecoin.status !== STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin " + statecoin.shared_key_id + " - not in swap.");
-  if (statecoin.swap_status !== SWAP_STATUS.Phase4)
-  throw Error("Cannot resume coin " + statecoin.shared_key_id + " - swap status: " + statecoin.swap_status);
-}
-
-prepare_statecoin = (resume: boolean) => {
+prepare_statecoin = () => {
+  this.validate()
   let statecoin = this.statecoin
    // Reset coin's swap data
-   if (!resume) {
-     if (statecoin.swap_status === SWAP_STATUS.Phase4) {
-       throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
-     }
-     if (statecoin) {
+  if (!this.resume) {
+    if (statecoin) {
        statecoin.setSwapDataToNull()
        statecoin.swap_status = SWAP_STATUS.Init;
        statecoin.ui_swap_status = SWAP_STATUS.Init;
        statecoin.setAwaitingSwap();
-     }
-     
-   } 
-  this.resetCounters()
+    }
+  } 
 }
 
-  do_swap_poll = async (resume: boolean = false): Promise<StateCoin | null> => {
-    if(resume) {
-      this.validateResumeSwap()
-    } else {
-      this.validateSwap()
-    }
-    this.prepare_statecoin(resume)
+  do_swap_poll = async (): Promise<StateCoin | null> => {
+    this.validate()
+    this.prepare_statecoin()
+    this.resetCounters()
     let statecoin = this.statecoin
   
     await this.do_swap_steps();
