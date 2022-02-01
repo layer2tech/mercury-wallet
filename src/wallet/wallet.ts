@@ -1117,9 +1117,8 @@ export class Wallet {
       // completed server side
       if((statecoin?.swap_status !== SWAP_STATUS.Phase4) 
         || `${e}`.includes("Transfer batch ended. Timeout")){
-
+        log.info(`Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`);
         statecoin.setSwapDataToNull();
-
         // remove generated address
         this.account.chains[0].pop();
       }

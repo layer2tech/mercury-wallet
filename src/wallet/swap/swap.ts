@@ -1,7 +1,7 @@
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress } from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { delay, getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
+import { delay_s, getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
@@ -108,7 +108,9 @@ export default class Swap {
       this.checkNRetries()
       await this.checkSwapLoopStatus()
       this.checkStepStatus()
-      let step_result = await this.getNextStep().doit()
+      const nextStep = this.getNextStep()
+      log.info(`Doing next swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id}`)
+      let step_result = await nextStep.doit()
       if(step_result.is_ok()){
         this.incrementStep()
         this.resetRetryCounters()
@@ -120,6 +122,7 @@ export default class Swap {
         if (step_result.includes("punishment")) {
           alert(step_result.message)
         }
+        await delay_s(SWAP_RETRY.SHORT_DELAY_S)
       }
       return step_result   
     }
@@ -402,7 +405,7 @@ getNewTorID = async (): Promise<SwapStepResult> => {
   } catch (err: any) {
     return SwapStepResult.Retry(`Error getting new TOR id: ${err}`)
   }
-  //await delay(SWAP_RETRY.SHORT_DELAY_S);
+  //await delay_s(SWAP_RETRY.LONG_DELAY_S);
   return SwapStepResult.Ok('got new tor ID')
 }
 
@@ -456,7 +459,7 @@ transferSender = async (): Promise<SwapStepResult> => {
     this.getSwapReceiverAddr().proof_key, true, this.wallet);
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase6;
     this.wallet.saveStateCoinsList()
-    //await delay(SWAP_RETRY.SHORT_DELAY_S);
+    //await delay_s(SWAP_RETRY.SHORT_DELAY_S);
     return SwapStepResult.Ok("transfer sender complete")
   } catch (err: any){
     return SwapStepResult.Retry(err.message)
@@ -526,7 +529,7 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
         if (message && !message.includes("DB Error: No data for identifier")) {
           throw err;
         }
-        await delay(SWAP_RETRY.MEDIUM_DELAY_S);
+        //await delay_s(SWAP_RETRY.SHORT_DELAY_S);
         n_retries = n_retries + 1
         continue;
       }
@@ -541,8 +544,17 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
             "commitment": commit,
           }
 
-          //await delay(SWAP_RETRY.SHORT_DELAY_S);
-          let finalize_data = await transferReceiver(http_client, electrum_client, network, msg3, rec_se_addr_bip32, batch_data, req_confirmations, block_height, value);
+          //await delay_s(SWAP_RETRY.SHORT_DELAY_S);
+          let finalize_data = null
+          const DELAY = 20
+          try{
+            await Promise.race([transferReceiver(http_client, electrum_client, network, msg3, rec_se_addr_bip32, batch_data, req_confirmations, block_height, value)
+              , delay_s(DELAY)]).then((value) => {
+              finalize_data = value
+            })
+          }catch(err) {
+            throw Error('transferReceiver took longer than ${DELAY}s - retrying: ${err}')
+          }
           typeforce(types.TransferFinalizeData, finalize_data);
           return finalize_data;
         }
@@ -686,7 +698,11 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
     log.info(`transfer complete.`)
     return SwapStepResult.Ok("transfer complete")
   } catch (err: any) {
-    log.info(`transferReceiverFinalize error: ${err}`)
+    if(err?.message && err.message.includes("DB Error: No data for identifier.")){
+      log.info(`Statecoin ${this.statecoin.shared_key_id} - waiting for others to complete...`)
+    } else {
+      log.info(`transferReceiverFinalize error: ${err}`)
+    }
     let result = await this.swapPhase4HandleErrPollSwap()
     if(!result.is_ok()) {
       return result
@@ -734,6 +750,7 @@ prepare_statecoin = () => {
   
     await this.do_swap_steps();
 
+    console.log(`finished swap steps - returning statecoin`)
     if (statecoin.swap_auto && this.statecoin_out) this.statecoin_out.swap_auto = true;
     return this.statecoin_out;
   }

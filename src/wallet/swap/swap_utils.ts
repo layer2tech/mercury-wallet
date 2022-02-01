@@ -65,20 +65,21 @@ Object.freeze(SWAP_STATUS);
 // Constants used for retrying swap phases
 export const SWAP_RETRY = {
   INIT_RETRY_AFTER: 600,
-  MAX_ERRS_PER_PHASE: 10,
-  MAX_ERRS_PHASE4: 100,
-  MAX_REPS_PER_PHASE: 50,
+  MAX_REPS_PER_PHASE: 100,
   MAX_REPS_PHASE4: 100,
   SHORT_DELAY_S: 1,
   MEDIUM_DELAY_S: 2,
-  LONG_DELAY_S: 10
+  LONG_DELAY_S: 5
 }
 Object.freeze(SWAP_RETRY);
 
 
 // Check statecoin is eligible for entering a swap group
-
-
+export const validateSwap = (statecoin: StateCoin) => {
+  if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " already in swap pool.");
+  if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " already involved in swap.");
+  if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for swap.");
+}
 
 // Each step in the swap has an expected initial statecoin status and a function to be performed
 export class SwapStep {
