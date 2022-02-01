@@ -12,13 +12,6 @@ const process = require('process')
 const fork = require('child_process').fork;
 const exec = require('child_process').exec;
 const execFile = require('child_process').execFile;
-const scout = require("@scout_apm/scout-apm");
-scout.install({
-allowShutdown: true, // allow shutting down spawned scout-agent processes from this program
-monitor: true, // enable monitoring
-name: "", // Name comes here
-key: "" // Key comes here
-  });
 
 const getPlatform = () => {
   switch (process.platform) {
