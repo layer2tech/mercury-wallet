@@ -34,11 +34,14 @@ export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: st
 }
 
 export const pubKeyTobtcAddr = (pub_key: string, network: Network) => {
-  return segwitAddr({publicKey: Buffer.from(pub_key, "hex")}, network)
+  return segwitAddr({ publicKey: Buffer.from(pub_key, "hex") }, network)
 }
 
 export const pubKeyToScriptPubKey = (pub_key: string, network: Network) => {
-  return bitcoin.address.toOutputScript(pubKeyTobtcAddr(pub_key, network), network)
+  let ret = bitcoin.address.toOutputScript(pubKeyTobtcAddr(pub_key, network), network);
+  // validate ret
+  if (ret === undefined || ret === null) throw Error('could not output ScriptPubKey');
+  return ret;
 }
 
 export const proofKeyToSCEAddress = (proof_key: string, network: Network) => {
@@ -49,9 +52,9 @@ export const proofKeyToSCEAddress = (proof_key: string, network: Network) => {
 }
 
 export const hexToBytes = (hex: string) => {
-    for (var bytes = [], c = 0; c < hex.length; c += 2)
+  for (var bytes = [], c = 0; c < hex.length; c += 2)
     bytes.push(parseInt(hex.substr(c, 2), 16));
-    return bytes;
+  return bytes;
 }
 
 // BTC value -> Satoshi value
@@ -60,70 +63,70 @@ export const toSatoshi = (btc: number) => { return Math.floor(btc * 10e7) }
 export const fromSatoshi = (sat: number) => { return sat / 10e7 }
 
 export class StateChainSig {
-    purpose: string; // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
-    data: string;    // proof key, state chain id or address
-    sig: string;
+  purpose: string; // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
+  data: string;    // proof key, state chain id or address
+  sig: string;
 
-    constructor(purpose: string, data: string, sig: string) {
-      this.purpose = purpose;
-      this.data = data;
-      this.sig = sig;
-    }
+  constructor(purpose: string, data: string, sig: string) {
+    this.purpose = purpose;
+    this.data = data;
+    this.sig = sig;
+  }
 
-    static construct(purpose: string, data: string, sig: string) : StateChainSig {
-      let result = new StateChainSig(purpose, data, sig);
-      return result
-    }
+  static construct(purpose: string, data: string, sig: string): StateChainSig {
+    let result = new StateChainSig(purpose, data, sig);
+    return result
+  }
 
-    static create(
-      proof_key_der: BIP32Interface,
-      purpose: string,
-      data: string
-    ): StateChainSig {
-      let statechain_sig = new StateChainSig(purpose, data, "");
-      let hash = statechain_sig.to_message();
-      let sig = proof_key_der.sign(hash, false);
+  static create(
+    proof_key_der: BIP32Interface,
+    purpose: string,
+    data: string
+  ): StateChainSig {
+    let statechain_sig = new StateChainSig(purpose, data, "");
+    let hash = statechain_sig.to_message();
+    let sig = proof_key_der.sign(hash, false);
 
-      // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
-      let encoded_sig = script.signature.encode(sig,1);
-      encoded_sig = encoded_sig.slice(0, encoded_sig.length-1);
-      statechain_sig.sig = encoded_sig.toString("hex");
+    // Encode into bip66 and remove hashType marker at the end to match Server's bitcoin::Secp256k1::Signature construction.
+    let encoded_sig = script.signature.encode(sig, 1);
+    encoded_sig = encoded_sig.slice(0, encoded_sig.length - 1);
+    statechain_sig.sig = encoded_sig.toString("hex");
 
-      return statechain_sig
-    }
+    return statechain_sig
+  }
 
-    // Make StateChainSig message. Concat purpose string + data and sha256 hash.
-    to_message(): Buffer {
-      let buf = Buffer.from(this.purpose + this.data, "utf8")
-      return crypto_btc.sha256(buf)
-    }
+  // Make StateChainSig message. Concat purpose string + data and sha256 hash.
+  to_message(): Buffer {
+    let buf = Buffer.from(this.purpose + this.data, "utf8")
+    return crypto_btc.sha256(buf)
+  }
 
-    // Verify self's signature for transfer or withdraw
-    verify(proof_key_der: BIP32Interface): boolean {
-      let proof = Buffer.from(this.sig, "hex");
-      // Re-insert hashType marker ("01" suffix) and decode from bip66
-      proof = Buffer.concat([proof, Buffer.from("01", "hex")]);
-      let decoded = script.signature.decode(proof);
+  // Verify self's signature for transfer or withdraw
+  verify(proof_key_der: BIP32Interface): boolean {
+    let proof = Buffer.from(this.sig, "hex");
+    // Re-insert hashType marker ("01" suffix) and decode from bip66
+    proof = Buffer.concat([proof, Buffer.from("01", "hex")]);
+    let decoded = script.signature.decode(proof);
 
-      let hash = this.to_message();
-      return proof_key_der.verify(hash, decoded.signature);
-    }
+    let hash = this.to_message();
+    return proof_key_der.verify(hash, decoded.signature);
+  }
 
-    /// Generate signature to request participation in a batch transfer
-      static new_transfer_batch_sig(
-          proof_key_der: BIP32Interface,
-          batch_id: string,
-          statechain_id: string,
-      ): StateChainSig {
-          let purpose = this.purpose_transfer_batch(batch_id);
-          let statechain_sig = StateChainSig.create(proof_key_der,purpose, statechain_id);
-          return statechain_sig;
-      }
+  /// Generate signature to request participation in a batch transfer
+  static new_transfer_batch_sig(
+    proof_key_der: BIP32Interface,
+    batch_id: string,
+    statechain_id: string,
+  ): StateChainSig {
+    let purpose = this.purpose_transfer_batch(batch_id);
+    let statechain_sig = StateChainSig.create(proof_key_der, purpose, statechain_id);
+    return statechain_sig;
+  }
 
-      static purpose_transfer_batch(batch_id: string):string{
-        let buf =  "TRANSFER_BATCH:" + batch_id;
-        return buf;
-      }
+  static purpose_transfer_batch(batch_id: string): string {
+    let buf = "TRANSFER_BATCH:" + batch_id;
+    return buf;
+  }
 
 }
 
@@ -138,7 +141,7 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
 
 // Backup Tx builder
 export const txBackupBuild = (network: Network, funding_txid: string, funding_vout: number, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number): TransactionBuilder => {
-  if (FEE+withdraw_fee >= value) throw Error(`Not enough value to cover fee. FEE:${FEE}, withdraw_fee:${withdraw_fee}, value:${value}`);
+  if (FEE + withdraw_fee >= value) throw Error(`Not enough value to cover fee. FEE:${FEE}, withdraw_fee:${withdraw_fee}, value:${value}`);
 
   let txb = new TransactionBuilder(network);
   txb.setLockTime(init_locktime);
@@ -151,9 +154,9 @@ export const txBackupBuild = (network: Network, funding_txid: string, funding_vo
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-export const txWithdrawBuild = (network: Network,    funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_byte: number): TransactionBuilder => {
+export const txWithdrawBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_byte: number): TransactionBuilder => {
 
-  let tx_fee = Math.round(fee_per_byte*VIRTUAL_TX_SIZE*10e7)/10e7;
+  let tx_fee = Math.round(fee_per_byte * VIRTUAL_TX_SIZE * 10e7) / 10e7;
 
   if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
 
@@ -176,7 +179,7 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
   let txb: TransactionBuilder = new TransactionBuilder(network);
   let index = 0;
 
-  for(let info of sc_infos){
+  for (let info of sc_infos) {
     let utxo: OutPoint = info.utxo;
     if (utxo !== undefined) {
       value = value + info.amount;
@@ -187,16 +190,16 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
     index = index + 1;
   }
   value = value + fee_info.deposit;
-  
+
   let withdraw_fee = Math.round((value * fee_info.withdraw) / 10000)//(value * fee_info.withdraw) / 10000
 
-  let tx_fee = Math.round(fee_per_byte*(VIRTUAL_TX_SIZE+(INPUT_TX_SIZE*(sc_infos.length-1)))*10e7)/10e7
+  let tx_fee = Math.round(fee_per_byte * (VIRTUAL_TX_SIZE + (INPUT_TX_SIZE * (sc_infos.length - 1))) * 10e7) / 10e7
 
-  
+
   if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
-  
+
   // txb.addOutput(rec_address, value - FEE - withdraw_fee);
-  txb.addOutput(rec_address,value - tx_fee - FEE - withdraw_fee)
+  txb.addOutput(rec_address, value - tx_fee - FEE - withdraw_fee)
 
   txb.addOutput(fee_info.address, withdraw_fee);
 
@@ -221,17 +224,17 @@ export const txCPFPBuild = (network: Network, funding_txid: string, funding_vout
 // Bech32 encode SCEAddress (StateChain Entity Address)
 export const encodeSCEAddress = (proof_key: string, test_wallet: any = null) => {
   let config
-    if(test_wallet?.config.jest_testing_mode){
-      // For Jest testing, preset wallet
-      // Prevents needing a redux state loaded
-      config = callGetConfig(test_wallet)
-    }
-    else{
-      config = callGetConfig()
-    }
-    
+  if (test_wallet?.config.jest_testing_mode) {
+    // For Jest testing, preset wallet
+    // Prevents needing a redux state loaded
+    config = callGetConfig(test_wallet)
+  }
+  else {
+    config = callGetConfig()
+  }
+
   let network = config.electrum_config.host
-  if(network.includes('testnet')){
+  if (network.includes('testnet')) {
     network = 'tc'
   } else {
     network = 'sc'
@@ -244,11 +247,11 @@ export const encodeSCEAddress = (proof_key: string, test_wallet: any = null) => 
 // Bech32 decode SCEAddress
 export const decodeSCEAddress = (sce_address: string): string => {
   let SCEAddress;
-  try{
-    let decode =  bech32.decode(sce_address)
+  try {
+    let decode = bech32.decode(sce_address)
     SCEAddress = Buffer.from(bech32.fromWords(decode.words)).toString('hex')
   }
-  catch(e : any){
+  catch (e: any) {
     throw new Error("Invalid Statechain Address - " + e.message)
   }
   return SCEAddress
@@ -289,65 +292,65 @@ export const decodeMessage = (enc_message: string, network: Network): TransferMs
 
   let buf;
 
-  try{
-    let decode =  bech32.decode(enc_message, 6000);
+  try {
+    let decode = bech32.decode(enc_message, 6000);
     buf = Buffer.from(bech32.fromWords(decode.words));
-  } catch(e : any){
+  } catch (e: any) {
     throw new Error("Invalid Transfer Key - " + e.message)
   }
-  
-  
+
+
   // compact byte message deserialisation
   //bytes 0..129 encrypted t1
-  let t1_bytes = buf.slice(0,125);
+  let t1_bytes = buf.slice(0, 125);
   //bytes 129..162 (33 bytes) compressed proof key
-  let proof_key_bytes = buf.slice(125,158);
+  let proof_key_bytes = buf.slice(125, 158);
   //bytes 162..178 (16 bytes) statechain_id
-  let statechain_id_bytes = buf.slice(158,174);
+  let statechain_id_bytes = buf.slice(158, 174);
   //bytes 178..194 (16 bytes) shared_key_id
-  let shared_key_id_bytes = buf.slice(174,190);
+  let shared_key_id_bytes = buf.slice(174, 190);
   //byte 194 is statechain signature length (variable)
   let sig_len = buf.readUInt8(190);
   //byte 195..sig_len is statechain signature
-  let sig = buf.slice(191,(sig_len+191));
+  let sig = buf.slice(191, (sig_len + 191));
   //byte tx_len is backup tx length (variable)
-  let tx_len = buf.readUInt8(sig_len+191);
+  let tx_len = buf.readUInt8(sig_len + 191);
   //remaining bytes backup tx
-  let backup_tx_bytes = buf.slice((sig_len+192),(sig_len+tx_len+192));
+  let backup_tx_bytes = buf.slice((sig_len + 192), (sig_len + tx_len + 192));
 
   // convert uuids
   let sch_id = statechain_id_bytes.toString("hex");
-  let statechain_id = sch_id.substr(0,8)+"-"+sch_id.substr(8,4)+"-"+sch_id.substr(12,4)+"-"+sch_id.substr(16,4)+"-"+sch_id.substr(20);
+  let statechain_id = sch_id.substr(0, 8) + "-" + sch_id.substr(8, 4) + "-" + sch_id.substr(12, 4) + "-" + sch_id.substr(16, 4) + "-" + sch_id.substr(20);
 
   let shk_id = shared_key_id_bytes.toString("hex");
-  let shared_key_id = shk_id.substr(0,8)+"-"+shk_id.substr(8,4)+"-"+shk_id.substr(12,4)+"-"+shk_id.substr(16,4)+"-"+shk_id.substr(20);
+  let shared_key_id = shk_id.substr(0, 8) + "-" + shk_id.substr(8, 4) + "-" + shk_id.substr(12, 4) + "-" + shk_id.substr(16, 4) + "-" + shk_id.substr(20);
 
   let proof_key = proof_key_bytes.toString('hex');
 
   let tx_backup_psm: PrepareSignTxMsg = {
-          shared_key_ids: [shared_key_id],
-          protocol: "Transfer",
-          tx_hex: backup_tx_bytes.toString('hex'),
-          input_addrs: [],
-          input_amounts: [],
-          proof_key: proof_key,
-        };
+    shared_key_ids: [shared_key_id],
+    protocol: "Transfer",
+    tx_hex: backup_tx_bytes.toString('hex'),
+    input_addrs: [],
+    input_amounts: [],
+    proof_key: proof_key,
+  };
 
   // re-create transfer message
   let trans_msg_3 = {
-      shared_key_id: shared_key_id,
-      statechain_id: statechain_id,
-      t1: {secret_bytes: Array.from(t1_bytes)},
-      statechain_sig: new StateChainSig("TRANSFER",proof_key,sig.toString('hex')),
-      tx_backup_psm: tx_backup_psm,
-      rec_se_addr: proofKeyToSCEAddress(proof_key, network)
+    shared_key_id: shared_key_id,
+    statechain_id: statechain_id,
+    t1: { secret_bytes: Array.from(t1_bytes) },
+    statechain_sig: new StateChainSig("TRANSFER", proof_key, sig.toString('hex')),
+    tx_backup_psm: tx_backup_psm,
+    rec_se_addr: proofKeyToSCEAddress(proof_key, network)
   };
 
   return trans_msg_3
 }
 
 // encode Secp256k1Point to {x: string, y: string}
-export const encodeSecp256k1Point = (publicKey: string): {x: string, y: string} => {
+export const encodeSecp256k1Point = (publicKey: string): { x: string, y: string } => {
   let decoded_pub = secp256k1.curve.decodePoint(Buffer.from(publicKey, 'hex'));
   return { x: decoded_pub.x.toString("hex"), y: decoded_pub.y.toString("hex") }
 }
@@ -359,8 +362,8 @@ export const decodeSecp256k1Point = (point: Secp256k1Point) => {
 }
 
 const zero_pad = (num: any) => {
-    var pad = '0000000000000000000000000000000000000000000000000000000000000000';
-    return (pad + num).slice(-pad.length);
+  var pad = '0000000000000000000000000000000000000000000000000000000000000000';
+  return (pad + num).slice(-pad.length);
 }
 
 // ECIES encrypt string

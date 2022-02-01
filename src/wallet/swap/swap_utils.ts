@@ -2,7 +2,7 @@
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS, StateCoinList } from '..';
 import { ElectrsClient } from '../electrs'
 import { EPSClient } from '../eps'
-import { transferReceiver, TransferFinalizeData,  SCEAddress } from "../mercury/transfer"
+import { transferReceiver, TransferFinalizeData, SCEAddress } from "../mercury/transfer"
 import { getStateCoin } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
@@ -92,20 +92,20 @@ export class SwapStep {
   statecoin_properties: Function
   doit: Function
 
-  constructor( 
+  constructor(
     phase: string,
     subPhase: string,
     statecoin_status: Function,
     swap_status: Function,
     statecoin_properties: Function,
     doit: Function) {
-      this.phase = phase
-      this.subPhase = subPhase
-      this.statecoin_status = statecoin_status
-      this.swap_status = swap_status
-      this.statecoin_properties = statecoin_properties
-      this.doit = doit
-    }
+    this.phase = phase
+    this.subPhase = subPhase
+    this.statecoin_status = statecoin_status
+    this.swap_status = swap_status
+    this.statecoin_properties = statecoin_properties
+    this.doit = doit
+  }
 
   description = () => {
     return `phase ${this.phase}:${this.subPhase}`
@@ -117,20 +117,20 @@ const SWAP_STEP_STATUS = {
   Retry: "Retry",
 }
 
-export class SwapStepResult{
+export class SwapStepResult {
   status: string
   message: string
 
-  constructor(status: string, message: string = ""){
+  constructor(status: string, message: string = "") {
     this.status = status
     this.message = message
   }
 
-  static Ok(message: string = ""){
+  static Ok(message: string = "") {
     return new SwapStepResult(SWAP_STEP_STATUS.Ok, message)
   }
 
-  static Retry(message: string = ""){
+  static Retry(message: string = "") {
     return new SwapStepResult(SWAP_STEP_STATUS.Retry, message)
   }
 
@@ -147,20 +147,28 @@ export class SwapPhaseClients {
   http_client: HttpClient | MockHttpClient;
   electrum_client: ElectrsClient | ElectrumClient | EPSClient | MockElectrumClient
 
-  constructor(http_client: HttpClient | MockHttpClient, 
-    electrum_client: ElectrsClient | ElectrumClient | EPSClient | MockElectrumClient ) {
+  constructor(http_client: HttpClient | MockHttpClient,
+    electrum_client: ElectrsClient | ElectrumClient | EPSClient | MockElectrumClient) {
     this.http_client = http_client;
     // todo check these
     this.electrum_client = electrum_client;
   }
 
-  static from_wallet(wallet: Wallet){  
+  static from_wallet(wallet: Wallet) {
     return new SwapPhaseClients(wallet.http_client, wallet.electrum_client)
   }
 }
 
+const validate_swap_info = (swap_info: any) => {
+  if (swap_info === undefined || swap_info === null) throw Error('swap_info was null or undefined');
+  if (swap_info.swap_token === undefined || swap_info.swap_token === null) throw Error('swap_info.swap_token was null or undefined');
+  if (swap_info.swap_token.statechain_ids === undefined || swap_info.swap_token.statechain_ids === null) throw Error('swap_info.swap_token.statechain_ids was null or undefined');
+}
+
 export const make_swap_commitment = (statecoin: any,
   swap_info: any, wasm_client: any): BatchData => {
+
+  validate_swap_info(swap_info);
 
   let commitment_str: string = statecoin.statechain_id;
   swap_info.swap_token.statechain_ids.forEach(function (item: string) {
