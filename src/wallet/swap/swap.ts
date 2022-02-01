@@ -402,7 +402,7 @@ getNewTorID = async (): Promise<SwapStepResult> => {
   } catch (err: any) {
     return SwapStepResult.Retry(`Error getting new TOR id: ${err}`)
   }
-  await delay(1);
+  //await delay(SWAP_RETRY.SHORT_DELAY_S);
   return SwapStepResult.Ok('got new tor ID')
 }
 
@@ -456,7 +456,7 @@ transferSender = async (): Promise<SwapStepResult> => {
     this.getSwapReceiverAddr().proof_key, true, this.wallet);
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase6;
     this.wallet.saveStateCoinsList()
-    await delay(SWAP_RETRY.SHORT_DELAY_S);
+    //await delay(SWAP_RETRY.SHORT_DELAY_S);
     return SwapStepResult.Ok("transfer sender complete")
   } catch (err: any){
     return SwapStepResult.Retry(err.message)
@@ -526,7 +526,7 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
         if (message && !message.includes("DB Error: No data for identifier")) {
           throw err;
         }
-        await delay(2);
+        await delay(SWAP_RETRY.MEDIUM_DELAY_S);
         n_retries = n_retries + 1
         continue;
       }
@@ -541,7 +541,7 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
             "commitment": commit,
           }
 
-          await delay(1);
+          //await delay(SWAP_RETRY.SHORT_DELAY_S);
           let finalize_data = await transferReceiver(http_client, electrum_client, network, msg3, rec_se_addr_bip32, batch_data, req_confirmations, block_height, value);
           typeforce(types.TransferFinalizeData, finalize_data);
           return finalize_data;
@@ -741,7 +741,6 @@ prepare_statecoin = () => {
   do_swap_steps = async () => {
     while (this.next_step < this.swap_steps.length){
       await this.doNext()
-      await delay(SWAP_RETRY.MEDIUM_DELAY_S)
     }
   }
 
