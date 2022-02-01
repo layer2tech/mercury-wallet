@@ -1,5 +1,5 @@
 import { makeTesterStatecoin } from './test_data.js'
-import { SwapStepResult, SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
+import { SwapStep, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
 import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
@@ -36,7 +36,7 @@ let mockDoSwapPoll = jest.fn();
 jest.mock( '../swap/swap', () => {
 	return jest.fn().mockImplementation(() => {
 		return {
-			do_swap_poll: mockDoSwapPoll
+			do_swap_poll: mockDoSwapPoll,
 		};
 	});
 })
@@ -61,76 +61,6 @@ describe('Do Swap', function () {
 
   let wallet = getWallet()
 
-  test('validate swap', function () {
-    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 1)
-
-    const statecoin = wallet.statecoins.coins[0]
-
-    let swap = new Swap(wallet, statecoin)
-    let err = Error("Coin " + statecoin.getTXIdAndOut() + " already in swap pool.")
-    const checkValidateSwap = (swap, statecoin, err) => {
-      expect(() => {
-        swap.validate()
-      }).toThrow(err)
-      expect(() => {
-        statecoin.validateSwap()
-      }).toThrow(err)
-    }
-
-    checkValidateSwap(swap,statecoin,err)
- 
-    statecoin.status = STATECOIN_STATUS.IN_SWAP
-    swap = new Swap(wallet, statecoin)
-    err = Error("Coin " + this.getTXIdAndOut() + " already involved in swap.")
-    checkValidateSwap(swap,statecoin,err)
-
-    statecoin.status = STATECOIN_STATUS.SPENT
-    swap = new Swap(wallet, statecoin)
-    err = Error("Coin " + this.getTXIdAndOut() + " not available for swap.")
-    checkValidateSwap(swap,statecoin,err)
-
-    statecoin.status = STATECOIN_STATUS.AVAILABLE
-    statecoin.swap_status = SWAP_STATUS.Phase4
-    swap = new Swap(wallet, statecoin)
-    err = Error(`Coin ${this.shared_key_id} is in swap phase 4. Swap must be resumed.`)
-    checkValidateSwap(swap,statecoin,err)
-
-    statecoin.status = STATECOIN_STATUS.AVAILABLE
-    statecoin.swap_status = null
-    swap = new Swap(wallet, statecoin)
-    expect(swap.validate()).toBe()
-    expect(statecoin.validateSwap()).toBe()
-  })
-
-  test('validate resume swap', function () {
-    statecoin = setSwapDetails(wallet.statecoins.coins[0], 1)
-
-    const statecoin = wallet.statecoins.coins[0]
-
-    const checkValidateResumeSwap = (swap, statecoin, err) => {
-      expect(() => {
-        swap.validate()
-      }).toThrow(err)
-      expect(() => {
-        statecoin.validateResumeSwap()
-      }).toThrow(err)
-    }
-
-    let swap = new Swap(wallet, statecoin)
-    let err = Error("Cannot resume coin " + this.shared_key_id + " - not in swap.");
-    checkValidaterResumeSwap(swap,statecoin,err)
-
-    statecoin.status = STATECOIN_STATUS.IN_SWAP
-    swap = new Swap(wallet, statecoin)
-    let err = Error("Cannot resume coin " + this.shared_key_id + " - swap status: " + this.swap_status);
-    checkValidateResumeSwap(swap,statecoin,err)
-
-    statecoin.swap_status = SWAP_STATUS.Phase4
-    swap = new Swap(wallet, statecoin)
-    expect(swap.validate()).toBe()
-    expect(statecoin.validateResumeSwap()).toBe()
-  })
-
   test('do_swap', async function () {
 
     http_mock.post = jest.fn().mockReset()
@@ -148,20 +78,7 @@ describe('Do Swap', function () {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 1)
 
     let swap = new Swap(wallet, wallet.statecoins.coins[0])
-
-    expect(() => {
-      swap.validate()
-    }).toThrow(Error("Coin " + wallet.statecoins.coins[0].getTXIdAndOut() + " already in swap pool."))
-
-    expect(() => {
-      wallet.statecoins.coins[0].validateSwap()
-    }).toThrow(Error("Coin " + wallet.statecoins.coins[0].getTXIdAndOut() + " already in swap pool."))
-
-
     swap = new Swap(wallet, wallet.statecoins.coins[1])
-    expect(swap.validate()).toBe()
-    expect(wallet.statecoins.coins[1].validateSwap()).toBe()
-    // Passes through checks
 
     await wallet.deRegisterSwapCoin(http_mock, wallet.statecoins.coins[0])
     // Should set all swap data to null e.g. (swap_status & ui_swap_status)

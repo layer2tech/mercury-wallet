@@ -43,7 +43,6 @@ export default class Swap {
   block_height: any
   blinded_spend_signature: BlindedSpendSignature | null
   statecoin_out: StateCoin | null
-  n_reps: number
   swap0_count: number
   n_retries: number
   resume: boolean
@@ -63,7 +62,6 @@ export default class Swap {
       this.blinded_spend_signature = null
       this.statecoin_out = null
       this.swap_steps = get_swap_steps(this)
-      this.n_reps = 0
       this.swap0_count = 0
       this.n_retries = 0
       this.resume = resume
@@ -99,7 +97,7 @@ export default class Swap {
       }
     }
 
-    checkCurrentStatus = () => {
+    checkStepStatus = () => {
       let step = this.getNextStep()
       this.checkStatecoinStatus(step)
       this.checkSwapStatus(step)
@@ -107,14 +105,13 @@ export default class Swap {
     }
 
     doNext = async (): Promise<SwapStepResult> => {
-      this.checkNReps()
-      this.checkSwapLoopStatus()
-      this.checkCurrentStatus()
+      this.checkNRetries()
+      await this.checkSwapLoopStatus()
+      this.checkStepStatus()
       let step_result = await this.getNextStep().doit()
       if(step_result.is_ok()){
         this.incrementStep()
-        this.incrementCounters()
-        this.n_retries = 0
+        this.resetRetryCounters()
       } else {
         this.incrementRetries(step_result)
         if (step_result.includes("Incompatible")) {
@@ -128,27 +125,41 @@ export default class Swap {
     }
 
     incrementRetries = (step_result:SwapStepResult) => {
-      //Allow unlimited network errors in phase 4
-      if(this.statecoin.swap_status === SWAP_STATUS.Phase4){
-        if (!(step_result.message.includes('Network') || 
-          step_result.message.includes('network') || 
-          step_result.message.includes('net::ERR'))) {
+      let statecoin = this.statecoin
+      if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) {
+          this.n_retries = 0
+          return
+      }
+      switch (statecoin.swap_status) {
+          case SWAP_STATUS.Phase0: {
+            this.swap0_count++;
+            return
+          }
+          //Allow unlimited network errors in phase 4
+          case SWAP_STATUS.Phase4: {
+            if (!(step_result.message.includes('Network') || 
+            step_result.message.includes('network') || 
+            step_result.message.includes('net::ERR'))) {
+              this.n_retries = this.n_retries + 1
+            }            
+            return
+          }
+          default: {
             this.n_retries = this.n_retries + 1
-        }
-      } else {
-        this.n_retries = this.n_retries + 1
-      }   
+            return
+          }
+      }
     }
 
     incrementStep = () => {
       this.next_step = this.next_step + 1
     }
 
-    checkNReps = () => {
-      if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && this.n_reps >= SWAP_RETRY.MAX_REPS_PER_PHASE) {
+    checkNRetries = () => {
+      if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && this.n_retries >= SWAP_RETRY.MAX_REPS_PER_PHASE) {
         throw new Error(`Number of tries exceeded in phase ${this.statecoin.swap_status}`)
       }
-      if (this.statecoin.swap_status === SWAP_STATUS.Phase4 && this.n_reps >= SWAP_RETRY.MAX_REPS_PHASE4) {
+      if (this.statecoin.swap_status === SWAP_STATUS.Phase4 && this.n_retries >= SWAP_RETRY.MAX_REPS_PHASE4) {
         throw new Error(`Number of tries exceeded in phase ${this.statecoin.swap_status}`)
       }
     }
@@ -175,10 +186,13 @@ export default class Swap {
     }
     
     resetCounters = () => {
-      this.swap0_count = 0
-      this.n_reps=0
-      this.n_retries = 0
+      this.resetRetryCounters()
       this.next_step=this.get_next_step_from_swap_status()
+    }
+
+    resetRetryCounters = () => {
+      this.swap0_count = 0
+      this.n_retries = 0
     }
 
     get_next_step_from_swap_status = () => {
@@ -193,26 +207,6 @@ export default class Swap {
       return 0
     }
     
-    incrementCounters = () => {
-      const statecoin = this.statecoin
-       // Keep trying to join swap indefinitely
-       if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) {
-        this.n_reps = 0
-        return
-      }
-      switch (statecoin.swap_status) {
-        case SWAP_STATUS.Phase0: {
-          this.swap0_count++;
-          return
-        }
-        default: {
-          this.n_reps = this.n_reps + 1
-          return
-        }
-      }
-    }
-    
-
   checkProofKeyDer = (): SwapStepResult => {
     try {
       typeforce(typeforce.compile(typeforce.Buffer), this.proof_key_der?.publicKey);
@@ -711,7 +705,11 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
 
 // Check statecoin is eligible for entering a swap group
 validate = () => {
-  this.resume ? this.statecoin.validateResumeSwap() : this.statecoin.validateSwap() 
+  if (this.resume === true) {
+    this.statecoin.validateResumeSwap()
+  } else {
+    this.statecoin.validateSwap() 
+  } 
 }
 
 prepare_statecoin = () => {

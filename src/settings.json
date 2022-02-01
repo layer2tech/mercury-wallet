@@ -1,6 +1,6 @@
 {
   "min_anon_set": 5,
-  "testing_mode": false,
+  "testing_mode": true,
   "required_confirmations": 3,
   "tor_proxy": {"ip": "localhost",
     "port": 9060,
