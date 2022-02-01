@@ -122,7 +122,7 @@ export default class Swap {
         if (step_result.includes("punishment")) {
           alert(step_result.message)
         }
-        await delay_s(SWAP_RETRY.SHORT_DELAY_S)
+        //await delay_s(SWAP_RETRY.SHORT_DELAY_S)
       }
       return step_result   
     }
@@ -424,6 +424,7 @@ doSwapSecondMessage = async (): Promise<SwapStepResult> => {
 }
 
 pollSwapPhase3 = async (): Promise<SwapStepResult> => {
+  await delay_s(SWAP_RETRY.LONG_DELAY_S)
   let phase
   try {
     phase = await pollSwap(this.clients.http_client, this.getSwapID());
