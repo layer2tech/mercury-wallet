@@ -558,8 +558,11 @@ export class Wallet {
     unconfirmed_coins.forEach((statecoin) => {
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
-          if (statecoin.tx_backup===null) this.depositConfirm(statecoin.shared_key_id);
-          statecoin.setConfirmed()
+          if (statecoin.tx_backup===null) { 
+            this.depositConfirm(statecoin.shared_key_id) 
+          } else {
+            statecoin.setConfirmed()
+          }
           // update in wallet
           this.statecoins.setCoinFinalized(statecoin);
       }
