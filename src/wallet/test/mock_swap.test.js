@@ -1,15 +1,14 @@
+// This file contains test for the main swap function with Swap class mocked
+
 import { makeTesterStatecoin } from './test_data.js'
-import { SwapStepResult, SWAP_STATUS, UI_SWAP_STATUS, validateSwap } from "../swap/swap_utils";
+import { SWAP_STATUS, UI_SWAP_STATUS, validateSwap } from "../swap/swap_utils";
 import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import React from 'react';
-import { SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails } from './test_data.js'
-import { SwapToken } from "../swap/swap_utils";
+import { setSwapDetails } from './test_data.js'
 import reducers from '../../reducers';
 import { configureStore } from '@reduxjs/toolkit';
-
-import * as MOCK_SERVER from '../mocks/mock_http_client'
 
 import TestComponent, { render } from './test-utils'
 
@@ -31,6 +30,16 @@ let electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
 
 let walletName = `${MOCK_WALLET_NAME}_swap_tests`
 
+export function getWallet() {
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+  wallet.config.min_anon_set = 3
+  wallet.config.jest_testing_mode = true
+  wallet.http_client = http_mock
+  wallet.electrum_mock = electrum_mock
+  wallet.wasm = wasm_mock
+  return wallet
+}
+
 let mockDoSwapPoll = jest.fn();
 
 jest.mock( '../swap/swap', () => {
@@ -46,16 +55,6 @@ beforeEach(() => {
   Swap.mockClear();
   mockDoSwapPoll.mockClear();
 });
-
-function getWallet() {
-  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
-  wallet.config.min_anon_set = 3
-  wallet.config.jest_testing_mode = true
-  wallet.http_client = http_mock
-  wallet.electrum_mock = electrum_mock
-  wallet.wasm = wasm_mock
-  return wallet
-}
 
 describe('Do Swap', function () {
 
