@@ -1,6 +1,6 @@
 import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client'
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
-import { makeTesterStatecoin } from './test_data.js'
+import { makeTesterStatecoin, setSwapDetails } from './test_data.js'
 import {
     SWAP_STATUS,
     SwapRetryError, UI_SWAP_STATUS
@@ -692,13 +692,17 @@ describe('swapPhase3', () => {
 });
 
 describe('swapPhase3 steps', () => {
-
+    let wallet = getWallet()
+    let statecoin = makeTesterStatecoin();
+    setSwapDetails(statecoin, 3)
+    let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
     test('swapPhase3 steps test 1 - getTransferMsg3', async () => {
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
         const step_filter = (step) => {
-            step.subPhase === "getTransferMsg3"
+            return step.subPhase === "getTransferMsg3"
         }
         let steps = swapPhase3Steps(swap).filter(step_filter)
+        console.log(`steps: ${JSON.stringify(steps)}`)
         swap.statecoin.swap_transfer_msg = null
         swap.setSwapSteps(steps)
         expect(swap.transfer_msg_3_receiver).toEqual(null)
@@ -720,12 +724,28 @@ describe('swapPhase3 steps', () => {
 
         http_mock.get = jest.fn((path, params) => {
             if(path === GET_ROUTE.TRANSFER_GET_MSG_ADDR){
-              return mock_http_client.TRANSFER_MSG3
+                return [mock_http_client.TRANSFER_MSG3]
             }
           })
 
-        await expect(swap.doNext()).resolves
-        expect(swap.transfer_msg_3_receiver).toEqual(http_mock.TRANSFER_MSG3)
+        let result = await swap.doNext()
+        expect(result.is_ok()).toEqual(false)
+        expect(result.includes("Transfer message 3 not found - retrying...")).toEqual(true)
+
+        let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3)
+        tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
+        const tm3_const = tm3
+
+        http_mock.get = jest.fn((path, params) => {
+            if(path === GET_ROUTE.TRANSFER_GET_MSG_ADDR){                
+                return [tm3_const]
+            }
+        })
+
+        result = await swap.doNext()
+        expect(result.is_ok()).toEqual(true)
+
+        expect(swap.transfer_msg_3_receiver).toEqual(tm3_const)
     })
 
 })

@@ -64,18 +64,9 @@ describe('Swap Checks', function () {
     const statecoin = wallet.statecoins.coins[0]
     let swap = new Swap(wallet, statecoin)
     swap.n_retries = 0
-    swap.checkNRetries()
+    expect(swap.checkNRetries()).toEqual()
     
-    swap.n_retries = SWAP_RETRY.MAX_REPS_PER_PHASE
-    expect(() => {
-      swap.checkNRetries()
-    }).toThrow(Error(`Number of tries exceeded in phase ${statecoin.swap_status}`))
-
-    swap.n_retries = SWAP_RETRY.MAX_REPS_PHASE4 - 1
-    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], "7-Phase4")
-    swap.checkNRetries()
-
-    swap.n_retries = SWAP_RETRY.MAX_REPS_PHASE4
+    swap.n_retries = SWAP_RETRY.MAX_REPS_PER_STEP
     expect(() => {
       swap.checkNRetries()
     }).toThrow(Error(`Number of tries exceeded in phase ${statecoin.swap_status}`))
