@@ -62,19 +62,42 @@ export enum SWAP_STATUS {
 }
 Object.freeze(SWAP_STATUS);
 
+export const SWAP_TIMEOUT = {
+  RETRY_DELAY: 1,
+  STEP_TIMEOUT_S: 100,
+}
+Object.freeze(SWAP_TIMEOUT);
+
 // Constants used for retrying swap phases
 export const SWAP_RETRY = {
   INIT_RETRY_AFTER: 600,
-  MAX_ERRS_PER_PHASE: 10,
-  MAX_ERRS_PHASE4: 100,
-  MAX_REPS_PER_PHASE: 50,
-  MAX_REPS_PHASE4: 100,
-  SHORT_DELAY_S: 1,
-  MEDIUM_DELAY_S: 2,
-  LONG_DELAY_S: 10
+  MAX_REPS_PER_STEP: SWAP_TIMEOUT.STEP_TIMEOUT_S/SWAP_TIMEOUT.RETRY_DELAY,
+  LONG_DELAY_S: 5,
+  RETRY_DELAY: SWAP_TIMEOUT.RETRY_DELAY
 }
 Object.freeze(SWAP_RETRY);
 
+export class Timer {
+  startTime: number
+
+  constructor() {
+    this.startTime = Date.now()
+  }
+
+  reset = () => {
+    this.startTime = Date.now()
+  }
+
+  millseconds_elapsed = () => {
+    const result = Date.now() - this.startTime
+    return result
+  }
+
+  seconds_elapsed = () => {
+    const result = this.millseconds_elapsed() / 1000
+    return result
+  }
+}
 
 // Check statecoin is eligible for entering a swap group
 export const validateSwap = (statecoin: StateCoin) => {
@@ -177,51 +200,6 @@ export const clear_statecoin_swap_info = (statecoin: StateCoin): null => {
   statecoin.swap_info = null;
   statecoin.swap_status = null;
   statecoin.ui_swap_status = null;
-  return null;
-}
-
-export const do_transfer_receiver = async (
-  http_client: HttpClient | MockHttpClient,
-  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient,
-  network: Network,
-  batch_id: string,
-  commit: string,
-  statechain_ids: Array<String>,
-  rec_se_addr: SCEAddress,
-  rec_se_addr_bip32: BIP32Interface,
-  req_confirmations: number,
-  block_height: number | null,
-  value: number
-): Promise<TransferFinalizeData | null> => {
-  for (var id of statechain_ids) {
-    let msg3;
-    while (true) {
-      try {
-        msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG, { "id": id });
-      } catch (err: any) {
-        let message: string | undefined = err?.message
-        if (message && !message.includes("DB Error: No data for identifier")) {
-          throw err;
-        }
-        await delay(2);
-        continue;
-      }
-
-      typeforce(types.TransferMsg3, msg3);
-      if (msg3.rec_se_addr.proof_key === rec_se_addr.proof_key) {
-        let batch_data = {
-          "id": batch_id,
-          "commitment": commit,
-        }
-        await delay(1);
-        let finalize_data = await transferReceiver(http_client, electrum_client, network, msg3, rec_se_addr_bip32, batch_data, req_confirmations, block_height, value);
-        typeforce(types.TransferFinalizeData, finalize_data);
-        return finalize_data;
-      } else {
-        break;
-      }
-    }
-  }
   return null;
 }
 
