@@ -1,5 +1,5 @@
 import { EPSClient } from '../eps'
-import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress } from "../mercury/transfer"
+import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress, TransferMsg3 } from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
 import { delay_s, getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
 import { StateChainSig } from "../util";
@@ -10,7 +10,10 @@ import { ACTION } from '../activity_log';
 import { encodeSCEAddress, POST_ROUTE,GET_ROUTE, StateCoin, STATECOIN_STATUS } from '..';
 
 import { get_swap_steps } from './swap_steps'
-import { BatchData, BlindedSpendSignature, BSTRequestorData, first_message, get_blinded_spend_signature, second_message, SwapID, SwapInfo, SwapPhaseClients, SwapStep, SwapStepResult, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS } from './swap_utils';
+import { BatchData, BlindedSpendSignature, BSTRequestorData, first_message, 
+  get_blinded_spend_signature, second_message, SwapID, SwapInfo, SwapPhaseClients, 
+  SwapStep, SwapStepResult, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS, Timer,
+  SWAP_TIMEOUT } from './swap_utils';
 
 let cloneDeep = require('lodash.clonedeep');
 let bitcoin = require("bitcoinjs-lib");
@@ -46,6 +49,8 @@ export default class Swap {
   swap0_count: number
   n_retries: number
   resume: boolean
+  transfer_msg_3_receiver: TransferMsg3 | null
+  step_timer: Timer
 
   constructor(wallet: Wallet, 
     statecoin: StateCoin, proof_key_der: BIP32Interface, 
@@ -65,6 +70,8 @@ export default class Swap {
       this.swap0_count = 0
       this.n_retries = 0
       this.resume = resume
+      this.transfer_msg_3_receiver = null
+      this.step_timer = new Timer()
     }
 
     setSwapSteps = (steps: SwapStep[]) => {
@@ -105,9 +112,10 @@ export default class Swap {
     }
 
     doNext = async (): Promise<SwapStepResult> => {
+      this.checkStepStatus()
+      this.checkStepTimer()
       this.checkNRetries()
       await this.checkSwapLoopStatus()
-      this.checkStepStatus()
       const nextStep = this.getNextStep()
       //log.info(`Doing next swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id}`)
       let step_result = await nextStep.doit()
@@ -163,8 +171,11 @@ export default class Swap {
       if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && this.n_retries >= SWAP_RETRY.MAX_REPS_PER_STEP) {
         throw new Error(`Number of tries exceeded in phase ${this.statecoin.swap_status}`)
       }
-      if (this.statecoin.swap_status === SWAP_STATUS.Phase4 && this.n_retries >= SWAP_RETRY.MAX_REPS_PHASE4) {
-        throw new Error(`Number of tries exceeded in phase ${this.statecoin.swap_status}`)
+    }
+
+    checkStepTimer = () => {
+      if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && this.step_timer.seconds_elapsed() >= SWAP_TIMEOUT.STEP_TIMEOUT_S){
+        throw new Error(`Timer exceeded in phase ${this.statecoin.swap_status}`)
       }
     }
     
@@ -197,6 +208,7 @@ export default class Swap {
     resetRetryCounters = () => {
       this.swap0_count = 0
       this.n_retries = 0
+      this.step_timer.reset()
     }
 
     get_next_step_from_swap_status = () => {
@@ -506,42 +518,54 @@ getSwapBatchTransferData(): BatchData {
 is_statechain_id_in_swap = (id: string):boolean => {
   return (this.getSwapInfo().swap_token.statechain_ids.indexOf(id) >= 0)
 }
+
+getTransferMsg3 = async ():Promise<SwapStepResult> => {
+  let http_client = this.clients.http_client
+  let rec_se_addr_bip32 = this.new_proof_key_der
+  let msg3s;
+  msg3s = await http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, rec_se_addr_bip32.publicKey.toString("hex"));       
+  typeforce([types.TransferMsg3], msg3s);
+  const isInSwap = (msg: TransferMsg3): boolean => {
+    return (this.getSwapInfo().swap_token.statechain_ids.indexOf(msg.statechain_id) >= 0)
+  }
+  const result = msg3s.filter(isInSwap)
+  if (result.length > 1) {
+    throw Error(`Error - ${result.length} transfer messages are available for statechain_id ${result[0].statechain_id}`)
+  }
+  if (result.length === 1) {
+    this.transfer_msg_3_receiver = result[0]
+    return SwapStepResult.Ok()
+  }
+  return SwapStepResult.Retry("Transfer message 3 not found - retrying...")
+}
+
 do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
   let http_client = this.clients.http_client
   let electrum_client = this.clients.electrum_client
   let network = this.network
-  let batch_id = this.getSwapID().id
   let rec_se_addr_bip32 = this.new_proof_key_der
   let req_confirmations = this.req_confirmations
   let block_height = this.block_height
-  let commit = this.getSwapBatchTransferData().commitment
   let value = this.statecoin.value
 
-    let msg3s;
-    msg3s = await http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, rec_se_addr_bip32.publicKey.toString("hex"));        
+    const msg3 = this.transfer_msg_3_receiver
     
-      for (let i=0; i<msg3s.length; i++){
-        let msg3 = cloneDeep(msg3s[i])
-        typeforce(types.TransferMsg3, msg3);
-        
-        if(this.is_statechain_id_in_swap(msg3.statechain_id)){
-          let batch_data = {
-            "id": batch_id,
-            "commitment": commit,
-          }
+    let batch_data = {
+      "id": this.getSwapID().id,
+      "commitment": this.getSwapBatchTransferData().commitment,
+    }
 
-          let finalize_data = null
-          const DELAY = 20
-          await Promise.race([transferReceiver(http_client, electrum_client, network, msg3, rec_se_addr_bip32, batch_data, req_confirmations, block_height, value)
+    let finalize_data = null
+    const DELAY = 20
+    await Promise.race([transferReceiver(http_client, 
+      electrum_client, network, msg3, rec_se_addr_bip32, 
+      batch_data, req_confirmations, block_height, value)
               , delay_s(DELAY)]).then((value) => {
               finalize_data = value
-          })
+    })
           
-          typeforce(types.TransferFinalizeData, finalize_data);
-          return finalize_data;
-        }
-      }
-  return null;
+    typeforce(types.TransferFinalizeData, finalize_data);
+    return finalize_data;
 }
 
 updateBlockHeight = async () => {

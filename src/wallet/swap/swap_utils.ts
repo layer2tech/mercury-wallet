@@ -62,19 +62,42 @@ export enum SWAP_STATUS {
 }
 Object.freeze(SWAP_STATUS);
 
-const RETRY_DELAY = 1
-const STEP_PERIOD_S = 60
-const PHASE4_PERIOD_S = 120
+export const SWAP_TIMEOUT = {
+  RETRY_DELAY: 1,
+  STEP_TIMEOUT_S: 100,
+}
+Object.freeze(SWAP_TIMEOUT);
+
 // Constants used for retrying swap phases
 export const SWAP_RETRY = {
   INIT_RETRY_AFTER: 600,
-  MAX_REPS_PER_STEP: STEP_PERIOD_S/RETRY_DELAY,
-  MAX_REPS_PHASE4: PHASE4_PERIOD_S/RETRY_DELAY,
+  MAX_REPS_PER_STEP: SWAP_TIMEOUT.STEP_TIMEOUT_S/SWAP_TIMEOUT.RETRY_DELAY,
   LONG_DELAY_S: 5,
-  RETRY_DELAY: RETRY_DELAY
+  RETRY_DELAY: SWAP_TIMEOUT.RETRY_DELAY
 }
 Object.freeze(SWAP_RETRY);
 
+export class Timer {
+  startTime: number
+
+  constructor() {
+    this.startTime = Date.now()
+  }
+
+  reset = () => {
+    this.startTime = Date.now()
+  }
+
+  millseconds_elapsed = () => {
+    const result = Date.now() - this.startTime
+    return result
+  }
+
+  seconds_elapsed = () => {
+    const result = this.millseconds_elapsed() / 1000
+    return result
+  }
+}
 
 // Check statecoin is eligible for entering a swap group
 export const validateSwap = (statecoin: StateCoin) => {

@@ -690,3 +690,42 @@ describe('swapPhase3', () => {
         }*/
     })
 });
+
+describe('swapPhase3 steps', () => {
+
+    test('swapPhase3 steps test 1 - getTransferMsg3', async () => {
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        const step_filter = (step) => {
+            step.subPhase === "getTransferMsg3"
+        }
+        let steps = swapPhase3Steps(swap).filter(step_filter)
+        swap.statecoin.swap_transfer_msg = null
+        swap.setSwapSteps(steps)
+        expect(swap.transfer_msg_3_receiver).toEqual(null)
+        await expect(swap.doNext()) 
+                    .rejects
+                    .toThrowError(Error("No swap transfer message for coin"))
+        expect(swap.transfer_msg_3_receiver).toEqual(null)
+
+        swap.statecoin.swap_transfer_msg = mock_http_client.TRANSFER_MSG3
+        http_mock.get = jest.fn((path, params) => {
+            if(path === GET_ROUTE.TRANSFER_GET_MSG_ADDR){
+              throw new Error(`Error: ${path}`)
+            }
+          })
+        await expect(swap.doNext()) 
+          .rejects
+          .toThrowError(Error(`Error: ${GET_ROUTE.TRANSFER_GET_MSG_ADDR}`))
+        expect(swap.transfer_msg_3_receiver).toEqual(null)
+
+        http_mock.get = jest.fn((path, params) => {
+            if(path === GET_ROUTE.TRANSFER_GET_MSG_ADDR){
+              return mock_http_client.TRANSFER_MSG3
+            }
+          })
+
+        await expect(swap.doNext()).resolves
+        expect(swap.transfer_msg_3_receiver).toEqual(http_mock.TRANSFER_MSG3)
+    })
+
+})
