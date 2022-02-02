@@ -227,7 +227,7 @@ const TransactionDisplay = (props) => {
 
         </div>
       </div>
-      <span className = "deposit-text">Creating statecoin by sending {fromSatoshi(props.amount)} BTC to the above address in a SINGLE transaction</span>
+      <span className = "deposit-text">Create statecoin by sending {fromSatoshi(props.amount)} BTC to the above address in a SINGLE transaction</span>
   </div>
   )
 }
