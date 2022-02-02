@@ -109,12 +109,13 @@ export default class Swap {
       await this.checkSwapLoopStatus()
       this.checkStepStatus()
       const nextStep = this.getNextStep()
-      log.info(`Doing next swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id}`)
+      //log.info(`Doing next swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id}`)
       let step_result = await nextStep.doit()
       if(step_result.is_ok()){
         this.incrementStep()
         this.resetRetryCounters()
       } else {
+        log.info(`Retrying swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id} - reason: ${step_result.message}`)
         this.incrementRetries(step_result)
         if (step_result.includes("Incompatible")) {
           alert(step_result.message)
@@ -122,7 +123,7 @@ export default class Swap {
         if (step_result.includes("punishment")) {
           alert(step_result.message)
         }
-        //await delay_s(SWAP_RETRY.SHORT_DELAY_S)
+        await delay_s(SWAP_RETRY.RETRY_DELAY)
       }
       return step_result   
     }
@@ -159,7 +160,7 @@ export default class Swap {
     }
 
     checkNRetries = () => {
-      if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && this.n_retries >= SWAP_RETRY.MAX_REPS_PER_PHASE) {
+      if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && this.n_retries >= SWAP_RETRY.MAX_REPS_PER_STEP) {
         throw new Error(`Number of tries exceeded in phase ${this.statecoin.swap_status}`)
       }
       if (this.statecoin.swap_status === SWAP_STATUS.Phase4 && this.n_retries >= SWAP_RETRY.MAX_REPS_PHASE4) {
@@ -424,7 +425,7 @@ doSwapSecondMessage = async (): Promise<SwapStepResult> => {
 }
 
 pollSwapPhase3 = async (): Promise<SwapStepResult> => {
-  await delay_s(SWAP_RETRY.LONG_DELAY_S)
+  //await delay_s(SWAP_RETRY.LONG_DELAY_S)
   let phase
   try {
     phase = await pollSwap(this.clients.http_client, this.getSwapID());
