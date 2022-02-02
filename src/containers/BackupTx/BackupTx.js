@@ -9,7 +9,7 @@ import { isWalletLoaded,
   callGetCoinBackupTxData, 
   callCreateBackupTxCPFP, 
   callGetConfig } from '../../features/WalletDataSlice';
-import {Coins, StdButton, CopiedButton, Tutorial} from "../../components";
+import { StdButton, CopiedButton, Tutorial, CoinsList} from "../../components";
 
 import settings from "../../images/settings.png";
 import icon2 from "../../images/icon2.png";
@@ -184,7 +184,7 @@ const BackupTxPage = () => {
               <div className="Body left ">
                   <div>
                       <span className="sub">Click to select coins below</span>
-                      <Coins
+                      <CoinsList
                         displayDetailsOnClick={false}
                         selectedCoin={selectedCoin}
                         setSelectedCoin={setSelectedCoinWrapper}/>

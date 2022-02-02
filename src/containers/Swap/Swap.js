@@ -1,7 +1,7 @@
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch, useSelector} from 'react-redux';
 import React, {useState, useEffect} from 'react';
-import { Coins, Swaps, StdButton, Tutorial} from "../../components";
+import { Swaps, StdButton, Tutorial, CoinsList} from "../../components";
 import Loading from "../../components/Loading/Loading";
 import {
   isWalletLoaded,
@@ -269,7 +269,7 @@ const SwapPage = () => {
                 <div className="wallet-container left ">
                     <div>
                         <span className="sub">Click to select coins below</span>
-                        <Coins
+                        <CoinsList
                           displayDetailsOnClick={false}
                           showCoinStatus={true}
                           selectedCoins={selectedCoins}
