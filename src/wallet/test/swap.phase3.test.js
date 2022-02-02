@@ -597,9 +597,13 @@ describe('swapPhase3', () => {
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
 
+        /*
         checkRetryMessage(await swapPhase3(swap),
-            "Error from POST request - path: transfer/update_msg, body: undefined.")
+            "Error from POST request - path: transfer/update_msg, body: undefined.")*/
 
+        // TODO
+        // This test needs to check for a warning rather than an ERROR - specifically the line below:
+        // const warning = `Warning: failed to send the transfer message to the server due to error: ${err_msg}. Please send it to the statecoin recipient manually.`
 
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
@@ -639,6 +643,19 @@ describe('swapPhase3', () => {
             }
         })
 
+        wasm_mock.Sign.first_message = jest.fn((_secret_key) => {
+            return mock_wasm.SIGN_FIRST
+        })
+
+        wasm_mock.Sign.second_message = jest.fn((_secret_key) => {
+            return mock_wasm.SIGN_SECOND
+        })
+
+        wasm_mock.Commitment.make_commitment = jest.fn(() => JSON.stringify(COMMITMENT_DATA[0].batch_data));
+
+        const jsdomAlert = window.alert;
+        window.alert = () => { };
+
         let statecoin = makeTesterStatecoin();
 
         //Set valid statecoin status
@@ -650,17 +667,21 @@ describe('swapPhase3', () => {
         let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
-        /*
-        checkRetryMessage(await swapPhase3(swap),
-            "Expected property \"pubkey\" of type ?isPoint, got Buffer")
-        */
+        await swapPhase3(swap);
 
-        expect(statecoin).toEqual(INIT_STATECOIN);
-        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
+        // expect statecoin and proof key to change
+        expect(INIT_STATECOIN).not.toEqual(statecoin);
+        expect(INIT_PROOF_KEY_DER).not.toEqual(proof_key_der);
 
-        // todo - add further checks to swap commitment data
+        // check UI changed from Phase5 to Phase6
+        expect(statecoin.ui_swap_status).toEqual(UI_SWAP_STATUS.Phase6);
+
+        let expected_swap_batch_data = { "commitment": "7aef2a9771923a485161095ae2314b2a374d223ec1ff67f7602398b3118b445d", "nonce": [118, 94, 232, 150, 99, 240, 44, 21, 13, 91, 170, 84, 58, 234, 242, 220, 184, 197, 137, 219, 179, 125, 111, 165, 233, 100, 228, 21, 79, 170, 3, 238] };
         // check swap commitment
-        expect(statecoin.swap_batch_data).toEqual(null);
+        expect(statecoin.swap_batch_data).toEqual(expected_swap_batch_data);
+
+        // restore
+        window.alert = jsdomAlert;
     })
 
     test('swapPhase3 test 13 - SwapStep4: server responds with error to GET TRANSFER_GET_MSG_ADDR in do_transfer_receiver()', async () => {
@@ -697,6 +718,19 @@ describe('swapPhase3', () => {
             }
         })
 
+        wasm_mock.Sign.first_message = jest.fn((_secret_key) => {
+            return mock_wasm.SIGN_FIRST
+        })
+
+        wasm_mock.Sign.second_message = jest.fn((_secret_key) => {
+            return mock_wasm.SIGN_SECOND
+        })
+
+        wasm_mock.Commitment.make_commitment = jest.fn(() => JSON.stringify(COMMITMENT_DATA[0].batch_data));
+
+        const jsdomAlert = window.alert;
+        window.alert = () => { };
+
         let statecoin = makeTesterStatecoin();
 
         //Set valid statecoin status
@@ -708,13 +742,22 @@ describe('swapPhase3', () => {
         let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
-        /*
         checkRetryMessage(await swapPhase3(swap),
-            "Expected property \"pubkey\" of type ?isPoint, got Buffer")
-        */
+            `${server_error().message}`)
 
-        expect(statecoin).toEqual(INIT_STATECOIN);
-        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
+        // expect statecoin and proof key to change
+        expect(INIT_STATECOIN).not.toEqual(statecoin);
+        expect(INIT_PROOF_KEY_DER).not.toEqual(proof_key_der);
+
+        // check UI changed from Phase5 to Phase6
+        expect(statecoin.ui_swap_status).toEqual(UI_SWAP_STATUS.Phase6);
+
+        let expected_swap_batch_data = { "commitment": "7aef2a9771923a485161095ae2314b2a374d223ec1ff67f7602398b3118b445d", "nonce": [118, 94, 232, 150, 99, 240, 44, 21, 13, 91, 170, 84, 58, 234, 242, 220, 184, 197, 137, 219, 179, 125, 111, 165, 233, 100, 228, 21, 79, 170, 3, 238] };
+        // check swap commitment
+        expect(statecoin.swap_batch_data).toEqual(expected_swap_batch_data);
+
+        // restore
+        window.alert = jsdomAlert;
     })
 
     test('swapPhase3 test 14 - SwapStep4: await transferReceiver, server responds with  error to getStateChain', async () => {
