@@ -168,13 +168,17 @@ export default class Swap {
     }
 
     checkNRetries = () => {
-      if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && this.n_retries >= SWAP_RETRY.MAX_REPS_PER_STEP) {
+      if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && 
+        this.statecoin.swap_status !== SWAP_STATUS.Phase0 && 
+        this.n_retries >= SWAP_RETRY.MAX_REPS_PER_STEP) {
         throw new Error(`Number of tries exceeded in phase ${this.statecoin.swap_status}`)
       }
     }
 
     checkStepTimer = () => {
-      if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && this.step_timer.seconds_elapsed() >= SWAP_TIMEOUT.STEP_TIMEOUT_S){
+      if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && 
+        this.statecoin.swap_status !== SWAP_STATUS.Phase0 && 
+        this.step_timer.seconds_elapsed() >= SWAP_TIMEOUT.STEP_TIMEOUT_S){
         throw new Error(`Timer exceeded in phase ${this.statecoin.swap_status}`)
       }
     }
