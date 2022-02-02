@@ -201,14 +201,12 @@ const CoinsList = (props) => {
 
     // deleting modals
     const onDeleteCoinDetails = useCallback((item) => {
-      console.log('function fired!')
       setCurrentItem(item);
       setShowDeleteCoinDetails(true);
     },[setCurrentItem,setShowDeleteCoinDetails])
 
     const handleDeleteCoinYes = (item) => {
       item.status = "DELETED";
-      console.log('item to delete: ', item)
       item.deleting = true;
       item.privacy_data.msg = 'coin currently being deleted';
       callRemoveCoin(item.shared_key_id);
@@ -526,8 +524,6 @@ const CoinsList = (props) => {
     return (
         <div 
           className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}>
-            {console.log('CoinsList')}
-            
           <div className="sort-filter">
             <FilterBy/>
             {(all_coins_data.length && 

@@ -89,7 +89,6 @@ const Coin = (props) => {
   }
     return (
     <div>
-      {console.log('C')}
         {
           props.isMainPage && !props.coin_data.deleting && props.coin_data.status === "INITIALISED" && 
           <div className="CoinTitleBar">
@@ -149,7 +148,7 @@ const Coin = (props) => {
               && props.filterBy !== STATECOIN_STATUS.WITHDRAWING) ? (
                 props.coin_data.status === STATECOIN_STATUS.INITIALISED ?
                 <div>                 
-                  <div className ="deposit-scan-main-props.coin_data">
+                  <div className ="deposit-scan-main-item">
                     <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, props.getAddress(props.coin_data.shared_key_id))}>
                       <img type="button" src={copy_img} alt="icon" />
                     </CopiedButton>
@@ -267,4 +266,22 @@ const Coin = (props) => {
     )
 }
 
-export default React.memo(Coin);
+export default React.memo(Coin, (prevProps, nextProps) => {
+  if(prevProps.showCoinStatus !== nextProps.showCoinStatus ||
+      prevProps.isMainPage !== nextProps.isMainPage ||
+      prevProps.coin_data !== nextProps.coin_data ||
+      prevProps.swap !== nextProps.swap ||
+      prevProps.send !== nextProps.send ||
+      prevProps.withdraw !== nextProps.withdraw ||
+      prevProps.selectedCoin !== nextProps.selectedCoin ||
+      prevProps.selectedCoins !== nextProps.selectedCoins ||
+      prevProps.displayDetailsOnClick !== nextProps.displayDetailsOnClick ||
+      prevProps.filterBy !== nextProps.filterBy){
+    return false
+    // will rerender if these props change
+  }
+  else{
+    return true
+    // will not rerender
+  }
+})

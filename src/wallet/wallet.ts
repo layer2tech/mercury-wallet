@@ -791,6 +791,7 @@ export class Wallet {
   }
   removeStatecoin(shared_key_id: string) {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode)
+    this.saveStateCoinsList()
   }
   
   getStatecoin(shared_key_id:string){
