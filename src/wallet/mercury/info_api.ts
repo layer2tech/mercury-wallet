@@ -187,6 +187,10 @@ export const getRoot = async (
   return root
 }
 
+export const delay_s = (s: number) => {
+  return delay(s*1000)
+}
+
 export const delay = (ms: number) => {
   return new Promise(resolve => {
     setTimeout(resolve, ms);

@@ -585,11 +585,17 @@ const CoinsList = (props) => {
                 )}
 
               {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
-                <div className="item qr-container">
+              <div>
+                <div className="item qr-container">            
                   <div className="block qrcode">
                       <QRCodeGenerator address = {getAddress(showCoinDetails.coin.shared_key_id)} amount={fromSatoshi(showCoinDetails.coin.value)}/>
-                  </div>
+                  </div>   
                 </div>
+                <div>
+                    Deposit amount in a SINGLE transaction
+                </div>
+              </div>
+
               )
               :
               (

@@ -76,7 +76,7 @@ const SwapPage = () => {
           setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
           setRefreshCoins((prevState) => !prevState);
           setInitFetchSwapGroups(false)
-      }, 3000);
+      }, 10000);
       if(online){
         return () => clearInterval(interval);
       }

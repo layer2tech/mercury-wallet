@@ -1,7 +1,7 @@
 // This file contains test for the main swap function with Swap class mocked
 
 import { makeTesterStatecoin } from './test_data.js'
-import { SWAP_STATUS, UI_SWAP_STATUS, validateSwap } from "../swap/swap_utils";
+import { SwapStep, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
 import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
@@ -45,7 +45,7 @@ let mockDoSwapPoll = jest.fn();
 jest.mock( '../swap/swap', () => {
 	return jest.fn().mockImplementation(() => {
 		return {
-			do_swap_poll: mockDoSwapPoll
+			do_swap_poll: mockDoSwapPoll,
 		};
 	});
 })
@@ -77,15 +77,7 @@ describe('Do Swap', function () {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 1)
 
     let swap = new Swap(wallet, wallet.statecoins.coins[0])
-
-    expect(() => {
-      validateSwap(wallet.statecoins.coins[0])
-    }).toThrow(Error("Coin " + wallet.statecoins.coins[0].getTXIdAndOut() + " already in swap pool."))
-
-
     swap = new Swap(wallet, wallet.statecoins.coins[1])
-    expect(validateSwap(wallet.statecoins.coins[1])).toBe()
-    // Passes through checks
 
     await wallet.deRegisterSwapCoin(http_mock, wallet.statecoins.coins[0])
     // Should set all swap data to null e.g. (swap_status & ui_swap_status)

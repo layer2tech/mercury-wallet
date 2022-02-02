@@ -12,7 +12,7 @@ import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData  } from './mercury/transfer';
-import { SwapGroup, GroupInfo, SWAP_STATUS, validateSwap } from './swap/swap_utils';
+import { SwapGroup, GroupInfo, SWAP_STATUS } from './swap/swap_utils';
 import Swap from './swap/swap';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -558,8 +558,11 @@ export class Wallet {
     unconfirmed_coins.forEach((statecoin) => {
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
-          if (statecoin.tx_backup===null) this.depositConfirm(statecoin.shared_key_id);
-          statecoin.setConfirmed()
+          if (statecoin.tx_backup===null) { 
+            this.depositConfirm(statecoin.shared_key_id) 
+          } else {
+            statecoin.setConfirmed()
+          }
           // update in wallet
           this.statecoins.setCoinFinalized(statecoin);
       }
@@ -1061,7 +1064,7 @@ export class Wallet {
     //Always try and resume coins in swap phase 4 so transfer is completed
     if (statecoin.swap_status !== SWAP_STATUS.Phase4){
         // Checks statecoin is available and not already in swap group
-        validateSwap( statecoin )
+        statecoin.validateSwap()
         await swapSemaphore.wait();
         try{
           await (async () => {
@@ -1110,17 +1113,16 @@ export class Wallet {
           delay(100);
         }
       });
-      let swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der)
-      new_statecoin = await swap.do_swap_poll(resume)
+      let swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der, resume)
+      new_statecoin = await swap.do_swap_poll()
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
       // Do not delete swap data for statecoins with transfer
       // completed server side
       if((statecoin?.swap_status !== SWAP_STATUS.Phase4) 
         || `${e}`.includes("Transfer batch ended. Timeout")){
-
+        log.info(`Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`);
         statecoin.setSwapDataToNull();
-
         // remove generated address
         this.account.chains[0].pop();
       }
