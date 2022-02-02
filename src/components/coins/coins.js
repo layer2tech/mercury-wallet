@@ -588,11 +588,15 @@ const Coins = (props) => {
                   && filterBy !== STATECOIN_STATUS.WITHDRAWING) ? (
                     item.status === STATECOIN_STATUS.INITIALISED ?
                     <div>                 
-                      <div className ="deposit-scan-main-item">
+                      <div className ="scoreAmount">
                         <CopiedButton handleCopy={(event) => copyAddressToClipboard(event,getAddress(item.shared_key_id))}>
                           <img type="button" src={copy_img} alt="icon" />
                         </CopiedButton>
                         <span className="long"><b>{getAddress(item.shared_key_id)}</b></span>
+                      <span className="tooltip">
+                          <b>Important: </b>
+                            Deposit amount in a SINGLE transaction.
+                      </span>
                       </div>
                     </div>
                     :(
@@ -805,11 +809,17 @@ const Coins = (props) => {
                 )}
 
               {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
-                <div className="item qr-container">
+              <div>
+                <div className="item qr-container">            
                   <div className="block qrcode">
                       <QRCodeGenerator address = {getAddress(showCoinDetails.coin.shared_key_id)} amount={fromSatoshi(showCoinDetails.coin.value)}/>
-                  </div>
+                  </div>   
                 </div>
+                <div>
+                    Deposit amount in a SINGLE transaction
+                </div>
+              </div>
+
               )
               :
               (
