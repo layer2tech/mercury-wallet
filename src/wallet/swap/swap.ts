@@ -406,7 +406,6 @@ getNewTorID = async (): Promise<SwapStepResult> => {
   } catch (err: any) {
     return SwapStepResult.Retry(`Error getting new TOR id: ${err}`)
   }
-  //await delay_s(SWAP_RETRY.LONG_DELAY_S);
   return SwapStepResult.Ok('got new tor ID')
 }
 
@@ -425,7 +424,6 @@ doSwapSecondMessage = async (): Promise<SwapStepResult> => {
 }
 
 pollSwapPhase3 = async (): Promise<SwapStepResult> => {
-  //await delay_s(SWAP_RETRY.LONG_DELAY_S)
   let phase
   try {
     phase = await pollSwap(this.clients.http_client, this.getSwapID());
@@ -461,7 +459,6 @@ transferSender = async (): Promise<SwapStepResult> => {
     this.getSwapReceiverAddr().proof_key, true, this.wallet);
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase6;
     this.wallet.saveStateCoinsList()
-    //await delay_s(SWAP_RETRY.SHORT_DELAY_S);
     return SwapStepResult.Ok("transfer sender complete")
   } catch (err: any){
     return SwapStepResult.Retry(err.message)
@@ -521,21 +518,8 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
   let value = this.statecoin.value
 
     let msg3s;
-    let n_retries = 0
-    const MAX_RETRIES = 10
-    while(n_retries < MAX_RETRIES){ 
-      try {
-        msg3s = await http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, rec_se_addr_bip32.publicKey.toString("hex"));        
-      } catch (err: any) {
-        let message: string | undefined = err?.message
-        if (message && !message.includes("DB Error: No data for identifier")) {
-          throw err;
-        }
-        //await delay_s(SWAP_RETRY.SHORT_DELAY_S);
-        n_retries = n_retries + 1
-        continue;
-      }
-
+    msg3s = await http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, rec_se_addr_bip32.publicKey.toString("hex"));        
+    
       for (let i=0; i<msg3s.length; i++){
         let msg3 = cloneDeep(msg3s[i])
         typeforce(types.TransferMsg3, msg3);
@@ -546,22 +530,17 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
             "commitment": commit,
           }
 
-          //await delay_s(SWAP_RETRY.SHORT_DELAY_S);
           let finalize_data = null
           const DELAY = 20
-          try{
-            await Promise.race([transferReceiver(http_client, electrum_client, network, msg3, rec_se_addr_bip32, batch_data, req_confirmations, block_height, value)
+          await Promise.race([transferReceiver(http_client, electrum_client, network, msg3, rec_se_addr_bip32, batch_data, req_confirmations, block_height, value)
               , delay_s(DELAY)]).then((value) => {
               finalize_data = value
-            })
-          }catch(err) {
-            throw Error('transferReceiver took longer than ${DELAY}s - retrying: ${err}')
-          }
+          })
+          
           typeforce(types.TransferFinalizeData, finalize_data);
           return finalize_data;
         }
       }
-    }
   return null;
 }
 

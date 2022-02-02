@@ -180,51 +180,6 @@ export const clear_statecoin_swap_info = (statecoin: StateCoin): null => {
   return null;
 }
 
-export const do_transfer_receiver = async (
-  http_client: HttpClient | MockHttpClient,
-  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient,
-  network: Network,
-  batch_id: string,
-  commit: string,
-  statechain_ids: Array<String>,
-  rec_se_addr: SCEAddress,
-  rec_se_addr_bip32: BIP32Interface,
-  req_confirmations: number,
-  block_height: number | null,
-  value: number
-): Promise<TransferFinalizeData | null> => {
-  for (var id of statechain_ids) {
-    let msg3;
-    while (true) {
-      try {
-        msg3 = await http_client.post(POST_ROUTE.TRANSFER_GET_MSG, { "id": id });
-      } catch (err: any) {
-        let message: string | undefined = err?.message
-        if (message && !message.includes("DB Error: No data for identifier")) {
-          throw err;
-        }
-        await delay(2);
-        continue;
-      }
-
-      typeforce(types.TransferMsg3, msg3);
-      if (msg3.rec_se_addr.proof_key === rec_se_addr.proof_key) {
-        let batch_data = {
-          "id": batch_id,
-          "commitment": commit,
-        }
-        await delay(1);
-        let finalize_data = await transferReceiver(http_client, electrum_client, network, msg3, rec_se_addr_bip32, batch_data, req_confirmations, block_height, value);
-        typeforce(types.TransferFinalizeData, finalize_data);
-        return finalize_data;
-      } else {
-        break;
-      }
-    }
-  }
-  return null;
-}
-
 //conductor::register_utxo,
 //conductor::swap_first_message,
 //conductor::swap_second_message,
