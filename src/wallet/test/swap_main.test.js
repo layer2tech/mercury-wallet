@@ -11,13 +11,13 @@ import { SwapToken } from "../swap/swap_utils";
 
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 
-
 import TestComponent, { render } from './test-utils'
 
 import { handleEndSwap } from '../../features/WalletDataSlice.js';
 import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 import { AsyncSemaphore } from '@esfx/async-semaphore';
+import { STATECOIN_STATUS } from '../statecoin.ts';
 
 let cloneDeep = require('lodash.clonedeep');
 
