@@ -1,8 +1,8 @@
 import { makeTesterStatecoin, STATECOIN_SWAP_DATA, SWAP_SHARED_KEY_OUT } from './test_data.js'
 import {
-  swapInit, SWAP_STATUS,
-  SwapRetryError, UI_SWAP_STATUS
-} from "../swap/swap";
+  SWAP_STATUS
+} from "../swap/swap_utils"
+import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
 import { REQUESTOR_CALC_S, MAKE_BST, POST_BST } from '../mocks/mock_wasm'
 import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client';
@@ -11,6 +11,7 @@ import { GET_ROUTE, POST_ROUTE } from '../http_client';
 import { Wallet, MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD } from '../wallet';
 import { ACTION } from '..';
 import { Transaction } from 'bitcoinjs-lib';
+import { swapInit as swapInitSteps } from '../swap/swap.init'
 
 let walletName = `${MOCK_WALLET_NAME}_swap_init_tests`
 
@@ -65,19 +66,43 @@ function get_proof_key_der() {
 
 const SWAP_SIZE = test_data.SIGNSWAPTOKEN_DATA[0].swap_token.statechain_ids.length
 
+async function swapInit(swap) {
+  swap.setSwapSteps(swapInitSteps(swap))
+  let result
+  for(let i=0; i< swap.swap_steps.length; i++){
+    result =  await swap.doNext()
+    if(result.is_ok() === false){
+        return result
+    }
+  }
+  return result
+}
+
+function getWallet() {
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+  wallet.config.min_anon_set = 3
+  wallet.http_client = http_mock
+  wallet.wasm = wasm_mock
+  return wallet
+}
+
 describe('Swap init', function () {
   test('swapInit test 1 - invalid proof_key_der', async function () {
     let statecoin = get_statecoin_in();
     const INIT_STATECOIN = cloneDeep(statecoin)
-    const PROOF_KEY_DER = get_proof_key_der()
+    let wallet = getWallet()
+    let swap = new Swap(wallet, statecoin, undefined, null) 
 
-    await expect(swapInit(http_mock, statecoin, null, SWAP_SIZE)).
+    await expect(swapInit(swap)).
       rejects.
       toThrowError(`swapInit: proof_key_der type error: Error: Expected Buffer, got undefined`)
 
+    
     let invalid_proof_key_der = { "publicKey": Buffer.from("a buffer string") }
 
-    await expect(swapInit(http_mock, statecoin, invalid_proof_key_der, SWAP_SIZE)).
+    swap = new Swap(wallet, statecoin, invalid_proof_key_der, null) 
+
+    await expect(swapInit(swap)).
       rejects.
       toThrowError(`swapInit: proof_key_der type error: Error: Expected Function, got undefined`)
 
@@ -89,6 +114,8 @@ describe('Swap init', function () {
     let statecoin = get_statecoin_in()
     console.log(`swap status: ${JSON.stringify(statecoin.swap_status)}`)
     const INIT_STATECOIN = cloneDeep(statecoin)
+    let wallet = getWallet()
+    let swap = new Swap(wallet, statecoin, undefined, null) 
 
     const statecoin_status = Object.values(STATECOIN_STATUS).concat([null])
     //Test invalid statecoin statuses
@@ -99,10 +126,12 @@ describe('Swap init', function () {
         statecoin.status = cloneDeep(sc_status)
         let init_statecoin = cloneDeep(INIT_STATECOIN)
         init_statecoin.status = cloneDeep(sc_status)
-        await expect(swapInit(http_mock, statecoin, null, SWAP_SIZE)).rejects.
-          toThrowError(`swapInit - expected statecoin status ${STATECOIN_STATUS.AWAITING_SWAP}, got status: ${statecoin.status}`)
+        swap = new Swap(wallet, statecoin, undefined, null) 
+        await expect(swapInit(swap)).rejects.
+          toThrowError(`phase Init:checkProofKeyDer: invalid statecoin status: ${statecoin.status}`)
         expect(statecoin).toEqual(init_statecoin)
-        await expect(swapInit(http_mock, statecoin, null, SWAP_SIZE)).rejects.toThrow(Error)
+        swap = new Swap(wallet, statecoin, undefined, null) 
+        await expect(swapInit(swap)).rejects.toThrow(Error)
         expect(statecoin).toEqual(init_statecoin)
       }
     }
@@ -119,11 +148,14 @@ describe('Swap init', function () {
         statecoin.swap_status = cloneDeep(ss)
         let init_statecoin = cloneDeep(INIT_STATECOIN)
         init_statecoin.swap_status = cloneDeep(ss)
-        await expect(swapInit(http_mock, statecoin, null, SWAP_SIZE))
-          .rejects.toThrowError(`Coin is already involved in a swap. Swap status: ${statecoin.swap_status}`);
+
+        swap = new Swap(wallet, statecoin, undefined, null) 
+        await expect(swapInit(swap))
+          .rejects.toThrowError(`phase Init:checkProofKeyDer: invalid swap status: ${statecoin.swap_status}`);
         expect(statecoin).toEqual(init_statecoin)
 
-        await expect(swapInit(http_mock, statecoin, null, SWAP_SIZE))
+        swap = new Swap(wallet, statecoin, undefined, null) 
+        await expect(swapInit(swap))
           .rejects.toThrow(Error);
         expect(statecoin).toEqual(init_statecoin)
       }
@@ -144,13 +176,16 @@ describe('Swap init', function () {
       }
     })
 
+    let wallet = getWallet()
+    let swap = new Swap(wallet, statecoin, proof_key_der, null) 
 
-    await expect(swapInit(http_mock, statecoin, proof_key_der, SWAP_SIZE))
-      .rejects.toThrowError("Error from POST request - path: swap/register-utxo, body: {\"statechain_id\":\"\",\"signature\":{\"purpose\":\"SWAP\",\"data\":\"03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477\",\"sig\":\"304402200594cf179e90dfb81b3f997c0cb0ff6c8181ed76a119884779dece35c22fa6ac022042c32b8228dd40f57f049197af59f1585b048bd4c12611bd34e5f3cd7ed3a5e1\"},\"swap_size\":3,\"wallet_version\":\"" + WALLET_VERSION + "\"}");
+    let result = await swapInit(swap)
+    expect(result.message).toEqual("Error from POST request - path: swap/register-utxo, body: {\"statechain_id\":\"\",\"signature\":{\"purpose\":\"SWAP\",\"data\":\"03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477\",\"sig\":\"304402200594cf179e90dfb81b3f997c0cb0ff6c8181ed76a119884779dece35c22fa6ac022042c32b8228dd40f57f049197af59f1585b048bd4c12611bd34e5f3cd7ed3a5e1\"},\"swap_size\":3,\"wallet_version\":\"" + WALLET_VERSION + "\"}");
     expect(statecoin).toEqual(INIT_STATECOIN)
 
-    await expect(swapInit(http_mock, statecoin, proof_key_der, SWAP_SIZE))
-      .rejects.toThrow(Error);
+    swap = new Swap(wallet, statecoin, proof_key_der, null) 
+    result = await swapInit(swap)
+    expect(result.is_ok()).toEqual(false);
     expect(statecoin).toEqual(INIT_STATECOIN)
 
   })
@@ -158,6 +193,8 @@ describe('Swap init', function () {
   test('swapInit test 4 - complete swapInit', async function () {
     let statecoin = get_statecoin_in();
     const proof_key_der = get_proof_key_der()
+    let wallet = getWallet()
+    let swap = new Swap(wallet, statecoin, proof_key_der, null) 
 
     POST_ROUTE.SWAP_REGISTER_UTXO
 
@@ -168,7 +205,7 @@ describe('Swap init', function () {
 
     let statecoin_out = get_statecoin_out_expected();
 
-    await swapInit(http_mock, statecoin, proof_key_der, SWAP_SIZE)
+    await swapInit(swap)
     //Timestamps will differ
     statecoin_out.timestamp = statecoin.timestamp;
     expect(statecoin).toEqual(statecoin_out)

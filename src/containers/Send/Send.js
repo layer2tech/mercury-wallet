@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux';
-import {Coins, StdButton, AddressInput, SendModal, ConfirmPopup, Loading} from "../../components";
+import { StdButton, AddressInput, SendModal, ConfirmPopup, Loading, CoinsList} from "../../components";
 
 import {fromSatoshi} from '../../wallet/util';
 import {decodeSCEAddress, encodeMessage} from '../../wallet/util';
@@ -156,7 +156,7 @@ const SendStatecoinPage = () => {
                   <div>
                       <h3 className="subtitle">Select statecoin to send</h3>
                       <span className="sub">Click to select coins below</span>
-                      <Coins
+                      <CoinsList
                         displayDetailsOnClick={false}
                         showCoinStatus={true}
                         selectedCoin={selectedCoin}

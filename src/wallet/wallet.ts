@@ -12,7 +12,8 @@ import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw } from './mercury/withdraw';
 
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData  } from './mercury/transfer';
-import { SwapGroup, do_swap_poll, GroupInfo, SWAP_STATUS, validateSwap } from './swap/swap';
+import { SwapGroup, GroupInfo, SWAP_STATUS } from './swap/swap_utils';
+import Swap from './swap/swap';
 
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from './config';
@@ -443,7 +444,11 @@ export class Wallet {
   async getWasm() {
     let wasm;
     if (this.config.jest_testing_mode) {
-      wasm = new MockWasm()
+      if (this.wasm !== undefined && this.wasm !== null) {
+        return this.wasm
+      } else {
+        wasm = new MockWasm()
+      }
     } else {
       wasm = await import('client-wasm');
     }
@@ -553,8 +558,11 @@ export class Wallet {
     unconfirmed_coins.forEach((statecoin) => {
       if (statecoin.status===STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >= this.config.required_confirmations) {
-          if (statecoin.tx_backup===null) this.depositConfirm(statecoin.shared_key_id);
-          statecoin.setConfirmed()
+          if (statecoin.tx_backup===null) { 
+            this.depositConfirm(statecoin.shared_key_id) 
+          } else {
+            statecoin.setConfirmed()
+          }
           // update in wallet
           this.statecoins.setCoinFinalized(statecoin);
       }
@@ -786,6 +794,7 @@ export class Wallet {
   }
   removeStatecoin(shared_key_id: string) {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode)
+    this.saveStateCoinsList()
   }
   
   getStatecoin(shared_key_id:string){
@@ -1052,12 +1061,10 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     
-    validateSwap( statecoin )
-    // Checks statecoin is available and not already in swap group
-    
     //Always try and resume coins in swap phase 4 so transfer is completed
-       //Always try and resume coins in swap phase 4
-       if (statecoin.swap_status !== SWAP_STATUS.Phase4){
+    if (statecoin.swap_status !== SWAP_STATUS.Phase4){
+        // Checks statecoin is available and not already in swap group
+        statecoin.validateSwap()
         await swapSemaphore.wait();
         try{
           await (async () => {
@@ -1106,16 +1113,16 @@ export class Wallet {
           delay(100);
         }
       });
-      new_statecoin = await do_swap_poll(this.http_client, this.electrum_client, wasm, this.config.network, statecoin, proof_key_der, this.config.min_anon_set, new_proof_key_der, this.config.required_confirmations, this, resume);
+      let swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der, resume)
+      new_statecoin = await swap.do_swap_poll()
     } catch(e : any){
       log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
       // Do not delete swap data for statecoins with transfer
       // completed server side
       if((statecoin?.swap_status !== SWAP_STATUS.Phase4) 
         || `${e}`.includes("Transfer batch ended. Timeout")){
-
+        log.info(`Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`);
         statecoin.setSwapDataToNull();
-
         // remove generated address
         this.account.chains[0].pop();
       }

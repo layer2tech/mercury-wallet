@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {Tabs, Tab} from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import { STATECOIN_STATUS } from '../../wallet/statecoin'
-import { Coins, Activity } from "..";
+import { Activity, CoinsList } from "..";
 
 import './panelCoinsActivity.css';
 import '../index.css';
@@ -36,7 +36,7 @@ const PanelCoinsActivity = (props) => {
                 filterBy !== STATECOIN_STATUS.WITHDRAWING) && (
                     <Tabs defaultActiveKey={defaultTabTitle}>
                         <Tab eventKey={defaultTabTitle} title={defaultTabTitle}>
-                            <Coins
+                            <CoinsList
                                 displayDetailsOnClick={true}
                                 selectedCoins={selectedCoins}
                                 setSelectedCoins={setSelectedCoins}
@@ -56,7 +56,7 @@ const PanelCoinsActivity = (props) => {
                     <>
                         <Tabs defaultActiveKey={defaultTabTitle}>
                             <Tab eventKey={defaultTabTitle} title={defaultTabTitle}>
-                                <Coins
+                                <CoinsList
                                 displayDetailsOnClick={true}
                                 selectedCoins={selectedCoins}
                                 setSelectedCoins={setSelectedCoins}
@@ -72,7 +72,7 @@ const PanelCoinsActivity = (props) => {
                     <>
                         <Tabs defaultActiveKey={defaultTabTitle}>
                             <Tab eventKey={defaultTabTitle} title={defaultTabTitle}>
-                                <Coins
+                                <CoinsList
                                 displayDetailsOnClick={true}
                                 selectedCoins={selectedCoins}
                                 setSelectedCoins={setSelectedCoins}

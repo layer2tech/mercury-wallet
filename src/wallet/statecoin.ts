@@ -6,7 +6,7 @@ import { ACTION } from ".";
 import { ElectrumTxData } from "../wallet/electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
-import { BatchData, BSTRequestorData, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap";
+import { BatchData, BSTRequestorData, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap_utils";
 import { SCEAddress, TransferFinalizeData, TransferMsg3 } from "./mercury/transfer";
 
 export class StateCoinList {
@@ -492,6 +492,19 @@ export class StateCoin {
   setBackupPostInterval() { this.backup_status = BACKUP_STATUS.POST_INTERVAL }
   setBackupTaken() { this.backup_status = BACKUP_STATUS.TAKEN }
   setBackupSpent() { this.backup_status = BACKUP_STATUS.SPENT }
+
+  validateSwap() {
+    if (this.swap_status === SWAP_STATUS.Phase4) throw Error(`Coin ${this.shared_key_id} is in swap phase 4. Swap must be resumed.`)
+    if (this.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + this.getTXIdAndOut() + " already in swap pool.");
+    if (this.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + this.getTXIdAndOut() + " already involved in swap.");
+    if (this.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + this.getTXIdAndOut() + " not available for swap.");
+  }
+
+  validateResumeSwap() {
+    if (this.status !== STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin " + this.shared_key_id + " - not in swap.");
+    if (this.swap_status !== SWAP_STATUS.Phase4)
+    throw Error("Cannot resume coin " + this.shared_key_id + " - swap status: " + this.swap_status);
+  }
 
   // Get data to display in GUI
   getDisplayInfo(block_height: number): StateCoinDisplayData {

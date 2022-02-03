@@ -1,5 +1,5 @@
 let bitcoin = require('bitcoinjs-lib')
-import { Wallet, StateCoinList, ACTION, Config, STATECOIN_STATUS, BACKUP_STATUS, decryptAES } from '../';
+import { Wallet, StateCoin, StateCoinList, ACTION, Config, STATECOIN_STATUS, BACKUP_STATUS, decryptAES } from '../';
 import { segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
@@ -95,6 +95,7 @@ describe('Storage 2', function() {
   
 
   test('load from backup and save', async function() {
+    wallet.save();
     let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
     let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
     let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
@@ -202,6 +203,19 @@ describe('Storage 2', function() {
     expect(coins_before_add.length).toEqual(coins_after_add.length - 1)
     expect(activity_log_before_add.length).toEqual(activity_log_after_add.length - 1)
   });
+
+  test('Set confirmed', async function() {
+      let statecoin = new StateCoin("001d2223-7d84-44f1-ba3e-4cd7dd418560", "003ad45a-00b9-449c-a804-aab5530efc90");
+      statecoin.proof_key = "aaaaaaaad651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e";
+      statecoin.block = 10;
+      statecoin.tx_backup = new Transaction();
+      let list = [statecoin];
+      wallet.block_height = 20;
+      wallet.statecoins.addCoin(statecoin);
+      wallet.checkUnconfirmedCoinsStatus(list);
+
+      expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE)
+    });
 
   describe("getCoinBackupTxData", () => {
     it('shared_key_id doesnt exist', () => {
