@@ -66,22 +66,35 @@ const SwapPage = () => {
     );
   }
 
-  // Re-fetch swaps group data every 3 seconds and update swaps component
+  const updateSwapInfo = () => {
+    dispatch(callUpdateSwapGroupInfo());
+    let swap_groups_data = callGetSwapGroupInfo();
+    let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
+    setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
+    setRefreshCoins((prevState) => !prevState);
+    setInitFetchSwapGroups(false)
+  }
+
+  // Re-fetch swaps group data every 6 seconds and update swaps component
   useEffect(() => {
       const interval = setInterval(() => {
-          dispatch(callUpdateSwapGroupInfo());
-          dispatch(callUpdateSwapStatus());
-          let swap_groups_data = callGetSwapGroupInfo();
-          let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
-          setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
-          setRefreshCoins((prevState) => !prevState);
-          setInitFetchSwapGroups(false)
-      }, 10000);
+        updateSwapInfo()
+      }, 6000);
       if(online){
         return () => clearInterval(interval);
       }
     },
-    [dispatch]);
+  []);
+
+  // Update swap info when swapLoad changes.
+  // The delay on joining is to wait for the coin to be added to a swap group.
+  useEffect(() => {
+    let delay = swapLoad.join ? 3000 : 0; 
+    setTimeout(() => {
+      updateSwapInfo()
+    }, delay);
+  },
+  [swapLoad]);
     
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
