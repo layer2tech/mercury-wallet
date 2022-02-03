@@ -520,7 +520,6 @@ const CoinsList = (props) => {
       coin.privacy_data = getPrivacyScoreDesc(coin);
       props.setCoinDetails(coin);
     }
-
     return (
         <div 
           className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}>
@@ -539,7 +538,7 @@ const CoinsList = (props) => {
               onDeleteCoinDetails = { onDeleteCoinDetails } // useCallback function
               isMainPage = { isMainPage } // all clear - boolean
               coin_data = { item } // FIX
-              getPrivacyScoreDesc = {getPrivacyScoreDesc} // FIX
+              getPrivacyScoreDesc = { getPrivacyScoreDesc } // FIX
               swap = { props.swap } // All clear - boolean
               send = { props.send } // All clear - boolean
               withdraw = { props.withdraw } // All clear - boolean
@@ -550,10 +549,11 @@ const CoinsList = (props) => {
               setCoinDetails = { props.setCoinDetails } // Check 
               handleSetCoinDetails = { handleSetCoinDetails } 
               handleOpenCoinDetails = { handleOpenCoinDetails }
-              filterBy = {filterBy}
+              filterBy = { filterBy }
               getAddress = { getAddress }
               displayExpiryTime = { displayExpiryTime }
-              handleAutoSwap = {props.handleAutoSwap}/>
+              handleAutoSwap = { props.handleAutoSwap }
+              render = {props.render ? (props.render) : null} />
           )
         })}
 

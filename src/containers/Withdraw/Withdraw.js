@@ -29,7 +29,7 @@ const WithdrawPage = () => {
 
   const [openModal,setOpenModal] = useState(false);
   
-  const [state, setState]  =  useState({});
+  const [forceRender, setRender]  =  useState({});
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
   const [txFeePerB, setTxFeePerB] = useState(7); // chosen fee per kb value
@@ -55,7 +55,7 @@ const WithdrawPage = () => {
       newSelectedCoins.push(statechain_id);
     }
     setSelectedCoins(newSelectedCoins);
-    setState({});
+    setRender({});
   }
 
   // Get Tx fee estimate
@@ -250,8 +250,9 @@ const WithdrawPage = () => {
                         showCoinStatus={true}
                         displayDetailsOnClick={false}
                         selectedCoins={selectedCoins}
-                        setSelectedCoin={addSelectedCoin}
-                        refresh={refreshCoins}
+                        setSelectedCoin = {addSelectedCoin}
+                        refresh = {refreshCoins}
+                        render = {forceRender}
                         withdraw/>
                     </div>
 
