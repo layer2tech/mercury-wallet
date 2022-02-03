@@ -87,7 +87,7 @@ const Coin = (props) => {
       event.stopPropagation()
       navigator.clipboard.writeText(address);
   }
-    return (
+  return (
     <div>
         {
           props.isMainPage && !props.coin_data.deleting && props.coin_data.status === "INITIALISED" && 
@@ -263,7 +263,7 @@ const Coin = (props) => {
             </div>
         </div>
     </div>
-    )
+  )
 }
 
 export default React.memo(Coin, (prevProps, nextProps) => {
@@ -276,7 +276,8 @@ export default React.memo(Coin, (prevProps, nextProps) => {
       prevProps.selectedCoin !== nextProps.selectedCoin ||
       prevProps.selectedCoins !== nextProps.selectedCoins ||
       prevProps.displayDetailsOnClick !== nextProps.displayDetailsOnClick ||
-      prevProps.filterBy !== nextProps.filterBy){
+      prevProps.filterBy !== nextProps.filterBy ||
+      prevProps.render !== nextProps.render){
     return false
     // will rerender if these props change
   }
