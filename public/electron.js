@@ -68,7 +68,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    icon: "./icons/mercury-symbol-tri-color.png",
+    icon: "./public/icons/mercury-symbol-tri-color.png",
     webPreferences:
       {
         nodeIntegration: true,
