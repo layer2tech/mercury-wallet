@@ -12,6 +12,7 @@ import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
 
+
 // eslint-disable-next-line
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
 // eslint-disable-next-line
@@ -63,6 +64,8 @@ const initialState = {
   depositLoading: false,
   swapRecords: [],
   swapPendingCoins: [],
+  coinsAdded: 0,
+  coinsRemoved: 0
 }
 
 // Check if a wallet is loaded in memory
@@ -169,7 +172,7 @@ export const walletLoad = (name, password) => {
 }
 
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
-export const walletFromMnemonic = (name, password, mnemonic, try_restore, gap_limit) => {
+export const walletFromMnemonic = (dispatch, name, password, mnemonic, try_restore, gap_limit) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   log.info("Wallet "+name+" created.");
   if (testing_mode) log.info("Testing mode set.");
@@ -177,7 +180,8 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore, gap_li
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
-      wallet.recoverCoinsFromServer(gap_limit);
+      const n_recovered = await wallet.recoverCoinsFromServer(gap_limit);
+      dispatch(addCoins(n_recovered));
     }
     callNewSeAddr();
     wallet.save();
@@ -531,6 +535,18 @@ const WalletSlice = createSlice({
   name: 'walletData',
   initialState,
   reducers: {
+    addCoins(state, action){
+      return {
+        ...state,
+        coinsAdded: state.coinsAdded + action.payload
+      }
+    },
+    removeCoins(state, action){
+      return {
+        ...state,
+        coinsRemoved: state.coinsRemoved + action.payload
+      }
+    },
     addCoinToSwapRecords(state, action){
       if(state.swapRecords.indexOf(action.payload) ===  -1){
         return {
@@ -723,7 +739,7 @@ const WalletSlice = createSlice({
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin, 
-  updateTxFeeEstimate } = WalletSlice.actions
+  updateTxFeeEstimate, addCoins, removeCoins } = WalletSlice.actions
   export default WalletSlice.reducer
 
 
