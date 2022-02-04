@@ -50,41 +50,41 @@ export class MockHttpClient {
         return KEYGEN_FIRST;
       case POST_ROUTE.KEYGEN_SECOND:
         return KEYGEN_SECOND
-        case POST_ROUTE.SIGN_FIRST:
-          return SIGN_FIRST
-        case POST_ROUTE.PREPARE_SIGN:
-          return true
-        case POST_ROUTE.SIGN_SECOND:
-          return SIGN_SECOND
-        case POST_ROUTE.SMT_PROOF:
-          return SMT_PROOF
-        case POST_ROUTE.DEPOSIT_INIT:
-          return {id:"861d2223-7d84-44f1-ba3e-4cd7dd418560"};
-        case POST_ROUTE.DEPOSIT_CONFIRM:
-          return DEPOSIT_CONFIRM
-        case POST_ROUTE.WITHDRAW_INIT:
-          return
-        case POST_ROUTE.WITHDRAW_CONFIRM:
-          return WITHDRAW_SIG
-        case POST_ROUTE.TRANSFER_SENDER:
-          return TRANSFER_SENDER
-        case POST_ROUTE.TRANSFER_RECEIVER:
-          return TRANSFER_RECEIVER
-        case POST_ROUTE.TRANSFER_UPDATE_MSG:
-          return
-        case POST_ROUTE.TRANSFER_GET_MSG:
-          return TRANSFER_PUBKEY
-        case POST_ROUTE.SWAP_POLL_UTXO:
-          return POLL_UTXO
-        case POST_ROUTE.RECOVER:
-          return RECOVERY_STATECHAIN_DATA
-        case POST_ROUTE.SWAP_DEREGISTER_UTXO:
-          return
-      }
+      case POST_ROUTE.SIGN_FIRST:
+        return SIGN_FIRST
+      case POST_ROUTE.PREPARE_SIGN:
+        return true
+      case POST_ROUTE.SIGN_SECOND:
+        return SIGN_SECOND
+      case POST_ROUTE.SMT_PROOF:
+        return SMT_PROOF
+      case POST_ROUTE.DEPOSIT_INIT:
+        return { id: "861d2223-7d84-44f1-ba3e-4cd7dd418560" };
+      case POST_ROUTE.DEPOSIT_CONFIRM:
+        return DEPOSIT_CONFIRM
+      case POST_ROUTE.WITHDRAW_INIT:
+        return
+      case POST_ROUTE.WITHDRAW_CONFIRM:
+        return WITHDRAW_SIG
+      case POST_ROUTE.TRANSFER_SENDER:
+        return TRANSFER_SENDER
+      case POST_ROUTE.TRANSFER_RECEIVER:
+        return TRANSFER_RECEIVER
+      case POST_ROUTE.TRANSFER_UPDATE_MSG:
+        return
+      case POST_ROUTE.TRANSFER_GET_MSG:
+        return TRANSFER_PUBKEY
+      case POST_ROUTE.SWAP_POLL_UTXO:
+        return POLL_UTXO
+      case POST_ROUTE.RECOVER:
+        return RECOVERY_STATECHAIN_DATA
+      case POST_ROUTE.SWAP_DEREGISTER_UTXO:
+        return
     }
-    
-    new_tor_id = async () => {
-    }
+  }
+
+  new_tor_id = async () => {
+  }
 }
 
 
@@ -737,8 +737,8 @@ export const GET_BLINDED_SPEND_SIGNATURE = {
 export const REGISTER_UTXO = null;
 
 export const SWAP_SECOND_SCE_ADDRESS = {
-  "tx_backup_addr": "a tx backup addr",
-  "proof_key": "a proof key",
+  "tx_backup_addr": "tb1qsfdj64n7x6p8earaekppy0pcaxam6qeqzljw8m",
+  "proof_key": "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477",
 }
 typeforce(types.SCEAddress, SWAP_SECOND_SCE_ADDRESS);
 
@@ -748,7 +748,7 @@ export const TX_BACKUP_PSM: PrepareSignTxMsg = {
   "tx_hex": "0200000000010194842999812ec4b11eb1bebccd118d1de5db45398414684ddf2819f7ef1046790000000000feffffff02cf960700000000001600140b6d2d569da09a1201fa2cd50264d64bafc950cdc4090000000000001600143f17a0ef09f4889e5824dd4b37dd9cc5b50089ea02483045022100f749e391fa0980cf1ecc7f3e8e48d8c1fa8f87b86e987ac7bd0533ce4d215afe02205048dc2a2fe0f51097b4b214910eb261125bd122f771d321a49fa8127dc0dfc00121039422862ce37422c170c5529e9f2d278c5f32b0d39923d3ed412a10e8352fc7e92ca61f00",
   "input_addrs": ["addr1"], // keys being spent from
   "input_amounts": [100],
-  "proof_key": "a proof key",
+  "proof_key": "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477",
 }
 
 export const TRANSFER_FINALIZE_DATA: TransferFinalizeData = {
@@ -762,15 +762,15 @@ export const TRANSFER_FINALIZE_DATA: TransferFinalizeData = {
 }
 
 export const SWAP_INFO = {
-  "status": "Phase1", 
-  "swap_token": { 
-    "id": "b34b9f50-b5fe-4930-92ca-c571fbb58450", 
-    "amount": 100000, 
-    "time_out": 300, 
-    "statechain_ids": ["a11dbb04-38c4-4db2-946a-e972c9f1632d", 
-      "6b94ac04-d412-4864-b61b-c561e311f74d", 
-      "508a66bf-e8e2-4900-b5d0-6c12c980a06f", 
-      "54b29bec-a948-4fbc-82c2-f3050f6d7fc7", 
-      "f572154e-42e7-4f9a-9a30-aa549f5853a7"] 
+  "status": "Phase1",
+  "swap_token": {
+    "id": "b34b9f50-b5fe-4930-92ca-c571fbb58450",
+    "amount": 100000,
+    "time_out": 300,
+    "statechain_ids": ["a11dbb04-38c4-4db2-946a-e972c9f1632d",
+      "6b94ac04-d412-4864-b61b-c561e311f74d",
+      "508a66bf-e8e2-4900-b5d0-6c12c980a06f",
+      "54b29bec-a948-4fbc-82c2-f3050f6d7fc7",
+      "f572154e-42e7-4f9a-9a30-aa549f5853a7"]
   }
 }
