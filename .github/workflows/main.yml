@@ -17,8 +17,8 @@ jobs:
       - name: Test testing mode is 'false' in settings.json
         run: |
           jq --version
-          MW_TESTING_MODE=`jq .testing_mode src/settings.json`
-          echo $MW_TESTING_MODE
+          MERCURY_WALLET_TESTING_MODE=`jq .testing_mode src/settings.json`
+          [ $MERCURY_WALLET_TESTING_MODE != "false" ] && exit 1
       - run: sed -i -e 's/false/true/g' src/settings.json 
       - run: yarn install
       - run: yarn test
