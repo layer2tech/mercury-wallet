@@ -14,6 +14,10 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '14'
+      - name: Test testing mode is 'false' in settings.json
+        run: |
+          apt install jq
+          [ `jq .testing_mode src/settings.json` != "false" ]  && exit 1
       - run: sed -i -e 's/false/true/g' src/settings.json 
       - run: yarn install
       - run: yarn test
