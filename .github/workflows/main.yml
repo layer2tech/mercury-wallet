@@ -16,6 +16,7 @@ jobs:
           node-version: '14'
       - name: Test testing mode is 'false' in settings.json
         run: |
+          jq --version
           [ `jq .testing_mode src/settings.json` != "false" ]  && exit 1
       - run: sed -i -e 's/false/true/g' src/settings.json 
       - run: yarn install
