@@ -1318,7 +1318,6 @@ export class Wallet {
     } else {
       log.info("Transfer finalize error: replica coin")
     }
-    console.log(`statecoin finalized added: ${JSON.stringify(statecoin_finalized)}`)
     return statecoin_finalized
   }
 
