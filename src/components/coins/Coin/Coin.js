@@ -10,7 +10,7 @@ import { DAYS_WARNING, SWAP_STATUS_INFO } from "../CoinsList";
 import { ProgressBar, Spinner } from "react-bootstrap";
 import Moment from "react-moment";
 import SwapStatus from "../SwapStatus/SwapStatus";
-import { callGetActivityLogItems, setError } from "../../../features/WalletDataSlice";
+import { callGetActivityLog, callGetActivityLogItems, setError } from "../../../features/WalletDataSlice";
 import { CoinStatus, CopiedButton } from "../..";
 
 const TESTING_MODE = require("../../../settings.json").testing_mode;
@@ -39,7 +39,9 @@ const Coin = (props) => {
 
       if(coin_data.status === STATECOIN_STATUS.IN_TRANSFER){
           let transferDate = 'DATE'
-          let date = activityData.filter(e => e.funding_txid === coin_data.funding_txid && e.action === "T" && e.date > coin_data.timestamp )
+
+          let activity_log = callGetActivityLogItems(callGetActivityLog().items.length)
+          let date = activity_log.filter(e => e.funding_txid === coin_data.funding_txid && e.action === "T" && e.date > coin_data.timestamp )
           // filter Activity Log for txid, transferred icon and activity sent after coin created (timestamp)
 
           date = date.sort((a,b) => b.date - a.date).reverse()[0]?.date
