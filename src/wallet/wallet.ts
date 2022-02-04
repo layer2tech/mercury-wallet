@@ -1290,7 +1290,7 @@ export class Wallet {
     let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations, this.block_height, null);
 
     // Finalize protocol run by generating new shared key and updating wallet.
-    this.transfer_receiver_finalize(finalize_data);
+    await this.transfer_receiver_finalize(finalize_data);
 
     this.saveStateCoinsList();
     return finalize_data
@@ -1323,7 +1323,7 @@ export class Wallet {
   // Query server for any pending transfer messages for the sepcified address index
   // Check for unused proof keys
   async get_transfers(addr_index: number): Promise <string> {
-    log.info("Retriving transfer messages")
+    log.info("Retrieving transfer messages")
     let error_message = ""
     let transfer_data
   
