@@ -5,7 +5,8 @@ import { StdButton, AddressInput, SendModal, ConfirmPopup, Loading, CoinsList} f
 
 import {fromSatoshi} from '../../wallet/util';
 import {decodeSCEAddress, encodeMessage} from '../../wallet/util';
-import {isWalletLoaded, callTransferSender, setError, setNotification} from '../../features/WalletDataSlice';
+import {isWalletLoaded, callTransferSender, setError, setNotification,
+  removeCoins } from '../../features/WalletDataSlice';
 import arrow from "../../images/arrow-up.png"
 import './Send.css';
 
@@ -123,6 +124,7 @@ const SendStatecoinPage = () => {
     setOpenSendModal({ show: false })
     setCoinDetails({})
     dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer key to finalise."}))
+    dispatch(removeCoins(1))
   }
 
   return (

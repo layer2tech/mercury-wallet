@@ -97,7 +97,7 @@ const CoinsList = (props) => {
     
     const {selectedCoins, isMainPage, swap} = props;
     const dispatch = useDispatch();
-    const { filterBy, swapPendingCoins } = useSelector(state => state.walletData);
+    const { filterBy, swapPendingCoins, coinsAdded, coinsRemoved } = useSelector(state => state.walletData);
     const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
     const [initCoins, setInitCoins] = useState({});
@@ -317,7 +317,7 @@ const CoinsList = (props) => {
         dispatch(updateBalanceInfo({total_balance: total, num_coins: coinsNotWithdraw.length}));
       }
     }
-    , [props.refresh, filterBy, showCoinDetails, dispatch]);
+    , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved]);
 
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
