@@ -143,6 +143,15 @@ export const getStateChain = async (
   return statechain
 }
 
+export const getStateChainTransferFinalizeData = async (
+  http_client: HttpClient | MockHttpClient,
+  statechain_id: String
+) => {
+  let response = await http_client.get(GET_ROUTE.SC_TRANSFER_FINALIZE_DATA, statechain_id);
+  typeforce(types.TransferFinalizeDataAPI, response);
+  return response
+}
+
 export const getStateCoin = async (
   http_client: HttpClient | MockHttpClient,
   statechain_id: string
@@ -176,6 +185,10 @@ export const getRoot = async (
   let root = await http_client.get(GET_ROUTE.ROOT, {});
   typeforce(typeforce.oneOf(types.Root, typeforce.Null), root);
   return root
+}
+
+export const delay_s = (s: number) => {
+  return delay(s*1000)
 }
 
 export const delay = (ms: number) => {
@@ -215,7 +228,9 @@ export const getTransferBatchStatus = async (
   http_client: HttpClient | MockHttpClient,
   batch_id: string
 ) => {
-  return await http_client.get(GET_ROUTE.TRANSFER_BATCH, batch_id);
+  let transfer_batch_status =  await http_client.get(GET_ROUTE.TRANSFER_BATCH, batch_id);
+  typeforce(types.TransferBatchStatus, transfer_batch_status);
+  return transfer_batch_status;
 }
 
 export const getRecoveryRequest = async (

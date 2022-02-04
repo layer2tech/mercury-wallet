@@ -12,6 +12,7 @@ export const GET_ROUTE = {
   STATECHAIN_OWNER: "info/owner",
   COINS_INFO: "info/coins",
   TRANSFER_BATCH: "info/transfer-batch",
+  SC_TRANSFER_FINALIZE_DATA: "info/sc-transfer-finalize-data",
   SWAP_GROUPINFO: "swap/groupinfo",
   TRANSFER_GET_MSG_ADDR: "transfer/get_msg_addr",
   TOR_CIRCUITS: "tor_circuit",
@@ -47,10 +48,12 @@ export const POST_ROUTE = {
 };
 Object.freeze(POST_ROUTE);
 
-
 // Check if returned value from server is an error. Throw if so.
-const checkForServerError = (return_val: any) => {
-
+const checkForServerError = (response: any) => {
+  let return_val = response?.data
+  if( response.status >= 400) {
+    throw Error(`http status: ${response.status}, data: ${return_val}`)
+  }
   if (typeof(return_val)=="string" && return_val.includes("Error")) {
     if(return_val.includes("Not available until")){
       throw Error("The server is currently unavailable due to a high request rate. Please try again.")
@@ -76,7 +79,6 @@ export class HttpClient {
 
   async get (path: string, params: any){
     //const release = await mutex.acquire();
-    try {
       const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
           method: 'get',
@@ -84,21 +86,14 @@ export class HttpClient {
           headers: { 'Accept': 'application/json' }
       };
       let res = await axios(config)
-      let return_data = res.data
-      checkForServerError(return_data)
+      checkForServerError(res)
 
       //release();
-      return return_data
-
-    } catch (err : any) {
-      //release();
-      throw err;
-    }
+      return res.data
   }
 
   async post (path: string, body: any) {
     //const release = await mutex.acquire();
-    try {
       let url = this.endpoint + "/" + path.replace(/^\/+/, '');
       const config = {
           method: 'post',
@@ -110,14 +105,8 @@ export class HttpClient {
           data: body,
       };
       let res = await axios(config)
-      let return_data = res.data
-      checkForServerError(return_data)
+      checkForServerError(res)
       //release();
-      return return_data
-
-    } catch (err : any) {
-      //release();
-      throw err;
-    }
+      return res.data
   };
 }
