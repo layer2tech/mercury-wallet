@@ -5,7 +5,9 @@ import {useDispatch} from 'react-redux'
 import {StdButton, AddressInput, CopiedButton} from "../../components";
 import QRCode from 'qrcode.react';
 
-import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callGetNumSeAddr, callTransferReceiver, callGetTransfers, setError, setNotification, callPingElectrum } from '../../features/WalletDataSlice'
+import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callGetNumSeAddr, 
+  callTransferReceiver, callGetTransfers, setError, setNotification, 
+  callPingElectrum, addCoins } from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
 import Loading from '../../components/Loading/Loading';
@@ -99,6 +101,8 @@ const ReceiveStatecoinPage = () => {
     setRecAddr(callGetSeAddr(addr_index))
   }
 
+
+
   const receiveButtonAction =() => {
     // if transfer key box empty, then query server for transfer messages
     if(electrumServer){
@@ -111,6 +115,7 @@ const ReceiveStatecoinPage = () => {
             dispatch(setError({msg: "No transfers to receive."}))
           } else {
             dispatch(setNotification({msg:`Received ${nreceived} statecoins.`}))
+            dispatch(addCoins(nreceived))
         }
         if(error !== ""){
           dispatch(setError({msg: `Error receiving statecoins: ${error}`}))
@@ -135,6 +140,7 @@ const ReceiveStatecoinPage = () => {
         let amount = res.payload.state_chain_data.amount
         let locktime = Transaction.fromHex(res.payload.tx_backup_psm.tx_hex).locktime
         dispatch(setNotification({msg:"Transfer of "+fromSatoshi(amount)+" BTC complete! StateCoin expires at block height "+locktime+"."}))
+        dispatch(addCoins(1))
       }
       setTransferKeyLoading(false)
     })

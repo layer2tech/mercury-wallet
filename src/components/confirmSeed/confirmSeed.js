@@ -78,7 +78,7 @@ const ConfirmSeed = (props) => {
 
     // Create wallet and load into Redux state
     try {
-      walletFromMnemonic(props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic)
+      walletFromMnemonic(dispatch, props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic)
       props.history.push('/home')
     } catch (e) {
       event.preventDefault();

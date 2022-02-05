@@ -342,17 +342,19 @@ export class Wallet {
     return wallet;
   }
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
-  async recoverCoinsFromServer(gap_limit: number) {
+  async recoverCoinsFromServer(gap_limit: number): Promise<number> {
     log.info("Recovering StateCoins from server for mnemonic.");
 
     let recoveredCoins = await recoverCoins(this, gap_limit);
-    if (recoveredCoins.length>0) {
+    const n_recovered = recoverCoins.length
+    if (n_recovered>0) {
       log.info("Found "+recoveredCoins.length+" StateCoins. Saving to wallet.");
       this.saveKeys();
-      addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
+      await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
     }
+    return n_recovered
   }
 
   newElectrumClient(){
@@ -1290,7 +1292,7 @@ export class Wallet {
     let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations, this.block_height, null);
 
     // Finalize protocol run by generating new shared key and updating wallet.
-    this.transfer_receiver_finalize(finalize_data);
+    await this.transfer_receiver_finalize(finalize_data);
 
     this.saveStateCoinsList();
     return finalize_data
@@ -1316,14 +1318,13 @@ export class Wallet {
     } else {
       log.info("Transfer finalize error: replica coin")
     }
-    console.log(`statecoin finalized added: ${JSON.stringify(statecoin_finalized)}`)
     return statecoin_finalized
   }
 
   // Query server for any pending transfer messages for the sepcified address index
   // Check for unused proof keys
   async get_transfers(addr_index: number): Promise <string> {
-    log.info("Retriving transfer messages")
+    log.info("Retrieving transfer messages")
     let error_message = ""
     let transfer_data
   

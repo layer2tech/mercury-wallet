@@ -56,7 +56,7 @@ const RestoreWalletPage = (props) => {
     
     // Create wallet and load into Redux state
     try {
-      walletFromMnemonic(state.wallet_name, state.wallet_password, state.mnemonic, true, Number(state.gap_limit));
+      walletFromMnemonic(dispatch, state.wallet_name, state.wallet_password, state.mnemonic, true, Number(state.gap_limit));
       props.history.push('/home');
     } catch (e) {
       dispatch(setError({msg: e.message}));

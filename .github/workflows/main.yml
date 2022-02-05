@@ -14,6 +14,12 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '14'
+      - name: Test testing mode is 'false' in settings.json
+        run: |
+          ps -p $$
+          jq --version
+          MERCURY_WALLET_TESTING_MODE=`jq .testing_mode src/settings.json`
+          if [ $MERCURY_WALLET_TESTING_MODE != false ]; then exit 1; fi
       - run: sed -i -e 's/false/true/g' src/settings.json 
       - run: yarn install
       - run: yarn test
