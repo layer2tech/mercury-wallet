@@ -1,11 +1,14 @@
-import { makeTesterStatecoin } from './test_data.js'
-import { SwapStepResult, SWAP_STATUS } from "../swap/swap_utils";
+import { makeTesterStatecoin, setSwapDetails } from './test_data.js'
+import { SWAP_STATUS } from "../swap/swap_utils";
 import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import { swapPhase0 as swapPhase0Steps } from '../swap/swap.phase0'
+import { POST_ROUTE } from '../http_client';
 
 let bitcoin = require('bitcoinjs-lib')
+
+let cloneDeep = require('lodash.clonedeep');
 
 let walletName = `${MOCK_WALLET_NAME}_swap_phase0_tests`
 
@@ -137,5 +140,30 @@ describe('swapPhase0 test 5 - incorrect statechain_id', () => {
     }
     const output = 'statechain id is invalid';
     await expect(input()).rejects.toThrow(output);
+  })
+})
+
+describe('swapPhase0 test 6 - coin removed from swap pool', () => {
+  // input data ////////////////////////////////////
+  let statecoin = cloneDeep(makeTesterStatecoin())
+  setSwapDetails(statecoin, 0)
+  //////////////////////////////////////////////////
+
+  let wallet = getWallet();
+  
+  wallet.http_client = jest.genMockFromModule('../mocks/mock_http_client');
+
+  wallet.http_client.post = jest.fn((path, body) => {
+    if (path === POST_ROUTE.SWAP_POLL_UTXO) {
+        throw Error("statechain timed out or has not been requested for swap")
+    }
+  })
+
+  it('should throw error', async () => {
+    let swap = new Swap(wallet, statecoin, null, null) 
+    const input = () => {
+      return swapPhase0(swap);
+    }
+    await expect(input()).rejects.toThrow(Error("coin removed from swap pool"));
   })
 })

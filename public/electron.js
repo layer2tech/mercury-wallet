@@ -64,11 +64,16 @@ for(let i=0; i<process.argv.length;i++){
 
 let mainWindow;
 
+let iconPath = undefined;
+if(getPlatform() == 'linux') {
+    iconPath = joinPath( dirname(rootPath), 'mercury-wallet', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
+} 
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    icon: "./public/icons/mercury-symbol-tri-color.png",
+    icon:iconPath.toString(),
     webPreferences:
       {
         nodeIntegration: true,

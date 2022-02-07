@@ -54,10 +54,15 @@ for(let i=0; i<process.argv.length;i++){
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
+let iconPath = undefined;
+if(getPlatform() == 'linux') {
+  iconPath = joinPath( dirname(rootPath), 'mercury-wallet', 'build', 'icons', 'mercury-symbol-tri-color.png');
+} 
+
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({width: 1200, height: 800,
-      icon: "./public/icons/mercury-symbol-tri-color.png",
+      icon: iconPath.toString(),
       webPreferences:
         {
           nodeIntegration: true,

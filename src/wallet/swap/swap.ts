@@ -267,13 +267,17 @@ pollUtxo = async (): Promise<SwapStepResult> => {
       let swap_id = await pollUtxo(this.clients.http_client, 
         {id: this.statecoin.statechain_id});
       if (swap_id.id !== null) {
-        log.info("Swap Phase0: Swap ID received: ", swap_id)
         this.updateStateCoinToPhase1(swap_id)
         return SwapStepResult.Ok()
       } else {
         return SwapStepResult.Retry()
       }
     } catch (err: any) {
+      if(err?.message && err.message.includes(
+        "statechain timed out or has not been requested"
+      )) {
+        throw new Error("coin removed from swap pool")
+      }
        return SwapStepResult.Retry(err.message)
   }
 }
