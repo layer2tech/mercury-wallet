@@ -128,8 +128,17 @@ export default class Swap {
         if (step_result.includes("Incompatible")) {
           alert(step_result.message)
         }
-        if (step_result.includes("punishment")) {
-          alert(step_result.message)
+        if (step_result.includes("not found in swap") || 
+          step_result.includes("timed out") || 
+          step_result.includes("waiting for completion") ||
+          step_result.includes("active swap") || 
+          step_result.includes("punishment")) {
+          //change for punishment
+
+          this.statecoin.setSwapError({
+            msg: step_result.message,
+            error: true
+          })
         }
         await delay_s(SWAP_TIMEOUT.RETRY_DELAY)
       }

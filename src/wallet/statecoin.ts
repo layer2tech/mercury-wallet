@@ -6,7 +6,7 @@ import { ACTION } from ".";
 import { ElectrumTxData } from "../wallet/electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
-import { BatchData, BSTRequestorData, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap_utils";
+import { BatchData, BSTRequestorData, SwapErrorMsg, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap_utils";
 import { SCEAddress, TransferFinalizeData, TransferMsg3 } from "./mercury/transfer";
 
 export class StateCoinList {
@@ -423,6 +423,7 @@ export class StateCoin {
   swap_batch_data: BatchData | null;
   swap_transfer_finalized_data: TransferFinalizeData | null;
   swap_auto: boolean;
+  swap_error: SwapErrorMsg | null;
 
   constructor(shared_key_id: string, shared_key: MasterKey2) {
     this.shared_key_id = shared_key_id;
@@ -468,9 +469,11 @@ export class StateCoin {
     this.swap_batch_data = null;
     this.swap_transfer_finalized_data = null;
     this.swap_auto = false;
+    this.swap_error = null;
   }
 
   setAutoSwap(val: boolean) { this.swap_auto = val }
+  setSwapError(swap_error: SwapErrorMsg){this.swap_error = swap_error}
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
   setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
@@ -529,7 +532,8 @@ export class StateCoin {
       swap_id: (this.swap_info ? this.swap_info.swap_token.id : null),
       swap_status: this.swap_status,
       ui_swap_status: this.ui_swap_status,
-      swap_auto: this.swap_auto
+      swap_auto: this.swap_auto,
+      swap_error: this.swap_error
     }
   };
 
@@ -628,7 +632,8 @@ export class StateCoin {
     this.swap_transfer_msg = null;
     this.swap_batch_data = null;
     this.swap_transfer_finalized_data = null;
-    this.ui_swap_status = null
+    this.ui_swap_status = null;
+    this.swap_error = null;
   }
 
   getTXIdAndOut(): string {
@@ -657,7 +662,8 @@ export interface StateCoinDisplayData {
   swap_id: string | null,
   swap_status: string | null,
   ui_swap_status: string | null,
-  swap_auto: boolean
+  swap_auto: boolean,
+  swap_error: SwapErrorMsg | null
 }
 
 export interface SwapDisplayData {

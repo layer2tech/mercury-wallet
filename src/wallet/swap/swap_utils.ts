@@ -445,6 +445,11 @@ export interface BatchData {
   nonce: Buffer,
 }
 
+export interface SwapErrorMsg {
+  error: boolean,
+  msg: string
+}
+
 export interface SwapStatus {
   Phase0: "Phase0",
   Phase1: "Phase1",
