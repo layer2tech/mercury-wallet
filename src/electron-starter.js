@@ -60,9 +60,7 @@ if(getPlatform() == 'linux') {
 } 
 
 function createWindow() {
-    // Create the browser window.
-    mainWindow = new BrowserWindow({width: 1200, height: 800,
-      icon: iconPath.toString(),
+    let windowSpec = {width: 1200, height: 800,
       webPreferences:
         {
           nodeIntegration: true,
@@ -73,8 +71,14 @@ function createWindow() {
           preload: __dirname + '/preload.js'
         }
       }
-    );
 
+    if (iconPath){
+      windowSpec.icon = iconPath
+    }
+
+    // Create the browser window.
+    mainWindow = new BrowserWindow(windowSpec);
+   
     if (process.platform !== 'darwin') {
       mainWindow.setMenu(null);
     }

@@ -70,7 +70,7 @@ if(getPlatform() == 'linux') {
 } 
 
 function createWindow() {
-  mainWindow = new BrowserWindow({
+  let windowSpec = {
     width: 1200,
     height: 800,
     icon:iconPath.toString(),
@@ -81,7 +81,12 @@ function createWindow() {
         enableRemoteModule: true,
         preload: __dirname + '/preload.js'
       }
-    });
+    }
+  if (iconPath){
+    windowSpec.icon = iconPath
+  }
+
+  mainWindow = new BrowserWindow(windowSpec);
 
     if (process.platform !== 'darwin') {
       mainWindow.setMenu(null);
