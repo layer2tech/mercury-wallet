@@ -140,22 +140,23 @@ export default class Swap {
             error: true
           })
         }
-        await delay_s(SWAP_RETRY.RETRY_DELAY)
+        await delay_s(SWAP_TIMEOUT.RETRY_DELAY)
       }
       return step_result   
     }
 
     incrementRetries = (step_result:SwapStepResult) => {
       let statecoin = this.statecoin
+      //Limit retries if errors are being returned while waiting for swap
       if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) {
+        if(step_result.includes("Waiting for swap to begin")){
           this.n_retries = 0
-          return
+        } else {
+          this.n_retries = this.n_retries + 1
+        }
+        return
       }
       switch (statecoin.swap_status) {
-          case SWAP_STATUS.Phase0: {
-            this.swap0_count++;
-            return
-          }
           //Allow unlimited network errors in phase 4
           case SWAP_STATUS.Phase4: {
             if (!(step_result.message.includes('Network') || 
@@ -178,7 +179,6 @@ export default class Swap {
 
     checkNRetries = () => {
       if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && 
-        this.statecoin.swap_status !== SWAP_STATUS.Phase0 && 
         this.n_retries >= SWAP_RETRY.MAX_REPS_PER_STEP) {
         throw new Error(`Number of tries exceeded in phase ${this.statecoin.swap_status}`)
       }
@@ -196,11 +196,6 @@ export default class Swap {
       let statecoin = this.statecoin
       if (statecoin.status === STATECOIN_STATUS.AVAILABLE) {
         throw new Error("Coin removed from swap pool")
-      }
-      if (statecoin.swap_status === SWAP_STATUS.Phase0) {
-        if (this.swap0_count >= SWAP_RETRY.INIT_RETRY_AFTER) {
-          await this.reset()
-        }
       }
     }
     
@@ -271,20 +266,28 @@ export default class Swap {
   }
 
 
-pollUtxo = async (): Promise<SwapStepResult> => {
+pollUtxoPhase0 = async (): Promise<SwapStepResult> => {
   try {
       let swap_id = await pollUtxo(this.clients.http_client, 
         {id: this.statecoin.statechain_id});
       if (swap_id.id !== null) {
-        log.info("Swap Phase0: Swap ID received: ", swap_id)
         this.updateStateCoinToPhase1(swap_id)
         return SwapStepResult.Ok()
       } else {
-        return SwapStepResult.Retry()
+        return SwapStepResult.Retry("Waiting for swap to begin...")
       }
     } catch (err: any) {
-       return SwapStepResult.Retry(err.message)
+    return this.handlePollUtxoPhase0Err(err)
   }
+}
+
+handlePollUtxoPhase0Err = (err: any) : SwapStepResult =>  {
+  if(err?.message && err.message.includes(
+    "statechain timed out or has not been requested"
+  )) {
+    throw Error("coin removed from swap pool")
+  }
+   return SwapStepResult.Retry(err.message)
 }
 
 updateStateCoinToPhase1 = async (swap_id: any) => {
@@ -591,6 +594,8 @@ updateBlockHeight = async () => {
 }
 
 transferReceiver = async (): Promise<SwapStepResult> => {
+  const tm3_result = await this.getTransferMsg3();
+  if(!tm3_result.is_ok()) return tm3_result;
   try{
     this.updateBlockHeight();
     let transfer_finalized_data = await this.do_transfer_receiver();

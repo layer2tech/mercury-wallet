@@ -1161,7 +1161,13 @@ export class Wallet {
     }
   }
 
-  async updateSpeedInfo() {
+  async updateSpeedInfo(torOnline = true) {
+    if(!torOnline){
+      this.ping_server_ms=null
+      this.ping_conductor_ms = null
+      this.ping_electrum_ms=null
+      return
+    }
     try {
       this.ping_server_ms = await pingServer(this.http_client)
     } catch (err) {

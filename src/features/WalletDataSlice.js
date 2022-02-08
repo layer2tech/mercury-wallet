@@ -11,6 +11,7 @@ import {resetIndex} from '../containers/Receive/Receive'
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
+import {useSelector} from 'react-redux';
 
 
 // eslint-disable-next-line
@@ -25,7 +26,6 @@ try{
 } catch ( e ) {
   log = require('electron-log');
 }
-
 
 export const callGetArgsHasTestnet =  () => {
   let found  = false;
@@ -65,7 +65,8 @@ const initialState = {
   swapRecords: [],
   swapPendingCoins: [],
   coinsAdded: 0,
-  coinsRemoved: 0
+  coinsRemoved: 0,
+  torInfo: { online: false }
 }
 
 // Check if a wallet is loaded in memory
@@ -93,50 +94,34 @@ export const getWalletName = () => {
 }
 
 //Restart the electrum server if ping fails
-async function pingElectrumRestart() {
+async function pingElectrumRestart(force = false) {
     //If client already started
-    if (!wallet.electrum_client || !wallet.ping_electrum_ms) {
-        log.info(`Failed to ping electum server. Restarting client`);
-        wallet.electrum_client.close().catch( (err) => {
-        log.info(`Failed to close electrum client: ${err}`)
-      });
-    } 
-    if (!wallet.electrum_client || await wallet.electrum_client.isClosed()){
-      log.info(`Electrum connection closed - attempting to reopen`);
+    if (force || !wallet.electrum_client || await wallet.electrum_client.isClosed()) {
+      log.info(`Restarting electrum server`);
+      if(wallet.electrum_client){
+        wallet.electrum_client.unsubscribeAll()
+        wallet.electrum_client = null
+      }
       mutex.runExclusive(async () => {
-          wallet.electrum_client = wallet.newElectrumClient();
-          try{
-            wallet.initElectrumClient(setBlockHeightCallBack);
-          } catch(err){
-              log.info(`Failed to initialize electrum client: ${err}`);
+        wallet.electrum_client = wallet.newElectrumClient();
+        try{
+          wallet.initElectrumClient(setBlockHeightCallBack);
+        } catch(err){
+            log.info(`Failed to initialize electrum client: ${err}`);
           }
       });
     }
 }
 
 // Keep electrum server connection alive.
-
-export async function callPingElectrum(){
-  return wallet.electrum_client.latestBlockHeader()
-}
-
-setInterval(async function() {
-  //Restart server if connection lost
-  await pingElectrumRestart().catch((err) => {
+export async function callPingElectrumRestart(force = false){
+  try {
+    await pingElectrumRestart(force)
+    return wallet.electrum_client.latestBlockHeader()  
+  } catch (err) {
     log.info(`Failed to restart electum server: ${err}`);
-  });
-}, 30000);
-
-// update backuptx status and broadcast if necessary
-setInterval(async function() {
-    if (wallet) {
-      //Exit the loop if the server cannot be pinged
-      if (wallet.electrum_client.ping() === false) {
-        log.info(`Failed to ping electum server`);
-        return;
-      }
-    }
-  }, 60000);
+  }
+}
 
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
@@ -493,7 +478,7 @@ export const callUpdateTorCircuit = createAsyncThunk(
 export const callUpdateSpeedInfo = createAsyncThunk(
   'UpdateSpeedInfo',
   async (action, thunkAPI) => {
-    wallet.updateSpeedInfo();
+    wallet.updateSpeedInfo(action.torOnline);
   }
 )
 export const callUpdateSwapStatus = createAsyncThunk(
@@ -535,6 +520,12 @@ const WalletSlice = createSlice({
   name: 'walletData',
   initialState,
   reducers: {
+    setTorOnline(state, action){
+      return {
+        ...state,
+        torInfo: { online: action.payload }
+      }
+    },
     addCoins(state, action){
       return {
         ...state,
@@ -739,7 +730,7 @@ const WalletSlice = createSlice({
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin, 
-  updateTxFeeEstimate, addCoins, removeCoins } = WalletSlice.actions
+  updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
   export default WalletSlice.reducer
 
 
