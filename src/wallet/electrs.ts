@@ -209,7 +209,7 @@ export class ElectrsClient {
       async(cb, ep) => {
         try{
           await this.getLatestBlock(cb, ep)
-        } catch(err) {
+        } catch(err: any) {
           const err_str = err?.message
           if (err_str && err_str.includes('Network Error')){
             this.blockHeightUnsubscribe()
