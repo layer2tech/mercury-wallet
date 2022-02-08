@@ -73,7 +73,6 @@ function createWindow() {
   let windowSpec = {
     width: 1200,
     height: 800,
-    icon:iconPath.toString(),
     webPreferences:
       {
         nodeIntegration: true,
