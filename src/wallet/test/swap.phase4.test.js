@@ -261,6 +261,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
    
     let updated_statecoin = cloneDeep(statecoin)
     updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
+    updated_statecoin.swap_error = {error: true, msg: "statecoin c93ad45a-00b9-449c-a804-aab5530efc90 waiting for completion of batch transfer in swap ID a swap id"}
     const UPDATED_STATECOIN = cloneDeep(updated_statecoin)
   
     let valid_phases = [SWAP_STATUS.Phase4, null]
@@ -288,6 +289,11 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
       let swap = new Swap(wallet, statecoin, null, null) 
 
       let result = await swapPhase4(swap)
+
+      console.log('statecoin: ', statecoin)
+      console.log('updated statecoin: ', UPDATED_STATECOIN)
+
+
       expect(result.is_ok()).toEqual(false)
       expect(result.message).toEqual(`statecoin ${statecoin.shared_key_id} waiting for completion of batch transfer in swap ID ${statecoin.swap_id.id}`)
       expect(statecoin).toEqual(UPDATED_STATECOIN)
@@ -762,6 +768,7 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
    
     let updated_statecoin = cloneDeep(statecoin)
     updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
+    updated_statecoin.swap_error = {error: true, msg: "statecoin c93ad45a-00b9-449c-a804-aab5530efc90 waiting for completion of batch transfer in swap ID a swap id"}
     const UPDATED_STATECOIN = cloneDeep(updated_statecoin)
   
     let valid_phases = [SWAP_STATUS.Phase4, null]
@@ -800,6 +807,8 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
    
     let updated_statecoin = cloneDeep(statecoin)
     updated_statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8
+    updated_statecoin.swap_error = {error: true, msg: "statecoin c93ad45a-00b9-449c-a804-aab5530efc90 waiting for completion of batch transfer in swap ID a swap id"}
+    
     const UPDATED_STATECOIN = cloneDeep(updated_statecoin)
   
       http_mock.post = jest.fn((path, body) => {
