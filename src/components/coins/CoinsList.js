@@ -97,7 +97,7 @@ const CoinsList = (props) => {
     
     const {selectedCoins, isMainPage, swap} = props;
     const dispatch = useDispatch();
-    const { filterBy, swapPendingCoins, coinsAdded, coinsRemoved } = useSelector(state => state.walletData);
+    const { filterBy, swapPendingCoins, coinsAdded, coinsRemoved, torInfo} = useSelector(state => state.walletData);
     const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
     const [coins, setCoins] = useState(INITIAL_COINS);
     const [initCoins, setInitCoins] = useState({});
@@ -162,7 +162,7 @@ const CoinsList = (props) => {
     } 
 
     const validExpiryTime = (expiry_data) => {
-      let block_height = callGetBlockHeight()
+      let block_height = torInfo.online ? callGetBlockHeight() : undefined
 
       if(block_height === 0 || expiry_data.block === 0 || !block_height){
         // set its actual block to 0 so next time we can return  '--' until an actual block is received
@@ -552,7 +552,7 @@ const CoinsList = (props) => {
               filterBy = { filterBy }
               getAddress = { getAddress }
               displayExpiryTime = { displayExpiryTime }
-              handleAutoSwap = { props.handleAutoSwap }
+              handleAutoSwap= { props.handleAutoSwap }
               render = {props.render ? (props.render) : null} />
           )
         })}

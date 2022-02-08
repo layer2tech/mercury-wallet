@@ -147,6 +147,40 @@ describe('swapPhase0 test 6 - coin removed from swap pool', () => {
   // input data ////////////////////////////////////
   let statecoin = cloneDeep(makeTesterStatecoin())
   setSwapDetails(statecoin, 0)
+  const initStatecoin = cloneDeep(statecoin)
+  let final_statecoin = cloneDeep(statecoin)
+  setSwapDetails(final_statecoin, 1)
+  //////////////////////////////////////////////////
+
+  let wallet = getWallet();
+  
+  wallet.http_client = jest.genMockFromModule('../mocks/mock_http_client');
+
+  const post_err = Error("statechain timed out or has not been requested for swap")
+  const swap_err = Error("coin removed from swap pool")
+
+  wallet.http_client.post = jest.fn((path, body) => {
+    if (path === POST_ROUTE.SWAP_POLL_UTXO) {
+        throw post_err
+    }
+  })
+
+ it('swap Phase 0 should throw error', async () => {
+    let swap = new Swap(wallet, statecoin, null, null) 
+    const input = () => {
+      return swapPhase0(swap);
+    }
+    await expect(input()).rejects.toThrow(swap_err);
+  })
+})
+
+describe('swapPhase0 test 7 - waiting for swap to begin...', () => {
+  // input data ////////////////////////////////////
+  let statecoin = cloneDeep(makeTesterStatecoin())
+  setSwapDetails(statecoin, 0)
+  const initStatecoin = cloneDeep(statecoin)
+  let final_statecoin = cloneDeep(statecoin)
+  setSwapDetails(final_statecoin, 1)
   //////////////////////////////////////////////////
 
   let wallet = getWallet();
@@ -155,15 +189,50 @@ describe('swapPhase0 test 6 - coin removed from swap pool', () => {
 
   wallet.http_client.post = jest.fn((path, body) => {
     if (path === POST_ROUTE.SWAP_POLL_UTXO) {
-        throw Error("statechain timed out or has not been requested for swap")
+      return { id: null }
     }
   })
 
-  it('should throw error', async () => {
+  it('swap Phase 0 should remain in phase 0 and not increment the n_retries counter', async () => {
+    let swap = new Swap(wallet, statecoin, null, null) 
+    expect(swap.n_retries).toEqual(0)
+    const input = () => {
+      return swapPhase0(swap);
+    }
+    let result = await input()
+    expect(result.is_ok()).toEqual(false)
+    expect(result.includes("Waiting for swap to begin..."))
+    expect(swap.n_retries).toEqual(0)
+  })
+})
+
+describe('swapPhase0 test 8 - proceed to phase 1', () => {
+  // input data ////////////////////////////////////
+  let statecoin = cloneDeep(makeTesterStatecoin())
+  setSwapDetails(statecoin, 0)
+  const initStatecoin = cloneDeep(statecoin)
+  let final_statecoin = cloneDeep(statecoin)
+  setSwapDetails(final_statecoin, 1)
+  //////////////////////////////////////////////////
+
+  let wallet = getWallet();
+  
+  wallet.http_client = jest.genMockFromModule('../mocks/mock_http_client');
+
+  wallet.http_client.post = jest.fn((path, body) => {
+    if (path === POST_ROUTE.SWAP_POLL_UTXO) {
+      return final_statecoin.swap_id
+    }
+  })
+
+  it('swap Phase 0 should proceed to phase 1', async () => {
     let swap = new Swap(wallet, statecoin, null, null) 
     const input = () => {
       return swapPhase0(swap);
     }
-    await expect(input()).rejects.toThrow(Error("coin removed from swap pool"));
+    let result = await input()
+    expect(result.is_ok()).toEqual(true)
+    expect(statecoin).toEqual(final_statecoin)
   })
 })
+

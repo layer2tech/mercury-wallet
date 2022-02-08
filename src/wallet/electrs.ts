@@ -48,6 +48,8 @@ export class ElectrsClient {
   scriptIntervals: Map<string,any>
   scriptStatus: Map<string,any>
   blockHeightLatest: any
+  block_height_interval: any
+  script_hash_subscriptions: string[]
   
   constructor(endpoint: string, is_tor = true){
     this.endpoint = endpoint
@@ -55,6 +57,8 @@ export class ElectrsClient {
     this.scriptIntervals = new Map()
     this.scriptStatus = new Map()
     this.blockHeightLatest = 0
+    this.script_hash_subscriptions = []
+    this.block_height_interval = null
   }
 
   async new_tor_id() {
@@ -169,24 +173,22 @@ export class ElectrsClient {
   async getLatestBlock(callBack: any, endpoint: string): Promise<any> {
     //this.connect()
     try{
-    let blockHeight = await ElectrsClient.get(endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
-    if (this.blockHeightLatest != blockHeight){
-      this.blockHeightLatest = blockHeight
-      callBack([{"height":blockHeight}])
-    }
-    return blockHeight
+      let blockHeight = await ElectrsClient.get(endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
+      if (this.blockHeightLatest != blockHeight){
+        this.blockHeightLatest = blockHeight
+        callBack([{"height":blockHeight}])
+      }
+      return blockHeight
     } catch(err: any) {
       this.blockHeightLatest = null
       callBack([{"height":null}])
       let err_str = typeof err === 'string' ? err : err?.message
-      if (err_str && err_str.includes('Network Error')){
-        return null
-      }
       throw err
     }
   }
 
-  async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
+  scriptHashSubscribe(script: string, callBack: any): any {
+    this.script_hash_subscriptions.push(script)
     let scriptHash = ElectrsClient.scriptToScriptHash(script)
     if ( this.scriptIntervals.has(scriptHash) ){
       throw new ElectrsClientError(`already subscribed to script: [${scriptHash}]`)
@@ -196,17 +198,37 @@ export class ElectrsClient {
     return timer
   }
 
-  async scriptHashUnsubscribe(script: string) {
+  scriptHashUnsubscribe(script: string) {
     let scriptHash = ElectrsClient.scriptToScriptHash(script)
     clearInterval(this.scriptIntervals.get(scriptHash))
   }
 
-  async blockHeightSubscribe(callBack: any): Promise<any> {
-    return setInterval(
-      (cb, ep) => {
-        this.getLatestBlock(cb, ep)
+  blockHeightSubscribe(callBack: any) {
+    if(this.block_height_interval) return;
+    this.block_height_interval = setInterval(
+      async(cb, ep) => {
+        try{
+          await this.getLatestBlock(cb, ep)
+        } catch(err) {
+          const err_str = err?.message
+          if (err_str && err_str.includes('Network Error')){
+            this.blockHeightUnsubscribe()
+          }          
+          throw err
+        }
       }, 
       10000, callBack, this.endpoint)
+  }
+
+  blockHeightUnsubscribe() {
+    clearInterval(this.block_height_interval)
+  }
+
+  unsubscribeAll() {
+    this.blockHeightUnsubscribe()
+    this.scriptIntervals.forEach (function(value, _key) {
+     clearInterval(value)
+    })
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {

@@ -7,24 +7,16 @@
     CHECK - why clicking new circuit is not always instant -> async
 */
 
-import React,  {useEffect, useState} from 'react'
+import React,  {useEffect, useState, useSelector} from 'react'
 import {useDispatch} from 'react-redux';
-import { callGetNewTorId, callGetTorcircuitInfo, callUpdateTorCircuit } from '../../../features/WalletDataSlice';
+import { callGetNewTorId, callGetTorcircuitInfo, callUpdateTorCircuit, 
+    setTorOnline, callGetConfig } from '../../../features/WalletDataSlice';
 import './torCircuit.css'
 import TorCircuitNode from './TorCircuitNode'
-import {callGetConfig} from '../../../features/WalletDataSlice'
 import {defaultWalletConfig} from '../../../containers/Settings/Settings'
-import { Loading } from '../..';
 
 
 const TorCircuit = (props) => {
-
-    const dispatch = useDispatch();
-
-    const [torLoaded, setTorLoaded] = useState(false);
-    const [torcircuitData, setTorcircuitData] = useState([]);
-    // const [loading, setLoading] = useState(false)
-
     let current_config;
     try {
       current_config = callGetConfig();
@@ -32,12 +24,18 @@ const TorCircuit = (props) => {
       current_config = defaultWalletConfig()
     }
 
+    const dispatch = useDispatch();
+    const [torcircuitData, setTorcircuitData] = useState([]);
+    const [torLoaded, setTorLoaded] = useState(false);
+
 
     const getTorCircuitInfo = () => {
         dispatch(callUpdateTorCircuit());
         let torcircuit_data = callGetTorcircuitInfo();
         let torcircuit_array = torcircuit_data ? torcircuit_data : [];
-        setTorLoaded(torcircuit_data.length > 0)
+        const loaded = (torcircuit_data.length > 0)
+        setTorLoaded(loaded)
+        dispatch(setTorOnline(loaded))
         setTorcircuitData(torcircuit_array);
     }
 
@@ -48,23 +46,13 @@ const TorCircuit = (props) => {
         return () => {
             clearInterval(interval);
         }
-    }, [dispatch, torLoaded]);
+    }, [dispatch]);
     
-    // useEffect(() => {
-    //     if(loading === true){
-    //         const interval = setInterval(() => {
-    //             setLoading(false)
-    //         }, 3000);
-    //         return () => clearInterval(interval);
-    //     }
-    // }, [torcircuitData]);
-
     const newCircuit = () => {
         dispatch(callGetNewTorId()).then(() => {
             getTorCircuitInfo();
         });
     }
-
 
     function shortenURL(url){
         let shortURL = ""
