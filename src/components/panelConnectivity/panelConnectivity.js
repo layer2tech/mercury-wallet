@@ -10,6 +10,15 @@ import './panelConnectivity.css';
 import '../index.css';
 import RadioButton from './RadioButton';
 
+// Logger import.
+// Node friendly importing required for Jest tests.
+let log;
+try {
+  log = window.require('electron-log');
+} catch (_e) {
+  log = require('electron-log');
+}
+
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();
   // Arrow down state and url hover state
@@ -18,6 +27,7 @@ const PanelConnectivity = (props) => {
 
 
   const fee_info = useSelector(state => state.walletData).fee_info;
+  const torInfo = useSelector(state => state.walletData).torInfo;
   const [block_height, setBlockHeight] = useState(callGetBlockHeight());
   
   const [server_ping_ms, setServerPingMs] = useState(callGetPingServerms());
@@ -31,32 +41,39 @@ const PanelConnectivity = (props) => {
   let participants = swap_groups_array.reduce((acc,item)=> acc+item[1].number,0)
   let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1].number * item[0].amount),0);
 
+  const updateSpeedInfo = () => {
+    dispatch(callUpdateSpeedInfo({ torOnline: torInfo.online }));
+    if(server_ping_ms !== callGetPingServerms()){
+      setServerPingMs(callGetPingServerms())
+    }
+    if(conductor_ping_ms !== callGetPingConductorms()){
+      setConductorPingMs(callGetPingConductorms())
+    }
+    if(electrum_ping_ms !== callGetPingElectrumms()){
+      setElectrumPingMs(callGetPingElectrumms())
+    }
+  }
+
   // every 30s check speed
   useEffect(() => {
+    updateSpeedInfo()
     const interval = setInterval(() => {
-        dispatch(callUpdateSpeedInfo());
-        if(server_ping_ms !== callGetPingServerms()){
-            setServerPingMs(callGetPingServerms())
-        }
-        if(conductor_ping_ms !== callGetPingConductorms()){
-            setConductorPingMs(callGetPingConductorms())
-        }
-        if(electrum_ping_ms !== callGetPingElectrumms()){
-            setElectrumPingMs(callGetPingElectrumms())
-        }
+      updateSpeedInfo()
     }, 30000);
     return () => clearInterval(interval);
-    }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch]);
+    }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch, torInfo.online]);
 
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
-      const interval = setInterval(() => {
-          if(block_height !== callGetBlockHeight()){
-            setBlockHeight(callGetBlockHeight());
+      const interval = setInterval(async () => {
+          if(torInfo.online !== true){
+            setBlockHeight(null)
+            return
           }
+          setBlockHeight(await callGetBlockHeight());          
       }, 500);
       return () => clearInterval(interval);
-  }, [block_height]);
+  }, [block_height, torInfo.online]);
 
   useEffect(() => {
     //Displaying connecting spinners

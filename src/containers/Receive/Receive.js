@@ -1,13 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
-import {useDispatch} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
 
 import {StdButton, AddressInput, CopiedButton} from "../../components";
 import QRCode from 'qrcode.react';
 
 import {isWalletLoaded, callNewSeAddr, callGetSeAddr, callGetNumSeAddr, 
   callTransferReceiver, callGetTransfers, setError, setNotification, 
-  callPingElectrum, addCoins } from '../../features/WalletDataSlice'
+  callPingElectrumRestart, addCoins } from '../../features/WalletDataSlice'
 import {fromSatoshi} from '../../wallet'
 
 import Loading from '../../components/Loading/Loading';
@@ -28,6 +28,15 @@ export const resetIndex = () => {
   addr_index = -1;
 }
 
+// Logger import.
+// Node friendly importing required for Jest tests.
+let log;
+try {
+  log = window.require('electron-log');
+} catch (_e) {
+  log = require('electron-log');
+}
+
 const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
 
@@ -37,6 +46,7 @@ const ReceiveStatecoinPage = () => {
   const [transferLoading,setTransferLoading] = useState(false)
   const [transferKeyLoading,setTransferKeyLoading] = useState(false)
   const [counter,setCounter] = useState(0)
+  const torInfo = useSelector(state => state.walletData).torInfo
 
   const onTransferMsg3Change = (event) => {
     setTransferMsg3(event.target.value);
@@ -62,13 +72,14 @@ const ReceiveStatecoinPage = () => {
   },[counter])
 
   const checkElectrum = () => {
-      callPingElectrum().then((res) => {
-      if(res.height){
-        setElectrumServer(true)
-      }
-    }).catch((err)=> {
-      setElectrumServer(false)
-    })
+      callPingElectrumRestart(!torInfo.online).then((res) => {
+        if(res.height){
+          setElectrumServer(true)
+        }
+      }).catch((err)=> {
+        log.error(err)
+        setElectrumServer(false)
+      })
   }
   
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.

@@ -13,7 +13,7 @@ export function swapPhase0(swap: Swap): SwapStep[] {
                 swap.statecoin.statechain_id === undefined) throw Error("statechain id is invalid");
               return true
             },
-            swap.pollUtxo
+            swap.pollUtxoPhase0
           )
     ]
 }

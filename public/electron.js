@@ -64,11 +64,15 @@ for(let i=0; i<process.argv.length;i++){
 
 let mainWindow;
 
+let iconPath = undefined;
+if(getPlatform() == 'linux') {
+    iconPath = joinPath( dirname(rootPath), 'mercury-wallet', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
+} 
+
 function createWindow() {
-  mainWindow = new BrowserWindow({
+  let windowSpec = {
     width: 1200,
     height: 800,
-    icon: "./public/icons/mercury-symbol-tri-color.png",
     webPreferences:
       {
         nodeIntegration: true,
@@ -76,7 +80,12 @@ function createWindow() {
         enableRemoteModule: true,
         preload: __dirname + '/preload.js'
       }
-    });
+    }
+  if (iconPath){
+    windowSpec.icon = iconPath
+  }
+
+  mainWindow = new BrowserWindow(windowSpec);
 
     if (process.platform !== 'darwin') {
       mainWindow.setMenu(null);
