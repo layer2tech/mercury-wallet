@@ -199,15 +199,6 @@ export default class Swap {
       }
     }
     
-    reset = async () => {
-      let statecoin = this.statecoin
-      await swapDeregisterUtxo(this.clients.http_client, { id: statecoin.statechain_id });
-      statecoin.setSwapDataToNull();
-      statecoin.swap_status = SWAP_STATUS.Init;
-      statecoin.setAwaitingSwap();
-      this.resetCounters()
-    }
-    
     resetCounters = () => {
       this.resetRetryCounters()
       this.next_step=this.get_next_step_from_swap_status()

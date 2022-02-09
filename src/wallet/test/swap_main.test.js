@@ -350,7 +350,7 @@ describe('Deregister statecoin', function () {
     let phase1Statecoin = cloneDeep(statecoin)
     let result = true
     try{
-      wallet.checkRemoveCoinFromSwap(statecoin.shared_key_id)
+      wallet.statecoins.checkRemoveCoinFromSwap(statecoin.shared_key_id)
     } catch (err) {
       expect(err?.message).toEqual("Swap already begun. Cannot remove coin.")
       result = false
@@ -363,7 +363,7 @@ describe('Deregister statecoin', function () {
     statecoin.status = STATECOIN_STATUS.AVAILABLE
     const availableStatecoin = cloneDeep(statecoin)
     try{
-      wallet.checkRemoveCoinFromSwap(statecoin.shared_key_id)
+      wallet.statecoins.checkRemoveCoinFromSwap(statecoin.shared_key_id)
     } catch (err) {
       expect(err?.message).toEqual("Coin is not in a swap pool.")
       result = false
@@ -377,7 +377,7 @@ describe('Deregister statecoin', function () {
     statecoin.swap_status = SWAP_STATUS.Phase4
     let phase4Statecoin = cloneDeep(statecoin)
     try{
-      wallet.checkRemoveCoinFromSwap(statecoin.shared_key_id)
+      wallet.statecoins.checkRemoveCoinFromSwap(statecoin.shared_key_id)
     } catch (err) {
       expect(err?.message).toEqual(`Coin ${statecoin.shared_key_id} is in swap phase 4. Cannot remove coin.`)
       result = false
@@ -390,7 +390,7 @@ describe('Deregister statecoin', function () {
     result = true
     const wrong_id = "wrong_id"
     try{
-      wallet.checkRemoveCoinFromSwap(wrong_id)
+      wallet.statecoins.checkRemoveCoinFromSwap(wrong_id)
     } catch (err) {
       expect(err?.message).toEqual("No coin found with shared_key_id " + wrong_id)
       result = false
@@ -403,7 +403,7 @@ describe('Deregister statecoin', function () {
     let statecoin = wallet.statecoins.coins[0]
     let phase0Statecoin = cloneDeep(statecoin)
     let result
-    await expect(result = wallet.checkRemoveCoinFromSwap(statecoin.shared_key_id)).resolves
+    await expect(result = wallet.statecoins.checkRemoveCoinFromSwap(statecoin.shared_key_id)).resolves
     expect(result).toEqual(statecoin)
     expect(statecoin).toEqual(phase0Statecoin)
   })
