@@ -1017,42 +1017,52 @@ export class Wallet {
 
 
   removeCoinFromSwap(
-    shared_key_id: string
+    shared_key_id: string,
   ) {
-    let statecoin = this.statecoins.getCoin(shared_key_id)
-    if (statecoin) {
-
-      if (statecoin.status===STATECOIN_STATUS.IN_SWAP ) throw Error("Swap already begun. Cannot remove coin.");
-      if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
-      if(statecoin.swap_status === SWAP_STATUS.Phase4){
-        throw new Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Cannot remove coin.`)
-      }
-      statecoin.setConfirmed();
-      statecoin.swap_status = null;
-      statecoin.swap_id = null;
-      statecoin.swap_address = null;
-      statecoin.swap_info = null;
-      statecoin.swap_my_bst_data = null;
-      statecoin.swap_receiver_addr = null;
-      statecoin.swap_transfer_msg = null;
-      statecoin.swap_batch_data = null;
-      statecoin.swap_transfer_finalized_data = null;
-      statecoin.ui_swap_status = null
-      this.saveStateCoinsList()
-    } else {
-      throw Error("No coin found with shared_key_id " + shared_key_id);
-    }
-
+    this.removeCoinFromSwapUnchecked(
+      this.checkRemoveCoinFromSwap(shared_key_id))
   }
   // De register coin from swap on server and set statecoin swap data to null
   async deRegisterSwapCoin(
-    httpClient: HttpClient | MockHttpClient,
-    statecoin: StateCoin,
-  ) {
-    await swapDeregisterUtxo(httpClient, {id: statecoin.statechain_id});
-    this.removeCoinFromSwap(statecoin.shared_key_id);
-    // reset swap data
-    // if in a swap or awaiting swap this throws err
+    statecoin: StateCoin
+  ): Promise<void> {
+    //Check if statecoin may be removed from swap
+    statecoin = this.checkRemoveCoinFromSwap(statecoin.shared_key_id);
+    console.log(`swapDeregisterUtxo...`)
+    await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
+    //Reset swap data if the coin was deregistered successfully
+    this.removeCoinFromSwapUnchecked(statecoin);
+  }
+
+  checkRemoveCoinFromSwap(shared_key_id: string): StateCoin{
+    console.log(`checkRemoveCoinFromSwap...`)
+    let statecoin = this.statecoins.getCoin(shared_key_id)
+    if (statecoin) {
+      if (statecoin.status===STATECOIN_STATUS.IN_SWAP ) throw Error("Swap already begun. Cannot remove coin.");
+      if (statecoin.status!==STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin is not in a swap pool.");
+      if(statecoin.swap_status === SWAP_STATUS.Phase4){
+        throw Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Cannot remove coin.`)
+      }
+      return statecoin
+    } else {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+  }
+
+  removeCoinFromSwapUnchecked(statecoin: StateCoin) {
+    console.log(`remove coin from swap unchecked...`)
+    statecoin.setConfirmed();
+    statecoin.swap_status = null;
+    statecoin.swap_id = null;
+    statecoin.swap_address = null;
+    statecoin.swap_info = null;
+    statecoin.swap_my_bst_data = null;
+    statecoin.swap_receiver_addr = null;
+    statecoin.swap_transfer_msg = null;
+    statecoin.swap_batch_data = null;
+    statecoin.swap_transfer_finalized_data = null;
+    statecoin.ui_swap_status = null
+    this.saveStateCoinsList()
   }
 
   // Perform do_swap
@@ -1075,7 +1085,7 @@ export class Wallet {
             }
           });
           
-          await this.deRegisterSwapCoin(this.http_client,statecoin)
+          await this.deRegisterSwapCoin(statecoin)
 
         } catch(e : any){
           if (! e.message.includes("Coin is not in a swap pool")){

@@ -290,9 +290,10 @@ handlePollUtxoPhase0Err = (err: any) : SwapStepResult =>  {
    return SwapStepResult.Retry(err.message)
 }
 
-updateStateCoinToPhase1 = async (swap_id: any) => {
+updateStateCoinToPhase1 = (swap_id: any) => {
     let statecoin = this.statecoin
     statecoin.swap_id = swap_id
+    statecoin.setInSwap()
     statecoin.swap_status = SWAP_STATUS.Phase1;
     statecoin.ui_swap_status = UI_SWAP_STATUS.Phase1;
 }
@@ -356,7 +357,6 @@ loadSwapInfo = async ():Promise<SwapStepResult> => {
     } 
     typeforce(types.SwapInfo, swap_info);
     this.statecoin.swap_info = swap_info;
-    this.statecoin.setInSwap();
     return SwapStepResult.Ok(`swap info received`)
   } catch (err: any) {
     return SwapStepResult.Retry(err.message)

@@ -490,13 +490,12 @@ export const callUpdateSwapStatus = createAsyncThunk(
 export const callSwapDeregisterUtxo = createAsyncThunk(
   'SwapDeregisterUtxo',
   async (action, thunkAPI) => {
-    let statecoin = wallet.statecoins.getCoin(action.shared_key_id)
-    let statechain_id = statecoin.statechain_id
-    await swapDeregisterUtxo(wallet.http_client, {id: statechain_id});
+    let statecoin = this.statecoins.getCoin(action.shared_key_id)
+    if(!statecoin) throw Error(`callSwapDeregisterUtxo: statecoin with shared key id ${action.shared_key_id} not found`)
     try{  
-      wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
+      await wallet.deRegisterSwapCoin(statecoin) 
     } catch(e) {
-      if(e?.message.includes("Cannot remove coin.")){
+      if(e?.message.includes("Cannot remove coin")){
         if(action?.autoswap === true){
           action.dispatch(setNotification({msg: `Deactivated auto-swap for coin: ${statecoin.getTXIdAndOut()}.`}))
         } else {
