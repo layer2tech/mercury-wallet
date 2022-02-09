@@ -490,7 +490,7 @@ export const callUpdateSwapStatus = createAsyncThunk(
 export const callSwapDeregisterUtxo = createAsyncThunk(
   'SwapDeregisterUtxo',
   async (action, thunkAPI) => {
-    let statecoin = this.statecoins.getCoin(action.shared_key_id)
+    let statecoin = wallet.statecoins.getCoin(action.shared_key_id)
     if(!statecoin) throw Error(`callSwapDeregisterUtxo: statecoin with shared key id ${action.shared_key_id} not found`)
     try{  
       await wallet.deRegisterSwapCoin(statecoin) 
