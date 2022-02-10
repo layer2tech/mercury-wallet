@@ -80,18 +80,18 @@ describe('Swap Checks', function () {
     let statecoin = wallet.statecoins.coins[0]
     statecoin.status = STATECOIN_STATUS.AVAILABLE
     let swap = new Swap(wallet, statecoin)
-    await expect(swap.checkSwapLoopStatus()).rejects.toThrow(Error("Coin removed from swap pool"))
+    expect(() => {swap.checkSwapLoopStatus()}).toThrow(Error("Coin removed from swap pool"))
 
     setSwapDetails(statecoin, 0)
     let statecoin_expected = cloneDeep(statecoin)
-    await expect(swap.checkSwapLoopStatus()).resolves
+    swap.checkSwapLoopStatus()
     expect(statecoin).toStrictEqual(statecoin_expected)
 
     //Expect statecoin swap status to be reset after 
     // SWAP_RETRY.INIT_RETRY_AFTER retries in phase 0
     swap.swap0_count = SWAP_RETRY.INIT_RETRY_AFTER
     setSwapDetails(statecoin_expected, 0)
-    await expect(swap.checkSwapLoopStatus()).resolves
+    swap.checkSwapLoopStatus()
     expect(swap.statecoin).toStrictEqual(statecoin_expected)
   })
 
@@ -246,6 +246,33 @@ describe('swapToken', function () {
         expect(batch_data.commitment).toBe(data.batch_data.commitment);
       })
     });
+  })
+
+  test('swapPhase4HandleErrPollSwap', async function() {
+    let wallet = getWallet()
+    let statecoin = wallet.statecoins.coins[0]
+    let swap = new Swap(wallet, statecoin)
+
+    http_mock.post = jest.fn((path, body) => {
+      if(path === POST_ROUTE.SWAP_POLL_SWAP){
+        throw Error(`post:${path}:${body}`)
+      }
+    })
+    const swap_id = "a_swap_id"
+    swap.statecoin.swap_id=cloneDeep(swap_id)
+    let result = await swap.swapPhase4HandleErrPollSwap()
+    expect(result.is_ok()).toEqual(false)
+    expect(result.message).toEqual(`post:${POST_ROUTE.SWAP_POLL_SWAP}:${swap_id}`)
+
+    http_mock.post = jest.fn((path, body) => {
+      if(path === POST_ROUTE.SWAP_POLL_SWAP){
+        return null
+      }
+    })
+    result = await swap.swapPhase4HandleErrPollSwap()
+    expect(result.is_ok()).toEqual(true)
+    expect(result.message).toEqual(null)
+
   })
 });
 
