@@ -298,26 +298,20 @@ export class StateCoinList {
     }
   }
 
-  removeCoinFromSwap(shared_key_id: string, force: boolean = false) {
-    this.removeCoinFromSwapUnchecked(
-      this.checkRemoveCoinFromSwap(shared_key_id, force)
+  removeCoinFromSwapPool(shared_key_id: string, force: boolean = false) {
+    this.removeCoinFromSwapPoolUnchecked(
+      this.checkRemoveCoinFromSwapPool(shared_key_id, force)
     )
   }
 
-  removeCoinFromSwapUnchecked(coin: StateCoin) {
+  removeCoinFromSwapPoolUnchecked(coin: StateCoin) {
     coin.setSwapDataToNull()
   }
 
-  checkRemoveCoinFromSwap(shared_key_id: string, force: boolean = false): StateCoin {
+  checkRemoveCoinFromSwapPool(shared_key_id: string, force: boolean = false): StateCoin {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
-      if (coin.status === STATECOIN_STATUS.IN_SWAP) {
-        throw Error(`Swap already begun. Cannot remove coin.`);
-      }
       if (coin.status !== STATECOIN_STATUS.AWAITING_SWAP) throw Error(`Coin is not in a swap pool.`);
-      if (!force && coin.swap_status === SWAP_STATUS.Phase4) {
-        throw new Error(`Coin ${coin.shared_key_id} is in swap phase 4. Cannot remove coin.`)
-      }
       return coin
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);

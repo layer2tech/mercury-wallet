@@ -1021,14 +1021,14 @@ export class Wallet {
     force: boolean = false
   ): Promise<void> {
     //Check if statecoin may be removed from swap
-    statecoin = this.statecoins.checkRemoveCoinFromSwap(statecoin.shared_key_id, force);
+    statecoin = this.statecoins.checkRemoveCoinFromSwapPool(statecoin.shared_key_id, force);
     await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
     //Reset swap data if the coin was deregistered successfully
-    this.removeCoinFromSwap(statecoin.shared_key_id, force);
+    this.removeCoinFromSwapPool(statecoin.shared_key_id, force);
   }
 
-  removeCoinFromSwap(shared_key_id: string, force: boolean = false){
-    this.statecoins.removeCoinFromSwap(shared_key_id, force);
+  removeCoinFromSwapPool(shared_key_id: string, force: boolean = false){
+    this.statecoins.removeCoinFromSwapPool(shared_key_id, force);
     this.saveStateCoinsList()
   }
 
