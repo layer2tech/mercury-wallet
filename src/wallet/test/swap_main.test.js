@@ -8,6 +8,7 @@ import Swap from "../swap/swap"
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import { SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails } from './test_data.js'
 import { SwapToken } from "../swap/swap_utils";
+import { swapInit as swapInitSteps } from '../swap/swap.init'
 
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 
@@ -19,6 +20,7 @@ import { fireEvent, screen } from '@testing-library/dom';
 import { AsyncSemaphore } from '@esfx/async-semaphore';
 import { STATECOIN_STATUS } from '../statecoin.ts';
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
+import { assert } from 'console';
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -472,4 +474,46 @@ describe('Deregister statecoin', function () {
       Error(`${POST_ROUTE.SWAP_DEREGISTER_UTXO}:${statecoin.statechain_id}`);
     expect(statecoin).toEqual(phase1Statecoin)
   }) 
+})
+
+describe('Process step result Retry', function () {
+  let wallet = getWallet()
+  let statecoin = wallet.statecoins.coins[0]
+  setSwapDetails(statecoin,1)
+
+  test('processStepResultRetry increments n_retries', async function () {
+    let swap = new Swap(wallet, statecoin);
+    let n_retries_in = cloneDeep(swap.n_retries)
+    await swap.processStepResultRetry(SwapStepResult.Retry(), cloneDeep(swapInitSteps[0]))
+    expect(swap.n_retries).toEqual(n_retries_in+1)
+  })
+
+  test('processStepResultRetry sets or clears statecoin swap error', async function () {
+    let swap = new Swap(wallet, statecoin);
+    for(let ts in TIMEOUT_STATUS){
+      await swap.processStepResultRetry(SwapStepResult.Retry(ts), swapInitSteps[0])
+      expect(swap.statecoin.swap_error.error).toEqual(true)
+      expect(swap.statecoin.swap_error.msg).toEqual(ts)
+    }
+    swap.processStepResultRetry(SwapStepResult.Retry(), swapInitSteps[0])
+    expect(swap.statecoin.swap_error).toEqual(null)
+  })
+})
+
+describe('Process step result Ok', function () {
+  let wallet = getWallet()
+  let statecoin = wallet.statecoins.coins[0]
+  setSwapDetails(statecoin,1)
+  let swap = new Swap(wallet, statecoin);
+  statecoin.swap_error = "a swap error"
+  const in_step = cloneDeep(swap.next_step)
+  await swap.processStepResult(SwapStepResult.Ok(), swapInitSteps[0]) 
+
+  test('processStepResult of result Ok clears statecoin swap error', async function () {   
+    expect(swap.statecoin.swap_error).toEqual(null)
+  })
+
+  test('processStepResult of result Ok increments step', async function () {  
+    expect(swap.next_step).toEqual(in_step+1)
+  })
 })

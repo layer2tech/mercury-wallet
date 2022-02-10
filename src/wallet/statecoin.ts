@@ -469,6 +469,7 @@ export class StateCoin {
 
   setAutoSwap(val: boolean) { this.swap_auto = val }
   setSwapError(swap_error: SwapErrorMsg){this.swap_error = swap_error}
+  clearSwapError(){this.swap_error = null}
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
   setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
@@ -628,7 +629,7 @@ export class StateCoin {
     this.swap_batch_data = null;
     this.swap_transfer_finalized_data = null;
     this.ui_swap_status = null;
-    this.swap_error = null;
+    this.clearSwapError();
   }
 
   getTXIdAndOut(): string {

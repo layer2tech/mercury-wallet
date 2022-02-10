@@ -13,7 +13,7 @@ import { get_swap_steps } from './swap_steps'
 import { BatchData, BlindedSpendSignature, BSTRequestorData, first_message, 
   get_blinded_spend_signature, second_message, SwapID, SwapInfo, SwapPhaseClients, 
   SwapStep, SwapStepResult, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS, Timer,
-  SWAP_TIMEOUT } from './swap_utils';
+  SWAP_TIMEOUT, TIMEOUT_STATUS } from './swap_utils';
 
 let cloneDeep = require('lodash.clonedeep');
 let bitcoin = require("bitcoinjs-lib");
@@ -119,30 +119,41 @@ export default class Swap {
       const nextStep = this.getNextStep()
       //log.info(`Doing next swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id}`)
       let step_result = await nextStep.doit()
-      if(step_result.is_ok()){
+      this.processStepResult(step_result, nextStep)
+      return step_result   
+    }
+
+    processStepResult = async (sr: SwapStepResult, next_step: SwapStep) => {
+      if(sr.is_ok()){
         this.incrementStep()
         this.resetRetryCounters()
+        this.statecoin.clearSwapError()
       } else {
-        log.info(`Retrying swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id} - reason: ${step_result.message}`)
+        await this.processStepResultRetry(sr, next_step)
+      }
+    }
+
+    processStepResultRetry = async (step_result: SwapStepResult, nextStep: SwapStep) => {
+      log.info(`Retrying swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id} - reason: ${step_result.message}`)
         this.incrementRetries(step_result)
         if (step_result.includes("Incompatible")) {
           alert(step_result.message)
         }
-        if (step_result.includes("not found in swap") || 
-          step_result.includes("timed out") || 
-          step_result.includes("waiting for completion") ||
-          step_result.includes("active swap") || 
-          step_result.includes("punishment")) {
-          //change for punishment
-
-          this.statecoin.setSwapError({
-            msg: step_result.message,
-            error: true
-          })
+        let clear = true
+        for(let ts in TIMEOUT_STATUS){
+          if(step_result.includes(ts)){
+            this.statecoin.setSwapError({
+              msg: step_result.message,
+              error: true
+            })
+            clear = false
+            break
+          }
+        }
+        if(clear){
+          this.statecoin.clearSwapError()
         }
         await delay_s(SWAP_TIMEOUT.RETRY_DELAY)
-      }
-      return step_result   
     }
 
     incrementRetries = (step_result:SwapStepResult) => {
