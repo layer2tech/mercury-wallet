@@ -115,7 +115,7 @@ export default class Swap {
       this.checkStepStatus()
       this.checkStepTimer()
       this.checkNRetries()
-      await this.checkSwapLoopStatus()
+      this.checkSwapLoopStatus()
       const nextStep = this.getNextStep()
       //log.info(`Doing next swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id}`)
       let step_result = await nextStep.doit()
@@ -192,7 +192,7 @@ export default class Swap {
       }
     }
     
-    checkSwapLoopStatus = async () => {
+    checkSwapLoopStatus = () => {
       let statecoin = this.statecoin
       if (statecoin.status === STATECOIN_STATUS.AVAILABLE) {
         throw new Error("Coin removed from swap pool")
@@ -669,10 +669,7 @@ setStatecoinOut = (statecoin_out: StateCoin) => {
     let phase = await pollSwap(this.clients.http_client, this.getSwapID());
     return SwapStepResult.Ok(phase)
   } catch (err: any) {
-    if(!err.message.includes("No data for identifier")) {
-      return SwapStepResult.Retry(err.message)
-    }
-    throw err
+    return SwapStepResult.Retry(err?.message)
   }
 }
 

@@ -1017,18 +1017,18 @@ export class Wallet {
 
   // De register coin from swap on server and set statecoin swap data to null
   async deRegisterSwapCoin(
-    statecoin: StateCoin
+    statecoin: StateCoin,
+    force: boolean = false
   ): Promise<void> {
     //Check if statecoin may be removed from swap
-    statecoin = this.statecoins.checkRemoveCoinFromSwap(statecoin.shared_key_id);
-    console.log(`swapDeregisterUtxo...`)
+    statecoin = this.statecoins.checkRemoveCoinFromSwap(statecoin.shared_key_id, force);
     await swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
     //Reset swap data if the coin was deregistered successfully
-    this.removeCoinFromSwap(statecoin.shared_key_id);
+    this.removeCoinFromSwap(statecoin.shared_key_id, force);
   }
 
-  removeCoinFromSwap(shared_key_id: string){
-    this.statecoins.removeCoinFromSwap(shared_key_id);
+  removeCoinFromSwap(shared_key_id: string, force: boolean = false){
+    this.statecoins.removeCoinFromSwap(shared_key_id, force);
     this.saveStateCoinsList()
   }
 
@@ -1186,19 +1186,16 @@ export class Wallet {
 
   // force deregister of all coins in swap and also toggle auto swap off
   // except for in swap phase 4
-  deRegisterSwaps(force: boolean = false){
-    this.statecoins.coins.forEach(
-      (statecoin) => {
-        if(statecoin.status === STATECOIN_STATUS.IN_SWAP 
-          || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP){
-            if(!force && (statecoin.swap_status !== SWAP_STATUS.Phase4 )){
-              swapDeregisterUtxo(this.http_client, {id: statecoin.statechain_id});
-              statecoin.swap_auto = false;
-              this.removeCoinFromSwap(statecoin.shared_key_id);
-            }
-        }
+  async deRegisterSwaps(){
+    for(let i=0; i< this.statecoins.coins.length; i++){
+      let statecoin = this.statecoins.coins[i]
+      try{
+        await this.deRegisterSwapCoin(statecoin)
+      } catch (e) {
+        log.info(e)
       }
-    )
+      statecoin.swap_auto = false;
+    }
   }
 
   //If there are no swaps running then set all the statecoin swap data to null
