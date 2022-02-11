@@ -41,7 +41,7 @@ const PanelConnectivity = (props) => {
   let participants = swap_groups_array.reduce((acc,item)=> acc+item[1].number,0)
   let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1].number * item[0].amount),0);
 
-  const updateSpeedInfo = () => {
+  const updateSpeedInfo = async () => {
     dispatch(callUpdateSpeedInfo({ torOnline: torInfo.online }));
     if(server_ping_ms !== callGetPingServerms()){
       setServerPingMs(callGetPingServerms())
@@ -59,15 +59,14 @@ const PanelConnectivity = (props) => {
     updateSpeedInfo()
     const interval = setInterval(() => {
       updateSpeedInfo()
-    }, 30000);
-    if(props.online){
-      return () => clearInterval(interval);
-    }
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch, torInfo.online]);
 
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
-    const interval = setIntervalIfOnline(getBlockHeight,torInfo.online,500)
+    const interval = setIntervalIfOnline(getBlockHeight,torInfo.online,5000)
 
     return () => clearInterval(interval);
   }, [block_height, torInfo.online, props.online]);
@@ -97,7 +96,7 @@ const PanelConnectivity = (props) => {
       // setBlockHeight(null)
       return
     }
-    setBlockHeight(await callGetBlockHeight());
+    setBlockHeight(callGetBlockHeight());
   }
 
   //function shortens urls to fit better with styling

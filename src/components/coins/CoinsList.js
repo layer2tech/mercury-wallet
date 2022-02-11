@@ -36,7 +36,9 @@ import {
   callGetStateCoin,
   callGetActivityLogItems,
   addSwapPendingCoin,
-  removeSwapPendingCoin} from '../../features/WalletDataSlice';
+  removeSwapPendingCoin,
+  handleEndAutoSwap,
+  setIntervalIfOnline} from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
@@ -133,6 +135,21 @@ const CoinsList = (props) => {
       return coins.filter(coin => coin.status === status);
     }
 
+    const validExpiryTime = (expiry_data) => {
+      let block_height = callGetBlockHeight()
+
+      if(block_height === 0 || expiry_data.block === 0 || !block_height){
+        // set its actual block to 0 so next time we can return  '--' until an actual block is received
+        expiry_data.blocks = 0;
+        return false;
+      }
+
+      if(expiry_data === -1){
+        return false
+      }
+      
+      return true;
+    }
 
     const displayExpiryTime = (expiry_data, show_days=false) => {
       if(validExpiryTime(expiry_data)){
@@ -161,21 +178,6 @@ const CoinsList = (props) => {
       return null
     } 
 
-    const validExpiryTime = (expiry_data) => {
-      let block_height = torInfo.online ? callGetBlockHeight() : undefined
-
-      if(block_height === 0 || expiry_data.block === 0 || !block_height){
-        // set its actual block to 0 so next time we can return  '--' until an actual block is received
-        expiry_data.blocks = 0;
-        return false;
-      }
-
-      if(expiry_data === -1){
-        return false
-      }
-      
-      return true;
-    }
 
     // Convert expiry_data to string displaying months or days left
     const expiry_time_to_string = (expiry_data) => {  
@@ -219,72 +221,15 @@ const CoinsList = (props) => {
 
     // Initiate auto swap
    useEffect(() => {
-    const interval = setInterval(() => {
-      if(!swapPendingCoins?.length){
-        return
-      }
-      // let selectedCoin = swapPendingCoins[swapPendingCoins.length - 1]
-
-      swapPendingCoins.forEach((selectedCoin) => {
-        let statecoin = callGetStateCoin(selectedCoin);
-        if(statecoin && statecoin.status === STATECOIN_STATUS.AVAILABLE){
-          dispatch(callDoSwap({"shared_key_id": selectedCoin}))
-            .then(res => {
-              dispatch(removeSwapPendingCoin(selectedCoin))
-              // get the statecoin for txId method
-              if(statecoin === undefined || statecoin === null){
-                statecoin = selectedCoin;
-              }
-
-              if(!statecoin?.swap_auto){ 
-                // If user switches off swap auto, exit callDoSwap smoothly
-                return
-              }
-              
-              let new_statecoin = res?.payload;
-              // turn off autoswap because final .then was called
-  
-              if (!new_statecoin) {
-                // dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))
-                  if (statecoin.swap_status === SWAP_STATUS.Phase4) {
-                    // dispatch(setNotification({msg:"Retrying resume swap phase 4 with statecoin:' + statecoin.shared_key_id"}));
-                    dispatch(addCoinToSwapRecords(statecoin))
-                    dispatch(addSwapPendingCoin(statecoin.shared_key_id))
-                    return
-                  } else{
-                    if(statecoin.swap_auto){
-                      // dispatch(setNotification({msg:"Retrying join auto swap with statecoin:' + statecoin.shared_key_id"}));
-                      dispatch(addCoinToSwapRecords(statecoin))
-                      dispatch(addSwapPendingCoin(statecoin.shared_key_id))
-                      //return
-                    }
-                  }
-              } else {
-                if(new_statecoin?.is_deposited){
-                  dispatch(setNotification({msg:"Swap complete - Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-                  dispatch(removeCoinFromSwapRecords(selectedCoin));
-                } else {
-                  dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-                  dispatch(removeCoinFromSwapRecords(selectedCoin));
-                } 
-                if(new_statecoin && new_statecoin?.swap_auto){
-                  // dispatch(setNotification({msg:"Retrying join auto swap with new statecoin:' + new_statecoin.shared_key_id"}));
-                  dispatch(addCoinToSwapRecords(new_statecoin))
-                  dispatch(addSwapPendingCoin(new_statecoin.shared_key_id))
-                }
-              }
-            }
-          );
-        }
-      })
-    }, 3000);
+    const interval = setIntervalIfOnline(autoSwapLoop, torInfo.online, 3000)
     return () => clearInterval(interval);
   },
-  [swapPendingCoins]);
+  [swapPendingCoins, torInfo.online]);
+
 
     //Load coins once component done render
     useEffect(() => {
-      
+      // console.log('interval 2')
       const [coins_data] = callGetUnspentStatecoins();
       //Load all coins that aren't unconfirmed
 
@@ -322,41 +267,13 @@ const CoinsList = (props) => {
     // Re-fetch every 10 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
     useEffect(() => {
-      //if (coins.unConfirmedCoins.length) {
-        const interval = setInterval(() => {
-          setState({});
-          let new_unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
-          // check for change in length of unconfirmed coins list and total number
-          // of confirmations in unconfirmed coins list
-          // check for change in the amount of blocks per item (where the main expiry date is set
 
-          let [new_confirmed_coins_data] = callGetUnspentStatecoins();
-          //Get all updated confirmed coins & coin statuses
-          
-          if (
-            coins.unConfirmedCoins.length !== new_unconfirmed_coins_data.length
-              ||
-            coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
-              !==
-            new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
-              ||
-            coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.blocks,0)
-              !==
-            new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
-              || 
-            coins.unConfirmedCoins.length !== new_confirmed_coins_data.length
-          ) {
-            if(validCoinData(new_confirmed_coins_data, new_unconfirmed_coins_data)){
-              setCoins({
-                unspentCoins: new_confirmed_coins_data,
-                unConfirmedCoins: new_unconfirmed_coins_data
-              })
-            }
-          }
-        }, 5000);
-        return () => clearInterval(interval);
-      //}
-    }, [coins.unConfirmedCoins]);
+      const interval = setIntervalIfOnline(updateUnconfirmedUnspentCoins, torInfo.online, 5000)
+
+      return () => clearInterval(interval);
+
+    }, [coins.unConfirmedCoins, torInfo.online]);
+  
 
     //Initialised Coin description for coin modal
     useEffect(() => {
@@ -374,6 +291,64 @@ const CoinsList = (props) => {
       }
     //function called every time coin info modal shows up
     },[showCoinDetails.coin])
+
+    // Enters/Re-enters coins in auto-swap
+    const autoSwapLoop = () => {
+      if(torInfo.online === false) return
+      if(!swapPendingCoins?.length){
+        return
+      }
+
+      // console.log('interval 1')
+
+      swapPendingCoins.forEach((selectedCoin) => {
+        let statecoin = callGetStateCoin(selectedCoin);
+        if(statecoin && statecoin.status === STATECOIN_STATUS.AVAILABLE){
+          console.log('dispatch swap')
+          dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+            .then(res => {
+              handleEndAutoSwap(dispatch, statecoin, selectedCoin, res, fromSatoshi)
+            }
+          );
+        }
+      })
+    }
+
+    const updateUnconfirmedUnspentCoins = () => {
+      setState({});
+      // console.log('interval 3')
+      // in the case torInfo is undefined this should still run
+
+      let new_unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+      // check for change in length of unconfirmed coins list and total number
+      // of confirmations in unconfirmed coins list
+      // check for change in the amount of blocks per item (where the main expiry date is set
+
+      let [new_confirmed_coins_data] = callGetUnspentStatecoins();
+      //Get all updated confirmed coins & coin statuses
+      
+      if (
+        coins.unConfirmedCoins.length !== new_unconfirmed_coins_data.length
+          ||
+        coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
+          !==
+        new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.confirmations,0)
+          ||
+        coins.unConfirmedCoins.reduce((acc, item) => acc+item.expiry_data.blocks,0)
+          !==
+        new_unconfirmed_coins_data.reduce((acc, item) => acc+item.expiry_data.blocks,0)
+          || 
+        coins.unConfirmedCoins.length !== new_confirmed_coins_data.length
+      ) {
+        if(validCoinData(new_confirmed_coins_data, new_unconfirmed_coins_data)){
+          setCoins({
+            unspentCoins: new_confirmed_coins_data,
+            unConfirmedCoins: new_unconfirmed_coins_data
+          })
+        }
+      }
+    }
+    
 
     // data to display in privacy related sections
     const getPrivacyScoreDesc = (coin) => {
