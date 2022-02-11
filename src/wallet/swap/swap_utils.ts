@@ -72,7 +72,7 @@ export enum TIMEOUT_STATUS {
 Object.freeze(TIMEOUT_STATUS);
 
 export const SWAP_TIMEOUT = {
-  RETRY_DELAY: 1,
+  RETRY_DELAY: 10,
   STEP_TIMEOUT_S: 100,
   INIT_TIMEOUT_S: 330 
 }
