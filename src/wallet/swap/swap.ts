@@ -1,7 +1,7 @@
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress, TransferMsg3 } from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { delay_s, getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
+import { delay_s, getStateCoin, getTransferBatchStatus, getStateChainTransferFinalizeData  } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,6 +14,9 @@ import { BatchData, BlindedSpendSignature, BSTRequestorData, first_message,
   get_blinded_spend_signature, second_message, SwapID, SwapInfo, SwapPhaseClients, 
   SwapStep, SwapStepResult, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS, Timer,
   SWAP_TIMEOUT, TIMEOUT_STATUS } from './swap_utils';
+
+  import { TransferFinalizeDataAPI} from '../mercury/transfer';
+import { getFinalizeDataForRecovery } from '../recovery';
 
 let cloneDeep = require('lodash.clonedeep');
 let bitcoin = require("bitcoinjs-lib");
@@ -569,22 +572,24 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
   let value = this.statecoin.value
 
     const msg3 = this.transfer_msg_3_receiver
+    if(!msg3){
+      throw Error("transfer_msg_3 is null or undefined")
+    }
     
     let batch_data = {
       "id": this.getSwapID().id,
       "commitment": this.getSwapBatchTransferData().commitment,
     }
-
-    let finalize_data = null
-    const DELAY = 20
-    await Promise.race([transferReceiver(http_client, 
-      electrum_client, network, msg3, rec_se_addr_bip32, 
-      batch_data, req_confirmations, block_height, value)
-              , delay_s(DELAY)]).then((value) => {
-              finalize_data = value
-    })
-          
-    typeforce(types.TransferFinalizeData, finalize_data);
+    let finalize_data = null;
+    try {
+      finalize_data = await transferReceiver(http_client, 
+        electrum_client, network, msg3, rec_se_addr_bip32, 
+        batch_data, req_confirmations, block_height, value);
+    } catch (err) {
+      this.resetRetryCounters()
+      throw err
+    }
+    typeforce(types.TransferFinalizeData, finalize_data);  
     return finalize_data;
 }
 

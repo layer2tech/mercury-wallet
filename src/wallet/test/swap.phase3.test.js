@@ -685,9 +685,11 @@ describe('swapPhase3', () => {
                 return [tm3]
             }
         })
-
+        swap.n_retries = 2
         checkRetryMessage(await swap.doNext(),
             "Error from GET request - path: info/statechain, params: undefined")
+        //The retry counter should be reset in case of server/network error
+        expect(swap.n_retries).toEqual(1)
     });
 
     test('swapPhase3 test 14 - SwapStep5: await transferReceiver, server responds with invalid swap coin', async () => {
