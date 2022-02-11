@@ -9,6 +9,7 @@ import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, S
 import { Wallet } from '../';
 
 import { encrypt, decrypt, PrivateKey } from 'eciesjs12b';
+import { setIntervalIfOnline } from '../../features/WalletDataSlice';
 
 let bip32 = require('bip32');
 var crypto = require('crypto')
