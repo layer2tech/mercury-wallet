@@ -119,7 +119,7 @@ export default class Swap {
       const nextStep = this.getNextStep()
       //log.info(`Doing next swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id}`)
       let step_result = await nextStep.doit()
-      this.processStepResult(step_result, nextStep)
+      await this.processStepResult(step_result, nextStep)
       return step_result   
     }
 
@@ -134,13 +134,15 @@ export default class Swap {
     }
 
     processStepResultRetry = async (step_result: SwapStepResult, nextStep: SwapStep) => {
-      log.info(`Retrying swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id} - reason: ${step_result.message}`)
+        log.info(`Retrying swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id} - reason: ${step_result.message}`)
         this.incrementRetries(step_result)
         if (step_result.includes("Incompatible")) {
           alert(step_result.message)
         }
         let clear = true
-        for(let ts in TIMEOUT_STATUS){
+        let values = Object.values(TIMEOUT_STATUS)
+        for(let i=0; i<values.length; i++){
+          let ts: string = values[i];
           if(step_result.includes(ts)){
             this.statecoin.setSwapError({
               msg: step_result.message,
@@ -596,8 +598,6 @@ updateBlockHeight = async () => {
 }
 
 transferReceiver = async (): Promise<SwapStepResult> => {
-  const tm3_result = await this.getTransferMsg3();
-  if(!tm3_result.is_ok()) return tm3_result;
   try{
     this.updateBlockHeight();
     let transfer_finalized_data = await this.do_transfer_receiver();
@@ -692,7 +692,7 @@ handleTimeoutError = (err: any) => {
   }
 }
 
-checkBatchStatus = async (phase: string, err_msg: "string"): Promise<SwapStepResult> => {
+checkBatchStatus = async (phase: string | null, err_msg: string): Promise<SwapStepResult> => {
   let batch_status = null
     try{
       if (phase === null) {
@@ -734,8 +734,8 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
         return SwapStepResult.Retry(err.message)
       }
       let phase = result.message
-      log.debug(`checking batch status - phase: ${phase}`)
-      return await this.checkBatchStatus(phase, err.message) 
+      log.info(`checking batch status - phase: ${phase}`)
+      return this.checkBatchStatus(phase, err.message) 
     }
   }
 }
