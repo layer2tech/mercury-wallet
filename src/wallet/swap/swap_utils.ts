@@ -73,7 +73,7 @@ Object.freeze(TIMEOUT_STATUS);
 
 export const SWAP_TIMEOUT = {
   RETRY_DELAY: 1,
-  STEP_TIMEOUT_S: 100,
+  STEP_TIMEOUT_S: 120,
   INIT_TIMEOUT_S: 330 
 }
 Object.freeze(SWAP_TIMEOUT);
