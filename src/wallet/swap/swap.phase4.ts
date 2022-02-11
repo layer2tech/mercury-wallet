@@ -1,5 +1,5 @@
 // Logger import.
-import { SwapStep, SWAP_STATUS } from "./swap_utils";
+import { SwapStep, SwapStepResult, SWAP_STATUS } from "./swap_utils";
 import { STATECOIN_STATUS } from "..";
 import Swap from "./swap"
 

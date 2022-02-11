@@ -511,4 +511,5 @@ describe("Recovery unfinalized", () => {
       expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
       
     });
+
 })

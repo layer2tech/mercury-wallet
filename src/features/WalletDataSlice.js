@@ -2,7 +2,6 @@ import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 
 import {Wallet, ACTION} from '../wallet'
 import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
-import {swapDeregisterUtxo} from '../wallet/swap/info_api'
 import {pingServer as pingConductor} from '../wallet/swap/info_api'
 import {pingServer} from '../wallet/mercury/info_api'
 import {decodeMessage} from '../wallet/util'
@@ -132,18 +131,13 @@ function setBlockHeightCallBack(item) {
 }
 
 // Load wallet from store
-export const walletLoad = (name, password) => {
+export const walletLoad = async (name, password) => {
 
   wallet = Wallet.load(name, password, testing_mode);
 
   wallet.disableAutoSwaps();
-  try{
-    wallet.deRegisterSwaps();
-  }
-  catch(e) {
-    new Error({msg: e.message})
-  }
-
+  await wallet.deRegisterSwaps();
+  
   log.info("Wallet "+name+" loaded from memory. ");
   
   if (testing_mode) log.info("Testing mode set.");
@@ -554,12 +548,11 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
   'SwapDeregisterUtxo',
   async (action, thunkAPI) => {
     let statecoin = wallet.statecoins.getCoin(action.shared_key_id)
-    let statechain_id = statecoin.statechain_id
-    await swapDeregisterUtxo(wallet.http_client, {id: statechain_id});
+    if(!statecoin) throw Error(`callSwapDeregisterUtxo: statecoin with shared key id ${action.shared_key_id} not found`)
     try{  
-      wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
+      await wallet.deRegisterSwapCoin(statecoin) 
     } catch(e) {
-      if(e?.message.includes("Cannot remove coin.")){
+      if(e?.message.includes("Cannot remove coin")){
         if(action?.autoswap === true){
           action.dispatch(setNotification({msg: `Deactivated auto-swap for coin: ${statecoin.getTXIdAndOut()}.`}))
         } else {

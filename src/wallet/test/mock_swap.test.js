@@ -74,12 +74,12 @@ describe('Do Swap', function () {
     const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
     const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
-    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 1)
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
 
     let swap = new Swap(wallet, wallet.statecoins.coins[0])
     swap = new Swap(wallet, wallet.statecoins.coins[1])
 
-    await wallet.deRegisterSwapCoin(http_mock, wallet.statecoins.coins[0])
+    await wallet.deRegisterSwapCoin(wallet.statecoins.coins[0])
     // Should set all swap data to null e.g. (swap_status & ui_swap_status)
     expect(wallet.statecoins.coins[0].swap_status).toBe(null)
   })
@@ -300,7 +300,6 @@ describe('After Swaps Complete', function () {
     expect(store.getState().walletData.swapPendingCoins[0]).toBe(statecoin.shared_key_id)
 
   })
-
 })
 
 

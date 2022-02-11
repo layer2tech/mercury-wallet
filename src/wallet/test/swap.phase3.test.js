@@ -649,6 +649,7 @@ describe('swapPhase3', () => {
         tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
         const tm3_const = tm3
         swap.statecoin.swap_transfer_msg = tm3_const
+        swap.transfer_msg_3_receiver = tm3_const
         swap.setSwapSteps(steps)
 
         // expected
@@ -672,6 +673,7 @@ describe('swapPhase3', () => {
         let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3)
         tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
         const tm3_const = tm3
+        swap.transfer_msg_3_receiver = tm3_const
         swap.setSwapSteps(steps)
         let commitment_data = { "commitment": "7aef2a9771923a485161095ae2314b2a374d223ec1ff67f7602398b3118b445d", "nonce": [118, 94, 232, 150, 99, 240, 44, 21, 13, 91, 170, 84, 58, 234, 242, 220, 184, 197, 137, 219, 179, 125, 111, 165, 233, 100, 228, 21, 79, 170, 3, 238] };
         swap.statecoin.swap_batch_data = commitment_data;
@@ -701,6 +703,7 @@ describe('swapPhase3', () => {
         let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3)
         tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
         const tm3_const = tm3
+        swap.transfer_msg_3_receiver = tm3_const
         swap.statecoin.swap_transfer_msg = mock_http_client.TRANSFER_MSG3
         swap.setSwapSteps(steps)
         let commitment_data = { "commitment": "7aef2a9771923a485161095ae2314b2a374d223ec1ff67f7602398b3118b445d", "nonce": [118, 94, 232, 150, 99, 240, 44, 21, 13, 91, 170, 84, 58, 234, 242, 220, 184, 197, 137, 219, 179, 125, 111, 165, 233, 100, 228, 21, 79, 170, 3, 238] };
