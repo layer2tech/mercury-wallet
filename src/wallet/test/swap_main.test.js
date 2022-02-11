@@ -459,11 +459,13 @@ describe('Deregister statecoin', function () {
       Error(`${POST_ROUTE.SWAP_DEREGISTER_UTXO}:${statecoin.statechain_id}`);
     expect(statecoin).toEqual(phase0Statecoin)
   })  
+})
 
 describe('Process step result Retry', function () {
   let wallet = getWallet()
   let statecoin = wallet.statecoins.coins[0]
   setSwapDetails(statecoin,1)
+  jest.setTimeout(10000)
 
   test('processStepResultRetry increments n_retries', async function () {
     let swap = new Swap(wallet, statecoin);
@@ -479,11 +481,11 @@ describe('Process step result Retry', function () {
     let values = Object.values(TIMEOUT_STATUS)
     for(let i=0; i<values.length; i++){
       let ts = values[i];
-      await swap.processStepResultRetry(SwapStepResult.Retry(ts), swapInitSteps(swap)[0])
+      await swap.processStepResultRetry(SwapStepResult.Retry(ts), swapInit(swap)[0])
       expect(swap.statecoin.swap_error.error).toEqual(true)
       expect(swap.statecoin.swap_error.msg).toEqual(ts)
     }
-    swap.processStepResultRetry(SwapStepResult.Retry(), swapInitSteps(swap)[0])
+    swap.processStepResultRetry(SwapStepResult.Retry(), swapInit(swap)[0])
     expect(swap.statecoin.swap_error).toEqual(null)
   })
 })
@@ -495,7 +497,7 @@ describe('Process step result Ok', function () {
   let swap = new Swap(wallet, statecoin);
   statecoin.swap_error = "a swap error"
   const in_step = cloneDeep(swap.next_step)
-  swap.processStepResult(SwapStepResult.Ok(), swapInitSteps(swap)[0]) 
+  swap.processStepResult(SwapStepResult.Ok(), swapInit(swap)[0]) 
 
   test('processStepResult of result Ok clears statecoin swap error', async function () {   
     expect(swap.statecoin.swap_error).toEqual(null)
@@ -504,4 +506,5 @@ describe('Process step result Ok', function () {
   test('processStepResult of result Ok increments step', async function () {  
     expect(swap.next_step).toEqual(in_step+1)
   })
-})
+  }
+)
