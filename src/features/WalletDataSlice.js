@@ -11,11 +11,14 @@ import {resetIndex} from '../containers/Receive/Receive'
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
+import {useSelector} from 'react-redux';
+
 
 // eslint-disable-next-line
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
 // eslint-disable-next-line
 const OPEN = require('websocket').w3cwebsocket.OPEN;
+
 
 let log;
 try{
@@ -23,7 +26,6 @@ try{
 } catch ( e ) {
   log = require('electron-log');
 }
-
 
 export const callGetArgsHasTestnet =  () => {
   let found  = false;
@@ -62,6 +64,9 @@ const initialState = {
   depositLoading: false,
   swapRecords: [],
   swapPendingCoins: [],
+  coinsAdded: 0,
+  coinsRemoved: 0,
+  torInfo: { online: false }
 }
 
 // Check if a wallet is loaded in memory
@@ -89,50 +94,34 @@ export const getWalletName = () => {
 }
 
 //Restart the electrum server if ping fails
-async function pingElectrumRestart() {
+async function pingElectrumRestart(force = false) {
     //If client already started
-    if (!wallet.electrum_client || !wallet.ping_electrum_ms) {
-        log.info(`Failed to ping electum server. Restarting client`);
-        wallet.electrum_client.close().catch( (err) => {
-        log.info(`Failed to close electrum client: ${err}`)
-      });
-    } 
-    if (!wallet.electrum_client || await wallet.electrum_client.isClosed()){
-      log.info(`Electrum connection closed - attempting to reopen`);
+    if (force || !wallet.electrum_client || await wallet.electrum_client.isClosed()) {
+      log.info(`Restarting electrum server`);
+      if(wallet.electrum_client){
+        wallet.electrum_client.unsubscribeAll()
+        wallet.electrum_client = null
+      }
       mutex.runExclusive(async () => {
-          wallet.electrum_client = wallet.newElectrumClient();
-          try{
-            wallet.initElectrumClient(setBlockHeightCallBack);
-          } catch(err){
-              log.info(`Failed to initialize electrum client: ${err}`);
+        wallet.electrum_client = wallet.newElectrumClient();
+        try{
+          wallet.initElectrumClient(setBlockHeightCallBack);
+        } catch(err){
+            log.info(`Failed to initialize electrum client: ${err}`);
           }
       });
     }
 }
 
 // Keep electrum server connection alive.
-
-export async function callPingElectrum(){
-  return wallet.electrum_client.latestBlockHeader()
-}
-
-setInterval(async function() {
-  //Restart server if connection lost
-  await pingElectrumRestart().catch((err) => {
+export async function callPingElectrumRestart(force = false){
+  try {
+    await pingElectrumRestart(force)
+    return wallet.electrum_client.latestBlockHeader()  
+  } catch (err) {
     log.info(`Failed to restart electum server: ${err}`);
-  });
-}, 30000);
-
-// update backuptx status and broadcast if necessary
-setInterval(async function() {
-    if (wallet) {
-      //Exit the loop if the server cannot be pinged
-      if (wallet.electrum_client.ping() === false) {
-        log.info(`Failed to ping electum server`);
-        return;
-      }
-    }
-  }, 60000);
+  }
+}
 
 // Call back fn updates wallet block_height upon electrum block height subscribe message event.
 // This fn must be in scope of the wallet being acted upon
@@ -162,13 +151,13 @@ export const walletLoad = (name, password) => {
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapStatus();
-    wallet.updateSwapGroupInfo();
+    await wallet.updateSwapGroupInfo();
     wallet.updateSpeedInfo();
   });
 }
 
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
-export const walletFromMnemonic = (name, password, mnemonic, try_restore, gap_limit) => {
+export const walletFromMnemonic = (dispatch, name, password, mnemonic, try_restore, gap_limit) => {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   log.info("Wallet "+name+" created.");
   if (testing_mode) log.info("Testing mode set.");
@@ -176,7 +165,8 @@ export const walletFromMnemonic = (name, password, mnemonic, try_restore, gap_li
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
-      wallet.recoverCoinsFromServer(gap_limit);
+      const n_recovered = await wallet.recoverCoinsFromServer(gap_limit);
+      dispatch(addCoins(n_recovered));
     }
     callNewSeAddr();
     wallet.save();
@@ -190,15 +180,16 @@ export const checkWalletPassword = (password) => {
 
 // Create wallet from backup file
 export const walletFromJson = (wallet_json, password) => {
+  wallet = Wallet.loadFromBackup(wallet_json, password, testing_mode);
+  log.info("Wallet " + wallet.name + " loaded from backup.");
+  if (testing_mode) log.info("Testing mode set.");
   return Promise.resolve().then(() => {
-    wallet = Wallet.loadFromBackup(wallet_json, password, testing_mode);
-    log.info("Wallet " + wallet.name + " loaded from backup.");
-    if (testing_mode) log.info("Testing mode set.");
     return mutex.runExclusive(async () => {
       await wallet.set_tor_endpoints();
       wallet.initElectrumClient(setBlockHeightCallBack);
       callNewSeAddr();
-      wallet.save()
+      wallet.save();
+      wallet.saveName();
       return wallet;
     }).catch(error => {
         console.error('Can not load wallet from json!', error);
@@ -222,8 +213,8 @@ export const callGetMnemonic = () => {
 }
 
 // Wallet data gets
-export const callGetConfig = (test_wallet = 'normal') => {
-  if(test_wallet !== 'normal'){
+export const callGetConfig = (test_wallet = null) => {
+  if(test_wallet){
     // Jest testing: preset wallet
     return test_wallet.config.getConfig()
   }
@@ -359,6 +350,52 @@ export const callGetWalletJsonToBackup = () => {
   return wallet.storage.getWallet(wallet.name);
 }
 
+//Swap Functions
+
+export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, fromSatoshi) => {
+
+  dispatch(removeSwapPendingCoin(selectedCoin))
+  // get the statecoin for txId method
+  let statecoin = callGetStateCoin(selectedCoin)
+  if(statecoin === undefined || statecoin === null){
+    statecoin = selectedCoin;
+  }
+  if (res.payload===null) {
+    dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
+    dispatch(removeCoinFromSwapRecords(selectedCoin));// added this
+    setSwapLoad({...swapLoad, join: false, swapCoin:""});
+    if(statecoin.swap_auto){
+      dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+      dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
+      setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
+    }
+
+    return
+  }
+  if (res.error===undefined) {
+    if(res.payload?.is_deposited){
+      dispatch(setNotification({msg:"Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+      dispatch(removeCoinFromSwapRecords(selectedCoin));
+    } else {
+      dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+      dispatch(removeCoinFromSwapRecords(selectedCoin));
+    }
+  }else{
+    dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
+    dispatch(removeCoinFromSwapRecords(selectedCoin)); // Added this
+    setSwapLoad({...swapLoad, join: false, swapCoin:""});
+  }
+  if(res?.payload){
+    let statecoin = res.payload
+    if(statecoin.swap_auto){
+      dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+      dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
+      setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
+    }
+  }
+}
+
+
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
 export const callDepositInit = createAsyncThunk(
@@ -401,7 +438,7 @@ export const callGetTransfers = createAsyncThunk(
 export const callDoAutoSwap = createAsyncThunk(
   'DoSwap',
   async (action, thunkAPI) => {
-    return wallet.setStateCoinAutoSwap(action.shared_key_id)
+    return wallet.setStateCoinAutoSwap(action)
   }
 )
 
@@ -420,7 +457,7 @@ export const callResumeSwap = createAsyncThunk(
 export const callUpdateSwapGroupInfo = createAsyncThunk(
   'UpdateSwapGroupInfo',
   async (action, thunkAPI) => {
-    wallet.updateSwapGroupInfo();
+    await wallet.updateSwapGroupInfo();
   }
 )
 
@@ -441,7 +478,7 @@ export const callUpdateTorCircuit = createAsyncThunk(
 export const callUpdateSpeedInfo = createAsyncThunk(
   'UpdateSpeedInfo',
   async (action, thunkAPI) => {
-    wallet.updateSpeedInfo();
+    wallet.updateSpeedInfo(action.torOnline);
   }
 )
 export const callUpdateSwapStatus = createAsyncThunk(
@@ -453,9 +490,22 @@ export const callUpdateSwapStatus = createAsyncThunk(
 export const callSwapDeregisterUtxo = createAsyncThunk(
   'SwapDeregisterUtxo',
   async (action, thunkAPI) => {
-    let statechain_id = wallet.statecoins.getCoin(action.shared_key_id).statechain_id
+    let statecoin = wallet.statecoins.getCoin(action.shared_key_id)
+    let statechain_id = statecoin.statechain_id
     await swapDeregisterUtxo(wallet.http_client, {id: statechain_id});
-    wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
+    try{  
+      wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
+    } catch(e) {
+      if(e?.message.includes("Cannot remove coin.")){
+        if(action?.autoswap === true){
+          action.dispatch(setNotification({msg: `Deactivated auto-swap for coin: ${statecoin.getTXIdAndOut()}.`}))
+        } else {
+          action.dispatch(setNotification({msg: `Statecoin: ${statecoin.getTXIdAndOut()}: ${e?.message ? e?.message : e}`}))
+        }
+      } else {
+        throw e
+      }
+    }
   }
 )
 
@@ -470,6 +520,24 @@ const WalletSlice = createSlice({
   name: 'walletData',
   initialState,
   reducers: {
+    setTorOnline(state, action){
+      return {
+        ...state,
+        torInfo: { online: action.payload }
+      }
+    },
+    addCoins(state, action){
+      return {
+        ...state,
+        coinsAdded: state.coinsAdded + action.payload
+      }
+    },
+    removeCoins(state, action){
+      return {
+        ...state,
+        coinsRemoved: state.coinsRemoved + action.payload
+      }
+    },
     addCoinToSwapRecords(state, action){
       if(state.swapRecords.indexOf(action.payload) ===  -1){
         return {
@@ -662,7 +730,7 @@ const WalletSlice = createSlice({
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin, 
-  updateTxFeeEstimate } = WalletSlice.actions
+  updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

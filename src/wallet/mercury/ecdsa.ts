@@ -32,27 +32,13 @@ export const keyGen = async (
       solution: solution,
   };
 
-  const MAX_TRIES = 100
-  let n_tries = 0;
-
   // server first
   let server_resp_key_gen_first
   let kg_party_one_first_message
-  while(true){
-    try{
-      server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
-      kg_party_one_first_message = server_resp_key_gen_first.msg;
-      typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
-      break;
-    } catch(err){
-      n_tries = n_tries + 1
-      if (n_tries === MAX_TRIES){
-        throw err
-      }
-      await delay(1);
-    }
-  }
-  n_tries = 0;
+
+  server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
+  kg_party_one_first_message = server_resp_key_gen_first.msg;
+  typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
 
   // client first
   let client_resp_key_gen_first: ClientKeyGenFirstMsg =
@@ -60,27 +46,15 @@ export const keyGen = async (
       wasm_client.KeyGen.first_message(secret_key)
     );
   typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
-
+  
   // server second
   let key_gen_msg2 = {
     shared_key_id: shared_key_id,
     dlog_proof:client_resp_key_gen_first.kg_party_two_first_message.d_log_proof,
   }
-  let kg_party_one_second_message
-  while(true){
-    try{
-      kg_party_one_second_message = await http_client.post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
-      typeforce(types.KeyGenParty1Message2, kg_party_one_second_message.msg);
-      break;
-    } catch(err) {
-      n_tries = n_tries + 1
-      if (n_tries === MAX_TRIES){
-        throw err
-      }
-      await delay(1);
-    }
-  }
-
+  let kg_party_one_second_message = await http_client.post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
+      typeforce(types.KeyGenParty1Message2, kg_party_one_second_message.msg); 
+ 
   // client second
   let key_gen_second_message =
     JSON.parse(

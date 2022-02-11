@@ -125,10 +125,13 @@ const Swaps = (props) => {
                 </>
             ) 
             : 
-            (props.initFetchSwapGroups === true? 
-                    (<Spinner animation="border" variant="primary" />)
-                    :
-                    (<p>No swap groups registered.</p>))}
+            (props.torOnline === true ?
+                (props.initFetchSwapGroups === true? 
+                        (<Spinner animation="border" variant="primary" />)
+                        :
+                        (<p>No swap groups registered.</p>))
+                :
+                (<p>Unable to retrieve swap group information - disconnected from the Mercury server.</p>))}
         </div>
     );
 }

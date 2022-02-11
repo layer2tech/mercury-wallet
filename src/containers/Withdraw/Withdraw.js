@@ -7,7 +7,7 @@ import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification, callGetConfig, callSumStatecoinValues} from '../../features/WalletDataSlice';
-import {Coins, StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup} from "../../components";
+import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, CoinsList} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
 import {Modal, Spinner} from 'react-bootstrap';
@@ -29,7 +29,7 @@ const WithdrawPage = () => {
 
   const [openModal,setOpenModal] = useState(false);
   
-  const [state, setState]  =  useState({});
+  const [forceRender, setRender]  =  useState({});
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
   const [txFeePerB, setTxFeePerB] = useState(7); // chosen fee per kb value
@@ -55,7 +55,7 @@ const WithdrawPage = () => {
       newSelectedCoins.push(statechain_id);
     }
     setSelectedCoins(newSelectedCoins);
-    setState({});
+    setRender({});
   }
 
   // Get Tx fee estimate
@@ -246,12 +246,13 @@ const WithdrawPage = () => {
                   <div>
                       <h3 className="subtitle">Select statecoins to withdraw</h3>
                       <span className="sub">Click to select coins below</span>
-                      <Coins
+                      <CoinsList
                         showCoinStatus={true}
                         displayDetailsOnClick={false}
                         selectedCoins={selectedCoins}
-                        setSelectedCoin={addSelectedCoin}
-                        refresh={refreshCoins}
+                        setSelectedCoin = {addSelectedCoin}
+                        refresh = {refreshCoins}
+                        render = {forceRender}
                         withdraw/>
                     </div>
 

@@ -54,9 +54,13 @@ for(let i=0; i<process.argv.length;i++){
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
+let iconPath = undefined;
+if(getPlatform() == 'linux') {
+  iconPath = joinPath( dirname(rootPath), 'mercury-wallet', 'build', 'icons', 'mercury-symbol-tri-color.png');
+} 
+
 function createWindow() {
-    // Create the browser window.
-    mainWindow = new BrowserWindow({width: 1200, height: 800,
+    let windowSpec = {width: 1200, height: 800,
       webPreferences:
         {
           nodeIntegration: true,
@@ -67,8 +71,14 @@ function createWindow() {
           preload: __dirname + '/preload.js'
         }
       }
-    );
 
+    if (iconPath){
+      windowSpec.icon = iconPath
+    }
+
+    // Create the browser window.
+    mainWindow = new BrowserWindow(windowSpec);
+   
     if (process.platform !== 'darwin') {
       mainWindow.setMenu(null);
     }

@@ -1,11 +1,10 @@
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useDispatch, useSelector} from 'react-redux';
 import React, {useState, useEffect} from 'react';
-import { Coins, Swaps, StdButton, Tutorial} from "../../components";
+import { Swaps, StdButton, Tutorial, CoinsList} from "../../components";
 import Loading from "../../components/Loading/Loading";
 import {
   isWalletLoaded,
-  setNotification,
   setError,
   setWarning,
   callDoAutoSwap,
@@ -13,18 +12,17 @@ import {
   callSwapDeregisterUtxo,
   callGetSwapGroupInfo,
   callUpdateSwapGroupInfo,
-  callUpdateSwapStatus,
   callGetConfig,
   callGetStateCoin,
-  callPingElectrum,
   addCoinToSwapRecords,
   removeCoinFromSwapRecords,
   addSwapPendingCoin,
-  removeSwapPendingCoin
+  removeSwapPendingCoin,
+  handleEndSwap
 } from "../../features/WalletDataSlice";
-import {fromSatoshi} from '../../wallet';
+import {fromSatoshi, STATECOIN_STATUS} from '../../wallet';
 import './Swap.css';
-import { SWAP_STATUS } from "../../wallet/swap/swap";
+
 
 const SwapPage = () => {
   const dispatch = useDispatch();
@@ -32,11 +30,11 @@ const SwapPage = () => {
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
-  const [electrumServer,setElectrumServer] = useState(false); // Check Electrum server network status
-  const [counter,setCounter] = useState(0); //Re-run interval checks
+  const torInfo = useSelector(state => state.walletData).torInfo;
+
   const [swapLoad, setSwapLoad] = useState({join: false,swapCoin: "", leave:false}) // set loading... onClick
   const [initFetchSwapGroups,setInitFetchSwapGroups] = useState(true)
-
+  
   const [swapGroupsData, setSwapGroupsData] = useState([]);
 
   function addSelectedCoin(statechain_id) {
@@ -53,46 +51,37 @@ const SwapPage = () => {
     );
   }
 
-  // Re-fetch swaps group data every 3 seconds and update swaps component
+  const updateSwapInfo = () => {
+    dispatch(callUpdateSwapGroupInfo());
+    let swap_groups_data = callGetSwapGroupInfo();
+    let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
+    setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
+    setRefreshCoins((prevState) => !prevState);
+    setInitFetchSwapGroups(false)
+  }
+
+  // Re-fetch swaps group data every 6 seconds and update swaps component
   useEffect(() => {
       const interval = setInterval(() => {
-          dispatch(callUpdateSwapGroupInfo());
-          dispatch(callUpdateSwapStatus());
-          let swap_groups_data = callGetSwapGroupInfo();
-          let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
-          setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
-          setRefreshCoins((prevState) => !prevState);
-          setInitFetchSwapGroups(false)
-      }, 3000);
-      return () => clearInterval(interval);
-    },
-    [dispatch]);
-  
-  // Check if Electrum server connected on page open
-  useEffect(()=> {
-    checkElectrum();
-  
-    const interval = setInterval(()=> {
-      //Check Electrum server every 5s
-      checkElectrum();
-    
-      //Counter triggers interval to run every time it's called
-      setCounter(counter+1)
-
-    },10000)
-    return()=> clearInterval(interval)
-    
-  },[counter])
-
-  const checkElectrum = () => {
-    callPingElectrum().then((res) => {
-      if(res.height){
-        setElectrumServer(true)
+        if(torInfo.online){
+          updateSwapInfo()
+        }
+      }, 6000);
+      if(torInfo.online){
+        return () => clearInterval(interval);
       }
-    }).catch((err)=> {
-      setElectrumServer(false)
-    })
-  }
+    },
+  [torInfo.online]);
+
+  // Update swap info when swapLoad changes.
+  // The delay on joining is to wait for the coin to be added to a swap group.
+  useEffect(() => {
+    let delay = swapLoad.join ? 3000 : 0; 
+    setTimeout(() => {
+      updateSwapInfo()
+    }, delay);
+  },
+  [swapLoad]);
     
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -104,8 +93,8 @@ const SwapPage = () => {
   const swapButtonAction = async () => {
     
     // check electrum connection before swap start
-    if (electrumServer === false){
-      dispatch(setError({msg: "The Electrum server network connection is lost"}))
+    if (torInfo.online === false){
+      dispatch(setError({msg: "Disconnected from the mercury server"}))
       return
     }
     
@@ -128,44 +117,8 @@ const SwapPage = () => {
         setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
         dispatch(callDoSwap({"shared_key_id": selectedCoin}))
           .then(res => {
-            dispatch(removeSwapPendingCoin(selectedCoin))
-            // get the statecoin for txId method
-            let statecoin = callGetStateCoin(selectedCoin)
 
-            if(statecoin === undefined || statecoin === null){
-              statecoin = selectedCoin;
-            }
-            if (res.payload===null) {
-              dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
-              dispatch(removeCoinFromSwapRecords(selectedCoin));// added this
-              setSwapLoad({...swapLoad, join: false, swapCoin:""});
-              if(statecoin.swap_auto){
-                dispatch(addSwapPendingCoin(statecoin.shared_key_id))
-                dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
-              }
-              
-              return
-            }
-            if (res.error===undefined) {
-              if(res.payload?.is_deposited){
-                dispatch(setNotification({msg:"Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-                dispatch(removeCoinFromSwapRecords(selectedCoin));
-              } else {
-                dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
-                dispatch(removeCoinFromSwapRecords(selectedCoin));
-              }
-            }else{
-              dispatch(setNotification({msg:"Swap not complete for statecoin"+ statecoin.getTXIdAndOut()}));
-              dispatch(removeCoinFromSwapRecords(selectedCoin)); // Added this
-              setSwapLoad({...swapLoad, join: false, swapCoin:""});
-            }
-            if(res?.payload){
-              let statecoin = res.payload
-              if(statecoin.swap_auto){
-                dispatch(addSwapPendingCoin(statecoin.shared_key_id))
-                dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
-              }
-            }
+            handleEndSwap(dispatch,selectedCoin,res,setSwapLoad,swapLoad,fromSatoshi)
             
           });
         // Refresh Coins list
@@ -184,8 +137,8 @@ const SwapPage = () => {
     let selectedCoin = item.shared_key_id;
 
     // check statechain is chosen
-    if (electrumServer === false){
-      dispatch(setError({msg: "The Electrum network connection is lost"}))
+    if (torInfo.online === false){
+      dispatch(setError({msg: "Disconnected from the mercury server"}))
       return
     }
 
@@ -203,10 +156,12 @@ const SwapPage = () => {
       dispatch(removeSwapPendingCoin(item.shared_key_id))
       statecoin.swap_auto = false;
       setSwapLoad({...swapLoad, leave: true})
-      try {
-        dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}))
+      try{
+        dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin, "dispatch": dispatch, "autoswap": true}))
           .then(res => {
-            dispatch(removeCoinFromSwapRecords(selectedCoin));
+            dispatch(() => {
+              removeCoinFromSwapRecords(selectedCoin)
+            });
             setSwapLoad({...swapLoad, leave: false})
         });
       } catch (e) {
@@ -218,13 +173,20 @@ const SwapPage = () => {
       }
       return
     } else{
-      statecoin.swap_auto = true;
+      statecoin.swap_auto = true
       dispatch(callDoAutoSwap(selectedCoin));
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
-     
       
-      dispatch(addSwapPendingCoin(item.shared_key_id))
+      if(statecoin.status === STATECOIN_STATUS.AVAILABLE){
+      // if StateCoin in not already in swap group
+        dispatch(callDoSwap({"shared_key_id": selectedCoin}))
+        .then(res => {
+          handleEndSwap(dispatch,selectedCoin,res,setSwapLoad,swapLoad,fromSatoshi)
+        });
+      } else{ dispatch(addSwapPendingCoin(item.shared_key_id)) }
+    // Refres
+
     }
 
     // Refresh Coins list
@@ -234,8 +196,8 @@ const SwapPage = () => {
 
 
   const leavePoolButtonAction = (event) => {
-    if (electrumServer === false){
-      dispatch(setError({msg: "The Electrum server network connection is lost"}))
+    if (torInfo.online === false){
+      dispatch(setError({msg: "Disconnected from Mercury server"}))
       return
     }
 
@@ -252,9 +214,10 @@ const SwapPage = () => {
     try {
       selectedCoins.forEach(
         (selectedCoin) => {
-          dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin}))
+          dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin, "dispatch": dispatch}))
             .then(res => {
               dispatch(removeCoinFromSwapRecords(selectedCoin));
+              dispatch(removeSwapPendingCoin(selectedCoin))
               setSwapLoad({...swapLoad, leave: false})
             });
         }
@@ -306,7 +269,7 @@ const SwapPage = () => {
                 <div className="wallet-container left ">
                     <div>
                         <span className="sub">Click to select coins below</span>
-                        <Coins
+                        <CoinsList
                           displayDetailsOnClick={false}
                           showCoinStatus={true}
                           selectedCoins={selectedCoins}
@@ -327,6 +290,7 @@ const SwapPage = () => {
                           selectedSwap = {selectedSwap}
                           setSelectedSwap = {setSelectedSwap}
                           initFetchSwapGroups = {initFetchSwapGroups}
+                          torOnline = {torInfo.online}
                         />
                     </div>
                       <div className="swap-footer-btns">

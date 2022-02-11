@@ -41,7 +41,8 @@ export const FILTER_BY_OPTION = [
 ]
 
 const PanelControl = () => {
-  const { balance_info, filterBy } = useSelector(state => state.walletData);
+  const balance_info = useSelector((state) => state.walletData.balance_info);
+  const filterBy  = useSelector((state) => state.walletData.filterBy);
 
   const filterByMsg = () => {
     let return_str = "Statecoin";

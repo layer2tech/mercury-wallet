@@ -45,8 +45,14 @@ export const StateChainSig = typeforce.compile({
 //  next_state: Any
 //})
 
+// Transfer batch status
+export const TransferBatchStatus= typeforce.compile({
+  state_chains: Array,
+  finalized: Boolean
+})
+
 // StateChain Entity API
-export const StateCoinDataAPI = typeforce.compile({
+export const  StateCoinDataAPI = typeforce.compile({
   utxo: OutPoint,
   amount: Number,
   statecoin: Object,
@@ -124,8 +130,6 @@ export const ClientKeyGenFirstMsg = typeforce.compile({
   kg_party_two_first_message: KeyGenFirstMsgParty2,
   kg_ec_key_pair_party2: EcKeyPair
 })
-
-
 
 // multi-party-ecdsa::protocols::two_party_ecdsa::lindell_2017::party_two::KeyGenSecondMsg
 export const KeyGenSecondMsg = typeforce.compile({
@@ -284,6 +288,15 @@ export const TransferFinalizeData = typeforce.compile({
   tx_backup_psm: PrepareSignTxMsg,
 })
 
+export const TransferFinalizeDataAPI = typeforce.compile({
+  new_shared_key_id: String,
+  statechain_id: String,
+  statechain_sig: StateChainSig,
+  s2: String,
+  new_tx_backup_hex: String,
+  batch_data: Object
+})
+
 export const TransferBatchdataAPI = typeforce.compile({
   new_shared_key_id: String,
   o2: String,
@@ -417,9 +430,10 @@ export const SwapGroupMap = typeforce.compile(
     Object
 )
 
-
  // Complete confirm to get witness
 export const WithdrawMsg2 = typeforce.compile({
   shared_key_ids: Array,
   address: String
 })
+
+export const BIP32Interface = typeforce.compile(Object)

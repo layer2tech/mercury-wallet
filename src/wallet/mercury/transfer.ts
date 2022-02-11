@@ -5,12 +5,13 @@ import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_RO
 import { ElectrsClient } from "../electrs"
 import { EPSClient } from "../eps"
 import { FEE } from "../util";
-import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain, 
-  getStateCoin, getOwner } from "./info_api";
+import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain,
+  getStateCoin, getOwner, RecoveryDataMsg, StateChainDataAPI } from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
 import { Wallet } from "../wallet";
 import { ACTION } from '../activity_log';
+import { TransferFinalizeData } from "../types";
 
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require('lodash.clonedeep');
@@ -258,7 +259,10 @@ export const transferReceiver = async (
   if (!pk_der.verify(sighash_bytes, decoded.signature)) throw new Error("Backup tx invalid signature.");
   // 4. Ensure backup tx funds are sent to address owned by this wallet
   if (se_rec_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
-  if (se_rec_addr_bip32.publicKey.toString("hex") !== transfer_msg3.rec_se_addr.proof_key) throw new Error("Backup tx not sent to addr derived from receivers proof key. Transfer not made to this wallet.");
+  let pk_expected = se_rec_addr_bip32.publicKey.toString("hex");
+  let pk_received = transfer_msg3.rec_se_addr.proof_key
+  if (pk_expected !== pk_received) 
+    throw new Error(`Backup tx not sent to addr derived from receivers proof key. Expected proof key ${pk_expected}, got ${pk_received}. Transfer not made to this wallet.`);
 
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);
@@ -348,11 +352,31 @@ export const transferReceiverFinalize = async (
   wasm_client: any,
   finalize_data: TransferFinalizeData,
 ): Promise<StateCoin> => {
+
+  let finalize_data_rec : TransferFinalizeDataForRecovery = {
+    new_shared_key_id: finalize_data.new_shared_key_id,
+    o2: finalize_data.o2, 
+    statechain_data: finalize_data.state_chain_data,
+    statechain_id: finalize_data.statechain_id,
+    proof_key: finalize_data.proof_key,
+    tx_backup_hex: finalize_data.tx_backup_psm.tx_hex
+  }
+  
+  let statecoin = await transferReceiverFinalizeRecovery(http_client, wasm_client, finalize_data_rec);
+
+  return statecoin
+}
+
+export const transferReceiverFinalizeRecovery = async (
+  http_client: HttpClient |  MockHttpClient,
+  wasm_client: any,
+  finalize_data: TransferFinalizeDataForRecovery,
+): Promise<StateCoin> => {
   // Make shared key with new private share
   // 2P-ECDSA with state entity to create a Shared key
   let statecoin = await keyGen(http_client, wasm_client, finalize_data.new_shared_key_id, finalize_data.o2, PROTOCOL.TRANSFER, null);
-  statecoin.funding_txid = finalize_data.state_chain_data.utxo.txid;
-  statecoin.funding_vout = finalize_data.state_chain_data.utxo.vout;
+  statecoin.funding_txid = finalize_data.statechain_data.utxo.txid;
+  statecoin.funding_vout = finalize_data.statechain_data.utxo.vout;
 
   // Check shared key master public key === private share * SE public share
   // let P = BigInt("0x" + finalize_data.s2_pub) * BigInt("0x" + finalize_data.o2) * BigInt("0x" + finalize_data.theta)
@@ -367,6 +391,7 @@ export const transferReceiverFinalize = async (
   // Verify proof key inclusion in SE sparse merkle tree
   let root = null;
   let proof = null;
+  console.log('verifySmtProof...')
   try {
     root = await getRoot(http_client);
     proof = await getSmtProof(http_client, root, statecoin.funding_txid);
@@ -378,9 +403,9 @@ export const transferReceiverFinalize = async (
   // Add state chain id, value, proof key and SMT inclusion proofs to local SharedKey data
   // Add proof and state chain id to Shared key
   statecoin.statechain_id = finalize_data.statechain_id;
-  statecoin.value = finalize_data.state_chain_data.amount;
+  statecoin.value = finalize_data.statechain_data.amount;
   statecoin.smt_proof = proof;
-  statecoin.tx_backup = Transaction.fromHex(finalize_data.tx_backup_psm.tx_hex);
+  statecoin.tx_backup = Transaction.fromHex(finalize_data.tx_backup_hex);
   statecoin.proof_key = finalize_data.proof_key;
   statecoin.funding_vout = statecoin.tx_backup.ins[0].index;
 
@@ -454,4 +479,22 @@ export interface  TransferFinalizeData {
     proof_key: string,
     statechain_id: string,
     tx_backup_psm: PrepareSignTxMsg,
+}
+
+export interface TransferFinalizeDataAPI {
+  new_shared_key_id: string,
+  statechain_id: string,
+  statechain_sig: any,
+  s2: string,
+  new_tx_backup_hex: string,
+  batch_data: any
+}
+
+export interface TransferFinalizeDataForRecovery {
+    new_shared_key_id: string,
+    o2: string,
+    statechain_data: any,
+    proof_key: string,
+    statechain_id: string,
+    tx_backup_hex: string,
 }

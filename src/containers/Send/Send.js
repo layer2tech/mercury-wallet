@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
 import {useSelector, useDispatch} from 'react-redux';
-import {Coins, StdButton, AddressInput, SendModal, ConfirmPopup, Loading} from "../../components";
+import { StdButton, AddressInput, SendModal, ConfirmPopup, Loading, CoinsList} from "../../components";
 
 import {fromSatoshi} from '../../wallet/util';
 import {decodeSCEAddress, encodeMessage} from '../../wallet/util';
-import {isWalletLoaded, callTransferSender, setError, setNotification} from '../../features/WalletDataSlice';
+import {isWalletLoaded, callTransferSender, setError, setNotification,
+  removeCoins } from '../../features/WalletDataSlice';
 import arrow from "../../images/arrow-up.png"
 import './Send.css';
 
@@ -123,6 +124,7 @@ const SendStatecoinPage = () => {
     setOpenSendModal({ show: false })
     setCoinDetails({})
     dispatch(setNotification({msg:"Transfer initialise! Send the receiver the transfer key to finalise."}))
+    dispatch(removeCoins(1))
   }
 
   return (
@@ -156,7 +158,7 @@ const SendStatecoinPage = () => {
                   <div>
                       <h3 className="subtitle">Select statecoin to send</h3>
                       <span className="sub">Click to select coins below</span>
-                      <Coins
+                      <CoinsList
                         displayDetailsOnClick={false}
                         showCoinStatus={true}
                         selectedCoin={selectedCoin}
