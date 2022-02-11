@@ -33,6 +33,7 @@ const isDev = (process.env.NODE_ENV == 'development');
 let ta_process=undefined
 
 let resourcesPath = undefined;
+let iconPath = undefined;
 if(getPlatform() == 'linux') {
     resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet', 'resources');
 } else {
@@ -43,9 +44,13 @@ let torrc = undefined;
 if(isDev) {
     execPath = joinPath(resourcesPath, getPlatform());
     torrc = joinPath(resourcesPath, 'etc', 'torrc');
+    if(getPlatform() == 'linux') {
+      iconPath = joinPath( resourcesPath, 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
+    }
 } else {
     if(getPlatform() == 'linux') {
         execPath = joinPath(rootPath, '..', '..', 'Resources', 'bin');
+        iconPath = joinPath( rootPath, '..', '..', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
     } else {
         console.log("root path: " + rootPath);
         execPath = joinPath(rootPath, '..', 'bin');
@@ -63,11 +68,6 @@ for(let i=0; i<process.argv.length;i++){
 }
 
 let mainWindow;
-
-let iconPath = undefined;
-if(getPlatform() == 'linux') {
-    iconPath = joinPath( dirname(rootPath), 'mercury-wallet', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
-} 
 
 function createWindow() {
   let windowSpec = {
