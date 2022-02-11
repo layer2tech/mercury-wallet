@@ -3,7 +3,7 @@ import arrow from '../../images/arrow-accordion.png';
 import React, {useState, useEffect} from "react";
 import {useSelector, useDispatch} from 'react-redux'
 
-import {callGetBlockHeight, callGetConfig, callGetSwapGroupInfo,callGetPingServerms, callGetPingConductorms, callGetPingElectrumms, callUpdateSpeedInfo } from '../../features/WalletDataSlice'
+import {callGetBlockHeight, callGetConfig, callGetSwapGroupInfo,callGetPingServerms, callGetPingConductorms, callGetPingElectrumms, callUpdateSpeedInfo, setIntervalIfOnline } from '../../features/WalletDataSlice'
 import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
 import './panelConnectivity.css';
@@ -60,20 +60,17 @@ const PanelConnectivity = (props) => {
     const interval = setInterval(() => {
       updateSpeedInfo()
     }, 30000);
-    return () => clearInterval(interval);
-    }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch, torInfo.online]);
+    if(props.online){
+      return () => clearInterval(interval);
+    }
+  }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch, torInfo.online]);
 
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
-      const interval = setInterval(async () => {
-          if(torInfo.online !== true){
-            setBlockHeight(null)
-            return
-          }
-          setBlockHeight(await callGetBlockHeight());          
-      }, 500);
-      return () => clearInterval(interval);
-  }, [block_height, torInfo.online]);
+    const interval = setIntervalIfOnline(getBlockHeight,torInfo.online,500)
+
+    return () => clearInterval(interval);
+  }, [block_height, torInfo.online, props.online]);
 
   useEffect(() => {
     //Displaying connecting spinners
@@ -94,6 +91,14 @@ const PanelConnectivity = (props) => {
     electrum_ping_ms !== null? (connection_pending[2].classList.add("connected")):(connection_pending[2].classList.remove("connected")) 
   },[fee_info.deposit,swap_groups_array.length,block_height, server_ping_ms, conductor_ping_ms, electrum_ping_ms])
 
+
+  const getBlockHeight = async () => {
+    if(torInfo.online !== true){
+      // setBlockHeight(null)
+      return
+    }
+    setBlockHeight(await callGetBlockHeight());
+  }
 
   //function shortens urls to fit better with styling
   function shortenURLs(url){

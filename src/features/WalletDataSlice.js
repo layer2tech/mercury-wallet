@@ -11,7 +11,6 @@ import {resetIndex} from '../containers/Receive/Receive'
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
-import {useSelector} from 'react-redux';
 
 
 // eslint-disable-next-line
@@ -395,9 +394,25 @@ export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, 
   }
 }
 
+export const setIntervalIfOnline = (func,online,delay) => {
+  // Runs interval if app online, clears interval if offline
+  // Restart online interval in useEffect loop [torInfo.online]
+  // make online = torInfo.online
+
+  const interval = setInterval(async () => {
+    // console.log('interval called', online)
+    if(online === false){
+      clearInterval(interval)
+    }    
+    func()
+  }, delay)
+  return interval
+}
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
+
+
 export const callDepositInit = createAsyncThunk(
   'depositInit',
   async (value, thunkAPI) => {

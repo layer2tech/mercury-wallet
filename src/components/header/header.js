@@ -5,7 +5,7 @@ import {NotificationBar, ErrorPopup, ConfirmPopup} from "../../components";
 import WarningPopup from '../WarningPopup';
 import {unloadWallet} from '../../features/WalletDataSlice'
 import './header.css';
-import TorInfo from './TorInfo/TorCircuit';
+import TorCircuit from './TorInfo/TorCircuit';
 
 const Header = (props) => {
   
@@ -41,7 +41,7 @@ const Header = (props) => {
         <div className="menu">
               {
                 props.walletLoaded &&
-                <TorInfo/>
+                <TorCircuit online = {props.online}/>
               }
           <div title="Light/Dark mode">
             <label className="toggle">
