@@ -581,14 +581,9 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
       "commitment": this.getSwapBatchTransferData().commitment,
     }
     let finalize_data = null;
-    try {
-      finalize_data = await transferReceiver(http_client, 
-        electrum_client, network, msg3, rec_se_addr_bip32, 
-        batch_data, req_confirmations, block_height, value);
-    } catch (err) {
-      this.resetRetryCounters()
-      throw err
-    }
+    finalize_data = await transferReceiver(http_client, 
+      electrum_client, network, msg3, rec_se_addr_bip32, 
+      batch_data, req_confirmations, block_height, value);
     typeforce(types.TransferFinalizeData, finalize_data);  
     return finalize_data;
 }
