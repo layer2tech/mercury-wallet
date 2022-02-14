@@ -447,9 +447,7 @@ export const setIntervalIfOnline = (func,online,delay) => {
 
   const interval = setInterval(async () => {
     // console.log('interval called', online)
-    console.log('online: ', online)
     if(online === false){
-      console.log('clearInterval')
       clearInterval(interval)
     }    
     func()

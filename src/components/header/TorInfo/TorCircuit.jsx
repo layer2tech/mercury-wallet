@@ -71,9 +71,9 @@ const TorCircuit = (props) => {
     }
 
     return (
-        <div class="dropdown tor">
+        <div className = "dropdown tor">
             <TorIcon/>
-            <div class="dropdown-content">
+            <div className = "dropdown-content">
                 { torLoaded ? ( 
                 <div>
                     <ul>
@@ -85,7 +85,7 @@ const TorCircuit = (props) => {
                         {/* <TorCircuitNode className='current' name={current_config.state_entity_endpoint}></TorCircuitNode> */}
                         {<TorCircuitNode class='current' name={shortenURL(current_config.state_entity_endpoint)}></TorCircuitNode>}
                     </ul>
-                    <button class='Body-button' onClick={newCircuit}>New Circuit</button>
+                    <button className = 'Body-button' onClick={newCircuit}>New Circuit</button>
                 </div>) :  
                 (<div>
                     <p>Couldn't establish connection to tor</p>

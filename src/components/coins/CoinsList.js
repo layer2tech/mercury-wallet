@@ -219,17 +219,9 @@ const CoinsList = (props) => {
       setShowDeleteCoinDetails(false);
     }
 
-    // Initiate auto swap
-   useEffect(() => {
-    const interval = setIntervalIfOnline(autoSwapLoop, torInfo.online, 3000)
-    return () => clearInterval(interval);
-  },
-  [swapPendingCoins, torInfo.online]);
-
 
     //Load coins once component done render
     useEffect(() => {
-      // console.log('interval 2')
       const [coins_data] = callGetUnspentStatecoins();
       //Load all coins that aren't unconfirmed
 
@@ -264,7 +256,7 @@ const CoinsList = (props) => {
     }
     , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved]);
 
-    // Re-fetch every 10 seconds and update state to refresh render
+    // Re-fetch every 5 seconds and update state to refresh render
     // IF any coins are marked UNCONFIRMED
     useEffect(() => {
 
@@ -292,6 +284,14 @@ const CoinsList = (props) => {
     //function called every time coin info modal shows up
     },[showCoinDetails.coin])
 
+  // Re-fetch swaps group data every and update swaps component
+  // Initiate auto swap
+   useEffect(() => {
+    const interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000)
+    return () => clearInterval(interval);
+  },
+  [swapPendingCoins, torInfo.online]);
+
     // Enters/Re-enters coins in auto-swap
     const autoSwapLoop = () => {
       if(torInfo.online === false) return
@@ -299,12 +299,9 @@ const CoinsList = (props) => {
         return
       }
 
-      // console.log('interval 1')
-
       swapPendingCoins.forEach((selectedCoin) => {
         let statecoin = callGetStateCoin(selectedCoin);
         if(statecoin && statecoin.status === STATECOIN_STATUS.AVAILABLE){
-          console.log('dispatch swap')
           dispatch(callDoSwap({"shared_key_id": selectedCoin}))
             .then(res => {
               handleEndAutoSwap(dispatch, statecoin, selectedCoin, res, fromSatoshi)
@@ -314,6 +311,13 @@ const CoinsList = (props) => {
       })
     }
 
+    const swapInfoAndAutoSwap = () => {
+      autoSwapLoop()
+      if(props.updateSwapInfo){
+        props.updateSwapInfo()
+      }
+    }
+    
     const updateUnconfirmedUnspentCoins = () => {
       setState({});
       // console.log('interval 3')
