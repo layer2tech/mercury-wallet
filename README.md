@@ -1,6 +1,6 @@
 # Mercury Wallet
 
-Mercury wallet is a cross-platform GUI for [Mercury](https://github.com/commerceblock/mercury) written in node.js using Electron.
+Mercury wallet is a cross-platform GUI for [Mercury](https://github.com/commerceblock/mercury) written in node.js using Electron. [Read the docs](https://docs.mercurywallet.com/docs/).
 
 # Configuration
 
@@ -130,6 +130,10 @@ Logs are written to console and file at the following locations:
 # Contact
 
 If you have any further questions you can find us at:
+
+- [Mail](mailto:main@mercurywallet.com)
+- [Twitter](https://twitter.com/mercury_wallet)
+- [Discord](https://discord.gg/TjzqSNBKRe)
 
 # Issue Tracker
 
