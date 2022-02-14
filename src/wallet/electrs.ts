@@ -212,12 +212,13 @@ export class ElectrsClient {
         } catch(err: any) {
           const err_str = err?.message
           if (err_str && err_str.includes('Network Error')){
-            this.blockHeightUnsubscribe()
+            // this.blockHeightUnsubscribe()
+            // Is this okay to comment out?
           }          
           throw err
         }
       }, 
-      10000, callBack, this.endpoint)
+      5000, callBack, this.endpoint)
   }
 
   blockHeightUnsubscribe() {

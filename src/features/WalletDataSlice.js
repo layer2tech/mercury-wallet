@@ -2,7 +2,6 @@ import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 
 import {Wallet, ACTION} from '../wallet'
 import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
-import {swapDeregisterUtxo} from '../wallet/swap/info_api'
 import {pingServer as pingConductor} from '../wallet/swap/info_api'
 import {pingServer} from '../wallet/mercury/info_api'
 import {decodeMessage} from '../wallet/util'
@@ -11,7 +10,7 @@ import {resetIndex} from '../containers/Receive/Receive'
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
-import {useSelector} from 'react-redux';
+import { SWAP_STATUS } from '../wallet/swap/swap_utils'
 
 
 // eslint-disable-next-line
@@ -132,18 +131,13 @@ function setBlockHeightCallBack(item) {
 }
 
 // Load wallet from store
-export const walletLoad = (name, password) => {
+export const walletLoad = async (name, password) => {
 
   wallet = Wallet.load(name, password, testing_mode);
 
   wallet.disableAutoSwaps();
-  try{
-    wallet.deRegisterSwaps();
-  }
-  catch(e) {
-    new Error({msg: e.message})
-  }
-
+  await wallet.deRegisterSwaps();
+  
   log.info("Wallet "+name+" loaded from memory. ");
   
   if (testing_mode) log.info("Testing mode set.");
@@ -395,9 +389,72 @@ export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, 
   }
 }
 
+export const handleEndAutoSwap = (dispatch, statecoin, selectedCoin, res, fromSatoshi) => {
+  dispatch(removeSwapPendingCoin(selectedCoin))
+  // get the statecoin for txId method
+  if(statecoin === undefined || statecoin === null){
+    statecoin = selectedCoin;
+  }
+
+  if(!statecoin?.swap_auto){ 
+    // If user switches off swap auto, exit callDoSwap smoothly
+    return
+  }
+  
+  let new_statecoin = res?.payload;
+  // turn off autoswap because final .then was called
+  if (!new_statecoin) {
+    // dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))
+      if (statecoin.swap_status === SWAP_STATUS.Phase4) {
+        // dispatch(setNotification({msg:"Retrying resume swap phase 4 with statecoin:' + statecoin.shared_key_id"}));
+        dispatch(addCoinToSwapRecords(statecoin))
+        dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+        return
+      } else{
+        if(statecoin.swap_auto){
+          // dispatch(setNotification({msg:"Retrying join auto swap with statecoin:' + statecoin.shared_key_id"}));
+          dispatch(addCoinToSwapRecords(statecoin))
+          dispatch(addSwapPendingCoin(statecoin.shared_key_id))
+          //return
+        }
+      }
+  } else {
+    if(new_statecoin?.is_deposited){
+      dispatch(setNotification({msg:"Swap complete - Warning - received coin in swap that was previously deposited in this wallet: "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+      dispatch(removeCoinFromSwapRecords(selectedCoin));
+    } else {
+      dispatch(setNotification({msg:"Swap complete for coin "+ statecoin.getTXIdAndOut() +  " of value "+fromSatoshi(res.payload.value)}))
+      dispatch(removeCoinFromSwapRecords(selectedCoin));
+    } 
+    if(new_statecoin && new_statecoin?.swap_auto){
+      // dispatch(setNotification({msg:"Retrying join auto swap with new statecoin:' + new_statecoin.shared_key_id"}));
+      dispatch(addCoinToSwapRecords(new_statecoin))
+      dispatch(addSwapPendingCoin(new_statecoin.shared_key_id))
+    }
+  }
+}
+
+export const setIntervalIfOnline = (func,online,delay) => {
+  // Runs interval if app online, clears interval if offline
+  // Restart online interval in useEffect loop [torInfo.online]
+  // make online = torInfo.online
+
+  const interval = setInterval(async () => {
+    // console.log('interval called', online)
+    console.log('online: ', online)
+    if(online === false){
+      console.log('clearInterval')
+      clearInterval(interval)
+    }    
+    func()
+  }, delay)
+  return interval
+}
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
+
+
 export const callDepositInit = createAsyncThunk(
   'depositInit',
   async (value, thunkAPI) => {
@@ -491,12 +548,11 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
   'SwapDeregisterUtxo',
   async (action, thunkAPI) => {
     let statecoin = wallet.statecoins.getCoin(action.shared_key_id)
-    let statechain_id = statecoin.statechain_id
-    await swapDeregisterUtxo(wallet.http_client, {id: statechain_id});
+    if(!statecoin) throw Error(`callSwapDeregisterUtxo: statecoin with shared key id ${action.shared_key_id} not found`)
     try{  
-      wallet.statecoins.removeCoinFromSwap(action.shared_key_id);
+      await wallet.deRegisterSwapCoin(statecoin) 
     } catch(e) {
-      if(e?.message.includes("Cannot remove coin.")){
+      if(e?.message.includes("Cannot remove coin")){
         if(action?.autoswap === true){
           action.dispatch(setNotification({msg: `Deactivated auto-swap for coin: ${statecoin.getTXIdAndOut()}.`}))
         } else {

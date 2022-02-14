@@ -18,7 +18,8 @@ import {
   removeCoinFromSwapRecords,
   addSwapPendingCoin,
   removeSwapPendingCoin,
-  handleEndSwap
+  handleEndSwap,
+  setIntervalIfOnline
 } from "../../features/WalletDataSlice";
 import {fromSatoshi, STATECOIN_STATUS} from '../../wallet';
 import './Swap.css';
@@ -62,14 +63,9 @@ const SwapPage = () => {
 
   // Re-fetch swaps group data every 6 seconds and update swaps component
   useEffect(() => {
-      const interval = setInterval(() => {
-        if(torInfo.online){
-          updateSwapInfo()
-        }
-      }, 6000);
-      if(torInfo.online){
-        return () => clearInterval(interval);
-      }
+      const interval = setIntervalIfOnline(updateSwapInfo, torInfo.online, 6000)
+      return () => clearInterval(interval);
+
     },
   [torInfo.online]);
 
@@ -78,6 +74,7 @@ const SwapPage = () => {
   useEffect(() => {
     let delay = swapLoad.join ? 3000 : 0; 
     setTimeout(() => {
+      // console.log('interval 5')
       updateSwapInfo()
     }, delay);
   },

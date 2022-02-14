@@ -59,7 +59,7 @@ describe('swapPhase1 test 1 - incorrect status', () => {
 describe('swapPhase1 test 2 - incorrect swap_status', () => {
     // input /////////////////////////////////////////////////
     let statecoin = makeTesterStatecoin();
-    statecoin.status = STATECOIN_STATUS.AWAITING_SWAP
+    statecoin.status = STATECOIN_STATUS.IN_SWAP
     let swap = new Swap(getWallet(), statecoin, null, null) 
     //////////////////////////////////////////////////////////
 
@@ -76,7 +76,7 @@ describe('swapPhase1 test 2 - incorrect swap_status', () => {
 describe('swapPhase1 test 3 - incorrect swap id', () => {
     // input //////////////////////////////////////////////////////////
     let statecoin = makeTesterStatecoin();
-    statecoin.status = STATECOIN_STATUS.AWAITING_SWAP;
+    statecoin.status = STATECOIN_STATUS.IN_SWAP;
     // Set swap_status as if coin had already run Phase0
     statecoin.swap_status = SWAP_STATUS.Phase1
     let swap = new Swap(getWallet(), statecoin, null, null) 
