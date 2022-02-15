@@ -31,7 +31,7 @@ const SwapPage = () => {
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
-  const torInfo = useSelector(state => state.walletData).torInfo;
+  const { torInfo } = useSelector(state => state.walletData);
 
   const [swapLoad, setSwapLoad] = useState({join: false,swapCoin: "", leave:false}) // set loading... onClick
   const [initFetchSwapGroups,setInitFetchSwapGroups] = useState(true)
@@ -61,18 +61,10 @@ const SwapPage = () => {
     setInitFetchSwapGroups(false)
   }
 
-  // Re-fetch swaps group data every 6 seconds and update swaps component
-  useEffect(() => {
-      const interval = setIntervalIfOnline(updateSwapInfo, torInfo.online, 6000)
-      return () => clearInterval(interval);
-
-    },
-  [torInfo.online]);
-
   // Update swap info when swapLoad changes.
   // The delay on joining is to wait for the coin to be added to a swap group.
   useEffect(() => {
-    let delay = swapLoad.join ? 3000 : 0; 
+    let delay = swapLoad.join ? 500 : 0; 
     setTimeout(() => {
       // console.log('interval 5')
       updateSwapInfo()
@@ -274,6 +266,7 @@ const SwapPage = () => {
                           setSelectedCoins={setSelectedCoins}
                           refresh={refreshCoins}
                           handleAutoSwap={handleAutoSwap}
+                          updateSwapInfo = { updateSwapInfo }
                           swap
                         />
                     </div>
