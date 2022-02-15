@@ -194,7 +194,7 @@ export const transferReceiver = async (
   batch_data: any,
   req_confirmations: number,
   block_height: number | null,
-  value: any
+  value: number | null
 ): Promise<TransferFinalizeData> => {
   // Get statechain data (will Err if statechain not yet finalized)
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
@@ -241,10 +241,11 @@ export const transferReceiver = async (
 
   // 1. Verify backup transaction amount
   let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
-  if ((tx_backup.outs[0].value + tx_backup.outs[1].value + FEE) !== statechain_data.amount) throw new Error("Backup tx invalid amount.");
-  if(value) {
-    if ((tx_backup.outs[0].value + tx_backup.outs[1].value + FEE) !== value) throw new Error("Swapped coin value invalid.");
+  const backup_tx_amount = tx_backup.outs[0].value + tx_backup.outs[1].value + FEE
+  if(value !== null && value !== undefined){
+    if (backup_tx_amount !== value) throw new Error(`Swapped coin value invalid. Expected ${backup_tx_amount}, got ${value}`)
   }
+  if (backup_tx_amount !== statechain_data.amount) throw new Error(`Backup tx invalid amount. Expected ${statechain_data.amount}, got ${backup_tx_amount}`);
   // 2. Verify the input matches the specified outpoint
   if (tx_backup.ins[0].hash.reverse().toString("hex") !== statechain_data.utxo.txid) throw new Error("Backup tx invalid input.");
   if (tx_backup.ins[0].index !== statechain_data.utxo.vout) throw new Error("Backup tx invalid input.");

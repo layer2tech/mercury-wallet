@@ -340,7 +340,6 @@ getStatecoinOut(): StateCoin {
   return statecoin_out
 }
 
-
 getBlindedSpendSignature(): BlindedSpendSignature {
   const bss = this.blinded_spend_signature
     if (bss === null || bss === undefined){
@@ -502,6 +501,7 @@ transferSender = async (): Promise<SwapStepResult> => {
 
 makeSwapCommitment = async (): Promise<SwapStepResult> => {
   this.statecoin.swap_batch_data = await this.make_swap_commitment();
+  this.statecoin.swap_status = SWAP_STATUS.Phase4;
   this.wallet.saveStateCoinsList()
   return SwapStepResult.Ok("made swap commitment")
 }
@@ -584,7 +584,7 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
     finalize_data = await transferReceiver(http_client, 
       electrum_client, network, msg3, rec_se_addr_bip32, 
       batch_data, req_confirmations, block_height, value);
-    typeforce(types.TransferFinalizeData, finalize_data);  
+    typeforce(types.TransferFinalizeData, finalize_data); 
     return finalize_data;
 }
 
@@ -600,26 +600,17 @@ updateBlockHeight = async () => {
 transferReceiver = async (): Promise<SwapStepResult> => {
   try{
     this.updateBlockHeight();
-    let transfer_finalized_data = await this.do_transfer_receiver();
+    await this.getTransferFinalizedData();
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase7;
-
-    if (transfer_finalized_data !== null && transfer_finalized_data !== undefined) {
-      // Update coin status
-      this.statecoin.swap_transfer_finalized_data = transfer_finalized_data;
-      this.statecoin.swap_status = SWAP_STATUS.Phase4;
-      this.wallet.saveStateCoinsList()
-      return SwapStepResult.Ok(`Received transfer finalized data.`)
-    } else {
-      return SwapStepResult.Retry(`Received null or undefined transfer finalized data. Retrying.`)
-    }
+    return SwapStepResult.Ok("transferReceiver")
   } catch (err: any) {
     if(err?.message && (err.message.includes("wasm_client") ||
       err.message.includes(POST_ROUTE.KEYGEN_SECOND))){
       throw err
     }
-    return SwapStepResult.Retry(err.message)
+    return SwapStepResult.Retry(`transferReceiver: ${err.message}`)
   }
-  }
+}
 
     // Poll swap until phase changes to Phase End. In that case complete swap by performing transfer finalize.
 swapPhase4PollSwap = async () => {
@@ -644,11 +635,16 @@ swapPhase4CheckPhase = (phase: string): SwapStepResult => {
   return SwapStepResult.Ok(`Swap Phase: ${phase} - Coin ${this.statecoin.shared_key_id} in Swap ${this.statecoin.swap_id}`);
 }
 
-getTransferFinalizedData(): TransferFinalizeData {
-  const data = this.statecoin.swap_transfer_finalized_data
+async getTransferFinalizedData(): Promise<TransferFinalizeData> {
+  let data = this.statecoin.swap_transfer_finalized_data
   if (data === null || data === undefined){
-    throw new Error("expected TransferFinalizeData, got null or undefined")
+    data = await this.do_transfer_receiver()
+    this.wallet.saveStateCoinsList()
+    if (data === null || data === undefined){ 
+      throw new Error("expected TransferFinalizeData, got null or undefined")
+    }
   }
+  this.statecoin.swap_transfer_finalized_data = data
   return data
 }
 
@@ -713,8 +709,9 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
   // Complete transfer for swap and receive new statecoin  
   try {
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8;
-    let wasm = await this.wallet.getWasm();
-    let statecoin_out = await transferReceiverFinalize(this.clients.http_client, wasm, this.getTransferFinalizedData());
+    const wasm = await this.wallet.getWasm();
+    const tfd = await this.getTransferFinalizedData();
+    let statecoin_out = await transferReceiverFinalize(this.clients.http_client, wasm, tfd);
     log.info(`setting statecoin out...`)
     this.setStatecoinOut(statecoin_out)
     log.info(`transfer complete.`)
