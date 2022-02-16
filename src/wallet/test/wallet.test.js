@@ -282,7 +282,7 @@ describe('updateBackupTxStatus', function() {
       wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
       wallet.block_height = 1001;
       wallet.updateBackupTxStatus();
-      expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWING);
+      expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWN);
       // verify tx confirmed
       expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.CONFIRMED); 
     })    

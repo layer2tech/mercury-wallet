@@ -36,7 +36,6 @@ export class StateCoinList {
       let replca = false;
       statecoins.coins.filter((existing_coin: StateCoin) => {
         if (item.shared_key_id === existing_coin.shared_key_id && item.status === STATECOIN_STATUS.AVAILABLE && existing_coin.status === STATECOIN_STATUS.AVAILABLE) {
-          console.log("Replica coin " + item.statechain_id + " ignored");
           replca = true;
         }
       });
@@ -44,7 +43,6 @@ export class StateCoinList {
       // re-build tx_backup as Transaction
       if (item.tx_backup !== undefined && item.tx_backup !== null) {
         let tx_backup_any: any = item.tx_backup;
-        console.log('tx_backup_any = ' + tx_backup_any);
         let tx_backup = new Transaction();
         tx_backup.version = tx_backup_any.version;
         tx_backup.locktime = tx_backup_any.locktime;
@@ -64,7 +62,6 @@ export class StateCoinList {
       // re-build tx_cpfp as Transaction
       if (item.tx_cpfp !== undefined && item.tx_cpfp !== null) {
         let tx_cpfp_any: any = item.tx_cpfp;
-        console.log('tx_cpfp_any = ' + tx_cpfp_any);
         let tx_cpfp = new Transaction();
         tx_cpfp.version = tx_cpfp_any.version;
         tx_cpfp.locktime = tx_cpfp_any.locktime;
@@ -157,9 +154,7 @@ export class StateCoinList {
   };
 
   getWithdrawingCoins() {
-    
     return this.coins.filter((item: StateCoin) => {
-
       if (item.status === STATECOIN_STATUS.WITHDRAWING) {
         return item
       }
@@ -556,16 +551,12 @@ export class StateCoin {
   setBackupSpent() { this.backup_status = BACKUP_STATUS.SPENT }
 
   getWithdrawalBroadcastTxInfo(id: string): WithdrawalTxBroadcastInfo {
-    console.log(`withdraw_broadcast: ${JSON.stringify(this.tx_withdraw_broadcast)}`);
     let found =  this.tx_withdraw_broadcast.filter((item: WithdrawalTxBroadcastInfo) => {
-      console.log(`id: ${id},  txid: ${item.txid}`);
       if (item.txid === id) {
-        console.log(`Found item for id: ${id}: ${item}`);
         return item
       }
       return null
     });
-    console.log(`found: ${JSON.stringify(found)}`);
     return found[0]
   }
 

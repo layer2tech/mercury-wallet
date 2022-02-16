@@ -536,7 +536,7 @@ export class Wallet {
 
   getUnspentStatecoins() {
     let withdrawing_coins = this.statecoins.getWithdrawingCoins()
-    this.checkWithdrawingTxStatus(withdrawing_coins)
+    this.checkWithdrawingTxStatus(withdrawing_coins);
     return this.statecoins.getUnspentCoins(this.block_height);
   }
 
@@ -584,17 +584,8 @@ export class Wallet {
           }
         }
       } 
-    
-        
-        
         }
-        
-      
-      
-      
       }
-  
-      
     })
   }
 
@@ -1447,25 +1438,11 @@ export class Wallet {
     return num_transfers + "../.." + error_message
   }
 
-
-  // Perform withdraw
-  // Args: statechain_id of coin to withdraw
-  // Return: Withdraw Tx  (Details to be displayed to user - amount, txid, expect conf time...)
-  async withdraw(
-    shared_key_ids: string[],
-    rec_addr: string,
-    fee_per_byte: number
-  ): Promise <string> {
-    let [txid, withdraw_msg_2] = await this.withdraw_init(shared_key_ids, rec_addr, fee_per_byte);
-    await this.withdraw_confirm(withdraw_msg_2, txid);
-    return txid
-  }
-
   async withdraw_init(
     shared_key_ids: string[],
     rec_addr: string,
     fee_per_byte: number
-  ): Promise <[string, any]> {
+  ): Promise <string> {
     log.info("Withdrawing "+shared_key_ids+" to "+rec_addr);
     
     // Check address format
@@ -1491,15 +1468,26 @@ export class Wallet {
     let broadcastTxInfos = statecoin.tx_withdraw_broadcast
     if(broadcastTxInfos.length){
       fee_max = statecoin.getWithdrawalMaxTxFee()
-      if(fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`)
-      //if (shared_key_ids !== broadcastTxInfos[0].withdraw_msg_2.shared_key_ids){
-      //  throw Error(`Replacement transaction shared key ids do not match ${shared_key_ids}, ${broadcastTxInfos[0].withdraw_msg_2.shared_key_ids}`)
-      //}
+      if(fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`);
+      const ids_sorted_1 = shared_key_ids.slice().sort();
+      const ids_sorted_2 = broadcastTxInfos[0].withdraw_msg_2.shared_key_ids.slice().sort();
+      if (JSON.stringify(ids_sorted_1) !== JSON.stringify(ids_sorted_2)) {
+
+        let coin_ids: string[] = [];
+        // get txids
+        ids_sorted_2.forEach( (shared_key_id) => {
+          let statecoin = this.statecoins.getCoin(shared_key_id);
+          if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+          coin_ids.push(statecoin.funding_txid + ':' + statecoin.funding_vout.toString());
+        });        
+
+        throw Error(`Replacement transactions must batch the same coins: ${coin_ids}`)
+      }
       if (rec_addr !== broadcastTxInfos[0].withdraw_msg_2.address){
         throw Error(`Replacement transaction recipient address does not match`)
       }
     }
-    
+
     // Perform withdraw init with server
     let [tx_withdraw, withdraw_msg_2] = await withdraw_init(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_byte);
     
@@ -1513,7 +1501,6 @@ export class Wallet {
       }
       this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
     });
-    console.log("saving satecoin list...")
     this.saveStateCoinsList();
 
        // Broadcast transcation
@@ -1537,11 +1524,8 @@ export class Wallet {
          }
          break
        }
-       
        log.info("Withdraw init finished.");
-   
-
-    return [withdraw_txid, withdraw_msg_2]
+    return withdraw_txid
   }
 
   async withdraw_confirm(
@@ -1550,29 +1534,21 @@ export class Wallet {
   ) {
     log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`)
     try{
-      console.log(`wallet - withdraw_confirm...`)
       await withdraw_confirm(this.http_client, withdraw_msg_2)
-      console.log(`wallet - withdraw_confirm ok.`)
       withdraw_msg_2.shared_key_ids.forEach( (shared_key_id) => {
-        console.log(`wallet - setCoinWithdrawTxId...`)
         this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
-        console.log(`wallet - setStateCoinSpent ACTION.WITHDRAW...`)
         this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
       })
     } catch(e){
-      if(`${e}`.includes('No data for id')){
+      if(`${e}`.includes('No data for id') || `${e}`.includes('No update made')){
         withdraw_msg_2.shared_key_ids.forEach( (shared_key_id) => {
-          console.log(`wallet - setCoinWithdrawTxId...`)
           this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
-          console.log(`wallet - setStateCoinSpent ACTION.WITHDRAW...`)
           this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
         })
       } else {
         log.error(`withdraw confirm error: ${e}`);
         throw e
       }
-
-      
     }
   }
 }
