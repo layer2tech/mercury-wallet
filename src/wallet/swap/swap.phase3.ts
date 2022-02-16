@@ -31,7 +31,7 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     () => {return true},
     () => {return true},
     () => { 
-      if (swap.statecoin.swap_transfer_msg === null) throw Error("No swap transfer message for coin")
+      if (swap.statecoin.swap_transfer_msg === null) throw Error("No swap transfer message for coin.")
       return true
     },
     swap.getTransferMsg3
@@ -41,7 +41,7 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     () => {return true},
     () => {return true},
     () => { 
-      if (swap.transfer_msg_3_receiver === null) throw Error("No transfer_msg_3_receiver")
+      if (swap.transfer_msg_3_receiver === null) throw Error("No transfer_msg_3_receiver.")
       return true;
     },
     swap.makeSwapCommitment

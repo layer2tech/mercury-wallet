@@ -7,7 +7,7 @@ import { ElectrumTxData } from "../wallet/electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
 import { BatchData, BSTRequestorData, SwapErrorMsg, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap_utils";
-import { SCEAddress, TransferFinalizeData, TransferMsg3 } from "./mercury/transfer";
+import { SCEAddress, TransferFinalizeData, TransferMsg3, TransferMsg4 } from "./mercury/transfer";
 
 export class StateCoinList {
   coins: StateCoin[]
@@ -416,6 +416,7 @@ export class StateCoin {
   swap_receiver_addr: SCEAddress | null;
   swap_transfer_msg: TransferMsg3 | null;
   swap_batch_data: BatchData | null;
+  swap_transfer_msg_4: TransferMsg4 | null;
   swap_transfer_finalized_data: TransferFinalizeData | null;
   swap_auto: boolean;
   swap_error: SwapErrorMsg | null;
@@ -462,6 +463,7 @@ export class StateCoin {
     this.swap_receiver_addr = null;
     this.swap_transfer_msg = null;
     this.swap_batch_data = null;
+    this.swap_transfer_msg_4 = null;
     this.swap_transfer_finalized_data = null;
     this.swap_auto = false;
     this.swap_error = null;
@@ -627,6 +629,7 @@ export class StateCoin {
     this.swap_receiver_addr = null;
     this.swap_transfer_msg = null;
     this.swap_batch_data = null;
+    this.swap_transfer_msg_4 = null;
     this.swap_transfer_finalized_data = null;
     this.ui_swap_status = null;
     this.clearSwapError();

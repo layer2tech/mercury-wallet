@@ -1,10 +1,11 @@
 import { EPSClient } from '../eps'
-import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress, TransferMsg3 } from "../mercury/transfer"
-import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { delay_s, getStateCoin, getTransferBatchStatus, getStateChainTransferFinalizeData  } from "../mercury/info_api";
+import { transferSender, transferReceiver, TransferFinalizeData, 
+  transferReceiverFinalize, SCEAddress, TransferMsg3,
+  TransferMsg4, getTransferMsg4 } from "../mercury/transfer"
+import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo } from "./info_api";
+import { delay_s, getTransferBatchStatus } from "../mercury/info_api";
 import { StateChainSig } from "../util";
-import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
-import { v4 as uuidv4 } from 'uuid';
+import { BIP32Interface, Network } from 'bitcoinjs-lib';
 import { Wallet } from '../wallet'
 import { ACTION } from '../activity_log';
 import { encodeSCEAddress, POST_ROUTE,GET_ROUTE, StateCoin, STATECOIN_STATUS } from '..';
@@ -15,11 +16,6 @@ import { BatchData, BlindedSpendSignature, BSTRequestorData, first_message,
   SwapStep, SwapStepResult, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS, Timer,
   SWAP_TIMEOUT, TIMEOUT_STATUS } from './swap_utils';
 
-  import { TransferFinalizeDataAPI} from '../mercury/transfer';
-import { getFinalizeDataForRecovery } from '../recovery';
-
-let cloneDeep = require('lodash.clonedeep');
-let bitcoin = require("bitcoinjs-lib");
 let types = require("../types")
 let typeforce = require('typeforce');
 const version = require("../../../package.json").version;
@@ -543,6 +539,9 @@ is_statechain_id_in_swap = (id: string):boolean => {
 }
 
 getTransferMsg3 = async ():Promise<SwapStepResult> => {
+  if(this.transfer_msg_3_receiver !== null && this.transfer_msg_3_receiver !== undefined){
+    return SwapStepResult.Ok("transfer_msg_3_receiver already retrieved")
+  }
   let http_client = this.clients.http_client
   let rec_se_addr_bip32 = this.new_proof_key_der
   let msg3s;
@@ -553,13 +552,44 @@ getTransferMsg3 = async ():Promise<SwapStepResult> => {
   }
   const result = msg3s.filter(isInSwap)
   if (result.length > 1) {
-    throw Error(`Error - ${result.length} transfer messages are available for statechain_id ${result[0].statechain_id}`)
+    throw Error(`Error - ${result.length} transfer messages are available for statechain_id ${result[0].statechain_id}. Exiting swap...`)
   }
   if (result.length === 1) {
     this.transfer_msg_3_receiver = result[0]
-    return SwapStepResult.Ok()
+    return SwapStepResult.Ok("retrieved transfer_msg_3_receiver")
   }
-  return SwapStepResult.Retry("Transfer message 3 not found - retrying...")
+  if(this.statecoin.swap_status === SWAP_STATUS.Phase4){
+    throw Error("Transfer message 3 not found in phase 4 - Exiting swap...")
+  } else {
+    return SwapStepResult.Retry("Transfer message 3 not found - retrying...")
+  }
+}
+
+do_get_transfer_msg_4 = async (): Promise<TransferMsg4> => {
+  let http_client = this.clients.http_client
+  let electrum_client = this.clients.electrum_client
+  let network = this.network
+  let rec_se_addr_bip32 = this.new_proof_key_der
+  let req_confirmations = this.req_confirmations
+  let block_height = this.block_height
+  let value = this.statecoin.value
+  
+
+    const msg3 = this.transfer_msg_3_receiver
+    if(!msg3){
+      throw Error("transfer_msg_3 is null or undefined")
+    }
+    
+    let batch_data = {
+      "id": this.getSwapID().id,
+      "commitment": this.getSwapBatchTransferData().commitment,
+    }
+    
+    let transfer_msg_4 = await getTransferMsg4(http_client, 
+      electrum_client, network, msg3, rec_se_addr_bip32, 
+      batch_data, req_confirmations, block_height, value, null);
+    typeforce(types.TransferMsg4, transfer_msg_4); 
+    return transfer_msg_4;
 }
 
 do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
@@ -570,6 +600,7 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
   let req_confirmations = this.req_confirmations
   let block_height = this.block_height
   let value = this.statecoin.value
+  const transfer_msg_4 = await this.getTransferMsg4()
 
     const msg3 = this.transfer_msg_3_receiver
     if(!msg3){
@@ -581,12 +612,17 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
       "commitment": this.getSwapBatchTransferData().commitment,
     }
     let finalize_data = null;
-    finalize_data = await transferReceiver(http_client, 
-      electrum_client, network, msg3, rec_se_addr_bip32, 
-      batch_data, req_confirmations, block_height, value);
-    typeforce(types.TransferFinalizeData, finalize_data); 
+    try{
+      finalize_data = await transferReceiver(http_client, 
+        electrum_client, network, msg3, rec_se_addr_bip32, 
+        batch_data, req_confirmations, block_height, value, transfer_msg_4);
+      typeforce(types.TransferFinalizeData, finalize_data); 
+    } catch(err){
+      log.info(`Swap transferReceiver error: ${err}`)
+    }
     return finalize_data;
 }
+
 
 updateBlockHeight = async () => {
   if (this.clients.electrum_client instanceof EPSClient) {
@@ -599,13 +635,17 @@ updateBlockHeight = async () => {
 
 transferReceiver = async (): Promise<SwapStepResult> => {
   try{
+    let result = await this.getTransferMsg3()
+    if(!result.is_ok()) return result;
     this.updateBlockHeight();
+    //Verify that transfer_msg_3_receiver is available
     await this.getTransferFinalizedData();
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase7;
     return SwapStepResult.Ok("transferReceiver")
   } catch (err: any) {
     if(err?.message && (err.message.includes("wasm_client") ||
-      err.message.includes(POST_ROUTE.KEYGEN_SECOND))){
+      err.message.includes(POST_ROUTE.KEYGEN_SECOND) ||
+      err.message.includes("Exiting swap"))){
       throw err
     }
     return SwapStepResult.Retry(`transferReceiver: ${err.message}`)
@@ -648,6 +688,18 @@ async getTransferFinalizedData(): Promise<TransferFinalizeData> {
   return data
 }
 
+async getTransferMsg4(): Promise<TransferMsg4> {
+  let data = this.statecoin.swap_transfer_msg_4
+  if (data === null || data === undefined){
+    data = await this.do_get_transfer_msg_4()
+    this.wallet.saveStateCoinsList()
+    if (data === null || data === undefined){ 
+      throw new Error("expected TransferMsg4, got null or undefined")
+    }
+  }
+  this.statecoin.swap_transfer_msg_4 = data
+  return data
+}
 setStatecoinOut = (statecoin_out: StateCoin) => {
   // Update coin status and num swap rounds
   this.statecoin.ui_swap_status = UI_SWAP_STATUS.End;

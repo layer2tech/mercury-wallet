@@ -4,10 +4,10 @@ import { Transaction } from "bitcoinjs-lib";
 import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin } from './statecoin';
 import { getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo,
-  getStateChain, getStateChainTransferFinalizeData } from './mercury/info_api';
+  getStateChain, getStateChainTransferFinalizeData, TransferFinalizeDataAPI } from './mercury/info_api';
 import { StateChainSig } from "./util";
 import { GET_ROUTE } from '.';
-import { transferReceiverFinalizeRecovery, TransferFinalizeDataAPI, TransferFinalizeDataForRecovery
+import { transferReceiverFinalizeRecovery, TransferFinalizeDataForRecovery
   } from './mercury/transfer';
 
 let bitcoin = require('bitcoinjs-lib');
