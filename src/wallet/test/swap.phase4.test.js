@@ -1154,7 +1154,7 @@ test('swapPhase4 test 21 - await transferReceiver, invalid backup tx amount', as
   })
 
   checkRetryMessage(await swap.doNext(),
-      `transferReceiver: Backup tx invalid amount. Expected ${STATECOIN_AMOUNT}, got 0`)
+      `transferReceiver: Backup tx invalid amount. Expected 0, got ${STATECOIN_AMOUNT}`)
 });
 
 })
