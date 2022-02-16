@@ -7,7 +7,7 @@ const TorCircuitNode = (props) => {
     }
 
     return (
-        <li class={props.class}>{props.name} {props.ip ? <div style={styleObj}>{props.ip}</div> : ''}</li>
+        <li className = { props.class } > { props.name } { props.ip ? <div style = { styleObj } > { props.ip } </div> : ''}</li>
     )
 }
 
