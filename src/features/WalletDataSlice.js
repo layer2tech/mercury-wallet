@@ -1,6 +1,7 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
+import { useSelector } from 'react-redux';
 
-import {Wallet, ACTION} from '../wallet'
+import {Wallet, ACTION, STATECOIN_STATUS} from '../wallet'
 import {getFeeInfo, getCoinsInfo} from '../wallet/mercury/info_api'
 import {pingServer as pingConductor} from '../wallet/swap/info_api'
 import {pingServer} from '../wallet/mercury/info_api'
@@ -391,6 +392,7 @@ export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, 
   }
 }
 
+
 export const handleEndAutoSwap = (dispatch, statecoin, selectedCoin, res, fromSatoshi) => {
   dispatch(removeSwapPendingCoin(selectedCoin))
   dispatch(removeInSwapValue(statecoin.value))
@@ -667,10 +669,13 @@ const WalletSlice = createSlice({
       }
     },
     removeSwapPendingCoin(state, action) {
-      function isNot(value){
-        return value !== action.payload
+      let prev = state.swapPendingCoins
+      if (prev.includes(action.payload)) {
+        function isNot(value) {
+          return value !== action.payload
+        }
+        state.swapPendingCoins = state.swapPendingCoins.filter(isNot);
       }
-      state.swapPendingCoins = state.swapPendingCoins.filter(isNot);
     },
     updateInSwapValues(state, action) {
       return {
@@ -688,10 +693,13 @@ const WalletSlice = createSlice({
       }
     },
     removeInSwapValue(state, action) {
-      function isNot(value) {
-        return value !== action.payload
+      let prev = state.inSwapValues
+      if (prev.includes(action.payload)) {
+        function isNot(value) {
+          return value !== action.payload
+        }
+        state.inSwapValues = state.inSwapValues.filter(isNot);
       }
-      state.inSwapValues = state.inSwapValues.filter(isNot);
     },
     // Deposit
     dummyDeposit() {
@@ -808,7 +816,7 @@ const WalletSlice = createSlice({
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin, 
-  setInnSwapValue, addInSwapValue, removeInSwapValue, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
+  setInSwapValue, addInSwapValue, removeInSwapValue, isValueInSwap, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
   export default WalletSlice.reducer
 
 
