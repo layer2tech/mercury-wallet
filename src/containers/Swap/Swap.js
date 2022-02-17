@@ -112,9 +112,15 @@ const SwapPage = () => {
     dispatch(setWarning({key: "swap_punishment", msg: "WARNING! Exit the wallet whilst a swap is live causes the swap to fail and coins to be temporarily banned from entering swaps."}))
 
     let swapValues = new Set(inSwapValues)
+    let randomOrderIndices = []
+    for (let i = 0; i < selectedCoins.length; i++) {
+      randomOrderIndices.push(i)
+    }
+    randomOrderIndices.sort(() => Math.random() - 0.5)
 
     for (let i = 0; i < selectedCoins.length; i++) {
-      let selectedCoin = selectedCoins[i]
+      const j = randomOrderIndices[i]
+      let selectedCoin = selectedCoins[j]
       let statecoin = callGetStateCoin(selectedCoin);
         if (checkSwapAvailabilty(statecoin, swapValues)) {
           swapValues.add(statecoin.value)
