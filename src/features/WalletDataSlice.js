@@ -395,7 +395,7 @@ export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, 
 
 export const handleEndAutoSwap = (dispatch, statecoin, selectedCoin, res, fromSatoshi) => {
   dispatch(removeSwapPendingCoin(selectedCoin))
-  dispatch(removeInSwapValue(statecoin.value))
+
   // get the statecoin for txId method
   if(statecoin === undefined || statecoin === null){
     statecoin = selectedCoin;
@@ -407,6 +407,7 @@ export const handleEndAutoSwap = (dispatch, statecoin, selectedCoin, res, fromSa
   }
   
   let new_statecoin = res?.payload;
+  dispatch(removeInSwapValue(statecoin.value))
   // turn off autoswap because final .then was called
   if (!new_statecoin) {
     // dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool, please try again later."}))
@@ -816,7 +817,7 @@ const WalletSlice = createSlice({
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin, 
-  setInSwapValue, addInSwapValue, removeInSwapValue, isValueInSwap, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
+  updateInSwapValues, addInSwapValue, removeInSwapValue, isValueInSwap, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

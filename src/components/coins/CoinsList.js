@@ -35,6 +35,7 @@ import {
   callGetStateCoin,
   handleEndAutoSwap,
   setIntervalIfOnline,
+  updateInSwapValues,
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -218,9 +219,9 @@ const CoinsList = (props) => {
     setShowDeleteCoinDetails(false);
   }
 
-  const checkSwapAvailability = (statecoin) => {
+  const checkSwapAvailability = (statecoin, in_swap_values) => {
     if (callGetConfig().singleSwapMode
-      && inSwapValues.includes(statecoin.value)) {
+      && in_swap_values.has(statecoin.value)) {
       return false
     }
     if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) {
@@ -300,7 +301,7 @@ const CoinsList = (props) => {
     const interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000)
     return () => clearInterval(interval);
   },
-    [swapPendingCoins, torInfo.online]);
+    [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
 
   // Enters/Re-enters coins in auto-swap
   const autoSwapLoop = () => {
@@ -309,11 +310,18 @@ const CoinsList = (props) => {
       return
     }
 
+    let swapValues = new Set(inSwapValues)
+    let randomOrderIndices = []
+    for (let i = 0; i < swapPendingCoins.length; i++) {
+      randomOrderIndices.push(i)
+    }
+    randomOrderIndices.sort( () => Math.random() - 0.5 )
     for (let i = 0; i < swapPendingCoins.length; i++){
-      let selectedCoin=swapPendingCoins[i]
+      const j = randomOrderIndices[i]
+      let selectedCoin=swapPendingCoins[j]
       let statecoin = callGetStateCoin(selectedCoin);
-      if (checkSwapAvailability(statecoin)) {
-        dispatch(addInSwapValue(statecoin.value))
+      if (checkSwapAvailability(statecoin, swapValues)) {
+        swapValues.add(statecoin.value)
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
           .then(res => {
             handleEndAutoSwap(dispatch, statecoin, selectedCoin, res, fromSatoshi)
@@ -321,6 +329,7 @@ const CoinsList = (props) => {
         );
       }
     }
+    dispatch(updateInSwapValues([...swapValues]))
   }
 
   const swapInfoAndAutoSwap = () => {

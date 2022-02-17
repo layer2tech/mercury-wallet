@@ -19,7 +19,8 @@ import {
   addSwapPendingCoin,
   removeSwapPendingCoin,
   handleEndSwap,
-  addInSwapValue
+  addInSwapValue,
+  updateInSwapValues
 } from "../../features/WalletDataSlice";
 import {fromSatoshi, STATECOIN_STATUS} from '../../wallet';
 import './Swap.css';
@@ -78,9 +79,9 @@ const SwapPage = () => {
     return <Redirect to="/" />;
   }
 
-  const checkSwapAvailabilty = (statecoin) => {
+  const checkSwapAvailabilty = (statecoin, in_swap_values) => {
     if (callGetConfig().singleSwapMode
-      && inSwapValues.includes(statecoin.value)) {
+      && in_swap_values.has(statecoin.value)) {
       return false
     }
     if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) {
@@ -110,11 +111,13 @@ const SwapPage = () => {
     // Warning on first swap group enter, to not exit wallet mid-swap
     dispatch(setWarning({key: "swap_punishment", msg: "WARNING! Exit the wallet whilst a swap is live causes the swap to fail and coins to be temporarily banned from entering swaps."}))
 
+    let swapValues = new Set(inSwapValues)
+
     for (let i = 0; i < selectedCoins.length; i++) {
       let selectedCoin = selectedCoins[i]
       let statecoin = callGetStateCoin(selectedCoin);
-        if (checkSwapAvailabilty(statecoin)) {
-          dispatch(addInSwapValue(statecoin.value))
+        if (checkSwapAvailabilty(statecoin, swapValues)) {
+          swapValues.add(statecoin.value)
           dispatch(addCoinToSwapRecords(selectedCoin));
           setSwapLoad({ ...swapLoad, join: true, swapCoin: statecoin })
           dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
@@ -122,11 +125,11 @@ const SwapPage = () => {
 
               handleEndSwap(dispatch, selectedCoin, res, setSwapLoad, swapLoad, fromSatoshi)
             });
-        }
-        // Refresh Coins list
-        setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
+        }  
     }
-    
+    dispatch(updateInSwapValues([...swapValues]))
+    // Refresh Coins list
+    setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
   }
 
   const handleAutoSwap =  (item) => {
@@ -180,7 +183,7 @@ const SwapPage = () => {
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
       
-      if (checkSwapAvailabilty(statecoin)) {
+      if (checkSwapAvailabilty(statecoin, new Set(inSwapValues))) {
         // if StateCoin in not already in swap group
         dispatch(addInSwapValue(statecoin.value))
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
