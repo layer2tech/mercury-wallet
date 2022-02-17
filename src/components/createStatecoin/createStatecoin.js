@@ -124,7 +124,7 @@ const CreateStatecoin = (props) => {
       <div>
         <div><Spinner animation="border" variant="danger" ></Spinner></div>
         <br/>
-        <div className='custom-modal-info alert-danger'>{error.message}</div>
+        <div className='custom-modal-info-alert-danger'>{error.message}</div>
         <br/>
       </div>
     );

@@ -96,9 +96,11 @@ li.go2067797667:last-child::before {
 .error {
     width: 350px;
     margin: 0 auto;
+    word-break: break-word;
 }
 
 .error p {
     color: red;
     text-align: left;
+    word-break: break-word;
 }

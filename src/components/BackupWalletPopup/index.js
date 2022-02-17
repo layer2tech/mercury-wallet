@@ -17,7 +17,7 @@ function BackupWalletPopup ({ close, show}) {
     <>
       <Modal show={show} onHide={close} className="modal">
         <Modal.Body className="custom-modal-body">
-          <p className="custom-modal-info alert-danger">
+          <p className="custom-modal-info-alert-danger">
             WARNING: Your wallet backup includes all key information and can be used to steal your funds. Ensure it is stored securely and do not send it to anybody.
           </p>
         </Modal.Body>
