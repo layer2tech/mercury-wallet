@@ -36,6 +36,7 @@ function delay(s: number) {
 }
 
 export const UI_SWAP_STATUS = {
+  SingleSwapMode: "SingleSwapMode",
   Init: "Init",
   Phase0: "Phase0",
   Phase1: "Phase1",
@@ -52,6 +53,7 @@ Object.freeze(UI_SWAP_STATUS);
 
 // SWAP_STATUS represent each technical stage in the lifecycle of a coin in a swap.
 export enum SWAP_STATUS {
+  SingleSwapMode = "SingleSwapMode",
   Init = "Init",
   Phase0 = "Phase0",
   Phase1 = "Phase1",
