@@ -61,6 +61,7 @@ export class Config {
   min_anon_set: number;
   date_format: any;
   notifications: boolean;
+  singleSwapMode: boolean;
   tutorials: boolean;
   swaplimit: number;
 
@@ -85,6 +86,7 @@ export class Config {
 
     this.min_anon_set = 5;
     this.notifications = true;
+    this.singleSwapMode = false;
     this.tutorials = false;
     this.swaplimit = 1440;
  
@@ -151,6 +153,9 @@ export class Config {
           break;
         case "notifications":
           this.notifications = item[1]
+          break;
+        case "singleSwapMode":
+          this.singleSwapMode = item[1]
           break;
         case "tutorials":
           this.tutorials = item[1]

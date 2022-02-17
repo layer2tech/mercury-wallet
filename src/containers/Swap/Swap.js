@@ -19,7 +19,8 @@ import {
   addSwapPendingCoin,
   removeSwapPendingCoin,
   handleEndSwap,
-  setIntervalIfOnline
+  addInSwapValue,
+  removeInSwapValue
 } from "../../features/WalletDataSlice";
 import {fromSatoshi, STATECOIN_STATUS} from '../../wallet';
 import './Swap.css';
@@ -31,7 +32,7 @@ const SwapPage = () => {
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedSwap, setSelectedSwap] = useState(null); // store selected swap_id
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
-  const { torInfo } = useSelector(state => state.walletData);
+  const { torInfo, inSwapValues } = useSelector(state => state.walletData);
 
   const [swapLoad, setSwapLoad] = useState({join: false,swapCoin: "", leave:false}) // set loading... onClick
   const [initFetchSwapGroups,setInitFetchSwapGroups] = useState(true)
@@ -102,14 +103,17 @@ const SwapPage = () => {
 
     selectedCoins.forEach(
       (selectedCoin) => {
-        dispatch(addCoinToSwapRecords(selectedCoin));
-        setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)})
-        dispatch(callDoSwap({"shared_key_id": selectedCoin}))
-          .then(res => {
+        let statecoin = callGetStateCoin(selectedCoin);
+        if (!(current_config.singleSwapMode && inSwapValues.includes(statecoin.value))) {
+          dispatch(addCoinToSwapRecords(selectedCoin));
+          setSwapLoad({ ...swapLoad, join: true, swapCoin: statecoin })
+          dispatch(addInSwapValue(statecoin.value))
+          dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
+            .then(res => {
 
-            handleEndSwap(dispatch,selectedCoin,res,setSwapLoad,swapLoad,fromSatoshi)
-            
-          });
+              handleEndSwap(dispatch, selectedCoin, res, setSwapLoad, swapLoad, fromSatoshi)
+            });
+        }
         // Refresh Coins list
         setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
       }
@@ -167,15 +171,18 @@ const SwapPage = () => {
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
       
-      if(statecoin.status === STATECOIN_STATUS.AVAILABLE){
-      // if StateCoin in not already in swap group
-        dispatch(callDoSwap({"shared_key_id": selectedCoin}))
-        .then(res => {
-          handleEndSwap(dispatch,selectedCoin,res,setSwapLoad,swapLoad,fromSatoshi)
-        });
+      /*
+      if (!(current_config.singleSwapMode && inSwapValues.includes(statecoin.value)) &&
+        statecoin.status === STATECOIN_STATUS.AVAILABLE) {
+        dispatch(addInSwapValue(statecoin.value))
+        // if StateCoin in not already in swap group
+        dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
+            .then(res => {
+              handleEndSwap(dispatch, selectedCoin, res, setSwapLoad, swapLoad, fromSatoshi)
+        })
       } else{ dispatch(addSwapPendingCoin(item.shared_key_id)) }
+      */
     // Refres
-
     }
 
     // Refresh Coins list

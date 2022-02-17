@@ -63,6 +63,7 @@ const initialState = {
   depositLoading: false,
   swapRecords: [],
   swapPendingCoins: [],
+  inSwapValues: [],
   coinsAdded: 0,
   coinsRemoved: 0,
   torInfo: { online: false }
@@ -351,6 +352,7 @@ export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, 
   dispatch(removeSwapPendingCoin(selectedCoin))
   // get the statecoin for txId method
   let statecoin = callGetStateCoin(selectedCoin)
+  dispatch(removeInSwapValue(statecoin.value))
   if(statecoin === undefined || statecoin === null){
     statecoin = selectedCoin;
   }
@@ -391,6 +393,7 @@ export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, 
 
 export const handleEndAutoSwap = (dispatch, statecoin, selectedCoin, res, fromSatoshi) => {
   dispatch(removeSwapPendingCoin(selectedCoin))
+  dispatch(removeInSwapValue(statecoin.value))
   // get the statecoin for txId method
   if(statecoin === undefined || statecoin === null){
     statecoin = selectedCoin;
@@ -669,6 +672,27 @@ const WalletSlice = createSlice({
       }
       state.swapPendingCoins = state.swapPendingCoins.filter(isNot);
     },
+    updateInSwapValues(state, action) {
+      return {
+        ...state,
+        inSwapValues: action.payload
+      }
+    },
+    addInSwapValue(state, action) {
+      let prev = state.inSwapValues
+      if (!prev.includes(action.payload)) {
+        return {
+          ...state,
+          inSwapValues: state.inSwapValues.concat(action.payload)
+        }
+      }
+    },
+    removeInSwapValue(state, action) {
+      function isNot(value) {
+        return value !== action.payload
+      }
+      state.inSwapValues = state.inSwapValues.filter(isNot);
+    },
     // Deposit
     dummyDeposit() {
       let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
@@ -784,7 +808,7 @@ const WalletSlice = createSlice({
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin, 
-  updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
+  setInnSwapValue, addInSwapValue, removeInSwapValue, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

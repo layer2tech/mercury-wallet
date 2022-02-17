@@ -30,15 +30,12 @@ import {
   updateBalanceInfo,
   callGetUnconfirmedStatecoinsDisplayData,
   callGetUnconfirmedAndUnmindeCoinsFundingTxData,
-  setError,
   callAddDescription,
   callGetConfig,
   callGetStateCoin,
-  callGetActivityLogItems,
-  addSwapPendingCoin,
-  removeSwapPendingCoin,
   handleEndAutoSwap,
-  setIntervalIfOnline
+  setIntervalIfOnline,
+  addInSwapValue
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -100,7 +97,8 @@ const CoinsList = (props) => {
 
   const { selectedCoins, isMainPage, swap } = props;
   const dispatch = useDispatch();
-  const { filterBy, swapPendingCoins, coinsAdded, coinsRemoved, torInfo } = useSelector(state => state.walletData);
+  const { filterBy, swapPendingCoins, coinsAdded,
+    coinsRemoved, torInfo, inSwapValues } = useSelector(state => state.walletData);
   const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
   const [coins, setCoins] = useState(INITIAL_COINS);
   const [initCoins, setInitCoins] = useState({});
@@ -302,12 +300,14 @@ const CoinsList = (props) => {
 
     swapPendingCoins.forEach((selectedCoin) => {
       let statecoin = callGetStateCoin(selectedCoin);
-      if (statecoin && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
+      if (!(current_config.singleSwapMode && inSwapValues.includes(statecoin.value)) &&
+        statecoin && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
+        dispatch(addInSwapValue(statecoin.value))
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
           .then(res => {
             handleEndAutoSwap(dispatch, statecoin, selectedCoin, res, fromSatoshi)
           }
-          );
+        );
       }
     })
   }
