@@ -125,8 +125,8 @@ const Coin = (props) => {
             dispatch(setError({ msg: 'Locktime below limit for swap participation' }))
             return false;
           }
-          if ((props.coin_data.status === STATECOIN_STATUS.SWAPLIMIT || props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.swap || props.send || props.withdraw)) {
-            dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap and withdrawal' }))
+          if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.swap || props.send || props.withdraw)) {
+            dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap or withdrawal' }))
             return false;
           }
 
