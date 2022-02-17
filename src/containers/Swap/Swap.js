@@ -171,17 +171,18 @@ const SwapPage = () => {
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({...swapLoad, join: true, swapCoin:callGetStateCoin(selectedCoin)});
       
-      /*
       if (!(current_config.singleSwapMode && inSwapValues.includes(statecoin.value)) &&
         statecoin.status === STATECOIN_STATUS.AVAILABLE) {
         dispatch(addInSwapValue(statecoin.value))
         // if StateCoin in not already in swap group
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
-            .then(res => {
-              handleEndSwap(dispatch, selectedCoin, res, setSwapLoad, swapLoad, fromSatoshi)
+          .then(res => {
+            handleEndSwap(dispatch, selectedCoin, res, setSwapLoad, swapLoad, fromSatoshi)
         })
-      } else{ dispatch(addSwapPendingCoin(item.shared_key_id)) }
-      */
+      } else {
+        setSwapLoad({...swapLoad, join: false, swapCoin:callGetStateCoin(selectedCoin)});
+        dispatch(addSwapPendingCoin(item.shared_key_id))
+      }
     // Refres
     }
 
