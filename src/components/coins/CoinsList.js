@@ -81,6 +81,7 @@ const INITIAL_SORT_BY = {
 };
 
 export const SWAP_STATUS_INFO = {
+  SingleSwapMode: "Inqueue",
   Phase0: "Phase 0/8: registration",
   Phase1: "Phase 1/8: awaiting swap commitments",
   Phase2: "Phase 2/8: awaiting blind token",
@@ -326,7 +327,7 @@ const CoinsList = (props) => {
           .then(res => {
             handleEndAutoSwap(dispatch, statecoin, selectedCoin, res, fromSatoshi)
           }
-        );
+          );
       }
     }
     dispatch(updateInSwapValues([...swapValues]))
