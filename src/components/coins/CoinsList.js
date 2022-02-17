@@ -35,7 +35,6 @@ import {
   callGetStateCoin,
   handleEndAutoSwap,
   setIntervalIfOnline,
-  addInSwapValue
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -55,7 +54,8 @@ import {
   setNotification,
   callDoSwap,
   addCoinToSwapRecords,
-  removeCoinFromSwapRecords
+  removeCoinFromSwapRecords,
+  addInSwapValue
 } from "../../features/WalletDataSlice";
 import { SWAP_STATUS } from "../../wallet/swap/swap_utils";
 import Coin from "./Coin/Coin";
@@ -219,6 +219,17 @@ const CoinsList = (props) => {
     setShowDeleteCoinDetails(false);
   }
 
+  const checkSwapAvailability = (statecoin) => {
+    if (callGetConfig().singleSwapMode
+      && inSwapValues.includes(statecoin.value)) {
+      return false
+    }
+    if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) {
+      return false
+    }
+    return true
+  }
+
 
   //Load coins once component done render
   useEffect(() => {
@@ -299,10 +310,10 @@ const CoinsList = (props) => {
       return
     }
 
-    swapPendingCoins.forEach((selectedCoin) => {
+    for (let i = 0; i < swapPendingCoins.length; i++){
+      let selectedCoin=swapPendingCoins[i]
       let statecoin = callGetStateCoin(selectedCoin);
-      if (!(current_config.singleSwapMode && inSwapValues.includes(statecoin.value)) &&
-        statecoin && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
+      if (checkSwapAvailability(statecoin)) {
         dispatch(addInSwapValue(statecoin.value))
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
           .then(res => {
@@ -310,7 +321,7 @@ const CoinsList = (props) => {
           }
           );
       }
-    })
+    }
   }
 
   const swapInfoAndAutoSwap = () => {
