@@ -7,6 +7,14 @@ const NETWORK_CONFIG = require('../network.json');
 // Node friendly importing required for Jest tests.
 declare const window: any;
 
+// Logger import.
+let log: any;
+try {
+  log = window.require('electron-log');
+} catch (e: any) {
+  log = require('electron-log');
+}
+
 let cloneDeep = require('lodash.clonedeep');
 let current_state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;
 let current_block_explorer_endpoint = NETWORK_CONFIG.mainnet_block_explorer_endpoint;
@@ -159,7 +167,7 @@ export class Config {
           this.swaplimit = item[1]
           break;          
         default:
-          throw Error("Config entry "+item[0]+" does not exist")
+          log.warn("Config entry "+item[0]+" does not exist")
       }
     })
   }
