@@ -159,7 +159,7 @@ export const txWithdrawBuild = (network: Network,    funding_txid: string, fundi
 
   let txb = new TransactionBuilder(network);
 
-  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFF);
+  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFD);
   txb.addOutput(rec_address, value - tx_fee - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
 
@@ -182,7 +182,7 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
       value = value + info.amount;
       let txid: string = utxo.txid;
       let vout: number = utxo.vout;
-      txb.addInput(txid, vout, 0xFFFFFFFF);
+      txb.addInput(txid, vout, 0xFFFFFFFD);
     };
     index = index + 1;
   }

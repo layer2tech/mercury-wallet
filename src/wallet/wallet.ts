@@ -565,12 +565,10 @@ export class Wallet {
       if (statecoin.status===STATECOIN_STATUS.WITHDRAWING) {
         let length =statecoin.tx_withdraw_broadcast.length
         if (length > 0){
-    //console.log(`broadcast transactions: ${JSON.stringify(statecoin.tx_withdraw_broadcast)}`)
-          console.log(`last broadcast transactions txid: ${JSON.stringify(statecoin.tx_withdraw_broadcast[length - 1]?.txid)}`)
           let broadcast_txid = statecoin.tx_withdraw_broadcast[length-1]?.txid
           log.info(`checking withdrawal tx status...`)
           if(broadcast_txid){
-            const tx_confirmed = await this.checkWithdrawalTx(broadcast_txid)
+            const tx_confirmed = await this.checkWithdrawalTx(broadcast_txid);
             if (tx_confirmed && tx_confirmed !== null) {
               log.info(`tx confirmed: ${statecoin.withdraw_txid}`)  
               if (!this.config.testing_mode) {
@@ -584,6 +582,9 @@ export class Wallet {
           }
         }
       } 
+        } else {
+          statecoin.status = STATECOIN_STATUS.WITHDRAWN;
+          this.statecoins.setCoinFinalized(statecoin);
         }
       }
     })
@@ -723,12 +724,12 @@ export class Wallet {
           this.electrum_client.broadcastTransaction(backup_tx).then((bresponse: any) => {
             if(bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
               this.statecoins.coins[i].setBackupInMempool();
-            } else if(bresponse.includes('already')) {
+            } else if(bresponse.includes('already') && bresponse.includes('mempool')) {
               this.statecoins.coins[i].setBackupInMempool();
-            } else if(bresponse.includes('already') && bresponse.includes('block')) {
+            } else if(bresponse.includes('block')) {
               this.statecoins.coins[i].setBackupConfirmed();
               this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);  
-            } else if(bresponse.includes('confict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
+            } else if(bresponse.includes('conflict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
               this.statecoins.coins[i].setBackupTaken();
               this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);
             }
@@ -738,7 +739,7 @@ export class Wallet {
             } else if (err.toString().includes('already') && err.toString().includes('block')) {
                 this.statecoins.coins[i].setBackupConfirmed();
                 this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);              
-            } else if ( (err.toString().includes('conflict') && err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
+            } else if ( (err.toString().includes('conflict') || err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
                 this.statecoins.coins[i].setBackupTaken();
                 this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);              
             }
@@ -985,6 +986,7 @@ export class Wallet {
   // Query withdrawal txs list unspent and mark coin WITHDRAWN
   async checkWithdrawalTx(tx_hash: string): Promise<boolean> {
     let withdrawal_tx_data = await this.electrum_client.getTransaction(tx_hash)
+    console.log(withdrawal_tx_data);
     let status = withdrawal_tx_data?.status;
     if(status && status.confirmed){
       log.info(`Withdrawal tx ${tx_hash} confirmed`);
