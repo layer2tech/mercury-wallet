@@ -30,15 +30,12 @@ import {
   updateBalanceInfo,
   callGetUnconfirmedStatecoinsDisplayData,
   callGetUnconfirmedAndUnmindeCoinsFundingTxData,
-  setError,
   callAddDescription,
   callGetConfig,
   callGetStateCoin,
-  callGetActivityLogItems,
-  addSwapPendingCoin,
-  removeSwapPendingCoin,
   handleEndAutoSwap,
-  setIntervalIfOnline
+  setIntervalIfOnline,
+  updateInSwapValues,
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -58,7 +55,8 @@ import {
   setNotification,
   callDoSwap,
   addCoinToSwapRecords,
-  removeCoinFromSwapRecords
+  removeCoinFromSwapRecords,
+  addInSwapValue
 } from "../../features/WalletDataSlice";
 import { SWAP_STATUS } from "../../wallet/swap/swap_utils";
 import Coin from "./Coin/Coin";
@@ -83,6 +81,7 @@ const INITIAL_SORT_BY = {
 };
 
 export const SWAP_STATUS_INFO = {
+  SingleSwapMode: "Inqueue",
   Phase0: "Phase 0/8: registration",
   Phase1: "Phase 1/8: awaiting swap commitments",
   Phase2: "Phase 2/8: awaiting blind token",
@@ -100,7 +99,8 @@ const CoinsList = (props) => {
 
   const { selectedCoins, isMainPage, swap } = props;
   const dispatch = useDispatch();
-  const { filterBy, swapPendingCoins, coinsAdded, coinsRemoved, torInfo } = useSelector(state => state.walletData);
+  const { filterBy, swapPendingCoins, coinsAdded,
+    coinsRemoved, torInfo, inSwapValues } = useSelector(state => state.walletData);
   const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
   const [coins, setCoins] = useState(INITIAL_COINS);
   const [initCoins, setInitCoins] = useState({});
@@ -220,6 +220,17 @@ const CoinsList = (props) => {
     setShowDeleteCoinDetails(false);
   }
 
+  const checkSwapAvailability = (statecoin, in_swap_values) => {
+    if (callGetConfig().singleSwapMode
+      && in_swap_values.has(statecoin.value)) {
+      return false
+    }
+    if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) {
+      return false
+    }
+    return true
+  }
+
 
   //Load coins once component done render
   useEffect(() => {
@@ -291,7 +302,7 @@ const CoinsList = (props) => {
     const interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000)
     return () => clearInterval(interval);
   },
-    [swapPendingCoins, torInfo.online]);
+    [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
 
   // Enters/Re-enters coins in auto-swap
   const autoSwapLoop = () => {
@@ -300,16 +311,26 @@ const CoinsList = (props) => {
       return
     }
 
-    swapPendingCoins.forEach((selectedCoin) => {
+    let swapValues = new Set(inSwapValues)
+    let randomOrderIndices = []
+    for (let i = 0; i < swapPendingCoins.length; i++) {
+      randomOrderIndices.push(i)
+    }
+    randomOrderIndices.sort( () => Math.random() - 0.5 )
+    for (let i = 0; i < swapPendingCoins.length; i++){
+      const j = randomOrderIndices[i]
+      let selectedCoin=swapPendingCoins[j]
       let statecoin = callGetStateCoin(selectedCoin);
-      if (statecoin && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
+      if (checkSwapAvailability(statecoin, swapValues)) {
+        swapValues.add(statecoin.value)
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
           .then(res => {
             handleEndAutoSwap(dispatch, statecoin, selectedCoin, res, fromSatoshi)
           }
           );
       }
-    })
+    }
+    dispatch(updateInSwapValues([...swapValues]))
   }
 
   const swapInfoAndAutoSwap = () => {

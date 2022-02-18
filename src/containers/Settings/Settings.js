@@ -18,6 +18,7 @@ export const defaultWalletConfig = () => {
     return ({
       network: 'testnet',
       notifications: false,
+      singleSwapMode: false,
       tutorials: false,
       state_entity_endpoint: NETWORK_CONFIG.testnet_state_entity_endpoint,
       swap_conductor_endpoint: NETWORK_CONFIG.testnet_swap_conductor_endpoint,
@@ -30,6 +31,7 @@ export const defaultWalletConfig = () => {
     return ({
       network: 'mainnet',
       notifications: false,
+      singleSwapMode: false,
       tutorials: false,
       state_entity_endpoint: NETWORK_CONFIG.mainnet_state_entity_endpoint,
       swap_conductor_endpoint: NETWORK_CONFIG.mainnet_swap_conductor_endpoint,
@@ -52,6 +54,7 @@ const SettingsPage = (props) => {
   }
 
   const [notifications, setNotification] = useState(current_config.notifications);
+  const [singleSwapMode, setSingleSwapMode] = useState(current_config.singleSwapMode);
   const [tutorials, setTutorials] = useState(current_config.tutorials);
   const [stateEntityAddr, setStateEntityAddr] = useState(current_config.state_entity_endpoint);
   const [swapAddr, setSwapAddr] = useState(current_config.swap_conductor_endpoint);
@@ -73,7 +76,8 @@ const SettingsPage = (props) => {
   }, [ password ])
 
   // Change handlers
-  const onNotificationChange = ({checked}) => { setNotification(checked) };
+  const onNotificationChange = ({ checked }) => { setNotification(checked) };
+  const onSingleSwapModeChange = ({checked}) => { setSingleSwapMode(checked) };
   //const onTutorialChange = ({checked}) => { setTutorials(checked) };
   const onStateEntityAddrChange = (evt) => { setStateEntityAddr(evt.target.value) };
   const onSwapAddrChange = (evt) => { setSwapAddr(evt.target.value) };
@@ -113,6 +117,7 @@ const SettingsPage = (props) => {
       tor_proxy: torProxy,
       min_anon_set: minAnonSet,
       notifications: notifications,
+      singleSwapMode: singleSwapMode,
       tutorials: tutorials
     })
     dispatch(setNotificationMsg({msg:"Settings successfully updated."}))
@@ -120,6 +125,7 @@ const SettingsPage = (props) => {
 
   const cancelButtonOnClick = () => {
     setNotification(current_config.notifications);
+    setSingleSwapMode(current_config.singleSwapMode);
     setTutorials(current_config.tutorials);
     setStateEntityAddr(current_config.state_entity_endpoint);
     setSwapAddr(current_config.swap_conductor_endpoint);
@@ -289,6 +295,12 @@ const SettingsPage = (props) => {
                           description="Toggle notifications"
                           checked={!!notifications}
                           onChange={onNotificationChange}
+                        />
+                        <CheckBox
+                          label="Single swap mode"
+                          description="Toggle single swap mode"
+                          checked={!!singleSwapMode}
+                          onChange={onSingleSwapModeChange}
                         />
                         {/* <CheckBox
                           label="Tutorials"
