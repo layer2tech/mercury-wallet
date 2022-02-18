@@ -55,12 +55,12 @@
 .toggle:hover .toggle-switch:before {
   background: linear-gradient(to bottom, #fff 0%, #fff 100%);
 }
-.toggle-checkbox:checked + .toggle-switch {
+/* .toggle-checkbox:checked + .dark-mode .toggle-switch {
   background: #0f54f4;
 }
 .toggle-checkbox:checked + .toggle-switch:before {
   left: 30px;
-}
+} */
 
 .toggle-checkbox {
   position: absolute;
