@@ -110,6 +110,7 @@
 }
 .dark-mode .modal-content .custom-modal-info.alert-danger { 
   color: #e67e7e;
+  word-wrap: break-word;
 }
 .dark-mode .modal-content p { 
   color: #fff;
@@ -136,6 +137,7 @@
   background-color: #202020;
   border-color: #202020;
   border-radius: 4px;
+  word-wrap: break-word;
 }
 .dark-mode .Collapse .image img,
 .dark-mode .filter-coin-icon svg,
