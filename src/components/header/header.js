@@ -46,14 +46,14 @@ const Header = (props) => {
             <TorCircuit online={props.online} />
           }
           <div title="Light/Dark mode">
-            <label className="toggle">
+            <label className="toggle2">
               <input
-                className="toggle-checkbox"
+                className="toggle-checkbox2"
                 type="checkbox"
                 onChange={activeDarkMode}
                 checked={isDarkMode}
               />
-              <div className="toggle-switch" />
+              <div className="toggle-switch2" />
             </label>
           </div>
 
