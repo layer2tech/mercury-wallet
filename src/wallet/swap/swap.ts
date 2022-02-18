@@ -597,20 +597,32 @@ updateBlockHeight = async () => {
   }
 }
 
-transferReceiver = async (): Promise<SwapStepResult> => {
-  try{
-    this.updateBlockHeight();
-    await this.getTransferFinalizedData();
-    this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase7;
-    return SwapStepResult.Ok("transferReceiver")
-  } catch (err: any) {
-    if(err?.message && (err.message.includes("wasm_client") ||
-      err.message.includes(POST_ROUTE.KEYGEN_SECOND))){
-      throw err
+  transferReceiver = async (): Promise<SwapStepResult> => {
+    try {
+      this.updateBlockHeight();
+      await this.getTransferFinalizedData();
+      this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase7;
+      return SwapStepResult.Ok("transferReceiver")
+    } catch (err: any) {
+      if (err?.message && err.message.includes("DB Error: No data for identifier.")) {
+        log.info(`Statecoin ${this.statecoin.shared_key_id} - waiting for others to complete...`)
+      } else {
+        log.info(`transferReceiver error: ${err}`)
+      }
+      let result = await this.swapPhase4HandleErrPollSwap()
+      if (!result.is_ok()) {
+        return result
+      } else {
+        if (err?.message && (err.message.includes("wasm_client") ||
+          err.message.includes(POST_ROUTE.KEYGEN_SECOND))) {
+          return SwapStepResult.Retry(err.message)
+        }
+        let phase = result.message
+        log.info(`checking batch status - phase: ${phase}`)
+        return this.checkBatchStatus(phase, err.message)
+      }
     }
-    return SwapStepResult.Retry(`transferReceiver: ${err.message}`)
   }
-}
 
     // Poll swap until phase changes to Phase End. In that case complete swap by performing transfer finalize.
 swapPhase4PollSwap = async () => {
@@ -708,9 +720,9 @@ checkBatchStatus = async (phase: string | null, err_msg: string): Promise<SwapSt
 transferReceiverFinalize = async (): Promise<SwapStepResult> => { 
   // Complete transfer for swap and receive new statecoin  
   try {
+    const tfd = await this.getTransferFinalizedData();
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8;
     const wasm = await this.wallet.getWasm();
-    const tfd = await this.getTransferFinalizedData();
     let statecoin_out = await transferReceiverFinalize(this.clients.http_client, wasm, tfd);
     log.info(`setting statecoin out...`)
     this.setStatecoinOut(statecoin_out)
@@ -736,6 +748,8 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
     }
   }
 }
+  
+  
 
 
 // Check statecoin is eligible for entering a swap group
