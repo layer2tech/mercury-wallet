@@ -563,25 +563,27 @@ export class Wallet {
       // if the withdrawal transaction is confirmed, confirm it with the server and update
       // the wallet
       if (statecoin.status===STATECOIN_STATUS.WITHDRAWING) {
-        let length =statecoin.tx_withdraw_broadcast.length
+        let length = statecoin.tx_withdraw_broadcast.length
         if (length > 0){
-          let broadcast_txid = statecoin.tx_withdraw_broadcast[length-1]?.txid
-          log.info(`checking withdrawal tx status...`)
-          if(broadcast_txid){
-            const tx_confirmed = await this.checkWithdrawalTx(broadcast_txid);
-            if (tx_confirmed && tx_confirmed !== null) {
-              log.info(`tx confirmed: ${statecoin.withdraw_txid}`)  
-              if (!this.config.testing_mode) {
-                log.info(`withdrawal tx confirmed!`)
-                let tx_info = statecoin.getWithdrawalBroadcastTxInfo(broadcast_txid)
-                if(tx_info){
-                log.info(`found tx_info: ${tx_info}, doing withdraw confirm`)
-                await this.withdraw_confirm(tx_info.withdraw_msg_2, broadcast_txid)
-                log.info(`withdraw confirm finished`)
+          for (let i=0; i<length; i++) {
+            let broadcast_txid = statecoin.tx_withdraw_broadcast[i].txid
+            log.info(`checking withdrawal tx status...`)
+            if(broadcast_txid){
+              const tx_confirmed = await this.checkWithdrawalTx(broadcast_txid);
+              if (tx_confirmed && tx_confirmed !== null) {
+                log.info(`tx confirmed: ${statecoin.withdraw_txid}`)  
+                if (!this.config.testing_mode) {
+                  log.info(`withdrawal tx confirmed!`)
+                  let tx_info = statecoin.getWithdrawalBroadcastTxInfo(broadcast_txid)
+                  if(tx_info){
+                    log.info(`found tx_info: ${tx_info}, doing withdraw confirm`)
+                    await this.withdraw_confirm(tx_info.withdraw_msg_2, broadcast_txid)
+                    log.info(`withdraw confirm finished`)
+                  }
+                }
+              }
             }
-          }
-        }
-      } 
+          };
         } else {
           statecoin.status = STATECOIN_STATUS.WITHDRAWN;
           this.statecoins.setCoinFinalized(statecoin);
@@ -986,7 +988,6 @@ export class Wallet {
   // Query withdrawal txs list unspent and mark coin WITHDRAWN
   async checkWithdrawalTx(tx_hash: string): Promise<boolean> {
     let withdrawal_tx_data = await this.electrum_client.getTransaction(tx_hash)
-    console.log(withdrawal_tx_data);
     let status = withdrawal_tx_data?.status;
     if(status && status.confirmed){
       log.info(`Withdrawal tx ${tx_hash} confirmed`);
