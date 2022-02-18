@@ -4,9 +4,8 @@
 import { Transaction } from 'bitcoinjs-lib';
 import { createTypeReferenceDirectiveResolutionCache } from "typescript";
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
-import { RecoveryDataMsg, StateChainDataAPI } from "../mercury/info_api";
-import {
-  TransferFinalizeDataAPI, TransferFinalizeDataForRecovery,
+import { RecoveryDataMsg, StateChainDataAPI, TransferFinalizeDataAPI } from "../mercury/info_api";
+import { TransferFinalizeDataForRecovery,
   transferReceiverFinalizeRecovery, TransferFinalizeData, PrepareSignTxMsg
 } from "../mercury/transfer";
 import { SwapID } from "../swap/swap_utils";
