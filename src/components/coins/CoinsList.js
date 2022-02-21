@@ -426,6 +426,7 @@ const CoinsList = (props) => {
       if(filterBy === STATECOIN_STATUS.IN_TRANSFER) {
         all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.IN_TRANSFER);
       }
+    }
 
   	all_coins_data.sort((a, b) => {
   		let compareProp = sortCoin.by;
