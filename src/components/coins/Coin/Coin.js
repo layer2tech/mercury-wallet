@@ -16,6 +16,7 @@ import { CoinStatus, CopiedButton } from "../..";
 const TESTING_MODE = require("../../../settings.json").testing_mode;
 
 const SWAP_TOOLTIP_TXT = {
+  SingleSwapMode: "Coin is waiting in queue to ensure you swap with someone else",
   Phase0: "Coin registered for swap group - awaiting swap start",
   Phase1: "Swap group start. Awaiting blind swap token",
   Phase2: "Awaiting signature for coin transfer",
@@ -125,8 +126,8 @@ const Coin = (props) => {
             dispatch(setError({ msg: 'Locktime below limit for swap participation' }))
             return false;
           }
-          if ((props.coin_data.status === STATECOIN_STATUS.SWAPLIMIT || props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.swap || props.send || props.withdraw)) {
-            dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap and withdrawal' }))
+          if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.swap || props.send || props.withdraw)) {
+            dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap or withdrawal' }))
             return false;
           }
 
@@ -245,13 +246,30 @@ const Coin = (props) => {
                 || props.coin_data.status === STATECOIN_STATUS.WITHDRAWING
               ) ?
                 (
-                  <b className="CoinFundingTxid">
-                    <img src={scAddrIcon} className="sc-address-icon" alt="icon" />
-                    {props.coin_data.sc_address}
-                  </b>
+                  // probably needs another variable to check if its awaiting in swap
+                  props.coin_data.swap_auto ? 
+                  (
+                  <div>
+                    <CoinStatus data={props.coin_data}/>
+                    {
+                      <span className={`tooltip ${document.querySelector(".home-page") ? ("main") : ("side")}`}>
+                        <b>{props.coin_data.ui_swap_status}: </b>{SWAP_TOOLTIP_TXT.SingleSwapMode}
+                      </span>
+                    }
+                    <Spinner animation="border" variant="warning" size="sm" />
+                    <SwapStatus swapStatus={SWAP_STATUS_INFO.SingleSwapMode} />
+                  </div>
+                  ) : 
+                  (
+                    <b className="CoinFundingTxid">
+                      <img src={scAddrIcon} className="sc-address-icon" alt="icon" />
+                      {props.coin_data.sc_address}
+                    </b>
+                  )
                 )
                 : (
                   <div>
+                    
                     {props.coin_data.swap_status == null && <CoinStatus data={props.coin_data} />}
                     <div className="swap-status-container coinslist" >
                       {props.coin_data.swap_status !== "Init" ?

@@ -142,6 +142,7 @@ p.short{
 .CoinAmountError {
   color: #ff3d00;
   border-style: solid;
+  word-break: break-word;
 }
 
 #danger .sub .progress {

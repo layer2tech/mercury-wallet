@@ -321,6 +321,7 @@ export class StateCoinList {
 
 // STATUS represent each stage in the lifecycle of a statecoin.
 export enum STATECOIN_STATUS {
+  SINGLE_SWAP_MODE = "SINGLE_SWAP_MODE",
   // INITIALISED coins are awaiting their funding transaction to appear in the mempool
   INITIALISED = "INITIALISED",
   // IN_MEMPOOL funding transaction in the mempool
