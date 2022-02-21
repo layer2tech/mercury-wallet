@@ -52,7 +52,6 @@ export default class Swap {
   swap0_count: number
   n_retries: number
   resume: boolean
-  transfer_msg_3_receiver: TransferMsg3 | null
   step_timer: Timer
 
   constructor(wallet: Wallet,
@@ -73,7 +72,6 @@ export default class Swap {
     this.swap0_count = 0
     this.n_retries = 0
     this.resume = resume
-    this.transfer_msg_3_receiver = null
     this.step_timer = new Timer()
   }
 
@@ -543,7 +541,7 @@ export default class Swap {
   }
 
   getTransferMsg3 = async (): Promise<SwapStepResult> => {
-    if (this.transfer_msg_3_receiver !== null && this.transfer_msg_3_receiver !== undefined) {
+    if (this.statecoin.swap_transfer_msg_3_receiver !== null && this.statecoin.swap_transfer_msg_3_receiver !== undefined) {
       return SwapStepResult.Ok("transfer_msg_3_receiver already retrieved")
     }
     let http_client = this.clients.http_client
@@ -559,7 +557,8 @@ export default class Swap {
       throw Error(`Error - ${result.length} transfer messages are available for statechain_id ${result[0].statechain_id}. Exiting swap...`)
     }
     if (result.length === 1) {
-      this.transfer_msg_3_receiver = result[0]
+      this.statecoin.swap_transfer_msg_3_receiver = result[0]
+      this.wallet.saveStateCoinsList()
       return SwapStepResult.Ok("retrieved transfer_msg_3_receiver")
     }
     if (this.statecoin.swap_status === SWAP_STATUS.Phase4) {
@@ -579,7 +578,7 @@ export default class Swap {
     let value = this.statecoin.value
 
 
-    const msg3 = this.transfer_msg_3_receiver
+    const msg3 = this.statecoin.swap_transfer_msg_3_receiver
     if (!msg3) {
       throw Error("transfer_msg_3 is null or undefined")
     }
@@ -606,7 +605,7 @@ export default class Swap {
     let value = this.statecoin.value
     const transfer_msg_4 = await this.getTransferMsg4()
 
-    const msg3 = this.transfer_msg_3_receiver
+    const msg3 = this.statecoin.swap_transfer_msg_3_receiver
     if (!msg3) {
       throw Error("transfer_msg_3 is null or undefined")
     }
@@ -634,8 +633,6 @@ export default class Swap {
 
   transferReceiver = async (): Promise<SwapStepResult> => {
     try {
-      let result = await this.getTransferMsg3()
-      if (!result.is_ok()) return result;
       this.updateBlockHeight();
       await this.getTransferFinalizedData();
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase7;

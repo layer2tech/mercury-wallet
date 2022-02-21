@@ -418,6 +418,7 @@ export class StateCoin {
   swap_transfer_msg: TransferMsg3 | null;
   swap_batch_data: BatchData | null;
   swap_transfer_msg_4: TransferMsg4 | null;
+  swap_transfer_msg_3_receiver: TransferMsg3 | null;
   swap_transfer_finalized_data: TransferFinalizeData | null;
   swap_auto: boolean;
   swap_error: SwapErrorMsg | null;
@@ -464,6 +465,7 @@ export class StateCoin {
     this.swap_receiver_addr = null;
     this.swap_transfer_msg = null;
     this.swap_batch_data = null;
+    this.swap_transfer_msg_3_receiver = null;
     this.swap_transfer_msg_4 = null;
     this.swap_transfer_finalized_data = null;
     this.swap_auto = false;
@@ -630,6 +632,7 @@ export class StateCoin {
     this.swap_receiver_addr = null;
     this.swap_transfer_msg = null;
     this.swap_batch_data = null;
+    this.swap_transfer_msg_3_receiver = null;
     this.swap_transfer_msg_4 = null;
     this.swap_transfer_finalized_data = null;
     this.ui_swap_status = null;
