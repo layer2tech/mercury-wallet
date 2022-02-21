@@ -406,6 +406,16 @@ const CoinsList = (props) => {
       }
     }
 
+    return {
+      icon1: anon_icon_low,
+      icon2: anon_icon2_high,
+      score_desc: "Swap set: " + anon_set.toString(),
+      rounds: `Swaps: ${swap_rounds}`,
+      msg: " cumulative swap group size",
+      rounds_msg: " number of swap rounds completed",
+    }
+  }
+
     // Filter coins by status
     if(filterBy === 'default') {
       all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER))
