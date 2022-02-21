@@ -596,7 +596,7 @@ export default class Swap {
     return transfer_msg_4;
   }
 
-  do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
+  do_transfer_receiver = async (): Promise<TransferFinalizeData> => {
     let http_client = this.clients.http_client
     let electrum_client = this.clients.electrum_client
     let network = this.network
@@ -615,15 +615,10 @@ export default class Swap {
       "id": this.getSwapID().id,
       "commitment": this.getSwapBatchTransferData().commitment,
     }
-    let finalize_data = null;
-    try {
-      finalize_data = await transferReceiver(http_client,
+    let finalize_data = await transferReceiver(http_client,
         electrum_client, network, msg3, rec_se_addr_bip32,
         batch_data, req_confirmations, block_height, value, transfer_msg_4);
       typeforce(types.TransferFinalizeData, finalize_data);
-    } catch (err) {
-      log.info(`Swap transferReceiver error: ${err}`)
-    }
     return finalize_data;
   }
 
@@ -661,7 +656,9 @@ export default class Swap {
         }
         let phase = result.message
         log.info(`checking batch status - phase: ${phase}`)
-        return this.checkBatchStatus(phase, err.message)
+        result = await this.checkBatchStatus(phase, err.message)
+        result.message = `transferReceiver: ${err.message} - batch transfer status: ${result.message}`
+        return result
       }
     }
   }
@@ -693,12 +690,9 @@ export default class Swap {
     let data = this.statecoin.swap_transfer_finalized_data
     if (data === null || data === undefined) {
       data = await this.do_transfer_receiver()
+      this.statecoin.swap_transfer_finalized_data = data
       this.wallet.saveStateCoinsList()
-      if (data === null || data === undefined) {
-        throw new Error("expected TransferFinalizeData, got null or undefined")
-      }
     }
-    this.statecoin.swap_transfer_finalized_data = data
     return data
   }
 
@@ -706,12 +700,9 @@ export default class Swap {
     let data = this.statecoin.swap_transfer_msg_4
     if (data === null || data === undefined) {
       data = await this.do_get_transfer_msg_4()
+      this.statecoin.swap_transfer_msg_4 = data
       this.wallet.saveStateCoinsList()
-      if (data === null || data === undefined) {
-        throw new Error("expected TransferMsg4, got null or undefined")
-      }
     }
-    this.statecoin.swap_transfer_msg_4 = data
     return data
   }
   setStatecoinOut = (statecoin_out: StateCoin) => {
