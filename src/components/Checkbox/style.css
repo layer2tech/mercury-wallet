@@ -55,6 +55,7 @@
 .toggle:hover .toggle-switch:before {
   background: linear-gradient(to bottom, #fff 0%, #fff 100%);
 }
+
 .toggle-checkbox:checked + .toggle-switch {
   background: #0f54f4;
 }

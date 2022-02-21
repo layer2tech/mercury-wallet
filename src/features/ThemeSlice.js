@@ -1,10 +1,17 @@
-import {createSlice} from '@reduxjs/toolkit'
-
-// reset dark mode
-localStorage.removeItem("dark_mode");
+import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
-  dark_mode: 0
+  dark_mode: localStorage.getItem('dark_mode') != null ? localStorage.getItem('dark_mode') : null
+}
+
+const calculateDarkmode = (state) => {
+  if (state.dark_mode === '1') {
+    localStorage.removeItem('dark_mode')
+    return '0'
+  } else {
+    localStorage.setItem('dark_mode', '1')
+    return '1'
+  }
 }
 
 const ThemeSlice = createSlice({
@@ -14,7 +21,7 @@ const ThemeSlice = createSlice({
     toggleDarkMode(state) {
       return {
         ...state,
-        dark_mode: state.dark_mode === '1' ? '0' : '1'
+        dark_mode: calculateDarkmode(state)
       }
     },
   },

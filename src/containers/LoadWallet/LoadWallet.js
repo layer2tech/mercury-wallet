@@ -54,6 +54,7 @@ const LoadWalletPage = (props) => {
 
   // Attempt to load wallet. If fail display error.
   const onContinueClick = (event) => {
+    // check for password
     if(typeof selectedWallet === 'string' || selectedWallet instanceof String) {
         try { 
           walletLoad(selectedWallet, passwordEntered) }

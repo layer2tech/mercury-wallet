@@ -33,7 +33,7 @@ const SwapStatus = (props) => {
             {props.swap_error ? ( 
                 <div  className = "swap-status">
                     {stringIncludes(props.swap_error.msg, "not found in swap") ? (errorPTag("Awaiting timeout...")) : (null)}
-                    {stringIncludes(props.swap_error.msg, "waiting for completion") ? (errorPTag("Awaiting completion...")) : (null)}
+                    {stringIncludes(props.swap_error.msg, "waiting for completion") ? (errorPTag("Completing swap...")) : (null)}
                     {stringIncludes(props.swap_error.msg, "timed out") ? (errorPTag("Awaiting timeout...")) : (null)}
                     {stringIncludes(props.swap_error.msg, "punishment") ? errorPTag(`Penalty: ${sec2min(getInteger(props.swap_error.msg))} mins`) : (null)}
                     {stringIncludes(props.swap_error.msg, "active swap") ? errorPTag(`Timeout: ${sec2min(getInteger(props.swap_error.msg))} mins`) : (null)}
@@ -42,8 +42,17 @@ const SwapStatus = (props) => {
              ):(props.swapStatus ? (
                 <div  className = "swap-status">
                     <p className="main">{props.swapStatus}</p>
-                    {props.swapStatus ? (props.swapStatus.slice(0,7)==="Phase 3/8"? (<div className="new-tor-id"><p>New Tor ID</p></div>):(null)) : (null)}
-                    <p className="short">{props.swapStatus.slice(0,7)+'/8'}</p>
+                    {
+                        props.swapStatus ? 
+                            (props.swapStatus.slice(0,7)==="Phase 3/8" ? 
+                            (<div className="new-tor-id"><p>New Tor ID</p></div>)
+                            :(null)) 
+                        : (null)
+                    }
+                    {
+                        props.swapStatus === 'Inqueue' ? (<p>Inqueue</p>) : (<p className="short">{props.swapStatus.slice(0,7)+'/8'}</p>)
+                    }
+                    
                 </div>):( null ))}
         </div>
     )

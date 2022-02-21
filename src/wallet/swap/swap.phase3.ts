@@ -27,11 +27,21 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     swap.transferSender
   ),
   new SwapStep(
-    SWAP_STATUS.Phase3, "makeSwapCommitment",
+    SWAP_STATUS.Phase3, "getTransferMsg3",
     () => {return true},
     () => {return true},
     () => { 
       if (swap.statecoin.swap_transfer_msg === null) throw Error("No swap transfer message for coin")
+      return true
+    },
+    swap.getTransferMsg3
+  ),
+  new SwapStep(
+    SWAP_STATUS.Phase3, "makeSwapCommitment",
+    () => {return true},
+    () => {return true},
+    () => { 
+      if (swap.transfer_msg_3_receiver === null) throw Error("No transfer_msg_3_receiver")
       return true;
     },
     swap.makeSwapCommitment
@@ -42,6 +52,7 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     () => {return true},
     () => { 
       if (swap.statecoin.swap_batch_data === null) throw Error("No swap batch transfer data for coin")
+      if (swap.transfer_msg_3_receiver === null) throw Error("No transfer_msg_3_receiver")
       return true
     },
     swap.transferReceiver

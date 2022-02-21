@@ -908,6 +908,5 @@ test('swapPhase4 test 2 - server responds to pollSwap with miscellaneous error',
         ) 
       expect(statecoin).toEqual(UPDATED_STATECOIN)
   })
-
 })
   

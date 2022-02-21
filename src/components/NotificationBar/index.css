@@ -9,6 +9,7 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
+  word-break: break-word;
 }
 .wallet-notification p {
   box-sizing: border-box;

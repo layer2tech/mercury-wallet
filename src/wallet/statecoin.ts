@@ -330,35 +330,31 @@ export class StateCoinList {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
   }
- 
-  removeCoinFromSwap(shared_key_id: string) {
+
+  removeCoinFromSwapPool(shared_key_id: string, force: boolean = false) {
+    this.removeCoinFromSwapPoolUnchecked(
+      this.checkRemoveCoinFromSwapPool(shared_key_id, force)
+    )
+  }
+
+  removeCoinFromSwapPoolUnchecked(coin: StateCoin) {
+    coin.setSwapDataToNull()
+  }
+
+  checkRemoveCoinFromSwapPool(shared_key_id: string, force: boolean = false): StateCoin {
     let coin = this.getCoin(shared_key_id)
     if (coin) {
-      if (coin.status === STATECOIN_STATUS.IN_SWAP) {
-        throw Error(`Swap already begun. Cannot remove coin.`);
-      }
       if (coin.status !== STATECOIN_STATUS.AWAITING_SWAP) throw Error(`Coin is not in a swap pool.`);
-      if (coin.swap_status === SWAP_STATUS.Phase4) {
-        throw new Error(`Coin ${coin.shared_key_id} is in swap phase 4. Cannot remove coin.`)
-      }
-      coin.setSwapDataToNull();
+      return coin
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
-  }
-
-  clearSwapStatus() {
-    this.coins.forEach((statecoin) => {
-      if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP ||
-        statecoin.status === STATECOIN_STATUS.IN_SWAP) {
-        statecoin.setConfirmed();
-      }
-    });
   }
 }
 
 // STATUS represent each stage in the lifecycle of a statecoin.
 export enum STATECOIN_STATUS {
+  SINGLE_SWAP_MODE = "SINGLE_SWAP_MODE",
   // INITIALISED coins are awaiting their funding transaction to appear in the mempool
   INITIALISED = "INITIALISED",
   // IN_MEMPOOL funding transaction in the mempool
@@ -528,6 +524,7 @@ export class StateCoin {
 
   setAutoSwap(val: boolean) { this.swap_auto = val }
   setSwapError(swap_error: SwapErrorMsg){this.swap_error = swap_error}
+  clearSwapError(){this.swap_error = null}
   setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
   setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
@@ -706,7 +703,7 @@ export class StateCoin {
     this.swap_batch_data = null;
     this.swap_transfer_finalized_data = null;
     this.ui_swap_status = null;
-    this.swap_error = null;
+    this.clearSwapError();
   }
 
   getTXIdAndOut(): string {
