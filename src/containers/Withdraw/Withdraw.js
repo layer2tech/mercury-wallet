@@ -118,7 +118,7 @@ const WithdrawPage = () => {
           setRefreshCoins((prevState) => !prevState);
           console.log(res)
           setWithdrawTxid(res.payload)
-          dispatch(setNotification({msg:"Withdraw to "+inputAddr+" Complete!"}))
+          dispatch(setNotification({msg:"Withdraw to "+inputAddr+" - transaction broadcast complete."}))
         }
         if(res.error!== undefined){
           setOpenModal(false)

@@ -5,6 +5,7 @@ import close_img from "../../../images/close-icon.png";
 import copy_img from "../../../images/icon2.png";
 import scAddrIcon from "../../../images/sc_address_logo.png";
 import timeIcon from "../../../images/time.png";
+import awaitingIcon from "../../../images/time_left.png";
 import { MINIMUM_DEPOSIT_SATOSHI, fromSatoshi } from "../../../wallet/util";
 import { DAYS_WARNING, SWAP_STATUS_INFO } from "../CoinsList";
 import { ProgressBar, Spinner } from "react-bootstrap";
@@ -143,6 +144,10 @@ const Coin = (props) => {
             dispatch(setError({ msg: `Unavailable while coin in swap group` }))
             return false
           }
+           if(props.coin_data.status === (STATECOIN_STATUS.WITHDRAWING) && (props.send || props.swap)){
+            dispatch(setError({msg: `Coin withdrawn - unavailable for transfer`}))
+            return false
+          }   
           else {
             selectCoin(props.coin_data.shared_key_id)
           }
@@ -238,14 +243,13 @@ const Coin = (props) => {
             </div>
           }
 
-          {props.showCoinStatus ? (
-            <div className="coin-status-or-txid">
-
-              {(props.coin_data.status === STATECOIN_STATUS.AVAILABLE
-                || props.coin_data.status === STATECOIN_STATUS.WITHDRAWN
-                || props.coin_data.status === STATECOIN_STATUS.WITHDRAWING
-              ) ?
-                (
+              {props.showCoinStatus ? (
+                <div className="coin-status-or-txid">
+                  
+                  {(props.coin_data.status === STATECOIN_STATUS.AVAILABLE 
+                    || props.coin_data.status === STATECOIN_STATUS.WITHDRAWN
+                  ) ?
+                  (
                   // probably needs another variable to check if its awaiting in swap
                   props.coin_data.swap_auto ? 
                   (
@@ -266,8 +270,19 @@ const Coin = (props) => {
                       {props.coin_data.sc_address}
                     </b>
                   )
-                )
-                : (
+                  )
+                  : 
+                    (props.coin_data.status === STATECOIN_STATUS.WITHDRAWING) ?
+                      (
+                        <b className="CoinFundingTxid">
+                            <img src={awaitingIcon} className = "awaiting-icon" alt="icon"/>
+                            {props.coin_data.sc_address}
+                            <span className="tooltip">
+                                Withdrawn: awaiting deposit confirmation
+                            </span>
+                        </b>
+                      ) : 
+                  (
                   <div>
                     
                     {props.coin_data.swap_status == null && <CoinStatus data={props.coin_data} />}
