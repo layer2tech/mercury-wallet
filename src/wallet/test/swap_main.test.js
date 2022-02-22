@@ -2,12 +2,12 @@
 
 import { makeTesterStatecoin } from './test_data.js'
 
-import { SWAP_STATUS, UI_SWAP_STATUS, SwapStep, SWAP_RETRY } from "../swap/swap_utils";
-
+import { SWAP_STATUS, UI_SWAP_STATUS, SwapStep, SWAP_RETRY, TIMEOUT_STATUS, SwapStepResult } from "../swap/swap_utils";
 import Swap from "../swap/swap"
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import { SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails } from './test_data.js'
 import { SwapToken } from "../swap/swap_utils";
+import { swapInit } from '../swap/swap.init'
 
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 
@@ -18,6 +18,8 @@ import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 import { AsyncSemaphore } from '@esfx/async-semaphore';
 import { STATECOIN_STATUS } from '../statecoin.ts';
+import { GET_ROUTE, POST_ROUTE } from '../http_client';
+import { assert } from 'console';
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -79,18 +81,18 @@ describe('Swap Checks', function () {
     let statecoin = wallet.statecoins.coins[0]
     statecoin.status = STATECOIN_STATUS.AVAILABLE
     let swap = new Swap(wallet, statecoin)
-    await expect(swap.checkSwapLoopStatus()).rejects.toThrow(Error("Coin removed from swap pool"))
+    expect(() => {swap.checkSwapLoopStatus()}).toThrow(Error("Coin removed from swap pool"))
 
     setSwapDetails(statecoin, 0)
     let statecoin_expected = cloneDeep(statecoin)
-    await expect(swap.checkSwapLoopStatus()).resolves
+    swap.checkSwapLoopStatus()
     expect(statecoin).toStrictEqual(statecoin_expected)
 
     //Expect statecoin swap status to be reset after 
     // SWAP_RETRY.INIT_RETRY_AFTER retries in phase 0
     swap.swap0_count = SWAP_RETRY.INIT_RETRY_AFTER
     setSwapDetails(statecoin_expected, 0)
-    await expect(swap.checkSwapLoopStatus()).resolves
+    swap.checkSwapLoopStatus()
     expect(swap.statecoin).toStrictEqual(statecoin_expected)
   })
 
@@ -152,7 +154,7 @@ describe('Swap Checks', function () {
     const statecoin = wallet.statecoins.coins[0]
 
     let swap = new Swap(wallet, statecoin)
-    let err = Error("Coin " + statecoin.getTXIdAndOut() + " already in swap pool.")
+    let err = Error("Coin " + statecoin.getTXIdAndOut() + " already involved in swap.")
     const checkValidateSwap = (swap, statecoin, err) => {
       expect(() => {
         swap.validate()
@@ -246,6 +248,33 @@ describe('swapToken', function () {
       })
     });
   })
+
+  test('swapPhase4HandleErrPollSwap', async function() {
+    let wallet = getWallet()
+    let statecoin = wallet.statecoins.coins[0]
+    let swap = new Swap(wallet, statecoin)
+
+    http_mock.post = jest.fn((path, body) => {
+      if(path === POST_ROUTE.SWAP_POLL_SWAP){
+        throw Error(`post:${path}:${body}`)
+      }
+    })
+    const swap_id = "a_swap_id"
+    swap.statecoin.swap_id=cloneDeep(swap_id)
+    let result = await swap.swapPhase4HandleErrPollSwap()
+    expect(result.is_ok()).toEqual(false)
+    expect(result.message).toEqual(`post:${POST_ROUTE.SWAP_POLL_SWAP}:${swap_id}`)
+
+    http_mock.post = jest.fn((path, body) => {
+      if(path === POST_ROUTE.SWAP_POLL_SWAP){
+        return null
+      }
+    })
+    result = await swap.swapPhase4HandleErrPollSwap()
+    expect(result.is_ok()).toEqual(true)
+    expect(result.message).toEqual(null)
+
+  })
 });
 
 
@@ -321,3 +350,161 @@ describe('Do Swap Poll', function () {
 
   })
 })
+
+
+describe('Deregister statecoin', function () {
+
+  let wallet = getWallet()
+  test('Deregister statecoin awaiting swap successful', async function () {
+    http_mock.post = jest.fn((path, body) => {
+      if(path === POST_ROUTE.SWAP_DEREGISTER_UTXO){
+        return null
+      }
+    })
+  
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
+    let statecoin = wallet.statecoins.coins[0]
+
+    let initStatecoin = cloneDeep(statecoin)
+    setSwapDetails(initStatecoin, "Reset")
+
+    await wallet.deRegisterSwapCoin(statecoin)
+    expect(statecoin).toEqual(initStatecoin)
+  })
+
+  test('checkRemoveCoinFromSwapPool from statecoin wrong state is unsuccessful', async function () {
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 1)
+    let statecoin = wallet.statecoins.coins[0]
+
+    for(let i = 0; i< STATECOIN_STATUS.length; i++){
+      statecoin.status=STATECOIN_STATUS[i]
+      if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) continue;
+      const sc_in = cloneDeep(statecoin)
+      expect( () => {
+        wallet.statecoins.checkRemoveCoinFromSwapPool(statecoin.shared_key_id)
+      }).toThrowError("Coin is not in a swap pool.")
+      expect(statecoin).toEqual(sc_in)
+    }
+
+    //Statecoin not found in wallet
+    const wrong_id = "wrong_id"
+    expect(() => {wallet.statecoins.checkRemoveCoinFromSwapPool(wrong_id)}).
+      toThrowError("No coin found with shared_key_id " + wrong_id)
+  })
+
+  test('checkRemoveCoinFromSwapPool from statecoin awaiting swap successful', async function () {
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
+    let statecoin = wallet.statecoins.coins[0]
+    let phase0Statecoin = cloneDeep(statecoin)
+    let result
+    await expect(result = wallet.statecoins.checkRemoveCoinFromSwapPool(statecoin.shared_key_id)).resolves
+    expect(result).toEqual(statecoin)
+    expect(statecoin).toEqual(phase0Statecoin)
+  })
+
+  test('removeCoinFromSwapPool from statecoin wrong state is unsuccessful', async function () {
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 1)
+    let statecoin = wallet.statecoins.coins[0]
+
+    for(let i = 0; i< STATECOIN_STATUS.length; i++){
+      statecoin.status=STATECOIN_STATUS[i]
+      if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) continue;
+      const sc_in = cloneDeep(statecoin)
+      expect( () => {
+        wallet.removeCoinFromSwapPool(statecoin.shared_key_id)
+      }).toThrowError("Coin is not in a swap pool.")
+      expect(statecoin).toEqual(sc_in)
+    }
+
+    //Statecoin not found in wallet
+    const wrong_id = "wrong_id"
+    expect(() => {wallet.removeCoinFromSwapPool(wrong_id)}).
+      toThrowError("No coin found with shared_key_id " + wrong_id)
+  })
+
+  test('removeCoinFromSwapPool from statecoin awaiting swap successful', async function () {
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
+    let statecoin = wallet.statecoins.coins[0]
+    let initStatecoin = cloneDeep(statecoin)
+    setSwapDetails(initStatecoin, "Reset")
+    await expect(wallet.removeCoinFromSwapPool(statecoin.shared_key_id)).resolves
+    expect(statecoin).toEqual(initStatecoin)
+  })
+  
+  test('Deregister statecoin in swap unsuccessful', async function () {
+    http_mock.post = jest.fn((path, body) => {
+      if(path === POST_ROUTE.SWAP_DEREGISTER_UTXO){
+        return null
+      }
+    })
+  
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 1)
+    let statecoin = wallet.statecoins.coins[0]
+    let phase1Statecoin = cloneDeep(statecoin)
+    await expect(wallet.deRegisterSwapCoin(statecoin)).rejects.toThrow(
+      Error(`Coin is not in a swap pool.`))
+    expect(statecoin).toEqual(phase1Statecoin)
+  })
+
+  test('Deregister statecoin - server returns error', async function () {
+    wallet.http_client.post = jest.fn((path, body) => {
+      if(path === POST_ROUTE.SWAP_DEREGISTER_UTXO){
+        throw Error(`${path}:${body}`)
+      }
+    })
+    wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
+    let statecoin = wallet.statecoins.coins[0]
+    let phase0Statecoin = cloneDeep(statecoin)
+    await expect(() => {wallet.deRegisterSwapCoin(statecoin)}).rejects.toThrow
+      Error(`${POST_ROUTE.SWAP_DEREGISTER_UTXO}:${statecoin.statechain_id}`);
+    expect(statecoin).toEqual(phase0Statecoin)
+  })  
+})
+
+describe('Process step result Retry', function () {
+  let wallet = getWallet()
+  let statecoin = wallet.statecoins.coins[0]
+  setSwapDetails(statecoin,1)
+  jest.setTimeout(10000)
+
+  test('processStepResultRetry increments n_retries', async function () {
+    let swap = new Swap(wallet, statecoin);
+    let n_retries_in = cloneDeep(swap.n_retries)
+    let nextStep = swapInit(swap)[0]
+    console.log(nextStep.description())
+    await swap.processStepResultRetry(SwapStepResult.Retry(), nextStep)
+    expect(swap.n_retries).toEqual(n_retries_in+1)
+  })
+
+  test('processStepResultRetry sets or clears statecoin swap error', async function () {
+    let swap = new Swap(wallet, statecoin);
+    let values = Object.values(TIMEOUT_STATUS)
+    for(let i=0; i<values.length; i++){
+      let ts = values[i];
+      await swap.processStepResultRetry(SwapStepResult.Retry(ts), swapInit(swap)[0])
+      expect(swap.statecoin.swap_error.error).toEqual(true)
+      expect(swap.statecoin.swap_error.msg).toEqual(ts)
+    }
+    swap.processStepResultRetry(SwapStepResult.Retry(), swapInit(swap)[0])
+    expect(swap.statecoin.swap_error).toEqual(null)
+  })
+})
+
+describe('Process step result Ok', function () {
+  let wallet = getWallet()
+  let statecoin = wallet.statecoins.coins[0]
+  setSwapDetails(statecoin,1)
+  let swap = new Swap(wallet, statecoin);
+  statecoin.swap_error = "a swap error"
+  const in_step = cloneDeep(swap.next_step)
+  swap.processStepResult(SwapStepResult.Ok(), swapInit(swap)[0]) 
+
+  test('processStepResult of result Ok clears statecoin swap error', async function () {   
+    expect(swap.statecoin.swap_error).toEqual(null)
+  })
+
+  test('processStepResult of result Ok increments step', async function () {  
+    expect(swap.next_step).toEqual(in_step+1)
+  })
+  }
+)

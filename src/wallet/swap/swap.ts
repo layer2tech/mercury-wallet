@@ -1,7 +1,7 @@
 import { EPSClient } from '../eps'
 import { transferSender, transferReceiver, TransferFinalizeData, transferReceiverFinalize, SCEAddress, TransferMsg3 } from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo, swapDeregisterUtxo } from "./info_api";
-import { delay_s, getStateCoin, getTransferBatchStatus } from "../mercury/info_api";
+import { delay_s, getStateCoin, getTransferBatchStatus, getStateChainTransferFinalizeData  } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,7 +13,10 @@ import { get_swap_steps } from './swap_steps'
 import { BatchData, BlindedSpendSignature, BSTRequestorData, first_message, 
   get_blinded_spend_signature, second_message, SwapID, SwapInfo, SwapPhaseClients, 
   SwapStep, SwapStepResult, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS, Timer,
-  SWAP_TIMEOUT } from './swap_utils';
+  SWAP_TIMEOUT, TIMEOUT_STATUS } from './swap_utils';
+
+  import { TransferFinalizeDataAPI} from '../mercury/transfer';
+import { getFinalizeDataForRecovery } from '../recovery';
 
 let cloneDeep = require('lodash.clonedeep');
 let bitcoin = require("bitcoinjs-lib");
@@ -115,38 +118,61 @@ export default class Swap {
       this.checkStepStatus()
       this.checkStepTimer()
       this.checkNRetries()
-      await this.checkSwapLoopStatus()
+      this.checkSwapLoopStatus()
       const nextStep = this.getNextStep()
       //log.info(`Doing next swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id}`)
       let step_result = await nextStep.doit()
-      if(step_result.is_ok()){
+      await this.processStepResult(step_result, nextStep)
+      return step_result   
+    }
+
+    processStepResult = async (sr: SwapStepResult, next_step: SwapStep) => {
+      if(sr.is_ok()){
         this.incrementStep()
         this.resetRetryCounters()
+        this.statecoin.clearSwapError()
       } else {
+        await this.processStepResultRetry(sr, next_step)
+      }
+    }
+
+    processStepResultRetry = async (step_result: SwapStepResult, nextStep: SwapStep) => {
         log.info(`Retrying swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id} - reason: ${step_result.message}`)
         this.incrementRetries(step_result)
         if (step_result.includes("Incompatible")) {
           alert(step_result.message)
         }
-        if (step_result.includes("punishment")) {
-          alert(step_result.message)
+        let clear = true
+        let values = Object.values(TIMEOUT_STATUS)
+        for(let i=0; i<values.length; i++){
+          let ts: string = values[i];
+          if(step_result.includes(ts)){
+            this.statecoin.setSwapError({
+              msg: step_result.message,
+              error: true
+            })
+            clear = false
+            break
+          }
         }
-        await delay_s(SWAP_RETRY.RETRY_DELAY)
-      }
-      return step_result   
+        if(clear){
+          this.statecoin.clearSwapError()
+        }
+        await delay_s(SWAP_TIMEOUT.RETRY_DELAY)
     }
 
     incrementRetries = (step_result:SwapStepResult) => {
       let statecoin = this.statecoin
+      //Limit retries if errors are being returned while waiting for swap
       if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) {
+        if(step_result.includes("Waiting for swap to begin")){
           this.n_retries = 0
-          return
+        } else {
+          this.n_retries = this.n_retries + 1
+        }
+        return
       }
       switch (statecoin.swap_status) {
-          case SWAP_STATUS.Phase0: {
-            this.swap0_count++;
-            return
-          }
           //Allow unlimited network errors in phase 4
           case SWAP_STATUS.Phase4: {
             if (!(step_result.message.includes('Network') || 
@@ -169,7 +195,6 @@ export default class Swap {
 
     checkNRetries = () => {
       if (this.statecoin.swap_status !== SWAP_STATUS.Phase4 && 
-        this.statecoin.swap_status !== SWAP_STATUS.Phase0 && 
         this.n_retries >= SWAP_RETRY.MAX_REPS_PER_STEP) {
         throw new Error(`Number of tries exceeded in phase ${this.statecoin.swap_status}`)
       }
@@ -183,25 +208,11 @@ export default class Swap {
       }
     }
     
-    checkSwapLoopStatus = async () => {
+    checkSwapLoopStatus = () => {
       let statecoin = this.statecoin
       if (statecoin.status === STATECOIN_STATUS.AVAILABLE) {
         throw new Error("Coin removed from swap pool")
       }
-      if (statecoin.swap_status === SWAP_STATUS.Phase0) {
-        if (this.swap0_count >= SWAP_RETRY.INIT_RETRY_AFTER) {
-          await this.reset()
-        }
-      }
-    }
-    
-    reset = async () => {
-      let statecoin = this.statecoin
-      await swapDeregisterUtxo(this.clients.http_client, { id: statecoin.statechain_id });
-      statecoin.setSwapDataToNull();
-      statecoin.swap_status = SWAP_STATUS.Init;
-      statecoin.setAwaitingSwap();
-      this.resetCounters()
     }
     
     resetCounters = () => {
@@ -262,25 +273,34 @@ export default class Swap {
   }
 
 
-pollUtxo = async (): Promise<SwapStepResult> => {
+pollUtxoPhase0 = async (): Promise<SwapStepResult> => {
   try {
       let swap_id = await pollUtxo(this.clients.http_client, 
         {id: this.statecoin.statechain_id});
       if (swap_id.id !== null) {
-        log.info("Swap Phase0: Swap ID received: ", swap_id)
         this.updateStateCoinToPhase1(swap_id)
         return SwapStepResult.Ok()
       } else {
-        return SwapStepResult.Retry()
+        return SwapStepResult.Retry("Waiting for swap to begin...")
       }
     } catch (err: any) {
-       return SwapStepResult.Retry(err.message)
+    return this.handlePollUtxoPhase0Err(err)
   }
 }
 
-updateStateCoinToPhase1 = async (swap_id: any) => {
+handlePollUtxoPhase0Err = (err: any) : SwapStepResult =>  {
+  if(err?.message && err.message.includes(
+    "statechain timed out or has not been requested"
+  )) {
+    throw Error("coin removed from swap pool")
+  }
+   return SwapStepResult.Retry(err.message)
+}
+
+updateStateCoinToPhase1 = (swap_id: any) => {
     let statecoin = this.statecoin
     statecoin.swap_id = swap_id
+    statecoin.setInSwap()
     statecoin.swap_status = SWAP_STATUS.Phase1;
     statecoin.ui_swap_status = UI_SWAP_STATUS.Phase1;
 }
@@ -344,7 +364,6 @@ loadSwapInfo = async ():Promise<SwapStepResult> => {
     } 
     typeforce(types.SwapInfo, swap_info);
     this.statecoin.swap_info = swap_info;
-    this.statecoin.setInSwap();
     return SwapStepResult.Ok(`swap info received`)
   } catch (err: any) {
     return SwapStepResult.Retry(err.message)
@@ -553,22 +572,24 @@ do_transfer_receiver = async (): Promise<TransferFinalizeData | null> => {
   let value = this.statecoin.value
 
     const msg3 = this.transfer_msg_3_receiver
+    if(!msg3){
+      throw Error("transfer_msg_3 is null or undefined")
+    }
     
     let batch_data = {
       "id": this.getSwapID().id,
       "commitment": this.getSwapBatchTransferData().commitment,
     }
-
-    let finalize_data = null
-    const DELAY = 20
-    await Promise.race([transferReceiver(http_client, 
-      electrum_client, network, msg3, rec_se_addr_bip32, 
-      batch_data, req_confirmations, block_height, value)
-              , delay_s(DELAY)]).then((value) => {
-              finalize_data = value
-    })
-          
-    typeforce(types.TransferFinalizeData, finalize_data);
+    let finalize_data = null;
+    try {
+      finalize_data = await transferReceiver(http_client, 
+        electrum_client, network, msg3, rec_se_addr_bip32, 
+        batch_data, req_confirmations, block_height, value);
+    } catch (err) {
+      this.resetRetryCounters()
+      throw err
+    }
+    typeforce(types.TransferFinalizeData, finalize_data);  
     return finalize_data;
 }
 
@@ -664,10 +685,7 @@ setStatecoinOut = (statecoin_out: StateCoin) => {
     let phase = await pollSwap(this.clients.http_client, this.getSwapID());
     return SwapStepResult.Ok(phase)
   } catch (err: any) {
-    if(!err.message.includes("No data for identifier")) {
-      return SwapStepResult.Retry(err.message)
-    }
-    throw err
+    return SwapStepResult.Retry(err?.message)
   }
 }
 
@@ -679,7 +697,7 @@ handleTimeoutError = (err: any) => {
   }
 }
 
-checkBatchStatus = async (phase: string, err_msg: "string"): Promise<SwapStepResult> => {
+checkBatchStatus = async (phase: string | null, err_msg: string): Promise<SwapStepResult> => {
   let batch_status = null
     try{
       if (phase === null) {
@@ -721,8 +739,8 @@ transferReceiverFinalize = async (): Promise<SwapStepResult> => {
         return SwapStepResult.Retry(err.message)
       }
       let phase = result.message
-      log.debug(`checking batch status - phase: ${phase}`)
-      return await this.checkBatchStatus(phase, err.message) 
+      log.info(`checking batch status - phase: ${phase}`)
+      return this.checkBatchStatus(phase, err.message) 
     }
   }
 }

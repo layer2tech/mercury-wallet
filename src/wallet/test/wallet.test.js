@@ -17,6 +17,7 @@ import { Storage } from '../../store';
 import { getFinalizeDataForRecovery } from '../recovery';
 import { assert } from 'console';
 
+let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
 let bip32 = require('bip32')
 
@@ -328,7 +329,7 @@ describe('updateBackupTxStatus', function() {
       wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
       wallet.block_height = 1001;
       wallet.updateBackupTxStatus();
-      expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWING);
+      expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWN);
       // verify tx confirmed
       expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.CONFIRMED); 
     })    
@@ -466,10 +467,12 @@ describe("Config", () => {
     expect(config.min_anon_set).toBe(20)
   });
 
-  test('fail update invalid value', () => {
-    expect(() => {  // not enough value
-      config.update({invalid: ""});
-    }).toThrowError("does not exist");
+  
+
+  test('expect update invalid value to log a warning', () => {
+    const logWarnSpy = jest.spyOn(log, 'warn')
+    config.update({invalid: ""});
+    expect(logWarnSpy).toHaveBeenCalled()
   })
 })
 
@@ -557,4 +560,5 @@ describe("Recovery unfinalized", () => {
       expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
       
     });
+
 })

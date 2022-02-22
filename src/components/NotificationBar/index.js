@@ -11,7 +11,7 @@ const NotificationBar = () => {
     const handleCloseAllNotifficcations = () => {
       for(var i=0; i<notifications_list.length; i++){
         dispatch(setNotificationSeen({msg: notifications_list[i].msg}));
-      }
+      }      
       notifications_list = [];
     }
     // timer to close the notification after 5 seconds

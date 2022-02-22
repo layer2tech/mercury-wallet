@@ -7,24 +7,16 @@
     CHECK - why clicking new circuit is not always instant -> async
 */
 
-import React,  {useEffect, useState} from 'react'
-import {useDispatch} from 'react-redux';
-import { callGetNewTorId, callGetTorcircuitInfo, callUpdateTorCircuit } from '../../../features/WalletDataSlice';
+import React,  { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux';
+import { callGetNewTorId, callGetTorcircuitInfo, callUpdateTorCircuit, 
+    setTorOnline, callGetConfig } from '../../../features/WalletDataSlice';
 import './torCircuit.css'
 import TorCircuitNode from './TorCircuitNode'
-import {callGetConfig} from '../../../features/WalletDataSlice'
 import {defaultWalletConfig} from '../../../containers/Settings/Settings'
-import { Loading } from '../..';
 
 
 const TorCircuit = (props) => {
-
-    const dispatch = useDispatch();
-
-    const [torLoaded, setTorLoaded] = useState(false);
-    const [torcircuitData, setTorcircuitData] = useState([]);
-    // const [loading, setLoading] = useState(false)
-
     let current_config;
     try {
       current_config = callGetConfig();
@@ -32,14 +24,10 @@ const TorCircuit = (props) => {
       current_config = defaultWalletConfig()
     }
 
+    const dispatch = useDispatch();
 
-    const getTorCircuitInfo = () => {
-        dispatch(callUpdateTorCircuit());
-        let torcircuit_data = callGetTorcircuitInfo();
-        let torcircuit_array = torcircuit_data ? torcircuit_data : [];
-        setTorLoaded(torcircuit_data.length > 0)
-        setTorcircuitData(torcircuit_array);
-    }
+    const [torcircuitData, setTorcircuitData] = useState([]);
+    const [torLoaded, setTorLoaded] = useState(false);
 
     useEffect(() => {
         const interval = setInterval(() => {       
@@ -48,23 +36,30 @@ const TorCircuit = (props) => {
         return () => {
             clearInterval(interval);
         }
-    }, [dispatch, torLoaded]);
-    
-    // useEffect(() => {
-    //     if(loading === true){
-    //         const interval = setInterval(() => {
-    //             setLoading(false)
-    //         }, 3000);
-    //         return () => clearInterval(interval);
-    //     }
-    // }, [torcircuitData]);
+    }, [dispatch,props.online]);
 
+    
+    const getTorCircuitInfo = () => {
+        if(props.online){
+            dispatch(callUpdateTorCircuit());
+            let torcircuit_data = callGetTorcircuitInfo();
+            let torcircuit_array = torcircuit_data ? torcircuit_data : [];
+            const loaded = (torcircuit_data.length > 0)
+            setTorLoaded(loaded)
+            dispatch(setTorOnline(loaded))
+            setTorcircuitData(torcircuit_array);
+        }
+        else{
+            dispatch(setTorOnline(false))
+            setTorLoaded(false)
+        }
+    }
+    
     const newCircuit = () => {
         dispatch(callGetNewTorId()).then(() => {
             getTorCircuitInfo();
         });
     }
-
 
     function shortenURL(url){
         let shortURL = ""
@@ -76,9 +71,9 @@ const TorCircuit = (props) => {
     }
 
     return (
-        <div class="dropdown tor">
+        <div className = "dropdown tor">
             <TorIcon/>
-            <div class="dropdown-content">
+            <div className = "dropdown-content">
                 { torLoaded ? ( 
                 <div>
                     <ul>
@@ -90,7 +85,7 @@ const TorCircuit = (props) => {
                         {/* <TorCircuitNode className='current' name={current_config.state_entity_endpoint}></TorCircuitNode> */}
                         {<TorCircuitNode class='current' name={shortenURL(current_config.state_entity_endpoint)}></TorCircuitNode>}
                     </ul>
-                    <button class='Body-button' onClick={newCircuit}>New Circuit</button>
+                    <button className = 'Body-button' onClick={newCircuit}>New Circuit</button>
                 </div>) :  
                 (<div>
                     <p>Couldn't establish connection to tor</p>

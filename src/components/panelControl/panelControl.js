@@ -41,7 +41,8 @@ export const FILTER_BY_OPTION = [
 ]
 
 const PanelControl = () => {
-  const { balance_info, filterBy } = useSelector(state => state.walletData);
+  const balance_info = useSelector((state) => state.walletData.balance_info);
+  const filterBy  = useSelector((state) => state.walletData.filterBy);
 
   const filterByMsg = () => {
     let return_str = "Statecoin";
@@ -55,6 +56,8 @@ const PanelControl = () => {
         return return_str+ " withdrawn from Wallet";
       case FILTER_BY_OPTION[2].value:
         return return_str+ " transferred";
+      case FILTER_BY_OPTION[3].value:
+        return return_str+ " withdrawn from Wallet - awaiting confirmation";
       default:
         return return_str;
     }

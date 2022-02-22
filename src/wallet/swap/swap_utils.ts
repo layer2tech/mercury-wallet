@@ -36,6 +36,7 @@ function delay(s: number) {
 }
 
 export const UI_SWAP_STATUS = {
+  SingleSwapMode: "SingleSwapMode",
   Init: "Init",
   Phase0: "Phase0",
   Phase1: "Phase1",
@@ -52,6 +53,7 @@ Object.freeze(UI_SWAP_STATUS);
 
 // SWAP_STATUS represent each technical stage in the lifecycle of a coin in a swap.
 export enum SWAP_STATUS {
+  SingleSwapMode = "SingleSwapMode",
   Init = "Init",
   Phase0 = "Phase0",
   Phase1 = "Phase1",
@@ -62,18 +64,26 @@ export enum SWAP_STATUS {
 }
 Object.freeze(SWAP_STATUS);
 
+export enum TIMEOUT_STATUS {
+  NotFound = "not found in swap",
+  TimedOut = "timed out",
+  Waiting = "waiting for completion",
+  Active = "active swap",
+  Punishment = "punishment"
+}
+Object.freeze(TIMEOUT_STATUS);
+
 export const SWAP_TIMEOUT = {
   RETRY_DELAY: 1,
-  STEP_TIMEOUT_S: 100,
+  STEP_TIMEOUT_S: 120,
+  INIT_TIMEOUT_S: 330 
 }
 Object.freeze(SWAP_TIMEOUT);
 
 // Constants used for retrying swap phases
 export const SWAP_RETRY = {
-  INIT_RETRY_AFTER: 600,
+  INIT_RETRY_AFTER: SWAP_TIMEOUT.INIT_TIMEOUT_S/SWAP_TIMEOUT.RETRY_DELAY,
   MAX_REPS_PER_STEP: SWAP_TIMEOUT.STEP_TIMEOUT_S/SWAP_TIMEOUT.RETRY_DELAY,
-  LONG_DELAY_S: 5,
-  RETRY_DELAY: SWAP_TIMEOUT.RETRY_DELAY
 }
 Object.freeze(SWAP_RETRY);
 
@@ -444,6 +454,11 @@ export interface PrepareSignTxMsg {
 export interface BatchData {
   commitment: string,
   nonce: Buffer,
+}
+
+export interface SwapErrorMsg {
+  error: boolean,
+  msg: string
 }
 
 export interface SwapStatus {

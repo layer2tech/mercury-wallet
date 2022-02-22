@@ -8,6 +8,8 @@ import CountdownTimer from './CountdownTimer/CountdownTimer';
 
 import './swaps.css';
 import '../index.css';
+import { setIntervalIfOnline } from "../../features/WalletDataSlice";
+import { useSelector } from "react-redux";
 
 // const DEFAULT_SWAP_DETAILS = {show: false, swap: {value: 0, participants: 0, capacity: 0, status: "none"}}
 
@@ -15,6 +17,8 @@ const Swaps = (props) => {
     const [countdown, setCountdown] = useState();
     const [swapTime,setSwapTime] = useState("");
     const [count,setCount] = useState(0);
+
+    const { torInfo } = useSelector(state => state.walletData);
 
     useEffect(() =>{
         if(props.swapGroupsData.length !== 0){
@@ -28,13 +32,14 @@ const Swaps = (props) => {
 
     useEffect(()=> {
         if(swapTime!==""){
-            const interval = setInterval(()=>{
-                setCountdown(swapTime - Math.ceil(Date.now()/1000))
-                // setCount(count+1)
-            },1000)
+            const interval = setIntervalIfOnline(countdownTimer, torInfo.online, 1000)
             return () => clearInterval(interval)
         }
-    },[count,swapTime])
+    },[count,swapTime, torInfo.online])
+
+    const countdownTimer = () => {
+        setCountdown(swapTime - Math.ceil(Date.now()/1000))
+    }
 
     // const getSwapStatusLabel = (value, groupStartTime) => {
     //     if(value === "0") {
@@ -125,10 +130,13 @@ const Swaps = (props) => {
                 </>
             ) 
             : 
-            (props.initFetchSwapGroups === true? 
-                    (<Spinner animation="border" variant="primary" />)
-                    :
-                    (<p>No swap groups registered.</p>))}
+            (props.torOnline === true ?
+                (props.initFetchSwapGroups === true? 
+                        (<Spinner animation="border" variant="primary" />)
+                        :
+                        (<p>No swap groups registered.</p>))
+                :
+                (<p>Unable to retrieve swap group information - disconnected from the Mercury server.</p>))}
         </div>
     );
 }
