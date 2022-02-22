@@ -593,7 +593,7 @@ describe('swapPhase3', () => {
         init_phase3_status(statecoin);
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
         swap.statecoin.swap_transfer_msg = null
-        expect(swap.transfer_msg_3_receiver).toEqual(null)
+        expect(swap.statecoin.swap_transfer_msg_3_receiver).toEqual(null)
         swap.statecoin.swap_transfer_msg = mock_http_client.TRANSFER_MSG3
        
         http_mock.get = jest.fn((path, params) => {
@@ -604,7 +604,7 @@ describe('swapPhase3', () => {
         await expect(swap.getTransferMsg3())
             .rejects
             .toThrowError(Error(`Error: ${GET_ROUTE.TRANSFER_GET_MSG_ADDR}`))
-        expect(swap.transfer_msg_3_receiver).toEqual(null)
+        expect(swap.statecoin.swap_transfer_msg_3_receiver).toEqual(null)
 
         http_mock.get = jest.fn((path, params) => {
             if (path === GET_ROUTE.TRANSFER_GET_MSG_ADDR) {
@@ -628,7 +628,7 @@ describe('swapPhase3', () => {
 
         result = await swap.getTransferMsg3()
         expect(result.is_ok()).toEqual(true)
-        expect(swap.transfer_msg_3_receiver).toEqual(tm3_const)
+        expect(swap.statecoin.swap_transfer_msg_3_receiver).toEqual(tm3_const)
     })
 
     test('swapPhase3 test 12 - SwapStep4: make_swap_commitment', async () => {
@@ -649,7 +649,7 @@ describe('swapPhase3', () => {
         tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
         const tm3_const = tm3
         swap.statecoin.swap_transfer_msg = tm3_const
-        swap.transfer_msg_3_receiver = tm3_const
+        swap.statecoin.swap_transfer_msg_3_receiver = tm3_const
         swap.setSwapSteps(steps)
 
         // expected
