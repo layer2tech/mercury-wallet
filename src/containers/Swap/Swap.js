@@ -20,7 +20,8 @@ import {
   removeSwapPendingCoin,
   handleEndSwap,
   addInSwapValue,
-  updateInSwapValues
+  updateInSwapValues,
+  removeInSwapValue
 } from "../../features/WalletDataSlice";
 import {fromSatoshi, STATECOIN_STATUS} from '../../wallet';
 import './Swap.css';
@@ -165,6 +166,7 @@ const SwapPage = () => {
     // turn off swap_auto
     if(item.swap_auto){
       dispatch(removeSwapPendingCoin(item.shared_key_id))
+      dispatch(removeInSwapValue(statecoin.value))
       statecoin.swap_auto = false;
       setSwapLoad({...swapLoad, leave: true})
       try{
