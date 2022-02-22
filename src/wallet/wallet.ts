@@ -1097,14 +1097,14 @@ export class Wallet {
         try{
           await (async () => {
             while(updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-              delay(100);
+              delay(1000);
             }
           });
           
           await this.deRegisterSwapCoin(statecoin)
 
-        } catch(e : any){
-          if (! e.message.includes("Coin is not in a swap pool")){
+        } catch (e: any) {
+          if (!e.message.includes("Coin is not in a swap pool")){
             throw e;
          }
         } finally {

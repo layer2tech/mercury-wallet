@@ -139,7 +139,7 @@ const SwapPage = () => {
     setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
   }
 
-  const handleAutoSwap =  (item) => {
+  const handleAutoSwap = async (item) => {
     if(item.status === 'UNCONFIRMED' || item.status === 'IN_MEMPOOL'){
       return;
     }
@@ -170,16 +170,17 @@ const SwapPage = () => {
       statecoin.swap_auto = false;
       setSwapLoad({...swapLoad, leave: true})
       try{
-        dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin, "dispatch": dispatch, "autoswap": true}))
-          .then(res => {
-            dispatch(() => {
+        await dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin, "dispatch": dispatch, "autoswap": true}))
+        dispatch(() => {
               removeCoinFromSwapRecords(selectedCoin)
-            });
-            setSwapLoad({...swapLoad, leave: false})
         });
-      } catch (e) {
         setSwapLoad({...swapLoad, leave: false})
-        dispatch(setError({msg: e.message}))
+      } catch (e) {
+        setSwapLoad({ ...swapLoad, leave: false })
+        console.log(`dereg - caught error - ${e}`)
+        if (!e.message.includes("Coin is not in a swap pool")) {
+            dispatch(setError({msg: e.message}))
+        }
       } finally {
         // Refresh Coins list
         setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
