@@ -428,7 +428,9 @@ export class Wallet {
 
   // Set Wallet.block_height
   setBlockHeight(header_data: any) {
-    this.block_height = header_data[0].height;
+    if (header_data[0]) {
+      this.block_height = header_data[0].height
+    }
   }
 
   genSEAddress() {
