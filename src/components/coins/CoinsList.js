@@ -30,15 +30,12 @@ import {
   updateBalanceInfo,
   callGetUnconfirmedStatecoinsDisplayData,
   callGetUnconfirmedAndUnmindeCoinsFundingTxData,
-  setError,
   callAddDescription,
   callGetConfig,
   callGetStateCoin,
-  callGetActivityLogItems,
-  addSwapPendingCoin,
-  removeSwapPendingCoin,
   handleEndAutoSwap,
-  setIntervalIfOnline
+  setIntervalIfOnline,
+  updateInSwapValues,
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -58,7 +55,8 @@ import {
   setNotification,
   callDoSwap,
   addCoinToSwapRecords,
-  removeCoinFromSwapRecords
+  removeCoinFromSwapRecords,
+  addInSwapValue
 } from "../../features/WalletDataSlice";
 import { SWAP_STATUS } from "../../wallet/swap/swap_utils";
 import Coin from "./Coin/Coin";
@@ -83,6 +81,7 @@ const INITIAL_SORT_BY = {
 };
 
 export const SWAP_STATUS_INFO = {
+  SingleSwapMode: "Inqueue",
   Phase0: "Phase 0/8: registration",
   Phase1: "Phase 1/8: awaiting swap commitments",
   Phase2: "Phase 2/8: awaiting blind token",
@@ -100,7 +99,8 @@ const CoinsList = (props) => {
 
   const { selectedCoins, isMainPage, swap } = props;
   const dispatch = useDispatch();
-  const { filterBy, swapPendingCoins, coinsAdded, coinsRemoved, torInfo } = useSelector(state => state.walletData);
+  const { filterBy, swapPendingCoins, coinsAdded,
+    coinsRemoved, torInfo, inSwapValues } = useSelector(state => state.walletData);
   const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
   const [coins, setCoins] = useState(INITIAL_COINS);
   const [initCoins, setInitCoins] = useState({});
@@ -220,6 +220,17 @@ const CoinsList = (props) => {
     setShowDeleteCoinDetails(false);
   }
 
+  const checkSwapAvailability = (statecoin, in_swap_values) => {
+    if (callGetConfig().singleSwapMode
+      && in_swap_values.has(statecoin.value)) {
+      return false
+    }
+    if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) {
+      return false
+    }
+    return true
+  }
+
 
   //Load coins once component done render
   useEffect(() => {
@@ -291,7 +302,7 @@ const CoinsList = (props) => {
     const interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000)
     return () => clearInterval(interval);
   },
-    [swapPendingCoins, torInfo.online]);
+    [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
 
   // Enters/Re-enters coins in auto-swap
   const autoSwapLoop = () => {
@@ -300,16 +311,26 @@ const CoinsList = (props) => {
       return
     }
 
-    swapPendingCoins.forEach((selectedCoin) => {
+    let swapValues = new Set(inSwapValues)
+    let randomOrderIndices = []
+    for (let i = 0; i < swapPendingCoins.length; i++) {
+      randomOrderIndices.push(i)
+    }
+    randomOrderIndices.sort( () => Math.random() - 0.5 )
+    for (let i = 0; i < swapPendingCoins.length; i++){
+      const j = randomOrderIndices[i]
+      let selectedCoin=swapPendingCoins[j]
       let statecoin = callGetStateCoin(selectedCoin);
-      if (statecoin && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
+      if (checkSwapAvailability(statecoin, swapValues)) {
+        swapValues.add(statecoin.value)
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
           .then(res => {
             handleEndAutoSwap(dispatch, statecoin, selectedCoin, res, fromSatoshi)
           }
           );
       }
-    })
+    }
+    dispatch(updateInSwapValues([...swapValues]))
   }
 
   const swapInfoAndAutoSwap = () => {
@@ -395,54 +416,47 @@ const CoinsList = (props) => {
     }
   }
 
-  // Filter coins by status
-  if (filterBy === 'default') {
-    all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER && coin.status !== STATECOIN_STATUS.WITHDRAWING))
-  } else {
-    if (filterBy === STATECOIN_STATUS.WITHDRAWN) {
-      all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.WITHDRAWN);
-    }
-    if (filterBy === STATECOIN_STATUS.WITHDRAWING) {
-      all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.WITHDRAWING);
-    }
-    if (filterBy === STATECOIN_STATUS.IN_TRANSFER) {
-      all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.IN_TRANSFER);
-    }
-  }
-
-  all_coins_data.sort((a, b) => {
-    let compareProp = sortCoin.by;
-    if (compareProp === 'expiry_data') {
-      a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
-      b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
+    // Filter coins by status
+    if(filterBy === 'default') {
+      all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER))
     } else {
-      a = a[compareProp];
-      b = b[compareProp];
+      if(filterBy === STATECOIN_STATUS.WITHDRAWN) {
+        all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.WITHDRAWN);
+      }
+      if(filterBy === STATECOIN_STATUS.IN_TRANSFER) {
+        all_coins_data = filterCoinsByStatus(all_coins_data, STATECOIN_STATUS.IN_TRANSFER);
+      }
     }
-    if (a > b) {
-      return sortCoin.direction ? 1 : -1;
-    } else if (a < b) {
-      return sortCoin.direction ? -1 : 1;
-    }
-    return 0;
-  });
 
-  if (!all_coins_data.length) {//&& filterBy !== STATECOIN_STATUS.WITHDRAWN && filterBy !== STATECOIN_STATUS.IN_TRANSFER
+  	all_coins_data.sort((a, b) => {
+  		let compareProp = sortCoin.by;
+  		if(compareProp === 'expiry_data') {
+  			a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
+  			b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
+  		} else {
+  			a = a[compareProp];
+  			b = b[compareProp];
+  		}
+  		if(a > b) {
+  			return sortCoin.direction ? 1 : -1;
+  		} else if (a < b) {
+  			return sortCoin.direction ? -1 : 1;
+  		}
+  		return 0;
+  	});
 
-    let displayMessage = "Your wallet is empty";
+    if(!all_coins_data.length ) {//&& filterBy !== STATECOIN_STATUS.WITHDRAWN && filterBy !== STATECOIN_STATUS.IN_TRANSFER
 
-    if (filterBy === STATECOIN_STATUS.WITHDRAWN ||
-      filterBy === STATECOIN_STATUS.WITHDRAWING
-    ) {
-      displayMessage = "No coins withdrawn."
-    }
+      let displayMessage = "Your wallet is empty";
+
+      if(filterBy === STATECOIN_STATUS.WITHDRAWN
+        ){
+        displayMessage = "No coins confirmed withdrawn."
+      }
 
     if (filterBy === STATECOIN_STATUS.IN_TRANSFER) {
       displayMessage = "No coins transferred."
     }
-
-    // filterBy === STATECOIN_STATUS.WITHDRAWN ? (displayMessage = "No coins withdrawn.") : ('')
-    // filterBy === STATECOIN_STATUS.IN_TRANSFER ? (displayMessage = "No coins transferred.") : ('')
 
     return (
       <EmptyCoinDisplay message={displayMessage} />
@@ -493,90 +507,88 @@ const CoinsList = (props) => {
     setShowCoinDetails({ show: true, coin: coin });
   }
 
-  const handleSetCoinDetails = (shared_key_id) => {
-    let coin = all_coins_data.find((coin) => {
-      return coin.shared_key_id === shared_key_id
-    })
-    coin.privacy_data = getPrivacyScoreDesc(coin);
-    props.setCoinDetails(coin);
-  }
-  return (
-    <div
-      className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin' : ''} ${filterBy} ${!props.largeScreen ? 'small-screen' : ''}`}>
-      <div className="sort-filter">
-        <FilterBy />
-        {(all_coins_data.length &&
-          filterBy !== STATECOIN_STATUS.WITHDRAWN &&
-          filterBy !== STATECOIN_STATUS.WITHDRAWING
-        ) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null}
-      </div>
-      {all_coins_data.map(item => {
-        return (
-          <Coin
-            key={item.shared_key_id}
-            showCoinStatus={props.showCoinStatus} // all clear - boolean
-            onDeleteCoinDetails={onDeleteCoinDetails} // useCallback function
-            isMainPage={isMainPage} // all clear - boolean
-            coin_data={item} // FIX
-            getPrivacyScoreDesc={getPrivacyScoreDesc} // FIX
-            swap={props.swap} // All clear - boolean
-            send={props.send} // All clear - boolean
-            withdraw={props.withdraw} // All clear - boolean
-            selectedCoin={props.selectedCoin} // Check
-            selectedCoins={props.selectedCoins} // Check
-            setSelectedCoin={props.setSelectedCoin} // Check this causes rerendering
-            displayDetailsOnClick={props.displayDetailsOnClick} // All clear - boolean
-            setCoinDetails={props.setCoinDetails} // Check 
-            handleSetCoinDetails={handleSetCoinDetails}
-            handleOpenCoinDetails={handleOpenCoinDetails}
-            filterBy={filterBy}
-            getAddress={getAddress}
-            displayExpiryTime={displayExpiryTime}
-            handleAutoSwap={props.handleAutoSwap}
-            render={props.render ? (props.render) : null} />
-        )
-      })}
+    const handleSetCoinDetails = (shared_key_id) => {
+      let coin = all_coins_data.find((coin) => {
+          return coin.shared_key_id === shared_key_id
+      })
+      coin.privacy_data = getPrivacyScoreDesc(coin);
+      props.setCoinDetails(coin);
+    }
+    return (
+        <div 
+          className={`main-coin-wrap ${!all_coins_data.length ? 'no-coin': ''} ${filterBy} ${!props.largeScreen ? 'small-screen': ''}`}>
+          <div className="sort-filter">
+            <FilterBy/>
+            {(all_coins_data.length && 
+              filterBy !== STATECOIN_STATUS.WITHDRAWN
+              ) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null }
+          </div>
+        {all_coins_data.map(item => {
+          return(
+            <Coin
+              key={ item.shared_key_id }
+              showCoinStatus = { props.showCoinStatus } // all clear - boolean
+              onDeleteCoinDetails = { onDeleteCoinDetails } // useCallback function
+              isMainPage = { isMainPage } // all clear - boolean
+              coin_data = { item } // FIX
+              getPrivacyScoreDesc = { getPrivacyScoreDesc } // FIX
+              swap = { props.swap } // All clear - boolean
+              send = { props.send } // All clear - boolean
+              withdraw = { props.withdraw } // All clear - boolean
+              selectedCoin = { props.selectedCoin } // Check
+              selectedCoins = { props.selectedCoins } // Check
+              setSelectedCoin = { props.setSelectedCoin } // Check this causes rerendering
+              displayDetailsOnClick = { props.displayDetailsOnClick } // All clear - boolean
+              setCoinDetails = { props.setCoinDetails } // Check 
+              handleSetCoinDetails = { handleSetCoinDetails } 
+              handleOpenCoinDetails = { handleOpenCoinDetails }
+              filterBy = { filterBy }
+              getAddress = { getAddress }
+              displayExpiryTime = { displayExpiryTime }
+              handleAutoSwap= { props.handleAutoSwap }
+              render = {props.render ? (props.render) : null} />
+          )
+        })}
 
-      <Modal
-        show={showCoinDetails.show}
-        onHide={handleCloseCoinDetails}
-        className={(filterBy === STATECOIN_STATUS.WITHDRAWN
-          || filterBy === STATECOIN_STATUS.WITHDRAWING
-        ) || (showCoinDetails?.coin?.swap_status !== null) ? "modal coin-details-modal lower" : "modal coin-details-modal"}
-      >
-        <Modal.Body >
-          <div>
-            <div className="item">
-              <img src={walleticon} className="btc-icon" alt="icon" />
-              <div className="block">
-                <span>Statecoin Value</span>
-                <span>
-                  <b>{fromSatoshi(showCoinDetails.coin.value)} BTC</b>
-                </span>
-              </div>
-            </div>
-
-            {showCoinDetails?.coin?.status && filterBy === "default" &&
-              showCoinDetails.coin.status !== STATECOIN_STATUS.AVAILABLE && (
-                <div className="item swap-status-container">
-                  <CoinStatus data={showCoinDetails.coin} isDetails={true} />
-                  {showCoinDetails.coin.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[showCoinDetails.coin.ui_swap_status]} />) : (null)}
+        <Modal
+          show={showCoinDetails.show}
+          onHide={handleCloseCoinDetails}
+          className = {(filterBy === STATECOIN_STATUS.WITHDRAWN
+            ) || (showCoinDetails?.coin?.swap_status !== null) ? "modal coin-details-modal lower": "modal coin-details-modal"}
+        >
+          <Modal.Body >
+            <div>
+              <div className="item">
+                <img src={walleticon} className = "btc-icon" alt="icon" />
+                <div className="block">
+                  <span>Statecoin Value</span>
+                  <span>
+                    <b>{fromSatoshi(showCoinDetails.coin.value)} BTC</b>
+                  </span>
                 </div>
-              )}
-
-            {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
-              <div>
-                <div className="item qr-container">
-                  <div className="block qrcode">
-                    <QRCodeGenerator address={getAddress(showCoinDetails.coin.shared_key_id)} amount={fromSatoshi(showCoinDetails.coin.value)} />
+              </div>
+            
+              {showCoinDetails?.coin?.status && filterBy === "default" &&
+                showCoinDetails.coin.status !== STATECOIN_STATUS.AVAILABLE && (
+                  <div className="item swap-status-container">
+                    <CoinStatus data={showCoinDetails.coin} isDetails={true} />
+                    {showCoinDetails.coin.swap_status !== null ? (<SwapStatus swapStatus={SWAP_STATUS_INFO[showCoinDetails.coin.ui_swap_status]} />):(null)}
                   </div>
+                )}
+
+              {showCoinDetails.coin.status === STATECOIN_STATUS.INITIALISED ? (
+              <div>
+                <div className="item qr-container">            
+                  <div className="block qrcode">
+                      <QRCodeGenerator address = {getAddress(showCoinDetails.coin.shared_key_id)} amount={fromSatoshi(showCoinDetails.coin.value)}/>
+                  </div>   
                 </div>
                 <div>
-                  Deposit amount in a SINGLE transaction
+                    Deposit amount in a SINGLE transaction
                 </div>
               </div>
 
-            )
+              )
               :
               (
                 <div>
@@ -679,9 +691,8 @@ const CoinsList = (props) => {
                     </div>
                   </div>
                 </div>)}
-            {showCoinDetails?.coin?.status && (showCoinDetails.coin.status === STATECOIN_STATUS.WITHDRAWN ||
-              showCoinDetails.coin.status === STATECOIN_STATUS.WITHDRAWING) ?
-              (
+              {showCoinDetails?.coin?.status && (showCoinDetails.coin.status === STATECOIN_STATUS.WITHDRAWN || showCoinDetails.coin.status === STATECOIN_STATUS.WITHDRAWING) ? 
+              (     
                 <div>
                   <div className="item tx_hex">
                     <img src={hexIcon} alt="hexagon" />

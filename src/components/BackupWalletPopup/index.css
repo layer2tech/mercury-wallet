@@ -4,6 +4,10 @@
 .custom-modal-info {
   font-size: 20px;
   text-align: center;
+  word-wrap: break-word;
+}
+.custom-modal-info .alert-danger {
+  word-wrap: break-word;
 }
 .custom-modal-footer {
   display: flex;

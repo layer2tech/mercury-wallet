@@ -9,9 +9,9 @@ import { ElectrsClient } from './electrs'
 import { txCPFPBuild, FEE, encryptAES } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
-import { withdraw } from './mercury/withdraw';
+import { withdraw, withdraw_init, withdraw_confirm, WithdrawMsg2 } from './mercury/withdraw';
+import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
 
-import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData  } from './mercury/transfer';
 import { SwapGroup, GroupInfo, SWAP_STATUS } from './swap/swap_utils';
 import Swap from './swap/swap';
 
@@ -535,6 +535,8 @@ export class Wallet {
   }
 
   getUnspentStatecoins() {
+    let withdrawing_coins = this.statecoins.getWithdrawingCoins()
+    this.checkWithdrawingTxStatus(withdrawing_coins);
     return this.statecoins.getUnspentCoins(this.block_height);
   }
 
@@ -551,6 +553,41 @@ export class Wallet {
             this.statecoins.setConfirmingBackup(statecoin.shared_key_id);
             this.depositConfirm(statecoin.shared_key_id)
           }
+      }
+    })
+  }
+
+  // Each time we get unconfirmed coins call this to check for confirmations
+  checkWithdrawingTxStatus(withdrawing_coins: StateCoin[]) {
+    withdrawing_coins.forEach(async (statecoin) => {
+      // if the withdrawal transaction is confirmed, confirm it with the server and update
+      // the wallet
+      if (statecoin.status===STATECOIN_STATUS.WITHDRAWING) {
+        let length = statecoin.tx_withdraw_broadcast.length
+        if (length > 0){
+          for (let i=0; i<length; i++) {
+            let broadcast_txid = statecoin.tx_withdraw_broadcast[i].txid
+            log.info(`checking withdrawal tx status...`)
+            if(broadcast_txid){
+              const tx_confirmed = await this.checkWithdrawalTx(broadcast_txid);
+              if (tx_confirmed && tx_confirmed !== null) {
+                log.info(`tx confirmed: ${statecoin.withdraw_txid}`)  
+                if (!this.config.testing_mode) {
+                  log.info(`withdrawal tx confirmed!`)
+                  let tx_info = statecoin.getWithdrawalBroadcastTxInfo(broadcast_txid)
+                  if(tx_info){
+                    log.info(`found tx_info: ${tx_info}, doing withdraw confirm`)
+                    await this.withdraw_confirm(tx_info.withdraw_msg_2, broadcast_txid)
+                    log.info(`withdraw confirm finished`)
+                  }
+                }
+              }
+            }
+          };
+        } else {
+          statecoin.status = STATECOIN_STATUS.WITHDRAWN;
+          this.statecoins.setCoinFinalized(statecoin);
+        }
       }
     })
   }
@@ -689,12 +726,12 @@ export class Wallet {
           this.electrum_client.broadcastTransaction(backup_tx).then((bresponse: any) => {
             if(bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
               this.statecoins.coins[i].setBackupInMempool();
-            } else if(bresponse.includes('already')) {
+            } else if(bresponse.includes('already') && bresponse.includes('mempool')) {
               this.statecoins.coins[i].setBackupInMempool();
-            } else if(bresponse.includes('already') && bresponse.includes('block')) {
+            } else if(bresponse.includes('block')) {
               this.statecoins.coins[i].setBackupConfirmed();
               this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);  
-            } else if(bresponse.includes('confict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
+            } else if(bresponse.includes('conflict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
               this.statecoins.coins[i].setBackupTaken();
               this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);
             }
@@ -704,7 +741,7 @@ export class Wallet {
             } else if (err.toString().includes('already') && err.toString().includes('block')) {
                 this.statecoins.coins[i].setBackupConfirmed();
                 this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);              
-            } else if ( (err.toString().includes('conflict') && err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
+            } else if ( (err.toString().includes('conflict') || err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
                 this.statecoins.coins[i].setBackupTaken();
                 this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);              
             }
@@ -948,6 +985,21 @@ export class Wallet {
 
   }
 
+  // Query withdrawal txs list unspent and mark coin WITHDRAWN
+  async checkWithdrawalTx(tx_hash: string): Promise<boolean> {
+    try{
+      let withdrawal_tx_data = await this.electrum_client.getTransaction(tx_hash);
+      let status = withdrawal_tx_data?.status;
+      if(status && status.confirmed){
+        log.info(`Withdrawal tx ${tx_hash} confirmed`);
+        return true
+      }
+    } catch(err: any){
+      console.log(err);
+    }
+    return false
+  }
+    
   async importAddress(p_addr: string){
     this.electrum_client.importAddresses([p_addr], -1)
   }
@@ -1368,73 +1420,120 @@ export class Wallet {
     return num_transfers + "../.." + error_message
   }
 
-
-  // Perform withdraw
-  // Args: statechain_id of coin to withdraw
-  // Return: Withdraw Tx  (Details to be displayed to user - amount, txid, expect conf time...)
-  async withdraw(
+  async withdraw_init(
     shared_key_ids: string[],
     rec_addr: string,
     fee_per_byte: number
   ): Promise <string> {
     log.info("Withdrawing "+shared_key_ids+" to "+rec_addr);
-
+    
     // Check address format
     try { bitcoin.address.toOutputScript(rec_addr, this.config.network) }
       catch (e) { throw Error("Invalid Bitcoin address entered.") }
 
     let statecoins : StateCoin[] = [];
     let proof_key_ders: BIP32Interface[] = [];
+    let fee_max = -1
     shared_key_ids.forEach( (shared_key_id) => {
       let statecoin = this.statecoins.getCoin(shared_key_id);
       if (!statecoin) throw Error("No coin found with id " + shared_key_id)
       if (statecoin.status===STATECOIN_STATUS.IN_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" currenlty involved in swap protocol.");
       if (statecoin.status===STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin "+statecoin.getTXIdAndOut()+" waiting in  swap pool. Remove from pool to withdraw.");
-      if (statecoin.status!==STATECOIN_STATUS.AVAILABLE) if(statecoin.status!==STATECOIN_STATUS.SWAPLIMIT) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for withdraw.");
+      if (statecoin.status!==STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.WITHDRAWING) throw Error("Coin "+statecoin.getTXIdAndOut()+" not available for withdraw.");
       statecoins.push(statecoin);
       proof_key_ders.push(this.getBIP32forProofKeyPubKey(statecoin.proof_key));
     });
 
-    // Perform withdraw with server
-    let tx_withdraw = await withdraw(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_byte);
+    //Check that the replacement transaction is a valid one
+    let statecoin = this.statecoins.getCoin(shared_key_ids[0]);
+    if (!statecoin) throw Error("No coin found with id " + shared_key_ids[0])
+    let broadcastTxInfos = statecoin.tx_withdraw_broadcast
+    if(broadcastTxInfos.length){
+      fee_max = statecoin.getWithdrawalMaxTxFee()
+      if(fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`);
+      const ids_sorted_1 = shared_key_ids.slice().sort();
+      const ids_sorted_2 = broadcastTxInfos[0].withdraw_msg_2.shared_key_ids.slice().sort();
+      if (JSON.stringify(ids_sorted_1) !== JSON.stringify(ids_sorted_2)) {
+
+        let coin_ids: string[] = [];
+        // get txids
+        ids_sorted_2.forEach( (shared_key_id) => {
+          let statecoin = this.statecoins.getCoin(shared_key_id);
+          if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+          coin_ids.push(statecoin.funding_txid + ':' + statecoin.funding_vout.toString());
+        });        
+
+        throw Error(`Replacement transactions must batch the same coins: ${coin_ids}`)
+      }
+      if (rec_addr !== broadcastTxInfos[0].withdraw_msg_2.address){
+        throw Error(`Replacement transaction recipient address does not match`)
+      }
+    }
+
+    // Perform withdraw init with server
+    let [tx_withdraw, withdraw_msg_2] = await withdraw_init(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_byte);
     
     // Mark funds as withdrawn in wallet
     shared_key_ids.forEach( (shared_key_id) => {
-      this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
-      this.statecoins.setCoinWithdrawTx(shared_key_id, tx_withdraw)
-      this.statecoins.setCoinWithdrawTxId(shared_key_id,tx_withdraw.getId())
+      let statecoin = this.statecoins.getCoin(shared_key_id);
+      if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+      if (statecoin.status !== STATECOIN_STATUS.WITHDRAWING &&
+        statecoin.status !== STATECOIN_STATUS.WITHDRAWN){
+        statecoin.setWithdrawing()
+      }
+      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
     });
-
     this.saveStateCoinsList();
 
-    // Broadcast transcation
-    let withdraw_txid: string = ""
-    let nTries=0;
-    let maxNTries=10
-    while (true){
-      try {
-        withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
-      } catch (error) {
-        nTries=nTries+1
-        if (nTries < maxNTries) {
-          log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          continue
-        } else {
-          let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`
-          log.info(errMsg)
-          throw new Error(errMsg)
-        }
-      }
-      break
-    }
-    
-    log.info("Withdrawing finished.");
-
+       // Broadcast transcation
+       let withdraw_txid: string = ""
+       let nTries=0;
+       let maxNTries=10
+       while (true){
+         try {
+           withdraw_txid = await this.electrum_client.broadcastTransaction(tx_withdraw.toHex())
+         } catch (error) {
+           nTries=nTries+1
+           if (nTries < maxNTries) {
+             log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
+             await new Promise(resolve => setTimeout(resolve, 1000))
+             continue
+           } else {
+             let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`
+             log.info(errMsg)
+             throw new Error(errMsg)
+           }
+         }
+         break
+       }
+       log.info("Withdraw init finished.");
     return withdraw_txid
   }
-}
 
+  async withdraw_confirm(
+    withdraw_msg_2: WithdrawMsg2,
+    txid: string
+  ) {
+    log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`)
+    try{
+      await withdraw_confirm(this.http_client, withdraw_msg_2)
+      withdraw_msg_2.shared_key_ids.forEach( (shared_key_id) => {
+        this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
+        this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+      })
+    } catch(e){
+      if(`${e}`.includes('No data for id') || `${e}`.includes('No update made')){
+        withdraw_msg_2.shared_key_ids.forEach( (shared_key_id) => {
+          this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
+          this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+        })
+      } else {
+        log.error(`withdraw confirm error: ${e}`);
+        throw e
+      }
+    }
+  }
+}
 
 // BIP39 mnemonic -> BIP32 Account
 const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
