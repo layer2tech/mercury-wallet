@@ -987,11 +987,15 @@ export class Wallet {
 
   // Query withdrawal txs list unspent and mark coin WITHDRAWN
   async checkWithdrawalTx(tx_hash: string): Promise<boolean> {
-    let withdrawal_tx_data = await this.electrum_client.getTransaction(tx_hash)
-    let status = withdrawal_tx_data?.status;
-    if(status && status.confirmed){
-      log.info(`Withdrawal tx ${tx_hash} confirmed`);
-      return true
+    try{
+      let withdrawal_tx_data = await this.electrum_client.getTransaction(tx_hash);
+      let status = withdrawal_tx_data?.status;
+      if(status && status.confirmed){
+        log.info(`Withdrawal tx ${tx_hash} confirmed`);
+        return true
+      }
+    } catch(err: any){
+      console.log(err);
     }
     return false
   }
