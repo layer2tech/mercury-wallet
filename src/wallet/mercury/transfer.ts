@@ -119,7 +119,7 @@ export const transferSender = async (
   };
 
   // Sign new back up tx
-  let signature: string[] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
+  let signature: any[][] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
  
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;

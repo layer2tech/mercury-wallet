@@ -51,7 +51,11 @@ const STATECOIN_STATUS_INFO = {
   [STATECOIN_STATUS.DELETED]:{
     icon: <Spinner animation="border" variant="danger" size="sm"/>,
     title: 'Deleting...'
-  }
+  },
+  [STATECOIN_STATUS.WITHDRAWING]:{
+    icon: <SwapLimitIcon />,
+    title: 'Awaiting Withdrawal Confirmation'
+  },  
 };
 
 const COPIED_MESSAGE = 'Transfer Code was copied to Clipboard. Send it to the Receiver of the Transaction';

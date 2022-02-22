@@ -430,4 +430,10 @@ export const SwapGroupMap = typeforce.compile(
     Object
 )
 
+ // Complete confirm to get witness
+export const WithdrawMsg2 = typeforce.compile({
+  shared_key_ids: Array,
+  address: String
+})
+
 export const BIP32Interface = typeforce.compile(Object)

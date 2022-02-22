@@ -67,10 +67,6 @@
   right: 30px;
 }
 
-.main-coin-wrap.WITHDRAWING .filter-coin-options {
-  right: 30px;
-}
-
 .swap .filter-by-wrap, .sendStatecoin .filter-by-wrap, .withdraw .filter-by-wrap{
   display:none
 }
