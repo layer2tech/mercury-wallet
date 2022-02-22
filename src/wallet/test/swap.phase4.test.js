@@ -58,22 +58,24 @@ const SHARED_KEY_DUMMY = { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_
 
 //Set a valid initial statecoin status for phase4
 function get_statecoin_in() {
-  let statecoin = makeTesterStatecoin();
+  let statecoin = cloneDeep(makeTesterStatecoin());
   setSwapDetails(statecoin, 6)
+  let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3)
+  tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
+  tm3.tx_backup_psm.shared_key_id = cloneDeep(MOCK_SERVER.TRANSFER_RECEIVER.new_shared_key_id)
+  statecoin.swap_transfer_msg_3_receiver = tm3
   statecoin.anon_set = 5
   return statecoin
 }
 
 function get_statecoin_after_transfer_receiver(statecoin) {
   let sc = cloneDeep(statecoin)
+  setSwapDetails(sc, 7)
   sc.ui_swap_status = UI_SWAP_STATUS.Phase7
   sc.swap_transfer_finalized_data = cloneDeep(TRANSFER_FINALIZED_DATA)
   sc.swap_transfer_msg_4 = cloneDeep(TRANSFER_MSG_4)
+  sc.swap_transfer_finalized_data.tx_backup_psm = sc.swap_transfer_msg_3_receiver.tx_backup_psm
   return sc
-}
-
-function set_transfer_finalize_data(statecoin) {
-  statecoin.swap_transfer_finalized_data = TRANSFER_FINALIZED_DATA
 }
 
 function get_statecoin_out_expected(statecoin_out, smt_proof = null) {
@@ -105,6 +107,7 @@ function get_statecoin_out_expected(statecoin_out, smt_proof = null) {
   statecoin_out_expected.tx_backup = Transaction.fromHex(
     TRANSFER_FINALIZED_DATA.tx_backup_psm.tx_hex);
   statecoin_out_expected.swap_transfer_msg_4 = null
+  statecoin_out_expected.swap_transfer_msg_3_receiver = null
 
   statecoin_out_expected.smt_proof = smt_proof
   return statecoin_out_expected;
@@ -112,7 +115,7 @@ function get_statecoin_out_expected(statecoin_out, smt_proof = null) {
 
 const copy_t2 = (sc1, sc2) => {
   if (sc1?.swap_transfer_msg_4 && sc2?.swap_transfer_msg_4) {
-      sc2.swap_transfer_msg_4.t2 = cloneDeep(sc1.swap_transfer_msg_4.t2)
+    sc2.swap_transfer_msg_4.t2 = cloneDeep(sc1.swap_transfer_msg_4.t2)
   }
 }
 
@@ -147,8 +150,6 @@ function getWallet() {
 
 function getSwap(wallet, statecoin, pkd = proof_key_der, new_pkd = proof_key_der_new) {
   let swap = new Swap(wallet, statecoin, pkd, new_pkd)
-  let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3)
-  tm3.statechain_id = SWAP_INFO.swap_token.statechain_ids[0]
   return swap
 }
 
@@ -233,12 +234,14 @@ describe('Swap phase 4', function () {
     expect(statecoin).toEqual(sc_null_swap_status)
 
     //Set valid swap status
+    statecoin = get_statecoin_in()
     statecoin.swap_status = SWAP_STATUS.Phase4
 
     //Test invalid swap_id and swap_my_bst_data
     statecoin.swap_id = null
     statecoin.swap_info = null
     statecoin.swap_transfer_finalized_data = null
+    statecoin.swap_transfer_msg_3_receiver = null
 
     swap = getSwap(wallet, statecoin)
     await expect(swapPhase4(swap))
@@ -247,6 +250,11 @@ describe('Swap phase 4', function () {
     //Set swap_id to some value
     statecoin.swap_id = INIT_STATECOIN.swap_id
 
+    swap = getSwap(wallet, statecoin)
+    await expect(swapPhase4(swap))
+      .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
+
+    statecoin.swap_transfer_msg_3_receiver = mock_http_client.TRANSFER_MSG3
     swap = getSwap(wallet, statecoin)
     await expect(swapPhase4(swap))
       .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
@@ -629,9 +637,6 @@ describe('Swap phase 4', function () {
         }
         return transferReceiverPost(path, body)
       })
-
-
-
 
       let sc_clone_1 = cloneDeep(statecoin)
 
@@ -1050,10 +1055,7 @@ describe('Swap phase 4', function () {
       return step.subPhase === "transferReceiver"
     }
     let steps = swapPhase4Steps(swap).filter(step_filter)
-    let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3)
-    tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
-    const tm3_const = tm3
-    swap.statecoin.swap_transfer_msg_3_receiver = tm3_const
+
     swap.setSwapSteps(steps)
     let commitment_data = { "commitment": "7aef2a9771923a485161095ae2314b2a374d223ec1ff67f7602398b3118b445d", "nonce": [118, 94, 232, 150, 99, 240, 44, 21, 13, 91, 170, 84, 58, 234, 242, 220, 184, 197, 137, 219, 179, 125, 111, 165, 233, 100, 228, 21, 79, 170, 3, 238] };
     swap.statecoin.swap_batch_data = commitment_data;
