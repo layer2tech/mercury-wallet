@@ -77,36 +77,41 @@ export class HttpClient {
     }
   };
 
-  async get (path: string, params: any){
-    //const release = await mutex.acquire();
+  async get(path: string, params: any) {
+    const release = await mutex.acquire();
+    try {
       const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
-          method: 'get',
-          url: url,
-          headers: { 'Accept': 'application/json' }
+        method: 'get',
+        url: url,
+        headers: { 'Accept': 'application/json' }
       };
       let res = await axios(config)
       checkForServerError(res)
-
-      //release();
       return res.data
+    } finally {
+      release();
+    }
   }
 
   async post (path: string, body: any) {
-    //const release = await mutex.acquire();
+    const release = await mutex.acquire();
+    try {
       let url = this.endpoint + "/" + path.replace(/^\/+/, '');
       const config = {
-          method: 'post',
-          url: url,
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          data: body,
+        method: 'post',
+        url: url,
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        data: body,
       };
       let res = await axios(config)
       checkForServerError(res)
-      //release();
       return res.data
+    } finally {
+      release();
+    }
   };
 }

@@ -1,5 +1,6 @@
 import { ElectrumTxData } from '../wallet/electrum';
 import {Mutex} from 'async-mutex'
+import { release } from 'os';
 let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
 export const mutex = new Mutex();
@@ -68,6 +69,7 @@ export class ElectrsClient {
   };
 
   static async get (endpoint: string, path: string, params: any){
+    const release = await mutex.acquire();
     try {
       const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
@@ -83,10 +85,13 @@ export class ElectrsClient {
 
     } catch (err : any) {
       throw err;
+    } finally {
+      release()
     }
   }
 
   static async post (endpoint: string, path: string, body: any) {
+    const release = await mutex.acquire();
     try {
       let url = endpoint + "/" + path.replace(/^\/+/, '');
       const config = {
@@ -106,6 +111,8 @@ export class ElectrsClient {
 
     } catch (err : any) {
       throw err;
+    } finally {
+      release()
     }
   };
 
