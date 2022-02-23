@@ -555,8 +555,8 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
     if(!statecoin) throw Error(`callSwapDeregisterUtxo: statecoin with shared key id ${action.shared_key_id} not found`)
     try{  
       await wallet.deRegisterSwapCoin(statecoin) 
-    } catch(e) {
-      if(e?.message.includes("Cannot remove coin")){
+    } catch (e) {
+      if(e?.message.includes("Coin is not in a swap pool")){
         if(action?.autoswap === true){
           action.dispatch(setNotification({msg: `Deactivated auto-swap for coin: ${statecoin.getTXIdAndOut()}.`}))
         } else {
