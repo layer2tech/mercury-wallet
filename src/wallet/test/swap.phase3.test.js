@@ -593,7 +593,7 @@ describe('swapPhase3', () => {
         init_phase3_status(statecoin);
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
         swap.statecoin.swap_transfer_msg = null
-        expect(swap.transfer_msg_3_receiver).toEqual(null)
+        expect(swap.statecoin.swap_transfer_msg_3_receiver).toEqual(null)
         swap.statecoin.swap_transfer_msg = mock_http_client.TRANSFER_MSG3
        
         http_mock.get = jest.fn((path, params) => {
@@ -604,7 +604,7 @@ describe('swapPhase3', () => {
         await expect(swap.getTransferMsg3())
             .rejects
             .toThrowError(Error(`Error: ${GET_ROUTE.TRANSFER_GET_MSG_ADDR}`))
-        expect(swap.transfer_msg_3_receiver).toEqual(null)
+        expect(swap.statecoin.swap_transfer_msg_3_receiver).toEqual(null)
 
         http_mock.get = jest.fn((path, params) => {
             if (path === GET_ROUTE.TRANSFER_GET_MSG_ADDR) {
@@ -628,7 +628,7 @@ describe('swapPhase3', () => {
 
         result = await swap.getTransferMsg3()
         expect(result.is_ok()).toEqual(true)
-        expect(swap.transfer_msg_3_receiver).toEqual(tm3_const)
+        expect(swap.statecoin.swap_transfer_msg_3_receiver).toEqual(tm3_const)
     })
 
     test('swapPhase3 test 12 - SwapStep4: make_swap_commitment', async () => {
@@ -649,7 +649,7 @@ describe('swapPhase3', () => {
         tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
         const tm3_const = tm3
         swap.statecoin.swap_transfer_msg = tm3_const
-        swap.transfer_msg_3_receiver = tm3_const
+        swap.statecoin.swap_transfer_msg_3_receiver = tm3_const
         swap.setSwapSteps(steps)
 
         // expected
@@ -659,69 +659,6 @@ describe('swapPhase3', () => {
         expect(result.is_ok()).toEqual(true)
         expect(swap.statecoin.swap_batch_data).toEqual(commitment_data)
     })
-
-    test('swapPhase3 test 13 - SwapStep5: await transferReceiver, server responds with  error to getStateChain() in  transferReceiver()', async () => {
-        let wallet = getWallet();
-        let statecoin = makeTesterStatecoin();
-        init_phase3_status(statecoin);
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
-        const step_filter = (step) => {
-            return step.subPhase === "transferReceiver"
-        }
-        let steps = swapPhase3Steps(swap).filter(step_filter)
-        console.log(`steps: ${JSON.stringify(steps)}`)
-        let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3)
-        tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
-        const tm3_const = tm3
-        swap.transfer_msg_3_receiver = tm3_const
-        swap.setSwapSteps(steps)
-        let commitment_data = { "commitment": "7aef2a9771923a485161095ae2314b2a374d223ec1ff67f7602398b3118b445d", "nonce": [118, 94, 232, 150, 99, 240, 44, 21, 13, 91, 170, 84, 58, 234, 242, 220, 184, 197, 137, 219, 179, 125, 111, 165, 233, 100, 228, 21, 79, 170, 3, 238] };
-        swap.statecoin.swap_batch_data = commitment_data;
-        http_mock.get = jest.fn((path, params) => {
-            if (path === GET_ROUTE.STATECHAIN) {
-                throw get_error(path)
-            }
-            if (path === GET_ROUTE.TRANSFER_GET_MSG_ADDR) {
-                return [tm3]
-            }
-        })
-        swap.n_retries = 2
-        checkRetryMessage(await swap.doNext(),
-            "Error from GET request - path: info/statechain, params: undefined")
-        //The retry counter should be reset in case of server/network error
-        expect(swap.n_retries).toEqual(1)
-    });
-
-    test('swapPhase3 test 14 - SwapStep5: await transferReceiver, server responds with invalid swap coin', async () => {
-        let wallet = getWallet();
-        let statecoin = makeTesterStatecoin();
-        init_phase3_status(statecoin);
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
-        const step_filter = (step) => {
-            return step.subPhase === "transferReceiver"
-        }
-        let steps = swapPhase3Steps(swap).filter(step_filter)
-        console.log(`steps: ${JSON.stringify(steps)}`)
-        let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3)
-        tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
-        const tm3_const = tm3
-        swap.transfer_msg_3_receiver = tm3_const
-        swap.statecoin.swap_transfer_msg = mock_http_client.TRANSFER_MSG3
-        swap.setSwapSteps(steps)
-        let commitment_data = { "commitment": "7aef2a9771923a485161095ae2314b2a374d223ec1ff67f7602398b3118b445d", "nonce": [118, 94, 232, 150, 99, 240, 44, 21, 13, 91, 170, 84, 58, 234, 242, 220, 184, 197, 137, 219, 179, 125, 111, 165, 233, 100, 228, 21, 79, 170, 3, 238] };
-        swap.statecoin.swap_batch_data = commitment_data;
-        http_mock.get = jest.fn((path, params) => {
-            if (path === GET_ROUTE.STATECHAIN) {
-                return MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER;
-            }
-            if (path === GET_ROUTE.TRANSFER_GET_MSG_ADDR) {
-                return [tm3]
-            }
-        })
-
-        checkRetryMessage(await swap.doNext(),
-            "Swapped coin value invalid.")
-    });
 
     // restore windows alert
     window.alert = jsdomAlert;

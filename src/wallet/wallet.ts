@@ -428,7 +428,9 @@ export class Wallet {
 
   // Set Wallet.block_height
   setBlockHeight(header_data: any) {
-    this.block_height = header_data[0].height;
+    if (header_data[0]) {
+      this.block_height = header_data[0].height
+    }
   }
 
   genSEAddress() {
@@ -1152,7 +1154,8 @@ export class Wallet {
       // Do not delete swap data for statecoins with transfer
       // completed server side
       if((statecoin?.swap_status !== SWAP_STATUS.Phase4) 
-        || `${e}`.includes("Transfer batch ended. Timeout")){
+        || `${e}`.includes("Transfer batch ended. Timeout")
+        || `${e}`.includes("Exiting swap.")){
         log.info(`Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`);
         statecoin.setSwapDataToNull();
         // remove generated address
@@ -1322,7 +1325,7 @@ export class Wallet {
     let rec_se_addr_bip32 = this.getBIP32forBtcAddress(back_up_rec_addr);
 
     let batch_data = null;
-    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations, this.block_height, null);
+    let finalize_data = await transferReceiver(this.http_client, this.electrum_client, this.config.network, transfer_msg3, rec_se_addr_bip32, batch_data, this.config.required_confirmations, this.block_height, null, null);
 
     // Finalize protocol run by generating new shared key and updating wallet.
     await this.transfer_receiver_finalize(finalize_data);

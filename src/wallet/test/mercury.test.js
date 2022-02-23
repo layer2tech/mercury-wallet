@@ -345,7 +345,10 @@ describe('StateChain Entity', function() {
       let transfer_msg3 = cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
       transfer_msg3.statechain_sig.sig = "3044022026a22bb2b8c0e43094d9baa9de1abd1de914b59f8bbcf5b740900180da575ed10220544e27e2861edf01b5c383fc90d8b1fd41211628516789f771b2c3536e650bdb";
 
-      await expect(transferReceiver(http_mock, electrum_mock, network, transfer_msg3, {}, null))
+      let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER.__D));
+      se_rec_addr_bip32.__D = Buffer.from("0ca756f401478fb1a166d27945501d8af59ada1cb552c598509dfcb494f475b9", "hex")
+
+      await expect(transferReceiver(http_mock, electrum_mock, network, transfer_msg3, se_rec_addr_bip32, null))
         .rejects
         .toThrowError("Invalid StateChainSig.");
     });

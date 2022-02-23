@@ -222,10 +222,10 @@ const CoinsList = (props) => {
 
   const checkSwapAvailability = (statecoin, in_swap_values) => {
     if (callGetConfig().singleSwapMode
-      && in_swap_values.has(statecoin.value)) {
+      && in_swap_values.has(statecoin?.value)) {
       return false
     }
-    if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) {
+    if (statecoin?.status !== STATECOIN_STATUS.AVAILABLE) {
       return false
     }
     return true
@@ -324,7 +324,7 @@ const CoinsList = (props) => {
       const j = randomOrderIndices[i]
       let selectedCoin=swapPendingCoins[j]
       let statecoin = callGetStateCoin(selectedCoin);
-      if (checkSwapAvailability(statecoin, swapValues)) {
+      if (statecoin && checkSwapAvailability(statecoin, swapValues)) {
         swapValues.add(statecoin.value)
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
           .then(res => {
