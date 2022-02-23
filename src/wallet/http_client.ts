@@ -2,6 +2,8 @@ import {Mutex} from 'async-mutex';
 const axios = require('axios').default;
 export const mutex = new Mutex();
 
+const TIMEOUT = 5000
+
 export const GET_ROUTE = {
   PING: "ping",
   SWAP_PING: "swap/ping",
@@ -73,18 +75,20 @@ export class HttpClient {
 
   async new_tor_id() {
     if (this.is_tor) {
-      await this.get('newid', {});
+      const timeout_ms = 15000
+      await this.get('newid', {}, timeout_ms);
     }
   };
 
-  async get(path: string, params: any) {
+  async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
     const release = await mutex.acquire();
     try {
       const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
         method: 'get',
         url: url,
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        timeout: timeout_ms
       };
       let res = await axios(config)
       checkForServerError(res)
@@ -94,7 +98,7 @@ export class HttpClient {
     }
   }
 
-  async post (path: string, body: any) {
+  async post (path: string, body: any, timeout_ms: number = TIMEOUT) {
     const release = await mutex.acquire();
     try {
       let url = this.endpoint + "/" + path.replace(/^\/+/, '');
@@ -103,7 +107,8 @@ export class HttpClient {
         url: url,
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          timeout: timeout_ms
         },
         data: body,
       };

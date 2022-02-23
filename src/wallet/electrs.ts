@@ -5,6 +5,8 @@ let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
 export const mutex = new Mutex();
 
+const TIMEOUT = 5000
+
 class ElectrsClientError extends Error {
   constructor(message: string){
     super(message);
@@ -68,14 +70,15 @@ export class ElectrsClient {
     }
   };
 
-  static async get (endpoint: string, path: string, params: any){
+  static async get (endpoint: string, path: string, params: any, timeout_ms: number = TIMEOUT){
     const release = await mutex.acquire();
     try {
       const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
           method: 'get',
           url: url,
-          headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        timeout: timeout_ms
       };
       let res = await axios(config)
       let return_data = res.data
@@ -90,7 +93,7 @@ export class ElectrsClient {
     }
   }
 
-  static async post (endpoint: string, path: string, body: any) {
+  static async post (endpoint: string, path: string, body: any, timeout_ms: number = TIMEOUT) {
     const release = await mutex.acquire();
     try {
       let url = endpoint + "/" + path.replace(/^\/+/, '');
@@ -101,7 +104,8 @@ export class ElectrsClient {
             Accept: 'application/json',
             'Content-Type': 'application/json'
           },
-          data: body,
+        data: body,
+        timeout: timeout_ms
       };
       let res = await axios(config)
       let return_data = res.data
