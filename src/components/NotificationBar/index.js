@@ -8,7 +8,7 @@ const NotificationBar = () => {
   let notifications_list = useSelector(state => state.walletData).notification_dialogue;
 
   useEffect(() => {
-    const handleCloseAllNotifficcations = () => {
+    const handleCloseAllNotificcations = () => {
       for(var i=0; i<notifications_list.length; i++){
         dispatch(setNotificationSeen({msg: notifications_list[i].msg}));
       }      
@@ -16,7 +16,7 @@ const NotificationBar = () => {
     }
     // timer to close the notification after 5 seconds
     const timerPtr = setTimeout(() => {
-      handleCloseAllNotifficcations();
+      handleCloseAllNotificcations();
     }, 5000);
 
     return () => {

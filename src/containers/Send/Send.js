@@ -29,8 +29,8 @@ const SendStatecoinPage = () => {
     setInputAddr(event.target.value);
   };
   //When Send Modal (with transfer key) opens send button reactivated 
-  useEffect(()=> {
-    if(transferMsg3 !== ''){
+  useEffect(() => {
+    if (transferMsg3 !== '') {
       setLoading(false)
     }
   },[transferMsg3])
