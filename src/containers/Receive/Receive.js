@@ -45,7 +45,6 @@ const ReceiveStatecoinPage = () => {
   const [electrumServer, setElectrumServer] = useState(true)
   const [transferLoading,setTransferLoading] = useState(false)
   const [transferKeyLoading,setTransferKeyLoading] = useState(false)
-  const [counter,setCounter] = useState(0)
   const torInfo = useSelector(state => state.walletData).torInfo
 
   const onTransferMsg3Change = (event) => {
@@ -57,30 +56,38 @@ const ReceiveStatecoinPage = () => {
 
   const [rec_sce_addr, setRecAddr] = useState(callGetSeAddr(addr_index));
 
-  useEffect(()=> {
+  useEffect(() => {
+    let isMounted = true
     // Check if Electrum server connected on page open
-    checkElectrum();
-    const interval = setInterval(()=> {
-      //Check Electrum server every 5s
-      checkElectrum();
-      //Counter triggers interval to run every time it's called
-      setCounter(counter+1)
-
+    checkElectrum(isMounted);
+    const interval = setInterval(() => {
+      if (isMounted) {
+        //Check Electrum server every 5s
+        checkElectrum(isMounted);
+      }
     },10000)
-    return()=> clearInterval(interval)
+    return () => {
+      isMounted = false
+      clearInterval(interval)
+    }
     
-  },[counter])
+  },[])
 
-  const checkElectrum = () => {
-      callPingElectrumRestart(!torInfo.online).then((res) => {
-        if(res.height){
+  const checkElectrum = (isMounted) => {
+    callPingElectrumRestart(!torInfo.online).then((res) => {
+      if (isMounted === true) {
+        if (res.height) {
           setElectrumServer(true)
         }
-      }).catch((err)=> {
-        log.error(err)
+      }
+    }).catch((err) => {
+      log.error(err)
+      if (isMounted === true) {
         setElectrumServer(false)
+        }
       })
   }
+  
   
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
