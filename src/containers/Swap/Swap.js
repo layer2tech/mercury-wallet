@@ -54,23 +54,27 @@ const SwapPage = () => {
     );
   }
 
-  const updateSwapInfo = () => {
+  const updateSwapInfo = (isMounted) => {
     dispatch(callUpdateSwapGroupInfo());
     let swap_groups_data = callGetSwapGroupInfo();
     let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
-    setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
-    setRefreshCoins((prevState) => !prevState);
-    setInitFetchSwapGroups(false)
+    if (isMounted) {
+      setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
+      setRefreshCoins((prevState) => !prevState);
+      setInitFetchSwapGroups(false)
+    }
   }
 
   // Update swap info when swapLoad changes.
   // The delay on joining is to wait for the coin to be added to a swap group.
   useEffect(() => {
+    let isMounted = true
     let delay = swapLoad.join ? 500 : 0; 
     setTimeout(() => {
       // console.log('interval 5')
-      updateSwapInfo()
+      updateSwapInfo(isMounted)
     }, delay);
+    return () => { isMounted = false }
   },
   [swapLoad]);
     

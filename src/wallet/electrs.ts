@@ -1,11 +1,14 @@
 import { ElectrumTxData } from '../wallet/electrum';
-import {Mutex} from 'async-mutex'
-import { release } from 'os';
+import { AsyncSemaphore } from "@esfx/async-semaphore";
+import { log } from './swap/swap_utils';
 let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
-export const mutex = new Mutex();
+
 
 const TIMEOUT = 5000
+// Maximum number of concurrent API calls
+const MAX_SEMAPHORE_COUNT = 10;
+const semaphore = new AsyncSemaphore(MAX_SEMAPHORE_COUNT);
 
 class ElectrsClientError extends Error {
   constructor(message: string){
@@ -70,8 +73,9 @@ export class ElectrsClient {
     }
   };
 
-  static async get (endpoint: string, path: string, params: any, timeout_ms: number = TIMEOUT){
-    const release = await mutex.acquire();
+  static async get(endpoint: string, path: string,
+    params: any, timeout_ms: number = TIMEOUT) {
+    await semaphore.wait()
     try {
       const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
@@ -86,15 +90,13 @@ export class ElectrsClient {
 
       return return_data
 
-    } catch (err : any) {
-      throw err;
     } finally {
-      release()
+      semaphore.release()
     }
   }
 
   static async post (endpoint: string, path: string, body: any, timeout_ms: number = TIMEOUT) {
-    const release = await mutex.acquire();
+    await semaphore.wait()
     try {
       let url = endpoint + "/" + path.replace(/^\/+/, '');
       const config = {
@@ -113,10 +115,8 @@ export class ElectrsClient {
 
       return return_data
 
-    } catch (err : any) {
-      throw err;
     } finally {
-      release()
+      semaphore.release()
     }
   };
 

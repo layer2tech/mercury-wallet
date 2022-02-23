@@ -1,8 +1,11 @@
-import {Mutex} from 'async-mutex';
+import { AsyncSemaphore } from "@esfx/async-semaphore";
 const axios = require('axios').default;
-export const mutex = new Mutex();
+
 
 const TIMEOUT = 5000
+// Maximum number of concurrent API calls
+const MAX_SEMAPHORE_COUNT = 10;
+const semaphore = new AsyncSemaphore(MAX_SEMAPHORE_COUNT);
 
 export const GET_ROUTE = {
   PING: "ping",
@@ -81,7 +84,7 @@ export class HttpClient {
   };
 
   async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
-    const release = await mutex.acquire();
+    await semaphore.wait();
     try {
       const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
@@ -94,12 +97,12 @@ export class HttpClient {
       checkForServerError(res)
       return res.data
     } finally {
-      release();
+      semaphore.release();
     }
   }
 
   async post (path: string, body: any, timeout_ms: number = TIMEOUT) {
-    const release = await mutex.acquire();
+    await semaphore.wait()
     try {
       let url = this.endpoint + "/" + path.replace(/^\/+/, '');
       const config = {
@@ -116,7 +119,7 @@ export class HttpClient {
       checkForServerError(res)
       return res.data
     } finally {
-      release();
+      semaphore.release();
     }
   };
 }
