@@ -144,6 +144,7 @@ app.on('ready', () => {
 app.on('window-all-closed', async function () {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
+  teminate_tor_process();
   app.quit()
 });
 

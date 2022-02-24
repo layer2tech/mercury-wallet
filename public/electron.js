@@ -143,6 +143,7 @@ app.on('ready', () => {
 );
 
 app.on('window-all-closed', async () => {
+  teminate_tor_process(); // ensure the tor processes are closed after s
   app.quit();
 });
 
