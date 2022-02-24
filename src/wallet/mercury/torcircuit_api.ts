@@ -22,7 +22,7 @@ export interface TorCircuit {
 export const getNewTorId = async (http_client: HttpClient |  MockHttpClient) => {
     let tor_id
     try{
-        tor_id = await http_client.get(GET_ROUTE.NEW_TOR_ID, {});
+        tor_id = await http_client.get(GET_ROUTE.NEW_TOR_ID, {}, 20000);
 
     } catch(e){
         throw e
@@ -35,7 +35,7 @@ export const getNewTorId = async (http_client: HttpClient |  MockHttpClient) => 
 export const getTorCircuitIds = async (http_client: HttpClient |  MockHttpClient) => {
     let tor_circuit_ids
     try {
-        const timeout_ms = 15000
+        const timeout_ms = 10000
         tor_circuit_ids = await http_client.get(GET_ROUTE.TOR_CIRCUITS, {}, timeout_ms)
         return tor_circuit_ids.circuitData;
     }catch(e){
@@ -51,7 +51,7 @@ export const getTorCircuit = async (
   ) => {
     let circuit 
     try {
-        const timeout_ms = 15000
+        const timeout_ms = 10000
         circuit = await http_client.get(GET_ROUTE.TOR_CIRCUITS, circuit_id, timeout_ms)
         circuit.id = circuit_id
         return circuit

@@ -19,6 +19,10 @@ import {
   SwapStep, SwapStepResult, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS, Timer,
   SWAP_TIMEOUT, TIMEOUT_STATUS
 } from './swap_utils';
+import { semaphore, MAX_SEMAPHORE_COUNT } from '../http_client'
+import { AsyncSemaphore } from "@esfx/async-semaphore";
+
+const newid_semaphore = new AsyncSemaphore(1);
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -431,17 +435,23 @@ export default class Swap {
     }
   }
 
-  getNewTorID = async (): Promise<SwapStepResult> => {
+  doSwapSecondMessage = async (): Promise<SwapStepResult> => {
+    //Get the newid semaphore
+    await newid_semaphore.wait()
+    //Acquire all the http_client semaphores
+    let count = 0
+    while (count < MAX_SEMAPHORE_COUNT - 1) {
+      await semaphore.wait()
+      count = count + 1
+    }
     try {
       await this.clients.http_client.new_tor_id();
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase4;
     } catch (err: any) {
+      semaphore.release(count)
+      newid_semaphore.release()
       return SwapStepResult.Retry(`Error getting new TOR id: ${err}`)
-    }
-    return SwapStepResult.Ok('got new tor ID')
-  }
-
-  doSwapSecondMessage = async (): Promise<SwapStepResult> => {
+    } 
     try {
       let receiver_addr = await second_message(this.clients.http_client, await this.wallet.getWasm(), this.getSwapID().id,
         this.getBSTRequestorData(), this.getBlindedSpendSignature());
@@ -452,6 +462,9 @@ export default class Swap {
       return SwapStepResult.Ok(`got receiver address`);
     } catch (err: any) {
       return SwapStepResult.Retry(err.message)
+    } finally {
+      semaphore.release(count)
+      newid_semaphore.release()
     }
   }
 

@@ -1,10 +1,8 @@
 import { ElectrumTxData } from '../wallet/electrum';
+import { semaphore, TIMEOUT } from './http_client'
 import { log } from './swap/swap_utils';
 let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
-
-
-const TIMEOUT = 5000
 
 class ElectrsClientError extends Error {
   constructor(message: string){
@@ -92,9 +90,11 @@ export class ElectrsClient {
         headers: { 'Accept': 'application/json' },
         timeout: timeout_ms
       };
+    await semaphore.wait()
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, config)
-    }).then(
+    }).finally(() => { semaphore.release() })
+      .then(
       (res: any) => {
         checkForServerError(res)
         return res?.data
@@ -115,10 +115,11 @@ export class ElectrsClient {
         data: body,
         timeout: timeout_ms
       };
- 
+    await semaphore.wait()
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, config)
-    }).then(
+    }).finally(() => { semaphore.release() })
+    .then(
       (res: any) => {
         checkForServerError(res)
         return res?.data

@@ -1,6 +1,10 @@
+import { AsyncSemaphore } from "@esfx/async-semaphore";
 const axios = require('axios').default;
 
-const TIMEOUT = 5000
+export const TIMEOUT = 5000
+// Maximum number of concurrent API calls
+export const MAX_SEMAPHORE_COUNT = 10;
+export const semaphore = new AsyncSemaphore(MAX_SEMAPHORE_COUNT);
 
 export const GET_ROUTE = {
   PING: "ping",
@@ -85,7 +89,7 @@ const handlePromiseRejection = (err: any, config: any) => {
 
     async new_tor_id() {
       if (this.is_tor) {
-        const timeout_ms = 15000
+        const timeout_ms = 20000
         await this.get('newid', {}, timeout_ms);
       }
     };
@@ -98,9 +102,12 @@ const handlePromiseRejection = (err: any, config: any) => {
         headers: { 'Accept': 'application/json' },
         timeout: timeout_ms
       };
+      await semaphore.wait()
       return axios(config).catch((err: any) => {
         handlePromiseRejection(err, config)
-      }).then (
+      }).finally( () => {
+        semaphore.release()
+      }).then(
       (res: any) => {
         checkForServerError(res)
         return res?.data        
@@ -119,8 +126,11 @@ const handlePromiseRejection = (err: any, config: any) => {
         },
         data: body,
       };
+      await semaphore.wait();
       return axios(config).catch((err: any) => {
         handlePromiseRejection(err, config)
+      }).finally(() => {
+        semaphore.release()
       }).then (
       (res: any) => {
         checkForServerError(res)

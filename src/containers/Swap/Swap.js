@@ -55,7 +55,7 @@ const SwapPage = () => {
     );
   }
 
-  const updateSwapInfo = (isMounted) => {
+  const updateSwapInfo = async (isMounted) => {
       dispatch(callUpdateSwapGroupInfo());
       let swap_groups_data = callGetSwapGroupInfo();
       let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
@@ -75,7 +75,6 @@ const SwapPage = () => {
     let isMounted = true
     let delay = swapLoad.join ? 500 : 0; 
     setTimeout(() => {
-      // console.log('interval 5')
       updateSwapInfo(isMounted)
     }, delay);
     return () => { isMounted = false }
