@@ -638,10 +638,15 @@ export default class Swap {
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase7;
       return SwapStepResult.Ok("transferReceiver")
     } catch (err: any) {
-      if (err?.message && err.message.includes("DB Error: No data for identifier.")) {
-        log.info(`Statecoin ${this.statecoin.shared_key_id} - waiting for others to complete...`)
-      } else {
-        log.info(`transferReceiver error: ${err}`)
+      if (err?.message) {
+        if (err.message.includes("DB Error: No data for identifier.")) {
+          log.info(`Statecoin ${this.statecoin.shared_key_id} - waiting for others to complete...`)
+        } else if (err.message.includes("Transfer not made to this wallet")) {
+          err.message = `${err.message} - Exiting swap...`
+          throw err
+        } else {
+          log.info(`transferReceiver error: ${err}`)
+        }
       }
       let result = await this.swapPhase4HandleErrPollSwap()
       if (!result.is_ok()) {

@@ -1,14 +1,10 @@
 import { ElectrumTxData } from '../wallet/electrum';
-import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { log } from './swap/swap_utils';
 let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
 
 
 const TIMEOUT = 5000
-// Maximum number of concurrent API calls
-const MAX_SEMAPHORE_COUNT = 10;
-const semaphore = new AsyncSemaphore(MAX_SEMAPHORE_COUNT);
 
 class ElectrsClientError extends Error {
   constructor(message: string){
@@ -19,6 +15,9 @@ class ElectrsClientError extends Error {
 
 // Check if returned value from server is an error. Throw if so.
 const checkForServerError = (return_val: any) => {
+  if (!return_val) {
+    return
+  }
   if (typeof(return_val)==="string" && ( return_val.includes("Error") ||return_val.includes("error") )) {
     throw Error(return_val)
   }
@@ -47,6 +46,15 @@ export const POST_ROUTE = {
 };
 Object.freeze(POST_ROUTE);
 
+const handlePromiseRejection = (err: any, config: any) => {
+  let msg_str = err?.message
+  if (msg_str && msg_str.includes(`timeout of ${config.timeout}ms exeeded`)) {
+    msg_str = `Electrum API request timed out: ${msg_str}`
+    err.msg_str = msg_str
+  }
+  throw err
+}
+
 
 export class ElectrsClient {
   endpoint: string
@@ -73,10 +81,10 @@ export class ElectrsClient {
     }
   };
 
+
   static async get(endpoint: string, path: string,
     params: any, timeout_ms: number = TIMEOUT) {
-    await semaphore.wait()
-    try {
+    
       const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
           method: 'get',
@@ -84,20 +92,18 @@ export class ElectrsClient {
         headers: { 'Accept': 'application/json' },
         timeout: timeout_ms
       };
-      let res = await axios(config)
-      let return_data = res.data
-      checkForServerError(return_data)
-
-      return return_data
-
-    } finally {
-      semaphore.release()
-    }
+    return axios(config).catch((err: any) => {
+      handlePromiseRejection(err, config)
+    }).then(
+      (res: any) => {
+        checkForServerError(res)
+        return res?.data
+      })
+ 
   }
 
   static async post (endpoint: string, path: string, body: any, timeout_ms: number = TIMEOUT) {
-    await semaphore.wait()
-    try {
+
       let url = endpoint + "/" + path.replace(/^\/+/, '');
       const config = {
           method: 'post',
@@ -109,16 +115,15 @@ export class ElectrsClient {
         data: body,
         timeout: timeout_ms
       };
-      let res = await axios(config)
-      let return_data = res.data
-      checkForServerError(return_data)
-
-      return return_data
-
-    } finally {
-      semaphore.release()
-    }
-  };
+ 
+    return axios(config).catch((err: any) => {
+      handlePromiseRejection(err, config)
+    }).then(
+      (res: any) => {
+        checkForServerError(res)
+        return res?.data
+      })
+  }
 
   async isClosed(): Promise<boolean>{
     let ping = await this.ping();
@@ -192,9 +197,16 @@ export class ElectrsClient {
       return blockHeight
     } catch(err: any) {
       this.blockHeightLatest = null
-      callBack([{"height":null}])
-      let err_str = typeof err === 'string' ? err : err?.message
-      throw err
+      callBack([{ "height": null }])
+      const err_str = err?.message
+      if (err_str &&
+          (err_str.includes('Network Error') ||
+            err_str.includes(`Electrum API request timed out:`))
+      ) {
+        log.warn(JSON.stringify(err))
+      } else {
+        throw err
+      }
     }
   }
 
@@ -218,16 +230,7 @@ export class ElectrsClient {
     if(this.block_height_interval) return;
     this.block_height_interval = setInterval(
       async(cb, ep) => {
-        try{
-          await this.getLatestBlock(cb, ep)
-        } catch(err: any) {
-          const err_str = err?.message
-          if (err_str && err_str.includes('Network Error')){
-            // this.blockHeightUnsubscribe()
-            // Is this okay to comment out?
-          }          
-          throw err
-        }
+        await this.getLatestBlock(cb, ep)
       }, 
       5000, callBack, this.endpoint)
   }

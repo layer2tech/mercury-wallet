@@ -61,7 +61,7 @@ const ReceiveStatecoinPage = () => {
     // Check if Electrum server connected on page open
     checkElectrum(isMounted);
     const interval = setInterval(() => {
-      if (isMounted) {
+      if (isMounted === true) {
         //Check Electrum server every 5s
         checkElectrum(isMounted);
       }
@@ -81,7 +81,7 @@ const ReceiveStatecoinPage = () => {
         }
       }
     }).catch((err) => {
-      log.error(err)
+      log.warn(JSON.stringify(err))
       if (isMounted === true) {
         setElectrumServer(false)
         }

@@ -1,11 +1,6 @@
-import { AsyncSemaphore } from "@esfx/async-semaphore";
 const axios = require('axios').default;
 
-
 const TIMEOUT = 5000
-// Maximum number of concurrent API calls
-const MAX_SEMAPHORE_COUNT = 10;
-const semaphore = new AsyncSemaphore(MAX_SEMAPHORE_COUNT);
 
 export const GET_ROUTE = {
   PING: "ping",
@@ -55,6 +50,9 @@ Object.freeze(POST_ROUTE);
 
 // Check if returned value from server is an error. Throw if so.
 const checkForServerError = (response: any) => {
+  if (!response) {
+    return
+  }
   let return_val = response?.data
   if( response.status >= 400) {
     throw Error(`http status: ${response.status}, data: ${return_val}`)
@@ -67,25 +65,32 @@ const checkForServerError = (response: any) => {
   }  
 }
 
-export class HttpClient {
-  endpoint: string
-  is_tor: boolean
-
-  constructor(endpoint: string, is_tor = false) {
-    this.endpoint = endpoint;
-    this.is_tor = is_tor;
+const handlePromiseRejection = (err: any, config: any) => {
+  let msg_str = err?.message
+  if (msg_str && msg_str.includes(`timeout of ${config.timeout}ms exeeded`)) {
+    msg_str = `Mercury API request timed out: ${msg_str}`
+    err.msg_str = msg_str
   }
+  throw err
+}
 
-  async new_tor_id() {
-    if (this.is_tor) {
-      const timeout_ms = 15000
-      await this.get('newid', {}, timeout_ms);
+  export class HttpClient {
+    endpoint: string
+    is_tor: boolean
+
+    constructor(endpoint: string, is_tor = false) {
+      this.endpoint = endpoint;
+      this.is_tor = is_tor;
     }
-  };
 
-  async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
-    await semaphore.wait();
-    try {
+    async new_tor_id() {
+      if (this.is_tor) {
+        const timeout_ms = 15000
+        await this.get('newid', {}, timeout_ms);
+      }
+    };
+
+    async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
       const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
         method: 'get',
@@ -93,17 +98,16 @@ export class HttpClient {
         headers: { 'Accept': 'application/json' },
         timeout: timeout_ms
       };
-      let res = await axios(config)
-      checkForServerError(res)
-      return res.data
-    } finally {
-      semaphore.release();
+      return axios(config).catch((err: any) => {
+        handlePromiseRejection(err, config)
+      }).then (
+      (res: any) => {
+        checkForServerError(res)
+        return res?.data        
+      })
     }
-  }
 
-  async post (path: string, body: any, timeout_ms: number = TIMEOUT) {
-    await semaphore.wait()
-    try {
+    async post(path: string, body: any, timeout_ms: number = TIMEOUT) {
       let url = this.endpoint + "/" + path.replace(/^\/+/, '');
       const config = {
         method: 'post',
@@ -115,11 +119,12 @@ export class HttpClient {
         },
         data: body,
       };
-      let res = await axios(config)
-      checkForServerError(res)
-      return res.data
-    } finally {
-      semaphore.release();
+      return axios(config).catch((err: any) => {
+        handlePromiseRejection(err, config)
+      }).then (
+      (res: any) => {
+        checkForServerError(res)
+        return res?.data
+      })
     }
-  };
-}
+  }

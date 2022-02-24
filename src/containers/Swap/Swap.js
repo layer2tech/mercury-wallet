@@ -36,7 +36,8 @@ const SwapPage = () => {
   const { torInfo, inSwapValues } = useSelector(state => state.walletData);
 
   const [swapLoad, setSwapLoad] = useState({join: false,swapCoin: "", leave:false}) // set loading... onClick
-  const [initFetchSwapGroups,setInitFetchSwapGroups] = useState(true)
+  const [refreshSwapGroupInfo, setRefreshSwapGroupInfo] = useState(false)
+  const [initFetchSwapGroups, setInitFetchSwapGroups] = useState(true)
   
   const [swapGroupsData, setSwapGroupsData] = useState([]);
 
@@ -55,19 +56,22 @@ const SwapPage = () => {
   }
 
   const updateSwapInfo = (isMounted) => {
-    dispatch(callUpdateSwapGroupInfo());
-    let swap_groups_data = callGetSwapGroupInfo();
-    let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
-    if (isMounted) {
-      setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
-      setRefreshCoins((prevState) => !prevState);
-      setInitFetchSwapGroups(false)
-    }
+      dispatch(callUpdateSwapGroupInfo());
+      let swap_groups_data = callGetSwapGroupInfo();
+      let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
+      if (isMounted === true) {
+        setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
+        setRefreshCoins((prevState) => !prevState);
+        setInitFetchSwapGroups(false)
+      }
   }
 
   // Update swap info when swapLoad changes.
   // The delay on joining is to wait for the coin to be added to a swap group.
   useEffect(() => {
+    if (torInfo.online === false) {
+      return
+    }
     let isMounted = true
     let delay = swapLoad.join ? 500 : 0; 
     setTimeout(() => {
@@ -76,7 +80,15 @@ const SwapPage = () => {
     }, delay);
     return () => { isMounted = false }
   },
-  [swapLoad]);
+    [swapLoad, setRefreshSwapGroupInfo, torInfo]);
+  
+  //Refresh swap group info every few seconds
+  useEffect(() => {
+    let interval = setInterval(() => {
+      setRefreshSwapGroupInfo((prevState) => !prevState);
+    }, 10000)
+    return () => { clearInterval(interval)}
+  }, [] )
     
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
