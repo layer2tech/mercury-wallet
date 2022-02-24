@@ -35,7 +35,7 @@ const SwapPage = () => {
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
   const { torInfo, inSwapValues } = useSelector(state => state.walletData);
 
-  const [swapLoad, setSwapLoad] = useState({join: false,swapCoin: "", leave:false}) // set loading... onClick
+  const [swapLoad, setSwapLoad] = useState({ join: false, swapCoin: "", leave: false }) // set loading... onClick
   const [refreshSwapGroupInfo, setRefreshSwapGroupInfo] = useState(false)
   const [initFetchSwapGroups, setInitFetchSwapGroups] = useState(true)
   
@@ -66,7 +66,7 @@ const SwapPage = () => {
       }
   }
 
-  // Update swap info when swapLoad changes.
+  // Update swap info when swapLoad or setRefreshSwapGroupInfo changes.
   // The delay on joining is to wait for the coin to be added to a swap group.
   useEffect(() => {
     if (torInfo.online === false) {
@@ -80,16 +80,8 @@ const SwapPage = () => {
     }, delay);
     return () => { isMounted = false }
   },
-    [swapLoad, setRefreshSwapGroupInfo, torInfo]);
+    [swapLoad, refreshSwapGroupInfo]);
   
-  //Refresh swap group info every few seconds
-  useEffect(() => {
-    let interval = setInterval(() => {
-      setRefreshSwapGroupInfo((prevState) => !prevState);
-    }, 10000)
-    return () => { clearInterval(interval)}
-  }, [] )
-    
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     dispatch(setError({msg: "No Wallet loaded."}))
@@ -310,7 +302,7 @@ const SwapPage = () => {
                           setSelectedCoins={setSelectedCoins}
                           refresh={refreshCoins}
                           handleAutoSwap={handleAutoSwap}
-                          updateSwapInfo = { updateSwapInfo }
+                          setRefreshSwapGroupInfo = { setRefreshSwapGroupInfo }
                           swap
                         />
                     </div>

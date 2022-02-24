@@ -337,9 +337,10 @@ const CoinsList = (props) => {
   }
 
   const swapInfoAndAutoSwap = () => {
+    if (torInfo.online === false) return
     autoSwapLoop()
-    if (props.updateSwapInfo) {
-      props.updateSwapInfo()
+    if (props?.setRefreshSwapGroupInfo) {
+      props.setRefreshSwapGroupInfo((prevState) => !prevState);  
     }
   }
 
