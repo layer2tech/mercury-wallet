@@ -1,7 +1,7 @@
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 const axios = require('axios').default;
 
-export const TIMEOUT = 5000
+export const TIMEOUT = 10000
 // Maximum number of concurrent API calls
 export const MAX_SEMAPHORE_COUNT = 10;
 export const semaphore = new AsyncSemaphore(MAX_SEMAPHORE_COUNT);
