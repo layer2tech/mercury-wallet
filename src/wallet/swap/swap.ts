@@ -451,7 +451,7 @@ export default class Swap {
       semaphore.release(count)
       newid_semaphore.release()
       return SwapStepResult.Retry(`Error getting new TOR id: ${err}`)
-    } 
+    }
     try {
       let receiver_addr = await second_message(this.clients.http_client, await this.wallet.getWasm(), this.getSwapID().id,
         this.getBSTRequestorData(), this.getBlindedSpendSignature());
@@ -628,9 +628,9 @@ export default class Swap {
       "commitment": this.getSwapBatchTransferData().commitment,
     }
     let finalize_data = await transferReceiver(http_client,
-        electrum_client, network, msg3, rec_se_addr_bip32,
-        batch_data, req_confirmations, block_height, value, transfer_msg_4);
-      typeforce(types.TransferFinalizeData, finalize_data);
+      electrum_client, network, msg3, rec_se_addr_bip32,
+      batch_data, req_confirmations, block_height, value, transfer_msg_4);
+    typeforce(types.TransferFinalizeData, finalize_data);
     return finalize_data;
   }
 

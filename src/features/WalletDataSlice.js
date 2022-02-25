@@ -44,9 +44,9 @@ export const callGetArgsHasTestnet =  () => {
 
 let network;
 if(callGetArgsHasTestnet()){
-  network = bitcoin.networks["testnet"];
+  network = bitcoin.networks['testnet'];
 }else{
-  network = bitcoin.networks["mainnet"];
+  network = bitcoin.networks['bitcoin'];
 }
 
 let wallet;

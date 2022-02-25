@@ -261,7 +261,7 @@ describe('After Swaps Complete', function () {
   // server side's mock
   let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 
-  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock)
+  let wallet = Wallet.buildMock(bitcoin.networks['bitcoin'], http_mock, wasm_mock)
 
   let wallet_json = wallet.toEncryptedJSON()
 
