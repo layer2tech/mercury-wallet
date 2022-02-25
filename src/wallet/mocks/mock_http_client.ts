@@ -4,9 +4,8 @@
 import { Transaction } from 'bitcoinjs-lib';
 import { createTypeReferenceDirectiveResolutionCache } from "typescript";
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
-import { RecoveryDataMsg, StateChainDataAPI } from "../mercury/info_api";
-import {
-  TransferFinalizeDataAPI, TransferFinalizeDataForRecovery,
+import { RecoveryDataMsg, StateChainDataAPI, TransferFinalizeDataAPI } from "../mercury/info_api";
+import { TransferFinalizeDataForRecovery,
   transferReceiverFinalizeRecovery, TransferFinalizeData, PrepareSignTxMsg
 } from "../mercury/transfer";
 import { SwapID } from "../swap/swap_utils";
@@ -173,7 +172,7 @@ export const STATECHAIN_INFO_AFTER_TRANSFER = { utxo: "794610eff71928df4d6814843
 export const STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER = { __D: [12, 167, 86, 244, 1, 71, 143, 177, 161, 102, 210, 121, 69, 80, 29, 138, 245, 154, 218, 28, 181, 82, 197, 152, 80, 157, 252, 180, 148, 244, 117, 184], __Q: [2, 138, 155, 102, 208, 210, 198, 239, 127, 244, 74, 16, 61, 68, 212, 233, 34, 43, 31, 162, 253, 52, 205, 93, 226, 154, 84, 135, 92, 85, 42, 189, 65], chainCode: [17, 103, 219, 181, 100, 221, 223, 210, 34, 16, 230, 138, 129, 23, 181, 247, 233, 17, 25, 193, 254, 149, 5, 150, 20, 118, 66, 82, 146, 33, 29, 195], network: { messagePrefix: "\u0018Bitcoin Signed Message:\n", bech32: "tb", bip32: { public: 70617039, private: 70615956 }, pubKeyHash: 111, scriptHash: 196, wif: 239 }, __DEPTH: 3, __INDEX: 3, __PARENT_FINGERPRINT: 278430330, lowR: false }
 export const TRANSFER_PUBKEY = { key: "03b1e51eb08539dcbf58995f9e75519071d4acd88d16314fd7231e707c75707098" }
 export const TRANSFER_RECEIVER = { new_shared_key_id: "d91553ca-8cab-4eef-b315-28583fd4180b", s2_pub: { x: "abc03bfe5e2fb3d54a58069bb06cef5d25533da24d928679b1fa9e9c97b6e0e0", y: "d47dc07001729dd5adb19c52a1ce1b9c360b0e15abb5dabd652dbba787fe35c0" } }
-
+//export const TRANSFER_FINALIZE_DATA = {"new_shared_key_id":"d91553ca-8cab-4eef-b315-28583fd4180b","o2":"0ca756f401478fb1a166d27945501d8af59ada1cb552c598509dfcb494f475b8","s2_pub":{"x":"abc03bfe5e2fb3d54a58069bb06cef5d25533da24d928679b1fa9e9c97b6e0e0","y":"d47dc07001729dd5adb19c52a1ce1b9c360b0e15abb5dabd652dbba787fe35c0"},"state_chain_data":{"utxo":{"txid":"794610eff71928df4d6814843945dbe51d8d11cdbcbeb11eb1c42e8199298494","vout":0},"amount":500000,"chain":[{"data":"03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477","next_state":null}],"locktime":1990441},"proof_key":"028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41","statechain_id":"a11dbb04-38c4-4db2-946a-e972c9f1632d","tx_backup_psm":{"shared_key_ids":["96c77c1a-b3c1-4e2a-9e86-636f59306bbc"],"protocol":"Transfer","tx_hex":"0200000000010194842999812ec4b11eb1bebccd118d1de5db45398414684ddf2819f7ef1046790000000000feffffff02cf960700000000001600140b6d2d569da09a1201fa2cd50264d64bafc950cdc4090000000000001600143f17a0ef09f4889e5824dd4b37dd9cc5b50089ea02483045022100f749e391fa0980cf1ecc7f3e8e48d8c1fa8f87b86e987ac7bd0533ce4d215afe02205048dc2a2fe0f51097b4b214910eb261125bd122f771d321a49fa8127dc0dfc00121039422862ce37422c170c5529e9f2d278c5f32b0d39923d3ed412a10e8352fc7e92ca61f00","input_addrs":["02303b83bc0a2980d353cc4a9474afb35e5d8d183b2ad9a1722e4a957fc15aa9b0"],"input_amounts":[1000],"proof_key":"03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477","shared_key_id":"d91553ca-8cab-4eef-b315-28583fd4180b"}}
 //SwapID
 export const POLL_UTXO: SwapID = { id: "00000000-0000-0000-0000-000000000001" };
 
