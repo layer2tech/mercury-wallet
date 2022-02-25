@@ -11,6 +11,8 @@ import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
 
+let bitcoin = require('bitcoinjs-lib')
+
 const NETWORK_CONFIG =  require('../../network.json');
 
 export const defaultWalletConfig = () => {
@@ -29,7 +31,7 @@ export const defaultWalletConfig = () => {
     });
   }else{
     return ({
-      network: 'mainnet',
+      network: 'bitcoin',
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
