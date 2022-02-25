@@ -15,6 +15,14 @@ import {
   Tutorial
 } from "../../components";
 
+// Logger import.
+// Node friendly importing required for Jest tests.
+let log;
+try {
+  log = window.require('electron-log');
+} catch (e) {
+  log = require('electron-log');
+}
 
 // Home page is the main page from which a user can view and use their Wallet.
 // Provided with props Home is used to initiliase a Wallet into the Redux state.
@@ -33,6 +41,14 @@ const HomePage = (props) => {
     // Get fee info
     fee_info = callGetFeeInfo().then((fee_info) => {
       dispatch(updateFeeInfo(fee_info));
+    }).catch((err) => {
+      const err_str = err?.message
+      if (err_str && (err_str.includes('Network Error') ||
+        err_str.includes('Mercury API request timed out'))) {
+        log.warn(JSON.stringify(err))
+      } else {
+        throw err
+      }
     })
     
   }
