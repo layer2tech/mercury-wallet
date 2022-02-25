@@ -1,5 +1,6 @@
 import { AsyncSemaphore } from "@esfx/async-semaphore";
-const axios = require('axios').default;
+//const axios = require('axios').default;
+import axios, { AxiosRequestConfig } from 'axios'
 
 export const TIMEOUT = 10000
 // Maximum number of concurrent API calls
@@ -71,9 +72,8 @@ const checkForServerError = (response: any) => {
 
 const handlePromiseRejection = (err: any, config: any) => {
   let msg_str = err?.message
-  if (msg_str && msg_str.includes(`timeout of ${config.timeout}ms exeeded`)) {
-    msg_str = `Mercury API request timed out: ${msg_str}`
-    err.msg_str = msg_str
+  if (msg_str && msg_str.search(`/timeout of .*ms exceeded/`)) {
+    throw new Error(`Mercury API request timed out: ${msg_str}`)
   }
   throw err
 }
@@ -96,7 +96,7 @@ const handlePromiseRejection = (err: any, config: any) => {
 
     async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
       const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
-      const config = {
+      const config: AxiosRequestConfig = {
         method: 'get',
         url: url,
         headers: { 'Accept': 'application/json' },
@@ -111,19 +111,21 @@ const handlePromiseRejection = (err: any, config: any) => {
       (res: any) => {
         checkForServerError(res)
         return res?.data        
-      })
+        })
+      
+      
     }
 
     async post(path: string, body: any, timeout_ms: number = TIMEOUT) {
       let url = this.endpoint + "/" + path.replace(/^\/+/, '');
-      const config = {
+      const config: AxiosRequestConfig = {
         method: 'post',
         url: url,
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          timeout: timeout_ms
         },
+        timeout: timeout_ms,
         data: body,
       };
       await semaphore.wait();

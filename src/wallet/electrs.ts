@@ -1,8 +1,8 @@
 import { ElectrumTxData } from '../wallet/electrum';
 import { semaphore, TIMEOUT } from './http_client'
 import { log } from './swap/swap_utils';
+import axios, { AxiosRequestConfig } from 'axios'
 let bitcoin = require('bitcoinjs-lib')
-const axios = require('axios').default;
 
 class ElectrsClientError extends Error {
   constructor(message: string){
@@ -46,13 +46,11 @@ Object.freeze(POST_ROUTE);
 
 const handlePromiseRejection = (err: any, config: any) => {
   let msg_str = err?.message
-  if (msg_str && msg_str.includes(`timeout of ${config.timeout}ms exeeded`)) {
-    msg_str = `Electrum API request timed out: ${msg_str}`
-    err.msg_str = msg_str
+  if (msg_str && msg_str.search(`/timeout of .*ms exceeded/`)) {
+    throw new Error(`Electrum API request timed out: ${msg_str}`)
   }
   throw err
 }
-
 
 export class ElectrsClient {
   endpoint: string
@@ -84,7 +82,7 @@ export class ElectrsClient {
     params: any, timeout_ms: number = TIMEOUT) {
     
       const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
-      const config = {
+      const config: AxiosRequestConfig = {
           method: 'get',
           url: url,
         headers: { 'Accept': 'application/json' },
@@ -105,7 +103,7 @@ export class ElectrsClient {
   static async post (endpoint: string, path: string, body: any, timeout_ms: number = TIMEOUT) {
 
       let url = endpoint + "/" + path.replace(/^\/+/, '');
-      const config = {
+      const config: AxiosRequestConfig = {
           method: 'post',
           url: url,
           headers: {
