@@ -2,9 +2,9 @@ import { AsyncSemaphore } from "@esfx/async-semaphore";
 //const axios = require('axios').default;
 import axios, { AxiosRequestConfig } from 'axios'
 
-export const TIMEOUT = 6000
+export const TIMEOUT = 20000
 // Maximum number of concurrent API calls
-export const MAX_SEMAPHORE_COUNT = 10;
+export const MAX_SEMAPHORE_COUNT = 5;
 export const semaphore = new AsyncSemaphore(MAX_SEMAPHORE_COUNT);
 
 export const GET_ROUTE = {
