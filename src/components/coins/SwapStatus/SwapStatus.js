@@ -34,10 +34,7 @@ const SwapStatus = (props) => {
                 <div className="swap-status">
                     {stringIncludes(props.swap_error.msg, "not found in swap") ? (errorPTag("Awaiting timeout...")) : (null)}
                     {stringIncludes(props.swap_error.msg, "waiting for completion") ? (errorPTag("Completing swap...")) : (null)}
-                    {(
-                        stringIncludes(props.swap_error.msg, "timed out") && 
-                        !stringIncludes(props.swap_error.msg, "API request timed out")
-                    ) ? (errorPTag("Awaiting timeout...")) : (null)}
+                    {stringIncludes(props.swap_error.msg, "timed out") ? (errorPTag("Awaiting timeout...")) : (null)}
                     {stringIncludes(props.swap_error.msg, "punishment") ? errorPTag(`Penalty: ${sec2min(getInteger(props.swap_error.msg))} mins`) : (null)}
                     {stringIncludes(props.swap_error.msg, "active swap") ? errorPTag(`Timeout: ${sec2min(getInteger(props.swap_error.msg))} mins`) : (null)}
                     {/* Change/add  errors with server change, punishment indication should show minutes remaining for wait*/}
