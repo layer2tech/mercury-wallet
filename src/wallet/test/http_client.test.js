@@ -4,7 +4,7 @@ import { HttpClient, TIMEOUT, semaphore } from '../http_client';
 
 jest.mock('axios', () => jest.fn())
 
-describe('http_client', function () {
+describe('HttpClient', function () {
     let client = new HttpClient("tor_endpoint.onion", true);
     let semaphoreSpy = jest.spyOn(semaphore, 'wait');
     const response = { data: "mock data" };
@@ -75,7 +75,7 @@ describe('http_client', function () {
 
 });
 
-describe('http_client timeout', function () {
+describe('HttpClient timeout', function () {
     let client = new HttpClient("tor_endpoint.onion", true)
     
     afterEach(() => {

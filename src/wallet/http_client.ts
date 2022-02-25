@@ -4,7 +4,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 
 export const TIMEOUT = 10000
 // Maximum number of concurrent API calls
-export const MAX_SEMAPHORE_COUNT = 10;
+export const MAX_SEMAPHORE_COUNT = 100;
 export const semaphore = new AsyncSemaphore(MAX_SEMAPHORE_COUNT);
 
 export const GET_ROUTE = {
