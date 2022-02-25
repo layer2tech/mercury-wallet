@@ -1192,16 +1192,22 @@ export class Wallet {
   }
 
   async updateSwapGroupInfo() {
-    try{
-      this.swap_group_info = await groupInfo(this.http_client);
-    } catch(err: any){
-      this.swap_group_info.clear()
-      let err_str = typeof err === 'string' ? err : err?.message
-      if (err_str && err_str.includes('Network Error')){
-        return
-      }
-      throw err
-    }
+      groupInfo(this.http_client).catch( (err: any) => {
+        this.swap_group_info.clear()
+        let err_str = typeof err === 'string' ? err : err?.message
+        if (err_str && (err_str.includes('Network Error') ||
+          err_str.includes('Mercury API request timed out'))) {
+          log.warn(JSON.stringify(err))
+        } else {
+          throw err   
+        }
+      }).then((result) => {
+        if (result) {
+          this.swap_group_info = result
+        } else {
+          this.swap_group_info = new Map<SwapGroup, GroupInfo>();
+        }
+      })
   }
 
   async updateSpeedInfo(torOnline = true) {

@@ -29,10 +29,12 @@ const SendStatecoinPage = () => {
     setInputAddr(event.target.value);
   };
   //When Send Modal (with transfer key) opens send button reactivated 
-  useEffect(()=> {
-    if(transferMsg3 !== ''){
+  useEffect(() => {
+    let isMounted = true
+    if (isMounted === true && transferMsg3 !== '') {
       setLoading(false)
     }
+    return () => { isMounted = false }
   },[transferMsg3])
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.

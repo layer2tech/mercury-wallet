@@ -1,8 +1,8 @@
 import { ElectrumTxData } from '../wallet/electrum';
-import {Mutex} from 'async-mutex'
+import { semaphore, TIMEOUT } from './http_client'
+import { log } from './swap/swap_utils';
+import axios, { AxiosRequestConfig } from 'axios'
 let bitcoin = require('bitcoinjs-lib')
-const axios = require('axios').default;
-export const mutex = new Mutex();
 
 class ElectrsClientError extends Error {
   constructor(message: string){
@@ -13,6 +13,9 @@ class ElectrsClientError extends Error {
 
 // Check if returned value from server is an error. Throw if so.
 const checkForServerError = (return_val: any) => {
+  if (!return_val) {
+    return
+  }
   if (typeof(return_val)==="string" && ( return_val.includes("Error") ||return_val.includes("error") )) {
     throw Error(return_val)
   }
@@ -41,6 +44,13 @@ export const POST_ROUTE = {
 };
 Object.freeze(POST_ROUTE);
 
+const handlePromiseRejection = (err: any, config: any) => {
+  let msg_str = err?.message
+  if (msg_str && msg_str.search(`/timeout of .*ms exceeded/`)) {
+    throw new Error(`Electrum API request timed out: ${msg_str}`)
+  }
+  throw err
+}
 
 export class ElectrsClient {
   endpoint: string
@@ -67,47 +77,52 @@ export class ElectrsClient {
     }
   };
 
-  static async get (endpoint: string, path: string, params: any){
-    try {
+
+  static async get(endpoint: string, path: string,
+    params: any, timeout_ms: number = TIMEOUT) {
+    
       const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
-      const config = {
+      const config: AxiosRequestConfig = {
           method: 'get',
           url: url,
-          headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        timeout: timeout_ms
       };
-      let res = await axios(config)
-      let return_data = res.data
-      checkForServerError(return_data)
-
-      return return_data
-
-    } catch (err : any) {
-      throw err;
-    }
+    await semaphore.wait()
+    return axios(config).catch((err: any) => {
+      handlePromiseRejection(err, config)
+    }).finally(() => { semaphore.release() })
+      .then(
+      (res: any) => {
+        checkForServerError(res)
+        return res?.data
+      })
+ 
   }
 
-  static async post (endpoint: string, path: string, body: any) {
-    try {
+  static async post (endpoint: string, path: string, body: any, timeout_ms: number = TIMEOUT) {
+
       let url = endpoint + "/" + path.replace(/^\/+/, '');
-      const config = {
+      const config: AxiosRequestConfig = {
           method: 'post',
           url: url,
           headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json'
           },
-          data: body,
+        data: body,
+        timeout: timeout_ms
       };
-      let res = await axios(config)
-      let return_data = res.data
-      checkForServerError(return_data)
-
-      return return_data
-
-    } catch (err : any) {
-      throw err;
-    }
-  };
+    await semaphore.wait()
+    return axios(config).catch((err: any) => {
+      handlePromiseRejection(err, config)
+    }).finally(() => { semaphore.release() })
+    .then(
+      (res: any) => {
+        checkForServerError(res)
+        return res?.data
+      })
+  }
 
   async isClosed(): Promise<boolean>{
     let ping = await this.ping();
@@ -181,9 +196,16 @@ export class ElectrsClient {
       return blockHeight
     } catch(err: any) {
       this.blockHeightLatest = null
-      callBack([{"height":null}])
-      let err_str = typeof err === 'string' ? err : err?.message
-      throw err
+      callBack([{ "height": null }])
+      const err_str = err?.message
+      if (err_str &&
+          (err_str.includes('Network Error') ||
+            err_str.includes(`Electrum API request timed out:`))
+      ) {
+        log.warn(JSON.stringify(err))
+      } else {
+        throw err
+      }
     }
   }
 
@@ -207,16 +229,7 @@ export class ElectrsClient {
     if(this.block_height_interval) return;
     this.block_height_interval = setInterval(
       async(cb, ep) => {
-        try{
-          await this.getLatestBlock(cb, ep)
-        } catch(err: any) {
-          const err_str = err?.message
-          if (err_str && err_str.includes('Network Error')){
-            // this.blockHeightUnsubscribe()
-            // Is this okay to comment out?
-          }          
-          throw err
-        }
+        await this.getLatestBlock(cb, ep)
       }, 
       5000, callBack, this.endpoint)
   }

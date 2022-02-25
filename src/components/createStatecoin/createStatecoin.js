@@ -23,20 +23,22 @@ const CreateStatecoin = (props) => {
       state ? setState(0) : setState(1); // update state to re-render
     }
 
-    useEffect(() => {
+  useEffect(() => {
+      let isMounted = true
       // Get coin liquidity data
-      callGetCoinsInfo().then((liquidity_data_raw) => {
+    callGetCoinsInfo().then((liquidity_data_raw) => {
+      if (isMounted === true) {
         // Update liquidity data state
 
         let liquidity_data = []
         //get most liquid coin amounts
         Object.entries(liquidity_data_raw.values).map(([amount, liquidity]) => {
           let coin_value = parseInt(amount)
-          if( coin_value >= 100000 ){
+          if (coin_value >= 100000) {
             // Only display coin values over dust limit
-            if(liquidity >= 3 || Math.round(coin_value/100000) === coin_value/100000){
+            if (liquidity >= 3 || Math.round(coin_value / 100000) === coin_value / 100000) {
               // this condition removes accidental strange deposit values
-              liquidity_data.push({value: parseInt(amount), liquidity: liquidity})
+              liquidity_data.push({ value: parseInt(amount), liquidity: liquidity })
             }
           }
         })
@@ -45,19 +47,19 @@ const CreateStatecoin = (props) => {
         let liquidity_data_amounts = liquidity_data.map((item) => item.value);
         let defaults_missing = DEFAULT_LIQUIDITY_VALUES.filter((item) => {
           // checks if default value is already in liquidity_data. If not return item.
-          if (liquidity_data_amounts.indexOf(item.value)<0) return item;
+          if (liquidity_data_amounts.indexOf(item.value) < 0) return item;
           return null;
         });
-        liquidity_data=liquidity_data.concat(defaults_missing)
+        liquidity_data = liquidity_data.concat(defaults_missing)
 
         // Sort
-        if (props.settings.sort_by==="Liquidity") {
-          liquidity_data.sort((a,b) => {
+        if (props.settings.sort_by === "Liquidity") {
+          liquidity_data.sort((a, b) => {
             return b.liquidity - a.liquidity;
           })
         } else { // sort by amount
-          liquidity_data.sort((a,b) => {
-            if(props.settings.sort_by === "HighToLow") {
+          liquidity_data.sort((a, b) => {
+            if (props.settings.sort_by === "HighToLow") {
               return b.value - a.value;
             }
             return a.value - b.value;
@@ -65,17 +67,17 @@ const CreateStatecoin = (props) => {
         }
 
         // Replace liquidity value with string "None", "Low", "Med" or "High"
-        let num_highs=0;
+        let num_highs = 0;
         liquidity_data.map((item) => {
-          if (!item.liquidity) {item.liquidityLabel="None"}
-          else if (item.liquidity<LIQUIDITY_MED) {item.liquidityLabel="Low"}
-          else if (item.liquidity<LIQUIDITY_HIGH) {item.liquidityLabel="Med"}
+          if (!item.liquidity) { item.liquidityLabel = "None" }
+          else if (item.liquidity < LIQUIDITY_MED) { item.liquidityLabel = "Low" }
+          else if (item.liquidity < LIQUIDITY_HIGH) { item.liquidityLabel = "Med" }
           else {
-            if (num_highs<NUM_HIGH_LIQUIDITY) { // Only allow top 3 values to have "high" liquidity
-              item.liquidityLabel="High";
-              num_highs+=1;
+            if (num_highs < NUM_HIGH_LIQUIDITY) { // Only allow top 3 values to have "high" liquidity
+              item.liquidityLabel = "High";
+              num_highs += 1;
             } else {
-              item.liquidityLabel="Med";
+              item.liquidityLabel = "Med";
             }
           };
           return item;
@@ -87,18 +89,20 @@ const CreateStatecoin = (props) => {
         liquidity_data = liquidity_data.slice(0, props.settings.picks)
 
         // filter out coins where the value is not greater than the total fee
-        callGetFeeInfo().then(fee =>  {
+        callGetFeeInfo().then(fee => {
           liquidity_data = liquidity_data.filter(statecoin => statecoin.value >= (FEE + ((statecoin.value * fee.withdraw) / 10000)));
           setLiquidityData(liquidity_data);
           setLoading(false);
         }).catch(e => {
-          setError({error: true, message: 'Failed retrieving fee info from server...'});
+          setError({ error: true, message: 'Failed retrieving fee info from server...' });
           setLoading(false);
         });
-      }).catch(e => {
+      }
+    }).catch(e => {
         setLoading(false);
         setError({error: true, message: 'Failed retrieving statecoin values from server...'});
       });
+      return () => { isMounted = false }
     }, [props.settings]);
 
 
