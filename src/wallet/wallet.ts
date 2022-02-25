@@ -689,7 +689,8 @@ export class Wallet {
         this.statecoins.coins[i].backup_status === BACKUP_STATUS.SPENT ||
         this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWN ||
         this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWING ||
-        this.statecoins.coins[i].status === STATECOIN_STATUS.IN_TRANSFER) {
+        this.statecoins.coins[i].status === STATECOIN_STATUS.IN_TRANSFER || 
+        this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPPED) {
         continue;
       }
       // check locktime

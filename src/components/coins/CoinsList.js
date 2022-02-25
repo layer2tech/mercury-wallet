@@ -261,7 +261,8 @@ const CoinsList = (props) => {
       const coinsNotWithdraw = coins_data.filter(coin => (
         coin.status !== STATECOIN_STATUS.WITHDRAWN &&
         coin.status !== STATECOIN_STATUS.WITHDRAWING &&
-        coin.status !== STATECOIN_STATUS.IN_TRANSFER));
+        coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
+        coin.status !== STATECOIN_STATUS.EXPIRED));
       const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
       dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsNotWithdraw.length }));
     }
