@@ -6,7 +6,7 @@ import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification, callGetConfig, callSumStatecoinValues} from '../../features/WalletDataSlice';
+import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification, callGetConfig, callSumStatecoinValues, callIsBatchMixedPrivacy} from '../../features/WalletDataSlice';
 import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, CoinsList} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
@@ -107,6 +107,10 @@ const WithdrawPage = () => {
     if(callSumStatecoinValues(selectedCoins) < 100000){
       dispatch(setError({msg: "Mininum withdrawal size is 0.001 BTC."}))
       return
+    }
+
+    if(callIsBatchMixedPrivacy(selectedCoins)) {
+      dispatch(setNotification({msg:"Warning: Withdrawal transaction contains both private and un-swapped inputs."}))
     }
 
     setLoading(true)

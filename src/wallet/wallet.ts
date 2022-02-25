@@ -1433,6 +1433,25 @@ export class Wallet {
     return num_transfers + "../.." + error_message
   }
 
+  isBatchMixedPrivacy(shared_key_ids: string[]){
+    let has_private = false;
+    let has_deposited = false;
+    shared_key_ids.forEach( (shared_key_id) => {
+      let statecoin = this.statecoins.getCoin(shared_key_id);
+      if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+      if (statecoin.is_deposited) {
+        has_deposited = true
+      } else {
+        has_private = true
+      }
+    });
+    if (has_deposited === has_private) {
+      return false
+    } else {
+      return true
+    }
+  }
+
   async withdraw_init(
     shared_key_ids: string[],
     rec_addr: string,
