@@ -236,6 +236,10 @@ export const callSumStatecoinValues = (shared_key_ids) => {
   return wallet.sumStatecoinValues(shared_key_ids)
 }
 
+export const callIsBatchMixedPrivacy = (shared_key_ids) => {
+  return wallet.isBatchMixedPrivacy(shared_key_ids)
+}
+
 export const callGetTorcircuitInfo = () => {
   return wallet.getTorcircuitInfo();
 }
