@@ -68,6 +68,16 @@ export interface RecoveryDataMsg {
   shared_key_data: string
 }
 
+export interface TransferFinalizeDataAPI {
+  new_shared_key_id: string,
+  statechain_id: string,
+  statechain_sig: any,
+  s2: string,
+  new_tx_backup_hex: string,
+  batch_data: any
+}
+
+
 export const pingServer = async (
   http_client: HttpClient | MockHttpClient,
 ) => {
@@ -128,7 +138,7 @@ export const getCoinsInfo = async (
 export const getStateChain = async (
   http_client: HttpClient | MockHttpClient,
   statechain_id: string
-) => {
+): Promise<StateChainDataAPI> => {
   let statechain = await http_client.get(GET_ROUTE.STATECHAIN, statechain_id);
 
   if (typeof statechain.utxo == "string") {
@@ -146,7 +156,7 @@ export const getStateChain = async (
 export const getStateChainTransferFinalizeData = async (
   http_client: HttpClient | MockHttpClient,
   statechain_id: String
-) => {
+): Promise<TransferFinalizeDataAPI> => {
   let response = await http_client.get(GET_ROUTE.SC_TRANSFER_FINALIZE_DATA, statechain_id);
   typeforce(types.TransferFinalizeDataAPI, response);
   return response

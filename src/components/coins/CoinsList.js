@@ -222,10 +222,10 @@ const CoinsList = (props) => {
 
   const checkSwapAvailability = (statecoin, in_swap_values) => {
     if (callGetConfig().singleSwapMode
-      && in_swap_values.has(statecoin.value)) {
+      && in_swap_values.has(statecoin?.value)) {
       return false
     }
-    if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) {
+    if (statecoin?.status !== STATECOIN_STATUS.AVAILABLE) {
       return false
     }
     return true
@@ -234,6 +234,7 @@ const CoinsList = (props) => {
 
   //Load coins once component done render
   useEffect(() => {
+    let isMounted = true
     const [coins_data] = callGetUnspentStatecoins();
     //Load all coins that aren't unconfirmed
 
@@ -242,28 +243,33 @@ const CoinsList = (props) => {
 
     let undeposited_coins_data = dispatch(callGetUnconfirmedAndUnmindeCoinsFundingTxData)
     //Load coins that haven't yet been sent BTC
+    if (isMounted === true) {
+      if (validCoinData(coins_data, unconfirmed_coins_data)) {
+        setCoins({
+          unspentCoins: coins_data,
+          unConfirmedCoins: unconfirmed_coins_data
+        })
+      }
 
-    if (validCoinData(coins_data, unconfirmed_coins_data)) {
-      setCoins({
-        unspentCoins: coins_data,
-        unConfirmedCoins: unconfirmed_coins_data
-      })
-    }
+      setInitCoins(undeposited_coins_data);
 
-    setInitCoins(undeposited_coins_data);
+      setInitCoins(undeposited_coins_data);
 
-    // Update total_balance in Redux state
-    if (filterBy !== 'default') {
-      const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
-      const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value, 0);
-      dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsByStatus.length }));
-    } else {
-      const coinsNotWithdraw = coins_data.filter(coin => (
-        coin.status !== STATECOIN_STATUS.WITHDRAWN &&
-        coin.status !== STATECOIN_STATUS.WITHDRAWING &&
-        coin.status !== STATECOIN_STATUS.IN_TRANSFER));
-      const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
-      dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsNotWithdraw.length }));
+      // Update total_balance in Redux state
+      if (filterBy !== 'default') {
+        const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
+        const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value, 0);
+        dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsByStatus.length }));
+      } else {
+        const coinsNotWithdraw = coins_data.filter(coin => (
+          coin.status !== STATECOIN_STATUS.WITHDRAWN &&
+          coin.status !== STATECOIN_STATUS.WITHDRAWING &&
+          coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
+          coin.status !== STATECOIN_STATUS.EXPIRED));
+        const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
+        dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsNotWithdraw.length }));
+      }
+      return () => { isMounted = false }
     }
   }
     , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved]);
@@ -321,7 +327,7 @@ const CoinsList = (props) => {
       const j = randomOrderIndices[i]
       let selectedCoin=swapPendingCoins[j]
       let statecoin = callGetStateCoin(selectedCoin);
-      if (checkSwapAvailability(statecoin, swapValues)) {
+      if (statecoin && checkSwapAvailability(statecoin, swapValues)) {
         swapValues.add(statecoin.value)
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
           .then(res => {
@@ -334,9 +340,10 @@ const CoinsList = (props) => {
   }
 
   const swapInfoAndAutoSwap = () => {
+    if (torInfo.online === false) return
     autoSwapLoop()
-    if (props.updateSwapInfo) {
-      props.updateSwapInfo()
+    if (props?.setRefreshSwapGroupInfo) {
+      props.setRefreshSwapGroupInfo((prevState) => !prevState);  
     }
   }
 

@@ -185,7 +185,7 @@ export const transferSender = async (
   return transfer_msg3
 }
 
-export const transferReceiver = async (
+export const getTransferMsg4 = async (
   http_client: HttpClient |  MockHttpClient,
   electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient, 
   network: Network,
@@ -194,57 +194,20 @@ export const transferReceiver = async (
   batch_data: any,
   req_confirmations: number,
   block_height: number | null,
-  value: any
-): Promise<TransferFinalizeData> => {
-  // Get statechain data (will Err if statechain not yet finalized)
-  let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
-
-  // Verify state chain represents this address as new owner
-  let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
-  let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
-  let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
-  if (!statechain_sig.verify(prev_owner_proof_key_der)) {
-    //if the signature matches the transfer message, then transfer already completed
-    if (statechain_data.chain.length > 1) {
-      if (statechain_data.chain[statechain_data.chain.length-2].next_state.sig == transfer_msg3.statechain_sig.sig) {
-        // transfer already (partially) completed
-
-        let new_shared_key_id = await getOwner(http_client, transfer_msg3.statechain_id);        
-
-        // get o2 private key and corresponding 02 public key
-        let o2_keypair = se_rec_addr_bip32;
-        let o2 = o2_keypair.privateKey!.toString("hex");
-
-        // Update tx_backup_psm shared_key_id with new one
-        let tx_backup_psm = transfer_msg3.tx_backup_psm;
-        tx_backup_psm.shared_key_id = new_shared_key_id;
-
-        let finalize_data = {
-            new_shared_key_id: new_shared_key_id,
-            o2: o2,
-            s2_pub: null,
-            state_chain_data: statechain_data,
-            proof_key: transfer_msg3.rec_se_addr.proof_key,
-            statechain_id: transfer_msg3.statechain_id,
-            tx_backup_psm: tx_backup_psm,
-        };
-        return finalize_data
-      } else {
-        throw new Error("Invalid StateChainSig.");
-      }
-    } else {
-      throw new Error("Invalid StateChainSig.");
-    }
-  }
-
+  value: number | null,
+  statechain_data: StateChainDataAPI | null
+): Promise<TransferMsg4> => {
   // Backup tx verification
-
+  if (statechain_data === null || statechain_data === undefined) {
+    statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
+  }
   // 1. Verify backup transaction amount
   let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
-  if ((tx_backup.outs[0].value + tx_backup.outs[1].value + FEE) !== statechain_data.amount) throw new Error("Backup tx invalid amount.");
-  if(value) {
-    if ((tx_backup.outs[0].value + tx_backup.outs[1].value + FEE) !== value) throw new Error("Swapped coin value invalid.");
+  const backup_tx_amount = tx_backup.outs[0].value + tx_backup.outs[1].value + FEE
+  if(value !== null && value !== undefined){
+    if (backup_tx_amount !== value) throw new Error(`Swapped coin value invalid. Expected ${backup_tx_amount}, got ${value}`)
   }
+  if (backup_tx_amount !== statechain_data.amount) throw new Error(`Backup tx invalid amount. Expected ${statechain_data.amount}, got ${backup_tx_amount}`);
   // 2. Verify the input matches the specified outpoint
   if (tx_backup.ins[0].hash.reverse().toString("hex") !== statechain_data.utxo.txid) throw new Error("Backup tx invalid input.");
   if (tx_backup.ins[0].index !== statechain_data.utxo.vout) throw new Error("Backup tx invalid input.");
@@ -325,7 +288,78 @@ export const transferReceiver = async (
     batch_data,
   };
   typeforce(types.TransferMsg4, transfer_msg4);
-  let transfer_msg5: TransferMsg5 = await http_client.post(POST_ROUTE.TRANSFER_RECEIVER, transfer_msg4);
+  return transfer_msg4
+}
+
+export const transferReceiver = async (
+  http_client: HttpClient |  MockHttpClient,
+  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient, 
+  network: Network,
+  transfer_msg3: any,
+  se_rec_addr_bip32: BIP32Interface,
+  batch_data: any,
+  req_confirmations: number,
+  block_height: number | null,
+  value: number | null,
+  transfer_msg_4: TransferMsg4 | null
+): Promise<TransferFinalizeData> => {
+  // Get statechain data (will Err if statechain not yet finalized)
+  let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
+
+  // get o2 private key
+  const o2 = se_rec_addr_bip32.privateKey!.toString("hex");
+  
+  // Verify state chain represents this address as new owner
+  let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
+  let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
+  let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
+  if (!statechain_sig.verify(prev_owner_proof_key_der)) {
+    //if the signature matches the transfer message, then transfer already completed
+    if (statechain_data.chain.length > 1) {
+      if (statechain_data.chain[statechain_data.chain.length-2].next_state.sig == transfer_msg3.statechain_sig.sig) {
+        // transfer already (partially) completed
+
+        let new_shared_key_id = await getOwner(http_client, transfer_msg3.statechain_id);        
+
+    
+
+        // Update tx_backup_psm shared_key_id with new one
+        let tx_backup_psm = transfer_msg3.tx_backup_psm;
+        tx_backup_psm.shared_key_id = new_shared_key_id;
+
+        let finalize_data = {
+            new_shared_key_id: new_shared_key_id,
+            o2: o2,
+            s2_pub: null,
+            state_chain_data: statechain_data,
+            proof_key: transfer_msg3.rec_se_addr.proof_key,
+            statechain_id: transfer_msg3.statechain_id,
+            tx_backup_psm: tx_backup_psm,
+        };
+        return finalize_data
+      } else {
+        throw new Error("Invalid StateChainSig.");
+      }
+    } else {
+      throw new Error("Invalid StateChainSig.");
+    }
+  }
+
+  if (transfer_msg_4 === null || transfer_msg_4 === undefined) {
+    transfer_msg_4 = await getTransferMsg4(  
+      http_client,
+      electrum_client, 
+      network,
+      transfer_msg3,
+      se_rec_addr_bip32,
+      batch_data,
+      req_confirmations,
+      block_height,
+      value,
+      statechain_data)
+  }
+  
+  let transfer_msg5: TransferMsg5 = await http_client.post(POST_ROUTE.TRANSFER_RECEIVER, transfer_msg_4);
   typeforce(types.TransferMsg5, transfer_msg5);
 
   // Update tx_backup_psm shared_key_id with new one
@@ -461,7 +495,7 @@ export interface TransferMsg4 {
   statechain_id: string,
   t2: {secret_bytes: number[]}, // t2 = t1*o2_inv = o1*x1*o2_inv
   statechain_sig: StateChainSig,
-  o2_pub: string,
+  o2_pub: { x: string, y: string },
   tx_backup_hex: string,
   batch_data: any,
 }
@@ -481,14 +515,6 @@ export interface  TransferFinalizeData {
     tx_backup_psm: PrepareSignTxMsg,
 }
 
-export interface TransferFinalizeDataAPI {
-  new_shared_key_id: string,
-  statechain_id: string,
-  statechain_sig: any,
-  s2: string,
-  new_tx_backup_hex: string,
-  batch_data: any
-}
 
 export interface TransferFinalizeDataForRecovery {
     new_shared_key_id: string,

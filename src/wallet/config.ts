@@ -3,6 +3,7 @@
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "./electrum";
 const NETWORK_CONFIG = require('../network.json');
+const bitcoin = require('bitcoinjs-lib')
 
 // Node friendly importing required for Jest tests.
 declare const window: any;
@@ -103,7 +104,7 @@ export class Config {
     
     this.update(require("../settings.json"))
   }
-
+  
   getConfig() {
     return cloneDeep(this)
   }

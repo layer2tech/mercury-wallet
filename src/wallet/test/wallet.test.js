@@ -2,8 +2,8 @@ let bitcoin = require('bitcoinjs-lib')
 import { Wallet, StateCoin, StateCoinList, ACTION, Config, STATECOIN_STATUS, BACKUP_STATUS, decryptAES } from '../';
 import { segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
-import { ECPair, Network, Transaction } from 'bitcoinjs-lib';
-import { txWithdrawBuild, txBackupBuild } from '../util';
+import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
+import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr } from '../util';
 import { addRestoredCoinDataToWallet } from '../recovery';
 import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
 import  { RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
@@ -15,10 +15,12 @@ import  { RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
 import { MockElectrumClient } from "../mocks/mock_electrum";
 import { Storage } from '../../store';
 import { getFinalizeDataForRecovery } from '../recovery';
+import { assert } from 'console';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
 let bip32 = require('bip32')
+let bip39 = require('bip39');
 
 const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
 
@@ -53,6 +55,145 @@ describe('Wallet', function() {
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
   });
+
+  describe('segwitAddr', function () {
+    let publicKeyStr = "027d73eafd92135741e28ce14e240ec2c5fdeb3ae8c123eafad774af277372bb5f"
+    let addr_expected = 'bc1qglel9v4uqxdzw05s3l0mdn9vdh6rdlv7pfnlfu'
+    let publicKey = Buffer.from(publicKeyStr, "hex")
+    let network = bitcoin.networks.bitcoin
+    let node1 = { publicKey: publicKey, network: network }
+    let node2 = { network: network }
+    let node3 = { publicKey: publicKey }
+
+    test('node and network 1', function () {
+      expect(`${segwitAddr(node3, network)}`).toEqual(addr_expected)
+    })
+
+    test('node and network 2', function () {
+      expect(`${segwitAddr(node1, network)}`).toEqual(addr_expected)
+    })
+
+    test('node only. node includes network', function () {
+      expect(`${segwitAddr(node1)}`).toEqual(addr_expected)
+    })
+
+    test('node only. pubkey undefined', function () {
+      expect(() => { segwitAddr(node2) }).toThrow(Error(`wallet::segwitAddr: node.publicKey is ${undefined}`))
+    })
+
+    test('node only. network undefined', function () {
+      expect(`${segwitAddr(node3)}`).toEqual(addr_expected)
+    });
+  
+  })
+
+  describe('bitcoin.address.fromOutputScript', function () {
+    const http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+    const tx_backup = bitcoin.Transaction.fromHex(http_mock.TRANSFER_MSG3.tx_backup_psm.tx_hex);
+    const addr_expected = "bc1qpdkj645a5zdpyq069n2syexkfwhuj5xda665q8"
+    
+    let network = bitcoin.networks.bitcoin
+    test('Address from output script in bitcoin network', function () {
+      let result = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, network);
+      expect(`${result}`).toEqual(addr_expected)
+    })
+
+    test('Address from output script for undefined network defaults to bitcoin network', function () {
+      let result = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, undefined);
+      expect(`${result}`).toEqual(addr_expected)
+    })
+
+    test('Address from output script for undefined network does not default to testnet network', function () {
+      let result = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, undefined);
+      let result_testnet = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, bitcoin.networks.testnet);
+      expect(`${result}`).not.toEqual(`${result_testnet}`)
+    })
+
+  })
+
+  describe('bitcoin.ECPair.fromWIF', function () {
+    const key_wif_mainnet = "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ"
+    const key_wif_testnet = "cTeNuT47BPk9P27coXveNQr4XyC4WMePhjAaazj4DbM14oyknYfB"
+    let ecpair_mainnet = bitcoin.ECPair.fromWIF(key_wif_mainnet, bitcoin.networks.bitcoin)
+    let ecpair_undefined = bitcoin.ECPair.fromWIF(key_wif_mainnet, undefined)
+    let ecpair_testnet = bitcoin.ECPair.fromWIF(key_wif_testnet, bitcoin.networks.testnet)
+
+    test('ECPair from WIF for undefined network', function () {
+      expect(ecpair_mainnet).toEqual(ecpair_undefined)
+    })
+
+    test('ECPair from WIF for testnet network', function () {
+      expect(ecpair_testnet).not.toEqual(ecpair_undefined)
+    })
+  })
+
+  describe('TransactionBuilder', function () {
+    test('TransactionBuilder for undefined network', function () {
+      expect(new TransactionBuilder(bitcoin.networks.bitcoin))
+        .toEqual(new TransactionBuilder(undefined))
+    })
+
+    test('TransactionBuilder for testnet network', function () {
+      expect(new TransactionBuilder(bitcoin.networks.testnet))
+        .not.toEqual(new TransactionBuilder(undefined))
+    })
+  })
+  
+  describe('addr_p2pkh', function () {
+    let publicKeyStr = "027d73eafd92135741e28ce14e240ec2c5fdeb3ae8c123eafad774af277372bb5f"
+    let publicKey = Buffer.from(publicKeyStr, "hex")
+    let addr_expected = "17ZTDRm8sfy4zcemX8F8nB5TJCvVD6JcJT"
+    
+    test('addr_p2pkh for bitcoin network', function () {
+      console.log(`p2pkh_addr_expected = ${addr_expected}`)
+      expect(bitcoin.payments.p2pkh({
+        pubkey: publicKey,
+        network: bitcoin.networks.network
+      }).address).toEqual(addr_expected)
+    })
+
+    test('addr_p2pkh for undefined network', function () {
+      expect(bitcoin.networks.bitcoin).not.toEqual(undefined)
+      console.log(`p2pkh_addr_expected = ${addr_expected}`)
+      expect(bitcoin.payments.p2pkh({
+        pubkey: publicKey,
+        network: undefined
+      }).address).toEqual(addr_expected)
+    })
+  })
+  
+  describe('bip32 from mnemonic', function () {
+    const seed = bip39.mnemonicToSeedSync(MOCK_WALLET_MNEMONIC);
+    const root = bip32.fromSeed(seed, bitcoin.networks.bitcoin);
+    const root_undef = bip32.fromSeed(seed, undefined);
+    const root_testnet = bip32.fromSeed(seed, bitcoin.networks.testnet);
+
+    test('bip32 root for undefined network', function () {
+      expect(root_undef).toEqual(root)
+    })
+
+    test('bip32 root for testnet network', function () {
+      expect(root_testnet).not.toEqual(root)
+    })
+  })
+
+  describe('pubKeyToBtcAddr', function () {
+    let publicKeyStr = "027d73eafd92135741e28ce14e240ec2c5fdeb3ae8c123eafad774af277372bb5f"
+    let addr_expected = 'bc1qglel9v4uqxdzw05s3l0mdn9vdh6rdlv7pfnlfu'
+  
+    test('Address from pubKeyToBtcAddr for bitcoin network', function () {
+      expect(`${pubKeyTobtcAddr(publicKeyStr, bitcoin.networks.bitcoin)}`)
+        .toEqual(addr_expected)
+    })
+
+    test('Address from pubKeyToBtcAddr for undefined network', function () {
+      expect(bitcoin.networks['bitcoin']).toEqual(bitcoin.networks.bitcoin)
+      expect(bitcoin.networks['bitcoin']).not.toEqual(undefined)
+      expect(`${pubKeyTobtcAddr(publicKeyStr, undefined)}`)
+        .toEqual(addr_expected)
+    })
+  })
+
 
 describe('Storage 2', function() {
   wallet.save();
@@ -175,6 +316,16 @@ describe('Storage 2', function() {
     let bip32 = wallet.getBIP32forProofKeyPubKey(proof_key_bip32.publicKey.toString("hex"))
     // Ensure BIP32 is correclty returned
     expect(proof_key_bip32.privateKey).toEqual(bip32.privateKey)
+    let addr_unknown = 'bc1qglel9v4uqxdzw05s3l0mdn9vdh6rdlv7pfnlfu'
+    //Check that an error is thrown for an unknown address
+    try{
+      let _ = wallet.getBIP32forBtcAddress(addr_unknown)
+    } catch(err){
+      expect(err).toEqual(
+        new Error(`wallet::getBIP32forBtcAddress - failed to derive proof key for address ${addr_unkown}`)
+      )
+    }
+
   });
 
   test('getActivityLogItems', function() {

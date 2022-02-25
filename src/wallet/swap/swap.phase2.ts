@@ -27,13 +27,6 @@ export function swapPhase2(swap: Swap): SwapStep[] {
             swap.getBSS
           ),
           new SwapStep(
-            SWAP_STATUS.Phase2, "getNewTorID",
-            () => {return true},
-            () => {return true},
-            () => {return true},
-            swap.getNewTorID
-          ),
-          new SwapStep(
             SWAP_STATUS.Phase2, "doSwapSecondMessage",
             () => {return true},
             () => {return true},

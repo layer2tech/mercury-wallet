@@ -6,7 +6,7 @@ import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification, callGetConfig, callSumStatecoinValues} from '../../features/WalletDataSlice';
+import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification, callGetConfig, callSumStatecoinValues, callIsBatchMixedPrivacy} from '../../features/WalletDataSlice';
 import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, CoinsList} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
@@ -60,6 +60,7 @@ const WithdrawPage = () => {
 
   // Get Tx fee estimate
   useEffect(() => {
+    let isMounted = true
     let blocks = txFees.map(item => item.block)
     // list of # of blocks untill confirmation
 
@@ -67,23 +68,25 @@ const WithdrawPage = () => {
 
     blocks.map(block => {
       dispatch(callGetFeeEstimation(parseInt(block))).then(tx_fee_estimate => {
-
-        if (tx_fee_estimate.payload>0) {
-          // Add fee to list
-          let feeEst = tx_fee_estimate.payload
+        if ( isMounted === true ) {
+          if (tx_fee_estimate.payload > 0) {
+            // Add fee to list
+            let feeEst = tx_fee_estimate.payload
           
-          txFeeEstimations = [... txFeeEstimations,
-            {block: block, fee:feeEst, id: (txFeeEstimations.length+1)}]
+            txFeeEstimations = [...txFeeEstimations,
+            { block: block, fee: feeEst, id: (txFeeEstimations.length + 1) }]
 
-          if(parseInt(block) === 6) setTxFeePerB(Math.ceil(feeEst))
-        }
+            if (parseInt(block) === 6) setTxFeePerB(Math.ceil(feeEst))
+          }
 
-        if(txFeeEstimations.length === 3){
-          //Initial Tx Fee estimations set
-          setTxFees(txFeeEstimations)
+          if (txFeeEstimations.length === 3) {
+            //Initial Tx Fee estimations set
+            setTxFees(txFeeEstimations)
+          }
         }
       })
     })
+    return () => {isMounted = false}
   }, [dispatch]);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
@@ -107,6 +110,10 @@ const WithdrawPage = () => {
     if(callSumStatecoinValues(selectedCoins) < 100000){
       dispatch(setError({msg: "Mininum withdrawal size is 0.001 BTC."}))
       return
+    }
+
+    if(callIsBatchMixedPrivacy(selectedCoins)) {
+      dispatch(setNotification({msg:"Warning: Withdrawal transaction contains both private and un-swapped inputs."}))
     }
 
     setLoading(true)

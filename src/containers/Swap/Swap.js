@@ -20,7 +20,8 @@ import {
   removeSwapPendingCoin,
   handleEndSwap,
   addInSwapValue,
-  updateInSwapValues
+  updateInSwapValues,
+  removeInSwapValue
 } from "../../features/WalletDataSlice";
 import {fromSatoshi, STATECOIN_STATUS} from '../../wallet';
 import './Swap.css';
@@ -34,8 +35,9 @@ const SwapPage = () => {
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
   const { torInfo, inSwapValues } = useSelector(state => state.walletData);
 
-  const [swapLoad, setSwapLoad] = useState({join: false,swapCoin: "", leave:false}) // set loading... onClick
-  const [initFetchSwapGroups,setInitFetchSwapGroups] = useState(true)
+  const [swapLoad, setSwapLoad] = useState({ join: false, swapCoin: "", leave: false }) // set loading... onClick
+  const [refreshSwapGroupInfo, setRefreshSwapGroupInfo] = useState(false)
+  const [initFetchSwapGroups, setInitFetchSwapGroups] = useState(true)
   
   const [swapGroupsData, setSwapGroupsData] = useState([]);
 
@@ -53,26 +55,32 @@ const SwapPage = () => {
     );
   }
 
-  const updateSwapInfo = () => {
-    dispatch(callUpdateSwapGroupInfo());
-    let swap_groups_data = callGetSwapGroupInfo();
-    let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
-    setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
-    setRefreshCoins((prevState) => !prevState);
-    setInitFetchSwapGroups(false)
+  const updateSwapInfo = async (isMounted) => {
+      dispatch(callUpdateSwapGroupInfo());
+      let swap_groups_data = callGetSwapGroupInfo();
+      let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
+      if (isMounted === true) {
+        setSwapGroupsData(swap_groups_array) //update state to refresh TransactionDisplay render
+        setRefreshCoins((prevState) => !prevState);
+        setInitFetchSwapGroups(false)
+      }
   }
 
-  // Update swap info when swapLoad changes.
+  // Update swap info when swapLoad or setRefreshSwapGroupInfo changes.
   // The delay on joining is to wait for the coin to be added to a swap group.
   useEffect(() => {
+    if (torInfo.online === false) {
+      return
+    }
+    let isMounted = true
     let delay = swapLoad.join ? 500 : 0; 
     setTimeout(() => {
-      // console.log('interval 5')
-      updateSwapInfo()
+      updateSwapInfo(isMounted)
     }, delay);
+    return () => { isMounted = false }
   },
-  [swapLoad]);
-    
+    [swapLoad, refreshSwapGroupInfo]);
+  
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     dispatch(setError({msg: "No Wallet loaded."}))
@@ -138,7 +146,7 @@ const SwapPage = () => {
     setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
   }
 
-  const handleAutoSwap =  (item) => {
+  const handleAutoSwap = async (item) => {
     if(item.status === 'UNCONFIRMED' || item.status === 'IN_MEMPOOL'){
       return;
     }
@@ -165,19 +173,21 @@ const SwapPage = () => {
     // turn off swap_auto
     if(item.swap_auto){
       dispatch(removeSwapPendingCoin(item.shared_key_id))
+      dispatch(removeInSwapValue(statecoin.value))
       statecoin.swap_auto = false;
       setSwapLoad({...swapLoad, leave: true})
       try{
-        dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin, "dispatch": dispatch, "autoswap": true}))
-          .then(res => {
-            dispatch(() => {
+        await dispatch(callSwapDeregisterUtxo({"shared_key_id": selectedCoin, "dispatch": dispatch, "autoswap": true}))
+        dispatch(() => {
               removeCoinFromSwapRecords(selectedCoin)
-            });
-            setSwapLoad({...swapLoad, leave: false})
         });
-      } catch (e) {
         setSwapLoad({...swapLoad, leave: false})
-        dispatch(setError({msg: e.message}))
+      } catch (e) {
+        setSwapLoad({ ...swapLoad, leave: false })
+        console.log(`dereg - caught error - ${e}`)
+        if (!e.message.includes("Coin is not in a swap pool")) {
+            dispatch(setError({msg: e.message}))
+        }
       } finally {
         // Refresh Coins list
         setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
@@ -291,7 +301,7 @@ const SwapPage = () => {
                           setSelectedCoins={setSelectedCoins}
                           refresh={refreshCoins}
                           handleAutoSwap={handleAutoSwap}
-                          updateSwapInfo = { updateSwapInfo }
+                          setRefreshSwapGroupInfo = { setRefreshSwapGroupInfo }
                           swap
                         />
                     </div>

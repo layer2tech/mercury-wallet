@@ -1,6 +1,11 @@
-import {Mutex} from 'async-mutex';
-const axios = require('axios').default;
-export const mutex = new Mutex();
+import { AsyncSemaphore } from "@esfx/async-semaphore";
+//const axios = require('axios').default;
+import axios, { AxiosRequestConfig } from 'axios'
+
+export const TIMEOUT = 20000
+// Maximum number of concurrent API calls
+export const MAX_SEMAPHORE_COUNT = 5;
+export const semaphore = new AsyncSemaphore(MAX_SEMAPHORE_COUNT);
 
 export const GET_ROUTE = {
   PING: "ping",
@@ -50,6 +55,9 @@ Object.freeze(POST_ROUTE);
 
 // Check if returned value from server is an error. Throw if so.
 const checkForServerError = (response: any) => {
+  if (!response) {
+    return
+  }
   let return_val = response?.data
   if( response.status >= 400) {
     throw Error(`http status: ${response.status}, data: ${return_val}`)
@@ -62,51 +70,73 @@ const checkForServerError = (response: any) => {
   }  
 }
 
-export class HttpClient {
-  endpoint: string
-  is_tor: boolean
-
-  constructor(endpoint: string, is_tor = false) {
-    this.endpoint = endpoint;
-    this.is_tor = is_tor;
+const handlePromiseRejection = (err: any, config: any) => {
+  let msg_str = err?.message
+  if (msg_str && msg_str.search(`/timeout of .*ms exceeded/`)) {
+    throw new Error(`Mercury API request timed out: ${msg_str}`)
   }
-
-  async new_tor_id() {
-    if (this.is_tor) {
-      await this.get('newid', {});
-    }
-  };
-
-  async get (path: string, params: any){
-    //const release = await mutex.acquire();
-      const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
-      const config = {
-          method: 'get',
-          url: url,
-          headers: { 'Accept': 'application/json' }
-      };
-      let res = await axios(config)
-      checkForServerError(res)
-
-      //release();
-      return res.data
-  }
-
-  async post (path: string, body: any) {
-    //const release = await mutex.acquire();
-      let url = this.endpoint + "/" + path.replace(/^\/+/, '');
-      const config = {
-          method: 'post',
-          url: url,
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          data: body,
-      };
-      let res = await axios(config)
-      checkForServerError(res)
-      //release();
-      return res.data
-  };
+  throw err
 }
+
+  export class HttpClient {
+    endpoint: string
+    is_tor: boolean
+
+    constructor(endpoint: string, is_tor = false) {
+      this.endpoint = endpoint;
+      this.is_tor = is_tor;
+    }
+
+    async new_tor_id() {
+      if (this.is_tor) {
+        const timeout_ms = 20000
+        await this.get('newid', {}, timeout_ms);
+      }
+    };
+
+    async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
+      const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
+      const config: AxiosRequestConfig = {
+        method: 'get',
+        url: url,
+        headers: { 'Accept': 'application/json' },
+        timeout: timeout_ms
+      };
+      await semaphore.wait()
+      return axios(config).catch((err: any) => {
+        handlePromiseRejection(err, config)
+      }).finally( () => {
+        semaphore.release()
+      }).then(
+      (res: any) => {
+        checkForServerError(res)
+        return res?.data        
+        })
+      
+      
+    }
+
+    async post(path: string, body: any, timeout_ms: number = TIMEOUT) {
+      let url = this.endpoint + "/" + path.replace(/^\/+/, '');
+      const config: AxiosRequestConfig = {
+        method: 'post',
+        url: url,
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        timeout: timeout_ms,
+        data: body,
+      };
+      await semaphore.wait();
+      return axios(config).catch((err: any) => {
+        handlePromiseRejection(err, config)
+      }).finally(() => {
+        semaphore.release()
+      }).then (
+      (res: any) => {
+        checkForServerError(res)
+        return res?.data
+      })
+    }
+  }

@@ -44,9 +44,9 @@ export const callGetArgsHasTestnet =  () => {
 
 let network;
 if(callGetArgsHasTestnet()){
-  network = bitcoin.networks["testnet"];
+  network = bitcoin.networks['testnet'];
 }else{
-  network = bitcoin.networks["mainnet"];
+  network = bitcoin.networks['bitcoin'];
 }
 
 let wallet;
@@ -234,6 +234,10 @@ return wallet.getAllStatecoins()
 
 export const callSumStatecoinValues = (shared_key_ids) => {
   return wallet.sumStatecoinValues(shared_key_ids)
+}
+
+export const callIsBatchMixedPrivacy = (shared_key_ids) => {
+  return wallet.isBatchMixedPrivacy(shared_key_ids)
 }
 
 export const callGetTorcircuitInfo = () => {
@@ -555,8 +559,8 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
     if(!statecoin) throw Error(`callSwapDeregisterUtxo: statecoin with shared key id ${action.shared_key_id} not found`)
     try{  
       await wallet.deRegisterSwapCoin(statecoin) 
-    } catch(e) {
-      if(e?.message.includes("Cannot remove coin")){
+    } catch (e) {
+      if(e?.message.includes("Coin is not in a swap pool")){
         if(action?.autoswap === true){
           action.dispatch(setNotification({msg: `Deactivated auto-swap for coin: ${statecoin.getTXIdAndOut()}.`}))
         } else {
