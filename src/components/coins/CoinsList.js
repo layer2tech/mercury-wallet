@@ -253,19 +253,21 @@ const CoinsList = (props) => {
 
       setInitCoins(undeposited_coins_data);
 
-      // Update total_balance in Redux state
-      if (filterBy !== 'default') {
-        const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
-        const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsByStatus.length }));
-      } else {
-        const coinsNotWithdraw = coins_data.filter(coin => (
-          coin.status !== STATECOIN_STATUS.WITHDRAWN &&
-          coin.status !== STATECOIN_STATUS.WITHDRAWING &&
-          coin.status !== STATECOIN_STATUS.IN_TRANSFER));
-        const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsNotWithdraw.length }));
-      }
+    setInitCoins(undeposited_coins_data);
+
+    // Update total_balance in Redux state
+    if (filterBy !== 'default') {
+      const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
+      const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value, 0);
+      dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsByStatus.length }));
+    } else {
+      const coinsNotWithdraw = coins_data.filter(coin => (
+        coin.status !== STATECOIN_STATUS.WITHDRAWN &&
+        coin.status !== STATECOIN_STATUS.WITHDRAWING &&
+        coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
+        coin.status !== STATECOIN_STATUS.EXPIRED));
+      const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
+      dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsNotWithdraw.length }));
     }
     return () => { isMounted = false }
   }
