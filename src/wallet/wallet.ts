@@ -472,7 +472,7 @@ export class Wallet {
       let addr = this.account.chains[0].addresses[addr_index];
       // Address at index shown on receive page
 
-      let proofkey = this.account.derive(addr).publicKey.toString("hex");
+      let proofkey = this.getBIP32forBtcAddress(addr).publicKey.toString("hex");
       // Proof key associated with address
 
       let encoded_sce_address = encodeSCEAddress(proofkey)
@@ -883,14 +883,18 @@ export class Wallet {
   }
 
   getBIP32forBtcAddress(addr: string): BIP32Interface {
-    return this.account.derive(addr)
+    let proof_key = this.account.derive(addr)
+    if (!proof_key) {
+      throw new Error(`wallet::getBIP32forBtcAddress - failed to derive proof key for address ${addr}`)
+    }
+    return proof_key
   }
 
   // New Proof Key
   genProofKey(): BIP32Interface {
     let addr = this.account.nextChainAddress(0);
     this.saveKeys()
-    let proof_key = this.account.derive(addr);
+    let proof_key = this.getBIP32forBtcAddress(addr);
     log.debug("Gen proof key. Address: "+addr+". Proof key: "+proof_key.publicKey.toString("hex"));
     return proof_key
   }
@@ -1133,8 +1137,13 @@ export class Wallet {
 
     log.info("Swapping coin: "+statecoin.shared_key_id);
 
+    if(! statecoin?.proof_key){
+      throw new Error(`resume_swap - no proof key for statecoin with shared
+      key id: ${statecoin.shared_key_id}`)
+    }
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     let new_proof_key_der = this.genProofKey();
+ 
     let wasm = await this.getWasm();
       
     statecoin.sc_address = encodeSCEAddress(statecoin.proof_key, this)
@@ -1368,7 +1377,7 @@ export class Wallet {
     let num_transfers = 0;
     let addr = this.account.chains[0].addresses[addr_index];
   
-    let proofkey = this.account.derive(addr).publicKey.toString("hex");
+    let proofkey = this.getBIP32forBtcAddress(addr).publicKey.toString("hex");
     const MAX_RETRIES=10
     let n_retries=0
     let transfer_msgs = []
@@ -1563,9 +1572,16 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
 
 // Address generation fn
 export const segwitAddr = (node: any, network: Network) => {
-  network = network===undefined ? node.network : network
+  network = network===undefined ? node?.network : network
+  if (!network){
+    throw new Error(`wallet::segwitAddr: node.network is ${network}`)
+  }
+  let pubkey = node?.publicKey
+  if (!pubkey){
+    throw new Error(`wallet::segwitAddr: node.publicKey is ${pubkey}`)
+  }
   const p2wpkh = bitcoin.payments.p2wpkh({
-    pubkey: node.publicKey,
+    pubkey: pubkey,
     network: network
   });
   return p2wpkh.address

@@ -29,13 +29,13 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<R
 
   let addr = wallet.account.getChainAddress(0);
   addrs.push(addr);
-  recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
+  recovery_request.push({key: wallet.getBIP32forBtcAddress(addr).publicKey.toString("hex"), sig: ""});
   let count = 0;
   while (count < gap_limit) {
     for (let i=0; i<NUM_KEYS_PER_RECOVERY_ATTEMPT; i++) {
       let addr = wallet.account.nextChainAddress(0);
       addrs.push(addr);
-      recovery_request.push({key: wallet.account.derive(addr).publicKey.toString("hex"), sig: ""});
+      recovery_request.push({key: wallet.getBIP32forBtcAddress(addr).publicKey.toString("hex"), sig: ""});
       count++;
     }
     console.log(count);

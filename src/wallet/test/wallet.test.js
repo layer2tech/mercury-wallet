@@ -15,6 +15,7 @@ import  { RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
 import { MockElectrumClient } from "../mocks/mock_electrum";
 import { Storage } from '../../store';
 import { getFinalizeDataForRecovery } from '../recovery';
+import { assert } from 'console';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -70,6 +71,41 @@ describe('Storage 2', function() {
     // check wallets serialize to same values (since deep equal on recursive objects is messy)
 
     expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet));
+  });
+
+  test('segwitAddr', function() {
+    let publicKeyStr = "027d73eafd92135741e28ce14e240ec2c5fdeb3ae8c123eafad774af277372bb5f"
+    let addr_expected = 'bc1qglel9v4uqxdzw05s3l0mdn9vdh6rdlv7pfnlfu'
+    let publicKey = Buffer.from(publicKeyStr, "hex")
+    let network = bitcoin.networks.bitcoin
+    let node1 = {publicKey: publicKey, network: network}
+    let node2 = {network: network}
+    let node3 = {publicKey: publicKey}
+
+    let addr1 = segwitAddr(node3, network)
+    
+    expect(`${addr1}`).toEqual(addr_expected)
+
+    let addr2 = segwitAddr(node1, network)
+
+    expect(`${addr2}`).toEqual(addr_expected)
+
+    let addr3 = segwitAddr(node1)
+
+    expect(`${addr3}`).toEqual(addr_expected)
+    
+    try{
+      let _ = segwitAddr(node2)
+    } catch(err){
+      expect(err).toEqual(new Error(`wallet::segwitAddr: node.publicKey is ${undefined}`))
+    }
+
+    try{
+      let _ = segwitAddr(node3)
+    } catch(err){
+      expect(err).toEqual(new Error(`wallet::segwitAddr: node.network is ${undefined}`))
+    }
+
   });
 
   
@@ -175,6 +211,16 @@ describe('Storage 2', function() {
     let bip32 = wallet.getBIP32forProofKeyPubKey(proof_key_bip32.publicKey.toString("hex"))
     // Ensure BIP32 is correclty returned
     expect(proof_key_bip32.privateKey).toEqual(bip32.privateKey)
+    let addr_unknown = 'bc1qglel9v4uqxdzw05s3l0mdn9vdh6rdlv7pfnlfu'
+    //Check that an error is thrown for an unknown address
+    try{
+      let _ = wallet.getBIP32forBtcAddress(addr_unknown)
+    } catch(err){
+      expect(err).toEqual(
+        new Error(`wallet::getBIP32forBtcAddress - failed to derive proof key for address ${addr_unkown}`)
+      )
+    }
+
   });
 
   test('getActivityLogItems', function() {
