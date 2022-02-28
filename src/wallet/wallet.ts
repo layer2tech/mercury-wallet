@@ -885,11 +885,14 @@ export class Wallet {
   }
 
   getBIP32forBtcAddress(addr: string): BIP32Interface {
-    let proof_key = this.account.derive(addr)
-    if (!proof_key) {
-      throw new Error(`wallet::getBIP32forBtcAddress - failed to derive proof key for address ${addr}`)
+    if (this.account.containsAddress(addr) === false) {
+      throw Error(`wallet::getBIP32forBtcAddress - account does not contain address ${addr}`)
     }
-    return proof_key
+    let node = this.account.derive(addr)
+    if (!node) {
+      throw new Error(`wallet::getBIP32forBtcAddress - failed to derive BIP32 node for address ${addr}`)
+    }
+    return node
   }
 
   // New Proof Key
@@ -1123,7 +1126,7 @@ export class Wallet {
       } finally {
         swapSemaphore.release();
       }
-
+      
       return await this.resume_swap(statecoin, false)
     } else {
       return await this.resume_swap(statecoin, true)
@@ -1139,14 +1142,18 @@ export class Wallet {
 
     log.info("Swapping coin: " + statecoin.shared_key_id);
 
-    if (!statecoin?.proof_key) {
-      throw new Error(`resume_swap - no proof key for statecoin with shared
-      key id: ${statecoin.shared_key_id}`)
+    let proof_key = statecoin?.proof_key
+    if (proof_key === undefined || proof_key === null) {
+      throw Error(`resume_swap - proof key for statecoin with shared
+      key id: ${statecoin.shared_key_id} is ${proof_key}`)
     }
-    let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+    let proof_key_der
+    try {
+     proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+    } catch (err) {
+      throw Error(`resume_swap: ${err.message}`)
+    }
     let new_proof_key_der = this.genProofKey();
-
-    let wasm = await this.getWasm();
 
     statecoin.sc_address = encodeSCEAddress(statecoin.proof_key, this)
 
@@ -1156,7 +1163,7 @@ export class Wallet {
     try {
       await (async () => {
         while (updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-          delay(100);
+          delay(1000);
         }
       });
       let swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der, resume)
