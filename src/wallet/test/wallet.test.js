@@ -579,6 +579,27 @@ describe("Config", () => {
     config.update({invalid: ""});
     expect(logWarnSpy).toHaveBeenCalled()
   })
+
+  test('expect update of non-connection values to return \'false\'', () => {
+    let update = config.getConfig()
+    update.testing_mode = !config.testing_mode
+    update.jest_testing_mode = !config.jest_testing_mode
+    update.required_confirmations = config.required_confirmations + 1
+    update.electrum_fee_estimation_blocks = config.electrum_fee_estimation_blocks + 1
+    update.min_anon_set = config.min_anon_set + 1
+    update.notifications = !config.notifications
+    update.singleSwapMode = !config.singleSwapMode
+    update.tutorials = !config.tutorials
+    update.swapLimit = config.swapLimit + 1
+    expect(config.update(update)).toEqual(false)
+  })
+    
+  test('expect update of connection values to return \'true\'', () => {
+    let update = config.getConfig()
+    update.electrum_config.type = `${config.type}_edited`
+    expect(config.update(update)).toEqual(true)
+  })
+
 })
 
 
