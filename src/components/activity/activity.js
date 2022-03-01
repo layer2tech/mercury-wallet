@@ -68,10 +68,14 @@ const Activity = () => {
 	let activityDataMergeDate = mergeActivityByDate();
 
 	{
-		// if the dates are exactly the same then remove them before rendering
+		// if there are any objects in here with exactly the same values, they must be a duplicate
 		activityDataMergeDate = activityDataMergeDate.filter((element, index, self) =>
 			index === self.findIndex((t) => (
-				t.date === element.date
+				// check for date, action, funding txid and txvout
+				t.date === element.date &&
+				t.action === element.action &&
+				t.funding_txid === element.funding_txid &&
+				t.funding_txvout === element.funding_txvout
 			))
 		)
 	}
