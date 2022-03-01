@@ -424,8 +424,8 @@ describe('Deregister statecoin',  function () {
 
     //Statecoin not found in wallet
     const wrong_id = "wrong_id"
-    expect(() => {wallet.removeCoinFromSwapPool(wrong_id)}).
-      toThrowError("No coin found with shared_key_id " + wrong_id)
+    await expect(wallet.removeCoinFromSwapPool(wrong_id)).rejects.
+      toThrow(Error ("No coin found with shared_key_id " + wrong_id))
   })
 
   test('removeCoinFromSwapPool from statecoin awaiting swap successful', async function () {
@@ -504,17 +504,18 @@ describe('Process step result Retry',  function () {
 describe('Process step result Ok',  function () {
   let wallet;
   let statecoin
+  let swap
+  let in_step
   beforeAll(async () => {
     wallet = await getWallet()
     statecoin = wallet.statecoins.coins[0]
-    setSwapDetails(statecoin,1)
+    setSwapDetails(statecoin, 1)
+    swap = new Swap(wallet, statecoin);
+    statecoin.swap_error = "a swap error"
+    in_step = cloneDeep(swap.next_step)
+    swap.processStepResult(SwapStepResult.Ok(), swapInit(swap)[0]) 
   })
     
-  let swap = new Swap(wallet, statecoin);
-  statecoin.swap_error = "a swap error"
-  const in_step = cloneDeep(swap.next_step)
-  swap.processStepResult(SwapStepResult.Ok(), swapInit(swap)[0]) 
-
   test('processStepResult of result Ok clears statecoin swap error', async function () {   
     expect(swap.statecoin.swap_error).toEqual(null)
   })
