@@ -55,6 +55,7 @@ export class Config {
   jest_testing_mode: boolean;
   required_confirmations: number;
   electrum_fee_estimation_blocks: number;
+  swap_amounts: Array<number>;
 
   // Editable while wallet running from Settings page
   state_entity_endpoint: string;
@@ -82,6 +83,7 @@ export class Config {
     this.jest_testing_mode = false;
     this.required_confirmations = 3;
     this.electrum_fee_estimation_blocks = 6;
+    this.swap_amounts = [100000,500000,1000000,5000000,10000000,50000000,100000000];
 
     this.state_entity_endpoint = current_state_entity_endpoint;
     this.swap_conductor_endpoint = current_state_entity_endpoint;
@@ -128,6 +130,9 @@ export class Config {
         case "electrum_fee_estimation_blocks":
           this.electrum_fee_estimation_blocks = item[1];
           break;
+        case "swap_amounts":
+          this.swap_amounts = item[1];
+          break;          
         case "state_entity_endpoint":
           connectionChanged = updateIfDifferent(
             this.state_entity_endpoint,
