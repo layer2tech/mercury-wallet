@@ -414,100 +414,57 @@ describe('createBackupTxCPFP', function () {
       await expect(wallet.createBackupTxCPFP(cpfp_data)).resolves.toBe(true);
       expect(wallet.statecoins.coins[0].tx_cpfp.outs.length).toBe(1);
     })
-  });
+});
+  
+describe('updateBackupTxStatus', function () {
 
-/*
-describe('updateBackupTxStatus', function() {
-
-  const swap_limit = async (wallet) => {
+  let wallet
+  beforeAll(async () => {
+    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+  })
+    
+  test('Swaplimit', async function () {
     // locktime = 1000, height = 100 SWAPLIMIT triggered
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 100;
-    await wallet.updateBackupTxStatus();
-    return cloneDeep(wallet.statecoins.coins[0])
-  }
+    wallet.updateBackupTxStatus();
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPLIMIT);
+  })
 
- const expired = async (wallet) => {
+  test('Expired', async function () {
     // locktime = 1000, height = 1000, EXPIRED triggered
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 1000;
-    await wallet.updateBackupTxStatus();
-    return cloneDeep(wallet.statecoins.coins[1])
-  }
+    wallet.updateBackupTxStatus();
+    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.EXPIRED);
+    // verify tx in mempool
+    expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.IN_MEMPOOL);
+  })
 
-  const confirmed = async (wallet) => {
+  test('Confirmed', async function () {
     // blockheight 1001, backup tx confirmed, coin WITHDRAWN
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 1001;
-    await wallet.updateBackupTxStatus();
-    return cloneDeep(wallet.statecoins.coins[1])
-  }
+    wallet.updateBackupTxStatus();
+    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWN);
+    // verify tx confirmed
+    expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.CONFIRMED);
+  })
 
-  const double_spend = async (wallet) => {
+  test('Double spend', async function () {
     // blockheight 1001, backup tx double-spend, coin EXPIRED
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "01f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 1001;
-    await wallet.updateBackupTxStatus();
-    return cloneDeep(wallet.statecoins.coins[0])
-  }
-
-
-  let res = []
-  beforeAll(async () => {
-    let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
-    for (let i = 0; i < 10; i++){
-      await wallet.genBtcAddress()    
-    }
-    let addr1 = await wallet.genBtcAddress()
-    let addr2 = await wallet.genBtcAddress()
-    let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, addr1, 10000, addr2, 10, 1000);
-    wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
-    let result = await swap_limit(wallet)
-    console.log(`${result.status} ${result.backup_status}`)
-    res.push(result)
-    let result1 = await expired(wallet)
-    console.log(`${result1.status} ${result1.backup_status}`)
-    res.push(result1)
-    result = await confirmed(wallet)
-    console.log(`${result.status} ${result.backup_status}`)
-    res.push(result)
-    result = await double_spend(wallet)
-    console.log(`${result.status} ${result.backup_status}`)
-    res.push(result)
-    console.log('****updateBackup results****')
-    for (let i = 0; i < res.length; i++){
-      console.log(`${res[i].status} ${res[i].backup_status}`)
-    }
+    wallet.updateBackupTxStatus();
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.EXPIRED);
+    // verify tx confirmed
+    expect(wallet.statecoins.coins[0].backup_status).toBe(BACKUP_STATUS.TAKEN);
   })
-
-
-  test('Swaplimit', function() {
-    expect(res[0].status).toBe(STATECOIN_STATUS.SWAPLIMIT);
-  })
-
-  test('Expired', function () {
-      expect(res[1].status).toBe(STATECOIN_STATUS.EXPIRED);
-      // verify tx in mempool
-      expect(res[1].backup_status).toBe(BACKUP_STATUS.IN_MEMPOOL);      
-  })
-
-  test('Confirmed', function() { 
-      expect(res[2].status).toBe(STATECOIN_STATUS.WITHDRAWN);
-      // verify tx confirmed
-      expect(res[2].backup_status).toBe(BACKUP_STATUS.CONFIRMED); 
-  })    
-
-  test('Double spend', function() {
-      expect(res[3].status).toBe(STATECOIN_STATUS.WITHDRAWN);
-      // verify tx confirmed
-      expect(res[3].backup_status).toBe(BACKUP_STATUS.TAKEN); 
-  })    
 })
-*/
 
 describe("Statecoins/Coin", () => {
   let statecoins
