@@ -1187,8 +1187,8 @@ export class Wallet {
     let proof_key_der
     try {
      proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-    } catch (err) {
-      throw Error(`resume_swap: ${err.message}`)
+    } catch (err: any) {
+      throw Error(`resume_swap: ${err?.message}`)
     }
     let new_proof_key_der = await this.genProofKey();
 
