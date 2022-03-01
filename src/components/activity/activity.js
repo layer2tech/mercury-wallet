@@ -68,10 +68,7 @@ const Activity = () => {
 	let activityDataMergeDate = mergeActivityByDate();
 
 	{
-		/* remove duplicates from array */
-		console.table(activityDataMergeDate);
-
-		// if the dates are exactly the same then remove them
+		// if the dates are exactly the same then remove them before rendering
 		activityDataMergeDate = activityDataMergeDate.filter((element, index, self) =>
 			index === self.findIndex((t) => (
 				t.date === element.date
