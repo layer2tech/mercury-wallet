@@ -97,7 +97,7 @@ const Coin = (props) => {
     let invalidDisplay = [STATECOIN_STATUS.IN_MEMPOOL, STATECOIN_STATUS.UNCONFIRMED, BACKUP_STATUS.IN_MEMPOOL, BACKUP_STATUS.PRE_LOCKTIME]
 
     // there can't be a valid expiry date if blocks are -1
-    if (coin_data.expiry_data.blocks === -1 && coin_data.expiry_data.days === 0 && coins_data.expiry_data.months === 0) {
+    if (coin_data.expiry_data.blocks === -1 && coin_data.expiry_data.days === 0 && coin_data.expiry_data.months === 0) {
       for (var i = 0; i < invalidDisplay.length; i++)
         if (coin_data.status === invalidDisplay[i]) {
           return <>
