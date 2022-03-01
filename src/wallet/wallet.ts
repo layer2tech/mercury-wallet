@@ -118,6 +118,12 @@ export class Wallet {
     this.tor_circuit = [];
   }
 
+  updateConfig(config_changes: object) {
+    let connectionChanged = this.config.update(config_changes)
+    this.save()
+    return connectionChanged
+  }
+
   async updateTorId() {
     try {
       let new_id = await getNewTorId(this.http_client);

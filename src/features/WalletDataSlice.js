@@ -335,9 +335,9 @@ export const callAddDescription = (shared_key_id,description) => {
 
 // Update config with JSON of field to change
 export const callUpdateConfig = (config_changes) => {
-  wallet.config.update(config_changes)
-  wallet.save();
-  reloadWallet();
+  if (wallet.updateConfig(config_changes) === true) {
+    reloadWallet();
+  }
 }
 
 // Create CPFP transaction and add to coin
