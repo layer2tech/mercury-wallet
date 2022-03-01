@@ -73,6 +73,7 @@ const Activity = () => {
 			index === self.findIndex((t) => (
 				// check for date, action, funding txid and txvout
 				t.date === element.date &&
+				t.value === element.value &&
 				t.action === element.action &&
 				t.funding_txid === element.funding_txid &&
 				t.funding_txvout === element.funding_txvout
