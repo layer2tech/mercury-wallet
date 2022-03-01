@@ -125,6 +125,12 @@ export class Wallet {
     this.saveMutex = new Mutex();
   }
 
+  updateConfig(config_changes: object) {
+    let connectionChanged = this.config.update(config_changes)
+    this.save()
+    return connectionChanged
+  }
+
   async updateTorId() {
     try {
       await getNewTorId(this.http_client);

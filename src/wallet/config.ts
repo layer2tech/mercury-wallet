@@ -24,27 +24,27 @@ let current_block_explorer_endpoint = NETWORK_CONFIG.mainnet_block_explorer_endp
 let current_electrum_config: ElectrumClientConfig = NETWORK_CONFIG.mainnet_electrum_config;
 
 const argsHasTestnet = () => {
-  let found  = false;
+  let found = false;
   let remote: any
   try {
     remote = window.require('electron').remote
-  } catch (e:any) {
+  } catch (e: any) {
     remote = require('electron').remote
   }
   if (remote) {
-    remote.process.argv.forEach((arg: string) =>  {
-      if(arg.includes('testnet')){
-          found = true;
-      }     
+    remote.process.argv.forEach((arg: string) => {
+      if (arg.includes('testnet')) {
+        found = true;
+      }
     });
   }
   return found;
 }
 
 // check values of arguments
-if(argsHasTestnet()){
-  current_state_entity_endpoint =  NETWORK_CONFIG.testnet_state_entity_endpoint;
-  current_block_explorer_endpoint  = NETWORK_CONFIG.testnet_block_explorer_endpoint;
+if (argsHasTestnet()) {
+  current_state_entity_endpoint = NETWORK_CONFIG.testnet_state_entity_endpoint;
+  current_block_explorer_endpoint = NETWORK_CONFIG.testnet_block_explorer_endpoint;
   current_electrum_config = NETWORK_CONFIG.testnet_electrum_config;
 }
 
@@ -58,9 +58,9 @@ export class Config {
 
   // Editable while wallet running from Settings page
   state_entity_endpoint: string;
-  swap_conductor_endpoint: string ;
+  swap_conductor_endpoint: string;
   electrum_config: ElectrumClientConfig;
-  block_explorer_endpoint:string;
+  block_explorer_endpoint: string;
 
   tor_proxy: {
     ip: string,
@@ -100,19 +100,20 @@ export class Config {
     this.singleSwapMode = false;
     this.tutorials = false;
     this.swaplimit = 1440;
- 
-    
+
+
     this.update(require("../settings.json"))
   }
-  
+
   getConfig() {
     return cloneDeep(this)
   }
 
   // update by providing JSONObject with new values
-  update(config_changes: object) {
+  update(config_changes: object): boolean {
+    let connectionChanged = false
     Object.entries(config_changes).forEach((item) => {
-      switch(item[0]) {
+      switch (item[0]) {
         case "network":
           break;
         case "testing_mode":
@@ -126,36 +127,74 @@ export class Config {
           break;
         case "electrum_fee_estimation_blocks":
           this.electrum_fee_estimation_blocks = item[1];
-          break;         
+          break;
         case "state_entity_endpoint":
-          this.state_entity_endpoint = item[1];
+          connectionChanged = updateIfDifferent(
+            this.state_entity_endpoint,
+            item[1]
+          )
           break;
         case "swap_conductor_endpoint":
-          this.swap_conductor_endpoint = item[1];
+          connectionChanged = connectionChanged || updateIfDifferent(
+            this.swap_conductor_endpoint, item[1]
+          )
           break;
         case "electrum_config":
-          this.electrum_config = item[1];
+          Object.entries(item[1]).forEach((ec_item) => {
+            switch (ec_item[0]) {
+              case "protocol":
+                connectionChanged = connectionChanged || updateIfDifferent(
+                  this.electrum_config.protocol, ec_item[1]
+                )
+                break;
+              case "host":
+                connectionChanged = connectionChanged || updateIfDifferent(
+                  this.electrum_config.host, ec_item[1]
+                )
+                break;
+              case "port":
+                connectionChanged = connectionChanged || updateIfDifferent(
+                  this.electrum_config.port, ec_item[1]
+                )
+                break;
+              case "type":
+                connectionChanged = connectionChanged || updateIfDifferent(
+                  this.electrum_config.type, ec_item[1]
+                )
+                break;
+            }
+          })
           break;
         case "block_explorer_endpoint":
-          this.block_explorer_endpoint = item[1];
+          connectionChanged = connectionChanged || updateIfDifferent(
+            this.block_explorer_endpoint, item[1]
+          )
           break;
         case "tor_proxy":
           Object.entries(item[1]).forEach((tp_item) => {
-              switch(tp_item[0]){
-                case "ip":
-                    this.tor_proxy.ip = tp_item[1] as string;
-                    break;
-                case "port":
-                    this.tor_proxy.port = tp_item[1] as number ;
-                    break;
-                case "controlPassword":
-                    this.tor_proxy.controlPassword = tp_item[1] as string;
-                    break;
-                case "controlPort":
-                    this.tor_proxy.controlPort = tp_item[1] as number;
-                    break;
-                default: 
-                  throw Error("Config tor_proxy entry "+tp_item[0]+" does not exist")
+            switch (tp_item[0]) {
+              case "ip":
+                connectionChanged = connectionChanged || updateIfDifferent(
+                  this.tor_proxy.ip, tp_item[1] as string
+                )
+                break;
+              case "port":
+                connectionChanged = connectionChanged || updateIfDifferent(
+                  this.tor_proxy.port, tp_item[1] as number
+                )
+                break;
+              case "controlPassword":
+                connectionChanged = connectionChanged || updateIfDifferent(
+                  this.tor_proxy.controlPassword, tp_item[1] as string
+                )
+                break;
+              case "controlPort":
+                connectionChanged = connectionChanged || updateIfDifferent(
+                  this.tor_proxy.controlPort, tp_item[1] as number
+                )
+                break;
+              default:
+                throw Error("Config tor_proxy entry " + tp_item[0] + " does not exist")
             }
           });
           break;
@@ -173,10 +212,21 @@ export class Config {
           break;
         case "swaplimit":
           this.swaplimit = item[1]
-          break;          
+          break;
         default:
-          log.warn("Config entry "+item[0]+" does not exist")
+          log.warn("Config entry " + item[0] + " does not exist")
       }
     })
+    return connectionChanged
+  }
+}
+
+const updateIfDifferent = (val: any, newval: any): boolean => {
+  if (val != newval) {
+    console.log(`${JSON.stringify(val)} and ${JSON.stringify(newval)} differ`)
+    val = newval
+    return true
+  } else {
+    return false
   }
 }
