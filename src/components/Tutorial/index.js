@@ -6,8 +6,8 @@ import './tutorial.css';
 
 const Tutorial = () => {
   const dispatch = useDispatch();
-  const hideTutorial = () => {
-    callUpdateConfig({
+  const hideTutorial = async () => {
+    await callUpdateConfig({
       tutorials: false
     });
     dispatch(setNotification({msg: 'Settings successfully updated.'}))

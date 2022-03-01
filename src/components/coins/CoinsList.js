@@ -208,7 +208,7 @@ const CoinsList = (props) => {
     setShowDeleteCoinDetails(true);
   }, [setCurrentItem, setShowDeleteCoinDetails])
 
-  const handleDeleteCoinYes = (item) => {
+  const handleDeleteCoinYes = async (item) => {
     item.status = "DELETED";
     item.deleting = true;
     item.privacy_data.msg = 'coin currently being deleted';
@@ -771,7 +771,7 @@ const CoinsList = (props) => {
         <Modal.Footer>
           <Button
             className="action-btn-normal"
-            onClick={() => handleDeleteCoinYes(currentItem)}
+            onClick={async () => await handleDeleteCoinYes(currentItem)}
           >
             Yes
               </Button>

@@ -78,8 +78,8 @@ async function swapInit(swap) {
   return result
 }
 
-function getWallet() {
-  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+async function getWallet() {
+  let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
   wallet.config.min_anon_set = 3
   wallet.http_client = http_mock
   wallet.wasm = wasm_mock
@@ -90,12 +90,12 @@ describe('Swap init', function () {
   test('swapInit test 1 - invalid proof_key_der', async function () {
     let statecoin = get_statecoin_in();
     const INIT_STATECOIN = cloneDeep(statecoin)
-    let wallet = getWallet()
+    let wallet = await getWallet()
     let swap = new Swap(wallet, statecoin, undefined, null) 
 
     await expect(swapInit(swap)).
       rejects.
-      toThrowError(`swapInit: proof_key_der type error: Error: Expected Buffer, got undefined`)
+      toThrowError(`checkProofKeyDer: proof_key_der type error: Error: Expected Buffer, got undefined`)
 
     
     let invalid_proof_key_der = { "publicKey": Buffer.from("a buffer string") }
@@ -104,7 +104,7 @@ describe('Swap init', function () {
 
     await expect(swapInit(swap)).
       rejects.
-      toThrowError(`swapInit: proof_key_der type error: Error: Expected Function, got undefined`)
+      toThrowError(`checkProofKeyDer: proof_key_der type error: Error: Expected Function, got undefined`)
 
     expect(statecoin).toEqual(INIT_STATECOIN)
   })
@@ -114,7 +114,7 @@ describe('Swap init', function () {
     let statecoin = get_statecoin_in()
     console.log(`swap status: ${JSON.stringify(statecoin.swap_status)}`)
     const INIT_STATECOIN = cloneDeep(statecoin)
-    let wallet = getWallet()
+    let wallet = await getWallet()
     let swap = new Swap(wallet, statecoin, undefined, null) 
 
     const statecoin_status = Object.values(STATECOIN_STATUS).concat([null])
@@ -176,7 +176,7 @@ describe('Swap init', function () {
       }
     })
 
-    let wallet = getWallet()
+    let wallet = await getWallet()
     let swap = new Swap(wallet, statecoin, proof_key_der, null) 
 
     let result = await swapInit(swap)
@@ -193,7 +193,7 @@ describe('Swap init', function () {
   test('swapInit test 4 - complete swapInit', async function () {
     let statecoin = get_statecoin_in();
     const proof_key_der = get_proof_key_der()
-    let wallet = getWallet()
+    let wallet = await getWallet()
     let swap = new Swap(wallet, statecoin, proof_key_der, null) 
 
     POST_ROUTE.SWAP_REGISTER_UTXO

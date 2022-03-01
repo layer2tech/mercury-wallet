@@ -55,8 +55,8 @@ const get_proof_key_der = () => {
 
 const SWAP_SIZE = test_data.SIGNSWAPTOKEN_DATA[0].swap_token.statechain_ids.length
 
-const getWallet = () => {
-    let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+const getWallet = async () => {
+    let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
     wallet.config.min_anon_set = 3;
     wallet.config.jest_testing_mode = true;
     wallet.http_client = http_mock;
@@ -249,7 +249,7 @@ describe('full swap test 1 - correct swap', () => {
     it('should give a new statecoin', async () => {
         let statecoin = get_statecoin_in();
         const proof_key_der = get_proof_key_der()
-        let wallet = getWallet()
+        let wallet = await getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         // phase1 
