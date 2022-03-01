@@ -118,10 +118,10 @@ describe('txCPFPBuild', function() {
   });
 });
 
-test('bech32 encode/decode', function() {
-  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin);
+test('bech32 encode/decode', async function() {
+  let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
   wallet.config.update({min_anon_set: 1000, jest_testing_mode: true}); // update config to ensure defaults are not revered to after fromJSON.
-  wallet.save()
+  await wallet.save()
 
   let proof_key = PROOF_KEY;
   let encode = encodeSCEAddress(proof_key, wallet);
