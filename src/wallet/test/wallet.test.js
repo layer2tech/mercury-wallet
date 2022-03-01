@@ -30,11 +30,12 @@ const MOCK_WALLET_NAME_BACKUP = MOCK_WALLET_NAME+"_backup"
 
 describe('Wallet', function () {
   let wallet
-  beforeAll(async () => {
+  beforeEach(async () => {
     wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
     wallet.storage.clearWallet(MOCK_WALLET_NAME)
     wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
-    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);      
+    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+    wallet.save()
   })
 
 
@@ -266,8 +267,14 @@ describe('Wallet', function () {
 
 
   describe('Storage 2', function () {
-    beforeAll(async () => {
-      await wallet.save();      
+    let wallet
+    beforeEach(async () => {
+        wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+        wallet.storage.clearWallet(MOCK_WALLET_NAME)
+        wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
+        wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+        wallet.save()
+        await wallet.save();      
     })
     
     test('toJSON', function () {
@@ -310,7 +317,6 @@ describe('Wallet', function () {
   
 
     test('load from backup and save', async function () {
-      await wallet.save();
       let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
       let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
       let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
@@ -353,12 +359,12 @@ describe('Wallet', function () {
       let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
       let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
       let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
+      console.log(`json wallet: ${JSON.stringify(json_wallet)}`)
       let mnemonic = decryptAES(json_wallet.mnemonic, MOCK_WALLET_PASSWORD)
       expect(mnemonic).toEqual(MOCK_WALLET_MNEMONIC)
     });
 
     test('save coins list', async function () {
-      await wallet.save();
       let num_coins_before = wallet.statecoins.coins.length;
 
       // new coin
