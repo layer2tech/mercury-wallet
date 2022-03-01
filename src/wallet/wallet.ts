@@ -1107,7 +1107,6 @@ export class Wallet {
   ): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
-    if (this.config.swap_amounts.includes(statecoin.value)) throw Error("No swap group available for this amount");
 
     //Always try and resume coins in swap phase 4 so transfer is completed
     if (statecoin.swap_status !== SWAP_STATUS.Phase4) {
