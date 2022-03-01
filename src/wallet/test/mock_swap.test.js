@@ -30,8 +30,8 @@ let electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
 
 let walletName = `${MOCK_WALLET_NAME}_swap_tests`
 
-export function getWallet() {
-  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+export async function getWallet() {
+  let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
   wallet.config.min_anon_set = 3
   wallet.config.jest_testing_mode = true
   wallet.http_client = http_mock
@@ -58,8 +58,11 @@ beforeEach(() => {
 
 describe('Do Swap', function () {
 
-  let wallet = getWallet()
-
+  let wallet
+  beforeAll(async () => {
+    wallet = await getWallet()
+  })
+    
   test('do_swap', async function () {
 
     http_mock.post = jest.fn().mockReset()
@@ -88,10 +91,12 @@ describe('Do Swap', function () {
 
 describe('resume_swap', function () {
 
-  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
-
-  wallet.config.update({ "jest_testing_mode": true })
-
+  let wallet
+  beforeAll(async () => {
+    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+    wallet.config.update({ "jest_testing_mode": true })
+  })
+    
   // For each phase, check expected output:
   // check statecoin && check new_statecoin
 
@@ -221,7 +226,11 @@ describe('resume_swap', function () {
 })
 
 describe('Resume Swap Successful', function () {
-  let wallet = getWallet()
+  let wallet
+  beforeAll(async () => {
+    wallet = await getWallet()  
+  })
+  
   test('Swap Successful', async function () {
     // New statecoin received:
     let returned_statecoin = makeTesterStatecoin()
@@ -261,10 +270,13 @@ describe('After Swaps Complete', function () {
   // server side's mock
   let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 
-  let wallet = Wallet.buildMock(bitcoin.networks['bitcoin'], http_mock, wasm_mock)
-
-  let wallet_json = wallet.toEncryptedJSON()
-
+  let wallet
+  let wallet_json
+  beforeAll(async () => {
+    wallet = await Wallet.buildMock(bitcoin.networks['bitcoin'], http_mock, wasm_mock)
+    wallet_json = wallet.toEncryptedJSON()
+  })
+  
   test('Auto-swap clicked after Join Group button', async function () {
     // let wallet_json = Wallet.buildMockToJSON(jest)
 

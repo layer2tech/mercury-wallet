@@ -164,9 +164,9 @@ export const walletFromMnemonic = (dispatch, name, password, mnemonic, try_resto
       const n_recovered = await wallet.recoverCoinsFromServer(gap_limit);
       dispatch(addCoins(n_recovered));
     }
-    callNewSeAddr();
-    wallet.save();
-    wallet.saveName();
+    await callNewSeAddr();
+    await wallet.save();
+    await wallet.saveName();
   });
 }
 // Try to decrypt wallet. Throw if invalid password
@@ -183,9 +183,9 @@ export const walletFromJson = (wallet_json, password) => {
     return mutex.runExclusive(async () => {
       await wallet.set_tor_endpoints();
       wallet.initElectrumClient(setBlockHeightCallBack);
-      callNewSeAddr();
-      wallet.save();
-      wallet.saveName();
+      await callNewSeAddr();
+      await wallet.save();
+      await wallet.saveName();
       return wallet;
     }).catch(error => {
         console.error('Can not load wallet from json!', error);
@@ -266,8 +266,8 @@ export const showWarning = (key) =>  {
     return wallet.showWarning(key)
   }
 }
-export const dontShowWarning = (key) =>  {
-  wallet.dontShowWarning(key)
+export const dontShowWarning = async (key) =>  {
+  await wallet.dontShowWarning(key)
   return 
 }
 
@@ -313,16 +313,16 @@ export const callGetSeAddr = (addr_index) => {
   return wallet.getSEAddress(addr_index)
 }
 // Gen new SE Address
-export const callNewSeAddr = (state) => {
-  return wallet.newSEAddress()
+export const callNewSeAddr = async (state) => {
+  return await wallet.newSEAddress()
 }
 export const callGetNumSeAddr = () => {
   return wallet.getNumSEAddress()
 }
 // Remove coin from coins list
-export const callRemoveCoin = (shared_key_id) => {
+export const callRemoveCoin = async (shared_key_id) => {
   log.info("Removing coin "+shared_key_id+" from wallet.");
-  wallet.removeStatecoin(shared_key_id);
+  await wallet.removeStatecoin(shared_key_id);
 }
 
 export const callGetStateCoin = (shared_key_id) => {
@@ -334,15 +334,15 @@ export const callAddDescription = (shared_key_id,description) => {
 }
 
 // Update config with JSON of field to change
-export const callUpdateConfig = (config_changes) => {
-  if (wallet.updateConfig(config_changes) === true) {
+export const callUpdateConfig = async (config_changes) => {
+  if ((await wallet.updateConfig(config_changes)) === true) {
     reloadWallet();
   }
 }
 
 // Create CPFP transaction and add to coin
-export const callCreateBackupTxCPFP = (cpfp_data) => {
-     let sucess = wallet.createBackupTxCPFP(cpfp_data);
+export const callCreateBackupTxCPFP = async (cpfp_data) => {
+     let sucess = await wallet.createBackupTxCPFP(cpfp_data);
      return sucess
 }
 

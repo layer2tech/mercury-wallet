@@ -145,5 +145,5 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
     }
   }
 
-  wallet.saveStateCoinsList();
+  await wallet.saveStateCoinsList();
 }
