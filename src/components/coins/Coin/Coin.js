@@ -93,11 +93,19 @@ const Coin = (props) => {
   }
 
   const displayExpiry = (coin_data) => {
+
     let invalidDisplay = [STATECOIN_STATUS.IN_MEMPOOL, STATECOIN_STATUS.UNCONFIRMED, BACKUP_STATUS.IN_MEMPOOL, BACKUP_STATUS.PRE_LOCKTIME]
-    for (var i = 0; i < invalidDisplay.length; i++)
-      if (coin_data.status === invalidDisplay[i]) {
-        return <>Loading expiry data...</>
-      }
+
+    // there can't be a valid expiry date if blocks are -1
+    if (coin_data.expiry_data.blocks === -1 && coin_data.expiry_data.days === 0 && coin_data.expiry_data.months === 0) {
+      for (var i = 0; i < invalidDisplay.length; i++)
+        if (coin_data.status === invalidDisplay[i]) {
+          return <>
+            <p>Loading expiry data... <Spinner animation='border' variant='primary' size='sm'></Spinner></p>
+          </>
+        }
+    }
+
     // otherwise return the proper time until expiry
     return (
       <div className="CoinTimeLeft">
@@ -144,10 +152,10 @@ const Coin = (props) => {
             dispatch(setError({ msg: `Unavailable while coin in swap group` }))
             return false
           }
-           if(props.coin_data.status === (STATECOIN_STATUS.WITHDRAWING) && (props.send || props.swap)){
-            dispatch(setError({msg: `Coin withdrawn - unavailable for transfer`}))
+          if (props.coin_data.status === (STATECOIN_STATUS.WITHDRAWING) && (props.send || props.swap)) {
+            dispatch(setError({ msg: `Coin withdrawn - unavailable for transfer` }))
             return false
-          }   
+          }
           else {
             selectCoin(props.coin_data.shared_key_id)
           }
@@ -243,62 +251,62 @@ const Coin = (props) => {
             </div>
           }
 
-              {props.showCoinStatus ? (
-                <div className="coin-status-or-txid">
-                  
-                  {(props.coin_data.status === STATECOIN_STATUS.AVAILABLE 
-                    || props.coin_data.status === STATECOIN_STATUS.WITHDRAWN
-                  ) ?
-                  (
+          {props.showCoinStatus ? (
+            <div className="coin-status-or-txid">
+
+              {(props.coin_data.status === STATECOIN_STATUS.AVAILABLE
+                || props.coin_data.status === STATECOIN_STATUS.WITHDRAWN
+              ) ?
+                (
                   // probably needs another variable to check if its awaiting in swap
-                  props.coin_data.swap_auto ? 
-                  (
-                  <div>
-                    <CoinStatus data={props.coin_data}/>
-                    {
-                      <span className={`tooltip ${document.querySelector(".home-page") ? ("main") : ("side")}`}>
-                        <b>{props.coin_data.ui_swap_status}: </b>{SWAP_TOOLTIP_TXT.SingleSwapMode}
-                      </span>
-                    }
-                    <Spinner animation="border" variant="warning" size="sm" />
-                    <SwapStatus swapStatus={SWAP_STATUS_INFO.SingleSwapMode} />
-                  </div>
-                  ) : 
+                  props.coin_data.swap_auto ?
+                    (
+                      <div>
+                        <CoinStatus data={props.coin_data} />
+                        {
+                          <span className={`tooltip ${document.querySelector(".home-page") ? ("main") : ("side")}`}>
+                            <b>{props.coin_data.ui_swap_status}: </b>{SWAP_TOOLTIP_TXT.SingleSwapMode}
+                          </span>
+                        }
+                        <Spinner animation="border" variant="warning" size="sm" />
+                        <SwapStatus swapStatus={SWAP_STATUS_INFO.SingleSwapMode} />
+                      </div>
+                    ) :
+                    (
+                      <b className="CoinFundingTxid">
+                        <img src={scAddrIcon} className="sc-address-icon" alt="icon" />
+                        {props.coin_data.sc_address}
+                      </b>
+                    )
+                )
+                :
+                (props.coin_data.status === STATECOIN_STATUS.WITHDRAWING) ?
                   (
                     <b className="CoinFundingTxid">
-                      <img src={scAddrIcon} className="sc-address-icon" alt="icon" />
+                      <img src={awaitingIcon} className="awaiting-icon" alt="icon" />
                       {props.coin_data.sc_address}
-                    </b>
-                  )
-                  )
-                  : 
-                    (props.coin_data.status === STATECOIN_STATUS.WITHDRAWING) ?
-                      (
-                        <b className="CoinFundingTxid">
-                            <img src={awaitingIcon} className = "awaiting-icon" alt="icon"/>
-                            {props.coin_data.sc_address}
-                            <span className="tooltip">
-                                Withdrawn: awaiting deposit confirmation
+                      <span className="tooltip">
+                        Withdrawn: awaiting deposit confirmation
                             </span>
-                        </b>
-                      ) : 
+                    </b>
+                  ) :
                   (
-                  <div>
-                    
-                    {props.coin_data.swap_status == null && <CoinStatus data={props.coin_data} />}
-                    <div className="swap-status-container coinslist" >
-                      {props.coin_data.swap_status !== "Init" ?
-                        (<span className={`tooltip ${document.querySelector(".home-page") ? ("main") : ("side")}`}>
-                          <b>{props.coin_data.ui_swap_status}: </b>{SWAP_TOOLTIP_TXT[props.coin_data.ui_swap_status]}
-                        </span>) : (null)}
-                      {props.coin_data.swap_status !== null && (
-                        <div>
-                          <Spinner animation="border" variant="primary" size="sm" />
-                          <SwapStatus swapStatus={SWAP_STATUS_INFO[props.coin_data.ui_swap_status]} swap_error={props.coin_data.swap_error} />
-                        </div>
-                      )}
-                    </div>
-                  </div>)}
+                    <div>
+
+                      {props.coin_data.swap_status == null && <CoinStatus data={props.coin_data} />}
+                      <div className="swap-status-container coinslist" >
+                        {props.coin_data.swap_status !== "Init" ?
+                          (<span className={`tooltip ${document.querySelector(".home-page") ? ("main") : ("side")}`}>
+                            <b>{props.coin_data.ui_swap_status}: </b>{SWAP_TOOLTIP_TXT[props.coin_data.ui_swap_status]}
+                          </span>) : (null)}
+                        {props.coin_data.swap_status !== null && (
+                          <div>
+                            <Spinner animation="border" variant="primary" size="sm" />
+                            <SwapStatus swapStatus={SWAP_STATUS_INFO[props.coin_data.ui_swap_status]} swap_error={props.coin_data.swap_error} />
+                          </div>
+                        )}
+                      </div>
+                    </div>)}
             </div>
           ) : (
             <div className="coin-status-or-txid">
