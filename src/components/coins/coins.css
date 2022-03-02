@@ -424,6 +424,7 @@ p.short{
 .sendStatecoin .coin-item.IN_SWAP,.sendStatecoin .coin-item.AWAITING_SWAP,.withdraw .coin-item.IN_SWAP,.withdraw .coin-item.AWAITING_SWAP{
   opacity: .3;
 }
+
 .main-coin-wrap.small-screen .coin-item .CoinPanel {
   display: block;
   position: relative;

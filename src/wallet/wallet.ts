@@ -28,17 +28,21 @@ import { delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum } f
 import { EPSClient } from './eps';
 import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './mercury/torcircuit_api';
 import { callGetNewTorId } from '../features/WalletDataSlice';
+import { Mutex } from 'async-mutex';
 
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
 const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
 const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
+
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
 let bip32 = require('bip32');
 let bip39 = require('bip39');
 let cloneDeep = require('lodash.clonedeep');
+
+
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -77,6 +81,7 @@ export class Wallet {
   ping_electrum_ms: number | null;
   statechain_id_set: Set<string>;
   wasm: any;
+  saveMutex: Mutex;
 
   storage: Storage
 
@@ -116,11 +121,19 @@ export class Wallet {
     this.statechain_id_set = new Set();
 
     this.tor_circuit = [];
+
+    this.saveMutex = new Mutex();
+  }
+
+  updateConfig(config_changes: object) {
+    let connectionChanged = this.config.update(config_changes)
+    this.save()
+    return connectionChanged
   }
 
   async updateTorId() {
     try {
-      let new_id = await getNewTorId(this.http_client);
+      await getNewTorId(this.http_client);
     } catch (err: any) {
       throw err
     }
@@ -214,13 +227,13 @@ export class Wallet {
   }
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
-  static buildMock(network: Network, http_client: any = undefined, wasm: any = undefined, mnemonic: string | undefined = undefined): Wallet {
+  static async buildMock(network: Network, http_client: any = undefined, wasm: any = undefined, mnemonic: string | undefined = undefined): Promise<Wallet> {
     mnemonic = mnemonic ? mnemonic : MOCK_WALLET_MNEMONIC;
     var wallet = Wallet.fromMnemonic(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, mnemonic, network, true,
       http_client, wasm);
     // add some statecoins
-    let proof_key1 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
-    let proof_key2 = wallet.genProofKey().publicKey.toString("hex"); // Generate new proof key
+    let proof_key1 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
+    let proof_key2 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
     let uuid1 = uuidv4();
     let uuid2 = uuidv4();
     wallet.addStatecoinFromValues(uuid1, dummy_master_key, 10000, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, proof_key1, ACTION.DEPOSIT)
@@ -289,33 +302,58 @@ export class Wallet {
 
   // Save entire wallet to storage. Store in file as JSON Object.
 
-  save() {
-    let wallet_json = cloneDeep(this)
-    this.storage.storeWallet(wallet_json)
+  async save() {
+    const release = await this.saveMutex.acquire();
+    try {
+      let wallet_json = cloneDeep(this)
+      this.storage.storeWallet(wallet_json)
+    } finally {
+      release();
+    }
   };
 
   // Save wallet names in file
 
-  saveName() {
-    let store = new Storage("wallets/wallet_names")
-    //All wallet names in separate store
-    store.setName(this.name)
+  async saveName() {
+    const release = await this.saveMutex.acquire();
+    try {
+      let store = new Storage("wallets/wallet_names")
+      //All wallet names in separate store
+      store.setName(this.name)
+    } finally {
+      release();
+    }
   }
 
   // Update account in storage.
-  saveKeys() {
-    let account = cloneDeep(this.account)
-    this.storage.storeWalletKeys(this.name, account)
+  async saveKeys() {
+    const release = await this.saveMutex.acquire();
+    try {
+      let account = cloneDeep(this.account)
+      this.storage.storeWalletKeys(this.name, account)
+    } finally {
+      release()
+    }
   };
 
   // Update coins list in storage. Store in file as JSON string.
-  saveStateCoinsList() {
-    this.storage.storeWalletStateCoinsList(this.name, this.statecoins, this.activity);
+  async saveStateCoinsList() {
+    const release = await this.saveMutex.acquire();
+    try {
+      this.storage.storeWalletStateCoinsList(this.name, this.statecoins, this.activity);
+    } finally {
+      release()
+    }
   };
   // Clear storage.
-  clearSave() {
-    this.storage.clearWallet(this.name)
-    log.info("Wallet cleared.")
+  async clearSave() {
+    const release = await this.saveMutex.acquire();
+    try {
+      this.storage.clearWallet(this.name)
+      log.info("Wallet cleared.")
+    } finally {
+      release()
+    }
   };
 
   // Load wallet JSON from store
@@ -351,7 +389,7 @@ export class Wallet {
     const n_recovered = recoverCoins.length
     if (n_recovered > 0) {
       log.info("Found " + recoveredCoins.length + " StateCoins. Saving to wallet.");
-      this.saveKeys();
+      await this.saveKeys();
       await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
@@ -435,13 +473,13 @@ export class Wallet {
     }
   }
 
-  genSEAddress() {
-    return encodeSCEAddress(this.genProofKey().publicKey.toString('hex'));
+  async genSEAddress() {
+    return encodeSCEAddress((await this.genProofKey()).publicKey.toString('hex'));
   }
   // Gen new SCEAddress and set in this.current_sce_addr
-  newSEAddress() {
-    this.current_sce_addr = this.genSEAddress();
-    this.save()
+  async newSEAddress() {
+    this.current_sce_addr = await this.genSEAddress();
+    await this.save()
   }
 
   // Initialise and return Wasm object.
@@ -533,9 +571,9 @@ export class Wallet {
     return warningObject[0].show
   }
 
-  dontShowWarning(key: string) {
+  async dontShowWarning(key: string) {
     this.warnings.filter(w => w.name === key)[0].show = false
-    this.save()
+    await this.save()
   }
 
   getUnspentStatecoins() {
@@ -682,7 +720,7 @@ export class Wallet {
   }
 
   // update statuts of backup transactions and broadcast if neccessary
-  updateBackupTxStatus() {
+  async updateBackupTxStatus() {
     for (let i = 0; i < this.statecoins.coins.length; i++) {
       // check if there is a backup tx yet, if not do nothing
       if (this.statecoins.coins[i].tx_backup === null) {
@@ -760,12 +798,12 @@ export class Wallet {
           } catch { continue }
         }
       }
-      this.saveStateCoinsList();
+      await this.saveStateCoinsList();
     }
   }
 
   // create CPFP transaction to spend from backup tx
-  createBackupTxCPFP(cpfp_data: any) {
+  async createBackupTxCPFP(cpfp_data: any) {
 
     log.info("Add CPFP for " + cpfp_data.selected_coin + " to " + cpfp_data.cpfp_addr);
 
@@ -807,7 +845,7 @@ export class Wallet {
         break;
       }
     }
-    this.saveStateCoinsList();
+    await this.saveStateCoinsList();
     return true;
   }
 
@@ -836,9 +874,9 @@ export class Wallet {
       log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
     }
   }
-  removeStatecoin(shared_key_id: string) {
+  async removeStatecoin(shared_key_id: string) {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode)
-    this.saveStateCoinsList()
+    await this.saveStateCoinsList()
   }
 
   getStatecoin(shared_key_id: string) {
@@ -865,11 +903,11 @@ export class Wallet {
   }
 
   // Mark statecoin as spent after transfer or withdraw
-  setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
+  async setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
     this.statecoins.setCoinSpent(id, action, transfer_msg);
     this.activity.addItem(id, action);
     log.debug("Set Statecoin spent: " + id);
-    this.saveStateCoinsList()
+    await this.saveStateCoinsList()
   }
 
   setStateCoinAutoSwap(shared_key_id: string) {
@@ -877,25 +915,28 @@ export class Wallet {
   }
 
   // New BTC address
-  genBtcAddress(): string {
+  async genBtcAddress(): Promise<string> {
     let addr = this.account.nextChainAddress(0);
-    this.saveKeys()
+    await this.saveKeys()
     log.debug("Gen BTC address: " + addr);
     return addr
   }
 
   getBIP32forBtcAddress(addr: string): BIP32Interface {
-    let proof_key = this.account.derive(addr)
-    if (!proof_key) {
-      throw new Error(`wallet::getBIP32forBtcAddress - failed to derive proof key for address ${addr}`)
+    if (this.account.containsAddress(addr) === false) {
+      throw Error(`wallet::getBIP32forBtcAddress - account does not contain address ${addr}`)
     }
-    return proof_key
+    let node = this.account.derive(addr)
+    if (!node) {
+      throw new Error(`wallet::getBIP32forBtcAddress - failed to derive BIP32 node for address ${addr}`)
+    }
+    return node
   }
 
   // New Proof Key
-  genProofKey(): BIP32Interface {
+  async genProofKey(): Promise<BIP32Interface> {
     let addr = this.account.nextChainAddress(0);
-    this.saveKeys()
+    await this.saveKeys()
     let proof_key = this.getBIP32forBtcAddress(addr);
     log.debug("Gen proof key. Address: " + addr + ". Proof key: " + proof_key.publicKey.toString("hex"));
     return proof_key
@@ -905,11 +946,16 @@ export class Wallet {
     return this.getBIP32forBtcAddress(p2wpkh)
   }
 
+  containsProofKeyPubKey(proof_key: string): boolean {
+    const p2wpkh = pubKeyTobtcAddr(proof_key, this.config.network)
+    return this.account.containsAddress(p2wpkh)
+  }
+
   // Initialise deposit
   async depositInit(value: number) {
     log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
 
-    let proof_key_bip32 = this.genProofKey(); // Generate new proof key
+    let proof_key_bip32 = await this.genProofKey(); // Generate new proof key
 
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
@@ -942,7 +988,7 @@ export class Wallet {
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 
     log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
-    this.saveStateCoinsList();
+    await this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr]
   }
 
@@ -958,7 +1004,7 @@ export class Wallet {
   }
   // Query funding txs list unspent and mark coin IN_MEMPOOL or UNCONFIRMED
   async checkFundingTxListUnspent(shared_key_id: string, p_addr: string, p_addr_script: string, value: number) {
-    this.electrum_client.getScriptHashListUnspent(p_addr_script).then((funding_tx_data: Array<any>) => {
+    this.electrum_client.getScriptHashListUnspent(p_addr_script).then(async (funding_tx_data: Array<any>) => {
       for (let i = 0; i < funding_tx_data.length; i++) {
         // Verify amount of tx. Ignore if mock electrum
         if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
@@ -980,12 +1026,12 @@ export class Wallet {
         if (!funding_tx_data[i].height) {
           log.info("Found funding tx for p_addr " + p_addr + " in mempool. txid: " + funding_tx_data[i].tx_hash)
           this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i])
-          this.saveStateCoinsList()
+          await this.saveStateCoinsList()
         } else {
           log.info("Funding tx for p_addr " + p_addr + " mined. Height: " + funding_tx_data[i].height)
           // Set coin UNCONFIRMED.
           this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i])
-          this.saveStateCoinsList()
+          await this.saveStateCoinsList()
           // No longer need subscription
           this.electrum_client.scriptHashUnsubscribe(p_addr_script);
         }
@@ -1052,7 +1098,7 @@ export class Wallet {
     this.activity.addItem(shared_key_id, ACTION.DEPOSIT)
 
     log.info("Deposit Backup done.");
-    this.saveStateCoinsList();
+    await this.saveStateCoinsList();
 
     return statecoin_finalized
   }
@@ -1085,12 +1131,12 @@ export class Wallet {
     statecoin = this.statecoins.checkRemoveCoinFromSwapPool(statecoin.shared_key_id, force);
     await swapDeregisterUtxo(this.http_client, { id: statecoin.statechain_id });
     //Reset swap data if the coin was deregistered successfully
-    this.removeCoinFromSwapPool(statecoin.shared_key_id, force);
+    await this.removeCoinFromSwapPool(statecoin.shared_key_id, force);
   }
 
-  removeCoinFromSwapPool(shared_key_id: string, force: boolean = false) {
+  async removeCoinFromSwapPool(shared_key_id: string, force: boolean = false) {
     this.statecoins.removeCoinFromSwapPool(shared_key_id, force);
-    this.saveStateCoinsList()
+    await this.saveStateCoinsList()
   }
 
 
@@ -1123,7 +1169,7 @@ export class Wallet {
       } finally {
         swapSemaphore.release();
       }
-
+      
       return await this.resume_swap(statecoin, false)
     } else {
       return await this.resume_swap(statecoin, true)
@@ -1139,14 +1185,18 @@ export class Wallet {
 
     log.info("Swapping coin: " + statecoin.shared_key_id);
 
-    if (!statecoin?.proof_key) {
-      throw new Error(`resume_swap - no proof key for statecoin with shared
-      key id: ${statecoin.shared_key_id}`)
+    let proof_key = statecoin?.proof_key
+    if (proof_key === undefined || proof_key === null) {
+      throw Error(`resume_swap - proof key for statecoin with shared
+      key id: ${statecoin.shared_key_id} is ${proof_key}`)
     }
-    let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-    let new_proof_key_der = this.genProofKey();
-
-    let wasm = await this.getWasm();
+    let proof_key_der
+    try {
+     proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+    } catch (err: any) {
+      throw Error(`resume_swap: ${err?.message}`)
+    }
+    let new_proof_key_der = await this.genProofKey();
 
     statecoin.sc_address = encodeSCEAddress(statecoin.proof_key, this)
 
@@ -1156,7 +1206,7 @@ export class Wallet {
     try {
       await (async () => {
         while (updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-          delay(100);
+          delay(1000);
         }
       });
       let swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der, resume)
@@ -1176,10 +1226,10 @@ export class Wallet {
     } finally {
       if (new_statecoin && new_statecoin instanceof StateCoin) {
         this.setIfNewCoin(new_statecoin)
-        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
+        await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
         new_statecoin.setSwapDataToNull();
       }
-      this.saveStateCoinsList();
+      await this.saveStateCoinsList();
       swapSemaphore.release();
       return new_statecoin
     }
@@ -1292,7 +1342,7 @@ export class Wallet {
         );
       }
     } finally {
-      this.saveStateCoinsList();
+      await this.saveStateCoinsList();
       swapSemaphore.release();
       updateSwapSemaphore.release();
     }
@@ -1321,7 +1371,7 @@ export class Wallet {
     let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, false, this)
 
     log.info("Transfer Sender complete.");
-    this.saveStateCoinsList();
+    await this.saveStateCoinsList();
     return transfer_sender;
   }
 
@@ -1348,7 +1398,7 @@ export class Wallet {
     // Finalize protocol run by generating new shared key and updating wallet.
     await this.transfer_receiver_finalize(finalize_data);
 
-    this.saveStateCoinsList();
+    await this.saveStateCoinsList();
     return finalize_data
   }
 
@@ -1367,7 +1417,7 @@ export class Wallet {
 
     if (this.statecoins.addCoin(statecoin_finalized)) {
       this.activity.addItem(statecoin_finalized.shared_key_id, ACTION.RECEIVED)
-      this.saveStateCoinsList();
+      await this.saveStateCoinsList();
       log.info("Transfer Finalize complete.")
     } else {
       log.info("Transfer finalize error: replica coin")
@@ -1523,7 +1573,7 @@ export class Wallet {
       }
       this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
     });
-    this.saveStateCoinsList();
+    await this.saveStateCoinsList();
 
     // Broadcast transcation
     let withdraw_txid: string = ""
