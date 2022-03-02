@@ -20,9 +20,9 @@ const WarningPopup =  () => {
     dispatch(setWarningSeen())
   }
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     //ensure tickbox pushes data to wallet or redux state?
-    if(dontShow) await dontShowWarning(warning_dialogue.key)
+    if(dontShow) dontShowWarning(warning_dialogue.key)
       
     handleClose()
   };
@@ -42,7 +42,7 @@ const WarningPopup =  () => {
           <button className="action-btn-normal" onClick={() => handleClose()}>
             Cancel
           </button>
-          <button className="action-btn-blue" onClick={async () => await handleConfirm()}>
+          <button className="action-btn-blue" onClick={() => handleConfirm()}>
             Confirm
           </button>
         </div>

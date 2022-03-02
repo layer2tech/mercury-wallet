@@ -139,8 +139,8 @@ async function swapPhase4(swap) {
   return result
 }
 
-async function getWallet() {
-  let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+function getWallet() {
+  let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
   wallet.config.min_anon_set = 3
   wallet.config.jest_testing_mode = true
   wallet.http_client = http_mock
@@ -179,7 +179,7 @@ describe('Swap phase 4', function () {
     let statecoin = get_statecoin_in()
     const INIT_STATECOIN = cloneDeep(statecoin)
 
-    let wallet = await getWallet()
+    let wallet = getWallet()
     let swap
 
 
@@ -279,7 +279,7 @@ describe('Swap phase 4', function () {
 
     let EXPECTED_STATECOIN = get_statecoin_after_transfer_receiver(statecoin)
 
-    let wallet = await getWallet()
+    let wallet = getWallet()
     let swap = getSwap(wallet, statecoin)
 
     let result = await swapPhase4(swap)
@@ -357,7 +357,7 @@ describe('Swap phase 4', function () {
         return transferReceiverGet(path, params, statecoin)
       })
 
-      let wallet = await getWallet()
+      let wallet = getWallet()
       let swap = getSwap(wallet, statecoin)
 
       let result = await swapPhase4(swap)
@@ -382,7 +382,7 @@ describe('Swap phase 4', function () {
       throw wasm_err("KeyGen.keygen_first")
     })
 
-    let wallet = await getWallet()
+    let wallet = getWallet()
     let wasm = await wallet.getWasm()
     wasm.KeyGen.first_message = jest.fn((_secret_key) => {
       throw wasm_err("KeyGen.keygen_first")
@@ -428,7 +428,7 @@ describe('Swap phase 4', function () {
       return mock_wasm.KEYGEN_FIRST
     })
 
-    let wallet = await getWallet()
+    let wallet = getWallet()
 
     http_mock.get = jest.fn((path, params) => {
       return transferReceiverGet(path, params, statecoin)
@@ -474,7 +474,7 @@ describe('Swap phase 4', function () {
       return transferReceiverGet(path, params, statecoin)
     })
 
-    let wallet = await getWallet()
+    let wallet = getWallet()
 
     for (let i = 0; i < valid_phases.length; i++) {
       http_mock.post = jest.fn((path, body) => {
@@ -516,7 +516,7 @@ describe('Swap phase 4', function () {
       throw wasm_err("KeyGen.second_message")
     })
 
-    let wallet = await getWallet()
+    let wallet = getWallet()
 
     http_mock.get = jest.fn((path, params) => {
       return transferReceiverGet(path, params, statecoin)
@@ -566,7 +566,7 @@ describe('Swap phase 4', function () {
       throw wasm_err("KeyGen.set_master_key")
     })
 
-    let wallet = await getWallet()
+    let wallet = getWallet()
 
     http_mock.get = jest.fn((path, params) => {
       return transferReceiverGet(path, params, statecoin)
@@ -640,7 +640,7 @@ describe('Swap phase 4', function () {
 
       let sc_clone_1 = cloneDeep(statecoin)
 
-      let wallet = await getWallet();
+      let wallet = getWallet();
       wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90",
         SHARED_KEY_DUMMY, 0.1,
         "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41",
@@ -710,7 +710,7 @@ describe('Swap phase 4', function () {
 
       let sc_clone_1 = cloneDeep(statecoin)
 
-      let wallet = await getWallet();
+      let wallet = getWallet();
       wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90",
         SHARED_KEY_DUMMY, 0.1,
         "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41",
@@ -784,7 +784,7 @@ describe('Swap phase 4', function () {
 
       let sc_clone_1 = cloneDeep(statecoin)
 
-      let wallet = await getWallet();
+      let wallet = getWallet();
       wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90",
         SHARED_KEY_DUMMY, 0.1,
         "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41",
@@ -858,7 +858,7 @@ describe('Swap phase 4', function () {
 
       let sc_clone_1 = cloneDeep(statecoin)
 
-      let wallet = await getWallet();
+      let wallet = getWallet();
       wallet.addStatecoinFromValues("c93ad45a-00b9-449c-a804-aab5530efc90",
         SHARED_KEY_DUMMY, 0.1,
         "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41",
@@ -913,7 +913,7 @@ describe('Swap phase 4', function () {
         return transferReceiverGet(path, params, statecoin)
       })
 
-      let wallet = await getWallet();
+      let wallet = getWallet();
       let swap = getSwap(wallet, statecoin)
       let result = await swapPhase4(swap)
       expect(result.is_ok()).toEqual(false)
@@ -955,7 +955,7 @@ describe('Swap phase 4', function () {
       return transferReceiverGet(path, params, statecoin)
     })
 
-    let wallet = await getWallet()
+    let wallet = getWallet()
     let swap = getSwap(wallet, statecoin)
 
     let result = await swapPhase4(swap)
@@ -995,7 +995,7 @@ describe('Swap phase 4', function () {
       return transferReceiverGet(path, params, statecoin)
     })
 
-    let wallet = await getWallet()
+    let wallet = getWallet()
     let swap = getSwap(wallet, statecoin)
 
     let result = await swapPhase4(swap)
@@ -1032,7 +1032,7 @@ describe('Swap phase 4', function () {
       return transferReceiverGet(path, params, statecoin)
     })
 
-    let wallet = await getWallet()
+    let wallet = getWallet()
     let swap = getSwap(wallet, statecoin)
 
     await expect(swapPhase4(swap))
@@ -1048,7 +1048,7 @@ describe('Swap phase 4', function () {
     expect(statecoin).toEqual(UPDATED_STATECOIN)
   })
   test('swapPhase4 test 18 - await transferReceiver, server responds with  error to getStateChain() in  transferReceiver()', async () => {
-    let wallet = await getWallet();
+    let wallet = getWallet();
     let statecoin = get_statecoin_in();
     let swap = getSwap(wallet, statecoin)
     const step_filter = (step) => {
@@ -1075,7 +1075,7 @@ describe('Swap phase 4', function () {
   });
 
   test('swapPhase4 test 19 - await transferReceiver, server responds with invalid swap coin', async () => {
-    let wallet = await getWallet();
+    let wallet = getWallet();
     let statecoin = get_statecoin_in();
     let swap = getSwap(wallet, statecoin)
     const step_filter = (step) => {
@@ -1109,7 +1109,7 @@ describe('Swap phase 4', function () {
   });
 
   test('swapPhase4 test 20 - repetition of transferReceiver', async () => {
-    let wallet = await getWallet();
+    let wallet = getWallet();
     let statecoin = get_statecoin_in();
     let swap = getSwap(wallet, statecoin)
     const step_filter = (step) => {
@@ -1168,7 +1168,7 @@ describe('Swap phase 4', function () {
 
 
   test('swapPhase4 test 21 - await transferReceiver, invalid backup tx amount', async () => {
-    let wallet = await getWallet();
+    let wallet = getWallet();
     let statecoin = get_statecoin_in();
     let swap = getSwap(wallet, statecoin)
     const step_filter = (step) => {

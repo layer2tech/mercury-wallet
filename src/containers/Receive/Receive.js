@@ -94,7 +94,7 @@ const ReceiveStatecoinPage = () => {
     return <Redirect to="/" />;
   }
 
-  const genAddrButtonAction = () => {
+  const genAddrButtonAction = async () => {
     callNewSeAddr()
     num_addresses = callGetNumSeAddr();
     setRecAddr(callGetSeAddr(num_addresses - 1));

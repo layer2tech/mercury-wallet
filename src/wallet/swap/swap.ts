@@ -245,7 +245,7 @@ export default class Swap {
       typeforce(typeforce.compile(typeforce.Buffer), this.proof_key_der?.publicKey);
       typeforce(typeforce.compile(typeforce.Function), this.proof_key_der?.sign);
     } catch (err) {
-      throw new Error(`checkProofKeyDer: proof_key_der type error: ${err}`)
+      throw new Error(`swapInit: proof_key_der type error: ${err}`)
     }
     return SwapStepResult.Ok()
   }
@@ -489,7 +489,7 @@ export default class Swap {
   }
 
   getSwapReceiverAddr(): SCEAddress {
-    const addr = this.statecoin?.swap_receiver_addr
+    const addr = this.statecoin.swap_receiver_addr
     if (addr === null || addr === undefined) {
       throw new Error("expected SCEAddress, got null or undefined")
     }
@@ -503,17 +503,17 @@ export default class Swap {
         await this.wallet.getWasm(), this.network, this.statecoin, this.proof_key_der,
         this.getSwapReceiverAddr().proof_key, true, this.wallet);
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase6;
-      await this.wallet.saveStateCoinsList()
+      this.wallet.saveStateCoinsList()
       return SwapStepResult.Ok("transfer sender complete")
     } catch (err: any) {
-      return SwapStepResult.Retry(`transferSender: ${err.message}`)
+      return SwapStepResult.Retry(err.message)
     }
   }
 
   makeSwapCommitment = async (): Promise<SwapStepResult> => {
     this.statecoin.swap_batch_data = await this.make_swap_commitment();
     this.statecoin.swap_status = SWAP_STATUS.Phase4;
-    await this.wallet.saveStateCoinsList()
+    this.wallet.saveStateCoinsList()
     return SwapStepResult.Ok("made swap commitment")
   }
 
@@ -570,11 +570,8 @@ export default class Swap {
       throw Error(`Error - ${result.length} transfer messages are available for statechain_id ${result[0].statechain_id}. Exiting swap...`)
     }
     if (result.length === 1) {
-      if (this.wallet.containsProofKeyPubKey(result[0].rec_se_addr.proof_key) === false) {
-        return SwapStepResult.Retry("getTransferMsg3 - wallet does not contain proof key - retrying...")
-      }
       this.statecoin.swap_transfer_msg_3_receiver = result[0]
-      await this.wallet.saveStateCoinsList()
+      this.wallet.saveStateCoinsList()
       return SwapStepResult.Ok("retrieved transfer_msg_3_receiver")
     }
     if (this.statecoin.swap_status === SWAP_STATUS.Phase4) {
@@ -709,7 +706,7 @@ export default class Swap {
     if (data === null || data === undefined) {
       data = await this.do_transfer_receiver()
       this.statecoin.swap_transfer_finalized_data = data
-      await this.wallet.saveStateCoinsList()
+      this.wallet.saveStateCoinsList()
     }
     return data
   }
@@ -719,11 +716,11 @@ export default class Swap {
     if (data === null || data === undefined) {
       data = await this.do_get_transfer_msg_4()
       this.statecoin.swap_transfer_msg_4 = data
-      await this.wallet.saveStateCoinsList()
+      this.wallet.saveStateCoinsList()
     }
     return data
   }
-  setStatecoinOut = async (statecoin_out: StateCoin) => {
+  setStatecoinOut = (statecoin_out: StateCoin) => {
     // Update coin status and num swap rounds
     this.statecoin.ui_swap_status = UI_SWAP_STATUS.End;
     this.statecoin.swap_status = SWAP_STATUS.End;
@@ -739,7 +736,7 @@ export default class Swap {
     statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key, this.wallet)
     this.statecoin_out = statecoin_out
     if (this.wallet.statecoins.addCoin(statecoin_out)) {
-      await this.wallet.saveStateCoinsList();
+      this.wallet.saveStateCoinsList();
       log.info("Swap complete for Coin: " + this.statecoin.shared_key_id + ". New statechain_id: " + statecoin_out.shared_key_id);
     } else {
       log.info("Error on swap complete for coin: " + this.statecoin.shared_key_id + " statechain_id: " + statecoin_out.shared_key_id + "Coin duplicate");
@@ -788,7 +785,7 @@ export default class Swap {
       const wasm = await this.wallet.getWasm();
       let statecoin_out = await transferReceiverFinalize(this.clients.http_client, wasm, tfd);
       log.info(`setting statecoin out...`)
-      await this.setStatecoinOut(statecoin_out)
+      this.setStatecoinOut(statecoin_out)
       log.info(`transfer complete.`)
       return SwapStepResult.Ok("transfer complete")
     } catch (err: any) {
