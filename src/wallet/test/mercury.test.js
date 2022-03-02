@@ -288,7 +288,7 @@ describe('StateChain Entity', function() {
       let statecoin = makeTesterStatecoin();
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
       let rec_se_addr = statecoin.proof_key;
-      var wallet = await Wallet.buildMock();
+      var wallet = Wallet.buildMock();
       let transfer_msg3 = await transferSender(http_mock, wasm_mock, network, statecoin, proof_key_der, rec_se_addr, wallet);
 
       // check transfer_msg data

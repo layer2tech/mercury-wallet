@@ -72,8 +72,8 @@ const swapPhase3 = async (swap) => {
     return result;
 }
 
-const getWallet = async () => {
-    let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+const getWallet = () => {
+    let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
     wallet.config.min_anon_set = 3;
     wallet.config.jest_testing_mode = true;
     wallet.http_client = http_mock;
@@ -93,7 +93,7 @@ describe('swapPhase3', () => {
     test('swapPhase3 test 1 - SwapStep1: invalid initial statecoin state', async () => {
 
         let statecoin = makeTesterStatecoin();
-        let wallet = await getWallet();
+        let wallet = getWallet();
         let swap;
 
         //Test invalid statecoin statuses
@@ -175,7 +175,7 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
-        let wallet = await getWallet()
+        let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         checkRetryMessage(await swapPhase3(swap),
@@ -202,7 +202,7 @@ describe('swapPhase3', () => {
             }
         })
 
-        let wallet = await getWallet()
+        let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         await expect(swapPhase3(swap))
@@ -252,11 +252,11 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin);
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der);
 
-        let wallet = await getWallet()
+        let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         checkRetryMessage(await swapPhase3(swap),
-            "transferSender: Error from GET request - path: info/fee, params: undefined")
+            "Error from GET request - path: info/fee, params: undefined")
 
         //Expect statecoin and proof_key_der to be unchanged
         expect(statecoin).toEqual(INIT_STATECOIN)
@@ -287,11 +287,11 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
-        let wallet = await getWallet()
+        let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         checkRetryMessage(await swapPhase3(swap),
-            "transferSender: Error from GET request - path: info/statecoin, params: undefined")
+            "Error from GET request - path: info/statecoin, params: undefined")
 
 
         //Expect statecoin and proof_key_der to be unchanged
@@ -326,11 +326,11 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
-        let wallet = await getWallet()
+        let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         checkRetryMessage(await swapPhase3(swap),
-            `transferSender: ${post_error(POST_ROUTE.TRANSFER_SENDER).message}`)
+            `${post_error(POST_ROUTE.TRANSFER_SENDER).message}`)
 
         //Expect statecoin and proof_key_der to be unchanged
         expect(statecoin).toEqual(INIT_STATECOIN)
@@ -356,7 +356,7 @@ describe('swapPhase3', () => {
             }
         })
 
-        const transfer_missing_x1_error = "transferSender: Expected property \"x1\" of type Object, got undefined";
+        const transfer_missing_x1_error = "Expected property \"x1\" of type Object, got undefined";
 
         let statecoin = makeTesterStatecoin();
 
@@ -366,7 +366,7 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
-        let wallet = await getWallet()
+        let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         checkRetryMessage(await swapPhase3(swap),
@@ -406,11 +406,11 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
-        let wallet = await getWallet()
+        let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         checkRetryMessage(await swapPhase3(swap),
-            "transferSender: Error from POST request - path: prepare-sign, body: undefined")
+            "Error from POST request - path: prepare-sign, body: undefined")
 
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
@@ -457,11 +457,11 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
-        let wallet = await getWallet()
+        let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         checkRetryMessage(await swapPhase3(swap),
-            "transferSender: Error from wasm_client: Sign.first_message")
+            "Error from wasm_client: Sign.first_message")
 
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
@@ -511,11 +511,11 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
-        let wallet = await getWallet()
+        let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         checkRetryMessage(await swapPhase3(swap),
-            "transferSender: Error from POST request - path: ecdsa/sign/second, body: undefined")
+            "Error from POST request - path: ecdsa/sign/second, body: undefined")
 
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
@@ -571,7 +571,7 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
-        let wallet = await getWallet()
+        let wallet = getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
 
         // This test needs to check for a warning rather than an ERROR - specifically the line below:
@@ -588,7 +588,7 @@ describe('swapPhase3', () => {
 
 
     test('swapPhase3 test 11 - SwapStep3: getTransferMsg3', async () => {
-        let wallet = await getWallet();
+        let wallet = getWallet();
         let statecoin = makeTesterStatecoin();
         init_phase3_status(statecoin);
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
@@ -618,7 +618,6 @@ describe('swapPhase3', () => {
 
         let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3)
         tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0]
-        tm3.rec_se_addr.proof_key = proof_key_der.publicKey.toString("hex")
         const tm3_const = tm3
 
         http_mock.get = jest.fn((path, params) => {
@@ -633,7 +632,7 @@ describe('swapPhase3', () => {
     })
 
     test('swapPhase3 test 12 - SwapStep4: make_swap_commitment', async () => {
-        let wallet = await getWallet();
+        let wallet = getWallet();
         let statecoin = makeTesterStatecoin();
         init_phase3_status(statecoin);
                 

@@ -28,8 +28,8 @@ async function swapPhase1(swap) {
   }
 
 
-async function getWallet() {
-    let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+function getWallet() {
+    let wallet = Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
     wallet.config.min_anon_set = 3
     wallet.config.jest_testing_mode = true
     wallet.http_client = http_mock
@@ -38,12 +38,12 @@ async function getWallet() {
   }
 
 
-describe('swapPhase1 test 1 - incorrect status', async () => {
+describe('swapPhase1 test 1 - incorrect status', () => {
     // input /////////////////////////////////////////////////
     let statecoin = makeTesterStatecoin();
     let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
     statecoin.status = null
-    let swap = new Swap(await getWallet(), statecoin, proof_key_der, proof_key_der) 
+    let swap = new Swap(getWallet(), statecoin, proof_key_der, proof_key_der) 
     //////////////////////////////////////////////////////////
 
     it('throws error on null status', async () => {
@@ -56,11 +56,11 @@ describe('swapPhase1 test 1 - incorrect status', async () => {
     })
 })
 
-describe('swapPhase1 test 2 - incorrect swap_status', async () => {
+describe('swapPhase1 test 2 - incorrect swap_status', () => {
     // input /////////////////////////////////////////////////
     let statecoin = makeTesterStatecoin();
     statecoin.status = STATECOIN_STATUS.IN_SWAP
-    let swap = new Swap(await getWallet(), statecoin, null, null) 
+    let swap = new Swap(getWallet(), statecoin, null, null) 
     //////////////////////////////////////////////////////////
 
     it('throws error on null swap_status', async () => {
@@ -73,13 +73,13 @@ describe('swapPhase1 test 2 - incorrect swap_status', async () => {
     })
 });
 
-describe('swapPhase1 test 3 - incorrect swap id', async () => {
+describe('swapPhase1 test 3 - incorrect swap id', () => {
     // input //////////////////////////////////////////////////////////
     let statecoin = makeTesterStatecoin();
     statecoin.status = STATECOIN_STATUS.IN_SWAP;
     // Set swap_status as if coin had already run Phase0
     statecoin.swap_status = SWAP_STATUS.Phase1
-    let swap = new Swap(await getWallet(), statecoin, null, null) 
+    let swap = new Swap(getWallet(), statecoin, null, null) 
     ///////////////////////////////////////////////////////////////////
 
     it('throws error on no swap id', async () => {
