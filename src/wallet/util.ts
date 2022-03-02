@@ -230,8 +230,8 @@ export const encodeSCEAddress = (proof_key: string, test_wallet: any = null) => 
       config = callGetConfig()
     }
     
-  let network = config.electrum_config.host
-  if(network.includes('testnet')){
+  let network = config?.network
+  if(network !== undefined && network.wif === 239){
     network = 'tc'
   } else {
     network = 'sc'
