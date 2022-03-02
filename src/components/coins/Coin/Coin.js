@@ -15,6 +15,7 @@ import { callGetActivityLog, callGetActivityLogItems, setError } from "../../../
 import { CoinStatus, CopiedButton } from "../..";
 
 const TESTING_MODE = require("../../../settings.json").testing_mode;
+const SWAP_AMOUNTS = require("../../../settings.json").swap_amounts;
 
 const SWAP_TOOLTIP_TXT = {
   SingleSwapMode: "Coin is waiting in queue to ensure you swap with someone else",
@@ -135,11 +136,14 @@ const Coin = (props) => {
             dispatch(setError({ msg: 'Locktime below limit for swap participation' }))
             return false;
           }
+          if ((!SWAP_AMOUNTS.includes(props.coin_data.value)) && (props.swap)) {
+            dispatch(setError({ msg: 'Swap not available for this coin value' }))
+            return false;            
+          }
           if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.swap || props.send || props.withdraw)) {
             dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap or withdrawal' }))
             return false;
           }
-
           if ((props.coin_data.status === STATECOIN_STATUS.IN_MEMPOOL || props.coin_data.status === STATECOIN_STATUS.UNCONFIRMED) && (props.swap || props.send || props.withdraw) && !TESTING_MODE) {
             dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
             return false
