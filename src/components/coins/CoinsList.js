@@ -208,7 +208,7 @@ const CoinsList = (props) => {
     setShowDeleteCoinDetails(true);
   }, [setCurrentItem, setShowDeleteCoinDetails])
 
-  const handleDeleteCoinYes = async (item) => {
+  const handleDeleteCoinYes = (item) => {
     item.status = "DELETED";
     item.deleting = true;
     item.privacy_data.msg = 'coin currently being deleted';
@@ -318,25 +318,25 @@ const CoinsList = (props) => {
     }
 
     let swapValues = new Set(inSwapValues)
-    let randomOrderIndices = []
+    let selectedCoins = []
+
     for (let i = 0; i < swapPendingCoins.length; i++) {
-      randomOrderIndices.push(i)
-    }
-    randomOrderIndices.sort(() => Math.random() - 0.5)
-    for (let i = 0; i < swapPendingCoins.length; i++) {
-      const j = randomOrderIndices[i]
-      let selectedCoin = swapPendingCoins[j]
+      let selectedCoin = swapPendingCoins[i]
       let statecoin = callGetStateCoin(selectedCoin);
       if (statecoin && checkSwapAvailability(statecoin, swapValues)) {
         swapValues.add(statecoin.value)
-        dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
-          .then(res => {
-            handleEndAutoSwap(dispatch, statecoin, selectedCoin, res, fromSatoshi)
-          }
-          );
+        selectedCoins.push(statecoin)
       }
     }
     dispatch(updateInSwapValues([...swapValues]))
+
+    for (let i = 0; i < selectedCoins.length; i++) {
+      let statecoin = selectedCoins[i]
+      dispatch(callDoSwap({ "shared_key_id": statecoin.shared_key_id }))
+        .then(res => {
+          handleEndAutoSwap(dispatch, statecoin, statecoin.shared_key_id, res, fromSatoshi)
+        });
+    }
   }
 
   const swapInfoAndAutoSwap = () => {
@@ -349,7 +349,6 @@ const CoinsList = (props) => {
 
   const updateUnconfirmedUnspentCoins = () => {
     setState({});
-    // console.log('interval 3')
     // in the case torInfo is undefined this should still run
 
     let new_unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
@@ -771,7 +770,7 @@ const CoinsList = (props) => {
         <Modal.Footer>
           <Button
             className="action-btn-normal"
-            onClick={async () => await handleDeleteCoinYes(currentItem)}
+            onClick={() => handleDeleteCoinYes(currentItem)}
           >
             Yes
               </Button>

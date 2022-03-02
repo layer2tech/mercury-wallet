@@ -102,7 +102,7 @@ const BackupTxPage = () => {
     }
   }
 
-  const addCPFP = async () => {
+  const addCPFP = () => {
     // check statechain is chosen
     if (!selectedCoin) {
       dispatch(setError({msg: "Please choose a statecoin."}))

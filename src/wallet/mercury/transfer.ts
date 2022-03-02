@@ -321,6 +321,8 @@ export const transferReceiver = async (
 
         let new_shared_key_id = await getOwner(http_client, transfer_msg3.statechain_id);        
 
+    
+
         // Update tx_backup_psm shared_key_id with new one
         let tx_backup_psm = transfer_msg3.tx_backup_psm;
         tx_backup_psm.shared_key_id = new_shared_key_id;
