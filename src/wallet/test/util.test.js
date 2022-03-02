@@ -9,7 +9,7 @@ import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, S
 import { Wallet } from '../';
 
 import { encrypt, decrypt, PrivateKey } from 'eciesjs12b';
-import { callGetArgsHasTestnet, setIntervalIfOnline } from '../../features/WalletDataSlice';
+import { setIntervalIfOnline } from '../../features/WalletDataSlice';
 
 let bip32 = require('bip32');
 var crypto = require('crypto')
@@ -118,24 +118,16 @@ describe('txCPFPBuild', function() {
   });
 });
 
-test('bech32 encode/decode', async function () {
-  expect(callGetArgsHasTestnet()).toEqual(true)
+test('bech32 encode/decode', async function() {
   let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
   wallet.config.update({min_anon_set: 1000, jest_testing_mode: true}); // update config to ensure defaults are not revered to after fromJSON.
-  
+  await wallet.save()
+
   let proof_key = PROOF_KEY;
   let encode = encodeSCEAddress(proof_key, wallet);
   expect(encode.slice(0,2)).toBe("sc");
   let decode = decodeSCEAddress(encode, wallet);
   expect(proof_key).toBe(decode);
-
-  let wallet_testnet = await Wallet.buildMock(bitcoin.networks.testnet);
-  wallet_testnet.config.update({ min_anon_set: 1000, jest_testing_mode: true }); // update config to ensure defaults are not revered to after fromJSON.
-  let encode_testnet = encodeSCEAddress(proof_key, wallet_testnet);
-  expect(encode_testnet.slice(0, 2)).toBe("tc");
-  let decode_testnet = decodeSCEAddress(encode_testnet, wallet_testnet);
-  expect(proof_key).toBe(decode_testnet);
-
 });
 
 test('transfer message encode/decode', function() {

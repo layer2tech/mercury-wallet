@@ -16,7 +16,7 @@ let bitcoin = require('bitcoinjs-lib')
 const NETWORK_CONFIG =  require('../../network.json');
 
 export const defaultWalletConfig = () => {
-  if(callGetArgsHasTestnet() === true){
+  if(callGetArgsHasTestnet()){
     return ({
       network: 'testnet',
       notifications: false,
