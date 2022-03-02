@@ -1,4 +1,5 @@
 import { ActivityLog, decryptAES, encryptAES, StateCoinList } from "./wallet";
+import { callGetArgsHasTestnet } from "./features/WalletDataSlice"
 
 declare const window: any;
 let Store: any;
@@ -8,21 +9,69 @@ try {
   Store = require('electron-store');
 }
 
+// Logger import.
+// Node friendly importing required for Jest tests.
+let log: any;
+try {
+  log = window.require('electron-log');
+} catch (e) {
+  log = require('electron-log');
+}
+
+
 
 export class Storage {
   store: any;
-  name:string;
-  constructor(fileName:string) {
+  name: string;
+  wallet_names: { name: string, password: string }[]
+  all_wallet_names: { name: string, password: string }[]
+
+  constructor(fileName: string) {
     this.name = fileName
-    this.store = new Store({name: this.name});
+    this.store = new Store({ name: this.name });
+    this.all_wallet_names = []
+    this.wallet_names = []
+    this.updateWalletNames()
+  }
+
+  updateWalletNames() {
+    this.all_wallet_names = this.loadWalletNames()
+    this.wallet_names = callGetArgsHasTestnet() ? this.all_wallet_names.filter(this.testnet_filter) :
+      this.all_wallet_names.filter(this.mainnet_filter)
+  }
+
+  getWalletNames(update: boolean = false, getAll: boolean = false) {
+    if (update === true) {
+      this.updateWalletNames()
+    }
+    return getAll ? this.all_wallet_names : this.wallet_names
+  }
+
+  testnet_filter = (wallet: any) => {
+    return this.network_filter(wallet, true)
+  }
+  mainnet_filter = (wallet: any) => {
+    return this.network_filter(wallet, false)
+  }
+  network_filter(wallet: any, isTestnet: boolean) {
+    try {
+      const store = new Store({ name: `wallets/${wallet.name}/config` });
+      const network = store.get(wallet.name).config?.network
+      const wallet_is_testnet = ((network !== undefined) && (network?.wif === 239))
+      return (isTestnet === wallet_is_testnet)
+    } catch (err) {
+      log.error(`Storage.getWalletNames() - Error parsing wallet file ${wallet.name}: ${err}`)
+      return false
+    }
   }
 
   // return map of wallet names->passwords
-  getWalletNames() {
+  loadWalletNames() {
     let wallets = this.store.get()
     
-    if (wallets==null) { return [] }
-    return Object.keys(wallets).map((name: string) => ({name: name, password: wallets[name].password}))
+    if (wallets == null) { return [] }
+    return Object.keys(wallets).
+      map((name: string) => ({ name: name, password: wallets[name].password }))
   }
 
   // Login info storage

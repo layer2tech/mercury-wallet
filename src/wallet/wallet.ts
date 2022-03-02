@@ -84,6 +84,7 @@ export class Wallet {
   saveMutex: Mutex;
 
   storage: Storage
+  name_store: Storage
 
   constructor(name: string, password: string, mnemonic: string, account: any, config: Config,
     http_client: any = undefined, wasm: any = undefined) {
@@ -114,6 +115,7 @@ export class Wallet {
     this.warnings = [{ name: "swap_punishment", show: true }]
 
     this.storage = new Storage(`wallets/${this.name}/config`);
+    this.name_store = new Storage(`wallets/wallet_names`);
     this.ping_conductor_ms = null;
     this.ping_server_ms = null;
     this.ping_electrum_ms = null;
@@ -317,9 +319,8 @@ export class Wallet {
   async saveName() {
     const release = await this.saveMutex.acquire();
     try {
-      let store = new Storage("wallets/wallet_names")
       //All wallet names in separate store
-      store.setName(this.name)
+      this.name_store.setName(this.name)
     } finally {
       release();
     }

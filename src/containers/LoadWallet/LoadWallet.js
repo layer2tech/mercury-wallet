@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import {Link} from "react-router-dom";
 import {useDispatch} from 'react-redux';
-import {Storage} from '../../store';
 import {walletLoad, setError, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice';
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
@@ -15,7 +14,7 @@ const LoadWalletPage = (props) => {
   const [showPass, setShowPass] = useState(false);
   const dispatch = useDispatch();
   
-  let store = new Storage("wallets/wallet_names");
+  let store = props.walletNameStore
 
   let wallet_names = store.getWalletNames();
 

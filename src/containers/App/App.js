@@ -5,6 +5,7 @@ import { WelcomePage, CreateWalletInfoPage, CreateWalletWizardPage, HomePage, De
 SendStatecoinPage, ReceiveStatecoinPage, SwapPage, BackupTxPage, LoadWalletPage, RestoreWalletPage } from '../index'
 import { getWalletName } from '../../features/WalletDataSlice';
 import { Header } from '../../components'
+import {Storage} from '../../store';
 
 
 import './App.css';
@@ -15,6 +16,11 @@ const App = () => {
   // or not: home is Welcome screen
   const [walletLoaded, setWalletLoaded] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
+  const [walletNameStore, setWalletNameStore] = useState()
+
+  const initWalletNameStore = () => {
+    setWalletNameStore(new Storage("wallets/wallet_names"))
+  }
 
   const { dark_mode } = useSelector(state => state.themeData);
 
@@ -41,6 +47,12 @@ const App = () => {
       document.body.classList.remove('dark-mode');
     }
   }, [dark_mode]);
+
+  //Update the wallet name store when a wallet is loaded in order to update
+  //the list on the LoadWallet page
+  useEffect(() => {
+    initWalletNameStore()
+  }, [walletLoaded]);
   return (
     <div className={`App ${dark_mode === '1' ? 'dark-mode': ''}`}>
       {walletLoaded ? <title>Mercury Wallet {version} - {walletName} </title> : <title>Mercury Wallet {version} - BETA</title>}
@@ -49,11 +61,11 @@ const App = () => {
       <Switch>
         <Route path="/" exact component={() => <WelcomePage />} />
         <Route path="/create_wallet" exact component={() => <CreateWalletInfoPage />} />
-        <Route path="/create_wizard" exact component={() => <CreateWalletWizardPage setWalletLoaded={setWalletLoaded}/>} />
-        <Route path="/load_wallet" exact component={() => <LoadWalletPage setWalletLoaded={setWalletLoaded}/>} />
-        <Route path="/restore_wallet" exact component={() => <RestoreWalletPage setWalletLoaded={setWalletLoaded}/>} />
+          <Route path="/create_wizard" exact component={() => <CreateWalletWizardPage setWalletLoaded={setWalletLoaded}/>} />
+          <Route path="/load_wallet" exact component={() => <LoadWalletPage setWalletLoaded={setWalletLoaded} walletNameStore={walletNameStore}/>} />
+          <Route path="/restore_wallet" exact component={() => <RestoreWalletPage setWalletLoaded={setWalletLoaded}/>} />
         <Route path="/home" exact component={() => <HomePage online = {online}/>} />
-        <Route path="/settings" exact component={() => <SettingsPage setWalletLoaded={setWalletLoaded}/>} />
+          <Route path="/settings" exact component={() => <SettingsPage setWalletLoaded={setWalletLoaded}/>} />
         <Route path="/help" exact component={() => <HelpPage walletLoaded={walletLoaded}/>} />
         <Route path="/deposit" exact component={() => <DepositPage />} />
         <Route path="/withdraw" exact component={() => <WithdrawPage />} />

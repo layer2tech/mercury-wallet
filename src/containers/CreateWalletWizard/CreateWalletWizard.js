@@ -38,7 +38,6 @@ const CreateWizardPage = (props) => {
   const [walletNames,setWalletNames] = useState()
   const [confirmDetails,setConfirmDetails] = useState(false)
   const [startSeed,setStartSeed] = useState(false)
-
   
   const [step, setStep] = useState(CreateWizardStep.FORM)
   const [wizardState, setWizardState] = useState(
@@ -55,7 +54,7 @@ const CreateWizardPage = (props) => {
       store = new Storage(`wallets/${wizardState.wallet_name}/config`);
       //Store wallet in own directory
 
-      let wallet_names = store.getWalletNames();
+      let wallet_names = store.getWalletNames(true, true);
       //Check for if wallet name already exists, check in above directory
     
       setWalletNames(wallet_names)

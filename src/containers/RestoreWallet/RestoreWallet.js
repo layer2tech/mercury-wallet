@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {withRouter} from "react-router-dom";
 import {useDispatch} from 'react-redux';
 import {Tabs, Tab} from 'react-bootstrap';
-import {setError, walletFromMnemonic, walletFromJson} from '../../features/WalletDataSlice'
+import {setError, walletFromMnemonic, walletFromJson, callGetArgsHasTestnet} from '../../features/WalletDataSlice'
 import {CreateWizardForm} from '../../components'
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg"
@@ -31,7 +31,7 @@ const RestoreWalletPage = (props) => {
   // Confirm mnemonic is valid
   const onClickConf = () => {
     let store = new Storage("wallets/wallet_names");
-    let wallet_names = store.getWalletNames();
+    let wallet_names = store.getWalletNames(false, true);
 
     if (wallet_names.indexOf(state.wallet_name)!==-1) {
       dispatch(setError({msg: "Wallet with name "+state.wallet_name+" already exists."}));
@@ -76,11 +76,22 @@ const RestoreWalletPage = (props) => {
     const handleImportWalletData = async (event, backupData) => {
       try {
         const walletJson = JSON.parse(backupData);
+        const isTestnet = callGetArgsHasTestnet();
+        const walletNetwork = walletJson.config?.network
+        const isWalletTestnet = ((walletNetwork !== undefined) && (walletNetwork.wif === 239))
+        if (isTestnet === true && isWalletTestnet === false) {
+          dispatch(setError({msg: "Cannot recover mainnet wallet "+walletJson.name+" in testnet mode."}));
+          return
+        }
+        if (isTestnet === false && isWalletTestnet === true) {
+          dispatch(setError({ msg: "Cannot recover testnet wallet " + walletJson.name + " in mainnet mode." }));
+          return
+        }
 
         walletJson.name = walletJson.name + '_backup';
 
         let store = new Storage("wallets/wallet_names");
-        let wallet_names = store.getWalletNames();
+        let wallet_names = store.getWalletNames(false, true);
         //Check for if wallet name already exists, check in above directory
         if (wallet_names.filter(wallet => wallet.name === walletJson.name).length > 0) {
           // Check for file with this wallet name
