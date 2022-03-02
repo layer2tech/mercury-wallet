@@ -1,6 +1,6 @@
 {
     "mainnet_state_entity_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion",
-    "mainnet_swap_conductor_endpoint": "http://5q4bfk46or5kopl4hrwmjclk6aharjetumegjcx7vcjlko6euuvjyjad.onion, http://b744fl2e2hh776rpteaq4mqjccvhkp662flla2uq4k5duarilaqo54id.onion",
+    "mainnet_swap_conductor_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion",
     "mainnet_block_explorer_endpoint":  "https://blockstream.info/tx/",
     "mainnet_electrum_config": {"host": "https://blockstream.info/api", "port": null, "protocol": "http", "type": "electrs"},
     
