@@ -125,6 +125,39 @@ describe('Wallet', function () {
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
+  
+    test('load, edit network settings, save and reload', async function () {
+      
+      const test_state_entity_endpoint = "test SEE"
+      const test_swap_conductor_endpoint = "test SCE"
+      const test_block_explorer_endpoint = "test BEE"
+      const test_electrum_config = {
+        host: "test EC host",
+        port: 123456789,
+        protocol: "test EC protocol",
+        type: "test EC type"
+      }
+
+      wallet.config.state_entity_endpoint = test_state_entity_endpoint
+      wallet.config.swap_conductor_endpoint = test_swap_conductor_endpoint
+      wallet.config.block_explorer_endpoint = test_block_explorer_endpoint
+      wallet.config.electrum_config = test_electrum_config
+
+      const wallet_mod_str = JSON.stringify(wallet)
+      const wallet_mod_json = JSON.parse(wallet_mod_str)
+      expect(wallet_mod_json.config.state_entity_endpoint).toEqual(test_state_entity_endpoint)
+      expect(wallet_mod_json.config.swap_conductor_endpoint).toEqual(test_swap_conductor_endpoint)
+      expect(wallet_mod_json.config.block_explorer_endpoint).toEqual(test_block_explorer_endpoint)
+      expect(wallet_mod_json.config.electrum_config).toEqual(test_electrum_config)
+
+      await wallet.save()
+
+      let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      const loaded_wallet_str = JSON.stringify(loaded_wallet)
+      const loaded_wallet_json = JSON.parse(loaded_wallet_str)
+      expect(wallet_mod_str).toEqual(loaded_wallet_str)
+    });
+  
   });
 
   describe('segwitAddr', function () {
