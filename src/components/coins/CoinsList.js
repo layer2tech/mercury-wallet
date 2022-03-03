@@ -208,7 +208,7 @@ const CoinsList = (props) => {
     setShowDeleteCoinDetails(true);
   }, [setCurrentItem, setShowDeleteCoinDetails])
 
-  const handleDeleteCoinYes = async (item) => {
+  const handleDeleteCoinYes = (item) => {
     item.status = "DELETED";
     item.deleting = true;
     item.privacy_data.msg = 'coin currently being deleted';
@@ -257,16 +257,21 @@ const CoinsList = (props) => {
 
       // Update total_balance in Redux state
       if (filterBy !== 'default') {
+
         const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
         const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value, 0);
         dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsByStatus.length }));
+        console.log('filterBy !== default', { total_balance: total, num_coins: coinsByStatus.length });
       } else {
+        console.table('all_coins_data', all_coins_data);
+        console.table('coins_data', coins_data);
         const coinsNotWithdraw = coins_data.filter(coin => (
           coin.status !== STATECOIN_STATUS.WITHDRAWN &&
           coin.status !== STATECOIN_STATUS.WITHDRAWING &&
           coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
           coin.status !== STATECOIN_STATUS.EXPIRED));
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
+        console.log('else:', { total_balance: total, num_coins: coinsNotWithdraw.length });
         dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsNotWithdraw.length }));
       }
       return () => { isMounted = false }
@@ -309,6 +314,47 @@ const CoinsList = (props) => {
     return () => clearInterval(interval);
   },
     [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
+
+  useEffect(() => {
+    // only set this if we have data, as the first loop could set everything to 0
+    if (all_coins_data.length > 5000) {
+      console.table('all_coins_data', all_coins_data);
+      const legitimateCoins = all_coins_data.filter(coin => (
+        coin.status !== STATECOIN_STATUS.WITHDRAWN &&
+        coin.status !== STATECOIN_STATUS.WITHDRAWING &&
+        coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
+        coin.status !== STATECOIN_STATUS.EXPIRED
+      ));
+
+      console.table('legitimateCoins', legitimateCoins);
+      const total = legitimateCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
+      dispatch(updateBalanceInfo({ total_balance: total, num_coins: legitimateCoins.length }))
+    }
+  }, [all_coins_data.length])
+
+  const [totalCoins, setTotalCoins] = useState(0);
+
+  // notes:
+  // this method calls a couple renders a minute as coins_data is always changing, but not as much as all_coins_data does
+  // need to look at why, see line all_coins_data.map
+  useEffect(() => {
+    const [coins_data] = callGetUnspentStatecoins();
+    // given that coins_data.amounts cannot change later
+    // its safe to assume that the length of coins would have to change for total amounts to change
+    if (coins_data.length > 0 && totalCoins != coins_data.length) {
+      const confirmedCoins = coins_data.filter(coin => (
+        coin.status !== STATECOIN_STATUS.WITHDRAWN &&
+        coin.status !== STATECOIN_STATUS.WITHDRAWING &&
+        coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
+        coin.status !== STATECOIN_STATUS.EXPIRED
+      ));
+      // save the total amount to check later
+      setTotalCoins(confirmedCoins.length);
+      // update balance and amount
+      const total = confirmedCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
+      dispatch(updateBalanceInfo({ total_balance: total, num_coins: confirmedCoins.length }))
+    }
+  }, [callGetUnspentStatecoins()])
 
   // Enters/Re-enters coins in auto-swap
   const autoSwapLoop = () => {
@@ -770,7 +816,7 @@ const CoinsList = (props) => {
         <Modal.Footer>
           <Button
             className="action-btn-normal"
-            onClick={async () => await handleDeleteCoinYes(currentItem)}
+            onClick={() => handleDeleteCoinYes(currentItem)}
           >
             Yes
               </Button>
@@ -787,5 +833,3 @@ const CoinsList = (props) => {
 }
 
 export default CoinsList;
-
-
