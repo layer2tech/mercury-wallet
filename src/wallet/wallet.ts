@@ -35,6 +35,8 @@ const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
 const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
 const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
+//The gap limit when attempting to derive a bip32 node from an address
+const GAP_LIMIT=100
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -255,7 +257,7 @@ export class Wallet {
   static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
 
     let network: Network = json_wallet.config.network;
-    let config = new Config(json_wallet.config.network, json_wallet.config.testing_mode);
+    let config = new Config(network, json_wallet.config.testing_mode);
     config.update(json_wallet.config);
     //Config needs to be included when constructing the wallet
     let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
@@ -269,36 +271,11 @@ export class Wallet {
     // Make sure properties added to the wallet are handled
     // New properties should not make old wallets break
 
-    // Rederive root and root chain keys
-    const seed = bip39.mnemonicToSeedSync(json_wallet.mnemonic);
-    const root = bip32.fromSeed(seed, network);
-
-    let i = root.deriveHardened(0)
-    let external = i.derive(0)
-    let internal = i.derive(1)
-
-    // Re-map Account JSON data to root chains
-    const chains = json_wallet.account.map(function (j: any) {
-      let node;
-      if (Object.keys(j.map).length) { // is internal node
-        node = external
-      } else {
-        node = internal
-      }
-
-      const chain = new bip32utils.Chain(node, j.k, segwitAddr)
-      chain.map = j.map
-
-      chain.addresses = Object.keys(chain.map).sort(function (a, b) {
-        return chain.map[a] - chain.map[b]
-      })
-
-      return chain
-    })
-
-    new_wallet.account = new bip32utils.Account(chains);
+    new_wallet.account = json_wallet_to_bip32_root_account(json_wallet)
     return new_wallet
   }
+
+  
 
   // Save entire wallet to storage. Store in file as JSON Object.
 
@@ -923,13 +900,7 @@ export class Wallet {
   }
 
   getBIP32forBtcAddress(addr: string): BIP32Interface {
-    if (this.account.containsAddress(addr) === false) {
-      throw Error(`wallet::getBIP32forBtcAddress - account does not contain address ${addr}`)
-    }
-    let node = this.account.derive(addr)
-    if (!node) {
-      throw new Error(`wallet::getBIP32forBtcAddress - failed to derive BIP32 node for address ${addr}`)
-    }
+    let node = getBIP32forBtcAddress(addr, this.account, GAP_LIMIT)
     return node
   }
 
@@ -1194,7 +1165,7 @@ export class Wallet {
     try {
      proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     } catch (err: any) {
-      throw Error(`resume_swap: ${err?.message}`)
+      throw Error(`resume_swap: proof_key: ${proof_key}: ${err?.message}`)
     }
     let new_proof_key_der = await this.genProofKey();
 
@@ -1626,7 +1597,7 @@ export class Wallet {
 }
 
 // BIP39 mnemonic -> BIP32 Account
-const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
+export const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
   if (!bip39.validateMnemonic(mnemonic)) {
     throw Error("Invalid mnemonic")
   }
@@ -1647,6 +1618,39 @@ const mnemonic_to_bip32_root_account = (mnemonic: string, network: Network) => {
   return account
 }
 
+export const json_wallet_to_bip32_root_account = (json_wallet: any): object => {
+  const network: Network = json_wallet.config.network;
+  // Rederive root and root chain keys
+  const seed = bip39.mnemonicToSeedSync(json_wallet.mnemonic);
+  const root = bip32.fromSeed(seed, network);
+
+  let i = root.deriveHardened(0)
+  let external = i.derive(0)
+  let internal = i.derive(1)
+
+  // Re-map Account JSON data to root chains
+  const chains = json_wallet.account.map(function (j: any) {
+    let node;
+    if (Object.keys(j.map).length) { // is internal node
+      node = external
+    } else {
+      node = internal
+    }
+
+    const chain = new bip32utils.Chain(node, j.k, segwitAddr)
+    chain.map = j.map
+
+    chain.addresses = Object.keys(chain.map).sort(function (a, b) {
+      return chain.map[a] - chain.map[b]
+    })
+
+    return chain
+  })
+
+  let account = new bip32utils.Account(chains);
+  return account
+}
+
 // Address generation fn
 export const segwitAddr = (node: any, network: Network) => {
   network = !network ? node?.network : network
@@ -1659,6 +1663,28 @@ export const segwitAddr = (node: any, network: Network) => {
     network: network
   });
   return p2wpkh.address
+}
+
+export const getBIP32forBtcAddress = (addr: string, account: any, gap_limit: number): BIP32Interface => {
+  const i_chain = 0;
+  let node
+  if (account.containsAddress(addr) === false) {
+    let query_chain = cloneDeep(account.getChain(i_chain))
+    for (let j = 0; j < gap_limit; j++) {
+      query_chain.next()
+      const chain_addr = query_chain.get()
+      if (chain_addr === addr) {
+        node = query_chain.derive(addr)
+        break
+      }
+    }
+  } else {
+    node = account.derive(addr)
+  }
+  if (!node) {
+    throw Error(`getBIP32forBtcAddress - did not find address ${addr} in chain ${i_chain} of account up to gap limit ${gap_limit}`) 
+  }
+  return node
 }
 
 

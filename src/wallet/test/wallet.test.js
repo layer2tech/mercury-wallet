@@ -1,6 +1,9 @@
 let bitcoin = require('bitcoinjs-lib')
 import { Wallet, StateCoin, StateCoinList, ACTION, Config, STATECOIN_STATUS, BACKUP_STATUS, decryptAES } from '../';
-import { segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC } from '../wallet';
+import {
+  segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC,
+  mnemonic_to_bip32_root_account, getBIP32forBtcAddress
+} from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
 import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr } from '../util';
@@ -770,4 +773,60 @@ describe("Recovery unfinalized", () => {
       
     });
 
+})
+
+describe("bip32", () => {
+  const MNEMONIC = "similar leader virus polar vague grunt talk flavor kitten order call blood"
+  const addresses = ["bc1qmn8ce5fcmkj58df76r7tvey6hgq3w0xzm3awe8",
+    "bc1qqjv602v04glax49h2s46jwp5jhqta4pe8w3k8a",
+    "bc1qs0l8u9xnk4rdr20wvjdwsd5jjrgj7lxhptw6u0"]
+  let account
+ 
+  beforeEach(() => {
+    account = mnemonic_to_bip32_root_account(MNEMONIC, bitcoin.networks.bitcoin)
+  })
+
+  test('find generated addresses', async () => {
+    for (let i = 0; i < addresses.length; i++) {
+      account.nextChainAddress(0)
+      expect(account.containsAddress(addresses[i])).toBe(true)
+    }
+  })
+
+  test('do not find ungenerated addresses', async () => {
+    for (let i = 0; i < addresses.length; i++) {
+      expect(account.containsAddress(addresses[i])).toBe(false)
+    }
+  })
+
+  test('find nodes below gap limit using getBIP32forBtcAddress', async () => {
+    for (let i = 0; i < addresses.length; i++) {
+      expect(() => { getBIP32forBtcAddress(addresses[i], account, addresses.length) }).not.toThrowError()
+    }
+  })
+
+  test('fail to find nodes above gap limit using getBIP32forBtcAddress', async () => {
+    expect(() => { getBIP32forBtcAddress(addresses[addresses.length - 1], account, addresses.length - 1) }).toThrow()
+  })
+
+  test('finding a node using getBIP32forBtcAddress leaves account unaltered', async () => {
+    let account_orig = cloneDeep(account)
+    getBIP32forBtcAddress(addresses[2], account, addresses.length)
+    expect(account_orig).toEqual(account)
+  })
+})
+
+describe("bip32check", () => {
+  const MNEMONIC = "similar leader virus polar vague grunt talk flavor kitten order call blood"
+  const ADDRESS = "bc1qmn8ce5fcmkj58df76r7tvey6hgq3w0xzm3awe8"
+  const GAP_LIMIT = 200
+  let account
+
+  beforeEach(() => {
+    account = mnemonic_to_bip32_root_account(MNEMONIC, bitcoin.networks.bitcoin)
+  })
+
+  test('confirm that address is found in account', async () => {
+    expect(() => { getBIP32forBtcAddress(ADDRESS, account, GAP_LIMIT) }).not.toThrowError()
+  })
 })

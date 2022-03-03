@@ -708,6 +708,9 @@ export default class Swap {
     let data = this.statecoin.swap_transfer_finalized_data
     if (data === null || data === undefined) {
       data = await this.do_transfer_receiver()
+      if (this.wallet.containsProofKeyPubKey(data.proof_key) == false) {
+        throw Error(`swap.getTransferFinalizeData - wallet does not have proof key pub ${data.proof_key}`)
+      }
       this.statecoin.swap_transfer_finalized_data = data
       await this.wallet.saveStateCoinsList()
     }
