@@ -255,9 +255,7 @@ export class Wallet {
 
   // Load wallet from JSON
   static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
-
-    let network: Network = json_wallet.config.network;
-    let config = new Config(network, json_wallet.config.testing_mode);
+    let config = new Config(json_wallet.config.network, json_wallet.config.testing_mode);
     config.update(json_wallet.config);
     //Config needs to be included when constructing the wallet
     let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
