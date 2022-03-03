@@ -794,7 +794,7 @@ const CoinsList = (props) => {
         <Modal.Footer>
           <Button
             className="action-btn-normal"
-            onClick={() => handleDeleteCoinYes(currentItem)}
+            onClick={async () => await handleDeleteCoinYes(currentItem)}
           >
             Yes
               </Button>
