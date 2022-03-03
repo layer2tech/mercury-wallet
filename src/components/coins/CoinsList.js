@@ -310,23 +310,6 @@ const CoinsList = (props) => {
   },
     [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
 
-  useEffect(() => {
-    // only set this if we have data, as the first loop could set everything to 0
-    if (all_coins_data.length > 5000) {
-      console.table('all_coins_data', all_coins_data);
-      const legitimateCoins = all_coins_data.filter(coin => (
-        coin.status !== STATECOIN_STATUS.WITHDRAWN &&
-        coin.status !== STATECOIN_STATUS.WITHDRAWING &&
-        coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
-        coin.status !== STATECOIN_STATUS.EXPIRED
-      ));
-
-      console.table('legitimateCoins', legitimateCoins);
-      const total = legitimateCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
-      dispatch(updateBalanceInfo({ total_balance: total, num_coins: legitimateCoins.length }))
-    }
-  }, [all_coins_data.length])
-
   const [totalCoins, setTotalCoins] = useState(0);
 
   // notes:
