@@ -806,7 +806,7 @@ describe("bip32", () => {
   })
 
   test('fail to find nodes above gap limit using getBIP32forBtcAddress', async () => {
-    expect(() => { getBIP32forBtcAddress(addresses[addresses.length - 1], account, addresses.length - 1) }).toThrow()
+    expect(() => { getBIP32forBtcAddress(addresses[addresses.length - 1], account, addresses.length - 1) }).toThrowError()
   })
 
   test('finding a node using getBIP32forBtcAddress leaves account unaltered', async () => {
