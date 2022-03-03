@@ -208,11 +208,11 @@ const CoinsList = (props) => {
     setShowDeleteCoinDetails(true);
   }, [setCurrentItem, setShowDeleteCoinDetails])
 
-  const handleDeleteCoinYes = (item) => {
+  const handleDeleteCoinYes = async (item) => {
     item.status = "DELETED";
     item.deleting = true;
     item.privacy_data.msg = 'coin currently being deleted';
-    callRemoveCoin(item.shared_key_id);
+    await callRemoveCoin(item.shared_key_id);
     setShowDeleteCoinDetails(false);
   }
 
@@ -257,21 +257,16 @@ const CoinsList = (props) => {
 
       // Update total_balance in Redux state
       if (filterBy !== 'default') {
-
         const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
         const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value, 0);
         dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsByStatus.length }));
-        console.log('filterBy !== default', { total_balance: total, num_coins: coinsByStatus.length });
       } else {
-        console.table('all_coins_data', all_coins_data);
-        console.table('coins_data', coins_data);
         const coinsNotWithdraw = coins_data.filter(coin => (
           coin.status !== STATECOIN_STATUS.WITHDRAWN &&
           coin.status !== STATECOIN_STATUS.WITHDRAWING &&
           coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
           coin.status !== STATECOIN_STATUS.EXPIRED));
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        console.log('else:', { total_balance: total, num_coins: coinsNotWithdraw.length });
         dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsNotWithdraw.length }));
       }
       return () => { isMounted = false }
