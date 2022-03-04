@@ -222,12 +222,9 @@ export class Config {
 }
 
 const checkDiff = (sticky_bool: boolean, var1: any, var2: any) => {
-  if (sticky_bool === true) {
-    console.log("sticky")
-  } else {
+  if (sticky_bool !== true) {
     if (var1 != var2) {
       sticky_bool = true
-      console.log(`changed at ${JSON.stringify(var1)}`)
     }
   }
   return sticky_bool
