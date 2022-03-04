@@ -57,12 +57,13 @@ const LoadWalletPage = (props) => {
     // check for password
     if(typeof selectedWallet === 'string' || selectedWallet instanceof String) {
         try { 
-          walletLoad(selectedWallet, passwordEntered) }
-          catch (e) {
+          walletLoad(selectedWallet, passwordEntered) 
+        }
+        catch (e) {
             event.preventDefault();
             dispatch(setError({msg: e.message}));
             return
-          }
+        }
     } else { 
         try {
           walletLoad(selectedWallet.name, passwordEntered) }
