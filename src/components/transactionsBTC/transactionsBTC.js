@@ -82,6 +82,9 @@ const TransactionsBTC = (props) => {
     let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
     if (JSON.stringify(deposit_inits) !== JSON.stringify(new_deposit_inits)) {
       deposit_inits.current = new_deposit_inits.reverse();
+      deposit_inits.current = deposit_inits.current.filter((obj) => {
+        return obj.confirmations === -1;
+      });
       setState({});
       setDeleteOccured(false);
     }
@@ -95,12 +98,13 @@ const TransactionsBTC = (props) => {
     });
     const interval = setInterval(() => {
       // if we are not in loading state
-      if (!loading) {
-        let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
-        if (JSON.stringify(deposit_inits) !== JSON.stringify(new_deposit_inits)) {
-          deposit_inits.current = new_deposit_inits.reverse();
-          setState({}); //update state to refresh TransactionDisplay render
-        }
+      let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
+      if (JSON.stringify(deposit_inits) !== JSON.stringify(new_deposit_inits)) {
+        deposit_inits.current = new_deposit_inits.reverse();
+        deposit_inits.current = deposit_inits.current.filter((obj) => {
+          return obj.confirmations === -1;
+        });
+        setState({}); //update state to refresh TransactionDisplay render
       }
     }, 10000);
     return () => clearInterval(interval);
