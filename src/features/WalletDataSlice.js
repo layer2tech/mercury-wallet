@@ -133,22 +133,22 @@ function setBlockHeightCallBack(item) {
 }
 
 // Load wallet from store
-export const walletLoad = async (name, password) => {
+export const walletLoad = (name, password) => {
 
   wallet = Wallet.load(name, password, testing_mode);
 
   wallet.disableAutoSwaps();
-  await wallet.deRegisterSwaps();
+  wallet.deRegisterSwaps().then(() => {
+    log.info("Wallet "+name+" loaded from memory. ");
   
-  log.info("Wallet "+name+" loaded from memory. ");
-  
-  if (testing_mode) log.info("Testing mode set.");
-  mutex.runExclusive(async () => {
-    await wallet.set_tor_endpoints();
-    wallet.initElectrumClient(setBlockHeightCallBack);
-    wallet.updateSwapStatus();
-    await wallet.updateSwapGroupInfo();
-    wallet.updateSpeedInfo();
+    if (testing_mode) log.info("Testing mode set.");
+    mutex.runExclusive(async () => {
+      await wallet.set_tor_endpoints();
+      wallet.initElectrumClient(setBlockHeightCallBack);
+      wallet.updateSwapStatus();
+      await wallet.updateSwapGroupInfo();
+      wallet.updateSpeedInfo();
+    });
   });
 }
 
