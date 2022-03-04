@@ -173,7 +173,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100px;
+    padding-top: 24px;
     width: 250px;
     background-color: #fff;
     margin: 20px auto;
@@ -183,7 +183,7 @@
     align-items: center;
 }
 .loading-trans .loading-keys span {
-    padding: 0 12px;
+    padding: 0 16px;
 }
 
 .go3147146168:before {
