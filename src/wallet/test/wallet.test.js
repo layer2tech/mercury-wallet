@@ -1,9 +1,6 @@
 let bitcoin = require('bitcoinjs-lib')
 import { Wallet, StateCoin, StateCoinList, ACTION, Config, STATECOIN_STATUS, BACKUP_STATUS, decryptAES } from '../';
-import {
-  segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC,
-  mnemonic_to_bip32_root_account, getBIP32forBtcAddress
-} from '../wallet';
+import { segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
 import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr } from '../util';
@@ -21,7 +18,6 @@ import { getFinalizeDataForRecovery } from '../recovery';
 import { assert } from 'console';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 import { argsHasTestnet } from '../config'
-import { SWAP_STATUS } from '../swap/swap_utils';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -61,8 +57,14 @@ describe('Wallet', function () {
     expect(proof_key_bip32.privateKey).toEqual(bip32.privateKey)
     let addr_unknown = 'bc1qglel9v4uqxdzw05s3l0mdn9vdh6rdlv7pfnlfu'
     //Check that an error is thrown for an unknown address
-    expect(() => { wallet.getBIP32forBtcAddress(addr_unknown) }).
-      toThrowError(`getBIP32forBtcAddress - did not find address ${addr_unknown} in wallet.account`)
+    try {
+      let _ = wallet.getBIP32forBtcAddress(addr_unknown)
+    } catch (err) {
+      expect(err).toEqual(
+        new Error(`wallet::getBIP32forBtcAddress - account does not contain address ${addr_unknown}`)
+      )
+    }
+
   });
 
   test('getActivityLogItems', function () {
@@ -768,84 +770,4 @@ describe("Recovery unfinalized", () => {
       
     });
 
-})
-
-describe("bip32", () => {
-  const MNEMONIC = "similar leader virus polar vague grunt talk flavor kitten order call blood"
-  const addresses = ["bc1qmn8ce5fcmkj58df76r7tvey6hgq3w0xzm3awe8",
-    "bc1qqjv602v04glax49h2s46jwp5jhqta4pe8w3k8a",
-    "bc1qs0l8u9xnk4rdr20wvjdwsd5jjrgj7lxhptw6u0"]
-  let account
- 
-  beforeEach(() => {
-    account = mnemonic_to_bip32_root_account(MNEMONIC, bitcoin.networks.bitcoin)
-  })
-
-  test('find generated addresses', async () => {
-    for (let i = 0; i < addresses.length; i++) {
-      account.nextChainAddress(0)
-      expect(account.containsAddress(addresses[i])).toBe(true)
-    }
-  })
-
-  test('do not find ungenerated addresses', async () => {
-    for (let i = 0; i < addresses.length; i++) {
-      expect(account.containsAddress(addresses[i])).toBe(false)
-    }
-  })
-
-  test('find generated nodes using getBIP32forBtcAddress', async () => {
-    for (let i = 0; i < addresses.length; i++) {
-      account.nextChainAddress(0)
-      expect(() => { getBIP32forBtcAddress(addresses[i], account) }).not.toThrowError()
-    }
-  })
-
-  test('fail to ungenerated node using getBIP32forBtcAddress', async () => {
-    expect(() => { getBIP32forBtcAddress(addresses[addresses.length - 1], account) }).toThrowError()
-  })
-
-  test('finding a node using getBIP32forBtcAddress leaves account unaltered', async () => {
-    account.nextChainAddress(0)
-    let account_orig = cloneDeep(account)
-    getBIP32forBtcAddress(addresses[0], account)
-    expect(account_orig).toEqual(account)
-  })
-
-  test('failing to find a node using getBIP32forBtcAddress leaves account unaltered', async () => {
-    let account_orig = cloneDeep(account)
-    expect(() => { getBIP32forBtcAddress(addresses[0], account) }).toThrowError()
-    expect(account_orig).toEqual(account)
-  })
-})
-
-describe("Post-swap functions", () => {
-  const MNEMONIC = "similar leader virus polar vague grunt talk flavor kitten order call blood"
-  // client side's mock
-  let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
-  // server side's mock
-  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
-  let wallet
-  const CHAIN_LENGTH = 5
-  //Fatal swap error
-  const swap_error = Error("Exiting swap.")
-  let statecoin
-  let account_init
-  beforeEach(async () => {
-    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock, MNEMONIC);
-    wallet.statecoins.coins = [];
-    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" }, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
-    statecoin = wallet.statecoins.coins[0]
-    statecoin.swap_status = SWAP_STATUS.Init
-    for (let i = 0; i < CHAIN_LENGTH; i++) {
-      wallet.account.nextChainAddress(0);
-    }
-    account_init = cloneDeep(wallet.account)
-    wallet.handleSwapError(swap_error, statecoin)
-    wallet.doPostSwap(statecoin, null)
-  })
-
-  test("Post-swap and swap error handling functions do not alter wallet bip32 account", () => {
-    expect(wallet.account).toEqual(account_init)
-  })
 })

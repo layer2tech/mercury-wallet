@@ -212,7 +212,7 @@ const CoinsList = (props) => {
     item.status = "DELETED";
     item.deleting = true;
     item.privacy_data.msg = 'coin currently being deleted';
-    await callRemoveCoin(item.shared_key_id);
+    callRemoveCoin(item.shared_key_id);
     setShowDeleteCoinDetails(false);
   }
 
@@ -309,30 +309,6 @@ const CoinsList = (props) => {
     return () => clearInterval(interval);
   },
     [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
-
-  const [totalCoins, setTotalCoins] = useState(0);
-
-  // notes:
-  // this method calls a couple renders a minute as coins_data is always changing, but not as much as all_coins_data does
-  // need to look at why, see line all_coins_data.map
-  useEffect(() => {
-    const [coins_data] = callGetUnspentStatecoins();
-    // given that coins_data.amounts cannot change later
-    // its safe to assume that the length of coins would have to change for total amounts to change
-    if (coins_data.length > 0 && totalCoins != coins_data.length) {
-      const confirmedCoins = coins_data.filter(coin => (
-        coin.status !== STATECOIN_STATUS.WITHDRAWN &&
-        coin.status !== STATECOIN_STATUS.WITHDRAWING &&
-        coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
-        coin.status !== STATECOIN_STATUS.EXPIRED
-      ));
-      // save the total amount to check later
-      setTotalCoins(confirmedCoins.length);
-      // update balance and amount
-      const total = confirmedCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
-      dispatch(updateBalanceInfo({ total_balance: total, num_coins: confirmedCoins.length }))
-    }
-  }, [callGetUnspentStatecoins()])
 
   // Enters/Re-enters coins in auto-swap
   const autoSwapLoop = () => {
@@ -811,3 +787,5 @@ const CoinsList = (props) => {
 }
 
 export default CoinsList;
+
+
