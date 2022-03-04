@@ -20,6 +20,7 @@ import close_img from "../../images/close-icon.png";
 import '../../containers/Deposit/Deposit.css';
 import '../index.css';
 import { Spinner } from 'react-bootstrap';
+import { delay } from '../../wallet/mercury/info_api';
 
 const keyIcon = (
   <svg
@@ -40,6 +41,7 @@ const TransactionsBTC = (props) => {
   const [loading, setLoading] = useState(false);
   // const { depositLoading } = useSelector((state) => state.walletData); TODO: check why this was placed in redux
 
+  const [deleteOccured, setDeleteOccured] = useState(false);
 
   let testing_mode;
   try {
@@ -58,8 +60,7 @@ const TransactionsBTC = (props) => {
             props.setValueSelectionAddr(id, res.payload[1]);
             let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
             if (JSON.stringify(deposit_inits) !== JSON.stringify(new_deposit_inits)) {
-              deposit_inits.current = new_deposit_inits
-              deposit_inits.current = deposit_inits.current.reverse();
+              deposit_inits.current = new_deposit_inits.reverse();
               setState({}); //update state to refresh TransactionDisplay render
             }
             setLoading(false);
@@ -71,6 +72,16 @@ const TransactionsBTC = (props) => {
 
   // Fetch all outstanding initialised deposit_inits from wallet
   let deposit_inits = useRef(callGetUnconfirmedAndUnmindeCoinsFundingTxData());
+
+  useEffect(() => {
+    let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
+    if (JSON.stringify(deposit_inits) !== JSON.stringify(new_deposit_inits)) {
+      deposit_inits.current = new_deposit_inits.reverse();
+      setState({});
+      setDeleteOccured(false);
+    }
+  }, [deleteOccured]);
+
 
   // ** FOR TESTING **
   // Force confirm all outstanding depositInit's.
@@ -96,6 +107,7 @@ const TransactionsBTC = (props) => {
               confirmations={item.confirmations}
               address={item.p_addr}
               parent_setState={setState}
+              parent_setDeleteOccured={setDeleteOccured}
             />
           </div>
         </div>
@@ -131,11 +143,14 @@ const TransactionsBTC = (props) => {
   )
 }
 
+// TODO: Secondary component - should be in its own file
 const TransactionDisplay = (props) => {
 
+  const dispatch = useDispatch();
   //User added description for coin
   const [description, setDescription] = useState("")
   const [dscpnConfirm, setDscrpnConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const copyAddressToClipboard = () => {
     navigator.clipboard.writeText(props.address);
@@ -147,9 +162,14 @@ const TransactionDisplay = (props) => {
     return props.confirmations + " Confirmations.."
   }
 
-  const onCloseArrowClick = () => {
-    callRemoveCoin(props.shared_key_id)
-    props.parent_setState({})
+  const onCloseArrowClick = async () => {
+    setIsDeleting(true);
+    // simulate timed delete
+    setTimeout(async () => {
+      await callRemoveCoin(props.shared_key_id);
+      setIsDeleting(false);
+      props.parent_setDeleteOccured(true);
+    }, 1000);
   }
 
   //This useEffect prevents 
@@ -193,8 +213,12 @@ const TransactionDisplay = (props) => {
               handleChange={handleChange}
               setDscrpnConfirm={confirmDescription} />
             <div className="deposit-scan-status">
-              <span>{getCofirmationsDisplayString()}</span>
-              {props.confirmations === -1 ? <img src={close_img} alt="arrow" onClick={onCloseArrowClick} /> : null}
+              <p>{isDeleting}</p>
+              {isDeleting ? 'Deleting...' : <span>{getCofirmationsDisplayString()}</span>}
+              {props.confirmations === -1 ?
+                isDeleting ?
+                  <Spinner animation='border' variant='danger' size='sm'></Spinner>
+                  : <img src={close_img} alt="arrow" onClick={onCloseArrowClick} /> : null}
             </div>
           </div>
 
