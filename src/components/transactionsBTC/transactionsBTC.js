@@ -82,6 +82,21 @@ const TransactionsBTC = (props) => {
     }
   }, [deleteOccured]);
 
+  // Re-fetch every 10 seconds and update state to refresh render
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // if we are not in loading state
+      if (!loading) {
+        let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
+        if (JSON.stringify(deposit_inits) !== JSON.stringify(new_deposit_inits)) {
+          deposit_inits.current = new_deposit_inits.reverse();
+          setState({}); //update state to refresh TransactionDisplay render
+        }
+      }
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
 
   // ** FOR TESTING **
   // Force confirm all outstanding depositInit's.
@@ -146,7 +161,6 @@ const TransactionsBTC = (props) => {
 // TODO: Secondary component - should be in its own file
 const TransactionDisplay = (props) => {
 
-  const dispatch = useDispatch();
   //User added description for coin
   const [description, setDescription] = useState("")
   const [dscpnConfirm, setDscrpnConfirm] = useState(false)
