@@ -59,6 +59,7 @@ const TransactionsBTC = (props) => {
             let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
             if (JSON.stringify(deposit_inits) !== JSON.stringify(new_deposit_inits)) {
               deposit_inits.current = new_deposit_inits
+              deposit_inits.current = deposit_inits.current.reverse();
               setState({}); //update state to refresh TransactionDisplay render
             }
             setLoading(false);
