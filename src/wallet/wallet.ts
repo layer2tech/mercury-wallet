@@ -35,9 +35,6 @@ const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
 const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
 const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
-//The gap limit when attempting to derive a bip32 node from an address
-const GAP_LIMIT=100
-
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
 let bip32 = require('bip32');
@@ -898,7 +895,7 @@ export class Wallet {
   }
 
   getBIP32forBtcAddress(addr: string): BIP32Interface {
-    let node = getBIP32forBtcAddress(addr, this.account, GAP_LIMIT)
+    let node = getBIP32forBtcAddress(addr, this.account)
     return node
   }
 
@@ -913,11 +910,6 @@ export class Wallet {
   getBIP32forProofKeyPubKey(proof_key: string): BIP32Interface {
     const p2wpkh = pubKeyTobtcAddr(proof_key, this.config.network)
     return this.getBIP32forBtcAddress(p2wpkh)
-  }
-
-  containsProofKeyPubKey(proof_key: string): boolean {
-    const p2wpkh = pubKeyTobtcAddr(proof_key, this.config.network)
-    return this.account.containsAddress(p2wpkh)
   }
 
   // Initialise deposit
@@ -1181,27 +1173,33 @@ export class Wallet {
       let swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der, resume)
       new_statecoin = await swap.do_swap_poll()
     } catch (e: any) {
-      log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e}`);
-      // Do not delete swap data for statecoins with transfer
-      // completed server side
-      if ((statecoin?.swap_status !== SWAP_STATUS.Phase4)
-        || `${e}`.includes("Transfer batch ended. Timeout")
-        || `${e}`.includes("Exiting swap.")) {
-        log.info(`Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`);
-        statecoin.setSwapDataToNull();
-        // remove generated address
-        this.account.chains[0].pop();
-      }
+      this.handleSwapError(e, statecoin)
     } finally {
-      if (new_statecoin && new_statecoin instanceof StateCoin) {
-        this.setIfNewCoin(new_statecoin)
-        await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
-        new_statecoin.setSwapDataToNull();
-      }
-      await this.saveStateCoinsList();
-      swapSemaphore.release();
-      return new_statecoin
+      return this.doPostSwap(statecoin, new_statecoin)
     }
+  }
+
+  handleSwapError(e: any, statecoin: StateCoin) {
+    log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e} `);
+    // Do not delete swap data for statecoins with transfer
+    // completed server side
+    if ((statecoin?.swap_status !== SWAP_STATUS.Phase4)
+      || `${e} `.includes("Transfer batch ended. Timeout")
+      || `${e} `.includes("Exiting swap.")) {
+      log.info(`Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`);
+      statecoin.setSwapDataToNull();
+    }
+  }
+
+  async doPostSwap(statecoin: StateCoin, new_statecoin: StateCoin | null): Promise<StateCoin | null> {
+    if (new_statecoin && new_statecoin instanceof StateCoin) {
+      this.setIfNewCoin(new_statecoin)
+      await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
+      new_statecoin.setSwapDataToNull();
+    }
+    await this.saveStateCoinsList();
+    swapSemaphore.release();
+    return new_statecoin
   }
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo> {
@@ -1663,24 +1661,10 @@ export const segwitAddr = (node: any, network: Network) => {
   return p2wpkh.address
 }
 
-export const getBIP32forBtcAddress = (addr: string, account: any, gap_limit: number): BIP32Interface => {
-  const i_chain = 0;
-  let node
-  if (account.containsAddress(addr) === false) {
-    let query_chain = cloneDeep(account.getChain(i_chain))
-    for (let j = 0; j < gap_limit; j++) {
-      query_chain.next()
-      const chain_addr = query_chain.get()
-      if (chain_addr === addr) {
-        node = query_chain.derive(addr)
-        break
-      }
-    }
-  } else {
-    node = account.derive(addr)
-  }
+export const getBIP32forBtcAddress = (addr: string, account: any): BIP32Interface => {
+  let node = account.derive(addr)
   if (!node) {
-    throw Error(`getBIP32forBtcAddress - did not find address ${addr} in chain ${i_chain} of account up to gap limit ${gap_limit}`) 
+    throw Error(`getBIP32forBtcAddress - did not find address ${addr} in wallet.account`)
   }
   return node
 }
