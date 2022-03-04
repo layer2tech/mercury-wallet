@@ -570,9 +570,6 @@ export default class Swap {
       throw Error(`Error - ${result.length} transfer messages are available for statechain_id ${result[0].statechain_id}. Exiting swap...`)
     }
     if (result.length === 1) {
-      if (this.wallet.containsProofKeyPubKey(result[0].rec_se_addr.proof_key) === false) {
-        return SwapStepResult.Retry("getTransferMsg3 - wallet does not contain proof key - retrying...")
-      }
       this.statecoin.swap_transfer_msg_3_receiver = result[0]
       await this.wallet.saveStateCoinsList()
       return SwapStepResult.Ok("retrieved transfer_msg_3_receiver")
