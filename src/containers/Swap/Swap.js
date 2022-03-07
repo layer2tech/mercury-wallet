@@ -211,7 +211,6 @@ const SwapPage = () => {
         setSwapLoad({ ...swapLoad, join: false, swapCoin: callGetStateCoin(selectedCoin) });
         dispatch(addSwapPendingCoin(item.shared_key_id))
       }
-      // Refres
     }
 
     // Refresh Coins list
