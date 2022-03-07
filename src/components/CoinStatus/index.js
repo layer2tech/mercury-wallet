@@ -14,6 +14,7 @@ import { CopiedButton } from '../../components';
 import { encodeMessage } from '../../wallet/util';
 import Spinner from 'react-bootstrap/Spinner';
 import './coinStatus.css';
+import { STATECOIN_STATUS } from '../../wallet';
 
 const STATECOIN_STATUS_INFO = {
   [STATECOIN_STATUS.IN_TRANSFER]: {

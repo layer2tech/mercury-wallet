@@ -9,25 +9,25 @@ import { makeDummyStatecoins } from './test_data.js'
 
 let cloneDeep = require('lodash.clonedeep');
 
-describe('SwapStatus', function(){
+describe('SwapStatus', function () {
     let store = configureStore({ reducer: reducers, })
-    
-    test('Error Messaging', function(){
-        render(store, 
-            <SwapStatus 
-                swap_error = {{msg: "not found in swap"}} />)
-                
+
+    test('Error Messaging', function () {
+        render(store,
+            <SwapStatus
+                swap_error={{ msg: "not found in swap" }} />)
+
         expect(screen.getAllByText(/awaiting timeout/i)).toBeTruthy()
-        
-        render(store, 
-            <SwapStatus 
-            swap_error = {{msg: "In punishment list: Seconds remaining: 90"}} />)
-            
+
+        render(store,
+            <SwapStatus
+                swap_error={{ msg: "In punishment list: Seconds remaining: 90" }} />)
+
         expect(screen.getAllByText(/1 mins/i)).toBeTruthy()
     })
-    test('throw unexpected values in props', function (){
-        render(store, <SwapStatus swap_error = {12345} />)
-        render(store, <SwapStatus swap_error = {true} />)
+    test('throw unexpected values in props', function () {
+        render(store, <SwapStatus swap_error={12345} />)
+        render(store, <SwapStatus swap_error={true} />)
     })
 })
 
@@ -38,7 +38,7 @@ describe('CoinsList', function () {
         beforeEach(() => {
             coins_list = cloneDeep(coins_list_init)
         })
-    
+
         test('test sort coins by value', function () {
             const order_expected = [4, 3, 0, 2, 1];
             let sortBy = {
@@ -46,17 +46,14 @@ describe('CoinsList', function () {
                 by: 'value'
             };
             coins_list.sort(coinSort(sortBy))
-            console.log(coins_list.length)
             let order = []
-            for (let i = 0; i < coins_list.length; i++){
+            for (let i = 0; i < coins_list.length; i++) {
                 order.push(coins_list_init.findIndex((item) => {
-                        let result = (item.shared_key_id === coins_list[i].shared_key_id)
-                        console.log(result)
-                        return result
-                    }
+                    let result = (item.shared_key_id === coins_list[i].shared_key_id)
+                    return result
+                }
                 ))
             }
-            console.log(JSON.stringify(order))
             expect(order).toEqual(order_expected)
         })
 
@@ -68,19 +65,16 @@ describe('CoinsList', function () {
                 condition: 'swap'
             };
             coins_list.sort(coinSort(sortBy))
-            console.log(coins_list.length)
             let order = []
             for (let i = 0; i < coins_list.length; i++) {
                 order.push(coins_list_init.findIndex((item) => {
                     let result = (item.shared_key_id === coins_list[i].shared_key_id)
-                    console.log(result)
                     return result
                 }
                 ))
             }
-            console.log(JSON.stringify(order))
             expect(order).toEqual(order_expected)
         })
     })
-    
+
 })
