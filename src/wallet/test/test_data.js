@@ -1,6 +1,6 @@
 import { StateCoin } from '../';
 import { TRANSFER_MSG3 } from '../mocks/mock_http_client'
-import { STATECOIN_STATUS } from '../statecoin';
+import { STATECOIN_STATUS } from '..';
 import { UI_SWAP_STATUS } from '../swap/swap_utils';
 let bitcoin = require('bitcoinjs-lib')
 

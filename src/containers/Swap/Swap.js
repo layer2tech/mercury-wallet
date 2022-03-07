@@ -26,7 +26,6 @@ import {
 } from "../../features/WalletDataSlice";
 import { fromSatoshi, STATECOIN_STATUS } from '../../wallet';
 import './Swap.css';
-import { UI_SWAP_STATUS } from "../../wallet/swap/swap_utils";
 
 
 const SwapPage = () => {

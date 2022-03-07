@@ -60,8 +60,7 @@ import {
   addInSwapValue
 } from "../../features/WalletDataSlice";
 import Coin from "./Coin/Coin";
-import { SWAP_INFO } from "../../wallet/mocks/mock_http_client";
-import { UI_SWAP_STATUS } from "../../wallet/swap/swap_utils";
+import { SWAP_STATUS } from "../../wallet/swap/swap_utils";
 
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
