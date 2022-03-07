@@ -1,5 +1,7 @@
 import { StateCoin } from '../';
 import { TRANSFER_MSG3 } from '../mocks/mock_http_client'
+import { STATECOIN_STATUS } from '../statecoin';
+import { UI_SWAP_STATUS } from '../swap/swap_utils';
 let bitcoin = require('bitcoinjs-lib')
 
 // Misc useful values for testing
@@ -124,6 +126,36 @@ export const makeTesterStatecoins = () => {
   tester_statecoins[1].funding_vout = STATECOINS[1].funding_vout;
   tester_statecoins[1].tx_backup = bitcoin.Transaction.fromHex(STATECOIN_CONFIRMED_BACKUPTX_HEXS[1]);
   return tester_statecoins
+}
+
+export const makeDummyStatecoins = () => {
+  const dummy_statecoins = [
+    new StateCoin("c93ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEYS[0]),
+    new StateCoin("d93ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEYS[0]),
+    new StateCoin("e93ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEYS[0]),
+    new StateCoin("f93ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEYS[0]),
+    new StateCoin("093ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEYS[0])
+  ];
+
+  dummy_statecoins[0].status = STATECOIN_STATUS.IN_SWAP
+  dummy_statecoins[0].value = 2
+  
+  dummy_statecoins[1].status = STATECOIN_STATUS.AVAILABLE
+  dummy_statecoins[1].ui_swap_status = UI_SWAP_STATUS.SingleSwapMode
+  dummy_statecoins[1].value = 0
+  dummy_statecoins[1].status= STATECOIN_STATUS.AVAILABLE
+  
+  dummy_statecoins[2].value = 1
+  dummy_statecoins[2].status= STATECOIN_STATUS.AVAILABLE
+  
+  dummy_statecoins[3].value = 3
+  dummy_statecoins[3].status= STATECOIN_STATUS.AVAILABLE
+  
+  dummy_statecoins[4].value = 4
+  dummy_statecoins[4].status = STATECOIN_STATUS.AVAILABLE
+  
+
+  return dummy_statecoins
 }
 
 
