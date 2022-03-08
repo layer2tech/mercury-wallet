@@ -129,7 +129,7 @@ Logs are written to console and file at the following locations:
 
 # Contact
 
-If you have any further questions you can find us at:
+If you have any further questions you can find us at: https://mercurywallet.com/
 
 # Issue Tracker
 
