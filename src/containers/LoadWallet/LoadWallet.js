@@ -123,9 +123,6 @@ const LoadWalletPage = (props) => {
             <Link to="/" className="primary-btn-link back">
               Go Back
             </Link>
-            {/* <Link to="/home" className="primary-btn blue" type = "submit" onClick={onContinueClick}>
-              Continue
-            </Link> */}
             <button type="submit" className="primary-btn blue" onClick={onContinueClick}>
               Continue
             </button>
