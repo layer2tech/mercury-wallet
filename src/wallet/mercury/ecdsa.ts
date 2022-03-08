@@ -142,7 +142,6 @@ export const sign = async (
 
     let resp: any[][] = await http_client.post(POST_ROUTE.SIGN_SECOND, sign_msg2);
      
-    console.log(`sign response: ${resp}`)
   return resp;
 }
 
