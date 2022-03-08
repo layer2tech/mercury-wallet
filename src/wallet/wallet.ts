@@ -663,7 +663,7 @@ export class Wallet {
     if (priv_key === undefined) throw Error("Backup receive address private key not found.");
 
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
-    backup_tx_data.key_wif = bip32.toWIF();
+    backup_tx_data.key_wif = `p2wpkh:${bip32.toWIF()}`;
 
     if (statecoin.tx_cpfp !== null) {
       let fee_rate = (FEE + (backup_tx_data?.output_value ?? 0) - (statecoin.tx_cpfp?.outs[0]?.value ?? 0)) / 250;
