@@ -20,6 +20,8 @@ try {
   log = require('electron-log');
 }
 
+export const HIDDEN = "*****"
+
 export class StateCoinList {
   coins: StateCoin[]
 

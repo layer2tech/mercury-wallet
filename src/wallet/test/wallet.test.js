@@ -466,9 +466,11 @@ describe('createBackupTxCPFP', function () {
         rejects.toThrowError('Fee rate not an integer');
     });
     
-    test('createdBackupTxCPFP valid', async function () {
+  test('createdBackupTxCPFP valid', async function () {
+      const tx_cpfp_expected = "{\"version\":2,\"locktime\":0,\"ins\":[{\"hash\":{\"type\":\"Buffer\",\"data\":[107,245,5,137,241,80,23,28,183,252,131,220,83,180,180,95,165,245,238,183,114,192,141,211,50,46,35,131,211,5,156,74]},\"index\":0,\"script\":{\"type\":\"Buffer\",\"data\":[]},\"sequence\":4294967295,\"witness\":[{\"type\":\"Buffer\",\"data\":[48,69,2,33,0,157,63,93,156,188,198,179,60,185,242,248,163,35,202,173,37,23,138,126,145,195,29,58,94,101,237,138,250,240,107,14,247,2,32,52,31,26,192,111,251,159,117,192,140,105,104,85,156,163,103,154,90,49,209,68,125,90,146,56,65,232,90,229,119,39,101,1]},{\"type\":\"Buffer\",\"data\":[3,214,96,240,27,83,235,26,229,172,212,94,11,164,20,16,104,4,44,105,22,118,111,177,140,62,233,71,15,87,226,220,153]}]}],\"outs\":[{\"script\":{\"type\":\"Buffer\",\"data\":[0,20,209,156,183,190,243,118,6,191,242,108,152,143,199,152,107,105,153,65,44,222]},\"value\":9155}]}"
       await expect(wallet.createBackupTxCPFP(cpfp_data)).resolves.toBe(true);
       expect(wallet.statecoins.coins[0].tx_cpfp.outs.length).toBe(1);
+      expect(JSON.stringify(wallet.statecoins.coins[0].tx_cpfp)).toEqual(tx_cpfp_expected);      
     })
 });
   
