@@ -323,7 +323,6 @@ describe('Wallet', function () {
         wallet.storage.clearWallet(MOCK_WALLET_NAME)
         wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
         wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
-        wallet.save()
         await wallet.save();      
     })
     
