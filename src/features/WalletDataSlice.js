@@ -11,7 +11,7 @@ import {resetIndex} from '../containers/Receive/Receive'
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
-import { SWAP_STATUS } from '../wallet/swap/swap_utils'
+import { SWAP_STATUS, UI_SWAP_STATUS } from '../wallet/swap/swap_utils'
 
 const isEqual = require('lodash').isEqual
 
@@ -352,6 +352,17 @@ export const callGetWalletJsonToBackup = () => {
 }
 
 //Swap Functions
+export const checkSwapAvailability = (statecoin, in_swap_values) => {
+  if (statecoin?.status !== STATECOIN_STATUS.AVAILABLE) {
+    return false
+  }
+  if (callGetConfig().singleSwapMode
+    && in_swap_values.has(statecoin?.value)) {
+    statecoin.ui_swap_status = UI_SWAP_STATUS.SingleSwapMode
+    return false
+  }
+  return true
+}
 
 export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, fromSatoshi) => {
 
