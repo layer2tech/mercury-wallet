@@ -122,7 +122,6 @@ export default class Swap {
     this.checkNRetries()
     this.checkSwapLoopStatus()
     const nextStep = this.getNextStep()
-    //log.info(`Doing next swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id}`)
     let step_result = await nextStep.doit()
     await this.processStepResult(step_result, nextStep)
     return step_result
@@ -139,7 +138,9 @@ export default class Swap {
   }
 
   processStepResultRetry = async (step_result: SwapStepResult, nextStep: SwapStep) => {
-    log.info(`Retrying swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id} - reason: ${step_result.message}`)
+    if (this.n_retries === 0) {
+      log.info(`Retrying swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id} - reason: ${step_result.message}`)
+    }
     this.incrementRetries(step_result)
     if (step_result.includes("Incompatible")) {
       alert(step_result.message)
@@ -168,7 +169,7 @@ export default class Swap {
     //Limit retries if errors are being returned while waiting for swap
     if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) {
       if (step_result.includes("Waiting for swap to begin")) {
-        this.n_retries = 0
+        this.n_retries = 1
       } else {
         this.n_retries = this.n_retries + 1
       }
@@ -653,12 +654,12 @@ export default class Swap {
     } catch (err: any) {
       if (err?.message) {
         if (err.message.includes("DB Error: No data for identifier.")) {
-          log.info(`Statecoin ${this.statecoin.shared_key_id} - waiting for others to complete...`)
+          log.debug(`Statecoin ${this.statecoin.shared_key_id} - waiting for others to complete...`)
         } else if (err.message.includes("Transfer not made to this wallet")) {
           err.message = `${err.message} - Exiting swap...`
           throw err
         } else {
-          log.info(`transferReceiver error: ${err}`)
+          log.debug(`transferReceiver error: ${err}`)
         }
       }
       let result = await this.swapPhase4HandleErrPollSwap()
@@ -670,7 +671,7 @@ export default class Swap {
           return SwapStepResult.Retry(err.message)
         }
         let phase = result.message
-        log.info(`checking batch status - phase: ${phase}`)
+        log.debug(`checking batch status - phase: ${phase}`)
         result = await this.checkBatchStatus(phase, err.message)
         result.message = `transferReceiver: ${err.message} - batch transfer status: ${result.message}`
         return result
@@ -784,15 +785,14 @@ export default class Swap {
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8;
       const wasm = await this.wallet.getWasm();
       let statecoin_out = await transferReceiverFinalize(this.clients.http_client, wasm, tfd);
-      log.info(`setting statecoin out...`)
       await this.setStatecoinOut(statecoin_out)
       log.info(`transfer complete.`)
       return SwapStepResult.Ok("transfer complete")
     } catch (err: any) {
       if (err?.message && err.message.includes("DB Error: No data for identifier.")) {
-        log.info(`Statecoin ${this.statecoin.shared_key_id} - waiting for others to complete...`)
+        log.debug(`Statecoin ${this.statecoin.shared_key_id} - waiting for others to complete...`)
       } else {
-        log.info(`transferReceiverFinalize error: ${err}`)
+        log.debug(`transferReceiverFinalize error: ${err}`)
       }
       let result = await this.swapPhase4HandleErrPollSwap()
       if (!result.is_ok()) {
@@ -803,7 +803,7 @@ export default class Swap {
           return SwapStepResult.Retry(err.message)
         }
         let phase = result.message
-        log.info(`checking batch status - phase: ${phase}`)
+        log.debug(`checking batch status - phase: ${phase}`)
         return this.checkBatchStatus(phase, err.message)
       }
     }
@@ -843,7 +843,6 @@ export default class Swap {
 
     await this.do_swap_steps();
 
-    console.log(`finished swap steps - returning statecoin`)
     if (statecoin.swap_auto && this.statecoin_out) this.statecoin_out.swap_auto = true;
     return this.statecoin_out;
   }
