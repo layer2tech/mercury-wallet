@@ -36,6 +36,7 @@ import {
   handleEndAutoSwap,
   setIntervalIfOnline,
   updateInSwapValues,
+  checkSwapAvailability
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -58,8 +59,8 @@ import {
   removeCoinFromSwapRecords,
   addInSwapValue
 } from "../../features/WalletDataSlice";
-import { SWAP_STATUS } from "../../wallet/swap/swap_utils";
 import Coin from "./Coin/Coin";
+import { SWAP_STATUS } from "../../wallet/swap/swap_utils";
 
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
@@ -94,6 +95,35 @@ export const SWAP_STATUS_INFO = {
   End: "End",
 }
 
+export const coinSort = (sortCoin) => {
+  return (a, b) => {
+    const conditionalProp = sortCoin?.condition;
+
+    //List coins that are available to swap first.
+    if (conditionalProp === 'swap') {
+      const a_available = ((a.status === STATECOIN_STATUS.AVAILABLE) && (a.ui_swap_status === null))
+      const b_available = ((b.status === STATECOIN_STATUS.AVAILABLE) && (b.ui_swap_status === null))
+      if (a_available !== b_available) {
+        return a_available ? -1 : 1
+      }
+    }
+    let compareProp = sortCoin.by;
+    if (compareProp === 'expiry_data') {
+      a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
+      b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
+    } else {
+      a = a[compareProp];
+      b = b[compareProp];
+    }
+    if (a > b) {
+      return sortCoin.direction ? 1 : -1;
+    } else if (a < b) {
+      return sortCoin.direction ? -1 : 1;
+    }
+    return 0;
+  }
+}
+
 const CoinsList = (props) => {
   const [state, setState] = useState({});
 
@@ -101,7 +131,7 @@ const CoinsList = (props) => {
   const dispatch = useDispatch();
   const { filterBy, swapPendingCoins, coinsAdded,
     coinsRemoved, torInfo, inSwapValues, balance_info } = useSelector(state => state.walletData);
-  const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
+  const [sortCoin, setSortCoin] = useState({ ...INITIAL_SORT_BY, condition: props.swap ? 'swap' : null});
   const [coins, setCoins] = useState(INITIAL_COINS);
   const [initCoins, setInitCoins] = useState({});
   const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
@@ -218,17 +248,6 @@ const CoinsList = (props) => {
 
   const handleDeleteCoinNo = () => {
     setShowDeleteCoinDetails(false);
-  }
-
-  const checkSwapAvailability = (statecoin, in_swap_values) => {
-    if (callGetConfig().singleSwapMode
-      && in_swap_values.has(statecoin?.value)) {
-      return false
-    }
-    if (statecoin?.status !== STATECOIN_STATUS.AVAILABLE) {
-      return false
-    }
-    return true
   }
 
 
@@ -405,7 +424,6 @@ const CoinsList = (props) => {
     }
   }
 
-
   // data to display in privacy related sections
   const getPrivacyScoreDesc = (coin) => {
 
@@ -458,22 +476,7 @@ const CoinsList = (props) => {
     }
   }
 
-  all_coins_data.sort((a, b) => {
-    let compareProp = sortCoin.by;
-    if (compareProp === 'expiry_data') {
-      a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
-      b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
-    } else {
-      a = a[compareProp];
-      b = b[compareProp];
-    }
-    if (a > b) {
-      return sortCoin.direction ? 1 : -1;
-    } else if (a < b) {
-      return sortCoin.direction ? -1 : 1;
-    }
-    return 0;
-  });
+  all_coins_data.sort(coinSort(sortCoin));
 
   if (!all_coins_data.length) {//&& filterBy !== STATECOIN_STATUS.WITHDRAWN && filterBy !== STATECOIN_STATUS.IN_TRANSFER
 
@@ -551,7 +554,7 @@ const CoinsList = (props) => {
         <FilterBy />
         {(all_coins_data.length &&
           filterBy !== STATECOIN_STATUS.WITHDRAWN
-        ) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null}
+        ) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} swap={swap}/> : null}
       </div>
       {all_coins_data.map(item => {
         return (
