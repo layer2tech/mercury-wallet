@@ -174,7 +174,7 @@ For example, to recover from the seed phrase in electrum wallet:
 
 # Contact
 
-If you have any further questions you can find us at:
+If you have any further questions you can find us at: https://mercurywallet.com/
 
 # Issue Tracker
 
