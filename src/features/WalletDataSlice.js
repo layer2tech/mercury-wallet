@@ -628,7 +628,6 @@ const WalletSlice = createSlice({
       let payload = action.payload
       let new_balance_info = {...state.balance_info, ...payload}
       if(!isEqual(new_balance_info, state.balance_info)){
-        console.log(`Update balance info to: ${JSON.stringify(new_balance_info)}`)
         return {
           ...state,
           balance_info: new_balance_info
