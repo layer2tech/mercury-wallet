@@ -624,11 +624,10 @@ const WalletSlice = createSlice({
     },
     // Update total_balance
     updateBalanceInfo(state, action) {
-      if (state.balance_info.total_balance !== action.payload.total_balance) {
-        return {
-          ...state,
-          balance_info: action.payload
-        }
+      let payload = action.payload 
+      return {
+        ...state,
+        balance_info: { ...state.balance_info, payload }
       }
     },
     // Update fee_info

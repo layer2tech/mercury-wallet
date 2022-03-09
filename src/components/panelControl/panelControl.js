@@ -46,7 +46,10 @@ const PanelControl = () => {
   const dispatch = useDispatch();
   const balance_info = useSelector((state) => state.walletData.balance_info);
   const filterBy = useSelector((state) => state.walletData.filterBy);
-  const onHideBalanceChange = ({ checked }) => { dispatch(updateBalanceInfo({ ...balance_info, hidden: checked })) };
+  const onHideBalanceChange = ({ checked }) => {
+    console.log("clicked hide balance...")
+    dispatch(updateBalanceInfo({ hidden: checked }))
+  };
   
   const filterByMsg = () => {
     let return_str = "Statecoin";
@@ -73,21 +76,19 @@ const PanelControl = () => {
           <img src={walletIcon} alt="walletIcon"/>
           {balance_info.hidden ? HIDDEN : fromSatoshi(balance_info.total_balance)} BTC
       </h2>
-        <div className="no-wallet">
-            <span>{balance_info.hidden ? HIDDEN : balance_info.num_coins} {filterByMsg()}</span>
+      <div className="no-wallet">
+        <span>{balance_info.hidden ? HIDDEN : balance_info.num_coins} {filterByMsg()}</span>
       </div>
+      
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
+
           <CheckBox
-            //label="Hide balance"
+            label="Show/hide balance"
             description={balance_info.hidden ? "Show balance" : "Hide balance"}
-            checked={!!balance_info.hide}
+            checked={!!balance_info.hidden}
             onChange={onHideBalanceChange}
           />
-        </div>
-      </div>
-      <div className="ButtonsPanel">
-        <div className="ActionGroupLeft">
 
           <Link to="/deposit">
               <StdButton
