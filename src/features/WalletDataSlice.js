@@ -56,7 +56,7 @@ const initialState = {
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
   warning_dialogue: {key: "", msg: "", seen: false},
-  balance_info: {total_balance: null, num_coins: null},
+  balance_info: { total_balance: null, num_coins: null, hide_balance: false },
   fee_info: {deposit: "NA", withdraw: "NA"},
   ping_swap: null,
   ping_server: null,

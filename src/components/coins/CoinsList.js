@@ -39,7 +39,7 @@ import {
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
-import { STATECOIN_STATUS } from '../../wallet/statecoin';
+import { STATECOIN_STATUS, HIDDEN } from '../../wallet/statecoin';
 import { CoinStatus } from '..';
 import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay';
 import CopiedButton from "../CopiedButton";
@@ -100,7 +100,7 @@ const CoinsList = (props) => {
   const { selectedCoins, isMainPage, swap } = props;
   const dispatch = useDispatch();
   const { filterBy, swapPendingCoins, coinsAdded,
-    coinsRemoved, torInfo, inSwapValues } = useSelector(state => state.walletData);
+    coinsRemoved, torInfo, inSwapValues, balance_info } = useSelector(state => state.walletData);
   const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
   const [coins, setCoins] = useState(INITIAL_COINS);
   const [initCoins, setInitCoins] = useState({});
@@ -593,7 +593,7 @@ const CoinsList = (props) => {
               <div className="block">
                 <span>Statecoin Value</span>
                 <span>
-                  <b>{fromSatoshi(showCoinDetails.coin.value)} BTC</b>
+                  <b>{balance_info.hidden ? HIDDEN : fromSatoshi(showCoinDetails.coin.value)} BTC</b>
                 </span>
               </div>
             </div>

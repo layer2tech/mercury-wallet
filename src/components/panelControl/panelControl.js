@@ -6,13 +6,15 @@ import swapIcon from '../../images/swap-icon.png';
 import arrowUp from '../../images/arrow-up.png';
 import arrowDown from '../../images/arrow-down.png';
 
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import React from 'react';
 import { Link } from "react-router-dom";
 
 import StdButton from '../buttons/standardButton';
 import { fromSatoshi } from '../../wallet/util'
-import { STATECOIN_STATUS } from '../../wallet/statecoin'
+import { STATECOIN_STATUS, HIDDEN } from '../../wallet/statecoin'
+import { updateBalanceInfo } from '../../features/WalletDataSlice';
+import { CheckBox } from "../../components";
 
 import './panelControl.css';
 import '../index.css';
@@ -41,12 +43,14 @@ export const FILTER_BY_OPTION = [
 ]
 
 const PanelControl = () => {
+  const dispatch = useDispatch();
   const balance_info = useSelector((state) => state.walletData.balance_info);
-  const filterBy  = useSelector((state) => state.walletData.filterBy);
-
+  const filterBy = useSelector((state) => state.walletData.filterBy);
+  const onHideBalanceChange = ({ checked }) => { dispatch(updateBalanceInfo({ ...balance_info, hidden: checked })) };
+  
   const filterByMsg = () => {
     let return_str = "Statecoin";
-    if (balance_info.num_coins !== 1) {
+    if (balance_info.hidden === true || balance_info.num_coins !== 1) {
       return_str = return_str+"s"
     }
     switch (filterBy) {
@@ -67,11 +71,21 @@ const PanelControl = () => {
     <div className="Body panelControl">
       <h2 className="WalletAmount">
           <img src={walletIcon} alt="walletIcon"/>
-          {fromSatoshi(balance_info.total_balance)} BTC
+          {balance_info.hidden ? HIDDEN : fromSatoshi(balance_info.total_balance)} BTC
       </h2>
         <div className="no-wallet">
-            <span>{balance_info.num_coins} {filterByMsg()}</span>
+            <span>{balance_info.hidden ? HIDDEN : balance_info.num_coins} {filterByMsg()}</span>
+      </div>
+      <div className="ButtonsPanel">
+        <div className="ActionGroupLeft">
+          <CheckBox
+            //label="Hide balance"
+            description={balance_info.hidden ? "Show balance" : "Hide balance"}
+            checked={!!balance_info.hide}
+            onChange={onHideBalanceChange}
+          />
         </div>
+      </div>
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
 
