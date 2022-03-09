@@ -13,6 +13,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
 import { SWAP_STATUS } from '../wallet/swap/swap_utils'
 
+const isEqual = require('lodash').isEqual
 
 // eslint-disable-next-line
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
@@ -56,7 +57,7 @@ const initialState = {
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
   warning_dialogue: {key: "", msg: "", seen: false},
-  balance_info: { total_balance: null, num_coins: null, hide_balance: false },
+  balance_info: {total_balance: null, num_coins: null, hidden: false},
   fee_info: {deposit: "NA", withdraw: "NA"},
   ping_swap: null,
   ping_server: null,
@@ -624,10 +625,14 @@ const WalletSlice = createSlice({
     },
     // Update total_balance
     updateBalanceInfo(state, action) {
-      let payload = action.payload 
-      return {
-        ...state,
-        balance_info: { ...state.balance_info, payload }
+      let payload = action.payload
+      let new_balance_info = {...state.balance_info, ...payload}
+      if(!isEqual(new_balance_info, state.balance_info)){
+        console.log(`Update balance info to: ${JSON.stringify(new_balance_info)}`)
+        return {
+          ...state,
+          balance_info: new_balance_info
+        }
       }
     },
     // Update fee_info

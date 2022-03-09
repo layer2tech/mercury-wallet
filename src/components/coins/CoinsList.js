@@ -259,7 +259,7 @@ const CoinsList = (props) => {
       if (filterBy !== 'default') {
         const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
         const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsByStatus.length }));
+        dispatch(updateBalanceInfo({...balance_info, total_balance: total, num_coins: coinsByStatus.length }));
       } else {
         const coinsNotWithdraw = coins_data.filter(coin => (
           coin.status !== STATECOIN_STATUS.WITHDRAWN &&
@@ -267,7 +267,7 @@ const CoinsList = (props) => {
           coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
           coin.status !== STATECOIN_STATUS.EXPIRED));
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsNotWithdraw.length }));
+        dispatch(updateBalanceInfo({...balance_info,  total_balance: total, num_coins: coinsNotWithdraw.length }));
       }
       return () => { isMounted = false }
     }
@@ -330,7 +330,7 @@ const CoinsList = (props) => {
       setTotalCoins(confirmedCoins.length);
       // update balance and amount
       const total = confirmedCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
-      dispatch(updateBalanceInfo({ total_balance: total, num_coins: confirmedCoins.length }))
+      dispatch(updateBalanceInfo({...balance_info, total_balance: total, num_coins: confirmedCoins.length }))
     }
   }, [callGetUnspentStatecoins()])
 

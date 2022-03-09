@@ -47,8 +47,8 @@ const PanelControl = () => {
   const balance_info = useSelector((state) => state.walletData.balance_info);
   const filterBy = useSelector((state) => state.walletData.filterBy);
   const onHideBalanceChange = ({ checked }) => {
-    console.log("clicked hide balance...")
-    dispatch(updateBalanceInfo({ hidden: checked }))
+    console.log(`clicked hide balance - setting to ${checked}...`)
+    dispatch(updateBalanceInfo({ ...balance_info, hidden: checked }))
   };
   
   const filterByMsg = () => {
@@ -83,6 +83,7 @@ const PanelControl = () => {
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
 
+          
           <CheckBox
             label="Show/hide balance"
             description={balance_info.hidden ? "Show balance" : "Hide balance"}
