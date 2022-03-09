@@ -1284,8 +1284,8 @@ export class Wallet {
       let statecoin = this.statecoins.coins[i]
       try {
         await this.deRegisterSwapCoin(statecoin)
-      } catch (e) {
-        if (!e.message.includes("Coin is not in a swap pool")) {
+      } catch (e: any) {
+        if (!(e?.message && e.message.includes("Coin is not in a swap pool"))) {
           throw e
         }
       }
