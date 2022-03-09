@@ -127,6 +127,51 @@ Logs are written to console and file at the following locations:
 -   on macOS: ~/Library/Logs/{app name}/{process type}.log
 -   on Windows: %USERPROFILE%\AppData\Roaming\{app name}\logs\{process type}.log
 
+# Recover of expired statecoins
+
+On expiry, the expired statecoin's backup transaction is broadcast by Mercury Wallet, sending the amount (minus fees) to the corresponding bitcoin address. This address can be imported into a bitcoin wallet using the supplied WIF key. Alternatively, all addresses for expired statecoins from a particular wallet can be recovered using the wallet's seed phrase.
+
+## Obtaining the WIF key
+
+-   Go to 'settings' by clicking the gear icon at the top of the page.
+-   Click 'manage back-up transactions'.
+-   Click on the desired statecoin (if the statecoin has already expired and the backup transaction has been confirmed, it will be in the list of withdrawn statecoins. Click the '...' at the top right corner of the coins list and select 'withdrawn' to view the withdrawn statecoins).
+-   Click 'show' next to 'Private Key WIF' in the 'Backup Transaction Details' box.
+
+## Obtaining the seed phrase
+
+-   Go to 'settings' by clicking the gear icon at the top of the page.
+-   Enter the wallet password in the 'Seed Phrase: Enter password' box.
+-   Click 'SHOW'. 
+
+## Recovery of expired statecoins from WIF key
+
+For example, in electrum wallet:
+
+-   Select 'File -> New/Restore' form the menu.
+-   Choose a name for the wallet and click 'Next'.
+-   Select 'Import Bitcoin addresses or private keys' and click 'Next'
+-   Copy the WIF key(s) into the text box and click 'Next'
+-   Choose a password and click 'Next'
+
+## Recovery of expired statecoins from seed
+
+The seed phrase type is 'BIP39' and the derivation path is `m/0'`.
+
+For example, to recover from the seed phrase in electrum wallet:
+
+-   Select 'File -> New/Restore' form the menu.
+-   Choose a name for the wallet and click 'Next'.
+-   Select 'Standard wallet' and click 'Next'.
+-   Select 'I already have a seed' and click 'Next'.
+-   Click 'Options', select 'BIP39 seed' and click 'OK'.
+-   Enter the seed into the text box and click 'Next'.
+-   Select 'native segwit (p2wpkh)' and enter `m/0'`. Click 'Next'.
+-   Choose a password and click 'Next'.
+-   If many addresses were used in mercury wallet, you may need to generate additional addresses in order to find all the expired statecoin transactions. To do this, go to the Console tab (first, click 'View -> Show Console' if the Console tab is not shown). The enter the following command to e.g. generate 100 additional addresses: `[wallet.create_new_address(False) for i in range(100)]`. 
+
+
+
 # Contact
 
 If you have any further questions you can find us at:
