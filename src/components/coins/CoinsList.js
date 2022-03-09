@@ -272,7 +272,7 @@ const CoinsList = (props) => {
       return () => { isMounted = false }
     }
   }
-    , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved]);
+    , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved, balance_info]);
 
   // Re-fetch every 5 seconds and update state to refresh render
   // IF any coins are marked UNCONFIRMED
@@ -282,7 +282,7 @@ const CoinsList = (props) => {
 
     return () => clearInterval(interval);
 
-  }, [coins.unConfirmedCoins, torInfo.online]);
+  }, [coins.unConfirmedCoins, torInfo.online, balance_info]);
 
 
   //Initialised Coin description for coin modal
@@ -300,7 +300,7 @@ const CoinsList = (props) => {
       setDscrpnConfirm(false)
     }
     //function called every time coin info modal shows up
-  }, [showCoinDetails.coin])
+  }, [showCoinDetails.coin, balance_info])
 
   // Re-fetch swaps group data every and update swaps component
   // Initiate auto swap
@@ -332,7 +332,7 @@ const CoinsList = (props) => {
       const total = confirmedCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
       dispatch(updateBalanceInfo({...balance_info, total_balance: total, num_coins: confirmedCoins.length }))
     }
-  }, [callGetUnspentStatecoins()])
+  }, [callGetUnspentStatecoins(), balance_info])
 
   // Enters/Re-enters coins in auto-swap
   const autoSwapLoop = () => {
@@ -576,7 +576,9 @@ const CoinsList = (props) => {
             getAddress={getAddress}
             displayExpiryTime={displayExpiryTime}
             handleAutoSwap={props.handleAutoSwap}
-            render={props.render ? (props.render) : null} />
+            render={props.render ? (props.render) : null}
+            balance_info={balance_info}
+          />
         )
       })}
 

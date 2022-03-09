@@ -13,6 +13,7 @@ import Moment from "react-moment";
 import SwapStatus from "../SwapStatus/SwapStatus";
 import { callGetActivityLog, callGetActivityLogItems, setError } from "../../../features/WalletDataSlice";
 import { CoinStatus, CopiedButton } from "../..";
+import { HIDDEN } from '../../../wallet/statecoin';
 
 const TESTING_MODE = require("../../../settings.json").testing_mode;
 const SWAP_AMOUNTS = require("../../../settings.json").swap_amounts;
@@ -169,7 +170,7 @@ const Coin = (props) => {
           <div className="CoinAmount-block">
             <img src={props.coin_data.privacy_data.icon1} alt="icon" />
             <span className="sub">
-              <b className={props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI ? "CoinAmountError" : "CoinAmount"}>  {fromSatoshi(props.coin_data.value)} BTC</b>
+              <b className={props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI ? "CoinAmountError" : "CoinAmount"}>  {props.balance_info.hidden ? HIDDEN : fromSatoshi(props.coin_data.value)} BTC</b>
               {props.filterBy === STATECOIN_STATUS.IN_TRANSFER ? (
                 <div className="scoreAmount">
                   {updateTransferDate(props.coin_data)}

@@ -85,8 +85,8 @@ const PanelControl = () => {
 
           
           <CheckBox
-            label="Show/hide balance"
-            description={balance_info.hidden ? "Show balance" : "Hide balance"}
+            label={balance_info.hidden ? "Show balance" : "Hide balance"}
+            //description={balance_info.hidden ? "Show balance" : "Hide balance"}
             checked={!!balance_info.hidden}
             onChange={onHideBalanceChange}
           />
