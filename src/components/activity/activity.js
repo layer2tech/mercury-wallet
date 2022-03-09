@@ -142,7 +142,31 @@ const Activity = () => {
 									<td>
 										<img src={withrowIcon} alt="withrowIcon" />
 										<span className="grey"><Moment format="HH:mm:ss A">{item.date}</Moment> </span>
-										<span >Withdrawn 1 Statecoin</span>
+										<span >Withdraw confirm 1 Statecoin</span>
+									</td>
+									<td>
+										<img src={txidIcon} alt="txidIcon" />
+										<span className="txid">{item.funding_txid}:{item.funding_txvout}</span>
+
+									</td>
+									<td>
+										<span>Withdrawn</span>
+										<span className="red">- {fromSatoshi(item.value)} BTC</span>
+
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						: null}
+					{item.action === 'G' ?
+						<table>
+							<tbody>
+								<tr >
+
+									<td>
+										<img src={withrowIcon} alt="withrowIcon" />
+										<span className="grey"><Moment format="HH:mm:ss A">{item.date}</Moment> </span>
+										<span >Init withdraw 1 Statecoin</span>
 									</td>
 									<td>
 										<img src={txidIcon} alt="txidIcon" />

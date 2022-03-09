@@ -44,6 +44,7 @@ export const ACTION = {
    DEPOSIT: "D",
    TRANSFER: "T",
    WITHDRAW: "W",
+   WITHDRAWING: "G",
    SWAP: "S",
    EXPIRED: "E",
    RECEIVED: "R"

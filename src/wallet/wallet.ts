@@ -1539,6 +1539,7 @@ export class Wallet {
         statecoin.setWithdrawing()
       }
       this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
+      this.activity.addItem(statecoin.statechain_id, ACTION.WITHDRAWING);
     });
     await this.saveStateCoinsList();
 
