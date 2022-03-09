@@ -595,7 +595,7 @@ const CoinsList = (props) => {
               <div className="block">
                 <span>Statecoin Value</span>
                 <span>
-                  <b>{balance_info.hidden ? HIDDEN : fromSatoshi(showCoinDetails.coin.value)} BTC</b>
+                  <b>{fromSatoshi(showCoinDetails.coin.value)} BTC</b>
                 </span>
               </div>
             </div>
