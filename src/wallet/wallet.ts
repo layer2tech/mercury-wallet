@@ -879,10 +879,9 @@ export class Wallet {
 
   // Mark statecoin as spent after transfer or withdraw
   async setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
-    if (this.statecoins.setCoinSpent(id, action, transfer_msg) === true) {
-      this.activity.addItem(id, action);
-      log.debug("Set Statecoin spent: " + id);
-    }
+    this.statecoins.setCoinSpent(id, action, transfer_msg);
+    this.activity.addItem(id, action);
+    log.debug("Set Statecoin spent: " + id);
     await this.saveStateCoinsList()
   }
 
