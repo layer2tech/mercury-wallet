@@ -231,26 +231,29 @@ export class StateCoinList {
   }
 
 
-  setCoinSpent(shared_key_id: string, action: string, transfer_msg?: TransferMsg3) {
+  setCoinSpent(shared_key_id: string, action: string, transfer_msg?: TransferMsg3): boolean {
     let coin = this.getCoin(shared_key_id)
-    if (coin) {
+    if (!coin) {
+      throw Error("No coin found with shared_key_id " + shared_key_id);
+    }
+    if (coin?.status === STATECOIN_STATUS.AVAILABLE) {
       switch (action) {
         case ACTION.WITHDRAW:
           coin.setWithdrawn();
-          return;
+          return true;
         case ACTION.TRANSFER:
           coin.setInTransfer();
           coin.transfer_msg = transfer_msg!;
-          return;
+          return true;
         case ACTION.SWAP:
           coin.setSwapped();
-          return;
+          return true;
         case ACTION.EXPIRED:
           coin.setExpired();
+          return true
       }
-    } else {
-      throw Error("No coin found with shared_key_id " + shared_key_id);
     }
+    return false
   }
 
   // Funding Tx seen on network. Set coin status and funding_txid
