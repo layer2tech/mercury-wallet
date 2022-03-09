@@ -21,7 +21,8 @@ import {
   handleEndSwap,
   addInSwapValue,
   updateInSwapValues,
-  removeInSwapValue
+  removeInSwapValue,
+  checkSwapAvailability
 } from "../../features/WalletDataSlice";
 import { fromSatoshi, STATECOIN_STATUS } from '../../wallet';
 import './Swap.css';
@@ -88,17 +89,6 @@ const SwapPage = () => {
     return <Redirect to="/" />;
   }
 
-  const checkSwapAvailabilty = (statecoin, in_swap_values) => {
-    if (callGetConfig().singleSwapMode
-      && in_swap_values.has(statecoin.value)) {
-      return false
-    }
-    if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) {
-      return false
-    }
-    return true
-  }
-
   const swapButtonAction = async () => {
 
     // check electrum connection before swap start
@@ -131,7 +121,7 @@ const SwapPage = () => {
       const j = randomOrderIndices[i]
       let selectedCoin = selectedCoins[j]
       let statecoin = callGetStateCoin(selectedCoin);
-      if (checkSwapAvailabilty(statecoin, swapValues)) {
+      if (checkSwapAvailability(statecoin, swapValues)) {
         swapValues.add(statecoin.value)
         dispatch(addCoinToSwapRecords(selectedCoin));
         setSwapLoad({ ...swapLoad, join: true, swapCoin: statecoin })
@@ -200,7 +190,7 @@ const SwapPage = () => {
       dispatch(addCoinToSwapRecords(selectedCoin));
       setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) });
 
-      if (checkSwapAvailabilty(statecoin, new Set(inSwapValues))) {
+      if (checkSwapAvailability(statecoin, new Set(inSwapValues))) {
         // if StateCoin in not already in swap group
         dispatch(addInSwapValue(statecoin.value))
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
@@ -211,7 +201,6 @@ const SwapPage = () => {
         setSwapLoad({ ...swapLoad, join: false, swapCoin: callGetStateCoin(selectedCoin) });
         dispatch(addSwapPendingCoin(item.shared_key_id))
       }
-      // Refres
     }
 
     // Refresh Coins list

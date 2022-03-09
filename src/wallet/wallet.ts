@@ -184,7 +184,6 @@ export class Wallet {
     let electr_ep_arr = electr_ep.split(',');
     let electr_port = this.config.electrum_config.port
 
-    console.log(`electr host: ${electr_ep}`)
     if (electr_port) {
       if (Array.isArray(electr_port)) {
         if (electr_port.length !== electr_ep_arr.length) {
@@ -206,8 +205,7 @@ export class Wallet {
       state_entity_endpoint: this.config.state_entity_endpoint,
       electrum_endpoint: electr_ep,
     }
-    let tor_ep_set = this.http_client.post('tor_endpoints', endpoints_config);
-    console.log(`Set tor endpoints: ${tor_ep_set}}`);
+    this.http_client.post('tor_endpoints', endpoints_config);
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -663,7 +661,7 @@ export class Wallet {
     if (priv_key === undefined) throw Error("Backup receive address private key not found.");
 
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
-    backup_tx_data.key_wif = bip32.toWIF();
+    backup_tx_data.key_wif = `p2wpkh:${bip32.toWIF()}`;
 
     if (statecoin.tx_cpfp !== null) {
       let fee_rate = (FEE + (backup_tx_data?.output_value ?? 0) - (statecoin.tx_cpfp?.outs[0]?.value ?? 0)) / 250;
@@ -724,9 +722,7 @@ export class Wallet {
         }
         // in mempool - check if confirmed
         if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
-          console.log(`in mempool.`)
           let txid = this!.statecoins!.coins[i]!.tx_backup!.getId();
-          console.log(`txid: ${txid}`)
           if (txid != null) {
             this.electrum_client.getTransaction(txid).then((tx_data: any) => {
               if (tx_data.confirmations !== undefined && tx_data.confirmations > 2) {
@@ -791,7 +787,14 @@ export class Wallet {
 
     let backup_tx_data = this.getCoinBackupTxData(cpfp_data.selected_coin);
 
-    var ec_pair = bitcoin.ECPair.fromWIF(backup_tx_data.key_wif, this.config.network);
+    let i_prefix = backup_tx_data.key_wif.search(/:/)
+    let wif_prefix = backup_tx_data.key_wif.slice(0, i_prefix);
+    if (wif_prefix !== 'p2wpkh') {
+      throw Error(`WIF prefix - expected p2wpkh, got ${wif_prefix}`);
+    }
+    let wif_key = backup_tx_data.key_wif.slice(i_prefix+1);
+    
+    var ec_pair = bitcoin.ECPair.fromWIF(wif_key, this.config.network);
     var p2wpkh = bitcoin.payments.p2wpkh({ pubkey: ec_pair.publicKey, network: this.config.network })
 
     // Construct CPFP tx
@@ -1011,7 +1014,7 @@ export class Wallet {
         return true
       }
     } catch (err: any) {
-      console.log(err);
+      log.error(err);
     }
     return false
   }
@@ -1281,8 +1284,10 @@ export class Wallet {
       let statecoin = this.statecoins.coins[i]
       try {
         await this.deRegisterSwapCoin(statecoin)
-      } catch (e) {
-        log.info(e)
+      } catch (e: any) {
+        if (!(e?.message && e.message.includes("Coin is not in a swap pool"))) {
+          throw e
+        }
       }
       statecoin.swap_auto = false;
     }
@@ -1301,7 +1306,7 @@ export class Wallet {
               if (statecoin && statecoin?.swap_status !== SWAP_STATUS.Phase4) {
                 statecoin.setSwapDataToNull();
               } else {
-                console.log(`resuming swap for statechain id: ${statecoin.statechain_id}`)
+                log.info(`resuming swap for statechain id: ${statecoin.statechain_id}`)
                 this.resume_swap(statecoin)
               }
             }

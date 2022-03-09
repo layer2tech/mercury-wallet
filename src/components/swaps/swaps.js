@@ -29,7 +29,6 @@ const Swaps = (props) => {
         }
     },[props.swapGroupsData, swapTime]);
 
-
     useEffect(()=> {
         if(swapTime!==""){
             const interval = setIntervalIfOnline(countdownTimer, torInfo.online, 1000)
@@ -40,37 +39,6 @@ const Swaps = (props) => {
     const countdownTimer = () => {
         setCountdown(swapTime - Math.ceil(Date.now()/1000))
     }
-
-    // const getSwapStatusLabel = (value, groupStartTime) => {
-    //     if(value === "0") {
-    //         return (
-    //             <div className="SwapStatus">
-    //                 <span style={{background: '#f5f5f5'}}>Empty</span>
-    //             </div>
-    //         )
-    //     }
-    //     if(parseInt(value) > 1) {
-    //         return (
-    //             <div className="SwapStatus">
-    //                 <span style={{color: '#dfeaff', background: '#757575'}}>Waiting</span>
-    //             </div>
-    //         )
-    //     }
-    //     if(parseInt(value) === 1) {
-    //         return (
-    //             <div className="SwapStatus">
-    //                 <span style={{color: '#c8e6c9', background: '#757575'}}>Pending</span>
-    //             </div>
-    //         )
-    //     }
-    //     // if(value === total) {
-    //     //     return (
-    //     //         <div className="SwapStatus">
-    //     //             <span style={{color: '#ffccbc', background: '#757575'}}>Complete</span>
-    //     //         </div>
-    //     //     )
-    //     // }
-    // }
 
     const utcTime = (swaptime) => {
         let utc = new Date(swaptime*1000).toISOString().slice(11,19);
@@ -91,7 +59,7 @@ const Swaps = (props) => {
             <div className="SwapParticipants">
                 <b>{value.number}/{key.size}</b>
             </div>
-            {/* {getSwapStatusLabel(value.number)} */}
+            {}
         </div>
         )});
 
@@ -121,7 +89,7 @@ const Swaps = (props) => {
                                 <img src={user} alt="user"/>
                                 PARTICIPANTS
                             </span>
-                            {/* <span>Status</span> */}
+                            {}
                         </div>
                         <div className="swap-table-body">
                             {swapData}

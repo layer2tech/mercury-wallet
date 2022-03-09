@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Link} from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import {useDispatch} from 'react-redux';
 import {Storage} from '../../store';
 import {walletLoad, setError, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice';
@@ -14,6 +14,7 @@ import { STATECOIN_STATUS } from '../../wallet';
 const LoadWalletPage = (props) => {
   const [showPass, setShowPass] = useState(false);
   const dispatch = useDispatch();
+  const history = useHistory();
   
   let store = new Storage("wallets/wallet_names");
 
@@ -75,6 +76,16 @@ const LoadWalletPage = (props) => {
     }
     checkForCoinsHealth();
     props.setWalletLoaded(true);
+    history.push('/home')
+  }
+
+  const enterContinue = (event) => {
+
+    if(event.key.charCodeAt(0) === 69){
+      // On enter key press: prevent rerender
+      event.preventDefault()
+      onContinueClick(event)
+    }
   }
 
   const populateWalletNameOptions = () => {
@@ -101,6 +112,8 @@ const LoadWalletPage = (props) => {
               placeholder="Password "
               value={passwordEntered}
               onChange={onPasswordChange}
+              onKeyPress={enterContinue}
+              
             />
             <span className={'eye-icon'} onClick={toggleShowPass}>
                 {showPass ? <img alt="eye icon off" src={eyeIconOff} /> : <img alt= "eye icon off" src={eyeIcon} />}
@@ -110,9 +123,9 @@ const LoadWalletPage = (props) => {
             <Link to="/" className="primary-btn-link back">
               Go Back
             </Link>
-            <Link to="/home" className="primary-btn blue" onClick={onContinueClick}>
+            <button type="submit" className="primary-btn blue" onClick={onContinueClick}>
               Continue
-            </Link>
+            </button>
           </div>
         </div>
         :
