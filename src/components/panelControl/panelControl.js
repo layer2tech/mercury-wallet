@@ -78,13 +78,13 @@ const PanelControl = () => {
       <div className="no-wallet">
         <span>{balance_info.hidden ? HIDDEN : balance_info.num_coins} {filterByMsg()}</span>
       </div>
-      
+      <div className="ActionGroupLeft">
       <CheckBox
         label={balance_info.hidden ? "Show balance" : "Hide balance"}
         checked={!!balance_info.hidden}
         onChange={onHideBalanceChange}
       />
-
+      </div>
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
 
