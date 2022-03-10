@@ -142,7 +142,7 @@ const Activity = () => {
 									<td>
 										<img src={withrowIcon} alt="withrowIcon" />
 										<span className="grey"><Moment format="HH:mm:ss A">{item.date}</Moment> </span>
-										<span >Withdraw confirm 1 Statecoin</span>
+										<span >Confirm withdrawal</span>
 									</td>
 									<td>
 										<img src={txidIcon} alt="txidIcon" />
@@ -166,7 +166,7 @@ const Activity = () => {
 									<td>
 										<img src={withrowIcon} alt="withrowIcon" />
 										<span className="grey"><Moment format="HH:mm:ss A">{item.date}</Moment> </span>
-										<span >Init withdraw 1 Statecoin</span>
+										<span >Withdrawn 1 Statecoin</span>
 									</td>
 									<td>
 										<img src={txidIcon} alt="txidIcon" />

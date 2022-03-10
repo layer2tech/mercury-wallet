@@ -21,8 +21,8 @@ export class ActivityLog {
     return this.items.sort((a,b) => b.date - a.date).slice(0,depth)
   }
 
-  addItem(statecoin_id: string, action: string) {
-    this.items.push(new ActivityLogItem(statecoin_id, action))
+  addItem(shared_key_id: string, action: string) {
+    this.items.push(new ActivityLogItem(shared_key_id, action))
   };
 }
 
@@ -32,8 +32,8 @@ export class ActivityLogItem {
   action: string;
   date: number;
 
-  constructor(statecoin_id: string, action: string) {
-    this.statecoin_id = statecoin_id;
+  constructor(shared_key_id: string, action: string) {
+    this.statecoin_id = shared_key_id;
     this.action = action;
     this.date = new Date().getTime();
   }
