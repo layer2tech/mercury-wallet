@@ -1,8 +1,13 @@
 let bitcoin = require('bitcoinjs-lib')
-import { Wallet, StateCoin, StateCoinList, ACTION, Config, STATECOIN_STATUS, BACKUP_STATUS, decryptAES } from '../';
+import {
+  Wallet, StateCoin, StateCoinList, ACTION,
+  Config, STATECOIN_STATUS, BACKUP_STATUS,
+  decryptAES
+} from '../';
 import {
   segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC,
-  mnemonic_to_bip32_root_account, getBIP32forBtcAddress
+  mnemonic_to_bip32_root_account, getBIP32forBtcAddress, parseBackupData,
+  required_fields
 } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
@@ -364,14 +369,35 @@ describe('Wallet', function () {
       }
     })
   
+    describe('parseBackupData', function () {
+      let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
+      let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
+      let json_wallet
+      beforeEach(() => {
+        json_wallet = JSON.stringify(wallet_encrypted)
+      })
+
+      required_fields.forEach((field) => {
+        test(`missing required field ${field} results in an error`, () => {
+          let wallet = JSON.parse(json_wallet);
+          delete wallet[field]
+          expect(wallet[field]).toEqual(undefined)
+          expect(() => { parseBackupData(JSON.stringify(wallet)) }).
+            toThrowError(`parsing wallet backup data: invalid: missing field \"${field}\"`)
+        })
+      })
+
+      test(`incorrect wallet format results in an error`, () => {
+        expect(() => { parseBackupData("*") }).
+          toThrowError(`parsing wallet backup data: Unexpected token * in JSON at position 0`)
+      })
+    })
 
     test('load from backup and save', async function () {
       let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
       let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
       let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
       json_wallet.name = MOCK_WALLET_NAME_BACKUP
-
-      let invalid_json_wallet = JSON.parse("{}");
 
       expect(() => {
         let _ = Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD + " ", true)
@@ -380,10 +406,7 @@ describe('Wallet', function () {
       expect(() => {
         let _ = Wallet.loadFromBackup(json_wallet, "", true)
       }).toThrow("Incorrect password.");
-   
-      expect(() => {
-        let _ = Wallet.loadFromBackup(invalid_json_wallet, "", true)
-      }).toThrow("Incorrect password.");
+
     
       expect(() => {
         Wallet.loadFromBackup("", "", true)

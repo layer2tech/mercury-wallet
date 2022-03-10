@@ -57,6 +57,27 @@ export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890"
 export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7"
 export const MOCK_WALLET_MNEMONIC = "praise you muffin lion enable neck grocery crumble super myself license ghost"
 
+// The wallet data must contain these fields
+export const required_fields = [
+  'name', 'mnemonic', 'config', 'account', 'statecoins',
+  'activity'
+]
+
+export const parseBackupData = (backupData: string) => {
+  try {
+    const walletJson = JSON.parse(backupData);
+    required_fields.forEach((item) => {
+      if (walletJson[item] === undefined) {
+        throw Error(`invalid: missing field \"${item}\"`)
+      }
+    })
+
+    return walletJson
+  } catch (err) {
+    throw Error(`parsing wallet backup data: ${err.message}`)
+  }
+}
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
