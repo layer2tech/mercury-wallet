@@ -547,8 +547,6 @@ export class Wallet {
   }
 
   getUnspentStatecoins() {
-    let withdrawing_coins = this.statecoins.getWithdrawingCoins()
-    this.checkWithdrawingTxStatus(withdrawing_coins);
     return this.statecoins.getUnspentCoins(this.block_height);
   }
 
@@ -638,6 +636,8 @@ export class Wallet {
     //Check if unconfirmed status now changed and change accordingly
     this.updateBackupTxStatus()
     //check if status update required for coins
+    let withdrawing_coins = this.statecoins.getWithdrawingCoins()
+    this.checkWithdrawingTxStatus(withdrawing_coins);
 
     unconfirmed_coins = this.statecoins.getUnconfirmedCoins();
     //reload unconfirmed coins
@@ -879,9 +879,14 @@ export class Wallet {
 
   // Mark statecoin as spent after transfer or withdraw
   async setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
-    this.statecoins.setCoinSpent(id, action, transfer_msg);
-    this.activity.addItem(id, action);
-    log.debug("Set Statecoin spent: " + id);
+    let statecoin = this.statecoins.getCoin(id);
+    console.log(statecoin);
+    console.log(statecoin?.status);
+    if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE || statecoin.status === STATECOIN_STATUS.SWAPLIMIT)) {
+      this.statecoins.setCoinSpent(id, action, transfer_msg);
+      this.activity.addItem(id, action);
+      log.debug("Set Statecoin spent: " + id);
+    }
     await this.saveStateCoinsList()
   }
 
@@ -1468,6 +1473,7 @@ export class Wallet {
     let has_deposited = false;
     shared_key_ids.forEach((shared_key_id) => {
       let statecoin = this.statecoins.getCoin(shared_key_id);
+      console.log(statecoin);
       if (!statecoin) throw Error("No coin found with id " + shared_key_id);
       if (statecoin.is_deposited) {
         has_deposited = true
@@ -1475,6 +1481,8 @@ export class Wallet {
         has_private = true
       }
     });
+    console.log(has_deposited);
+    console.log(has_private);
     if (has_deposited === has_private) {
       return false
     } else {
@@ -1544,6 +1552,7 @@ export class Wallet {
         statecoin.setWithdrawing()
       }
       this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
+      this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
     });
     await this.saveStateCoinsList();
 
@@ -1578,11 +1587,11 @@ export class Wallet {
   ) {
     log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`)
     try {
-      await withdraw_confirm(this.http_client, withdraw_msg_2)
       withdraw_msg_2.shared_key_ids.forEach((shared_key_id) => {
         this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
         this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
-      })
+      });
+      await withdraw_confirm(this.http_client, withdraw_msg_2);
     } catch (e) {
       if (`${e}`.includes('No data for id') || `${e}`.includes('No update made')) {
         withdraw_msg_2.shared_key_ids.forEach((shared_key_id) => {
