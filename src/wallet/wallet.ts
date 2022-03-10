@@ -876,14 +876,9 @@ export class Wallet {
 
   // Mark statecoin as spent after transfer or withdraw
   async setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
-    let statecoin = this.statecoins.getCoin(id);
-    console.log(statecoin);
-    console.log(statecoin?.status);
-    if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE || statecoin.status === STATECOIN_STATUS.SWAPLIMIT)) {
-      this.statecoins.setCoinSpent(id, action, transfer_msg);
-      this.activity.addItem(id, action);
-      log.debug("Set Statecoin spent: " + id);
-    }
+    this.statecoins.setCoinSpent(id, action, transfer_msg);
+    this.activity.addItem(id, action);
+    log.debug("Set Statecoin spent: " + id);
     await this.saveStateCoinsList()
   }
 
@@ -1466,22 +1461,24 @@ export class Wallet {
   isBatchMixedPrivacy(shared_key_ids: string[]) {
     let has_private = false;
     let has_deposited = false;
-    shared_key_ids.forEach((shared_key_id) => {
-      let statecoin = this.statecoins.getCoin(shared_key_id);
-      console.log(statecoin);
-      if (!statecoin) throw Error("No coin found with id " + shared_key_id);
-      if (statecoin.is_deposited) {
-        has_deposited = true
+    if(shared_key_ids.length > 1) {
+      shared_key_ids.forEach((shared_key_id) => {
+        let statecoin = this.statecoins.getCoin(shared_key_id);
+        if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+        if (statecoin.is_deposited) {
+          has_deposited = true;
+        }
+        if (statecoin.swap_rounds > 0) {
+          has_private = true;
+        }
+      });
+      if (has_deposited === has_private) {
+        return false
       } else {
-        has_private = true
+        return true
       }
-    });
-    console.log(has_deposited);
-    console.log(has_private);
-    if (has_deposited === has_private) {
-      return false
     } else {
-      return true
+      return false
     }
   }
 
