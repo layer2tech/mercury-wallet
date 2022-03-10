@@ -882,7 +882,10 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(id);
     console.log(statecoin);
     console.log(statecoin?.status);
-    if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE || statecoin.status === STATECOIN_STATUS.SWAPLIMIT)) {
+    if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE ||
+      statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
+      statecoin.status === STATECOIN_STATUS.EXPIRED
+      )) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
       log.debug("Set Statecoin spent: " + id);
