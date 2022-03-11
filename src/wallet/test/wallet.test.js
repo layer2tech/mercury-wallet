@@ -2,7 +2,7 @@ let bitcoin = require('bitcoinjs-lib')
 import {
   Wallet, StateCoin, StateCoinList, ACTION,
   Config, STATECOIN_STATUS, BACKUP_STATUS,
-  decryptAES, setCoinSpent
+  decryptAES
 } from '../';
 import {
   segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC,

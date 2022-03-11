@@ -9,7 +9,7 @@ export { MockWasm } from './mocks/mock_wasm';
 
 
 export { Wallet } from "./wallet"
-export { StateCoin, StateCoinList, STATECOIN_STATUS, BACKUP_STATUS, setCoinSpent } from "./statecoin"
+export { StateCoin, StateCoinList, STATECOIN_STATUS, BACKUP_STATUS } from "./statecoin"
 export { Config } from "./config"
 export { ACTION, ActivityLog } from "./activity_log"
 export { txBackupBuild, verifySmtProof, pubKeyToScriptPubKey, pubKeyTobtcAddr,
