@@ -73,7 +73,7 @@ export const parseBackupData = (backupData: string) => {
     })
 
     return walletJson
-  } catch (err) {
+  } catch (err: any) {
     throw Error(`parsing wallet backup data: ${err.message}`)
   }
 }
@@ -903,7 +903,8 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(id);
     if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE ||
       statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
-      statecoin.status === STATECOIN_STATUS.EXPIRED
+      statecoin.status === STATECOIN_STATUS.EXPIRED ||
+      statecoin.status === STATECOIN_STATUS.IN_SWAP
       )) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
