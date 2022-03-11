@@ -904,7 +904,7 @@ export class Wallet {
     if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE ||
       statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
       statecoin.status === STATECOIN_STATUS.EXPIRED ||
-      statecoin.status === STATECOIN_STATUS.IN_SWAP
+      statecoin.status === STATECOIN_STATUS.SWAPPED
       )) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
