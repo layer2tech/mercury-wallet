@@ -57,6 +57,27 @@ export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890"
 export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7"
 export const MOCK_WALLET_MNEMONIC = "praise you muffin lion enable neck grocery crumble super myself license ghost"
 
+// The wallet data must contain these fields
+export const required_fields = [
+  'name', 'mnemonic', 'config', 'account', 'statecoins',
+  'activity'
+]
+
+export const parseBackupData = (backupData: string) => {
+  try {
+    const walletJson = JSON.parse(backupData);
+    required_fields.forEach((item) => {
+      if (walletJson[item] === undefined) {
+        throw Error(`invalid: missing field \"${item}\"`)
+      }
+    })
+
+    return walletJson
+  } catch (err: any) {
+    throw Error(`parsing wallet backup data: ${err.message}`)
+  }
+}
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -184,7 +205,6 @@ export class Wallet {
     let electr_ep_arr = electr_ep.split(',');
     let electr_port = this.config.electrum_config.port
 
-    console.log(`electr host: ${electr_ep}`)
     if (electr_port) {
       if (Array.isArray(electr_port)) {
         if (electr_port.length !== electr_ep_arr.length) {
@@ -206,8 +226,7 @@ export class Wallet {
       state_entity_endpoint: this.config.state_entity_endpoint,
       electrum_endpoint: electr_ep,
     }
-    let tor_ep_set = this.http_client.post('tor_endpoints', endpoints_config);
-    console.log(`Set tor endpoints: ${tor_ep_set}}`);
+    this.http_client.post('tor_endpoints', endpoints_config);
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -549,8 +568,6 @@ export class Wallet {
   }
 
   getUnspentStatecoins() {
-    let withdrawing_coins = this.statecoins.getWithdrawingCoins()
-    this.checkWithdrawingTxStatus(withdrawing_coins);
     return this.statecoins.getUnspentCoins(this.block_height);
   }
 
@@ -640,6 +657,8 @@ export class Wallet {
     //Check if unconfirmed status now changed and change accordingly
     this.updateBackupTxStatus()
     //check if status update required for coins
+    let withdrawing_coins = this.statecoins.getWithdrawingCoins()
+    this.checkWithdrawingTxStatus(withdrawing_coins);
 
     unconfirmed_coins = this.statecoins.getUnconfirmedCoins();
     //reload unconfirmed coins
@@ -663,7 +682,7 @@ export class Wallet {
     if (priv_key === undefined) throw Error("Backup receive address private key not found.");
 
     backup_tx_data.priv_key_hex = priv_key.toString("hex");
-    backup_tx_data.key_wif = bip32.toWIF();
+    backup_tx_data.key_wif = `p2wpkh:${bip32.toWIF()}`;
 
     if (statecoin.tx_cpfp !== null) {
       let fee_rate = (FEE + (backup_tx_data?.output_value ?? 0) - (statecoin.tx_cpfp?.outs[0]?.value ?? 0)) / 250;
@@ -680,7 +699,7 @@ export class Wallet {
   // ActivityLog data with relevant Coin data
   getActivityLogItems(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
-      let coin = this.statecoins.getCoin(item.statecoin_id) // should err here if no coin found
+      let coin = this.statecoins.getCoin(item.shared_key_id) // should err here if no coin found
       return {
         date: item.date,
         action: item.action,
@@ -724,9 +743,7 @@ export class Wallet {
         }
         // in mempool - check if confirmed
         if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
-          console.log(`in mempool.`)
           let txid = this!.statecoins!.coins[i]!.tx_backup!.getId();
-          console.log(`txid: ${txid}`)
           if (txid != null) {
             this.electrum_client.getTransaction(txid).then((tx_data: any) => {
               if (tx_data.confirmations !== undefined && tx_data.confirmations > 2) {
@@ -791,7 +808,14 @@ export class Wallet {
 
     let backup_tx_data = this.getCoinBackupTxData(cpfp_data.selected_coin);
 
-    var ec_pair = bitcoin.ECPair.fromWIF(backup_tx_data.key_wif, this.config.network);
+    let i_prefix = backup_tx_data.key_wif.search(/:/)
+    let wif_prefix = backup_tx_data.key_wif.slice(0, i_prefix);
+    if (wif_prefix !== 'p2wpkh') {
+      throw Error(`WIF prefix - expected p2wpkh, got ${wif_prefix}`);
+    }
+    let wif_key = backup_tx_data.key_wif.slice(i_prefix+1);
+    
+    var ec_pair = bitcoin.ECPair.fromWIF(wif_key, this.config.network);
     var p2wpkh = bitcoin.payments.p2wpkh({ pubkey: ec_pair.publicKey, network: this.config.network })
 
     // Construct CPFP tx
@@ -876,9 +900,16 @@ export class Wallet {
 
   // Mark statecoin as spent after transfer or withdraw
   async setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
-    this.statecoins.setCoinSpent(id, action, transfer_msg);
-    this.activity.addItem(id, action);
-    log.debug("Set Statecoin spent: " + id);
+    let statecoin = this.statecoins.getCoin(id);
+    if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE ||
+      statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
+      statecoin.status === STATECOIN_STATUS.EXPIRED ||
+      statecoin.status === STATECOIN_STATUS.SWAPPED
+      )) {
+      this.statecoins.setCoinSpent(id, action, transfer_msg);
+      this.activity.addItem(id, action);
+      log.debug("Set Statecoin spent: " + id);
+    }
     await this.saveStateCoinsList()
   }
 
@@ -1004,14 +1035,14 @@ export class Wallet {
   // Query withdrawal txs list unspent and mark coin WITHDRAWN
   async checkWithdrawalTx(tx_hash: string): Promise<boolean> {
     try {
-      let withdrawal_tx_data = await this.electrum_client.getTransaction(tx_hash);
+      let withdrawal_tx_data: any = await this.electrum_client.getTransaction(tx_hash);
       let status = withdrawal_tx_data?.status;
       if (status && status.confirmed) {
         log.info(`Withdrawal tx ${tx_hash} confirmed`);
         return true
       }
     } catch (err: any) {
-      console.log(err);
+      log.error(err);
     }
     return false
   }
@@ -1281,8 +1312,10 @@ export class Wallet {
       let statecoin = this.statecoins.coins[i]
       try {
         await this.deRegisterSwapCoin(statecoin)
-      } catch (e) {
-        log.info(e)
+      } catch (e: any) {
+        if (!(e?.message && e.message.includes("Coin is not in a swap pool"))) {
+          throw e
+        }
       }
       statecoin.swap_auto = false;
     }
@@ -1301,7 +1334,7 @@ export class Wallet {
               if (statecoin && statecoin?.swap_status !== SWAP_STATUS.Phase4) {
                 statecoin.setSwapDataToNull();
               } else {
-                console.log(`resuming swap for statechain id: ${statecoin.statechain_id}`)
+                log.info(`resuming swap for statechain id: ${statecoin.statechain_id}`)
                 this.resume_swap(statecoin)
               }
             }
@@ -1461,19 +1494,24 @@ export class Wallet {
   isBatchMixedPrivacy(shared_key_ids: string[]) {
     let has_private = false;
     let has_deposited = false;
-    shared_key_ids.forEach((shared_key_id) => {
-      let statecoin = this.statecoins.getCoin(shared_key_id);
-      if (!statecoin) throw Error("No coin found with id " + shared_key_id);
-      if (statecoin.is_deposited) {
-        has_deposited = true
+    if(shared_key_ids.length > 1) {
+      shared_key_ids.forEach((shared_key_id) => {
+        let statecoin = this.statecoins.getCoin(shared_key_id);
+        if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+        if (statecoin.is_deposited) {
+          has_deposited = true;
+        }
+        if (statecoin.swap_rounds > 0) {
+          has_private = true;
+        }
+      });
+      if (has_deposited === has_private) {
+        return false
       } else {
-        has_private = true
+        return true
       }
-    });
-    if (has_deposited === has_private) {
-      return false
     } else {
-      return true
+      return false
     }
   }
 
@@ -1539,6 +1577,7 @@ export class Wallet {
         statecoin.setWithdrawing()
       }
       this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
+      this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
     });
     await this.saveStateCoinsList();
 
@@ -1573,11 +1612,11 @@ export class Wallet {
   ) {
     log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`)
     try {
-      await withdraw_confirm(this.http_client, withdraw_msg_2)
       withdraw_msg_2.shared_key_ids.forEach((shared_key_id) => {
         this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
         this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
-      })
+      });
+      await withdraw_confirm(this.http_client, withdraw_msg_2);
     } catch (e) {
       if (`${e}`.includes('No data for id') || `${e}`.includes('No update made')) {
         withdraw_msg_2.shared_key_ids.forEach((shared_key_id) => {

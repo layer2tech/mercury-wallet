@@ -11,8 +11,9 @@ import {resetIndex} from '../containers/Receive/Receive'
 import {v4 as uuidv4} from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import {mutex} from '../wallet/electrum';
-import { SWAP_STATUS } from '../wallet/swap/swap_utils'
+import { SWAP_STATUS, UI_SWAP_STATUS } from '../wallet/swap/swap_utils'
 
+const isEqual = require('lodash').isEqual
 
 // eslint-disable-next-line
 const CLOSED = require('websocket').w3cwebsocket.CLOSED;
@@ -56,7 +57,7 @@ const initialState = {
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
   warning_dialogue: {key: "", msg: "", seen: false},
-  balance_info: {total_balance: null, num_coins: null},
+  balance_info: {total_balance: null, num_coins: null, hidden: false},
   fee_info: {deposit: "NA", withdraw: "NA"},
   ping_swap: null,
   ping_server: null,
@@ -351,6 +352,17 @@ export const callGetWalletJsonToBackup = () => {
 }
 
 //Swap Functions
+export const checkSwapAvailability = (statecoin, in_swap_values) => {
+  if (statecoin?.status !== STATECOIN_STATUS.AVAILABLE) {
+    return false
+  }
+  if (callGetConfig().singleSwapMode
+    && in_swap_values.has(statecoin?.value)) {
+    statecoin.ui_swap_status = UI_SWAP_STATUS.SingleSwapMode
+    return false
+  }
+  return true
+}
 
 export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, fromSatoshi) => {
 
@@ -624,10 +636,12 @@ const WalletSlice = createSlice({
     },
     // Update total_balance
     updateBalanceInfo(state, action) {
-      if (state.balance_info.total_balance !== action.payload.total_balance) {
+      let payload = action.payload
+      let new_balance_info = {...state.balance_info, ...payload}
+      if(!isEqual(new_balance_info, state.balance_info)){
         return {
           ...state,
-          balance_info: action.payload
+          balance_info: new_balance_info
         }
       }
     },

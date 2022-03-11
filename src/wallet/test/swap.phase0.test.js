@@ -217,16 +217,18 @@ describe('swapPhase0 test 7 - waiting for swap to begin...', () => {
   })
 
   
-  it('swap Phase 0 should remain in phase 0 and not increment the n_retries counter', async () => {
+  it('swap Phase 0 should remain in phase 0 and not increment the n_retries counter past 1', async () => {
     let swap = new Swap(wallet, statecoin, null, null) 
     expect(swap.n_retries).toEqual(0)
     const input = () => {
       return swapPhase0(swap);
     }
-    let result = await input()
-    expect(result.is_ok()).toEqual(false)
-    expect(result.includes("Waiting for swap to begin..."))
-    expect(swap.n_retries).toEqual(0)
+    for (let i = 0; i < 3; i++) {
+      let result = await input()
+      expect(result.is_ok()).toEqual(false)
+      expect(result.includes("Waiting for swap to begin..."))
+      expect(swap.n_retries).toEqual(1)
+    }
   })
 })
 

@@ -36,10 +36,11 @@ import {
   handleEndAutoSwap,
   setIntervalIfOnline,
   updateInSwapValues,
+  checkSwapAvailability
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
-import { STATECOIN_STATUS } from '../../wallet/statecoin';
+import { STATECOIN_STATUS, HIDDEN } from '../../wallet/statecoin';
 import { CoinStatus } from '..';
 import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay';
 import CopiedButton from "../CopiedButton";
@@ -58,9 +59,7 @@ import {
   removeCoinFromSwapRecords,
   addInSwapValue
 } from "../../features/WalletDataSlice";
-import { SWAP_STATUS } from "../../wallet/swap/swap_utils";
 import Coin from "./Coin/Coin";
-
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -94,14 +93,43 @@ export const SWAP_STATUS_INFO = {
   End: "End",
 }
 
+export const coinSort = (sortCoin) => {
+  return (a, b) => {
+    const conditionalProp = sortCoin?.condition;
+
+    //List coins that are available to swap first.
+    if (conditionalProp === 'swap') {
+      const a_available = ((a.status === STATECOIN_STATUS.AVAILABLE) || (a.ui_swap_status !== null)) 
+      const b_available = ((b.status === STATECOIN_STATUS.AVAILABLE) || (b.ui_swap_status !== null))
+      if (a_available !== b_available) {
+        return a_available ? -1 : 1
+      }
+    }
+    let compareProp = sortCoin.by;
+    if (compareProp === 'expiry_data') {
+      a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
+      b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
+    } else {
+      a = a[compareProp];
+      b = b[compareProp];
+    }
+    if (a > b) {
+      return sortCoin.direction ? 1 : -1;
+    } else if (a < b) {
+      return sortCoin.direction ? -1 : 1;
+    }
+    return 0;
+  }
+}
+
 const CoinsList = (props) => {
   const [state, setState] = useState({});
 
   const { selectedCoins, isMainPage, swap } = props;
   const dispatch = useDispatch();
   const { filterBy, swapPendingCoins, coinsAdded,
-    coinsRemoved, torInfo, inSwapValues } = useSelector(state => state.walletData);
-  const [sortCoin, setSortCoin] = useState(INITIAL_SORT_BY);
+    coinsRemoved, torInfo, inSwapValues, balance_info } = useSelector(state => state.walletData);
+  const [sortCoin, setSortCoin] = useState({ ...INITIAL_SORT_BY, condition: props.swap ? 'swap' : null});
   const [coins, setCoins] = useState(INITIAL_COINS);
   const [initCoins, setInitCoins] = useState({});
   const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
@@ -220,17 +248,6 @@ const CoinsList = (props) => {
     setShowDeleteCoinDetails(false);
   }
 
-  const checkSwapAvailability = (statecoin, in_swap_values) => {
-    if (callGetConfig().singleSwapMode
-      && in_swap_values.has(statecoin?.value)) {
-      return false
-    }
-    if (statecoin?.status !== STATECOIN_STATUS.AVAILABLE) {
-      return false
-    }
-    return true
-  }
-
 
   //Load coins once component done render
   useEffect(() => {
@@ -259,7 +276,7 @@ const CoinsList = (props) => {
       if (filterBy !== 'default') {
         const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
         const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsByStatus.length }));
+        dispatch(updateBalanceInfo({...balance_info, total_balance: total, num_coins: coinsByStatus.length }));
       } else {
         const coinsNotWithdraw = coins_data.filter(coin => (
           coin.status !== STATECOIN_STATUS.WITHDRAWN &&
@@ -267,12 +284,12 @@ const CoinsList = (props) => {
           coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
           coin.status !== STATECOIN_STATUS.EXPIRED));
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        dispatch(updateBalanceInfo({ total_balance: total, num_coins: coinsNotWithdraw.length }));
+        dispatch(updateBalanceInfo({...balance_info,  total_balance: total, num_coins: coinsNotWithdraw.length }));
       }
       return () => { isMounted = false }
     }
   }
-    , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved]);
+    , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved, balance_info]);
 
   // Re-fetch every 5 seconds and update state to refresh render
   // IF any coins are marked UNCONFIRMED
@@ -282,7 +299,7 @@ const CoinsList = (props) => {
 
     return () => clearInterval(interval);
 
-  }, [coins.unConfirmedCoins, torInfo.online]);
+  }, [coins.unConfirmedCoins, torInfo.online, balance_info]);
 
 
   //Initialised Coin description for coin modal
@@ -300,7 +317,7 @@ const CoinsList = (props) => {
       setDscrpnConfirm(false)
     }
     //function called every time coin info modal shows up
-  }, [showCoinDetails.coin])
+  }, [showCoinDetails.coin, balance_info])
 
   // Re-fetch swaps group data every and update swaps component
   // Initiate auto swap
@@ -330,9 +347,9 @@ const CoinsList = (props) => {
       setTotalCoins(confirmedCoins.length);
       // update balance and amount
       const total = confirmedCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
-      dispatch(updateBalanceInfo({ total_balance: total, num_coins: confirmedCoins.length }))
+      dispatch(updateBalanceInfo({...balance_info, total_balance: total, num_coins: confirmedCoins.length }))
     }
-  }, [callGetUnspentStatecoins()])
+  }, [callGetUnspentStatecoins(), balance_info])
 
   // Enters/Re-enters coins in auto-swap
   const autoSwapLoop = () => {
@@ -405,7 +422,6 @@ const CoinsList = (props) => {
     }
   }
 
-
   // data to display in privacy related sections
   const getPrivacyScoreDesc = (coin) => {
 
@@ -458,22 +474,7 @@ const CoinsList = (props) => {
     }
   }
 
-  all_coins_data.sort((a, b) => {
-    let compareProp = sortCoin.by;
-    if (compareProp === 'expiry_data') {
-      a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
-      b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
-    } else {
-      a = a[compareProp];
-      b = b[compareProp];
-    }
-    if (a > b) {
-      return sortCoin.direction ? 1 : -1;
-    } else if (a < b) {
-      return sortCoin.direction ? -1 : 1;
-    }
-    return 0;
-  });
+  all_coins_data.sort(coinSort(sortCoin));
 
   if (!all_coins_data.length) {//&& filterBy !== STATECOIN_STATUS.WITHDRAWN && filterBy !== STATECOIN_STATUS.IN_TRANSFER
 
@@ -551,7 +552,7 @@ const CoinsList = (props) => {
         <FilterBy />
         {(all_coins_data.length &&
           filterBy !== STATECOIN_STATUS.WITHDRAWN
-        ) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} /> : null}
+        ) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} swap={swap}/> : null}
       </div>
       {all_coins_data.map(item => {
         return (
@@ -576,7 +577,9 @@ const CoinsList = (props) => {
             getAddress={getAddress}
             displayExpiryTime={displayExpiryTime}
             handleAutoSwap={props.handleAutoSwap}
-            render={props.render ? (props.render) : null} />
+            render={props.render ? (props.render) : null}
+            balance_info={balance_info}
+          />
         )
       })}
 

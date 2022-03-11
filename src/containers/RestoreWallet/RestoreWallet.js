@@ -6,11 +6,14 @@ import {setError, walletFromMnemonic, walletFromJson} from '../../features/Walle
 import {CreateWizardForm} from '../../components'
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg"
-import {Storage} from '../../store';
+import { Storage } from '../../store';
+import { parseBackupData } from '../../wallet/wallet'
 
 import  './RestoreWallet.css'
+import { configureStore } from '@reduxjs/toolkit';
 
 let bip39 = require('bip39');
+
 
 const RestoreWalletPage = (props) => {
   const dispatch = useDispatch();
@@ -70,12 +73,10 @@ const RestoreWalletPage = (props) => {
     })
   }
 
-
-
   useEffect(() => {
     const handleImportWalletData = async (event, backupData) => {
       try {
-        const walletJson = JSON.parse(backupData);
+        const walletJson = parseBackupData(backupData);
 
         walletJson.name = walletJson.name + '_backup';
 

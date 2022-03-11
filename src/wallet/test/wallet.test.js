@@ -1,8 +1,13 @@
 let bitcoin = require('bitcoinjs-lib')
-import { Wallet, StateCoin, StateCoinList, ACTION, Config, STATECOIN_STATUS, BACKUP_STATUS, decryptAES } from '../';
+import {
+  Wallet, StateCoin, StateCoinList, ACTION,
+  Config, STATECOIN_STATUS, BACKUP_STATUS,
+  decryptAES
+} from '../';
 import {
   segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC,
-  mnemonic_to_bip32_root_account, getBIP32forBtcAddress
+  mnemonic_to_bip32_root_account, getBIP32forBtcAddress, parseBackupData,
+  required_fields
 } from '../wallet';
 import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
 import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
@@ -22,6 +27,7 @@ import { assert } from 'console';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 import { argsHasTestnet } from '../config'
 import { SWAP_STATUS } from '../swap/swap_utils';
+import { ActivityLog, LegacyActivityLog } from '../activity_log';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -63,6 +69,24 @@ describe('Wallet', function () {
     //Check that an error is thrown for an unknown address
     expect(() => { wallet.getBIP32forBtcAddress(addr_unknown) }).
       toThrowError(`getBIP32forBtcAddress - did not find address ${addr_unknown} in wallet.account`)
+  });
+
+  test('getActivityLogItems', function () {
+    let activity_log = wallet.getActivityLogItems(0);
+    expect(activity_log.length).toBe(0)
+    activity_log = wallet.getActivityLogItems(2);
+    expect(activity_log.length).toBe(2)
+    activity_log = wallet.getActivityLogItems(10);
+    expect(activity_log.length).toBeLessThan(10)
+    for (let i = 0; i < activity_log.length; i++) {
+      expect(activity_log[i]).toEqual(expect.objectContaining(
+        {
+          date: expect.any(Number),
+          action: expect.any(String),
+          value: expect.any(Number),
+          funding_txid: expect.any(String)
+        }))
+    }
   });
 
   test('getActivityLogItems', function () {
@@ -323,7 +347,6 @@ describe('Wallet', function () {
         wallet.storage.clearWallet(MOCK_WALLET_NAME)
         wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
         wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
-        wallet.save()
         await wallet.save();      
     })
     
@@ -365,14 +388,40 @@ describe('Wallet', function () {
       }
     })
   
+    describe('parseBackupData', function () {
+      let json_wallet
+      beforeAll(async () => {
+        let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+        wallet.storage.clearWallet(MOCK_WALLET_NAME)
+        wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
+        wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+        await wallet.save()
+        let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
+        let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
+        json_wallet = JSON.stringify(wallet_encrypted)
+      })
+
+      required_fields.forEach((field) => {
+        test(`missing required field ${field} results in an error`, () => {
+          let wallet = JSON.parse(json_wallet);
+          delete wallet[field]
+          expect(wallet[field]).toEqual(undefined)
+          expect(() => { parseBackupData(JSON.stringify(wallet)) }).
+            toThrowError(`parsing wallet backup data: invalid: missing field \"${field}\"`)
+        })
+      })
+
+      test(`incorrect wallet format results in an error`, () => {
+        expect(() => { parseBackupData("*") }).
+          toThrowError(`parsing wallet backup data: Unexpected token * in JSON at position 0`)
+      })
+    })
 
     test('load from backup and save', async function () {
       let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
       let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
       let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
       json_wallet.name = MOCK_WALLET_NAME_BACKUP
-
-      let invalid_json_wallet = JSON.parse("{}");
 
       expect(() => {
         let _ = Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD + " ", true)
@@ -381,10 +430,7 @@ describe('Wallet', function () {
       expect(() => {
         let _ = Wallet.loadFromBackup(json_wallet, "", true)
       }).toThrow("Incorrect password.");
-   
-      expect(() => {
-        let _ = Wallet.loadFromBackup(invalid_json_wallet, "", true)
-      }).toThrow("Incorrect password.");
+
     
       expect(() => {
         Wallet.loadFromBackup("", "", true)
@@ -466,9 +512,11 @@ describe('createBackupTxCPFP', function () {
         rejects.toThrowError('Fee rate not an integer');
     });
     
-    test('createdBackupTxCPFP valid', async function () {
+  test('createdBackupTxCPFP valid', async function () {
+      const tx_cpfp_expected = "{\"version\":2,\"locktime\":0,\"ins\":[{\"hash\":{\"type\":\"Buffer\",\"data\":[107,245,5,137,241,80,23,28,183,252,131,220,83,180,180,95,165,245,238,183,114,192,141,211,50,46,35,131,211,5,156,74]},\"index\":0,\"script\":{\"type\":\"Buffer\",\"data\":[]},\"sequence\":4294967295,\"witness\":[{\"type\":\"Buffer\",\"data\":[48,69,2,33,0,157,63,93,156,188,198,179,60,185,242,248,163,35,202,173,37,23,138,126,145,195,29,58,94,101,237,138,250,240,107,14,247,2,32,52,31,26,192,111,251,159,117,192,140,105,104,85,156,163,103,154,90,49,209,68,125,90,146,56,65,232,90,229,119,39,101,1]},{\"type\":\"Buffer\",\"data\":[3,214,96,240,27,83,235,26,229,172,212,94,11,164,20,16,104,4,44,105,22,118,111,177,140,62,233,71,15,87,226,220,153]}]}],\"outs\":[{\"script\":{\"type\":\"Buffer\",\"data\":[0,20,209,156,183,190,243,118,6,191,242,108,152,143,199,152,107,105,153,65,44,222]},\"value\":9155}]}"
       await expect(wallet.createBackupTxCPFP(cpfp_data)).resolves.toBe(true);
       expect(wallet.statecoins.coins[0].tx_cpfp.outs.length).toBe(1);
+      expect(JSON.stringify(wallet.statecoins.coins[0].tx_cpfp)).toEqual(tx_cpfp_expected);      
     })
 });
   
@@ -831,8 +879,11 @@ describe("Post-swap functions", () => {
   const swap_error = Error("Exiting swap.")
   let statecoin
   let account_init
+  let setCoinSpentSpy
+
   beforeEach(async () => {
     wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock, MNEMONIC);
+    setCoinSpentSpy = jest.spyOn(wallet.statecoins, 'setCoinSpent')
     wallet.statecoins.coins = [];
     wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" }, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
     statecoin = wallet.statecoins.coins[0]
@@ -842,10 +893,63 @@ describe("Post-swap functions", () => {
     }
     account_init = cloneDeep(wallet.account)
     wallet.handleSwapError(swap_error, statecoin)
+    statecoin.status = STATECOIN_STATUS.SWAPPED
     wallet.doPostSwap(statecoin, null)
   })
 
   test("Post-swap and swap error handling functions do not alter wallet bip32 account", () => {
     expect(wallet.account).toEqual(account_init)
+  })
+
+  test("Confirm that setStateCoinSpent was not called if there is not a new statecoin", () => {
+    expect(setCoinSpentSpy).not.toHaveBeenCalled()
+  })
+
+  test("Confirm that setStateCoinSpent was called is there is a new statecoin", () => {
+    let new_statecoin = cloneDeep(statecoin)
+    new_statecoin.status = STATECOIN_STATUS.AVAILABLE
+    wallet.doPostSwap(statecoin, new_statecoin)
+    expect(setCoinSpentSpy).toHaveBeenCalled()
+  })
+})
+
+describe('ActivityLog', function () {
+  let log = new ActivityLog()
+  let legacy_log = new Object()
+  beforeAll(() => {
+    legacy_log.items = []
+    Object.values(ACTION).forEach((action, i) => {
+      log.addItem(`shared_key_id_${i}`, action)
+      let lli = cloneDeep(log.items.slice(-1)[0])
+      //Rename shared_key_id field to statecoin_id in legacy log
+      delete Object.assign(lli, { statecoin_id: lli.shared_key_id })['shared_key_id'];
+      legacy_log.items.push(lli)
+    })
+  })
+
+  test('legacy log has statecoin_id field', () => {
+    expect(legacy_log.items[0]?.statecoin_id).not.toEqual(undefined)
+  })
+
+  test('legacy log does not have shared_key_id field', () => {
+    expect(legacy_log.items[0]?.shared_key_id).toEqual(undefined)
+  })
+
+  test('log has shared_key_id field', () => {
+    expect(log.items[0]?.shared_key_id).not.toEqual(undefined)
+  })
+
+  test('log does not have statecoin_id field', () => {
+    expect(log.items[0]?.statecoin_id).toEqual(undefined)
+  })
+  
+  test('fromJSON constructs the activity log', () => {
+    let result = ActivityLog.fromJSON(log)
+    expect(result).toEqual(log)
+  })
+
+  test('fromJSON from LegacyActivityLog constructs the same log', () => {
+    let result = ActivityLog.fromJSON(legacy_log)
+    expect(result).toEqual(log)
   })
 })

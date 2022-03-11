@@ -119,9 +119,9 @@ const WithdrawPage = () => {
     setLoading(true)
     setOpenModal(true)
     dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr, "fee_per_byte": txFeePerB})).then((res => {
-        if (res.error===undefined) {
-          setSelectedCoins([])
-          setInputAddr("")
+      if (res.error === undefined) {
+        setSelectedCoins([])
+          setInputAddr("")  
           setRefreshCoins((prevState) => !prevState);
           console.log(res)
           setWithdrawTxid(res.payload)
