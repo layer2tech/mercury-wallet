@@ -57,6 +57,27 @@ export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890"
 export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7"
 export const MOCK_WALLET_MNEMONIC = "praise you muffin lion enable neck grocery crumble super myself license ghost"
 
+// The wallet data must contain these fields
+export const required_fields = [
+  'name', 'mnemonic', 'config', 'account', 'statecoins',
+  'activity'
+]
+
+export const parseBackupData = (backupData: string) => {
+  try {
+    const walletJson = JSON.parse(backupData);
+    required_fields.forEach((item) => {
+      if (walletJson[item] === undefined) {
+        throw Error(`invalid: missing field \"${item}\"`)
+      }
+    })
+
+    return walletJson
+  } catch (err) {
+    throw Error(`parsing wallet backup data: ${err.message}`)
+  }
+}
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -880,8 +901,6 @@ export class Wallet {
   // Mark statecoin as spent after transfer or withdraw
   async setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
     let statecoin = this.statecoins.getCoin(id);
-    console.log(statecoin);
-    console.log(statecoin?.status);
     if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE ||
       statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
       statecoin.status === STATECOIN_STATUS.EXPIRED
@@ -1474,22 +1493,24 @@ export class Wallet {
   isBatchMixedPrivacy(shared_key_ids: string[]) {
     let has_private = false;
     let has_deposited = false;
-    shared_key_ids.forEach((shared_key_id) => {
-      let statecoin = this.statecoins.getCoin(shared_key_id);
-      console.log(statecoin);
-      if (!statecoin) throw Error("No coin found with id " + shared_key_id);
-      if (statecoin.is_deposited) {
-        has_deposited = true
+    if(shared_key_ids.length > 1) {
+      shared_key_ids.forEach((shared_key_id) => {
+        let statecoin = this.statecoins.getCoin(shared_key_id);
+        if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+        if (statecoin.is_deposited) {
+          has_deposited = true;
+        }
+        if (statecoin.swap_rounds > 0) {
+          has_private = true;
+        }
+      });
+      if (has_deposited === has_private) {
+        return false
       } else {
-        has_private = true
+        return true
       }
-    });
-    console.log(has_deposited);
-    console.log(has_private);
-    if (has_deposited === has_private) {
-      return false
     } else {
-      return true
+      return false
     }
   }
 
