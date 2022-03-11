@@ -874,6 +874,7 @@ describe("Post-swap functions", () => {
     }
     account_init = cloneDeep(wallet.account)
     wallet.handleSwapError(swap_error, statecoin)
+    statecoin.status = STATECOIN_STATUS.SWAPPED
     wallet.doPostSwap(statecoin, null)
   })
 
@@ -886,7 +887,9 @@ describe("Post-swap functions", () => {
   })
 
   test("Confirm that setStateCoinSpent was called is there is a new statecoin", () => {
-    wallet.doPostSwap(statecoin, statecoin)
+    let new_statecoin = cloneDeep(statecoin)
+    new_statecoin.status = STATECOIN_STATUS.AVAILABLE
+    wallet.doPostSwap(statecoin, new_statecoin)
     expect(setCoinSpentSpy).toHaveBeenCalled()
   })
 })
