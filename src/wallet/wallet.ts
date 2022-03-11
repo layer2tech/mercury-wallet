@@ -73,7 +73,7 @@ export const parseBackupData = (backupData: string) => {
     })
 
     return walletJson
-  } catch (err) {
+  } catch (err: any) {
     throw Error(`parsing wallet backup data: ${err.message}`)
   }
 }
