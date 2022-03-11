@@ -1,5 +1,9 @@
 // History is a log of all Mercury protocol actions taken by the wallet.
 
+import { constants } from "perf_hooks";
+import { textSpanIsEmpty } from "typescript";
+
+
 export class ActivityLog {
   items: ActivityLogItem[];
 
@@ -10,7 +14,10 @@ export class ActivityLog {
   static fromJSON(activity_json: ActivityLog): ActivityLog {
     let activity_log = new ActivityLog()
     activity_json.items.forEach((item: ActivityLogItem) => {
-      let log_item = new ActivityLogItem(item.statecoin_id, item.action);
+      //Rename key from statecoin_id to shared_key_id
+      delete Object.assign(item, { shared_key_id: item.statecoin_id })['statecoin_id'];
+    
+      let log_item = new ActivityLogItem(item.shared_key_id, item.action);
       activity_log.items.push(Object.assign(log_item, item))
     })
     return activity_log
@@ -26,14 +33,14 @@ export class ActivityLog {
   };
 }
 
-
 export class ActivityLogItem {
-  statecoin_id: string;
+  shared_key_id: string;
+  statecoin_id?: string;
   action: string;
   date: number;
 
   constructor(shared_key_id: string, action: string) {
-    this.statecoin_id = shared_key_id;
+    this.shared_key_id = shared_key_id;
     this.action = action;
     this.date = new Date().getTime();
   }

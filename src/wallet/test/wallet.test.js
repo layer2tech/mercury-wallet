@@ -27,6 +27,7 @@ import { assert } from 'console';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 import { argsHasTestnet } from '../config'
 import { SWAP_STATUS } from '../swap/swap_utils';
+import { ActivityLog, LegacyActivityLog } from '../activity_log';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -68,6 +69,24 @@ describe('Wallet', function () {
     //Check that an error is thrown for an unknown address
     expect(() => { wallet.getBIP32forBtcAddress(addr_unknown) }).
       toThrowError(`getBIP32forBtcAddress - did not find address ${addr_unknown} in wallet.account`)
+  });
+
+  test('getActivityLogItems', function () {
+    let activity_log = wallet.getActivityLogItems(0);
+    expect(activity_log.length).toBe(0)
+    activity_log = wallet.getActivityLogItems(2);
+    expect(activity_log.length).toBe(2)
+    activity_log = wallet.getActivityLogItems(10);
+    expect(activity_log.length).toBeLessThan(10)
+    for (let i = 0; i < activity_log.length; i++) {
+      expect(activity_log[i]).toEqual(expect.objectContaining(
+        {
+          date: expect.any(Number),
+          action: expect.any(String),
+          value: expect.any(Number),
+          funding_txid: expect.any(String)
+        }))
+    }
   });
 
   test('getActivityLogItems', function () {
@@ -871,5 +890,34 @@ describe("Post-swap functions", () => {
 
   test("Post-swap and swap error handling functions do not alter wallet bip32 account", () => {
     expect(wallet.account).toEqual(account_init)
+  })
+})
+
+describe('ActivityLog', function () {
+  let log = new ActivityLog()
+  let legacy_log = new Object()
+  beforeAll(() => {
+    legacy_log.items = []
+    Object.values(ACTION).forEach((action, i) => {
+      log.addItem(`shared_key_id_${i}`, action)
+      let lli = cloneDeep(log.items.slice(-1)[0])
+      lli.statecoin_id = cloneDeep(lli.shared_key_id)
+      delete lli.shared_key_id
+      legacy_log.items.push(lli)
+    })
+  })
+
+  test('legacy log differs', () => {
+    expect(log).not.toEqual(legacy_log)
+  })
+  
+  test('fromJSON', () => {
+    let result = ActivityLog.fromJSON(log)
+    expect(result).toEqual(log)
+  })
+
+  test('fromJSON from LegacyActivityLog', () => {
+    let result = ActivityLog.fromJSON(legacy_log)
+    expect(result).toEqual(log)
   })
 })
