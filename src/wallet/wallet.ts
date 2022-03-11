@@ -699,7 +699,7 @@ export class Wallet {
   // ActivityLog data with relevant Coin data
   getActivityLogItems(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
-      let coin = this.statecoins.getCoin(item.statecoin_id) // should err here if no coin found
+      let coin = this.statecoins.getCoin(item.shared_key_id) // should err here if no coin found
       return {
         date: item.date,
         action: item.action,
