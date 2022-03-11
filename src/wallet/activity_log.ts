@@ -15,7 +15,9 @@ export class ActivityLog {
     let activity_log = new ActivityLog()
     activity_json.items.forEach((item: ActivityLogItem) => {
       //Rename key from statecoin_id to shared_key_id
-      delete Object.assign(item, { shared_key_id: item.statecoin_id })['statecoin_id'];
+      if (item?.statecoin_id) {
+        delete Object.assign(item, { shared_key_id: item.statecoin_id })['statecoin_id'];
+      }
     
       let log_item = new ActivityLogItem(item.shared_key_id, item.action);
       activity_log.items.push(Object.assign(log_item, item))
@@ -43,6 +45,7 @@ export class ActivityLogItem {
     this.shared_key_id = shared_key_id;
     this.action = action;
     this.date = new Date().getTime();
+    this.statecoin_id = undefined
   }
 }
 

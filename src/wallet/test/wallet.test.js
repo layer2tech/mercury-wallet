@@ -906,22 +906,34 @@ describe('ActivityLog', function () {
     Object.values(ACTION).forEach((action, i) => {
       log.addItem(`shared_key_id_${i}`, action)
       let lli = cloneDeep(log.items.slice(-1)[0])
-      lli.statecoin_id = cloneDeep(lli.shared_key_id)
-      delete lli.shared_key_id
+      //Rename shared_key_id field to statecoin_id in legacy log
+      delete Object.assign(lli, { statecoin_id: lli.shared_key_id })['shared_key_id'];
       legacy_log.items.push(lli)
     })
   })
 
-  test('legacy log differs', () => {
-    expect(log).not.toEqual(legacy_log)
+  test('legacy log has statecoin_id field', () => {
+    expect(legacy_log.items[0]?.statecoin_id).not.toEqual(undefined)
+  })
+
+  test('legacy log does not have shared_key_id field', () => {
+    expect(legacy_log.items[0]?.shared_key_id).toEqual(undefined)
+  })
+
+  test('log has shared_key_id field', () => {
+    expect(log.items[0]?.shared_key_id).not.toEqual(undefined)
+  })
+
+  test('log does not have statecoin_id field', () => {
+    expect(log.items[0]?.statecoin_id).toEqual(undefined)
   })
   
-  test('fromJSON', () => {
+  test('fromJSON constructs the activity log', () => {
     let result = ActivityLog.fromJSON(log)
     expect(result).toEqual(log)
   })
 
-  test('fromJSON from LegacyActivityLog', () => {
+  test('fromJSON from LegacyActivityLog constructs the same log', () => {
     let result = ActivityLog.fromJSON(legacy_log)
     expect(result).toEqual(log)
   })
