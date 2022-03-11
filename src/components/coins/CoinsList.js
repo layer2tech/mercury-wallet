@@ -60,8 +60,6 @@ import {
   addInSwapValue
 } from "../../features/WalletDataSlice";
 import Coin from "./Coin/Coin";
-import { SWAP_STATUS } from "../../wallet/swap/swap_utils";
-
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -101,8 +99,8 @@ export const coinSort = (sortCoin) => {
 
     //List coins that are available to swap first.
     if (conditionalProp === 'swap') {
-      const a_available = ((a.status === STATECOIN_STATUS.AVAILABLE) && (a.ui_swap_status === null))
-      const b_available = ((b.status === STATECOIN_STATUS.AVAILABLE) && (b.ui_swap_status === null))
+      const a_available = ((a.status === STATECOIN_STATUS.AVAILABLE) || (a.ui_swap_status !== null)) 
+      const b_available = ((b.status === STATECOIN_STATUS.AVAILABLE) || (b.ui_swap_status !== null))
       if (a_available !== b_available) {
         return a_available ? -1 : 1
       }

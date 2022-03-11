@@ -137,16 +137,15 @@ export const makeDummyStatecoins = () => {
     new StateCoin("093ad45a-00b9-449c-a804-aab5530efc90", SHARED_KEYS[0])
   ];
 
-  dummy_statecoins[0].status = STATECOIN_STATUS.IN_SWAP
+  dummy_statecoins[0].status = STATECOIN_STATUS.WITHDRAWN
   dummy_statecoins[0].value = 2
   
-  dummy_statecoins[1].status = STATECOIN_STATUS.AVAILABLE
-  dummy_statecoins[1].ui_swap_status = UI_SWAP_STATUS.SingleSwapMode
+  dummy_statecoins[1].status = STATECOIN_STATUS.WITHDRAWN
   dummy_statecoins[1].value = 0
-  dummy_statecoins[1].status= STATECOIN_STATUS.AVAILABLE
-  
-  dummy_statecoins[2].value = 1
-  dummy_statecoins[2].status= STATECOIN_STATUS.AVAILABLE
+    
+  dummy_statecoins[2].value = 2
+  dummy_statecoins[2].status = STATECOIN_STATUS.IN_SWAP
+  dummy_statecoins[2].ui_swap_status = UI_SWAP_STATUS.SingleSwapMode
   
   dummy_statecoins[3].value = 3
   dummy_statecoins[3].status= STATECOIN_STATUS.AVAILABLE

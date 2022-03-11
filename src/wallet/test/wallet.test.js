@@ -389,10 +389,15 @@ describe('Wallet', function () {
     })
   
     describe('parseBackupData', function () {
-      let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
-      let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
       let json_wallet
-      beforeEach(() => {
+      beforeAll(async () => {
+        let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+        wallet.storage.clearWallet(MOCK_WALLET_NAME)
+        wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
+        wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+        await wallet.save()
+        let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
+        let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
         json_wallet = JSON.stringify(wallet_encrypted)
       })
 
