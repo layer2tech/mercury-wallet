@@ -9,6 +9,7 @@ import withrowIcon from '../../images/withrow-icon.png';
 import swapIcon from '../../images/swap-icon-grey.png';
 import EmptyCoinDisplay from '../coins/EmptyCoinDisplay/EmptyCoinDisplay';
 import './activity.css';
+import { ActivityLog } from '../../wallet/activity_log';
 
 const Activity = () => {
 	let activity_data = callGetActivityLogItems(10);
@@ -51,40 +52,19 @@ const Activity = () => {
 			return b?.date - a?.date;
 		})
 	}
+
+	activity_data = ActivityLog.filterDuplicates(activity_data)
+
 	const mergeActivityByDate = () => {
-		if (!activity_data.length) return [];
-		let allActivity = {};
-		activity_data.forEach(item => {
-			let dateStr = new Date(item.date).toLocaleDateString();
-			if (allActivity.hasOwnProperty(dateStr)) {
-				allActivity[dateStr].push(item);
-			} else {
-				allActivity[dateStr] = [item];
-			}
-		})
-		return Object.values(allActivity);
+		return ActivityLog.mergeActivityByDate(activity_data)
 	};
 
 	let activityDataMergeDate = mergeActivityByDate();
 
-	{
-		// if there are any objects in here with exactly the same values, they must be a duplicate
-		activityDataMergeDate = activityDataMergeDate.filter((element, index, self) =>
-			index === self.findIndex((t) => (
-				// check for date, action, funding txid and txvout
-				t.date === element.date &&
-				t.value === element.value &&
-				t.action === element.action &&
-				t.funding_txid === element.funding_txid &&
-				t.funding_txvout === element.funding_txvout
-			))
-		)
-	}
-
 	const activitiesTableData = activityDataMergeDate.map((activityGroup, groupIndex) => (
 		<div key={groupIndex}>
 			<div className="date">
-				<Moment format="MMMM D, YYYY">{activityGroup[0]?.date}</Moment>
+				<Moment format="MMMM D, YYYY">{activityGroup[groupIndex]?.date}</Moment>
 			</div>
 			{activityGroup.map((item, index) => (
 				<div key={index}>
