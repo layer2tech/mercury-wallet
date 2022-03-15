@@ -404,55 +404,64 @@ export class Wallet {
       // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
       // Get fee info
-      let fee_info: FeeInfo = await getFeeInfo(this.http_client)
-      // Check if any deposit_inits are awaiting funding txs and add them to a list if so
-      let p_addrs: any = []
-      let statecoins: any = []
-      this.statecoins.getInitialisedCoins().forEach((statecoin) => {
-        this.awaitFundingTx(
-          statecoin.shared_key_id,
-          statecoin.getBtcAddress(this.config.network),
-          statecoin.value
-        )
-        let p_addr = statecoin.getBtcAddress(this.config.network)
-        p_addrs.push(p_addr)
-        statecoins.push(statecoin)
-      })
-      //Import the addresses if using electrum personal server
-      this.electrum_client.importAddresses(p_addrs, this.block_height - fee_info.initlock)
-      // Create listeners for deposit inits awaiting funding
-      for (let i in p_addrs) {
-        this.checkFundingTxListUnspent(
-          statecoins[i].shared_key_id,
-          p_addrs[i],
-          bitcoin.address.toOutputScript(p_addrs[i], this.config.network),
-          statecoins[i].value
-        )
-      }
+      
+      let fee_info: FeeInfo
 
-      // Check if any deposit_inits are in the mempool
-      let p_addrs_mp: any = []
-      let statecoins_mp: any = []
-      this.statecoins.getInMempoolCoins().forEach((statecoin) => {
-        p_addrs_mp.push(statecoin.getBtcAddress(this.config.network))
-        statecoins_mp.push(statecoin)
-      })
-
-      //Import the addresses if using electrum personal server
-      this.electrum_client.importAddresses(p_addrs_mp, this.block_height - fee_info.initlock)
-
-      // Create listeners for deposit inits awaiting funding
-      for (let i in p_addrs_mp) {
-        this.checkFundingTxListUnspent(
-          statecoins_mp[i].shared_key_id,
-          p_addrs_mp[i],
-          bitcoin.address.toOutputScript(p_addrs_mp[i], this.config.network),
-          statecoins_mp[i].value
-        ).catch((err: any) => {
-          log.info(err);
-          return;
+      getFeeInfo(this.http_client).then(res => {
+        fee_info = res
+              // Check if any deposit_inits are awaiting funding txs and add them to a list if so
+        let p_addrs: any = []
+        let statecoins: any = []
+        this.statecoins.getInitialisedCoins().forEach((statecoin) => {
+          this.awaitFundingTx(
+            statecoin.shared_key_id,
+            statecoin.getBtcAddress(this.config.network),
+            statecoin.value
+          )
+          let p_addr = statecoin.getBtcAddress(this.config.network)
+          p_addrs.push(p_addr)
+          statecoins.push(statecoin)
         })
-      }
+        //Import the addresses if using electrum personal server
+        this.electrum_client.importAddresses(p_addrs, this.block_height - fee_info.initlock)
+
+        // Create listeners for deposit inits awaiting funding
+        for (let i in p_addrs) {
+          this.checkFundingTxListUnspent(
+            statecoins[i].shared_key_id,
+            p_addrs[i],
+            bitcoin.address.toOutputScript(p_addrs[i], this.config.network),
+            statecoins[i].value
+          )
+        }
+
+        // Check if any deposit_inits are in the mempool
+        let p_addrs_mp: any = []
+        let statecoins_mp: any = []
+        this.statecoins.getInMempoolCoins().forEach((statecoin) => {
+          p_addrs_mp.push(statecoin.getBtcAddress(this.config.network))
+          statecoins_mp.push(statecoin)
+        })
+
+        //Import the addresses if using electrum personal server
+        this.electrum_client.importAddresses(p_addrs_mp, this.block_height - fee_info.initlock)
+
+              // Create listeners for deposit inits awaiting funding
+        for (let i in p_addrs_mp) {
+          this.checkFundingTxListUnspent(
+            statecoins_mp[i].shared_key_id,
+            p_addrs_mp[i],
+            bitcoin.address.toOutputScript(p_addrs_mp[i], this.config.network),
+            statecoins_mp[i].value
+          ).catch((err: any) => {
+            log.info(err);
+            return;
+          })
+        }
+      }).catch(err => {
+        console.error('Error InitElectrumClient: ',err)
+
+      })
     })
   }
 
@@ -1317,6 +1326,7 @@ export class Wallet {
           throw e
         }
       }
+      //REMOVE THIS TRY CATCH
       statecoin.swap_auto = false;
     }
   }
