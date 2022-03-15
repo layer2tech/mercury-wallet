@@ -27,7 +27,7 @@ import { assert } from 'console';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 import { argsHasTestnet } from '../config'
 import { SWAP_STATUS } from '../swap/swap_utils';
-import { ActivityLog, LegacyActivityLog } from '../activity_log';
+import { ActivityLog, ActivityLogItem, LegacyActivityLog } from '../activity_log';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -951,5 +951,135 @@ describe('ActivityLog', function () {
   test('fromJSON from LegacyActivityLog constructs the same log', () => {
     let result = ActivityLog.fromJSON(legacy_log)
     expect(result).toEqual(log)
+  })
+
+  describe('display', () => {
+    let alog
+    let wallet
+    let expected_date_merged
+    const http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+    const wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+    beforeEach(async () => {
+      alog = ActivityLog.fromJSON({
+          "items": [
+            {
+              "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc",
+              "action": "D",
+              "date": 1647256708087
+            },
+            {
+              "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc",
+              "action": "I",
+              "date": 1647256645325
+            },
+            {
+              "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd",
+              "action": "G",
+              "date": 1647017677534
+            },
+            {
+              "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd",
+              "action": "R",
+              "date": 1647017656778
+            },
+            {
+              "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
+              "action": "T",
+              "date": 1647017641542
+            },
+            {
+              "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
+              "action": "D",
+              "date": 1647017616483
+            },
+            {
+              "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
+              "action": "I",
+              "date": 1647012970643
+            },
+            {
+              "shared_key_id": "86e693ca-997e-4e15-badf-2e0a2861dacf",
+              "action": "G",
+              "date": 1647007584756
+            },
+            {
+              "shared_key_id": "f3c3a565-9e10-4c9f-9358-998715977fe5",
+              "action": "S",
+              "date": 1647007539901
+            },
+            {
+              "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b",
+              "action": "S",
+              "date": 1647007456423
+            },
+            {
+              "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b",
+              "action": "R",
+              "date": 1647007210579
+            },
+            {
+              "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e",
+              "action": "T",
+              "date": 1647007194893
+            },
+            {
+              "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e",
+              "action": "R",
+              "date": 1647006777365
+            },
+            {
+              "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
+              "action": "T",
+              "date": 1647006754866
+            },
+            {
+              "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
+              "action": "D",
+              "date": 1647006314736
+            },
+            {
+              "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
+              "action": "I",
+              "date": 1647006282213
+            }
+          ]
+      })
+      
+     
+      wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+      expected_date_merged= [[{ "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc", "action": "D", "date": 1647256708087 }, { "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc", "action": "I", "date": 1647256645325 }], [{ "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd", "action": "G", "date": 1647017677534 }, { "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd", "action": "R", "date": 1647017656778 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "T", "date": 1647017641542 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "D", "date": 1647017616483 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "I", "date": 1647012970643 }, { "shared_key_id": "86e693ca-997e-4e15-badf-2e0a2861dacf", "action": "G", "date": 1647007584756 }, { "shared_key_id": "f3c3a565-9e10-4c9f-9358-998715977fe5", "action": "S", "date": 1647007539901 }, { "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b", "action": "S", "date": 1647007456423 }, { "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b", "action": "R", "date": 1647007210579 }, { "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e", "action": "T", "date": 1647007194893 }, { "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e", "action": "R", "date": 1647006777365 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "T", "date": 1647006754866 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "D", "date": 1647006314736 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "I", "date": 1647006282213 }]]
+
+    })
+
+    test('getActivityLogItems returns all activity log items', () => {
+      wallet.activity = cloneDeep(alog)
+      expect(wallet.activity).toEqual(alog)
+      console.log(JSON.stringify(alog))
+      let result = wallet.getActivityLogItems(alog.length)
+      expect(result.length).toEqual(alog.items.length)
+    })
+
+    test('getActivityLogItems(5) returns 5 activity log items', () => {
+      wallet.activity = cloneDeep(alog)
+      expect(wallet.activity).toEqual(alog)
+      console.log(JSON.stringify(alog))
+      let result = wallet.getActivityLogItems(5)
+      expect(result.length).toEqual(5)
+    })
+
+    test('ActivityLog.mergeActivityByDate returns the expected value', () => {
+      let result = ActivityLog.mergeActivityByDate(cloneDeep(alog.getItems(alog.items.length)))
+      expect(result).toEqual(expected_date_merged)
+    })
+
+    test('ActivityLog.filterDuplicates removes duplicates', () => {
+      let alog_dupes = ActivityLog.fromJSON({ items: [cloneDeep(alog.items[0])] })
+      alog_dupes.items.push(...alog.items)
+      expect(alog_dupes.items.length).toEqual(alog.items.length + 1)
+      alog_dupes.items = ActivityLog.filterDuplicates(alog_dupes.items)
+      expect(alog_dupes.items.length).toEqual(alog.items.length)
+      expect(alog_dupes).toEqual(alog)
+    })
+
   })
 })
