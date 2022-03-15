@@ -12,9 +12,9 @@ const process = require('process')
 const fork = require('child_process').fork;
 const exec = require('child_process').exec;
 const execFile = require('child_process').execFile;
-const debug = require('electron-debug');
+//const debug = require('electron-debug');
 
-debug();
+//debug();
 
 const getPlatform = () => {
   switch (process.platform) {

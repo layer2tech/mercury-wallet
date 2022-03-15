@@ -39,8 +39,8 @@
     "test-node": "react-app-rewired test --env=node",
     "eject": "react-scripts eject",
     "electron": "electron --inspect=5858 --testnet --term_existing .",
-    "dev": "BROWSER=none nf start -p 3000",
-    "dev-windows": "cross-env BROWSER=none nf start -p 3000",
+    "dev": "BROWSER=none nf start -p 3005",
+    "dev-windows": "cross-env BROWSER=none nf start -p 3005",
     "postinstall": "electron-builder install-app-deps",
     "build-wasm": "wasm-pack build --dev client-wasm",
     "app-windows": "yarn install-local && yarn install && yarn build && electron-builder -w -p always",
@@ -49,7 +49,7 @@
     "app-linux-local-test": "yarn install-local && yarn install && yarn build && DEBUG=electron-builder electron-builder -l AppImage -p never",
     "app-macos": "yarn install-local && yarn install && yarn build && electron-builder -m -p always",
     "app-macos-local-test": "yarn install-local && yarn install && yarn build && DEBUG=electron-builder electron-builder -m -p never",
-    "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
+    "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3005 && electron .\""
   },
   "devDependencies": {
     "@testing-library/react": "^12.1.2",
