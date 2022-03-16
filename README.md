@@ -138,23 +138,24 @@ The below instructions assume that mercurywallet.app in installed in the default
 
 Method 1: open the app, and with the mercurywallet main window selected, press `Option-Command-I`.
 
-Method 2: - to open the app with DevTools enabled in mainnet mode: `NODE_ENV=development open /Applications/mercurywallet.app`
-         - to open the app with DevTools enabled in testnet mode: `NODE_ENV=development open /Applications/mercurywallet.app --args --testnet`
+Method 2: 
+  - to open the app with DevTools enabled in mainnet mode: `NODE_ENV=development open /Applications/mercurywallet.app`
+  - to open the app with DevTools enabled in testnet mode: `NODE_ENV=development open /Applications/mercurywallet.app --args --testnet`
 
 ### Linux
 
 In a terminal, change directory to the one containing the mercurywallet AppImage and execute the following command:
 
-Mainnet mode: `NODE_ENV=development ./mercurywallet-0.6.11.AppImage`
-Testnet mode: `NODE_ENV=development ./mercurywallet-0.6.11.AppImage --testnet`
+- Mainnet mode: `NODE_ENV=development ./mercurywallet-0.6.11.AppImage`
+- Testnet mode: `NODE_ENV=development ./mercurywallet-0.6.11.AppImage --testnet`
 
 ### Windows 11
 
 Assuming mercurywallet.exe is installed in the default location - enter the following command into the file explorer:
 
-Mainnet mode: `powershell "($env:NODE_ENV='development')  -and (C:\Users\User\AppData\Local\Programs\mercurywallet\mercurywallet.exe)"`
+- Mainnet mode: `powershell "($env:NODE_ENV='development')  -and (C:\Users\User\AppData\Local\Programs\mercurywallet\mercurywallet.exe)"`
 
-Testnet mode: `powershell "($env:NODE_ENV='development')  -and (C:\Users\User\AppData\Local\Programs\mercurywallet\mercurywallet.exe --testnet)"`
+- Testnet mode: `powershell "($env:NODE_ENV='development')  -and (C:\Users\User\AppData\Local\Programs\mercurywallet\mercurywallet.exe --testnet)"`
 
 # Recover of expired statecoins
 
