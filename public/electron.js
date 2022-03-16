@@ -84,6 +84,8 @@ function createWindow() {
 
   mainWindow = new BrowserWindow(windowSpec);
 
+  require("@electron/remote/main").enable(mainWindow.webContents)
+
   if (process.platform !== 'darwin') {
     mainWindow.setMenu(null);
   }
@@ -94,6 +96,7 @@ function createWindow() {
     e.preventDefault();
     shell.openExternal(url);
   });
+
 
   const startUrl = url.format({
     pathname: joinPath(__dirname, '/../build/index.html'),

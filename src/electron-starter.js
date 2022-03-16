@@ -80,7 +80,8 @@ function createWindow() {
 
   // Create the browser window.
   mainWindow = new BrowserWindow(windowSpec);
-
+  require("@electron/remote/main").enable(mainWindow.webContents)
+  
   if (process.platform !== 'darwin') {
     mainWindow.setMenu(null);
   }
