@@ -28,7 +28,11 @@ try{
   log = require('electron-log');
 }
 
-export const callGetArgsHasTestnet =  () => {
+export const callGetArgsHasTestnet = () => {
+  // set to testnet mode for testing
+  if (require("../settings.json").testing_mode) {
+    return true
+  }
   let found  = false;
   try{
     window.require('@electron/remote').process.argv.forEach((arg) =>  {
