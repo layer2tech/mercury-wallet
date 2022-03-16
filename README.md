@@ -150,7 +150,7 @@ Testnet mode: `NODE_ENV=development ./mercurywallet-0.6.11.AppImage --testnet`
 
 ### Windows 11
 
-Assuming mercurywallet.exe is installed in the default location - paste the following command into the file explorer:
+Assuming mercurywallet.exe is installed in the default location - enter the following command into the file explorer:
 
 Mainnet mode: `powershell "($env:NODE_ENV='development')  -and (C:\Users\User\AppData\Local\Programs\mercurywallet\mercurywallet.exe)"`
 
