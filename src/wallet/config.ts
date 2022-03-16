@@ -25,11 +25,6 @@ let current_block_explorer_endpoint = NETWORK_CONFIG.mainnet_block_explorer_endp
 let current_electrum_config: ElectrumClientConfig = NETWORK_CONFIG.mainnet_electrum_config;
 
 export const argsHasTestnet = () => {
-  return true
-}
-
-/*
-
   let found = false;
   let remote: any
   try {
@@ -49,8 +44,6 @@ export const argsHasTestnet = () => {
   }
   return found;
 }
-*/
-
 
 // check values of arguments
 if (argsHasTestnet() === true) {

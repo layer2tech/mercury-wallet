@@ -31,7 +31,7 @@ try{
 export const callGetArgsHasTestnet =  () => {
   let found  = false;
   try{
-    window.require('electron').remote.process.argv.forEach((arg) =>  {
+    window.require('@electron/remote').process.argv.forEach((arg) =>  {
         if(arg.includes('testnet')){
             found = true;
         }     

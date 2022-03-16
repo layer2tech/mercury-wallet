@@ -10,9 +10,6 @@ const rootPath = require('electron-root-path').rootPath;
 const { app } = electron;
 // Module to create native browser window.
 const { BrowserWindow } = electron;
-const debug = require('electron-debug');
-
-debug();
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
