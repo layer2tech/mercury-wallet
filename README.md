@@ -138,7 +138,7 @@ The below instructions assume that mercurywallet.app in installed in the default
 
 Method 1: open the app, and with the mercurywallet main window selected, press `Option-Command-I`.
 
-Method 2: 
+Method 2: open the app by entering one of the following commands in a terminal:
   - to open the app with DevTools enabled in mainnet mode: `NODE_ENV=development open /Applications/mercurywallet.app`
   - to open the app with DevTools enabled in testnet mode: `NODE_ENV=development open /Applications/mercurywallet.app --args --testnet`
 
