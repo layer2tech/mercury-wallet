@@ -12,8 +12,11 @@ const process = require('process')
 const fork = require('child_process').fork;
 const exec = require('child_process').exec;
 const execFile = require('child_process').execFile;
-require('@electron/remote/main').initialize()
-
+// set to testnet mode for testing
+if (!require("./settings.json").testing_mode) {
+  require('@electron/remote/main').initialize()
+}
+  
 const getPlatform = () => {
   switch (process.platform) {
     case 'aix':

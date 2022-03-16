@@ -25,12 +25,20 @@ let current_block_explorer_endpoint = NETWORK_CONFIG.mainnet_block_explorer_endp
 let current_electrum_config: ElectrumClientConfig = NETWORK_CONFIG.mainnet_electrum_config;
 
 export const argsHasTestnet = () => {
+  // set to testnet mode for testing
+  if (require("../settings.json").testing_mode) {
+    return true
+  }
   let found = false;
   let remote: any
   try {
     remote = window.require('@electron/remote')
   } catch (e: any) {
-    remote = require('@electron/remote')
+    try {
+      remote = require('@electron/remote')
+    } catch (e: any) {
+      console.log(e)
+    }
   }
   if (remote) {
     remote.process.argv.forEach((arg: string) => {
