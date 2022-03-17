@@ -289,13 +289,14 @@ const CoinsList = (props) => {
       return () => { isMounted = false }
     }
   }
-    , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved, balance_info]);
+    , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved]);
 
   // Re-fetch every 5 seconds and update state to refresh render
   // IF any coins are marked UNCONFIRMED
   useEffect(() => {
 
-    const interval = setIntervalIfOnline(updateUnconfirmedUnspentCoins, torInfo.online, 5000)
+    let interval
+    setIntervalIfOnline(updateUnconfirmedUnspentCoins, torInfo.online, 5000, interval)
 
     return () => clearInterval(interval);
 
@@ -322,7 +323,8 @@ const CoinsList = (props) => {
   // Re-fetch swaps group data every and update swaps component
   // Initiate auto swap
   useEffect(() => {
-    const interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000)
+    let interval
+    setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000, interval)
     return () => clearInterval(interval);
   },
     [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
