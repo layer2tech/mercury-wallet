@@ -140,8 +140,8 @@ app.on('ready', () => {
     alert('mercurywallet is already running. Not opening app.')
     app.quit()
   }
-  teminate_tor_process();
-  terminate_mercurywallet_process(init_tor_adapter);
+  //teminate_tor_process();
+  //terminate_mercurywallet_process(init_tor_adapter);
   createWindow()
 }
 );
