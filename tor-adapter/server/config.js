@@ -1,13 +1,3 @@
-const argsHasTestnet =  () => {
-    let found  = false;
-    window.require('electron').remote.process.argv.forEach((arg) =>  {
-        if(arg.includes('testnet')){
-            found = true;
-        }     
-    });
-    return found;
-}
-
 class Config{
     
     constructor() {
