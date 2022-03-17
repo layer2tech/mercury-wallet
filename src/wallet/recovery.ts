@@ -28,8 +28,6 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<R
   let recovery_request = [];
   let addrs: any = [];
 
-  console.log(gap_limit);
-
   let addr = wallet.account.getChainAddress(0);
   addrs.push(addr);
   recovery_request.push({ key: wallet.getBIP32forBtcAddress(addr).publicKey.toString("hex"), sig: "" });
@@ -41,7 +39,6 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<R
       recovery_request.push({ key: wallet.getBIP32forBtcAddress(addr).publicKey.toString("hex"), sig: "" });
       count++;
     }
-    console.log(count);
     new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
     recovery_request = [];
     recovery_data = recovery_data.concat(new_recovery_data_load);
@@ -140,7 +137,11 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
       statecoin.value = recoveredCoins[i].amount;
       statecoin.tx_hex = recoveredCoins[i].tx_hex;
 
-      statecoin.setConfirmed();
+      if(recoveredCoins[i].withdrawing) {
+        statecoin.setWithdrawing();
+      } else {
+        statecoin.setConfirmed();
+      }
       wallet.statecoins.addCoin(statecoin);
     }
   }
