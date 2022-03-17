@@ -456,19 +456,18 @@ export const handleEndAutoSwap = (dispatch, statecoin, selectedCoin, res, fromSa
   }
 }
 
-export const setIntervalIfOnline = (func,online,delay) => {
+export const setIntervalIfOnline = (func,online,delay,interval) => {
   // Runs interval if app online, clears interval if offline
   // Restart online interval in useEffect loop [torInfo.online]
   // make online = torInfo.online
 
-  const interval = setInterval(async () => {
-    // console.log('interval called', online)
-    if(online === false){
-      clearInterval(interval)
-    }    
-    func()
-  }, delay)
-  return interval
+  if (online === false) {
+    clearInterval(interval)
+  } else {
+    interval = setInterval(async () => {
+      func()
+    }, delay)
+  }
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
