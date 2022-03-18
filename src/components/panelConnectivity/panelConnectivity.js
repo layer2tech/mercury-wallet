@@ -66,8 +66,7 @@ const PanelConnectivity = (props) => {
 
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
-    let interval
-    setIntervalIfOnline(getBlockHeight, torInfo.online, 5000, interval)
+    let interval = setIntervalIfOnline(getBlockHeight, torInfo.online, 5000)
 
     return () => clearInterval(interval);
   }, [block_height, torInfo.online, props.online]);
