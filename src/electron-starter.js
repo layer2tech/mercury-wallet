@@ -214,6 +214,8 @@ async function init_tor_adapter() {
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
   }
 
+  console.log(`starting tor_adapter with args: ${tor_adapter_args.toString()}`)
+
   ta_process = fork(`${tor_adapter_path}`, tor_adapter_args,
     {
       detached: false,
@@ -221,6 +223,7 @@ async function init_tor_adapter() {
     },
     (error, stdout, _stderr) => {
       if (error) {
+        console.log(`tor process error - exiting: ${error.toString()}`)
         app.exit(error);
       };
     }

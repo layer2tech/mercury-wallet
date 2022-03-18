@@ -90,7 +90,7 @@ let tor;
 if(config.tor_proxy.ip === 'mock'){
   tor = new CNClient();
 } else {
-  tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, torDataDir, geoIpFile, geoIpV6File);
+  tor = new TorClient(tpc.ip, tpc.port, tpc.controlPassword, tpc.controlPort, torDataDir, geoIpFile, geoIpV6File, logger);
 }
 
 
@@ -102,7 +102,7 @@ epsClient.connect()
 
 //epsClient.importAddresses([['tb1qfe3kfstrdk0u4zhp6rhljcnlpgekrr3a88y9tv','tb1q8w7s57a2acyhy6zz7mp4hvlgqehfdp4ecxw8a5'],-1])
 
-tor.startTorNode(tor_cmd, torrc);
+//tor.startTorNode(tor_cmd, torrc);
 
 async function get_endpoint(path, res, endpoint, i_hs){
   try{
@@ -189,13 +189,17 @@ app.get('lsof -i', async function(req,res) {
 
 app.post('/tor_settings', async function(req,res) {
   try {
-    logger.log('debug',`tor _settings ${JSON.stringify(req.body)}`)
+    logger.info(`tor _settings ${JSON.stringify(req.body)}`)
     config.update(req.body);
-    logger.log('debug',`tor _settings - config: ${JSON.stringify(config)}`)
+    logger.info(`tor _settings - config: ${JSON.stringify(config)}`)
 
-   await tor.stopTorNode();
+    logger.info(`stopping to node...`)
+    await tor.stopTorNode();
+    logger.info(`setting tor config...`)
     tor.set(config.tor_proxy);
+    logger.info(`starting tor node...`)
     await tor.startTorNode(tor_cmd, torrc);
+    logger.info(`finished starting to node.`)
     let response = {
       tor_proxy: config.tor_proxy,
       state_entity_endpoint: config.state_entity_endpoint,
@@ -208,6 +212,7 @@ app.post('/tor_settings', async function(req,res) {
   } catch (err) {
     const err_msg = `Bad request: ${err}`;
     logger.error(err_msg);
+    logger.info(`info - ${err_msg}`)
     res.status(400).json(err_msg);
   }
 });
@@ -441,10 +446,13 @@ process.once('SIGTERM', async function (code) {
 
 
 async function shutdown() {
+  logger.info(`shutdown...`)
   try{
     await tor.stopTorNode();
   } catch (err) {
-    console.log('error stopping tor node - sending the kill signal...');
+    const message = 'error stopping tor node - sending the kill signal...';
+    console.log(message);
+    logger.info(message)
     tor.kill_proc()
   }
   process.exit(0);
@@ -582,7 +590,8 @@ app.post('*', function(req,res) {
 });
 
 
-async function on_exit(){
+async function on_exit() {
+  logger.info(`exiting...`)
   await tor.stopTorNode();
   process.exit();
 }
