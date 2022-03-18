@@ -43,7 +43,7 @@ const App = () => {
   }, [dark_mode]);
   return (
     <div className={`App ${dark_mode === '1' ? 'dark-mode': ''}`}>
-      {walletLoaded ? <title>Mercury Wallet {version} - {walletName} </title> : <title>Mercury Wallet {version} - BETA</title>}
+      {walletLoaded ? <title>Mercury Wallet {version} - {walletName} </title> : <title>Mercury Wallet {version}</title>}
       <Router>
       <Header walletLoaded={walletLoaded} setWalletLoaded={setWalletLoaded} online = {online} />
       <Switch>
