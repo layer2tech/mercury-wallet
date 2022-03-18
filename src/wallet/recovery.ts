@@ -2,7 +2,8 @@
 
 import { Transaction } from "bitcoinjs-lib";
 import { Wallet } from './wallet';
-import { BACKUP_STATUS, StateCoin } from './statecoin';
+import { BACKUP_STATUS, StateCoin, WithdrawalTxBroadcastInfo } from './statecoin';
+import { WithdrawMsg2 } from './mercury/withdraw';
 import {
   getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo,
   getStateChain, getStateChainTransferFinalizeData, TransferFinalizeDataAPI
@@ -136,9 +137,14 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
       statecoin.statechain_id = recoveredCoins[i].statechain_id;
       statecoin.value = recoveredCoins[i].amount;
       statecoin.tx_hex = recoveredCoins[i].tx_hex;
-
       if(recoveredCoins[i].withdrawing) {
         statecoin.setWithdrawing();
+        const wdr_msg2: WithdrawMsg2 = {
+            shared_key_ids: [],
+            address: "",
+        }
+        statecoin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
+          0, new Transaction(), wdr_msg2));
       } else {
         statecoin.setConfirmed();
       }
