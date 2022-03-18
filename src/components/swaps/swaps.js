@@ -31,8 +31,7 @@ const Swaps = (props) => {
 
     useEffect(()=> {
         if(swapTime!==""){
-            let interval
-            setIntervalIfOnline(countdownTimer, torInfo.online, 1000, interval)
+            let interval = setIntervalIfOnline(countdownTimer, torInfo.online, 1000)
             return () => clearInterval(interval)
         }
     },[count,swapTime, torInfo.online])
