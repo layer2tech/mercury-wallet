@@ -43,7 +43,7 @@ if (!fs.existsSync(logDir.toString())){
 }
 
 const logger = winston.createLogger({
-  level: 'error',
+  level: 'debug',
   format: winston.format.json(),
   defaultMeta: { service: 'user-service' },
   transports: [
