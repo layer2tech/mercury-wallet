@@ -65,7 +65,8 @@ export interface RecoveryDataMsg {
   amount: number,
   tx_hex: string,
   proof_key: string,
-  shared_key_data: string
+  shared_key_data: string,
+  withdrawing: boolean
 }
 
 export interface TransferFinalizeDataAPI {

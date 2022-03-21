@@ -1555,23 +1555,26 @@ export class Wallet {
     let broadcastTxInfos = statecoin.tx_withdraw_broadcast
     if (broadcastTxInfos.length) {
       fee_max = statecoin.getWithdrawalMaxTxFee()
-      if (fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`);
-      const ids_sorted_1 = shared_key_ids.slice().sort();
-      const ids_sorted_2 = broadcastTxInfos[0].withdraw_msg_2.shared_key_ids.slice().sort();
-      if (JSON.stringify(ids_sorted_1) !== JSON.stringify(ids_sorted_2)) {
 
-        let coin_ids: string[] = [];
-        // get txids
-        ids_sorted_2.forEach((shared_key_id) => {
-          let statecoin = this.statecoins.getCoin(shared_key_id);
-          if (!statecoin) throw Error("No coin found with id " + shared_key_id)
-          coin_ids.push(statecoin.funding_txid + ':' + statecoin.funding_vout.toString());
-        });
+      if (fee_max > 0) {
+        if (fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`);
+        const ids_sorted_1 = shared_key_ids.slice().sort();
+        const ids_sorted_2 = broadcastTxInfos[0].withdraw_msg_2.shared_key_ids.slice().sort();
+        if (JSON.stringify(ids_sorted_1) !== JSON.stringify(ids_sorted_2)) {
 
-        throw Error(`Replacement transactions must batch the same coins: ${coin_ids}`)
-      }
-      if (rec_addr !== broadcastTxInfos[0].withdraw_msg_2.address) {
-        throw Error(`Replacement transaction recipient address does not match`)
+          let coin_ids: string[] = [];
+          // get txids
+          ids_sorted_2.forEach((shared_key_id) => {
+            let statecoin = this.statecoins.getCoin(shared_key_id);
+            if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+            coin_ids.push(statecoin.funding_txid + ':' + statecoin.funding_vout.toString());
+          });
+
+          throw Error(`Replacement transactions must batch the same coins: ${coin_ids}`)
+        }
+        if (rec_addr !== broadcastTxInfos[0].withdraw_msg_2.address) {
+          throw Error(`Replacement transaction recipient address does not match`)
+        }
       }
     }
 
