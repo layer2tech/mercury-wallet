@@ -303,10 +303,10 @@ class TorClient {
             json: true,
         }
 
-        this.logger.debug(`get url ${url}...`)
+        this.logger.log('debug',`get url ${url}...`)
         let result = await rp(rp_options);
-        checkForServerError(result);
-        this.logger.debug(`finished get.`)
+        //checkForServerError(result);
+        this.logger.log('debug',`finished get.`)
         return result;
     }
 
@@ -327,10 +327,10 @@ class TorClient {
             json: true,
         };
 
-        this.logger.debug(`post url ${url}...`)
+        this.logger.log('debug',`post url ${url}...`)
         let result = await rp(rp_options);
-        checkForServerError(result)
-        this.logger.debug(`finished post.`)
+        //checkForServerError(result)
+        this.logger.log('debug',`finished post.`)
         return result;
     }
 
