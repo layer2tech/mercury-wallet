@@ -6,22 +6,6 @@ const execFile = require('child_process').execFile;
 const defaultShell = require('default-shell');
 const TorControl = require('tor-control');
 
-const checkForServerError = (response) => {
-    if (!response) {
-        return
-    }
-    let return_val = response?.data
-    if (response.status >= 400) {
-        throw Error(`http status: ${response.status}, data: ${return_val}`)
-    }
-    if (typeof (return_val) == "string" && return_val.includes("Error")) {
-        if (return_val.includes("Not available until")) {
-            throw Error("The server is currently unavailable due to a high request rate. Please try again.")
-        }
-        throw Error(return_val)
-    }
-}
-
 class TorClient {
 
     constructor(ip, port, controlPassword, controlPort, dataPath, geoIpFile, geoIpV6File, logger){
@@ -56,6 +40,12 @@ class TorClient {
         });
     }
 
+    log(level, message) {
+        if (this.logger !== undefined) {
+            this.logger.log(level, message)
+        }
+    }
+
     set(torConfig){
         let newTorConfig = { ...this.torConfig}
         Object.entries(torConfig).forEach((tp_item) => {
@@ -76,7 +66,7 @@ class TorClient {
                 throw Error("Config tor_proxy entry "+tp_item[0]+" does not exist")
           }
         });
-        this.logger.info(`TorClient.set() - setting config to ${JSON.stringify(newTorConfig)}`)
+        this.log('info',`TorClient.set() - setting config to ${JSON.stringify(newTorConfig)}`)
         this.torConfig = newTorConfig;
     }
 
@@ -85,7 +75,7 @@ class TorClient {
     }
 
     torIPC(commands) {
-        this.logger.debug(`TorClient.torIPC - sending commands to tor control port: ${JSON.stringify(commands)}`)
+        this.log('debug',`TorClient.torIPC - sending commands to tor control port: ${JSON.stringify(commands)}`)
         return new Promise(function (resolve, reject, ip, controlPort) {
             ip = this.torConfig.ip;
             controlPort = this.torConfig.controlPort;
@@ -95,7 +85,6 @@ class TorClient {
             }, function() {
                 let commandString = commands.join( '\n' ) + '\n';
                 socket.write(commandString);
-                //resolve(commandString);                                                                                                                           
             });
     
             socket.on('error', function ( err ) {
@@ -115,7 +104,7 @@ class TorClient {
     }
 
     async startTorNode(tor_cmd, torrc) {
-        this.logger.info(`TorClient.startTorNode...`)
+        this.log('info',`TorClient.startTorNode...`)
         //Get the password hash
          let geo_args =[];
                
@@ -146,16 +135,14 @@ class TorClient {
            
             this.tor_proc.stdout.on("data", function (data) {
                 const message = "tor stdout: " + data.toString()
-                this.logger.info(message)
                 console.log(message);  
             });
          
             this.tor_proc.stderr.on("data", function (data) {
                 const message = "tor stderr: " + data.toString()
-                this.logger.error(message)
                 console.error(message);
             });
-            this.logger.info(`TorClient.startTorNode - started tor node with pid ${this.tor_proc.pid}`)
+            this.log('info',`TorClient.startTorNode - started tor node with pid ${this.tor_proc.pid}`)
         });
     }
 
@@ -167,14 +154,14 @@ class TorClient {
                 result = (stdout.length > 2);                
             }
         );
-        this.logger.info(`TorClient.isNodeRunning(): ${result}`)
+        this.log('info',`TorClient.isNodeRunning(): ${result}`)
         return result;
     }
 
     async stopTorNode() {
         const message = `terminating tor node process with SIGTERM signal`
         console.log(message)
-        this.logger.info(message)
+        this.log('info',message)
         this.term_proc()
         try {
             //check if still running
@@ -182,20 +169,20 @@ class TorClient {
             //if still running wait, check again and send the kill signal
             const message1 = "tor node process still running - waiting 1 second..."
             console.log(message1)
-            this.logger.info(message1)
+            this.log('info',message1)
             await new Promise(resolve => setTimeout(resolve, 1000))
             this.signal_proc(0)
             const message2 = "tor node process still running - waiting 1 second..."
-            this.logger.info(message2)
+            this.log('info',message2)
             console.log(message2)
             await new Promise(resolve => setTimeout(resolve, 1000))
             this.signal_proc(0)
             const message3 = "tor node process still running - sending kill signal..."
-            this.logger.info(message3)
+            this.log('info',message3)
             console.log(message3)
             this.kill_proc()
         } catch (err) {
-            this.logger.info(err.toString())
+            this.log('info',err.toString())
             console.log(err.toString())
             return
         }
@@ -203,18 +190,18 @@ class TorClient {
     }
 
     signal_proc(signal) {
-        this.logger.info("TorClient.signal_proc()")
-        this.logger.debug("TorClient.signal_proc() - debug")
+        this.log('info',"TorClient.signal_proc()")
+        this.log('debug',"TorClient.signal_proc() - debug")
         const pid = this?.tor_proc?.pid
-        this.logger.info(`TorClient.signal_proc() - pid: ${pid}`)
+        this.log('info',`TorClient.signal_proc() - pid: ${pid}`)
         if(pid){
             process.kill(pid, signal)
         }
     }
 
     term_proc() {
-        this.logger.info("TorClient.term_proc()")
-        this.logger.debug("TorClient.term_proc() - debug")
+        this.log('info',"TorClient.term_proc()")
+        this.log('debug',"TorClient.term_proc() - debug")
         this.signal_proc("SIGTERM")
     }
 
@@ -237,7 +224,7 @@ class TorClient {
 
 
     async newTorConnection() {
-        this.logger.debug("TorClient.newTorConnection()...")
+        this.log('debug',"TorClient.newTorConnection()...")
         let retval;
         await this.control.signalNewnym(function (err, status) {
             if(err){
@@ -247,7 +234,7 @@ class TorClient {
         });        
         await this.sleep(6000);
         retval = `TorClient.newTorConnection() - tor signal "newnym" successfully sent`;
-        this.logger.debug(retval)
+        this.log('debug',retval)
         return retval;
     }
 
@@ -276,7 +263,7 @@ class TorClient {
         } catch (err) {
             const error = new Error(`TorClient.getip() - ${err.toString()}`)
             console.log(error.toString())
-            this.logger.error(error.toString())
+            this.log('error', error.toString())
         }
     }
 
@@ -303,10 +290,9 @@ class TorClient {
             json: true,
         }
 
-        this.logger.log('debug',`get url ${url}...`)
+        this.log('debug',`get url ${url}...`)
         let result = await rp(rp_options);
-        //checkForServerError(result);
-        this.logger.log('debug',`finished get.`)
+        this.log('debug',`finished get.`)
         return result;
     }
 
@@ -327,10 +313,9 @@ class TorClient {
             json: true,
         };
 
-        this.logger.log('debug',`post url ${url}...`)
+        this.log('debug',`post url ${url}...`)
         let result = await rp(rp_options);
-        //checkForServerError(result)
-        this.logger.log('debug',`finished post.`)
+        this.log('debug',`finished post.`)
         return result;
     }
 
