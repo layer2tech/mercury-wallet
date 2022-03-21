@@ -6,6 +6,22 @@ const execFile = require('child_process').execFile;
 const defaultShell = require('default-shell');
 const TorControl = require('tor-control');
 
+const checkForServerError = (response) => {
+    if (!response) {
+        return
+    }
+    let return_val = response?.data
+    if (response.status >= 400) {
+        throw Error(`http status: ${response.status}, data: ${return_val}`)
+    }
+    if (typeof (return_val) == "string" && return_val.includes("Error")) {
+        if (return_val.includes("Not available until")) {
+            throw Error("The server is currently unavailable due to a high request rate. Please try again.")
+        }
+        throw Error(return_val)
+    }
+}
+
 class TorClient {
 
     constructor(ip, port, controlPassword, controlPort, dataPath, geoIpFile, geoIpV6File, logger){
@@ -287,8 +303,10 @@ class TorClient {
             json: true,
         }
 
-
+        this.logger.debug(`get url ${url}...`)
         let result = await rp(rp_options);
+        checkForServerError(result);
+        this.logger.debug(`finished get.`)
         return result;
     }
 
@@ -309,7 +327,10 @@ class TorClient {
             json: true,
         };
 
+        this.logger.debug(`post url ${url}...`)
         let result = await rp(rp_options);
+        checkForServerError(result)
+        this.logger.debug(`finished post.`)
         return result;
     }
 
