@@ -42,7 +42,7 @@ async function get_endpoints(client, config) {
     return await client.get('tor_endpoints', {})
 }
 
-describe('Tor', function () {
+describe.skip('Tor', function () {
 
     let ta_process = undefined   
     beforeEach(async () => {
@@ -78,7 +78,6 @@ describe('Tor', function () {
     })
 
     afterEach(async () => {
-       /*
         const pid = ta_process.pid
         try {
             if (pid === undefined) {
@@ -98,11 +97,10 @@ describe('Tor', function () {
         } catch (err) {
             console.log(err?.message)
         }
-        */
     })
     
 
-    describe('Tor server integration', function () {
+    describe.skip('Tor server integration', function () {
         test.skip('tor server get', async function () {
             const client = new HttpClient('http://localhost:3001');
             let result2 = undefined
@@ -209,29 +207,31 @@ describe('Tor', function () {
 
     });
 
-    describe('handle_error', function () {
-
-        test('handle StatusCodeError', function () {
-            let res = mockResponse()
-            let res_expected = mockResponse()
-            let err = new StatusCodeError(401)
-            res_expected.status(err.statusCode).json(JSON.stringify(err));
-            handle_error(res, err)
-            expect(JSON.stringify(res)).toEqual(JSON.stringify(res_expected))
-        })
-
-        test('handle error', function () {
-            let res = mockResponse()
-            let res_expected = mockResponse()
-            let err = Error("a error")
-            res_expected.status(400).json(JSON.stringify(err));
-            handle_error(res, err)
-            expect(JSON.stringify(res)).toEqual(JSON.stringify(res_expected))
-        })
-
-    })
 
 });
+
+
+describe('tor-adapter handle_error', function () {
+
+    test('handle StatusCodeError', function () {
+        let res = mockResponse()
+        let res_expected = mockResponse()
+        let err = new StatusCodeError(401)
+        res_expected.status(err.statusCode).json(JSON.stringify(err));
+        handle_error(res, err)
+        expect(JSON.stringify(res)).toEqual(JSON.stringify(res_expected))
+    })
+
+    test('handle error', function () {
+        let res = mockResponse()
+        let res_expected = mockResponse()
+        let err = Error("a error")
+        res_expected.status(400).json(JSON.stringify(err));
+        handle_error(res, err)
+        expect(JSON.stringify(res)).toEqual(JSON.stringify(res_expected))
+    })
+
+})
 
 
 
