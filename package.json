@@ -23,10 +23,7 @@
     ],
     "transform": {
       "^.+\\.(ts|tsx)$": "ts-jest"
-    },
-    "setupFilesAfterEnv": [
-      "./jest.setup.js"
-    ]
+    }
   },
   "repository": "github:layer2tech/mercury-wallet",
   "version": "v0.6.12",
