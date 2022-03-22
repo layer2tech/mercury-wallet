@@ -1,4 +1,4 @@
-const handle_error = require('./error')
+const handle_error = require('./error').handle_error
 const winston = require('winston');
 var path = require('path');
 var fs = require('fs')

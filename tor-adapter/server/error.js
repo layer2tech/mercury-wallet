@@ -8,4 +8,4 @@ function handle_error(res, err) {
     }
 }
 
-export {handle_error}
+module.exports= {handle_error}
