@@ -28,10 +28,14 @@ try{
   log = require('electron-log');
 }
 
-export const callGetArgsHasTestnet =  () => {
+export const callGetArgsHasTestnet = () => {
+  // set to testnet mode for testing
+  if (require("../settings.json").testing_mode) {
+    return true
+  }
   let found  = false;
   try{
-    window.require('electron').remote.process.argv.forEach((arg) =>  {
+    window.require('@electron/remote').process.argv.forEach((arg) =>  {
         if(arg.includes('testnet')){
             found = true;
         }     
@@ -462,13 +466,14 @@ export const setIntervalIfOnline = (func,online,delay) => {
   // make online = torInfo.online
 
   const interval = setInterval(async () => {
-    // console.log('interval called', online)
-    if(online === false){
-      clearInterval(interval)
-    }    
-    func()
-  }, delay)
+        // console.log('interval called', online)
+          if (online === false) {
+              clearInterval(interval)
+              }
+        func()
+        }, delay)
   return interval
+
 }
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in

@@ -20,19 +20,51 @@ export class ActivityLog {
       }
     
       let log_item = new ActivityLogItem(item.shared_key_id, item.action);
-      activity_log.items.push(Object.assign(log_item, item))
+      activity_log.items.push(Object.assign(log_item, item) as ActivityLogItem)
     })
     return activity_log
   }
 
   // Return most recent items up to given depth
-  getItems(depth: number) {
+  getItems(depth: number): ActivityLogItem[] {
     return this.items.sort((a,b) => b.date - a.date).slice(0,depth)
   }
 
   addItem(shared_key_id: string, action: string) {
     this.items.push(new ActivityLogItem(shared_key_id, action))
   };
+
+  static mergeActivityByDate = (activity_data: ActivityLogItem[]): ActivityLogItem[][] => {
+    if (!activity_data.length) return [];
+    let allActivity: any = {};
+    activity_data.forEach(item => {
+      let dateStr = new Date(item.date).toLocaleDateString();
+      if (allActivity.hasOwnProperty(dateStr)) {
+        allActivity[dateStr].push(item as ActivityLogItem);
+      } else {
+        allActivity[dateStr] = [item as ActivityLogItem];
+      }
+    })
+    let result: ActivityLogItem[][] = Object.values(allActivity);
+    return result
+  };
+
+  static filterDuplicates = (activity_data: ActivityLogItem[]) => {
+    {
+      // if there are any objects in here with exactly the same values, they must be a duplicate
+      return activity_data.filter((element, index, self) =>
+        index === self.findIndex((t) => (
+          // check for date, action, funding txid and txvout
+          t.date === element.date &&
+          t.value === element.value &&
+          t.action === element.action &&
+          t.funding_txid === element.funding_txid &&
+          t.funding_txvout === element.funding_txvout
+        ))
+      )
+    }
+  }
+
 }
 
 export class ActivityLogItem {
@@ -40,6 +72,9 @@ export class ActivityLogItem {
   statecoin_id?: string;
   action: string;
   date: number;
+  value?: number;
+  funding_txid?: string;
+  funding_txvout?: number;
 
   constructor(shared_key_id: string, action: string) {
     this.shared_key_id = shared_key_id;

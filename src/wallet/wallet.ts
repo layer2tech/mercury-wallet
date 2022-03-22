@@ -404,55 +404,64 @@ export class Wallet {
       // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
       // Get fee info
-      let fee_info: FeeInfo = await getFeeInfo(this.http_client)
-      // Check if any deposit_inits are awaiting funding txs and add them to a list if so
-      let p_addrs: any = []
-      let statecoins: any = []
-      this.statecoins.getInitialisedCoins().forEach((statecoin) => {
-        this.awaitFundingTx(
-          statecoin.shared_key_id,
-          statecoin.getBtcAddress(this.config.network),
-          statecoin.value
-        )
-        let p_addr = statecoin.getBtcAddress(this.config.network)
-        p_addrs.push(p_addr)
-        statecoins.push(statecoin)
-      })
-      //Import the addresses if using electrum personal server
-      this.electrum_client.importAddresses(p_addrs, this.block_height - fee_info.initlock)
-      // Create listeners for deposit inits awaiting funding
-      for (let i in p_addrs) {
-        this.checkFundingTxListUnspent(
-          statecoins[i].shared_key_id,
-          p_addrs[i],
-          bitcoin.address.toOutputScript(p_addrs[i], this.config.network),
-          statecoins[i].value
-        )
-      }
+      
+      let fee_info: FeeInfo
 
-      // Check if any deposit_inits are in the mempool
-      let p_addrs_mp: any = []
-      let statecoins_mp: any = []
-      this.statecoins.getInMempoolCoins().forEach((statecoin) => {
-        p_addrs_mp.push(statecoin.getBtcAddress(this.config.network))
-        statecoins_mp.push(statecoin)
-      })
-
-      //Import the addresses if using electrum personal server
-      this.electrum_client.importAddresses(p_addrs_mp, this.block_height - fee_info.initlock)
-
-      // Create listeners for deposit inits awaiting funding
-      for (let i in p_addrs_mp) {
-        this.checkFundingTxListUnspent(
-          statecoins_mp[i].shared_key_id,
-          p_addrs_mp[i],
-          bitcoin.address.toOutputScript(p_addrs_mp[i], this.config.network),
-          statecoins_mp[i].value
-        ).catch((err: any) => {
-          log.info(err);
-          return;
+      getFeeInfo(this.http_client).then(res => {
+        fee_info = res
+              // Check if any deposit_inits are awaiting funding txs and add them to a list if so
+        let p_addrs: any = []
+        let statecoins: any = []
+        this.statecoins.getInitialisedCoins().forEach((statecoin) => {
+          this.awaitFundingTx(
+            statecoin.shared_key_id,
+            statecoin.getBtcAddress(this.config.network),
+            statecoin.value
+          )
+          let p_addr = statecoin.getBtcAddress(this.config.network)
+          p_addrs.push(p_addr)
+          statecoins.push(statecoin)
         })
-      }
+        //Import the addresses if using electrum personal server
+        this.electrum_client.importAddresses(p_addrs, this.block_height - fee_info.initlock)
+
+        // Create listeners for deposit inits awaiting funding
+        for (let i in p_addrs) {
+          this.checkFundingTxListUnspent(
+            statecoins[i].shared_key_id,
+            p_addrs[i],
+            bitcoin.address.toOutputScript(p_addrs[i], this.config.network),
+            statecoins[i].value
+          )
+        }
+
+        // Check if any deposit_inits are in the mempool
+        let p_addrs_mp: any = []
+        let statecoins_mp: any = []
+        this.statecoins.getInMempoolCoins().forEach((statecoin) => {
+          p_addrs_mp.push(statecoin.getBtcAddress(this.config.network))
+          statecoins_mp.push(statecoin)
+        })
+
+        //Import the addresses if using electrum personal server
+        this.electrum_client.importAddresses(p_addrs_mp, this.block_height - fee_info.initlock)
+
+              // Create listeners for deposit inits awaiting funding
+        for (let i in p_addrs_mp) {
+          this.checkFundingTxListUnspent(
+            statecoins_mp[i].shared_key_id,
+            p_addrs_mp[i],
+            bitcoin.address.toOutputScript(p_addrs_mp[i], this.config.network),
+            statecoins_mp[i].value
+          ).catch((err: any) => {
+            log.info(err);
+            return;
+          })
+        }
+      }).catch(err => {
+        console.error('Error InitElectrumClient: ',err)
+
+      })
     })
   }
 
@@ -1317,6 +1326,7 @@ export class Wallet {
           throw e
         }
       }
+      //REMOVE THIS TRY CATCH
       statecoin.swap_auto = false;
     }
   }
@@ -1545,23 +1555,26 @@ export class Wallet {
     let broadcastTxInfos = statecoin.tx_withdraw_broadcast
     if (broadcastTxInfos.length) {
       fee_max = statecoin.getWithdrawalMaxTxFee()
-      if (fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`);
-      const ids_sorted_1 = shared_key_ids.slice().sort();
-      const ids_sorted_2 = broadcastTxInfos[0].withdraw_msg_2.shared_key_ids.slice().sort();
-      if (JSON.stringify(ids_sorted_1) !== JSON.stringify(ids_sorted_2)) {
 
-        let coin_ids: string[] = [];
-        // get txids
-        ids_sorted_2.forEach((shared_key_id) => {
-          let statecoin = this.statecoins.getCoin(shared_key_id);
-          if (!statecoin) throw Error("No coin found with id " + shared_key_id)
-          coin_ids.push(statecoin.funding_txid + ':' + statecoin.funding_vout.toString());
-        });
+      if (fee_max > 0) {
+        if (fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`);
+        const ids_sorted_1 = shared_key_ids.slice().sort();
+        const ids_sorted_2 = broadcastTxInfos[0].withdraw_msg_2.shared_key_ids.slice().sort();
+        if (JSON.stringify(ids_sorted_1) !== JSON.stringify(ids_sorted_2)) {
 
-        throw Error(`Replacement transactions must batch the same coins: ${coin_ids}`)
-      }
-      if (rec_addr !== broadcastTxInfos[0].withdraw_msg_2.address) {
-        throw Error(`Replacement transaction recipient address does not match`)
+          let coin_ids: string[] = [];
+          // get txids
+          ids_sorted_2.forEach((shared_key_id) => {
+            let statecoin = this.statecoins.getCoin(shared_key_id);
+            if (!statecoin) throw Error("No coin found with id " + shared_key_id)
+            coin_ids.push(statecoin.funding_txid + ':' + statecoin.funding_vout.toString());
+          });
+
+          throw Error(`Replacement transactions must batch the same coins: ${coin_ids}`)
+        }
+        if (rec_addr !== broadcastTxInfos[0].withdraw_msg_2.address) {
+          throw Error(`Replacement transaction recipient address does not match`)
+        }
       }
     }
 

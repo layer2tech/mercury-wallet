@@ -10,6 +10,7 @@ const axios = require('axios').default;
 const process = require('process')
 const fork = require('child_process').fork;
 const exec = require('child_process').exec;
+require('@electron/remote/main').initialize()
 
 function getPlatform() {
   switch (process.platform) {
@@ -41,22 +42,16 @@ if (getPlatform() == 'linux') {
 }
 let execPath = undefined;
 let torrc = undefined;
-if (isDev) {
-  execPath = joinPath(resourcesPath, getPlatform());
-  torrc = joinPath(resourcesPath, 'etc', 'torrc');
-  if (getPlatform() == 'linux') {
-    iconPath = joinPath(resourcesPath, 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
-  }
+
+if (getPlatform() == 'linux') {
+  execPath = joinPath(rootPath, '..', '..', 'Resources', 'bin');
+  iconPath = joinPath(rootPath, '..', '..', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
 } else {
-  if (getPlatform() == 'linux') {
-    execPath = joinPath(rootPath, '..', '..', 'Resources', 'bin');
-    iconPath = joinPath(rootPath, '..', '..', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
-  } else {
-    console.log("root path: " + rootPath);
-    execPath = joinPath(rootPath, '..', 'bin');
-  }
-  torrc = joinPath(execPath, '..', 'etc', 'torrc');
+  console.log("root path: " + rootPath);
+  execPath = joinPath(rootPath, '..', 'bin');
 }
+torrc = joinPath(execPath, '..', 'etc', 'torrc');
+
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;
 
@@ -78,6 +73,8 @@ function createWindow() {
       nodeIntegration: true,
       webSecurity: false,
       enableRemoteModule: true,
+      backgroundThrottling: false,
+      contextIsolation: false,
       preload: __dirname + '/preload.js'
     }
   }
@@ -103,10 +100,11 @@ function createWindow() {
     protocol: 'file:',
     slashes: true
   });
-  mainWindow.loadURL(isDev ? 'http://localhost:3000' : startUrl);
+  mainWindow.loadURL(startUrl);
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
+    debugger;
   }
 
   mainWindow.on('close', async () => {

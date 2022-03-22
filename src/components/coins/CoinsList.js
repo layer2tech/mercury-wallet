@@ -127,7 +127,7 @@ const CoinsList = (props) => {
 
   const { selectedCoins, isMainPage, swap } = props;
   const dispatch = useDispatch();
-  const { filterBy, swapPendingCoins, coinsAdded,
+  const { filterBy, swapPendingCoins, swapRecords, coinsAdded,
     coinsRemoved, torInfo, inSwapValues, balance_info } = useSelector(state => state.walletData);
   const [sortCoin, setSortCoin] = useState({ ...INITIAL_SORT_BY, condition: props.swap ? 'swap' : null});
   const [coins, setCoins] = useState(INITIAL_COINS);
@@ -289,13 +289,13 @@ const CoinsList = (props) => {
       return () => { isMounted = false }
     }
   }
-    , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved, balance_info]);
+    , [props.refresh, filterBy, showCoinDetails, dispatch, coinsAdded, coinsRemoved, swapPendingCoins, swapRecords, inSwapValues]);
 
   // Re-fetch every 5 seconds and update state to refresh render
   // IF any coins are marked UNCONFIRMED
   useEffect(() => {
 
-    const interval = setIntervalIfOnline(updateUnconfirmedUnspentCoins, torInfo.online, 5000)
+    let interval = setIntervalIfOnline(updateUnconfirmedUnspentCoins, torInfo.online, 5000)
 
     return () => clearInterval(interval);
 
@@ -322,7 +322,7 @@ const CoinsList = (props) => {
   // Re-fetch swaps group data every and update swaps component
   // Initiate auto swap
   useEffect(() => {
-    const interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000)
+    let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000)
     return () => clearInterval(interval);
   },
     [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);

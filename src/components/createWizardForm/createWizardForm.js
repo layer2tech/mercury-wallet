@@ -55,14 +55,14 @@ const CreateWizardForm = (props) => {
             <form onSubmit={handleSubmit(onSubmit)}>
                 {props.setStateMnemonic && (
                     <div className="inputs-item">
-                        <input id="Mnemonic" type="text" name="Mnemonic" placeholder="Mnemonic"
+                        <input id="Mnemonic" type="text" name="Mnemonic" placeholder="Mnemonic" title="12 space separated words in order"
                             value={props.wizardState.mnemonic}
                             onChange={props.setStateMnemonic}
                             required/>
                     </div>
                 )}
                 {props.setStateGapLimit && (<div className="inputs-item">
-                  <input id="GapLimit" type="text" name="Address gap limit" placeholder="Address limit" title="Number of derived address to check for coins"
+                  <input id="GapLimit" type="text" name="Address gap limit" placeholder="Address gap limit" title="Number of derived address to check for coins. If not known start with 1000." 
                     value={props.wizardState.gap_limit}
                     onChange={props.setStateGapLimit}
                     onKeyPress={handleKeyPress}
@@ -70,7 +70,7 @@ const CreateWizardForm = (props) => {
                 </div>
                 )}
                 <div className="inputs-item">
-                  <input id="Name" type="text" name="Wallet Name" placeholder="Wallet Name"
+                  <input id="Name" type="text" name="Wallet Name" placeholder="Wallet Name" title="Choose a new wallet name"
                     value={props.wizardState.wallet_name}
                     onChange={props.setStateWalletName}
                     onKeyPress={handleKeyPress}
