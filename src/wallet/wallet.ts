@@ -1559,7 +1559,7 @@ export class Wallet {
       if (fee_max > 0) {
         if (fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`);
         const ids_sorted_1 = shared_key_ids.slice().sort();
-        const ids_sorted_2 = broadcastTxInfos[0].withdraw_msg_2.shared_key_ids.slice().sort();
+        const ids_sorted_2 = broadcastTxInfos[broadcastTxInfos.length - 1].withdraw_msg_2.shared_key_ids.slice().sort();
         if (JSON.stringify(ids_sorted_1) !== JSON.stringify(ids_sorted_2)) {
 
           let coin_ids: string[] = [];
