@@ -331,7 +331,7 @@ async function kill_tor() {
   }
 }
 
-async function kill_process(pid, init_new) {
+export async function kill_process(pid, init_new) {
   console.log(`terminating process with pid ${pid}`)
   process.kill(pid, "SIGTERM")
   try {

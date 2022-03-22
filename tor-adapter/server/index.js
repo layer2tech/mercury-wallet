@@ -1,3 +1,4 @@
+const handle_error = require('./error')
 const winston = require('winston');
 var path = require('path');
 var fs = require('fs')
@@ -62,8 +63,6 @@ console.log(`torrc: ${torrc}`);
 let i_elect_hs={i:0}
 let i_merc_hs={i:0}
 let i_cond_hs={i:0}
-
-var errors = require('request-promise/errors');
 
 const GET_ROUTE = {
   PING: "/eps/ping",
@@ -147,13 +146,6 @@ async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
   }
 };
 
-function handle_error(res, err) {
-  if (err instanceof errors.StatusCodeError) {
-    res.status(err.statusCode).json(JSON.stringify(err));
-  } else {
-    res.status(400).json(JSON.stringify(err));
-  }
-}
 
 app.get('/newid', async function(req,res) {
   try{
