@@ -83,7 +83,8 @@ function createWindow() {
 
   // Create the browser window.
   mainWindow = new BrowserWindow(windowSpec);
-
+  require("@electron/remote/main").enable(mainWindow.webContents)
+  
   if (process.platform !== 'darwin') {
     mainWindow.setMenu(null);
   }
@@ -139,7 +140,7 @@ app.on('ready', () => {
     alert('mercurywallet is already running. Not opening app.')
     app.quit()
   }
-  teminate_tor_process();
+  terminate_tor_process();
   terminate_mercurywallet_process(init_tor_adapter);
   createWindow()
 }
@@ -149,7 +150,7 @@ app.on('ready', () => {
 app.on('window-all-closed', async function () {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  teminate_tor_process();
+  terminate_tor_process();
   app.quit()
 });
 
@@ -214,6 +215,8 @@ async function init_tor_adapter() {
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
   }
 
+  console.log(`starting tor_adapter with args: ${tor_adapter_args.toString()}`)
+
   ta_process = fork(`${tor_adapter_path}`, tor_adapter_args,
     {
       detached: false,
@@ -221,24 +224,26 @@ async function init_tor_adapter() {
     },
     (error, stdout, _stderr) => {
       if (error) {
+        console.log(`tor process error - exiting: ${error.toString()}`)
         app.exit(error);
       };
     }
   );
+  console.log(`started tor child process: ${ta_process.pid}`);
 }
 
-const teminate_tor_process = () => {
+const terminate_tor_process = () => {
   // remove tor from windows processes and mercury wallet if it exists.
   if (getPlatform() === 'win') {
     exec('get-process | where {$_.ProcessName -Like "tor*"}', { 'shell': 'powershell.exe' }, (error, stdout, stderr) => {
 
       if (error) {
-        console.error(`teminate_tor_process- exec error: ${error}`)
-        console.log(`teminate_tor_process- exec error: ${error}`)
+        console.error(`terminate_tor_process- exec error: ${error}`)
+        console.log(`terminate_tor_process- exec error: ${error}`)
         return
       }
       if (stderr) {
-        console.log(`teminate_tor_process- error: ${stderr}`)
+        console.log(`terminate_tor_process- error: ${stderr}`)
         return
       }
 
@@ -247,12 +252,12 @@ const teminate_tor_process = () => {
         exec('taskkill /f /t /im tor.exe', { 'shell': 'powershell.exe' }, (err2, stdout2, stderr2) => {
           // log to file
           if (err2) {
-            console.error(`teminate_tor_process- exec error: ${err2}`)
-            console.log(`teminate_tor_process- exec error: ${err2}`)
+            console.error(`terminate_tor_process- exec error: ${err2}`)
+            console.log(`terminate_tor_process- exec error: ${err2}`)
             return
           }
           if (stderr2) {
-            console.log(`teminate_tor_process- error: ${stderr2}`)
+            console.log(`terminate_tor_process- error: ${stderr2}`)
             return
           }
         })

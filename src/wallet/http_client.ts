@@ -72,7 +72,7 @@ const checkForServerError = (response: any) => {
 
 const handlePromiseRejection = (err: any, config: any) => {
   let msg_str = err?.message
-  if (msg_str && msg_str.search(`/timeout of .*ms exceeded/`)) {
+  if (msg_str && msg_str.search(/timeout of .*ms exceeded/) !== -1 ) {
     throw new Error(`Mercury API request timed out: ${msg_str}`)
   }
   throw err
@@ -99,7 +99,9 @@ const handlePromiseRejection = (err: any, config: any) => {
       const config: AxiosRequestConfig = {
         method: 'get',
         url: url,
-        headers: { 'Accept': 'application/json' },
+        headers: {
+          'Accept': 'application/json'
+        },
         timeout: timeout_ms
       };
       await semaphore.wait()

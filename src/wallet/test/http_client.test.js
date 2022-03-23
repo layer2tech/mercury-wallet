@@ -90,6 +90,11 @@ describe('HttpClient timeout', function () {
         return new Error(`timeout of ${timeout}ms exceeded`)
     }
 
+    test('timeout error string', function () {
+        console.log(`search result: ${timeout_err(TIMEOUT).message.search(/timeout of .*ms exceeded/)}`)
+        expect(timeout_err(TIMEOUT).message.search(/timeout of .*ms exceeded/) !== -1).toEqual(true)
+    })
+
     test('get', async function () {
         await expect(client.get("test/path", "params")).rejects.
             toThrow(Error(`Mercury API request timed out: ${timeout_err(TIMEOUT).message}`))
