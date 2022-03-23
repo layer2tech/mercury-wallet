@@ -39,6 +39,10 @@
   filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
 
+.dark-mode .Body-button.blue {
+  background-color: #0B2B68;
+}
+
 .Body-button.yellow {
   background-color:#F79325;
   color: #ffffff;

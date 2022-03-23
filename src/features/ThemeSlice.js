@@ -7,9 +7,11 @@ const initialState = {
 const calculateDarkmode = (state) => {
   if (state.dark_mode === '1') {
     localStorage.removeItem('dark_mode')
+    window.darkMode.off()
     return '0'
   } else {
     localStorage.setItem('dark_mode', '1')
+    window.darkMode.on()
     return '1'
   }
 }
