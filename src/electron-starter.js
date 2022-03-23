@@ -162,9 +162,10 @@ app.on('activate', function () {
 });
 
 ipcMain.on('select-dirs', async (event, arg) => {
+  let dateString = new Date().toGMTString().replace(/,/g, "").replace(/:/g, "-")
   const options = {
     title: "Save new file as...",
-    defaultPath: `Backup-File-${new Date().toGMTString()}.json`,
+    defaultPath: `Backup-File-${dateString}.json`,
     filters: [
       { name: 'JSON File', extensions: ['json'] }
     ]
