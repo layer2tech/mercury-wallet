@@ -36,12 +36,10 @@
   background: none;
 }
 .dark-mode button.Body-button:not(.blue,.yellow) {
-  background-color: transparent;
 }
 .dark-mode .ButtonsPanel .ActionGroupRight .Body-button,
 .dark-mode button.primary-btn,
 .dark-mode .Body-button.transparent {
-  background-color: transparent;
 }
 .dark-mode .Body-button.transparent,
 .dark-mode .receiveStatecoin .receive-bottom div:first-child .inputs input { 
