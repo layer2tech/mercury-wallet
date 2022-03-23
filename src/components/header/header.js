@@ -15,14 +15,18 @@ const Header = (props) => {
   }
 
   let isDarkMode = localStorage.getItem('dark_mode');
-  const activeDarkMode = () => {
+  const activeDarkMode = async () => {
+    
     isDarkMode = document.body.classList.contains('dark-mode')
     if (isDarkMode) {
+      await window.darkMode.off()
       document.body.classList.remove('dark-mode')
       document.querySelector('.App').classList.remove('dark-mode')
       localStorage.removeItem('dark_mode')
+      
     }
     else {
+      await window.darkMode.on()
       document.body.classList.add('dark-mode')
       document.querySelector('.App').classList.add('dark-mode')
       localStorage.setItem('dark_mode', '1')

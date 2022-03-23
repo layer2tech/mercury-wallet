@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { join, dirname } = require('path');
 const joinPath = join;
-const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, shell, nativeTheme } = require('electron');
 const path = require('path');
 const url = require('url');
 const fixPath = require('fix-path');
@@ -80,6 +80,18 @@ function createWindow() {
   if (iconPath) {
     windowSpec.icon = iconPath
   }
+
+  // Add function to change Main Window DarkMode  
+  ipcMain.handle('dark-mode:on', () => {
+    nativeTheme.themeSource = 'dark'
+    return nativeTheme.shouldUseDarkColors
+  })
+
+  // Add function to change Main Window DarkMode to System settings
+  ipcMain.handle('dark-mode:off', () => {
+    nativeTheme.themeSource = 'system'
+  })
+
 
   // Create the browser window.
   mainWindow = new BrowserWindow(windowSpec);
