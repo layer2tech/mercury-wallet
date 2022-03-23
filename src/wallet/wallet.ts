@@ -1572,7 +1572,7 @@ export class Wallet {
 
           throw Error(`Replacement transactions must batch the same coins: ${coin_ids}`)
         }
-        if (rec_addr !== broadcastTxInfos[0].withdraw_msg_2.address) {
+        if (rec_addr !== broadcastTxInfos[broadcastTxInfos.length - 1].withdraw_msg_2.address) {
           throw Error(`Replacement transaction recipient address does not match`)
         }
       }
