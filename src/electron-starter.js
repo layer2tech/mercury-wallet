@@ -154,7 +154,6 @@ app.on('ready', () => {
   teminate_tor_process();
   terminate_mercurywallet_process(init_tor_adapter);
   createWindow()
-  console.log('eletron-starter.js 2')
 }
 );
 
@@ -171,7 +170,6 @@ app.on('activate', function () {
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
     createWindow()
-    console.log('eletron-starter.js 1')
   }
 });
 
