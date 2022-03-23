@@ -83,7 +83,7 @@
 }
 
 .settings .content .inputs-item input:focus + label, .settings .content .inputs-item input:visited + label,
-.settings .content .inputs-item input:active + label, .settings .content .inputs-item input:valid + label {
+.settings .content .inputs-item input:valid + label {
     transition: 0.2s;
     top: -10px;
     left: 10px;
