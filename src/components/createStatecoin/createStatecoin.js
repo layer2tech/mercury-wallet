@@ -1,31 +1,31 @@
 import '../../containers/Deposit/Deposit.css';
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 import plus from "../../images/plus-deposit.png";
-import {callGetCoinsInfo, callGetFeeInfo} from '../../features/WalletDataSlice';
+import { callGetCoinsInfo, callGetFeeInfo } from '../../features/WalletDataSlice';
 import ValueSelectionPanel from "./valueSelection/valueSelection";
 import { FEE, fromSatoshi } from '../../wallet/util';
 
-const DEFAULT_LIQUIDITY_VALUES = [{value:100000, liquidity:0},{value:1000000,liquidity:0},{value:10000000,liquidity:0},{value:100000000,liquidity:0},{value:5000000,liquidity:0},{value:50000000,liquidity:0}]
-const LIQUIDITY_MED=10;
-const LIQUIDITY_HIGH=20;
-const NUM_HIGH_LIQUIDITY=3;
+const DEFAULT_LIQUIDITY_VALUES = [{ value: 100000, liquidity: 0 }, { value: 1000000, liquidity: 0 }, { value: 10000000, liquidity: 0 }, { value: 100000000, liquidity: 0 }, { value: 5000000, liquidity: 0 }, { value: 50000000, liquidity: 0 }]
+const LIQUIDITY_MED = 10;
+const LIQUIDITY_HIGH = 20;
+const NUM_HIGH_LIQUIDITY = 3;
 
 const CreateStatecoin = (props) => {
 
-    const [state, setState] = useState(0);
-    const [liquidityData, setLiquidityData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState({error: false, message:""});
+  const [state, setState] = useState(0);
+  const [liquidityData, setLiquidityData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState({ error: false, message: "" });
 
-    const createCoinButtonAction = () => {
-      props.addSelectionPanel()
-      state ? setState(0) : setState(1); // update state to re-render
-    }
+  const createCoinButtonAction = () => {
+    props.addSelectionPanel()
+    state ? setState(0) : setState(1); // update state to re-render
+  }
 
   useEffect(() => {
-      let isMounted = true
-      // Get coin liquidity data
+    let isMounted = true
+    // Get coin liquidity data
     callGetCoinsInfo().then((liquidity_data_raw) => {
       if (isMounted === true) {
         // Update liquidity data state
@@ -95,60 +95,62 @@ const CreateStatecoin = (props) => {
           setLoading(false);
         }).catch(e => {
           setError({ error: true, message: 'Failed retrieving fee info from server...' });
+          props.handleChildErrors(true);
           setLoading(false);
         });
       }
     }).catch(e => {
-        setLoading(false);
-        setError({error: true, message: 'Failed retrieving statecoin values from server...'});
-      });
-      return () => { isMounted = false }
-    }, [props.settings]);
+      setLoading(false);
+      setError({ error: true, message: 'Failed retrieving statecoin values from server...' });
+      props.handleChildErrors(true);
+    });
+    return () => { isMounted = false }
+  }, [props.settings]);
 
 
-    const populateWithSelectionPanels = props.selectedValues.map((item, index) => (
-        <div key={index}>
-          <div>
-            <ValueSelectionPanel
-              id={index}
-              selectedValue={item.value}
-              addValueSelection={props.addValueSelection}
-              coinsLiquidityData={liquidityData}/>
-          </div>
-        </div>
-      ));
-
-    const loadingStateCoins =  (<div>
-      <div><Spinner animation="border" variant="primary" ></Spinner></div>
-      <div>Loading statecoin values...</div>
-      <br/>
-    </div>);
-
-    const errorLoading = (
+  const populateWithSelectionPanels = props.selectedValues.map((item, index) => (
+    <div key={index}>
       <div>
-        <div><Spinner animation="border" variant="danger" ></Spinner></div>
-        <br/>
-        <div className='custom-modal-info alert-danger'>{error.message}</div>
-        <br/>
+        <ValueSelectionPanel
+          id={index}
+          selectedValue={item.value}
+          addValueSelection={props.addValueSelection}
+          coinsLiquidityData={liquidityData} />
       </div>
-    );
+    </div>
+  ));
 
-    const createAnotherStatecoin = (
-      <div className="Body">
-        <span className={"create-title"} onClick={createCoinButtonAction}>
-            <img src={plus} alt="plus"/>
+  const loadingStateCoins = (<div>
+    <div><Spinner animation="border" variant="primary" ></Spinner></div>
+    <div>Loading statecoin values...</div>
+    <br />
+  </div>);
+
+  const errorLoading = (
+    <div>
+      <div><Spinner animation="border" variant="danger" ></Spinner></div>
+      <br />
+      <div className='custom-modal-info alert-danger'>{error.message}</div>
+      <br />
+    </div>
+  );
+
+  const createAnotherStatecoin = (
+    <div className="Body">
+      <span className={"create-title"} onClick={createCoinButtonAction}>
+        <img src={plus} alt="plus" />
             CREATE ANOTHER STATECOIN
         </span>
-      </div>
-    );
+    </div>
+  );
 
-    return (
-        <div>
-          {error.error && errorLoading}
-          {!error.error && loading ?  loadingStateCoins : populateWithSelectionPanels}
-          {!error.error && !loading && createAnotherStatecoin}
-        </div>
-    )
+  return (
+    <div>
+      {error.error && errorLoading}
+      {!error.error ? loading ? loadingStateCoins : populateWithSelectionPanels : null}
+      {!error.error ? !loading ? createAnotherStatecoin : null : null}
+    </div>
+  )
 }
 
 export default CreateStatecoin;
