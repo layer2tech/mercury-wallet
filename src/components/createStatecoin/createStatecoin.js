@@ -95,15 +95,17 @@ const CreateStatecoin = (props) => {
           setLoading(false);
         }).catch(e => {
           setError({ error: true, message: 'Failed retrieving fee info from server...' });
+          props.handleChildErrors(true);
           setLoading(false);
         });
       }
     }).catch(e => {
       setLoading(false);
       setError({ error: true, message: 'Failed retrieving statecoin values from server...' });
+      props.handleChildErrors(true);
     });
 
-
+    
     // timeout after 25 seconds, if we are still in loading
     const timer = setTimeout(() => {
       if (loading) {
@@ -116,6 +118,7 @@ const CreateStatecoin = (props) => {
       isMounted = false;
       clearTimeout(timer);
     }
+    
   }, [props.settings]);
 
 
@@ -158,8 +161,8 @@ const CreateStatecoin = (props) => {
   return (
     <div>
       {error.error && errorLoading}
-      {!error.error && loading ? loadingStateCoins : populateWithSelectionPanels}
-      {!error.error && !loading && createAnotherStatecoin}
+      {!error.error ? loading ? loadingStateCoins : populateWithSelectionPanels : null}
+      {!error.error ? !loading ? createAnotherStatecoin : null : null}
     </div>
   )
 }

@@ -12,6 +12,8 @@ const fork = require('child_process').fork;
 const exec = require('child_process').exec;
 require('@electron/remote/main').initialize()
 
+app.disableHardwareAcceleration()
+
 function getPlatform() {
   switch (process.platform) {
     case 'aix':
