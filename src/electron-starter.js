@@ -16,6 +16,8 @@ const execFile = require('child_process').execFile;
 if (!require("./settings.json").testing_mode) {
   require('@electron/remote/main').initialize()
 }
+
+app.disableHardwareAcceleration()
   
 const getPlatform = () => {
   switch (process.platform) {
