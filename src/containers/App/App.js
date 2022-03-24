@@ -33,13 +33,13 @@ const App = () => {
     }
   }, []);
 
-  useEffect(() => {
+  useEffect(async () => {
 
-    if(dark_mode === '1') {
-      window.darkMode.on()
+    if (dark_mode === '1') {
+      await window.darkMode.on()
       document.body.classList.add('dark-mode');
     } else {
-      window.darkMode.off()
+      await window.darkMode.off()
       document.body.classList.remove('dark-mode');
     }
   }, [dark_mode]);
