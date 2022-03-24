@@ -104,7 +104,21 @@ const CreateStatecoin = (props) => {
       setError({ error: true, message: 'Failed retrieving statecoin values from server...' });
       props.handleChildErrors(true);
     });
-    return () => { isMounted = false }
+
+    
+    // timeout after 25 seconds, if we are still in loading
+    const timer = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        setError({ error: true, message: 'timed out loading statecoin values, check your connection to mercury server' })
+      }
+    }, 25000);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    }
+    
   }, [props.settings]);
 
 
