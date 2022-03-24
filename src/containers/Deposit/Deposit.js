@@ -155,7 +155,7 @@ const DepositPage = () => {
             />
           )}
           {step === 1 ? (
-            !childData && <button className="primary-btn blue" onClick={() => setStep(2)}>Continue</button>
+            !childError && <button className="primary-btn blue" onClick={() => setStep(2)}>Continue</button>
           ) : (
             <button className="primary-btn blue" onClick={() => setStep(1)}>Go Back</button>
           )}
