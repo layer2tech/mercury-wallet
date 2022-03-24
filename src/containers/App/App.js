@@ -33,20 +33,21 @@ const App = () => {
     }
   }, []);
 
-  useEffect(() => {
-    async function darkMode() {
-      if (dark_mode === '1') {
-        if (window.darkMode !== undefined) {
-          await window.darkMode.on()
-        }
-        document.body.classList.add('dark-mode');
-      } else {
-        if (window.darkMode !== undefined) {
-          await window.darkMode.off()
-        }
-        document.body.classList.remove('dark-mode');
+  async function darkMode() {
+    if (dark_mode === '1') {
+      if (window.darkMode !== undefined) {
+        await window.darkMode.on()
       }
+      document.body.classList.add('dark-mode');
+    } else {
+      if (window.darkMode !== undefined) {
+        await window.darkMode.off()
+      }
+      document.body.classList.remove('dark-mode');
     }
+  }
+
+  useEffect(() => {
     darkMode()
   }, [dark_mode]);
   return (
