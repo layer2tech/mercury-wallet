@@ -153,9 +153,9 @@ In a terminal, change directory to the one containing the mercurywallet AppImage
 
 Assuming mercurywallet.exe is installed in the default location, for username <User> - enter the following into the file explorer:
 
-- Mainnet mode: `cmd /c "set NODE_ENV=development & C:\Users\<User>\AppData\Local\Programs\mercurywallet\mercurywallet.exe"`
+- Mainnet mode: `cmd /c "set NODE_ENV=development&C:\Users\<User>\AppData\Local\Programs\mercurywallet\mercurywallet.exe"`
 
-- Testnet mode: `cmd /c "set NODE_ENV=development & C:\Users\<User>\AppData\Local\Programs\mercurywallet\mercurywallet.exe --testnet"`
+- Testnet mode: `cmd /c "set NODE_ENV=development&C:\Users\<User>\AppData\Local\Programs\mercurywallet\mercurywallet.exe --testnet"`
 
 # Recover of expired statecoins
 
