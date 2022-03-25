@@ -105,20 +105,23 @@ const CreateStatecoin = (props) => {
       props.handleChildErrors(true);
     });
 
-    
+
     // timeout after 25 seconds, if we are still in loading
     const timer = setTimeout(() => {
-      if (loading) {
-        setLoading(false);
-        setError({ error: true, message: 'timed out loading statecoin values, check your connection to mercury server' })
-      }
+      setLoading((prevValue) => {
+        if (prevValue) {
+          setLoading(false);
+          setError({ error: true, message: 'timed out loading statecoin values, check your connection to mercury server' })
+        }
+        return prevValue
+      });
     }, 25000);
 
     return () => {
       isMounted = false;
       clearTimeout(timer);
     }
-    
+
   }, [props.settings]);
 
 
@@ -160,6 +163,8 @@ const CreateStatecoin = (props) => {
 
   return (
     <div>
+      <p>Loading value: {loading}</p>
+      <p>error.error: {error.error}</p>
       {error.error && errorLoading}
       {!error.error ? loading ? loadingStateCoins : populateWithSelectionPanels : null}
       {!error.error ? !loading ? createAnotherStatecoin : null : null}
