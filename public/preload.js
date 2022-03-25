@@ -14,5 +14,10 @@ process.once('loaded', () => {
   })
 });
 
+window.darkMode = {
+  on: () => ipcRenderer.invoke('dark-mode:on'),
+  off: () => ipcRenderer.invoke('dark-mode:off')
+}
+
 window.electron = {};
 window.electron.ipcRenderer = ipcRenderer;
