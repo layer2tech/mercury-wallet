@@ -92,7 +92,7 @@ function createWindow() {
 
   // Add function to change Main Window DarkMode to System settings
   ipcMain.handle('dark-mode:off', () => {
-    nativeTheme.themeSource = 'system'
+    nativeTheme.themeSource = 'light'
   })
 
   mainWindow = new BrowserWindow(windowSpec);
