@@ -163,8 +163,6 @@ const CreateStatecoin = (props) => {
 
   return (
     <div>
-      <p>Loading value: {loading}</p>
-      <p>error.error: {error.error}</p>
       {error.error && errorLoading}
       {!error.error ? loading ? loadingStateCoins : populateWithSelectionPanels : null}
       {!error.error ? !loading ? createAnotherStatecoin : null : null}
