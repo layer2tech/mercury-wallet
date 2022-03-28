@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, shell, nativeTheme } = require('electron');
 const { join, dirname } = require('path');
 const joinPath = join;
 const url = require('url');
@@ -11,6 +11,8 @@ const process = require('process')
 const fork = require('child_process').fork;
 const exec = require('child_process').exec;
 require('@electron/remote/main').initialize()
+
+app.disableHardwareAcceleration()
 
 function getPlatform() {
   switch (process.platform) {
@@ -82,7 +84,20 @@ function createWindow() {
     windowSpec.icon = iconPath
   }
 
+  // Add function to change Main Window DarkMode  
+  ipcMain.handle('dark-mode:on', () => {
+    nativeTheme.themeSource = 'dark'
+    return nativeTheme.shouldUseDarkColors
+  })
+
+  // Add function to change Main Window DarkMode to System settings
+  ipcMain.handle('dark-mode:off', () => {
+    nativeTheme.themeSource = 'light'
+  })
+
   mainWindow = new BrowserWindow(windowSpec);
+
+  require("@electron/remote/main").enable(mainWindow.webContents)
 
   if (process.platform !== 'darwin') {
     mainWindow.setMenu(null);
@@ -94,6 +109,7 @@ function createWindow() {
     e.preventDefault();
     shell.openExternal(url);
   });
+
 
   const startUrl = url.format({
     pathname: joinPath(__dirname, '/../build/index.html'),
@@ -152,9 +168,10 @@ app.on('activate', () => {
 });
 
 ipcMain.on('select-dirs', async (event, arg) => {
+  let dateString = new Date().toGMTString().replace(/,/g, "").replace(/:/g, "-")
   const options = {
     title: "Save new file as...",
-    defaultPath: `Backup-File-${new Date().toGMTString()}.json`,
+    defaultPath: `Backup-File-${dateString}.json`,
     filters: [
       { name: 'JSON File', extensions: ['json'] }
     ]
