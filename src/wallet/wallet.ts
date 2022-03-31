@@ -1025,9 +1025,10 @@ export class Wallet {
           }
         }
         if (!funding_tx_data[i].height) {
-          log.info("Found funding tx for p_addr " + p_addr + " in mempool. txid: " + funding_tx_data[i].tx_hash)
-          this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i])
-          await this.saveStateCoinsList()
+          if (this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i]) === true) {
+            log.info("Found funding tx for p_addr " + p_addr + " in mempool. txid: " + funding_tx_data[i].tx_hash)
+            await this.saveStateCoinsList()
+          }
         } else {
           log.info("Funding tx for p_addr " + p_addr + " mined. Height: " + funding_tx_data[i].height)
           // Set coin UNCONFIRMED.

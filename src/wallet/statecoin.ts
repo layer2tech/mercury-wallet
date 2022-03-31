@@ -254,15 +254,24 @@ export class StateCoinList {
   }
 
   // Funding Tx seen on network. Set coin status and funding_txid
+  // Return true if the function call resulted in a change to the coin
   setCoinInMempool(shared_key_id: string, funding_tx_data: ElectrumTxData) {
+    let changed = false
     let coin = this.getCoin(shared_key_id)
     if (coin) {
-      coin.setInMempool()
-      coin.funding_txid = funding_tx_data.tx_hash
-      coin.funding_vout = funding_tx_data.tx_pos
+      changed = changed || coin.setInMempool()
+      if (coin.funding_txid !== funding_tx_data.tx_hash) {
+        coin.funding_txid = funding_tx_data.tx_hash
+        changed = true
+      }
+      if (coin.funding_vout !== funding_tx_data.tx_pos) {
+        coin.funding_vout = funding_tx_data.tx_pos  
+        changed = true
+      }
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
+    return changed
   }
 
   // Funding Tx mined. Set coin status and block height
@@ -530,7 +539,13 @@ export class StateCoin {
   setAutoSwap(val: boolean) { this.swap_auto = val }
   setSwapError(swap_error: SwapErrorMsg){this.swap_error = swap_error}
   clearSwapError(){this.swap_error = null}
-  setInMempool() { this.status = STATECOIN_STATUS.IN_MEMPOOL }
+  setInMempool(): boolean {
+    if (this.status !== STATECOIN_STATUS.IN_MEMPOOL) {
+      this.status = STATECOIN_STATUS.IN_MEMPOOL  
+      return true
+    }
+    return false
+  }
   setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
   setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
   setAwaitingSwap() { this.status = STATECOIN_STATUS.AWAITING_SWAP }
