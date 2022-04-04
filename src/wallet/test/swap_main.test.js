@@ -100,6 +100,43 @@ describe('Swap Checks', function () {
     expect(swap.statecoin).toStrictEqual(statecoin_expected)
   })
 
+  test('wallet is initially active', async () => {
+    expect(wallet.active).toBe(true)
+  })
+
+  test('wallet.stop() renders wallet inactive', async () => {
+    wallet.stop()
+    expect(wallet.active).toBe(false)
+  })
+
+  test('wallet.unload() renders wallet inactive', async () => {
+    wallet.unload()
+    expect(wallet.active).toBe(false)
+  })
+    
+  test('wallet.unload() calls wallet.stop() and wallet.save()', async () => {
+    let saveSpy = jest.spyOn(wallet, 'save')
+    let stopSpy = jest.spyOn(wallet, 'stop')
+    wallet.unload()
+    expect(saveSpy).toHaveBeenCalled()
+    expect(stopSpy).toHaveBeenCalled()
+  })
+
+  test('checkWalletStatus passes if wallet is active', async () => {
+    let statecoin = wallet.statecoins.coins[0]
+    let swap = new Swap(wallet, statecoin)
+    swap.swap_steps = swap_steps(swap)
+    expect(swap.checkWalletStatus()).toBe()
+  })
+
+  test('checkWalletStatus throws an Error if wallet is not active', async () => {
+    wallet.stop()
+    let statecoin = wallet.statecoins.coins[0]
+    let swap = new Swap(wallet, statecoin)
+    swap.swap_steps = swap_steps(swap)
+    expect(() => { swap.checkWalletStatus() }).toThrow(Error("wallet unloading..."))
+  })
+
   test('test checkStepStatus', async () => {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
