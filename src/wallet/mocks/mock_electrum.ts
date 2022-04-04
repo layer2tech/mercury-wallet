@@ -72,6 +72,11 @@ export class MockElectrumClient {
     }
     async scriptHashUnsubscribe(_script: string): Promise<any> {
     }
+  
+    unsubscribeAll() {
+      return
+    }
+  
     async getFeeEstimation(_num_blocks: number): Promise<any> {
     }
 

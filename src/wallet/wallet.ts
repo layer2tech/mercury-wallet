@@ -104,6 +104,7 @@ export class Wallet {
   saveMutex: Mutex;
 
   storage: Storage
+  active: boolean;
 
   constructor(name: string, password: string, mnemonic: string, account: any, config: Config,
     http_client: any = undefined, wasm: any = undefined) {
@@ -143,6 +144,7 @@ export class Wallet {
     this.tor_circuit = [];
 
     this.saveMutex = new Mutex();
+    this.active = true
   }
 
   updateConfig(config_changes: object) {
@@ -289,19 +291,32 @@ export class Wallet {
     return new_wallet
   }
 
-  
+  stop() {
+    this.active = false
+    this.electrum_client.unsubscribeAll()
+  }
+
+  // unload wallet
+  unload() {
+    this.save()
+    this.stop()
+  }
 
   // Save entire wallet to storage. Store in file as JSON Object.
 
   async save() {
     const release = await this.saveMutex.acquire();
     try {
-      let wallet_json = cloneDeep(this)
-      this.storage.storeWallet(wallet_json)
+      this.save_nomutex()
     } finally {
       release();
     }
   };
+
+  save_nomutex() {
+    let wallet_json = cloneDeep(this)
+    this.storage.storeWallet(wallet_json)
+  }
 
   // Save wallet names in file
 

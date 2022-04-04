@@ -187,6 +187,10 @@ export class EPSClient {
     return setInterval(this.getLatestBlock, 10000, callBack, this.endpoint)
   }
 
+  unsubscribeAll() {
+    return
+  }
+
   async broadcastTransaction(rawTX: string): Promise<string> {
     return EPSClient.post(this.endpoint,GET_ROUTE.TX, {"data": rawTX})
   }
