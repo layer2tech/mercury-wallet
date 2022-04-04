@@ -407,7 +407,7 @@ export class Wallet {
       
       let fee_info: FeeInfo
 
-      getFeeInfo(this.http_client).then(res => {
+      getFeeInfo(this.http_client).then(async (res) => {
         fee_info = res
               // Check if any deposit_inits are awaiting funding txs and add them to a list if so
         let p_addrs: any = []
@@ -427,7 +427,7 @@ export class Wallet {
 
         // Create listeners for deposit inits awaiting funding
         for (let i in p_addrs) {
-          this.checkFundingTxListUnspent(
+          await this.checkFundingTxListUnspent(
             statecoins[i].shared_key_id,
             p_addrs[i],
             bitcoin.address.toOutputScript(p_addrs[i], this.config.network),
@@ -448,7 +448,7 @@ export class Wallet {
 
               // Create listeners for deposit inits awaiting funding
         for (let i in p_addrs_mp) {
-          this.checkFundingTxListUnspent(
+          await this.checkFundingTxListUnspent(
             statecoins_mp[i].shared_key_id,
             p_addrs_mp[i],
             bitcoin.address.toOutputScript(p_addrs_mp[i], this.config.network),
@@ -997,10 +997,10 @@ export class Wallet {
   async awaitFundingTx(shared_key_id: string, p_addr: string, value: number) {
     let p_addr_script = bitcoin.address.toOutputScript(p_addr, this.config.network)
     log.info("Subscribed to script hash for p_addr: ", p_addr);
-    this.electrum_client.scriptHashSubscribe(p_addr_script, (_status: any) => {
+    this.electrum_client.scriptHashSubscribe(p_addr_script, async (_status: any) => {
       log.info("Script hash status change for p_addr: ", p_addr);
       // Get p_addr list_unspent and verify tx
-      this.checkFundingTxListUnspent(shared_key_id, p_addr, p_addr_script, value);
+      await this.checkFundingTxListUnspent(shared_key_id, p_addr, p_addr_script, value);
     })
   }
   // Query funding txs list unspent and mark coin IN_MEMPOOL or UNCONFIRMED
