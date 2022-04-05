@@ -189,6 +189,8 @@ describe('Wallet', function () {
       expect(wallet_mod_json.config.electrum_config).toEqual(test_electrum_config)
       expect(wallet_mod_json.config.electrum_fee_estimation_blocks).toEqual(test_blocks)
 
+      //Stop and save wallet
+      await wallet.stop()
       await wallet.save()
 
       //Confirm that the reloaded wallet has the altered settings
@@ -199,56 +201,6 @@ describe('Wallet', function () {
       expect(wallet_mod_str).toEqual(loaded_wallet_str)
     });
   });
-
-  describe('Unload save', function () {
-    test('load, edit network settings, unload and reload', async function () {
-      //Check we are in mainnet mode
-      expect(callGetArgsHasTestnet()).toEqual(true)
-      expect(argsHasTestnet()).toEqual(true)
-
-      //Check the default network settings
-      expect(wallet.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.testnet_state_entity_endpoint)
-      expect(wallet.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.testnet_swap_conductor_endpoint)
-      expect(wallet.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.testnet_block_explorer_endpoint)
-      expect(wallet.config.electrum_config).toEqual(NETWORK_CONFIG.testnet_electrum_config)
-
-      //Edit the network settings
-      const test_state_entity_endpoint = "test SEE"
-      const test_swap_conductor_endpoint = "test SCE"
-      const test_block_explorer_endpoint = "test BEE"
-      const test_electrum_config = {
-        host: "test EC host",
-        port: 123456789,
-        protocol: "test EC protocol",
-        type: "test EC type"
-      }
-      const test_blocks = wallet.config.electrum_fee_estimation_blocks + 1
-
-      wallet.config.state_entity_endpoint = test_state_entity_endpoint
-      wallet.config.swap_conductor_endpoint = test_swap_conductor_endpoint
-      wallet.config.block_explorer_endpoint = test_block_explorer_endpoint
-      wallet.config.electrum_config = test_electrum_config
-      wallet.config.electrum_fee_estimation_blocks = test_blocks
-
-      //Confirm settings are edited
-      const wallet_mod_str = JSON.stringify(wallet)
-      const wallet_mod_json = JSON.parse(wallet_mod_str)
-      expect(wallet_mod_json.config.state_entity_endpoint).toEqual(test_state_entity_endpoint)
-      expect(wallet_mod_json.config.swap_conductor_endpoint).toEqual(test_swap_conductor_endpoint)
-      expect(wallet_mod_json.config.block_explorer_endpoint).toEqual(test_block_explorer_endpoint)
-      expect(wallet_mod_json.config.electrum_config).toEqual(test_electrum_config)
-      expect(wallet_mod_json.config.electrum_fee_estimation_blocks).toEqual(test_blocks)
-
-      await wallet.unload()
-
-      //Confirm that the reloaded wallet has the altered settings
-      let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
-      const loaded_wallet_str = JSON.stringify(loaded_wallet)
-      const loaded_wallet_json = JSON.parse(loaded_wallet_str)
-      expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
-      expect(wallet_mod_str).toEqual(loaded_wallet_str)
-    });
-  })
 
   describe('segwitAddr', function () {
     let publicKeyStr = "027d73eafd92135741e28ce14e240ec2c5fdeb3ae8c123eafad774af277372bb5f"

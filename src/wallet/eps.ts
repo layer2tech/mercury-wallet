@@ -187,7 +187,7 @@ export class EPSClient {
     return setInterval(this.getLatestBlock, 10000, callBack, this.endpoint)
   }
 
-  unsubscribeAll() {
+  async unsubscribeAll() {
     return
   }
 

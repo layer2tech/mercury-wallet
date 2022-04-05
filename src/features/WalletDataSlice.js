@@ -77,24 +77,33 @@ const initialState = {
 
 // Check if a wallet is loaded in memory
 export const isWalletLoaded = () => {
-  if (wallet===undefined) {
-    return false
-  }
-  return true
+  return (wallet!==undefined && wallet.isActive())
 }
+
+export const isWalletActive = () => {
+  return (isWalletLoaded() && wallet.isActive())
+}
+
 export const unloadWallet = () => {
-  try {
-    if (isWalletLoaded()) {
-      wallet.unload()
-    }
-  } catch (err) {
-    log.error(err.toString())
-  } finally {
+  if (isWalletLoaded()) {
     resetIndex();
-    wallet=undefined
+    wallet = undefined
   }
 }
-export const reloadWallet = () => {
+
+export const stopWallet = async () => {
+  if (isWalletActive()) {
+    await wallet.stop()
+  }
+}
+
+export const saveWallet = async () => {
+  if (isWalletLoaded()) {
+    await wallet.save()
+  }
+}
+
+export const reloadWallet = async () => {
   let name = wallet.name;
   let password = wallet.password;
   unloadWallet()
@@ -109,7 +118,7 @@ export const getWalletName = () => {
 
 //Restart the electrum server if ping fails
 async function pingElectrumRestart(force = false) {
-  if (wallet === undefined) {
+  if (isWalletActive() === false) {
     return
   }
     //If client already started
@@ -133,7 +142,7 @@ async function pingElectrumRestart(force = false) {
 // Keep electrum server connection alive.
 export async function callPingElectrumRestart(force = false){
   try {
-    if (wallet === undefined) {
+    if (isWalletActive() === false) {
       return
     }
     await pingElectrumRestart(force)
@@ -445,7 +454,7 @@ export const checkSwapAvailability = (statecoin, in_swap_values) => {
 
 
 export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, fromSatoshi) => {
-  if (isWalletLoaded() === false) {
+  if (isWalletActive() === false) {
     dispatch(clearInSwapValues())
     dispatch(clearSwapPendingCoins())
     return
@@ -928,7 +937,7 @@ const WalletSlice = createSlice({
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin, 
   clearSwapPendingCoins, clearInSwapValues,
-  updateInSwapValues, addInSwapValue, removeInSwapValue, isValueInSwap, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
+  updateInSwapValues, addInSwapValue, removeInSwapValue, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

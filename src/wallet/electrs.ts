@@ -238,10 +238,10 @@ export class ElectrsClient {
     clearInterval(this.block_height_interval)
   }
 
-  unsubscribeAll() {
-    this.blockHeightUnsubscribe()
-    this.scriptIntervals.forEach (function(value, _key) {
-     clearInterval(value)
+  async unsubscribeAll() {
+    await this.blockHeightUnsubscribe()
+    this.scriptIntervals.forEach (async function(value, _key) {
+     await clearInterval(value)
     })
   }
 

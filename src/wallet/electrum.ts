@@ -159,7 +159,7 @@ export class ElectrumClient {
     return headers_subscription
   }
 
-  unsubscribeAll() {
+  async unsubscribeAll() {
     return
   }
 

@@ -145,6 +145,7 @@ export class Wallet {
 
     this.saveMutex = new Mutex();
     this.active = true
+    this.start()
   }
 
   updateConfig(config_changes: object) {
@@ -291,15 +292,30 @@ export class Wallet {
     return new_wallet
   }
 
-  stop() {
+  async stop() {
     this.active = false
-    this.electrum_client.unsubscribeAll()
+    let n_semaphores = 0
+    while (n_semaphores < MAX_SWAP_SEMAPHORE_COUNT) {
+      await swapSemaphore.wait()
+      n_semaphores ++
+    } 
+    n_semaphores = 0
+    while (n_semaphores < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+      await updateSwapSemaphore.wait()
+      n_semaphores ++
+    } 
+    await this.electrum_client.unsubscribeAll()
+  }
+
+  async start() {
+    swapSemaphore.release(MAX_SWAP_SEMAPHORE_COUNT)
+    updateSwapSemaphore.release(MAX_SWAP_SEMAPHORE_COUNT)
   }
 
   // unload wallet
-  unload() {
-    this.save()
-    this.stop()
+  async unload() {
+    await this.stop()
+    await this.save()
   }
 
   // Save entire wallet to storage. Store in file as JSON Object.
@@ -361,6 +377,10 @@ export class Wallet {
       release()
     }
   };
+
+  isActive(): boolean {
+    return this.active
+  }
 
   // Load wallet JSON from store
   static load(wallet_name: string, password: string, testing_mode: boolean) {

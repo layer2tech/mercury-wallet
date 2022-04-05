@@ -109,19 +109,6 @@ describe('Swap Checks', function () {
     expect(wallet.active).toBe(false)
   })
 
-  test('wallet.unload() renders wallet inactive',  () => {
-    wallet.unload()
-    expect(wallet.active).toBe(false)
-  })
-    
-  test('wallet.unload() calls wallet.stop() and wallet.save()',  () => {
-    let saveSpy = jest.spyOn(wallet, 'save')
-    let stopSpy = jest.spyOn(wallet, 'stop')
-    wallet.unload()
-    expect(saveSpy).toHaveBeenCalled()
-    expect(stopSpy).toHaveBeenCalled()
-  })
-
   test('checkWalletStatus passes if wallet is active',  () => {
     expect(wallet.active).toBe(true)
     let statecoin = wallet.statecoins.coins[0]
