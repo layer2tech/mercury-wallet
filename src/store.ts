@@ -62,6 +62,8 @@ export class Storage {
     // remove testing_mode config
     delete wallet_json.config.testing_mode;
     delete wallet_json.config.jest_testing_mode;
+    // remove active status flag
+    delete wallet_json.active
 
     this.store.set(wallet_json.name, wallet_json);
   }
@@ -72,8 +74,10 @@ export class Storage {
 
   getWallet(wallet_name: string) {
     let wallet_json = this.store.get(wallet_name);
-
-    if (wallet_json===undefined) throw Error("No wallet called "+wallet_name+" stored.");
+    
+    if (wallet_json === undefined) throw Error("No wallet called " + wallet_name + " stored.");
+    //Wallet is active on startup
+    wallet_json.active = true
     return wallet_json
   }
 

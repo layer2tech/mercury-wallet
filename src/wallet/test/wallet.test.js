@@ -198,7 +198,9 @@ describe('Wallet', function () {
       expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
       expect(wallet_mod_str).toEqual(loaded_wallet_str)
     });
+  });
 
+  describe('Unload save', function () {
     test('load, edit network settings, unload and reload', async function () {
       //Check we are in mainnet mode
       expect(callGetArgsHasTestnet()).toEqual(true)
@@ -246,8 +248,7 @@ describe('Wallet', function () {
       expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
       expect(wallet_mod_str).toEqual(loaded_wallet_str)
     });
-  
-  });
+  })
 
   describe('segwitAddr', function () {
     let publicKeyStr = "027d73eafd92135741e28ce14e240ec2c5fdeb3ae8c123eafad774af277372bb5f"
