@@ -58,7 +58,7 @@ li {
   padding: 0 0 10px 35px;
 }
 
-li::before {
+.tor li::before {
     content: '';
     position: absolute;
     left: 9px;
@@ -73,7 +73,7 @@ li::before {
   border-width: 0px 0 0;
 }
 
-li::after {
+.tor li::after {
   content: '';
   position: absolute;
   left: 2px;
