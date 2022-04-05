@@ -62,7 +62,7 @@ const swap_steps = (swap) => {
 describe('Swap Checks', function () {
   let wallet
   
-  beforeAll(async () => {
+  beforeEach(async () => {
     wallet = await getWallet()
   })
 
@@ -79,7 +79,7 @@ describe('Swap Checks', function () {
     }).toThrow(Error(`Number of tries exceeded in phase ${statecoin.swap_status}`))
   })
 
-  test('test checkSwapLoopStatus', async () => {
+  test('test checkSwapLoopStatus',  () => {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], "Reset")
 
     let statecoin = wallet.statecoins.coins[0]
@@ -100,21 +100,21 @@ describe('Swap Checks', function () {
     expect(swap.statecoin).toStrictEqual(statecoin_expected)
   })
 
-  test('wallet is initially active', async () => {
+  test('wallet is initially active', () => {
     expect(wallet.active).toBe(true)
   })
 
-  test('wallet.stop() renders wallet inactive', async () => {
+  test('wallet.stop() renders wallet inactive',  () => {
     wallet.stop()
     expect(wallet.active).toBe(false)
   })
 
-  test('wallet.unload() renders wallet inactive', async () => {
+  test('wallet.unload() renders wallet inactive',  () => {
     wallet.unload()
     expect(wallet.active).toBe(false)
   })
     
-  test('wallet.unload() calls wallet.stop() and wallet.save()', async () => {
+  test('wallet.unload() calls wallet.stop() and wallet.save()',  () => {
     let saveSpy = jest.spyOn(wallet, 'save')
     let stopSpy = jest.spyOn(wallet, 'stop')
     wallet.unload()
@@ -122,14 +122,15 @@ describe('Swap Checks', function () {
     expect(stopSpy).toHaveBeenCalled()
   })
 
-  test('checkWalletStatus passes if wallet is active', async () => {
+  test('checkWalletStatus passes if wallet is active',  () => {
+    expect(wallet.active).toBe(true)
     let statecoin = wallet.statecoins.coins[0]
     let swap = new Swap(wallet, statecoin)
     swap.swap_steps = swap_steps(swap)
     expect(swap.checkWalletStatus()).toBe()
   })
 
-  test('checkWalletStatus throws an Error if wallet is not active', async () => {
+  test('checkWalletStatus throws an Error if wallet is not active',  () => {
     wallet.stop()
     let statecoin = wallet.statecoins.coins[0]
     let swap = new Swap(wallet, statecoin)
@@ -137,7 +138,7 @@ describe('Swap Checks', function () {
     expect(() => { swap.checkWalletStatus() }).toThrow(Error("wallet unloading..."))
   })
 
-  test('test checkStepStatus', async () => {
+  test('test checkStepStatus',  () => {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
     let swap = new Swap(wallet, statecoin)
@@ -145,7 +146,7 @@ describe('Swap Checks', function () {
     expect(swap.checkStepStatus()).toBe()
   })
 
-  test('test checkStatecoinStatus', async () => {
+  test('test checkStatecoinStatus',  () => {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
     let swap = new Swap(wallet, statecoin)
@@ -158,7 +159,7 @@ describe('Swap Checks', function () {
     }).toThrow(Error(`${step.description()}: invalid statecoin status: ${statecoin.status}`))
   })
 
-  test('test checkSwapStatus', async () => {
+  test('test checkSwapStatus',  () => {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
     let swap = new Swap(wallet, statecoin)
@@ -171,7 +172,7 @@ describe('Swap Checks', function () {
     }).toThrow(Error(`${step.description()}: invalid swap status: ${statecoin.swap_status}`))
   })
 
-  test('test checkStatecoinProperties', async () => {
+  test('test checkStatecoinProperties',  () => {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
     let swap = new Swap(wallet, statecoin)
@@ -266,7 +267,7 @@ describe('Swap Checks', function () {
 })
 
 describe('swapToken', function () {
-  test('Gen and Verify', async function () {
+  test('Gen and Verify',  function () {
     SIGNSWAPTOKEN_DATA.forEach(data => {
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(data.priv, "hex"));
       expect(proof_key_der.publicKey.toString('hex')).toBe(data.pub);
@@ -290,7 +291,7 @@ describe('swapToken', function () {
     });
   })
 
-  test('swapPhase4HandleErrPollSwap', async function() {
+  test('swapPhase4HandleErrPollSwap', async function () {
     let wallet = await getWallet()
     let statecoin = wallet.statecoins.coins[0]
     let swap = new Swap(wallet, statecoin)
@@ -321,16 +322,15 @@ describe('swapToken', function () {
 
 describe('Do Swap Poll',  function () {
   let wallet
-  beforeAll(async () => {
+  beforeEach(async () => {
     // loading test wallet
     wallet = await getWallet()
-    wallet.config.update({"jest_testing_mode": true})
   })
     
     let mock_proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
 
-    test('Preparing Statecoin for Swap', async function () {
+    test('Preparing Statecoin for Swap',  function () {
         // Test prev phase changes correctly
         // Prev Phase changes to Init:
 
@@ -397,7 +397,9 @@ describe('Do Swap Poll',  function () {
 
 describe('Deregister statecoin',  function () {
 
-  let wallet; beforeEach(async () => { wallet = await getWallet()})
+  let wallet; beforeEach(async () => {
+    wallet = await getWallet()
+  })
   test('Deregister statecoin awaiting swap successful', async function () {
     http_mock.post = jest.fn((path, body) => {
       if(path === POST_ROUTE.SWAP_DEREGISTER_UTXO){
