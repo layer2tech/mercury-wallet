@@ -11,7 +11,6 @@ const Header = (props) => {
 
   const handleLogout = async () => {
     await stopWallet();
-    await saveWallet()
     unloadWallet();
     props.setWalletLoaded(false);
   }
