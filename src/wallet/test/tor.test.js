@@ -1,4 +1,5 @@
 import { HttpClient, GET_ROUTE, POST_ROUTE } from '../http_client';
+import { ElectrsClient } from '../electrs';
 const handle_error = require('../../../tor-adapter/server/error').handle_error
 const { join, dirname } = require('path');
 const joinPath = join;
@@ -42,9 +43,9 @@ async function get_endpoints(client, config) {
     return await client.get('tor_endpoints', {})
 }
 
-describe.skip('Tor', function () {
+describe('Tor', function () {
 
-    let ta_process = undefined   
+    let ta_process = undefined
     beforeEach(async () => {
         let resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
         let execPath = joinPath(resourcesPath, 'linux');
@@ -54,7 +55,7 @@ describe.skip('Tor', function () {
         let user_data_path = `${__dirname}/data`
         let tor_adapter_args = [tor_cmd, torrc, user_data_path];
         console.log(`starting tor_adapter with args: ${tor_adapter_args.toString()}`)
-        
+
         //let ta_process = exec("node /home/ldeacon/Projects/mercury-wallet/src /../tor-adapter/server/index.js/home/ldeacon/Projects/mercury-wallet/resources/linux/tor/home/ldeacon/Projects/mercury-wallet/resources/etc/torrc/home/ldeacon /.config/MercuryWallet/tor)
         ta_process = exec(`node ${tor_adapter_path} ${tor_cmd} ${torrc} ${user_data_path}`,
             {
@@ -98,15 +99,15 @@ describe.skip('Tor', function () {
             console.log(err?.message)
         }
     })
-    
 
-    describe.skip('Tor server integration', function () {
-        test.skip('tor server get', async function () {
+
+    describe('Tor server integration', function () {
+        test('tor server get', async function () {
             const client = new HttpClient('http://localhost:3001');
             let result2 = undefined
             while (result2 === undefined) {
                 try {
-                    result2 = await client.get(GET_ROUTE.FEES, {});    
+                    result2 = await client.get(GET_ROUTE.FEES, {});
                 } catch (err) {
                     console.log(err.toString())
                 }
@@ -175,7 +176,14 @@ describe.skip('Tor', function () {
             }
         });
 
-        
+        test('broadcast transaction with electrs', async function () {
+            let electrsClient = new ElectrsClient('http://localhost:3001');
+            const rawTX = "02000000000101f4f4122a966de965746014d37a881b603e21da33c5105f85acdb1c745a2b787f0100000000feffffff02d75b0400000000001976a9143ee50e81f9793779652efcdbdc20fe084a82915e88ac08fce919020000001976a914c954cc7eab07d293129b99652933c4d9189c18b688ac0247304402204808b6478fe9a4e6ad74bf664a21ed6243493b7057d5af67735e9de84c5489a5022013cda421cbb9d8ddd826b67debfcfc364948ed3a084406545d5b235a9fa8044a01210339bf12d03b9b95bc30e7a462713e729e2dc93bc4b942f71b891f2a3066cc2a9d97782100"
+            let response = await electrsClient.broadcastTransaction(rawTX)
+            console.log(response.toString())
+        })
+
+
     });
 
     describe.skip('Tor server', function () {
