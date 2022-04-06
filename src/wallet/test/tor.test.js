@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import { HttpClient, GET_ROUTE, POST_ROUTE } from '../http_client';
 import { ElectrsClient } from '../electrs';
 const handle_error = require('../../../tor-adapter/server/error').handle_error
@@ -43,7 +47,7 @@ async function get_endpoints(client, config) {
     return await client.get('tor_endpoints', {})
 }
 
-describe('Tor', function () {
+describe.skip('Tor', function () {
 
     let ta_process = undefined
     beforeEach(async () => {
@@ -115,7 +119,7 @@ describe('Tor', function () {
             console.log(result2.toString());
         });
 
-        test.skip('tor server get unknown route', async function () {
+        test('tor server get unknown route', async function () {
             const client = new HttpClient('http://localhost:3001');
 
             try {
@@ -127,7 +131,7 @@ describe('Tor', function () {
             }
         });
 
-        test.skip('tor server post unknown route', async function () {
+        test('tor server post unknown route', async function () {
             const client = new HttpClient('http://localhost:3001');
 
             let transfer_msg1 = {
@@ -142,7 +146,7 @@ describe('Tor', function () {
             }
         });
 
-        test.skip('tor server unprocessable request', async function () {
+        test('tor server unprocessable request', async function () {
             const client = new HttpClient('http://localhost:3001');
 
             let transfer_msg1 = {
@@ -157,7 +161,7 @@ describe('Tor', function () {
             }
         });
 
-        test.skip('tor server post success', async function () {
+        test('tor server post success', async function () {
             const client = new HttpClient('http://localhost:3001');
 
             let deposit_msg1 = {
@@ -176,19 +180,28 @@ describe('Tor', function () {
             }
         });
 
-        test('broadcast transaction with electrs', async function () {
-            let electrsClient = new ElectrsClient('http://localhost:3001');
-            const rawTX = "02000000000101f4f4122a966de965746014d37a881b603e21da33c5105f85acdb1c745a2b787f0100000000feffffff02d75b0400000000001976a9143ee50e81f9793779652efcdbdc20fe084a82915e88ac08fce919020000001976a914c954cc7eab07d293129b99652933c4d9189c18b688ac0247304402204808b6478fe9a4e6ad74bf664a21ed6243493b7057d5af67735e9de84c5489a5022013cda421cbb9d8ddd826b67debfcfc364948ed3a084406545d5b235a9fa8044a01210339bf12d03b9b95bc30e7a462713e729e2dc93bc4b942f71b891f2a3066cc2a9d97782100"
-            let response = await electrsClient.broadcastTransaction(rawTX)
-            console.log(response.toString())
+        describe('electrs', function () {
+            test('broadcast transaction', async function () {
+                const electrsClient = new ElectrsClient('http://localhost:3001');
+                const rawTX = "0100000000010159c2ae349c2dafd349253a9ac4f877c6e244b2ca8f6a5b8391e20a9323962f470000000000fdffffff021027000000000000160014e3c1f3b69ce67a7ab47b55749fe75162a62c341831db020000000000160014f796c0123e2924d09cc9cfb6007a534d85f306df0247304402201137cc0d643c04f2432deaad3d4f6e647e6c88486bacfb35fc2a2d491ce54e220220343787ff6e20aaa964e7aba34b6c270b39ced8446abd2ff892a1c5b50d4bafe5012102847c0858d0a5b5e78c3cb8096ee7d0fd08a3026f0b85c3f4122cb2420c50264e00000000"                
+                let response = await electrsClient.broadcastTransaction(rawTX)
+                expect(response.message.includes("Transaction already in block chain")).toEqual(true)
+            })
+
+            test('get transaction', async function () {
+                const electrsClient = new ElectrsClient('http://localhost:3001');
+                const txid = "8197859978177a8f3cc41996cc59205eb9a7457e2a3bbd046e755ea71b3a6849"
+                let response = await electrsClient.getTransaction(txid)
+                expect(response).toEqual({ "txid": "8197859978177a8f3cc41996cc59205eb9a7457e2a3bbd046e755ea71b3a6849", "version": 2, "locktime": 2193559, "vin": [{ "txid": "7f782b5a741cdbac855f10c533da213e601b887ad314607465e96d962a12f4f4", "vout": 1, "prevout": { "scriptpubkey": "00146d75875954e6564f96ad5e1d80a3c5424c742e91", "scriptpubkey_asm": "OP_0 OP_PUSHBYTES_20 6d75875954e6564f96ad5e1d80a3c5424c742e91", "scriptpubkey_type": "v0_p2wpkh", "scriptpubkey_address": "tb1qd46cwk25uetyl94dtcwcpg79gfx8gt53r3j0np", "value": 9025000034 }, "scriptsig": "", "scriptsig_asm": "", "witness": ["304402204808b6478fe9a4e6ad74bf664a21ed6243493b7057d5af67735e9de84c5489a5022013cda421cbb9d8ddd826b67debfcfc364948ed3a084406545d5b235a9fa8044a01", "0339bf12d03b9b95bc30e7a462713e729e2dc93bc4b942f71b891f2a3066cc2a9d"], "is_coinbase": false, "sequence": 4294967294 }], "vout": [{ "scriptpubkey": "76a9143ee50e81f9793779652efcdbdc20fe084a82915e88ac", "scriptpubkey_asm": "OP_DUP OP_HASH160 OP_PUSHBYTES_20 3ee50e81f9793779652efcdbdc20fe084a82915e OP_EQUALVERIFY OP_CHECKSIG", "scriptpubkey_type": "p2pkh", "scriptpubkey_address": "mmFWb5pqUaKRaNJor7hF5var3tbAgieeDw", "value": 285655 }, { "scriptpubkey": "76a914c954cc7eab07d293129b99652933c4d9189c18b688ac", "scriptpubkey_asm": "OP_DUP OP_HASH160 OP_PUSHBYTES_20 c954cc7eab07d293129b99652933c4d9189c18b6 OP_EQUALVERIFY OP_CHECKSIG", "scriptpubkey_type": "p2pkh", "scriptpubkey_address": "mysVhY4gXeY1EGYAnKyLKNpvV17M5ZYUgL", "value": 9024699400 }], "size": 228, "weight": 585, "fee": 14979, "status": { "confirmed": true, "block_height": 2193560, "block_hash": "0000000000000026a0c8e16a6dbf7f954c93b7bd6b53e2a4307596efa6259f1b", "block_time": 1649241800 } })                
+            })
         })
 
 
     });
 
-    describe.skip('Tor server', function () {
+    describe('Tor server', function () {
 
-        test.skip('set/get tor config', async function () {
+        test('set/get tor config', async function () {
             const client = new HttpClient('http://localhost:3001');
 
             let tor_config = {

@@ -137,15 +137,13 @@ async function post_endpoint(path, body, res, endpoint, i_hs) {
 };
 
 async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
-  try{
-    let result = await tor.post_plain(path,data, endpoint[i_hs.i]);
+  tor.post_plain(path, data, endpoint[i_hs.i]).then((result) => {
     res.status(200).json(result);
-  } catch (err){
-    i_hs['i'] = (i_hs.i + 1) % endpoint.length      	
+  }).catch((err) => {
+    i_hs['i'] = (i_hs.i + 1) % endpoint.length
     handle_error(res, err)
-  }
-};
-
+  })
+}
 
 app.get('/newid', async function(req,res) {
   try{
@@ -445,9 +443,6 @@ app.get('/electrs/*', function (req, res) {
   if (!config?.electrum_endpoint) {
     res.status(400).json('tor-adapter: get: config.electrum_endpoint not set')
   }
-  if (!Array.isArray(config.swap_conductor_endpoint)) {
-    res.status(400).json('tor-adapter: get: config.electrum_endpoint is not an array')
-  }
   get_endpoint(path, res, config.electrum_endpoint, i_elect_hs)
  });
  
@@ -457,9 +452,6 @@ app.post('/electrs/*', function (req, res) {
     let data = body?.data ? body.data : ""
   if (!config?.electrum_endpoint) {
     res.status(400).json('tor-adapter: post: config.electrum_endpoint not set')
-  }
-  if (!Array.isArray(config.swap_conductor_endpoint)) {
-    res.status(400).json('tor-adapter: post: config.electrum_endpoint is not an array')
   }
    post_plain_endpoint(path, data, res, config.electrum_endpoint, i_elect_hs)
  });

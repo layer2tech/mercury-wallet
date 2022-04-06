@@ -46,9 +46,11 @@ Object.freeze(POST_ROUTE);
 
 const handlePromiseRejection = (err: any, config: any) => {
   let msg_str = err?.message
-  if (msg_str && msg_str.search(`/timeout of .*ms exceeded/`)) {
+  if (msg_str && msg_str.search(/timeout of .*ms exceeded/) !== -1) {
     throw new Error(`Electrum API request timed out: ${msg_str}`)
   }
+  console.log(`electrs error json: ${JSON.stringify(err)}`)
+  console.log(`electrs error: ${err.toString()}`)
   throw err
 }
 
