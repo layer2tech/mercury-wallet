@@ -151,11 +151,11 @@ In a terminal, change directory to the one containing the mercurywallet AppImage
 
 ### Windows 11
 
-Assuming mercurywallet.exe is installed in the default location - start 'powershell' and enter the following command:
+Assuming mercurywallet.exe is installed in the default location, for username <User> - enter the following into the file explorer:
 
-- Mainnet mode: `($env:NODE_ENV='development')  -and (C:\Users\User\AppData\Local\Programs\mercurywallet\mercurywallet.exe)`
+- Mainnet mode: `cmd /c "set NODE_ENV=development&C:\Users\<User>\AppData\Local\Programs\mercurywallet\mercurywallet.exe"`
 
-- Testnet mode: `($env:NODE_ENV='development')  -and (C:\Users\User\AppData\Local\Programs\mercurywallet\mercurywallet.exe --testnet)`
+- Testnet mode: `cmd /c "set NODE_ENV=development&C:\Users\<User>\AppData\Local\Programs\mercurywallet\mercurywallet.exe --testnet"`
 
 # Recover of expired statecoins
 
