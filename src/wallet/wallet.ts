@@ -12,7 +12,7 @@ import { txCPFPBuild, FEE, encryptAES } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw, withdraw_init, withdraw_confirm, WithdrawMsg2 } from './mercury/withdraw';
-import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData } from './mercury/transfer';
+import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData, transferUpdateMsg } from './mercury/transfer';
 
 import { SwapGroup, GroupInfo, SWAP_STATUS } from './swap/swap_utils';
 import Swap from './swap/swap';
@@ -1379,6 +1379,8 @@ export class Wallet {
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
     let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, false, this)
+
+    await transferUpdateMsg(this.http_client, transfer_sender, false)
 
     log.info("Transfer Sender complete.");
     await this.saveStateCoinsList();

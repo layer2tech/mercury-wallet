@@ -2,7 +2,7 @@ import { EPSClient } from '../eps'
 import {
   transferSender, transferReceiver, TransferFinalizeData,
   transferReceiverFinalize, SCEAddress, TransferMsg3,
-  TransferMsg4, getTransferMsg4
+  TransferMsg4, getTransferMsg4, transferUpdateMsg
 } from "../mercury/transfer"
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo } from "./info_api";
 import { delay_s, getTransferBatchStatus } from "../mercury/info_api";
@@ -508,6 +508,25 @@ export default class Swap {
       return SwapStepResult.Ok("transfer sender complete")
     } catch (err: any) {
       return SwapStepResult.Retry(`transferSender: ${err.message}`)
+    }
+  }
+
+  getTransferMsg(): TransferMsg3 {
+    const tm3 = this.statecoin.swap_transfer_msg
+    if (tm3 === null || tm3 === undefined) {
+      throw new Error("expected SwapInfo, got null or undefined")
+    }
+    return tm3
+  }
+
+  transferUpdateMsg = async (): Promise<SwapStepResult> => {
+    try {
+      const tm3 = this.getTransferMsg()
+      await transferUpdateMsg(this.clients.http_client,
+        tm3, true)        
+      return SwapStepResult.Ok("transfer update msg complete")
+    } catch (err: any) {
+      return SwapStepResult.Retry(`transferUpdateMsg: ${err.message}`)
     }
   }
 
