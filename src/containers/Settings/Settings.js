@@ -6,7 +6,7 @@ import {useDispatch} from 'react-redux'
 
 import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
-  callUpdateConfig, callClearSave, unloadWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic} from '../../features/WalletDataSlice'
+  callUpdateConfig, callClearSave, unloadWallet, stopWallet, saveWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic} from '../../features/WalletDataSlice'
 
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
@@ -137,7 +137,8 @@ const SettingsPage = (props) => {
     setMinAnonSet(current_config.min_anon_set);
   }
 
-  const clearWalletButtonOnClick = () => {
+  const clearWalletButtonOnClick = async () => {
+    await stopWallet()
     dispatch(callClearSave());
     unloadWallet();
     props.setWalletLoaded(false);

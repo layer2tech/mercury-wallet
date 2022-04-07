@@ -77,16 +77,33 @@ const initialState = {
 
 // Check if a wallet is loaded in memory
 export const isWalletLoaded = () => {
-  if (wallet===undefined) {
-    return false
-  }
-  return true
+  return (wallet!==undefined && wallet.isActive())
 }
+
+export const isWalletActive = () => {
+  return (isWalletLoaded() && wallet.isActive())
+}
+
 export const unloadWallet = () => {
-  resetIndex();
-  wallet = undefined;
+  if (isWalletLoaded()) {
+    resetIndex();
+    wallet = undefined
+  }
 }
-export const reloadWallet = () => {
+
+export const stopWallet = async () => {
+  if (isWalletActive()) {
+    await wallet.stop()
+  }
+}
+
+export const saveWallet = async () => {
+  if (isWalletLoaded()) {
+    await wallet.save()
+  }
+}
+
+export const reloadWallet = async () => {
   let name = wallet.name;
   let password = wallet.password;
   unloadWallet()
@@ -101,6 +118,9 @@ export const getWalletName = () => {
 
 //Restart the electrum server if ping fails
 async function pingElectrumRestart(force = false) {
+  if (isWalletActive() === false) {
+    return
+  }
     //If client already started
     if (force || !wallet.electrum_client || await wallet.electrum_client.isClosed()) {
       log.info(`Restarting electrum server`);
@@ -122,6 +142,9 @@ async function pingElectrumRestart(force = false) {
 // Keep electrum server connection alive.
 export async function callPingElectrumRestart(force = false){
   try {
+    if (isWalletActive() === false) {
+      return
+    }
     await pingElectrumRestart(force)
     return wallet.electrum_client.latestBlockHeader()  
   } catch (err) {
@@ -198,7 +221,9 @@ export const walletFromJson = (wallet_json, password) => {
   });
 }
 export const callGetAccount = () => {
-  return wallet.account
+  if (isWalletLoaded()) {
+    return wallet.account  
+  }
 }
 
 export const callGetPassword = () => {
@@ -225,41 +250,63 @@ export const callGetConfig = (test_wallet = null) => {
 }
 
 export const callGetVersion = () => {
-  return wallet.version
+  if (isWalletLoaded()) {
+    return wallet.version
+  }
 }
 export const callGetBlockHeight = () => {
-  return wallet.getBlockHeight()
+  if (isWalletLoaded()) {
+    return wallet.getBlockHeight()
+  }
 }
 export const callGetUnspentStatecoins = () => {
-  return wallet.getUnspentStatecoins()
+  if (isWalletLoaded()) {
+    return wallet.getUnspentStatecoins()  
+  }
 }
 export const callGetAllStatecoins = () => {
-return wallet.getAllStatecoins()
+  if (isWalletLoaded()) {
+    return wallet.getAllStatecoins()
+  }
 }
 
 export const callSumStatecoinValues = (shared_key_ids) => {
-  return wallet.sumStatecoinValues(shared_key_ids)
+  if (isWalletLoaded()) {
+    return wallet.sumStatecoinValues(shared_key_ids)
+  }
 }
 
 export const callIsBatchMixedPrivacy = (shared_key_ids) => {
-  return wallet.isBatchMixedPrivacy(shared_key_ids)
+  if (isWalletLoaded()) {
+    return wallet.isBatchMixedPrivacy(shared_key_ids)
+  }
 }
 
 export const callGetTorcircuitInfo = () => {
-  return wallet.getTorcircuitInfo();
+  if (isWalletLoaded()) {
+    return wallet.getTorcircuitInfo();
+  }
 }
 
 export const callGetSwapGroupInfo = () => {
-  return wallet.getSwapGroupInfo()
+  if (isWalletLoaded()) {
+    return wallet.getSwapGroupInfo()
+  }
 }
 export const callGetPingServerms = () => {
-  return wallet.getPingServerms()
+  if (isWalletLoaded()) {
+    return wallet.getPingServerms()
+  }
 }
 export const callGetPingConductorms = () => {
-  return wallet.getPingConductorms()
+  if (isWalletLoaded()) {
+    return wallet.getPingConductorms()
+  }
 }
 export const callGetPingElectrumms = () => {
-  return wallet.getPingElectrumms()
+  if (isWalletLoaded()) {
+    return wallet.getPingElectrumms()
+  }
 }
 
 export const showWarning = (key) =>  {
@@ -271,31 +318,45 @@ export const showWarning = (key) =>  {
     return wallet.showWarning(key)
   }
 }
-export const dontShowWarning = async (key) =>  {
-  await wallet.dontShowWarning(key)
-  return 
+export const dontShowWarning = async (key) => {
+  if (isWalletLoaded()) {
+    await wallet.dontShowWarning(key)
+    return
+  }
 }
 
-export const callGetUnconfirmedAndUnmindeCoinsFundingTxData= () => {
-  return wallet.getUnconfirmedAndUnmindeCoinsFundingTxData()
+export const callGetUnconfirmedAndUnmindeCoinsFundingTxData = () => {
+  if (isWalletLoaded()) {
+    return wallet.getUnconfirmedAndUnmindeCoinsFundingTxData()
+  }
 }
 export const callGetUnconfirmedStatecoinsDisplayData = () => {
-  return wallet.getUnconfirmedStatecoinsDisplayData()
+  if (isWalletLoaded()) {
+    return wallet.getUnconfirmedStatecoinsDisplayData()
+  }
 }
 
 export const callGetActivityLog = () => {
-  return wallet.getActivityLog();
+  if (isWalletLoaded()) {
+    return wallet.getActivityLog();
+  }
 }
 
 export const callGetActivityLogItems = (num_of_items) => {
-  return wallet.getActivityLogItems(num_of_items)
+  if (isWalletLoaded()) {
+    return wallet.getActivityLogItems(num_of_items)
+  }
 }
 
 export const callGetFeeInfo = () => {
-  return getFeeInfo(wallet.http_client)
+  if (isWalletLoaded()) {
+    return getFeeInfo(wallet.http_client)
+  }
 }
 export const callGetCoinsInfo = () => {
-  return getCoinsInfo(wallet.http_client)
+  if (isWalletLoaded()) {
+    return getCoinsInfo(wallet.http_client)
+  }
 }
 export const callPingSwap = () => {
   try {
@@ -312,47 +373,67 @@ export const callPingServer = () => {
   }
 }
 export const callGetCoinBackupTxData = (shared_key_id) => {
-  return wallet.getCoinBackupTxData(shared_key_id)
+  if (isWalletLoaded()) {
+    return wallet.getCoinBackupTxData(shared_key_id)
+  }
 }
 export const callGetSeAddr = (addr_index) => {
-  return wallet.getSEAddress(addr_index)
+  if (isWalletLoaded()) {
+    return wallet.getSEAddress(addr_index)
+  }
 }
 // Gen new SE Address
 export const callNewSeAddr = async (state) => {
-  return await wallet.newSEAddress()
+  if (isWalletLoaded()) {
+    return await wallet.newSEAddress()
+  }
 }
 export const callGetNumSeAddr = () => {
-  return wallet.getNumSEAddress()
+  if (isWalletLoaded()) {
+    return wallet.getNumSEAddress()
+  }
 }
 // Remove coin from coins list
 export const callRemoveCoin = async (shared_key_id) => {
-  log.info("Removing coin "+shared_key_id+" from wallet.");
-  await wallet.removeStatecoin(shared_key_id);
+  if (isWalletLoaded()) {
+    log.info("Removing coin " + shared_key_id + " from wallet.");
+    await wallet.removeStatecoin(shared_key_id);
+  }
 }
 
 export const callGetStateCoin = (shared_key_id) => {
-  return wallet.getStatecoin(shared_key_id);
+  if (isWalletLoaded()) {
+    return wallet.getStatecoin(shared_key_id);
+  }
 }
 
-export const callAddDescription = (shared_key_id,description) => {
-  wallet.addDescription(shared_key_id,description)
+export const callAddDescription = (shared_key_id, description) => {
+  if (isWalletLoaded()) {
+    wallet.addDescription(shared_key_id, description)
+  }
 }
 
 // Update config with JSON of field to change
 export const callUpdateConfig = async (config_changes) => {
-  if ((await wallet.updateConfig(config_changes)) === true) {
-    reloadWallet();
+  if (isWalletLoaded()) {
+    if ((await wallet.updateConfig(config_changes)) === true) {
+      await reloadWallet();
+    }
   }
 }
 
 // Create CPFP transaction and add to coin
 export const callCreateBackupTxCPFP = async (cpfp_data) => {
-     let sucess = await wallet.createBackupTxCPFP(cpfp_data);
-     return sucess
+  if (isWalletLoaded()) {
+    let sucess = await wallet.createBackupTxCPFP(cpfp_data);
+    return sucess
+  }
 }
 
 export const callGetWalletJsonToBackup = () => {
-  return wallet.storage.getWallet(wallet.name);
+  if (isWalletLoaded()) {
+    return wallet.storage.getWallet(wallet.name);
+  }
 }
 
 //Swap Functions
@@ -368,14 +449,23 @@ export const checkSwapAvailability = (statecoin, in_swap_values) => {
   return true
 }
 
-export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, fromSatoshi) => {
 
+
+
+
+export const handleEndSwap = (dispatch,selectedCoin,res, setSwapLoad, swapLoad, fromSatoshi) => {
+  if (isWalletActive() === false) {
+    dispatch(clearInSwapValues())
+    dispatch(clearSwapPendingCoins())
+    return
+  }
   dispatch(removeSwapPendingCoin(selectedCoin))
   // get the statecoin for txId method
   let statecoin = callGetStateCoin(selectedCoin)
-  dispatch(removeInSwapValue(statecoin.value))
   if(statecoin === undefined || statecoin === null){
     statecoin = selectedCoin;
+  } else {
+    dispatch(removeInSwapValue(statecoin.value))
   }
   if (res.payload===null) {
     dispatch(setNotification({msg:"Coin "+statecoin.getTXIdAndOut()+" removed from swap pool."}))
@@ -701,6 +791,9 @@ const WalletSlice = createSlice({
         state.swapPendingCoins = state.swapPendingCoins.filter(isNot);
       }
     },
+    clearSwapPendingCoins(state, _action) {
+      state.swapPendingCoins = []
+    },
     updateInSwapValues(state, action) {
       return {
         ...state,
@@ -724,6 +817,9 @@ const WalletSlice = createSlice({
         }
         state.inSwapValues = state.inSwapValues.filter(isNot);
       }
+    },
+    clearInSwapValues(state, _action) {
+      state.inSwapValues = []
     },
     // Deposit
     dummyDeposit() {
@@ -840,7 +936,8 @@ const WalletSlice = createSlice({
 
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin, 
-  updateInSwapValues, addInSwapValue, removeInSwapValue, isValueInSwap, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
+  clearSwapPendingCoins, clearInSwapValues,
+  updateInSwapValues, addInSwapValue, removeInSwapValue, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
   export default WalletSlice.reducer
 
 

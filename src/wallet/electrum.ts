@@ -159,6 +159,10 @@ export class ElectrumClient {
     return headers_subscription
   }
 
+  async unsubscribeAll() {
+    return
+  }
+
   async broadcastTransaction(rawTX: string): Promise<string> {
     this.connect();
     const txHash = await this.client

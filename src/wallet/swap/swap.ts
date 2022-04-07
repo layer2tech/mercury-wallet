@@ -109,6 +109,12 @@ export default class Swap {
     }
   }
 
+  checkWalletStatus = () => {
+    if (this.wallet.active ===false) {
+      throw Error(`wallet unloading...`)
+    }
+  }
+
   checkStepStatus = () => {
     let step = this.getNextStep()
     this.checkStatecoinStatus(step)
@@ -117,6 +123,7 @@ export default class Swap {
   }
 
   doNext = async (): Promise<SwapStepResult> => {
+    this.checkWalletStatus()
     this.checkStepStatus()
     this.checkStepTimer()
     this.checkNRetries()
