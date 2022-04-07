@@ -1,4 +1,4 @@
-const isPackaged = require.main.filename.replace(/\\/g, "/").indexOf('resources/app/build/electron.js') !== -1 
+const isPackaged = require.main.filename.replace(/\\/g, "/").indexOf('app/build/electron.js') !== -1 
 const { app, BrowserWindow, dialog, ipcMain, shell, nativeTheme } = require('electron');
 const { join, dirname } = require('path');
 const joinPath = join;
