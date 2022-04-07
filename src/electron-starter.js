@@ -1,9 +1,9 @@
-const isPackaged = require.main.filename.replace(/\\/g, "/").indexOf('resources/app/build/electron.js') !== -1 
-const { app, BrowserWindow, dialog, ipcMain, shell, nativeTheme } = require('electron');
+const fs = require('fs');
 const { join, dirname } = require('path');
 const joinPath = join;
+const { app, BrowserWindow, dialog, ipcMain, shell, nativeTheme } = require('electron');
+const path = require('path');
 const url = require('url');
-const fs = require('fs');
 const fixPath = require('fix-path');
 const alert = require('alert');
 const rootPath = require('electron-root-path').rootPath;
@@ -11,11 +11,15 @@ const axios = require('axios').default;
 const process = require('process')
 const fork = require('child_process').fork;
 const exec = require('child_process').exec;
-require('@electron/remote/main').initialize()
+const execFile = require('child_process').execFile;
+// set to testnet mode for testing
+if (!require("./settings.json").testing_mode) {
+  require('@electron/remote/main').initialize()
+}
 
 app.disableHardwareAcceleration()
-
-function getPlatform() {
+  
+const getPlatform = () => {
   switch (process.platform) {
     case 'aix':
     case 'freebsd':
@@ -32,33 +36,16 @@ function getPlatform() {
 
 }
 
-const isDev = (process.env.NODE_ENV == 'development');
-
 let ta_process = undefined
+
 let resourcesPath = undefined;
-let iconPath = undefined;
+resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
+
 let execPath = undefined;
 let torrc = undefined;
 
-if (isPackaged === true) {
-  if (getPlatform() == 'linux') {
-    resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet', 'resources');
-  } else {
-    resourcesPath = joinPath(dirname(rootPath), 'resources');
-  }
-
-  if (getPlatform() == 'linux') {
-    execPath = joinPath(rootPath, '..', '..', 'Resources', 'bin');
-    iconPath = joinPath(rootPath, '..', '..', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
-  } else {
-    execPath = joinPath(rootPath, '..', 'bin');
-  }
-  torrc = joinPath(execPath, '..', 'etc', 'torrc');
-} else {
-  resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
-  execPath = joinPath(resourcesPath, getPlatform());
-  torrc = joinPath(resourcesPath, 'etc', 'torrc');
-}
+execPath = joinPath(resourcesPath, getPlatform());
+torrc = joinPath(resourcesPath, 'etc', 'torrc');
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;
 
@@ -69,12 +56,18 @@ for (let i = 0; i < process.argv.length; i++) {
   }
 }
 
+// Keep a global reference of the window object, if you don't, the window will
+// be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
+
+let iconPath = undefined;
+if (getPlatform() == 'linux') {
+  iconPath = joinPath(dirname(rootPath), 'mercury-wallet', 'build', 'icons', 'mercury-symbol-tri-color.png');
+}
 
 function createWindow() {
   let windowSpec = {
-    width: 1200,
-    height: 800,
+    width: 1200, height: 800,
     webPreferences:
     {
       nodeIntegration: true,
@@ -85,6 +78,7 @@ function createWindow() {
       preload: __dirname + '/preload.js'
     }
   }
+
   if (iconPath) {
     windowSpec.icon = iconPath
   }
@@ -97,17 +91,17 @@ function createWindow() {
 
   // Add function to change Main Window DarkMode to System settings
   ipcMain.handle('dark-mode:off', () => {
-    nativeTheme.themeSource = 'light'
+    nativeTheme.themeSource = 'system'
   })
 
+
+  // Create the browser window.
   mainWindow = new BrowserWindow(windowSpec);
-
   require("@electron/remote/main").enable(mainWindow.webContents)
-
+  
   if (process.platform !== 'darwin') {
     mainWindow.setMenu(null);
   }
-
 
   // Open links in systems default browser
   mainWindow.webContents.on('new-window', function (e, url) {
@@ -115,25 +109,30 @@ function createWindow() {
     shell.openExternal(url);
   });
 
-
-  const startUrl = url.format({
-    pathname: joinPath(__dirname, '/../build/index.html'),
+  // and load the index.html of the app.
+  const startUrl = process.env.ELECTRON_START_URL || url.format({
+    pathname: path.join(__dirname, '/../build/index.html'),
     protocol: 'file:',
     slashes: true
   });
+  
   mainWindow.loadURL(startUrl);
+  // Open the DevTools.
+  mainWindow.webContents.openDevTools();
 
-  if (isDev) {
-    mainWindow.webContents.openDevTools();
-    debugger;
-  }
-
-  mainWindow.on('close', async () => {
+  mainWindow.on('close', async function () {
   });
 
-  mainWindow.on('closed', async () => {
-    mainWindow = null;
-  });
+  // Emitted when the window is closed.
+  mainWindow.on('closed', async function () {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    mainWindow = null
+  })
+
+
+
 }
 
 async function getTorAdapter(path) {
@@ -155,20 +154,25 @@ app.on('ready', () => {
     alert('mercurywallet is already running. Not opening app.')
     app.quit()
   }
-  teminate_tor_process();
+  terminate_tor_process();
   terminate_mercurywallet_process(init_tor_adapter);
   createWindow()
 }
 );
 
-app.on('window-all-closed', async () => {
-  teminate_tor_process(); // ensure the tor processes are closed after s
-  app.quit();
+// Quit when all windows are closed.
+app.on('window-all-closed', async function () {
+  // On OS X it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
+  terminate_tor_process();
+  app.quit()
 });
 
-app.on('activate', () => {
+app.on('activate', function () {
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
-    createWindow();
+    createWindow()
   }
 });
 
@@ -204,25 +208,29 @@ ipcMain.on('select-backup-file', async (event, arg) => {
   });
 });
 
-// You can use 'before-quit' instead of (or with) the close event
-app.on('before-quit', async function () {
-});
-
+app.allowRendererProcessReuse = false;
 app.commandLine.appendSwitch('ignore-certificate-errors');
-
 // Electron Store
 const Store = require('electron-store');
 Store.initRenderer();
 
 async function init_tor_adapter() {
+  console.log("init tor adapter")
   fixPath();
+  let tor_adapter_path = `${__dirname}/../tor-adapter/server/index.js`
+  console.log(`starting tor adapter from: ${tor_adapter_path}`);
+  console.log(`tor_cmd: ${tor_cmd}`);
+  console.log(`torrc: ${torrc}`);
   let user_data_path = app.getPath('userData');
-  let tor_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
+  console.log(`user data path: ${user_data_path}`);
   let tor_adapter_args = [tor_cmd, torrc, user_data_path];
   if (getPlatform() === 'win') {
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
   }
+
+  console.log(`starting tor_adapter with args: ${tor_adapter_args.toString()}`)
+
   ta_process = fork(`${tor_adapter_path}`, tor_adapter_args,
     {
       detached: false,
@@ -230,25 +238,26 @@ async function init_tor_adapter() {
     },
     (error, stdout, _stderr) => {
       if (error) {
+        console.log(`tor process error - exiting: ${error.toString()}`)
         app.exit(error);
       };
     }
   );
+  console.log(`started tor child process: ${ta_process.pid}`);
 }
 
-
-const teminate_tor_process = () => {
+const terminate_tor_process = () => {
   // remove tor from windows processes and mercury wallet if it exists.
   if (getPlatform() === 'win') {
     exec('get-process | where {$_.ProcessName -Like "tor*"}', { 'shell': 'powershell.exe' }, (error, stdout, stderr) => {
 
       if (error) {
-        console.error(`teminate_tor_process- exec error: ${error}`)
-        console.log(`teminate_tor_process- exec error: ${error}`)
+        console.error(`terminate_tor_process- exec error: ${error}`)
+        console.log(`terminate_tor_process- exec error: ${error}`)
         return
       }
       if (stderr) {
-        console.log(`teminate_tor_process- error: ${stderr}`)
+        console.log(`terminate_tor_process- error: ${stderr}`)
         return
       }
 
@@ -257,12 +266,12 @@ const teminate_tor_process = () => {
         exec('taskkill /f /t /im tor.exe', { 'shell': 'powershell.exe' }, (err2, stdout2, stderr2) => {
           // log to file
           if (err2) {
-            console.error(`teminate_tor_process- exec error: ${err2}`)
-            console.log(`teminate_tor_process- exec error: ${err2}`)
+            console.error(`terminate_tor_process- exec error: ${err2}`)
+            console.log(`terminate_tor_process- exec error: ${err2}`)
             return
           }
           if (stderr2) {
-            console.log(`teminate_tor_process- error: ${stderr2}`)
+            console.log(`terminate_tor_process- error: ${stderr2}`)
             return
           }
         })
@@ -331,8 +340,8 @@ async function on_exit() {
 }
 
 async function kill_tor() {
+  console.log("terminating the tor adapter process...")
   if (ta_process) {
-    console.log("terminating the tor adapter process...")
     await kill_process(ta_process.pid)
   }
 }
@@ -362,3 +371,6 @@ async function kill_process(pid, init_new) {
 process.on('SIGINT', on_exit);
 process.on('SIGTERM', on_exit);
 process.on('exit', on_exit);
+
+
+
