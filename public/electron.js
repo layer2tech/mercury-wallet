@@ -1,3 +1,4 @@
+const isPackaged = require.main.filename.indexOf('resources/app/build/electron.js') !== -1;
 const { app, BrowserWindow, dialog, ipcMain, shell, nativeTheme } = require('electron');
 const { join, dirname } = require('path');
 const joinPath = join;
@@ -34,26 +35,30 @@ function getPlatform() {
 const isDev = (process.env.NODE_ENV == 'development');
 
 let ta_process = undefined
-
 let resourcesPath = undefined;
 let iconPath = undefined;
-if (getPlatform() == 'linux') {
-  resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet', 'resources');
-} else {
-  resourcesPath = joinPath(dirname(rootPath), 'resources');
-}
 let execPath = undefined;
 let torrc = undefined;
 
-if (getPlatform() == 'linux') {
-  execPath = joinPath(rootPath, '..', '..', 'Resources', 'bin');
-  iconPath = joinPath(rootPath, '..', '..', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
-} else {
-  console.log("root path: " + rootPath);
-  execPath = joinPath(rootPath, '..', 'bin');
-}
-torrc = joinPath(execPath, '..', 'etc', 'torrc');
+if (isPackaged === true) {
+  if (getPlatform() == 'linux') {
+    resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet', 'resources');
+  } else {
+    resourcesPath = joinPath(dirname(rootPath), 'resources');
+  }
 
+  if (getPlatform() == 'linux') {
+    execPath = joinPath(rootPath, '..', '..', 'Resources', 'bin');
+    iconPath = joinPath(rootPath, '..', '..', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
+  } else {
+    execPath = joinPath(rootPath, '..', 'bin');
+  }
+  torrc = joinPath(execPath, '..', 'etc', 'torrc');
+} else {
+  resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
+  execPath = joinPath(resourcesPath, getPlatform());
+  torrc = joinPath(resourcesPath, 'etc', 'torrc');
+}
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;
 
@@ -211,10 +216,7 @@ Store.initRenderer();
 
 async function init_tor_adapter() {
   fixPath();
-  console.log(tor_cmd);
-  console.log(torrc);
   let user_data_path = app.getPath('userData');
-  console.log(user_data_path);
   let tor_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
   let tor_adapter_args = [tor_cmd, torrc, user_data_path];
   if (getPlatform() === 'win') {
