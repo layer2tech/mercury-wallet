@@ -139,7 +139,7 @@ const Coin = (props) => {
           }
           if ((!SWAP_AMOUNTS.includes(props.coin_data.value)) && (props.swap)) {
             dispatch(setError({ msg: 'Swap not available for this coin value' }))
-            return false;            
+            return false;
           }
           if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.swap || props.send || props.withdraw)) {
             dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap or withdrawal' }))
@@ -250,6 +250,7 @@ const Coin = (props) => {
                   type="checkbox"
                   onChange={e => props.handleAutoSwap(props.coin_data)}
                   checked={props.coin_data.swap_auto}
+                  disabled={props.coin_data.status === "INITIALISED" ? true : false}
                 />
                 <div className="toggle-switch" />
               </label>

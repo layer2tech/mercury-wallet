@@ -158,31 +158,37 @@ export const transferSender = async (
     wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.TRANSFER, transfer_msg3);
   }
   
+  return transfer_msg3
+}
+
+export const transferUpdateMsg = async (
+  http_client: HttpClient | MockHttpClient,
+  transfer_msg3: TransferMsg3,
+  force: boolean = false
+) => {
   // Update server database with transfer message 3 so that
   // the receiver can get the message
   const MAX_TRIES = 10
   let n_tries = 0
 
-  while(true){
+  while (true) {
     try {
       await http_client.post(POST_ROUTE.TRANSFER_UPDATE_MSG, transfer_msg3)
       break
-    } catch(err: any){
+    } catch (err: any) {
       n_tries = n_tries + 1
       if (n_tries >= MAX_TRIES) {
-        let err_msg = err?.message
-        if (typeof err_msg === "undefined"){
-          err_msg = JSON.stringify(err)
-        }
-        const warning = `Warning: failed to send the transfer message to the server due to error: ${err_msg}. Please send it to the statecoin recipient manually.`
-        log.warn(warning);
-        alert(warning)
+        if (force === false) {
+          const warning = `Warning: failed to send the transfer message to the server due to error: ${err.toString()}. Please send it to the statecoin recipient manually.`
+          log.warn(warning);
+          alert(warning)  
+        } else {
+          throw err
+        }        
         break
       }
     }
   }
-
-  return transfer_msg3
 }
 
 export const getTransferMsg4 = async (

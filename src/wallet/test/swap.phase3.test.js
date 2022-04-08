@@ -1,6 +1,6 @@
 import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client'
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
-import { makeTesterStatecoin } from './test_data.js'
+import { makeTesterStatecoin, SWAP_TRANSFER_MSG } from './test_data.js'
 import {
     SWAP_STATUS,
     UI_SWAP_STATUS
@@ -10,7 +10,8 @@ import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 import Swap from '../swap/swap'
 import { swapPhase3 as swapPhase3Steps } from '../swap/swap.phase3'
-import { COMMITMENT_DATA, SWAP_SHARED_KEY_OUT } from './test_data.js'
+import { COMMITMENT_DATA, SWAP_SHARED_KEY_OUT, setSwapDetails } from './test_data.js'
+import { StateChainSig } from '../util';
 
 let walletName = `${MOCK_WALLET_NAME}_swap_phase3_tests`;
 let cloneDeep = require('lodash.clonedeep');
@@ -521,7 +522,7 @@ describe('swapPhase3', () => {
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
     });
 
-    test('swapPhase3 test 11 - SwapStep2: server responds with error to POST.TRANSFER_UPDATE_MSG in transferSender()', async () => {
+    test('swapPhase3 test 11 - SwapStep2: server responds with error to POST.TRANSFER_UPDATE_MSG in transferUpdateMsg()', async () => {
         http_mock.post = jest.fn((path, body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 return SWAP_STATUS.Phase4
@@ -573,21 +574,27 @@ describe('swapPhase3', () => {
 
         let wallet = await getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
-
-        // This test needs to check for a warning rather than an ERROR - specifically the line below:
-        // const warning = `Warning: failed to send the transfer message to the server due to error: ${err_msg}. Please send it to the statecoin recipient manually.`
-
-        /*
+        
         checkRetryMessage(await swapPhase3(swap),
-            "Expected property \"pubkey\" of type ?isPoint, got Buffer")
-        */
+            "transferUpdateMsg: Error from POST request - path: transfer/update_msg, body: undefined")
+        
 
-        expect(statecoin).toEqual(INIT_STATECOIN);
+        let statecoin_expected = cloneDeep(INIT_STATECOIN)
+        statecoin_expected.swap_transfer_msg = SWAP_TRANSFER_MSG
+        statecoin_expected.ui_swap_status = UI_SWAP_STATUS.Phase6
+        
+        expect(statecoin.swap_transfer_msg.t1.secret_bytes).not.toEqual(statecoin_expected.secret_bytes)
+        statecoin.swap_transfer_msg.t1.secret_bytes = statecoin_expected.swap_transfer_msg.t1.secret_bytes
+        const ss1 = statecoin.swap_transfer_msg.statechain_sig
+        const { ...ss2 }= statecoin_expected.swap_transfer_msg.statechain_sig
+        expect(ss1).toEqual(ss2)
+        statecoin.swap_transfer_msg.statechain_sig = statecoin_expected.swap_transfer_msg.statechain_sig
+        expect(statecoin).toEqual(statecoin_expected);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
     });
 
 
-    test('swapPhase3 test 11 - SwapStep3: getTransferMsg3', async () => {
+    test('swapPhase3 test 12 - SwapStep3: getTransferMsg3', async () => {
         let wallet = await getWallet();
         let statecoin = makeTesterStatecoin();
         init_phase3_status(statecoin);
@@ -632,7 +639,7 @@ describe('swapPhase3', () => {
         expect(swap.statecoin.swap_transfer_msg_3_receiver).toEqual(tm3_const)
     })
 
-    test('swapPhase3 test 12 - SwapStep4: make_swap_commitment', async () => {
+    test('swapPhase3 test 13 - SwapStep4: make_swap_commitment', async () => {
         let wallet = await getWallet();
         let statecoin = makeTesterStatecoin();
         init_phase3_status(statecoin);
