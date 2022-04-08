@@ -831,8 +831,10 @@ export class Wallet {
   async broadcastBackupTx(statecoin: StateCoin) {
     let backup_tx = statecoin!.tx_backup!.toHex();
     this.electrum_client.broadcastTransaction(backup_tx).then((bresponse: any) => {
+      console.log(`process broadcast response: ${JSON.stringify(bresponse)}`)
       this.processTXBroadcastResponse(statecoin, bresponse)
     }).catch((err: any) => {
+      console.log(`process broadcast error: ${err.toString()}`)
       this.processTXBroadcastError(statecoin, err)
     })
   }
@@ -859,6 +861,7 @@ export class Wallet {
         }
         // in mempool - check if confirmed
         if (statecoin.backup_status === BACKUP_STATUS.IN_MEMPOOL) {
+         console.log(`check mempool TX...`)
          await this.checkMempoolTx(statecoin)
         } else {
          await this.broadcastBackupTx(statecoin)

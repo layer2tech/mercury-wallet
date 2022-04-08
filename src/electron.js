@@ -11,7 +11,11 @@ const axios = require('axios').default;
 const process = require('process')
 const fork = require('child_process').fork;
 const exec = require('child_process').exec;
-require('@electron/remote/main').initialize()
+
+// set to testnet mode for testing
+if (isPackaged || !require("./settings.json").testing_mode) {
+  require('@electron/remote/main').initialize()
+}
 
 app.disableHardwareAcceleration()
 
@@ -39,6 +43,7 @@ let resourcesPath = undefined;
 let iconPath = undefined;
 let execPath = undefined;
 let torrc = undefined;
+let tor_adapter_path = undefined;
 
 if (isPackaged === true) {
   if (getPlatform() == 'linux') {
@@ -54,10 +59,12 @@ if (isPackaged === true) {
     execPath = joinPath(rootPath, '..', 'bin');
   }
   torrc = joinPath(execPath, '..', 'etc', 'torrc');
+  tor_adapter_path = `${__dirname}/../tor-adapter/server/index.js`
 } else {
   resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
   execPath = joinPath(resourcesPath, getPlatform());
   torrc = joinPath(resourcesPath, 'etc', 'torrc');
+  tor_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
 }
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;
@@ -115,17 +122,16 @@ function createWindow() {
     shell.openExternal(url);
   });
 
-
-  const startUrl = url.format({
-    pathname: joinPath(__dirname, '/../build/index.html'),
+  const envStartUrl = isPackaged ? null : process.env.ELECTRON_START_URL
+  const startUrl = envStartUrl || url.format({
+    pathname: joinPath(__dirname, '..', 'build', 'index.html'),
     protocol: 'file:',
     slashes: true
   });
   mainWindow.loadURL(startUrl);
 
-  if (isDev) {
+  if (isPackaged || isDev) {
     mainWindow.webContents.openDevTools();
-    debugger;
   }
 
   mainWindow.on('close', async () => {
@@ -155,14 +161,14 @@ app.on('ready', () => {
     alert('mercurywallet is already running. Not opening app.')
     app.quit()
   }
-  teminate_tor_process();
+  terminate_tor_process();
   terminate_mercurywallet_process(init_tor_adapter);
   createWindow()
 }
 );
 
 app.on('window-all-closed', async () => {
-  teminate_tor_process(); // ensure the tor processes are closed after s
+  terminate_tor_process(); // ensure the tor processes are closed after s
   app.quit();
 });
 
@@ -208,6 +214,7 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 app.on('before-quit', async function () {
 });
 
+app.allowRendererProcessReuse = false;
 app.commandLine.appendSwitch('ignore-certificate-errors');
 
 // Electron Store
@@ -217,7 +224,6 @@ Store.initRenderer();
 async function init_tor_adapter() {
   fixPath();
   let user_data_path = app.getPath('userData');
-  let tor_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
   let tor_adapter_args = [tor_cmd, torrc, user_data_path];
   if (getPlatform() === 'win') {
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
@@ -237,18 +243,18 @@ async function init_tor_adapter() {
 }
 
 
-const teminate_tor_process = () => {
+const terminate_tor_process = () => {
   // remove tor from windows processes and mercury wallet if it exists.
   if (getPlatform() === 'win') {
     exec('get-process | where {$_.ProcessName -Like "tor*"}', { 'shell': 'powershell.exe' }, (error, stdout, stderr) => {
 
       if (error) {
-        console.error(`teminate_tor_process- exec error: ${error}`)
-        console.log(`teminate_tor_process- exec error: ${error}`)
+        console.error(`terminate_tor_process- exec error: ${error}`)
+        console.log(`terminate_tor_process- exec error: ${error}`)
         return
       }
       if (stderr) {
-        console.log(`teminate_tor_process- error: ${stderr}`)
+        console.log(`terminate_tor_process- error: ${stderr}`)
         return
       }
 
@@ -257,12 +263,12 @@ const teminate_tor_process = () => {
         exec('taskkill /f /t /im tor.exe', { 'shell': 'powershell.exe' }, (err2, stdout2, stderr2) => {
           // log to file
           if (err2) {
-            console.error(`teminate_tor_process- exec error: ${err2}`)
-            console.log(`teminate_tor_process- exec error: ${err2}`)
+            console.error(`terminate_tor_process- exec error: ${err2}`)
+            console.log(`terminate_tor_process- exec error: ${err2}`)
             return
           }
           if (stderr2) {
-            console.log(`teminate_tor_process- error: ${stderr2}`)
+            console.log(`terminate_tor_process- error: ${stderr2}`)
             return
           }
         })
