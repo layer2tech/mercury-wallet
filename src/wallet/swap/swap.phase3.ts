@@ -25,6 +25,16 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     () => {return swap.statecoin.swap_status === SWAP_STATUS.Phase3},
     () => { return true },
     swap.transferSender
+      ),
+  new SwapStep(
+    SWAP_STATUS.Phase3, "transferUpdateMsg",
+    () => { return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP },
+    () => { return swap.statecoin.swap_status === SWAP_STATUS.Phase3 },
+    () => {
+      if (swap.statecoin.swap_transfer_msg === null || swap.statecoin.swap_transfer_msg === undefined) throw Error("no swap_transfer_msg. Exiting swap.");
+      return true
+    },
+    swap.transferUpdateMsg
   ),
   new SwapStep(
     SWAP_STATUS.Phase3, "getTransferMsg3",

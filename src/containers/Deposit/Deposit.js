@@ -206,10 +206,9 @@ const DepositPage = () => {
 
           </Modal.Body>
           <Modal.Footer>
-            <Button className="primary-btn ghost" onClick={handleClose}>
+            <Button className="action-btn-normal" onClick={handleClose}>
               Close
-                  </Button>
-
+            </Button>
           </Modal.Footer>
         </Modal>
       </div>

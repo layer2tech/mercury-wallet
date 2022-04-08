@@ -189,6 +189,8 @@ describe('Wallet', function () {
       expect(wallet_mod_json.config.electrum_config).toEqual(test_electrum_config)
       expect(wallet_mod_json.config.electrum_fee_estimation_blocks).toEqual(test_blocks)
 
+      //Stop and save wallet
+      await wallet.stop()
       await wallet.save()
 
       //Confirm that the reloaded wallet has the altered settings
@@ -198,7 +200,6 @@ describe('Wallet', function () {
       expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
       expect(wallet_mod_str).toEqual(loaded_wallet_str)
     });
-  
   });
 
   describe('segwitAddr', function () {

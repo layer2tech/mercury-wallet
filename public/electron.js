@@ -1,3 +1,4 @@
+const isPackaged = require.main.filename.replace(/\\/g, "/").indexOf('app/build/electron.js') !== -1 
 const { app, BrowserWindow, dialog, ipcMain, shell, nativeTheme } = require('electron');
 const { join, dirname } = require('path');
 const joinPath = join;
@@ -34,26 +35,30 @@ function getPlatform() {
 const isDev = (process.env.NODE_ENV == 'development');
 
 let ta_process = undefined
-
 let resourcesPath = undefined;
 let iconPath = undefined;
-if (getPlatform() == 'linux') {
-  resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet', 'resources');
-} else {
-  resourcesPath = joinPath(dirname(rootPath), 'resources');
-}
 let execPath = undefined;
 let torrc = undefined;
 
-if (getPlatform() == 'linux') {
-  execPath = joinPath(rootPath, '..', '..', 'Resources', 'bin');
-  iconPath = joinPath(rootPath, '..', '..', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
-} else {
-  console.log("root path: " + rootPath);
-  execPath = joinPath(rootPath, '..', 'bin');
-}
-torrc = joinPath(execPath, '..', 'etc', 'torrc');
+if (isPackaged === true) {
+  if (getPlatform() == 'linux') {
+    resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet', 'resources');
+  } else {
+    resourcesPath = joinPath(dirname(rootPath), 'resources');
+  }
 
+  if (getPlatform() == 'linux') {
+    execPath = joinPath(rootPath, '..', '..', 'Resources', 'bin');
+    iconPath = joinPath(rootPath, '..', '..', 'resources', 'app', 'build', 'icons', 'mercury-symbol-tri-color.png');
+  } else {
+    execPath = joinPath(rootPath, '..', 'bin');
+  }
+  torrc = joinPath(execPath, '..', 'etc', 'torrc');
+} else {
+  resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
+  execPath = joinPath(resourcesPath, getPlatform());
+  torrc = joinPath(resourcesPath, 'etc', 'torrc');
+}
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;
 
@@ -211,10 +216,7 @@ Store.initRenderer();
 
 async function init_tor_adapter() {
   fixPath();
-  console.log(tor_cmd);
-  console.log(torrc);
   let user_data_path = app.getPath('userData');
-  console.log(user_data_path);
   let tor_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
   let tor_adapter_args = [tor_cmd, torrc, user_data_path];
   if (getPlatform() === 'win') {
@@ -272,7 +274,6 @@ const teminate_tor_process = () => {
   }
 }
 
-
 // Terminate the parent process of any running mercurywallet processes.
 function terminate_mercurywallet_process(init_new) {
   let command
@@ -324,59 +325,6 @@ function terminate_mercurywallet_process(init_new) {
     return
   })
 }
-
-// Terminate the parent process of any running mercurywallet processes.
-function terminate_mercurywallet_process(init_new) {
-  let command
-  if (getPlatform() === 'win') {
-    command = 'wmic process where name=\'mercurywallet.exe\' get ParentProcessId,ProcessId'
-  } else {
-    command = 'echo `ps axo \"pid,ppid,command\" | grep mercury | grep tor | grep -v grep`'
-  }
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`terminate_mercurywallet_process- exec error: ${error}`)
-      console.log(`terminate_mercurywallet_process- exec error: ${error}`)
-      return
-    }
-    if (stderr) {
-      console.log(`terminate_mercurywallet_process- error: ${stderr}`)
-      return
-    }
-
-    let pid = null
-    //Split by new line
-    const pid_arr = stdout.split(/\r\n|\n\r|\n|\r/)
-    //If windows check this is not the current process or one of its child processes
-    if (getPlatform() === 'win') {
-      for (i = 1; i < pid_arr.length; i++) {
-        const tmp_arr = pid_arr[i].trim().replace(/\s+/g, ' ').split(' ')
-        const ppid = parseInt(tmp_arr[0])
-        pid = parseInt(tmp_arr[1])
-        if (ppid !== process.pid && pid !== process.pid) {
-          break;
-        } else {
-          pid = null
-        }
-      }
-    } else {
-      pid_str = pid_arr[0].trim().replace(/\s+/g, ' ').split(' ')[0]
-      if (pid_str) {
-        pid = parseInt(pid_str)
-      }
-    }
-
-    if (pid) {
-      console.log(`terminating existing mercurywallet process: ${pid}`)
-      kill_process(pid, init_new)
-      return
-    }
-
-    init_new()
-    return
-  })
-}
-
 
 async function on_exit() {
   await kill_tor();

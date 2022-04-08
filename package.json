@@ -26,10 +26,10 @@
     }
   },
   "repository": "github:layer2tech/mercury-wallet",
-  "version": "v0.6.18",
+  "version": "v0.6.21",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
-  "main": "src/electron-starter.js",
+  "main": "public/electron.js",
   "scripts": {
     "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
     "install-local": "yarn add file:./tor-adapter",
