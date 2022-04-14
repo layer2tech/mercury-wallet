@@ -125,17 +125,18 @@ describe('Wallet', function () {
     statecoin.block = 10;
     statecoin.tx_backup = new Transaction();
 
-    // pre conditions
-    statecoin.status = STATECOIN_STATUS.IN_SWAP;
-    statecoin.ui_swap_status = UI_SWAP_STATUS.Phase6;
-    statecoin.swap_id = 20;
-    statecoin.swap_status = SWAP_STATUS.Phase4;
-
+    
     let list = [statecoin];
     wallet.block_height = 20;
     wallet.statecoins.addCoin(statecoin);
-    //wallet.checkUnconfirmedCoinsStatus(list);
+    wallet.checkUnconfirmedCoinsStatus(list);
 
+    // pre conditions
+    wallet.statecoins.coins[0].status = STATECOIN_STATUS.IN_SWAP;
+    wallet.statecoins.coins[0].ui_swap_status = UI_SWAP_STATUS.Phase6;
+    wallet.statecoins.coins[0].swap_id = 20;
+    wallet.statecoins.coins[0].swap_status = SWAP_STATUS.Phase4;
+  
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.IN_SWAP)
     // run resetSwapStates code
     wallet.resetSwapStates();
