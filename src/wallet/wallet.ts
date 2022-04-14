@@ -297,13 +297,13 @@ export class Wallet {
     let n_semaphores = 0
     while (n_semaphores < MAX_SWAP_SEMAPHORE_COUNT) {
       await swapSemaphore.wait()
-      n_semaphores ++
-    } 
+      n_semaphores++
+    }
     n_semaphores = 0
     while (n_semaphores < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
       await updateSwapSemaphore.wait()
-      n_semaphores ++
-    } 
+      n_semaphores++
+    }
     await this.electrum_client.unsubscribeAll()
   }
 
@@ -397,7 +397,6 @@ export class Wallet {
   static loadFromBackup(wallet_json: any, password: string, testing_mode: boolean) {
     if (!wallet_json) throw Error("Something went wrong with backup file!");
     // Decrypt mnemonic
-
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
     } catch (e: any) {
@@ -410,7 +409,6 @@ export class Wallet {
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
   async recoverCoinsFromServer(gap_limit: number): Promise<number> {
     log.info("Recovering StateCoins from server for mnemonic.");
-
     let recoveredCoins = await recoverCoins(this, gap_limit);
     const n_recovered = recoverCoins.length
     if (n_recovered > 0) {
@@ -420,6 +418,21 @@ export class Wallet {
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
     }
+    // check for deposits
+    for (let i = 0; i < this.statecoins.coins.length; i++) {
+      if (this.statecoins.coins[i].status === STATECOIN_STATUS.INITIALISED) {
+        console.log(this.statecoins.coins[i]);
+        let p_addr = this.statecoins.coins[i].getBtcAddress(this.config.network);
+        // Import the BTC address into the wallet if using the electum-personal-server
+        await this.importAddress(p_addr)
+
+        // Begin task waiting for tx in mempool and update StateCoin status upon success.
+        this.awaitFundingTx(this.statecoins.coins[i].shared_key_id, p_addr, 100000)
+
+        log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
+      }
+    }
+
     return n_recovered
   }
 
@@ -439,12 +452,12 @@ export class Wallet {
       // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
       // Get fee info
-      
+
       let fee_info: FeeInfo
 
       getFeeInfo(this.http_client).then(async (res) => {
         fee_info = res
-              // Check if any deposit_inits are awaiting funding txs and add them to a list if so
+        // Check if any deposit_inits are awaiting funding txs and add them to a list if so
         let p_addrs: any = []
         let statecoins: any = []
         this.statecoins.getInitialisedCoins().forEach((statecoin) => {
@@ -481,7 +494,7 @@ export class Wallet {
         //Import the addresses if using electrum personal server
         this.electrum_client.importAddresses(p_addrs_mp, this.block_height - fee_info.initlock)
 
-              // Create listeners for deposit inits awaiting funding
+        // Create listeners for deposit inits awaiting funding
         for (let i in p_addrs_mp) {
           await this.checkFundingTxListUnspent(
             statecoins_mp[i].shared_key_id,
@@ -494,7 +507,7 @@ export class Wallet {
           })
         }
       }).catch(err => {
-        console.error('Error InitElectrumClient: ',err)
+        console.error('Error InitElectrumClient: ', err)
 
       })
     })
@@ -857,8 +870,8 @@ export class Wallet {
     if (wif_prefix !== 'p2wpkh') {
       throw Error(`WIF prefix - expected p2wpkh, got ${wif_prefix}`);
     }
-    let wif_key = backup_tx_data.key_wif.slice(i_prefix+1);
-    
+    let wif_key = backup_tx_data.key_wif.slice(i_prefix + 1);
+
     var ec_pair = bitcoin.ECPair.fromWIF(wif_key, this.config.network);
     var p2wpkh = bitcoin.payments.p2wpkh({ pubkey: ec_pair.publicKey, network: this.config.network })
 
@@ -949,7 +962,7 @@ export class Wallet {
       statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
       statecoin.status === STATECOIN_STATUS.EXPIRED ||
       statecoin.status === STATECOIN_STATUS.SWAPPED
-      )) {
+    )) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
       log.debug("Set Statecoin spent: " + id);
@@ -1206,7 +1219,7 @@ export class Wallet {
       } finally {
         swapSemaphore.release();
       }
-      
+
       return await this.resume_swap(statecoin, false)
     } else {
       return await this.resume_swap(statecoin, true)
@@ -1229,7 +1242,7 @@ export class Wallet {
     }
     let proof_key_der
     try {
-     proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+      proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
     } catch (err: any) {
       throw Error(`resume_swap: proof_key: ${proof_key}: ${err?.message}`)
     }
@@ -1339,6 +1352,22 @@ export class Wallet {
 
   getPingElectrumms(): number | null {
     return this.ping_electrum_ms
+  }
+
+
+  resetSwapStates() {
+    // resets swap state to AVAILABLE
+    this.statecoins.coins.forEach(
+      (statecoin) => {
+        // if this statecoin is in a swap on load, set it back to available
+        if (statecoin.status === 'IN_SWAP') {
+          statecoin.status = 'AVAILABLE';
+          statecoin.swap_id = null;
+          statecoin.swap_status = null;
+          statecoin.ui_swap_status = null;
+        }
+      }
+    )
   }
 
 
@@ -1542,7 +1571,7 @@ export class Wallet {
   isBatchMixedPrivacy(shared_key_ids: string[]) {
     let has_private = false;
     let has_deposited = false;
-    if(shared_key_ids.length > 1) {
+    if (shared_key_ids.length > 1) {
       shared_key_ids.forEach((shared_key_id) => {
         let statecoin = this.statecoins.getCoin(shared_key_id);
         if (!statecoin) throw Error("No coin found with id " + shared_key_id);
