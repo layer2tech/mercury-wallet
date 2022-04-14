@@ -410,7 +410,6 @@ export class Wallet {
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
   async recoverCoinsFromServer(gap_limit: number): Promise<number> {
     log.info("Recovering StateCoins from server for mnemonic.");
-
     let recoveredCoins = await recoverCoins(this, gap_limit);
     const n_recovered = recoverCoins.length
     if (n_recovered > 0) {
@@ -420,6 +419,21 @@ export class Wallet {
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
     }
+    // check for deposits
+    for (let i = 0; i < this.statecoins.coins.length; i++) {
+      if (this.statecoins.coins[i].status === STATECOIN_STATUS.INITIALISED) {
+        console.log(this.statecoins.coins[i]);
+        let p_addr = this.statecoins.coins[i].getBtcAddress(this.config.network);
+        // Import the BTC address into the wallet if using the electum-personal-server
+        await this.importAddress(p_addr)
+
+        // Begin task waiting for tx in mempool and update StateCoin status upon success.
+        this.awaitFundingTx(this.statecoins.coins[i].shared_key_id, p_addr, 100000)
+
+        log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
+      }
+    }
+
     return n_recovered
   }
 
