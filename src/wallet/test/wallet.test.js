@@ -152,7 +152,7 @@ describe('Wallet', function () {
     wallet.statecoins.addCoin(statecoin);
     wallet.checkUnconfirmedCoinsStatus(list);
 
-    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE)
+    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.AVAILABLE)
   });
 
   describe('Storage 1', function () {
