@@ -134,12 +134,12 @@ describe('Wallet', function () {
     let list = [statecoin];
     wallet.block_height = 20;
     wallet.statecoins.addCoin(statecoin);
-    wallet.checkUnconfirmedCoinsStatus(list);
+    //wallet.checkUnconfirmedCoinsStatus(list);
 
-    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.IN_SWAP);
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.IN_SWAP)
     // run resetSwapStates code
     wallet.resetSwapStates();
-    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE)
   })
 
   test('Set confirmed', async function () {
