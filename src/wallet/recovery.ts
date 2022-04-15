@@ -165,17 +165,11 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.value = 100000;
         statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
 
-        console.log(statecoin.proof_key);
-
         // update shared pubkey
         var se_key_share = secp256k1.keyFromPublic(statecoin.shared_key.public.p1, 'hex');
         var priv_key = secp256k1.keyFromPrivate(statecoin.shared_key.private.x2, 'hex');
 
-        console.log(statecoin.shared_key.public.p1);
-
         var shared_pub = se_key_share.getPublic().mul(priv_key.getPrivate());
-
-        console.log(shared_pub);
 
         var x = shared_pub.getX();
         var y = shared_pub.getY();
@@ -183,7 +177,6 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.shared_key.public.q.x = x.toString('hex');
         statecoin.shared_key.public.q.y = y.toString('hex');
 
-        console.log(statecoin.shared_key.public.q);
       }
 
       wallet.statecoins.addCoin(statecoin);
