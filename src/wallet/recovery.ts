@@ -17,6 +17,10 @@ import {
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');
 
+let EC = require('elliptic').ec
+let secp256k1 = new EC('secp256k1')
+const n = secp256k1.curve.n
+
 // number of keys to generate per recovery call. If no statecoins are found for this number
 // of keys then assume there are no more statecoins owned by this wallet.
 const NUM_KEYS_PER_RECOVERY_ATTEMPT = 200;
@@ -160,6 +164,26 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.is_deposited = true;
         statecoin.value = 100000;
         statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
+
+        console.log(statecoin.proof_key);
+
+        // update shared pubkey
+        var se_key_share = secp256k1.keyFromPublic(statecoin.shared_key.public.p1, 'hex');
+        var priv_key = secp256k1.keyFromPrivate(statecoin.shared_key.private.x2, 'hex');
+
+        console.log(statecoin.shared_key.public.p1);
+
+        var shared_pub = se_key_share.getPublic().mul(priv_key.getPrivate());
+
+        console.log(shared_pub);
+
+        var x = shared_pub.getX();
+        var y = shared_pub.getY();
+
+        statecoin.shared_key.public.q.x = x.toString('hex');
+        statecoin.shared_key.public.q.y = y.toString('hex');
+
+        console.log(statecoin.shared_key.public.q);
       }
 
       wallet.statecoins.addCoin(statecoin);
