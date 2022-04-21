@@ -198,7 +198,7 @@ const WithdrawPage = () => {
           
           {withdraw_txid === "" ? (
             <div className = "loading-container">
-              <div className = "loading-spinner"  ><Spinner animation="border" style = {{color: "#0054F4"}} variant="primary" ></Spinner></div>
+              <div className = "loading-spinner"  ><Spinner animation="border" style = {{color: "var(--primary)"}} variant="primary" ></Spinner></div>
               <div className = "loading-txt" >Loading Withdrawal Transaction ID...</div>
             </div>  
           ):(

@@ -50,7 +50,7 @@
 }
 
 .wizard-form .terms-conditions {
-    background-color: #ffffff;
+    background-color: var(--container);
     border: none;
     padding: 30px;
     margin-bottom: 15px;
@@ -63,9 +63,6 @@
     margin-right:7%;
 }
 
-.dark-mode .wizard-form .terms-conditions{
-    background-color: #2D2D2D;
-}
 
 .restore-form .wizard-form .terms-conditions{
     top:0%;

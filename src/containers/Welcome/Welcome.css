@@ -4,7 +4,7 @@ h1 {
 
 p {
     font-size: 14px;
-    color: #757575;
+    color: var(--text-secondary);
     max-width: 910px
 }
 
@@ -31,10 +31,10 @@ p {
     text-align: left;
     font-size: 20px;
     cursor: pointer;
-    background-color: #ffffff;
+    background-color: var(--container);
     padding: 20px 30px;
     box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
-    color: #000000;
+    color: var(--text-primary);
     margin: 0 10px;
     border-radius: 4px;
 }
@@ -53,7 +53,7 @@ p {
 
 
 .welcome-btns div.selected {
-    background-color: #DFEAFF;
+    background-color: var(--selected);
 }
 .welcome-btns div.selected .check-img{
     display: block;
@@ -67,8 +67,8 @@ p {
 
 
 .welcome-first a.send.disabled {
-    background-color: #afc2ef;
-    color: #ffffff;
+    background-color: var(--idle);
+    color: var(--container);
     cursor: not-allowed;
     pointer-events: none;
 }

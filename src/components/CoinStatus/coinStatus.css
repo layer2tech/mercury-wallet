@@ -20,7 +20,7 @@
   display: flex;
   font-size: .875rem;
   line-height: 1.25rem;
-  color: #000000;
+  color: var(--text-primary);
   position: relative;
 }
 
@@ -58,7 +58,7 @@
 .coin-status.coin-status-modal .coin-status-title {
   font-size: 1rem;
   line-height: 1.5rem;
-  color: rgba(0, 0, 0, 0.870588);
+  color: var(--text-primary);
   letter-spacing: 0.5px;
 }
 
@@ -102,7 +102,7 @@
   right: 58px;
   z-index: 1000;
   top: -17px;
-  box-shadow: 0px 0px 10px -4px #222;
+  box-shadow: 0px 0px 10px -4px var(--box-shadow);
 }
 
 .coin-mid-transfer-btns {
@@ -112,15 +112,15 @@
 .coin-mid-transfer-btns button {
   margin-right: 10px;
   border-radius: 8px;
-  border: 1px solid #E0E0E0;
-  color: #0F54F4;
+  border: 1px solid var(--button-border);
+  color: var(--button-main);
   padding: 4px 8px;
   outline: none;
 }
 .coin-mid-transfer-btns button.btn-confirm {
-  background-color: #0F54F4;
+  background-color: var(--button-main);
   color: #fff;
 }
 .coin-status-description {
-  color: #666666;
+  color: var(--text-secondary-sub);
 }

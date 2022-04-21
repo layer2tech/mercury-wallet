@@ -9,8 +9,8 @@
   font-weight: normal;
   left: -50px;
   text-transform: capitalize;
-  background: #495057;
-  color: #fff;
+  background: var(--background);
+  color: var(--text-primary)!important;
   padding: 4px;
   border-radius: 4px;
   width: max-content;

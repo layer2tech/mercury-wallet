@@ -4,7 +4,7 @@ h1 {
 
 p {
     font-size: 14px;
-    color: #757575;
+    color: var(--text-secondary);
     margin-bottom: 0;
 }
 
@@ -17,7 +17,7 @@ input[type='checkbox'], input[type='radio'] {
     justify-content: flex-end;
 }
 .btns a {
-    color: #0F54F4;
+    color: var(--button-main);
     font-size: 14px;
     text-transform: uppercase;
     padding: 5px 10px;
@@ -26,14 +26,14 @@ input[type='checkbox'], input[type='radio'] {
     margin-top: 30px;
 }
 .btns a.send {
-    background-color: #0F54F4;
-    color: #ffffff;
+    background-color: var(--button-main);
+    color: var(--container);
     padding: 5px 10px;
 }
 
 .btns a.send.disabled {
-    background-color: #afc2ef;
-    color: #ffffff;
+    background-color: var(--idle);
+    color: var(--container);
     cursor: not-allowed;
     pointer-events: none;
 }
