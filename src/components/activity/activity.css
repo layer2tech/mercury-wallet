@@ -37,7 +37,7 @@ table span.red {
 }
 
 table span.green {
-   color:#388E3C ;
+   color:var(--success) ;
 }
 table .txid {
    display: block;
@@ -58,38 +58,31 @@ table .txid:hover{
    margin-left: 0.5%;
    width:auto;
 }
-.dark-mode table .txid:hover {
-   background-color: #202020;
-   box-shadow: rgba(0, 0, 0, 1) 0px 3px 3px 0px;
-}
+
 
 .table td, .table th {
    border: none !important;
 }
 table .date {
    padding: 20px 0;
-   color: #000000;
+   color: var(--text-primary);
    font-weight: 500;
    font-size: 14px;
 }
 table span {
    display: block;
-   color: #000000;
+   color: var(--text-primary);
    font-weight: 400;
    font-size: 14px;
    margin-left: 10px;
 }
 table span.grey {
    display: block;
-   color: #757575;
+   color: var(--text-secondary);
    font-size: 14px;
    font-weight: 400;
 }
 
-.dark-mode table .tooltip:hover {
-   background-color: #202020;
-   box-shadow: rgba(0, 0, 0, 1) 0px 3px 3px 0px;
-}
 
 
 @media only screen and (max-width: 768px) {
@@ -116,8 +109,8 @@ table span.grey {
 table .tooltip {
    visibility: hidden;
    width: 350px;
-   background-color: #E0E0E0;
-   color: #000000;
+   background-color: var(--button-border);
+   color: var(--text-primary);
    text-align: center;
    border-radius: 6px;
    padding: 5px 0;

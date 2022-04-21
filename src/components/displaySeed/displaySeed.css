@@ -4,7 +4,7 @@
     border-radius: 20px;
     padding: 10px;
     width: 130px;
-    border: 1px solid #E0E0E0;
+    border: 1px solid var(--button-border);
     margin: 10px;
 }
 .wizard-form.inputs form {
@@ -24,17 +24,17 @@
     cursor: pointer;
     margin: 20px auto;
     padding: 5px 10px;
-    border: 1px solid #E0E0E0;
+    border: 1px solid var(--button-border);
     border-radius: 6px;
 }
 .wizard-form.inputs .copy span {
     font-size: 14px;
     text-transform: uppercase;
-    color: #0054F4;
+    color: var(--primary);
 
 
 }
 
 .wizard-form.inputs .copy:focus {
-    border: 1px solid #0054F4;
+    border: 1px solid var(--primary);
 }

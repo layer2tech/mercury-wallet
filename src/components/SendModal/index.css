@@ -24,7 +24,7 @@
 .send-modal .send-steps .step-no {
   width: 24px;
   height: 24px;
-  background-color: #757575;
+  background-color: var(--text-secondary);
   position: absolute;
   border-radius: 50%;
   display: flex;
@@ -37,21 +37,21 @@
   margin-left: 35px;
 }
 .send-modal .send-steps .step-item.active .step-no {
-  background-color: #0054F4;
+  background-color: var(--primary);
 }
 .send-modal .send-steps .step-item.active {
-  color: #0054F4;
+  color: var(--primary);
 }
 
 .send-modal p {
   font-size: 20px;
   line-height: 24px;
   letter-spacing: 0.62px;
-  color: rgba(0, 0, 0, 0.870588);
+  color: var(--text-primary);
 }
 
 .send-modal .transfer-code {
-  background: #E0EBFE;
+  background: var(--selected);
   border-radius: 5px;
   padding: 19px 19px 19px 36px;
   position: relative;
@@ -66,7 +66,7 @@
   transform: translateX(-50%);
   width: 100%;
   text-align: center;
-  color: #0054F4;
+  color: var(--text-primary);
   font-size: 12px;
   line-height: 16px;
   letter-spacing: 0.4px;
@@ -80,7 +80,7 @@
 .send-modal .transfer-code .copy-code {
   font-size: 14px;
   line-height: 17px;
-  color: #212121;
+  color: var(--text-primary);
   font-weight: bold;
   word-break: break-all;
   max-height: 122px;
@@ -88,7 +88,7 @@
   display: block;
 }
 .send-modal .transfer-code:hover .copy-code {
-  color: #0054F4;
+  color: var(--primary);
 }
 .send-modal .loading-container{
   display: flex;
@@ -111,7 +111,7 @@
   text-transform: uppercase;
   color: #fff;
   border: none;
-  background: #666666;
+  background: var(--text-secondary-sub);
   border-radius: 4px;
   padding: 19px 0;
   width: 100%;
@@ -127,7 +127,7 @@
 .send-modal .confirm-btn.active,
 .send-modal .confirm-btn:hover
  {
-  background-color: #0054F4;
+  background-color: var(--primary);
 }
 .send-modal .confirm-btn span:not(.no-scale) svg {
   transform: scale(1.5);
@@ -146,7 +146,7 @@
 }
 .send-modal .coin-info .coin-content span:last-child{
   font-weight: bold;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-primary);
   font-size: 14px;
   line-height: 20px;
   letter-spacing: 0.25px;
@@ -162,7 +162,7 @@
   font-size: 15px;
   line-height: 23px;
   letter-spacing: 0.140625px;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-primary);
   opacity: 1;
   margin-top: 50px;
   width: 100%;
@@ -173,8 +173,8 @@
 .transfer-code .tooltip {
   visibility: hidden;
   width: 350px;
-  background-color: #E0E0E0;
-  color: #000000;
+  background-color: var(--button-border);
+  color: var(--text-primary);
   text-align: center;
   border-radius: 6px;
   padding: 5px 0;
@@ -191,7 +191,7 @@
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #E0E0E0 transparent transparent transparent;
+  border-color: var(--button-border) transparent transparent transparent;
 }
 .transfer-code:hover .tooltip {
   visibility: visible;

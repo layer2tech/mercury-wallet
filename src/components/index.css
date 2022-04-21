@@ -1,5 +1,5 @@
 .Body {
-  background-color: #ffffff;
+  background-color: var(--container);
   border: none;
   padding: 30px;
   margin-bottom: 15px;
@@ -12,51 +12,49 @@
 }
 
 .Body-button {
-  background-color: #E7E7E7;
-  color: #0F54F4;
+  background-color: var(--container);
+  color: var(--button-transparent-color);
   text-align: center;
   font-size: 14px;
   height: 36px;
   line-height: 36px;
   padding: 0 15px;
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--button-border);
   border-radius: 8px;
   margin: 20px 5px;
   text-transform: uppercase;
   letter-spacing: 1px;
   outline: none;
-  box-shadow: 0 4px 6px -6px #222;
+  box-shadow: 0 4px 6px -6px var(--box-shadow);
 }
+
 .Body-button.grey {
   background-color: grey;
   color: black
 }
 .Body-button.blue {
-  background-color:#0F54F4;
-  color: #ffffff;
+  background-color:var(--button-main);
+  color: var(--button-main-text);
   border: none;
-  box-shadow: 0 4px 6px -6px #222;
+  box-shadow: 0 4px 6px -6px var(--box-shadow);
   filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
 
-.dark-mode .Body-button.blue {
-  background-color: #0B2B68;
-}
 
 .Body-button.yellow {
   background-color:#F79325;
-  color: #ffffff;
+  color: var(--container);
   border: none;
-  box-shadow: 0 4px 6px -6px #222;
+  box-shadow: 0 4px 6px -6px var(--box-shadow);
   filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
 
 .std-button {
     padding: 20px;
     border: none;
-    background-color: #757575;
+    background-color: var(--text-secondary);
     font-size: 14px;
-    color: #ffffff;
+    color: var(--container);
     text-transform: uppercase;
     margin-top: 0px;
 }
@@ -78,13 +76,13 @@
   text-decoration: none;
 }
 .primary-btn.blue {
-  background-color: #0F54F4;
-  color: #ffffff;
+  background-color: var(--button-main);
+  color: var(--button-main-text);
   filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
 .primary-btn.ghost {
-  background-color: #ffffff;
-  color: #0F54F4;
+  background-color: var(--container);
+  color: var(--button-main-text);
   border: 1px solid rgba(0, 0, 0, 0.121569);
 }
 .primary-btn.medium {
@@ -99,7 +97,7 @@
   text-decoration: none;
   letter-spacing: 1.25px;
   font-weight: 500;
-  color: #0F54F4;
+  color: var(--text-secondary);
   display: inline-block;
   background: none;
 }
@@ -116,8 +114,8 @@
 }
 .primary-btn.disabled,
 a.disabled {
-    background-color: #afc2ef;
-    color: #ffffff;
+    background-color: var(--idle);
+    color: var(--button-main-text);
     cursor: not-allowed;
     pointer-events: none;
 }

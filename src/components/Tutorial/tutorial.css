@@ -51,7 +51,7 @@
   font-size: 14px;
   line-height: 20px;
   letter-spacing: 0.252px;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-primary);
 }
 .tutorial-page .tutorial-content .tutorial-btns {
   display: block;
@@ -61,7 +61,7 @@
 .tutorial-page .tutorial-content .tutorial-btns button {
   border: none;
   outline: none;
-  color: #0054F4;
+  color: var(--primary);
   font-weight: 500;
   font-size: 14px;
   line-height: 16px;

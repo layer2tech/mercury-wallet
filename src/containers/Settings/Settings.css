@@ -28,8 +28,8 @@
     margin-bottom: 20px;
     opacity: 1;
     font-size: 14px;
-    color: #757575;
-    border: 1px solid #757575;
+    color: var(--text-secondary);
+    border: 1px solid var(--text-secondary);
     border-radius: 6px;
     height: 56px;
     padding: 10px;
@@ -87,9 +87,9 @@
     transition: 0.2s;
     top: -10px;
     left: 10px;
-    background: #ffffff;
+    background: var(--container);
     padding: 0 10px;
-    color: #0F54F4;
+    color: var(--button-main);
 }
 
 input.quantity {
@@ -124,7 +124,7 @@ input.quantity {
 
 .content .inputs .def-number-input .smalltxt {
     width: 176px !important;
-    color: #0F54F4;
+    color: var(--button-main);
 }
 
 .action-btns {
@@ -132,8 +132,8 @@ input.quantity {
     margin-bottom: 25px;
 }
 .action-btn-blue{
-    background-color:#0F54F4;
-    color: #ffffff;
+    background-color:var(--button-main);
+    color: var(--button-main-text);
     margin:5px;
     font-size: 14px;
     height: 36px;
@@ -143,19 +143,19 @@ input.quantity {
     border-radius: 8px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 4px 6px -6px #222;
+    box-shadow: 0 4px 6px -6px var(--box-shadow);
     filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
 .action-btn-normal{
-    background-color: #ffffff;
-    color: #0F54F4;
+    background-color: var(--container);
+    color: var(--text-primary);
     margin:5px;
     text-align: center;
     font-size: 14px;
     height: 36px;
     line-height: 36px;
     padding: 0 15px;
-    border: 1px solid #E0E0E0;
+    border: 1px solid var(--button-border);
     border-radius: 8px;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -177,7 +177,7 @@ input.quantity {
     width: 80%;
     height: 56px;
     border-radius: 0 !important;
-    border: 1px solid #E0E0E0 !important;
+    border: 1px solid var(--button-border) !important;
     border-left: none !important;
     border-right: none !important;
     text-align: center;
@@ -201,7 +201,7 @@ input.quantity {
     background-size: 30px;
     width: 48px;
     height: 56px;
-    border: 1px solid #757575;
+    border: 1px solid var(--text-secondary);
     background-color: transparent;
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
@@ -215,7 +215,7 @@ input.quantity {
     color: #676767;
     left: 0;
     right: 0;
-    background: #ffffff;
+    background: var(--container);
     width: 135px;
     display: block;
     margin: 0 auto;
@@ -227,7 +227,7 @@ input.quantity {
     display: block;
     text-align: left;
     font-size: 14px;
-    color: #666666;
+    color: var(--text-secondary-sub);
 
 }
 
@@ -237,9 +237,9 @@ input.quantity {
 
 @supports (-webkit-appearance: none) or (-moz-appearance: none) {
     input[type='checkbox'], input[type='radio'] {
-        --active: #0F54F4;
+        --active: var(--button-main);
         --active-inner: #fff;
-        --focus: #0F54F4;
+        --focus: var(--button-main);
         --background: #9EBEFB;
         --disabled: #e2e2ea;
         --disabled-inner: #e2e2ea;
@@ -348,8 +348,8 @@ input.quantity {
         border-radius: 50%;
         width: 30px;
         height: 30px;
-        border: 3px solid #0F54F4;
-        background: #0F54F4;
+        border: 3px solid var(--button-main);
+        background: var(--button-main);
         transform: translateX(var(--x, 0));
         box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
     }

@@ -28,7 +28,7 @@ const keyIcon = (
     height='24px'
     viewBox='0 0 24 24'
     width='24px'
-    fill='#0F54F4'
+    fill='var(--button-main)'
   >
     <path d='M0 0h24v24H0z' fill='none' />
     <path d='M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z' />
@@ -152,7 +152,7 @@ const TransactionsBTC = (props) => {
           <div className="loading-keys">
             <span>{keyIcon}</span>
             <Spinner animation='border' variant='primary' size='sm'></Spinner>
-            {/*<ReactLoading type={`cylon`} color="#0F54F4" />*/}
+            {/*<ReactLoading type={`cylon`} color="var(--button-main)" />*/}
             <span>{keyIcon}</span>
           </div>
         </div>

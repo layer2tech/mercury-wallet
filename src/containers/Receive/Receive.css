@@ -34,21 +34,18 @@
     align-items: flex-start;
 }
 .receiveStatecoin-scan-txid .copy-btn-wrap {
-    background-color: #ECF2FF;
+    background-color: var(--selected);
     padding: 20px;
 }
 .receiveStatecoin-scan-txid .copy-btn-wrap.used {
-    background-color: #ffccbc;
-}
-.dark-mode .receiveStatecoin-scan-txid .copy-btn-wrap.used {
-    background-color: #616161;
+    background-color: var(--warning-block);
 }
 
 .receiveStatecoin-scan-txid .tooltip{
     visibility: hidden;
     width: 350px;
-    background-color: #E0E0E0;
-    color: #000000;
+    background-color: var(--button-border);
+    color: var(--text-primary);
     text-align: center;
     border-radius: 6px;
     padding: 5px 0;
@@ -61,8 +58,8 @@
 .receiveStatecoin-scan-txid .tooltip-info,.receive-btns .tooltip-info{
     visibility: hidden;
     width: 350px;
-    background-color: #E0E0E0;
-    color: #000000;
+    background-color: var(--button-border);
+    color: var(--text-primary);
     text-align: center;
     border-radius: 6px;
     padding: 5px 10px 5px 10px;
@@ -72,10 +69,6 @@
     right:0px;
     opacity: 0;
     transition: opacity 0.3s;
-}
-
-.receiveStatecoin-scan-txid .tooltip div,.receiveStatecoin-scan-txid .tooltip div b{
-    color:black;
 }
 
 .receiveStatecoin-scan-txid .tooltip.available{
@@ -88,7 +81,7 @@
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: #E0E0E0 transparent transparent transparent;
+    border-color: var(--button-border) transparent transparent transparent;
 }
 .receiveStatecoin-scan-txid:hover .tooltip {
     visibility: visible;
@@ -100,7 +93,7 @@
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: #E0E0E0 transparent transparent transparent;
+    border-color: var(--button-border) transparent transparent transparent;
 }
 .receiveStatecoin-scan-txid .info-receive .info-container:hover .tooltip-info, .receive-btns .info-container:hover .tooltip-info {
     visibility: visible;
@@ -109,7 +102,7 @@
 
 .receiveStatecoin-scan-txid .copy-btn-wrap .address:hover {
     cursor: pointer;
-    color: #0054F4;
+    color: #0054f4;
 }
 .receiveStatecoin-scan-txid .copy-btn-wrap div {
     display: flex;
@@ -175,8 +168,8 @@
 }
 
 .receiveStatecoin-scan-content .receive-btn{
-    background: #003bbe;
-    color: #ffffff;
+    background: var(--button-dark);
+    color: var(--button-main-text);
     border-radius: 5px;
     font-size:15px;
     width:200px;
@@ -191,11 +184,6 @@
 
 .receiveStatecoin .btns-container .receive-btn{
     margin-right:25px;
-}
-
-
-.receiveStatecoin-scan-content .btns-container .receive-btn.active{
-    background: #0054F4;
 }
 
 .receiveStatecoin-scan-txid .address span {
@@ -245,7 +233,7 @@
     font-weight: 500;
     cursor: pointer;
     font-size: 14px;
-    color: #0054F4;
+    color: var(--primary);
 }
 
 .sendStatecoin.content .center {
@@ -263,8 +251,8 @@
 }
 
 .sendStatecoin.content .center .primary-btm.ghost {
-    background-color: #ffffff;
-    color: #0F54F4;
+    background-color: var(--container);
+    color: var(--button-main);
     border: 1px solid rgba(0, 0, 0, 0.121569);
     border-radius:5px;
     position:absolute;
@@ -296,18 +284,18 @@
     left:0;
     height:100vh;
     width:100%;
-    background-color: #666666;
+    background-color: var(--text-secondary-sub);
     opacity:0.4;
 }
 
 .receiveStatecoin.sendStatecoin.content .center button.btn {
     margin-top: 20px;
-    background: #666666;
-    color: #ffffff;
+    background: var(--text-secondary-sub);
+    color: var(--button-main-text);
     width:100%;
 }
 .receiveStatecoin.sendStatecoin.content .center button.active { 
-    background: #0054F4;
+    background: var(--primary);
 }
 
 .receiveStatecoin .receive-bottom div:first-child {
@@ -325,17 +313,16 @@
 }
 .receiveStatecoin .receive-bottom div:first-child .inputs input { 
     padding: 16px;
-    border: 1px solid #0054F4;
+    border: 1px solid var(--primary);
     text-overflow: ellipsis;
     outline: none;
 }
 .receiveStatecoin .receive-bottom div:first-child .inputs .smalltxt {
-    color: #0054F4;
+    color: var(--primary);
 }
 .receiveStatecoin .receive-note {
     font-size: 20px;
     line-height: 20px;
-    color: #000;
     margin-bottom: 22px;
     text-align: left;
 

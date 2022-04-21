@@ -5,7 +5,7 @@
 .deposit .subtitle {
     display: block;
     font-size: 20px;
-    color: #666666;
+    color: var(--text-secondary-sub);
     text-align: left;
     margin-left: 62px;
     font-weight: 400;
@@ -43,7 +43,7 @@
     border-radius: 50%;
     width: 24px;
     height: 24px;
-    color: #ffffff;
+    color: var(--container);
     margin-bottom: 10px;
 }
 
@@ -65,14 +65,14 @@
 .deposit-txt .item span:nth-child(2) {
     font-size: 20px;
     display: block;
-    color: #666666;
+    color: var(--text-secondary-sub);
     font-weight: 400;
 }
 .deposit-txt .item.active span:first-child {
-    background-color: #0F54F4;
+    background-color: var(--button-main);
 }
 .deposit-txt .item.active span:nth-child(2) {
-    color: #0F54F4;
+    color: var(--button-main);
 
 }
 
@@ -92,7 +92,7 @@
     margin-bottom: 14px;
 }
 .deposit-main .numbers-item div.progress {
-    /* background-color: #0F54F4; */
+    /* background-color: var(--button-main); */
     background: rgba(0, 84, 244, 0.380392);
     display: block;
     width: 100%;
@@ -100,19 +100,11 @@
     margin-top: 9px;
     margin-bottom: 5px;
 }
-.dark-mode .deposit-main .numbers-item.selected-value div.progress {
-    /* background-color: #0F54F4; */
-    background: white;
-    display: block;
-    width: 100%;
-    height: 4px;
-    margin-top: 9px;
-    margin-bottom: 5px;
-}
+
 .deposit-main .numbers-item div.progress .fill {
     height: 4px;
     width: 50%;
-    background-color: #0F54F4;
+    background-color: var(--button-main);
 }
 .deposit-main .numbers span {
     display: block;
@@ -126,7 +118,7 @@
 }
 
 .deposit-main .numbers .custom-deposit-btn {
-    color: #757575;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -148,19 +140,14 @@
 .deposit-main .deposit-statecoins .numbers-item.selected-value {
     background: #ECF2FE;
     border-radius: 5px;
-    color: #0054F4;
+    color: var(--primary);
     position: relative;
     border: 1px solid;
     box-shadow: 0 0 1px 1px;
 }
 
-.dark-mode .deposit-main .deposit-statecoins .numbers-item.selected-value {
-    background: #192A4A;
-}
-.dark-mode .deposit-main .deposit-statecoins .numbers-item.selected-value span,
-.dark-mode .deposit-main .deposit-statecoins .numbers-item.selected-value b { 
-    color: white;
-}
+
+
 .deposit-main .deposit-statecoins .numbers-item.selected-value svg {
     position: absolute;
     bottom: 5px;
@@ -174,8 +161,9 @@
     justify-content: center;
     align-items: center;
     height: 100px;
+    color: var(--text-primary);
     width: 250px;
-    background-color: #fff;
+    background-color: var(--selected);
     margin: 20px auto;
 }
 .loading-trans .loading-keys {
@@ -194,13 +182,13 @@
     position: relative;
     top: 40px;
     left: 4px;
-    color: #Ffffff;
+    color: var(--container);
 }
 .go3147146168 span {
     position: relative;
     top: 40px;
     left: 4px;
-    color: #Ffffff;
+    color: var(--container);
 }
 .go3163795179 span {
     display: none;
@@ -227,8 +215,8 @@ ol.go2441762052 {
 .wizard .btns a {
      font-size: 14px;
      text-transform: uppercase;
-     background-color: #0F54F4;
-     color: #ffffff;
+     background-color: var(--button-main);
+     color: var(--container);
      padding: 5px 10px;
      border-radius: 6px;
      float: right;
@@ -254,7 +242,7 @@ ol.go2441762052 {
 
 .selected-item span {
     display: block;
-    color: #212121;
+    color: var(--text-primary);
     font-size: 16px;
 
 }
@@ -268,7 +256,7 @@ ol.go2441762052 {
 
 .modal-header h6 {
     font-size: 20px;
-    color: #000000;
+    color: var(--text-primary);
     padding-top: 15px;
     font-weight: 400;
 }
@@ -339,7 +327,7 @@ ol.go2441762052 {
     align-items: center;
 }
 .deposit-scan-subtxt .deposit-scan-status span {
-    background-color: #E4E4E4;
+    background-color: var(--selected);
     padding: 5px 20px;
     border-radius: 20px;
 }
@@ -363,7 +351,7 @@ ol.go2441762052 {
 .deposit-scan-main-item {
     display: flex;
     align-items: center;
-    background-color: #ECF2FF;
+    background-color: var(--selected);
     padding: 20px 30px;
     margin-top: 10px;
 }
@@ -390,26 +378,26 @@ ol.go2441762052 {
 }
 
 .go2067797667:before {
-    color: #ffffff !important;
+    color: var(--container) !important;
     height: 20px;
     width: 20px !important;
-    background-color: #757575 !important;
+    background-color: var(--text-secondary) !important;
     border-radius: 50% !important;
     content: "2" !important;
 
 }
 .go2478912419:before {
-    background-color: #0F54F4 !important;
+    background-color: var(--button-main) !important;
     height: 20px;
     width: 20px !important;
-    color: #0F54F4 !important;
+    color: var(--button-main) !important;
 }
 .go2478912419, .go767851704 {
-    border-bottom: 4px solid #0F54F4 !important;
+    border-bottom: 4px solid var(--button-main) !important;
 }
 .go767851704:before {
-    background-color: #0F54F4 !important;
-    color:#ffffff !important;
+    background-color: var(--button-main) !important;
+    color:var(--container) !important;
     width: 20px !important;
     height: 20px;
 }
@@ -418,11 +406,11 @@ ol.go2441762052 {
 }
 .go2478912419:before {
     content: "1" !important;
-    color: #ffffff !important;
+    color: var(--container) !important;
 }
 .go2441762052 .go2478912419:nth-child(2):before {
     content: "2" !important;
-    color: #ffffff !important;
+    color: var(--container) !important;
 }
 
 @media only screen and (max-width: 768px)  {
