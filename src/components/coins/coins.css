@@ -418,6 +418,10 @@ p.short{
   opacity: 0.3;
 }
 
+.swap .coin-item.DUPLICATE, .sendStatecoin .coin-item.DUPLICATE{
+  opacity: 0.3;
+}
+
 .coin-item.UNCONFIRMED, .coin-item.IN_MEMPOOL, .coin-item.EXPIRED, .coin-item.INITIALISED {
   opacity: .3;
 }

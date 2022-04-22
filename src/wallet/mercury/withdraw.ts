@@ -193,20 +193,18 @@ export const withdraw_duplicate = async (
   let amount = 0;
   let index = 0;
 
-  console.log("withdraw duplicate.")
   for (const sc of statecoins) {
 
     let statecoin: StateCoin = sc;
 
     let proof_key_der: BIP32Interface = proof_key_ders[index];
 
-    shared_key_ids.push(statecoin.shared_key_id)
+    shared_key_ids.push(statecoin.shared_key_id.slice(0,-4));
 
     amount = amount + statecoin.value;
     amounts.push(statecoin.value);
     pks.push(statecoin.getSharedPubKey());
     shared_keys.push(statecoin.shared_key);
-    index = index + 1;
   }
 
   // Get state entity fee info
@@ -219,6 +217,7 @@ export const withdraw_duplicate = async (
     throw Error("Duplicate deposits cannot be batch withdrawn");
   } else {
       let statecoin = statecoins[0];
+      console.log(statecoin);
       let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
       txb_withdraw_unsigned = txWithdrawBuild(
             network,
@@ -238,6 +237,7 @@ export const withdraw_duplicate = async (
 
   // tx_withdraw_unsigned
   let pk = pks[0];
+
   signatureHashes.push(getSigHash(tx_withdraw_unsigned, index, pk, statecoins[0].value, network));
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?

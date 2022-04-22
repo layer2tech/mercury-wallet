@@ -109,11 +109,12 @@ export class StateCoinList {
         item.status === STATECOIN_STATUS.WITHDRAWN ||
         item.status === STATECOIN_STATUS.WITHDRAWING ||
         item.status === STATECOIN_STATUS.SWAPLIMIT ||
-        item.status === STATECOIN_STATUS.EXPIRED
+        item.status === STATECOIN_STATUS.EXPIRED || 
+        item.status === STATECOIN_STATUS.DUPLICATE
       ) {
         // Add all but withdrawn or awaiting withdrawal coins to total balance 
         if (item.status !== STATECOIN_STATUS.WITHDRAWN && item.status !== STATECOIN_STATUS.WITHDRAWING
-          && item.status !== STATECOIN_STATUS.IN_TRANSFER && item.status !== STATECOIN_STATUS.EXPIRED) {
+          && item.status !== STATECOIN_STATUS.IN_TRANSFER && item.status !== STATECOIN_STATUS.EXPIRED && item.status !== STATECOIN_STATUS.DUPLICATE) {
           total += item.value
         }
         return item

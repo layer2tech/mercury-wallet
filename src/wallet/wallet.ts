@@ -780,7 +780,8 @@ export class Wallet {
         this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWN ||
         this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWING ||
         this.statecoins.coins[i].status === STATECOIN_STATUS.IN_TRANSFER ||
-        this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPPED) {
+        this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPPED ||
+        this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
         continue;
       }
       // check locktime
@@ -961,7 +962,8 @@ export class Wallet {
     if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE ||
       statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
       statecoin.status === STATECOIN_STATUS.EXPIRED ||
-      statecoin.status === STATECOIN_STATUS.SWAPPED
+      statecoin.status === STATECOIN_STATUS.SWAPPED || 
+      statecoin.status === STATECOIN_STATUS.DUPLICATE
     )) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
@@ -1093,6 +1095,11 @@ export class Wallet {
   // check all shared keys to see if there are multiple confirmed deposits and then create coins
   async checkMultipleDeposits() {
     for (let i = 0; i < this.statecoins.coins.length; i++) {
+      console.log(this.statecoins.coins[i]);
+
+      if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
+        continue;
+      }
       // check if there is a backup tx yet, if not do nothing
       if (this.statecoins.coins[i].tx_backup === null) {
         continue;
@@ -1104,21 +1111,29 @@ export class Wallet {
       }
 
       let addr = this.statecoins.coins[i].getBtcAddress(this.config.network);
+      console.log(addr);
       let out_script = bitcoin.address.toOutputScript(addr, this.config.network);
+      console.log(out_script);
       let funding_tx_data = await this.electrum_client.getScriptHashListUnspent(out_script);
+      console.log(funding_tx_data);
 
-      for (let i=0; i<funding_tx_data.length; i++) {
-        if (funding_tx_data[i].tx_hash === this.statecoins.coins[i].funding_txid && funding_tx_data[i].tx_pos === this.statecoins.coins[i].funding_vout) {
+      for (let j=0; j<funding_tx_data.length; j++) {
+        if (funding_tx_data[j].tx_hash === this.statecoins.coins[i].funding_txid && funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout) {
+           console.log("already have coin")
            continue;
         } else {
            // create new duplicate coin
-            let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-R", this.statecoins.coins[i].shared_key);
+
+            let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
             statecoin.proof_key = this.statecoins.coins[i].proof_key;
-            statecoin.value = funding_tx_data[i].value;
-            statecoin.funding_txid = funding_tx_data[i].tx_hash;
-            statecoin.funding_vout = funding_tx_data[i].tx_pos;
+            statecoin.value = funding_tx_data[j].value;
+            statecoin.funding_txid = funding_tx_data[j].tx_hash;
+            statecoin.funding_vout = funding_tx_data[j].tx_pos;
             statecoin.tx_backup = new Transaction();
             statecoin.status = STATECOIN_STATUS.DUPLICATE;
+
+            console.log("added coin");
+            console.log(statecoin);
 
             this.statecoins.addCoin(statecoin)
           }
@@ -1648,7 +1663,7 @@ export class Wallet {
       if (!statecoin) throw Error("No coin found with id " + shared_key_id)
       if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
       if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in  swap pool. Remove from pool to withdraw.");
-      if (statecoin.status !== STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && statecoin.status !== STATECOIN_STATUS.WITHDRAWING) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for withdraw.");
+      if (statecoin.status !== STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && statecoin.status !== STATECOIN_STATUS.WITHDRAWING && statecoin.status !== STATECOIN_STATUS.DUPLICATE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for withdraw.");
       statecoins.push(statecoin);
       proof_key_ders.push(this.getBIP32forProofKeyPubKey(statecoin.proof_key));
       if (shared_key_id.slice(-2) === "-R") duplicate = true; 
@@ -1656,6 +1671,12 @@ export class Wallet {
 
     if(duplicate) {
       if (shared_key_ids.length > 1) throw Error("Duplicate deposits cannot be batch withdrawn");
+      let existing_coin = this.statecoins.getCoin(shared_key_ids[0].slice(0,-4));
+      if (existing_coin) {
+        if (!(existing_coin.status === STATECOIN_STATUS.WITHDRAWN)) {
+          throw Error("Statecoin must be withdrawn before duplicate");
+        }
+      }
       let tx_withdraw_d = await withdraw_duplicate(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_byte);
       // Broadcast transcation
       let withdraw_txid: string = ""
@@ -1671,7 +1692,7 @@ export class Wallet {
             await new Promise(resolve => setTimeout(resolve, 1000))
             continue
           } else {
-            let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`
+            let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. Raw Tx: ${tx_withdraw_d.toHex()}`
             log.info(errMsg)
             throw new Error(errMsg)
           }
@@ -1679,6 +1700,7 @@ export class Wallet {
         break
       }
       this.setStateCoinSpent(shared_key_ids[0], ACTION.WITHDRAW)
+      this.statecoins.setCoinWithdrawTxId(shared_key_ids[0], withdraw_txid)
       log.info("Withdraw duplicate finished.");
       return withdraw_txid
     }

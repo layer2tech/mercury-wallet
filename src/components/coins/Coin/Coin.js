@@ -161,6 +161,10 @@ const Coin = (props) => {
             dispatch(setError({ msg: `Coin withdrawn - unavailable for transfer` }))
             return false
           }
+          if (props.coin_data.status === (STATECOIN_STATUS.DUPLICATE) && (props.send || props.swap)) {
+            dispatch(setError({ msg: `Deposit duplicate - unavailable for transfer or swap` }))
+            return false
+          }          
           else {
             selectCoin(props.coin_data.shared_key_id)
           }
