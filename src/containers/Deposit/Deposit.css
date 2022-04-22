@@ -354,6 +354,7 @@ ol.go2441762052 {
     background-color: var(--selected);
     padding: 20px 30px;
     margin-top: 10px;
+    color: var(--text-primary);
 }
 
 .deposit .deposit-scan-main-item:first-child {

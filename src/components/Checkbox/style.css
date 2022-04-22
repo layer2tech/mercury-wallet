@@ -57,7 +57,7 @@
 }
 
 .toggle-checkbox:checked + .toggle-switch {
-  background: #0054f4;
+  background: var(--primary);
 }
 .toggle-checkbox:checked + .toggle-switch:before {
   left: 30px;
