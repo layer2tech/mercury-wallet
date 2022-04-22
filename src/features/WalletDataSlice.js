@@ -241,7 +241,7 @@ export const callGetMnemonic = () => {
   }
 }
 
-export const callCheckCoins = () => {
+export const callCheckCoins = async () => {
   return wallet.checkMultipleDeposits()
 }
 

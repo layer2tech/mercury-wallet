@@ -131,6 +131,12 @@ input.quantity {
     text-align: right;
     margin-bottom: 25px;
 }
+
+.action-btn-check {
+    text-align: left;
+    margin-bottom: 25px;
+}
+
 .action-btn-blue{
     background-color:var(--button-main);
     color: var(--button-main-text);

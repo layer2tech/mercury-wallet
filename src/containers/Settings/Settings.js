@@ -137,8 +137,9 @@ const SettingsPage = (props) => {
     setMinAnonSet(current_config.min_anon_set);
   }
 
-  const checkButtonOnClick = () => {
-    callCheckCoins();
+  const checkButtonOnClick = async () => {
+    let count = await callCheckCoins();
+    dispatch(setNotificationMsg({msg:"Found " + count + " duplicate deposits"}))
   }
 
   const clearWalletButtonOnClick = async () => {
@@ -345,13 +346,13 @@ const SettingsPage = (props) => {
                           )
                         }
                       </div>
-                      <div className="action-btns">
-                        <h2>Check for duplicate coins</h2>
+                      <h2> </h2>
+                      <div className="action-btn-check">
                         <button
                           type="button"
-                          className="action-btn-normal"
+                          className="action-btn-blue"
                           onClick={checkButtonOnClick}>
-                            Check
+                            Check for duplicate coins
                         </button>
                     </div>
                   </div>
