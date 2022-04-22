@@ -47,7 +47,7 @@
 .App {
   font-family: 'Roboto', sans-serif;
   text-align: center;
-  background-color: #F5F5F5;
+  background-color: var(--background);
   padding-bottom: 20px;
   position: relative;
   overflow-x: hidden;
@@ -57,13 +57,53 @@
 .App .container {
   padding: 0;
 }
-
-
 /* Default variables */
 @media (prefers-color-scheme: dark) {
   body { background: #333; color: white; }
+  :root:root{
+    --primary: #0B2B68;
+    --background: #121212;
+    --container: #202020;
+    --text-primary: #E7E7E7;
+    --text-secondary:#E7E7E787;
+    --text-secondary-sub: #E7E7E760;
+    --button-main: #0B2B68;
+    --button-main-text: var(--text-primary);
+    --button-transparent-color: var(--text-secondary);
+    --button-border: #202020;
+    --button-dark: #0B2B68;
+    --box-shadow: rgba(0, 0, 0, 1);
+    --warning-color: #9c2b2e;
+    --warning-block:#B71C1C30;
+    --link-color: #0054f4;
+    --success: #388e3c;
+    --idle:#E7E7E738;
+    --selected: #2D2D2D;
+  }
 }
+
+/* success: #192A4A */
 
 @media (prefers-color-scheme: light) {
   body { background: #ddd; color: black; }
+  :root:root{
+    --primary: #0054F4;
+    --background: #F5F5F5;
+    --container: #ffffff;
+    --text-primary: #000000;
+    --text-secondary:#757575;
+    --text-secondary-sub: #666666;
+    --button-main: #0F54f4;
+    --button-main-text: #ffffff;
+    --button-transparent-color: var(--text-secondary);
+    --button-border: #E0E0E0;
+    --button-dark: #003bbe;
+    --box-shadow: #222;
+    --warning-color: #FF3D00;
+    --warning-block:#ffccbc;
+    --link-color: #069;
+    --success: #388e3c;
+    --idle:#ccc;
+    --selected: #dfeaff;
+  }
 }

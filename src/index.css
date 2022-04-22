@@ -2,5 +2,6 @@ body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
-  background-color: #F5F5F5 !important;
+  background-color: var(--background) !important;
+  color: var(--text-primary) !important;
 }

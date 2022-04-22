@@ -4,7 +4,7 @@
     border-radius: 20px;
     padding: 10px;
     width: 130px;
-    border: 1px solid #E0E0E0;
+    border: 1px solid var(--button-border);
     margin: 10px;
 }
 .wizard-form-confirm form {
@@ -23,13 +23,13 @@
     width: 220px;
     margin: 20px auto;
     padding: 5px 10px;
-    border: 1px solid #E0E0E0;
+    border: 1px solid var(--button-border);
     border-radius: 6px;
 }
 .wizard-form-confirm .copy span {
     font-size: 14px;
     text-transform: uppercase;
-    color: #0054F4;
+    color: var(--primary);
 
 }
 
@@ -41,6 +41,6 @@
     margin: 30px auto;
     font-size: 14px;
     text-transform: uppercase;
-    color: #ffffff;
-    background-color: #0054F4;
+    color: var(--container);
+    background-color: var(--primary);
 }

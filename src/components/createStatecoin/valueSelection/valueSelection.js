@@ -124,7 +124,7 @@ const ValueSelectionPanel = (props) => {
         return (
           <div key={index} className={`numbers-item ${selected === item.value ? 'selected-value' : ''}`}>
             {selected === item.value && (<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 14C4.69159 14 2 11.3084 2 8C2 4.69159 4.69159 2 8 2C11.3084 2 14 4.69159 14 8C14 11.3084 11.3084 14 8 14ZM4.64603 7.15381L4.64602 7.15382L3.79984 8.00001L6.80011 11.0003L12.2002 5.60023L11.354 4.7481L6.8001 9.30197L4.64602 7.15383L4.64603 7.15381Z" fill="#0054F4" />
+              <path d="M8 14C4.69159 14 2 11.3084 2 8C2 4.69159 4.69159 2 8 2C11.3084 2 14 4.69159 14 8C14 11.3084 11.3084 14 8 14ZM4.64603 7.15381L4.64602 7.15382L3.79984 8.00001L6.80011 11.0003L12.2002 5.60023L11.354 4.7481L6.8001 9.30197L4.64602 7.15383L4.64603 7.15381Z" fill="var(--primary)" />
             </svg>)}
             <ValueSelection
               value={item.value}
@@ -149,7 +149,7 @@ const ValueSelectionPanel = (props) => {
                       <div className="progress">
                         <div className="fill" style={{width: '0%'}}></div>
                       </div>
-                      <span color="#757575">Select Value</span>
+                      <span color="var(--text-secondary)">Select Value</span>
                     </div>
                   )}
                 </div>

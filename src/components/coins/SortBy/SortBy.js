@@ -18,7 +18,7 @@ const SortBy = ({
     <div className="sort-by-wrapper">
       <span className="sort-by-menu" onClick={() => setOpen(!open) }>
         <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9.01221 3.56445L5.00684 7.55981H8.01099V14.5793H10.0134V7.55981H13.0176L9.01221 3.56445ZM16.0217 17.5935V10.574H14.019V17.5935H11.0149L15.0203 21.5889L19.0256 17.5935H16.0217Z" fill="#666666" />
+          <path d="M9.01221 3.56445L5.00684 7.55981H8.01099V14.5793H10.0134V7.55981H13.0176L9.01221 3.56445ZM16.0217 17.5935V10.574H14.019V17.5935H11.0149L15.0203 21.5889L19.0256 17.5935H16.0217Z" fill="var(--text-secondary-sub)" />
         </svg>
       </span>
       {open && (

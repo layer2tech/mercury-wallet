@@ -241,6 +241,10 @@ export const callGetMnemonic = () => {
   }
 }
 
+export const callCheckCoins = () => {
+  return wallet.checkMultipleDeposits()
+}
+
 // Wallet data gets
 export const callGetConfig = (test_wallet = null) => {
   if (test_wallet) {

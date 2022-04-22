@@ -6,7 +6,7 @@ import {useDispatch} from 'react-redux'
 
 import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
-  callUpdateConfig, callClearSave, unloadWallet, stopWallet, saveWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic} from '../../features/WalletDataSlice'
+  callUpdateConfig, callClearSave, unloadWallet, stopWallet, saveWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic, callCheckCoins} from '../../features/WalletDataSlice'
 
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
@@ -135,6 +135,10 @@ const SettingsPage = (props) => {
     setElecAddr(current_config.electrum_config);
     setTorProxy(current_config.tor_proxy);
     setMinAnonSet(current_config.min_anon_set);
+  }
+
+  const checkButtonOnClick = () => {
+    callCheckCoins();
   }
 
   const clearWalletButtonOnClick = async () => {
@@ -341,6 +345,15 @@ const SettingsPage = (props) => {
                           )
                         }
                       </div>
+                      <div className="action-btns">
+                        <h2>Check for duplicate coins</h2>
+                        <button
+                          type="button"
+                          className="action-btn-normal"
+                          onClick={checkButtonOnClick}>
+                            Check
+                        </button>
+                    </div>
                   </div>
               </div>
               <div className="action-btns">

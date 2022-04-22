@@ -44,7 +44,7 @@ label {
     padding-left: 25px;
     cursor: pointer;
     font-size: 14px;
-    color: #666666;
+    color: var(--text-secondary-sub);
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -72,19 +72,19 @@ label {
     left: 0;
     height: 15px;
     width: 15px;
-    background-color: #ffffff;
-    /* border: 2px solid #388E3C; */
+    background-color: var(--container);
+    /* border: 2px solid var(--success); */
     border-radius: 50%;
     content: "";
     box-sizing: border-box;
     position: absolute;
     border: 2px solid lightgray;
-    border-top-color: #388E3C;
+    border-top-color: var(--success);
     animation: spinner 0.7s linear infinite;
 }
 
 .checkmark.connected{
-    border: 2px solid  #388E3C;
+    border: 2px solid  var(--success);
 }
 
 @keyframes spinner {
@@ -110,7 +110,7 @@ label {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #388E3C;
+    background: var(--success);
 }
 
 .collapse-content {
@@ -128,7 +128,7 @@ label {
     flex-direction: column;
     align-items: baseline;
     font-size: 16px;
-    color: #666666;
+    color: var(--text-secondary-sub);
     margin-left: 8px;
     padding: 8px;
 }
@@ -156,10 +156,6 @@ label {
     overflow:hidden;
 }
 
-.dark-mode .url-hover{
-    background-color: #202020;
-    box-shadow: rgba(0, 0, 0, 1) 0px 3px 3px 0px;
-}
 
 
 @media only screen and (max-width: 768px) {

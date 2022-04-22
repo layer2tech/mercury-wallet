@@ -109,11 +109,12 @@ export class StateCoinList {
         item.status === STATECOIN_STATUS.WITHDRAWN ||
         item.status === STATECOIN_STATUS.WITHDRAWING ||
         item.status === STATECOIN_STATUS.SWAPLIMIT ||
-        item.status === STATECOIN_STATUS.EXPIRED
+        item.status === STATECOIN_STATUS.EXPIRED || 
+        item.status === STATECOIN_STATUS.DUPLICATE
       ) {
         // Add all but withdrawn or awaiting withdrawal coins to total balance 
         if (item.status !== STATECOIN_STATUS.WITHDRAWN && item.status !== STATECOIN_STATUS.WITHDRAWING
-          && item.status !== STATECOIN_STATUS.IN_TRANSFER && item.status !== STATECOIN_STATUS.EXPIRED) {
+          && item.status !== STATECOIN_STATUS.IN_TRANSFER && item.status !== STATECOIN_STATUS.EXPIRED && item.status !== STATECOIN_STATUS.DUPLICATE) {
           total += item.value
         }
         return item
@@ -394,7 +395,9 @@ export enum STATECOIN_STATUS {
   // Coin has reached the locktime limit for inclusion in swap_status
   SWAPLIMIT = "SWAPLIMIT",
   // Coin has been deleted
-  DELETED = "DELETED"
+  DELETED = "DELETED",
+  // Duplicate deposit to single shared key
+  DUPLICATE = "DUPLICATE"
 };
 Object.freeze(STATECOIN_STATUS);
 
