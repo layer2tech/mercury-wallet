@@ -1093,9 +1093,10 @@ export class Wallet {
   }
 
   // check all shared keys to see if there are multiple confirmed deposits and then create coins
-  async checkMultipleDeposits() {
+  async checkMultipleDeposits(): Promise<number>  {
+      let count = 0;
+    
     for (let i = 0; i < this.statecoins.coins.length; i++) {
-      console.log(this.statecoins.coins[i]);
 
       if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
         continue;
@@ -1111,15 +1112,11 @@ export class Wallet {
       }
 
       let addr = this.statecoins.coins[i].getBtcAddress(this.config.network);
-      console.log(addr);
       let out_script = bitcoin.address.toOutputScript(addr, this.config.network);
-      console.log(out_script);
       let funding_tx_data = await this.electrum_client.getScriptHashListUnspent(out_script);
-      console.log(funding_tx_data);
 
       for (let j=0; j<funding_tx_data.length; j++) {
         if (funding_tx_data[j].tx_hash === this.statecoins.coins[i].funding_txid && funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout) {
-           console.log("already have coin")
            continue;
         } else {
            // create new duplicate coin
@@ -1132,13 +1129,12 @@ export class Wallet {
             statecoin.tx_backup = new Transaction();
             statecoin.status = STATECOIN_STATUS.DUPLICATE;
 
-            console.log("added coin");
-            console.log(statecoin);
-
             this.statecoins.addCoin(statecoin)
+            count = count + 1;
           }
       }
     }
+    return count
   }
 
   // Query withdrawal txs list unspent and mark coin WITHDRAWN
