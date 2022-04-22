@@ -23,3 +23,8 @@
 .modal-content{
   background-color: var(--container)!important;
 }
+
+.modal .modal-footer button{
+  color: var(--text-primary)!important;
+  background-color: var(--container)!important;
+}
