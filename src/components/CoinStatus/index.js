@@ -55,7 +55,11 @@ const STATECOIN_STATUS_INFO = {
   [STATECOIN_STATUS.WITHDRAWING]:{
     icon: <SwapLimitIcon />,
     title: 'Awaiting Withdrawal Confirmation'
-  },  
+  },
+  [STATECOIN_STATUS.DUPLICATE]:{
+    icon: <ExpiredIcon />,
+    title: 'Duplicate deposit'
+  }, 
 };
 
 const COPIED_MESSAGE = 'Transfer Code was copied to Clipboard. Send it to the Receiver of the Transaction';

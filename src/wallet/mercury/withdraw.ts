@@ -174,4 +174,100 @@ export const withdraw_confirm = async (
   let signatures: any[][] = await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
 }
 
+export const withdraw_duplicate = async (
+  http_client: HttpClient |  MockHttpClient,
+  wasm_client: any,
+  network: Network,
+  statecoins: StateCoin[],
+  proof_key_ders: BIP32Interface[],
+  rec_addr: string,
+  fee_per_byte: number
+): Promise<Transaction> => {
 
+  let sc_infos: StateChainDataAPI[] = [];
+  let pks: any[] = [];
+  let statechain_sigs: StateChainSig[] = [];
+  let shared_key_ids: string[] = [];
+  let shared_keys: any[] = [];
+  let amounts: number[] = [];
+  let amount = 0;
+  let index = 0;
+
+  for (const sc of statecoins) {
+
+    let statecoin: StateCoin = sc;
+
+    let proof_key_der: BIP32Interface = proof_key_ders[index];
+
+    shared_key_ids.push(statecoin.shared_key_id.slice(0,-4));
+
+    amount = amount + statecoin.value;
+    amounts.push(statecoin.value);
+    pks.push(statecoin.getSharedPubKey());
+    shared_keys.push(statecoin.shared_key);
+  }
+
+  // Get state entity fee info
+  let fee_info: FeeInfo = await getFeeInfo(http_client);
+
+  // Construct withdraw tx
+  let txb_withdraw_unsigned;
+
+  if(statecoins.length > 1) {
+    throw Error("Duplicate deposits cannot be batch withdrawn");
+  } else {
+      let statecoin = statecoins[0];
+      console.log(statecoin);
+      let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
+      txb_withdraw_unsigned = txWithdrawBuild(
+            network,
+            statecoin.funding_txid,
+            statecoin.funding_vout,
+            rec_addr,
+            statecoin.value,
+            fee_info.address,
+            withdraw_fee,
+            fee_per_byte
+          );
+  }
+
+  let tx_withdraw_unsigned = txb_withdraw_unsigned.buildIncomplete();
+
+  let signatureHashes: string[] = [];
+
+  // tx_withdraw_unsigned
+  let pk = pks[0];
+
+  signatureHashes.push(getSigHash(tx_withdraw_unsigned, index, pk, statecoins[0].value, network));
+
+  // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
+  // Create PrepareSignTxMsg to send funding tx data to receiver
+  let prepare_sign_msg: PrepareSignTxMsg = {
+    shared_key_ids: shared_key_ids,
+    protocol: PROTOCOL.WITHDRAW,
+    tx_hex: tx_withdraw_unsigned.toHex(),
+    input_addrs: pks,
+    input_amounts: amounts,
+    proof_key: null,
+  };
+
+  let signatures: any[] = new Array()
+  if(shared_key_ids.length === 1) {
+    //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
+    let signature = await sign(http_client, wasm_client, shared_key_ids[0], shared_keys[0], prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
+    signatures.push(signature);
+  } else {
+    throw Error("Duplicate deposits cannot be batch withdrawn");
+  }
+
+    // set witness data with signature
+    let tx_backup_signed = tx_withdraw_unsigned;
+
+    signatures.forEach((signature, index) => {
+      let sig0 = signatures[index][0];
+      let sig1 = signatures[index][1];
+      tx_backup_signed.ins[index].witness = [Buffer.from(sig0),Buffer.from(sig1)];
+    });
+  
+  return tx_backup_signed
+}
