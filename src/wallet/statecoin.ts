@@ -394,7 +394,9 @@ export enum STATECOIN_STATUS {
   // Coin has reached the locktime limit for inclusion in swap_status
   SWAPLIMIT = "SWAPLIMIT",
   // Coin has been deleted
-  DELETED = "DELETED"
+  DELETED = "DELETED",
+  // Duplicate deposit to single shared key
+  DUPLICATE = "DUPLICATE"
 };
 Object.freeze(STATECOIN_STATUS);
 
