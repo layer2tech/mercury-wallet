@@ -8,6 +8,8 @@ import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup} from "../../compon
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
   callUpdateConfig, callClearSave, unloadWallet, stopWallet, saveWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic, callCheckCoins} from '../../features/WalletDataSlice'
 
+import Loading from '../../components/Loading/Loading';
+
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
 
@@ -68,6 +70,7 @@ const SettingsPage = (props) => {
   const [password, setPassword] = useState(false);
   const [passwordConfirm, setPasswordConfirm] = useState(false);
   const [showSeed, setShowSeed] = useState(false)
+  const [checkLoading, setCheckLoading] = useState(false)
 
   useEffect(() => {
 
@@ -138,8 +141,10 @@ const SettingsPage = (props) => {
   }
 
   const checkButtonOnClick = async () => {
+    setCheckLoading(true)
     let count = await callCheckCoins();
     dispatch(setNotificationMsg({msg:"Found " + count + " duplicate deposits"}))
+    setCheckLoading(false)    
   }
 
   const clearWalletButtonOnClick = async () => {
@@ -348,12 +353,9 @@ const SettingsPage = (props) => {
                       </div>
                       <h2> </h2>
                       <div className="action-btn-check">
-                        <button
-                          type="button"
-                          className="action-btn-blue"
-                          onClick={checkButtonOnClick}>
-                            Check for duplicate coins
-                        </button>
+                      <button type="button" className="action-btn-blue" onClick={(checkLoading) === false ? (checkButtonOnClick) : ((e) => { e.stopPropagation() })}>
+                        {checkLoading ? (<Loading />) : (`Check for duplicate coins`)}
+                      </button>
                     </div>
                   </div>
               </div>
