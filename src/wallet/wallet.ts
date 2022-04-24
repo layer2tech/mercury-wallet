@@ -1095,7 +1095,7 @@ export class Wallet {
   // check all shared keys to see if there are multiple confirmed deposits and then create coins
   async checkMultipleDeposits(): Promise<number>  {
       let count = 0;
-    
+
     for (let i = 0; i < this.statecoins.coins.length; i++) {
 
       if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
@@ -1119,18 +1119,28 @@ export class Wallet {
         if (funding_tx_data[j].tx_hash === this.statecoins.coins[i].funding_txid && funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout) {
            continue;
         } else {
-           // create new duplicate coin
+            // check that no existing coin exists with this outpoint
+            let existing_output = false;
+            for (let k = 0; k < this.statecoins.coins.length; k++) {
+              if (this.statecoins.coins[k].funding_txid === funding_tx_data[j].tx_hash && this.statecoins.coins[k].funding_vout === funding_tx_data[j].tx_pos) {
+                existing_output = true;
+                break;
+              }
+            }
 
-            let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
-            statecoin.proof_key = this.statecoins.coins[i].proof_key;
-            statecoin.value = funding_tx_data[j].value;
-            statecoin.funding_txid = funding_tx_data[j].tx_hash;
-            statecoin.funding_vout = funding_tx_data[j].tx_pos;
-            statecoin.tx_backup = new Transaction();
-            statecoin.status = STATECOIN_STATUS.DUPLICATE;
+            if (!existing_output) {
+              // create new duplicate coin
+              let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
+              statecoin.proof_key = this.statecoins.coins[i].proof_key;
+              statecoin.value = funding_tx_data[j].value;
+              statecoin.funding_txid = funding_tx_data[j].tx_hash;
+              statecoin.funding_vout = funding_tx_data[j].tx_pos;
+              statecoin.tx_backup = new Transaction();
+              statecoin.status = STATECOIN_STATUS.DUPLICATE;
 
-            this.statecoins.addCoin(statecoin)
-            count = count + 1;
+              this.statecoins.addCoin(statecoin)
+              count = count + 1;
+            }
           }
       }
     }
