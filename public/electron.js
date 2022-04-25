@@ -63,6 +63,7 @@ if (isPackaged === true) {
 } else {
   resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
   execPath = joinPath(resourcesPath, getPlatform());
+  iconPath = joinPath(rootPath, 'build', 'icons', 'mercury-symbol-tri-color.png');
   torrc = joinPath(resourcesPath, 'etc', 'torrc');
   tor_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
 }
