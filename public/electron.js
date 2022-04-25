@@ -13,7 +13,7 @@ const fork = require('child_process').fork;
 const exec = require('child_process').exec;
 
 // set to testnet mode for testing
-if (isPackaged || !require("./settings.json").testing_mode) {
+if (isPackaged || !require(joinPath(rootPath, 'src', 'settings.json')).testing_mode) {
   require('@electron/remote/main').initialize()
 }
 
