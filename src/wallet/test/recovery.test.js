@@ -1,4 +1,5 @@
 let bitcoin = require('bitcoinjs-lib')
+import React from 'react';
 import {
   Wallet, STATECOIN_STATUS
 } from '../';
@@ -14,7 +15,11 @@ import {
 } from '../mocks/mock_http_client';
 
 import { getFinalizeDataForRecovery } from '../recovery';
-import WalletDataSlice, { isWalletLoaded } from '../../features/WalletDataSlice';
+import { configureStore } from '@reduxjs/toolkit';
+import TestComponent, { render } from './test-utils';
+import reducers from '../../reducers';
+import { fireEvent, screen } from '@testing-library/react';
+import { encodeSCEAddress } from '../util';
 
 describe("Recovery", () => {
     // client side's mock
@@ -30,22 +35,44 @@ describe("Recovery", () => {
     })
   
     test('run recovery', async () => {
-      wallet.config.jest_testing_mode = true;
-      console.log("Run Recovery!!");
-      console.log("isWalletLoaded: ",isWalletLoaded());
+
       http_mock.post = jest.fn().mockReset()
-        .mockReturnValueOnce(RECOVERY_DATA)
-        .mockReturnValue([]);
+      .mockReturnValueOnce(RECOVERY_DATA)
+      .mockReturnValue([]);
+      // Create mock HTTP client for
+
       wasm_mock.convert_bigint_to_client_curv_version = jest.fn(() => RECOVERY_DATA_C_KEY_CONVERTED);
-  
+      // Mock wasm client
+      
       expect(wallet.statecoins.coins.length).toBe(0);
-  
-      await addRestoredCoinDataToWallet(wallet, wasm_mock, RECOVERY_DATA);
-  
+      // Check no statecoins in Mock wallet
+      
+      let wallet_json = wallet.toEncryptedJSON()
+      // Get encrypted JSON file
+
+      let store = configureStore({ reducer: reducers, });
+      // Load state
+
+      render(store,
+        <TestComponent
+          wallet_json={wallet_json}
+          fn={addRestoredCoinDataToWallet}
+          args={[wallet, wasm_mock, RECOVERY_DATA]}
+        />
+      )
+      // Test component rendered so wallet loaded to state when function called
+      
+      
+      fireEvent(screen.getByText(/FireFunction/i), new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true
+      }))
+      // Firing this event, fires the function
+      
       expect(wallet.statecoins.coins.length).toBe(1);
       expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
-      expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
-      expect(wallet.statecoins.coins[0].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA.proof_key));
+      expect(wallet.statecoins.coins[0].value).toBe(RECOVERY_DATA[0].amount);
+      expect(wallet.statecoins.coins[0].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA[0].proof_key));
     });
   })
 
