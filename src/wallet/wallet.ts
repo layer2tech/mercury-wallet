@@ -1255,6 +1255,15 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
 
+    // check there is no duplicate
+    for (let i = 0; i < this.statecoins.coins.length; i++) {
+      if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
+        if (statecoin.funding_txid === this.statecoins.coins[i].funding_txid && statecoin.funding_vout === this.statecoins.coins[i].funding_vout) {
+          throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+        }
+      }
+    }
+
     //Always try and resume coins in swap phase 4 so transfer is completed
     if (statecoin.swap_status !== SWAP_STATUS.Phase4) {
       // Checks statecoin is available and not already in swap group
@@ -1497,6 +1506,15 @@ export class Wallet {
     if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
     if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
     if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
+
+    // check there is no duplicate
+    for (let i = 0; i < this.statecoins.coins.length; i++) {
+      if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
+        if (statecoin.funding_txid === this.statecoins.coins[i].funding_txid && statecoin.funding_vout === this.statecoins.coins[i].funding_vout) {
+          throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+        }
+      }
+    }
 
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 

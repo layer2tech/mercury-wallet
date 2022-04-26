@@ -353,7 +353,7 @@ const SettingsPage = (props) => {
                       </div>
                       <h2> </h2>
                       <div className="action-btn-check">
-                      <button type="button" className="action-btn-blue" onClick={(checkLoading) === false ? (checkButtonOnClick) : ((e) => { e.stopPropagation() })}>
+                      <button type="button" title="Check for duplicate deposits paid to the same statecoin shared key. Warning: This operation queries electrum server with all wallet addresses." className="action-btn-blue" onClick={(checkLoading) === false ? (checkButtonOnClick) : ((e) => { e.stopPropagation() })}>
                         {checkLoading ? (<Loading />) : (`Check for duplicate coins`)}
                       </button>
                     </div>
