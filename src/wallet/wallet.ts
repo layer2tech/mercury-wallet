@@ -1256,9 +1256,9 @@ export class Wallet {
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
 
     // check there is no duplicate
-    for (let i = 0; i < this.statecoins.coins.length; i++) {
+    for (let i = 0; i < this.statecoins.coins.length; i++) {      
       if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
-        if (statecoin.funding_txid === this.statecoins.coins[i].funding_txid && statecoin.funding_vout === this.statecoins.coins[i].funding_vout) {
+        if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
           throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
         }
       }
@@ -1510,7 +1510,7 @@ export class Wallet {
     // check there is no duplicate
     for (let i = 0; i < this.statecoins.coins.length; i++) {
       if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
-        if (statecoin.funding_txid === this.statecoins.coins[i].funding_txid && statecoin.funding_vout === this.statecoins.coins[i].funding_vout) {
+        if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
           throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
         }
       }
@@ -1724,7 +1724,6 @@ export class Wallet {
         break
       }
       this.setStateCoinSpent(shared_key_ids[0], ACTION.WITHDRAW)
-      this.statecoins.setCoinWithdrawTxId(shared_key_ids[0], withdraw_txid)
       log.info("Withdraw duplicate finished.");
       return withdraw_txid
     }

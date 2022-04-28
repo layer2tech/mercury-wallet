@@ -6,7 +6,7 @@ import copy_img from "../../../images/icon2.png";
 import scAddrIcon from "../../../images/sc_address_logo.png";
 import timeIcon from "../../../images/time.png";
 import awaitingIcon from "../../../images/time_left.png";
-import duplicateIcon from "../../../images/decrease.png";
+import duplicateIcon from "../../../images/plus-black.png";
 import { MINIMUM_DEPOSIT_SATOSHI, fromSatoshi } from "../../../wallet/util";
 import { DAYS_WARNING, SWAP_STATUS_INFO } from "../CoinsList";
 import { ProgressBar, Spinner } from "react-bootstrap";
@@ -298,18 +298,18 @@ const Coin = (props) => {
                       {props.coin_data.sc_address}
                       <span className="tooltip">
                         Withdrawn: awaiting deposit confirmation
-                            </span>
+                      </span>
                     </b>
                   ) : 
                 (props.coin_data.status === STATECOIN_STATUS.DUPLICATE) ?
                   (
-                    <b className="CoinFundingTxid">
-                      <img src={duplicateIcon} className="duplicate-icon" alt="icon" />
-                      <b>Duplicate deposit</b>
+                        <div className="scoreAmount">
+                        <img src={duplicateIcon} className="duplicate-icon" alt="icon" />
+                          <b>Duplicate</b>
                       <span className="tooltip">
                         Duplicate deposit output. This coin can only be withdrawn after the statecoin sharing the deposit address has been withdrawn and confirmed. 
-                            </span>
-                    </b>
+                      </span>
+                      </div>
                   ) :                   
                   (
                     <div>
