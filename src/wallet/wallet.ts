@@ -148,9 +148,9 @@ export class Wallet {
     this.start()
   }
 
-  updateConfig(config_changes: object) {
+  async updateConfig(config_changes: object) {
     let connectionChanged = this.config.update(config_changes)
-    this.save()
+    await this.save()
     return connectionChanged
   }
 

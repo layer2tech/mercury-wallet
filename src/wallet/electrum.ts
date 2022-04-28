@@ -1,4 +1,5 @@
-import {Mutex} from 'async-mutex';
+import { Mutex } from 'async-mutex';
+import { Network } from "bitcoinjs-lib";
 let ElectrumClientLib = require('@keep-network/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')
 const W3CWebSocket = require('websocket').w3cwebsocket
@@ -30,45 +31,60 @@ export class ElectrumClient {
   async connect() {
 
     await mutex.runExclusive(async () => {
-      
       await this.client.connect(
         "mercury-electrum-client-js",  // optional client name
-        "1.4.2"                        // optional protocol version
+        "1.4"                        // optional protocol version
       ).catch((err: any) => {
         throw new Error(`failed to connect: [${err}]`)
       })
-
-          });
-    
-
-
+    });
   }
 
   // Disconnect from the ElectrumClientServer.
   async close() {
-    this.client.close()
+    await this.client.close()
   }
 
   async serverPing() {
-    this.client.server_ping().catch( (err: any) => {
+    await this.client.server_ping().catch( (err: any) => {
       throw err;
     });
   }
 
+  is_ws_wss(): boolean {
+    return (this.client.protocol === 'ws' || this.client.protocol === 'wss')
+  } 
+
   isOpen(): boolean {
-    return (this.client.status === W3CWebSocket.OPEN);
+    if (this.is_ws_wss()) {
+      return (this.client.status === W3CWebSocket.OPEN);
+    } else {
+      return (this.client.status === 1);
+    }
   }
 
   isConnecting(): boolean {
-    return (this.client.status === W3CWebSocket.CONNECTING);
+    if (this.is_ws_wss()) {
+      return (this.client.status === W3CWebSocket.CONNECTING);
+    } else {
+      return false
+    }
   }
 
   isClosed(): boolean {
-    return (this.client.status ===W3CWebSocket.CLOSED);
+    if (this.is_ws_wss()) {
+      return (this.client.status === W3CWebSocket.CLOSED);
+    } else {
+      return (this.client.status === 0);
+    }
   }
 
   isClosing(): boolean {
-    return (this.client.status === W3CWebSocket.CLOSING);
+    if (this.is_ws_wss()) {
+      return (this.client.status === W3CWebSocket.CLOSING);
+    } else {
+      return false
+    }
   }
 
   // convert BTC address scipt to electrum script has
@@ -111,6 +127,11 @@ export class ElectrumClient {
     return tx
   }
 
+  async getAddressListUnspent(addr: string, network: Network) {
+    let out_script = bitcoin.address.toOutputScript(addr, network);
+    return this.getScriptHashListUnspent(out_script)
+  }
+
   async getScriptHashListUnspent(script: string): Promise<any> {
     this.connect();
     let script_hash_rev = this.scriptToScriptHash(script);
@@ -123,6 +144,16 @@ export class ElectrumClient {
     return list_unspent
   }
 
+  async addressSubscribe(addr: string, network: Network, callBack: any): Promise<any> {
+    let out_script = bitcoin.address.toOutputScript(addr, network);
+    return this.scriptHashSubscribe(out_script, callBack)
+  }
+
+  async addressUnsubscribe(addr: string, network: Network): Promise<any> {
+    let out_script = bitcoin.address.toOutputScript(addr, network);
+    return this.scriptHashUnsubscribe(out_script)
+  }
+  
   async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
     await this.connect();
     this.client.subscribe.on('blockchain.scripthash.subscribe', callBack)
@@ -139,10 +170,11 @@ export class ElectrumClient {
   async scriptHashUnsubscribe(script: string): Promise<any> {
     this.connect();
     let script_hash = this.scriptToScriptHash(script)
+    //Unsubscribe is not required for romanz/electrs
     this.client
       .blockchain_scripthash_unsubscribe(script_hash)
         .catch((err: any) => {
-          throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
+          throw new ElectrumClientError(`failed to unsubscribe from script ${script}: [${err}]`)
         }
       )
   }
