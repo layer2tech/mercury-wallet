@@ -1255,6 +1255,15 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
 
+    // check there is no duplicate
+    for (let i = 0; i < this.statecoins.coins.length; i++) {      
+      if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
+        if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
+          throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+        }
+      }
+    }
+
     //Always try and resume coins in swap phase 4 so transfer is completed
     if (statecoin.swap_status !== SWAP_STATUS.Phase4) {
       // Checks statecoin is available and not already in swap group
@@ -1498,6 +1507,15 @@ export class Wallet {
     if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
     if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
 
+    // check there is no duplicate
+    for (let i = 0; i < this.statecoins.coins.length; i++) {
+      if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
+        if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
+          throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+        }
+      }
+    }
+
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
     let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, false, this)
@@ -1706,7 +1724,6 @@ export class Wallet {
         break
       }
       this.setStateCoinSpent(shared_key_ids[0], ACTION.WITHDRAW)
-      this.statecoins.setCoinWithdrawTxId(shared_key_ids[0], withdraw_txid)
       log.info("Withdraw duplicate finished.");
       return withdraw_txid
     }
