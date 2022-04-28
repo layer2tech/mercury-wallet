@@ -351,7 +351,7 @@ p.short{
   color: #979797;
 }
 .empty-coin-list b {
-  color: #000;
+  color: var(--text-primary);
   font-weight: normal;
 }
 .empty-coin-list a {
