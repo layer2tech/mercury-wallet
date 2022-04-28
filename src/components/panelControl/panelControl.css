@@ -38,9 +38,16 @@
 }
 .ButtonsPanel .ActionGroupLeft .Body-button {
   margin: 0 10px 0 0;
+  background-color: #f7931a;
 }
 .ButtonsPanel .ActionGroupRight .Body-button {
   margin: 0 0 0 10px;
+  background-color: var(--primary);
+  color: var(--button-main-text);
+  border: 1px solid var(--primary);
+}
+.ButtonsPanel .ActionGroupRight img{
+  filter: brightness(0) invert(1);
 }
 
 .WalletAmount {
