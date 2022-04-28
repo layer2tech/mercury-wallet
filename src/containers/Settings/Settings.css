@@ -89,7 +89,7 @@
     left: 10px;
     background: var(--container);
     padding: 0 10px;
-    color: var(--button-main);
+    color: var(--text-primary);
 }
 
 input.quantity {
