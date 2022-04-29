@@ -19,3 +19,12 @@
 .custom-modal-footer.group-btns button {
   margin-right: 16px;
 }
+
+.modal-content{
+  background-color: var(--container)!important;
+}
+
+.modal .modal-footer button{
+  color: var(--text-primary)!important;
+  background-color: var(--container)!important;
+}

@@ -63,13 +63,13 @@
 }
 
 .restore-form .inputs-item input[type='checkbox'] {
-    border: 1px solid #000000;
-    background: #ffffff;
+    border: 1px solid var(--text-primary);
+    background: var(--container);
 }
 
 .restore-form a.send.disabled {
-    background-color: #afc2ef;
-    color: #ffffff;
+    background-color: var(--idle);
+    color: var(--container);
     cursor: not-allowed;
     pointer-events: none;
 }
@@ -88,7 +88,7 @@
 }
 
 .restore-form .btn-primary {
-    background-color: #0F54F4;
+    background-color: var(--button-main);
 }
 
 .restore-form .backup-btn {

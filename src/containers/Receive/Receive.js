@@ -272,10 +272,10 @@ const ReceiveStatecoinPage = () => {
                   style={{
                     bottom: '-30px',
                     top: 'initial',
-                    backgroundColor: '#E0E0E0',
+                    backgroundColor: 'var(--button-border)',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    color: '#000',
+                    color: 'var(--text-primary)',
                     fontWeight: 'bold'
                   }}
                   message='Copied to Clipboard'

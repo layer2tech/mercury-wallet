@@ -9,7 +9,7 @@
   text-align: left;
 }
 .steppers .progressbar li .steppers-num {
-  background-color: #757575;
+  background-color: var(--text-secondary);
   /* content: attr(data-index); */
   color: #fff;
   line-height: 30px;
@@ -35,19 +35,23 @@
   content: none;
 }
 .steppers .progressbar li.active {
-  color: #0054F4;
+  color: #0054f4;
 }
 .steppers .progressbar li.active .steppers-num,
 .steppers .progressbar li.done .steppers-num  {
-  border-color: #0054F4;
-  background-color: #0054F4;
+  border-color: var(--primary);
+  background-color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .steppers .progressbar .active:after {
-  background-color: #0054F4;
+  background-color: var(--primary);
 }
 .steppers .steppers-num {
   font-size: 16px;
+}
+
+ul .done{
+  color: var(--text-secondary);
 }

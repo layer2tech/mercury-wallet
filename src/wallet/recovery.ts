@@ -8,7 +8,7 @@ import {
   getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo,
   getStateChain, getStateChainTransferFinalizeData, TransferFinalizeDataAPI
 } from './mercury/info_api';
-import { StateChainSig } from "./util";
+import { StateChainSig, encodeSCEAddress } from "./util";
 import { GET_ROUTE } from '.';
 import {
   transferReceiverFinalizeRecovery, TransferFinalizeDataForRecovery
@@ -16,6 +16,10 @@ import {
 
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');
+
+let EC = require('elliptic').ec
+let secp256k1 = new EC('secp256k1')
+const n = secp256k1.curve.n
 
 // number of keys to generate per recovery call. If no statecoins are found for this number
 // of keys then assume there are no more statecoins owned by this wallet.
@@ -103,7 +107,7 @@ export const getFinalizeDataForRecovery = async (wallet: Wallet, wasm: any, reco
 // Gen proof key. Address: tb1qgl76l9gg9qrgv9e9unsxq40dee5gvue0z2uxe2. Proof key: 03b2483ab9bea9843bd9bfb941e8c86c1308e77aa95fccd0e63c2874c0e3ead3f5
 export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[]) => {
   for (let i = 0; i < recoveredCoins.length; i++) {
-    let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
+
     let statecoin = null
     // if shared_key === 'None' && transfer_msg3 available
     if (recoveredCoins[i].shared_key_data === 'None') {
@@ -127,27 +131,53 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
     }
 
     if (statecoin) {
-      let tx_copy = cloneDeep(tx_backup);
 
-      statecoin.proof_key = recoveredCoins[i].proof_key
-      statecoin.tx_backup = tx_backup;
-      statecoin.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
-      statecoin.funding_vout = tx_copy.ins[0].index;
-      statecoin.funding_txid = tx_copy.ins[0].hash.reverse().toString("hex");
-      statecoin.statechain_id = recoveredCoins[i].statechain_id;
-      statecoin.value = recoveredCoins[i].amount;
-      statecoin.tx_hex = recoveredCoins[i].tx_hex;
-      if(recoveredCoins[i].withdrawing) {
-        statecoin.setWithdrawing();
-        const wdr_msg2: WithdrawMsg2 = {
-            shared_key_ids: [],
-            address: "",
+      if (recoveredCoins[i].statechain_id) {
+        // deposited coin
+        let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
+        let tx_copy = cloneDeep(tx_backup);
+
+        statecoin.proof_key = recoveredCoins[i].proof_key
+        statecoin.tx_backup = tx_backup;
+        statecoin.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
+        statecoin.funding_vout = tx_copy.ins[0].index;
+        statecoin.funding_txid = tx_copy.ins[0].hash.reverse().toString("hex");
+        statecoin.statechain_id = recoveredCoins[i].statechain_id;
+        statecoin.value = recoveredCoins[i].amount;
+        statecoin.tx_hex = recoveredCoins[i].tx_hex;
+        statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
+        if(recoveredCoins[i].withdrawing) {
+          statecoin.setWithdrawing();
+          const wdr_msg2: WithdrawMsg2 = {
+              shared_key_ids: [],
+              address: "",
+          }
+          statecoin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
+            0, new Transaction(), wdr_msg2));
+        } else {
+          statecoin.setConfirmed();
         }
-        statecoin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
-          0, new Transaction(), wdr_msg2));
       } else {
-        statecoin.setConfirmed();
+        // generated address
+        statecoin.proof_key = recoveredCoins[i].proof_key;
+        statecoin.is_deposited = true;
+        statecoin.value = 100000;
+        statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
+
+        // update shared pubkey
+        var se_key_share = secp256k1.keyFromPublic(statecoin.shared_key.public.p1, 'hex');
+        var priv_key = secp256k1.keyFromPrivate(statecoin.shared_key.private.x2, 'hex');
+
+        var shared_pub = se_key_share.getPublic().mul(priv_key.getPrivate());
+
+        var x = shared_pub.getX();
+        var y = shared_pub.getY();
+
+        statecoin.shared_key.public.q.x = x.toString('hex');
+        statecoin.shared_key.public.q.y = y.toString('hex');
+
       }
+
       wallet.statecoins.addCoin(statecoin);
     }
   }

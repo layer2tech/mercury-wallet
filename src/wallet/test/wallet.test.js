@@ -9,16 +9,17 @@ import {
   mnemonic_to_bip32_root_account, getBIP32forBtcAddress, parseBackupData,
   required_fields
 } from '../wallet';
-import { BIP32Interface, BIP32,  fromBase58} from 'bip32';
+import { BIP32Interface, BIP32, fromBase58 } from 'bip32';
 import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
 import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr } from '../util';
 import { addRestoredCoinDataToWallet } from '../recovery';
 import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
-import  { RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
-  RECOVERY_STATECHAIN_DATA, TRANSFER_FINALIZE_DATA_FOR_RECOVERY,  
+import {
+  RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
+  RECOVERY_STATECHAIN_DATA, TRANSFER_FINALIZE_DATA_FOR_RECOVERY,
   RECOVERY_KEY_GEN_FIRST, RECOVERY_KG_PARTY_ONE_2ND_MESSAGE,
-   RECOVERY_MASTER_KEY, RECOVERY_KEY_GEN_2ND_MESSAGE, 
-   RECOVERY_CLIENT_RESP_KG_FIRST
+  RECOVERY_MASTER_KEY, RECOVERY_KEY_GEN_2ND_MESSAGE,
+  RECOVERY_CLIENT_RESP_KG_FIRST
 } from '../mocks/mock_http_client';
 import { MockElectrumClient } from "../mocks/mock_electrum";
 import { Storage } from '../../store';
@@ -26,7 +27,7 @@ import { getFinalizeDataForRecovery } from '../recovery';
 import { assert } from 'console';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 import { argsHasTestnet } from '../config'
-import { SWAP_STATUS } from '../swap/swap_utils';
+import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
 import { ActivityLog, ActivityLogItem, LegacyActivityLog } from '../activity_log';
 
 let log = require('electron-log');
@@ -35,11 +36,11 @@ let bip32 = require('bip32')
 let bip39 = require('bip39');
 
 const NETWORK_CONFIG = require('../../network.json');
-const SHARED_KEY_DUMMY = {public:{q: "",p2: "",p1: "",paillier_pub: {},c_key: "",},private: "",chain_code: ""};
+const SHARED_KEY_DUMMY = { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" };
 
 // electrum mock
 let electrum_mock = new MockElectrumClient;
-const MOCK_WALLET_NAME_BACKUP = MOCK_WALLET_NAME+"_backup"
+const MOCK_WALLET_NAME_BACKUP = MOCK_WALLET_NAME + "_backup"
 
 describe('Wallet', function () {
   let wallet
@@ -117,6 +118,31 @@ describe('Wallet', function () {
     expect(activity_log_before_add.length).toEqual(activity_log_after_add.length - 1)
   });
 
+  test('resetSwapStates', function () {
+    // add a statecoin with swap status to 'IN_SWAP'
+    let statecoin = new StateCoin("001d2223-7d84-44f1-ba3e-4cd7dd418560", "003ad45a-00b9-449c-a804-aab5530efc90");
+    statecoin.proof_key = "aaaaaaaad651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e";
+    statecoin.block = 10;
+    statecoin.tx_backup = new Transaction();
+
+    
+    let list = [statecoin];
+    wallet.block_height = 20;
+    wallet.statecoins.addCoin(statecoin);
+    wallet.checkUnconfirmedCoinsStatus(list);
+
+    // pre conditions
+    wallet.statecoins.coins[0].status = STATECOIN_STATUS.IN_SWAP;
+    wallet.statecoins.coins[0].ui_swap_status = UI_SWAP_STATUS.Phase6;
+    wallet.statecoins.coins[0].swap_id = 20;
+    wallet.statecoins.coins[0].swap_status = SWAP_STATUS.Phase4;
+  
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.IN_SWAP)
+    // run resetSwapStates code
+    wallet.resetSwapStates();
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE)
+  })
+
   test('Set confirmed', async function () {
     let statecoin = new StateCoin("001d2223-7d84-44f1-ba3e-4cd7dd418560", "003ad45a-00b9-449c-a804-aab5530efc90");
     statecoin.proof_key = "aaaaaaaad651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e";
@@ -127,22 +153,22 @@ describe('Wallet', function () {
     wallet.statecoins.addCoin(statecoin);
     wallet.checkUnconfirmedCoinsStatus(list);
 
-    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE)
+    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.AVAILABLE)
   });
 
-  describe('Storage 1', function() {
-    test('save/load', async function() {
+  describe('Storage 1', function () {
+    test('save/load', async function () {
       expect(() => {
         wallet.storage.clearWallet(MOCK_WALLET_NAME)
         let _ = Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
       }).toThrow("No wallet called mock_e4c93acf-2f49-414f-b124-65c882eea7e7 stored.");
-    
+
       await wallet.save()
 
       expect(() => {
-        let _ = Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD+" ", true);
+        let _ = Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD + " ", true);
       }).toThrow("Incorrect password.");
-    
+
       expect(() => {
         let _ = Wallet.load(MOCK_WALLET_NAME, "", true);
       }).toThrow("Incorrect password.");
@@ -150,7 +176,7 @@ describe('Wallet', function () {
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
-  
+
     test('load, edit network settings, save and reload', async function () {
       //Check we are in mainnet mode
       expect(callGetArgsHasTestnet()).toEqual(true)
@@ -230,14 +256,14 @@ describe('Wallet', function () {
     test('node only. network undefined', function () {
       expect(`${segwitAddr(node3)}`).toEqual(addr_expected)
     });
-  
+
   })
 
   describe('bitcoin.address.fromOutputScript', function () {
     const http_mock = jest.genMockFromModule('../mocks/mock_http_client');
     const tx_backup = bitcoin.Transaction.fromHex(http_mock.TRANSFER_MSG3.tx_backup_psm.tx_hex);
     const addr_expected = "bc1qpdkj645a5zdpyq069n2syexkfwhuj5xda665q8"
-    
+
     let network = bitcoin.networks.bitcoin
     test('Address from output script in bitcoin network', function () {
       let result = bitcoin.address.fromOutputScript(tx_backup.outs[0].script, network);
@@ -284,12 +310,12 @@ describe('Wallet', function () {
         .not.toEqual(new TransactionBuilder(undefined))
     })
   })
-  
+
   describe('addr_p2pkh', function () {
     let publicKeyStr = "027d73eafd92135741e28ce14e240ec2c5fdeb3ae8c123eafad774af277372bb5f"
     let publicKey = Buffer.from(publicKeyStr, "hex")
     let addr_expected = "17ZTDRm8sfy4zcemX8F8nB5TJCvVD6JcJT"
-    
+
     test('addr_p2pkh for bitcoin network', function () {
       console.log(`p2pkh_addr_expected = ${addr_expected}`)
       expect(bitcoin.payments.p2pkh({
@@ -307,7 +333,7 @@ describe('Wallet', function () {
       }).address).toEqual(addr_expected)
     })
   })
-  
+
   describe('bip32 from mnemonic', function () {
     const seed = bip39.mnemonicToSeedSync(MOCK_WALLET_MNEMONIC);
     const root = bip32.fromSeed(seed, bitcoin.networks.bitcoin);
@@ -326,7 +352,7 @@ describe('Wallet', function () {
   describe('pubKeyToBtcAddr', function () {
     let publicKeyStr = "027d73eafd92135741e28ce14e240ec2c5fdeb3ae8c123eafad774af277372bb5f"
     let addr_expected = 'bc1qglel9v4uqxdzw05s3l0mdn9vdh6rdlv7pfnlfu'
-  
+
     test('Address from pubKeyToBtcAddr for bitcoin network', function () {
       expect(`${pubKeyTobtcAddr(publicKeyStr, bitcoin.networks.bitcoin)}`)
         .toEqual(addr_expected)
@@ -344,13 +370,13 @@ describe('Wallet', function () {
   describe('Storage 2', function () {
     let wallet
     beforeEach(async () => {
-        wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
-        wallet.storage.clearWallet(MOCK_WALLET_NAME)
-        wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
-        wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
-        await wallet.save();      
+      wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+      wallet.storage.clearWallet(MOCK_WALLET_NAME)
+      wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
+      wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+      await wallet.save();
     })
-    
+
     test('toJSON', function () {
       let json_wallet = JSON.parse(JSON.stringify(wallet));
       let invalid_json_wallet = JSON.parse("{}");
@@ -358,7 +384,7 @@ describe('Wallet', function () {
       expect(() => {
         Wallet.fromJSON(invalid_json_wallet, true)
       }).toThrow("Cannot read property 'network' of undefined");
-      
+
       json_wallet.password = MOCK_WALLET_PASSWORD
       // redefine password as hashing passwords is one-way
       let from_json = Wallet.fromJSON(json_wallet, true);
@@ -367,7 +393,7 @@ describe('Wallet', function () {
       expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet));
     });
 
-  
+
     test('saveName', async function () {
       let name_store = new Storage("wallets/wallet_names");
       name_store.clearWallet(MOCK_WALLET_NAME)
@@ -388,7 +414,7 @@ describe('Wallet', function () {
         throw Error("Do not expect duplicates in wallet_names after saveName() is called for a second time")
       }
     })
-  
+
     describe('parseBackupData', function () {
       let json_wallet
       beforeAll(async () => {
@@ -432,7 +458,7 @@ describe('Wallet', function () {
         let _ = Wallet.loadFromBackup(json_wallet, "", true)
       }).toThrow("Incorrect password.");
 
-    
+
       expect(() => {
         Wallet.loadFromBackup("", "", true)
       }).toThrow("Something went wrong with backup file!");
@@ -474,17 +500,17 @@ describe('Wallet', function () {
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
   });
-  
-  
+
+
 });
-  
+
 describe("getCoinBackupTxData", () => {
   it('shared_key_id doesnt exist', async () => {
-      let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
-      expect(() => {
-        wallet.getCoinBackupTxData("StateCoin does not exist.");
-      }).toThrowError("does not exist");
-    });
+    let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+    expect(() => {
+      wallet.getCoinBackupTxData("StateCoin does not exist.");
+    }).toThrowError("does not exist");
+  });
 })
 
 describe('createBackupTxCPFP', function () {
@@ -496,38 +522,38 @@ describe('createBackupTxCPFP', function () {
   let tx_backup
   beforeAll(async () => {
     wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
-    cpfp_data = {selected_coin: wallet.statecoins.coins[0].shared_key_id, cpfp_addr: await wallet.genBtcAddress(), fee_rate: 3};
-    cpfp_data_bad_address = {selected_coin: wallet.statecoins.coins[0].shared_key_id, cpfp_addr: "tc1aaldkjqoeihj87yuih", fee_rate: 3};
-    cpfp_data_bad_coin = {selected_coin: "c93ad45a-00b9-449c-a804-aab5530efc90", cpfp_addr: await wallet.genBtcAddress(), fee_rate: 3};
-    cpfp_data_bad_fee = {selected_coin: wallet.statecoins.coins[0].shared_key_id, cpfp_addr: await wallet.genBtcAddress(), fee_rate: "three"};  
+    cpfp_data = { selected_coin: wallet.statecoins.coins[0].shared_key_id, cpfp_addr: await wallet.genBtcAddress(), fee_rate: 3 };
+    cpfp_data_bad_address = { selected_coin: wallet.statecoins.coins[0].shared_key_id, cpfp_addr: "tc1aaldkjqoeihj87yuih", fee_rate: 3 };
+    cpfp_data_bad_coin = { selected_coin: "c93ad45a-00b9-449c-a804-aab5530efc90", cpfp_addr: await wallet.genBtcAddress(), fee_rate: 3 };
+    cpfp_data_bad_fee = { selected_coin: wallet.statecoins.coins[0].shared_key_id, cpfp_addr: await wallet.genBtcAddress(), fee_rate: "three" };
     tx_backup = txWithdrawBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1)
-    wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();  
+    wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
   })
-    
-    test('Throw on invalid value', async function() {
-      await expect(wallet.createBackupTxCPFP(cpfp_data_bad_address)).
-        rejects.toThrowError('Invalid Bitcoin address entered.');
-      await expect(wallet.createBackupTxCPFP(cpfp_data_bad_coin)).
-        rejects.toThrowError('No coin found with id c93ad45a-00b9-449c-a804-aab5530efc90');
-      await expect(wallet.createBackupTxCPFP(cpfp_data_bad_fee)).
-        rejects.toThrowError('Fee rate not an integer');
-    });
-    
+
+  test('Throw on invalid value', async function () {
+    await expect(wallet.createBackupTxCPFP(cpfp_data_bad_address)).
+      rejects.toThrowError('Invalid Bitcoin address entered.');
+    await expect(wallet.createBackupTxCPFP(cpfp_data_bad_coin)).
+      rejects.toThrowError('No coin found with id c93ad45a-00b9-449c-a804-aab5530efc90');
+    await expect(wallet.createBackupTxCPFP(cpfp_data_bad_fee)).
+      rejects.toThrowError('Fee rate not an integer');
+  });
+
   test('createdBackupTxCPFP valid', async function () {
-      const tx_cpfp_expected = "{\"version\":2,\"locktime\":0,\"ins\":[{\"hash\":{\"type\":\"Buffer\",\"data\":[107,245,5,137,241,80,23,28,183,252,131,220,83,180,180,95,165,245,238,183,114,192,141,211,50,46,35,131,211,5,156,74]},\"index\":0,\"script\":{\"type\":\"Buffer\",\"data\":[]},\"sequence\":4294967295,\"witness\":[{\"type\":\"Buffer\",\"data\":[48,69,2,33,0,157,63,93,156,188,198,179,60,185,242,248,163,35,202,173,37,23,138,126,145,195,29,58,94,101,237,138,250,240,107,14,247,2,32,52,31,26,192,111,251,159,117,192,140,105,104,85,156,163,103,154,90,49,209,68,125,90,146,56,65,232,90,229,119,39,101,1]},{\"type\":\"Buffer\",\"data\":[3,214,96,240,27,83,235,26,229,172,212,94,11,164,20,16,104,4,44,105,22,118,111,177,140,62,233,71,15,87,226,220,153]}]}],\"outs\":[{\"script\":{\"type\":\"Buffer\",\"data\":[0,20,209,156,183,190,243,118,6,191,242,108,152,143,199,152,107,105,153,65,44,222]},\"value\":9155}]}"
-      await expect(wallet.createBackupTxCPFP(cpfp_data)).resolves.toBe(true);
-      expect(wallet.statecoins.coins[0].tx_cpfp.outs.length).toBe(1);
-      expect(JSON.stringify(wallet.statecoins.coins[0].tx_cpfp)).toEqual(tx_cpfp_expected);      
-    })
+    const tx_cpfp_expected = "{\"version\":2,\"locktime\":0,\"ins\":[{\"hash\":{\"type\":\"Buffer\",\"data\":[107,245,5,137,241,80,23,28,183,252,131,220,83,180,180,95,165,245,238,183,114,192,141,211,50,46,35,131,211,5,156,74]},\"index\":0,\"script\":{\"type\":\"Buffer\",\"data\":[]},\"sequence\":4294967295,\"witness\":[{\"type\":\"Buffer\",\"data\":[48,69,2,33,0,157,63,93,156,188,198,179,60,185,242,248,163,35,202,173,37,23,138,126,145,195,29,58,94,101,237,138,250,240,107,14,247,2,32,52,31,26,192,111,251,159,117,192,140,105,104,85,156,163,103,154,90,49,209,68,125,90,146,56,65,232,90,229,119,39,101,1]},{\"type\":\"Buffer\",\"data\":[3,214,96,240,27,83,235,26,229,172,212,94,11,164,20,16,104,4,44,105,22,118,111,177,140,62,233,71,15,87,226,220,153]}]}],\"outs\":[{\"script\":{\"type\":\"Buffer\",\"data\":[0,20,209,156,183,190,243,118,6,191,242,108,152,143,199,152,107,105,153,65,44,222]},\"value\":9155}]}"
+    await expect(wallet.createBackupTxCPFP(cpfp_data)).resolves.toBe(true);
+    expect(wallet.statecoins.coins[0].tx_cpfp.outs.length).toBe(1);
+    expect(JSON.stringify(wallet.statecoins.coins[0].tx_cpfp)).toEqual(tx_cpfp_expected);
+  })
 });
-  
+
 describe('updateBackupTxStatus', function () {
 
   let wallet
   beforeAll(async () => {
     wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
   })
-    
+
   test('Swaplimit', async function () {
     // locktime = 1000, height = 100 SWAPLIMIT triggered
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
@@ -589,20 +615,17 @@ describe("Statecoins/Coin", () => {
     let new_shared_key_id = "861d2223-7d84-44f1-ba3e-4cd7dd418560";
 
     // Check new_shared_key_id not already in coins list
-    expect(statecoins.coins.filter(item =>
-      {if (item.shared_key_id==new_shared_key_id){return item}}).length
+    expect(statecoins.coins.filter(item => { if (item.shared_key_id == new_shared_key_id) { return item } }).length
     ).toEqual(0)
 
     // Add new coin to list
     statecoins.addNewCoin(new_shared_key_id, SHARED_KEY_DUMMY);
-    expect(statecoins.coins.filter(item =>
-      {if (item.shared_key_id==new_shared_key_id){return item}}).length
+    expect(statecoins.coins.filter(item => { if (item.shared_key_id == new_shared_key_id) { return item } }).length
     ).toEqual(1)
 
     // Remove coin from list
     statecoins.removeCoin(new_shared_key_id, false);
-    expect(statecoins.coins.filter(item =>
-      {if (item.shared_key_id==new_shared_key_id){return item}}).length
+    expect(statecoins.coins.filter(item => { if (item.shared_key_id == new_shared_key_id) { return item } }).length
     ).toEqual(0)
   });
 
@@ -643,7 +666,7 @@ describe("Statecoins/Coin", () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
       statecoins.setCoinSpent(coins[0].shared_key_id, "W") // set one spent
-      expect(statecoins.getUnspentCoins().length).toBe(num_coins-1)
+      expect(statecoins.getUnspentCoins().length).toBe(num_coins - 1)
       expect(coins.length).toBe(statecoins.coins.length)
     });
   });
@@ -653,9 +676,9 @@ describe("Statecoins/Coin", () => {
       let coins = statecoins.getAllCoins();
       let num_coins = coins.length;
       let coin = statecoins.getCoin(coins[0].shared_key_id);
-      coin.status="UNCONFIRMED";                 // set one unconfirmed
+      coin.status = "UNCONFIRMED";                 // set one unconfirmed
       statecoins.setCoinFinalized(coin);
-      expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins-1);
+      expect(statecoins.getUnconfirmedCoins().length).toBe(num_coins - 1);
       expect(coins.length).toBe(statecoins.coins.length);
     });
   });
@@ -664,16 +687,16 @@ describe("Statecoins/Coin", () => {
     it('Calculate expiry', () => {
       let coin = cloneDeep(statecoins.coins[0]);
       let tx_backup = new Transaction();
-      let locktime = 24*6*30; // month locktime
+      let locktime = 24 * 6 * 30; // month locktime
       tx_backup.locktime = locktime;
       coin.tx_backup = tx_backup;
-      expect(coin.getExpiryData(locktime-1)).toEqual({blocks: 1, days: 0, months: 0, confirmations:4321});            // < 1 day to go
-      expect(coin.getExpiryData(locktime+1)).toEqual({blocks: 0, days: 0, months: 0, confirmations:0});          // locktime passed
-      expect(coin.getExpiryData(locktime-(24*6)+1)).toEqual({blocks: (24*6)-1, days: 0, months: 0, confirmations:4179});  // 1 block from 1 day
-      expect(coin.getExpiryData(locktime-(24*6))).toEqual({blocks: 24*6, days: 1, months: 0, confirmations:4178});    // 1 day
-      expect(coin.getExpiryData(locktime-(2*24*6))).toEqual({blocks: 2*24*6, days: 2, months: 0, confirmations:4034});  // 2 days
-      expect(coin.getExpiryData(locktime-(29*24*6))).toEqual({blocks: 29*24*6, days: 29, months: 0, confirmations:146});  // 29 days = 0 months
-      expect(coin.getExpiryData(locktime-(30*24*6))).toEqual({blocks: 30*24*6, days: 30, months: 1, confirmations:2});  // 1 month
+      expect(coin.getExpiryData(locktime - 1)).toEqual({ blocks: 1, days: 0, months: 0, confirmations: 4321 });            // < 1 day to go
+      expect(coin.getExpiryData(locktime + 1)).toEqual({ blocks: 0, days: 0, months: 0, confirmations: 0 });          // locktime passed
+      expect(coin.getExpiryData(locktime - (24 * 6) + 1)).toEqual({ blocks: (24 * 6) - 1, days: 0, months: 0, confirmations: 4179 });  // 1 block from 1 day
+      expect(coin.getExpiryData(locktime - (24 * 6))).toEqual({ blocks: 24 * 6, days: 1, months: 0, confirmations: 4178 });    // 1 day
+      expect(coin.getExpiryData(locktime - (2 * 24 * 6))).toEqual({ blocks: 2 * 24 * 6, days: 2, months: 0, confirmations: 4034 });  // 2 days
+      expect(coin.getExpiryData(locktime - (29 * 24 * 6))).toEqual({ blocks: 29 * 24 * 6, days: 29, months: 0, confirmations: 146 });  // 29 days = 0 months
+      expect(coin.getExpiryData(locktime - (30 * 24 * 6))).toEqual({ blocks: 30 * 24 * 6, days: 30, months: 1, confirmations: 2 });  // 1 month
     });
     it('no backup tx', () => {
       let coin = statecoins.coins[0];
@@ -687,7 +710,7 @@ describe("Statecoins/Coin", () => {
 
 describe("Config", () => {
   var config = new Config(bitcoin.networks.bitcoin, true);
-  let update = {min_anon_set: 20}
+  let update = { min_anon_set: 20 }
 
   test('update', () => {
     expect(config.min_anon_set).not.toBe(20)
@@ -695,11 +718,11 @@ describe("Config", () => {
     expect(config.min_anon_set).toBe(20)
   });
 
-  
+
 
   test('expect update invalid value to log a warning', () => {
     const logWarnSpy = jest.spyOn(log, 'warn')
-    config.update({invalid: ""});
+    config.update({ invalid: "" });
     expect(logWarnSpy).toHaveBeenCalled()
   })
 
@@ -716,106 +739,12 @@ describe("Config", () => {
     update.swapLimit = config.swapLimit + 1
     expect(config.update(update)).toEqual(false)
   })
-    
+
   test('expect update of connection values to return \'true\'', () => {
     let update = config.getConfig()
     update.electrum_config.type = `${config.type}_edited`
     expect(config.update(update)).toEqual(true)
   })
-
-})
-
-
-
-describe("Recovery", () => {
-  // client side's mock
-  let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
-  // server side's mock
-  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
-  let wallet
-  beforeAll(async () => {
-    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
-    wallet.statecoins.coins = [];
-    await wallet.genProofKey();
-    await wallet.genProofKey();    
-  })
-
-  
-
-  test('run recovery', async () => {
-    http_mock.post = jest.fn().mockReset()
-      .mockReturnValueOnce(RECOVERY_DATA)
-      .mockReturnValue([]);
-    wasm_mock.convert_bigint_to_client_curv_version = jest.fn(() => RECOVERY_DATA_C_KEY_CONVERTED);
-
-    expect(wallet.statecoins.coins.length).toBe(0);
-
-    await addRestoredCoinDataToWallet(wallet, wasm_mock, RECOVERY_DATA);
-
-    expect(wallet.statecoins.coins.length).toBe(1);
-    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
-    expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
-  });
-})
-
-describe("Recovery unfinalized", () => {
-    const MNEMONIC ="similar leader virus polar vague grunt talk flavor kitten order call blood"
-    // client side's mock
-    let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
-    // server side's mock
-  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
-  let wallet
-  beforeAll(async () => {
-    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock, MNEMONIC);
-    wallet.statecoins.coins = [];
-    await wallet.genProofKey();
-    await wallet.genProofKey();
-    for(let i=0; i<50; i++){
-      wallet.account.nextChainAddress(0);
-    }
-  })
-    
-    test('recover finalize data', async () => {
-      http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(RECOVERY_TRANSFER_FINALIZE_DATA_API)
-        .mockReturnValueOnce(RECOVERY_STATECHAIN_DATA)
-      
-
-      expect(wallet.statecoins.coins.length).toBe(0);
-
-      let rec = RECOVERY_DATA_MSG_UNFINALIZED
-
- 
-
-      let data = await getFinalizeDataForRecovery(wallet, wasm_mock, rec);
-
-      expect(data).toEqual(TRANSFER_FINALIZE_DATA_FOR_RECOVERY)
-
-    });
-
-    test('recover unfinalized', async () => {
-      http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(RECOVERY_TRANSFER_FINALIZE_DATA_API)
-        .mockReturnValueOnce(RECOVERY_STATECHAIN_DATA)
-        
-      http_mock.post = jest.fn().mockReset()
-        .mockReturnValueOnce(RECOVERY_KEY_GEN_FIRST)
-        .mockReturnValueOnce(RECOVERY_KG_PARTY_ONE_2ND_MESSAGE);
-        
-      wasm_mock.KeyGen.first_message = jest.fn(() => JSON.stringify(RECOVERY_CLIENT_RESP_KG_FIRST));
-      wasm_mock.KeyGen.second_message = jest.fn(() => JSON.stringify(RECOVERY_KEY_GEN_2ND_MESSAGE));
-      wasm_mock.KeyGen.set_master_key = jest.fn(() => JSON.stringify(RECOVERY_MASTER_KEY));
-        
-      expect(wallet.statecoins.coins.length).toBe(0);
-
-      let rec = RECOVERY_DATA_MSG_UNFINALIZED
-
-      await addRestoredCoinDataToWallet(wallet, wasm_mock, [rec]);
-      expect(wallet.statecoins.coins.length).toBe(1);
-      expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
-      expect(wallet.statecoins.coins[0].amount).toBe(RECOVERY_DATA.amount);
-      
-    });
 
 })
 
@@ -825,7 +754,7 @@ describe("bip32", () => {
     "bc1qqjv602v04glax49h2s46jwp5jhqta4pe8w3k8a",
     "bc1qs0l8u9xnk4rdr20wvjdwsd5jjrgj7lxhptw6u0"]
   let account
- 
+
   beforeEach(() => {
     account = mnemonic_to_bip32_root_account(MNEMONIC, bitcoin.networks.bitcoin)
   })
@@ -943,7 +872,7 @@ describe('ActivityLog', function () {
   test('log does not have statecoin_id field', () => {
     expect(log.items[0]?.statecoin_id).toEqual(undefined)
   })
-  
+
   test('fromJSON constructs the activity log', () => {
     let result = ActivityLog.fromJSON(log)
     expect(result).toEqual(log)
@@ -962,93 +891,93 @@ describe('ActivityLog', function () {
     const wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
     beforeEach(async () => {
       alog = ActivityLog.fromJSON({
-          "items": [
-            {
-              "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc",
-              "action": "D",
-              "date": 1647256708087
-            },
-            {
-              "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc",
-              "action": "I",
-              "date": 1647256645325
-            },
-            {
-              "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd",
-              "action": "G",
-              "date": 1647017677534
-            },
-            {
-              "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd",
-              "action": "R",
-              "date": 1647017656778
-            },
-            {
-              "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
-              "action": "T",
-              "date": 1647017641542
-            },
-            {
-              "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
-              "action": "D",
-              "date": 1647017616483
-            },
-            {
-              "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
-              "action": "I",
-              "date": 1647012970643
-            },
-            {
-              "shared_key_id": "86e693ca-997e-4e15-badf-2e0a2861dacf",
-              "action": "G",
-              "date": 1647007584756
-            },
-            {
-              "shared_key_id": "f3c3a565-9e10-4c9f-9358-998715977fe5",
-              "action": "S",
-              "date": 1647007539901
-            },
-            {
-              "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b",
-              "action": "S",
-              "date": 1647007456423
-            },
-            {
-              "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b",
-              "action": "R",
-              "date": 1647007210579
-            },
-            {
-              "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e",
-              "action": "T",
-              "date": 1647007194893
-            },
-            {
-              "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e",
-              "action": "R",
-              "date": 1647006777365
-            },
-            {
-              "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
-              "action": "T",
-              "date": 1647006754866
-            },
-            {
-              "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
-              "action": "D",
-              "date": 1647006314736
-            },
-            {
-              "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
-              "action": "I",
-              "date": 1647006282213
-            }
-          ]
+        "items": [
+          {
+            "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc",
+            "action": "D",
+            "date": 1647256708087
+          },
+          {
+            "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc",
+            "action": "I",
+            "date": 1647256645325
+          },
+          {
+            "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd",
+            "action": "G",
+            "date": 1647017677534
+          },
+          {
+            "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd",
+            "action": "R",
+            "date": 1647017656778
+          },
+          {
+            "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
+            "action": "T",
+            "date": 1647017641542
+          },
+          {
+            "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
+            "action": "D",
+            "date": 1647017616483
+          },
+          {
+            "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
+            "action": "I",
+            "date": 1647012970643
+          },
+          {
+            "shared_key_id": "86e693ca-997e-4e15-badf-2e0a2861dacf",
+            "action": "G",
+            "date": 1647007584756
+          },
+          {
+            "shared_key_id": "f3c3a565-9e10-4c9f-9358-998715977fe5",
+            "action": "S",
+            "date": 1647007539901
+          },
+          {
+            "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b",
+            "action": "S",
+            "date": 1647007456423
+          },
+          {
+            "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b",
+            "action": "R",
+            "date": 1647007210579
+          },
+          {
+            "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e",
+            "action": "T",
+            "date": 1647007194893
+          },
+          {
+            "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e",
+            "action": "R",
+            "date": 1647006777365
+          },
+          {
+            "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
+            "action": "T",
+            "date": 1647006754866
+          },
+          {
+            "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
+            "action": "D",
+            "date": 1647006314736
+          },
+          {
+            "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
+            "action": "I",
+            "date": 1647006282213
+          }
+        ]
       })
-      
-     
+
+
       wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
-      expected_date_merged= [[{ "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc", "action": "D", "date": 1647256708087 }, { "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc", "action": "I", "date": 1647256645325 }], [{ "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd", "action": "G", "date": 1647017677534 }, { "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd", "action": "R", "date": 1647017656778 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "T", "date": 1647017641542 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "D", "date": 1647017616483 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "I", "date": 1647012970643 }, { "shared_key_id": "86e693ca-997e-4e15-badf-2e0a2861dacf", "action": "G", "date": 1647007584756 }, { "shared_key_id": "f3c3a565-9e10-4c9f-9358-998715977fe5", "action": "S", "date": 1647007539901 }, { "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b", "action": "S", "date": 1647007456423 }, { "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b", "action": "R", "date": 1647007210579 }, { "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e", "action": "T", "date": 1647007194893 }, { "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e", "action": "R", "date": 1647006777365 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "T", "date": 1647006754866 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "D", "date": 1647006314736 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "I", "date": 1647006282213 }]]
+      expected_date_merged = [[{ "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc", "action": "D", "date": 1647256708087 }, { "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc", "action": "I", "date": 1647256645325 }], [{ "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd", "action": "G", "date": 1647017677534 }, { "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd", "action": "R", "date": 1647017656778 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "T", "date": 1647017641542 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "D", "date": 1647017616483 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "I", "date": 1647012970643 }, { "shared_key_id": "86e693ca-997e-4e15-badf-2e0a2861dacf", "action": "G", "date": 1647007584756 }, { "shared_key_id": "f3c3a565-9e10-4c9f-9358-998715977fe5", "action": "S", "date": 1647007539901 }, { "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b", "action": "S", "date": 1647007456423 }, { "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b", "action": "R", "date": 1647007210579 }, { "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e", "action": "T", "date": 1647007194893 }, { "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e", "action": "R", "date": 1647006777365 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "T", "date": 1647006754866 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "D", "date": 1647006314736 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "I", "date": 1647006282213 }]]
 
     })
 

@@ -15,7 +15,6 @@
 }
 .list li a {
     margin: 0 10px;
-    color: #0054F4;
     font-size: 14px;
     font-weight: 400;
 }
@@ -35,7 +34,7 @@
 .help-tabs .content .title {
     display: block;
     font-size: 20px;
-    color: #000000;
+    color: var(--text-primary);
     margin-bottom: 10px;
     font-weight: 400;
 

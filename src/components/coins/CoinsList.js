@@ -99,7 +99,7 @@ export const coinSort = (sortCoin) => {
 
     //List coins that are available to swap first.
     if (conditionalProp === 'swap') {
-      const a_available = ((a.status === STATECOIN_STATUS.AVAILABLE) || (a.ui_swap_status !== null)) 
+      const a_available = ((a.status === STATECOIN_STATUS.AVAILABLE) || (a.ui_swap_status !== null))
       const b_available = ((b.status === STATECOIN_STATUS.AVAILABLE) || (b.ui_swap_status !== null))
       if (a_available !== b_available) {
         return a_available ? -1 : 1
@@ -129,7 +129,7 @@ const CoinsList = (props) => {
   const dispatch = useDispatch();
   const { filterBy, swapPendingCoins, swapRecords, coinsAdded,
     coinsRemoved, torInfo, inSwapValues, balance_info } = useSelector(state => state.walletData);
-  const [sortCoin, setSortCoin] = useState({ ...INITIAL_SORT_BY, condition: props.swap ? 'swap' : null});
+  const [sortCoin, setSortCoin] = useState({ ...INITIAL_SORT_BY, condition: props.swap ? 'swap' : null });
   const [coins, setCoins] = useState(INITIAL_COINS);
   const [initCoins, setInitCoins] = useState({});
   const [showCoinDetails, setShowCoinDetails] = useState(DEFAULT_STATE_COIN_DETAILS);  // Display details of Coin in Modal
@@ -139,6 +139,15 @@ const CoinsList = (props) => {
   const [dscpnConfirm, setDscrpnConfirm] = useState(false);
 
   //const [swapStatus,setSwapStatus] = useState("");
+
+  const [showWarningDetails, setShowWarningDetails] = useState(false);
+  const handleCloseWarningDetails = () => setShowWarningDetails(false);
+  const [currentTXID, setCurrentTXID] = useState(null);
+
+
+
+
+
 
   // deleting coins
   const [currentItem, setCurrentItem] = useState(null);
@@ -276,7 +285,7 @@ const CoinsList = (props) => {
       if (filterBy !== 'default') {
         const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
         const total = coinsByStatus.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        dispatch(updateBalanceInfo({...balance_info, total_balance: total, num_coins: coinsByStatus.length }));
+        dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: coinsByStatus.length }));
       } else {
         const coinsNotWithdraw = coins_data.filter(coin => (
           coin.status !== STATECOIN_STATUS.WITHDRAWN &&
@@ -284,7 +293,7 @@ const CoinsList = (props) => {
           coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
           coin.status !== STATECOIN_STATUS.EXPIRED));
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        dispatch(updateBalanceInfo({...balance_info,  total_balance: total, num_coins: coinsNotWithdraw.length }));
+        dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: coinsNotWithdraw.length }));
       }
       return () => { isMounted = false }
     }
@@ -347,7 +356,7 @@ const CoinsList = (props) => {
       setTotalCoins(confirmedCoins.length);
       // update balance and amount
       const total = confirmedCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
-      dispatch(updateBalanceInfo({...balance_info, total_balance: total, num_coins: confirmedCoins.length }))
+      dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: confirmedCoins.length }))
     }
   }, [callGetUnspentStatecoins(), balance_info])
 
@@ -516,8 +525,14 @@ const CoinsList = (props) => {
     navigator.clipboard.writeText(showCoinDetails.coin.tx_hex);
   }
 
+
   // called when clicking on TXid link in modal window
   const onClickTXID = txId => {
+    setCurrentTXID(txId);
+    setShowWarningDetails(true);
+  }
+
+  const onClickContinueTXID = () => {
     let block_explorer_endpoint = current_config.block_explorer_endpoint;
 
     // ensure there is https
@@ -525,7 +540,7 @@ const CoinsList = (props) => {
       block_explorer_endpoint = 'https://' + block_explorer_endpoint;
     }
 
-    let finalUrl = block_explorer_endpoint + txId;
+    let finalUrl = block_explorer_endpoint + currentTXID;
     // open the browser for both mainnet and testnet
     window.require("electron").shell.openExternal(finalUrl);
   }
@@ -552,7 +567,7 @@ const CoinsList = (props) => {
         <FilterBy />
         {(all_coins_data.length &&
           filterBy !== STATECOIN_STATUS.WITHDRAWN
-        ) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} swap={swap}/> : null}
+        ) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} swap={swap} /> : null}
       </div>
       {all_coins_data.map(item => {
         return (
@@ -582,6 +597,30 @@ const CoinsList = (props) => {
           />
         )
       })}
+
+
+      <Modal show={showWarningDetails} onHide={handleCloseWarningDetails}>
+        <Modal.Body>
+          <div>
+            <h3 className="red">Privacy warning</h3>
+            <p>This operation will open your browser to access a 3rd party website, (mempool.space) do you wish to continue?</p>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            className="action-btn-normal"
+            onClick={onClickContinueTXID}>
+            Continue
+          </Button>
+          <Button
+            className="action-btn-normal"
+            onClick={handleCloseWarningDetails}>
+            No
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+
 
       <Modal
         show={showCoinDetails.show}

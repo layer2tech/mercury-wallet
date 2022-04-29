@@ -54,13 +54,13 @@ function SendModal({
           <CopiedButton
             handleCopy={handleCopy}
             style={{
-              backgroundColor: '#E0E0E0',
+              backgroundColor: 'var(--button-border)',
               borderRadius: 5,
               boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.101961)',
               bottom: 80,
               width: 'max-content',
               padding: '5px 12px',
-              color: '#000',
+              color: 'var(--text-primary)',
               fontWeight: 'bold',
               top: 'initial',
               left: '50%',
@@ -71,7 +71,7 @@ function SendModal({
           <div>
             {transfer_code === "" ? (
               <div className = "loading-container">
-                <div className = "loading-spinner"  ><Spinner animation="border" style = {{color: "#0054F4"}} variant="primary" ></Spinner></div>
+                <div className = "loading-spinner"  ><Spinner animation="border" style = {{color: "var(--primary)"}} variant="primary" ></Spinner></div>
                 <div className = "loading-txt" >Loading transfer key...</div>
               </div>  
             ):(
@@ -89,7 +89,7 @@ function SendModal({
               <button onClick={handleClose}
                 className={`confirm-btn`}
               >
-                <span>{copyIcon('#fff')}</span>
+                <span>{copyIcon('var(--link-color)')}</span>
                 Continue
               </button>
             </div>)}
