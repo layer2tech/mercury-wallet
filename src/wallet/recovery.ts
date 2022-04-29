@@ -132,8 +132,6 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
 
     if (statecoin) {
 
-      console.log(recoveredCoins[i]);
-
       if (recoveredCoins[i].statechain_id) {
         // deposited coin
         let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
@@ -147,6 +145,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.statechain_id = recoveredCoins[i].statechain_id;
         statecoin.value = recoveredCoins[i].amount;
         statecoin.tx_hex = recoveredCoins[i].tx_hex;
+        statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
         if(recoveredCoins[i].withdrawing) {
           statecoin.setWithdrawing();
           const wdr_msg2: WithdrawMsg2 = {

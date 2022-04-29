@@ -1093,9 +1093,10 @@ export class Wallet {
   }
 
   // check all shared keys to see if there are multiple confirmed deposits and then create coins
-  async checkMultipleDeposits() {
+  async checkMultipleDeposits(): Promise<number>  {
+      let count = 0;
+
     for (let i = 0; i < this.statecoins.coins.length; i++) {
-      console.log(this.statecoins.coins[i]);
 
       if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
         continue;
@@ -1111,34 +1112,39 @@ export class Wallet {
       }
 
       let addr = this.statecoins.coins[i].getBtcAddress(this.config.network);
-      console.log(addr);
       let out_script = bitcoin.address.toOutputScript(addr, this.config.network);
-      console.log(out_script);
       let funding_tx_data = await this.electrum_client.getScriptHashListUnspent(out_script);
-      console.log(funding_tx_data);
 
       for (let j=0; j<funding_tx_data.length; j++) {
         if (funding_tx_data[j].tx_hash === this.statecoins.coins[i].funding_txid && funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout) {
-           console.log("already have coin")
            continue;
         } else {
-           // create new duplicate coin
+            // check that no existing coin exists with this outpoint
+            let existing_output = false;
+            for (let k = 0; k < this.statecoins.coins.length; k++) {
+              if (this.statecoins.coins[k].funding_txid === funding_tx_data[j].tx_hash && this.statecoins.coins[k].funding_vout === funding_tx_data[j].tx_pos) {
+                existing_output = true;
+                break;
+              }
+            }
 
-            let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
-            statecoin.proof_key = this.statecoins.coins[i].proof_key;
-            statecoin.value = funding_tx_data[j].value;
-            statecoin.funding_txid = funding_tx_data[j].tx_hash;
-            statecoin.funding_vout = funding_tx_data[j].tx_pos;
-            statecoin.tx_backup = new Transaction();
-            statecoin.status = STATECOIN_STATUS.DUPLICATE;
+            if (!existing_output) {
+              // create new duplicate coin
+              let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
+              statecoin.proof_key = this.statecoins.coins[i].proof_key;
+              statecoin.value = funding_tx_data[j].value;
+              statecoin.funding_txid = funding_tx_data[j].tx_hash;
+              statecoin.funding_vout = funding_tx_data[j].tx_pos;
+              statecoin.tx_backup = new Transaction();
+              statecoin.status = STATECOIN_STATUS.DUPLICATE;
 
-            console.log("added coin");
-            console.log(statecoin);
-
-            this.statecoins.addCoin(statecoin)
+              this.statecoins.addCoin(statecoin)
+              count = count + 1;
+            }
           }
       }
     }
+    return count
   }
 
   // Query withdrawal txs list unspent and mark coin WITHDRAWN
@@ -1248,6 +1254,15 @@ export class Wallet {
   ): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+
+    // check there is no duplicate
+    for (let i = 0; i < this.statecoins.coins.length; i++) {      
+      if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
+        if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
+          throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+        }
+      }
+    }
 
     //Always try and resume coins in swap phase 4 so transfer is completed
     if (statecoin.swap_status !== SWAP_STATUS.Phase4) {
@@ -1492,6 +1507,15 @@ export class Wallet {
     if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
     if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
 
+    // check there is no duplicate
+    for (let i = 0; i < this.statecoins.coins.length; i++) {
+      if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
+        if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
+          throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+        }
+      }
+    }
+
     let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
 
     let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, false, this)
@@ -1700,7 +1724,6 @@ export class Wallet {
         break
       }
       this.setStateCoinSpent(shared_key_ids[0], ACTION.WITHDRAW)
-      this.statecoins.setCoinWithdrawTxId(shared_key_ids[0], withdraw_txid)
       log.info("Withdraw duplicate finished.");
       return withdraw_txid
     }
