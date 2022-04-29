@@ -3,27 +3,31 @@ import { Network } from "bitcoinjs-lib";
 const W3CWebSocket = require('websocket').w3cwebsocket
 const net = require('net')
 let bitcoin = require('bitcoinjs-lib');
+var execSync = require('child_process').execSync;
 var exec = require('child_process').exec;
+import { delay_s } from '../mercury/info_api';
 
 jest.mock('axios', () => jest.fn())
 
-async function gen_blocks(address, n) {
-    await exec(`bitcoin-core.cli -conf=/home/ldeacon/bitcoin-regtest/bitcoin.conf -rpcport=18333 -rpcuser=username -rpcpassword=password generatetoaddress ${n} ${address}`,
+function gen_blocks(address, n) {
+    return execSync(`bitcoin-core.cli -conf=/home/ldeacon/bitcoin-regtest/bitcoin.conf -rpcport=18333 -rpcuser=username -rpcpassword=password generatetoaddress ${n} ${address}`,
         function (error, stdout, stderr) {
             console.log('stdout: ' + stdout);
             console.log('stderr: ' + stderr);
             if (error !== null) {
                 console.log('exec error: ' + error);
             }
-        });
+        })
 }
 
 describe('ElectrumClient', function () {
+
     let config = {
         host: "127.0.0.1", port: 50001, protocol: "tcp", type: ""}
     let client = new ElectrumClient(config);
 
     beforeEach(async () => {
+        jest.setTimeout(30000)
         await client.connect()
     });
 
@@ -69,20 +73,49 @@ describe('ElectrumClient', function () {
         expect(result.length > 0).toEqual(true)
     })
 
-    test('addressSubscribe addressUnsubscribe', async function () {
+    test('addressSubscribe', async function () {
         let address = "bcrt1qq63afvq96tq7kyvvdyldtehhp5tgpsz8z0z0kq"
         let network = bitcoin.networks.regtest
         let callbackCalled = false
+        let p_addr = undefined
 
-        let result = await client.addressSubscribe(address, network, async (_status) => {
-            log.info("Script hash status change for p_addr: ", p_addr);
+        let result = await client.addressSubscribe(address, network, async (status) => {
+            console.log(`Script hash status change: ${JSON.stringify(status)}`);
             callbackCalled = true
         })
         console.log(`addressSubscribe: ${result}`)
-        await gen_blocks(address, 100)
+        let nBlocks = 10
+        let child = gen_blocks(address, nBlocks)
+        
+        await delay_s(nBlocks)
         expect(callbackCalled).toEqual(true)
+        
+        //await callBackPromise
+        //expect(callbackCalled).toEqual(true)
         //result = await client.addressUnsubscribe(address, network)
         //console.log(`addressUnsubscribe: ${result}`)
+    })
+    
+    test('blockHeightSubscribe', async function () {
+        let address = "bcrt1qq63afvq96tq7kyvvdyldtehhp5tgpsz8z0z0kq"
+        let init_block_height = -1
+        let block_height = -1
+
+        let callBackFunction = async (status) => {
+            console.log(`block height status: ${JSON.stringify(status)}`)
+            block_height = status[0].height
+            if (init_block_height === -1) {
+                init_block_height=status[0].height
+            }
+        }
+
+        let result = await client.blockHeightSubscribe(callBackFunction)
+        let nBlocks = 10
+        let child = gen_blocks(address, nBlocks)
+
+        await delay_s(nBlocks)
+
+        expect(block_height > init_block_height).toEqual(true)
     })
     
 });
