@@ -132,7 +132,7 @@ function createWindow() {
   });
   mainWindow.loadURL(startUrl);
 
-  if (isPackaged || isDev) {
+  if (isDev) {
     mainWindow.webContents.openDevTools();
   }
 
