@@ -7,6 +7,7 @@ import {
   encodeSCEAddress
 } from './';
 import { ElectrsClient } from './electrs'
+import { ElectrsLocalClient } from './electrs_local'
 
 import { txCPFPBuild, FEE, encryptAES } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
@@ -90,7 +91,7 @@ export class Wallet {
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
-  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient;
+  electrum_client: ElectrumClient | ElectrsClient | ElectrsLocalClient | EPSClient | MockElectrumClient;
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
@@ -148,9 +149,9 @@ export class Wallet {
     this.start()
   }
 
-  async updateConfig(config_changes: object) {
+  updateConfig(config_changes: object) {
     let connectionChanged = this.config.update(config_changes)
-    await this.save()
+    this.save()
     return connectionChanged
   }
 
@@ -440,6 +441,7 @@ export class Wallet {
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if (this.config.testing_mode == true) return new MockElectrumClient()
     if (this.config.electrum_config.type == 'eps') return new EPSClient('http://localhost:3001')
+    if (this.config.electrum_config.type == 'electrs_local') return new ElectrsLocalClient('http://localhost:3001')
     if (this.config.electrum_config.protocol == 'http') return new ElectrsClient('http://localhost:3001')
 
     return new ElectrumClient(this.config.electrum_config)
@@ -448,7 +450,16 @@ export class Wallet {
   // Initialise electum server:
   // Setup subscribe for block height and outstanding initialised deposits
   async initElectrumClient(blockHeightCallBack: any) {
-    this.electrum_client.connect().then(async () => {
+    let config
+    const type = this.config.electrum_config.type
+    if ((type === "eps" || type === "electrs_local") && (this.config.electrum_config.port != null)) {
+      config = {
+        protocol: this.config.electrum_config.protocol,
+        host: this.config.electrum_config.host,
+        port: this.config.electrum_config.port?.toString()
+      }
+    }
+    this.electrum_client.connect(config).then(async () => {
       // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
       // Get fee info
@@ -1183,6 +1194,7 @@ export class Wallet {
     // if not, update it
     if (this.block_height < 709862) {
       let header = await this.electrum_client.latestBlockHeader();
+      console.log(`got header: ${JSON.stringify(header)}`)
       this.setBlockHeight(header);
     }
     if (this.block_height < 709862) throw Error("Block height not updated");

@@ -42,11 +42,11 @@ export class ElectrumClient {
 
   // Disconnect from the ElectrumClientServer.
   async close() {
-    await this.client.close()
+    this.client.close()
   }
 
   async serverPing() {
-    await this.client.server_ping().catch( (err: any) => {
+    this.client.server_ping().catch( (err: any) => {
       throw err;
     });
   }

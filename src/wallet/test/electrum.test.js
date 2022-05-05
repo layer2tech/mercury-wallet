@@ -23,20 +23,20 @@ function gen_blocks(address, n) {
 describe('ElectrumClient', function () {
 
     let config = {
-        host: "127.0.0.1", port: 50001, protocol: "tcp", type: ""}
+        host: "127.0.0.1", port: 50002, protocol: "tcp", type: ""}
     let client = new ElectrumClient(config);
 
     beforeEach(async () => {
-        jest.setTimeout(30000)
+        jest.setTimeout(5000)
         await client.connect()
     });
 
-    test('ping', async function () {
+    test.skip('ping', async function () {
         let result = await client.ping()
         expect(result).toEqual(true)
     })
 
-    test('close', async function () {
+    test.skip('close', async function () {
         expect(client.isOpen()).toEqual(true)
         await client.close()
         expect(client.isClosed()).toEqual(true)
@@ -56,24 +56,24 @@ describe('ElectrumClient', function () {
         console.log(tx)
     })
 
-    test('getFeeEstimation', async function () {
+    test.skip('getFeeEstimation', async function () {
         let est = await client.getFeeEstimation(1)
         console.log(est)
     })
 
-    test('broadcastTransaction', async function () {
+    test.skip('broadcastTransaction', async function () {
         await expect(client.broadcastTransaction("02000000000101e085b8dd418ff197a23894b8c9eb0676e9b06e46209cb1c140891c5db40e45c80000000000feffffff02809698000000000016001449c305de9b5a66993d295494917f5c649647ff1560359628010000001600143f68991a61a8570b5678e47e6df457b42047b2c40247304402201181577000eb235f5e92c654726dfa14df57a078ea274be23ecf23ef397b971a022076bab97acb1284ce669e62b0ebfd4f26571b7316a8a675984f83a36d5f01380f0121020f09ff840790a3dd5104fde477febc66661b439e2e1d1eb451e019d00b999d9b82000000")).
             rejects.toThrow(Error("failed to broadcast transaction: [Transaction already in block chain]"))
     })
 
-    test('getAddressListUnspent', async function () {
+    test.skip('getAddressListUnspent', async function () {
         let address = "bcrt1qq63afvq96tq7kyvvdyldtehhp5tgpsz8z0z0kq"
         let network = bitcoin.networks.regtest
         let result = await client.getAddressListUnspent(address, network)
         expect(result.length > 0).toEqual(true)
     })
 
-    test('addressSubscribe', async function () {
+    test.skip('addressSubscribe', async function () {
         let address = "bcrt1qq63afvq96tq7kyvvdyldtehhp5tgpsz8z0z0kq"
         let network = bitcoin.networks.regtest
         let callbackCalled = false
@@ -96,7 +96,7 @@ describe('ElectrumClient', function () {
         //console.log(`addressUnsubscribe: ${result}`)
     })
     
-    test('blockHeightSubscribe', async function () {
+    test.skip('blockHeightSubscribe', async function () {
         let address = "bcrt1qq63afvq96tq7kyvvdyldtehhp5tgpsz8z0z0kq"
         let init_block_height = -1
         let block_height = -1

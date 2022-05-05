@@ -409,7 +409,7 @@ describe('full swap test 1 - correct swap', () => {
         electrum_mock.importAddresses = jest.fn(([addr], heightDiff) => {
             return "";
         });
-        electrum_mock.hListUnspent = jest.fn((param1) => {
+        electrum_mock.getScriptHashListUnspent = jest.fn((param1) => {
             return [{
                 tx_hash:
                     "794610eff71928df4d6814843945dbe51d8d11cdbcbeb11eb1c42e8199298494",
