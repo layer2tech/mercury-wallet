@@ -67,6 +67,9 @@ const ConfirmSeed = (props) => {
     // If so display error dialogue
     const checkForCoinsHealth = () => {
       let unspent_coins_data = callGetUnspentStatecoins();
+      if (unspent_coins_data == null) {
+        return
+      }
       let coins_data = unspent_coins_data[0];
       for (let i=0; i<coins_data.length; i++) {
         if (coins_data[i].wallet_version !== callGetVersion()) {

@@ -8,16 +8,29 @@ Custom configurations can be set in `/src/settings.json` in JSON format:
 
 | Name                    | Type    | Default                                                                 |
 | ----------------------- | ------- | ----------------------------------------------------------------------- |
-| state_entity_endpoint   | string  | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion   |
-| swap_conductor_endpoint | string  | http://zo63hfpdcmonu52pcvflmeo62s47cqdabmibeejm7bhrfxmino3fl5qd.onion   |
-| electrum_config         | object  | { host: 'https://explorer.blockstream.com/api', port: null, protocol: 'http', type: '' }        |
 | tor_proxy               | object  | { ip: 'localhost', port: 9060, controlPassword: '', controlPort: 9061 } |
 | min_anon_set            | number  | 5                                                                       |
 | notifications           | boolean | true                                                                    |
 | tutorials               | boolean | false                                                                   |
 | testing_mode            | boolean | false                                                                   |
 
-In electrum_config, the protocol options are 'http' or 'wss'. http routes the connection via TOR and the 'port' should normally be set to 'null'. The 'type' setting indicates the server type, and should be set to 'eps' if using the "electrum personal server".
+Network settings can be set in src/network.json:
+
+| Name                    | Type    | Default                                                                 |
+| ----------------------- | ------- | ----------------------------------------------------------------------- |
+| mainnet_state_entity_endpoint   | [string]  | "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion"  |
+| mainnet_swap_conductor_endpoint | [string]  | "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion"   |
+| mainnet_block_explorer_endpoint | string  | "https://mempool.space/tx/"   |
+| mainnet_electrum_config         | object  |  {"host": "https://blockstream.info/api", "port": null, "protocol": "http", "type": "electrs"}        |
+| testnet_state_entity_endpoint   | string  | "http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion"   |
+| testnet_swap_conductor_endpoint | string  | "http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion"   |
+| testnet_block_explorer_endpoint | string  | "https://mempool.space/testnet/tx/"   |
+| testnet_electrum_config         | object  | {"host": "https://blockstream.info/testnet/api", "port": null, "protocol": "http", "type":"electrs"}        |
+
+
+In electrum_config, the protocol options are 'http' or 'wss'. http routes the connection via TOR and the 'port' should normally be set to 'null'. The 'type' setting indicates the server type, and should be set to 'eps' if using the "electrum personal server", and "electrs_local" to connect to a local electrs server. For example, to connect to a local electrs server running on port 50001, use the following electrum config:
+
+ {"host": "127.0.0.1", "port": 50001, "protocol": "tcp", "type":"electrs_local"}
 
 
 # Development instructions

@@ -72,6 +72,7 @@
     "wasm-loader": "^1.3.0"
   },
   "dependencies": {
+    "@aguycalled/electrum-client-js": "^0.1.9",
     "@electron/remote": "^2.0.7",
     "@esfx/async-semaphore": "^1.0.0-pre.19",
     "@keep-network/electrum-client-js": "keep-network/electrum-client-js",

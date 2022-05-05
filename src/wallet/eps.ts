@@ -32,6 +32,7 @@ Object.freeze(GET_ROUTE);
 export const POST_ROUTE = {
   //broadcast transaction
   TX: "/eps/tx",
+  CONFIG: "/eps/config"
 };
 Object.freeze(POST_ROUTE);
 
@@ -113,7 +114,8 @@ export class EPSClient {
   //  return new HttpClient('http://localhost:3001', true)
   //}
 
-  async connect() {
+  async connect(config = { protocol: "tcp", host: "127.0.0.1", port: "50001" }): Promise<any> {
+    EPSClient.post(this.endpoint, POST_ROUTE.CONFIG, { "data": config })
   }
 
   async ping(): Promise<boolean> {
