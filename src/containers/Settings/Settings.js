@@ -6,7 +6,9 @@ import {useDispatch} from 'react-redux'
 
 import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
-  callUpdateConfig, callClearSave, unloadWallet, stopWallet, saveWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic} from '../../features/WalletDataSlice'
+  callUpdateConfig, callClearSave, unloadWallet, stopWallet, saveWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic, callCheckCoins} from '../../features/WalletDataSlice'
+
+import Loading from '../../components/Loading/Loading';
 
 import './Settings.css';
 import Tutorial from "../../components/Tutorial";
@@ -68,6 +70,7 @@ const SettingsPage = (props) => {
   const [password, setPassword] = useState(false);
   const [passwordConfirm, setPasswordConfirm] = useState(false);
   const [showSeed, setShowSeed] = useState(false)
+  const [checkLoading, setCheckLoading] = useState(false)
 
   useEffect(() => {
 
@@ -135,6 +138,13 @@ const SettingsPage = (props) => {
     setElecAddr(current_config.electrum_config);
     setTorProxy(current_config.tor_proxy);
     setMinAnonSet(current_config.min_anon_set);
+  }
+
+  const checkButtonOnClick = async () => {
+    setCheckLoading(true)
+    let count = await callCheckCoins();
+    dispatch(setNotificationMsg({msg:"Found " + count + " duplicate deposits"}))
+    setCheckLoading(false)    
   }
 
   const clearWalletButtonOnClick = async () => {
@@ -341,6 +351,12 @@ const SettingsPage = (props) => {
                           )
                         }
                       </div>
+                      <h2> </h2>
+                      <div className="action-btn-check">
+                      <button type="button" title="Check for duplicate deposits paid to the same statecoin shared key. Warning: This operation queries electrum server with all wallet addresses." className="action-btn-blue" onClick={(checkLoading) === false ? (checkButtonOnClick) : ((e) => { e.stopPropagation() })}>
+                        {checkLoading ? (<Loading />) : (`Check for duplicate coins`)}
+                      </button>
+                    </div>
                   </div>
               </div>
               <div className="action-btns">

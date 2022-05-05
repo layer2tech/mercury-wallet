@@ -4,7 +4,7 @@ h1 {
 
 .create-welcome-item p {
     font-size: 14px;
-    color: #757575;
+    color: var(--text-secondary);
     margin-bottom: 0;
 
 }
@@ -20,7 +20,7 @@ h1 {
     justify-content: flex-start;
     align-items: center;
     width: 49%;
-    background-color: #ffffff;
+    background-color: var(--container);
     padding: 20px;
     min-height: 120px;
     margin-bottom: 20px;
@@ -46,7 +46,7 @@ h1 {
 }
 .welcome-second .inputs-item input {
     border: 1px solid #707070;
-    background: #ffffff;
+    background: var(--container);
     opacity: 1;
     border-radius: 0 !important;
     /* width: 32px !important; */

@@ -5,7 +5,7 @@
     border-radius: 0 !important;
     width: 22px !important;
     position: relative;
-    background: #f5f5f5;
+    background: var(--background);
     top: 7px;
 }
 

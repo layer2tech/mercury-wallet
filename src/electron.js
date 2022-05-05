@@ -13,7 +13,7 @@ const fork = require('child_process').fork;
 const exec = require('child_process').exec;
 
 // set to testnet mode for testing
-if (isPackaged || !require("./settings.json").testing_mode) {
+if (isPackaged || !require(joinPath(rootPath, 'src', 'settings.json')).testing_mode) {
   require('@electron/remote/main').initialize()
 }
 
@@ -59,12 +59,14 @@ if (isPackaged === true) {
     execPath = joinPath(rootPath, '..', 'bin');
   }
   torrc = joinPath(execPath, '..', 'etc', 'torrc');
-  tor_adapter_path = `${__dirname}/../tor-adapter/server/index.js`
-} else {
-  resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
-  execPath = joinPath(resourcesPath, getPlatform());
-  torrc = joinPath(resourcesPath, 'etc', 'torrc');
   tor_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
+  
+} else {
+  resourcesPath = joinPath(rootPath, 'resources');
+  execPath = joinPath(resourcesPath, getPlatform());
+  iconPath = joinPath(rootPath, 'build', 'icons', 'mercury-symbol-tri-color.png');
+  torrc = joinPath(resourcesPath, 'etc', 'torrc');
+  tor_adapter_path = joinPath(rootPath, 'node_modules', 'mercury-wallet-tor-adapter','server', 'index.js')
 }
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;

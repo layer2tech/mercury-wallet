@@ -1,6 +1,6 @@
 .wallet-container {
     padding: 34px 20px;
-    background: #FFFFFF;
+    background: var(--container);
     border-radius: 4px;
     margin-bottom: 20px;
     box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
@@ -13,7 +13,7 @@ label {
     padding-left: 25px;
     cursor: pointer;
     font-size: 14px;
-    color: #666666;
+    color: var(--text-secondary-sub);
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -42,7 +42,6 @@ input {
     font-size: 20px;
     line-height: 26px;
     letter-spacing: 0.36px;
-    color: rgba(0, 0, 0, 0.6);
     font-weight: normal;
     margin: 0 0 0 44px;
 }
@@ -56,7 +55,6 @@ input {
     font-size: 34px;
     line-height: 36px;
     letter-spacing: 0.255px;
-    color: rgba(0, 0, 0, 0.870588);
 }
 .swap-header svg {
     margin-right: 13px;
@@ -77,7 +75,7 @@ input:checked ~ .checkmark:after {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #388E3C;
+    background: var(--success);
 }
 
 .swap-header-txt {
@@ -125,7 +123,7 @@ input:checked ~ .checkmark:after {
     margin-right: 10px;
 }
 .swap table thead tr td {
-    color: #757575;
+    color: var(--text-secondary);
     font-size: 14px;
     text-transform: uppercase;
 }
@@ -136,7 +134,7 @@ input:checked ~ .checkmark:after {
     align-items: center;
     padding-bottom: 20px;
     margin: 10px auto;
-    border-bottom: 1px solid #E0E0E0;
+    border-bottom: 1px solid var(--button-border);
 
 }
 .swap table tbody  tr td ,
@@ -162,7 +160,7 @@ input:checked ~ .checkmark:after {
 }
 .swap table tbody tr td .content .line span {
     font-size: 14px;
-    color: #757575;
+    color: var(--text-secondary);
     font-weight: 300;
 }
 .swap table tbody tr td .content .line img {

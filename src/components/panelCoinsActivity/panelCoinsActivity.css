@@ -6,7 +6,7 @@
   box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
   padding: 10px 0;
   border-radius: 4px;
-  background-color: #ffffff;
+  background-color: var(--container);
 }
 
 .tab-content {
@@ -31,7 +31,7 @@
 }
 .nav-tabs a {
   position: relative;
-  color: #666666;
+  color: var(--text-secondary-sub);
   font-size: 14px;
   width: 50%;
 }
@@ -41,13 +41,11 @@
 .nav-tabs .nav-link {
   border: none !important;
 }
-.nav-tabs a.nav-item.active {
-  color: #0054F4;
-}
+
 .nav-tabs a.nav-item.active:after {
   content: "";
   display: block;
-  background-color:  #0054F4;
+  background-color:  var(--primary);
   height: 2px;
   width: 100%;
   position: absolute;
@@ -55,12 +53,13 @@
   left: 0;
 }
 
-
 .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active,
 .nav-tabs .nav-link:focus, .nav-tabs .nav-link:hover {
   border-top: transparent;
   border-left: transparent;
   border-right: transparent;
+  color: var(--text-secondary)!important;
+  background-color: var(--container)!important;
 
 }
 .dark-mode .nav-tabs{
@@ -68,7 +67,7 @@
 }
 
 /* .withdrawn-tab{
-  color: #0054F4;
+  color: var(--primary);
   letter-spacing: 1.246px;
   font-size: 14px;
   font-weight: 500;

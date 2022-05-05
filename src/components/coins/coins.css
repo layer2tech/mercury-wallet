@@ -11,7 +11,7 @@
 }
 
 .sub {
-  color: #757575;
+  color: var(--text-secondary);
   display: flex;
   flex-direction: column;
   padding-left: 10px;
@@ -19,12 +19,12 @@
 .CoinSwapStatus {
   display: flex;
   align-items: center;
-  color: #757575;
+  color: var(--text-secondary);
 }
 .CoinTimeLeft {
   display: flex;
   align-items: center;
-  color: #757575;
+  color: var(--text-secondary);
   justify-content: center;
 }
 
@@ -39,8 +39,8 @@
 .coin-status-or-txid .swap-status-container.coinslist .tooltip{
   visibility: hidden;
   width: 350px;
-  background-color: #E0E0E0;
-  color: #000000;
+  background-color: var(--button-border);
+  color: var(--text-primary);
   text-align: center;
   border-radius: 6px;
   padding: 6px 12px;
@@ -63,7 +63,7 @@
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #E0E0E0 transparent transparent transparent;
+  border-color: var(--button-border) transparent transparent transparent;
 }
 .coin-status-or-txid .swap-status-container.coinslist:hover .tooltip{
   visibility: visible;
@@ -136,29 +136,29 @@ p.short{
   height:18px
 }
 .CoinAmount {
-  color: #000000;
+  color: var(--text-primary);
 }
 
 .CoinAmountError {
-  color: #ff3d00;
+  color: var(--warning-color);
   border-style: solid;
   word-break: break-word;
 }
 
 #danger .sub .progress {
     height: 4px;
-    background-image: linear-gradient(to right, #ff3d00 10%, #ffb2ab 0%);
+    background-image: linear-gradient(to right, var(--warning-color) 10%, #ffb2ab 0%);
     background-position: top;
     background-size: 8% 4px;
     background-repeat: repeat-x;
 }
 #danger .expiry-time-left{
-    color: #ff3d00;
+    color: var(--warning-color);
 }
 
 #success .sub .progress {
     height: 4px;
-    background-image: linear-gradient(to right, #ffffff 10%, rgb(176, 176, 176) 0%);
+    background-image: linear-gradient(to right, var(--container) 10%, rgb(176, 176, 176) 0%);
     background-position: top;
     background-size: 8% 4px;
     background-repeat: repeat-x;
@@ -182,11 +182,11 @@ p.short{
 
 }
 .progress .bg-warning {
-  background-color: #000000 !important;
+  background-color: var(--text-primary) !important;
 
 }
 .progress .bg-success {
-    background-color: #000000 !important;
+    background-color: var(--text-primary) !important;
 }
 
 .scoreAmount {
@@ -202,8 +202,8 @@ p.short{
 .scoreAmount .tooltip {
   visibility: hidden;
   width: 350px;
-  background-color: #E0E0E0;
-  color: #000000;
+  background-color: var(--button-border);
+  color: var(--text-primary);
   text-align: center;
   border-radius: 6px;
   padding: 5px 0;
@@ -224,7 +224,7 @@ p.short{
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #E0E0E0 transparent transparent transparent;
+  border-color: var(--button-border) transparent transparent transparent;
 }
 .scoreAmount:hover .tooltip {
   visibility: visible;
@@ -248,7 +248,7 @@ p.short{
   align-items: flex-start;
   position: relative;
   padding: 12px 0;
-  border-bottom :1px solid #E0E0E0;
+  border-bottom :1px solid var(--button-border);
 }
 
 .modal .item.qr-container{
@@ -304,13 +304,13 @@ p.short{
 .modal.coin-details-modal .item  .block span:first-child {
   font-size: 16px;
   display: block;
-  color: rgba(0, 0, 0, 0.870588);
+  color: var(--text-primary);
 
 }
 .modal.coin-details-modal .item  .block span:nth-child(2) {
   font-size: 14px;
   display: block;
-  color: #666666;
+  color: var(--text-secondary-sub);
 
 }
 .modal .modal-footer {
@@ -322,9 +322,9 @@ p.short{
   text-align: center;
   margin: 0 auto;
   margin-bottom: 15px;
-  color: #0054F4;
-  background-color: #ffffff;
-  border :1px solid #E0E0E0;
+  color: var(--text-primary);
+  background-color: var(--container);
+  border :1px solid var(--button-border);
   font-size: 14px;
   text-transform: uppercase;
 }
@@ -335,12 +335,12 @@ p.short{
 }
 
 .widthdrawn-status span {
-  color: #000;
+  color: var(--text-primary);
   line-height: 20px;
 }
 
 .widthdrawn-status span.widthdrawn-status-time {
-  color: #757575;
+  color: var(--text-secondary);
 }
 
 .widthdrawn-status svg {
@@ -351,7 +351,7 @@ p.short{
   color: #979797;
 }
 .empty-coin-list b {
-  color: #000;
+  color: var(--text-primary);
   font-weight: normal;
 }
 .empty-coin-list a {
@@ -415,6 +415,10 @@ p.short{
 }
 
 .swap .coin-item.WITHDRAWING, .sendStatecoin .coin-item.WITHDRAWING{
+  opacity: 0.3;
+}
+
+.swap .coin-item.DUPLICATE, .sendStatecoin .coin-item.DUPLICATE{
   opacity: 0.3;
 }
 
@@ -485,7 +489,7 @@ div.lower.coin-details-modal > div:first-child >div:first-child{
   align-items: center;
 }
 .coin-details-modal .item.expiry-time .block .expiry-time-left {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-primary);
   font-size: 14px;
   line-height: 20px;
 }
@@ -496,34 +500,27 @@ div.lower.coin-details-modal > div:first-child >div:first-child{
   cursor: pointer;
 }
 .coin-details-modal .block  time {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-primary);
   text-transform: uppercase;
   font-size: 14px;
   line-height: 20px;
 }
-.dark-mode .coin-details-modal .block time {
-  color: #666666;
-}
+
 .coin-item:hover {
   background: rgba(174, 213, 238, 0.102);
   cursor: pointer;
 }
 .coin-item.selected {
-  background:#DFEAFF;
+  background:var(--selected);
   cursor: pointer;
 }
-.dark-mode .coin-item:hover {
-  background: rgba(102, 102, 102, 0.396078);
-}
-.dark-mode .coin-item.selected {
-  background: #192A4A;
-}
+
 .coinURLButton{
   background: none!important;
   border: none;
   padding: 0!important;
   /*input has OS specific font-family*/
-  color: #069;
+  color: var(--link-color);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -533,5 +530,5 @@ div.lower.coin-details-modal > div:first-child >div:first-child{
 
 .coinURLText:hover,
 .coinURLText:focus {
-    color: black;
+    color: var(--text-primary);
 }
