@@ -1107,13 +1107,17 @@ export class Wallet {
       }
       if (!(this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWN ||
         this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWING ||
-        this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE)) {
+        this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE || 
+        this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPLIMIT || 
+        this.statecoins.coins[i].status === STATECOIN_STATUS.EXPIRED)) {
         continue;
       }
 
       let addr = this.statecoins.coins[i].getBtcAddress(this.config.network);
       let out_script = bitcoin.address.toOutputScript(addr, this.config.network);
       let funding_tx_data = await this.electrum_client.getScriptHashListUnspent(out_script);
+
+      console.log(funding_tx_data);
 
       for (let j=0; j<funding_tx_data.length; j++) {
         if (funding_tx_data[j].tx_hash === this.statecoins.coins[i].funding_txid && funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout) {
@@ -1129,17 +1133,25 @@ export class Wallet {
             }
 
             if (!existing_output) {
-              // create new duplicate coin
-              let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
-              statecoin.proof_key = this.statecoins.coins[i].proof_key;
-              statecoin.value = funding_tx_data[j].value;
-              statecoin.funding_txid = funding_tx_data[j].tx_hash;
-              statecoin.funding_vout = funding_tx_data[j].tx_pos;
-              statecoin.tx_backup = new Transaction();
-              statecoin.status = STATECOIN_STATUS.DUPLICATE;
+              // if there is only one coin found but the txid:index does not match, this is an RBF deposit error coin
+              // update the txid:index and remove the backup tx
+              if (funding_tx_data.length === 1) {
+                this.statecoins.coins[i].funding_txid = funding_tx_data[j].tx_hash;
+                this.statecoins.coins[i].funding_vout = funding_tx_data[j].tx_pos;
+                this.statecoins.coins[i].status = STATECOIN_STATUS.DUPLICATE;
+              } else {
+                // create new duplicate coin
+                let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
+                statecoin.proof_key = this.statecoins.coins[i].proof_key;
+                statecoin.value = funding_tx_data[j].value;
+                statecoin.funding_txid = funding_tx_data[j].tx_hash;
+                statecoin.funding_vout = funding_tx_data[j].tx_pos;
+                statecoin.tx_backup = new Transaction();
+                statecoin.status = STATECOIN_STATUS.DUPLICATE;
 
-              this.statecoins.addCoin(statecoin)
-              count = count + 1;
+                this.statecoins.addCoin(statecoin)
+                count = count + 1;
+              }
             }
           }
       }
