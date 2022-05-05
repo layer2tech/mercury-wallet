@@ -91,7 +91,7 @@ function abandontransaction(tx) {
     return bitcoin_command(`abandontransaction ${tx}`)
 }
 
-describe('ElectrsLocalClient', function () {
+describe.skip('ElectrsLocalClient', function () {
 
     let client = new ElectrsLocalClient('http://localhost:3001', true);
     let ta_process
