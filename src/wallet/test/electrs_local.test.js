@@ -5,6 +5,7 @@
 import { ElectrsLocalClient } from '../electrs_local';
 let bitcoin = require('bitcoinjs-lib');
 var execSync = require('child_process').execSync;
+var execFileSync = require('child_process').execFileSync;
 var fork = require('child_process').fork;
 //import { delay_s } from '../mercury/info_api';
 
@@ -20,16 +21,22 @@ const delay = (ms) => {
 
 const testnet_command = "bitcoin-core.cli -conf=/home/ldeacon/bitcoin-testnet-conf/bitcoin.conf -rpcport=18334 -rpcuser=username -rpcpassword=password"
 const regtest_command = "bitcoin-core.cli -conf=/home/ldeacon/bitcoin-regtest/bitcoin.conf -rpcport=18333 -rpcuser=username -rpcpassword=password"
+const regtest_umbrel_2 = "/media/ldeacon/Elements/umbrel_regtest/bin/bitcoin-cli"
+const regtest_umbrel = "bitcoin-core.cli -conf=/media/ldeacon/Elements/umbrel_regtest//bitcoin.conf -rpcport=18443 -rpcuser=umbrel -rpcpassword=WiEh1Ufmfl3JlTSeAnwO3CQi0B0dDz1lmqvgigwPiHc="
 
 function bitcoin_command(command) {
-    let result = execSync(`${regtest_command} ${command}`,
+    let cmd = command.split()
+    console.log(`cmd: ${cmd.toString()}`)
+
+    let result = execSync(`${regtest_umbrel} ${command}`, { shell: "/bin/bash" },
         function (error, stdout, stderr) {
             console.log('stdout: ' + stdout);
-            console.log('stderr: ' + stderr);
+           console.log('stderr: ' + stderr);
             if (error !== null) {
                 console.log('exec error: ' + error);
             }
-        })
+        }
+    )
     result = result.toString().replace(/\s+/g, '').replace(/\n|\r/g, '')
     console.log(`command: ${command}\nresult: ${result}`)
     return result
@@ -84,7 +91,7 @@ function abandontransaction(tx) {
     return bitcoin_command(`abandontransaction ${tx}`)
 }
 
-describe.skip('ElectrsLocalClient', function () {
+describe('ElectrsLocalClient', function () {
 
     let client = new ElectrsLocalClient('http://localhost:3001', true);
     let ta_process
@@ -106,7 +113,7 @@ describe.skip('ElectrsLocalClient', function () {
         addresses = [address, address2]
         await gen_blocks(address, 10)
         await gen_blocks(address2, 10)
-        await client.connect({ protocol: "tcp", host: "127.0.0.1", port: "50002" })
+        await client.connect({ protocol: "tcp", host: "192.168.1.98", port: "50001" })
     });
 
     afterAll(() => {

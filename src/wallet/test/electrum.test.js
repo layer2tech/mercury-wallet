@@ -20,7 +20,7 @@ function gen_blocks(address, n) {
         })
 }
 
-describe('ElectrumClient', function () {
+describe.skip('ElectrumClient', function () {
 
     let config = {
         host: "127.0.0.1", port: 50002, protocol: "tcp", type: ""}
