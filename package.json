@@ -26,7 +26,7 @@
     }
   },
   "repository": "github:layer2tech/mercury-wallet",
-  "version": "v0.6.26",
+  "version": "v0.6.28",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "public/electron.js",
@@ -72,6 +72,7 @@
     "wasm-loader": "^1.3.0"
   },
   "dependencies": {
+    "@aguycalled/electrum-client-js": "^0.1.9",
     "@electron/remote": "^2.0.7",
     "@esfx/async-semaphore": "^1.0.0-pre.19",
     "@keep-network/electrum-client-js": "keep-network/electrum-client-js",

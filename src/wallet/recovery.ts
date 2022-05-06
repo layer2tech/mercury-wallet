@@ -157,11 +157,6 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         } else {
           statecoin.setConfirmed();
         }
-        wallet.statecoins.setCoinWithdrawBroadcastTx(statecoin.shared_key_id,
-          new Transaction(),
-          0,
-          wdr_msg2
-        )
       } else {
         // generated address
         statecoin.proof_key = recoveredCoins[i].proof_key;

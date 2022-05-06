@@ -1,10 +1,13 @@
 var errors = require('request-promise/errors');
 
 function handle_error(res, err) {
+    //res.json({ error: JSON.stringify(err) })
+        //.status(500)
     if (err instanceof errors.StatusCodeError) {
-        res.status(err.statusCode).json(err);
+        res.json({ error: err }).status(err.statusCode)
+        
     } else {
-        res.status(400).json(err);
+        res.json({ error: err }).status(500)
     }
 }
 

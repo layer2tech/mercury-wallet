@@ -1,3 +1,4 @@
+import { checkForServerError, handlePromiseRejection } from './error';
 import { ElectrumTxData } from '../wallet/electrum';
 import { semaphore, TIMEOUT } from './http_client'
 import { log } from './swap/swap_utils';
@@ -8,16 +9,6 @@ class ElectrsClientError extends Error {
   constructor(message: string){
     super(message);
     this.name = "ElectrsClientError";
-  }
-}
-
-// Check if returned value from server is an error. Throw if so.
-const checkForServerError = (return_val: any) => {
-  if (!return_val) {
-    return
-  }
-  if (typeof(return_val)==="string" && ( return_val.includes("Error") ||return_val.includes("error") )) {
-    throw Error(return_val)
   }
 }
 
@@ -44,15 +35,7 @@ export const POST_ROUTE = {
 };
 Object.freeze(POST_ROUTE);
 
-const handlePromiseRejection = (err: any, config: any) => {
-  let msg_str = err?.message
-  if (msg_str && msg_str.search(/timeout of .*ms exceeded/) !== -1) {
-    throw new Error(`Electrum API request timed out: ${msg_str}`)
-  }
-  console.log(`electrs error json: ${JSON.stringify(err)}`)
-  console.log(`electrs error: ${err.toString()}`)
-  throw err
-}
+
 
 export class ElectrsClient {
   endpoint: string
@@ -92,7 +75,7 @@ export class ElectrsClient {
       };
     await semaphore.wait()
     return axios(config).catch((err: any) => {
-      handlePromiseRejection(err, config)
+      handlePromiseRejection(err, config, "Electrum API request timed out")
     }).finally(() => { semaphore.release() })
       .then(
       (res: any) => {
@@ -117,7 +100,7 @@ export class ElectrsClient {
       };
     await semaphore.wait()
     return axios(config).catch((err: any) => {
-      handlePromiseRejection(err, config)
+      handlePromiseRejection(err, config, "Electrum API request timed out")
     }).finally(() => { semaphore.release() })
     .then(
       (res: any) => {

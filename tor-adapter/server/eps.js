@@ -1,36 +1,46 @@
 var Mutex = require('async-mutex').Mutex
-let ElectrumClientLib = require('@aguycalled/electrum-client-js')
+let EPSClientLib = require('@keep-network/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')
 const W3CWebSocket = require('websocket').w3cwebsocket
 
 const mutex = new Mutex();
 
-class ElectrumClientError extends Error {
+class EPSClientError extends Error {
   constructor(message){
     super(message);
-    this.name = "ElectrumClientError";
-    this["message"] = message
+    this.name = "EPSClientError";
   }
 }
 
-class ElectrumClient {
-  client = ElectrumClientLib;
+class EPSClient {
+  client = EPSClientLib;
 
   constructor(config) {
-    this.client = new ElectrumClientLib(config.host, config.port, config.protocol)
+    this.client = new EPSClientLib(config.host, config.port, config.protocol)
   }
 
   // Connect to Electrum Server if not already connected or in the process of connecting
   async connect() {
-      this.client.connect(
-        "mercury-electrum-client-js",  // optional client name
-        "1.4"                        // optional protocol version
+
+
+
+    await mutex.runExclusive(async () => {
+
+      
+      await this.client.connect(
+        //"mercury-electrum-client-js",  // optional client name
+        //"1.4.2"                        // optional protocol version
       ).catch((err) => {
         throw new Error(`failed to connect: [${err}]`)
       })
+
+    });
+    
+
+
   }
 
-  // Disconnect from the ElectrumClientServer.
+  // Disconnect from the Server.
   async close() {
     this.client.close()
   }
@@ -42,11 +52,19 @@ class ElectrumClient {
   }
 
   isOpen() {
-    return (this.client.status === 1);
+    return (this.client.status === W3CWebSocket.OPEN);
+  }
+
+  isConnecting() {
+    return (this.client.status === W3CWebSocket.CONNECTING);
   }
 
   isClosed() {
-    return (this.client.status === 0);
+    return (this.client.status ===W3CWebSocket.CLOSED);
+  }
+
+  isClosing() {
+    return (this.client.status === W3CWebSocket.CLOSING);
   }
 
   // convert BTC address scipt to electrum script has
@@ -73,7 +91,7 @@ class ElectrumClient {
     const header = await this.client
       .blockchain_headers_subscribe()
       .catch((err) => {
-        throw new ElectrumClientError(`failed to get block header: [${err}]`)
+        throw new EPSClientError(`failed to get block header: [${err}]`)
       })
     return header
   }
@@ -83,39 +101,43 @@ class ElectrumClient {
     const tx = await this.client
       .blockchain_transaction_get(txHash, true)
         .catch((err) => {
-          throw new ElectrumClientError(`failed to get transaction ${txHash}: [${err}]`)
+          throw new EPSClientError(`failed to get transaction ${txHash}: [${err}]`)
         }
       )
     return tx
   }
 
-  async getAddressListUnspent(addr, network) {
-    let out_script = bitcoin.address.toOutputScript(addr, network);
-    return this.getScriptHashListUnspent(out_script)
-  }
-
   async getScriptHashListUnspent(script_hash) {
     this.connect();
-    let script_hash_rev = this.scriptToScriptHash(script_hash);
+ 
     const list_unspent = await this.client
       .blockchain_scripthash_listunspent(script_hash)
         .catch((err) => {
           let err_msg = `failed to get list unspent for script hash ${script_hash}: [${err}]`
           console.log(`${err_msg}`)
-          throw new ElectrumClientError(err_msg)
+          throw new EPSClientError(err_msg)
         }
     )
-    return list_unspent
-  }
 
-  async addressSubscribe(addr, network, callBack) {
-    let out_script = bitcoin.address.toOutputScript(addr, network);
-    return this.scriptHashSubscribe(out_script, callBack)
-  }
-
-  async addressUnsubscribe(addr, network) {
-    let out_script = bitcoin.address.toOutputScript(addr, network);
-    return this.scriptHashUnsubscribe(out_script)
+    let result = new Array
+    
+    let header = null
+    
+    while (!header){
+      header = await this.latestBlockHeader()
+    }
+    
+    if (header){
+      for (let i in list_unspent) {
+        let item = list_unspent[i]
+          result.push({"tx_hash":item.tx_hash, 
+                      "tx_pos":item.tx_pos, 
+                      "value":item.value * 100000000,
+                      "height": header.block_height - item.confirmations})
+      }
+      return result
+    }
+    return null
   }
 
   async scriptHashSubscribe(script, callBack) {
@@ -125,7 +147,7 @@ class ElectrumClient {
     const addr_subscription = await this.client
       .blockchain_scripthash_subscribe(script_hash)
         .catch((err) => {
-          throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
+          throw new EPSClientError(`failed to subscribe to script ${script}: [${err}]`)
         }
       )
     return addr_subscription
@@ -137,7 +159,7 @@ class ElectrumClient {
     this.client
       .blockchain_scripthash_unsubscribe(script_hash)
         .catch((err) => {
-          throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
+          throw new EPSClientError(`failed to subscribe to script ${script}: [${err}]`)
         }
       )
   }
@@ -148,7 +170,7 @@ class ElectrumClient {
     const headers_subscription = await this.client
       .blockchain_headers_subscribe()
         .catch((err) => {
-          throw new ElectrumClientError(`failed to subscribe to headers: [${err}]`)
+          throw new EPSClientError(`failed to subscribe to headers: [${err}]`)
         }
       )
     return headers_subscription
@@ -159,19 +181,18 @@ class ElectrumClient {
     const txHash = await this.client
       .blockchain_transaction_broadcast(rawTX)
       .catch((err) => {
-      //  throw new ElectrumClientError(`failed to broadcast transaction: [${err}]`)
-        throw err
+        throw new EPSClientError(`failed to broadcast transaction: [${err}]`)
       })
     return txHash
   }
 
-  async getFeeHistogram() {
+  async getFeeHistogram(num_blocks) {
     this.connect();
   
     const fee_histogram = await this.client
       .request('mempool.get_fee_histogram')
       .catch((err) => {
-          throw new ElectrumClientError(`failed to get fee estimation: [${err}]`)
+          throw new EPSClientError(`failed to get fee estimation: [${err}]`)
         }
       )
   
@@ -189,7 +210,7 @@ class ElectrumClient {
         //if (err.message.includes("close connect")){
         //  return null
         //}
-        throw new ElectrumClientError(`failed to get scripthash  history: ${err.name}:${err.message}`)
+        throw new EPSClientError(`failed to get scripthash  history: ${err.name}:${err.message}`)
       }
     )
     return history
@@ -199,10 +220,9 @@ class ElectrumClient {
     await this.connect().catch((err)=> {
       console.error(err)
     });
-    await this.client.importAddresses
     await this.client.request('import_addresses', addresses)
       .catch( (err) => {
-        throw new ElectrumClientError(`failed to import addresses: ${err.name}:${err.message}`)
+        throw new EPSClientError(`failed to import addresses: ${err.name}:${err.message}`)
     })
   }
   
@@ -217,5 +237,5 @@ interface ElectrumTxData {
 }
 */
 
-module.exports = ElectrumClient;
+module.exports = EPSClient;
 
