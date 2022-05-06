@@ -1,11 +1,20 @@
 {
     "mainnet_state_entity_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion",
     "mainnet_swap_conductor_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion",
-    "mainnet_block_explorer_endpoint":  "https://mempool.space/tx/",
-    "mainnet_electrum_config": {"host": "https://blockstream.info/api", "port": null, "protocol": "http", "type": "electrs"},
-    
-    "testnet_state_entity_endpoint": "http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion ",
+    "mainnet_block_explorer_endpoint": "https://mempool.space/tx/",
+    "mainnet_electrum_config": {
+        "host": "https://blockstream.info/api",
+        "port": null,
+        "protocol": "http",
+        "type": "electrs"
+    },
+    "testnet_state_entity_endpoint": "http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion",
     "testnet_swap_conductor_endpoint": "http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion",
     "testnet_block_explorer_endpoint": "https://mempool.space/testnet/tx/",
-    "testnet_electrum_config": {"host": "https://blockstream.info/testnet/api", "port": null, "protocol": "http", "type":"electrs"}
+    "testnet_electrum_config": {
+	"host": "https://blockstream.info/testnet/api",
+        "port": null,
+        "protocol": "http",
+        "type": "electrs"
+    }
 }

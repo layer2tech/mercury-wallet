@@ -7,6 +7,7 @@ import {
   encodeSCEAddress
 } from './';
 import { ElectrsClient } from './electrs'
+import { ElectrsLocalClient } from './electrs_local'
 
 import { txCPFPBuild, FEE, encryptAES } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
@@ -90,7 +91,7 @@ export class Wallet {
   statecoins: StateCoinList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
-  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient;
+  electrum_client: ElectrumClient | ElectrsClient | ElectrsLocalClient | EPSClient | MockElectrumClient;
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
@@ -440,6 +441,7 @@ export class Wallet {
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if (this.config.testing_mode == true) return new MockElectrumClient()
     if (this.config.electrum_config.type == 'eps') return new EPSClient('http://localhost:3001')
+    if (this.config.electrum_config.type == 'electrs_local') return new ElectrsLocalClient('http://localhost:3001')
     if (this.config.electrum_config.protocol == 'http') return new ElectrsClient('http://localhost:3001')
 
     return new ElectrumClient(this.config.electrum_config)
@@ -448,7 +450,16 @@ export class Wallet {
   // Initialise electum server:
   // Setup subscribe for block height and outstanding initialised deposits
   async initElectrumClient(blockHeightCallBack: any) {
-    this.electrum_client.connect().then(async () => {
+    let config
+    const type = this.config.electrum_config.type
+    if ((type === "eps" || type === "electrs_local") && (this.config.electrum_config.port != null)) {
+      config = {
+        protocol: this.config.electrum_config.protocol,
+        host: this.config.electrum_config.host,
+        port: this.config.electrum_config.port?.toString()
+      }
+    }
+    this.electrum_client.connect(config).then(async () => {
       // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
       // Get fee info
@@ -1107,13 +1118,17 @@ export class Wallet {
       }
       if (!(this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWN ||
         this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWING ||
-        this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE)) {
+        this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE || 
+        this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPLIMIT || 
+        this.statecoins.coins[i].status === STATECOIN_STATUS.EXPIRED)) {
         continue;
       }
 
       let addr = this.statecoins.coins[i].getBtcAddress(this.config.network);
       let out_script = bitcoin.address.toOutputScript(addr, this.config.network);
       let funding_tx_data = await this.electrum_client.getScriptHashListUnspent(out_script);
+
+      console.log(funding_tx_data);
 
       for (let j=0; j<funding_tx_data.length; j++) {
         if (funding_tx_data[j].tx_hash === this.statecoins.coins[i].funding_txid && funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout) {
@@ -1129,17 +1144,25 @@ export class Wallet {
             }
 
             if (!existing_output) {
-              // create new duplicate coin
-              let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
-              statecoin.proof_key = this.statecoins.coins[i].proof_key;
-              statecoin.value = funding_tx_data[j].value;
-              statecoin.funding_txid = funding_tx_data[j].tx_hash;
-              statecoin.funding_vout = funding_tx_data[j].tx_pos;
-              statecoin.tx_backup = new Transaction();
-              statecoin.status = STATECOIN_STATUS.DUPLICATE;
+              // if there is only one coin found but the txid:index does not match, this is an RBF deposit error coin
+              // update the txid:index and remove the backup tx
+              if (funding_tx_data.length === 1) {
+                this.statecoins.coins[i].funding_txid = funding_tx_data[j].tx_hash;
+                this.statecoins.coins[i].funding_vout = funding_tx_data[j].tx_pos;
+                this.statecoins.coins[i].status = STATECOIN_STATUS.DUPLICATE;
+              } else {
+                // create new duplicate coin
+                let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
+                statecoin.proof_key = this.statecoins.coins[i].proof_key;
+                statecoin.value = funding_tx_data[j].value;
+                statecoin.funding_txid = funding_tx_data[j].tx_hash;
+                statecoin.funding_vout = funding_tx_data[j].tx_pos;
+                statecoin.tx_backup = new Transaction();
+                statecoin.status = STATECOIN_STATUS.DUPLICATE;
 
-              this.statecoins.addCoin(statecoin)
-              count = count + 1;
+                this.statecoins.addCoin(statecoin)
+                count = count + 1;
+              }
             }
           }
       }
@@ -1183,6 +1206,7 @@ export class Wallet {
     // if not, update it
     if (this.block_height < 709862) {
       let header = await this.electrum_client.latestBlockHeader();
+      console.log(`got header: ${JSON.stringify(header)}`)
       this.setBlockHeight(header);
     }
     if (this.block_height < 709862) throw Error("Block height not updated");
