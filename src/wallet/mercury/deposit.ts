@@ -60,7 +60,6 @@ export const depositConfirm = async (
 ): Promise<StateCoin> => {
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
-  fee_info.initlock=3
   let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
 
   // Calculate initial locktime
