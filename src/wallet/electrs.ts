@@ -75,7 +75,7 @@ export class ElectrsClient {
       };
     await semaphore.wait()
     return axios(config).catch((err: any) => {
-      handlePromiseRejection(err, config, "Electrum API request timed out")
+      handlePromiseRejection(err, "Electrum API request timed out")
     }).finally(() => { semaphore.release() })
       .then(
       (res: any) => {
@@ -100,7 +100,7 @@ export class ElectrsClient {
       };
     await semaphore.wait()
     return axios(config).catch((err: any) => {
-      handlePromiseRejection(err, config, "Electrum API request timed out")
+      handlePromiseRejection(err, "Electrum API request timed out")
     }).finally(() => { semaphore.release() })
     .then(
       (res: any) => {

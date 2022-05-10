@@ -801,14 +801,16 @@ export class Wallet {
     } else if ((err.toString().includes('conflict') || err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
       statecoin.setBackupTaken();
       this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED);
+    } else {
+      throw err
     }
   }
 
   static backupTxCheckRequired(statecoin: StateCoin): boolean {
-    if (statecoin === null || statecoin === undefined) {
+    if (statecoin == null) {
       return false
     }
-    if (statecoin.tx_backup === null) {
+    if (statecoin?.tx_backup == null) {
       return false
     }
     if (statecoin.backup_status === BACKUP_STATUS.CONFIRMED ||
@@ -856,19 +858,20 @@ export class Wallet {
   async broadcastBackupTx(statecoin: StateCoin) {
     let backup_tx = statecoin!.tx_backup!.toHex();
     this.electrum_client.broadcastTransaction(backup_tx).then((bresponse: any) => {
-      console.log(`process broadcast response: ${JSON.stringify(bresponse)}`)
       this.processTXBroadcastResponse(statecoin, bresponse)
+      return
     }).catch((err: any) => {
-      console.log(`process broadcast error: ${err.toString()}`)
       this.processTXBroadcastError(statecoin, err)
+      return
     })
   }
 
-  async broadcastCPFP(statecoin: StateCoin) {
+  async broadcastCPFP(statecoin: StateCoin): Promise<any> {
     if (statecoin.tx_cpfp != null) {
       let cpfp_tx = statecoin!.tx_cpfp!.toHex();
-      await this.electrum_client.broadcastTransaction(cpfp_tx);
+      return this.electrum_client.broadcastTransaction(cpfp_tx)
     }
+    return
   }
 
   // update statuts of backup transactions and broadcast if neccessary
@@ -887,7 +890,7 @@ export class Wallet {
         // in mempool - check if confirmed
         if (statecoin.backup_status === BACKUP_STATUS.IN_MEMPOOL) {
          console.log(`check mempool TX...`)
-         await this.checkMempoolTx(statecoin)
+         this.checkMempoolTx(statecoin)
         } else {
          await this.broadcastBackupTx(statecoin)
         }

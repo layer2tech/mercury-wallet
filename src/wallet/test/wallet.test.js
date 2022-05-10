@@ -7,7 +7,7 @@ import {
 import {
   segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC,
   mnemonic_to_bip32_root_account, getBIP32forBtcAddress, parseBackupData,
-  required_fields
+  required_fields, backupTxCheckRequired
 } from '../wallet';
 import { BIP32Interface, BIP32, fromBase58 } from 'bip32';
 import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
@@ -29,6 +29,7 @@ import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 import { argsHasTestnet } from '../config'
 import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
 import { ActivityLog, ActivityLogItem, LegacyActivityLog } from '../activity_log';
+import { ElectrumClientError } from '../electrum'
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -125,7 +126,7 @@ describe('Wallet', function () {
     statecoin.block = 10;
     statecoin.tx_backup = new Transaction();
 
-    
+
     let list = [statecoin];
     wallet.block_height = 20;
     wallet.statecoins.addCoin(statecoin);
@@ -136,7 +137,7 @@ describe('Wallet', function () {
     wallet.statecoins.coins[0].ui_swap_status = UI_SWAP_STATUS.Phase6;
     wallet.statecoins.coins[0].swap_id = 20;
     wallet.statecoins.coins[0].swap_status = SWAP_STATUS.Phase4;
-  
+
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.IN_SWAP)
     // run resetSwapStates code
     wallet.resetSwapStates();
@@ -550,8 +551,12 @@ describe('createBackupTxCPFP', function () {
 describe('updateBackupTxStatus', function () {
 
   let wallet
-  beforeAll(async () => {
+  beforeEach(async () => {
     wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+    wallet.electrum_client = jest.genMockFromModule('../mocks/mock_electrum.ts');
+    wallet.electrum_client.broadcastTransaction = jest.fn(async (_backup_tx) => {
+      return "0000000000000000000000000000000000000000000000000000000000000000"
+    })
   })
 
   test('Swaplimit', async function () {
@@ -568,7 +573,7 @@ describe('updateBackupTxStatus', function () {
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 1000;
-    wallet.updateBackupTxStatus();
+    await wallet.updateBackupTxStatus();
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.EXPIRED);
     // verify tx in mempool
     expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.IN_MEMPOOL);
@@ -578,8 +583,13 @@ describe('updateBackupTxStatus', function () {
     // blockheight 1001, backup tx confirmed, coin WITHDRAWN
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
-    wallet.block_height = 1001;
-    wallet.updateBackupTxStatus();
+    wallet.block_height = 1000;
+    await wallet.updateBackupTxStatus();
+    wallet.block_height = 1003;
+    wallet.electrum_client.getTransaction = jest.fn(async (_txid) => {
+      return { confirmations: 3 }
+    })
+    await wallet.updateBackupTxStatus();
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWN);
     // verify tx confirmed
     expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.CONFIRMED);
@@ -589,11 +599,291 @@ describe('updateBackupTxStatus', function () {
     // blockheight 1001, backup tx double-spend, coin EXPIRED
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "01f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
-    wallet.block_height = 1001;
-    wallet.updateBackupTxStatus();
-    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.EXPIRED);
-    // verify tx confirmed
+    wallet.block_height = 1003;
+    wallet.electrum_client.broadcastTransaction = jest.fn(async (_backup_tx) => {
+      return "conflict"
+    })
+    await wallet.updateBackupTxStatus();
+    // verify tx already spent
     expect(wallet.statecoins.coins[0].backup_status).toBe(BACKUP_STATUS.TAKEN);
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.EXPIRED);
+
+  })
+})
+
+describe('processTXBroadcastResponse', function () {
+  let statecoin
+  let wallet
+  beforeAll(async () => {
+    wallet = await Wallet.buildMock()
+    statecoin = wallet.statecoins.coins[0]
+  })
+  beforeEach(() => {
+    statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
+  })
+  test('txn-already-in-mempool', () => {
+    wallet.processTXBroadcastResponse(statecoin, 'txn-already-in-mempool')
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.IN_MEMPOOL)
+  })
+  test('txn hash', () => {
+    let txn_hash = "0000000000000000000000000000000000000000000000000000000000000000"
+    wallet.processTXBroadcastResponse(statecoin, txn_hash)
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.IN_MEMPOOL)
+  })
+  test('already mempool', () => {
+    wallet.processTXBroadcastResponse(statecoin, 'already mempool')
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.IN_MEMPOOL)
+  })
+  test('in block xxx', () => {
+    wallet.processTXBroadcastResponse(statecoin, 'in block xxx')
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.CONFIRMED)
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.WITHDRAWN)
+  })
+  test('conflict', () => {
+    wallet.processTXBroadcastResponse(statecoin, 'conflict')
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.TAKEN)
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.EXPIRED)
+  })
+  test('missingorspent', () => {
+    wallet.processTXBroadcastResponse(statecoin, 'missingorspent')
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.TAKEN)
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.EXPIRED)
+  })
+  test('Missing', () => {
+    wallet.processTXBroadcastResponse(statecoin, 'Missing')
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.TAKEN)
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.EXPIRED)
+  })
+})
+
+describe('processTXBroadcastError', function () {
+  let statecoin
+  let wallet
+  beforeAll(async () => {
+    wallet = await Wallet.buildMock()
+    statecoin = wallet.statecoins.coins[0]
+  })
+  beforeEach(() => {
+    statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
+  })
+  test('already in mempool', () => {
+    wallet.processTXBroadcastError(statecoin, Error('already mempool'))
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.IN_MEMPOOL)
+  })
+  test('already in block', () => {
+    wallet.processTXBroadcastError(statecoin, Error('already block'))
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.CONFIRMED)
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.WITHDRAWN)
+  })
+  test('conflict', () => {
+    wallet.processTXBroadcastError(statecoin, Error('conflict'))
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.TAKEN)
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.EXPIRED)
+  })
+  test('missing or spent', () => {
+    wallet.processTXBroadcastError(statecoin, Error('missingorspent'))
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.TAKEN)
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.EXPIRED)
+  })
+  test('Missing', () => {
+    wallet.processTXBroadcastError(statecoin, Error('Missing'))
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.TAKEN)
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.EXPIRED)
+  })
+})
+
+describe('backupTxCheckRequired', function () {
+  let statecoin
+  let reqBackupStatuses = new Set([BACKUP_STATUS.CONFIRMED, BACKUP_STATUS.TAKEN, BACKUP_STATUS.SPENT])
+  let reqStatuses = new Set([STATECOIN_STATUS.WITHDRAWN, STATECOIN_STATUS.WITHDRAWING,
+  STATECOIN_STATUS.IN_TRANSFER, STATECOIN_STATUS.SWAPPED, STATECOIN_STATUS.DUPLICATE])
+  beforeAll(async () => {
+    let wallet = await Wallet.buildMock()
+    statecoin = wallet.statecoins.coins[0]
+  })
+  beforeEach(() => {
+    statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
+  })
+  test('statecoin null or undefined', () => {
+    expect(Wallet.backupTxCheckRequired(null)).toEqual(false)
+    expect(Wallet.backupTxCheckRequired(undefined)).toEqual(false)
+  })
+  test('statecoin tx_backup null or undefined', () => {
+    expect(Wallet.backupTxCheckRequired({ tx_backup: null })).toEqual(false)
+    expect(Wallet.backupTxCheckRequired({ tx_backup: undefined })).toEqual(false)
+  })
+  test('backup statuses', () => {
+    Object.values(BACKUP_STATUS).forEach(val => {
+      statecoin.backup_status = val
+      expect(Wallet.backupTxCheckRequired(statecoin)).not.toEqual(reqBackupStatuses.has(val))
+    })
+  })
+  test('statecoin statuses', () => {
+    Object.values(STATECOIN_STATUS).forEach(val => {
+      statecoin.status = val
+      expect(Wallet.backupTxCheckRequired(statecoin)).not.toEqual(reqStatuses.has(val))
+    })
+  })
+})
+
+describe('checkLocktime', function () {
+  let statecoin
+  let init_statecoin
+  let wallet
+  beforeAll(async () => {
+    wallet = await Wallet.buildMock()
+    wallet.config.swaplimit = 10
+    statecoin = wallet.statecoins.coins[0]
+  })
+  beforeEach(() => {
+    statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
+    init_statecoin = cloneDeep(statecoin)
+  })
+  test('before locktime', () => {
+    wallet.block_height = 0
+    statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
+    expect(wallet.checkLocktime(statecoin)).toEqual(false)
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.PRE_LOCKTIME)
+    expect(statecoin.status).toEqual(init_statecoin.status)
+  })
+  test('swap limit', () => {
+    wallet.block_height = 1
+    statecoin.tx_backup.locktime = wallet.block_height + 1
+    expect(wallet.checkLocktime(statecoin)).toEqual(false)
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.PRE_LOCKTIME)
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.SWAPLIMIT)
+  })
+  test('at locktime', () => {
+    statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
+    wallet.block_height = statecoin.tx_backup.locktime
+    expect(wallet.checkLocktime(statecoin)).toEqual(true)
+    expect(statecoin.backup_status).toEqual(init_statecoin.backup_status)
+    expect(statecoin.status).toEqual(init_statecoin.status)
+  })
+  test('after locktime', () => {
+    statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
+    wallet.block_height = statecoin.tx_backup.locktime + 1
+    expect(wallet.checkLocktime(statecoin)).toEqual(true)
+    expect(statecoin.backup_status).toEqual(init_statecoin.backup_status)
+    expect(statecoin.status).toEqual(init_statecoin.status)
+  })
+})
+
+describe('checkMempoolTx', function () {
+  let statecoin
+  let init_statecoin
+  let wallet
+  let electrum_mock
+  beforeAll(async () => {
+    wallet = await Wallet.buildMock()
+    wallet.config.swaplimit = 10
+    electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
+    wallet.electrum_client = electrum_mock
+    statecoin = wallet.statecoins.coins[0]
+    statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
+    init_statecoin = cloneDeep(statecoin)
+  })
+  beforeEach(async () => {
+    statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
+  })
+  test('confirmations undefined', async () => {
+    wallet.electrum_client.getTransaction = jest.fn(async (_txid) => {
+      return { confirmations: undefined }
+    })
+    await wallet.checkMempoolTx(statecoin)
+    expect(statecoin).toEqual(init_statecoin)
+  })
+  test('confirmations null', async () => {
+    wallet.electrum_client.getTransaction = jest.fn(async (_txid) => {
+      return { confirmations: null }
+    })
+    await wallet.checkMempoolTx(statecoin)
+    expect(statecoin).toEqual(init_statecoin)
+  })
+  test('2 confirmations', async () => {
+    wallet.electrum_client.getTransaction = jest.fn(async (_txid) => {
+      return { confirmations: 2 }
+    })
+    await wallet.checkMempoolTx(statecoin)
+    expect(statecoin).toEqual(init_statecoin)
+  })
+  test('3 confirmations', async () => {
+    wallet.electrum_client.getTransaction = jest.fn(async (_txid) => {
+      return { confirmations: 3 }
+    })
+    await expect(wallet.checkMempoolTx(statecoin)).resolves
+    expect(statecoin.backup_status).toEqual(BACKUP_STATUS.CONFIRMED)
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.WITHDRAWN)
+  })
+})
+
+
+describe('broadcastBackupTx', function () {
+  let statecoin
+  let init_statecoin
+  let wallet
+
+  beforeEach(async () => {
+    wallet = await Wallet.buildMock()
+    wallet.config.swaplimit = 10
+    wallet.electrum_client = jest.genMockFromModule('../mocks/mock_electrum.ts');
+    statecoin = wallet.statecoins.coins[0]
+    statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
+    init_statecoin = cloneDeep(statecoin)
+  })
+  test('broadcast ok', async () => {
+    let response = "a transaction hash"
+    wallet.electrum_client.broadcastTransaction = jest.fn(async (_backup_tx) => {
+      return response
+    })
+    await expect(wallet.broadcastBackupTx(statecoin)).resolves
+  })
+  test('broadcast error', async () => {
+    wallet.electrum_client.broadcastTransaction = jest.fn(async (backup_tx) => {
+      throw new Error(`failed to broadcast transaction: [an error message]`)
+    })
+    let spy = jest.spyOn(wallet, 'processTXBroadcastError').mockImplementation();
+    wallet.broadcastBackupTx(statecoin).then(() => {
+      expect(spy).toHaveBeenCalled()
+    })
+  })
+})
+
+describe('broadcastCPFP', function () {
+  let statecoin
+  let init_statecoin
+  let wallet
+  beforeEach(async () => {
+    wallet = await Wallet.buildMock()
+    wallet.config.swaplimit = 10
+    wallet.electrum_client = jest.genMockFromModule('../mocks/mock_electrum.ts');
+    statecoin = wallet.statecoins.coins[0]
+    console.log(`statecoin: ${statecoin}`)
+    statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
+    statecoin.tx_cpfp = statecoin.tx_backup
+    init_statecoin = cloneDeep(statecoin)
+  })
+  test('broadcast ok', async () => {
+    let response = "a transaction hash"
+    wallet.electrum_client.broadcastTransaction = jest.fn(async (_backup_tx) => {
+      return Promise.resolve(response)
+    })
+    await expect(wallet.broadcastCPFP(statecoin)).resolves
+  })
+  test('broadcast error', async () => {
+    const error = new Error(`failed to broadcast transaction: [an error message]`)
+    wallet.electrum_client.broadcastTransaction = jest.fn(async (_backup_tx) => {
+      throw error
+    })
+    await expect(wallet.broadcastCPFP(statecoin)).rejects.toThrow(error)
   })
 })
 

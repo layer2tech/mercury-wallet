@@ -141,7 +141,6 @@ async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
     let result = await tor.post_plain(path, data, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err) {
-    log('error', `post_plain_endpoint error - path: ${JSON.stringify(path)}, data: ${JSON.stringify(data)}, err: ${JSON.stringify(err)}`)
     i_hs['i'] = (i_hs.i + 1) % endpoint.length
     handle_error(res, err)
   }

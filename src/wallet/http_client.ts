@@ -82,7 +82,7 @@ Object.freeze(POST_ROUTE);
       };
       await semaphore.wait()
       return axios(config).catch((err: any) => {
-        handlePromiseRejection(err, config, "Mercur API request timed out")
+        handlePromiseRejection(err, "Mercur API request timed out")
       }).finally( () => {
         semaphore.release()
       }).then(
@@ -108,7 +108,7 @@ Object.freeze(POST_ROUTE);
       };
       await semaphore.wait();
       return axios(config).catch((err: any) => {
-        handlePromiseRejection(err, config, "Mercury API request timed out")
+        handlePromiseRejection(err, "Mercury API request timed out")
       }).finally(() => {
         semaphore.release()
       }).then (

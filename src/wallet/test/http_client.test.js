@@ -1,6 +1,7 @@
 //const axios = require('axios').default;
 import axios from 'axios'
 import { HttpClient, TIMEOUT, semaphore } from '../http_client';
+import { handlePromiseRejection, checkForServerError } from '../error';
 
 jest.mock('axios', () => jest.fn())
 
@@ -123,3 +124,63 @@ describe('HttpClient timeout', function () {
     
 });
 
+describe('error handling', function () {
+    describe('checkForServerError', async function () {
+        
+        const status_err = { status: 400, data: "status err data" }
+        const err_string = "Error: an error string"
+        const err_string_lc = "error: an error string"
+        const rate_limiter_error = "Error: Not available until"
+        const error_object = { error: "a message string" }
+
+        test('null', function () { 
+            handlePromiseRejection(null)
+        })
+
+        test('undefined', function () { 
+            handlePromiseRejection(undefined)
+        })
+
+        test('status err', function () {
+            expect(handlePromiseRejection(status_err)).toThrow(Error(`http status: ${status_err.status}, data: ${status_err.data}`))
+        })
+
+        test('string error', function() {
+            expect(handlePromiseRejection(err_string)).toThrow(Error(err_string))
+        })
+
+        test('string error lower case', function() {
+            expect(handlePromiseRejection(err_string_lc)).toThrow(Error(err_string_lc))
+        })
+
+        test('rate limiter error', function () {
+            expect(checkForServerError(rate_limiter_error)).toThrow(Error("The server is currently unavailable due to a high request rate. Please try again."))
+        })
+
+        test('error object', function () {
+            expect(checkForServerError(error_object)).toThrow(Error(JSON.stringify(return_val.error)))
+        })
+
+    })
+
+    describe('handlePromiseRejection', function () {
+        let timeout_err = { message: "timeout of 100ms exceeded" }
+        let misc_err = { message: "timeout of 100ms exceeded" }
+        let blank_err = { }
+        let timeout_msg = "a message string"
+
+        test('timeout error', function () {
+            expect(handlePromiseRejection(timeout_err, msg_str)).rejects.toThrow(Error(`${timeout_msg}: ${timeout_err.msg}`))
+        })
+
+        test('misc error', () => {
+            expect(handlePromiseRejection(misc_err, timeout_msg)).rejects.toThrow(misc_err)
+        })
+
+        test('blank error', () => {
+            expect(handlePromiseRejection(blank_err, timeout_msg)).rejects.toThrow(blank_err)
+        })
+
+      
+    })
+})
