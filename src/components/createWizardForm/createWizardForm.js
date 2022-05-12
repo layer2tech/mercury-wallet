@@ -61,8 +61,11 @@ const CreateWizardForm = (props) => {
                             required/>
                     </div>
                 )}
+                <div className="inputs-item">
+                    <p>Enter the number of derived addresses to query. This is the highest address index previously used.</p>
+                </div>
                 {props.setStateGapLimit && (<div className="inputs-item">
-                  <input id="GapLimit" type="text" name="Address gap limit" placeholder="Address gap limit" title="Number of derived address to check for coins. If not known start with 1000." 
+                  <input id="GapLimit" type="text" name="Address gap limit" placeholder="Address gap limit" title="If not known start with 1000 and increase if not all expected coins are recovered." 
                     value={props.wizardState.gap_limit}
                     onChange={props.setStateGapLimit}
                     onKeyPress={handleKeyPress}
