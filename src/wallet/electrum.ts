@@ -1,6 +1,6 @@
 import { Mutex } from 'async-mutex';
 import { Network } from "bitcoinjs-lib";
-let ElectrumClientLib = require('@aguycalled/electrum-client-js')
+let ElectrumClientLib = require('@keep-network/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')
 const W3CWebSocket = require('websocket').w3cwebsocket
 

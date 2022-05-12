@@ -61,6 +61,7 @@ const initialState = {
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
   warning_dialogue: { key: "", msg: "", seen: false },
+  progress: {active: false, msg: ""},
   balance_info: { total_balance: null, num_coins: null, hidden: false },
   fee_info: { deposit: "NA", withdraw: "NA" },
   ping_swap: null,
@@ -181,7 +182,7 @@ export const walletLoad = (name, password) => {
 }
 
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
-export const walletFromMnemonic = (dispatch, name, password, mnemonic, try_restore, gap_limit) => {
+export async function walletFromMnemonic(dispatch, name, password, mnemonic,  router, try_restore,  gap_limit = undefined){
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   wallet.resetSwapStates();
   log.info("Wallet " + name + " created.");
@@ -190,12 +191,13 @@ export const walletFromMnemonic = (dispatch, name, password, mnemonic, try_resto
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
-      const n_recovered = await wallet.recoverCoinsFromServer(gap_limit);
+      const n_recovered = await wallet.recoverCoinsFromServer(gap_limit,dispatch);
       dispatch(addCoins(n_recovered));
     }
     await callNewSeAddr();
     await wallet.save();
     await wallet.saveName();
+    router.push("/home")
   });
 }
 // Try to decrypt wallet. Throw if invalid password
@@ -845,6 +847,18 @@ const WalletSlice = createSlice({
         error_dialogue: { seen: false, msg: action.payload.msg }
       }
     },
+    setProgressComplete(state){
+      return {
+        ...state,
+        progress: { active: false, msg: "" }
+      }
+    },
+    setProgress(state, action){
+      return {
+        ...state,
+        progress: { active: true, msg: action.payload.msg }
+      }
+    },
     setNotificationSeen(state, action) {
       return {
         ...state,
@@ -943,7 +957,7 @@ const WalletSlice = createSlice({
   }
 })
 
-export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
+export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setProgressComplete, setProgress, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin,
   clearSwapPendingCoins, clearInSwapValues,
   updateInSwapValues, addInSwapValue, removeInSwapValue, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
