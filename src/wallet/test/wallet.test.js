@@ -554,8 +554,8 @@ describe('updateBackupTxStatus', function () {
   beforeEach(async () => {
     wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
     wallet.electrum_client = jest.genMockFromModule('../mocks/mock_electrum.ts');
-    wallet.electrum_client.broadcastTransaction = jest.fn(async (_backup_tx) => {
-      return "0000000000000000000000000000000000000000000000000000000000000000"
+    wallet.electrum_client.broadcastTransaction = jest.fn(async (backup_tx) => {
+      return Promise.resolve("0000000000000000000000000000000000000000000000000000000000000000")
     })
   })
 
@@ -564,16 +564,23 @@ describe('updateBackupTxStatus', function () {
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 100;
-    wallet.updateBackupTxStatus();
+    await wallet.updateBackupTxStatus(false);
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPLIMIT);
   })
 
+  /*
+  test('Rate limited', async function () {
+    await expect(wallet.updateBackupTxStatus()).resolves.toBe(undefined);
+    await expect(wallet.updateBackupTxStatus()).resolves.toBe(undefined);
+  })
+  */
+  
   test('Expired', async function () {
     // locktime = 1000, height = 1000, EXPIRED triggered
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 1000;
-    await wallet.updateBackupTxStatus();
+    await wallet.updateBackupTxStatus(false);
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.EXPIRED);
     // verify tx in mempool
     expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.IN_MEMPOOL);
@@ -584,12 +591,12 @@ describe('updateBackupTxStatus', function () {
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 1000;
-    await wallet.updateBackupTxStatus();
+    await wallet.updateBackupTxStatus(false);
     wallet.block_height = 1003;
     wallet.electrum_client.getTransaction = jest.fn(async (_txid) => {
       return { confirmations: 3 }
     })
-    await wallet.updateBackupTxStatus();
+    await wallet.updateBackupTxStatus(false);
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWN);
     // verify tx confirmed
     expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.CONFIRMED);
@@ -603,7 +610,7 @@ describe('updateBackupTxStatus', function () {
     wallet.electrum_client.broadcastTransaction = jest.fn(async (_backup_tx) => {
       return "conflict"
     })
-    await wallet.updateBackupTxStatus();
+    await wallet.updateBackupTxStatus(false);
     // verify tx already spent
     expect(wallet.statecoins.coins[0].backup_status).toBe(BACKUP_STATUS.TAKEN);
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.EXPIRED);
@@ -843,7 +850,9 @@ describe('broadcastBackupTx', function () {
     wallet.electrum_client.broadcastTransaction = jest.fn(async (_backup_tx) => {
       return response
     })
+    let spy = jest.spyOn(wallet, 'processTXBroadcastResponse').mockImplementation();
     await expect(wallet.broadcastBackupTx(statecoin)).resolves
+    expect(spy).toHaveBeenCalled()
   })
   test('broadcast error', async () => {
     wallet.electrum_client.broadcastTransaction = jest.fn(async (backup_tx) => {
@@ -878,12 +887,27 @@ describe('broadcastCPFP', function () {
     })
     await expect(wallet.broadcastCPFP(statecoin)).resolves
   })
+
+  test('broadcast error', async () => {
+    wallet.electrum_client.broadcastTransaction = jest.fn(async (backup_tx) => {
+      throw new Error(`failed to broadcast transaction: [an error message]`)
+    })
+    let spy = jest.spyOn(wallet, 'processTXBroadcastError').mockImplementation();
+    wallet.broadcastBackupTx(statecoin).then(() => {
+      expect(spy).toHaveBeenCalled()
+    })
+  })
   test('broadcast error', async () => {
     const error = new Error(`failed to broadcast transaction: [an error message]`)
     wallet.electrum_client.broadcastTransaction = jest.fn(async (_backup_tx) => {
       throw error
     })
-    await expect(wallet.broadcastCPFP(statecoin)).rejects.toThrow(error)
+    statecoin.tx_cpfp = statecoin.tx_backup
+    wallet.broadcastCPFP(statecoin).then((_result) => {
+      expect(true).toEqual(false)
+    }).catch ((err) => {
+      expect(err).toEqual("foo")
+    })
   })
 })
 
