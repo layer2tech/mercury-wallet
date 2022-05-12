@@ -460,6 +460,27 @@ export class Wallet {
       }
     }
     this.electrum_client.connect(config).then(async () => {
+
+      // verify the network matches wallet config
+      // get the genesis tx
+      if (this.config.network = bitcoin.networks.bitcoin) {
+        try {
+          let genesis_txid = 'd3ad39fa52a89997ac7381c95eeffeaf40b66af7a57e9eba144be0a175a12b11';
+          let tx_data: any = await this.electrum_client.getTransaction(genesis_txid);
+          console.log(tx_data);
+          let status = tx_data?.status;
+          if (status && !status.confirmed) {
+            log.error(`Electrum network mismatch`);
+            throw Error("Error: Electrum server not mainnet Bitcoin. Check the server connection details.")
+            return
+          }
+        } catch {
+          log.error(`Electrum network error. Check the server network and connection details.`);
+          throw Error("Electrum server error. Check the server network and connection details.")
+          return          
+        }
+      }
+
       // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
       // Get fee info
