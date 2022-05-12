@@ -9,6 +9,7 @@ class ElectrumClientError extends Error {
   constructor(message){
     super(message);
     this.name = "ElectrumClientError";
+    this["message"] = message
   }
 }
 
@@ -158,7 +159,8 @@ class ElectrumClient {
     const txHash = await this.client
       .blockchain_transaction_broadcast(rawTX)
       .catch((err) => {
-        throw new ElectrumClientError(`failed to broadcast transaction: [${err}]`)
+      //  throw new ElectrumClientError(`failed to broadcast transaction: [${err}]`)
+        throw err
       })
     return txHash
   }

@@ -28,7 +28,7 @@ function bitcoin_command(command) {
     let cmd = command.split()
     console.log(`cmd: ${cmd.toString()}`)
 
-    let result = execSync(`${regtest_umbrel} ${command}`, { shell: "/bin/bash" },
+    let result = execSync(`${regtest_command} ${command}`, { shell: "/bin/bash" },
         function (error, stdout, stderr) {
             console.log('stdout: ' + stdout);
            console.log('stderr: ' + stderr);
@@ -52,7 +52,7 @@ async function init_tor_adapter() {
     return fork(tor_adapter_path, tor_adapter_args,
         {
             detached: false,
-            stdio: 'ignore',
+            stdio: 'ignore'
         },
         function (error, stdout, stderr) {
             console.log('init_tor_adapter - stdout: ' + stdout);
@@ -104,7 +104,7 @@ describe.skip('ElectrsLocalClient', function () {
         if (ta_process?.pid != null) {
             process.kill(ta_process?.pid, 'SIGTERM')
         }
-        ta_process = init_tor_adapter()
+        ta_process = await init_tor_adapter()
         //create_wallet("testwallet")
         //load_wallet("testwallet")
         const address = await getnewaddress()
@@ -113,11 +113,13 @@ describe.skip('ElectrsLocalClient', function () {
         addresses = [address, address2]
         await gen_blocks(address, 10)
         await gen_blocks(address2, 10)
-        await client.connect({ protocol: "tcp", host: "192.168.1.98", port: "50001" })
+        await client.connect({ protocol: "tcp", host: "localhost", port: "50002" })
     });
 
-    afterAll(() => {
-        process.kill(ta_process.pid, 'SIGTERM')
+    afterAll(async () => {
+        console.log(`killing child process: ${ta_process.pid}`)
+        await process.kill(ta_process.pid, 'SIGTERM')
+        //await ta_process.kill()
     })
 
     test('ping', async function () {
@@ -146,18 +148,6 @@ describe.skip('ElectrsLocalClient', function () {
         console.log(`fee estimation: ${est}`)
     })
 
-    test.skip('bitcoin sendrawtransaction', async function () {
-        jest.setTimeout(6000)
-        let address = await getnewaddress()
-        let txid = await sendtoaddress(address, "0.1")
-        await gen_blocks(addresses[0], 10)
-        let tx = await client.getTransaction(txid)
-        let tx_hex = tx.hex
-        
-        await expect(sendrawtransaction(tx_hex)).
-            rejects.toThrow(Error("Transaction already in block chain"))
-    })
-
     test('broadcastTransaction', async function () {
         jest.setTimeout(20000)
         
@@ -168,7 +158,7 @@ describe.skip('ElectrsLocalClient', function () {
         let tx_hex = tx.hex 
                 
         await expect(client.broadcastTransaction(tx_hex)).
-            rejects.toThrow(Error("Request failed with status code 400"))
+            rejects.toThrow(Error("Transaction already in block chain"))
     })
 
     test('getAddressListUnspent', async function () {

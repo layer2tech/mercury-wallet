@@ -264,7 +264,7 @@ const CoinsList = (props) => {
     const [coins_data] = callGetUnspentStatecoins();
     //Load all coins that aren't unconfirmed
 
-    let unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+    let unconfirmed_coins_data = dispatch(callGetUnconfirmedStatecoinsDisplayData);
     //Load unconfirmed coins
 
     let undeposited_coins_data = dispatch(callGetUnconfirmedAndUnmindeCoinsFundingTxData)

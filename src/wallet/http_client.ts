@@ -1,3 +1,4 @@
+import { checkForServerError, handlePromiseRejection } from "./error";
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 //const axios = require('axios').default;
 import axios, { AxiosRequestConfig } from 'axios'
@@ -53,31 +54,6 @@ export const POST_ROUTE = {
 };
 Object.freeze(POST_ROUTE);
 
-// Check if returned value from server is an error. Throw if so.
-const checkForServerError = (response: any) => {
-  if (!response) {
-    return
-  }
-  let return_val = response?.data
-  if( response.status >= 400) {
-    throw Error(`http status: ${response.status}, data: ${return_val}`)
-  }
-  if (typeof(return_val)=="string" && return_val.includes("Error")) {
-    if(return_val.includes("Not available until")){
-      throw Error("The server is currently unavailable due to a high request rate. Please try again.")
-    }
-    throw Error(return_val)
-  }  
-}
-
-const handlePromiseRejection = (err: any, config: any) => {
-  let msg_str = err?.message
-  if (msg_str && msg_str.search(/timeout of .*ms exceeded/) !== -1 ) {
-    throw new Error(`Mercury API request timed out: ${msg_str}`)
-  }
-  throw err
-}
-
   export class HttpClient {
     endpoint: string
     is_tor: boolean
@@ -106,7 +82,7 @@ const handlePromiseRejection = (err: any, config: any) => {
       };
       await semaphore.wait()
       return axios(config).catch((err: any) => {
-        handlePromiseRejection(err, config)
+        handlePromiseRejection(err, "Mercury API request timed out")
       }).finally( () => {
         semaphore.release()
       }).then(
@@ -132,7 +108,7 @@ const handlePromiseRejection = (err: any, config: any) => {
       };
       await semaphore.wait();
       return axios(config).catch((err: any) => {
-        handlePromiseRejection(err, config)
+        handlePromiseRejection(err, "Mercury API request timed out")
       }).finally(() => {
         semaphore.release()
       }).then (
