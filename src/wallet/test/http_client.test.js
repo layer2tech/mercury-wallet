@@ -131,7 +131,7 @@ describe('error handling', function () {
         const err_string = { data: "Error: an error string" }
         const err_string_lc = { data: "error: an error string" }
         const rate_limiter_error = { data: "Error: Not available until" }
-        const error_object = { error: "a message string" }
+        const error_object = { data: { error: "a message string" } }
 
         test('null', function () {
             checkForServerError(null)
@@ -158,19 +158,19 @@ describe('error handling', function () {
         })
 
         test('error object', function () {
-            expect(() => { checkForServerError(error_object) }).toThrow(Error(JSON.stringify(return_val.error)))
+            expect(() => { checkForServerError(error_object) }).toThrow(Error(JSON.stringify(error_object.data.error)))
         })
 
     })
 
     describe('handlePromiseRejection', function () {
         let timeout_err = { message: "timeout of 100ms exceeded" }
-        let misc_err = { message: "timeout of 100ms exceeded" }
+        let misc_err = { message: "misc err" }
         let blank_err = {}
         let timeout_msg = "a message string"
 
         test('timeout error', async function () {
-            expect(() => { handlePromiseRejection(timeout_err, msg_str) }).toThrow(Error(`${timeout_msg}: ${timeout_err.msg}`))
+            expect(() => { handlePromiseRejection(timeout_err, timeout_msg) }).toThrow(Error(`${timeout_msg}: ${timeout_err.message}`))
         })
 
         test('misc error', () => {
@@ -178,7 +178,7 @@ describe('error handling', function () {
         })
 
         test('blank error', () => {
-            expect(() => { handlePromiseRejection(blank_err, timeout_msg) }).toThrow(blank_err)
+            expect(() => { handlePromiseRejection(blank_err, timeout_msg) }).toThrow(Error(blank_err))
         })
 
 
