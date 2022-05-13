@@ -830,6 +830,39 @@ describe('checkMempoolTx', function () {
   })
 })
 
+describe('checkElectrumNetwork', function () {
+  let gen_txid = "d3ad39fa52a89997ac7381c95eeffeaf40b66af7a57e9eba144be0a175a12b11";
+  let statecoin
+  let init_statecoin
+  let wallet
+  let electrum_mock
+  beforeAll(async () => {
+    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+    wallet.config.swaplimit = 10
+    electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
+    wallet.electrum_client = electrum_mock
+    statecoin = wallet.statecoins.coins[0]
+    statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
+    init_statecoin = cloneDeep(statecoin)
+  })
+  beforeEach(async () => {
+    statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
+    statecoin.status = STATECOIN_STATUS.AVAILABLE
+  })
+  test('testnet connection', async () => {
+    result = await wallet.checkElectrumNetwork();
+    expect(result).toEqual(false)
+  })
+  test('mainnet connection', async () => {
+    wallet.electrum_client.getTransaction = jest.fn(async (gen_txid) => {
+      return { confirmed: true }
+    })
+    result = await wallet.checkElectrumNetwork();
+    expect(result).toEqual(true)
+  })
+})
+
 
 describe('broadcastBackupTx', function () {
   let statecoin
