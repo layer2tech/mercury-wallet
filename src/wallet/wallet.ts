@@ -452,7 +452,7 @@ export class Wallet {
   async checkElectrumNetwork(): Promise<boolean> {
     // verify the network matches wallet config
     // get the genesis tx
-    if (this.config.network === bitcoin.networks.bitcoin) {
+    if (this.config.network.bech32 === bitcoin.networks.bitcoin.bech32) {
       try {
         let genesis_txid = 'd3ad39fa52a89997ac7381c95eeffeaf40b66af7a57e9eba144be0a175a12b11';
         let tx_data: any = await this.electrum_client.getTransaction(genesis_txid);
