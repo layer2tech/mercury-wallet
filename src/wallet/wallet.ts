@@ -463,7 +463,6 @@ export class Wallet {
         }
       } catch {
         log.error(`Electrum network error. Check the server network and connection details.`);
-        throw Error("Electrum server error. Check the server network and connection details.")
         return false
       }
     }
