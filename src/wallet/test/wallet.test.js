@@ -851,14 +851,14 @@ describe('checkElectrumNetwork', function () {
     statecoin.status = STATECOIN_STATUS.AVAILABLE
   })
   test('testnet connection', async () => {
-    result = await wallet.checkElectrumNetwork();
+    let result = await wallet.checkElectrumNetwork();
     expect(result).toEqual(false)
   })
   test('mainnet connection', async () => {
     wallet.electrum_client.getTransaction = jest.fn(async (gen_txid) => {
       return { confirmed: true }
     })
-    result = await wallet.checkElectrumNetwork();
+    let result = await wallet.checkElectrumNetwork();
     expect(result).toEqual(true)
   })
 })
