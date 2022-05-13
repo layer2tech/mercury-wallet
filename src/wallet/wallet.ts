@@ -458,8 +458,7 @@ export class Wallet {
         let tx_data: any = await this.electrum_client.getTransaction(genesis_txid);
         let status = tx_data?.status;
         if (status && !status.confirmed) {
-          log.error(`Electrum network mismatch`);
-          throw Error("Error: Electrum server not mainnet Bitcoin. Check the server connection details.")
+          log.error(`Electrum network mismatch. Check the server network and connection details.`);
           return false
         }
       } catch {
