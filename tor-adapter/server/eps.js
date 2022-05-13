@@ -1,5 +1,5 @@
 var Mutex = require('async-mutex').Mutex
-let EPSClientLib = require('@keep-network/electrum-client-js')
+let EPSClientLib = require('@aguycalled/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')
 const W3CWebSocket = require('websocket').w3cwebsocket
 

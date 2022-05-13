@@ -70,7 +70,6 @@ export class ElectrsLocalClient {
       }).finally(() => { semaphore.release() })
         .then(
           (res: any) => {
-            console.log(`response: ${JSON.stringify(res?.status)}`)
             checkForServerError(res)
             return res?.data
           })
@@ -95,7 +94,6 @@ export class ElectrsLocalClient {
       semaphore.release()
     }).then(
       (res: any) => {
-        console.log(`response: ${JSON.stringify(res?.status)}`)
         checkForServerError(res)
         return res?.data
       })

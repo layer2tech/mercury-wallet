@@ -939,7 +939,7 @@ describe('broadcastCPFP', function () {
     wallet.broadcastCPFP(statecoin).then((_result) => {
       expect(true).toEqual(false)
     }).catch ((err) => {
-      expect(err).toEqual("foo")
+      expect(err).toEqual(new Error(`failed to broadcast transaction: [an error message]`))
     })
   })
 })

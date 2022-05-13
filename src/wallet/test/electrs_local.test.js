@@ -113,7 +113,7 @@ describe.skip('ElectrsLocalClient', function () {
         addresses = [address, address2]
         await gen_blocks(address, 10)
         await gen_blocks(address2, 10)
-        await client.connect({ protocol: "tcp", host: "localhost", port: "50002" })
+        await client.connect({ protocol: "tcp", host: "127.0.0.1", port: "50002" })
     });
 
     afterAll(async () => {
@@ -130,14 +130,17 @@ describe.skip('ElectrsLocalClient', function () {
 
     test('latestBlockHeader', async function () {
         let header = await client.latestBlockHeader()
-        console.log(header)
+        console.log(`latest block header: ${JSON.stringify(header)}`)
+        header = await client.latestBlockHeader()
+        console.log(`latest block header: ${JSON.stringify(header)}`)
     })
 
     test('getTransaction', async function () {
         jest.setTimeout(10000)
         let address = await getnewaddress()
         let txid = await sendtoaddress(address, "0.1")
-        await gen_blocks(addresses[0],10)
+        await gen_blocks(addresses[0], 10)
+        console.log(`getting transaction ${txid}`)
         let tx = await client.getTransaction(txid)
         console.log(tx)
     })
@@ -158,7 +161,7 @@ describe.skip('ElectrsLocalClient', function () {
         let tx_hex = tx.hex 
                 
         await expect(client.broadcastTransaction(tx_hex)).
-            rejects.toThrow(Error("Transaction already in block chain"))
+            rejects.toThrow(Error("\"Transaction already in block chain\""))
     })
 
     test('getAddressListUnspent', async function () {
