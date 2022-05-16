@@ -1,3 +1,4 @@
+import { checkForServerError, handlePromiseRejection } from './error';
 import { Mutex } from 'async-mutex'
 import { semaphore, TIMEOUT } from './http_client'
 import axios, { AxiosRequestConfig } from 'axios'
@@ -10,15 +11,6 @@ class ElectrsLocalClientError extends Error {
   constructor(message: string){
     super(message);
     this.name = "ElectrsLocalClientError";
-  }
-}
-
-const checkForServerError = (return_val: any) => {
-  if (!return_val) {
-    return
-  }
-  if (typeof (return_val) === "string" && (return_val.includes("Error") || return_val.includes("error"))) {
-    throw Error(return_val)
   }
 }
 
@@ -45,14 +37,7 @@ export const POST_ROUTE = {
 };
 Object.freeze(POST_ROUTE);
 
-const handlePromiseRejection = (err: any, config: any) => {
-  let msg_str = err?.message
-  console.log(`search result: ${msg_str.search(/timeout of .*ms exceeded/)}`)
-  if (msg_str && msg_str.search(/timeout of .*ms exceeded/) > -1) {
-    throw new Error(`Electrum API request timed out: ${msg_str}`)
-  }
-  throw err
-}
+
 
 export class ElectrsLocalClient {
   endpoint: string
@@ -81,7 +66,7 @@ export class ElectrsLocalClient {
       await semaphore.wait()
     return axios(config).catch((err: any) => {
         console.log(`${JSON.stringify(err)}`)
-        handlePromiseRejection(err, config)
+      handlePromiseRejection(err, "Electrum API request timed out" )
       }).finally(() => { semaphore.release() })
         .then(
           (res: any) => {
@@ -104,7 +89,7 @@ export class ElectrsLocalClient {
       };
     await semaphore.wait();
     return axios(config).catch((err: any) => {
-      handlePromiseRejection(err, config)
+      handlePromiseRejection(err, "Electrum API request timed out")
     }).finally(() => {
       semaphore.release()
     }).then(

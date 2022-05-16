@@ -1,6 +1,7 @@
 //const axios = require('axios').default;
 import axios from 'axios'
 import { HttpClient, TIMEOUT, semaphore } from '../http_client';
+import { handlePromiseRejection, checkForServerError } from '../error';
 
 jest.mock('axios', () => jest.fn())
 
@@ -13,7 +14,7 @@ describe('HttpClient', function () {
         jest.restoreAllMocks();
         expect(semaphoreSpy).toHaveBeenCalledTimes(1)
     });
-        
+
     beforeEach(() => {
         axios.mockResolvedValueOnce(response)
     });
@@ -70,14 +71,14 @@ describe('HttpClient', function () {
             timeout: timeout,
             data: "body"
         });
-        
+
     });
 
 });
 
 describe('HttpClient timeout', function () {
     let client = new HttpClient("tor_endpoint.onion", true)
-    
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
@@ -120,6 +121,66 @@ describe('HttpClient timeout', function () {
             data: "body"
         });
     });
-    
+
 });
 
+describe('error handling', function () {
+    describe('checkForServerError', async function () {
+
+        const status_err = { status: 400, data: "status err data" }
+        const err_string = { data: "Error: an error string" }
+        const err_string_lc = { data: "error: an error string" }
+        const rate_limiter_error = { data: "Error: Not available until" }
+        const error_object = { data: { error: "a message string" } }
+
+        test('null', function () {
+            checkForServerError(null)
+        })
+
+        test('undefined', function () {
+            checkForServerError(undefined)
+        })
+
+        test('status err', function () {
+            expect(() => { checkForServerError(status_err) }).toThrow(Error(`http status: ${status_err.status}, data: ${status_err.data}`))
+        })
+
+        test('string error', function () {
+            expect(() => { checkForServerError(err_string) }).toThrow(Error(err_string.data))
+        })
+
+        test('string error lower case', function () {
+            expect(() => { checkForServerError(err_string_lc) }).toThrow(Error(err_string_lc.data))
+        })
+
+        test('rate limiter error', function () {
+            expect(() => { checkForServerError(rate_limiter_error) }).toThrow(Error("The server is currently unavailable due to a high request rate. Please try again."))
+        })
+
+        test('error object', function () {
+            expect(() => { checkForServerError(error_object) }).toThrow(Error(JSON.stringify(error_object.data.error)))
+        })
+
+    })
+
+    describe('handlePromiseRejection', function () {
+        let timeout_err = { message: "timeout of 100ms exceeded" }
+        let misc_err = { message: "misc err" }
+        let blank_err = {}
+        let timeout_msg = "a message string"
+
+        test('timeout error', async function () {
+            expect(() => { handlePromiseRejection(timeout_err, timeout_msg) }).toThrow(Error(`${timeout_msg}: ${timeout_err.message}`))
+        })
+
+        test('misc error', () => {
+            expect(() => { handlePromiseRejection(misc_err, timeout_msg) }).toThrow(misc_err)
+        })
+
+        test('blank error', () => {
+            expect(() => { handlePromiseRejection(blank_err, timeout_msg) }).toThrow(Error(blank_err))
+        })
+
+
+    })
+})

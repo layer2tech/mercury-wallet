@@ -219,7 +219,7 @@ const CoinsList = (props) => {
 
   // Convert expiry_data to string displaying months or days left
   const expiry_time_to_string = (expiry_data) => {
-    return expiry_data.months > 1 ? expiry_data.months + " months" : expiry_data.days + " days";
+    return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days";
   }
 
   const validCoinData = (coins_data, new_unconfirmed_coins_data) => {
@@ -264,7 +264,7 @@ const CoinsList = (props) => {
     const [coins_data] = callGetUnspentStatecoins();
     //Load all coins that aren't unconfirmed
 
-    let unconfirmed_coins_data = callGetUnconfirmedStatecoinsDisplayData();
+    let unconfirmed_coins_data = dispatch(callGetUnconfirmedStatecoinsDisplayData);
     //Load unconfirmed coins
 
     let undeposited_coins_data = dispatch(callGetUnconfirmedAndUnmindeCoinsFundingTxData)

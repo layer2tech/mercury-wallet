@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link, withRouter } from "react-router-dom";
 import { Logo, Settings, Help, Logout } from './headerIcons';
-import { NotificationBar, ErrorPopup, ConfirmPopup } from "../../components";
+import { NotificationBar, ErrorPopup, ConfirmPopup, ProgressBar } from "../../components";
 import WarningPopup from '../WarningPopup';
-import { unloadWallet, saveWallet, stopWallet } from '../../features/WalletDataSlice'
+import { unloadWallet, stopWallet } from '../../features/WalletDataSlice'
 import './header.css';
 import TorCircuit from './TorInfo/TorCircuit';
 
@@ -94,6 +94,7 @@ const Header = (props) => {
       <NotificationBar />
       <ErrorPopup />
       <WarningPopup />
+      <ProgressBar /> 
     </div>
   );
 }
