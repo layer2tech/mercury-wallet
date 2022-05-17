@@ -2,7 +2,7 @@ const handle_error = require("./error").handle_error;
 const winston = require("winston");
 var path = require("path");
 var fs = require("fs");
-const dataDir = "";
+const dataDir = process.argv[4];
 const torDataDir = path.join(dataDir, "tor");
 const logDir = path.join(dataDir, "tor-adapter-log");
 console.log(`logDir: ${logDir}`);
