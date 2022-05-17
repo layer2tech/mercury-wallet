@@ -32,12 +32,13 @@ export const resetIndex = () => {
 
 // Logger import.
 // Node friendly importing required for Jest tests.
+/*
 let log;
 try {
   log = window.require('electron-log');
 } catch (_e) {
   log = require('electron-log');
-}
+}*/
 
 const ReceiveStatecoinPage = () => {
   const dispatch = useDispatch();
@@ -83,7 +84,7 @@ const ReceiveStatecoinPage = () => {
         }
       }
     }).catch((err) => {
-      log.warn(JSON.stringify(err))
+      //log.warn(JSON.stringify(err))
       if (isMounted === true) {
         setElectrumServer(false)
       }

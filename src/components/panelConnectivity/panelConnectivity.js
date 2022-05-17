@@ -12,12 +12,13 @@ import RadioButton from './RadioButton';
 
 // Logger import.
 // Node friendly importing required for Jest tests.
+/*
 let log;
 try {
   log = window.require('electron-log');
 } catch (_e) {
   log = require('electron-log');
-}
+}*/
 
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();

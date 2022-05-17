@@ -1,4 +1,4 @@
-import '../index.css';
+import "../index.css";
 
 export { default as Header } from "./header/header";
 
@@ -6,17 +6,17 @@ export { default as StdButton } from "./buttons/standardButton";
 export { default as ToggleButton } from "./buttons/toggleButton";
 
 export { default as AddressInput } from "./inputs/addressInput";
-export { default as CheckBox } from './Checkbox'
-export { default as Steppers } from './Steppers'
-export { default as ConfirmPopup } from './ConfirmPopup'
-export { default as ErrorPopup } from './ErrorPopup'
-export { default as NotificationBar } from './NotificationBar'
-export { default as ProgressBar } from './ProgressBar/ProgressBar'
-export { default as CopiedButton } from './CopiedButton'
-export { default as CoinStatus } from './CoinStatus'
-export { default as SendModal } from './SendModal'
-export { default as BackupWalletPopup } from './BackupWalletPopup'
-export { default as Loading } from './Loading/Loading'
+export { default as CheckBox } from "./Checkbox";
+export { default as Steppers } from "./Steppers";
+export { default as ConfirmPopup } from "./ConfirmPopup";
+export { default as ErrorPopup } from "./ErrorPopup";
+export { default as NotificationBar } from "./NotificationBar";
+export { default as ProgressBar } from "./ProgressBar/ProgressBar";
+export { default as CopiedButton } from "./CopiedButton";
+export { default as CoinStatus } from "./CoinStatus";
+export { default as SendModal } from "./SendModal";
+export { default as BackupWalletPopup } from "./BackupWalletPopup";
+export { default as Loading } from "./Loading/Loading";
 
 export { default as DisplaySeed } from "./displaySeed/displaySeed";
 export { default as ConfirmSeed } from "./confirmSeed/confirmSeed";

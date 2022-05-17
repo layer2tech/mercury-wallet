@@ -6,12 +6,13 @@ import { callGetFeeInfo } from '../../../features/WalletDataSlice';
 
 // Logger import.
 // Node friendly importing required for Jest tests.
+/*
 let log;
 try {
   log = window.require('electron-log');
 } catch (e) {
   log = require('electron-log');
-}
+}*/
 
 
 const ValueSelectionPanel = (props) => {
@@ -59,7 +60,7 @@ const ValueSelectionPanel = (props) => {
           const err_str = err?.message
           if (err_str && (err_str.includes('Network Error') ||
             err_str.includes('Mercury API request timed out'))) {
-            log.warn(JSON.stringify(err))
+            //log.warn(JSON.stringify(err))
           } else {
             throw err
           }

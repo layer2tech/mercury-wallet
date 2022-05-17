@@ -13,12 +13,13 @@ import { WithdrawMsg2 } from "./mercury/withdraw"
 // Logger import.
 // Node friendly importing required for Jest tests.
 declare const window: any;
+/*
 let log: any;
 try {
   log = window.require('electron-log');
 } catch (e : any) {
   log = require('electron-log');
-}
+}*/
 
 export const HIDDEN = "*****"
 
