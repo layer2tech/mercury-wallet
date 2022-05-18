@@ -8,7 +8,7 @@ import {
 } from "../features/WalletInfoSlice";
 
 // class the wraps in-built redux store
-export class WrappedStore {
+class WrappedStore {
   object;
 
   constructor(name) {
@@ -60,3 +60,5 @@ export class WrappedStore {
     }
   }
 }
+
+module.exports = WrappedStore;

@@ -1,4 +1,5 @@
 let isElectron = require("is-electron");
+const TESTING_MODE = require("./settings.json").testing_mode;
 // wrapper class for logging on machines of windows and web version
 export default class WrappedLogger {
   log = null;
@@ -11,7 +12,7 @@ export default class WrappedLogger {
     }
 
     if (version.NODE_ENV === "development" || version.NODE_ENV === "test") {
-      if (isElectron()) {
+      if (isElectron() || TESTING_MODE) {
         try {
           this.log = window.require("electron-log");
         } catch (e) {

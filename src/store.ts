@@ -1,5 +1,4 @@
 "use strict";
-import { WrappedStore } from "./application/wrappedStore";
 import {
   ActivityLog,
   decryptAES,
@@ -13,15 +12,21 @@ import WrappedLogger from "./wrapped_logger";
 
 let isElectron = require("is-electron");
 
+const TestingWithJest = () => {
+  return process.env.JEST_WORKER_ID !== undefined;
+};
+
 // required on ELECTRON  ////////////////////////// -> must be changed to detect if browser or electrion
 declare const window: any;
 let Store: any;
-if (isElectron()) {
+if (isElectron() || TestingWithJest()) {
   try {
     Store = window.require("electron-store");
   } catch (e: any) {
     Store = require("electron-store");
   }
+} else {
+  Store = require("./application/wrappedStore");
 }
 
 ///////////////////////////////////////////////
@@ -36,14 +41,7 @@ export class Storage {
   name: string;
   constructor(fileName: string) {
     this.name = fileName;
-
-    // CHECK IF BROWSER VERSION -
-    if (isElectron()) {
-      // IF ELECTRON VERSION -
-      this.store = new Store({ name: this.name });
-    } else {
-      this.store = new WrappedStore({ name: this.name });
-    }
+    this.store = new Store({ name: this.name });
   }
 
   // return map of wallet names->passwords
