@@ -1,4 +1,5 @@
 "use strict";
+import { WrappedStore } from "./application/wrappedStore";
 import {
   ActivityLog,
   decryptAES,
@@ -10,14 +11,19 @@ import {
 import { OutPoint } from "./wallet/mercury/info_api";
 import WrappedLogger from "./wrapped_logger";
 
+let isElectron = require("is-electron");
+
 // required on ELECTRON  ////////////////////////// -> must be changed to detect if browser or electrion
 declare const window: any;
 let Store: any;
-try {
-  Store = window.require("electron-store");
-} catch (e: any) {
-  Store = require("electron-store");
+if (isElectron()) {
+  try {
+    Store = window.require("electron-store");
+  } catch (e: any) {
+    Store = require("electron-store");
+  }
 }
+
 ///////////////////////////////////////////////
 
 // Logger import.
@@ -32,10 +38,12 @@ export class Storage {
     this.name = fileName;
 
     // CHECK IF BROWSER VERSION -
-    //this.store = new WrappedStore({ name: this.name });
-
-    // IF ELECTRON VERSION -
-    this.store = new Store({ name: this.name });
+    if (isElectron()) {
+      // IF ELECTRON VERSION -
+      this.store = new Store({ name: this.name });
+    } else {
+      this.store = new WrappedStore({ name: this.name });
+    }
   }
 
   // return map of wallet names->passwords

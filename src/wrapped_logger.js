@@ -1,3 +1,4 @@
+let isElectron = require("is-electron");
 // wrapper class for logging on machines of windows and web version
 export default class WrappedLogger {
   log = null;
@@ -10,10 +11,12 @@ export default class WrappedLogger {
     }
 
     if (version.NODE_ENV === "development" || version.NODE_ENV === "test") {
-      try {
-        this.log = window.require("electron-log");
-      } catch (e) {
-        this.log = require("electron-log");
+      if (isElectron()) {
+        try {
+          this.log = window.require("electron-log");
+        } catch (e) {
+          this.log = require("electron-log");
+        }
       }
       this.development = true;
     }

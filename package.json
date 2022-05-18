@@ -121,6 +121,7 @@
     "https-browserify": "^1.0.0",
     "i18n-iso-countries": "^7.1.0",
     "install": "^0.13.0",
+    "is-electron": "^2.2.1",
     "levenary": "^1.1.1",
     "limiter": "^2.1.0",
     "lodash.clonedeep": "^4.5.0",
