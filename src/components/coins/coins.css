@@ -216,17 +216,7 @@ p.short{
   transition: opacity 0.3s;
 }
 
-.scoreAmount .tooltip:after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: var(--button-border) transparent transparent transparent;
-}
-.scoreAmount:hover .tooltip {
+.scoreAmount:hover .tooltip, .CoinPanel:hover .dup-container .tooltip {
   visibility: visible;
   opacity: 1;
 }
@@ -402,6 +392,29 @@ p.short{
     left: auto;
   }
 }
+
+.CoinPanel .dup-container{
+  position: absolute;
+  display: inline-block;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.CoinPanel .dup-container .tooltip{
+  position: relative;
+  left: 83%;
+  top: 80px;
+  width: 350px;
+  background-color: var(--button-border);
+  color: var(--text-primary);
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  z-index: 1;
+  transition: opacity 0.3s;
+}
+
 
 .main-coin-wrap {
   position: relative;
