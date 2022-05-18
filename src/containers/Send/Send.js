@@ -7,7 +7,8 @@ import { fromSatoshi } from '../../wallet/util';
 import { decodeSCEAddress, encodeMessage } from '../../wallet/util';
 import {
   isWalletLoaded, callTransferSender, setError, setNotification,
-  removeCoins
+  removeCoins,
+  checkSend
 } from '../../features/WalletDataSlice';
 import arrow from "../../images/arrow-up.png"
 import './Send.css';
@@ -69,24 +70,9 @@ const SendStatecoinPage = () => {
   }
 
   const sendButtonAction = async () => {
-    var input_pubkey = "";
-    try {
-      input_pubkey = decodeSCEAddress(inputAddr);
-    }
-    catch (e) {
-      dispatch(setError({ msg: "Error: " + e.message }))
-      return
-    }
 
-    if (!(input_pubkey.slice(0, 2) === '02' || input_pubkey.slice(0, 2) === '03')) {
-      dispatch(setError({ msg: "Error: invalid proof public key." }));
-      return
-    }
+    var input_pubkey = decodeSCEAddress(inputAddr);
 
-    if (input_pubkey.length !== 66) {
-      dispatch(setError({ msg: "Error: invalid proof public key" }))
-      return
-    }
     setOpenSendModal({
       show: true,
       value: coinDetails.value,
@@ -205,7 +191,7 @@ const SendStatecoinPage = () => {
                           </tbody>
                       </table>
                       */}
-            <ConfirmPopup onOk={sendButtonCheck}>
+            <ConfirmPopup onOk={sendButtonCheck} preCheck={checkSend} argsCheck={[dispatch, inputAddr]}>
               <button type="action-btn-normal" className={`btn send-action-button ${loading}`} >
                 {loading ? (<Loading />) : "SEND STATECOIN"}
               </button>
