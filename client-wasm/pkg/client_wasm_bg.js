@@ -1,9 +1,11 @@
-import wasm from "./client_wasm_bg.wasm";
+import * as wasm from "./client_wasm_bg.wasm";
 
 const lTextDecoder =
   typeof TextDecoder === "undefined"
     ? (0, module.require)("util").TextDecoder
     : TextDecoder;
+
+console.log("text decoder.. ?", lTextDecoder);
 
 let cachedTextDecoder = new lTextDecoder("utf-8", {
   ignoreBOM: true,
