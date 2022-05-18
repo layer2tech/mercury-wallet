@@ -8,12 +8,13 @@ import {
   getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo,
   getStateChain, getStateChainTransferFinalizeData, TransferFinalizeDataAPI
 } from './mercury/info_api';
-import { StateChainSig, encodeSCEAddress } from "./util";
+import { StateChainSig, encodeSCEAddress, getTxFee } from "./util";
 import { GET_ROUTE } from '.';
 import {
   transferReceiverFinalizeRecovery, TransferFinalizeDataForRecovery
 } from './mercury/transfer';
 import { setProgressComplete, setProgress} from "../features/WalletDataSlice";
+import { forEachChild } from "typescript";
 
 
 let bitcoin = require('bitcoinjs-lib');
@@ -115,8 +116,48 @@ export const getFinalizeDataForRecovery = async (wallet: Wallet, wasm: any, reco
   return finalize_data
 }
 
+// Reconstruct the WithdrawalTxBroadcastInfo for each recoverd statecoin that is withdrawing
+export const groupRecoveredWithdrawalTransactions = (
+    withdrawal_tx_map: Map<Transaction,
+    Set<string>>,
+    withdrawal_addr_map: Map<string, string>,
+    statecoins: Map<string, StateCoin>) => {
+  withdrawal_tx_map.forEach((ids, tx) => {
+    let tx_fee = 0
+    const ids_arr = Array.from(ids)
+    if (ids_arr.length != tx.ins.length) {
+      ids.forEach((id) => {
+        statecoins.delete(id)
+      })
+      return
+    } 
+    ids.forEach((id) => {
+        const sc = statecoins.get(id)
+        const sc_value = sc != null ? sc.value : 0
+        tx_fee = tx_fee + sc_value
+    })
+    tx.outs.forEach((output) => {
+      tx_fee = tx_fee - output.value
+    })
+    const rec_addr = withdrawal_addr_map.get(tx.getId())
+    if (rec_addr == null) {
+      return
+    }
+    ids.forEach((id) => {
+      let statecoin = statecoins.get(id)  
+      if (statecoin != null) {
+        statecoin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
+          tx_fee, tx, { shared_key_ids: ids_arr }, rec_addr));  
+      }
+    })
+  })
+}
+
 // Gen proof key. Address: tb1qgl76l9gg9qrgv9e9unsxq40dee5gvue0z2uxe2. Proof key: 03b2483ab9bea9843bd9bfb941e8c86c1308e77aa95fccd0e63c2874c0e3ead3f5
 export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[]) => {
+  let withdrawal_tx_map = new Map()
+  let withdrawal_addr_map = new Map()
+  let statecoins = new Map()
   for (let i = 0; i < recoveredCoins.length; i++) {
 
     let statecoin = null
@@ -157,14 +198,19 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.value = recoveredCoins[i].amount;
         statecoin.tx_hex = recoveredCoins[i].tx_hex;
         statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
-        if(recoveredCoins[i].withdrawing) {
+        const withdrawing = recoveredCoins[i].withdrawing
+        if(withdrawing != 'None') {
           statecoin.setWithdrawing();
-          const wdr_msg2: WithdrawMsg2 = {
-              shared_key_ids: [],
-              address: "",
+          const withdraw_transaction = Transaction.fromHex(withdrawing.tx_hex)
+     
+          let ids = withdrawal_tx_map.get(withdraw_transaction)
+          if (ids != null) {
+            ids.add(statecoin.shared_key_id)
+          } else {
+            ids = new Set([statecoin.shared_key_id])            
           }
-          statecoin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
-            0, new Transaction(), wdr_msg2));
+          withdrawal_tx_map.set(withdraw_transaction, ids)
+          withdrawal_addr_map.set(withdraw_transaction.getId(), withdrawing.rec_addr)
         } else {
           statecoin.setConfirmed();
         }
@@ -189,9 +235,13 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
 
       }
 
-      wallet.statecoins.addCoin(statecoin);
+      statecoins.set(statecoin.shared_key_id, statecoin)
     }
   }
+  groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdrawal_addr_map, statecoins)
 
+  statecoins.forEach((statecoin, _) => {
+    wallet.statecoins.addCoin(statecoin);
+  })
   await wallet.saveStateCoinsList();
 }

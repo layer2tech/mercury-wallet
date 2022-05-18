@@ -7,7 +7,8 @@ import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
 import { callGetConfig } from '../features/WalletDataSlice'
 import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
-
+import { StateCoin } from './statecoin'
+import { LanguageVariant, visitLexicalEnvironment } from 'typescript';
 
 let bech32 = require('bech32')
 let bitcoin = require('bitcoinjs-lib')
@@ -153,7 +154,7 @@ export const txBackupBuild = (network: Network, funding_txid: string, funding_vo
 //     - amount 'fee' to State Entity fee address
 export const txWithdrawBuild = (network: Network,    funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_byte: number): TransactionBuilder => {
 
-  let tx_fee = Math.round(fee_per_byte*VIRTUAL_TX_SIZE*10e7)/10e7;
+  let tx_fee = getTxFee(fee_per_byte, 1)
 
   if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
 
@@ -166,6 +167,18 @@ export const txWithdrawBuild = (network: Network,    funding_txid: string, fundi
   return txb
 }
 
+export const getFeePerByte = (tx: Transaction, input_value: number, n_inputs: number = 1): number => {
+  let tx_fee = input_value
+  tx.outs.forEach((output) => {
+    tx_fee = tx_fee - output.value
+  })
+  const fee_per_byte = Math.round((tx_fee * 10e7) / ((VIRTUAL_TX_SIZE + (INPUT_TX_SIZE * (n_inputs - 1))) * 10e7))
+  return fee_per_byte
+}
+
+export const getTxFee = (fee_per_byte: number, n_inputs: number = 1): number => {
+  return Math.round(fee_per_byte * (VIRTUAL_TX_SIZE + (INPUT_TX_SIZE * (n_inputs - 1))) * 10e7) / 10e7
+}
 
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
@@ -190,9 +203,8 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
   
   let withdraw_fee = Math.round((value * fee_info.withdraw) / 10000)//(value * fee_info.withdraw) / 10000
 
-  let tx_fee = Math.round(fee_per_byte*(VIRTUAL_TX_SIZE+(INPUT_TX_SIZE*(sc_infos.length-1)))*10e7)/10e7
-
-  
+  let tx_fee = getTxFee(fee_per_byte, sc_infos.length)
+    
   if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
   
   // txb.addOutput(rec_address, value - FEE - withdraw_fee);

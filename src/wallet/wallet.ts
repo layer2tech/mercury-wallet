@@ -418,6 +418,7 @@ export class Wallet {
     if (n_recovered > 0) {
       log.info("Found " + recoveredCoins.length + " StateCoins. Saving to wallet.");
       await this.saveKeys();
+      console.log(`recoveredCoins: ${JSON.stringify(recoveredCoins)}`)
       await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
@@ -1853,7 +1854,7 @@ export class Wallet {
 
           throw Error(`Replacement transactions must batch the same coins: ${coin_ids}`)
         }
-        if (rec_addr !== broadcastTxInfos[broadcastTxInfos.length - 1].withdraw_msg_2.address) {
+        if (rec_addr !== broadcastTxInfos[broadcastTxInfos.length - 1].rec_addr) {
           throw Error(`Replacement transaction recipient address does not match`)
         }
       }
@@ -1870,7 +1871,7 @@ export class Wallet {
         statecoin.status !== STATECOIN_STATUS.WITHDRAWN) {
         statecoin.setWithdrawing()
       }
-      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
+      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2, rec_addr);
       this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
     });
     await this.saveStateCoinsList();

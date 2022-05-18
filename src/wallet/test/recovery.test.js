@@ -4,8 +4,11 @@ import {
   Wallet, STATECOIN_STATUS
 } from '../';
 
-import { addRestoredCoinDataToWallet } from '../recovery';
-import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
+import { addRestoredCoinDataToWallet, groupRecoveredWithdrawalTransactions } from '../recovery';
+import {
+  RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED, makeTesterStatecoins,
+  BTC_ADDR, recovery_withdrawal_tx_batch, RECOVERY_DATA_WITHDRAWING_BATCH
+} from './test_data';
 import {
   RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
   RECOVERY_STATECHAIN_DATA, TRANSFER_FINALIZE_DATA_FOR_RECOVERY,
@@ -20,6 +23,11 @@ import TestComponent, { render } from './test-utils';
 import reducers from '../../reducers';
 import { fireEvent, screen } from '@testing-library/react';
 import { encodeSCEAddress } from '../util';
+import { Transaction } from 'bitcoinjs-lib'
+import { assert } from 'console';
+import { WithdrawalTxBroadcastInfo } from '../statecoin';
+
+let cloneDeep = require('lodash.clonedeep');
 
 describe("Recovery", () => {
     // client side's mock
@@ -135,4 +143,99 @@ describe("Recovery unfinalized", () => {
   
     });
   
+})
+  
+describe("Recovery withdrawing", () => {
+  let statecoins
+  let transactions
+  
+  // client side's mock
+  let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+  // server side's mock
+  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+  let wallet
+  beforeAll(async () => {
+    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+    wallet.statecoins.coins = [];
+    await wallet.genProofKey();
+    await wallet.genProofKey();
   })
+  describe("groupRecoveredWithdrawalTransactions", () => {
+    let withdrawal_tx_map
+    let withdrawal_addr_map
+    let skids = new Set()
+    let statecoins_map = new Map()
+
+    beforeEach(() => {
+      statecoins = makeTesterStatecoins();
+      transactions = new Array()
+      statecoins.forEach((statecoin) => {
+        transactions.push(statecoin.tx_backup)
+        skids.add(statecoin.shared_key_id)
+        statecoins_map.set(statecoin.shared_key_id, statecoin)
+      })
+      withdrawal_tx_map = new Map()
+      withdrawal_addr_map = new Map()
+    })
+    
+    test('single withdrawals', () => {
+      statecoins.forEach((statecoin, i) => {
+        withdrawal_tx_map.set(transactions[i], [statecoin.shared_key_id])
+        withdrawal_addr_map.set(transactions[i].getId(), BTC_ADDR[i])
+      })
+      groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdrawal_addr_map, statecoins_map)
+
+      expect(statecoins_map.size).toEqual(2)
+      let vals = statecoins_map.values()
+      let broadcast_infos = vals.next().value.tx_withdraw_broadcast
+      expect(broadcast_infos.length).toEqual(1)
+      expect(broadcast_infos[0].rec_addr).toEqual(BTC_ADDR[0])
+      broadcast_infos = vals.next().value.tx_withdraw_broadcast
+      expect(broadcast_infos.length).toEqual(1)
+      expect(broadcast_infos[0].rec_addr).toEqual(BTC_ADDR[1])
+     
+    })
+
+    test('batch withdrawal - wrong number of tx outputs', () => {
+      withdrawal_tx_map.set(transactions[0], [statecoins[0].shared_key_id, statecoins[1].shared_key_id])
+      withdrawal_addr_map.set(transactions[0].getId(), BTC_ADDR[2])
+      groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdrawal_addr_map, statecoins_map)
+      expect(statecoins_map.size).toEqual(0)
+    })
+
+    test('batch withdrawal', () => {
+      console.log(recovery_withdrawal_tx_batch)
+      let tx = Transaction.fromHex(recovery_withdrawal_tx_batch)
+      withdrawal_tx_map.set(tx, [statecoins[0].shared_key_id, statecoins[1].shared_key_id])
+      withdrawal_addr_map.set(tx.getId(), BTC_ADDR[2])
+      groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdrawal_addr_map, statecoins_map)
+      expect(statecoins_map.size).toEqual(2)
+      let vals = statecoins_map.values()
+      //for (let i = 0; i < statecoins_map.size; i++) {
+      let broadcast_infos = vals.next().value.tx_withdraw_broadcast
+      expect(broadcast_infos.length).toEqual(1)
+      expect(broadcast_infos[0].rec_addr).toEqual(BTC_ADDR[2])
+    })
+
+
+    test('single/batch withdrawal', () => {
+      console.log(recovery_withdrawal_tx_batch)
+      let tx = Transaction.fromHex(recovery_withdrawal_tx_batch)
+      withdrawal_tx_map.set(tx, [RECOVERY_DATA_WITHDRAWING_BATCH[0].shared_key_id, RECOVERY_DATA_WITHDRAWING_BATCH[1].shared_key_id])
+      withdrawal_addr_map.set(tx.getId(), BTC_ADDR[2])
+      statecoins.forEach((statecoin, i) => {
+        withdrawal_tx_map.set(transactions[i], [statecoin.shared_key_id])
+        withdrawal_addr_map.set(transactions[i].getId(), BTC_ADDR[i])
+      })
+
+      groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdrawal_addr_map, statecoins_map)
+      expect(statecoins_map.size).toEqual(2)
+      let vals = statecoins_map.values()
+      //for (let i = 0; i < statecoins_map.size; i++) {
+      let broadcast_infos = vals.next().value.tx_withdraw_broadcast
+      expect(broadcast_infos.length).toEqual(1)
+      expect(broadcast_infos[0].rec_addr).toEqual("tb1q6xwt00hnwcrtlunvnz8u0xrtdxv5ztx7pj44cp")
+    })
+  })  
+
+})
