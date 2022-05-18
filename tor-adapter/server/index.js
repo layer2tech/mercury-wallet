@@ -53,6 +53,8 @@ var Config = new require("./config");
 const config = new Config();
 const tpc = config.tor_proxy;
 const express = require("express");
+var cors = require("cors");
+
 var geoip = require("geoip-country");
 var countries = require("i18n-iso-countries");
 countries.registerLocale(require("i18n-iso-countries/langs/en.json"));
@@ -101,6 +103,7 @@ const PORT = 3001;
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 app.listen(PORT, () => {
   log(

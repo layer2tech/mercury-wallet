@@ -6,7 +6,7 @@
   "testing_mode": true,
   "required_confirmations": 3,
   "tor_proxy": {
-    "ip": "mock",
+    "ip": "localhost",
     "port": 9060,
     "controlPassword": "",
     "controlPort": 9061
