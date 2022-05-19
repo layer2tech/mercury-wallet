@@ -595,6 +595,13 @@ export const checkWithdrawal = ( dispatch, selectedCoins, inputAddr ) => {
     dispatch(setError({msg: "Mininum withdrawal size is 0.001 BTC."}))
     return true
   }
+  try {
+    decodeSCEAddress(inputAddr);
+  }
+  catch (e) {
+    dispatch(setError({ msg: "Error: " + e.message }))
+    return true
+  }
 
   if(callIsBatchMixedPrivacy(selectedCoins)) {
     dispatch(setNotification({msg:"Warning: Withdrawal transaction contains both private and un-swapped inputs."}))
