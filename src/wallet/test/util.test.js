@@ -5,7 +5,7 @@ import {
   toSatoshi, fromSatoshi,
   decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
   encryptECIES, decryptECIES, encryptAES, decryptAES, proofKeyToSCEAddress, encodeMessage,
-  decodeMessage, VIRTUAL_TX_SIZE } from '../util';
+  decodeMessage, VIRTUAL_TX_SIZE, getTxFee } from '../util';
 import { encodeSCEAddress } from '../util';
 import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
 import { Wallet } from '../';
@@ -65,11 +65,24 @@ describe('getTxFee', function () {
   let fee_per_byte = 3 // 3 sat/byte 
 
   test('single', function () {
-    expect(getTxFee(fee_per_byte)).toEqual(1)
+    expect(getTxFee(fee_per_byte)).toEqual(678)
+  })
+
+  test('single at 1 sat/byte', function () {
+    expect(getTxFee(1)).toEqual(226)
+  })
+
+
+  test('batch 3', function () {
+    expect(getTxFee(fee_per_byte, 3)).toEqual(1566)
   })
 
   test('batch 5', function () {
-    expect(getTxFee(fee_per_byte, 5)).toEqual(1)
+    expect(getTxFee(fee_per_byte, 5)).toEqual(2454)
+  })
+
+  test('batch 3 at 1 sat/byte', function () {
+    expect(getTxFee(1, 3)).toEqual(522)
   })
 })
 
