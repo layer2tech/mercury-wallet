@@ -9,7 +9,7 @@ import {
 } from "./wallet";
 import { OutPoint } from "./wallet/mercury/info_api";
 import WrappedLogger from "./wrapped_logger";
-
+import { WrappedStore } from "./application/wrappedStore";
 let isElectron = require("is-electron");
 
 const TestingWithJest = () => {
@@ -26,7 +26,7 @@ if (isElectron() || TestingWithJest()) {
     Store = require("electron-store");
   }
 } else {
-  Store = require("./application/wrappedStore");
+  Store = WrappedStore;
 }
 
 ///////////////////////////////////////////////
