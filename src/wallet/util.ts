@@ -167,15 +167,6 @@ export const txWithdrawBuild = (network: Network,    funding_txid: string, fundi
   return txb
 }
 
-export const getFeePerByte = (tx: Transaction, input_value: number, n_inputs: number = 1): number => {
-  let tx_fee = input_value
-  tx.outs.forEach((output) => {
-    tx_fee = tx_fee - output.value
-  })
-  const fee_per_byte = Math.round((tx_fee * 10e7) / ((VIRTUAL_TX_SIZE + (INPUT_TX_SIZE * (n_inputs - 1))) * 10e7))
-  return fee_per_byte
-}
-
 export const getTxFee = (fee_per_byte: number, n_inputs: number = 1): number => {
   return Math.round(fee_per_byte * (VIRTUAL_TX_SIZE + (INPUT_TX_SIZE * (n_inputs - 1))) * 10e7) / 10e7
 }

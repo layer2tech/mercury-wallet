@@ -61,7 +61,7 @@ describe('txBackupBuild', function() {
   });
 });
 
-decribe('getTxFee', function () {
+describe('getTxFee', function () {
   let fee_per_byte = 3 // 3 sat/byte 
 
   test('single', function () {
@@ -71,28 +71,6 @@ decribe('getTxFee', function () {
   test('batch 5', function () {
     expect(getTxFee(fee_per_byte, 5)).toEqual(1)
   })
-})
-
-decribe('getFeePerByte', function () {
-  let funding_txid = FUNDING_TXID;
-  let funding_vout = FUNDING_VOUT;
-  let rec_address = BTC_ADDR
-  let value = 10000;
-  let fee_info = FEE_INFO
-
-
-  test('single', function () {
-    for (let i = 1; i < 100; i++) {
-      let tx = txWithdrawBuild(network, funding_txid, funding_vout, rec_address, value, rec_address, Number(fee_info.withdraw), fee_per_byte).buildIncomplete();
-      expect(getFeePerByte(tx, value)).toEqual(fee_per_byte)
-    }
-  })
-
-  test('batch 5', function () {
-    let tx = txWithdrawBuildBatch(network, funding_txid, funding_vout, rec_address, value, rec_address, Number(fee_info.withdraw), fee_per_byte).buildIncomplete();
-    expect(getTxFee(fee_per_byte, 5)).toEqual(1)
-  })
-
 })
 
 describe('txWithdrawBuild', function () {
