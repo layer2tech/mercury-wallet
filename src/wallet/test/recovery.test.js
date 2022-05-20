@@ -7,7 +7,7 @@ import {
 import { addRestoredCoinDataToWallet, groupRecoveredWithdrawalTransactions } from '../recovery';
 import {
   RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED, makeTesterStatecoins,
-  BTC_ADDR, recovery_withdrawal_tx_batch, RECOVERY_DATA_WITHDRAWING_BATCH, RECOVERY_DATA_WITHDRAWING
+  BTC_ADDRS, recovery_withdrawal_tx_batch, RECOVERY_DATA_WITHDRAWING_BATCH, RECOVERY_DATA_WITHDRAWING
 } from './test_data';
 import {
   RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
@@ -183,7 +183,7 @@ describe("Recovery withdrawing utils", () => {
     test('single withdrawals', () => {
       statecoins.forEach((statecoin, i) => {
         withdrawal_tx_map.set(transaction_hexs[i], [statecoin.shared_key_id])
-        withdrawal_addr_map.set(transactions[i].getId(), BTC_ADDR[i])
+        withdrawal_addr_map.set(transactions[i].getId(), BTC_ADDRS[i])
       })
       groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdrawal_addr_map, statecoins_map)
 
@@ -191,16 +191,16 @@ describe("Recovery withdrawing utils", () => {
       let vals = statecoins_map.values()
       let broadcast_infos = vals.next().value.tx_withdraw_broadcast
       expect(broadcast_infos.length).toEqual(1)
-      expect(broadcast_infos[0].rec_addr).toEqual(BTC_ADDR[0])
+      expect(broadcast_infos[0].rec_addr).toEqual(BTC_ADDRS[0])
       broadcast_infos = vals.next().value.tx_withdraw_broadcast
       expect(broadcast_infos.length).toEqual(1)
-      expect(broadcast_infos[0].rec_addr).toEqual(BTC_ADDR[1])
+      expect(broadcast_infos[0].rec_addr).toEqual(BTC_ADDRS[1])
      
     })
 
     test('batch withdrawal - wrong number of tx outputs', () => {
       withdrawal_tx_map.set(transaction_hexs[0], [statecoins[0].shared_key_id, statecoins[1].shared_key_id])
-      withdrawal_addr_map.set(transactions[0].getId(), BTC_ADDR[2])
+      withdrawal_addr_map.set(transactions[0].getId(), BTC_ADDRS[2])
       groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdrawal_addr_map, statecoins_map)
       expect(statecoins_map.size).toEqual(0)
     })
@@ -209,14 +209,14 @@ describe("Recovery withdrawing utils", () => {
       console.log(recovery_withdrawal_tx_batch)
       let tx = Transaction.fromHex(recovery_withdrawal_tx_batch)
       withdrawal_tx_map.set(recovery_withdrawal_tx_batch, [statecoins[0].shared_key_id, statecoins[1].shared_key_id])
-      withdrawal_addr_map.set(tx.getId(), BTC_ADDR[2])
+      withdrawal_addr_map.set(tx.getId(), BTC_ADDRS[2])
       groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdrawal_addr_map, statecoins_map)
       expect(statecoins_map.size).toEqual(2)
       let vals = statecoins_map.values()
       //for (let i = 0; i < statecoins_map.size; i++) {
       let broadcast_infos = vals.next().value.tx_withdraw_broadcast
       expect(broadcast_infos.length).toEqual(1)
-      expect(broadcast_infos[0].rec_addr).toEqual(BTC_ADDR[2])
+      expect(broadcast_infos[0].rec_addr).toEqual(BTC_ADDRS[2])
     })
 
 
@@ -224,10 +224,10 @@ describe("Recovery withdrawing utils", () => {
       console.log(recovery_withdrawal_tx_batch)
       let tx = Transaction.fromHex(recovery_withdrawal_tx_batch)
       withdrawal_tx_map.set(recovery_withdrawal_tx_batch, [RECOVERY_DATA_WITHDRAWING_BATCH[0].shared_key_id, RECOVERY_DATA_WITHDRAWING_BATCH[1].shared_key_id])
-      withdrawal_addr_map.set(tx.getId(), BTC_ADDR[2])
+      withdrawal_addr_map.set(tx.getId(), BTC_ADDRS[2])
       statecoins.forEach((statecoin, i) => {
         withdrawal_tx_map.set(transaction_hexs[i], [statecoin.shared_key_id])
-        withdrawal_addr_map.set(transactions[i].getId(), BTC_ADDR[i])
+        withdrawal_addr_map.set(transactions[i].getId(), BTC_ADDRS[i])
       })
 
       groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdrawal_addr_map, statecoins_map)
@@ -295,7 +295,7 @@ describe("Recovery withdrawing", () => {
     expect(wallet.statecoins.coins[0].value).toBe(RECOVERY_DATA_WITHDRAWING[0].amount);
     expect(wallet.statecoins.coins[0].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA_WITHDRAWING[0].proof_key));
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast.length).toBe(1)
-    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDR[0])
+    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[0])
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].tx_fee).toEqual(226)
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].tx.toHex()).toEqual(RECOVERY_DATA_WITHDRAWING[0].withdrawing.tx_hex)
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].txid).toEqual(Transaction.fromHex(RECOVERY_DATA_WITHDRAWING[0].withdrawing.tx_hex).getId())
@@ -304,7 +304,7 @@ describe("Recovery withdrawing", () => {
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWING);
     expect(wallet.statecoins.coins[1].value).toBe(RECOVERY_DATA_WITHDRAWING[1].amount);
     expect(wallet.statecoins.coins[1].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA_WITHDRAWING[1].proof_key));
-    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDR[1])
+    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[1])
     expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].tx_fee).toEqual(226)
     expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].tx.toHex()).toEqual(RECOVERY_DATA_WITHDRAWING[1].withdrawing.tx_hex)
     expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].txid).toEqual(Transaction.fromHex(RECOVERY_DATA_WITHDRAWING[1].withdrawing.tx_hex).getId())
@@ -368,7 +368,7 @@ describe("Recovery withdrawing batch", () => {
     expect(wallet.statecoins.coins[0].value).toBe(RECOVERY_DATA_WITHDRAWING_BATCH[0].amount);
     expect(wallet.statecoins.coins[0].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA_WITHDRAWING_BATCH[0].proof_key));
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast.length).toBe(1)
-    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDR[0])
+    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[0])
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].tx_fee).toEqual(515)
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].tx.toHex()).toEqual(RECOVERY_DATA_WITHDRAWING_BATCH[0].withdrawing.tx_hex)
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].txid).toEqual(Transaction.fromHex(RECOVERY_DATA_WITHDRAWING_BATCH[0].withdrawing.tx_hex).getId())
@@ -381,7 +381,7 @@ describe("Recovery withdrawing batch", () => {
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWING);
     expect(wallet.statecoins.coins[1].value).toBe(RECOVERY_DATA_WITHDRAWING_BATCH[1].amount);
     expect(wallet.statecoins.coins[1].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA_WITHDRAWING_BATCH[1].proof_key));
-    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDR[0])
+    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[0])
     expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].tx_fee).toEqual(515)
     expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].tx.toHex()).toEqual(RECOVERY_DATA_WITHDRAWING_BATCH[1].withdrawing.tx_hex)
     expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].txid).toEqual(Transaction.fromHex(RECOVERY_DATA_WITHDRAWING_BATCH[1].withdrawing.tx_hex).getId())
