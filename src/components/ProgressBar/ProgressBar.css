@@ -15,3 +15,12 @@
     color: white;
     font-weight: bold;
 }
+
+.recovery-txt-container #loading.loading{
+    color: var(--text-primary)!important;
+    font-size: 2rem
+}
+
+.recovery-txt-container{
+    margin-top:25px;
+}
