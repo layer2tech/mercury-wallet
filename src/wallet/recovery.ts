@@ -118,11 +118,12 @@ export const getFinalizeDataForRecovery = async (wallet: Wallet, wasm: any, reco
 
 // Reconstruct the WithdrawalTxBroadcastInfo for each recoverd statecoin that is withdrawing
 export const groupRecoveredWithdrawalTransactions = (
-    withdrawal_tx_map: Map<Transaction,
+    withdrawal_tx_map: Map<string,
     Set<string>>,
     withdrawal_addr_map: Map<string, string>,
-    statecoins: Map<string, StateCoin>) => {
-  withdrawal_tx_map.forEach((ids, tx) => {
+  statecoins: Map<string, StateCoin>) => {
+  withdrawal_tx_map.forEach((ids, tx_hex) => {
+    const tx = Transaction.fromHex(tx_hex)
     let tx_fee = 0
     const ids_arr = Array.from(ids)
     if (ids_arr.length != tx.ins.length) {
@@ -134,9 +135,11 @@ export const groupRecoveredWithdrawalTransactions = (
     ids.forEach((id) => {
         const sc = statecoins.get(id)
         const sc_value = sc != null ? sc.value : 0
-        tx_fee = tx_fee + sc_value
+        console.log(`adding sc_value: ${sc_value}`)
+      tx_fee = tx_fee + sc_value
     })
     tx.outs.forEach((output) => {
+      console.log(`subtracting output_value: ${output.value}`)
       tx_fee = tx_fee - output.value
     })
     const rec_addr = withdrawal_addr_map.get(tx.getId())
@@ -199,17 +202,17 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.tx_hex = recoveredCoins[i].tx_hex;
         statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
         const withdrawing = recoveredCoins[i].withdrawing
-        if(withdrawing != 'None') {
+        if (withdrawing != 'None') {
           statecoin.setWithdrawing();
-          const withdraw_transaction = Transaction.fromHex(withdrawing.tx_hex)
-     
-          let ids = withdrawal_tx_map.get(withdraw_transaction)
-          if (ids != null) {
-            ids.add(statecoin.shared_key_id)
-          } else {
-            ids = new Set([statecoin.shared_key_id])            
-          }
-          withdrawal_tx_map.set(withdraw_transaction, ids)
+          const tx_hex = withdrawing.tx_hex
+          const withdraw_transaction = Transaction.fromHex(tx_hex)
+
+          let ids = withdrawal_tx_map.get(tx_hex)
+          if (ids == null) {
+            ids = new Set()
+          } 
+          ids.add(statecoin.shared_key_id)
+          withdrawal_tx_map.set(tx_hex, ids)
           withdrawal_addr_map.set(withdraw_transaction.getId(), withdrawing.rec_addr)
         } else {
           statecoin.setConfirmed();
