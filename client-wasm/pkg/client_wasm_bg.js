@@ -1,11 +1,21 @@
-import * as wasm from "./client_wasm_bg.wasm";
+let loadWasm = true;
+
+(async () => {
+  if (loadWasm) {
+    // import module for side effects
+    let wasm = await import("./client_wasm_bg.wasm");
+
+    console.log("wasm loaded, value was:", wasm);
+    console.log("wasm.memory should be?", wasm.memory.buffer); // this is undefined / not being loaded
+  }
+})();
+
+console.log("what is wasm?", wasm);
 
 const lTextDecoder =
   typeof TextDecoder === "undefined"
     ? (0, module.require)("util").TextDecoder
     : TextDecoder;
-
-console.log("text decoder.. ?", lTextDecoder);
 
 let cachedTextDecoder = new lTextDecoder("utf-8", {
   ignoreBOM: true,
