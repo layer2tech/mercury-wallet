@@ -127,7 +127,9 @@ export const groupRecoveredWithdrawalTransactions = (
     let tx_fee = 0
     const ids_arr = Array.from(ids)
     if (ids_arr.length != tx.ins.length) {
+      console.log(`ids_arr.length: ${ids_arr.length}, tx.ins.length: ${tx.ins.length}`)
       ids.forEach((id) => {
+        console.log(`deleting statecoin id: ${id}`)
         statecoins.delete(id)
       })
       return
@@ -135,11 +137,9 @@ export const groupRecoveredWithdrawalTransactions = (
     ids.forEach((id) => {
         const sc = statecoins.get(id)
         const sc_value = sc != null ? sc.value : 0
-        console.log(`adding sc_value: ${sc_value}`)
       tx_fee = tx_fee + sc_value
     })
     tx.outs.forEach((output) => {
-      console.log(`subtracting output_value: ${output.value}`)
       tx_fee = tx_fee - output.value
     })
     const rec_addr = withdrawal_addr_map.get(tx.getId())
@@ -162,7 +162,6 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
   let withdrawal_addr_map = new Map()
   let statecoins = new Map()
   for (let i = 0; i < recoveredCoins.length; i++) {
-
     let statecoin = null
     // if shared_key === 'None' && transfer_msg3 available
     if (recoveredCoins[i].shared_key_data === 'None') {
@@ -203,6 +202,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
         const withdrawing = recoveredCoins[i].withdrawing
         if (withdrawing != 'None') {
+          console.log(`recovered coin ${i} withdrawing: ${JSON.stringify(recoveredCoins[i].withdrawing)}`)
           statecoin.setWithdrawing();
           const tx_hex = withdrawing.tx_hex
           const withdraw_transaction = Transaction.fromHex(tx_hex)
