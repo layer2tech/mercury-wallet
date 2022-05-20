@@ -7,7 +7,8 @@ import {
 import { addRestoredCoinDataToWallet, groupRecoveredWithdrawalTransactions } from '../recovery';
 import {
   RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED, makeTesterStatecoins,
-  BTC_ADDRS, recovery_withdrawal_tx_batch, RECOVERY_DATA_WITHDRAWING_BATCH, RECOVERY_DATA_WITHDRAWING
+  BTC_ADDRS, recovery_withdrawal_tx_batch, RECOVERY_DATA_WITHDRAWING_BATCH,
+  RECOVERY_DATA_WITHDRAWING, RECOVERY_DATA_WITHDRAWING_MIXED
 } from './test_data';
 import {
   RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
@@ -368,7 +369,7 @@ describe("Recovery withdrawing batch", () => {
     expect(wallet.statecoins.coins[0].value).toBe(RECOVERY_DATA_WITHDRAWING_BATCH[0].amount);
     expect(wallet.statecoins.coins[0].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA_WITHDRAWING_BATCH[0].proof_key));
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast.length).toBe(1)
-    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[0])
+    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[2])
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].tx_fee).toEqual(515)
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].tx.toHex()).toEqual(RECOVERY_DATA_WITHDRAWING_BATCH[0].withdrawing.tx_hex)
     expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].txid).toEqual(Transaction.fromHex(RECOVERY_DATA_WITHDRAWING_BATCH[0].withdrawing.tx_hex).getId())
@@ -381,7 +382,7 @@ describe("Recovery withdrawing batch", () => {
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWING);
     expect(wallet.statecoins.coins[1].value).toBe(RECOVERY_DATA_WITHDRAWING_BATCH[1].amount);
     expect(wallet.statecoins.coins[1].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA_WITHDRAWING_BATCH[1].proof_key));
-    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[0])
+    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[2])
     expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].tx_fee).toEqual(515)
     expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].tx.toHex()).toEqual(RECOVERY_DATA_WITHDRAWING_BATCH[1].withdrawing.tx_hex)
     expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].txid).toEqual(Transaction.fromHex(RECOVERY_DATA_WITHDRAWING_BATCH[1].withdrawing.tx_hex).getId())
@@ -392,3 +393,102 @@ describe("Recovery withdrawing batch", () => {
     })
   });
 })
+
+describe("Recovery withdrawing mixed", () => {
+  // client side's mock
+  let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+  // server side's mock
+  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+  let wallet
+  beforeEach(async () => {
+    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+    wallet.statecoins.coins = [];
+    await wallet.genProofKey();
+    await wallet.genProofKey();
+  });
+
+  test('run recovery withdrawing mixed', async () => {
+
+    http_mock.post = jest.fn().mockReset()
+      .mockReturnValueOnce(RECOVERY_DATA_WITHDRAWING_MIXED)
+      .mockReturnValue([]);
+    // Create mock HTTP client for
+
+    wasm_mock.convert_bigint_to_client_curv_version = jest.fn(() => RECOVERY_DATA_C_KEY_CONVERTED);
+    // Mock wasm client
+
+    expect(wallet.statecoins.coins.length).toBe(0);
+    // Check no statecoins in Mock wallet
+
+    let wallet_json = wallet.toEncryptedJSON()
+    // Get encrypted JSON file
+
+    let store = configureStore({ reducer: reducers, });
+    // Load state
+
+    render(store,
+      <TestComponent
+        wallet_json={wallet_json}
+        fn={addRestoredCoinDataToWallet}
+        args={[wallet, wasm_mock, RECOVERY_DATA_WITHDRAWING_MIXED]}
+      />
+    )
+    // Test component rendered so wallet loaded to state when function called
+
+
+    fireEvent(screen.getByText(/FireFunction/i), new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true
+    }))
+    // Firing this event, fires the function
+
+    expect(wallet.statecoins.coins.length).toBe(4);
+
+    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.WITHDRAWING);
+    expect(wallet.statecoins.coins[0].value).toBe(RECOVERY_DATA_WITHDRAWING_MIXED[0].amount);
+    expect(wallet.statecoins.coins[0].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA_WITHDRAWING_MIXED[0].proof_key));
+    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast.length).toBe(1)
+    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[0])
+    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].tx_fee).toEqual(226)
+    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].tx.toHex()).toEqual(RECOVERY_DATA_WITHDRAWING_MIXED[0].withdrawing.tx_hex)
+    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].txid).toEqual(Transaction.fromHex(RECOVERY_DATA_WITHDRAWING_MIXED[0].withdrawing.tx_hex).getId())
+    expect(wallet.statecoins.coins[0].tx_withdraw_broadcast[0].withdraw_msg_2).toEqual({ shared_key_ids: [RECOVERY_DATA_WITHDRAWING_MIXED[0].shared_key_id] })
+
+    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWING);
+    expect(wallet.statecoins.coins[1].value).toBe(RECOVERY_DATA_WITHDRAWING_MIXED[1].amount);
+    expect(wallet.statecoins.coins[1].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA_WITHDRAWING_MIXED[1].proof_key));
+    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[1])
+    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].tx_fee).toEqual(226)
+    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].tx.toHex()).toEqual(RECOVERY_DATA_WITHDRAWING_MIXED[1].withdrawing.tx_hex)
+    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].txid).toEqual(Transaction.fromHex(RECOVERY_DATA_WITHDRAWING_MIXED[1].withdrawing.tx_hex).getId())
+    expect(wallet.statecoins.coins[1].tx_withdraw_broadcast[0].withdraw_msg_2).toEqual({ shared_key_ids: [RECOVERY_DATA_WITHDRAWING_MIXED[1].shared_key_id] })
+
+    expect(wallet.statecoins.coins[2].status).toBe(STATECOIN_STATUS.WITHDRAWING);
+    expect(wallet.statecoins.coins[2].value).toBe(RECOVERY_DATA_WITHDRAWING_MIXED[2].amount);
+    expect(wallet.statecoins.coins[2].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA_WITHDRAWING_MIXED[2].proof_key));
+    expect(wallet.statecoins.coins[2].tx_withdraw_broadcast.length).toBe(1)
+    expect(wallet.statecoins.coins[2].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[2])
+    expect(wallet.statecoins.coins[2].tx_withdraw_broadcast[0].tx_fee).toEqual(515)
+    expect(wallet.statecoins.coins[2].tx_withdraw_broadcast[0].tx.toHex()).toEqual(RECOVERY_DATA_WITHDRAWING_MIXED[2].withdrawing.tx_hex)
+    expect(wallet.statecoins.coins[2].tx_withdraw_broadcast[0].txid).toEqual(Transaction.fromHex(RECOVERY_DATA_WITHDRAWING_MIXED[2].withdrawing.tx_hex).getId())
+    expect(wallet.statecoins.coins[2].tx_withdraw_broadcast[0].withdraw_msg_2).toEqual({
+      shared_key_ids:
+        [RECOVERY_DATA_WITHDRAWING_MIXED[2].shared_key_id,
+        RECOVERY_DATA_WITHDRAWING_MIXED[3].shared_key_id]
+    })
+
+    expect(wallet.statecoins.coins[3].status).toBe(STATECOIN_STATUS.WITHDRAWING);
+    expect(wallet.statecoins.coins[3].value).toBe(RECOVERY_DATA_WITHDRAWING_MIXED[3].amount);
+    expect(wallet.statecoins.coins[3].sc_address).toBe(encodeSCEAddress(RECOVERY_DATA_WITHDRAWING_MIXED[3].proof_key));
+    expect(wallet.statecoins.coins[3].tx_withdraw_broadcast[0].rec_addr).toEqual(BTC_ADDRS[2])
+    expect(wallet.statecoins.coins[3].tx_withdraw_broadcast[0].tx_fee).toEqual(515)
+    expect(wallet.statecoins.coins[3].tx_withdraw_broadcast[0].tx.toHex()).toEqual(RECOVERY_DATA_WITHDRAWING_MIXED[3].withdrawing.tx_hex)
+    expect(wallet.statecoins.coins[3].tx_withdraw_broadcast[0].txid).toEqual(Transaction.fromHex(RECOVERY_DATA_WITHDRAWING_MIXED[3].withdrawing.tx_hex).getId())
+    expect(wallet.statecoins.coins[3].tx_withdraw_broadcast[0].withdraw_msg_2).toEqual({
+      shared_key_ids:
+        [RECOVERY_DATA_WITHDRAWING_MIXED[2].shared_key_id,
+        RECOVERY_DATA_WITHDRAWING_MIXED[3].shared_key_id]
+    })
+  });
+})
+
