@@ -84,6 +84,10 @@ describe('getTxFee', function () {
   test('batch 3 at 1 sat/byte', function () {
     expect(getTxFee(1, 3)).toEqual(522)
   })
+
+  test('batch 2 at 1 sat/byte', function () {
+    expect(getTxFee(1, 2)).toEqual(515)
+  })
 })
 
 describe('txWithdrawBuild', function () {
