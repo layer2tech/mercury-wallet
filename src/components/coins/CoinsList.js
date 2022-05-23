@@ -546,6 +546,7 @@ const CoinsList = (props) => {
     let finalUrl = block_explorer_endpoint + currentTXID;
     // open the browser for both mainnet and testnet
     window.require("electron").shell.openExternal(finalUrl);
+    setShowWarningDetails(false);
   }
 
   const handleOpenCoinDetails = (shared_key_id) => {
