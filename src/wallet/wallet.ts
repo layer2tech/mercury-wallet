@@ -1835,7 +1835,7 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_ids[0]);
     if (!statecoin) throw Error("No coin found with id " + shared_key_ids[0])
     let broadcastTxInfos = statecoin.tx_withdraw_broadcast
-    if (broadcastTxInfos.length) {
+    if (broadcastTxInfos.length > 0) {
       fee_max = statecoin.getWithdrawalMaxTxFee()
       const fee = getTxFee(fee_per_byte, broadcastTxInfos[0].tx.ins.length)
       console.log(`Withdrawal transaction fee: ${fee}, fee per byte: ${fee_per_byte}, fee_max: ${fee_max}`)
@@ -1872,7 +1872,8 @@ export class Wallet {
         statecoin.status !== STATECOIN_STATUS.WITHDRAWN) {
         statecoin.setWithdrawing()
       }
-      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2, rec_addr);
+      let tx_fee = getTxFee(fee_per_byte, tx_withdraw.ins.length)
+      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, tx_fee, withdraw_msg_2, rec_addr);
       this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
     });
     await this.saveStateCoinsList();
