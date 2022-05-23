@@ -86,7 +86,7 @@ describe('getTxFee', function () {
   })
 
   test('batch 2 at 1 sat/byte', function () {
-    expect(getTxFee(1, 2)).toEqual(515)
+    expect(getTxFee(1, 2)).toEqual(374)
   })
 })
 
