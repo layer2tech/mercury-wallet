@@ -21,7 +21,7 @@
   padding: 0 15px;
   border: 1px solid var(--button-border);
   border-radius: 8px;
-  margin: 20px 5px;
+  /* margin: 20px 5px; */
   text-transform: uppercase;
   letter-spacing: 1px;
   outline: none;

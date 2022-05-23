@@ -39,7 +39,7 @@ const WarningPopup =  () => {
             <label htmlFor="terms">Do not show this message again.</label>
           </div>
         <div className="custom-modal-footer group-btns">
-          <button className="action-btn-normal" onClick={() => handleClose()}>
+          <button className="action-btn-normal Body-button transparent" onClick={() => handleClose()}>
             Cancel
           </button>
           <button className="action-btn-blue" onClick={async () => await handleConfirm()}>

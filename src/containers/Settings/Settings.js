@@ -205,7 +205,7 @@ const SettingsPage = (props) => {
                 </Link>
                 <StdButton
                     label="Export activity log"
-                    className="Body-button"
+                    className="Body-button transparent"
                     onClick = {() => downloadActivity()}/>
               </div>
           </div>
@@ -329,14 +329,14 @@ const SettingsPage = (props) => {
                             showSeed ? (
                               <div>
                                 <p>{callGetMnemonic()}</p>
-                                <button onClick = {() => onButtonPress()} className = "Body-button" > Hide </button>
+                                <button onClick = {() => onButtonPress()} className = "Body-button transparent" > Hide </button>
                               </div>
                             
                             )
                             :
                             (
                               <div>
-                                <button onClick = {() => onButtonPress()} className = "Body-button" > Show </button>
+                                <button onClick = {() => onButtonPress()} className = "Body-button transparent" > Show </button>
                               </div>
                             )
                           )
@@ -362,7 +362,7 @@ const SettingsPage = (props) => {
               <div className="action-btns">
                   <button
                     type="button"
-                    className="action-btn-normal"
+                    className="Body-button transparent"
                     onClick={cancelButtonOnClick}>
                       Cancel
                   </button>

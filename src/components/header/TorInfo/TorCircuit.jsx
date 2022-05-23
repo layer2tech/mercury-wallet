@@ -85,7 +85,7 @@ const TorCircuit = (props) => {
                         {/* <TorCircuitNode className='current' name={current_config.state_entity_endpoint}></TorCircuitNode> */}
                         {<TorCircuitNode class='current' name={shortenURL(current_config.state_entity_endpoint)}></TorCircuitNode>}
                     </ul>
-                    <button className = 'Body-button' onClick={newCircuit}>New Circuit</button>
+                    <button className = 'Body-button transparent' onClick={newCircuit}>New Circuit</button>
                 </div>) :  
                 (<div>
                     <p>Couldn't establish connection to tor</p>

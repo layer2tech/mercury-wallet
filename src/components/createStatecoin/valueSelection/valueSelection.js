@@ -164,7 +164,7 @@ const ValueSelectionPanel = (props) => {
               </div>
             </Modal.Body>
             <div className="custom-modal-footer group-btns">
-              <button className="Body-button" onClick={handleClose}>
+              <button className="Body-button transparent" onClick={handleClose}>
                 Cancel
               </button>
               <button className={`Body-button ${disable ? 'grey' : 'blue'}`} onClick={handleConfirm} disabled={disable}>

@@ -611,12 +611,12 @@ const CoinsList = (props) => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className="action-btn-normal"
+            className="action-btn-normal Body-button transparent"
             onClick={onClickContinueTXID}>
             Continue
           </Button>
           <Button
-            className="action-btn-normal"
+            className="action-btn-normal Body-button transparent"
             onClick={handleCloseWarningDetails}>
             No
           </Button>
@@ -825,7 +825,7 @@ const CoinsList = (props) => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className="action-btn-normal"
+            className="action-btn-normal Body-button transparent"
             onClick={handleCloseCoinDetails}
           >
             Close
@@ -845,13 +845,13 @@ const CoinsList = (props) => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className="action-btn-normal"
+            className="Body-button transparent"
             onClick={async () => await handleDeleteCoinYes(currentItem)}
           >
             Yes
               </Button>
           <Button
-            className="action-btn-normal"
+            className="Body-button transparent"
             onClick={handleDeleteCoinNo}
           >
             No
