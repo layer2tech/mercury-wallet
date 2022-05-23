@@ -13,7 +13,7 @@ import { GET_ROUTE } from '.';
 import {
   transferReceiverFinalizeRecovery, TransferFinalizeDataForRecovery
 } from './mercury/transfer';
-import { setProgressComplete, setProgress} from "../features/WalletDataSlice";
+import { setProgressComplete, setProgress } from "../features/WalletDataSlice";
 import { forEachChild } from "typescript";
 
 
@@ -43,8 +43,8 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number, dispatch: 
   let percentageComplete
   while (count < gap_limit) {
     for (let i = 0; i < NUM_KEYS_PER_RECOVERY_ATTEMPT; i++) {
-      percentageComplete = Math.floor( wallet.account.chains[0].k /(Math.ceil( gap_limit / NUM_KEYS_PER_RECOVERY_ATTEMPT ) * NUM_KEYS_PER_RECOVERY_ATTEMPT )*100);
-      dispatch(setProgress({msg: percentageComplete}));
+      percentageComplete = Math.floor(wallet.account.chains[0].k / (Math.ceil(gap_limit / NUM_KEYS_PER_RECOVERY_ATTEMPT) * NUM_KEYS_PER_RECOVERY_ATTEMPT) * 100);
+      dispatch(setProgress({ msg: percentageComplete }));
 
       let addr = wallet.account.nextChainAddress(0);
       addrs.push(addr);
@@ -55,7 +55,7 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number, dispatch: 
     recovery_request = [];
     recovery_data = recovery_data.concat(new_recovery_data_load);
 
-    if(count > gap_limit){
+    if (count > gap_limit) {
       // Once upper limit of addresses have been searched set graphic load complete
       dispatch(setProgressComplete(""))
     }
@@ -118,25 +118,27 @@ export const getFinalizeDataForRecovery = async (wallet: Wallet, wasm: any, reco
 
 // Reconstruct the WithdrawalTxBroadcastInfo for each recoverd statecoin that is withdrawing
 export const groupRecoveredWithdrawalTransactions = (
-    withdrawal_tx_map: Map<string,
+  withdrawal_tx_map: Map<string,
     Set<string>>,
-    withdrawal_addr_map: Map<string, string>,
+  withdraw_tx_id_map: Map<string, Transaction>,
+  withdrawal_addr_map: Map<string, string>,
   statecoins: Map<string, StateCoin>) => {
-  withdrawal_tx_map.forEach((ids, tx_hex) => {
-    const tx = Transaction.fromHex(tx_hex)
+  withdrawal_tx_map.forEach((ids, txid) => {
+    const tx = withdraw_tx_id_map.get(txid)
+    if (tx == null) {
+      return
+    }
     let tx_fee = 0
     const ids_arr = Array.from(ids)
     if (ids_arr.length != tx.ins.length) {
-      console.log(`ids_arr.length: ${ids_arr.length}, tx.ins.length: ${tx.ins.length}`)
       ids.forEach((id) => {
-        console.log(`deleting statecoin id: ${id}`)
         statecoins.delete(id)
       })
       return
-    } 
+    }
     ids.forEach((id) => {
-        const sc = statecoins.get(id)
-        const sc_value = sc != null ? sc.value : 0
+      const sc = statecoins.get(id)
+      const sc_value = sc != null ? sc.value : 0
       tx_fee = tx_fee + sc_value
     })
     tx.outs.forEach((output) => {
@@ -147,10 +149,10 @@ export const groupRecoveredWithdrawalTransactions = (
       return
     }
     ids.forEach((id) => {
-      let statecoin = statecoins.get(id)  
+      let statecoin = statecoins.get(id)
       if (statecoin != null) {
         statecoin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
-          tx_fee, tx, { shared_key_ids: ids_arr }, rec_addr));  
+          tx_fee, tx, { shared_key_ids: ids_arr }, rec_addr));
       }
     })
   })
@@ -158,8 +160,9 @@ export const groupRecoveredWithdrawalTransactions = (
 
 // Gen proof key. Address: tb1qgl76l9gg9qrgv9e9unsxq40dee5gvue0z2uxe2. Proof key: 03b2483ab9bea9843bd9bfb941e8c86c1308e77aa95fccd0e63c2874c0e3ead3f5
 export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[]) => {
-  let withdrawal_tx_map = new Map()
-  let withdrawal_addr_map = new Map()
+  let withdrawal_tx_map = new Map<string, Set<string>>()
+  let withdraw_tx_id_map = new Map<string, Transaction>()
+  let withdrawal_addr_map = new Map<string, string>()
   let statecoins = new Map()
   for (let i = 0; i < recoveredCoins.length; i++) {
     let statecoin = null
@@ -185,7 +188,6 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
     }
 
     if (statecoin) {
-
       if (recoveredCoins[i].statechain_id) {
         // deposited coin
         let tx_backup = bitcoin.Transaction.fromHex(recoveredCoins[i].tx_hex);
@@ -201,18 +203,21 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.tx_hex = recoveredCoins[i].tx_hex;
         statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
         const withdrawing = recoveredCoins[i].withdrawing
-        if (withdrawing != 'None') {
-          console.log(`recovered coin ${i} withdrawing: ${JSON.stringify(recoveredCoins[i].withdrawing)}`)
+        if (withdrawing != null && withdrawing != 'None') {
           statecoin.setWithdrawing();
           const tx_hex = withdrawing.tx_hex
+          
           const withdraw_transaction = Transaction.fromHex(tx_hex)
+          withdraw_tx_id_map.set(withdraw_transaction.getId(), withdraw_transaction)
 
-          let ids = withdrawal_tx_map.get(tx_hex)
+          let ids = withdrawal_tx_map.get(withdraw_transaction.getId())
+
           if (ids == null) {
             ids = new Set()
-          } 
+          }
+          
           ids.add(statecoin.shared_key_id)
-          withdrawal_tx_map.set(tx_hex, ids)
+          withdrawal_tx_map.set(withdraw_transaction.getId(), ids)
           withdrawal_addr_map.set(withdraw_transaction.getId(), withdrawing.rec_addr)
         } else {
           statecoin.setConfirmed();
@@ -241,7 +246,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
       statecoins.set(statecoin.shared_key_id, statecoin)
     }
   }
-  groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdrawal_addr_map, statecoins)
+  groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdraw_tx_id_map, withdrawal_addr_map, statecoins)
 
   statecoins.forEach((statecoin, _) => {
     wallet.statecoins.addCoin(statecoin);
