@@ -7,7 +7,7 @@ import {
   encryptECIES, decryptECIES, encryptAES, decryptAES, proofKeyToSCEAddress, encodeMessage,
   decodeMessage, VIRTUAL_TX_SIZE, getTxFee } from '../util';
 import { encodeSCEAddress } from '../util';
-import { FUNDING_TXID, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
+import { FUNDING_TXID, FUNDING_TXIDS, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
 import { Wallet } from '../';
 
 import { encrypt, decrypt, PrivateKey } from 'eciesjs12b';
@@ -118,6 +118,45 @@ describe('txWithdrawBuild', function () {
     let fee_value = value-tx_backup.outs[0].value-tx_backup.outs[1].value;
     // With a 1 s/b fee, tx fee should be equal to signed tx size
     expect(fee_value).toBe(VIRTUAL_TX_SIZE)
+  });
+});
+
+describe('txWithdrawBuildBatch', function () {
+  let funding_txid = FUNDING_TXID;
+  let funding_vout = FUNDING_VOUT;
+  let rec_address = BTC_ADDR
+  let value = 10000;
+  let fee_info = FEE_INFO
+  let fee_per_byte = 1 // 1 sat/byte 
+  let sc_infos = new Array()
+
+  beforeEach(() => {
+    sc_infos = new Array()
+  })
+
+  test('Throw on invalid value', async function () {
+    sc_infos.push({ utxo: { txid: funding_txid, vout: funding_vout }, amount: 1, chain: [], locktime: 0 })
+    sc_infos.push({ utxo: { txid: FUNDING_TXIDS[1], vout: funding_vout }, amount: 1, chain: [], locktime: 0 })
+    expect(() => {  // not enough value
+      txWithdrawBuildBatch(network, sc_infos, rec_address, fee_info, fee_per_byte)
+    }).toThrowError('Not enough value to cover fee.');
+  });
+
+  test('Check built tx correct 2', async function () {
+    sc_infos.push({ utxo: { txid: funding_txid, vout: funding_vout }, amount: value, chain: [], locktime: 0 })
+    sc_infos.push({ utxo: { txid: FUNDING_TXIDS[1], vout: funding_vout }, amount: value, chain: [], locktime: 0 })
+
+    let tx_backup = txWithdrawBuildBatch(network, sc_infos, rec_address, fee_info, fee_per_byte).buildIncomplete()      
+
+    expect(tx_backup.ins.length).toBe(sc_infos.length);
+    expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
+    expect(tx_backup.outs.length).toBe(2);
+    expect(tx_backup.outs[0].value).toBeLessThan(sc_infos.length * value);
+    const withdraw_fee = Math.round((sc_infos.length * value * fee_info.withdraw) / 10000)
+    expect(tx_backup.outs[1].value).toEqual(withdraw_fee);
+    let fee_value = sc_infos.length* value - tx_backup.outs[0].value - tx_backup.outs[1].value;
+    // With a 1 s/b fee, tx fee should be equal to signed tx size
+    expect(fee_value).toBe(getTxFee(fee_per_byte, sc_infos.length))
   });
 });
 

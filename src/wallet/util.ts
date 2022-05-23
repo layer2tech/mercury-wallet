@@ -177,6 +177,7 @@ export const getTxFee = (fee_per_byte: number, n_inputs: number = 1): number => 
 export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_address: string, fee_info: FeeInfo, fee_per_byte: number): TransactionBuilder => {
   // let txin = []; - not being used
   let value = 0;
+  console.log("tx builder")
   let txb: TransactionBuilder = new TransactionBuilder(network);
   let index = 0;
 
@@ -190,19 +191,17 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
     };
     index = index + 1;
   }
-  value = value + fee_info.deposit;
-  
+    
   let withdraw_fee = Math.round((value * fee_info.withdraw) / 10000)//(value * fee_info.withdraw) / 10000
 
   let tx_fee = getTxFee(fee_per_byte, sc_infos.length)
     
   if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
   
-  // txb.addOutput(rec_address, value - FEE - withdraw_fee);
   txb.addOutput(rec_address,value - tx_fee - withdraw_fee)
 
   txb.addOutput(fee_info.address, withdraw_fee);
-
+  
   return txb
 }
 
