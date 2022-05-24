@@ -37,6 +37,11 @@
     background-color: var(--selected);
     padding: 20px;
 }
+
+.receiveStatecoin .Body-button {
+    margin: 20px 5px;
+}
+
 .receiveStatecoin-scan-txid .copy-btn-wrap.used {
     background-color: var(--warning-block);
 }
