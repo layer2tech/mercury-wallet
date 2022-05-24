@@ -9,6 +9,7 @@ import {
 } from "./wallet";
 import { OutPoint } from "./wallet/mercury/info_api";
 import WrappedLogger from "./wrapped_logger";
+import { WrappedStore } from "./application/wrappedStore";
 let isElectron = require("is-electron");
 
 const TestingWithJest = () => {
@@ -24,9 +25,8 @@ if (isElectron() || TestingWithJest()) {
   } catch (e: any) {
     Store = require("electron-store");
   }
-} else {
-  Store = require("./application/wrappedStore");
 }
+
 ///////////////////////////////////////////////
 
 // Logger import.
@@ -39,7 +39,12 @@ export class Storage {
   name: string;
   constructor(fileName: string) {
     this.name = fileName;
-    this.store = new Store({ name: this.name });
+
+    if (isElectron() || TestingWithJest()) {
+      this.store = new Store({ name: this.name });
+    } else {
+      this.store = new WrappedStore(name);
+    }
   }
 
   // return map of wallet names->passwords
