@@ -524,6 +524,9 @@ const CoinsList = (props) => {
   const copyWithdrawTxHexToClipboard = () => {
     navigator.clipboard.writeText(showCoinDetails.coin.tx_hex);
   }
+  const copyWithdrawTxIDToClipboard = () => {
+    navigator.clipboard.writeText(showCoinDetails.coin.withdraw_txid);
+  }
 
 
   // called when clicking on TXid link in modal window
@@ -543,6 +546,7 @@ const CoinsList = (props) => {
     let finalUrl = block_explorer_endpoint + currentTXID;
     // open the browser for both mainnet and testnet
     window.require("electron").shell.openExternal(finalUrl);
+    setShowWarningDetails(false);
   }
 
   const handleOpenCoinDetails = (shared_key_id) => {
@@ -608,12 +612,12 @@ const CoinsList = (props) => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className="action-btn-normal"
+            className="action-btn-normal Body-button transparent"
             onClick={onClickContinueTXID}>
             Continue
           </Button>
           <Button
-            className="action-btn-normal"
+            className="action-btn-normal Body-button transparent"
             onClick={handleCloseWarningDetails}>
             No
           </Button>
@@ -788,9 +792,16 @@ const CoinsList = (props) => {
                     <img src={hashIcon} alt="hashtag" />
                     <div className="block">
                       <span>Withdrawal TXID</span>
-                      <span>
-                        {showCoinDetails.coin.withdraw_txid}
-                      </span>
+                      <div className="txhex-container">
+                        <CopiedButton handleCopy={() => copyWithdrawTxIDToClipboard()}>
+                          <div className="copy-hex-wrap coin-modal-hex">
+                            <img type="button" src={icon2} alt="icon" />
+                            <span>
+                              {showCoinDetails.coin.withdraw_txid}
+                            </span>
+                          </div>
+                        </CopiedButton>
+                      </div>
                     </div>
                   </div>
 
@@ -815,7 +826,7 @@ const CoinsList = (props) => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className="action-btn-normal"
+            className="action-btn-normal Body-button transparent"
             onClick={handleCloseCoinDetails}
           >
             Close
@@ -835,13 +846,13 @@ const CoinsList = (props) => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className="action-btn-normal"
+            className="Body-button transparent"
             onClick={async () => await handleDeleteCoinYes(currentItem)}
           >
             Yes
               </Button>
           <Button
-            className="action-btn-normal"
+            className="Body-button transparent"
             onClick={handleDeleteCoinNo}
           >
             No

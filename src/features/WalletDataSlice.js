@@ -191,13 +191,21 @@ export async function walletFromMnemonic(dispatch, name, password, mnemonic,  ro
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
-      const n_recovered = await wallet.recoverCoinsFromServer(gap_limit,dispatch);
-      dispatch(addCoins(n_recovered));
+      try{
+
+        const n_recovered = await wallet.recoverCoinsFromServer(gap_limit,dispatch);
+        dispatch(addCoins(n_recovered));
+      } catch {
+        dispatch(setProgressComplete({msg: ""}))
+        dispatch(setError({msg: "Error in Recovery - check online connection and retry"}))
+        return
+      }
     }
     await callNewSeAddr();
     await wallet.save();
     await wallet.saveName();
-    router.push("/home")
+    dispatch(setProgressComplete({msg: ""}))
+    router.push("/home");
   });
 }
 // Try to decrypt wallet. Throw if invalid password
