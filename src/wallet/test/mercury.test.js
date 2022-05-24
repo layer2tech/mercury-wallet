@@ -263,7 +263,7 @@ describe('StateChain Entity', function() {
       let statecoins = cloneDeep(makeTesterStatecoins());
       let proof_key_ders = [bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)),
         bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D))];
-      await expect(withdraw(http_mock, wasm_mock, network, statecoins, proof_key_ders, BTC_ADDR))
+      await expect(withdraw(http_mock, wasm_mock, network, statecoins, proof_key_ders, BTC_ADDR, 1000))
         .rejects
         .toThrowError("Not enough value to cover fee.");
     });

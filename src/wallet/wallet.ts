@@ -9,7 +9,7 @@ import {
 import { ElectrsClient } from './electrs'
 import { ElectrsLocalClient } from './electrs_local'
 
-import { txCPFPBuild, FEE, encryptAES } from './util';
+import { txCPFPBuild, FEE, encryptAES, getTxFee } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw, withdraw_init, withdraw_duplicate, withdraw_confirm, WithdrawMsg2 } from './mercury/withdraw';
@@ -418,6 +418,7 @@ export class Wallet {
     if (n_recovered > 0) {
       log.info("Found " + recoveredCoins.length + " StateCoins. Saving to wallet.");
       await this.saveKeys();
+      console.log(`recoveredCoins: ${JSON.stringify(recoveredCoins)}`)
       await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
@@ -1834,11 +1835,12 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_ids[0]);
     if (!statecoin) throw Error("No coin found with id " + shared_key_ids[0])
     let broadcastTxInfos = statecoin.tx_withdraw_broadcast
-    if (broadcastTxInfos.length) {
+    if (broadcastTxInfos.length > 0) {
       fee_max = statecoin.getWithdrawalMaxTxFee()
-
+      const fee = getTxFee(fee_per_byte, broadcastTxInfos[0].tx.ins.length)
+      console.log(`Withdrawal transaction fee: ${fee}, fee per byte: ${fee_per_byte}, fee_max: ${fee_max}`)
       if (fee_max > 0) {
-        if (fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`);
+        if (fee_max >= fee) throw Error(`Requested fee ${fee} (fee per byte ${fee_per_byte}) is not greater than existing fee ${fee_max}`);
         const ids_sorted_1 = shared_key_ids.slice().sort();
         const ids_sorted_2 = broadcastTxInfos[broadcastTxInfos.length - 1].withdraw_msg_2.shared_key_ids.slice().sort();
         if (JSON.stringify(ids_sorted_1) !== JSON.stringify(ids_sorted_2)) {
@@ -1853,7 +1855,7 @@ export class Wallet {
 
           throw Error(`Replacement transactions must batch the same coins: ${coin_ids}`)
         }
-        if (rec_addr !== broadcastTxInfos[broadcastTxInfos.length - 1].withdraw_msg_2.address) {
+        if (rec_addr !== broadcastTxInfos[broadcastTxInfos.length - 1].rec_addr) {
           throw Error(`Replacement transaction recipient address does not match`)
         }
       }
@@ -1870,7 +1872,8 @@ export class Wallet {
         statecoin.status !== STATECOIN_STATUS.WITHDRAWN) {
         statecoin.setWithdrawing()
       }
-      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
+      let tx_fee = getTxFee(fee_per_byte, tx_withdraw.ins.length)
+      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, tx_fee, withdraw_msg_2, rec_addr);
       this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
     });
     await this.saveStateCoinsList();

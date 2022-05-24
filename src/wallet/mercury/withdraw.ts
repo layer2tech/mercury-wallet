@@ -14,8 +14,7 @@ import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
 // 3. Broadcast withdraw tx
 
 export interface WithdrawMsg2{
-  shared_key_ids: string[],
-  address: string,
+  shared_key_ids: string[]
 }
 
 // Withdraw coins from state entity. Returns signed withdraw transaction
