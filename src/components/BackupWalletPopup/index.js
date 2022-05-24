@@ -25,7 +25,7 @@ function BackupWalletPopup ({ close, show}) {
           <button className="action-btn-blue" onClick={handleConfirm}>
             Confirm
           </button>
-          <button className="action-btn-normal" onClick={close}>
+          <button className="action-btn-normal Body-button transparent" onClick={close}>
             Cancel
           </button>
         </div>
