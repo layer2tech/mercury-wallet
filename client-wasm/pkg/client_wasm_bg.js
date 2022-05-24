@@ -1,16 +1,4 @@
-let loadWasm = true;
-
-(async () => {
-  if (loadWasm) {
-    // import module for side effects
-    let wasm = await import("./client_wasm_bg.wasm");
-
-    console.log("wasm loaded, value was:", wasm);
-    console.log("wasm.memory should be?", wasm.memory.buffer); // this is undefined / not being loaded
-  }
-})();
-
-console.log("what is wasm?", wasm);
+import * as wasm from "./client_wasm_bg.wasm";
 
 const lTextDecoder =
   typeof TextDecoder === "undefined"
