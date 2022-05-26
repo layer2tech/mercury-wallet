@@ -79,6 +79,10 @@ export class MockHttpClient {
         return RECOVERY_STATECHAIN_DATA
       case POST_ROUTE.SWAP_DEREGISTER_UTXO:
         return
+      case POST_ROUTE.TOKEN_INIT:
+        return 
+      case POST_ROUTE.TOKEN_VERIFY:
+        return 
     }
   }
 
@@ -773,4 +777,16 @@ export const SWAP_INFO = {
       "54b29bec-a948-4fbc-82c2-f3050f6d7fc7",
       "f572154e-42e7-4f9a-9a30-aa549f5853a7"]
   }
+}
+
+
+export const TOKEN_INIT = {
+  lightning_invoice: "lnbcrt10n1p3gunwhsp5489n88ud2mnz2kgrzkl8phu5s8u4k59mp9s8fym5vylpkmsfhcjspp5h0vdwx8n63fhpywenfwxmakt8f2xzdh3fvpepale29xqe23p7hsqdq4ga5hvefqd4jjqmt0dejhjxqyjw5qcqp29qyysgqjnjd9dztcew2tcelpp0ccq3aylv9ss85afx66j0sam972sjereqjrangvu3dlrm2l6x4jpll7uy4z970pwl5tgvck3r3ffa2vkxw24cqlyljc0",
+  btc_payment_address: "tb1qm42jxjapu3dlcv2k4xmqywvy6d4d4xkhuk05d7",
+  token_id: "d36b9h03-f7ne-4650-35cr-d185ffg37457"
+}
+
+export const TOKEN_VERIFY = {
+  confirmed: true,
+  spent: true,
 }
