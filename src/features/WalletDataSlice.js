@@ -71,6 +71,7 @@ const initialState = {
   swapRecords: [],
   swapPendingCoins: [],
   inSwapValues: [],
+  swapLoad: { join: false, swapCoin: "", leave: false },
   coinsAdded: 0,
   coinsRemoved: 0,
   torInfo: { online: false }
@@ -487,11 +488,11 @@ export const handleEndSwap = (dispatch, selectedCoin, res, setSwapLoad, swapLoad
   if (res.payload === null) {
     dispatch(setNotification({ msg: "Coin " + statecoin.getTXIdAndOut() + " removed from swap pool." }))
     dispatch(removeCoinFromSwapRecords(selectedCoin));// added this
-    setSwapLoad({ ...swapLoad, join: false, swapCoin: "" });
+    dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: "" }));
     if (statecoin.swap_auto) {
       dispatch(addSwapPendingCoin(statecoin.shared_key_id))
       dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
-      setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) })
+      dispatch(setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) }))
     }
 
     return
@@ -507,14 +508,14 @@ export const handleEndSwap = (dispatch, selectedCoin, res, setSwapLoad, swapLoad
   } else {
     dispatch(setNotification({ msg: "Swap not complete for statecoin" + statecoin.getTXIdAndOut() }));
     dispatch(removeCoinFromSwapRecords(selectedCoin)); // Added this
-    setSwapLoad({ ...swapLoad, join: false, swapCoin: "" });
+    dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: "" }));
   }
   if (res?.payload) {
     let statecoin = res.payload
     if (statecoin.swap_auto) {
       dispatch(addSwapPendingCoin(statecoin.shared_key_id))
       dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
-      setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) })
+      dispatch(setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) }))
     }
   }
 }
@@ -567,7 +568,7 @@ export const handleEndAutoSwap = (dispatch, statecoin, selectedCoin, res, fromSa
   }
 }
 
-export const setIntervalIfOnline = (func, online, delay) => {
+export const setIntervalIfOnline = (func, online, delay, isMounted) => {
   // Runs interval if app online, clears interval if offline
   // Restart online interval in useEffect loop [torInfo.online]
   // make online = torInfo.online
@@ -577,7 +578,9 @@ export const setIntervalIfOnline = (func, online, delay) => {
     if (online === false) {
       clearInterval(interval)
     }
-    func()
+    if(isMounted){
+      func(isMounted)
+    }
   }, delay)
   return interval
 
@@ -838,6 +841,13 @@ const WalletSlice = createSlice({
     clearInSwapValues(state, _action) {
       state.inSwapValues = []
     },
+    setSwapLoad(state,action){
+      var update = action.payload
+      return {
+        ...state,
+        swapLoad: {join: update.join, swapCoin: update.swapCoin, leave: update.leave}
+      }
+    },
     // Deposit
     dummyDeposit() {
       let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
@@ -968,7 +978,7 @@ const WalletSlice = createSlice({
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setProgressComplete, setProgress, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin,
   clearSwapPendingCoins, clearInSwapValues,
-  updateInSwapValues, addInSwapValue, removeInSwapValue, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
+  updateInSwapValues, addInSwapValue, removeInSwapValue, setSwapLoad, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
 export default WalletSlice.reducer
 
 
