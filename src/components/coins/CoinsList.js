@@ -347,7 +347,7 @@ const CoinsList = (props) => {
     let isMounted = true;
     let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000, isMounted)
     return () => {
-      let isMounted = false;  
+      isMounted = false;  
       clearInterval(interval)
     };
   },
