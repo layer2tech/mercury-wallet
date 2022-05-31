@@ -1456,6 +1456,7 @@ export class Wallet {
   async doPostSwap(statecoin: StateCoin, new_statecoin: StateCoin | null): Promise<StateCoin | null> {
     if (new_statecoin && new_statecoin instanceof StateCoin) {
       this.setIfNewCoin(new_statecoin)
+      statecoin.setSwapDataToNull();
       await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
       new_statecoin.setSwapDataToNull();
     }
