@@ -486,8 +486,12 @@ export class Wallet {
 
       if(!this.checkElectrumNetwork()) return;
 
-      // Continuously update block height
-      this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
+      try{
+        // Continuously update block height
+        this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
+      } catch(e:any){
+        console.error(e)
+      }
       // Get fee info
 
       let fee_info: FeeInfo
@@ -1469,7 +1473,13 @@ export class Wallet {
   }
 
   async updateSwapGroupInfo() {
-    groupInfo(this.http_client).catch((err: any) => {
+    groupInfo(this.http_client).then((result) => {
+      if (result) {
+        this.swap_group_info = result
+      } else {
+        this.swap_group_info = new Map<SwapGroup, GroupInfo>();
+      }
+    }).catch((err: any) => {
       this.swap_group_info.clear()
       let err_str = typeof err === 'string' ? err : err?.message
       if (err_str && (err_str.includes('Network Error') ||
@@ -1477,12 +1487,6 @@ export class Wallet {
         log.warn(JSON.stringify(err))
       } else {
         throw err
-      }
-    }).then((result) => {
-      if (result) {
-        this.swap_group_info = result
-      } else {
-        this.swap_group_info = new Map<SwapGroup, GroupInfo>();
       }
     })
   }
