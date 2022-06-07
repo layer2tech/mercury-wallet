@@ -49,6 +49,7 @@ export class Storage {
 
   // return map of wallet names->passwords
   getWalletNames() {
+    console.log("getWalletNames()");
     let wallets = this.store.get();
 
     if (wallets == null) {
@@ -67,6 +68,7 @@ export class Storage {
 
   // Check password for a wallet
   checkLogin(wallet_name: string, pw_attempt: string) {
+    console.log("checking for passwords");
     let pw = this.store.get("logins." + wallet_name, pw_attempt);
     if (pw === undefined)
       throw Error("Wallet " + wallet_name + " does not exist.");
@@ -174,13 +176,26 @@ export class Storage {
       wallet_json[key] = this.store.get(`${wallet_name}.${key}`);
     });
 
+    console.log("wallet_json now:", wallet_json);
+
     //Read the statecoin data saved in previous versions of the wallet
-    const saved_coins: StateCoin[] | undefined = this.store.get(
+    let saved_coins: StateCoin[] | undefined = this.store.get(
       `${wallet_name}.statecoins.coins`
     );
-    const saved_swapped_coins: StateCoin[] | undefined = this.store.get(
+    // ensure it is an array, if it isn't then make it undefined
+    if (!(saved_coins instanceof Array)) {
+      if (saved_coins !== undefined) {
+        saved_coins = undefined;
+      }
+    }
+    let saved_swapped_coins: StateCoin[] | undefined = this.store.get(
       `${wallet_name}.statecoins.swapped_coins`
     );
+    if (!(saved_swapped_coins instanceof Array)) {
+      if (saved_swapped_coins !== undefined) {
+        saved_swapped_coins = undefined;
+      }
+    }
 
     let coins: StateCoin[] = saved_coins === undefined ? [] : saved_coins;
     let coins_swapped: StateCoin[] =
@@ -245,7 +260,11 @@ export class Storage {
     password: string,
     load_all: boolean = false
   ) {
+    console.log("getWalletDecrypted");
     let wallet_json_encrypted = this.getWallet(wallet_name, load_all);
+
+    console.log("wallet_json_encrypted", wallet_json_encrypted);
+
     let wallet_json_decrypted = wallet_json_encrypted;
     // Decrypt mnemonic
     try {

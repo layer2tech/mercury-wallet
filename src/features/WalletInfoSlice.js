@@ -68,6 +68,12 @@ export const WalletInfoSlice = createSlice({
         },
       };
     },
+    delete_statecoins: (state, action) => {
+      // does nothing with the state for now
+      return {
+        ...state,
+      };
+    },
     save_activity: (state, action) => {
       // check which account this belongs to with its key-value pair
       const { key, value } = action.payload;
@@ -90,6 +96,7 @@ export const {
   save_wallet,
   save_login,
   save_statecoins,
+  delete_statecoins,
   save_activity,
   save_account,
 } = WalletInfoSlice.actions;

@@ -20,7 +20,8 @@ module.exports = function override(config, env) {
     stream: require.resolve("stream-browserify"),
     path: require.resolve("path-browserify"),
     constants: require.resolve("constants-browserify"),
-    fs: require.resolve("browserify-fs"),
+    tls: require.resolve("tls"),
+    fs: false,
   };
 
   config.experiments = {
