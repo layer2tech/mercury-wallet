@@ -1,20 +1,35 @@
 import { ActivityLog, decryptAES, encryptAES, StateCoinList } from "./wallet";
-
-let store: any;
+import { store } from "./application/store";
+import { save_wallet } from "./features/WalletInfoSlice";
 
 // class the wraps in-built redux store
 export class Store {
+  data = new Map<string, any>();
   object: object;
   constructor(object: { name: string }) {
     this.object = object;
   }
 
-  get() {
+  get(value: any = undefined) {
+    try {
+      let wallets: any = store.getState().walletInfo.wallets;
+
+      if (value === undefined) {
+        return wallets;
+      } else {
+        if (wallets[value] !== undefined) {
+          return wallets[value];
+        }
+      }
+    } catch (e) {}
+    console.log("no wallet with this value found.");
     return false;
   }
 
-  set(value: any) {
-    return true;
+  set(key: any, value: any) {
+    console.log("setting key:", key, "value into store", value);
+
+    store.dispatch(save_wallet({ key, value }));
   }
 }
 
