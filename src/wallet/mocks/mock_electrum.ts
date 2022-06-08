@@ -2,7 +2,13 @@ let bitcoin = require('bitcoinjs-lib')
 
 export class MockElectrumClient {
 
-    async connect() {}
+  async connect() { }
+  
+  enableBlockHeightSubscribe() {
+  }
+
+  disableBlockHeightSubscribe() {
+  }
 
     latestBlockHeight() {
       return 1000

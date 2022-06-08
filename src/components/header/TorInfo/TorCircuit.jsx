@@ -13,7 +13,16 @@ import { callGetNewTorId, callGetTorcircuitInfo, callUpdateTorCircuit,
     setTorOnline, callGetConfig } from '../../../features/WalletDataSlice';
 import './torCircuit.css'
 import TorCircuitNode from './TorCircuitNode'
-import {defaultWalletConfig} from '../../../containers/Settings/Settings'
+import { defaultWalletConfig } from '../../../containers/Settings/Settings'
+
+// Logger import.
+// Node friendly importing required for Jest tests.
+let log;
+try {
+    log = window.require('electron-log');
+} catch (e) {
+    log = require('electron-log');
+}
 
 
 const TorCircuit = (props) => {
@@ -32,24 +41,42 @@ const TorCircuit = (props) => {
     useEffect(() => {
         const interval = setInterval(() => {       
             getTorCircuitInfo();
-        }, 10000);
+        }, 15000);
         return () => {
             clearInterval(interval);
         }
-    }, [dispatch,props.online]);
+    }, [props.online]);
 
     
-    const getTorCircuitInfo = () => {
-        if(props.online){
-            dispatch(callUpdateTorCircuit());
-            let torcircuit_data = callGetTorcircuitInfo();
-            let torcircuit_array = torcircuit_data ? torcircuit_data : [];
-            const loaded = (torcircuit_data !== undefined && torcircuit_data.length > 0)
+    const getTorCircuitInfo = async () => {
+        if (props.online) {
+            let torcircuit_data = null
+            try {
+                dispatch(callUpdateTorCircuit());
+                torcircuit_data = callGetTorcircuitInfo();
+            } catch (err) {
+                const err_str = err?.message
+                const err_code = err?.code
+                if (
+                    (err_str && err_str.includes('Network Error') ||
+                        err_str.includes('Socks5 proxy rejected connection') ||
+                        err_str.includes('Mercury API request timed out')) ||
+                    (err_code && err_code === "ECONNRESET")
+                ) {
+                    log.warn(JSON.stringify(err_str))
+                } else {
+                    throw err
+                }
+            }
+            let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
+            const loaded = (torcircuit_data != null && torcircuit_data.length > 0)
             setTorLoaded(loaded)
+            console.log(`setting tor online: ${loaded}`)
             dispatch(setTorOnline(loaded))
             setTorcircuitData(torcircuit_array);
         }
-        else{
+        else {
+            console.log(`setting tor online: false`)
             dispatch(setTorOnline(false))
             setTorLoaded(false)
         }

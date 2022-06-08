@@ -59,7 +59,7 @@ const ValueSelectionPanel = (props) => {
           const err_str = err?.message
           if (err_str && (err_str.includes('Network Error') ||
             err_str.includes('Mercury API request timed out'))) {
-            log.warn(JSON.stringify(err))
+            log.warn(JSON.stringify(err_str))
           } else {
             throw err
           }

@@ -35,7 +35,9 @@ const Swaps = (props) => {
             let interval = setIntervalIfOnline(countdownTimer, torInfo.online, 1000, isMounted)
             return () => {
                 isMounted = false;    
-                clearInterval(interval)
+                //if (interval != null) {
+                    clearInterval(interval)    
+               // }
             }
         }
     },[count,swapTime, torInfo.online])

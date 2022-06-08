@@ -1,5 +1,7 @@
 import { isNonNullChain } from "typescript"
 
+import { log } from './swap/swap_utils';
+
 // Check if returned value from server is an error. Throw if so.
 export const checkForServerError = (response: any) => {
     if (response == null) {
@@ -16,6 +18,9 @@ export const checkForServerError = (response: any) => {
         throw Error(return_val)
     }
     if (return_val != null && return_val?.error != null) {
+        const ecode = return_val.error?.code
+        if ( ecode != null && ecode == "ECONNRESET") {
+        }
         throw Error(JSON.stringify(return_val.error))
     }
 }

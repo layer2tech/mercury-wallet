@@ -1,13 +1,13 @@
 import React from 'react';
 
 const RadioButton = (props) => {
-    return(
+    return (
     <div className={`connection-title Connection${props.connection}`}>
         <label>
             <input
                 readOnly
                 type="radio"
-                checked={props.checked}
+                checked={props.checked || false}
             />
             {props.condition ?("Connected"):("Connecting") } to {props.connection}
             <span className="checkmark"></span>

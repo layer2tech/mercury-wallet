@@ -52,6 +52,12 @@ export class EPSClient {
     this.blockHeightLatest = 0
   }
 
+  enableBlockHeightSubscribe() {
+  }
+
+  disableBlockHeightSubscribe() {
+  }
+
   static async get (endpoint: string, path: string, params: any){
     const release = await mutex.acquire();
     try {

@@ -54,6 +54,12 @@ export class ElectrsLocalClient {
     this.blockHeightLatest = 0
   }
 
+  enableBlockHeightSubscribe() {
+  }
+
+  disableBlockHeightSubscribe() {
+  }
+
   static async get(endpoint: string, path: string, params: any, timeout_ms: number = TIMEOUT){
     
       const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');

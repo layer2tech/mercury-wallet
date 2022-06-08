@@ -112,6 +112,7 @@ export class Wallet {
 
   constructor(name: string, password: string, mnemonic: string, account: any, config: Config,
     http_client: any = undefined, wasm: any = undefined) {
+    this.wasm = null;
     this.name = name;
     this.password = password;
     this.config = config;
@@ -186,22 +187,19 @@ export class Wallet {
           torcircuit_ids_existing.push(this.tor_circuit[i].id)
         }
       }
-
+  
       for (var i = 0; i < torcircuit_ids.length; i++) {
         //Unknown tor circuit - request data
         if (torcircuit_ids_existing.indexOf(torcircuit_ids[i]) < 0) {
           torcircuit_ids_req.push(torcircuit_ids[i])
         }
       }
-
-
+    
       for (var i = 0; i < torcircuit_ids_req.length; i++) {
         torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids_req[i]));
       }
 
       this.tor_circuit = torcircuit;
-
-
     } catch (err: any) {
       throw err
     }
@@ -441,6 +439,7 @@ export class Wallet {
   }
 
   newElectrumClient() {
+    console.log('newElectrumClient...')
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if (this.config.testing_mode == true) return new MockElectrumClient()
     if (this.config.electrum_config.type == 'eps') return new EPSClient('http://localhost:3001')
@@ -547,9 +546,14 @@ export class Wallet {
             return;
           })
         }
-      }).catch(err => {
-        console.error('Error InitElectrumClient: ', err)
-
+      }).catch((err) => {
+        const err_str = err?.message
+        if (err_str && (err_str.includes('Network Error') ||
+          err_str.includes('Mercury API request timed out'))) {
+          log.warn(JSON.stringify(err_str))
+        } else {
+          throw err
+        }
       })
     })
   }
@@ -575,19 +579,20 @@ export class Wallet {
   // Wasm contains all wallet Rust functionality.
   // MockWasm is for Jest testing since we cannot run webAssembly with browser target in Jest's Node environment
   async getWasm() {
-    let wasm;
-    if (this.config.jest_testing_mode) {
-      if (this.wasm !== undefined && this.wasm !== null) {
-        return this.wasm
+    if (this.wasm == null) {
+      console.log('get wasm...')
+      if (this.config.jest_testing_mode) {
+        this.wasm = new MockWasm()
       } else {
-        wasm = new MockWasm()
+        console.log('importing wasm...')
+        this.wasm = await import('client-wasm');
       }
-    } else {
-      wasm = await import('client-wasm');
+      // Setup
+      console.log('init wasm...')
+      this.wasm.init();
     }
-    // Setup
-    wasm.init();
-    return wasm
+    console.log('return wasm...')
+    return this.wasm
   }
 
   // Getters
@@ -1342,10 +1347,19 @@ export class Wallet {
     force: boolean = false
   ): Promise<void> {
     //Check if statecoin may be removed from swap
-    statecoin = this.statecoins.checkRemoveCoinFromSwapPool(statecoin.shared_key_id, force);
-    await swapDeregisterUtxo(this.http_client, { id: statecoin.statechain_id });
-    //Reset swap data if the coin was deregistered successfully
-    await this.removeCoinFromSwapPool(statecoin.shared_key_id, force);
+    try {
+      statecoin = this.statecoins.checkRemoveCoinFromSwapPool(statecoin.shared_key_id, force);
+      await swapDeregisterUtxo(this.http_client, { id: statecoin.statechain_id });
+      //Reset swap data if the coin was deregistered successfully
+      await this.removeCoinFromSwapPool(statecoin.shared_key_id, force);
+    } catch (err: any) {
+      const msg = err?.message != null ? err.message : JSON.stringify(err)
+      if (msg.includes('Coin is not in a swap pool')) {
+        log.warn(msg)
+      } else {
+        throw err
+      }
+    }
   }
 
   async removeCoinFromSwapPool(shared_key_id: string, force: boolean = false) {
@@ -1478,26 +1492,33 @@ export class Wallet {
       if (result) {
         this.swap_group_info = result
       } else {
-        this.swap_group_info = new Map<SwapGroup, GroupInfo>();
+        this.clearSwapGroupInfo()
       }
     }).catch((err: any) => {
-      this.swap_group_info.clear()
+      this.clearSwapGroupInfo();
       let err_str = typeof err === 'string' ? err : err?.message
       if (err_str && (err_str.includes('Network Error') ||
         err_str.includes('Mercury API request timed out'))) {
-        log.warn(JSON.stringify(err))
+        log.warn(JSON.stringify(err_str))
       } else {
         throw err
       }
     })
   }
 
+  clearSwapGroupInfo() {
+    this.swap_group_info.clear()
+  }
+
   async updateSpeedInfo(torOnline = true) {
     if (!torOnline) {
+      this.electrum_client.disableBlockHeightSubscribe()
       this.ping_server_ms = null
       this.ping_conductor_ms = null
       this.ping_electrum_ms = null
       return
+    } else {
+      this.electrum_client.enableBlockHeightSubscribe()
     }
     try {
       this.ping_server_ms = await pingServer(this.http_client)
@@ -1560,10 +1581,26 @@ export class Wallet {
       let statecoin = this.statecoins.coins[i]
       try {
         await this.deRegisterSwapCoin(statecoin)
-      } catch (e: any) {
-        if (!(e?.message && e.message.includes("Coin is not in a swap pool"))) {
-          throw e
-        }
+      }
+      
+      
+      
+      catch (err: any) {
+          const err_str = err?.message
+          const err_code = err?.code
+          if (
+            (err_str != null &&
+              (err_str.includes('Network Error') ||
+                err_str.includes(`request timed out:`))) ||
+            (err_code != null &&
+              err_code === "ECONNRESET")
+          ) {
+            log.warn(JSON.stringify(err_str))
+          } else {
+            if (!(err_str != null && err_str.includes("Coin is not in a swap pool"))) {
+              throw err
+            }
+          }
       }
       //REMOVE THIS TRY CATCH
       statecoin.swap_auto = false;

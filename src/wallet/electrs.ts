@@ -45,6 +45,7 @@ export class ElectrsClient {
   blockHeightLatest: any
   block_height_interval: any
   script_hash_subscriptions: string[]
+  bEnableBlockHeightSubscribe: boolean
   
   constructor(endpoint: string, is_tor = true){
     this.endpoint = endpoint
@@ -54,6 +55,15 @@ export class ElectrsClient {
     this.blockHeightLatest = 0
     this.script_hash_subscriptions = []
     this.block_height_interval = null
+    this.bEnableBlockHeightSubscribe = true
+  }
+
+  enableBlockHeightSubscribe() {
+    this.bEnableBlockHeightSubscribe = true
+  }
+
+  disableBlockHeightSubscribe() {
+    this.bEnableBlockHeightSubscribe = false
   }
 
   async new_tor_id() {
@@ -76,7 +86,9 @@ export class ElectrsClient {
     await semaphore.wait()
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, "Electrum API request timed out")
-    }).finally(() => { semaphore.release() })
+    }).finally(() => {
+      semaphore.release()
+    })
       .then(
       (res: any) => {
         checkForServerError(res)
@@ -101,7 +113,9 @@ export class ElectrsClient {
     await semaphore.wait()
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, "Electrum API request timed out")
-    }).finally(() => { semaphore.release() })
+    }).finally(() => {
+      semaphore.release()
+    })
     .then(
       (res: any) => {
         checkForServerError(res)
@@ -183,12 +197,17 @@ export class ElectrsClient {
       this.blockHeightLatest = null
       callBack([{ "height": null }])
       const err_str = err?.message
-      if (err_str &&
-          (err_str.includes('Network Error') ||
-            err_str.includes(`Electrum API request timed out:`))
+      const err_code = err?.code
+      if (
+          (err_str &&
+            (err_str.includes('Network Error') ||
+            err_str.includes(`Electrum API request timed out:`))) ||
+        (err_code &&
+            err_code === "ECONNRESET")
       ) {
-        log.warn(JSON.stringify(err))
+        log.warn(JSON.stringify(err_str))
       } else {
+        log.warn(`rethrowing error: ${JSON.stringify(err)} ${err_str} ${err_code}`)
         throw err
       }
     }
@@ -213,10 +232,12 @@ export class ElectrsClient {
   blockHeightSubscribe(callBack: any) {
     if(this.block_height_interval) return;
     this.block_height_interval = setInterval(
-      async(cb, ep) => {
-        await this.getLatestBlock(cb, ep)
+      async (cb, ep) => {
+        if (this.bEnableBlockHeightSubscribe) {
+          await this.getLatestBlock(cb, ep)  
+        }
       }, 
-      5000, callBack, this.endpoint)
+      10000, callBack, this.endpoint)
   }
 
   blockHeightUnsubscribe() {
@@ -226,7 +247,7 @@ export class ElectrsClient {
   async unsubscribeAll() {
     await this.blockHeightUnsubscribe()
     this.scriptIntervals.forEach (async function(value, _key) {
-     await clearInterval(value)
+      clearInterval(value)
     })
   }
 

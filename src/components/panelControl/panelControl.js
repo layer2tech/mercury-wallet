@@ -79,7 +79,8 @@ const PanelControl = () => {
         <span>{balance_info.hidden ? HIDDEN : balance_info.num_coins} {filterByMsg()}</span>
       </div>
       <div className="ActionGroupLeft">
-      <CheckBox
+        <CheckBox
+        description=""
         label={balance_info.hidden ? "Show balance" : "Hide balance"}
         checked={!!balance_info.hidden}
         onChange={onHideBalanceChange}

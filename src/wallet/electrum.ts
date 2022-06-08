@@ -40,6 +40,12 @@ export class ElectrumClient {
     });
   }
 
+   enableBlockHeightSubscribe() {
+  }
+
+  disableBlockHeightSubscribe() {
+  }
+
   // Disconnect from the ElectrumClientServer.
   async close() {
     this.client.close()

@@ -288,8 +288,6 @@ const CoinsList = (props) => {
 
       setInitCoins(undeposited_coins_data);
 
-      setInitCoins(undeposited_coins_data);
-
       // Update total_balance in Redux state
       if (filterBy !== 'default') {
         const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
@@ -319,8 +317,7 @@ const CoinsList = (props) => {
 
     return () => {
       isMounted = false;
-      clearInterval(interval)};
-
+      clearInterval(interval)};  
   }, [coins.unConfirmedCoins, torInfo.online, balance_info]);
 
 
@@ -345,13 +342,15 @@ const CoinsList = (props) => {
   // Initiate auto swap
   useEffect(() => {
     let isMounted = true;
-    let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000, isMounted)
+    let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 6000, isMounted)
     return () => {
       isMounted = false;  
-      clearInterval(interval)
+     // if (interval != null) {
+        clearInterval(interval)  
+     // }
     };
   },
-    [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
+    [swapPendingCoins, torInfo.online]);
 
   const [totalCoins, setTotalCoins] = useState(0);
 
@@ -406,8 +405,10 @@ const CoinsList = (props) => {
     }
   }
 
-  const swapInfoAndAutoSwap = () => {
-    if (torInfo.online === false) return
+  const swapInfoAndAutoSwap = (isMounted) => {
+    console.log(`swapinfoAndAutoSwap - online: ${torInfo.online}`)
+    if (torInfo.online !== true || isMounted !== true) return
+    console.log(`doing autoSwapLoop...`)
     autoSwapLoop()
     if (props?.setRefreshSwapGroupInfo) {
       props.setRefreshSwapGroupInfo((prevState) => !prevState);
@@ -424,11 +425,6 @@ const CoinsList = (props) => {
     let selectedCoin = item.shared_key_id;
 
     // check statechain is chosen
-    if (torInfo.online === false) {
-      dispatch(setError({ msg: "Disconnected from the mercury server" }))
-      return
-    }
-
     if (statecoin === undefined) {
       dispatch(setError({ msg: "Please choose a StateCoin to swap." }))
       return
@@ -437,6 +433,12 @@ const CoinsList = (props) => {
     if (swapLoad.join === true) {
       return
     }
+
+    if (torInfo.online === false && item.swap_auto != true) {
+      dispatch(setError({ msg: "Disconnected from the mercury server" }))
+      return
+    }
+
 
     // turn off swap_auto
     if (item.swap_auto) {

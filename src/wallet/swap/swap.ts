@@ -110,7 +110,7 @@ export default class Swap {
   }
 
   checkWalletStatus = () => {
-    if (this.wallet.active ===false) {
+    if (this.wallet.active === false) {
       throw Error(`wallet unloading...`)
     }
   }
@@ -122,7 +122,7 @@ export default class Swap {
     this.checkStatecoinProperties(step)
   }
 
-  doNext = async (): Promise<SwapStepResult> => {
+  doNext = async () => {
     this.checkWalletStatus()
     this.checkStepStatus()
     this.checkStepTimer()
@@ -131,7 +131,6 @@ export default class Swap {
     const nextStep = this.getNextStep()
     let step_result = await nextStep.doit()
     await this.processStepResult(step_result, nextStep)
-    return step_result
   }
 
   processStepResult = async (sr: SwapStepResult, next_step: SwapStep) => {
@@ -140,6 +139,7 @@ export default class Swap {
       this.resetRetryCounters()
       this.statecoin.clearSwapError()
     } else {
+      console.log(`process step result retry - message: ${sr.message}`)
       await this.processStepResultRetry(sr, next_step)
     }
   }

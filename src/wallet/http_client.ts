@@ -66,7 +66,9 @@ Object.freeze(POST_ROUTE);
     async new_tor_id() {
       if (this.is_tor) {
         const timeout_ms = 20000
+        console.log('getting new tor id...')
         await this.get('newid', {}, timeout_ms);
+        console.log('finished getting new tor id.')
       }
     };
 
@@ -80,11 +82,11 @@ Object.freeze(POST_ROUTE);
         },
         timeout: timeout_ms
       };
-      await semaphore.wait()
+      //await semaphore.wait()
       return axios(config).catch((err: any) => {
         handlePromiseRejection(err, "Mercury API request timed out")
       }).finally( () => {
-        semaphore.release()
+        //semaphore.release()
       }).then(
       (res: any) => {
         checkForServerError(res)
@@ -106,11 +108,11 @@ Object.freeze(POST_ROUTE);
         timeout: timeout_ms,
         data: body,
       };
-      await semaphore.wait();
+      //await semaphore.wait();
       return axios(config).catch((err: any) => {
         handlePromiseRejection(err, "Mercury API request timed out")
       }).finally(() => {
-        semaphore.release()
+        //semaphore.release()
       }).then (
       (res: any) => {
         checkForServerError(res)

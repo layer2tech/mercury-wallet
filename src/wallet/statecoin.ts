@@ -730,7 +730,6 @@ export class StateCoin {
     this.swap_batch_data = null;
     this.swap_transfer_msg_3_receiver = null;
     this.swap_transfer_msg_4 = null;
-    this.swap_transfer_finalized_data = null;
     this.ui_swap_status = null;
     this.clearSwapError();
   }
