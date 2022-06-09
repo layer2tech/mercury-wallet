@@ -14,6 +14,7 @@ import {
   PanelCoinsActivity,
   Tutorial
 } from "../../components";
+import { handleErrors } from '../../error';
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -42,16 +43,10 @@ const HomePage = (props) => {
     fee_info = callGetFeeInfo().then((fee_info) => {
       dispatch(updateFeeInfo(fee_info));
     }).catch((err) => {
-      const err_str = err?.message
-      if (err_str && (err_str.includes('Network Error') ||
-        err_str.includes('Mercury API request timed out'))) {
-        log.warn(JSON.stringify(err_str))
-      } else {
-        throw err
-      }
+      handleErrors(err)
     })
-    
   }
+  
   // Check if wallet initialised
   if (fee_info.deposit==="NA") { initWalletInRedux() }
 

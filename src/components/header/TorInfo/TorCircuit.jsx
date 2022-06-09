@@ -14,6 +14,7 @@ import { callGetNewTorId, callGetTorcircuitInfo, callUpdateTorCircuit,
 import './torCircuit.css'
 import TorCircuitNode from './TorCircuitNode'
 import { defaultWalletConfig } from '../../../containers/Settings/Settings'
+import { handleNetworkError } from '../../../error'
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -55,28 +56,15 @@ const TorCircuit = (props) => {
                 dispatch(callUpdateTorCircuit());
                 torcircuit_data = callGetTorcircuitInfo();
             } catch (err) {
-                const err_str = err?.message
-                const err_code = err?.code
-                if (
-                    (err_str && err_str.includes('Network Error') ||
-                        err_str.includes('Socks5 proxy rejected connection') ||
-                        err_str.includes('Mercury API request timed out')) ||
-                    (err_code && err_code === "ECONNRESET")
-                ) {
-                    log.warn(JSON.stringify(err_str))
-                } else {
-                    throw err
-                }
+                handleNetworkError(err)
             }
             let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
             const loaded = (torcircuit_data != null && torcircuit_data.length > 0)
             setTorLoaded(loaded)
-            console.log(`setting tor online: ${loaded}`)
             dispatch(setTorOnline(loaded))
             setTorcircuitData(torcircuit_array);
         }
         else {
-            console.log(`setting tor online: false`)
             dispatch(setTorOnline(false))
             setTorLoaded(false)
         }

@@ -113,7 +113,12 @@ export const getFeeInfo = async (
   http_client: HttpClient | MockHttpClient,
 ) => {
   let fee_info = await http_client.get(GET_ROUTE.FEES, {});
-  typeforce(types.FeeInfo, fee_info);
+  try {
+    typeforce(types.FeeInfo, fee_info);
+  } catch (err: any) {
+    debugger
+    throw err
+  }
 
   if (fee_info && show_alerts) {
     if (semver.lt(version, fee_info.wallet_version)) {

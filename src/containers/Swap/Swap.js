@@ -62,10 +62,8 @@ const SwapPage = () => {
   const updateSwapInfo = async (isMounted) => {
     if (isMounted === true) {  
       if (torInfo.online === true) {
-        console.log('tor online - calling update swap group info...')
         dispatch(callUpdateSwapGroupInfo());  
       } else {
-        console.log('tor offline - clearing swap group info...')
         dispatch(callClearSwapGroupInfo());  
       }
       let swap_groups_data = callGetSwapGroupInfo();
@@ -81,10 +79,8 @@ const SwapPage = () => {
   // The delay on joining is to wait for the coin to be added to a swap group.
   useEffect(() => {
     if (torInfo.online === false) {
-      console.log('tor offline - not updating swap info...')
       return
     }
-    console.log('tor online - updating swap info...')
     let isMounted = true
     let delay = swapLoad.join ? 500 : 0;
     const timeout = setTimeout(() => {

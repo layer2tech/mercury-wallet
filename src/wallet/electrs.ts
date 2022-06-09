@@ -3,6 +3,7 @@ import { ElectrumTxData } from '../wallet/electrum';
 import { semaphore, TIMEOUT } from './http_client'
 import { log } from './swap/swap_utils';
 import axios, { AxiosRequestConfig } from 'axios'
+import { handleErrors } from '../error'
 let bitcoin = require('bitcoinjs-lib')
 
 class ElectrsClientError extends Error {
@@ -193,15 +194,7 @@ export class ElectrsClient {
     } catch(err: any) {
       this.blockHeightLatest = null
       callBack([{ "height": null }])
-      const err_str = err?.message
-      if (err_str &&
-          (err_str.includes('Network Error') ||
-            err_str.includes(`Electrum API request timed out:`))
-      ) {
-        log.warn(JSON.stringify(err))
-      } else {
-        throw err
-      }
+      handleErrors(err)
     }
   }
 

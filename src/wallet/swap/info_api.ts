@@ -104,7 +104,7 @@ export const groupInfo = async(
     }
     return map
   } catch (err: any) {
-    log.warn(`Failed to get groupInfo: ${JSON.stringify(err)}`)
+    log.warn(`groupInfo: ${err}`)
     return null
   }
 }

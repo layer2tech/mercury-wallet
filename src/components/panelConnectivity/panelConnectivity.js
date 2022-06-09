@@ -61,7 +61,6 @@ const PanelConnectivity = (props) => {
   useEffect(() => {
     
     let isMounted = true
-    console.log('calling update speed info...')
     let interval = setIntervalIfOnline(updateSpeedInfo, true, 5000, isMounted)
 
     return () => {

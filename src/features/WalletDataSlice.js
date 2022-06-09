@@ -120,7 +120,6 @@ export const getWalletName = () => {
 
 //Restart the electrum server if ping fails
 async function pingElectrumRestart(force = false) {
-  console.log('ping electrum restart...')
   if (isWalletActive() === false) {
     return
   }
@@ -169,7 +168,7 @@ export const walletLoad = (name, password) => {
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
-  wallet.deRegisterSwaps().then(() => {
+  wallet.deRegisterSwaps(true).then(() => {
     log.info("Wallet " + name + " loaded from memory. ");
 
     if (testing_mode) log.info("Testing mode set.");
@@ -574,11 +573,9 @@ export const setIntervalIfOnline = (func, online, delay, isMounted) => {
   // Restart online interval in useEffect loop [torInfo.online]
   // make online = torInfo.online
   let interval = setInterval(async () => {
-      // console.log('interval called', online)
       if (isMounted === true && online === true)  {
         func(isMounted)
       } else {
-        console.log(`clearing interval: ${isMounted} ${online}`)
         clearInterval(interval)
       }
   }, delay)

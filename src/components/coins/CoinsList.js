@@ -406,9 +406,7 @@ const CoinsList = (props) => {
   }
 
   const swapInfoAndAutoSwap = (isMounted) => {
-    console.log(`swapinfoAndAutoSwap - online: ${torInfo.online}`)
     if (torInfo.online != true || isMounted != true) return
-    console.log(`doing autoSwapLoop...`)
     autoSwapLoop()
     if (props?.setRefreshSwapGroupInfo) {
       props.setRefreshSwapGroupInfo((prevState) => !prevState);
@@ -454,7 +452,6 @@ const CoinsList = (props) => {
         dispatch(setSwapLoad({ ...swapLoad, leave: false }))
       } catch (e) {
         dispatch(setSwapLoad({ ...swapLoad, leave: false }))
-        console.log(`dereg - caught error - ${e}`)
         if (!e.message.includes("Coin is not in a swap pool")) {
           dispatch(setError({ msg: e.message }))
         }

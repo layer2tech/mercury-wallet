@@ -21,6 +21,9 @@ import {
 } from './swap_utils';
 import { semaphore, MAX_SEMAPHORE_COUNT } from '../http_client'
 import { AsyncSemaphore } from "@esfx/async-semaphore";
+import { RateLimiter } from "limiter"
+
+const swapStepRateLimiter = new RateLimiter({ tokensPerInterval: 5, interval: 10000, fireImmediately: false });
 
 const newid_semaphore = new AsyncSemaphore(1);
 
@@ -123,6 +126,7 @@ export default class Swap {
   }
 
   doNext = async () => {
+    await swapStepRateLimiter.removeTokens(1)
     this.checkWalletStatus()
     this.checkStepStatus()
     this.checkStepTimer()

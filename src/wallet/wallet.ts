@@ -31,6 +31,7 @@ import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './merc
 import { callGetNewTorId } from '../features/WalletDataSlice';
 import { Mutex } from 'async-mutex';
 import { RateLimiter } from "limiter"
+import { handleErrors } from '../error';
 
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -439,7 +440,6 @@ export class Wallet {
   }
 
   newElectrumClient() {
-    console.log('newElectrumClient...')
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if (this.config.testing_mode == true) return new MockElectrumClient()
     if (this.config.electrum_config.type == 'eps') return new EPSClient('http://localhost:3001')
@@ -547,13 +547,7 @@ export class Wallet {
           })
         }
       }).catch((err) => {
-        const err_str = err?.message
-        if (err_str && (err_str.includes('Network Error') ||
-          err_str.includes('Mercury API request timed out'))) {
-          log.warn(JSON.stringify(err_str))
-        } else {
-          throw err
-        }
+        handleErrors(err)
       })
     })
   }
@@ -580,18 +574,14 @@ export class Wallet {
   // MockWasm is for Jest testing since we cannot run webAssembly with browser target in Jest's Node environment
   async getWasm() {
     if (this.wasm == null) {
-      console.log('get wasm...')
       if (this.config.jest_testing_mode) {
         this.wasm = new MockWasm()
       } else {
-        console.log('importing wasm...')
         this.wasm = await import('client-wasm');
       }
       // Setup
-      console.log('init wasm...')
       await this.wasm.init();
     }
-    console.log('return wasm...')
     return this.wasm
   }
 
@@ -1344,22 +1334,23 @@ export class Wallet {
   // De register coin from swap on server and set statecoin swap data to null
   async deRegisterSwapCoin(
     statecoin: StateCoin,
-    force: boolean = false
+    force: boolean = false,
+    suppress_warning: boolean = false
   ): Promise<void> {
     //Check if statecoin may be removed from swap
-    try {
+    //try {
       statecoin = this.statecoins.checkRemoveCoinFromSwapPool(statecoin.shared_key_id, force);
       await swapDeregisterUtxo(this.http_client, { id: statecoin.statechain_id });
       //Reset swap data if the coin was deregistered successfully
       await this.removeCoinFromSwapPool(statecoin.shared_key_id, force);
+   /*
     } catch (err: any) {
       const msg = err?.message != null ? err.message : JSON.stringify(err)
-      if (msg.includes('Coin is not in a swap pool')) {
-        log.warn(msg)
-      } else {
+      if (!msg.includes('Coin is not in a swap pool')) {
         throw err
       }
     }
+    */
   }
 
   async removeCoinFromSwapPool(shared_key_id: string, force: boolean = false) {
@@ -1496,13 +1487,7 @@ export class Wallet {
       }
     }).catch((err: any) => {
       this.clearSwapGroupInfo();
-      let err_str = typeof err === 'string' ? err : err?.message
-      if (err_str && (err_str.includes('Network Error') ||
-        err_str.includes('Mercury API request timed out'))) {
-        log.warn(JSON.stringify(err_str))
-      } else {
-        throw err
-      }
+      handleErrors(err);
     })
   }
 
@@ -1576,31 +1561,22 @@ export class Wallet {
 
   // force deregister of all coins in swap and also toggle auto swap off
   // except for in swap phase 4
-  async deRegisterSwaps() {
+  async deRegisterSwaps(suppress_warning: boolean = false) {
     for (let i = 0; i < this.statecoins.coins.length; i++) {
       let statecoin = this.statecoins.coins[i]
       try {
-        await this.deRegisterSwapCoin(statecoin)
+        await this.deRegisterSwapCoin(statecoin, false, suppress_warning)
       }
       
-      
-      
       catch (err: any) {
+        try {
+            handleErrors(err)
+        } catch (err: any) {
           const err_str = err?.message
-          const err_code = err?.code
-          if (
-            (err_str != null &&
-              (err_str.includes('Network Error') ||
-                err_str.includes(`request timed out:`))) ||
-            (err_code != null &&
-              err_code === "ECONNRESET")
-          ) {
-            log.warn(JSON.stringify(err_str))
-          } else {
-            if (!(err_str != null && err_str.includes("Coin is not in a swap pool"))) {
-              throw err
-            }
+          if (!(err_str != null && err_str.includes("Coin is not in a swap pool"))) {
+            throw err
           }
+        }
       }
       //REMOVE THIS TRY CATCH
       statecoin.swap_auto = false;

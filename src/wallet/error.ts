@@ -17,32 +17,6 @@ export const checkForServerError = (response: any) => {
         }
         throw Error(return_val)
     }
-    if (return_val != null && return_val?.error != null) {
-        let error = return_val?.error
-        if (error != null) {
-            let name = error?.name
-            if (name === "RequestError") {
-                log.warn(JSON.stringify(error))
-                return
-            }
-        }
-        let error_2 = error?.error
-        if (error_2 != null) {
-            const ecode = error?.code
-            const statusCode = error?.statusCode
-            console.log(`ecode: ${ecode}`)
-            console.log(`statusCode: ${statusCode}`)
-            if (
-                (ecode != null && ecode == "ECONNRESET") ||
-                (statusCode != null && statusCode >= 500 && statusCode < 600)
-            ) {
-                log.warn(JSON.stringify(return_val.error))
-            } else {
-                debugger;
-                throw Error(JSON.stringify(return_val.error))
-            }
-        }
-    }
 }
 
 export const handlePromiseRejection = (err: any, timeout_msg: string) => {

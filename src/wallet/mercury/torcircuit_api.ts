@@ -1,5 +1,6 @@
 /* TODO - CHECK FOR TYPES */
 import { HttpClient, MockHttpClient, GET_ROUTE } from "..";
+import { handleNetworkError } from "../../error";
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -33,20 +34,7 @@ export const getNewTorId = async (http_client: HttpClient |  MockHttpClient) => 
         tor_id = await http_client.get(GET_ROUTE.NEW_TOR_ID, {}, 20000);
 
     } catch (err: any) {
-    
-        const err_str = err?.message
-        const err_code = err?.code
-        if (
-            (err_str &&
-                (err_str.includes('Network Error') ||
-                    err_str.includes(`request timed out:`))) ||
-            (err_code &&
-                err_code === "ECONNRESET")
-        ) {
-            log.warn(JSON.stringify(err_str))
-        } else {
-            throw err
-        }
+        handleNetworkError(err)
     }
     // TODO - check for types
     return tor_id;
@@ -60,7 +48,7 @@ export const getTorCircuitIds = async (http_client: HttpClient |  MockHttpClient
         tor_circuit_ids = await http_client.get(GET_ROUTE.TOR_CIRCUITS, {}, timeout_ms)
         return tor_circuit_ids.circuitData;
     }catch(e){
-        console.error(e)        
+        log.warn(e)        
         return []
     }
 }
