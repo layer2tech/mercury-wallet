@@ -16,7 +16,12 @@ try {
   log = require('electron-log');
 }
 
-
+if (window.process) {
+  window.process.on('uncaughtException', function (error: any) {
+    const { app, dialog } = window.require("electron").remote;
+    dialog.showMessageBoxSync({ type: 'error', message: `Unexpected error occurred: ${JSON.stringify(error)}`, title: "Error" });
+  });
+}
 
 let cloneDeep = require('lodash.clonedeep');
 let current_state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;

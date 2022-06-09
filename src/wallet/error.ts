@@ -18,10 +18,18 @@ export const checkForServerError = (response: any) => {
         throw Error(return_val)
     }
     if (return_val != null && return_val?.error != null) {
-        const ecode = return_val.error?.code
-        if ( ecode != null && ecode == "ECONNRESET") {
+        let error = return_val?.error
+        error = error?.error ? error.error : error 
+        const ecode = error?.code
+        const statusCode = error?.statusCode
+        console.log(`ecode: ${ecode}`)
+        if ((ecode != null && ecode == "ECONNRESET") ||
+            (statusCode != null && statusCode >=500 && statusCode <= 600))
+        {
+            log.warn(JSON.stringify(return_val.error))
+        } else {
+            throw Error(JSON.stringify(return_val.error))
         }
-        throw Error(JSON.stringify(return_val.error))
     }
 }
 

@@ -589,7 +589,7 @@ export class Wallet {
       }
       // Setup
       console.log('init wasm...')
-      this.wasm.init();
+      await this.wasm.init();
     }
     console.log('return wasm...')
     return this.wasm

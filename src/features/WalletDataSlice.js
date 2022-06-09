@@ -176,6 +176,9 @@ export const walletLoad = (name, password) => {
     mutex.runExclusive(async () => {
       await wallet.set_tor_endpoints();
       wallet.initElectrumClient(setBlockHeightCallBack);
+      wallet.updateSwapStatus();
+      await wallet.updateSwapGroupInfo();
+      wallet.updateSpeedInfo();
     });
   });
 }
@@ -570,7 +573,7 @@ export const setIntervalIfOnline = (func, online, delay, isMounted) => {
   // Runs interval if app online
   // Restart online interval in useEffect loop [torInfo.online]
   // make online = torInfo.online
-  let interval = setInterval(() => {
+  let interval = setInterval(async () => {
       // console.log('interval called', online)
       if (isMounted === true && online === true)  {
         func(isMounted)
@@ -645,7 +648,7 @@ export const callResumeSwap = createAsyncThunk(
 export const callUpdateSwapGroupInfo = createAsyncThunk(
   'UpdateSwapGroupInfo',
   async (action, thunkAPI) => {
-    wallet.updateSwapGroupInfo();
+    await wallet.updateSwapGroupInfo();
   }
 )
 export const callClearSwapGroupInfo = createAsyncThunk(
@@ -687,7 +690,7 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
     let statecoin = wallet.statecoins.getCoin(action.shared_key_id)
     if (!statecoin) throw Error(`callSwapDeregisterUtxo: statecoin with shared key id ${action.shared_key_id} not found`)
     try {
-      wallet.deRegisterSwapCoin(statecoin)
+      await wallet.deRegisterSwapCoin(statecoin)
     } catch (e) {
       if (e?.message.includes("Coin is not in a swap pool")) {
         if (action?.autoswap === true) {
@@ -705,7 +708,7 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
 export const callGetFeeEstimation = createAsyncThunk(
   'GetFeeEstimation',
   async (action, thunkAPI) => {
-    return wallet.electrum_client.getFeeEstimation(action);
+    return await wallet.electrum_client.getFeeEstimation(action);
   }
 )
 

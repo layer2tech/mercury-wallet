@@ -342,7 +342,7 @@ const CoinsList = (props) => {
   // Initiate auto swap
   useEffect(() => {
     let isMounted = true;
-    let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 6000, isMounted)
+    let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000, isMounted)
     return () => {
       isMounted = false;  
      // if (interval != null) {
@@ -350,7 +350,7 @@ const CoinsList = (props) => {
      // }
     };
   },
-    [swapPendingCoins, torInfo.online]);
+    [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
 
   const [totalCoins, setTotalCoins] = useState(0);
 
@@ -407,7 +407,7 @@ const CoinsList = (props) => {
 
   const swapInfoAndAutoSwap = (isMounted) => {
     console.log(`swapinfoAndAutoSwap - online: ${torInfo.online}`)
-    if (torInfo.online !== true || isMounted !== true) return
+    if (torInfo.online != true || isMounted != true) return
     console.log(`doing autoSwapLoop...`)
     autoSwapLoop()
     if (props?.setRefreshSwapGroupInfo) {

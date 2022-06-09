@@ -41,7 +41,7 @@ const TorCircuit = (props) => {
     useEffect(() => {
         const interval = setInterval(() => {       
             getTorCircuitInfo();
-        }, 15000);
+        }, 10000);
         return () => {
             clearInterval(interval);
         }

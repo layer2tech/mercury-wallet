@@ -3,6 +3,7 @@ const { ipcRenderer } = require('electron')
 const SELECT_DIR = 'select-dirs';
 const SELECT_BACKUP_FILE = 'select-backup-file';
 
+debugger;
 process.once('loaded', () => {
   window.addEventListener('message', evt => {
     if (evt.data.type === SELECT_DIR) {

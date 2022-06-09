@@ -20,6 +20,7 @@ if (isPackaged || !require(joinPath(rootPath, 'src', 'settings.json')).testing_m
 app.disableHardwareAcceleration()
 
 function getPlatform() {
+  debugger;
   switch (process.platform) {
     case 'aix':
     case 'freebsd':

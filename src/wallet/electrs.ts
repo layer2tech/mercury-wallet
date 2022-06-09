@@ -46,6 +46,7 @@ export class ElectrsClient {
   block_height_interval: any
   script_hash_subscriptions: string[]
   bEnableBlockHeightSubscribe: boolean
+
   
   constructor(endpoint: string, is_tor = true){
     this.endpoint = endpoint
@@ -86,9 +87,7 @@ export class ElectrsClient {
     await semaphore.wait()
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, "Electrum API request timed out")
-    }).finally(() => {
-      semaphore.release()
-    })
+    }).finally(() => { semaphore.release() })
       .then(
       (res: any) => {
         checkForServerError(res)
@@ -113,9 +112,7 @@ export class ElectrsClient {
     await semaphore.wait()
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, "Electrum API request timed out")
-    }).finally(() => {
-      semaphore.release()
-    })
+    }).finally(() => { semaphore.release() })
     .then(
       (res: any) => {
         checkForServerError(res)
@@ -197,17 +194,12 @@ export class ElectrsClient {
       this.blockHeightLatest = null
       callBack([{ "height": null }])
       const err_str = err?.message
-      const err_code = err?.code
-      if (
-          (err_str &&
-            (err_str.includes('Network Error') ||
-            err_str.includes(`Electrum API request timed out:`))) ||
-        (err_code &&
-            err_code === "ECONNRESET")
+      if (err_str &&
+          (err_str.includes('Network Error') ||
+            err_str.includes(`Electrum API request timed out:`))
       ) {
-        log.warn(JSON.stringify(err_str))
+        log.warn(JSON.stringify(err))
       } else {
-        log.warn(`rethrowing error: ${JSON.stringify(err)} ${err_str} ${err_code}`)
         throw err
       }
     }
@@ -219,7 +211,7 @@ export class ElectrsClient {
     if ( this.scriptIntervals.has(scriptHash) ){
       throw new ElectrsClientError(`already subscribed to script: [${scriptHash}]`)
     }
-    let timer = setInterval(this.getScriptHashStatus, 10000, scriptHash, callBack, this.endpoint)
+    let timer = setInterval(this.getScriptHashStatus, 5000, scriptHash, callBack, this.endpoint)
     this.scriptIntervals.set(scriptHash, timer)
     return timer
   }
@@ -232,12 +224,10 @@ export class ElectrsClient {
   blockHeightSubscribe(callBack: any) {
     if(this.block_height_interval) return;
     this.block_height_interval = setInterval(
-      async (cb, ep) => {
-        if (this.bEnableBlockHeightSubscribe) {
-          await this.getLatestBlock(cb, ep)  
-        }
+      async(cb, ep) => {
+        await this.getLatestBlock(cb, ep)
       }, 
-      10000, callBack, this.endpoint)
+      5000, callBack, this.endpoint)
   }
 
   blockHeightUnsubscribe() {
@@ -247,7 +237,7 @@ export class ElectrsClient {
   async unsubscribeAll() {
     await this.blockHeightUnsubscribe()
     this.scriptIntervals.forEach (async function(value, _key) {
-      clearInterval(value)
+     await clearInterval(value)
     })
   }
 

@@ -80,7 +80,8 @@ export const getBlindedSpendSignature = async (
 
 export const groupInfo = async(
   http_client: HttpClient |  MockHttpClient,
-): Promise<Map<SwapGroup, GroupInfo>> => {
+): Promise<Map<SwapGroup, GroupInfo> | null> => {
+  try {
     let sgm_json = await http_client.get(GET_ROUTE.SWAP_GROUPINFO, {})
 
     typeforce(types.SwapGroupMap, sgm_json);
@@ -102,4 +103,8 @@ export const groupInfo = async(
       map.set(swap_group, group_info)
     }
     return map
+  } catch (err: any) {
+    log.warn(`Failed to get groupInfo: ${JSON.stringify(err)}`)
+    return null
+  }
 }

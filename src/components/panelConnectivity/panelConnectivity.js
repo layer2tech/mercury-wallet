@@ -68,7 +68,7 @@ const PanelConnectivity = (props) => {
       isMounted = false
       clearInterval(interval);
     }
-  }, [block_height, torInfo.online]);
+  }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch, torInfo.online]);
 
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
@@ -156,7 +156,7 @@ const toggleURL = (event) => {
                 condition = { server_ping_ms !== null }/>
             <RadioButton 
                 connection = "Swaps"
-                checked = { swap_groups_array.length > 0 || conductor_ping_ms }
+                checked = { swap_groups_array.length > 0 || conductor_ping_ms != null }
                 condition = { conductor_ping_ms !== null }/>
             <RadioButton 
                 connection = "Bitcoin"

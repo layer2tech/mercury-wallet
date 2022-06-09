@@ -59,7 +59,7 @@ const SwapPage = () => {
     );
   }
 
-  const updateSwapInfo = (isMounted) => {
+  const updateSwapInfo = async (isMounted) => {
     if (isMounted === true) {  
       if (torInfo.online === true) {
         console.log('tor online - calling update swap group info...')
