@@ -19,7 +19,7 @@ export const checkForServerError = (response: any) => {
     }
     const error = return_val?.error
     if (error != null) {
-        throw error
+        throw Error(JSON.stringify(error))
     }
 }
 
