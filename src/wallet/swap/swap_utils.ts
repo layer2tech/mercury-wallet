@@ -9,6 +9,8 @@ import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
 import { Wallet } from '../wallet'
 import { MockWasm } from '..';
+//import { Swap } from 'client-wasm';
+import Swap from './swap'
 
 let bitcoin = require("bitcoinjs-lib");
 let types = require("../types")
@@ -118,6 +120,7 @@ export const validateSwap = (statecoin: StateCoin) => {
 
 // Each step in the swap has an expected initial statecoin status and a function to be performed
 export class SwapStep {
+  swap: Swap
   phase: string
   subPhase: string
   statecoin_status: Function
@@ -126,16 +129,18 @@ export class SwapStep {
   doit: Function
 
   constructor( 
+    swap: Swap,
     phase: string,
     subPhase: string,
     statecoin_status: Function,
     swap_status: Function,
     statecoin_properties: Function,
     doit: Function) {
+      this.swap = swap
       this.phase = phase
       this.subPhase = subPhase
       this.statecoin_status = statecoin_status
-      this.swap_status = swap_status
+      this.swap_status = swap_status 
       this.statecoin_properties = statecoin_properties
       this.doit = doit
     }

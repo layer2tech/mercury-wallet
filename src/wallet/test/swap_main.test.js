@@ -47,16 +47,17 @@ async function getWallet() {
 
 const swap_steps = (swap) => {
   return [
-  new SwapStep(
+    new SwapStep(
+    swap,
       SWAP_STATUS.Phase0, "pollUtxo",
-      () => {return swap.statecoin.status === STATECOIN_STATUS.AWAITING_SWAP},
-      () => {return swap.statecoin.swap_status === SWAP_STATUS.Phase0},
-      () => {
-        if (swap.statecoin.statechain_id === null || 
-          swap.statecoin.statechain_id === undefined) throw Error("statechain id is invalid");
+      (s) => {return s.statecoin.status === STATECOIN_STATUS.AWAITING_SWAP},
+      (s) => {return s.statecoin.swap_status === SWAP_STATUS.Phase0},
+      (s) => {
+        if (s.statecoin.statechain_id === null || 
+          s.statecoin.statechain_id === undefined) throw Error("statechain id is invalid");
         return true
       },
-      swap.pollUtxo
+      (s) => { s.pollUtxo() }
     )
   ]
 }

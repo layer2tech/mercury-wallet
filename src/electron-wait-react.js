@@ -17,7 +17,7 @@ const tryConnection = () => client.connect({port: port}, () => {
             console.log('starting electron');
             const electron = exec('npm run electron');
             
-            electron.stdout.on("data", function(data) {
+            electron.stdout.once("data", function(data) {
                 console.log("stdout: " + data.toString());
             });
         }

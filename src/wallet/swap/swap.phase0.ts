@@ -4,16 +4,17 @@ import Swap from "./swap"
 
 export function swapPhase0(swap: Swap): SwapStep[] {
     return [
-        new SwapStep(
+      new SwapStep(
+          swap,
             SWAP_STATUS.Phase0, "pollUtxo",
-            () => {return swap.statecoin.status === STATECOIN_STATUS.AWAITING_SWAP},
-            () => {return swap.statecoin.swap_status === SWAP_STATUS.Phase0},
-            () => {
-              if (swap.statecoin.statechain_id === null || 
-                swap.statecoin.statechain_id === undefined) throw Error("statechain id is invalid");
-              return true
-            },
-            swap.pollUtxoPhase0
+        (s: Swap) => { return s.statecoin.status === STATECOIN_STATUS.AWAITING_SWAP },
+        (s: Swap) => { return s.statecoin.swap_status === SWAP_STATUS.Phase0 },
+        (s: Swap) => {
+            if (s.statecoin.statechain_id === null ||
+              s.statecoin.statechain_id === undefined) throw Error("statechain id is invalid");
+            return true          
+          },
+        (s: Swap) => { return s.pollUtxoPhase0 }
           )
     ]
 }

@@ -7,31 +7,38 @@ import Swap from "./swap"
 
 export function swapPhase2(swap: Swap): SwapStep[] {
     return [
-        new SwapStep(
+      new SwapStep(
+          swap,
             SWAP_STATUS.Phase2, "pollSwapPhase2", 
-            () => {return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP},
-            () => {return swap.statecoin.swap_status === SWAP_STATUS.Phase2},
-            () => {
-              if (swap.statecoin.swap_id===null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
-              if (!swap.statecoin.swap_my_bst_data) throw Error("No BST data found for coin. BST data should be set in Phase1.");
-              if (swap.statecoin.swap_info===null) throw Error("No swap info found for coin. Swap info should be set in Phase1.")
-              return true
-            },
-            swap.pollSwapPhase2
+        (s: Swap) => { return s.statecoin.status === STATECOIN_STATUS.IN_SWAP },
+        (s: Swap) => { return s.statecoin.swap_status === SWAP_STATUS.Phase2 },
+        (s: Swap) => {
+            if (s.statecoin.swap_id === null) throw Error("No Swap ID found. Swap ID should be set in Phase0.");
+            if (!s.statecoin.swap_my_bst_data) throw Error("No BST data found for coin. BST data should be set in Phase1.");
+            if (s.statecoin.swap_info === null) throw Error("No swap info found for coin. Swap info should be set in Phase1.")
+            return true
+                      },
+        (s: Swap) => { return s.pollSwapPhase2 }
           ),
-          new SwapStep(
+      new SwapStep(
+            swap,
             SWAP_STATUS.Phase2, "getBSS",
-            () => {return true},
-            () => {return true},
-            () => {return true},
-            swap.getBSS
+        (s: Swap) => { return true },
+        (s: Swap) => { return true },
+        (s: Swap) => { return true },
+        (s: Swap) => { return s.getBSS }
           ),
-          new SwapStep(
+      new SwapStep(
+            swap,
             SWAP_STATUS.Phase2, "doSwapSecondMessage",
-            () => {return true},
-            () => {return true},
-            () => {return true},
-            swap.doSwapSecondMessage
+        (s: Swap) => {
+          return () => { return true }
+},
+        (s: Swap) => {
+          return () => { return true }
+        },
+        (s: Swap) => { return true },
+        (s: Swap) => { return s.doSwapSecondMessage }
           ),
     ]
 }

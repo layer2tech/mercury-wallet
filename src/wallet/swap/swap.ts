@@ -97,19 +97,19 @@ export default class Swap {
   }
 
   checkStatecoinStatus = (step: SwapStep) => {
-    if (!step.statecoin_status()) {
+    if (!step.statecoin_status(this)) {
       throw Error(`${step.description()}: invalid statecoin status: ${this.statecoin.status}`)
     }
   }
 
   checkSwapStatus = (step: SwapStep) => {
-    if (!step.swap_status()) {
+    if (!step.swap_status(this)) {
       throw Error(`${step.description()}: invalid swap status: ${this.statecoin.swap_status}`)
     }
   }
 
   checkStatecoinProperties = (step: SwapStep) => {
-    if (!step.statecoin_properties()) {
+    if (!step.statecoin_properties(this)) {
       throw Error(`${step.description()}: invalid statecoin properties: ${JSON.stringify(this.statecoin)}`)
     }
   }
@@ -137,7 +137,7 @@ export default class Swap {
     this.checkNRetries()
     this.checkSwapLoopStatus()
     const nextStep = this.getNextStep()
-    let step_result = await nextStep.doit()
+    let step_result = await nextStep.doit(this)()
     await this.processStepResult(step_result, nextStep)
     return step_result
   }
@@ -855,9 +855,6 @@ export default class Swap {
       }
     }
   }
-
-
-
 
   // Check statecoin is eligible for entering a swap group
   validate = () => {
