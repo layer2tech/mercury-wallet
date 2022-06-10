@@ -69,7 +69,7 @@ describe('Swap phase 2', function() {
     if(STATECOIN_STATUS[i] !== STATECOIN_STATUS.IN_SWAP){
       const sc_status = STATECOIN_STATUS[i]
       statecoin.status=cloneDeep(sc_status)
-      swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+      swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false) 
       await expect(swapPhase2(swap)).rejects.toThrowError(`Coin status is not IN_SWAP. Status: ${sc_status}`)
     }
   }
@@ -82,14 +82,14 @@ describe('Swap phase 2', function() {
     if(SWAP_STATUS[i] !== SWAP_STATUS.Phase2){
       const swap_status = STATECOIN_STATUS[i]
       statecoin.swap_status=cloneDeep(swap_status)
-      swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+      swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false) 
       await expect(swapPhase2(swap))
         .rejects.toThrowError(`phase Phase2:pollSwapPhase2: invalid swap status: ${swap_status}`)
     }
   }
 
   statecoin.swap_status = null
-  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false) 
   await expect(swapPhase2(swap))
         .rejects.toThrowError(`phase Phase2:pollSwapPhase2: invalid swap status: ${null}`)
 
@@ -101,21 +101,21 @@ describe('Swap phase 2', function() {
   statecoin.swap_my_bst_data=null
   statecoin.swap_info= null
 
-  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false) 
   await expect(swapPhase2(swap))
     .rejects.toThrowError("No Swap ID found. Swap ID should be set in Phase0.")
 
   
   statecoin.swap_id = "a swap id"
 
-  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false) 
   await expect(swapPhase2(swap))
     .rejects.toThrowError("No BST data found for coin. BST data should be set in Phase1.")
 
   
   statecoin.swap_my_bst_data = "a bst data"
 
-  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
+  swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false) 
   await expect(swapPhase2(swap))
   .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
 
@@ -143,7 +143,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
 
   let wallet = await getWallet()
   wallet.http_client = http_mock
-  let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+  let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
   
   //A server error will now be throw from an API call
   //The error type should be SwapRetryError 
@@ -178,11 +178,11 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
     })
 
     let wallet = await getWallet()
-    let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+    let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
     await expect(swapPhase2(swap))
       .rejects.toThrow(Error)
       
-    swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+    swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
     await expect(swapPhase2(swap))
       .rejects.toThrowError("Swap halted at phase 1")
 
@@ -195,10 +195,10 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
             return phase
           }
         })
-        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
         await expect(swapPhase2(swap))
           .rejects.toThrow(Error)
-        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
         await expect(swapPhase2(swap))
           .rejects.toThrowError(`Swap error: Expected swap phase2. Received: ${phase}`)
       }
@@ -235,7 +235,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
     
       let wallet = await getWallet()
       wallet.http_mock = http_mock
-      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+      let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
      
       let result = await swapPhase2(swap)
       expect(result.is_ok()).toEqual(false)
@@ -272,7 +272,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
         })
 
         statecoin = cloneDeep(INIT_STATECOIN)
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
         let result = await swapPhase2(swap)
         expect(result.is_ok()).toEqual(false)
         expect(result.message).toEqual(bst_missing_s_prime_error().message)
@@ -312,7 +312,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
           const UI_PHASE3_STATECOIN = cloneDeep(phase3_statecoin)
   
           let wallet = await getWallet()
-          let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+          let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
           let result = await swapPhase2(swap)
           expect(result.is_ok()).toEqual(false)
           expect(result.message).toEqual(`Error getting new TOR id: ${tor_id_error()}`)
@@ -356,7 +356,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
             const UI_PHASE4_STATECOIN = cloneDeep(phase4_statecoin)
 
             
-            let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+            let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
     
             let result = await swapPhase2(swap)
             expect(result.is_ok()).toEqual(false)
@@ -403,7 +403,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
               const UI_PHASE4_STATECOIN = cloneDeep(phase4_statecoin)
       
               let wallet = await getWallet()
-              let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+              let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
               let result = await swapPhase2(swap)
               expect(result.is_ok()).toEqual(false)
@@ -461,7 +461,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
                 const UI_PHASE4_STATECOIN = cloneDeep(phase4_statecoin)
         
                 let wallet = await getWallet()
-                let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+                let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
                 let result = await swapPhase2(swap)
                 expect(result.is_ok()).toEqual(false)
                 expect(result.message).toEqual(`${make_post_error(POST_ROUTE.SWAP_SECOND, `${JSON.stringify(POST_BST)}`).message}`)
@@ -518,7 +518,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
               const UI_PHASE5_STATECOIN = cloneDeep(phase5_statecoin)
       
               let wallet = await getWallet()
-              let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+              let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
               let result =  await swapPhase2(swap);
               expect(result.is_ok()).toBe(true)

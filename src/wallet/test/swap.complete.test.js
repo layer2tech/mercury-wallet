@@ -250,7 +250,7 @@ describe('full swap test 1 - correct swap', () => {
         let statecoin = get_statecoin_in();
         const proof_key_der = get_proof_key_der()
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         // phase1 
         let final_statecoin = cloneDeep(statecoin)

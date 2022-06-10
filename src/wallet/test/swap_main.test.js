@@ -20,6 +20,7 @@ import { AsyncSemaphore } from '@esfx/async-semaphore';
 import { STATECOIN_STATUS } from '../statecoin.ts';
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
 import { assert } from 'console';
+import { getSwapInfo } from '../swap/info_api.js';
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -57,7 +58,12 @@ const swap_steps = (swap) => {
       },
       swap.pollUtxo
     )
-]}
+  ]
+}
+
+getSwap = (wallet, statecoin) => {
+  return new Swap(wallet, statecoin, undefined, undefined, false, false)
+}
 
 describe('Swap Checks', function () {
   let wallet
@@ -69,7 +75,7 @@ describe('Swap Checks', function () {
   test('test checkNRetries', function () {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 1)
     const statecoin = wallet.statecoins.coins[0]
-    let swap = new Swap(wallet, statecoin)
+    let swap = getSwap(wallet, statecoin)
     swap.n_retries = 0
     expect(swap.checkNRetries()).toEqual()
     
@@ -84,7 +90,7 @@ describe('Swap Checks', function () {
 
     let statecoin = wallet.statecoins.coins[0]
     statecoin.status = STATECOIN_STATUS.AVAILABLE
-    let swap = new Swap(wallet, statecoin)
+    let swap = getSwap(wallet, statecoin)
     expect(() => {swap.checkSwapLoopStatus()}).toThrow(Error("Coin removed from swap pool"))
 
     setSwapDetails(statecoin, 0)
@@ -112,7 +118,7 @@ describe('Swap Checks', function () {
   test('checkWalletStatus passes if wallet is active',  () => {
     expect(wallet.active).toBe(true)
     let statecoin = wallet.statecoins.coins[0]
-    let swap = new Swap(wallet, statecoin)
+    let swap = getSwap(wallet, statecoin)
     swap.swap_steps = swap_steps(swap)
     expect(swap.checkWalletStatus()).toBe()
   })
@@ -120,7 +126,7 @@ describe('Swap Checks', function () {
   test('checkWalletStatus throws an Error if wallet is not active',  () => {
     wallet.stop()
     let statecoin = wallet.statecoins.coins[0]
-    let swap = new Swap(wallet, statecoin)
+    let swap = getSwap(wallet, statecoin)
     swap.swap_steps = swap_steps(swap)
     expect(() => { swap.checkWalletStatus() }).toThrow(Error("wallet unloading..."))
   })
@@ -128,7 +134,7 @@ describe('Swap Checks', function () {
   test('test checkStepStatus',  () => {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
-    let swap = new Swap(wallet, statecoin)
+    let swap = getSwap(wallet, statecoin)
     swap.swap_steps = swap_steps(swap)
     expect(swap.checkStepStatus()).toBe()
   })
@@ -136,7 +142,7 @@ describe('Swap Checks', function () {
   test('test checkStatecoinStatus',  () => {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
-    let swap = new Swap(wallet, statecoin)
+    let swap = getSwap(wallet, statecoin)
     swap.swap_steps = swap_steps(swap)
     expect(swap.checkStatecoinStatus(swap.getNextStep())).toBe()
     swap.statecoin.status = STATECOIN_STATUS.AVAILABLE
@@ -149,7 +155,7 @@ describe('Swap Checks', function () {
   test('test checkSwapStatus',  () => {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
-    let swap = new Swap(wallet, statecoin)
+    let swap = getSwap(wallet, statecoin)
     swap.swap_steps = swap_steps(swap)
     let step = swap.getNextStep()
     expect(swap.checkSwapStatus(step)).toBe()
@@ -162,7 +168,7 @@ describe('Swap Checks', function () {
   test('test checkStatecoinProperties',  () => {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
-    let swap = new Swap(wallet, statecoin)
+    let swap = getSwap(wallet, statecoin)
     swap.swap_steps = swap_steps(swap)
     const step = swap.getNextStep()
     expect(swap.checkStatecoinProperties(step)).toBe()
@@ -182,7 +188,7 @@ describe('Swap Checks', function () {
 
     const statecoin = wallet.statecoins.coins[0]
 
-    let swap = new Swap(wallet, statecoin)
+    let swap = getSwap(wallet, statecoin)
     let err = Error("Coin " + statecoin.getTXIdAndOut() + " already involved in swap.")
     const checkValidateSwap = (swap, statecoin, err) => {
       expect(() => {
@@ -196,24 +202,24 @@ describe('Swap Checks', function () {
     checkValidateSwap(swap,statecoin,err)
  
     statecoin.status = STATECOIN_STATUS.IN_SWAP
-    swap = new Swap(wallet, statecoin)
+    swap = getSwap(wallet, statecoin)
     err = Error("Coin " + statecoin.getTXIdAndOut() + " already involved in swap.")
     checkValidateSwap(swap,statecoin,err)
 
     statecoin.status = STATECOIN_STATUS.SPENT
-    swap = new Swap(wallet, statecoin)
+    swap = getSwap(wallet, statecoin)
     err = Error("Coin " + statecoin.getTXIdAndOut() + " not available for swap.")
     checkValidateSwap(swap,statecoin,err)
 
     statecoin.status = STATECOIN_STATUS.AVAILABLE
     statecoin.swap_status = SWAP_STATUS.Phase4
-    swap = new Swap(wallet, statecoin)
+    swap = getSwap(wallet, statecoin)
     err = Error(`Coin ${statecoin.shared_key_id} is in swap phase 4. Swap must be resumed.`)
     checkValidateSwap(swap,statecoin,err)
 
     statecoin.status = STATECOIN_STATUS.AVAILABLE
     statecoin.swap_status = null
-    swap = new Swap(wallet, statecoin)
+    swap = getSwap(wallet, statecoin)
     expect(swap.validate()).toBe()
     expect(statecoin.validateSwap()).toBe()
   })
@@ -231,20 +237,20 @@ describe('Swap Checks', function () {
       }).toThrow(err)
     }
 
-    let swap = new Swap(wallet, statecoin, null, null, true)
+    let swap = new Swap(wallet, statecoin, null, null, true, false)
     swap.resume = true
     let err = Error("Cannot resume coin " + statecoin.shared_key_id + " - not in swap.");
     checkValidateResumeSwap(swap,statecoin,err)
 
     statecoin.status = STATECOIN_STATUS.IN_SWAP
-    swap = new Swap(wallet, statecoin)
+    swap = getSwap(wallet, statecoin)
     swap.resume = true
 
     err = Error("Cannot resume coin " + statecoin.shared_key_id + " - swap status: " + statecoin.swap_status);
     checkValidateResumeSwap(swap,statecoin,err)
 
     statecoin.swap_status = SWAP_STATUS.Phase4
-    swap = new Swap(wallet, statecoin)
+    swap = getSwap(wallet, statecoin)
     swap.resume = true
     expect(swap.validate()).toBe()
     expect(statecoin.validateResumeSwap()).toBe()
@@ -281,7 +287,7 @@ describe('swapToken', function () {
   test('swapPhase4HandleErrPollSwap', async function () {
     let wallet = await getWallet()
     let statecoin = wallet.statecoins.coins[0]
-    let swap = new Swap(wallet, statecoin)
+    let swap = getSwap(wallet, statecoin)
 
     http_mock.post = jest.fn((path, body) => {
       if(path === POST_ROUTE.SWAP_POLL_SWAP){
@@ -326,7 +332,7 @@ describe('Do Swap Poll',  function () {
         statecoin.swap_id = { id: "000-000-00-00" };
     
 
-        let swap = new Swap(wallet, statecoin, mock_proof_key_der);
+        let swap = new Swap(wallet, statecoin, mock_proof_key_der, false, false);
 
 
         swap.prepare_statecoin()
@@ -337,7 +343,7 @@ describe('Do Swap Poll',  function () {
         // Check swap details initialised to null
         
         statecoin = setSwapDetails(wallet.statecoins.coins[0], 8)
-        swap = new Swap(wallet, statecoin, mock_proof_key_der, null, true);
+        swap = new Swap(wallet, statecoin, mock_proof_key_der, null, true, false);
 
         swap.prepare_statecoin()
         
@@ -363,7 +369,7 @@ describe('Do Swap Poll',  function () {
 
     statecoin = setSwapDetails(statecoin, "Reset")
 
-    let swap = new Swap(wallet, statecoin, mock_proof_key_der);
+    let swap = new Swap(wallet, statecoin, mock_proof_key_der, false, false);
 
     let spy = jest.spyOn(swap, 'do_swap_steps').mockImplementation(() => {
         swap.statecoin_out = test_statecoin
@@ -505,7 +511,7 @@ describe('Process step result Retry',  function () {
   jest.setTimeout(10000)
 
   test('processStepResultRetry increments n_retries', async function () {
-    let swap = new Swap(wallet, statecoin);
+    let swap = getSwap(wallet, statecoin);
     let n_retries_in = cloneDeep(swap.n_retries)
     let nextStep = swapInit(swap)[0]
     console.log(nextStep.description())
@@ -514,7 +520,7 @@ describe('Process step result Retry',  function () {
   })
 
   test('processStepResultRetry sets or clears statecoin swap error', async function () {
-    let swap = new Swap(wallet, statecoin);
+    let swap = getSwap(wallet, statecoin);
     let values = Object.values(TIMEOUT_STATUS)
     for(let i=0; i<values.length; i++){
       let ts = values[i];
@@ -536,7 +542,7 @@ describe('Process step result Ok',  function () {
     wallet = await getWallet()
     statecoin = wallet.statecoins.coins[0]
     setSwapDetails(statecoin, 1)
-    swap = new Swap(wallet, statecoin);
+    swap = getSwap(wallet, statecoin);
     statecoin.swap_error = "a swap error"
     in_step = cloneDeep(swap.next_step)
     swap.processStepResult(SwapStepResult.Ok(), swapInit(swap)[0]) 

@@ -79,8 +79,8 @@ describe('Do Swap', function () {
 
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
 
-    let swap = new Swap(wallet, wallet.statecoins.coins[0])
-    swap = new Swap(wallet, wallet.statecoins.coins[1])
+    let swap = new Swap(wallet, wallet.statecoins.coins[0], undefined, undefined, false, false)
+    swap = new Swap(wallet, wallet.statecoins.coins[1], undefined, undefined, false, false)
 
     await wallet.deRegisterSwapCoin(wallet.statecoins.coins[0])
     // Should set all swap data to null e.g. (swap_status & ui_swap_status)

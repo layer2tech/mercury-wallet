@@ -60,10 +60,11 @@ export default class Swap {
   n_retries: number
   resume: boolean
   step_timer: Timer
+  rate_limit: boolean
 
   constructor(wallet: Wallet,
     statecoin: StateCoin, proof_key_der: BIP32Interface,
-    new_proof_key_der: BIP32Interface, resume: boolean = false) {
+    new_proof_key_der: BIP32Interface, resume: boolean = false, rate_limit: boolean = true) {
     this.wallet = wallet
     this.clients = SwapPhaseClients.from_wallet(wallet)
     this.proof_key_der = proof_key_der
@@ -80,6 +81,7 @@ export default class Swap {
     this.n_retries = 0
     this.resume = resume
     this.step_timer = new Timer()
+    this.rate_limit = rate_limit
   }
 
   setSwapSteps = (steps: SwapStep[]) => {
@@ -125,8 +127,10 @@ export default class Swap {
     this.checkStatecoinProperties(step)
   }
 
-  doNext = async () => {
-    await swapStepRateLimiter.removeTokens(1)
+  doNext = async (): Promise<SwapStepResult> => {
+    if (this.rate_limit) {
+      await swapStepRateLimiter.removeTokens(1)  
+    }
     this.checkWalletStatus()
     this.checkStepStatus()
     this.checkStepTimer()
@@ -135,6 +139,7 @@ export default class Swap {
     const nextStep = this.getNextStep()
     let step_result = await nextStep.doit()
     await this.processStepResult(step_result, nextStep)
+    return step_result
   }
 
   processStepResult = async (sr: SwapStepResult, next_step: SwapStep) => {
@@ -632,10 +637,13 @@ export default class Swap {
       "commitment": this.getSwapBatchTransferData().commitment,
     }
 
+    console.log("getTransferMsg4...")
     let transfer_msg_4 = await getTransferMsg4(http_client,
       electrum_client, network, msg3, rec_se_addr_bip32,
       batch_data, req_confirmations, block_height, value, null);
+    console.log("getTransferMsg4 typeforce...")
     typeforce(types.TransferMsg4, transfer_msg_4);
+    console.log(`getTransferMsg4 result: ${JSON.stringify(transfer_msg_4)}`)
     return transfer_msg_4;
   }
 
@@ -647,6 +655,7 @@ export default class Swap {
     let req_confirmations = this.req_confirmations
     let block_height = this.block_height
     let value = this.statecoin.value
+    console.log("getTransferMsg4...")
     const transfer_msg_4 = await this.getTransferMsg4()
 
     const msg3 = this.statecoin.swap_transfer_msg_3_receiver
@@ -658,10 +667,13 @@ export default class Swap {
       "id": this.getSwapID().id,
       "commitment": this.getSwapBatchTransferData().commitment,
     }
+    console.log("transferReceiver...")
     let finalize_data = await transferReceiver(http_client,
       electrum_client, network, msg3, rec_se_addr_bip32,
       batch_data, req_confirmations, block_height, value, transfer_msg_4);
+    console.log("typeforce finalize_data...")
     typeforce(types.TransferFinalizeData, finalize_data);
+    console.log(`typeforce finalize_data: ${JSON.stringify(finalize_data)}`)
     return finalize_data;
   }
 
@@ -677,8 +689,11 @@ export default class Swap {
 
   transferReceiver = async (): Promise<SwapStepResult> => {
     try {
+      console.log("update block height...")
       this.updateBlockHeight();
+      console.log("getTransferFinalizedData...")
       await this.getTransferFinalizedData();
+      console.log("update ui swap status...")
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase7;
       return SwapStepResult.Ok("transferReceiver")
     } catch (err: any) {
@@ -735,6 +750,7 @@ export default class Swap {
   async getTransferFinalizedData(): Promise<TransferFinalizeData> {
     let data = this.statecoin.swap_transfer_finalized_data
     if (data === null || data === undefined) {
+      console.log("do_transfer_receiver...")
       data = await this.do_transfer_receiver()
       this.statecoin.swap_transfer_finalized_data = data
       await this.wallet.saveStateCoinsList()
@@ -745,6 +761,7 @@ export default class Swap {
   async getTransferMsg4(): Promise<TransferMsg4> {
     let data = this.statecoin.swap_transfer_msg_4
     if (data === null || data === undefined) {
+      console.log("do_get_transer_msg_4...")
       data = await this.do_get_transfer_msg_4()
       this.statecoin.swap_transfer_msg_4 = data
       await this.wallet.saveStateCoinsList()

@@ -102,7 +102,7 @@ describe('swapPhase3', () => {
             if (STATECOIN_STATUS[i] !== STATECOIN_STATUS.IN_SWAP) {
                 const sc_status = STATECOIN_STATUS[i]
                 statecoin.status = cloneDeep(sc_status)
-                swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+                swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
                 await expect(swapPhase3(swap))
                     .rejects
                     .toThrowError(`phase Phase3:pollSwapPhase3: invalid swap status: ${statecoin.swap_status}`)
@@ -117,14 +117,14 @@ describe('swapPhase3', () => {
             if (SWAP_STATUS[i] !== SWAP_STATUS.Phase3) {
                 const swap_status = STATECOIN_STATUS[i]
                 statecoin.swap_status = cloneDeep(swap_status)
-                swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+                swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
                 await expect(swapPhase3(swap))
                     .rejects.toThrowError(`phase Phase3:pollSwapPhase3: invalid swap status: ${statecoin.swap_status}`)
             }
         }
 
         statecoin.swap_status = null
-        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
         await expect(swapPhase3(swap))
             .rejects.toThrowError(`phase Phase3:pollSwapPhase3: invalid swap status: ${statecoin.swap_status}`)
 
@@ -135,25 +135,25 @@ describe('swapPhase3', () => {
         statecoin.swap_id = null
         statecoin.swap_my_bst_data = null
         statecoin.swap_info = null
-        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         await expect(swapPhase3(swap))
             .rejects.toThrowError("No Swap ID found. Swap ID should be set in Phase0.")
 
         statecoin.swap_id = "a swap id"
-        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         await expect(swapPhase3(swap))
             .rejects.toThrowError("No swap info found for coin. Swap info should be set in Phase1.")
 
         statecoin.swap_info = mock_http_client.SWAP_INFO;
-        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         await expect(swapPhase3(swap))
             .rejects.toThrowError("No swap address found for coin. Swap address should be set in Phase1")
 
         statecoin.swap_address = "a swap address"
-        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         await expect(swapPhase3(swap))
             .rejects.toThrowError("No receiver address found for coin. Receiver address should be set in Phase1")
@@ -177,7 +177,7 @@ describe('swapPhase3', () => {
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         checkRetryMessage(await swapPhase3(swap),
             `${server_error().message}`)
@@ -204,7 +204,7 @@ describe('swapPhase3', () => {
         })
 
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         await expect(swapPhase3(swap))
             .rejects.toThrow(Error)
@@ -254,7 +254,7 @@ describe('swapPhase3', () => {
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der);
 
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         checkRetryMessage(await swapPhase3(swap),
             "transferSender: Error from GET request - path: info/fee, params: undefined")
@@ -289,7 +289,7 @@ describe('swapPhase3', () => {
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         checkRetryMessage(await swapPhase3(swap),
             "transferSender: Error from GET request - path: info/statecoin, params: undefined")
@@ -328,7 +328,7 @@ describe('swapPhase3', () => {
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         checkRetryMessage(await swapPhase3(swap),
             `transferSender: ${post_error(POST_ROUTE.TRANSFER_SENDER).message}`)
@@ -368,7 +368,7 @@ describe('swapPhase3', () => {
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         checkRetryMessage(await swapPhase3(swap),
             transfer_missing_x1_error)
@@ -408,7 +408,7 @@ describe('swapPhase3', () => {
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         checkRetryMessage(await swapPhase3(swap),
             "transferSender: Error from POST request - path: prepare-sign, body: undefined")
@@ -459,7 +459,7 @@ describe('swapPhase3', () => {
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         checkRetryMessage(await swapPhase3(swap),
             "transferSender: Error from wasm_client: Sign.first_message")
@@ -513,7 +513,7 @@ describe('swapPhase3', () => {
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
 
         checkRetryMessage(await swapPhase3(swap),
             "transferSender: Error from POST request - path: ecdsa/sign/second, body: undefined")
@@ -573,7 +573,7 @@ describe('swapPhase3', () => {
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
         let wallet = await getWallet()
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
         
         checkRetryMessage(await swapPhase3(swap),
             "transferUpdateMsg: Error from POST request - path: transfer/update_msg, body: undefined")
@@ -598,7 +598,7 @@ describe('swapPhase3', () => {
         let wallet = await getWallet();
         let statecoin = makeTesterStatecoin();
         init_phase3_status(statecoin);
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
         swap.statecoin.swap_transfer_msg = null
         expect(swap.statecoin.swap_transfer_msg_3_receiver).toEqual(null)
         swap.statecoin.swap_transfer_msg = mock_http_client.TRANSFER_MSG3
@@ -647,7 +647,7 @@ describe('swapPhase3', () => {
         wasm_mock.Commitment.make_commitment = jest.fn(() => 
             JSON.stringify(COMMITMENT_DATA[0].batch_data));
 
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der, false, false)
         const step_filter = (step) => {
             return step.subPhase === "makeSwapCommitment"
         }

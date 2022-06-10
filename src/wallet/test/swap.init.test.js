@@ -91,7 +91,7 @@ describe('Swap init', function () {
     let statecoin = get_statecoin_in();
     const INIT_STATECOIN = cloneDeep(statecoin)
     let wallet = await getWallet()
-    let swap = new Swap(wallet, statecoin, undefined, null) 
+    let swap = new Swap(wallet, statecoin, undefined, null, false, false) 
 
     await expect(swapInit(swap)).
       rejects.
@@ -100,7 +100,7 @@ describe('Swap init', function () {
     
     let invalid_proof_key_der = { "publicKey": Buffer.from("a buffer string") }
 
-    swap = new Swap(wallet, statecoin, invalid_proof_key_der, null) 
+    swap = new Swap(wallet, statecoin, invalid_proof_key_der, null, false, false) 
 
     await expect(swapInit(swap)).
       rejects.
@@ -115,7 +115,7 @@ describe('Swap init', function () {
     console.log(`swap status: ${JSON.stringify(statecoin.swap_status)}`)
     const INIT_STATECOIN = cloneDeep(statecoin)
     let wallet = await getWallet()
-    let swap = new Swap(wallet, statecoin, undefined, null) 
+    let swap = new Swap(wallet, statecoin, undefined, null, false, false) 
 
     const statecoin_status = Object.values(STATECOIN_STATUS).concat([null])
     //Test invalid statecoin statuses
@@ -126,11 +126,11 @@ describe('Swap init', function () {
         statecoin.status = cloneDeep(sc_status)
         let init_statecoin = cloneDeep(INIT_STATECOIN)
         init_statecoin.status = cloneDeep(sc_status)
-        swap = new Swap(wallet, statecoin, undefined, null) 
+        swap = new Swap(wallet, statecoin, undefined, null, false, false) 
         await expect(swapInit(swap)).rejects.
           toThrowError(`phase Init:checkProofKeyDer: invalid statecoin status: ${statecoin.status}`)
         expect(statecoin).toEqual(init_statecoin)
-        swap = new Swap(wallet, statecoin, undefined, null) 
+        swap = new Swap(wallet, statecoin, undefined, null, false, false) 
         await expect(swapInit(swap)).rejects.toThrow(Error)
         expect(statecoin).toEqual(init_statecoin)
       }
@@ -149,12 +149,12 @@ describe('Swap init', function () {
         let init_statecoin = cloneDeep(INIT_STATECOIN)
         init_statecoin.swap_status = cloneDeep(ss)
 
-        swap = new Swap(wallet, statecoin, undefined, null) 
+        swap = new Swap(wallet, statecoin, undefined, null, false, false) 
         await expect(swapInit(swap))
           .rejects.toThrowError(`phase Init:checkProofKeyDer: invalid swap status: ${statecoin.swap_status}`);
         expect(statecoin).toEqual(init_statecoin)
 
-        swap = new Swap(wallet, statecoin, undefined, null) 
+        swap = new Swap(wallet, statecoin, undefined, null, false, false) 
         await expect(swapInit(swap))
           .rejects.toThrow(Error);
         expect(statecoin).toEqual(init_statecoin)
@@ -177,13 +177,13 @@ describe('Swap init', function () {
     })
 
     let wallet = await getWallet()
-    let swap = new Swap(wallet, statecoin, proof_key_der, null) 
+    let swap = new Swap(wallet, statecoin, proof_key_der, null, false, false) 
 
     let result = await swapInit(swap)
     expect(result.message).toEqual("Error from POST request - path: swap/register-utxo, body: {\"statechain_id\":\"\",\"signature\":{\"purpose\":\"SWAP\",\"data\":\"03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477\",\"sig\":\"304402200594cf179e90dfb81b3f997c0cb0ff6c8181ed76a119884779dece35c22fa6ac022042c32b8228dd40f57f049197af59f1585b048bd4c12611bd34e5f3cd7ed3a5e1\"},\"swap_size\":3,\"wallet_version\":\"" + WALLET_VERSION + "\"}");
     expect(statecoin).toEqual(INIT_STATECOIN)
 
-    swap = new Swap(wallet, statecoin, proof_key_der, null) 
+    swap = new Swap(wallet, statecoin, proof_key_der, null, false, false) 
     result = await swapInit(swap)
     expect(result.is_ok()).toEqual(false);
     expect(statecoin).toEqual(INIT_STATECOIN)
@@ -194,7 +194,7 @@ describe('Swap init', function () {
     let statecoin = get_statecoin_in();
     const proof_key_der = get_proof_key_der()
     let wallet = await getWallet()
-    let swap = new Swap(wallet, statecoin, proof_key_der, null) 
+    let swap = new Swap(wallet, statecoin, proof_key_der, null, false, false) 
 
     POST_ROUTE.SWAP_REGISTER_UTXO
 

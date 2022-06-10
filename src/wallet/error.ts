@@ -17,6 +17,10 @@ export const checkForServerError = (response: any) => {
         }
         throw Error(return_val)
     }
+    const error = return_val?.error
+    if (error != null) {
+        throw error
+    }
 }
 
 export const handlePromiseRejection = (err: any, timeout_msg: string) => {

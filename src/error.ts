@@ -23,10 +23,10 @@ export const handleNetworkError = (error: any) => {
     const err_str = error?.message
     const err_code = error?.code
     if (
-        (err_str && err_str.includes('Network Error') ||
+        (err_str != null && ( err_str.includes('Network Error') ||
             err_str.includes('Socks5 proxy rejected connection') ||
-            err_str.includes('API request timed out')) ||
-        (err_code && err_code === "ECONNRESET")
+            err_str.includes('API request timed out'))) ||
+        (err_code != null && err_code === "ECONNRESET")
     ) {
         log.warn(error)
     } else {
@@ -40,16 +40,16 @@ export const handleServerError = (error: any) => {
     }
     let error_2 = error?.error
     if (error_2 != null) {
-        const statusCode = error?.statusCode
-        const msg = error?.message
+        const statusCode = error_2?.statusCode
+        const msg = error_2?.message
         if (
             (statusCode != null && statusCode >= 500 && statusCode < 600) &&
             (msg != null && msg.includes("try again")) 
         )
         {
             log.warn(JSON.stringify(error))
-        } else {
-            throw error
-        }
+            return
+        } 
     }
+    throw error
 }
