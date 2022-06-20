@@ -52,14 +52,10 @@ export const callGetArgsHasTestnet = () => {
 
 let network;
 if (callGetArgsHasTestnet()) {
-  console.log("testnet was set...");
   network = bitcoin.networks["testnet"];
 } else {
-  console.log("mainnet was set...");
-  //network = bitcoin.networks["bitcoin"];
+  network = bitcoin.networks["bitcoin"];
 }
-
-console.log("netowrk is set to ...", network);
 
 let wallet;
 let testing_mode = require("../settings.json").testing_mode;

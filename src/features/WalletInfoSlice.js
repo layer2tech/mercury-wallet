@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 const initialState = {
   wallets: {},
+  loginInfo: [],
 };
 
 // stores all the wallet info into redux
@@ -10,28 +11,87 @@ export const WalletInfoSlice = createSlice({
   initialState,
   reducers: {
     save_wallet: (state, action) => {
-      console.group("save_wallet", "background: #222; color: #bada55");
+      const { key, value } = action.payload;
 
-      console.log("trying to save wallet, state:", state);
-      console.log("trying to save wallet, action:", action);
+      // don't save .account or objects without password attached
+      if (key.includes(".account")) {
+        return;
+      }
+      if (value.password === undefined) {
+        return;
+      }
 
-      console.groupEnd();
+      // this replaces the update instead of 'updating' it
+      return {
+        ...state,
+        wallets: {
+          ...state.wallets,
+          [key]: value,
+        },
+      };
     },
-    update_wallet: (state) => {
-      // update an existing wallet with new data
+    save_login: (state, action) => {
+      return {
+        ...state,
+        loginInfo: [...state.loginInfo, action.payload.value],
+      };
     },
-    delete_wallet: (state) => {
-      // delete a wallet from redux store
+    save_account: (state, action) => {
+      // check which account this belongs to with its key-value pair
+      const { key, value } = action.payload;
+      // ensure no .statecoins is within the key string
+      var realKey = key.split(".")[0];
+      var currentWallet = state.wallets[realKey];
+      var newWallet = { ...currentWallet, account: value };
+      return {
+        ...state,
+        wallets: {
+          ...state.wallets,
+          [realKey]: newWallet,
+        },
+      };
+    },
+    save_statecoins: (state, action) => {
+      // check which account this belongs to with its key-value pair
+      const { key, value } = action.payload;
+      // ensure no .statecoins is within the key string
+      var realKey = key.split(".")[0];
+      var currentWallet = state.wallets[realKey];
+      var newWallet = { ...currentWallet, statecoins: value };
+
+      // check if this was a 'delete' by removing it from accounts map
+      return {
+        ...state,
+        wallets: {
+          ...state.wallets,
+          [realKey]: newWallet,
+        },
+      };
+    },
+    save_activity: (state, action) => {
+      // check which account this belongs to with its key-value pair
+      const { key, value } = action.payload;
+      // ensure no .activity is within the key string
+      var realKey = key.split(".")[0];
+      var currentWallet = state.wallets[realKey];
+      var newWallet = { ...currentWallet, activity: value };
+      return {
+        ...state,
+        wallets: {
+          ...state.wallets,
+          [realKey]: newWallet,
+        },
+      };
     },
   },
 });
 
 export const {
-  get_wallet,
-  get_all_wallets,
   save_wallet,
-  update_wallet,
-  delete_wallet,
+  save_login,
+  save_statecoins,
+  save_activity,
+  save_account,
 } = WalletInfoSlice.actions;
 
 export default WalletInfoSlice.reducer;

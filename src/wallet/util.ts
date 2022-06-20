@@ -14,6 +14,8 @@ import { TransferMsg3, PrepareSignTxMsg } from "./mercury/transfer";
 import { callGetConfig } from "../features/WalletDataSlice";
 import { encrypt, decrypt } from "eciesjs12b";
 import { segwitAddr } from "./wallet";
+import { StateCoin } from "./statecoin";
+import { LanguageVariant, visitLexicalEnvironment } from "typescript";
 
 let bech32 = require("bech32");
 let bitcoin = require("bitcoinjs-lib");
@@ -206,7 +208,7 @@ export const txWithdrawBuild = (
   withdraw_fee: number,
   fee_per_byte: number
 ): TransactionBuilder => {
-  let tx_fee = Math.round(fee_per_byte * VIRTUAL_TX_SIZE * 10e7) / 10e7;
+  let tx_fee = getTxFee(fee_per_byte, 1);
 
   if (withdraw_fee + tx_fee >= value)
     throw Error("Not enough value to cover fee.");
@@ -218,6 +220,17 @@ export const txWithdrawBuild = (
   txb.addOutput(fee_address, withdraw_fee);
 
   return txb;
+};
+
+export const getTxFee = (
+  fee_per_byte: number,
+  n_inputs: number = 1
+): number => {
+  return (
+    Math.round(
+      fee_per_byte * (VIRTUAL_TX_SIZE + INPUT_TX_SIZE * (n_inputs - 1)) * 10e7
+    ) / 10e7
+  );
 };
 
 // Withdraw tx builder spending funding tx to:
@@ -232,6 +245,7 @@ export const txWithdrawBuildBatch = (
 ): TransactionBuilder => {
   // let txin = []; - not being used
   let value = 0;
+  console.log("tx builder");
   let txb: TransactionBuilder = new TransactionBuilder(network);
   let index = 0;
 
@@ -245,22 +259,15 @@ export const txWithdrawBuildBatch = (
     }
     index = index + 1;
   }
-  value = value + fee_info.deposit;
 
   let withdraw_fee = Math.round((value * fee_info.withdraw) / 10000); //(value * fee_info.withdraw) / 10000
 
-  let tx_fee =
-    Math.round(
-      fee_per_byte *
-        (VIRTUAL_TX_SIZE + INPUT_TX_SIZE * (sc_infos.length - 1)) *
-        10e7
-    ) / 10e7;
+  let tx_fee = getTxFee(fee_per_byte, sc_infos.length);
 
-  if (withdraw_fee + FEE >= value)
+  if (withdraw_fee + tx_fee >= value)
     throw Error("Not enough value to cover fee.");
 
-  // txb.addOutput(rec_address, value - FEE - withdraw_fee);
-  txb.addOutput(rec_address, value - tx_fee - FEE - withdraw_fee);
+  txb.addOutput(rec_address, value - tx_fee - withdraw_fee);
 
   txb.addOutput(fee_info.address, withdraw_fee);
 

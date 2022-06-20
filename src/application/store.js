@@ -1,6 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer from "../reducers";
+import { enableMapSet } from "immer";
+enableMapSet();
 
 // Store is the global wallet GUI data structure.
 // Non-state data shared between components is stored here.

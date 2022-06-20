@@ -31,7 +31,7 @@
   "homepage": "./",
   "scripts": {
     "install-local": "yarn add file:./tor-adapter",
-    "start": "react-app-rewired start",
+    "start": "react-app-rewired start --testnet",
     "prebuild": "DATE=`date` && YEAR=${DATE##* } && MERC_YEAR=`jq .build.copyright package.json | awk '{print $3}'` && if [ $YEAR -ne $MERC_YEAR ]; then echo 'package.json prebuild - expected .build.copyright year' $YEAR ', got' $MERC_YEAR '- please update year' && return 1; fi",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test --env=jsdom",
@@ -134,7 +134,8 @@
     "url": "^0.11.0",
     "web-vitals": "^2.1.2",
     "web3": "^1.6.1",
-    "conf": "^1.2.0"
+    "conf": "^1.2.0",
+    "limiter": "^2.1.0"
   },
   "browserslist": {
     "production": [

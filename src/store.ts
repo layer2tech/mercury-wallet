@@ -1,41 +1,70 @@
 import { ActivityLog, decryptAES, encryptAES, StateCoinList } from "./wallet";
 import { store } from "./application/store";
-import { save_wallet } from "./features/WalletInfoSlice";
+import {
+  save_wallet,
+  save_login,
+  save_statecoins,
+  save_activity,
+  save_account,
+} from "./features/WalletInfoSlice";
 
 // class the wraps in-built redux store
 export class Store {
-  data = new Map<string, any>();
   object: object;
+
   constructor(object: { name: string }) {
     this.object = object;
   }
 
   get(value: any = undefined) {
-    try {
-      let wallets: any = store.getState().walletInfo.wallets;
-
-      if (value === undefined) {
-        return wallets;
+    let walletInfo: any;
+    walletInfo = store.getState().walletInfo;
+    let wallets = walletInfo.wallets;
+    let loginInfo = walletInfo.loginInfo;
+    if (value === undefined) {
+      const hasKeys = !!Object.keys(wallets).length;
+      if (!hasKeys) {
+        return null;
       } else {
-        if (wallets[value] !== undefined) {
-          return wallets[value];
-        }
+        return wallets;
       }
-    } catch (e) {}
-    console.log("no wallet with this value found.");
+    }
+    // get from login store
+    else if (value.includes("logins.")) {
+      return loginInfo[value];
+    } else if (wallets[value] !== undefined) {
+      return wallets[value];
+    }
     return false;
   }
 
   set(key: any, value: any) {
-    console.log("setting key:", key, "value into store", value);
-
-    store.dispatch(save_wallet({ key, value }));
+    // set for login
+    if (key.includes("logins.")) {
+      console.log("set login. of account");
+      store.dispatch(save_login({ key, value }));
+    }
+    // set for account
+    else if (key.includes(".account")) {
+      store.dispatch(save_account({ key, value }));
+    }
+    // set for activity
+    else if (key.includes(".activity")) {
+      store.dispatch(save_activity({ key, value }));
+    }
+    // set for statecoins
+    else if (key.includes(".statecoins")) {
+      store.dispatch(save_statecoins({ key, value }));
+    } else {
+      // must be saving wallet only
+      store.dispatch(save_wallet({ key, value }));
+    }
   }
 }
 
 export class Storage {
-  store: any;
-  name: string;
+  private store: any;
+  private name: string;
   constructor(fileName: string) {
     this.name = fileName;
     this.store = new Store({ name: this.name });
@@ -98,7 +127,7 @@ export class Storage {
     delete wallet_json.config.testing_mode;
     delete wallet_json.config.jest_testing_mode;
     // remove active status flag
-    delete wallet_json.active;
+    //delete wallet_json.active;
 
     this.store.set(wallet_json.name, wallet_json);
   }
@@ -113,13 +142,18 @@ export class Storage {
     if (wallet_json === undefined)
       throw Error("No wallet called " + wallet_name + " stored.");
     //Wallet is active on startup
-    wallet_json.active = true;
+
+    //if(!process.env.web){
+    //  wallet_json.active = true;
+    //}
+
     return wallet_json;
   }
 
   getWalletDecrypted(wallet_name: string, password: string) {
     let wallet_json_encrypted = this.getWallet(wallet_name);
-    let wallet_json_decrypted = wallet_json_encrypted;
+    // copy the object but do not modify it's original reference. incorrectly changes redux store directly!
+    let wallet_json_decrypted = { ...wallet_json_encrypted };
     // Decrypt mnemonic
     try {
       wallet_json_decrypted.mnemonic = decryptAES(
