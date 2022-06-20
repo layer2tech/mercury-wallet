@@ -49,6 +49,28 @@
   opacity: 0;
   transition: opacity 0.3s;
 }
+
+.expired-tooltip .tooltip{
+  visibility: hidden;
+  width: 450px;
+  background-color: var(--button-border);
+  color: var(--text-primary);
+  text-align: center;
+  border-radius: 6px;
+  padding: 6px 12px;
+  position: absolute;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s;
+  top:0px;
+  right:0px;
+}
+
+.home-page .coin-item:hover .expired-tooltip .tooltip{
+  opacity: 1 !important;;
+  visibility: visible;
+}
+
 .coin-status-or-txid .swap-status-container.coinslist .tooltip.side{
   top: 0px;
   left:64px
@@ -440,6 +462,10 @@ p.short{
 }
 .sendStatecoin .coin-item.IN_SWAP,.sendStatecoin .coin-item.AWAITING_SWAP,.withdraw .coin-item.IN_SWAP,.withdraw .coin-item.AWAITING_SWAP{
   opacity: .3;
+}
+
+.coin-item .expired{
+  background-color: var(--warning-container);
 }
 
 .main-coin-wrap.small-screen .coin-item .CoinPanel {

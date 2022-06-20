@@ -171,13 +171,26 @@ const Coin = (props) => {
           }
         }}
       >
-        <div className="CoinPanel">
+        <div className={`CoinPanel ${props.coin_data.status === STATECOIN_STATUS.EXPIRED ? ("expired"):(null)}` }>
         {(props.coin_data.status === STATECOIN_STATUS.DUPLICATE) ?(
           <div className="dup-container">
             <span className="tooltip">
               <b>Duplicate Coin Warning!</b> This coin can only be withdrawn after the statecoin sharing the deposit address has been withdrawn and confirmed. 
             </span>
           </div>):(null)}
+          {/* TO DO: ADD WITHDRAWAL ADDRESS, IMPROVE STYLING, MAKE INSTRUCTIONS LESS WORDY */}
+          {props.coin_data.status === STATECOIN_STATUS.EXPIRED ? (
+            <div className="expired-tooltip">
+              <span className="tooltip">
+                <div><b>Coin Expired!</b></div>This coin will be automatically withdrawn to XXXXXXXXXXX
+                <div>Withdrawal Address: XXXXXXXXXXX</div>
+                <div>
+                  <p>To change withdrawal address go to Settings &gt; Manage Backup Transactions</p>
+                  <p>Click on the coin, enter address in "Pay to: ", Enter Fee then Create CPFP</p>
+                </div>
+              </span>
+            </div>
+          ):(null)}
           <div className="CoinAmount-block">
             <img src={props.coin_data.privacy_data.icon1} alt="icon" />
             <span className="sub">
