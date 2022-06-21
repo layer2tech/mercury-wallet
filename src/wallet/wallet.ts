@@ -9,7 +9,7 @@ import {
 import { ElectrsClient } from './electrs'
 import { ElectrsLocalClient } from './electrs_local'
 
-import { txCPFPBuild, FEE, encryptAES, getTxFee } from './util';
+import { txCPFPBuild, FEE, encryptAES, getTxFee, proofKeyFromXpub } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw, withdraw_init, withdraw_duplicate, withdraw_confirm, WithdrawMsg2 } from './mercury/withdraw';
@@ -60,6 +60,8 @@ try {
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890"
 export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7"
 export const MOCK_WALLET_MNEMONIC = "praise you muffin lion enable neck grocery crumble super myself license ghost"
+export const MOCK_WALLET_XPUB = "xpub6D37YcRivNgfmubnPauDvi5uumEj67ZbdtJBTBmees2rDZ9sRSsT4pJYJnjNPvETZJLSvbp3ZW3zhHH11LGVCxoP3hrCXu5VGBH3VnUwMu4"
+// Derivation path = m/44'/1'/0' for p2pkh
 
 // The wallet data must contain these fields
 export const required_fields = [
@@ -293,6 +295,9 @@ export class Wallet {
     // New properties should not make old wallets break
 
     new_wallet.account = json_wallet_to_bip32_root_account(json_wallet)
+
+    console.log(new_wallet)
+
     return new_wallet
   }
 
@@ -1601,38 +1606,48 @@ export class Wallet {
   // Args: shared_key_id of coin to send and receivers se_addr.
   // Return: transfer_message String to be sent to receiver.
   async transfer_sender(
-    shared_key_id: string,
+    shared_key_ids: string[],
     receiver_se_addr: string
-  ): Promise<TransferMsg3> {
-    log.info("Transfer Sender for " + shared_key_id)
+  ): Promise<Array<TransferMsg3>>{
+    log.info("Transfer Sender for " + shared_key_ids)
     // ensure receiver se address is valid
     try { pubKeyTobtcAddr(receiver_se_addr, this.config.network) }
     catch (e: any) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
 
-    let statecoin = this.statecoins.getCoin(shared_key_id);
-    if (!statecoin) throw Error("No coin found with id " + shared_key_id);
-    if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
-    if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
-    if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
+    let transferMsgArr: TransferMsg3[] = []
 
-    // check there is no duplicate
-    for (let i = 0; i < this.statecoins.coins.length; i++) {
-      if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
-        if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
-          throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+    for (const shared_key_id of shared_key_ids){
+      console.log('sending coin with ID: ', shared_key_id)
+      
+      let statecoin = this.statecoins.getCoin(shared_key_id);
+      if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+      if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
+      if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
+      if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
+
+      // check there is no duplicate
+      for (let i = 0; i < this.statecoins.coins.length; i++) {
+        if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
+          if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
+            throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+          }
         }
       }
+
+      let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+
+      let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, false, this)
+
+      transferMsgArr.push(transfer_sender)
+
+      await transferUpdateMsg(this.http_client, transfer_sender, false)
+
+      log.info("Transfer Sender complete.");
+      await this.saveStateCoinsList();
+
     }
 
-    let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-
-    let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, false, this)
-
-    await transferUpdateMsg(this.http_client, transfer_sender, false)
-
-    log.info("Transfer Sender complete.");
-    await this.saveStateCoinsList();
-    return transfer_sender;
+    return transferMsgArr;
   }
 
   // Perform transfer_receiver
@@ -1931,6 +1946,15 @@ export class Wallet {
       }
     }
   }
+
+  deriveXpub(){
+  return getXpub(this.mnemonic, this.config.network);
+  }
+
+  deriveProofKeyFromXpub(xpub: string, index: number){
+    return proofKeyFromXpub(xpub, index, this.config.network)
+  }
+
 }
 
 // BIP39 mnemonic -> BIP32 Account
@@ -2010,6 +2034,20 @@ export const getBIP32forBtcAddress = (addr: string, account: any): BIP32Interfac
   return node
 }
 
+
+export const getXpub = (mnemonic: string, network: Network) => {
+  // Xpub from mnemonic ( format p2pkh )
+
+  const seed = bip39.mnemonicToSeedSync(mnemonic);
+
+  const root = bip32.fromSeed(seed, network);
+
+  const path = "m/44'/1'/0'"
+
+  const node = root.derivePath(path);
+
+  return node.neutered().toBase58();
+}
 
 
 const dummy_master_key = { public: { q: { x: "47dc67d37acf9952b2a39f84639fc698d98c3c6c9fb90fdc8b100087df75bf32", y: "374935604c8496b2eb5ff3b4f1b6833de019f9653be293f5b6e70f6758fe1eb6" }, p2: { x: "5220bc6ebcc83d0a1e4482ab1f2194cb69648100e8be78acde47ca56b996bd9e", y: "8dfbb36ef76f2197598738329ffab7d3b3a06d80467db8e739c6b165abc20231" }, p1: { x: "bada7f0efb10f35b920ff92f9c609f5715f2703e2c67bd0e362227290c8f1be9", y: "46ce24197d468c50001e6c2aa6de8d9374bb37322d1daf0120215fb0c97a455a" }, paillier_pub: { n: "17945609950524790912898455372365672530127324710681445199839926830591356778719067270420287946423159715031144719332460119432440626547108597346324742121422771391048313578132842769475549255962811836466188142112842892181394110210275612137463998279698990558525870802338582395718737206590148296218224470557801430185913136432965780247483964177331993320926193963209106016417593344434547509486359823213494287461975253216400052041379785732818522252026238822226613139610817120254150810552690978166222643873509971549146120614258860562230109277986562141851289117781348025934400257491855067454202293309100635821977638589797710978933" }, c_key: "36d7dde4b796a7034fc6cfd75d341b223012720b52a35a37cd8229839fe9ed1f1f1fe7cbcdbc0fa59adbb757bd60a5b7e3067bc49c1395a24f70228cc327d7346b639d4e81bd3cfd39698c58e900f99c3110d6a3d769f75c8f59e7f5ad57009eadb8c6e6c4830c1082ddd84e28a70a83645354056c90ab709325fc6246d505134d4006ef6fec80645493483413d309cb84d5b5f34e28ab6af3316e517e556df963134c09810f754c58b85cf079e0131498f004108733a5f6e6a242c549284cf2df4aede022d03b854c6601210b450bdb1f73591b3f880852f0e9a3a943e1d1fdb8d5c5b839d0906de255316569b703aca913114067736dae93ea721ddd0b26e33cf5b0af67cee46d6a3281d17082a08ab53688734667c641d71e8f69b25ca1e6e0ebf59aa46c0e0a3266d6d1fba8e9f25837a28a40ae553c59fe39072723daa2e8078e889fd342ef656295d8615531159b393367b760590a1325a547dc1eff118bc3655912ac0b3c589e9d7fbc6d244d5860dfb8a5a136bf7b665711bf4e75fe42eb28a168d1ddd5ecf77165a3d4db72fda355c0dc748b0c6c2eada407dba5c1a6c797385e23c050622418be8f3cd393e6acd8a7ea5bd3306aafae75f4def94386f62564fce7a66dc5d99c197d161c7c0d3eea898ca3c5e9fbd7ceb1e3f7f2cb375181cf98f7608d08ed96ef1f98af3d5e2d769ae4211e7d20415677eddd1051" }, private: { x2: "34c0b428488ddc6b28e05cee37e7c4533007f0861e06a2b77e71d3f133ddb81b" }, chain_code: "0" }

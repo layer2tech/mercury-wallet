@@ -3,11 +3,12 @@ import { Link, withRouter, Redirect } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { StdButton, AddressInput, SendModal, ConfirmPopup, Loading, CoinsList } from "../../components";
 
-import { fromSatoshi } from '../../wallet/util';
-import { decodeSCEAddress, encodeMessage } from '../../wallet/util';
+import { fromSatoshi, pubKeyFromXpub } from '../../wallet/util';
+import { decodeSCEAddress,encodeSCEAddress,  encodeMessage } from '../../wallet/util';
 import {
   isWalletLoaded, callTransferSender, setError, setNotification,
-  removeCoins
+  removeCoins,
+  callProofKeyFromXpub
 } from '../../features/WalletDataSlice';
 import arrow from "../../images/arrow-up.png"
 import './Send.css';
@@ -18,6 +19,10 @@ const SendStatecoinPage = () => {
 
   const [openSendModal, setOpenSendModal] = useState({ show: false });
   const [selectedCoin, setSelectedCoin] = useState(null); // store selected coins shared_key_id
+  
+  const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
+  const [forceRender, setRender]  =  useState({});
+
   const [coinDetails, setCoinDetails] = useState({}); // store selected coins shared_key_id
   const [inputAddr, setInputAddr] = useState("");
   // eslint-disable-next-line no-unused-vars
@@ -55,23 +60,30 @@ const SendStatecoinPage = () => {
 
   const sendButtonCheck = async () => {
     // check statechain is chosen
-    if (selectedCoin == null) {
-      dispatch(setError({ msg: "Please choose a StateCoin to send." }))
-      return
-    }
-    if (!inputAddr) {
-      dispatch(setError({ msg: "Please enter an StateCoin address to send to." }))
-      return
-    }
-    else {
-      await sendButtonAction()
-    }
+    selectedCoins.forEach(async selectedCoin => {
+      if (selectedCoin == null) {
+        dispatch(setError({ msg: "Please choose a StateCoin to send." }))
+        return
+      }
+      if (!inputAddr) {
+        dispatch(setError({ msg: "Please enter an StateCoin address to send to." }))
+        return
+      }
+      else {
+        await sendButtonAction()
+      }
+    })
   }
 
   const sendButtonAction = async () => {
     var input_pubkey = "";
+
     try {
-      input_pubkey = decodeSCEAddress(inputAddr);
+      if(inputAddr.substring(0,4) === 'xpub' || 'tpub'){
+        // input_pubkey = pubKeyFromXpub(inputAddr)
+      } else{
+        input_pubkey = decodeSCEAddress(inputAddr);
+      }
     }
     catch (e) {
       dispatch(setError({ msg: "Error: " + e.message }))
@@ -87,17 +99,30 @@ const SendStatecoinPage = () => {
       dispatch(setError({ msg: "Error: invalid proof public key" }))
       return
     }
+
+    if (inputAddr.substring(0,4) === 'xpub' || 'tpub') {
+      dispatch(setError({ msg: "Xpub Correctly Inputted" }))
+      return
+    }
+
     setOpenSendModal({
       show: true,
       value: coinDetails.value,
       coinAddress: inputAddr
     })
 
+    
+
     setLoading(true);
-    dispatch(callTransferSender({ "shared_key_id": selectedCoin, "rec_addr": input_pubkey }))
+    dispatch(callTransferSender({ "shared_key_ids": selectedCoins, "rec_addr": input_pubkey }))
       .then(res => {
+
         if (res.error === undefined) {
-          const transferCode = encodeMessage(res.payload);
+          console.log('Res - Payload: ',res.payload)
+          let transferCode = []
+          res.payload.forEach(res => {
+            transferCode.push(encodeMessage(res));
+          })
           setTransferMsg3(transferCode);
           setOpenSendModal({
             show: true,
@@ -116,6 +141,23 @@ const SendStatecoinPage = () => {
       })
   }
 
+  const addSelectedCoin = (statechain_id, event) => {
+
+    if(loading) return
+    // Stop coins removing if clicked while pending transaction
+    
+    let newSelectedCoins = selectedCoins;
+    const isStatechainId = (element) => element === statechain_id;
+    let index = newSelectedCoins.findIndex(isStatechainId);
+    if (index !== -1){
+      newSelectedCoins.splice(index,1);
+    } else {
+      newSelectedCoins.push(statechain_id);
+    }
+    setSelectedCoins(newSelectedCoins);
+    setRender({});
+  }
+
   /*
   const copyTransferMsgToClipboard = () => {
     navigator.clipboard.writeText(transferMsg3);
@@ -131,6 +173,7 @@ const SendStatecoinPage = () => {
     dispatch(removeCoins(1))
   }
 
+  console.log(encodeSCEAddress(callProofKeyFromXpub('tpubDDKozS6xMkdZo2XVSdqpX5Rx2pGD65RFQyU5Xamh4MjZVjieaM9TsXnqpmWohSP5eyNr7CJsPd1W27wBXWr6ggWf6VKGtxLc9U1UTifq39S',207)))
   return (
     <div className="container">
       <SendModal
@@ -165,10 +208,11 @@ const SendStatecoinPage = () => {
             <CoinsList
               displayDetailsOnClick={false}
               showCoinStatus={true}
-              selectedCoin={selectedCoin}
-              setSelectedCoin={setSelectedCoin}
+              selectedCoins={selectedCoins}
+              setSelectedCoin={addSelectedCoin}
               setCoinDetails={setCoinDetails}
               refresh={refreshCoins}
+              render = {forceRender}
               send={true} />
           </div>
 

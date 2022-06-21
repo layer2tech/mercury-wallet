@@ -16,7 +16,7 @@ import copy_img from "../../images/icon2.png";
 import descripIcon from "../../images/description.png";
 import hashIcon from "../../images/hashtag.png";
 import hexIcon from "../../images/hexagon.png";
-import icon2 from "../../images/icon2.png"
+import icon2 from "../../images/icon2.png";
 import React, { useState, useEffect, useCallback } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import { Button, Modal, Spinner } from 'react-bootstrap';

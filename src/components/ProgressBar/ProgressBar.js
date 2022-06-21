@@ -24,8 +24,11 @@ const ProgressBar = () => {
                 </div>
             <div className = "progress-container">
                 <div style={fillerStyles} >
-                    <span className = "progress-filler" >{`${progress.msg}%`}</span>
-                </div>
+                    {/* <span className = "progress-filler" >{`${progress.msg}%`}</span> 
+                    // The percentage number has been removed as the numbers don't increment smoothly
+                    */}
+                </div> 
+               
             </div>
         </Modal>
     );
