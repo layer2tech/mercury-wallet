@@ -37,7 +37,7 @@ const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
 const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
 const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
-const backupTxUpdateLimiter = new RateLimiter({ tokensPerInterval: 1, interval: 30000, fireImmediately: true });
+//const backupTxUpdateLimiter = new RateLimiter({ tokensPerInterval: 1, interval: 30000, fireImmediately: true });
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -903,11 +903,12 @@ export class Wallet {
     return
   }
 
+  /*
   // update statuts of backup transactions and broadcast if neccessary
   async updateBackupTxStatus(bRateLimiter: boolean = true) {
-    if (bRateLimiter && await backupTxUpdateLimiter.removeTokens(1) == -1) {
-      return
-    }
+//    if (bRateLimiter && await backupTxUpdateLimiter.removeTokens(1) == -1) {
+//      return
+//    }
     for (let i = 0; i < this.statecoins.coins.length; i++) {
       let statecoin = this.statecoins.coins[i]
       // check if there is a backup tx yet, if not do nothing
@@ -943,7 +944,8 @@ export class Wallet {
     }
     await this.saveStateCoinsList()
   }
-
+*/
+  
   // create CPFP transaction to spend from backup tx
   async createBackupTxCPFP(cpfp_data: any) {
 
