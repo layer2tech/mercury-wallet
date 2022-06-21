@@ -9,7 +9,7 @@ import {
 import { ElectrsClient } from './electrs'
 import { ElectrsLocalClient } from './electrs_local'
 
-import { txCPFPBuild, FEE, encryptAES } from './util';
+import { txCPFPBuild, FEE, encryptAES, getTxFee } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw, withdraw_init, withdraw_duplicate, withdraw_confirm, WithdrawMsg2 } from './mercury/withdraw';
@@ -30,11 +30,14 @@ import { EPSClient } from './eps';
 import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './mercury/torcircuit_api';
 import { callGetNewTorId } from '../features/WalletDataSlice';
 import { Mutex } from 'async-mutex';
+import { RateLimiter } from "limiter"
 
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
 const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
 const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
+
+const backupTxUpdateLimiter = new RateLimiter({ tokensPerInterval: 1, interval: 30000, fireImmediately: true });
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -408,13 +411,14 @@ export class Wallet {
     return wallet;
   }
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
-  async recoverCoinsFromServer(gap_limit: number): Promise<number> {
+  async recoverCoinsFromServer(gap_limit: number, dispatch: any): Promise<number> {
     log.info("Recovering StateCoins from server for mnemonic.");
     let recoveredCoins = await recoverCoins(this, gap_limit);
     const n_recovered = recoverCoins.length
     if (n_recovered > 0) {
       log.info("Found " + recoveredCoins.length + " StateCoins. Saving to wallet.");
       await this.saveKeys();
+      console.log(`recoveredCoins: ${JSON.stringify(recoveredCoins)}`)
       await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
@@ -422,7 +426,6 @@ export class Wallet {
     // check for deposits
     for (let i = 0; i < this.statecoins.coins.length; i++) {
       if (this.statecoins.coins[i].status === STATECOIN_STATUS.INITIALISED) {
-        console.log(this.statecoins.coins[i]);
         let p_addr = this.statecoins.coins[i].getBtcAddress(this.config.network);
         // Import the BTC address into the wallet if using the electum-personal-server
         await this.importAddress(p_addr)
@@ -447,6 +450,26 @@ export class Wallet {
     return new ElectrumClient(this.config.electrum_config)
   }
 
+  async checkElectrumNetwork(): Promise<boolean> {
+    // verify the network matches wallet config
+    // get the genesis tx
+    if (this.config.network.bech32 === bitcoin.networks.bitcoin.bech32) {
+      try {
+        let genesis_txid = 'd3ad39fa52a89997ac7381c95eeffeaf40b66af7a57e9eba144be0a175a12b11';
+        let tx_data: any = await this.electrum_client.getTransaction(genesis_txid);
+        let status = tx_data?.status;
+        if (status && !status.confirmed) {
+          log.error(`Electrum network mismatch. Check the server network and connection details.`);
+          return false
+        }
+      } catch {
+        log.error(`Electrum network error. Check the server network and connection details.`);
+        return false
+      }
+    }
+    return true
+  }
+
   // Initialise electum server:
   // Setup subscribe for block height and outstanding initialised deposits
   async initElectrumClient(blockHeightCallBack: any) {
@@ -460,8 +483,15 @@ export class Wallet {
       }
     }
     this.electrum_client.connect(config).then(async () => {
-      // Continuously update block height
-      this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
+
+      if(!this.checkElectrumNetwork()) return;
+
+      try{
+        // Continuously update block height
+        this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
+      } catch(e:any){
+        console.error(e)
+      }
       // Get fee info
 
       let fee_info: FeeInfo
@@ -778,86 +808,140 @@ export class Wallet {
     })
   }
 
-  // update statuts of backup transactions and broadcast if neccessary
-  async updateBackupTxStatus() {
-    for (let i = 0; i < this.statecoins.coins.length; i++) {
-      // check if there is a backup tx yet, if not do nothing
-      if (this.statecoins.coins[i].tx_backup === null) {
-        continue;
+  processTXBroadcastResponse(statecoin: StateCoin, bresponse: string) {
+    if (bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
+      statecoin.setBackupInMempool();
+    } else if (bresponse.includes('already') && bresponse.includes('mempool')) {
+      statecoin.setBackupInMempool();
+    } else if (bresponse.includes('block')) {
+      statecoin.setBackupConfirmed();
+      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+    } else if (bresponse.includes('conflict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
+      statecoin.setBackupTaken();
+      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
+    }
+  }
+
+  processTXBroadcastError(statecoin: StateCoin, err: any) {
+    if (err.toString().includes('already') && err.toString().includes('mempool')) {
+      statecoin.setBackupInMempool();
+    } else if (err.toString().includes('already') && err.toString().includes('block')) {
+      statecoin.setBackupConfirmed();
+      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+    } else if ((err.toString().includes('conflict') || err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
+      statecoin.setBackupTaken();
+      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
+    }
+  }
+
+  static backupTxCheckRequired(statecoin: StateCoin): boolean {
+    if (statecoin == null) {
+      return false
+    }
+    if (statecoin?.tx_backup == null) {
+      return false
+    }
+    if (statecoin.backup_status === BACKUP_STATUS.CONFIRMED ||
+      statecoin.backup_status === BACKUP_STATUS.TAKEN ||
+      statecoin.backup_status === BACKUP_STATUS.SPENT ||
+      statecoin.status === STATECOIN_STATUS.WITHDRAWN ||
+      statecoin.status === STATECOIN_STATUS.WITHDRAWING ||
+      statecoin.status === STATECOIN_STATUS.IN_TRANSFER ||
+      statecoin.status === STATECOIN_STATUS.SWAPPED ||
+      statecoin.status === STATECOIN_STATUS.DUPLICATE) {
+      return false
+    }
+    return true
+  }
+
+  // Returns true if locktime is reached
+  checkLocktime(statecoin: StateCoin): boolean {
+    let blocks_to_locktime = (statecoin.tx_backup?.locktime ?? Number.MAX_SAFE_INTEGER) - this.block_height;
+    // pre-locktime - update locktime swap limit status
+    if (blocks_to_locktime > 0) {
+      if (statecoin.backup_status !== BACKUP_STATUS.PRE_LOCKTIME) {
+        statecoin.setBackupPreLocktime();  
+        this.saveStateCoinsList()
       }
-      if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.CONFIRMED ||
-        this.statecoins.coins[i].backup_status === BACKUP_STATUS.TAKEN ||
-        this.statecoins.coins[i].backup_status === BACKUP_STATUS.SPENT ||
-        this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWN ||
-        this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWING ||
-        this.statecoins.coins[i].status === STATECOIN_STATUS.IN_TRANSFER ||
-        this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPPED ||
-        this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
-        continue;
+      if (statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && blocks_to_locktime < this.config.swaplimit && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
+        statecoin.setSwapLimit();
+        this.saveStateCoinsList()
       }
-      // check locktime
-      let blocks_to_locktime = (this?.statecoins?.coins[i]?.tx_backup?.locktime ?? Number.MAX_SAFE_INTEGER) - this.block_height;
-      // pre-locktime - update locktime swap limit status
-      if (blocks_to_locktime > 0) {
-        this.statecoins.coins[i].setBackupPreLocktime();
-        if (blocks_to_locktime < this.config.swaplimit && this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE) {
-          this.statecoins.coins[i].setSwapLimit();
+      return false
+    } else {
+      // locktime reached
+      return true
+    }
+  }
+
+  async checkMempoolTx(statecoin: StateCoin) {
+    let txid = statecoin!.tx_backup!.getId();
+    if (txid != null) {
+        const tx_data = await this.electrum_client.getTransaction(txid)
+        if (tx_data?.confirmations != null && tx_data.confirmations >= this.config.required_confirmations) {
+          statecoin.setBackupConfirmed();
+          this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false)
         }
-        continue;
-        // locktime reached
-      } else {
+    }
+  }
+
+  async broadcastBackupTx(statecoin: StateCoin) {
+    let backup_tx = statecoin!.tx_backup!.toHex();
+    try {
+      let bresponse = await this.electrum_client.broadcastTransaction(backup_tx)
+      this.processTXBroadcastResponse(statecoin, bresponse)
+    } catch(err: any) {
+      this.processTXBroadcastError(statecoin, err)  
+    }
+  }
+
+  async broadcastCPFP(statecoin: StateCoin) {
+    if (statecoin.tx_cpfp != null) {
+      let cpfp_tx = statecoin!.tx_cpfp!.toHex();
+      await this.electrum_client.broadcastTransaction(cpfp_tx)
+    }
+    return
+  }
+
+  // update statuts of backup transactions and broadcast if neccessary
+  async updateBackupTxStatus(bRateLimiter: boolean = true) {
+    if (bRateLimiter && await backupTxUpdateLimiter.removeTokens(1) == -1) {
+      return
+    }
+    for (let i = 0; i < this.statecoins.coins.length; i++) {
+      let statecoin = this.statecoins.coins[i]
+      // check if there is a backup tx yet, if not do nothing
+      if (Wallet.backupTxCheckRequired(statecoin) === false) {
+        continue
+      }
+      if (this.checkLocktime(statecoin) === true) {
         // set expired
-        if (this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPLIMIT || this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE) {
-          this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED)
+        if (statecoin.status === STATECOIN_STATUS.SWAPLIMIT || statecoin.status === STATECOIN_STATUS.AVAILABLE) {
+          this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false)
         }
         // in mempool - check if confirmed
-        if (this.statecoins.coins[i].backup_status === BACKUP_STATUS.IN_MEMPOOL) {
-          let txid = this!.statecoins!.coins[i]!.tx_backup!.getId();
-          if (txid != null) {
-            this.electrum_client.getTransaction(txid).then((tx_data: any) => {
-              if (tx_data.confirmations !== undefined && tx_data.confirmations > 2) {
-                this.statecoins.coins[i].setBackupConfirmed();
-                this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW)
-              }
-            })
+        if (statecoin.backup_status === BACKUP_STATUS.IN_MEMPOOL) {
+          try {
+            this.checkMempoolTx(statecoin)
+          } catch (err: any) {
+            log.error(`Error checking backup transaction status: ${err.toString()}`)
           }
         } else {
-          // broadcast transaction
-          let backup_tx = this!.statecoins!.coins[i]!.tx_backup!.toHex();
-          this.electrum_client.broadcastTransaction(backup_tx).then((bresponse: any) => {
-            if (bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
-              this.statecoins.coins[i].setBackupInMempool();
-            } else if (bresponse.includes('already') && bresponse.includes('mempool')) {
-              this.statecoins.coins[i].setBackupInMempool();
-            } else if (bresponse.includes('block')) {
-              this.statecoins.coins[i].setBackupConfirmed();
-              this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);
-            } else if (bresponse.includes('conflict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
-              this.statecoins.coins[i].setBackupTaken();
-              this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);
-            }
-          }).catch((err: any) => {
-            if (err.toString().includes('already') && err.toString().includes('mempool')) {
-              this.statecoins.coins[i].setBackupInMempool();
-            } else if (err.toString().includes('already') && err.toString().includes('block')) {
-              this.statecoins.coins[i].setBackupConfirmed();
-              this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.WITHDRAW);
-            } else if ((err.toString().includes('conflict') || err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
-              this.statecoins.coins[i].setBackupTaken();
-              this.setStateCoinSpent(this.statecoins.coins[i].shared_key_id, ACTION.EXPIRED);
-            }
-          })
+          try {
+            await this.broadcastBackupTx(statecoin)
+          } catch (err: any) {
+            log.error(`Error broadcasting backup transaction: ${err.toString()}`)
+          }
         }
         // if CPFP present, then broadcast this as well
-        if (this.statecoins.coins[i].tx_cpfp != null) {
-          try {
-            let cpfp_tx = this!.statecoins!.coins[i]!.tx_cpfp!.toHex();
-            this.electrum_client.broadcastTransaction(cpfp_tx);
-          } catch { continue }
+        try {
+          this.broadcastCPFP(statecoin)
+        } catch (err: any) {
+          log.error(`Error broadcasting CPFP: ${err.toString()}`)
         }
       }
-      await this.saveStateCoinsList();
     }
+    await this.saveStateCoinsList()
   }
 
   // create CPFP transaction to spend from backup tx
@@ -905,8 +989,8 @@ export class Wallet {
 
     // add CPFP tx to statecoin
     for (let i = 0; i < this.statecoins.coins.length; i++) {
-      if (this.statecoins.coins[i].shared_key_id === cpfp_data.selected_coin) {
-        this.statecoins.coins[i].tx_cpfp = cpfp_tx;
+      if (statecoin.shared_key_id === cpfp_data.selected_coin) {
+        statecoin.tx_cpfp = cpfp_tx;
         break;
       }
     }
@@ -968,7 +1052,7 @@ export class Wallet {
   }
 
   // Mark statecoin as spent after transfer or withdraw
-  async setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3) {
+  async setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3, bSave: boolean = true) {
     let statecoin = this.statecoins.getCoin(id);
     if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE ||
       statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
@@ -980,7 +1064,9 @@ export class Wallet {
       this.activity.addItem(id, action);
       log.debug("Set Statecoin spent: " + id);
     }
-    await this.saveStateCoinsList()
+    if (bSave) {
+      await this.saveStateCoinsList()
+    }
   }
 
   setStateCoinAutoSwap(shared_key_id: string) {
@@ -1128,8 +1214,6 @@ export class Wallet {
       let out_script = bitcoin.address.toOutputScript(addr, this.config.network);
       let funding_tx_data = await this.electrum_client.getScriptHashListUnspent(out_script);
 
-      console.log(funding_tx_data);
-
       for (let j=0; j<funding_tx_data.length; j++) {
         if (funding_tx_data[j].tx_hash === this.statecoins.coins[i].funding_txid && funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout) {
            continue;
@@ -1206,7 +1290,6 @@ export class Wallet {
     // if not, update it
     if (this.block_height < 709862) {
       let header = await this.electrum_client.latestBlockHeader();
-      console.log(`got header: ${JSON.stringify(header)}`)
       this.setBlockHeight(header);
     }
     if (this.block_height < 709862) throw Error("Block height not updated");
@@ -1373,6 +1456,7 @@ export class Wallet {
   async doPostSwap(statecoin: StateCoin, new_statecoin: StateCoin | null): Promise<StateCoin | null> {
     if (new_statecoin && new_statecoin instanceof StateCoin) {
       this.setIfNewCoin(new_statecoin)
+      statecoin.setSwapDataToNull();
       await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
       new_statecoin.setSwapDataToNull();
     }
@@ -1390,7 +1474,13 @@ export class Wallet {
   }
 
   async updateSwapGroupInfo() {
-    groupInfo(this.http_client).catch((err: any) => {
+    groupInfo(this.http_client).then((result) => {
+      if (result) {
+        this.swap_group_info = result
+      } else {
+        this.swap_group_info = new Map<SwapGroup, GroupInfo>();
+      }
+    }).catch((err: any) => {
       this.swap_group_info.clear()
       let err_str = typeof err === 'string' ? err : err?.message
       if (err_str && (err_str.includes('Network Error') ||
@@ -1398,12 +1488,6 @@ export class Wallet {
         log.warn(JSON.stringify(err))
       } else {
         throw err
-      }
-    }).then((result) => {
-      if (result) {
-        this.swap_group_info = result
-      } else {
-        this.swap_group_info = new Map<SwapGroup, GroupInfo>();
       }
     })
   }
@@ -1756,11 +1840,12 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_ids[0]);
     if (!statecoin) throw Error("No coin found with id " + shared_key_ids[0])
     let broadcastTxInfos = statecoin.tx_withdraw_broadcast
-    if (broadcastTxInfos.length) {
+    if (broadcastTxInfos.length > 0) {
       fee_max = statecoin.getWithdrawalMaxTxFee()
-
+      const fee = getTxFee(fee_per_byte, broadcastTxInfos[0].tx.ins.length)
+      console.log(`Withdrawal transaction fee: ${fee}, fee per byte: ${fee_per_byte}, fee_max: ${fee_max}`)
       if (fee_max > 0) {
-        if (fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`);
+        if (fee_max >= fee) throw Error(`Requested fee ${fee} (fee per byte ${fee_per_byte}) is not greater than existing fee ${fee_max}`);
         const ids_sorted_1 = shared_key_ids.slice().sort();
         const ids_sorted_2 = broadcastTxInfos[broadcastTxInfos.length - 1].withdraw_msg_2.shared_key_ids.slice().sort();
         if (JSON.stringify(ids_sorted_1) !== JSON.stringify(ids_sorted_2)) {
@@ -1792,7 +1877,8 @@ export class Wallet {
         statecoin.status !== STATECOIN_STATUS.WITHDRAWN) {
         statecoin.setWithdrawing()
       }
-      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2, rec_addr);
+      let tx_fee = getTxFee(fee_per_byte, tx_withdraw.ins.length)
+      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, tx_fee, withdraw_msg_2, rec_addr);
       this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
     });
     await this.saveStateCoinsList();
