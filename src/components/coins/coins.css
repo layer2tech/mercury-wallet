@@ -50,6 +50,10 @@
   transition: opacity 0.3s;
 }
 
+.expired-tooltip{
+  position:relative
+}
+
 .expired-tooltip .tooltip{
   visibility: hidden;
   width: 450px;
@@ -62,8 +66,8 @@
   z-index: 1;
   opacity: 0;
   transition: opacity 0.3s;
-  top:0px;
-  right:0px;
+  bottom:0;
+  left:0;
 }
 
 .home-page .coin-item:hover .expired-tooltip .tooltip{
@@ -570,4 +574,27 @@ div.lower.coin-details-modal > div:first-child >div:first-child{
 .coinURLText:hover,
 .coinURLText:focus {
     color: var(--text-primary);
+}
+
+.Body-button.expired{
+  width: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 5px;
+  background-color: var(--container);
+}
+
+.dark-mode .close{
+  filter:invert(1);
+}
+
+.Body-button.expired .close{
+  float:none;
+  height: 18px;
+  width: 18px;
+}
+
+.dark-mode .coin-status svg{
+  filter:invert(1)
 }

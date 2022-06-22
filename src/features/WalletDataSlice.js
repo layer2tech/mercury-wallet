@@ -366,6 +366,12 @@ export const callGetActivityLogItems = (num_of_items) => {
   }
 }
 
+export const callGetActivityDate = (shared_key_id, action) => {
+  if(isWalletLoaded()){
+    return wallet.activity.getDate(shared_key_id, action)
+  }
+}
+
 export const callGetFeeInfo = () => {
   if (isWalletLoaded()) {
     return getFeeInfo(wallet.http_client)
@@ -704,6 +710,14 @@ export const callGetFeeEstimation = createAsyncThunk(
   'GetFeeEstimation',
   async (action, thunkAPI) => {
     return await wallet.electrum_client.getFeeEstimation(action);
+  }
+)
+
+export const callSetStatecoinSpent = createAsyncThunk(
+  'SetStatecoinSpent',
+  async (action, thunkAPI) => {
+    console.log(action)
+    return await wallet.setStateCoinSpent(action.id, action.action)
   }
 )
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { STATECOIN_STATUS, BACKUP_STATUS } from "../../../wallet";
+import { STATECOIN_STATUS, BACKUP_STATUS, ACTION } from "../../../wallet";
 import close_img from "../../../images/close-icon.png";
 import copy_img from "../../../images/icon2.png";
 import scAddrIcon from "../../../images/sc_address_logo.png";
@@ -12,7 +12,7 @@ import { DAYS_WARNING, SWAP_STATUS_INFO } from "../CoinsList";
 import { ProgressBar, Spinner } from "react-bootstrap";
 import Moment from "react-moment";
 import SwapStatus from "../SwapStatus/SwapStatus";
-import { callGetActivityLog, callGetActivityLogItems, setError } from "../../../features/WalletDataSlice";
+import { callGetActivityDate, callGetActivityLog, callGetActivityLogItems, setError } from "../../../features/WalletDataSlice";
 import { CoinStatus, CopiedButton } from "../..";
 import { HIDDEN } from '../../../wallet/statecoin';
 
@@ -125,12 +125,6 @@ const Coin = (props) => {
   }
   return (
     <div>
-      {
-        props.isMainPage && !props.coin_data.deleting && props.coin_data.status === "INITIALISED" &&
-        <div className="CoinTitleBar">
-          <img className='close' src={close_img} alt="arrow" onClick={() => props.onDeleteCoinDetails(props.coin_data)} />
-        </div>
-      }
       <div
         className={`coin-item ${(props.swap || props.send || props.withdraw) ? props.coin_data.status : ''} ${isSelected(props.coin_data.shared_key_id) ? 'selected' : ''}`}
         onClick={() => {
@@ -178,15 +172,14 @@ const Coin = (props) => {
               <b>Duplicate Coin Warning!</b> This coin can only be withdrawn after the statecoin sharing the deposit address has been withdrawn and confirmed. 
             </span>
           </div>):(null)}
-          {/* TO DO: ADD WITHDRAWAL ADDRESS, IMPROVE STYLING, MAKE INSTRUCTIONS LESS WORDY */}
+          {/* TO DO: ADD WITHDRAWAL ADDRESS */}
           {props.coin_data.status === STATECOIN_STATUS.EXPIRED ? (
             <div className="expired-tooltip">
               <span className="tooltip">
-                <div><b>Coin Expired!</b></div>This coin will be automatically withdrawn to XXXXXXXXXXX
-                <div>Withdrawal Address: XXXXXXXXXXX</div>
+                <div><b> Backup tx sent.</b></div>
+                {/* <div>Withdrawal Address: XXXXXXXXXXX</div> */}
                 <div>
-                  <p>To change withdrawal address go to Settings &gt; Manage Backup Transactions</p>
-                  <p>Click on the coin, enter address in "Pay to: ", Enter Fee then Create CPFP</p>
+                  <p>To retrieve coin, go to Settings -&gt; Manage Backup Transactions to export private key or send to new address</p>
                 </div>
               </span>
             </div>
@@ -256,7 +249,7 @@ const Coin = (props) => {
                 <path d="M8 0.5C3.875 0.5 0.5 3.875 0.5 8C0.5 12.125 3.875 15.5 8 15.5C12.125 15.5 15.5 12.125 15.5 8C15.5 3.875 12.125 0.5 8 0.5ZM12.875 9.125H3.125V6.875H12.875V9.125Z" fill="#BDBDBD" />
               </svg>
               <span>
-                Withdrawn <span className="widthdrawn-status-time">| {<Moment format="MM.DD.YYYY HH:mm">{props.coin_data.timestamp}</Moment>}</span>
+                Withdrawn <span className="widthdrawn-status-time">| {<Moment format="MM.DD.YYYY HH:mm">{callGetActivityDate(props.coin_data.shared_key_id, ACTION.WITHDRAW)}</Moment>}</span>
               </span>
             </div>
           )}
@@ -353,6 +346,18 @@ const Coin = (props) => {
               </b>
             </div>
           )}
+          {
+          props.coin_data.status === STATECOIN_STATUS.EXPIRED &&
+            <button className="Body-button expired">
+              <img className='close' src={close_img} alt="arrow" onClick={(e) => props.expiredToWithdrawn(e,props.coin_data)} />
+            </button>
+          }
+          {
+            props.isMainPage && !props.coin_data.deleting && props.coin_data.status === "INITIALISED" &&
+            <div className="Body-button expired">
+              <img className='close' src={close_img} alt="arrow" onClick={(e) => props.onDeleteCoinDetails(e,props.coin_data)} />
+            </div>
+          }
         </div>
       </div>
     </div>
