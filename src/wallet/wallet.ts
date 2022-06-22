@@ -818,7 +818,10 @@ export class Wallet {
       statecoin.setBackupInMempool();
     } else if (bresponse.includes('block')) {
       statecoin.setBackupConfirmed();
-      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+      if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+        // Keep expired coins in main CoinsList
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+      }
     } else if (bresponse.includes('conflict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
       statecoin.setBackupTaken();
       this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
@@ -830,7 +833,12 @@ export class Wallet {
       statecoin.setBackupInMempool();
     } else if (err.toString().includes('already') && err.toString().includes('block')) {
       statecoin.setBackupConfirmed();
-      await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+
+      if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+        // Keep expired coins in main CoinsList
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+      }
+
     } else if ((err.toString().includes('conflict') || err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
       statecoin.setBackupTaken();
       await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
@@ -881,11 +889,17 @@ export class Wallet {
     if (txid != null) {
         const tx_data = await this.electrum_client.getTransaction(txid)
         if (tx_data?.confirmations != null && tx_data.confirmations >= this.config.required_confirmations) {
+          
           statecoin.setBackupConfirmed();
-          await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false)
+
+          if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+            // Keep expired coins in Main Coins List
+            this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false)
+          }
         }
     }
   }
+
 
   async broadcastBackupTx(statecoin: StateCoin) {
     let backup_tx = statecoin!.tx_backup!.toHex();

@@ -76,6 +76,7 @@
     --box-shadow: rgba(0, 0, 0, 1);
     --warning-color: #9c2b2e;
     --warning-block:#B71C1C30;
+    --warning-container:#9c2b2e25;
     --link-color: #0054f4;
     --success: #388e3c;
     --idle:#E7E7E738;
@@ -102,6 +103,7 @@
     --box-shadow: #222;
     --warning-color: #FF3D00;
     --warning-block:#ffccbc;
+    --warning-container: #ffccbc35;
     --link-color: #069;
     --success: #388e3c;
     --idle:#ccc;
