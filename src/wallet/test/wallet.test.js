@@ -175,9 +175,9 @@ describe('Wallet', function () {
       }).toThrow("Incorrect password.");
 
       delete wallet.backupTxUpdateLimiter;
-      delete loaded_wallet.backupTxUpdateLimiter;
 
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
 
