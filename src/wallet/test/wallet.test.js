@@ -210,7 +210,11 @@ describe('Wallet', function () {
       wallet.config.electrum_config = test_electrum_config
       wallet.config.electrum_fee_estimation_blocks = test_blocks
 
+      //Stop wallet
+      await wallet.stop()
+
       //Confirm settings are edited
+      delete wallet.backupTxUpdateLimiter;
       const wallet_mod_str = JSON.stringify(wallet)
       const wallet_mod_json = JSON.parse(wallet_mod_str)
       expect(wallet_mod_json.config.state_entity_endpoint).toEqual(test_state_entity_endpoint)
@@ -219,9 +223,7 @@ describe('Wallet', function () {
       expect(wallet_mod_json.config.electrum_config).toEqual(test_electrum_config)
       expect(wallet_mod_json.config.electrum_fee_estimation_blocks).toEqual(test_blocks)
 
-      //Stop and save wallet
-      await wallet.stop()
-      delete wallet.backupTxUpdateLimiter;
+      //Save wallet
       await wallet.save()
 
       //Confirm that the reloaded wallet has the altered settings
@@ -230,7 +232,7 @@ describe('Wallet', function () {
       const loaded_wallet_str = JSON.stringify(loaded_wallet)
       const loaded_wallet_json = JSON.parse(loaded_wallet_str)
       expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
-      expect(JSON.stringify(wallet)).toEqual(loaded_wallet_str)
+      expect(wallet_mod_str).toEqual(loaded_wallet_str)
     });
   });
 
