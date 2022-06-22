@@ -221,6 +221,7 @@ describe('Wallet', function () {
 
       //Stop and save wallet
       await wallet.stop()
+      delete wallet.backupTxUpdateLimiter;
       await wallet.save()
 
       //Confirm that the reloaded wallet has the altered settings
