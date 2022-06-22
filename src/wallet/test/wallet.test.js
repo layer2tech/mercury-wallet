@@ -224,11 +224,13 @@ describe('Wallet', function () {
       await wallet.save()
 
       //Confirm that the reloaded wallet has the altered settings
+      delete wallet.backupTxUpdateLimiter;
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      delete loaded_wallet.backupTxUpdateLimiter;
       const loaded_wallet_str = JSON.stringify(loaded_wallet)
       const loaded_wallet_json = JSON.parse(loaded_wallet_str)
       expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
-      expect(wallet_mod_str).toEqual(loaded_wallet_str)
+      expect(JSON.stringify(wallet)).toEqual(loaded_wallet_str)
     });
   });
 
