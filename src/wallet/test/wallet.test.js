@@ -199,7 +199,7 @@ describe('Wallet', function () {
       const test_electrum_config = {
         host: "test EC host",
         port: 123456789,
-        protocol: "test EC protocol",
+        protocol: "tcp",
         type: "test EC type"
       }
       const test_blocks = wallet.config.electrum_fee_estimation_blocks + 1
@@ -229,6 +229,7 @@ describe('Wallet', function () {
       //Confirm that the reloaded wallet has the altered settings
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
       delete loaded_wallet.backupTxUpdateLimiter;
+      loaded_wallet.stop();
       const loaded_wallet_str = JSON.stringify(loaded_wallet)
       const loaded_wallet_json = JSON.parse(loaded_wallet_str)
       expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
