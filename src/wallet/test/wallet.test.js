@@ -224,7 +224,6 @@ describe('Wallet', function () {
       await wallet.save()
 
       //Confirm that the reloaded wallet has the altered settings
-      delete wallet.backupTxUpdateLimiter;
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
       delete loaded_wallet.backupTxUpdateLimiter;
       const loaded_wallet_str = JSON.stringify(loaded_wallet)
