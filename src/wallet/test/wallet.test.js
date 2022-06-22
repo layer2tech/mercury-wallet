@@ -174,6 +174,9 @@ describe('Wallet', function () {
         let _ = Wallet.load(MOCK_WALLET_NAME, "", true);
       }).toThrow("Incorrect password.");
 
+      delete wallet.backupTxUpdateLimiter;
+      delete loaded_wallet.backupTxUpdateLimiter;
+
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
@@ -391,6 +394,9 @@ describe('Wallet', function () {
       let from_json = Wallet.fromJSON(json_wallet, true);
       // check wallets serialize to same values (since deep equal on recursive objects is messy)
 
+      delete wallet.backupTxUpdateLimiter;
+      delete from_json.backupTxUpdateLimiter;
+
       expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet));
     });
 
@@ -470,12 +476,15 @@ describe('Wallet', function () {
       await loaded_wallet_from_backup.save();
 
       let loaded_wallet_mod = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true);
+      delete wallet.backupTxUpdateLimiter;
+      delete loaded_wallet_mod.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet_mod))
 
       let loaded_wallet_backup = await Wallet.load(MOCK_WALLET_NAME_BACKUP, MOCK_WALLET_PASSWORD, true);
       //The mock and mock_backup wallets should be the same except for name and storage
       loaded_wallet_mod.name = MOCK_WALLET_NAME_BACKUP;
       loaded_wallet_mod.storage = loaded_wallet_backup.storage
+      delete loaded_wallet_backup.backupTxUpdateLimiter;
       expect(JSON.stringify(loaded_wallet_mod)).toEqual(JSON.stringify(loaded_wallet_backup));
     });
 
@@ -498,6 +507,8 @@ describe('Wallet', function () {
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true);
       let num_coins_after = loaded_wallet.statecoins.coins.length;
       expect(num_coins_after).toEqual(num_coins_before + 1)
+      delete wallet.backupTxUpdateLimiter;
+      delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
   });
@@ -750,31 +761,31 @@ describe('checkLocktime', function () {
     statecoin.status = STATECOIN_STATUS.AVAILABLE
     init_statecoin = cloneDeep(statecoin)
   })
-  test('before locktime', () => {
+  test('before locktime', async () => {
     wallet.block_height = 0
     statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
-    expect(wallet.checkLocktime(statecoin)).toEqual(false)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(false)
     expect(statecoin.backup_status).toEqual(BACKUP_STATUS.PRE_LOCKTIME)
     expect(statecoin.status).toEqual(init_statecoin.status)
   })
-  test('swap limit', () => {
+  test('swap limit', async () => {
     wallet.block_height = 1
     statecoin.tx_backup.locktime = wallet.block_height + 1
-    expect(wallet.checkLocktime(statecoin)).toEqual(false)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(false)
     expect(statecoin.backup_status).toEqual(BACKUP_STATUS.PRE_LOCKTIME)
     expect(statecoin.status).toEqual(STATECOIN_STATUS.SWAPLIMIT)
   })
-  test('at locktime', () => {
+  test('at locktime', async () => {
     statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
     wallet.block_height = statecoin.tx_backup.locktime
-    expect(wallet.checkLocktime(statecoin)).toEqual(true)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(true)
     expect(statecoin.backup_status).toEqual(init_statecoin.backup_status)
     expect(statecoin.status).toEqual(init_statecoin.status)
   })
-  test('after locktime', () => {
+  test('after locktime', async () => {
     statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
     wallet.block_height = statecoin.tx_backup.locktime + 1
-    expect(wallet.checkLocktime(statecoin)).toEqual(true)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(true)
     expect(statecoin.backup_status).toEqual(init_statecoin.backup_status)
     expect(statecoin.status).toEqual(init_statecoin.status)
   })
