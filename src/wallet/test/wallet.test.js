@@ -597,7 +597,7 @@ describe('updateBackupTxStatus', function () {
       return { confirmations: 3 }
     })
     await wallet.updateBackupTxStatus(false);
-    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWN);
+    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.EXPIRED);
     // verify tx confirmed
     expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.CONFIRMED);
   })
