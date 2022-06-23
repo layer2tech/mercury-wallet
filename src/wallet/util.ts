@@ -9,6 +9,7 @@ import { callGetConfig } from '../features/WalletDataSlice'
 import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
 
+var NodeBuffer = require('buffer/').Buffer  // note: the trailing slash is important!
 let bech32 = require('bech32')
 let bitcoin = require('bitcoinjs-lib')
 let typeforce = require('typeforce');
@@ -366,7 +367,7 @@ const zero_pad = (num: any) => {
 
 // ECIES encrypt string
 export const encryptECIES = (publicKey: string, data: string): Buffer => {
-  let data_buf = Buffer.from(zero_pad(data), "hex");
+  let data_buf = NodeBuffer.from(zero_pad(data), "hex");
   isUint8Array('data_buf', data_buf, data_buf.length);
   return encrypt(publicKey, data_buf);
 }
@@ -395,7 +396,7 @@ function isUint8Array(name: any, value: any, length: any) {
 
 // ECIES decrypt string x1 from Server.
 export const decryptECIES = (secret_key: string, encryption: string): string => {
-  let enc_buf = Buffer.from(encryption, "hex");
+  let enc_buf = NodeBuffer.from(encryption, "hex");
   isUint8Array('enc_buf', enc_buf, enc_buf.length);
   let dec = decrypt(secret_key, enc_buf);
   return dec.toString("hex")

@@ -95,6 +95,7 @@
     "body-parser": "^1.19.0",
     "bootstrap": "^4.5.3",
     "bottleneck": "^2.19.5",
+    "buffer": "^6.0.3",
     "buffer-json": "^2.0.0",
     "client-wasm": "file:client-wasm/pkg",
     "cross-env": "^7.0.3",
