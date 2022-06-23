@@ -61,7 +61,7 @@ export const mutex = new Mutex();
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890"
 export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7"
 export const MOCK_WALLET_MNEMONIC = "praise you muffin lion enable neck grocery crumble super myself license ghost"
-export const MOCK_WALLET_XPUB = "xpub6D37YcRivNgfmubnPauDvi5uumEj67ZbdtJBTBmees2rDZ9sRSsT4pJYJnjNPvETZJLSvbp3ZW3zhHH11LGVCxoP3hrCXu5VGBH3VnUwMu4"
+export const MOCK_WALLET_XPUB = "xpub682CHGeEKPty9cRYMG4FT899Loi862KXFzhavBHA9LdTu6qdgtfpmJt32mjAZrBQsAd7p72RVMu2xUrDBBUGiMuaehcAdN8V9st7o1AZpHd"
 // Derivation path = m/44'/1'/0' for p2pkh
 
 // The wallet data must contain these fields
