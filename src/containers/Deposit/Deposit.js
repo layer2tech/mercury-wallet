@@ -8,6 +8,7 @@ import { CreateStatecoin, TransactionsBTC, StdButton, Steppers, Tutorial } from 
 import { isWalletLoaded, callGetConfig, callGetAccount } from '../../features/WalletDataSlice';
 
 import './Deposit.css';
+import DepositToken from "../../components/DepositToken/DepositToken";
 
 // sort_by 0=liquidity, 1=amount.
 const DEFAULT_SETTINGS = {
@@ -22,7 +23,11 @@ const STEPS = [
     description: 'Choose Amount and Value',
   },
   {
-    id: 2,
+    id:2,
+    description: 'Deposit Token'
+  },
+  {
+    id: 3,
     description: 'Complete BTC Transactions',
   },
 ];
@@ -33,6 +38,8 @@ const DepositPage = () => {
   // Show settings
   const [show, setShow] = useState(false);
   const [step, setStep] = useState(1)
+
+
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
@@ -109,6 +116,7 @@ const DepositPage = () => {
     setChildError(retChildError);
   }
 
+
   let current_config;
   try {
     current_config = callGetConfig();
@@ -138,7 +146,7 @@ const DepositPage = () => {
           <h3 className="subtitle">Create new statecoins. Withdraw Fee: <b>{fee_info.withdraw / 100}%</b></h3>
         </div>
         <div className="wizard">
-          <Steppers steps={STEPS} total={2} current={step} />
+          <Steppers steps={STEPS} total={3} current={step} />
           {step === 1 ? (
             <CreateStatecoin
               selectedValues={selectedValues}
@@ -147,17 +155,22 @@ const DepositPage = () => {
               settings={settings}
               handleChildErrors={handleChildErrors}
             />
-          ) : (
+            ):(null)}
+          { step === 2 ? (
+            <DepositToken 
+              selectedValues = {selectedValues}
+              fee = {fee_info.withdraw}/>
+          ):(null)}
+          {step === 3? (
             <TransactionsBTC
               selectedValues={selectedValues}
               setValueSelectionInitialised={setValueSelectionInitialised}
               setValueSelectionAddr={setValueSelectionAddr}
-            />
-          )}
+            />):(null)}
           {step === 1 ? (
-            !childError && <button className="primary-btn blue" onClick={() => setStep(2)}>Continue</button>
+            !childError && <button className={`primary-btn blue ${"step-" + step}`} onClick={() => setStep(step+1)}>Continue</button>
           ) : (
-            <button className="primary-btn blue" onClick={() => setStep(1)}>Go Back</button>
+            <button className={`primary-btn blue ${"step-" + step}`} onClick={() => setStep(step-1)}>Go Back</button>
           )}
         </div>
 
