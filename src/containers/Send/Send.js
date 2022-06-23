@@ -69,18 +69,17 @@ const SendStatecoinPage = () => {
         dispatch(setError({ msg: "Please enter an StateCoin address to send to." }))
         return
       }
-      else {
-        await sendButtonAction()
-      }
     })
+
+    await sendButtonAction()
   }
 
   const sendButtonAction = async () => {
     var input_pubkey = "";
 
     try {
-      if(inputAddr.substring(0,4) === 'xpub' || 'tpub'){
-        // input_pubkey = pubKeyFromXpub(inputAddr)
+      if(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'){
+        input_pubkey = callProofKeyFromXpub(inputAddr,0);
       } else{
         input_pubkey = decodeSCEAddress(inputAddr);
       }
@@ -91,18 +90,33 @@ const SendStatecoinPage = () => {
     }
 
     if (!(input_pubkey.slice(0, 2) === '02' || input_pubkey.slice(0, 2) === '03')) {
+      if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub') {
+        dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
+        return
+      }
       dispatch(setError({ msg: "Error: invalid proof public key." }));
       return
     }
 
     if (input_pubkey.length !== 66) {
+      if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) ==='tpub') {
+        dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
+        return
+      }
+
       dispatch(setError({ msg: "Error: invalid proof public key" }))
       return
     }
 
-    if (inputAddr.substring(0,4) === 'xpub' || 'tpub') {
-      dispatch(setError({ msg: "Xpub Correctly Inputted" }))
-      return
+    var pubKeyArray = [];
+
+    for( var i = 0 ; i < selectedCoins.length ; i++){
+      if(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'){
+        pubKeyArray.push(callProofKeyFromXpub(inputAddr,i))
+      }
+      else{
+        pubKeyArray.push(input_pubkey)
+      }
     }
 
     setOpenSendModal({
@@ -110,11 +124,12 @@ const SendStatecoinPage = () => {
       value: coinDetails.value,
       coinAddress: inputAddr
     })
-
-    
+    // Add loop for as many pub keys as selected coins
+    // Add error for sending to more than one address
+    // Test for a valid xPub
 
     setLoading(true);
-    dispatch(callTransferSender({ "shared_key_ids": selectedCoins, "rec_addr": input_pubkey }))
+    dispatch(callTransferSender({ "shared_key_ids": selectedCoins, "rec_addr": pubKeyArray }))
       .then(res => {
 
         if (res.error === undefined) {
@@ -130,6 +145,8 @@ const SendStatecoinPage = () => {
             transfer_code: transferCode,
             coinAddress: inputAddr
           });
+          setSelectedCoins([])
+          setInputAddr([])
           setRefreshCoins(!refreshCoins)
         }
         if (res.error !== undefined) {
@@ -137,6 +154,8 @@ const SendStatecoinPage = () => {
           setOpenSendModal({
             show: false
           })
+          setSelectedCoins([])
+          setInputAddr([])
         }
       })
   }
@@ -173,7 +192,6 @@ const SendStatecoinPage = () => {
     dispatch(removeCoins(1))
   }
 
-  console.log(encodeSCEAddress(callProofKeyFromXpub('tpubDDKozS6xMkdZo2XVSdqpX5Rx2pGD65RFQyU5Xamh4MjZVjieaM9TsXnqpmWohSP5eyNr7CJsPd1W27wBXWr6ggWf6VKGtxLc9U1UTifq39S',207)))
   return (
     <div className="container">
       <SendModal

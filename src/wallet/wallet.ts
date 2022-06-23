@@ -57,6 +57,7 @@ try {
   log = require('electron-log');
 }
 
+export const mutex = new Mutex();
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890"
 export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7"
 export const MOCK_WALLET_MNEMONIC = "praise you muffin lion enable neck grocery crumble super myself license ghost"
@@ -1607,48 +1608,50 @@ export class Wallet {
   // Return: transfer_message String to be sent to receiver.
   async transfer_sender(
     shared_key_ids: string[],
-    receiver_se_addr: string
+    receiver_se_addrs: string[]
   ): Promise<Array<TransferMsg3>>{
-    log.info("Transfer Sender for " + shared_key_ids)
-    // ensure receiver se address is valid
-    try { pubKeyTobtcAddr(receiver_se_addr, this.config.network) }
-    catch (e: any) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
-
     let transferMsgArr: TransferMsg3[] = []
 
-    for (const shared_key_id of shared_key_ids){
-      console.log('sending coin with ID: ', shared_key_id)
-      
-      let statecoin = this.statecoins.getCoin(shared_key_id);
-      if (!statecoin) throw Error("No coin found with id " + shared_key_id);
-      if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
-      if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
-      if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
-
-      // check there is no duplicate
-      for (let i = 0; i < this.statecoins.coins.length; i++) {
-        if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
-          if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
-            throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+    log.info("Transfer Sender for " + shared_key_ids)
+    console.log('transfer_sender Called!')
+    for ( var i = 0; i < shared_key_ids.length ; i++ ){
+      await mutex.runExclusive(async () => { 
+        // ensure receiver se address is valid
+        try { pubKeyTobtcAddr(receiver_se_addrs[i], this.config.network) }
+        catch (e: any) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
+        
+        //shared_key_ids[i] ....
+        let statecoin = this.statecoins.getCoin(shared_key_ids[i]);
+        if (!statecoin) throw Error("No coin found with id " + shared_key_ids[i]);
+        if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
+        if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
+        if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
+        
+        // check there is no duplicate
+        for (let i = 0; i < this.statecoins.coins.length; i++) {
+          if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
+            if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
+              throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+            }
           }
         }
-      }
-
-      let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-
-      let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, false, this)
-
-      transferMsgArr.push(transfer_sender)
-
-      await transferUpdateMsg(this.http_client, transfer_sender, false)
-
-      log.info("Transfer Sender complete.");
-      await this.saveStateCoinsList();
-
+        
+        let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+        
+        let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addrs[i], false, this)
+        
+        transferMsgArr.push(transfer_sender)
+        
+        await transferUpdateMsg(this.http_client, transfer_sender, false)
+        
+        log.info("Transfer Sender complete.");
+        await this.saveStateCoinsList();
+        
+      })
     }
-
-    return transferMsgArr;
-  }
+      
+      return transferMsgArr;
+    }
 
   // Perform transfer_receiver
   // Args: transfer_messager retuned from sender's TransferSender
@@ -2042,9 +2045,7 @@ export const getXpub = (mnemonic: string, network: Network) => {
 
   const root = bip32.fromSeed(seed, network);
 
-  const path = "m/44'/1'/0'"
-
-  const node = root.derivePath(path);
+  const node = root.deriveHardened(0);
 
   return node.neutered().toBase58();
 }

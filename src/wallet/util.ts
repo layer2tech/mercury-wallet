@@ -248,7 +248,6 @@ export const decodeSCEAddress = (sce_address: string): string => {
   let SCEAddress;
   try{
     let decode =  bech32.decode(sce_address)
-    console.log('SCE Address Decode',decode)
     SCEAddress = Buffer.from(bech32.fromWords(decode.words)).toString('hex')
   }
   catch(e : any){
