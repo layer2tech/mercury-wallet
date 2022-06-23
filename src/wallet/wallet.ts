@@ -37,8 +37,6 @@ const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
 const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
 const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
-const backupTxUpdateLimiter = new RateLimiter({ tokensPerInterval: 1, interval: 30000, fireImmediately: true });
-
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
 let bip32 = require('bip32');
@@ -106,12 +104,17 @@ export class Wallet {
   statechain_id_set: Set<string>;
   wasm: any;
   saveMutex: Mutex;
+  backupTxUpdateLimiter: any;
 
   storage: Storage
   active: boolean;
 
   constructor(name: string, password: string, mnemonic: string, account: any, config: Config,
     http_client: any = undefined, wasm: any = undefined) {
+  
+
+    this.backupTxUpdateLimiter = new RateLimiter({ tokensPerInterval: 1, interval: 30000, fireImmediately: true });
+    
     this.name = name;
     this.password = password;
     this.config = config;
@@ -486,8 +489,12 @@ export class Wallet {
 
       if(!this.checkElectrumNetwork()) return;
 
-      // Continuously update block height
-      this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
+      try{
+        // Continuously update block height
+        this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
+      } catch(e:any){
+        console.error(e)
+      }
       // Get fee info
 
       let fee_info: FeeInfo
@@ -811,22 +818,30 @@ export class Wallet {
       statecoin.setBackupInMempool();
     } else if (bresponse.includes('block')) {
       statecoin.setBackupConfirmed();
-      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+      if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+        // Keep expired coins in main CoinsList
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+      }
     } else if (bresponse.includes('conflict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
       statecoin.setBackupTaken();
       this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
     }
   }
 
-  processTXBroadcastError(statecoin: StateCoin, err: any) {
+  async processTXBroadcastError(statecoin: StateCoin, err: any) {
     if (err.toString().includes('already') && err.toString().includes('mempool')) {
       statecoin.setBackupInMempool();
     } else if (err.toString().includes('already') && err.toString().includes('block')) {
       statecoin.setBackupConfirmed();
-      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+
+      if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+        // Keep expired coins in main CoinsList
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+      }
+
     } else if ((err.toString().includes('conflict') || err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
       statecoin.setBackupTaken();
-      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
+      await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
     }
   }
 
@@ -851,18 +866,17 @@ export class Wallet {
   }
 
   // Returns true if locktime is reached
-  checkLocktime(statecoin: StateCoin): boolean {
+  async checkLocktime(statecoin: StateCoin): Promise<boolean> {
     let blocks_to_locktime = (statecoin.tx_backup?.locktime ?? Number.MAX_SAFE_INTEGER) - this.block_height;
     // pre-locktime - update locktime swap limit status
     if (blocks_to_locktime > 0) {
       if (statecoin.backup_status !== BACKUP_STATUS.PRE_LOCKTIME) {
         statecoin.setBackupPreLocktime();  
-        this.saveStateCoinsList()
       }
       if (statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && blocks_to_locktime < this.config.swaplimit && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
-        statecoin.setSwapLimit();
-        this.saveStateCoinsList()
+        statecoin.setSwapLimit()
       }
+      await this.saveStateCoinsList()
       return false
     } else {
       // locktime reached
@@ -875,11 +889,17 @@ export class Wallet {
     if (txid != null) {
         const tx_data = await this.electrum_client.getTransaction(txid)
         if (tx_data?.confirmations != null && tx_data.confirmations >= this.config.required_confirmations) {
+          
           statecoin.setBackupConfirmed();
-          this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false)
+
+          if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+            // Keep expired coins in Main Coins List
+            this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false)
+          }
         }
     }
   }
+
 
   async broadcastBackupTx(statecoin: StateCoin) {
     let backup_tx = statecoin!.tx_backup!.toHex();
@@ -887,7 +907,7 @@ export class Wallet {
       let bresponse = await this.electrum_client.broadcastTransaction(backup_tx)
       this.processTXBroadcastResponse(statecoin, bresponse)
     } catch(err: any) {
-      this.processTXBroadcastError(statecoin, err)  
+      await this.processTXBroadcastError(statecoin, err)  
     }
   }
 
@@ -901,7 +921,7 @@ export class Wallet {
 
   // update statuts of backup transactions and broadcast if neccessary
   async updateBackupTxStatus(bRateLimiter: boolean = true) {
-    if (bRateLimiter && await backupTxUpdateLimiter.removeTokens(1) == -1) {
+    if (bRateLimiter && await this.backupTxUpdateLimiter.removeTokens(1) == -1) {
       return
     }
     for (let i = 0; i < this.statecoins.coins.length; i++) {
@@ -910,15 +930,15 @@ export class Wallet {
       if (Wallet.backupTxCheckRequired(statecoin) === false) {
         continue
       }
-      if (this.checkLocktime(statecoin) === true) {
+      if (await this.checkLocktime(statecoin) === true) {
         // set expired
         if (statecoin.status === STATECOIN_STATUS.SWAPLIMIT || statecoin.status === STATECOIN_STATUS.AVAILABLE) {
-          this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false)
+          await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false)
         }
         // in mempool - check if confirmed
         if (statecoin.backup_status === BACKUP_STATUS.IN_MEMPOOL) {
           try {
-            this.checkMempoolTx(statecoin)
+            await this.checkMempoolTx(statecoin)
           } catch (err: any) {
             log.error(`Error checking backup transaction status: ${err.toString()}`)
           }
@@ -931,7 +951,7 @@ export class Wallet {
         }
         // if CPFP present, then broadcast this as well
         try {
-          this.broadcastCPFP(statecoin)
+          await this.broadcastCPFP(statecoin)
         } catch (err: any) {
           log.error(`Error broadcasting CPFP: ${err.toString()}`)
         }
@@ -1452,6 +1472,7 @@ export class Wallet {
   async doPostSwap(statecoin: StateCoin, new_statecoin: StateCoin | null): Promise<StateCoin | null> {
     if (new_statecoin && new_statecoin instanceof StateCoin) {
       this.setIfNewCoin(new_statecoin)
+      statecoin.setSwapDataToNull();
       await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
       new_statecoin.setSwapDataToNull();
     }
@@ -1469,7 +1490,13 @@ export class Wallet {
   }
 
   async updateSwapGroupInfo() {
-    groupInfo(this.http_client).catch((err: any) => {
+    groupInfo(this.http_client).then((result) => {
+      if (result) {
+        this.swap_group_info = result
+      } else {
+        this.swap_group_info = new Map<SwapGroup, GroupInfo>();
+      }
+    }).catch((err: any) => {
       this.swap_group_info.clear()
       let err_str = typeof err === 'string' ? err : err?.message
       if (err_str && (err_str.includes('Network Error') ||
@@ -1477,12 +1504,6 @@ export class Wallet {
         log.warn(JSON.stringify(err))
       } else {
         throw err
-      }
-    }).then((result) => {
-      if (result) {
-        this.swap_group_info = result
-      } else {
-        this.swap_group_info = new Map<SwapGroup, GroupInfo>();
       }
     })
   }

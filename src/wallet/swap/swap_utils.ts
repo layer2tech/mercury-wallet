@@ -206,13 +206,6 @@ export const make_swap_commitment = (statecoin: any,
   return batch_data;
 }
 
-export const clear_statecoin_swap_info = (statecoin: StateCoin): null => {
-  statecoin.swap_info = null;
-  statecoin.swap_status = null;
-  statecoin.ui_swap_status = null;
-  return null;
-}
-
 //conductor::register_utxo,
 //conductor::swap_first_message,
 //conductor::swap_second_message,
