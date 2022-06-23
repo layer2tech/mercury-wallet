@@ -176,7 +176,11 @@ export const walletLoad = (name, password) => {
       await wallet.set_tor_endpoints();
       wallet.initElectrumClient(setBlockHeightCallBack);
       wallet.updateSwapStatus();
-      await wallet.updateSwapGroupInfo();
+      try{
+        await wallet.updateSwapGroupInfo();
+      } catch (e){ 
+        console.error(e.message)
+      }
       wallet.updateSpeedInfo();
     });
   });
@@ -498,7 +502,7 @@ export const handleEndSwap = (dispatch, selectedCoin, res, setSwapLoad, swapLoad
     if (statecoin.swap_auto) {
       dispatch(addSwapPendingCoin(statecoin.shared_key_id))
       dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
-      dispatch(setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) }))
+      dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: callGetStateCoin(selectedCoin) }))
     }
 
     return
@@ -521,7 +525,7 @@ export const handleEndSwap = (dispatch, selectedCoin, res, setSwapLoad, swapLoad
     if (statecoin.swap_auto) {
       dispatch(addSwapPendingCoin(statecoin.shared_key_id))
       dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
-      dispatch(setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) }))
+      dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: callGetStateCoin(selectedCoin) }))
     }
   }
 }
