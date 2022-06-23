@@ -23,15 +23,32 @@ function SendModal({
     navigator.clipboard.writeText(e.target.innerText);
   };
 
-  // const tooltipHover = (e) => {
-  //   var tooltipSpan = document.querySelector('.transfer-code span.tooltip');
-  //   var w = window.innerWidth;
-  //   var h = window.innerHeight;
-  //   var x = e.clientX;
-  //   var y = e.clientY;
-  //   tooltipSpan.style.top = `${y-(h/2)+52}px`;
-  //   tooltipSpan.style.left = `${x-(w/2)+250}px`;
-  // }
+  const tooltipHover = (e) => {
+    var tooltipSpan = document.querySelector('.transfer-code span.tooltip');
+    if (tooltipSpan !== null) {
+      var w = window.innerWidth;
+      var h = window.innerHeight;
+
+      var x = e.clientX;
+      var y = e.clientY;
+
+      tooltipSpan.style.top = `${y + 16}px`;
+
+      if (x >= w - 370) {
+        tooltipSpan.style.left = `${w - 370 + 72}px`;
+      }
+      else {
+        tooltipSpan.style.left = `${x + 72}px`;
+      }
+
+      if (x >= w - 120 && tooltipSpan.classList.contains("available")) {
+        tooltipSpan.style.left = `${w - 120 + 72}px`;
+      }
+      else {
+        tooltipSpan.style.left = `${x + 72}px`;
+      }
+    }
+  }
   // TO DO: Tooltip Follow Mouse
 
   return (
@@ -79,7 +96,7 @@ function SendModal({
                 >
                   <div>
                     <div>
-                      <div className="transfer-code"> {/*  onMouseMove={e => tooltipHover(e)} */}
+                      <div className="transfer-code" > {/*  onMouseMove={e => tooltipHover(e)} */}
                         <span className="tooltip">
                           <b>Transfer Key:</b> Send the receiver the transfer key to 'RECEIVE WITH KEY'
                         </span>

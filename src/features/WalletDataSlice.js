@@ -404,7 +404,7 @@ export const callGetCoinBackupTxData = (shared_key_id) => {
   }
 }
 export const callGetSeAddr = (addr_index) => {
-  if (isWalletLoaded()) {
+  if (isWalletLoaded() && addr_index >= 0) {
     return wallet.getSEAddress(addr_index)
   }
 }
@@ -631,7 +631,7 @@ export const callTransferReceiver = createAsyncThunk(
 export const callGetTransfers = createAsyncThunk(
   'GetTransfers',
   async (action, thunkAPI) => {
-    return wallet.get_transfers(action)
+    return wallet.get_transfers(action.addr_index, action.numReceive)
   }
 )
 

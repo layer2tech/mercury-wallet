@@ -297,7 +297,6 @@ export class Wallet {
 
     new_wallet.account = json_wallet_to_bip32_root_account(json_wallet)
 
-    console.log(new_wallet)
 
     return new_wallet
   }
@@ -1613,7 +1612,7 @@ export class Wallet {
     let transferMsgArr: TransferMsg3[] = []
 
     log.info("Transfer Sender for " + shared_key_ids)
-    console.log('transfer_sender Called!')
+
     for ( var i = 0; i < shared_key_ids.length ; i++ ){
       await mutex.runExclusive(async () => { 
         // ensure receiver se address is valid
@@ -1705,67 +1704,82 @@ export class Wallet {
 
   // Query server for any pending transfer messages for the sepcified address index
   // Check for unused proof keys
-  async get_transfers(addr_index: number): Promise<string> {
+  async get_transfers(addr_index: number, numReceive: number): Promise<string> {
     log.info("Retrieving transfer messages")
     let error_message = ""
     let transfer_data
-
     let num_transfers = 0;
-    let addr = this.account.chains[0].addresses[addr_index];
-
-    let proofkey = this.getBIP32forBtcAddress(addr).publicKey.toString("hex");
-    const MAX_RETRIES = 10
+    let addr;
+    let proofkey;
     let n_retries = 0
-    let transfer_msgs = []
+    let transfer_msgs = [];
 
-    while (n_retries < MAX_RETRIES) {
-      try {
-        transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
-        break;
-      } catch (err: any) {
-        n_retries = n_retries + 1
-        if (n_retries === MAX_RETRIES) {
-          error_message = err.message
-          break;
-        }
-      }
-    }
+    const MAX_RETRIES = 10;
+    console.log('numRecieve: ', numReceive)
 
-    for (let i = 0; i < transfer_msgs.length; i++) {
-      // check if the coin is in the wallet
-      let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
-      let dotransfer = true;
-      for (let j = 0; j < walletcoins.length; j++) {
-        if (walletcoins[j].status === STATECOIN_STATUS.AVAILABLE) {
-          dotransfer = false;
-          break;
+    for(var i = 0; i < numReceive; i++){
+      if(numReceive === 1){
+        addr = this.account.chains[0].addresses[addr_index];
+        proofkey = this.getBIP32forBtcAddress(addr).publicKey.toString("hex");
+      } else{
+        if(i >= this.account.chains[0].addresses.length){
+          this.newSEAddress()
         }
+        addr = this.account.chains[0].addresses[i];
+        proofkey = this.getBIP32forBtcAddress(addr).publicKey.toString("hex");
       }
-      //perform transfer receiver
-      if (dotransfer) {
+
+  
+      while (n_retries < MAX_RETRIES) {
         try {
-          n_retries = 0
-          while (n_retries < MAX_RETRIES) {
-            try {
-              transfer_data = await this.transfer_receiver(transfer_msgs[i]);
-              break;
-            } catch (err: any) {
-              n_retries = n_retries + 1
-              if (n_retries === MAX_RETRIES) {
-                throw err
+          transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
+          break;
+        } catch (err: any) {
+          n_retries = n_retries + 1
+          if (n_retries === MAX_RETRIES) {
+            error_message = err.message
+            break;
+          }
+        }
+      }
+  
+      for (let i = 0; i < transfer_msgs.length; i++) {
+        // check if the coin is in the wallet
+        let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
+        let dotransfer = true;
+        for (let j = 0; j < walletcoins.length; j++) {
+          if (walletcoins[j].status === STATECOIN_STATUS.AVAILABLE) {
+            dotransfer = false;
+            break;
+          }
+        }
+        //perform transfer receiver
+        if (dotransfer) {
+          try {
+            n_retries = 0
+            while (n_retries < MAX_RETRIES) {
+              try {
+                transfer_data = await this.transfer_receiver(transfer_msgs[i]);
+                break;
+              } catch (err: any) {
+                n_retries = n_retries + 1
+                if (n_retries === MAX_RETRIES) {
+                  throw err
+                }
               }
             }
+            num_transfers += 1;
           }
-          num_transfers += 1;
+          catch (e: any) {
+            error_message = e.message
+          }
+  
         }
-        catch (e: any) {
-          error_message = e.message
-        }
-
       }
+  
+      //this.activity.addItem(addr, ACTION.RECEIVED);
+      
     }
-
-    //this.activity.addItem(addr, ACTION.RECEIVED);
     return num_transfers + "../.." + error_message
   }
 

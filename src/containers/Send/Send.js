@@ -8,7 +8,8 @@ import { decodeSCEAddress,encodeSCEAddress,  encodeMessage } from '../../wallet/
 import {
   isWalletLoaded, callTransferSender, setError, setNotification,
   removeCoins,
-  callProofKeyFromXpub
+  callProofKeyFromXpub,
+  callSumStatecoinValues
 } from '../../features/WalletDataSlice';
 import arrow from "../../images/arrow-up.png"
 import './Send.css';
@@ -121,7 +122,7 @@ const SendStatecoinPage = () => {
 
     setOpenSendModal({
       show: true,
-      value: coinDetails.value,
+      value: callSumStatecoinValues(selectedCoins),
       coinAddress: inputAddr
     })
     // Add loop for as many pub keys as selected coins
@@ -133,7 +134,7 @@ const SendStatecoinPage = () => {
       .then(res => {
 
         if (res.error === undefined) {
-          console.log('Res - Payload: ',res.payload)
+
           let transferCode = []
           res.payload.forEach(res => {
             transferCode.push(encodeMessage(res));
@@ -268,7 +269,7 @@ const SendStatecoinPage = () => {
                       </table>
                       */}
             <ConfirmPopup onOk={sendButtonCheck}>
-              <button type="action-btn-normal" className={`btn send-action-button ${loading}`} >
+              <button type="action-btn-normal" className={`btn send-action-button ${loading} ${ (selectedCoins.length > 1 && !(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'))?("privacy"): (null)  }`} >
                 {loading ? (<Loading />) : "SEND STATECOIN"}
               </button>
             </ConfirmPopup >
