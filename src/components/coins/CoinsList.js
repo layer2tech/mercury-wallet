@@ -265,7 +265,6 @@ const CoinsList = (props) => {
 
   // set to withdraw modals
   const expiredToWithdrawn = useCallback((e,item) => {
-    console.log('open Modal')
     e.stopPropagation();
     setCurrentItem(item);
     setConfirmCoinAction({...showConfirmCoinAction, 

@@ -59,8 +59,12 @@ const SwapPage = () => {
   }
 
   const updateSwapInfo = async (isMounted) => {
-    if (isMounted === true) {  
-      dispatch(callUpdateSwapGroupInfo());
+    if (isMounted === true) {
+      try{
+        dispatch(callUpdateSwapGroupInfo());
+      } catch(e){
+        console.error(e.message)
+      }
       let swap_groups_data = callGetSwapGroupInfo();
       let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
       let sorted_swap_groups_entry = swap_groups_array.sort((a, b) => b[0].amount - a[0].amount)
@@ -111,7 +115,7 @@ const SwapPage = () => {
     }
 
     // Warning on first swap group enter, to not exit wallet mid-swap
-    dispatch(setWarning({ key: "swap_punishment", msg: "WARNING! Exit the wallet whilst a swap is live causes the swap to fail and coins to be temporarily banned from entering swaps." }))
+    dispatch(setWarning({ key: "swap_punishment", msg: "WARNING! Exiting the wallet whilst a swap is live causes the swap to fail and coins to be temporarily banned from entering swaps." }))
 
     let swapValues = new Set(inSwapValues)
     let randomOrderIndices = []
