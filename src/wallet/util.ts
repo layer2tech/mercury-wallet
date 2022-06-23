@@ -17,6 +17,13 @@ import { encrypt, decrypt } from "eciesjs12b";
 import { segwitAddr } from "./wallet";
 
 var NodeBuffer = require("buffer/").Buffer; // note: the trailing slash is important!
+
+console.log("What is NodeBuffer:", NodeBuffer);
+console.log("\x1b[36m%s\x1b[0m", NodeBuffer);
+
+console.log("What is Buffer?", Buffer);
+console.log("\x1b[35m", Buffer);
+
 let bech32 = require("bech32");
 let bitcoin = require("bitcoinjs-lib");
 let typeforce = require("typeforce");
