@@ -34,6 +34,14 @@ export class ActivityLog {
     this.items.push(new ActivityLogItem(shared_key_id, action))
   };
 
+  getDate(shared_key_id: string, action: string){
+    let item = this.items.filter(item => item.shared_key_id === shared_key_id && item.action === action )
+    // filter by action and shared key ID
+
+    //return date of first entry
+    return item[0].date
+  }
+
   static mergeActivityByDate = (activity_data: ActivityLogItem[]): ActivityLogItem[][] => {
     if (!activity_data.length) return [];
     let allActivity: any = {};

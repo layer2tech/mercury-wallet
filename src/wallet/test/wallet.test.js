@@ -174,7 +174,10 @@ describe('Wallet', function () {
         let _ = Wallet.load(MOCK_WALLET_NAME, "", true);
       }).toThrow("Incorrect password.");
 
+      delete wallet.backupTxUpdateLimiter;
+
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
 
@@ -196,7 +199,7 @@ describe('Wallet', function () {
       const test_electrum_config = {
         host: "test EC host",
         port: 123456789,
-        protocol: "test EC protocol",
+        protocol: "tcp",
         type: "test EC type"
       }
       const test_blocks = wallet.config.electrum_fee_estimation_blocks + 1
@@ -207,7 +210,11 @@ describe('Wallet', function () {
       wallet.config.electrum_config = test_electrum_config
       wallet.config.electrum_fee_estimation_blocks = test_blocks
 
+      //Stop wallet
+      await wallet.stop()
+
       //Confirm settings are edited
+      delete wallet.backupTxUpdateLimiter;
       const wallet_mod_str = JSON.stringify(wallet)
       const wallet_mod_json = JSON.parse(wallet_mod_str)
       expect(wallet_mod_json.config.state_entity_endpoint).toEqual(test_state_entity_endpoint)
@@ -216,12 +223,13 @@ describe('Wallet', function () {
       expect(wallet_mod_json.config.electrum_config).toEqual(test_electrum_config)
       expect(wallet_mod_json.config.electrum_fee_estimation_blocks).toEqual(test_blocks)
 
-      //Stop and save wallet
-      await wallet.stop()
+      //Save wallet
       await wallet.save()
 
       //Confirm that the reloaded wallet has the altered settings
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      delete loaded_wallet.backupTxUpdateLimiter;
+      loaded_wallet.stop();
       const loaded_wallet_str = JSON.stringify(loaded_wallet)
       const loaded_wallet_json = JSON.parse(loaded_wallet_str)
       expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
@@ -391,6 +399,9 @@ describe('Wallet', function () {
       let from_json = Wallet.fromJSON(json_wallet, true);
       // check wallets serialize to same values (since deep equal on recursive objects is messy)
 
+      delete wallet.backupTxUpdateLimiter;
+      delete from_json.backupTxUpdateLimiter;
+
       expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet));
     });
 
@@ -470,12 +481,15 @@ describe('Wallet', function () {
       await loaded_wallet_from_backup.save();
 
       let loaded_wallet_mod = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true);
+      delete wallet.backupTxUpdateLimiter;
+      delete loaded_wallet_mod.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet_mod))
 
       let loaded_wallet_backup = await Wallet.load(MOCK_WALLET_NAME_BACKUP, MOCK_WALLET_PASSWORD, true);
       //The mock and mock_backup wallets should be the same except for name and storage
       loaded_wallet_mod.name = MOCK_WALLET_NAME_BACKUP;
       loaded_wallet_mod.storage = loaded_wallet_backup.storage
+      delete loaded_wallet_backup.backupTxUpdateLimiter;
       expect(JSON.stringify(loaded_wallet_mod)).toEqual(JSON.stringify(loaded_wallet_backup));
     });
 
@@ -498,6 +512,8 @@ describe('Wallet', function () {
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true);
       let num_coins_after = loaded_wallet.statecoins.coins.length;
       expect(num_coins_after).toEqual(num_coins_before + 1)
+      delete wallet.backupTxUpdateLimiter;
+      delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
   });
@@ -597,7 +613,7 @@ describe('updateBackupTxStatus', function () {
       return { confirmations: 3 }
     })
     await wallet.updateBackupTxStatus(false);
-    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWN);
+    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.EXPIRED);
     // verify tx confirmed
     expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.CONFIRMED);
   })
@@ -750,31 +766,31 @@ describe('checkLocktime', function () {
     statecoin.status = STATECOIN_STATUS.AVAILABLE
     init_statecoin = cloneDeep(statecoin)
   })
-  test('before locktime', () => {
+  test('before locktime', async () => {
     wallet.block_height = 0
     statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
-    expect(wallet.checkLocktime(statecoin)).toEqual(false)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(false)
     expect(statecoin.backup_status).toEqual(BACKUP_STATUS.PRE_LOCKTIME)
     expect(statecoin.status).toEqual(init_statecoin.status)
   })
-  test('swap limit', () => {
+  test('swap limit', async () => {
     wallet.block_height = 1
     statecoin.tx_backup.locktime = wallet.block_height + 1
-    expect(wallet.checkLocktime(statecoin)).toEqual(false)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(false)
     expect(statecoin.backup_status).toEqual(BACKUP_STATUS.PRE_LOCKTIME)
     expect(statecoin.status).toEqual(STATECOIN_STATUS.SWAPLIMIT)
   })
-  test('at locktime', () => {
+  test('at locktime', async () => {
     statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
     wallet.block_height = statecoin.tx_backup.locktime
-    expect(wallet.checkLocktime(statecoin)).toEqual(true)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(true)
     expect(statecoin.backup_status).toEqual(init_statecoin.backup_status)
     expect(statecoin.status).toEqual(init_statecoin.status)
   })
-  test('after locktime', () => {
+  test('after locktime', async () => {
     statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
     wallet.block_height = statecoin.tx_backup.locktime + 1
-    expect(wallet.checkLocktime(statecoin)).toEqual(true)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(true)
     expect(statecoin.backup_status).toEqual(init_statecoin.backup_status)
     expect(statecoin.status).toEqual(init_statecoin.status)
   })
