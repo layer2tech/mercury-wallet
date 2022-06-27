@@ -7,8 +7,6 @@ import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
 import { callGetConfig } from '../features/WalletDataSlice'
 import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
-import { StateCoin } from './statecoin'
-import { LanguageVariant, visitLexicalEnvironment } from 'typescript';
 
 let bech32 = require('bech32')
 let bitcoin = require('bitcoinjs-lib')
