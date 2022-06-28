@@ -172,12 +172,6 @@ const Coin = (props) => {
         }}
       >
         <div className="CoinPanel">
-        {(props.coin_data.status === STATECOIN_STATUS.DUPLICATE) ?(
-          <div className="dup-container">
-            <span className="tooltip">
-              <b>Duplicate Coin Warning!</b> This coin can only be withdrawn after the statecoin sharing the deposit address has been withdrawn and confirmed. 
-            </span>
-          </div>):(null)}
           <div className="CoinAmount-block">
             <img src={props.coin_data.privacy_data.icon1} alt="icon" />
             <span className="sub">
@@ -309,9 +303,12 @@ const Coin = (props) => {
                   ) : 
                 (props.coin_data.status === STATECOIN_STATUS.DUPLICATE) ?
                   (
-                      <div className="scoreAmount">
+                        <div className="scoreAmount">
                         <img src={duplicateIcon} className="duplicate-icon" alt="icon" />
                           <b>Duplicate</b>
+                      <span className="tooltip">
+                        Duplicate deposit output. This coin can only be withdrawn after the statecoin sharing the deposit address has been withdrawn and confirmed. 
+                      </span>
                       </div>
                   ) :                   
                   (
