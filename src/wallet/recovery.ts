@@ -30,7 +30,7 @@ const NUM_KEYS_PER_RECOVERY_ATTEMPT = 200;
 
 // Send all proof keys to server to check for statecoins owned by this wallet.
 // Should be used as a last resort only due to privacy leakage.
-export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<RecoveryDataMsg[]> => {
+export const recoverCoins = async (wallet: Wallet, gap_limit: number, dispatch: any): Promise<RecoveryDataMsg[]> => {
   let recovery_data: any = [];
   let new_recovery_data_load = [null];
   let recovery_request = [];
@@ -40,8 +40,12 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<R
   addrs.push(addr);
   recovery_request.push({ key: wallet.getBIP32forBtcAddress(addr).publicKey.toString("hex"), sig: "" });
   let count = 0;
+  let percentageComplete
   while (count < gap_limit) {
     for (let i = 0; i < NUM_KEYS_PER_RECOVERY_ATTEMPT; i++) {
+      percentageComplete = Math.floor(wallet.account.chains[0].k / (Math.ceil(gap_limit / NUM_KEYS_PER_RECOVERY_ATTEMPT) * NUM_KEYS_PER_RECOVERY_ATTEMPT) * 100);
+      dispatch(setProgress({ msg: percentageComplete }));
+
       let addr = wallet.account.nextChainAddress(0);
       addrs.push(addr);
       recovery_request.push({ key: wallet.getBIP32forBtcAddress(addr).publicKey.toString("hex"), sig: "" });
@@ -50,6 +54,11 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number): Promise<R
     new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
     recovery_request = [];
     recovery_data = recovery_data.concat(new_recovery_data_load);
+
+    if (count > gap_limit) {
+      // Once upper limit of addresses have been searched set graphic load complete
+      dispatch(setProgressComplete(""))
+    }
   }
 
   let fee_info: FeeInfo = await getFeeInfo(wallet.http_client)
