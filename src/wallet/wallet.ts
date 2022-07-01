@@ -820,7 +820,7 @@ export class Wallet {
     }
   }
 
-  async processTXBroadcastError(statecoin: StateCoin, err: any) {
+  processTXBroadcastError(statecoin: StateCoin, err: any) {
     if (err.toString().includes('already') && err.toString().includes('mempool')) {
       statecoin.setBackupInMempool();
     } else if (err.toString().includes('already') && err.toString().includes('block')) {
@@ -833,7 +833,7 @@ export class Wallet {
 
     } else if ((err.toString().includes('conflict') || err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
       statecoin.setBackupTaken();
-      await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
+      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
     }
   }
 
@@ -858,7 +858,7 @@ export class Wallet {
   }
 
   // Returns true if locktime is reached
-  async checkLocktime(statecoin: StateCoin): Promise<boolean> {
+  checkLocktime(statecoin: StateCoin): boolean {
     let blocks_to_locktime = (statecoin.tx_backup?.locktime ?? Number.MAX_SAFE_INTEGER) - this.block_height;
     // pre-locktime - update locktime swap limit status
     if (blocks_to_locktime > 0) {
@@ -868,7 +868,7 @@ export class Wallet {
       if (statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && blocks_to_locktime < this.config.swaplimit && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
         statecoin.setSwapLimit()
       }
-      await this.saveStateCoinsList()
+      this.saveStateCoinsList()
       return false
     } else {
       // locktime reached
@@ -899,7 +899,7 @@ export class Wallet {
       let bresponse = await this.electrum_client.broadcastTransaction(backup_tx)
       this.processTXBroadcastResponse(statecoin, bresponse)
     } catch(err: any) {
-      await this.processTXBroadcastError(statecoin, err)  
+      this.processTXBroadcastError(statecoin, err)  
     }
   }
 
@@ -919,28 +919,28 @@ export class Wallet {
       if (Wallet.backupTxCheckRequired(statecoin) === false) {
         continue
       }
-      if (await this.checkLocktime(statecoin) === true) {
+      if (this.checkLocktime(statecoin) === true) {
         // set expired
         if (statecoin.status === STATECOIN_STATUS.SWAPLIMIT || statecoin.status === STATECOIN_STATUS.AVAILABLE) {
-          await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false)
+          this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false)
         }
         // in mempool - check if confirmed
         if (statecoin.backup_status === BACKUP_STATUS.IN_MEMPOOL) {
           try {
-            await this.checkMempoolTx(statecoin)
+            this.checkMempoolTx(statecoin)
           } catch (err: any) {
             log.error(`Error checking backup transaction status: ${err.toString()}`)
           }
         } else {
           try {
-            await this.broadcastBackupTx(statecoin)
+            this.broadcastBackupTx(statecoin)
           } catch (err: any) {
             log.error(`Error broadcasting backup transaction: ${err.toString()}`)
           }
         }
         // if CPFP present, then broadcast this as well
         try {
-          await this.broadcastCPFP(statecoin)
+          this.broadcastCPFP(statecoin)
         } catch (err: any) {
           log.error(`Error broadcasting CPFP: ${err.toString()}`)
         }
