@@ -30,7 +30,6 @@ import { EPSClient } from './eps';
 import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './mercury/torcircuit_api';
 import { callGetNewTorId } from '../features/WalletDataSlice';
 import { Mutex } from 'async-mutex';
-import { RateLimiter } from "limiter"
 
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -104,16 +103,12 @@ export class Wallet {
   statechain_id_set: Set<string>;
   wasm: any;
   saveMutex: Mutex;
-  backupTxUpdateLimiter: any;
 
   storage: Storage
   active: boolean;
 
   constructor(name: string, password: string, mnemonic: string, account: any, config: Config,
     http_client: any = undefined, wasm: any = undefined) {
-  
-
-    this.backupTxUpdateLimiter = new RateLimiter({ tokensPerInterval: 1, interval: 30000, fireImmediately: true });
     
     this.name = name;
     this.password = password;
@@ -489,14 +484,8 @@ export class Wallet {
 
       if(!this.checkElectrumNetwork()) return;
 
-      try{
-        // Continuously update block height
-        this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
-      } catch(e:any){
-        console.error(e)
-      }
-      // Get fee info
-
+      this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
+      
       let fee_info: FeeInfo
 
       getFeeInfo(this.http_client).then(async (res) => {
@@ -920,10 +909,7 @@ export class Wallet {
   }
 
   // update statuts of backup transactions and broadcast if neccessary
-  async updateBackupTxStatus(bRateLimiter: boolean = true) {
-    if (bRateLimiter && await this.backupTxUpdateLimiter.removeTokens(1) == -1) {
-      return
-    }
+  async updateBackupTxStatus() {
     for (let i = 0; i < this.statecoins.coins.length; i++) {
       let statecoin = this.statecoins.coins[i]
       // check if there is a backup tx yet, if not do nothing

@@ -60,11 +60,7 @@ const SwapPage = () => {
 
   const updateSwapInfo = async (isMounted) => {
     if (isMounted === true) {
-      try{
-        dispatch(callUpdateSwapGroupInfo());
-      } catch(e){
-        console.error(e.message)
-      }
+      dispatch(callUpdateSwapGroupInfo());
       let swap_groups_data = callGetSwapGroupInfo();
       let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
       let sorted_swap_groups_entry = swap_groups_array.sort((a, b) => b[0].amount - a[0].amount)
