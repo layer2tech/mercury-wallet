@@ -484,14 +484,8 @@ export class Wallet {
 
       if(!this.checkElectrumNetwork()) return;
 
-      try{
-        // Continuously update block height
-        this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
-      } catch(e:any){
-        console.error(e)
-      }
-      // Get fee info
-
+      this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
+      
       let fee_info: FeeInfo
 
       getFeeInfo(this.http_client).then(async (res) => {

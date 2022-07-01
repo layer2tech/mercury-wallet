@@ -716,7 +716,7 @@ export const callGetFeeEstimation = createAsyncThunk(
 export const callSetStatecoinSpent = createAsyncThunk(
   'SetStatecoinSpent',
   async (action, thunkAPI) => {
-    return wallet.setStateCoinSpent(action.id, action.action)
+    return await wallet.setStateCoinSpent(action.id, action.action)
   }
 )
 
