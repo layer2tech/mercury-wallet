@@ -127,10 +127,10 @@ const WithdrawPage = () => {
           setWithdrawTxid(res.payload)
           dispatch(setNotification({msg:"Withdraw to "+inputAddr+" - transaction broadcast complete."}))
         }
-        if(res.error!== undefined){
+      if(res.error!== undefined){
           setOpenModal(false)
-        }
-        setLoading(false)
+      }
+      setLoading(false)
     }))
     
   }
