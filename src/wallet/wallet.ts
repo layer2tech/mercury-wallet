@@ -870,6 +870,14 @@ export class Wallet {
       if (statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && blocks_to_locktime < this.config.swaplimit && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
         statecoin.setSwapLimit()
       }
+      // restore expired coins if blockheight corrected
+      if (statecoin.status === STATECOIN_STATUS.EXPIRED) {
+        if (blocks_to_locktime > this.config.swaplimit) {
+          statecoin.setConfirmed()
+        } else if (blocks_to_locktime > 1) {
+          statecoin.setSwapLimit()
+        }
+      }
       await this.saveStateCoinsList()
       return false
     } else {
