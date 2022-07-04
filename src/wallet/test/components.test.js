@@ -1,80 +1,84 @@
-import React from 'react';
-import reducers from '../../reducers';
-import TestComponent, { render } from './test-utils';
-import { fireEvent, screen } from '@testing-library/dom';
-import SwapStatus from '../../components/coins/SwapStatus/SwapStatus'
-import { coinSort } from '../../components/coins/CoinsList'
-import { configureStore } from '@reduxjs/toolkit';
-import { makeDummyStatecoins } from './test_data.js'
+const { TestEnvironment } = require("jest-environment-jsdom");
 
-let cloneDeep = require('lodash.clonedeep');
+import React from "react";
+import reducers from "../../reducers";
+import TestComponent, { render } from "./test-utils";
+import { fireEvent, screen } from "@testing-library/dom";
+import SwapStatus from "../../components/coins/SwapStatus/SwapStatus";
+import { coinSort } from "../../components/coins/CoinsList";
+import { configureStore } from "@reduxjs/toolkit";
+import { makeDummyStatecoins } from "./test_data.js";
 
-describe('SwapStatus', function () {
-    let store = configureStore({ reducer: reducers, })
+let cloneDeep = require("lodash.clonedeep");
 
-    test('Error Messaging', function () {
-        render(store,
-            <SwapStatus
-                swap_error={{ msg: "not found in swap" }} />)
+describe("SwapStatus", function () {
+  let store = configureStore({ reducer: reducers });
 
-        expect(screen.getAllByText(/awaiting timeout/i)).toBeTruthy()
+  test("Error Messaging", function () {
+    render(store, <SwapStatus swap_error={{ msg: "not found in swap" }} />);
 
-        render(store,
-            <SwapStatus
-                swap_error={{ msg: "In punishment list: Seconds remaining: 90" }} />)
+    expect(screen.getAllByText(/awaiting timeout/i)).toBeTruthy();
 
-        expect(screen.getAllByText(/1 mins/i)).toBeTruthy()
-    })
-    test('throw unexpected values in props', function () {
-        render(store, <SwapStatus swap_error={12345} />)
-        render(store, <SwapStatus swap_error={true} />)
-    })
-})
+    render(
+      store,
+      <SwapStatus
+        swap_error={{ msg: "In punishment list: Seconds remaining: 90" }}
+      />
+    );
 
-describe('CoinsList', function () {
-    describe('SortCoin', function () {
-        const coins_list_init = makeDummyStatecoins()
-        let coins_list
-        beforeEach(() => {
-            coins_list = cloneDeep(coins_list_init)
-        })
+    expect(screen.getAllByText(/1 mins/i)).toBeTruthy();
+  });
+  test("throw unexpected values in props", function () {
+    render(store, <SwapStatus swap_error={12345} />);
+    render(store, <SwapStatus swap_error={true} />);
+  });
+});
 
-        test('test sort coins by value', function () {
-            const order_expected = [4, 3, 0, 2, 1];
-            let sortBy = {
-                direction: 0,
-                by: 'value'
-            };
-            coins_list.sort(coinSort(sortBy))
-            let order = []
-            for (let i = 0; i < coins_list.length; i++) {
-                order.push(coins_list_init.findIndex((item) => {
-                    let result = (item.shared_key_id === coins_list[i].shared_key_id)
-                    return result
-                }
-                ))
-            }
-            expect(order).toEqual(order_expected)
-        })
+describe("CoinsList", function () {
+  describe("SortCoin", function () {
+    const coins_list_init = makeDummyStatecoins();
+    let coins_list;
+    beforeEach(() => {
+      coins_list = cloneDeep(coins_list_init);
+    });
 
-        test('test sort coins by value for swap condition', function () {
-            const order_expected = [4, 3, 2, 0, 1];
-            let sortBy = {
-                direction: 0,
-                by: 'value',
-                condition: 'swap'
-            };
-            coins_list.sort(coinSort(sortBy))
-            let order = []
-            for (let i = 0; i < coins_list.length; i++) {
-                order.push(coins_list_init.findIndex((item) => {
-                    let result = (item.shared_key_id === coins_list[i].shared_key_id)
-                    return result
-                }
-                ))
-            }
-            expect(order).toEqual(order_expected)
-        })
-    })
+    test("test sort coins by value", function () {
+      const order_expected = [4, 3, 0, 2, 1];
+      let sortBy = {
+        direction: 0,
+        by: "value",
+      };
+      coins_list.sort(coinSort(sortBy));
+      let order = [];
+      for (let i = 0; i < coins_list.length; i++) {
+        order.push(
+          coins_list_init.findIndex((item) => {
+            let result = item.shared_key_id === coins_list[i].shared_key_id;
+            return result;
+          })
+        );
+      }
+      expect(order).toEqual(order_expected);
+    });
 
-})
+    test("test sort coins by value for swap condition", function () {
+      const order_expected = [4, 3, 2, 0, 1];
+      let sortBy = {
+        direction: 0,
+        by: "value",
+        condition: "swap",
+      };
+      coins_list.sort(coinSort(sortBy));
+      let order = [];
+      for (let i = 0; i < coins_list.length; i++) {
+        order.push(
+          coins_list_init.findIndex((item) => {
+            let result = item.shared_key_id === coins_list[i].shared_key_id;
+            return result;
+          })
+        );
+      }
+      expect(order).toEqual(order_expected);
+    });
+  });
+});

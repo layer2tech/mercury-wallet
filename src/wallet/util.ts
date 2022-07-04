@@ -1,6 +1,5 @@
 // wallet utilities
 
-"use strict";
 import {
   BIP32Interface,
   Network,
@@ -13,16 +12,11 @@ import { Root, StateChainDataAPI, FeeInfo, OutPoint } from "./mercury/info_api";
 import { Secp256k1Point } from "./mercury/transfer";
 import { TransferMsg3, PrepareSignTxMsg } from "./mercury/transfer";
 import { callGetConfig } from "../features/WalletDataSlice";
-import { encrypt, decrypt } from "eciesjs12b";
+import { encrypt, decrypt } from "eciesjscb";
+
 import { segwitAddr } from "./wallet";
-
-var NodeBuffer = require("buffer/").Buffer; // note: the trailing slash is important!
-
-console.log("What is NodeBuffer:", NodeBuffer);
-console.log("\x1b[36m%s\x1b[0m", NodeBuffer);
-
-console.log("What is Buffer?", Buffer);
-console.log("\x1b[35m", Buffer);
+import { StateCoin } from "./statecoin";
+import { LanguageVariant, visitLexicalEnvironment } from "typescript";
 
 let bech32 = require("bech32");
 let bitcoin = require("bitcoinjs-lib");
@@ -476,38 +470,17 @@ const zero_pad = (num: any) => {
 
 // ECIES encrypt string
 export const encryptECIES = (publicKey: string, data: string): Buffer => {
-  let data_buf = NodeBuffer.from(zero_pad(data), "hex");
-  isUint8Array("data_buf", data_buf, data_buf.length);
-  return encrypt(publicKey, data_buf);
+  let data_arr = new Uint32Array(Buffer.from(zero_pad(data), "hex"));
+  return encrypt(publicKey, Buffer.from(data_arr));
 };
-
-function assert(cond: any, msg: any) {
-  if (!cond) throw new Error(msg);
-}
-
-function isUint8Array(name: any, value: any, length: any) {
-  assert(value instanceof Uint8Array, `Expected ${name} to be an Uint8Array`);
-
-  if (length !== undefined) {
-    if (Array.isArray(length)) {
-      const numbers = length.join(", ");
-      const msg = `Expected ${name} to be an Uint8Array with length [${numbers}]`;
-      assert(length.includes(value.length), msg);
-    } else {
-      const msg = `Expected ${name} to be an Uint8Array with length ${length}`;
-      assert(value.length === length, msg);
-    }
-  }
-}
 
 // ECIES decrypt string x1 from Server.
 export const decryptECIES = (
   secret_key: string,
   encryption: string
 ): string => {
-  let enc_buf = NodeBuffer.from(encryption, "hex");
-  isUint8Array("enc_buf", enc_buf, enc_buf.length);
-  let dec = decrypt(secret_key, enc_buf);
+  let enc = new Uint32Array(Buffer.from(encryption, "hex"));
+  let dec = decrypt(secret_key, Buffer.from(enc));
   return dec.toString("hex");
 };
 
