@@ -1,11 +1,19 @@
-.send-modal .modal-dialog {
+/* .send-modal .modal-dialog {
   width: 384px;
-}
+} */
 .send-modal .send-steps {
   display: flex;
   flex-direction: column;
 }
 
+.send-modal .modal-content{
+  position: fixed;
+  margin-top:8%;
+}
+
+.send-modal .modal-dialog{
+  position: initial;
+}
 
 .send-modal .send-steps .step-item {
   margin-bottom: 20px;
@@ -183,6 +191,7 @@
   margin-left: -60px;
   opacity: 0;
   transition: opacity 0.3s;
+  top: -60px;
 }
 
 .transfer-code .tooltip:after {
