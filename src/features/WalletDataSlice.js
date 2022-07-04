@@ -176,11 +176,7 @@ export const walletLoad = (name, password) => {
       await wallet.set_tor_endpoints();
       wallet.initElectrumClient(setBlockHeightCallBack);
       wallet.updateSwapStatus();
-      try{
-        await wallet.updateSwapGroupInfo();
-      } catch (e){ 
-        console.error(e.message)
-      }
+      await wallet.updateSwapGroupInfo();
       wallet.updateSpeedInfo();
     });
   });
@@ -269,6 +265,14 @@ export const callGetConfig = (test_wallet = null) => {
   else {
     return wallet.config.getConfig()
   }
+}
+
+export const callDeriveXpub = () => {
+  return wallet.deriveXpub()
+}
+
+export const callProofKeyFromXpub = ( xpub, index ) => {
+  return wallet.deriveProofKeyFromXpub(xpub, index)
 }
 
 export const callGetVersion = () => {
@@ -406,7 +410,7 @@ export const callGetCoinBackupTxData = (shared_key_id) => {
   }
 }
 export const callGetSeAddr = (addr_index) => {
-  if (isWalletLoaded()) {
+  if (isWalletLoaded() && addr_index >= 0) {
     return wallet.getSEAddress(addr_index)
   }
 }
@@ -621,7 +625,7 @@ export const callWithdraw = createAsyncThunk(
 export const callTransferSender = createAsyncThunk(
   'TransferSender',
   async (action, thunkAPI) => {
-    return wallet.transfer_sender(action.shared_key_id, action.rec_addr)
+    return wallet.transfer_sender(action.shared_key_ids, action.rec_addr)
   }
 )
 export const callTransferReceiver = createAsyncThunk(
@@ -633,7 +637,7 @@ export const callTransferReceiver = createAsyncThunk(
 export const callGetTransfers = createAsyncThunk(
   'GetTransfers',
   async (action, thunkAPI) => {
-    return wallet.get_transfers(action)
+    return wallet.get_transfers(action.addr_index, action.numReceive)
   }
 )
 
@@ -720,7 +724,6 @@ export const callGetFeeEstimation = createAsyncThunk(
 export const callSetStatecoinSpent = createAsyncThunk(
   'SetStatecoinSpent',
   async (action, thunkAPI) => {
-    console.log(action)
     return await wallet.setStateCoinSpent(action.id, action.action)
   }
 )

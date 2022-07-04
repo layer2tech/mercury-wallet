@@ -27,7 +27,11 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
     if(children.props.className === 'header-logout'){
       setCloseText('Are you sure you want to log out?')
     } else if(children.props.className.includes('send-action-button')){
-      setCloseText('Confirm send, statecoin ready to be sent immediately.')
+      if(children.props.className.includes('privacy')){
+        setCloseText('Privacy Warning: Address reuse against best privacy practice, send anyway?')
+      } else{
+        setCloseText('Confirm send, statecoin ready to be sent immediately.')
+      }
     } else if(children.props.className.includes('withdraw-button')){
       setCloseText('Confirm withdrawal. Withdrawal fee: ' + withdraw_fee/100 + '%')
     } else if(swapRecords.length > 0){

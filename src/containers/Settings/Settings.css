@@ -443,3 +443,34 @@ input.quantity {
         width: 100%;
     }
 }
+
+.xpub .tooltip-info{
+    visibility: hidden;
+    width: 350px;
+    background-color: var(--button-border);
+    color: var(--text-primary);
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 10px 5px 10px;
+    position: absolute;
+    z-index: 1;
+    bottom:2px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.xpub .title-container .info-container:hover .tooltip-info, .xpub .info-container:hover .tooltip-info {
+    visibility: visible;
+    opacity: 1;
+}
+
+.xpub div.info-receive{
+    display:block;
+}
+
+.xpub .info-container img{
+    height: 10px;
+    position: absolute;
+    left: -15px;
+    top: 0px;
+}
