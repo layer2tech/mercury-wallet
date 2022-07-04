@@ -1954,18 +1954,20 @@ export class Wallet {
     withdraw_msg_2: WithdrawMsg2,
     txid: string
   ) {
-    log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`)
+    log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`);
     try {
-      withdraw_msg_2.shared_key_ids.forEach((shared_key_id) => {
-        this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
-        this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+      withdraw_msg_2.shared_key_ids.forEach(async (shared_key_id) => {
+        this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
+        await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
+        this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
       });
       await withdraw_confirm(this.http_client, withdraw_msg_2);
     } catch (e) {
       if (`${e}`.includes('No data for id') || `${e}`.includes('No update made')) {
-        withdraw_msg_2.shared_key_ids.forEach((shared_key_id) => {
-          this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
-          this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+        withdraw_msg_2.shared_key_ids.forEach( async (shared_key_id) => {
+          this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
+          await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
+          this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
         })
       } else {
         log.error(`withdraw confirm error: ${e}`);
