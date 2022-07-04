@@ -1198,11 +1198,74 @@ describe("Post-swap functions", () => {
     expect(setCoinSpentSpy).not.toHaveBeenCalled()
   })
 
-  test("Confirm that setStateCoinSpent was called is there is a new statecoin", () => {
+  test("Confirm that setStateCoinSpent was called if there is a new statecoin", () => {
     let new_statecoin = cloneDeep(statecoin)
     new_statecoin.status = STATECOIN_STATUS.AVAILABLE
     wallet.doPostSwap(statecoin, new_statecoin)
     expect(setCoinSpentSpy).toHaveBeenCalled()
+  })
+})
+
+describe("Handle swap error", () => {
+  const MNEMONIC = "similar leader virus polar vague grunt talk flavor kitten order call blood"
+  // client side's mock
+  let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+  // server side's mock
+  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+  let wallet
+  const CHAIN_LENGTH = 5
+  //Fatal swap error
+  const swap_error = Error("Exiting swap.")
+  let statecoin
+  let account_init
+  let setSwapDataToNullSpy
+
+  beforeEach(async () => {
+    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock, MNEMONIC);
+    wallet.statecoins.coins = [];
+    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" }, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+    statecoin = wallet.statecoins.coins[0]
+    statecoin.swap_status = SWAP_STATUS.Init
+    setSwapDataToNullSpy = jest.spyOn(statecoin, 'setSwapDataToNull')
+  })
+
+  test("Swap data set to null for transfer batch timeout error", () => {
+    let error = Error("Transfer batch ended. Timeout")
+    wallet.handleSwapError(error, statecoin)
+    expect(setSwapDataToNullSpy).toHaveBeenCalled()
+  })
+
+  test("Swap data set to null for \"Exiting swap\" error", () => {
+    let error = Error("Exiting swap.")
+    wallet.handleSwapError(error, statecoin)
+    expect(setSwapDataToNullSpy).toHaveBeenCalled()
+  })
+
+  test("Swap data set to null for transfer batch timeout error if statecoin is in swap phase 4", () => {
+    let error = Error("Transfer batch ended. Timeout")
+    statecoin.swap_status = SWAP_STATUS.Phase4
+    wallet.handleSwapError(error, statecoin)
+    expect(setSwapDataToNullSpy).toHaveBeenCalled()
+  })
+
+  test("Swap data set to null for \"Exiting swap\" error if statecoin is in swap phase 4", () => {
+    let error = Error("Exiting swap.")
+    statecoin.swap_status = SWAP_STATUS.Phase4
+    wallet.handleSwapError(error, statecoin)
+    expect(setSwapDataToNullSpy).toHaveBeenCalled()
+  })
+
+  test("Swap data set to null for all swap phases other than swap phase 4", () => {
+    let error = Error("Misc error")
+    let nCalls = 0;
+    for (let s in SWAP_STATUS) {
+      statecoin.swap_status = s;
+      wallet.handleSwapError(error, statecoin);
+      if (s != SWAP_STATUS.Phase4) {
+        nCalls = nCalls + 1;
+      }
+      expect(setSwapDataToNullSpy).toHaveBeenCalledTimes(nCalls);
+    }
   })
 })
 
