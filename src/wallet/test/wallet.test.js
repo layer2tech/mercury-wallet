@@ -7,7 +7,7 @@ import {
 import {
   segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC,
   mnemonic_to_bip32_root_account, getBIP32forBtcAddress, parseBackupData,
-  required_fields, backupTxCheckRequired
+  required_fields, backupTxCheckRequired, getXpub, MOCK_WALLET_XPUB
 } from '../wallet';
 import { BIP32Interface, BIP32, fromBase58 } from 'bip32';
 import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
@@ -356,6 +356,14 @@ describe('Wallet', function () {
     test('bip32 root for testnet network', function () {
       expect(root_testnet).not.toEqual(root)
     })
+  })
+
+  describe('xpub from mnemonic', function(){
+
+    test('correct xpub returned', function() {
+      expect(getXpub(MOCK_WALLET_MNEMONIC, bitcoin.networks.bitcoin)).toBe(MOCK_WALLET_XPUB)
+    })
+
   })
 
   describe('pubKeyToBtcAddr', function () {

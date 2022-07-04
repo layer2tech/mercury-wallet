@@ -267,6 +267,14 @@ export const callGetConfig = (test_wallet = null) => {
   }
 }
 
+export const callDeriveXpub = () => {
+  return wallet.deriveXpub()
+}
+
+export const callProofKeyFromXpub = ( xpub, index ) => {
+  return wallet.deriveProofKeyFromXpub(xpub, index)
+}
+
 export const callGetVersion = () => {
   if (isWalletLoaded()) {
     return wallet.version
@@ -402,7 +410,7 @@ export const callGetCoinBackupTxData = (shared_key_id) => {
   }
 }
 export const callGetSeAddr = (addr_index) => {
-  if (isWalletLoaded()) {
+  if (isWalletLoaded() && addr_index >= 0) {
     return wallet.getSEAddress(addr_index)
   }
 }
@@ -617,7 +625,7 @@ export const callWithdraw = createAsyncThunk(
 export const callTransferSender = createAsyncThunk(
   'TransferSender',
   async (action, thunkAPI) => {
-    return wallet.transfer_sender(action.shared_key_id, action.rec_addr)
+    return wallet.transfer_sender(action.shared_key_ids, action.rec_addr)
   }
 )
 export const callTransferReceiver = createAsyncThunk(
@@ -629,7 +637,7 @@ export const callTransferReceiver = createAsyncThunk(
 export const callGetTransfers = createAsyncThunk(
   'GetTransfers',
   async (action, thunkAPI) => {
-    return wallet.get_transfers(action)
+    return wallet.get_transfers(action.addr_index, action.numReceive)
   }
 )
 
