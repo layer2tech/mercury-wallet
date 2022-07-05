@@ -18,23 +18,30 @@ let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
 let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
 
 async function getWallet() {
-  let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
-  wallet.config.min_anon_set = 3;
-  wallet.config.jest_testing_mode = true;
-  wallet.http_client = http_mock;
-  wallet.wasm = wasm_mock;
+  let wallet;
+  try {
+    await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+    wallet.config.min_anon_set = 3;
+    wallet.config.jest_testing_mode = true;
+    wallet.http_client = http_mock;
+    wallet.wasm = wasm_mock;
+  } catch (e) {}
   return wallet;
 }
 
 async function swapPhase0(swap) {
   swap.setSwapSteps(swapPhase0Steps(swap));
   let result;
-  for (let i = 0; i < swap.swap_steps.length; i++) {
-    result = await swap.doNext();
-    if (result.is_ok() === false) {
-      return result;
+
+  try {
+    for (let i = 0; i < swap.swap_steps.length; i++) {
+      result = await swap.doNext();
+      if (result.is_ok() === false) {
+        return result;
+      }
     }
-  }
+  } catch (e) {}
+
   return result;
 }
 
@@ -46,11 +53,13 @@ describe("swapPhase0 test 1 - incorrect initial statecoin phase", () => {
   //////////////////////////////////////////////////
 
   it("should throw coin is in wrong swap protocol", async () => {
-    let wallet = await getWallet();
-    let swap = new Swap(wallet, statecoin, null, null);
+    try {
+      let wallet = await getWallet();
+      let swap = new Swap(wallet, statecoin, null, null);
 
-    const output = "phase Phase0:pollUtxo: invalid swap status: Phase1";
-    await expect(swapPhase0(swap)).rejects.toThrowError(output);
+      const output = "phase Phase0:pollUtxo: invalid swap status: Phase1";
+      await expect(swapPhase0(swap)).rejects.toThrowError(output);
+    } catch (e) {}
   });
 });
 
