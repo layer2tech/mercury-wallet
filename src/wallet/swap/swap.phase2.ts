@@ -1,5 +1,6 @@
 // Poll swap until phase changes to Phase2. In that case all participants have completed Phase1
 
+'use strict';
 import { SWAP_STATUS } from "./swap_utils";
 import { SwapStep } from './swap_utils';
 import { STATECOIN_STATUS } from '..'
@@ -7,7 +8,7 @@ import Swap from "./swap"
 
 export function swapPhase2(swap: Swap): SwapStep[] {
     return [
-        new SwapStep(
+        new SwapStep(swap,
             SWAP_STATUS.Phase2, "pollSwapPhase2", 
             () => {return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP},
             () => {return swap.statecoin.swap_status === SWAP_STATUS.Phase2},
@@ -19,14 +20,14 @@ export function swapPhase2(swap: Swap): SwapStep[] {
             },
             swap.pollSwapPhase2
           ),
-          new SwapStep(
+          new SwapStep(swap,
             SWAP_STATUS.Phase2, "getBSS",
             () => {return true},
             () => {return true},
             () => {return true},
             swap.getBSS
           ),
-          new SwapStep(
+          new SwapStep(swap,
             SWAP_STATUS.Phase2, "doSwapSecondMessage",
             () => {return true},
             () => {return true},

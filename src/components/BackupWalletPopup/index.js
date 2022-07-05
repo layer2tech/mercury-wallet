@@ -1,3 +1,4 @@
+'use strict';
 import React from "react";
 import { Modal } from "react-bootstrap";
 import { callGetWalletJsonToBackup } from '../../features/WalletDataSlice'

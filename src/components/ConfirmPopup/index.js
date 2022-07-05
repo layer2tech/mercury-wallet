@@ -1,3 +1,4 @@
+'use strict';
 import React, { cloneElement, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Modal } from "react-bootstrap";

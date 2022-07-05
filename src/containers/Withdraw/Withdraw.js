@@ -1,3 +1,4 @@
+'use strict';
 import walletIcon from '../../images/walletIcon.png';
 import withdrowIcon from "../../images/withdrow-icon.png";
 import icon2 from "../../images/icon2.png";

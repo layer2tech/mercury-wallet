@@ -17,6 +17,7 @@ import {
   SWAP_STATECHAIN_INFO_AFTER_TRANSFER, TRANSFER_FINALIZED_DATA,
   TRANSFER_MSG_4, STATECOIN_AMOUNT, setSwapDetails, SWAP_INFO
 } from './test_data.js'
+import {MockElectrumClient} from '../mocks/mock_electrum'
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -41,6 +42,8 @@ let bitcoin = require('bitcoinjs-lib')
 let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 // server side's mock
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+
+let electrum_mock = new MockElectrumClient()
 
 const post_error = (path, body) => {
   return new Error(`Error from POST request - path: ${path}, body: ${body}`)
@@ -145,11 +148,12 @@ async function getWallet() {
   wallet.config.jest_testing_mode = true
   wallet.http_client = http_mock
   wallet.wasm = wasm_mock
+  wallet.electrum_client = electrum_mock
   return wallet
 }
 
 function getSwap(wallet, statecoin, pkd = proof_key_der, new_pkd = proof_key_der_new) {
-  let swap = new Swap(wallet, statecoin, pkd, new_pkd)
+  let swap = new Swap(wallet, statecoin, pkd, new_pkd, false, false)
   return swap
 }
 

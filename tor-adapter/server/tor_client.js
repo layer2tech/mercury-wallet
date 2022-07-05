@@ -1,3 +1,4 @@
+'use strict';
 const SocksProxyAgent = require('socks-proxy-agent');
 const net = require('net');
 const rp = require('request-promise');
@@ -5,6 +6,7 @@ const exec = require('child_process').exec;
 const execFile = require('child_process').execFile;
 const defaultShell = require('default-shell');
 const TorControl = require('tor-control');
+const Promise = require('bluebird');
 
 class TorClient {
 

@@ -78,7 +78,7 @@ for (let i = 0; i < process.argv.length; i++) {
   }
 }
 
-let mainWindow;
+let mainWindow = null;
 
 function createWindow() {
   let windowSpec = {
@@ -109,8 +109,10 @@ function createWindow() {
     nativeTheme.themeSource = 'light'
   })
 
-  mainWindow = new BrowserWindow(windowSpec);
-
+  if (mainWindow == null) {
+    mainWindow = new BrowserWindow(windowSpec);
+  }
+  
   require("@electron/remote/main").enable(mainWindow.webContents)
 
   if (process.platform !== 'darwin') {
@@ -137,6 +139,7 @@ function createWindow() {
   }
 
   mainWindow.on('close', async () => {
+    mainWindow.removeAllEventListeners();
   });
 
   mainWindow.on('closed', async () => {

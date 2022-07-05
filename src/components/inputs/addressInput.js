@@ -1,3 +1,4 @@
+'use strict';
 // Address text input component.
 
 import React from 'react';

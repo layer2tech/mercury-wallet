@@ -8,7 +8,6 @@ import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import React from 'react';
 import { setSwapDetails } from './test_data.js'
 import reducers from '../../reducers';
-import { configureStore } from '@reduxjs/toolkit';
 
 import TestComponent, { render } from './test-utils'
 
@@ -283,8 +282,6 @@ describe('After Swaps Complete', function () {
     // shared_key_id of statecoin in mock created wallet
     //add statecoin to wallet
     let statecoin = wallet_json.statecoins.coins[0]
-
-    let store = configureStore({ reducer: reducers, })
 
     // test redux state before and after handleEndSwap
     // check: if swap_auto = true then the coin should be added to swapPendingGroup

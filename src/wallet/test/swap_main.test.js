@@ -20,6 +20,7 @@ import { AsyncSemaphore } from '@esfx/async-semaphore';
 import { STATECOIN_STATUS } from '../statecoin.ts';
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
 import { assert } from 'console';
+import { getSwapInfo } from '../swap/info_api.js';
 
 let cloneDeep = require('lodash.clonedeep');
 

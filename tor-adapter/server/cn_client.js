@@ -1,4 +1,6 @@
+'use strict';
 const axios = require('axios').default;
+const Promise = require('bluebird');
 
 
 class CNClient {

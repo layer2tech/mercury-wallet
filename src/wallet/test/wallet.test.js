@@ -31,6 +31,7 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
 import { ActivityLog, ActivityLogItem, LegacyActivityLog } from '../activity_log';
 import { ElectrumClientError } from '../electrum'
 
+const Promise = require('bluebird');
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
 let bip32 = require('bip32')

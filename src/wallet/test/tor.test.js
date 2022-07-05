@@ -15,6 +15,7 @@ var StatusCodeError = require('request-promise/errors').StatusCodeError
 //const { stub, match } = require('sinon')
 const mockResponse = require('mock-req-res').mockResponse
 //const proxyquire = require('proxyquire')
+const Promise = require('bluebird');
 
 jest.setTimeout(30000);
 
