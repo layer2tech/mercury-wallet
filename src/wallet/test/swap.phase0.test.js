@@ -304,12 +304,12 @@ describe("swapPhase0 test 8 - proceed to phase 1", () => {
   it("swap Phase 0 should proceed to phase 1", async () => {
     let swap = new Swap(wallet, statecoin, null, null);
     const input = () => {
-      console.log("call Input code()");
+      //console.log("call Input code()");
       return swapPhase0(swap);
     };
 
     try {
-      console.log("call result code");
+      //console.log("call result code");
       let result = await input();
       expect(result.is_ok()).toEqual(true);
       expect(statecoin).toEqual(final_statecoin);

@@ -448,6 +448,7 @@ describe("StateChain Entity", function () {
       let rec_se_addr = statecoin.proof_key;
       var wallet = await Wallet.buildMock();
 
+      /*
       console.log(
         "\x1b[32m",
         "<BEFORE TRANSFER_SENDER>:\n",
@@ -457,7 +458,7 @@ describe("StateChain Entity", function () {
         "rec_se_addr:",
         rec_se_addr,
         "\n <------------------------------->"
-      );
+      );*/
       let transfer_msg3 = await transferSender(
         http_mock,
         wasm_mock,

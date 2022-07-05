@@ -275,7 +275,7 @@ describe("swap first message", () => {
       address,
       proof_key_der
     );
-    console.log(`${JSON.stringify(msg1)}`);
+    //console.log(`${JSON.stringify(msg1)}`);
 
     let msg1_expected = {
       swap_id: "12345",

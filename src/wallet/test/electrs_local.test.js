@@ -26,21 +26,21 @@ const regtest_umbrel =
 
 function bitcoin_command(command) {
   let cmd = command.split();
-  console.log(`cmd: ${cmd.toString()}`);
+  //console.log(`cmd: ${cmd.toString()}`);
 
   let result = execSync(
     `${regtest_command} ${command}`,
     { shell: "/bin/bash" },
     function (error, stdout, stderr) {
-      console.log("stdout: " + stdout);
-      console.log("stderr: " + stderr);
+      //console.log("stdout: " + stdout);
+      //console.log("stderr: " + stderr);
       if (error !== null) {
-        console.log("exec error: " + error);
+        //console.log("exec error: " + error);
       }
     }
   );
   result = result.toString().replace(/\s+/g, "").replace(/\n|\r/g, "");
-  console.log(`command: ${command}\nresult: ${result}`);
+  //console.log(`command: ${command}\nresult: ${result}`);
   return result;
 }
 
@@ -59,10 +59,10 @@ async function init_tor_adapter() {
       stdio: "ignore",
     },
     function (error, stdout, stderr) {
-      console.log("init_tor_adapter - stdout: " + stdout);
-      console.log("init_tor_adapter - stderr: " + stderr);
+      //console.log("init_tor_adapter - stdout: " + stdout);
+      //console.log("init_tor_adapter - stderr: " + stderr);
       if (error !== null) {
-        console.log("init_tor_adapter - exec error: " + error);
+        //console.log("init_tor_adapter - exec error: " + error);
       }
     }
   );
@@ -112,7 +112,7 @@ describe.skip("ElectrsLocalClient", function () {
     //create_wallet("testwallet")
     //load_wallet("testwallet")
     const address = await getnewaddress();
-    console.log(address);
+    //console.log(address);
     const address2 = await getnewaddress();
     addresses = [address, address2];
     await gen_blocks(address, 10);
@@ -121,7 +121,7 @@ describe.skip("ElectrsLocalClient", function () {
   });
 
   afterAll(async () => {
-    console.log(`killing child process: ${ta_process.pid}`);
+    //console.log(`killing child process: ${ta_process.pid}`);
     await process.kill(ta_process.pid, "SIGTERM");
     //await ta_process.kill()
   });
@@ -133,9 +133,9 @@ describe.skip("ElectrsLocalClient", function () {
 
   test("latestBlockHeader", async function () {
     let header = await client.latestBlockHeader();
-    console.log(`latest block header: ${JSON.stringify(header)}`);
+    //console.log(`latest block header: ${JSON.stringify(header)}`);
     header = await client.latestBlockHeader();
-    console.log(`latest block header: ${JSON.stringify(header)}`);
+    //console.log(`latest block header: ${JSON.stringify(header)}`);
   });
 
   test("getTransaction", async function () {
@@ -143,15 +143,15 @@ describe.skip("ElectrsLocalClient", function () {
     let address = await getnewaddress();
     let txid = await sendtoaddress(address, "0.1");
     await gen_blocks(addresses[0], 10);
-    console.log(`getting transaction ${txid}`);
+    //console.log(`getting transaction ${txid}`);
     let tx = await client.getTransaction(txid);
-    console.log(tx);
+    //console.log(tx);
   });
 
   test("getFeeEstimation", async function () {
     jest.setTimeout(20000);
     let est = await client.getFeeEstimation(1, "tb");
-    console.log(`fee estimation: ${est}`);
+    //console.log(`fee estimation: ${est}`);
   });
 
   test("broadcastTransaction", async function () {
@@ -170,7 +170,7 @@ describe.skip("ElectrsLocalClient", function () {
 
   test("getAddressListUnspent", async function () {
     let result = await client.getAddressListUnspent(addresses[0], network);
-    console.log(result);
+    //console.log(result);
     expect(result.length > 0).toEqual(true);
   });
 
@@ -185,12 +185,12 @@ describe.skip("ElectrsLocalClient", function () {
         callbackCalled = true;
       }
     );
-    console.log(`addressSubscribe: ${result}`);
+    //console.log(`addressSubscribe: ${result}`);
 
     await gen_blocks(addresses[1], 1);
 
     await delay_s(10);
-    console.log(`callbackCalled: ${callbackCalled}`);
+    //console.log(`callbackCalled: ${callbackCalled}`);
     expect(callbackCalled).toEqual(true);
   });
 

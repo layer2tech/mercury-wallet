@@ -90,11 +90,12 @@ describe("HttpClient timeout", function () {
   };
 
   test("timeout error string", function () {
+    /*
     console.log(
       `search result: ${timeout_err(TIMEOUT).message.search(
         /timeout of .*ms exceeded/
       )}`
-    );
+    );*/
     expect(
       timeout_err(TIMEOUT).message.search(/timeout of .*ms exceeded/) !== -1
     ).toEqual(true);

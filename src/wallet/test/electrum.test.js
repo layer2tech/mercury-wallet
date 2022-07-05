@@ -13,10 +13,10 @@ function gen_blocks(address, n) {
   return execSync(
     `bitcoin-core.cli -conf=/home/ldeacon/bitcoin-regtest/bitcoin.conf -rpcport=18333 -rpcuser=username -rpcpassword=password generatetoaddress ${n} ${address}`,
     function (error, stdout, stderr) {
-      console.log("stdout: " + stdout);
-      console.log("stderr: " + stderr);
+      //console.log("stdout: " + stdout);
+      //console.log("stderr: " + stderr);
       if (error !== null) {
-        console.log("exec error: " + error);
+        //console.log("exec error: " + error);
       }
     }
   );
@@ -57,19 +57,19 @@ describe.skip("ElectrumClient", function () {
 
   test("latestBlockHeader", async function () {
     let header = await client.latestBlockHeader();
-    console.log(header);
+    //console.log(header);
   });
 
   test("getTransaction", async function () {
     let tx = await client.getTransaction(
       "a92813241f4c4f77f05f43cb8b0f3c2abe91a6cf82cad877fb4d30db735fca96"
     );
-    console.log(tx);
+    //console.log(tx);
   });
 
   test.skip("getFeeEstimation", async function () {
     let est = await client.getFeeEstimation(1);
-    console.log(est);
+    //console.log(est);
   });
 
   test.skip("broadcastTransaction", async function () {
@@ -101,11 +101,11 @@ describe.skip("ElectrumClient", function () {
       address,
       network,
       async (status) => {
-        console.log(`Script hash status change: ${JSON.stringify(status)}`);
+        //console.log(`Script hash status change: ${JSON.stringify(status)}`);
         callbackCalled = true;
       }
     );
-    console.log(`addressSubscribe: ${result}`);
+    //console.log(`addressSubscribe: ${result}`);
     let nBlocks = 10;
     let child = gen_blocks(address, nBlocks);
 
@@ -124,7 +124,7 @@ describe.skip("ElectrumClient", function () {
     let block_height = -1;
 
     let callBackFunction = async (status) => {
-      console.log(`block height status: ${JSON.stringify(status)}`);
+      //console.log(`block height status: ${JSON.stringify(status)}`);
       block_height = status[0].height;
       if (init_block_height === -1) {
         init_block_height = status[0].height;
