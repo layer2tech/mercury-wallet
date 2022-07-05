@@ -15,9 +15,8 @@ import {Modal, Spinner} from 'react-bootstrap';
 import Loading from '../../components/Loading/Loading';
 
 import './Withdraw.css';
-import { STATECOIN_AMOUNT } from '../../wallet/test/test_data';
-import { STATECOIN_STATUS } from '../../wallet';
 
+import { STATECOIN_STATUS } from '../../wallet';
 const WithdrawPage = () => {
   const dispatch = useDispatch();
 
@@ -209,8 +208,6 @@ const WithdrawPage = () => {
   } catch(error) {
     console.warn('Can not get config', error)
   }
-
-  // console.log(selectedCoins);
 
   return (
     <div className={`${current_config?.tutorials ? 'container-with-tutorials' : ''}`}>
