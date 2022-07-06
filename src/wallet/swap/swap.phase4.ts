@@ -7,7 +7,7 @@ import Swap from "./swap"
 
 export function swapPhase4(swap: Swap): SwapStep[] {
   return [
-    new SwapStep(swap, 
+    new SwapStep( 
       SWAP_STATUS.Phase4, "transferReceiver",
       () => { return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP },
       () => { return swap.statecoin.swap_status === SWAP_STATUS.Phase4 },
@@ -20,7 +20,7 @@ export function swapPhase4(swap: Swap): SwapStep[] {
       },
       swap.transferReceiver
     ),
-    new SwapStep(swap,
+    new SwapStep(
       SWAP_STATUS.Phase4, "swapPhase4PollSwap",
       () => { return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP },
       () => { return swap.statecoin.swap_status === SWAP_STATUS.Phase4 },
@@ -32,7 +32,7 @@ export function swapPhase4(swap: Swap): SwapStep[] {
       },
       swap.swapPhase4PollSwap
     ),
-    new SwapStep(swap,
+    new SwapStep(
       SWAP_STATUS.Phase4, "transferReceiverFinalize",
       () => { return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP },
       () => { return swap.statecoin.swap_status === SWAP_STATUS.Phase4 },

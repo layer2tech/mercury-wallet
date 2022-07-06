@@ -122,7 +122,6 @@ export const validateSwap = (statecoin: StateCoin) => {
 
 // Each step in the swap has an expected initial statecoin status and a function to be performed
 export class SwapStep {
-  swap: Swap
   phase: string
   subPhase: string
   statecoin_status: Function
@@ -131,14 +130,12 @@ export class SwapStep {
   doit: Function
 
   constructor( 
-    swap: Swap,
     phase: string,
     subPhase: string,
     statecoin_status: Function,
     swap_status: Function,
     statecoin_properties: Function,
     doit: Function) {
-      this.swap = swap
       this.phase = phase
       this.subPhase = subPhase
       this.statecoin_status = statecoin_status

@@ -591,7 +591,6 @@ export const setIntervalIfOnline = (func, online, delay, isMounted) => {
       if (isMounted === true && online === true)  {
         func(isMounted)
       } else {
-        console.log(`clearing interval - isMounted: ${isMounted}, online: ${online}`)
         clearInterval(interval)
       }
   }, delay)

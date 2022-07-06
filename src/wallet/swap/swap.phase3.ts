@@ -6,8 +6,7 @@ import Swap from "./swap"
 // Poll swap until phase changes to Phase3/4. In that case all carry out transfer_sender
 export function swapPhase3(swap: Swap): SwapStep[] {
     return [
-      new SwapStep(
-      swap,
+      new SwapStep( 
     SWAP_STATUS.Phase3, "pollSwapPhase3",
     () => {return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP},
     () => {return swap.statecoin.swap_status === SWAP_STATUS.Phase3},
@@ -21,14 +20,13 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     swap.pollSwapPhase3
   ),
       new SwapStep(
-    swap,
     SWAP_STATUS.Phase3, "transferSender",
     () => {return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP},
     () => {return swap.statecoin.swap_status === SWAP_STATUS.Phase3},
     () => { return true },
     swap.transferSender
       ),
-  new SwapStep( swap,
+  new SwapStep( 
     SWAP_STATUS.Phase3, "transferUpdateMsg",
     () => { return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP },
     () => { return swap.statecoin.swap_status === SWAP_STATUS.Phase3 },
@@ -38,7 +36,7 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     },
     swap.transferUpdateMsg
   ),
-  new SwapStep( swap,
+  new SwapStep( 
     SWAP_STATUS.Phase3, "getTransferMsg3",
     () => {return true},
     () => {return true},
@@ -48,7 +46,7 @@ export function swapPhase3(swap: Swap): SwapStep[] {
     },
     swap.getTransferMsg3
   ),
-  new SwapStep(swap, 
+  new SwapStep( 
     SWAP_STATUS.Phase3, "makeSwapCommitment",
     () => {return true},
     () => {return true},
