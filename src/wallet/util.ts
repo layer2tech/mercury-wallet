@@ -246,7 +246,7 @@ export const txWithdrawBuildBatch = (
 ): TransactionBuilder => {
   // let txin = []; - not being used
   let value = 0;
-  console.log("tx builder");
+  //console.log("tx builder");
   let txb: TransactionBuilder = new TransactionBuilder(network);
   let index = 0;
 
