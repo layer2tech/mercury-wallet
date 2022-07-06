@@ -55,9 +55,10 @@ describe.skip("Tor", function () {
     let tor_adapter_path = `${__dirname}/../../../tor-adapter/server/index.js`;
     let user_data_path = `${__dirname}/data`;
     let tor_adapter_args = [tor_cmd, torrc, user_data_path];
+    /*
     console.log(
       `starting tor_adapter with args: ${tor_adapter_args.toString()}`
-    );
+    );*/
 
     //let ta_process = exec("node /home/ldeacon/Projects/mercury-wallet/src /../tor-adapter/server/index.js/home/ldeacon/Projects/mercury-wallet/resources/linux/tor/home/ldeacon/Projects/mercury-wallet/resources/etc/torrc/home/ldeacon /.config/MercuryWallet/tor)
     ta_process = exec(
@@ -68,7 +69,7 @@ describe.skip("Tor", function () {
       },
       (error, stdout, _stderr) => {
         if (error) {
-          console.log(`tor process error: ${error.toString()}`);
+          //console.log(`tor process error: ${error.toString()}`);
         }
       }
     );
@@ -76,10 +77,10 @@ describe.skip("Tor", function () {
     const client = new HttpClient("http://localhost:3001");
 
     let result = await set_endpoints(client, tor_endpoints);
-    console.log(result);
+    //console.log(result);
 
     await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log(`started tor child process: ${ta_process.pid}`);
+    //console.log(`started tor child process: ${ta_process.pid}`);
   });
 
   afterEach(async () => {
@@ -97,10 +98,10 @@ describe.skip("Tor", function () {
       process.kill(pid, 0);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       process.kill(pid, 0);
-      console.log("process still running - sending kill signal...");
+      //console.log("process still running - sending kill signal...");
       process.kill(pid, "SIGKILL");
     } catch (err) {
-      console.log(err?.message);
+      //console.log(err?.message);
     }
   });
 
@@ -112,10 +113,10 @@ describe.skip("Tor", function () {
         try {
           result2 = await client.get(GET_ROUTE.FEES, {});
         } catch (err) {
-          console.log(err.toString());
+          //console.log(err.toString());
         }
       }
-      console.log(result2.toString());
+      //console.log(result2.toString());
     });
 
     test("tor server get unknown route", async function () {
@@ -125,7 +126,7 @@ describe.skip("Tor", function () {
         await client.get("unknown route", {});
         expect().toBe(false);
       } catch (err) {
-        console.log(err);
+        //console.log(err);
         expect(err.response.status).toBe(404);
       }
     });
@@ -177,9 +178,9 @@ describe.skip("Tor", function () {
       while (result === undefined) {
         try {
           result = await client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
-          console.log(result);
+          //console.log(result);
         } catch (err) {
-          console.log(err.toString());
+          //console.log(err.toString());
         }
       }
     });
@@ -277,12 +278,12 @@ describe.skip("Tor", function () {
       try {
         await set_config(client, tor_config);
       } catch (err) {
-        console.log(err);
+        //console.log(err);
         expect().toBe(false);
       }
 
       let tor_config_resp = await client.get("tor_settings", {});
-      console.log(JSON.stringify(tor_config_resp));
+      //console.log(JSON.stringify(tor_config_resp));
       expect(tor_config_resp.tor_proxy).toEqual(tor_config.tor_proxy);
     });
   });
