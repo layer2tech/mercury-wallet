@@ -34,6 +34,27 @@ export class ActivityLog {
     this.items.push(new ActivityLogItem(shared_key_id, action))
   };
 
+  getDate(shared_key_id: string, action: string){
+
+    let item = this.items.filter(item => item.shared_key_id === shared_key_id && item.action === action )
+    // filter by action and shared key ID
+
+    if(item.length === 0 && action === ACTION.WITHDRAW){
+      // Withdraw action not set in previous wallet versions
+      // take "Withdrawing" action as date
+      item = this.items.filter(item => item.shared_key_id === shared_key_id && item.action === ACTION.WITHDRAWING )
+    }
+
+    if(item.length > 0){
+      //return date of first entry
+      return item[0].date
+    }
+    else{
+      return "NA"
+    }
+
+  }
+
   static mergeActivityByDate = (activity_data: ActivityLogItem[]): ActivityLogItem[][] => {
     if (!activity_data.length) return [];
     let allActivity: any = {};

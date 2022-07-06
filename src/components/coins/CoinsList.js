@@ -16,7 +16,7 @@ import copy_img from "../../images/icon2.png";
 import descripIcon from "../../images/description.png";
 import hashIcon from "../../images/hashtag.png";
 import hexIcon from "../../images/hexagon.png";
-import icon2 from "../../images/icon2.png"
+import icon2 from "../../images/icon2.png";
 import React, { useState, useEffect, useCallback } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import { Button, Modal, Spinner } from 'react-bootstrap';
@@ -36,7 +36,16 @@ import {
   handleEndAutoSwap,
   setIntervalIfOnline,
   updateInSwapValues,
-  checkSwapAvailability
+  checkSwapAvailability,
+  setError,
+  removeSwapPendingCoin,
+  removeInSwapValue,
+  setSwapLoad,
+  callSwapDeregisterUtxo,
+  callDoAutoSwap,
+  handleEndSwap,
+  addSwapPendingCoin,
+  callSetStatecoinSpent
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -60,6 +69,7 @@ import {
   addInSwapValue
 } from "../../features/WalletDataSlice";
 import Coin from "./Coin/Coin";
+import { ACTION } from "../../wallet";
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -124,11 +134,12 @@ export const coinSort = (sortCoin) => {
 
 const CoinsList = (props) => {
   const [state, setState] = useState({});
+  const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
   const { selectedCoins, isMainPage, swap } = props;
   const dispatch = useDispatch();
   const { filterBy, swapPendingCoins, swapRecords, coinsAdded,
-    coinsRemoved, torInfo, inSwapValues, balance_info } = useSelector(state => state.walletData);
+    coinsRemoved, torInfo, inSwapValues, balance_info, swapLoad } = useSelector(state => state.walletData);
   const [sortCoin, setSortCoin] = useState({ ...INITIAL_SORT_BY, condition: props.swap ? 'swap' : null });
   const [coins, setCoins] = useState(INITIAL_COINS);
   const [initCoins, setInitCoins] = useState({});
@@ -151,7 +162,7 @@ const CoinsList = (props) => {
 
   // deleting coins
   const [currentItem, setCurrentItem] = useState(null);
-  const [showDeleteCoinDetails, setShowDeleteCoinDetails] = useState(false);
+  const [showConfirmCoinAction, setConfirmCoinAction] = useState({show: false, msg: ""});
 
   let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
@@ -240,21 +251,44 @@ const CoinsList = (props) => {
   }
 
   // deleting modals
-  const onDeleteCoinDetails = useCallback((item) => {
+  const onDeleteCoinDetails = useCallback((e,item) => {
+    
+    e.stopPropagation();
     setCurrentItem(item);
-    setShowDeleteCoinDetails(true);
-  }, [setCurrentItem, setShowDeleteCoinDetails])
+    setConfirmCoinAction({...showConfirmCoinAction, 
+      show: true, 
+      msg: "Are you sure you want to delete this coin?",
+      yes: handleDeleteCoinYes,
+      no: handleCloseModal
+    });
+  }, [setCurrentItem, setConfirmCoinAction])
+
+  // set to withdraw modals
+  const expiredToWithdrawn = useCallback((e,item) => {
+    e.stopPropagation();
+    setCurrentItem(item);
+    setConfirmCoinAction({...showConfirmCoinAction, 
+      show: true, 
+      msg: "Set coin status to WITHDRAWN ?",
+      yes: handleWithdrawExpiredCoin,
+      no: handleCloseModal
+    });
+  }, [setCurrentItem, setConfirmCoinAction])
 
   const handleDeleteCoinYes = async (item) => {
     item.status = "DELETED";
     item.deleting = true;
     item.privacy_data.msg = 'coin currently being deleted';
     await callRemoveCoin(item.shared_key_id);
-    setShowDeleteCoinDetails(false);
+    setConfirmCoinAction({ show: false});
+  }
+  const handleWithdrawExpiredCoin = async (item) => {
+    dispatch(callSetStatecoinSpent({id: item.shared_key_id, action:  ACTION.WITHDRAW}))
+    setConfirmCoinAction({ show: false});
   }
 
-  const handleDeleteCoinNo = () => {
-    setShowDeleteCoinDetails(false);
+  const handleCloseModal = () => {
+    setConfirmCoinAction({ show: false});
   }
 
 
@@ -304,9 +338,13 @@ const CoinsList = (props) => {
   // IF any coins are marked UNCONFIRMED
   useEffect(() => {
 
-    let interval = setIntervalIfOnline(updateUnconfirmedUnspentCoins, torInfo.online, 5000)
+    let isMounted = true;
 
-    return () => clearInterval(interval);
+    let interval = setIntervalIfOnline(updateUnconfirmedUnspentCoins, torInfo.online, 5000, isMounted)
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval)};
 
   }, [coins.unConfirmedCoins, torInfo.online, balance_info]);
 
@@ -331,8 +369,12 @@ const CoinsList = (props) => {
   // Re-fetch swaps group data every and update swaps component
   // Initiate auto swap
   useEffect(() => {
-    let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000)
-    return () => clearInterval(interval);
+    let isMounted = true;
+    let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000, isMounted)
+    return () => {
+      isMounted = false;  
+      clearInterval(interval)
+    };
   },
     [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
 
@@ -395,6 +437,77 @@ const CoinsList = (props) => {
     if (props?.setRefreshSwapGroupInfo) {
       props.setRefreshSwapGroupInfo((prevState) => !prevState);
     }
+  }
+
+  const handleAutoSwap = async (item) => {
+    if (item.status === 'UNCONFIRMED' || item.status === 'IN_MEMPOOL') {
+      return;
+    }
+
+    let statecoin = callGetStateCoin(item.shared_key_id);
+    // get the statecoin and set auto to true - then call auto_swap
+    let selectedCoin = item.shared_key_id;
+
+    // check statechain is chosen
+    if (torInfo.online === false) {
+      dispatch(setError({ msg: "Disconnected from the mercury server" }))
+      return
+    }
+
+    if (statecoin === undefined) {
+      dispatch(setError({ msg: "Please choose a StateCoin to swap." }))
+      return
+    }
+
+    if (swapLoad.join === true) {
+      return
+    }
+
+    // turn off swap_auto
+    if (item.swap_auto) {
+      dispatch(removeSwapPendingCoin(item.shared_key_id))
+      dispatch(removeInSwapValue(statecoin.value))
+      statecoin.swap_auto = false;
+      dispatch(setSwapLoad({ ...swapLoad, leave: true }))
+      try {
+        await dispatch(callSwapDeregisterUtxo({ "shared_key_id": selectedCoin, "dispatch": dispatch, "autoswap": true }))
+        dispatch(() => {
+          removeCoinFromSwapRecords(selectedCoin)
+        });
+        dispatch(setSwapLoad({ ...swapLoad, leave: false }))
+      } catch (e) {
+        dispatch(setSwapLoad({ ...swapLoad, leave: false }))
+        console.log(`dereg - caught error - ${e}`)
+        if (!e.message.includes("Coin is not in a swap pool")) {
+          dispatch(setError({ msg: e.message }))
+        }
+      } finally {
+        // Refresh Coins list
+        // var timeout = setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
+      }
+      // return () =>  clearTimeout(timeout)
+    } else {
+      statecoin.swap_auto = true
+      dispatch(callDoAutoSwap(selectedCoin));
+      dispatch(addCoinToSwapRecords(selectedCoin));
+      dispatch(setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) }));
+
+      if (checkSwapAvailability(statecoin, new Set(inSwapValues))) {
+        // if StateCoin in not already in swap group
+        dispatch(addInSwapValue(statecoin.value))
+        dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
+          .then(res => {
+            handleEndSwap(dispatch, selectedCoin, res, setSwapLoad, swapLoad, fromSatoshi)
+          })
+      } else {
+        dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: callGetStateCoin(selectedCoin) }));
+        dispatch(addSwapPendingCoin(item.shared_key_id))
+      }
+    }
+
+    // Refresh Coins list
+    // var timeout2 = setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
+    // return () => clearTimeout(timeout2);
   }
 
   const updateUnconfirmedUnspentCoins = () => {
@@ -524,6 +637,9 @@ const CoinsList = (props) => {
   const copyWithdrawTxHexToClipboard = () => {
     navigator.clipboard.writeText(showCoinDetails.coin.tx_hex);
   }
+  const copyWithdrawTxIDToClipboard = () => {
+    navigator.clipboard.writeText(showCoinDetails.coin.withdraw_txid);
+  }
 
 
   // called when clicking on TXid link in modal window
@@ -543,6 +659,7 @@ const CoinsList = (props) => {
     let finalUrl = block_explorer_endpoint + currentTXID;
     // open the browser for both mainnet and testnet
     window.require("electron").shell.openExternal(finalUrl);
+    setShowWarningDetails(false);
   }
 
   const handleOpenCoinDetails = (shared_key_id) => {
@@ -575,6 +692,7 @@ const CoinsList = (props) => {
             key={item.shared_key_id}
             showCoinStatus={props.showCoinStatus} // all clear - boolean
             onDeleteCoinDetails={onDeleteCoinDetails} // useCallback function
+            expiredToWithdrawn={expiredToWithdrawn}
             isMainPage={isMainPage} // all clear - boolean
             coin_data={item} // FIX
             getPrivacyScoreDesc={getPrivacyScoreDesc} // FIX
@@ -591,7 +709,7 @@ const CoinsList = (props) => {
             filterBy={filterBy}
             getAddress={getAddress}
             displayExpiryTime={displayExpiryTime}
-            handleAutoSwap={props.handleAutoSwap}
+            handleAutoSwap={handleAutoSwap}
             render={props.render ? (props.render) : null}
             balance_info={balance_info}
           />
@@ -608,12 +726,12 @@ const CoinsList = (props) => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className="action-btn-normal"
+            className="action-btn-normal Body-button transparent"
             onClick={onClickContinueTXID}>
             Continue
           </Button>
           <Button
-            className="action-btn-normal"
+            className="action-btn-normal Body-button transparent"
             onClick={handleCloseWarningDetails}>
             No
           </Button>
@@ -788,9 +906,16 @@ const CoinsList = (props) => {
                     <img src={hashIcon} alt="hashtag" />
                     <div className="block">
                       <span>Withdrawal TXID</span>
-                      <span>
-                        {showCoinDetails.coin.withdraw_txid}
-                      </span>
+                      <div className="txhex-container">
+                        <CopiedButton handleCopy={() => copyWithdrawTxIDToClipboard()}>
+                          <div className="copy-hex-wrap coin-modal-hex">
+                            <img type="button" src={icon2} alt="icon" />
+                            <span>
+                              {showCoinDetails.coin.withdraw_txid}
+                            </span>
+                          </div>
+                        </CopiedButton>
+                      </div>
                     </div>
                   </div>
 
@@ -815,7 +940,7 @@ const CoinsList = (props) => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className="action-btn-normal"
+            className="action-btn-normal Body-button transparent"
             onClick={handleCloseCoinDetails}
           >
             Close
@@ -824,25 +949,25 @@ const CoinsList = (props) => {
       </Modal>
 
       <Modal
-        show={showDeleteCoinDetails}
+        show={showConfirmCoinAction.show}
         onHide={handleCloseCoinDetails}
         className="modal coin-details-modal"
       >
         <Modal.Body>
           <div>
-            Are you sure you want to delete this coin?
+            {showConfirmCoinAction.msg}
             </div>
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className="action-btn-normal"
-            onClick={async () => await handleDeleteCoinYes(currentItem)}
+            className="Body-button transparent"
+            onClick={async () => await showConfirmCoinAction.yes(currentItem)}
           >
             Yes
               </Button>
           <Button
-            className="action-btn-normal"
-            onClick={handleDeleteCoinNo}
+            className="Body-button transparent"
+            onClick={showConfirmCoinAction.no}
           >
             No
               </Button>

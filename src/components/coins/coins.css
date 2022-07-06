@@ -49,6 +49,32 @@
   opacity: 0;
   transition: opacity 0.3s;
 }
+
+.expired-tooltip{
+  position:relative
+}
+
+.expired-tooltip .tooltip{
+  visibility: hidden;
+  width: 450px;
+  background-color: var(--button-border);
+  color: var(--text-primary);
+  text-align: center;
+  border-radius: 6px;
+  padding: 6px 12px;
+  position: absolute;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s;
+  bottom:0;
+  left:0;
+}
+
+.home-page .coin-item:hover .expired-tooltip .tooltip{
+  opacity: 1 !important;;
+  visibility: visible;
+}
+
 .coin-status-or-txid .swap-status-container.coinslist .tooltip.side{
   top: 0px;
   left:64px
@@ -216,17 +242,7 @@ p.short{
   transition: opacity 0.3s;
 }
 
-.scoreAmount .tooltip:after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: var(--button-border) transparent transparent transparent;
-}
-.scoreAmount:hover .tooltip {
+.scoreAmount:hover .tooltip, .CoinPanel:hover .dup-container .tooltip {
   visibility: visible;
   opacity: 1;
 }
@@ -403,6 +419,29 @@ p.short{
   }
 }
 
+.CoinPanel .dup-container{
+  position: absolute;
+  display: inline-block;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.CoinPanel .dup-container .tooltip{
+  position: relative;
+  left: 83%;
+  top: 80px;
+  width: 350px;
+  background-color: var(--button-border);
+  color: var(--text-primary);
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  z-index: 1;
+  transition: opacity 0.3s;
+}
+
+
 .main-coin-wrap {
   position: relative;
 }
@@ -427,6 +466,10 @@ p.short{
 }
 .sendStatecoin .coin-item.IN_SWAP,.sendStatecoin .coin-item.AWAITING_SWAP,.withdraw .coin-item.IN_SWAP,.withdraw .coin-item.AWAITING_SWAP{
   opacity: .3;
+}
+
+.coin-item .expired{
+  background-color: var(--warning-container);
 }
 
 .main-coin-wrap.small-screen .coin-item .CoinPanel {
@@ -531,4 +574,27 @@ div.lower.coin-details-modal > div:first-child >div:first-child{
 .coinURLText:hover,
 .coinURLText:focus {
     color: var(--text-primary);
+}
+
+.Body-button.expired{
+  width: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 5px;
+  background-color: var(--container);
+}
+
+.dark-mode .close{
+  filter:invert(1);
+}
+
+.Body-button.expired .close{
+  float:none;
+  height: 18px;
+  width: 18px;
+}
+
+.dark-mode .coin-status svg{
+  filter:invert(1)
 }

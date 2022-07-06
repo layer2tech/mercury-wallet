@@ -329,13 +329,15 @@ export class StateCoinList {
 
   setCoinWithdrawBroadcastTx(shared_key_id: string, 
       tx_withdraw: BTCTransaction, 
-      tx_fee_per_byte: number,
-      withdraw_msg_2: WithdrawMsg2) {
+      tx_fee: number,
+      withdraw_msg_2: WithdrawMsg2,
+      rec_addr: string  
+  ) {
     console.log("getting coin...")
     let coin = this.getCoin(shared_key_id)
     if (coin) {
       coin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
-          tx_fee_per_byte, tx_withdraw, withdraw_msg_2
+          tx_fee, tx_withdraw, withdraw_msg_2, rec_addr
       ))
       return
     } else {
@@ -422,18 +424,20 @@ Object.freeze(BACKUP_STATUS);
 
 //A withdrawal transaction the has been broadcast
 export class WithdrawalTxBroadcastInfo{
-  fee_per_byte: number; 
+  tx_fee: number
   tx: BTCTransaction;
   txid: string;
   tx_hex: string;
   withdraw_msg_2: WithdrawMsg2;
+  rec_addr: string;
 
-  constructor(fee_per_byte: number, tx: BTCTransaction, withdraw_msg_2: WithdrawMsg2) {
-    this.fee_per_byte = fee_per_byte;
+  constructor(tx_fee: number, tx: BTCTransaction, withdraw_msg_2: WithdrawMsg2, rec_addr: string) {
+    this.tx_fee = tx_fee;
     this.tx = tx;
     this.txid = tx.getId();
     this.tx_hex = tx.toHex()
     this.withdraw_msg_2 = withdraw_msg_2;
+    this.rec_addr = rec_addr;
   }
 }
 
@@ -583,7 +587,7 @@ export class StateCoin {
   getWithdrawalMaxTxFee(): number {
     let fee_max = -1
     for(let i=0; i<this.tx_withdraw_broadcast.length; i++){
-      let fee = this.tx_withdraw_broadcast[i].fee_per_byte
+      let fee = this.tx_withdraw_broadcast[i].tx_fee
       fee_max = (fee > fee_max) ? fee : fee_max
     }
     return fee_max

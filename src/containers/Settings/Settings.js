@@ -2,11 +2,13 @@ import settings from "../../images/settings.png";
 
 import React, { useState, useEffect } from 'react';
 import {Link, withRouter, Redirect} from "react-router-dom";
-import {useDispatch} from 'react-redux'
+import {useDispatch} from 'react-redux';
+import icon2 from "../../images/icon2.png";
+import info from "../../images/info.png";
 
-import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup} from "../../components";
+import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup, CopiedButton} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
-  callUpdateConfig, callClearSave, unloadWallet, stopWallet, saveWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic, callCheckCoins} from '../../features/WalletDataSlice'
+  callUpdateConfig, callClearSave, unloadWallet, stopWallet, saveWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic, callCheckCoins, callDeriveXpub} from '../../features/WalletDataSlice'
 
 import Loading from '../../components/Loading/Loading';
 
@@ -174,6 +176,11 @@ const SettingsPage = (props) => {
     a.click();
   }
 
+  const copyWithdrawTxHexToClipboard = () => {
+    navigator.clipboard.writeText(callDeriveXpub());
+  }
+  
+
   return (
     <div className={`${current_config.tutorials ? 'container-with-tutorials' : ''}`}>
       <div className="container">
@@ -205,7 +212,7 @@ const SettingsPage = (props) => {
                 </Link>
                 <StdButton
                     label="Export activity log"
-                    className="Body-button"
+                    className="Body-button transparent"
                     onClick = {() => downloadActivity()}/>
               </div>
           </div>
@@ -329,14 +336,14 @@ const SettingsPage = (props) => {
                             showSeed ? (
                               <div>
                                 <p>{callGetMnemonic()}</p>
-                                <button onClick = {() => onButtonPress()} className = "Body-button" > Hide </button>
+                                <button onClick = {() => onButtonPress()} className = "Body-button transparent" > Hide </button>
                               </div>
                             
                             )
                             :
                             (
                               <div>
-                                <button onClick = {() => onButtonPress()} className = "Body-button" > Show </button>
+                                <button onClick = {() => onButtonPress()} className = "Body-button transparent" > Show </button>
                               </div>
                             )
                           )
@@ -353,16 +360,40 @@ const SettingsPage = (props) => {
                       </div>
                       <h2> </h2>
                       <div className="action-btn-check">
-                      <button type="button" title="Check for duplicate deposits paid to the same statecoin shared key. Warning: This operation queries electrum server with all wallet addresses." className="action-btn-blue" onClick={(checkLoading) === false ? (checkButtonOnClick) : ((e) => { e.stopPropagation() })}>
-                        {checkLoading ? (<Loading />) : (`Check for duplicate coins`)}
-                      </button>
-                    </div>
+                        <button type="button" title="Check for duplicate deposits paid to the same statecoin shared key. Warning: This operation queries electrum server with all wallet addresses." className="action-btn-blue" onClick={(checkLoading) === false ? (checkButtonOnClick) : ((e) => { e.stopPropagation() })}>
+                          {checkLoading ? (<Loading />) : (`Check for duplicate coins`)}
+                        </button>
+                      </div>
+                      <div className="xpub">
+                        <div className="title-container">
+                          
+                          <div className="info-container">
+                            <img src={info} alt="info" />
+                            <span className="tooltip-info index">
+                              <div>Use the xpub to transfer all statecoins to a new wallet</div>
+                            </span>
+                          </div>
+                          <span>
+                            <h2>xPub</h2>
+                          </span>
+                        </div>
+                        <div className="txhex-container">
+                          <CopiedButton handleCopy={() => copyWithdrawTxHexToClipboard()}>
+                            <div className="copy-hex-wrap coin-modal-hex">
+                              <img type="button" src={icon2} alt="icon" />
+                              <span>
+                                {callDeriveXpub()}
+                              </span>
+                            </div>
+                          </CopiedButton>
+                        </div>
+                      </div>
                   </div>
               </div>
               <div className="action-btns">
                   <button
                     type="button"
-                    className="action-btn-normal"
+                    className="Body-button transparent"
                     onClick={cancelButtonOnClick}>
                       Cancel
                   </button>

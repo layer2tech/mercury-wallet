@@ -80,8 +80,7 @@ const LoadWalletPage = (props) => {
   }
 
   const enterContinue = (event) => {
-
-    if(event.key.charCodeAt(0) === 69){
+    if (event.key === "Enter") {
       // On enter key press: prevent rerender
       event.preventDefault()
       onContinueClick(event)

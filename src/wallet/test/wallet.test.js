@@ -7,7 +7,7 @@ import {
 import {
   segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC,
   mnemonic_to_bip32_root_account, getBIP32forBtcAddress, parseBackupData,
-  required_fields, backupTxCheckRequired
+  required_fields, backupTxCheckRequired, getXpub, MOCK_WALLET_XPUB
 } from '../wallet';
 import { BIP32Interface, BIP32, fromBase58 } from 'bip32';
 import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
@@ -174,7 +174,10 @@ describe('Wallet', function () {
         let _ = Wallet.load(MOCK_WALLET_NAME, "", true);
       }).toThrow("Incorrect password.");
 
+      delete wallet.backupTxUpdateLimiter;
+
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
 
@@ -196,7 +199,7 @@ describe('Wallet', function () {
       const test_electrum_config = {
         host: "test EC host",
         port: 123456789,
-        protocol: "test EC protocol",
+        protocol: "tcp",
         type: "test EC type"
       }
       const test_blocks = wallet.config.electrum_fee_estimation_blocks + 1
@@ -207,7 +210,11 @@ describe('Wallet', function () {
       wallet.config.electrum_config = test_electrum_config
       wallet.config.electrum_fee_estimation_blocks = test_blocks
 
+      //Stop wallet
+      await wallet.stop()
+
       //Confirm settings are edited
+      delete wallet.backupTxUpdateLimiter;
       const wallet_mod_str = JSON.stringify(wallet)
       const wallet_mod_json = JSON.parse(wallet_mod_str)
       expect(wallet_mod_json.config.state_entity_endpoint).toEqual(test_state_entity_endpoint)
@@ -216,12 +223,13 @@ describe('Wallet', function () {
       expect(wallet_mod_json.config.electrum_config).toEqual(test_electrum_config)
       expect(wallet_mod_json.config.electrum_fee_estimation_blocks).toEqual(test_blocks)
 
-      //Stop and save wallet
-      await wallet.stop()
+      //Save wallet
       await wallet.save()
 
       //Confirm that the reloaded wallet has the altered settings
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      delete loaded_wallet.backupTxUpdateLimiter;
+      loaded_wallet.stop();
       const loaded_wallet_str = JSON.stringify(loaded_wallet)
       const loaded_wallet_json = JSON.parse(loaded_wallet_str)
       expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
@@ -350,6 +358,14 @@ describe('Wallet', function () {
     })
   })
 
+  describe('xpub from mnemonic', function(){
+
+    test('correct xpub returned', function() {
+      expect(getXpub(MOCK_WALLET_MNEMONIC, bitcoin.networks.bitcoin)).toBe(MOCK_WALLET_XPUB)
+    })
+
+  })
+
   describe('pubKeyToBtcAddr', function () {
     let publicKeyStr = "027d73eafd92135741e28ce14e240ec2c5fdeb3ae8c123eafad774af277372bb5f"
     let addr_expected = 'bc1qglel9v4uqxdzw05s3l0mdn9vdh6rdlv7pfnlfu'
@@ -390,6 +406,9 @@ describe('Wallet', function () {
       // redefine password as hashing passwords is one-way
       let from_json = Wallet.fromJSON(json_wallet, true);
       // check wallets serialize to same values (since deep equal on recursive objects is messy)
+
+      delete wallet.backupTxUpdateLimiter;
+      delete from_json.backupTxUpdateLimiter;
 
       expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet));
     });
@@ -470,12 +489,15 @@ describe('Wallet', function () {
       await loaded_wallet_from_backup.save();
 
       let loaded_wallet_mod = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true);
+      delete wallet.backupTxUpdateLimiter;
+      delete loaded_wallet_mod.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet_mod))
 
       let loaded_wallet_backup = await Wallet.load(MOCK_WALLET_NAME_BACKUP, MOCK_WALLET_PASSWORD, true);
       //The mock and mock_backup wallets should be the same except for name and storage
       loaded_wallet_mod.name = MOCK_WALLET_NAME_BACKUP;
       loaded_wallet_mod.storage = loaded_wallet_backup.storage
+      delete loaded_wallet_backup.backupTxUpdateLimiter;
       expect(JSON.stringify(loaded_wallet_mod)).toEqual(JSON.stringify(loaded_wallet_backup));
     });
 
@@ -498,6 +520,8 @@ describe('Wallet', function () {
       let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true);
       let num_coins_after = loaded_wallet.statecoins.coins.length;
       expect(num_coins_after).toEqual(num_coins_before + 1)
+      delete wallet.backupTxUpdateLimiter;
+      delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
   });
@@ -597,7 +621,7 @@ describe('updateBackupTxStatus', function () {
       return { confirmations: 3 }
     })
     await wallet.updateBackupTxStatus(false);
-    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.WITHDRAWN);
+    expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.EXPIRED);
     // verify tx confirmed
     expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.CONFIRMED);
   })
@@ -750,31 +774,31 @@ describe('checkLocktime', function () {
     statecoin.status = STATECOIN_STATUS.AVAILABLE
     init_statecoin = cloneDeep(statecoin)
   })
-  test('before locktime', () => {
+  test('before locktime', async () => {
     wallet.block_height = 0
     statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
-    expect(wallet.checkLocktime(statecoin)).toEqual(false)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(false)
     expect(statecoin.backup_status).toEqual(BACKUP_STATUS.PRE_LOCKTIME)
     expect(statecoin.status).toEqual(init_statecoin.status)
   })
-  test('swap limit', () => {
+  test('swap limit', async () => {
     wallet.block_height = 1
     statecoin.tx_backup.locktime = wallet.block_height + 1
-    expect(wallet.checkLocktime(statecoin)).toEqual(false)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(false)
     expect(statecoin.backup_status).toEqual(BACKUP_STATUS.PRE_LOCKTIME)
     expect(statecoin.status).toEqual(STATECOIN_STATUS.SWAPLIMIT)
   })
-  test('at locktime', () => {
+  test('at locktime', async () => {
     statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
     wallet.block_height = statecoin.tx_backup.locktime
-    expect(wallet.checkLocktime(statecoin)).toEqual(true)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(true)
     expect(statecoin.backup_status).toEqual(init_statecoin.backup_status)
     expect(statecoin.status).toEqual(init_statecoin.status)
   })
-  test('after locktime', () => {
+  test('after locktime', async () => {
     statecoin.tx_backup.locktime = wallet.block_height + wallet.config.swaplimit
     wallet.block_height = statecoin.tx_backup.locktime + 1
-    expect(wallet.checkLocktime(statecoin)).toEqual(true)
+    expect(await wallet.checkLocktime(statecoin)).toEqual(true)
     expect(statecoin.backup_status).toEqual(init_statecoin.backup_status)
     expect(statecoin.status).toEqual(init_statecoin.status)
   })
@@ -1182,11 +1206,74 @@ describe("Post-swap functions", () => {
     expect(setCoinSpentSpy).not.toHaveBeenCalled()
   })
 
-  test("Confirm that setStateCoinSpent was called is there is a new statecoin", () => {
+  test("Confirm that setStateCoinSpent was called if there is a new statecoin", () => {
     let new_statecoin = cloneDeep(statecoin)
     new_statecoin.status = STATECOIN_STATUS.AVAILABLE
     wallet.doPostSwap(statecoin, new_statecoin)
     expect(setCoinSpentSpy).toHaveBeenCalled()
+  })
+})
+
+describe("Handle swap error", () => {
+  const MNEMONIC = "similar leader virus polar vague grunt talk flavor kitten order call blood"
+  // client side's mock
+  let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+  // server side's mock
+  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+  let wallet
+  const CHAIN_LENGTH = 5
+  //Fatal swap error
+  const swap_error = Error("Exiting swap.")
+  let statecoin
+  let account_init
+  let setSwapDataToNullSpy
+
+  beforeEach(async () => {
+    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock, MNEMONIC);
+    wallet.statecoins.coins = [];
+    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" }, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+    statecoin = wallet.statecoins.coins[0]
+    statecoin.swap_status = SWAP_STATUS.Init
+    setSwapDataToNullSpy = jest.spyOn(statecoin, 'setSwapDataToNull')
+  })
+
+  test("Swap data set to null for transfer batch timeout error", () => {
+    let error = Error("Transfer batch ended. Timeout")
+    wallet.handleSwapError(error, statecoin)
+    expect(setSwapDataToNullSpy).toHaveBeenCalled()
+  })
+
+  test("Swap data set to null for \"Exiting swap\" error", () => {
+    let error = Error("Exiting swap.")
+    wallet.handleSwapError(error, statecoin)
+    expect(setSwapDataToNullSpy).toHaveBeenCalled()
+  })
+
+  test("Swap data set to null for transfer batch timeout error if statecoin is in swap phase 4", () => {
+    let error = Error("Transfer batch ended. Timeout")
+    statecoin.swap_status = SWAP_STATUS.Phase4
+    wallet.handleSwapError(error, statecoin)
+    expect(setSwapDataToNullSpy).toHaveBeenCalled()
+  })
+
+  test("Swap data set to null for \"Exiting swap\" error if statecoin is in swap phase 4", () => {
+    let error = Error("Exiting swap.")
+    statecoin.swap_status = SWAP_STATUS.Phase4
+    wallet.handleSwapError(error, statecoin)
+    expect(setSwapDataToNullSpy).toHaveBeenCalled()
+  })
+
+  test("Swap data set to null for all swap phases other than swap phase 4", () => {
+    let error = Error("Misc error")
+    let nCalls = 0;
+    for (let s in SWAP_STATUS) {
+      statecoin.swap_status = s;
+      wallet.handleSwapError(error, statecoin);
+      if (s != SWAP_STATUS.Phase4) {
+        nCalls = nCalls + 1;
+      }
+      expect(setSwapDataToNullSpy).toHaveBeenCalledTimes(nCalls);
+    }
   })
 })
 

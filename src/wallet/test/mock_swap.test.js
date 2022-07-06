@@ -12,7 +12,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import TestComponent, { render } from './test-utils'
 
-import { handleEndSwap } from '../../features/WalletDataSlice.js';
+import { handleEndSwap, setSwapLoad } from '../../features/WalletDataSlice.js';
 import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 import { AsyncSemaphore } from '@esfx/async-semaphore';
@@ -288,8 +288,8 @@ describe('After Swaps Complete', function () {
 
     // test redux state before and after handleEndSwap
     // check: if swap_auto = true then the coin should be added to swapPendingGroup
-    let setSwapLoad = jest.fn()
-    let swapLoad = { join: false, swapCoin: "", leave: false }
+
+    let swapLoad = store.getState().swapLoad
 
     statecoin.swap_auto = true
     // Turn auto swap on for coin

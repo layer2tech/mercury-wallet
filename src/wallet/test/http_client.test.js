@@ -125,7 +125,7 @@ describe('HttpClient timeout', function () {
 });
 
 describe('error handling', function () {
-    describe('checkForServerError', async function () {
+    describe('checkForServerError', function () {
 
         const status_err = { status: 400, data: "status err data" }
         const err_string = { data: "Error: an error string" }

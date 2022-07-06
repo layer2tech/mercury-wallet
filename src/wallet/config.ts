@@ -30,7 +30,7 @@ export const argsHasTestnet = () => {
     return true
   }
   let found = false;
-  let remote: any
+  let remote: any;
   try {
     remote = window.require('@electron/remote')
   } catch (e: any) {
@@ -40,7 +40,7 @@ export const argsHasTestnet = () => {
       console.log(e)
     }
   }
-  if (remote) {
+  if (remote != null && remote?.process != null) {
     remote.process.argv.forEach((arg: string) => {
       if (arg.includes('testnet')) {
         found = true;

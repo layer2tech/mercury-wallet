@@ -71,6 +71,7 @@ const initialState = {
   swapRecords: [],
   swapPendingCoins: [],
   inSwapValues: [],
+  swapLoad: { join: false, swapCoin: "", leave: false },
   coinsAdded: 0,
   coinsRemoved: 0,
   torInfo: { online: false }
@@ -191,13 +192,21 @@ export async function walletFromMnemonic(dispatch, name, password, mnemonic,  ro
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
-      const n_recovered = await wallet.recoverCoinsFromServer(gap_limit,dispatch);
-      dispatch(addCoins(n_recovered));
+      try{
+
+        const n_recovered = await wallet.recoverCoinsFromServer(gap_limit,dispatch);
+        dispatch(addCoins(n_recovered));
+      } catch {
+        dispatch(setProgressComplete({msg: ""}))
+        dispatch(setError({msg: "Error in Recovery - check online connection and retry"}))
+        return
+      }
     }
     await callNewSeAddr();
     await wallet.save();
     await wallet.saveName();
-    router.push("/home")
+    dispatch(setProgressComplete({msg: ""}))
+    router.push("/home");
   });
 }
 // Try to decrypt wallet. Throw if invalid password
@@ -256,6 +265,14 @@ export const callGetConfig = (test_wallet = null) => {
   else {
     return wallet.config.getConfig()
   }
+}
+
+export const callDeriveXpub = () => {
+  return wallet.deriveXpub()
+}
+
+export const callProofKeyFromXpub = ( xpub, index ) => {
+  return wallet.deriveProofKeyFromXpub(xpub, index)
 }
 
 export const callGetVersion = () => {
@@ -357,6 +374,12 @@ export const callGetActivityLogItems = (num_of_items) => {
   }
 }
 
+export const callGetActivityDate = (shared_key_id, action) => {
+  if(isWalletLoaded()){
+    return wallet.activity.getDate(shared_key_id, action)
+  }
+}
+
 export const callGetFeeInfo = () => {
   if (isWalletLoaded()) {
     return getFeeInfo(wallet.http_client)
@@ -387,7 +410,7 @@ export const callGetCoinBackupTxData = (shared_key_id) => {
   }
 }
 export const callGetSeAddr = (addr_index) => {
-  if (isWalletLoaded()) {
+  if (isWalletLoaded() && addr_index >= 0) {
     return wallet.getSEAddress(addr_index)
   }
 }
@@ -479,11 +502,11 @@ export const handleEndSwap = (dispatch, selectedCoin, res, setSwapLoad, swapLoad
   if (res.payload === null) {
     dispatch(setNotification({ msg: "Coin " + statecoin.getTXIdAndOut() + " removed from swap pool." }))
     dispatch(removeCoinFromSwapRecords(selectedCoin));// added this
-    setSwapLoad({ ...swapLoad, join: false, swapCoin: "" });
+    dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: "" }));
     if (statecoin.swap_auto) {
       dispatch(addSwapPendingCoin(statecoin.shared_key_id))
       dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
-      setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) })
+      dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: callGetStateCoin(selectedCoin) }))
     }
 
     return
@@ -499,14 +522,14 @@ export const handleEndSwap = (dispatch, selectedCoin, res, setSwapLoad, swapLoad
   } else {
     dispatch(setNotification({ msg: "Swap not complete for statecoin" + statecoin.getTXIdAndOut() }));
     dispatch(removeCoinFromSwapRecords(selectedCoin)); // Added this
-    setSwapLoad({ ...swapLoad, join: false, swapCoin: "" });
+    dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: "" }));
   }
   if (res?.payload) {
     let statecoin = res.payload
     if (statecoin.swap_auto) {
       dispatch(addSwapPendingCoin(statecoin.shared_key_id))
       dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
-      setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) })
+      dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: callGetStateCoin(selectedCoin) }))
     }
   }
 }
@@ -559,7 +582,7 @@ export const handleEndAutoSwap = (dispatch, statecoin, selectedCoin, res, fromSa
   }
 }
 
-export const setIntervalIfOnline = (func, online, delay) => {
+export const setIntervalIfOnline = (func, online, delay, isMounted) => {
   // Runs interval if app online, clears interval if offline
   // Restart online interval in useEffect loop [torInfo.online]
   // make online = torInfo.online
@@ -569,7 +592,9 @@ export const setIntervalIfOnline = (func, online, delay) => {
     if (online === false) {
       clearInterval(interval)
     }
-    func()
+    if(isMounted){
+      func(isMounted)
+    }
   }, delay)
   return interval
 
@@ -604,9 +629,13 @@ export const checkWithdrawal = ( dispatch, selectedCoins, inputAddr ) => {
 export const checkSend = (dispatch, inputAddr ) => {
   // Pre action confirmation checks for send statecoin - return true to prevent action
 
-  var input_pubkey = "";
+
   try {
-    input_pubkey = decodeSCEAddress(inputAddr);
+    if(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'){
+      input_pubkey = callProofKeyFromXpub(inputAddr,0);
+    } else{
+      input_pubkey = decodeSCEAddress(inputAddr);
+    }
   }
   catch (e) {
     dispatch(setError({ msg: "Error: " + e.message }))
@@ -614,14 +643,24 @@ export const checkSend = (dispatch, inputAddr ) => {
   }
 
   if (!(input_pubkey.slice(0, 2) === '02' || input_pubkey.slice(0, 2) === '03')) {
+    if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub') {
+      dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
+      return true
+    }
     dispatch(setError({ msg: "Error: invalid proof public key." }));
     return true
   }
 
   if (input_pubkey.length !== 66) {
+    if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) ==='tpub') {
+      dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
+      return true
+    }
+
     dispatch(setError({ msg: "Error: invalid proof public key" }))
     return true
   }
+
 }
 
 
@@ -650,7 +689,7 @@ export const callWithdraw = createAsyncThunk(
 export const callTransferSender = createAsyncThunk(
   'TransferSender',
   async (action, thunkAPI) => {
-    return wallet.transfer_sender(action.shared_key_id, action.rec_addr)
+    return wallet.transfer_sender(action.shared_key_ids, action.rec_addr)
   }
 )
 export const callTransferReceiver = createAsyncThunk(
@@ -662,7 +701,7 @@ export const callTransferReceiver = createAsyncThunk(
 export const callGetTransfers = createAsyncThunk(
   'GetTransfers',
   async (action, thunkAPI) => {
-    return wallet.get_transfers(action)
+    return wallet.get_transfers(action.addr_index, action.numReceive)
   }
 )
 
@@ -743,6 +782,13 @@ export const callGetFeeEstimation = createAsyncThunk(
   'GetFeeEstimation',
   async (action, thunkAPI) => {
     return await wallet.electrum_client.getFeeEstimation(action);
+  }
+)
+
+export const callSetStatecoinSpent = createAsyncThunk(
+  'SetStatecoinSpent',
+  async (action, thunkAPI) => {
+    return await wallet.setStateCoinSpent(action.id, action.action)
   }
 )
 
@@ -880,6 +926,13 @@ const WalletSlice = createSlice({
     clearInSwapValues(state, _action) {
       state.inSwapValues = []
     },
+    setSwapLoad(state,action){
+      var update = action.payload
+      return {
+        ...state,
+        swapLoad: {join: update.join, swapCoin: update.swapCoin, leave: update.leave}
+      }
+    },
     // Deposit
     dummyDeposit() {
       let proof_key = "02c69dad87250b032fe4052240eaf5b8a5dc160b1a144ecbcd55e39cf4b9b49bfd"
@@ -1010,7 +1063,7 @@ const WalletSlice = createSlice({
 export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setProgressComplete, setProgress, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin,
   clearSwapPendingCoins, clearInSwapValues,
-  updateInSwapValues, addInSwapValue, removeInSwapValue, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
+  updateInSwapValues, addInSwapValue, removeInSwapValue, setSwapLoad, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
 export default WalletSlice.reducer
 
 

@@ -9,7 +9,7 @@ import {
 import { ElectrsClient } from './electrs'
 import { ElectrsLocalClient } from './electrs_local'
 
-import { txCPFPBuild, FEE, encryptAES } from './util';
+import { txCPFPBuild, FEE, encryptAES, getTxFee, proofKeyFromXpub } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
 import { depositConfirm, depositInit } from './mercury/deposit';
 import { withdraw, withdraw_init, withdraw_duplicate, withdraw_confirm, WithdrawMsg2 } from './mercury/withdraw';
@@ -30,14 +30,11 @@ import { EPSClient } from './eps';
 import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './mercury/torcircuit_api';
 import { callGetNewTorId } from '../features/WalletDataSlice';
 import { Mutex } from 'async-mutex';
-import { RateLimiter } from "limiter"
 
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
 const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
 const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
-
-const backupTxUpdateLimiter = new RateLimiter({ tokensPerInterval: 1, interval: 30000, fireImmediately: true });
 
 let bitcoin = require('bitcoinjs-lib');
 let bip32utils = require('bip32-utils');
@@ -57,9 +54,12 @@ try {
   log = require('electron-log');
 }
 
+export const mutex = new Mutex();
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890"
 export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7"
 export const MOCK_WALLET_MNEMONIC = "praise you muffin lion enable neck grocery crumble super myself license ghost"
+export const MOCK_WALLET_XPUB = "xpub682CHGeEKPty9cRYMG4FT899Loi862KXFzhavBHA9LdTu6qdgtfpmJt32mjAZrBQsAd7p72RVMu2xUrDBBUGiMuaehcAdN8V9st7o1AZpHd"
+// Derivation path = m/44'/1'/0' for p2pkh
 
 // The wallet data must contain these fields
 export const required_fields = [
@@ -112,6 +112,7 @@ export class Wallet {
 
   constructor(name: string, password: string, mnemonic: string, account: any, config: Config,
     http_client: any = undefined, wasm: any = undefined) {
+    
     this.name = name;
     this.password = password;
     this.config = config;
@@ -293,6 +294,8 @@ export class Wallet {
     // New properties should not make old wallets break
 
     new_wallet.account = json_wallet_to_bip32_root_account(json_wallet)
+
+
     return new_wallet
   }
 
@@ -418,6 +421,7 @@ export class Wallet {
     if (n_recovered > 0) {
       log.info("Found " + recoveredCoins.length + " StateCoins. Saving to wallet.");
       await this.saveKeys();
+      console.log(`recoveredCoins: ${JSON.stringify(recoveredCoins)}`)
       await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
@@ -485,10 +489,8 @@ export class Wallet {
 
       if(!this.checkElectrumNetwork()) return;
 
-      // Continuously update block height
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
-      // Get fee info
-
+      
       let fee_info: FeeInfo
 
       getFeeInfo(this.http_client).then(async (res) => {
@@ -810,22 +812,30 @@ export class Wallet {
       statecoin.setBackupInMempool();
     } else if (bresponse.includes('block')) {
       statecoin.setBackupConfirmed();
-      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+      if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+        // Keep expired coins in main CoinsList
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+      }
     } else if (bresponse.includes('conflict') || bresponse.includes('missingorspent') || bresponse.includes('Missing')) {
       statecoin.setBackupTaken();
       this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
     }
   }
 
-  processTXBroadcastError(statecoin: StateCoin, err: any) {
+  async processTXBroadcastError(statecoin: StateCoin, err: any) {
     if (err.toString().includes('already') && err.toString().includes('mempool')) {
       statecoin.setBackupInMempool();
     } else if (err.toString().includes('already') && err.toString().includes('block')) {
       statecoin.setBackupConfirmed();
-      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+
+      if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+        // Keep expired coins in main CoinsList
+        this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
+      }
+
     } else if ((err.toString().includes('conflict') || err.toString().includes('missingorspent')) || err.toString().includes('Missing')) {
       statecoin.setBackupTaken();
-      this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
+      await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false);
     }
   }
 
@@ -850,18 +860,25 @@ export class Wallet {
   }
 
   // Returns true if locktime is reached
-  checkLocktime(statecoin: StateCoin): boolean {
+  async checkLocktime(statecoin: StateCoin): Promise<boolean> {
     let blocks_to_locktime = (statecoin.tx_backup?.locktime ?? Number.MAX_SAFE_INTEGER) - this.block_height;
     // pre-locktime - update locktime swap limit status
     if (blocks_to_locktime > 0) {
       if (statecoin.backup_status !== BACKUP_STATUS.PRE_LOCKTIME) {
         statecoin.setBackupPreLocktime();  
-        this.saveStateCoinsList()
       }
       if (statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && blocks_to_locktime < this.config.swaplimit && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
-        statecoin.setSwapLimit();
-        this.saveStateCoinsList()
+        statecoin.setSwapLimit()
       }
+      // restore expired coins if blockheight corrected
+      if (statecoin.status === STATECOIN_STATUS.EXPIRED) {
+        if (blocks_to_locktime > this.config.swaplimit) {
+          statecoin.setConfirmed()
+        } else if (blocks_to_locktime > 1) {
+          statecoin.setSwapLimit()
+        }
+      }
+      await this.saveStateCoinsList()
       return false
     } else {
       // locktime reached
@@ -874,11 +891,17 @@ export class Wallet {
     if (txid != null) {
         const tx_data = await this.electrum_client.getTransaction(txid)
         if (tx_data?.confirmations != null && tx_data.confirmations >= this.config.required_confirmations) {
+          
           statecoin.setBackupConfirmed();
-          this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false)
+
+          if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+            // Keep expired coins in Main Coins List
+            this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false)
+          }
         }
     }
   }
+
 
   async broadcastBackupTx(statecoin: StateCoin) {
     let backup_tx = statecoin!.tx_backup!.toHex();
@@ -886,7 +909,7 @@ export class Wallet {
       let bresponse = await this.electrum_client.broadcastTransaction(backup_tx)
       this.processTXBroadcastResponse(statecoin, bresponse)
     } catch(err: any) {
-      this.processTXBroadcastError(statecoin, err)  
+      await this.processTXBroadcastError(statecoin, err)  
     }
   }
 
@@ -899,25 +922,22 @@ export class Wallet {
   }
 
   // update statuts of backup transactions and broadcast if neccessary
-  async updateBackupTxStatus(bRateLimiter: boolean = true) {
-    if (bRateLimiter && await backupTxUpdateLimiter.removeTokens(1) == -1) {
-      return
-    }
+  async updateBackupTxStatus() {
     for (let i = 0; i < this.statecoins.coins.length; i++) {
       let statecoin = this.statecoins.coins[i]
       // check if there is a backup tx yet, if not do nothing
       if (Wallet.backupTxCheckRequired(statecoin) === false) {
         continue
       }
-      if (this.checkLocktime(statecoin) === true) {
+      if (await this.checkLocktime(statecoin) === true) {
         // set expired
         if (statecoin.status === STATECOIN_STATUS.SWAPLIMIT || statecoin.status === STATECOIN_STATUS.AVAILABLE) {
-          this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false)
+          await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false)
         }
         // in mempool - check if confirmed
         if (statecoin.backup_status === BACKUP_STATUS.IN_MEMPOOL) {
           try {
-            this.checkMempoolTx(statecoin)
+            await this.checkMempoolTx(statecoin)
           } catch (err: any) {
             log.error(`Error checking backup transaction status: ${err.toString()}`)
           }
@@ -930,7 +950,7 @@ export class Wallet {
         }
         // if CPFP present, then broadcast this as well
         try {
-          this.broadcastCPFP(statecoin)
+          await this.broadcastCPFP(statecoin)
         } catch (err: any) {
           log.error(`Error broadcasting CPFP: ${err.toString()}`)
         }
@@ -1451,6 +1471,7 @@ export class Wallet {
   async doPostSwap(statecoin: StateCoin, new_statecoin: StateCoin | null): Promise<StateCoin | null> {
     if (new_statecoin && new_statecoin instanceof StateCoin) {
       this.setIfNewCoin(new_statecoin)
+      statecoin.setSwapDataToNull();
       await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
       new_statecoin.setSwapDataToNull();
     }
@@ -1468,7 +1489,13 @@ export class Wallet {
   }
 
   async updateSwapGroupInfo() {
-    groupInfo(this.http_client).catch((err: any) => {
+    groupInfo(this.http_client).then((result) => {
+      if (result) {
+        this.swap_group_info = result
+      } else {
+        this.swap_group_info = new Map<SwapGroup, GroupInfo>();
+      }
+    }).catch((err: any) => {
       this.swap_group_info.clear()
       let err_str = typeof err === 'string' ? err : err?.message
       if (err_str && (err_str.includes('Network Error') ||
@@ -1476,12 +1503,6 @@ export class Wallet {
         log.warn(JSON.stringify(err))
       } else {
         throw err
-      }
-    }).then((result) => {
-      if (result) {
-        this.swap_group_info = result
-      } else {
-        this.swap_group_info = new Map<SwapGroup, GroupInfo>();
       }
     })
   }
@@ -1595,39 +1616,51 @@ export class Wallet {
   // Args: shared_key_id of coin to send and receivers se_addr.
   // Return: transfer_message String to be sent to receiver.
   async transfer_sender(
-    shared_key_id: string,
-    receiver_se_addr: string
-  ): Promise<TransferMsg3> {
-    log.info("Transfer Sender for " + shared_key_id)
-    // ensure receiver se address is valid
-    try { pubKeyTobtcAddr(receiver_se_addr, this.config.network) }
-    catch (e: any) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
+    shared_key_ids: string[],
+    receiver_se_addrs: string[]
+  ): Promise<Array<TransferMsg3>>{
+    let transferMsgArr: TransferMsg3[] = []
 
-    let statecoin = this.statecoins.getCoin(shared_key_id);
-    if (!statecoin) throw Error("No coin found with id " + shared_key_id);
-    if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
-    if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
-    if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
+    log.info("Transfer Sender for " + shared_key_ids)
 
-    // check there is no duplicate
-    for (let i = 0; i < this.statecoins.coins.length; i++) {
-      if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
-        if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
-          throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+    for ( var i = 0; i < shared_key_ids.length ; i++ ){
+      await mutex.runExclusive(async () => { 
+        // ensure receiver se address is valid
+        try { pubKeyTobtcAddr(receiver_se_addrs[i], this.config.network) }
+        catch (e: any) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
+        
+        //shared_key_ids[i] ....
+        let statecoin = this.statecoins.getCoin(shared_key_ids[i]);
+        if (!statecoin) throw Error("No coin found with id " + shared_key_ids[i]);
+        if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
+        if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
+        if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
+        
+        // check there is no duplicate
+        for (let i = 0; i < this.statecoins.coins.length; i++) {
+          if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
+            if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
+              throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
+            }
+          }
         }
-      }
+        
+        let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
+        
+        let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addrs[i], false, this)
+        
+        transferMsgArr.push(transfer_sender)
+        
+        await transferUpdateMsg(this.http_client, transfer_sender, false)
+        
+        log.info("Transfer Sender complete.");
+        await this.saveStateCoinsList();
+        
+      })
     }
-
-    let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-
-    let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addr, false, this)
-
-    await transferUpdateMsg(this.http_client, transfer_sender, false)
-
-    log.info("Transfer Sender complete.");
-    await this.saveStateCoinsList();
-    return transfer_sender;
-  }
+      
+      return transferMsgArr;
+    }
 
   // Perform transfer_receiver
   // Args: transfer_messager retuned from sender's TransferSender
@@ -1681,67 +1714,82 @@ export class Wallet {
 
   // Query server for any pending transfer messages for the sepcified address index
   // Check for unused proof keys
-  async get_transfers(addr_index: number): Promise<string> {
+  async get_transfers(addr_index: number, numReceive: number): Promise<string> {
     log.info("Retrieving transfer messages")
     let error_message = ""
     let transfer_data
-
     let num_transfers = 0;
-    let addr = this.account.chains[0].addresses[addr_index];
-
-    let proofkey = this.getBIP32forBtcAddress(addr).publicKey.toString("hex");
-    const MAX_RETRIES = 10
+    let addr;
+    let proofkey;
     let n_retries = 0
-    let transfer_msgs = []
+    let transfer_msgs = [];
 
-    while (n_retries < MAX_RETRIES) {
-      try {
-        transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
-        break;
-      } catch (err: any) {
-        n_retries = n_retries + 1
-        if (n_retries === MAX_RETRIES) {
-          error_message = err.message
-          break;
-        }
-      }
-    }
+    const MAX_RETRIES = 10;
+    console.log('numRecieve: ', numReceive)
 
-    for (let i = 0; i < transfer_msgs.length; i++) {
-      // check if the coin is in the wallet
-      let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
-      let dotransfer = true;
-      for (let j = 0; j < walletcoins.length; j++) {
-        if (walletcoins[j].status === STATECOIN_STATUS.AVAILABLE) {
-          dotransfer = false;
-          break;
+    for(var i = 0; i < numReceive; i++){
+      if(numReceive === 1){
+        addr = this.account.chains[0].addresses[addr_index];
+        proofkey = this.getBIP32forBtcAddress(addr).publicKey.toString("hex");
+      } else{
+        if(i >= this.account.chains[0].addresses.length){
+          this.newSEAddress()
         }
+        addr = this.account.chains[0].addresses[i];
+        proofkey = this.getBIP32forBtcAddress(addr).publicKey.toString("hex");
       }
-      //perform transfer receiver
-      if (dotransfer) {
+
+  
+      while (n_retries < MAX_RETRIES) {
         try {
-          n_retries = 0
-          while (n_retries < MAX_RETRIES) {
-            try {
-              transfer_data = await this.transfer_receiver(transfer_msgs[i]);
-              break;
-            } catch (err: any) {
-              n_retries = n_retries + 1
-              if (n_retries === MAX_RETRIES) {
-                throw err
+          transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
+          break;
+        } catch (err: any) {
+          n_retries = n_retries + 1
+          if (n_retries === MAX_RETRIES) {
+            error_message = err.message
+            break;
+          }
+        }
+      }
+  
+      for (let i = 0; i < transfer_msgs.length; i++) {
+        // check if the coin is in the wallet
+        let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
+        let dotransfer = true;
+        for (let j = 0; j < walletcoins.length; j++) {
+          if (walletcoins[j].status === STATECOIN_STATUS.AVAILABLE) {
+            dotransfer = false;
+            break;
+          }
+        }
+        //perform transfer receiver
+        if (dotransfer) {
+          try {
+            n_retries = 0
+            while (n_retries < MAX_RETRIES) {
+              try {
+                transfer_data = await this.transfer_receiver(transfer_msgs[i]);
+                break;
+              } catch (err: any) {
+                n_retries = n_retries + 1
+                if (n_retries === MAX_RETRIES) {
+                  throw err
+                }
               }
             }
+            num_transfers += 1;
           }
-          num_transfers += 1;
+          catch (e: any) {
+            error_message = e.message
+          }
+  
         }
-        catch (e: any) {
-          error_message = e.message
-        }
-
       }
+  
+      //this.activity.addItem(addr, ACTION.RECEIVED);
+      
     }
-
-    //this.activity.addItem(addr, ACTION.RECEIVED);
     return num_transfers + "../.." + error_message
   }
 
@@ -1834,11 +1882,12 @@ export class Wallet {
     let statecoin = this.statecoins.getCoin(shared_key_ids[0]);
     if (!statecoin) throw Error("No coin found with id " + shared_key_ids[0])
     let broadcastTxInfos = statecoin.tx_withdraw_broadcast
-    if (broadcastTxInfos.length) {
+    if (broadcastTxInfos.length > 0) {
       fee_max = statecoin.getWithdrawalMaxTxFee()
-
+      const fee = getTxFee(fee_per_byte, broadcastTxInfos[0].tx.ins.length)
+      console.log(`Withdrawal transaction fee: ${fee}, fee per byte: ${fee_per_byte}, fee_max: ${fee_max}`)
       if (fee_max > 0) {
-        if (fee_max >= fee_per_byte) throw Error(`Requested fee per byte ${fee_per_byte} is not greater than existing fee per byte ${fee_max}`);
+        if (fee_max >= fee) throw Error(`Requested fee ${fee} (fee per byte ${fee_per_byte}) is not greater than existing fee ${fee_max}`);
         const ids_sorted_1 = shared_key_ids.slice().sort();
         const ids_sorted_2 = broadcastTxInfos[broadcastTxInfos.length - 1].withdraw_msg_2.shared_key_ids.slice().sort();
         if (JSON.stringify(ids_sorted_1) !== JSON.stringify(ids_sorted_2)) {
@@ -1853,7 +1902,7 @@ export class Wallet {
 
           throw Error(`Replacement transactions must batch the same coins: ${coin_ids}`)
         }
-        if (rec_addr !== broadcastTxInfos[broadcastTxInfos.length - 1].withdraw_msg_2.address) {
+        if (rec_addr !== broadcastTxInfos[broadcastTxInfos.length - 1].rec_addr) {
           throw Error(`Replacement transaction recipient address does not match`)
         }
       }
@@ -1870,7 +1919,8 @@ export class Wallet {
         statecoin.status !== STATECOIN_STATUS.WITHDRAWN) {
         statecoin.setWithdrawing()
       }
-      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, fee_per_byte, withdraw_msg_2);
+      let tx_fee = getTxFee(fee_per_byte, tx_withdraw.ins.length)
+      this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, tx_fee, withdraw_msg_2, rec_addr);
       this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
     });
     await this.saveStateCoinsList();
@@ -1904,18 +1954,20 @@ export class Wallet {
     withdraw_msg_2: WithdrawMsg2,
     txid: string
   ) {
-    log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`)
+    log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`);
     try {
-      withdraw_msg_2.shared_key_ids.forEach((shared_key_id) => {
-        this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
-        this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+      withdraw_msg_2.shared_key_ids.forEach(async (shared_key_id) => {
+        this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
+        await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
+        this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
       });
       await withdraw_confirm(this.http_client, withdraw_msg_2);
     } catch (e) {
       if (`${e}`.includes('No data for id') || `${e}`.includes('No update made')) {
-        withdraw_msg_2.shared_key_ids.forEach((shared_key_id) => {
-          this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
-          this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
+        withdraw_msg_2.shared_key_ids.forEach( async (shared_key_id) => {
+          this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
+          await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
+          this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
         })
       } else {
         log.error(`withdraw confirm error: ${e}`);
@@ -1923,6 +1975,15 @@ export class Wallet {
       }
     }
   }
+
+  deriveXpub(){
+  return getXpub(this.mnemonic, this.config.network);
+  }
+
+  deriveProofKeyFromXpub(xpub: string, index: number){
+    return proofKeyFromXpub(xpub, index, this.config.network)
+  }
+
 }
 
 // BIP39 mnemonic -> BIP32 Account
@@ -2002,6 +2063,18 @@ export const getBIP32forBtcAddress = (addr: string, account: any): BIP32Interfac
   return node
 }
 
+
+export const getXpub = (mnemonic: string, network: Network) => {
+  // Xpub from mnemonic ( format p2pkh )
+
+  const seed = bip39.mnemonicToSeedSync(mnemonic);
+
+  const root = bip32.fromSeed(seed, network);
+
+  const node = root.deriveHardened(0);
+
+  return node.neutered().toBase58();
+}
 
 
 const dummy_master_key = { public: { q: { x: "47dc67d37acf9952b2a39f84639fc698d98c3c6c9fb90fdc8b100087df75bf32", y: "374935604c8496b2eb5ff3b4f1b6833de019f9653be293f5b6e70f6758fe1eb6" }, p2: { x: "5220bc6ebcc83d0a1e4482ab1f2194cb69648100e8be78acde47ca56b996bd9e", y: "8dfbb36ef76f2197598738329ffab7d3b3a06d80467db8e739c6b165abc20231" }, p1: { x: "bada7f0efb10f35b920ff92f9c609f5715f2703e2c67bd0e362227290c8f1be9", y: "46ce24197d468c50001e6c2aa6de8d9374bb37322d1daf0120215fb0c97a455a" }, paillier_pub: { n: "17945609950524790912898455372365672530127324710681445199839926830591356778719067270420287946423159715031144719332460119432440626547108597346324742121422771391048313578132842769475549255962811836466188142112842892181394110210275612137463998279698990558525870802338582395718737206590148296218224470557801430185913136432965780247483964177331993320926193963209106016417593344434547509486359823213494287461975253216400052041379785732818522252026238822226613139610817120254150810552690978166222643873509971549146120614258860562230109277986562141851289117781348025934400257491855067454202293309100635821977638589797710978933" }, c_key: "36d7dde4b796a7034fc6cfd75d341b223012720b52a35a37cd8229839fe9ed1f1f1fe7cbcdbc0fa59adbb757bd60a5b7e3067bc49c1395a24f70228cc327d7346b639d4e81bd3cfd39698c58e900f99c3110d6a3d769f75c8f59e7f5ad57009eadb8c6e6c4830c1082ddd84e28a70a83645354056c90ab709325fc6246d505134d4006ef6fec80645493483413d309cb84d5b5f34e28ab6af3316e517e556df963134c09810f754c58b85cf079e0131498f004108733a5f6e6a242c549284cf2df4aede022d03b854c6601210b450bdb1f73591b3f880852f0e9a3a943e1d1fdb8d5c5b839d0906de255316569b703aca913114067736dae93ea721ddd0b26e33cf5b0af67cee46d6a3281d17082a08ab53688734667c641d71e8f69b25ca1e6e0ebf59aa46c0e0a3266d6d1fba8e9f25837a28a40ae553c59fe39072723daa2e8078e889fd342ef656295d8615531159b393367b760590a1325a547dc1eff118bc3655912ac0b3c589e9d7fbc6d244d5860dfb8a5a136bf7b665711bf4e75fe42eb28a168d1ddd5ecf77165a3d4db72fda355c0dc748b0c6c2eada407dba5c1a6c797385e23c050622418be8f3cd393e6acd8a7ea5bd3306aafae75f4def94386f62564fce7a66dc5d99c197d161c7c0d3eea898ca3c5e9fbd7ceb1e3f7f2cb375181cf98f7608d08ed96ef1f98af3d5e2d769ae4211e7d20415677eddd1051" }, private: { x2: "34c0b428488ddc6b28e05cee37e7c4533007f0861e06a2b77e71d3f133ddb81b" }, chain_code: "0" }

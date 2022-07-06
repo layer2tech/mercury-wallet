@@ -9,6 +9,7 @@ import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
 
 
+const bip32 = require('bip32');
 let bech32 = require('bech32')
 let bitcoin = require('bitcoinjs-lib')
 let typeforce = require('typeforce');
@@ -153,7 +154,7 @@ export const txBackupBuild = (network: Network, funding_txid: string, funding_vo
 //     - amount 'fee' to State Entity fee address
 export const txWithdrawBuild = (network: Network,    funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_byte: number): TransactionBuilder => {
 
-  let tx_fee = Math.round(fee_per_byte*VIRTUAL_TX_SIZE*10e7)/10e7;
+  let tx_fee = getTxFee(fee_per_byte, 1)
 
   if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
 
@@ -166,6 +167,9 @@ export const txWithdrawBuild = (network: Network,    funding_txid: string, fundi
   return txb
 }
 
+export const getTxFee = (fee_per_byte: number, n_inputs: number = 1): number => {
+  return Math.round(fee_per_byte * (VIRTUAL_TX_SIZE + (INPUT_TX_SIZE * (n_inputs - 1))) * 10e7) / 10e7
+}
 
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
@@ -173,6 +177,7 @@ export const txWithdrawBuild = (network: Network,    funding_txid: string, fundi
 export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_address: string, fee_info: FeeInfo, fee_per_byte: number): TransactionBuilder => {
   // let txin = []; - not being used
   let value = 0;
+  console.log("tx builder")
   let txb: TransactionBuilder = new TransactionBuilder(network);
   let index = 0;
 
@@ -186,20 +191,17 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
     };
     index = index + 1;
   }
-  value = value + fee_info.deposit;
-  
+    
   let withdraw_fee = Math.round((value * fee_info.withdraw) / 10000)//(value * fee_info.withdraw) / 10000
 
-  let tx_fee = Math.round(fee_per_byte*(VIRTUAL_TX_SIZE+(INPUT_TX_SIZE*(sc_infos.length-1)))*10e7)/10e7
-
+  let tx_fee = getTxFee(fee_per_byte, sc_infos.length)
+    
+  if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
   
-  if (withdraw_fee + FEE >= value) throw Error("Not enough value to cover fee.");
-  
-  // txb.addOutput(rec_address, value - FEE - withdraw_fee);
-  txb.addOutput(rec_address,value - tx_fee - FEE - withdraw_fee)
+  txb.addOutput(rec_address,value - tx_fee - withdraw_fee)
 
   txb.addOutput(fee_info.address, withdraw_fee);
-
+  
   return txb
 }
 
@@ -252,6 +254,25 @@ export const decodeSCEAddress = (sce_address: string): string => {
     throw new Error("Invalid Statechain Address - " + e.message)
   }
   return SCEAddress
+}
+
+export const proofKeyFromXpub = (xpub: string, index: number, network: Network) => {
+  let proof_key;
+  proof_key = bip32.fromBase58(xpub,network).derive(0).derive(index).publicKey.toString('hex');
+  // console.log('public Key',bip32.fromBase58(xpub,network).derive(0).derive(index).publicKey)
+  // const { address } = bitcoin.payments.p2wpkh({
+  //   pubkey: bip32.fromBase58(xpub,network).derive(0).derive(index).publicKey,
+  //   network: network
+  // });
+  // try{
+  //   let decode =  bech32.decode(address)
+  //   let words = bech32.toWords(decode.words)
+  //   proof_key = bech32.encode('tc',words);
+  // }
+  // catch(e : any){
+  //   throw new Error("Invalid Xpub - " + e.message)
+  // }
+  return proof_key
 }
 
 // Bech32 encode transfer message
