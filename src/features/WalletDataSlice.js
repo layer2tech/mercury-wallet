@@ -621,6 +621,13 @@ export const checkWithdrawal = ( dispatch, selectedCoins, inputAddr ) => {
     return true
   }
 
+  try { 
+    bitcoin.address.toOutputScript(inputAddr, wallet.config.network)
+  } catch (e){ 
+    dispatch(setError({msg: "Invalid Bitcoin address entered."}))
+    return true
+  }
+
   if(callIsBatchMixedPrivacy(selectedCoins)) {
     dispatch(setNotification({msg:"Warning: Withdrawal transaction contains both private and un-swapped inputs."}))
   }
@@ -629,6 +636,7 @@ export const checkWithdrawal = ( dispatch, selectedCoins, inputAddr ) => {
 export const checkSend = (dispatch, inputAddr ) => {
   // Pre action confirmation checks for send statecoin - return true to prevent action
 
+  var input_pubkey = "";
 
   try {
     if(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'){

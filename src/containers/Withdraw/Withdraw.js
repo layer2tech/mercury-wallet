@@ -8,7 +8,17 @@ import {useSelector, useDispatch} from 'react-redux';
 
 
 
-import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification, callGetConfig, callSumStatecoinValues, callIsBatchMixedPrivacy, callGetStateCoin} from '../../features/WalletDataSlice';
+import {isWalletLoaded, 
+  callWithdraw, 
+  callGetFeeEstimation, 
+  setError, 
+  setNotification, 
+  callGetConfig, 
+  callSumStatecoinValues, 
+  callIsBatchMixedPrivacy, 
+  callGetStateCoin,
+  checkWithdrawal
+} from '../../features/WalletDataSlice';
 
 import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, CoinsList} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"

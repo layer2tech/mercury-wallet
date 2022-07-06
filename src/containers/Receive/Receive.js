@@ -88,7 +88,7 @@ const ReceiveStatecoinPage = () => {
       setReceive(false);
     }
 
-  }, [numReceive])
+  }, [numReceive,receive])
 
   const checkElectrum = (isMounted) => {
     callPingElectrumRestart(!torInfo.online).then((res) => {
