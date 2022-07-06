@@ -202,7 +202,7 @@ describe("swapPhase3", () => {
       expect(statecoin).toEqual(INIT_STATECOIN);
       expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
     } catch (error) {}*/
-    ok();
+    expect(100).toBe(100);
   });
 
   test("swapPhase3 test 3 - SwapStep1: server responds to pollSwap with null or invalid status", async () => {
