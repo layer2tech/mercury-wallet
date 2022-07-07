@@ -40,7 +40,7 @@ const App = () => {
 
   useEffect(() => {
     if (window.addEventListener) {
-      console.log("adding online/offline event listeners");
+      //console.log("adding online/offline event listeners");
       window.addEventListener("online", () => setOnline(true), false);
       window.addEventListener("offline", () => setOnline(false), false);
     } else {

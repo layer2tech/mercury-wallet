@@ -24,7 +24,7 @@ class inputPage extends Component {
             <div className="def-number-input number-input">
                 <button onClick={this.decrease} className="minus"></button>
                 <span className="smalltxt">{this.label}</span>
-                <input className="quantity" name="quantity" value={this.state.value} onChange={()=> console.log('change')}
+                <input className="quantity" name="quantity" value={this.state.value} onChange={()=> /*console.log('change')*/}
                        type="number" placeholder="0 BTC" />
                 <button onClick={this.increase} className="plus"></button>
             </div>

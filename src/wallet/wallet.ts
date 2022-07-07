@@ -305,13 +305,14 @@ export class Wallet {
     http_client: any = undefined,
     wasm: any = undefined
   ): Wallet {
+    /*
     log.debug(
       "New wallet named " +
         name +
         " created. Testing mode: " +
         testing_mode +
         "."
-    );
+    );*/
     let wallet = new Wallet(
       name,
       password,
@@ -497,7 +498,7 @@ export class Wallet {
     const release = await this.saveMutex.acquire();
     try {
       this.storage.clearWallet(this.name);
-      log.info("Wallet cleared.");
+      //log.info("Wallet cleared.");
     } finally {
       release();
     }
@@ -539,13 +540,14 @@ export class Wallet {
     gap_limit: number,
     dispatch: any
   ): Promise<number> {
-    log.info("Recovering StateCoins from server for mnemonic.");
+    //log.info("Recovering StateCoins from server for mnemonic.");
     let recoveredCoins = await recoverCoins(this, gap_limit, dispatch);
     const n_recovered = recoverCoins.length;
     if (n_recovered > 0) {
+      /*
       log.info(
         "Found " + recoveredCoins.length + " StateCoins. Saving to wallet."
-      );
+      );*/
       await this.saveKeys();
       //console.log(`recoveredCoins: ${JSON.stringify(recoveredCoins)}`)
       await addRestoredCoinDataToWallet(
@@ -554,7 +556,7 @@ export class Wallet {
         recoveredCoins
       );
     } else {
-      log.info("No StateCoins found in Server for this mnemonic.");
+      //log.info("No StateCoins found in Server for this mnemonic.");
     }
     // check for deposits
     for (let i = 0; i < this.statecoins.coins.length; i++) {
@@ -572,7 +574,7 @@ export class Wallet {
           100000
         );
 
-        log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
+        //log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
       }
     }
 
@@ -698,7 +700,7 @@ export class Wallet {
               ),
               statecoins_mp[i].value
             ).catch((err: any) => {
-              log.info(err);
+              //log.info(err);
               return;
             });
           }
@@ -871,24 +873,25 @@ export class Wallet {
         if (length > 0) {
           for (let i = 0; i < length; i++) {
             let broadcast_txid = statecoin.tx_withdraw_broadcast[i].txid;
-            log.info(`checking withdrawal tx status...`);
+            //log.info(`checking withdrawal tx status...`);
             if (broadcast_txid) {
               const tx_confirmed = await this.checkWithdrawalTx(broadcast_txid);
               if (tx_confirmed && tx_confirmed !== null) {
-                log.info(`tx confirmed: ${statecoin.withdraw_txid}`);
+                //log.info(`tx confirmed: ${statecoin.withdraw_txid}`);
                 if (!this.config.testing_mode) {
-                  log.info(`withdrawal tx confirmed!`);
+                  //log.info(`withdrawal tx confirmed!`);
                   let tx_info =
                     statecoin.getWithdrawalBroadcastTxInfo(broadcast_txid);
                   if (tx_info) {
+                    /*
                     log.info(
                       `found tx_info: ${tx_info}, doing withdraw confirm`
-                    );
+                    );*/
                     await this.withdraw_confirm(
                       tx_info.withdraw_msg_2,
                       broadcast_txid
                     );
-                    log.info(`withdraw confirm finished`);
+                    //log.info(`withdraw confirm finished`);
                   }
                 }
               }
@@ -1225,9 +1228,10 @@ export class Wallet {
 
   // create CPFP transaction to spend from backup tx
   async createBackupTxCPFP(cpfp_data: any) {
+    /*
     log.info(
       "Add CPFP for " + cpfp_data.selected_coin + " to " + cpfp_data.cpfp_addr
-    );
+    );*/
 
     // Check address format
     try {
@@ -1289,9 +1293,9 @@ export class Wallet {
   addStatecoin(statecoin: StateCoin, action: string) {
     if (this.statecoins.addCoin(statecoin)) {
       this.activity.addItem(statecoin.shared_key_id, action);
-      log.debug("Added Statecoin: " + statecoin.shared_key_id);
+      //log.debug("Added Statecoin: " + statecoin.shared_key_id);
     } else {
-      log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
+      //log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
     }
   }
 
@@ -1313,9 +1317,9 @@ export class Wallet {
     statecoin.setConfirmed();
     if (this.statecoins.addCoin(statecoin)) {
       this.activity.addItem(id, action);
-      log.debug("Added Statecoin: " + statecoin.shared_key_id);
+      //log.debug("Added Statecoin: " + statecoin.shared_key_id);
     } else {
-      log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
+      //log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
     }
   }
   async removeStatecoin(shared_key_id: string) {
@@ -1364,7 +1368,7 @@ export class Wallet {
     ) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
-      log.debug("Set Statecoin spent: " + id);
+      //log.debug("Set Statecoin spent: " + id);
     }
     if (bSave) {
       await this.saveStateCoinsList();
@@ -1379,7 +1383,7 @@ export class Wallet {
   async genBtcAddress(): Promise<string> {
     let addr = this.account.nextChainAddress(0);
     await this.saveKeys();
-    log.debug("Gen BTC address: " + addr);
+    //log.debug("Gen BTC address: " + addr);
     return addr;
   }
 
@@ -1393,12 +1397,13 @@ export class Wallet {
     let addr = this.account.nextChainAddress(0);
     await this.saveKeys();
     let proof_key = this.getBIP32forBtcAddress(addr);
+    /*
     log.debug(
       "Gen proof key. Address: " +
         addr +
         ". Proof key: " +
         proof_key.publicKey.toString("hex")
-    );
+    );*/
     return proof_key;
   }
   getBIP32forProofKeyPubKey(proof_key: string): BIP32Interface {
@@ -1408,7 +1413,7 @@ export class Wallet {
 
   // Initialise deposit
   async depositInit(value: number) {
-    log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
+    //log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
 
     let proof_key_bip32 = await this.genProofKey(); // Generate new proof key
 
@@ -1442,7 +1447,7 @@ export class Wallet {
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value);
 
-    log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
+    //log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
     await this.saveStateCoinsList();
     return [statecoin.shared_key_id, p_addr];
   }
@@ -1453,11 +1458,11 @@ export class Wallet {
       p_addr,
       this.config.network
     );
-    log.info("Subscribed to script hash for p_addr: ", p_addr);
+    //log.info("Subscribed to script hash for p_addr: ", p_addr);
     this.electrum_client.scriptHashSubscribe(
       p_addr_script,
       async (_status: any) => {
-        log.info("Script hash status change for p_addr: ", p_addr);
+        //log.info("Script hash status change for p_addr: ", p_addr);
         // Get p_addr list_unspent and verify tx
         await this.checkFundingTxListUnspent(
           shared_key_id,
@@ -1517,21 +1522,23 @@ export class Wallet {
                 funding_tx_data[i]
               ) === true
             ) {
+              /*
               log.info(
                 "Found funding tx for p_addr " +
                   p_addr +
                   " in mempool. txid: " +
                   funding_tx_data[i].tx_hash
-              );
+              );*/
               await this.saveStateCoinsList();
             }
           } else {
+            /*
             log.info(
               "Funding tx for p_addr " +
                 p_addr +
                 " mined. Height: " +
                 funding_tx_data[i].height
-            );
+            );*/
             // Set coin UNCONFIRMED.
             this.statecoins.setCoinUnconfirmed(
               shared_key_id,
@@ -1639,11 +1646,11 @@ export class Wallet {
       );
       let status = withdrawal_tx_data?.status;
       if (status && status.confirmed) {
-        log.info(`Withdrawal tx ${tx_hash} confirmed`);
+        //log.info(`Withdrawal tx ${tx_hash} confirmed`);
         return true;
       }
     } catch (err: any) {
-      log.error(err);
+      //log.error(err);
     }
     return false;
   }
@@ -1655,7 +1662,7 @@ export class Wallet {
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
   // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
   async depositConfirm(shared_key_id: string): Promise<StateCoin> {
-    log.info("Depositing Backup Confirm shared_key_id: " + shared_key_id);
+    //log.info("Depositing Backup Confirm shared_key_id: " + shared_key_id);
 
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin === undefined)
@@ -1832,6 +1839,7 @@ export class Wallet {
   }
 
   handleSwapError(e: any, statecoin: StateCoin) {
+    /*
     log.info(
       `Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e} `
     );
@@ -1842,9 +1850,10 @@ export class Wallet {
       `${e} `.includes("Transfer batch ended. Timeout") ||
       `${e} `.includes("Exiting swap.")
     ) {
+      /*
       log.info(
         `Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`
-      );
+      );*/
       statecoin.setSwapDataToNull();
     }
   }
@@ -1983,9 +1992,10 @@ export class Wallet {
             if (statecoin && statecoin?.swap_status !== SWAP_STATUS.Phase4) {
               statecoin.setSwapDataToNull();
             } else {
+              /*
               log.info(
                 `resuming swap for statechain id: ${statecoin.statechain_id}`
-              );
+              );*/
               this.resume_swap(statecoin);
             }
           }
@@ -2007,7 +2017,7 @@ export class Wallet {
   ): Promise<Array<TransferMsg3>> {
     let transferMsgArr: TransferMsg3[] = [];
 
-    log.info("Transfer Sender for " + shared_key_ids);
+    //log.info("Transfer Sender for " + shared_key_ids);
 
     for (var i = 0; i < shared_key_ids.length; i++) {
       await mutex.runExclusive(async () => {
@@ -2073,7 +2083,7 @@ export class Wallet {
 
         await transferUpdateMsg(this.http_client, transfer_sender, false);
 
-        log.info("Transfer Sender complete.");
+        //log.info("Transfer Sender complete.");
         await this.saveStateCoinsList();
       });
     }
@@ -2094,7 +2104,7 @@ export class Wallet {
         throw new Error("Transfer completed.");
     }
 
-    log.info("Transfer Receiver for statechain " + transfer_msg3.statechain_id);
+    //log.info("Transfer Receiver for statechain " + transfer_msg3.statechain_id);
     let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
 
     // Get SE address that funds are being sent to.
@@ -2128,7 +2138,7 @@ export class Wallet {
   async transfer_receiver_finalize(
     finalize_data: TransferFinalizeData
   ): Promise<StateCoin> {
-    log.info("Transfer Finalize for: " + finalize_data.new_shared_key_id);
+    //log.info("Transfer Finalize for: " + finalize_data.new_shared_key_id);
     let statecoin_finalized = await transferReceiverFinalize(
       this.http_client,
       await this.getWasm(),
@@ -2147,9 +2157,9 @@ export class Wallet {
     if (this.statecoins.addCoin(statecoin_finalized)) {
       this.activity.addItem(statecoin_finalized.shared_key_id, ACTION.RECEIVED);
       await this.saveStateCoinsList();
-      log.info("Transfer Finalize complete.");
+      //log.info("Transfer Finalize complete.");
     } else {
-      log.info("Transfer finalize error: replica coin");
+      //log.info("Transfer finalize error: replica coin");
     }
     return statecoin_finalized;
   }
@@ -2157,7 +2167,7 @@ export class Wallet {
   // Query server for any pending transfer messages for the sepcified address index
   // Check for unused proof keys
   async get_transfers(addr_index: number, numReceive: number): Promise<string> {
-    log.info("Retrieving transfer messages");
+    //log.info("Retrieving transfer messages");
     let error_message = "";
     let transfer_data;
     let num_transfers = 0;
@@ -2265,7 +2275,7 @@ export class Wallet {
     rec_addr: string,
     fee_per_byte: number
   ): Promise<string> {
-    log.info("Withdrawing " + shared_key_ids + " to " + rec_addr);
+    //log.info("Withdrawing " + shared_key_ids + " to " + rec_addr);
 
     // Check address format
     try {
@@ -2339,21 +2349,22 @@ export class Wallet {
         } catch (error) {
           nTries = nTries + 1;
           if (nTries < maxNTries) {
+            /*
             log.info(
               `Transaction broadcast failed with error: ${error}. Retry: ${nTries}`
-            );
+            );*/
             await new Promise((resolve) => setTimeout(resolve, 1000));
             continue;
           } else {
             let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. Raw Tx: ${tx_withdraw_d.toHex()}`;
-            log.info(errMsg);
+            //log.info(errMsg);
             throw new Error(errMsg);
           }
         }
         break;
       }
       this.setStateCoinSpent(shared_key_ids[0], ACTION.WITHDRAW);
-      log.info("Withdraw duplicate finished.");
+      //log.info("Withdraw duplicate finished.");
       return withdraw_txid;
     }
 
@@ -2447,27 +2458,29 @@ export class Wallet {
       } catch (error) {
         nTries = nTries + 1;
         if (nTries < maxNTries) {
+          /*
           log.info(
             `Transaction broadcast failed with error: ${error}. Retry: ${nTries}`
-          );
+          );*/
           await new Promise((resolve) => setTimeout(resolve, 1000));
           continue;
         } else {
           let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`;
-          log.info(errMsg);
+          //log.info(errMsg);
           throw new Error(errMsg);
         }
       }
       break;
     }
-    log.info("Withdraw init finished.");
+    //log.info("Withdraw init finished.");
     return withdraw_txid;
   }
 
   async withdraw_confirm(withdraw_msg_2: WithdrawMsg2, txid: string) {
+    /*
     log.info(
       ` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`
-    );
+    );*/
     try {
       withdraw_msg_2.shared_key_ids.forEach(async (shared_key_id) => {
         this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
