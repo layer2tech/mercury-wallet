@@ -12,6 +12,7 @@ module.exports = function override(config, env) {
   config.resolve.fallback = {
     ...config.resolve.fallback,
     url: require.resolve("url"),
+    tls: false,
     crypto: require.resolve("crypto-browserify"),
     http: require.resolve("stream-http"),
     https: require.resolve("https-browserify"),
