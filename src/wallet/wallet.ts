@@ -305,13 +305,14 @@ export class Wallet {
     http_client: any = undefined,
     wasm: any = undefined
   ): Wallet {
+    /*
     log.debug(
       "New wallet named " +
         name +
         " created. Testing mode: " +
         testing_mode +
         "."
-    );
+    );*/
     let wallet = new Wallet(
       name,
       password,
@@ -705,7 +706,7 @@ export class Wallet {
           }
         })
         .catch((err) => {
-          console.error("Error InitElectrumClient: ", err);
+          //console.error("Error InitElectrumClient: ", err);
         });
     });
   }
@@ -1292,9 +1293,9 @@ export class Wallet {
   addStatecoin(statecoin: StateCoin, action: string) {
     if (this.statecoins.addCoin(statecoin)) {
       this.activity.addItem(statecoin.shared_key_id, action);
-      log.debug("Added Statecoin: " + statecoin.shared_key_id);
+      //log.debug("Added Statecoin: " + statecoin.shared_key_id);
     } else {
-      log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
+      //log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
     }
   }
 
@@ -1316,9 +1317,9 @@ export class Wallet {
     statecoin.setConfirmed();
     if (this.statecoins.addCoin(statecoin)) {
       this.activity.addItem(id, action);
-      log.debug("Added Statecoin: " + statecoin.shared_key_id);
+      //log.debug("Added Statecoin: " + statecoin.shared_key_id);
     } else {
-      log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
+      //log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
     }
   }
   async removeStatecoin(shared_key_id: string) {
@@ -1367,7 +1368,7 @@ export class Wallet {
     ) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
-      log.debug("Set Statecoin spent: " + id);
+      //log.debug("Set Statecoin spent: " + id);
     }
     if (bSave) {
       await this.saveStateCoinsList();
@@ -1382,7 +1383,7 @@ export class Wallet {
   async genBtcAddress(): Promise<string> {
     let addr = this.account.nextChainAddress(0);
     await this.saveKeys();
-    log.debug("Gen BTC address: " + addr);
+    //log.debug("Gen BTC address: " + addr);
     return addr;
   }
 
@@ -1396,12 +1397,13 @@ export class Wallet {
     let addr = this.account.nextChainAddress(0);
     await this.saveKeys();
     let proof_key = this.getBIP32forBtcAddress(addr);
+    /*
     log.debug(
       "Gen proof key. Address: " +
         addr +
         ". Proof key: " +
         proof_key.publicKey.toString("hex")
-    );
+    );*/
     return proof_key;
   }
   getBIP32forProofKeyPubKey(proof_key: string): BIP32Interface {
