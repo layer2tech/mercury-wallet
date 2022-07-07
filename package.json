@@ -151,7 +151,11 @@
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "stream": "npm:stream-browserify",
-    "stream-browserify": "^3.0.0"
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.0",
+    "assert": "^2.0.0",
+    "buffer": "^6.0.3"
   },
   "browserslist": {
     "production": [
@@ -226,10 +230,8 @@
       }
     ]
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+  "resolutions": {
+    "**/@typescript-eslint/eslint-plugin": "^5.15.0",
+    "**/@typescript-eslint/parser": "^5.15.0"
   }
 }
