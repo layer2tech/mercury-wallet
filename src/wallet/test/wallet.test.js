@@ -439,7 +439,7 @@ describe("Wallet", function () {
     let addr_expected = "17ZTDRm8sfy4zcemX8F8nB5TJCvVD6JcJT";
 
     test("addr_p2pkh for bitcoin network", function () {
-      console.log(`p2pkh_addr_expected = ${addr_expected}`);
+      //console.log(`p2pkh_addr_expected = ${addr_expected}`);
       expect(
         bitcoin.payments.p2pkh({
           pubkey: publicKey,
@@ -450,7 +450,7 @@ describe("Wallet", function () {
 
     test("addr_p2pkh for undefined network", function () {
       expect(bitcoin.networks.bitcoin).not.toEqual(undefined);
-      console.log(`p2pkh_addr_expected = ${addr_expected}`);
+      //console.log(`p2pkh_addr_expected = ${addr_expected}`);
       expect(
         bitcoin.payments.p2pkh({
           pubkey: publicKey,
@@ -651,7 +651,7 @@ describe("Wallet", function () {
       let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
       let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME);
       let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
-      console.log(`json wallet: ${JSON.stringify(json_wallet)}`);
+      //console.log(`json wallet: ${JSON.stringify(json_wallet)}`);
       let mnemonic = decryptAES(json_wallet.mnemonic, MOCK_WALLET_PASSWORD);
       expect(mnemonic).toEqual(MOCK_WALLET_MNEMONIC);
     });
@@ -1193,7 +1193,7 @@ describe("broadcastCPFP", function () {
       "../mocks/mock_electrum.ts"
     );
     statecoin = wallet.statecoins.coins[0];
-    console.log(`statecoin: ${statecoin}`);
+    //console.log(`statecoin: ${statecoin}`);
     statecoin.backup_status = BACKUP_STATUS.UNBROADCAST;
     statecoin.status = STATECOIN_STATUS.AVAILABLE;
     statecoin.tx_cpfp = statecoin.tx_backup;
@@ -1880,7 +1880,7 @@ describe("ActivityLog", function () {
     test("getActivityLogItems returns all activity log items", () => {
       wallet.activity = cloneDeep(alog);
       expect(wallet.activity).toEqual(alog);
-      console.log(JSON.stringify(alog));
+      //console.log(JSON.stringify(alog));
       let result = wallet.getActivityLogItems(alog.length);
       expect(result.length).toEqual(alog.items.length);
     });
@@ -1888,7 +1888,7 @@ describe("ActivityLog", function () {
     test("getActivityLogItems(5) returns 5 activity log items", () => {
       wallet.activity = cloneDeep(alog);
       expect(wallet.activity).toEqual(alog);
-      console.log(JSON.stringify(alog));
+      //console.log(JSON.stringify(alog));
       let result = wallet.getActivityLogItems(5);
       expect(result.length).toEqual(5);
     });
