@@ -4,11 +4,14 @@ import TestComponent, { render } from './test-utils';
 import { fireEvent, screen } from '@testing-library/dom';
 import SwapStatus from '../../components/coins/SwapStatus/SwapStatus'
 import { coinSort } from '../../components/coins/CoinsList'
+import { configureStore } from '@reduxjs/toolkit';
 import { makeDummyStatecoins } from './test_data.js'
 
 let cloneDeep = require('lodash.clonedeep');
 
 describe('SwapStatus', function () {
+    let store = configureStore({ reducer: reducers, })
+    
     test('Error Messaging', function () {
         render(store,
             <SwapStatus
