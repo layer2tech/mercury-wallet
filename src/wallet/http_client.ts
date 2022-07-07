@@ -86,9 +86,6 @@ export class HttpClient {
       timeout: timeout_ms,
     };
     await semaphore.wait();
-    console.error(url);
-    console.error(config);
-
     return axios(config)
       .catch((err: any) => {
         handlePromiseRejection(err, "Mercury API request timed out");
@@ -115,9 +112,6 @@ export class HttpClient {
       data: body,
     };
     await semaphore.wait();
-    console.error(url);
-    console.error(config);
-
     return axios(config)
       .catch((err: any) => {
         handlePromiseRejection(err, "Mercury API request timed out");
