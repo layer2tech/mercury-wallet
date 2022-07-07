@@ -21,4 +21,4 @@ jobs:
           if [ $MERCURY_WALLET_TESTING_MODE != false ]; then exit 1; fi
       - run: sed -i -e 's/false/true/g' src/settings.json
       - run: yarn install
-      - run: yarn test
+      - run: yarn test:ci --verbose --maxWorkers=2

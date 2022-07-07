@@ -1,4 +1,5 @@
 //const axios = require('axios').default;
+console.log("http_client.test.js");
 import axios from "axios";
 import { HttpClient, TIMEOUT, semaphore } from "../http_client";
 import { handlePromiseRejection, checkForServerError } from "../error";

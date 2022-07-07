@@ -1,3 +1,4 @@
+console.log("main.test.js");
 const wtf = require("wtfnode");
 const whyRunNodelog = require("why-is-node-running"); // should be your first require
 
