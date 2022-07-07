@@ -305,20 +305,24 @@ describe("Swap phase 4", function () {
       return new Error("Misc server error");
     };
 
-    http_mock.post = jest.fn();
-    http_mock.post.mockImplementation((path, body) => {
-      if (path === POST_ROUTE.SWAP_POLL_SWAP) {
-        throw server_error();
-      }
-      return transferReceiverPost(path, body);
-    });
+    http_mock.post = jest
+      .fn()
+      .mockReset()
+      .mockImplementation((path, body) => {
+        if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+          throw server_error();
+        }
+        return transferReceiverPost(path, body);
+      });
 
     let statecoin = get_statecoin_in();
 
-    http_mock.get = jest.fn();
-    http_mock.get.mockImplementation((path, params) => {
-      return transferReceiverGet(path, params, statecoin);
-    });
+    http_mock.get = jest
+      .fn()
+      .mockReset()
+      .mockImplementation((path, params) => {
+        return transferReceiverGet(path, params, statecoin);
+      });
 
     let EXPECTED_STATECOIN = get_statecoin_after_transfer_receiver(statecoin);
 
