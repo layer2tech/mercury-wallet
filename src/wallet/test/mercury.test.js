@@ -49,9 +49,9 @@ let cloneDeep = require("lodash.clonedeep");
 const BJSON = require("buffer-json");
 
 // client side's mock
-let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
+let wasm_mock = jest.createMockFromModule("../mocks/mock_wasm");
 // server side's mock
-let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
+let http_mock = jest.createMockFromModule("../mocks/mock_http_client");
 // electrum mock
 let electrum_mock = new MockElectrumClient();
 

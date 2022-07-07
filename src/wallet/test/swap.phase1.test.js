@@ -14,9 +14,9 @@ let walletName = `${MOCK_WALLET_NAME}_swap_phase1_tests`;
 
 let bitcoin = require("bitcoinjs-lib");
 // client side's mock
-let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
+let wasm_mock = jest.createMockFromModule("../mocks/mock_wasm");
 // server side's mock
-let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
+let http_mock = jest.createMockFromModule("../mocks/mock_http_client");
 
 async function swapPhase1(swap) {
   swap.setSwapSteps(swapPhase1Steps(swap));

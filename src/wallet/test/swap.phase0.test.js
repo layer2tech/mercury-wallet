@@ -16,9 +16,9 @@ let cloneDeep = require("lodash.clonedeep");
 let walletName = `${MOCK_WALLET_NAME}_swap_phase0_tests`;
 
 // client side's mock
-let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
+let wasm_mock = jest.createMockFromModule("../mocks/mock_wasm");
 // server side's mock
-let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
+let http_mock = jest.createMockFromModule("../mocks/mock_http_client");
 
 async function getWallet() {
   let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);

@@ -19,9 +19,9 @@ let cloneDeep = require("lodash.clonedeep");
 let bitcoin = require("bitcoinjs-lib");
 
 // client side's mock
-let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
+let wasm_mock = jest.createMockFromModule("../mocks/mock_wasm");
 // server side's mock
-let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
+let http_mock = jest.createMockFromModule("../mocks/mock_http_client");
 
 //Set a valid initial statecoin status for phase2
 function init_phase2_status(statecoin) {

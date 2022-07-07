@@ -24,11 +24,11 @@ let mock_http_client = require("../mocks/mock_http_client");
 let mock_wasm = require("../mocks/mock_wasm");
 
 // client side's mock
-let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
+let wasm_mock = jest.createMockFromModule("../mocks/mock_wasm");
 // server side's mock
-let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
+let http_mock = jest.createMockFromModule("../mocks/mock_http_client");
 //electrum mock
-let electrum_mock = jest.genMockFromModule("../mocks/mock_electrum.ts");
+let electrum_mock = jest.createMockFromModule("../mocks/mock_electrum.ts");
 
 const post_error = (path, body) => {
   return new Error(`Error from POST request - path: ${path}, body: ${body}`);

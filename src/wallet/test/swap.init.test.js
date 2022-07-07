@@ -31,9 +31,9 @@ let bitcoin = require("bitcoinjs-lib");
 let test_data = require("./test_data.js");
 
 // client side's mock
-let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
+let wasm_mock = jest.createMockFromModule("../mocks/mock_wasm");
 // server side's mock
-let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
+let http_mock = jest.createMockFromModule("../mocks/mock_http_client");
 
 const post_error = (path, body) => {
   return new Error(`Error from POST request - path: ${path}, body: ${body}`);
