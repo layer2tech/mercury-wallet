@@ -59,8 +59,8 @@ const init_phase3_status = (statecoin) => {
   statecoin.swap_receiver_addr = SWAP_SECOND_SCE_ADDRESS;
 };
 
-const jsdomAlert = window.alert;
-window.alert = () => {};
+//const jsdomAlert = window.alert;
+//window.alert = () => {};
 const proof_key_der = bitcoin.ECPair.fromPrivateKey(
   Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)
 );
@@ -701,5 +701,5 @@ describe("swapPhase3", () => {
   });
 
   // restore windows alert
-  window.alert = jsdomAlert;
+  //window.alert = jsdomAlert;
 });
