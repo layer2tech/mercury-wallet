@@ -305,14 +305,13 @@ export class Wallet {
     http_client: any = undefined,
     wasm: any = undefined
   ): Wallet {
-    /*
     log.debug(
       "New wallet named " +
         name +
         " created. Testing mode: " +
         testing_mode +
         "."
-    );*/
+    );
     let wallet = new Wallet(
       name,
       password,
@@ -549,7 +548,7 @@ export class Wallet {
         "Found " + recoveredCoins.length + " StateCoins. Saving to wallet."
       );*/
       await this.saveKeys();
-      //console.log(`recoveredCoins: ${JSON.stringify(recoveredCoins)}`)
+      //console.log(`recoveredCoins: ${JSON.stringify(recoveredCoins)}`);
       await addRestoredCoinDataToWallet(
         this,
         await this.getWasm(),
@@ -1293,9 +1292,9 @@ export class Wallet {
   addStatecoin(statecoin: StateCoin, action: string) {
     if (this.statecoins.addCoin(statecoin)) {
       this.activity.addItem(statecoin.shared_key_id, action);
-      //log.debug("Added Statecoin: " + statecoin.shared_key_id);
+      log.debug("Added Statecoin: " + statecoin.shared_key_id);
     } else {
-      //log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
+      log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
     }
   }
 
@@ -1317,9 +1316,9 @@ export class Wallet {
     statecoin.setConfirmed();
     if (this.statecoins.addCoin(statecoin)) {
       this.activity.addItem(id, action);
-      //log.debug("Added Statecoin: " + statecoin.shared_key_id);
+      log.debug("Added Statecoin: " + statecoin.shared_key_id);
     } else {
-      //log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
+      log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
     }
   }
   async removeStatecoin(shared_key_id: string) {
@@ -1368,7 +1367,7 @@ export class Wallet {
     ) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
-      //log.debug("Set Statecoin spent: " + id);
+      log.debug("Set Statecoin spent: " + id);
     }
     if (bSave) {
       await this.saveStateCoinsList();
@@ -1383,7 +1382,7 @@ export class Wallet {
   async genBtcAddress(): Promise<string> {
     let addr = this.account.nextChainAddress(0);
     await this.saveKeys();
-    //log.debug("Gen BTC address: " + addr);
+    log.debug("Gen BTC address: " + addr);
     return addr;
   }
 
@@ -1397,13 +1396,12 @@ export class Wallet {
     let addr = this.account.nextChainAddress(0);
     await this.saveKeys();
     let proof_key = this.getBIP32forBtcAddress(addr);
-    /*
     log.debug(
       "Gen proof key. Address: " +
         addr +
         ". Proof key: " +
         proof_key.publicKey.toString("hex")
-    );*/
+    );
     return proof_key;
   }
   getBIP32forProofKeyPubKey(proof_key: string): BIP32Interface {
@@ -1487,6 +1485,7 @@ export class Wallet {
         for (let i = 0; i < funding_tx_data.length; i++) {
           // Verify amount of tx. Ignore if mock electrum
           if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
+            /*
             log.error(
               "Funding tx for p_addr " +
                 p_addr +
@@ -1498,7 +1497,7 @@ export class Wallet {
             );
             log.error(
               "Setting value of statecoin to " + funding_tx_data[i].value
-            );
+            );*/
             let statecoin = this.statecoins.getCoin(shared_key_id);
             statecoin!.value = funding_tx_data[i].value;
           }
@@ -1650,7 +1649,7 @@ export class Wallet {
         return true;
       }
     } catch (err: any) {
-      //log.error(err);
+      log.error(err);
     }
     return false;
   }
@@ -1701,7 +1700,7 @@ export class Wallet {
     //Confirm BTC sent to address in ActivityLog
     this.activity.addItem(shared_key_id, ACTION.DEPOSIT);
 
-    log.info("Deposit Backup done.");
+    //log.info("Deposit Backup done.");
     await this.saveStateCoinsList();
 
     return statecoin_finalized;
@@ -1797,7 +1796,7 @@ export class Wallet {
     statecoin: StateCoin,
     resume: boolean = true
   ): Promise<StateCoin | null> {
-    log.info("Swapping coin: " + statecoin.shared_key_id);
+    //log.info("Swapping coin: " + statecoin.shared_key_id);
 
     let proof_key = statecoin?.proof_key;
     if (proof_key === undefined || proof_key === null) {
@@ -1842,7 +1841,7 @@ export class Wallet {
     /*
     log.info(
       `Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e} `
-    );
+    );*/
     // Do not delete swap data for statecoins with transfer
     // completed server side
     if (
@@ -2177,7 +2176,7 @@ export class Wallet {
     let transfer_msgs = [];
 
     const MAX_RETRIES = 10;
-    //console.log('numRecieve: ', numReceive)
+    //console.log("numRecieve: ", numReceive);
 
     for (var i = 0; i < numReceive; i++) {
       if (numReceive === 1) {
@@ -2375,7 +2374,9 @@ export class Wallet {
     if (broadcastTxInfos.length > 0) {
       fee_max = statecoin.getWithdrawalMaxTxFee();
       const fee = getTxFee(fee_per_byte, broadcastTxInfos[0].tx.ins.length);
-      //console.log(`Withdrawal transaction fee: ${fee}, fee per byte: ${fee_per_byte}, fee_max: ${fee_max}`)
+      //console.log(
+        `Withdrawal transaction fee: ${fee}, fee per byte: ${fee_per_byte}, fee_max: ${fee_max}`
+      );
       if (fee_max > 0) {
         if (fee_max >= fee)
           throw Error(
