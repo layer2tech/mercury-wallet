@@ -4,40 +4,56 @@ import { Network, Transaction } from "bitcoinjs-lib";
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { ACTION } from ".";
 import { ElectrumTxData } from "../wallet/electrum";
-import { MasterKey2 } from "./mercury/ecdsa"
+import { MasterKey2 } from "./mercury/ecdsa";
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
-import { BatchData, BSTRequestorData, SwapErrorMsg, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap_utils";
-import { SCEAddress, TransferFinalizeData, TransferMsg3, TransferMsg4 } from "./mercury/transfer";
-import { WithdrawMsg2 } from "./mercury/withdraw"
+import {
+  BatchData,
+  BSTRequestorData,
+  SwapErrorMsg,
+  SwapID,
+  SwapInfo,
+  SWAP_STATUS,
+} from "./swap/swap_utils";
+import {
+  SCEAddress,
+  TransferFinalizeData,
+  TransferMsg3,
+  TransferMsg4,
+} from "./mercury/transfer";
+import { WithdrawMsg2 } from "./mercury/withdraw";
 
 // Logger import.
 // Node friendly importing required for Jest tests.
 declare const window: any;
 let log: any;
 try {
-  log = window.require('electron-log');
-} catch (e : any) {
-  log = require('electron-log');
+  log = window.require("electron-log");
+} catch (e: any) {
+  log = require("electron-log");
 }
 
-export const HIDDEN = "*****"
+export const HIDDEN = "*****";
 
 export class StateCoinList {
-  coins: StateCoin[]
+  coins: StateCoin[];
 
   constructor() {
     this.coins = [];
   }
 
   static fromJSON(coins_json: StateCoinList): StateCoinList {
-    let statecoins = new StateCoinList()
+    let statecoins = new StateCoinList();
     coins_json.coins.forEach((item: StateCoin) => {
       let coin = new StateCoin(item.shared_key_id, item.shared_key);
       coin.wallet_version = "";
 
       let replca = false;
       statecoins.coins.filter((existing_coin: StateCoin) => {
-        if (item.shared_key_id === existing_coin.shared_key_id && item.status === STATECOIN_STATUS.AVAILABLE && existing_coin.status === STATECOIN_STATUS.AVAILABLE) {
+        if (
+          item.shared_key_id === existing_coin.shared_key_id &&
+          item.status === STATECOIN_STATUS.AVAILABLE &&
+          existing_coin.status === STATECOIN_STATUS.AVAILABLE
+        ) {
           replca = true;
         }
       });
@@ -49,14 +65,27 @@ export class StateCoinList {
         tx_backup.version = tx_backup_any.version;
         tx_backup.locktime = tx_backup_any.locktime;
         if (tx_backup_any.ins.length > 0) {
-          tx_backup.addInput(Buffer.from(tx_backup_any.ins[0].hash), tx_backup_any.ins[0].index, tx_backup_any.ins[0].sequence)
+          tx_backup.addInput(
+            Buffer.from(tx_backup_any.ins[0].hash),
+            tx_backup_any.ins[0].index,
+            tx_backup_any.ins[0].sequence
+          );
           if (tx_backup_any.ins[0].witness.length > 0) {
-            tx_backup.ins[0].witness = [Buffer.from(tx_backup_any.ins[0].witness[0]), Buffer.from(tx_backup_any.ins[0].witness[1])];
+            tx_backup.ins[0].witness = [
+              Buffer.from(tx_backup_any.ins[0].witness[0]),
+              Buffer.from(tx_backup_any.ins[0].witness[1]),
+            ];
           }
         }
         if (tx_backup_any.outs.length > 0) {
-          tx_backup.addOutput(Buffer.from(tx_backup_any.outs[0].script), tx_backup_any.outs[0].value)
-          tx_backup.addOutput(Buffer.from(tx_backup_any.outs[1].script), tx_backup_any.outs[1].value)
+          tx_backup.addOutput(
+            Buffer.from(tx_backup_any.outs[0].script),
+            tx_backup_any.outs[0].value
+          );
+          tx_backup.addOutput(
+            Buffer.from(tx_backup_any.outs[1].script),
+            tx_backup_any.outs[1].value
+          );
         }
         item.tx_backup = tx_backup;
       }
@@ -68,39 +97,48 @@ export class StateCoinList {
         tx_cpfp.version = tx_cpfp_any.version;
         tx_cpfp.locktime = tx_cpfp_any.locktime;
         if (tx_cpfp_any.ins.length > 0) {
-          tx_cpfp.addInput(Buffer.from(tx_cpfp_any.ins[0].hash), tx_cpfp_any.ins[0].index, tx_cpfp_any.ins[0].sequence)
+          tx_cpfp.addInput(
+            Buffer.from(tx_cpfp_any.ins[0].hash),
+            tx_cpfp_any.ins[0].index,
+            tx_cpfp_any.ins[0].sequence
+          );
           if (tx_cpfp_any.ins[0].witness.length > 0) {
-            tx_cpfp.ins[0].witness = [Buffer.from(tx_cpfp_any.ins[0].witness[0]), Buffer.from(tx_cpfp_any.ins[0].witness[1])];
+            tx_cpfp.ins[0].witness = [
+              Buffer.from(tx_cpfp_any.ins[0].witness[0]),
+              Buffer.from(tx_cpfp_any.ins[0].witness[1]),
+            ];
           }
         }
         if (tx_cpfp_any.outs.length > 0) {
-          tx_cpfp.addOutput(Buffer.from(tx_cpfp_any.outs[0].script), tx_cpfp_any.outs[0].value)
+          tx_cpfp.addOutput(
+            Buffer.from(tx_cpfp_any.outs[0].script),
+            tx_cpfp_any.outs[0].value
+          );
         }
         item.tx_cpfp = tx_cpfp;
       }
       if (!replca) statecoins.coins.push(Object.assign(coin, item));
-    })
-    return statecoins
+    });
+    return statecoins;
   }
 
   getAllCoins(block_height: number) {
     return this.coins.map((item: StateCoin) => {
-      return item.getDisplayInfo(block_height)
-    })
-  };
+      return item.getDisplayInfo(block_height);
+    });
+  }
 
   getStatechainIdSet(): Set<string> {
-    let result = new Set<string>()
+    let result = new Set<string>();
     this.coins.forEach((item: StateCoin) => {
-      result.add(item.statechain_id)
-    })
-    return result
+      result.add(item.statechain_id);
+    });
+    return result;
   }
 
   getUnspentCoins(block_height: number) {
-    let total = 0
+    let total = 0;
     let coins = this.coins.filter((item: StateCoin) => {
-
       if (
         item.status === STATECOIN_STATUS.AVAILABLE ||
         item.status === STATECOIN_STATUS.IN_SWAP ||
@@ -109,120 +147,136 @@ export class StateCoinList {
         item.status === STATECOIN_STATUS.WITHDRAWN ||
         item.status === STATECOIN_STATUS.WITHDRAWING ||
         item.status === STATECOIN_STATUS.SWAPLIMIT ||
-        item.status === STATECOIN_STATUS.EXPIRED || 
+        item.status === STATECOIN_STATUS.EXPIRED ||
         item.status === STATECOIN_STATUS.DUPLICATE
       ) {
-        // Add all but withdrawn or awaiting withdrawal coins to total balance 
-        if (item.status !== STATECOIN_STATUS.WITHDRAWN && item.status !== STATECOIN_STATUS.WITHDRAWING
-          && item.status !== STATECOIN_STATUS.IN_TRANSFER && item.status !== STATECOIN_STATUS.EXPIRED && item.status !== STATECOIN_STATUS.DUPLICATE) {
-          total += item.value
+        // Add all but withdrawn or awaiting withdrawal coins to total balance
+        if (
+          item.status !== STATECOIN_STATUS.WITHDRAWN &&
+          item.status !== STATECOIN_STATUS.WITHDRAWING &&
+          item.status !== STATECOIN_STATUS.IN_TRANSFER &&
+          item.status !== STATECOIN_STATUS.EXPIRED &&
+          item.status !== STATECOIN_STATUS.DUPLICATE
+        ) {
+          total += item.value;
         }
-        return item
+        return item;
       }
-      return null
-    })
-    return [coins.map((item: StateCoin) => item.getDisplayInfo(block_height)), total]
-  };
+      return null;
+    });
+    return [
+      coins.map((item: StateCoin) => item.getDisplayInfo(block_height)),
+      total,
+    ];
+  }
 
   // Return coins that are awaiting funding tx to be broadcast
   getInitialisedCoins() {
     return this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.INITIALISED) {
-        return item
+        return item;
       }
-      return null
-    })
-  };
+      return null;
+    });
+  }
 
   // Return coins that are awaiting funding tx confirmations
   getInMempoolCoins() {
     return this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.IN_MEMPOOL) {
-        return item
+        return item;
       }
-      return null
-    })
-  };
+      return null;
+    });
+  }
 
   // Find all coins in mempool or mined but with required_confirmations confirmations
   getUnconfirmedCoins() {
-
     return this.coins.filter((item: StateCoin) => {
-
-      if (item.status === STATECOIN_STATUS.UNCONFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.INITIALISED) {
-        return item
+      if (
+        item.status === STATECOIN_STATUS.UNCONFIRMED ||
+        item.status === STATECOIN_STATUS.IN_MEMPOOL ||
+        item.status === STATECOIN_STATUS.INITIALISED
+      ) {
+        return item;
       }
-      return null
-    })
-  };
+      return null;
+    });
+  }
 
   getWithdrawingCoins() {
     return this.coins.filter((item: StateCoin) => {
       if (item.status === STATECOIN_STATUS.WITHDRAWING) {
-        return item
+        return item;
       }
-      return null
-    })
-  };
+      return null;
+    });
+  }
 
   getCoin(shared_key_id: string): StateCoin | undefined {
     // return first available coin, if no then first matching coin
-    let coin_arr = this.coins.filter(coin => coin.shared_key_id === shared_key_id);
+    let coin_arr = this.coins.filter(
+      (coin) => coin.shared_key_id === shared_key_id
+    );
     if (coin_arr.length > 0) {
-      let avail_coin = coin_arr.find(coin => coin.status === STATECOIN_STATUS.AVAILABLE);
+      let avail_coin = coin_arr.find(
+        (coin) => coin.status === STATECOIN_STATUS.AVAILABLE
+      );
       if (avail_coin) {
-        return avail_coin
+        return avail_coin;
       } else {
-        return coin_arr[0]
+        return coin_arr[0];
       }
     } else {
-      return undefined
+      return undefined;
     }
   }
 
   getCoins(statechain_id: string) {
     return this.coins.filter((item: StateCoin) => {
       if (item.statechain_id === statechain_id) {
-        return item
+        return item;
       }
-      return null
-    })
+      return null;
+    });
   }
 
   // creates new coin with Date.now()
   addNewCoin(shared_key_id: string, shared_key: MasterKey2) {
     let existing_coin = this.getCoin(shared_key_id);
     if (existing_coin) {
-      console.log('Repeated coin - shared_key_id: ' + shared_key_id);
+      //console.log('Repeated coin - shared_key_id: ' + shared_key_id);
       existing_coin.status = STATECOIN_STATUS.IN_TRANSFER;
     }
     this.coins.push(new StateCoin(shared_key_id, shared_key));
     return true;
-  };
+  }
 
   // Add already constructed statecoin
   addCoin(statecoin: StateCoin) {
     let existing_coin = this.getCoin(statecoin.shared_key_id);
     if (existing_coin) {
-      console.log('Repeated coin - shared_key_id: ' + statecoin.shared_key_id);
+      //console.log('Repeated coin - shared_key_id: ' + statecoin.shared_key_id);
       existing_coin.status = STATECOIN_STATUS.IN_TRANSFER;
     }
     this.coins.push(statecoin);
     return true;
-  };
+  }
 
   // Remove coin from list
   removeCoin(shared_key_id: string, testing_mode: boolean) {
-    this.coins = this.coins.filter(item => {
+    this.coins = this.coins.filter((item) => {
       if (item.shared_key_id !== shared_key_id) {
         return item;
       }
       if (item.status !== STATECOIN_STATUS.INITIALISED && !testing_mode) {
-        throw Error("Should not remove coin whose funding transaction has been broadcast.")
+        throw Error(
+          "Should not remove coin whose funding transaction has been broadcast."
+        );
       }
       return null;
     });
-  };
+  }
 
   setAutoSwap(shared_key_id: string) {
     let coin = this.getCoin(shared_key_id);
@@ -231,9 +285,12 @@ export class StateCoinList {
     }
   }
 
-
-  setCoinSpent(shared_key_id: string, action: string, transfer_msg?: TransferMsg3) {
-    let coin = this.getCoin(shared_key_id)
+  setCoinSpent(
+    shared_key_id: string,
+    action: string,
+    transfer_msg?: TransferMsg3
+  ) {
+    let coin = this.getCoin(shared_key_id);
     if (coin) {
       switch (action) {
         case ACTION.WITHDRAW:
@@ -257,33 +314,34 @@ export class StateCoinList {
   // Funding Tx seen on network. Set coin status and funding_txid
   // Return true if the function call resulted in a change to the coin
   setCoinInMempool(shared_key_id: string, funding_tx_data: ElectrumTxData) {
-    let changed = false
-    let coin = this.getCoin(shared_key_id)
+    let changed = false;
+    let coin = this.getCoin(shared_key_id);
     if (coin) {
-      changed = changed || coin.setInMempool()
+      changed = changed || coin.setInMempool();
       if (coin.funding_txid !== funding_tx_data.tx_hash) {
-        coin.funding_txid = funding_tx_data.tx_hash
-        changed = true
+        coin.funding_txid = funding_tx_data.tx_hash;
+        changed = true;
       }
       if (coin.funding_vout !== funding_tx_data.tx_pos) {
-        coin.funding_vout = funding_tx_data.tx_pos  
-        changed = true
+        coin.funding_vout = funding_tx_data.tx_pos;
+        changed = true;
       }
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
-    return changed
+    return changed;
   }
 
   // Funding Tx mined. Set coin status and block height
   setCoinUnconfirmed(shared_key_id: string, funding_tx_data: ElectrumTxData) {
-    let coin = this.getCoin(shared_key_id)
+    let coin = this.getCoin(shared_key_id);
     if (coin) {
-      coin.setUnconfirmed()
-      coin.block = funding_tx_data.height
-      if (coin.funding_txid === "") { // May have missed setCoinInMempool call.
-        coin.funding_txid = funding_tx_data.tx_hash
-        coin.funding_vout = funding_tx_data.tx_pos
+      coin.setUnconfirmed();
+      coin.block = funding_tx_data.height;
+      if (coin.funding_txid === "") {
+        // May have missed setCoinInMempool call.
+        coin.funding_txid = funding_tx_data.tx_hash;
+        coin.funding_vout = funding_tx_data.tx_pos;
       }
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
@@ -300,25 +358,28 @@ export class StateCoinList {
   }
 
   setCoinFinalized(finalized_statecoin: StateCoin) {
-    let statecoin = this.getCoin(finalized_statecoin.shared_key_id)
+    let statecoin = this.getCoin(finalized_statecoin.shared_key_id);
     // TODO: do some checks here
     if (statecoin) {
-      statecoin = finalized_statecoin
+      statecoin = finalized_statecoin;
     } else {
-      throw Error("No coin found with shared_key_id " + finalized_statecoin.shared_key_id);
+      throw Error(
+        "No coin found with shared_key_id " + finalized_statecoin.shared_key_id
+      );
     }
   }
 
   setCoinWithdrawTxId(shared_key_id: string, withdraw_txid: string) {
-    let coin = this.getCoin(shared_key_id)
+    let coin = this.getCoin(shared_key_id);
     if (coin) {
-      let tx_info: WithdrawalTxBroadcastInfo = coin.getWithdrawalBroadcastTxInfo(withdraw_txid)
-      let tx: BTCTransaction = tx_info.tx
-      if(tx_info) {  
-        coin.tx_withdraw = tx
-        coin.tx_hex = tx_info.tx_hex
-        coin.status = STATECOIN_STATUS.WITHDRAWN
-        coin.withdraw_txid = withdraw_txid
+      let tx_info: WithdrawalTxBroadcastInfo =
+        coin.getWithdrawalBroadcastTxInfo(withdraw_txid);
+      let tx: BTCTransaction = tx_info.tx;
+      if (tx_info) {
+        coin.tx_withdraw = tx;
+        coin.tx_hex = tx_info.tx_hex;
+        coin.status = STATECOIN_STATUS.WITHDRAWN;
+        coin.withdraw_txid = withdraw_txid;
       } else {
         throw Error("No withdrawal broadcast found with id " + withdraw_txid);
       }
@@ -327,19 +388,25 @@ export class StateCoinList {
     }
   }
 
-  setCoinWithdrawBroadcastTx(shared_key_id: string, 
-      tx_withdraw: BTCTransaction, 
-      tx_fee: number,
-      withdraw_msg_2: WithdrawMsg2,
-      rec_addr: string  
+  setCoinWithdrawBroadcastTx(
+    shared_key_id: string,
+    tx_withdraw: BTCTransaction,
+    tx_fee: number,
+    withdraw_msg_2: WithdrawMsg2,
+    rec_addr: string
   ) {
-    console.log("getting coin...")
-    let coin = this.getCoin(shared_key_id)
+    //console.log("getting coin...")
+    let coin = this.getCoin(shared_key_id);
     if (coin) {
-      coin.tx_withdraw_broadcast.push(new WithdrawalTxBroadcastInfo(
-          tx_fee, tx_withdraw, withdraw_msg_2, rec_addr
-      ))
-      return
+      coin.tx_withdraw_broadcast.push(
+        new WithdrawalTxBroadcastInfo(
+          tx_fee,
+          tx_withdraw,
+          withdraw_msg_2,
+          rec_addr
+        )
+      );
+      return;
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
@@ -348,18 +415,22 @@ export class StateCoinList {
   removeCoinFromSwapPool(shared_key_id: string, force: boolean = false) {
     this.removeCoinFromSwapPoolUnchecked(
       this.checkRemoveCoinFromSwapPool(shared_key_id, force)
-    )
+    );
   }
 
   removeCoinFromSwapPoolUnchecked(coin: StateCoin) {
-    coin.setSwapDataToNull()
+    coin.setSwapDataToNull();
   }
 
-  checkRemoveCoinFromSwapPool(shared_key_id: string, force: boolean = false): StateCoin {
-    let coin = this.getCoin(shared_key_id)
+  checkRemoveCoinFromSwapPool(
+    shared_key_id: string,
+    force: boolean = false
+  ): StateCoin {
+    let coin = this.getCoin(shared_key_id);
     if (coin) {
-      if (coin.status !== STATECOIN_STATUS.AWAITING_SWAP) throw Error(`Coin is not in a swap pool.`);
-      return coin
+      if (coin.status !== STATECOIN_STATUS.AWAITING_SWAP)
+        throw Error(`Coin is not in a swap pool.`);
+      return coin;
     } else {
       throw Error("No coin found with shared_key_id " + shared_key_id);
     }
@@ -399,8 +470,8 @@ export enum STATECOIN_STATUS {
   // Coin has been deleted
   DELETED = "DELETED",
   // Duplicate deposit to single shared key
-  DUPLICATE = "DUPLICATE"
-};
+  DUPLICATE = "DUPLICATE",
+}
 Object.freeze(STATECOIN_STATUS);
 
 // BACKUP_STATUS represent each stage in the lifecycle of the backup.
@@ -418,24 +489,29 @@ export const BACKUP_STATUS = {
   // TAKEN backup transactions have failed to confirm in time and the output has been spent by a previous owner
   TAKEN: "Output taken",
   // SPENT backup transactions have been spent to a specified address
-  SPENT: "Spent"
+  SPENT: "Spent",
 };
 Object.freeze(BACKUP_STATUS);
 
 //A withdrawal transaction the has been broadcast
-export class WithdrawalTxBroadcastInfo{
-  tx_fee: number
+export class WithdrawalTxBroadcastInfo {
+  tx_fee: number;
   tx: BTCTransaction;
   txid: string;
   tx_hex: string;
   withdraw_msg_2: WithdrawMsg2;
   rec_addr: string;
 
-  constructor(tx_fee: number, tx: BTCTransaction, withdraw_msg_2: WithdrawMsg2, rec_addr: string) {
+  constructor(
+    tx_fee: number,
+    tx: BTCTransaction,
+    withdraw_msg_2: WithdrawMsg2,
+    rec_addr: string
+  ) {
     this.tx_fee = tx_fee;
     this.tx = tx;
     this.txid = tx.getId();
-    this.tx_hex = tx.toHex()
+    this.tx_hex = tx.toHex();
     this.withdraw_msg_2 = withdraw_msg_2;
     this.rec_addr = rec_addr;
   }
@@ -443,8 +519,8 @@ export class WithdrawalTxBroadcastInfo{
 
 // Each individual StateCoin
 export class StateCoin {
-  shared_key_id: string;    // SharedKeyId
-  statechain_id: string;   // StateChainId
+  shared_key_id: string; // SharedKeyId
+  statechain_id: string; // StateChainId
   shared_key: MasterKey2;
   wallet_version: string;
   proof_key: string;
@@ -453,7 +529,7 @@ export class StateCoin {
   funding_txid: string;
   funding_vout: number;
   sc_address: string; //StateCoin Address
-  block: number;  // included in block number. 0 for unconfirmed.
+  block: number; // included in block number. 0 for unconfirmed.
   timestamp: number;
   tx_backup: BTCTransaction | null;
   backup_status: string;
@@ -475,7 +551,7 @@ export class StateCoin {
   status: string;
 
   // Transfer data
-  transfer_msg: TransferMsg3 | null
+  transfer_msg: TransferMsg3 | null;
 
   // Swap data
   swap_status: string | null;
@@ -497,7 +573,7 @@ export class StateCoin {
     this.shared_key_id = shared_key_id;
     this.statechain_id = "";
     this.shared_key = shared_key;
-    this.wallet_version = require("../../package.json").version
+    this.wallet_version = require("../../package.json").version;
     this.proof_key = "";
     this.value = 0;
     this.description = "";
@@ -507,7 +583,7 @@ export class StateCoin {
     this.funding_vout = 0;
     this.sc_address = ""; //deposited StateCoin address
     this.block = -1; // marks tx has not been mined
-    this.swap_rounds = 0
+    this.swap_rounds = 0;
     this.anon_set = 0;
     this.is_new = false;
     this.is_deposited = false;
@@ -529,7 +605,7 @@ export class StateCoin {
 
     this.swap_status = null;
     this.ui_swap_status = null;
-    this.swap_id = null
+    this.swap_id = null;
     this.swap_address = null;
     this.swap_info = null;
     this.swap_my_bst_data = null;
@@ -543,67 +619,129 @@ export class StateCoin {
     this.swap_error = null;
   }
 
-  setAutoSwap(val: boolean) { this.swap_auto = val }
-  setSwapError(swap_error: SwapErrorMsg){this.swap_error = swap_error}
-  clearSwapError(){this.swap_error = null}
+  setAutoSwap(val: boolean) {
+    this.swap_auto = val;
+  }
+  setSwapError(swap_error: SwapErrorMsg) {
+    this.swap_error = swap_error;
+  }
+  clearSwapError() {
+    this.swap_error = null;
+  }
   setInMempool(): boolean {
     if (this.status !== STATECOIN_STATUS.IN_MEMPOOL) {
-      this.status = STATECOIN_STATUS.IN_MEMPOOL  
-      return true
+      this.status = STATECOIN_STATUS.IN_MEMPOOL;
+      return true;
     }
-    return false
+    return false;
   }
-  setUnconfirmed() { this.status = STATECOIN_STATUS.UNCONFIRMED }
-  setConfirmed() { this.status = STATECOIN_STATUS.AVAILABLE }
-  setAwaitingSwap() { this.status = STATECOIN_STATUS.AWAITING_SWAP }
-  setInSwap() { this.status = STATECOIN_STATUS.IN_SWAP }
-  setInTransfer() { this.status = STATECOIN_STATUS.IN_TRANSFER; }
-  setSpent() { this.status = STATECOIN_STATUS.SPENT; }
-  setWithdrawn() { this.status = STATECOIN_STATUS.WITHDRAWN; }
-  setWithdrawing() { this.status = STATECOIN_STATUS.WITHDRAWING; }
-  setSwapped() { this.status = STATECOIN_STATUS.SWAPPED; }
-  setSpendPending() { this.status = STATECOIN_STATUS.SPEND_PENDING; }
-  setExpired() { this.status = STATECOIN_STATUS.EXPIRED; }
-  setSwapLimit() { this.status = STATECOIN_STATUS.SWAPLIMIT; }
+  setUnconfirmed() {
+    this.status = STATECOIN_STATUS.UNCONFIRMED;
+  }
+  setConfirmed() {
+    this.status = STATECOIN_STATUS.AVAILABLE;
+  }
+  setAwaitingSwap() {
+    this.status = STATECOIN_STATUS.AWAITING_SWAP;
+  }
+  setInSwap() {
+    this.status = STATECOIN_STATUS.IN_SWAP;
+  }
+  setInTransfer() {
+    this.status = STATECOIN_STATUS.IN_TRANSFER;
+  }
+  setSpent() {
+    this.status = STATECOIN_STATUS.SPENT;
+  }
+  setWithdrawn() {
+    this.status = STATECOIN_STATUS.WITHDRAWN;
+  }
+  setWithdrawing() {
+    this.status = STATECOIN_STATUS.WITHDRAWING;
+  }
+  setSwapped() {
+    this.status = STATECOIN_STATUS.SWAPPED;
+  }
+  setSpendPending() {
+    this.status = STATECOIN_STATUS.SPEND_PENDING;
+  }
+  setExpired() {
+    this.status = STATECOIN_STATUS.EXPIRED;
+  }
+  setSwapLimit() {
+    this.status = STATECOIN_STATUS.SWAPLIMIT;
+  }
 
-  setBackupPreLocktime() { this.backup_status = BACKUP_STATUS.PRE_LOCKTIME }
-  setBackupUnbroadcast() { this.backup_status = BACKUP_STATUS.UNBROADCAST }
-  setBackupInMempool() { this.backup_status = BACKUP_STATUS.IN_MEMPOOL }
-  setBackupConfirmed() { this.backup_status = BACKUP_STATUS.CONFIRMED }
-  setBackupPostInterval() { this.backup_status = BACKUP_STATUS.POST_INTERVAL }
-  setBackupTaken() { this.backup_status = BACKUP_STATUS.TAKEN }
-  setBackupSpent() { this.backup_status = BACKUP_STATUS.SPENT }
+  setBackupPreLocktime() {
+    this.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
+  }
+  setBackupUnbroadcast() {
+    this.backup_status = BACKUP_STATUS.UNBROADCAST;
+  }
+  setBackupInMempool() {
+    this.backup_status = BACKUP_STATUS.IN_MEMPOOL;
+  }
+  setBackupConfirmed() {
+    this.backup_status = BACKUP_STATUS.CONFIRMED;
+  }
+  setBackupPostInterval() {
+    this.backup_status = BACKUP_STATUS.POST_INTERVAL;
+  }
+  setBackupTaken() {
+    this.backup_status = BACKUP_STATUS.TAKEN;
+  }
+  setBackupSpent() {
+    this.backup_status = BACKUP_STATUS.SPENT;
+  }
 
   getWithdrawalBroadcastTxInfo(id: string): WithdrawalTxBroadcastInfo {
-    let found =  this.tx_withdraw_broadcast.filter((item: WithdrawalTxBroadcastInfo) => {
-      if (item.txid === id) {
-        return item
+    let found = this.tx_withdraw_broadcast.filter(
+      (item: WithdrawalTxBroadcastInfo) => {
+        if (item.txid === id) {
+          return item;
+        }
+        return null;
       }
-      return null
-    });
-    return found[0]
+    );
+    return found[0];
   }
 
   getWithdrawalMaxTxFee(): number {
-    let fee_max = -1
-    for(let i=0; i<this.tx_withdraw_broadcast.length; i++){
-      let fee = this.tx_withdraw_broadcast[i].tx_fee
-      fee_max = (fee > fee_max) ? fee : fee_max
+    let fee_max = -1;
+    for (let i = 0; i < this.tx_withdraw_broadcast.length; i++) {
+      let fee = this.tx_withdraw_broadcast[i].tx_fee;
+      fee_max = fee > fee_max ? fee : fee_max;
     }
-    return fee_max
+    return fee_max;
   }
 
   validateSwap() {
-    if (this.swap_status === SWAP_STATUS.Phase4) throw Error(`Coin ${this.shared_key_id} is in swap phase 4. Swap must be resumed.`)
-    if (this.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + this.getTXIdAndOut() + " already in swap pool.");
-    if (this.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + this.getTXIdAndOut() + " already involved in swap.");
-    if (this.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + this.getTXIdAndOut() + " not available for swap.");
+    if (this.swap_status === SWAP_STATUS.Phase4)
+      throw Error(
+        `Coin ${this.shared_key_id} is in swap phase 4. Swap must be resumed.`
+      );
+    if (this.status === STATECOIN_STATUS.AWAITING_SWAP)
+      throw Error("Coin " + this.getTXIdAndOut() + " already in swap pool.");
+    if (this.status === STATECOIN_STATUS.IN_SWAP)
+      throw Error(
+        "Coin " + this.getTXIdAndOut() + " already involved in swap."
+      );
+    if (this.status !== STATECOIN_STATUS.AVAILABLE)
+      throw Error("Coin " + this.getTXIdAndOut() + " not available for swap.");
   }
 
   validateResumeSwap() {
-    if (this.status !== STATECOIN_STATUS.IN_SWAP) throw Error("Cannot resume coin " + this.shared_key_id + " - not in swap.");
+    if (this.status !== STATECOIN_STATUS.IN_SWAP)
+      throw Error(
+        "Cannot resume coin " + this.shared_key_id + " - not in swap."
+      );
     if (this.swap_status !== SWAP_STATUS.Phase4)
-    throw Error("Cannot resume coin " + this.shared_key_id + " - swap status: " + this.swap_status);
+      throw Error(
+        "Cannot resume coin " +
+          this.shared_key_id +
+          " - swap status: " +
+          this.swap_status
+      );
   }
 
   // Get data to display in GUI
@@ -626,13 +764,13 @@ export class StateCoin {
       is_deposited: this.is_deposited,
       expiry_data: this.getExpiryData(block_height),
       transfer_msg: this.transfer_msg,
-      swap_id: (this.swap_info ? this.swap_info.swap_token.id : null),
+      swap_id: this.swap_info ? this.swap_info.swap_token.id : null,
       swap_status: this.swap_status,
       ui_swap_status: this.ui_swap_status,
       swap_auto: this.swap_auto,
-      swap_error: this.swap_error
-    }
-  };
+      swap_error: this.swap_error,
+    };
+  }
 
   // Get data to display in GUI
   getSwapDisplayInfo(): SwapDisplayData | null {
@@ -647,17 +785,17 @@ export class StateCoin {
       participants: si.swap_token.statechain_ids.length,
       capacity: si.swap_token.statechain_ids.length,
       status: si.status,
-    }
-  };
+    };
+  }
 
   getConfirmations(block_height: number): number {
     switch (this.status) {
-      case (STATECOIN_STATUS.INITIALISED):
+      case STATECOIN_STATUS.INITIALISED:
         return -1;
-      case (STATECOIN_STATUS.IN_MEMPOOL):
+      case STATECOIN_STATUS.IN_MEMPOOL:
         return 0;
       default:
-        return block_height - this.block + 1
+        return block_height - this.block + 1;
     }
   }
 
@@ -668,12 +806,12 @@ export class StateCoin {
       funding_txid: this.funding_txid,
       funding_vout: this.funding_vout,
       p_addr: this.getBtcAddress(network),
-      confirmations: this.getConfirmations(block_height)
-    }
+      confirmations: this.getConfirmations(block_height),
+    };
   }
 
   getBackupTxData(block_height: number) {
-    if (this.tx_backup == null) throw Error("null")
+    if (this.tx_backup == null) throw Error("null");
 
     return {
       tx_backup_hex: this.tx_backup.toHex(),
@@ -684,7 +822,7 @@ export class StateCoin {
       txid: this.tx_backup.getId(),
       output_value: this.tx_backup.outs[0].value,
       cpfp_status: "None",
-    }
+    };
   }
 
   // Calculate blocks and rough days/months until expiry
@@ -693,28 +831,36 @@ export class StateCoin {
     // If not confirmed, send confirmation data instead.
     if (this.tx_backup == null) {
       // Otherwise must be UNCONFIRMED so calculate number of confs
-      return { blocks: -1, confirmations: this.getConfirmations(block_height), days: 0, months: 0 };
+      return {
+        blocks: -1,
+        confirmations: this.getConfirmations(block_height),
+        days: 0,
+        months: 0,
+      };
     }
     let blocks_to_locktime = this.tx_backup.locktime - block_height;
-    if (blocks_to_locktime <= 0) return { blocks: 0, days: 0, months: 0, confirmations: 0 };
+    if (blocks_to_locktime <= 0)
+      return { blocks: 0, days: 0, months: 0, confirmations: 0 };
     let days_to_locktime = Math.floor(blocks_to_locktime / (6 * 24));
     return {
       blocks: blocks_to_locktime,
       days: days_to_locktime,
       months: Math.floor(days_to_locktime / 30),
-      confirmations: this.getConfirmations(block_height)
-    }
+      confirmations: this.getConfirmations(block_height),
+    };
   }
 
   // Get BTC address from SharedKey
   getBtcAddress(network: Network): string {
-    let pub_key = this.getSharedPubKey()
-    return pubKeyTobtcAddr(pub_key, network)
+    let pub_key = this.getSharedPubKey();
+    return pubKeyTobtcAddr(pub_key, network);
   }
 
   // Get public key from SharedKey
   getSharedPubKey(): string {
-    return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed("hex");
+    return decodeSecp256k1Point(this.shared_key.public.q).encodeCompressed(
+      "hex"
+    );
   }
 
   // Set all StateCoin swap data to null.
@@ -741,46 +887,43 @@ export class StateCoin {
 }
 
 export interface StateCoinDisplayData {
-  wallet_version: string,
-  shared_key_id: string,
-  value: number,
-  description: string,
-  funding_txid: string,
-  funding_vout: number,
-  sc_address: string,
-  tx_hex: string | null,
-  withdraw_txid: string | null,
-  timestamp: number,
-  swap_rounds: number,
-  anon_set: number,
-  is_new: boolean,
-  is_deposited: boolean,
-  expiry_data: ExpiryData,
-  status: string,
-  transfer_msg: TransferMsg3 | null,
-  swap_id: string | null,
-  swap_status: string | null,
-  ui_swap_status: string | null,
-  swap_auto: boolean,
-  swap_error: SwapErrorMsg | null
+  wallet_version: string;
+  shared_key_id: string;
+  value: number;
+  description: string;
+  funding_txid: string;
+  funding_vout: number;
+  sc_address: string;
+  tx_hex: string | null;
+  withdraw_txid: string | null;
+  timestamp: number;
+  swap_rounds: number;
+  anon_set: number;
+  is_new: boolean;
+  is_deposited: boolean;
+  expiry_data: ExpiryData;
+  status: string;
+  transfer_msg: TransferMsg3 | null;
+  swap_id: string | null;
+  swap_status: string | null;
+  ui_swap_status: string | null;
+  swap_auto: boolean;
+  swap_error: SwapErrorMsg | null;
 }
 
 export interface SwapDisplayData {
-  swap_status: string | null,
-  swap_id: string,
-  participants: number,
-  capacity: number,
-  status: string,
+  swap_status: string | null;
+  swap_id: string;
+  participants: number;
+  capacity: number;
+  status: string;
 }
 
 export interface ExpiryData {
-  blocks: number,
-  days: number,
-  months: number,
-  confirmations: number
+  blocks: number;
+  days: number;
+  months: number;
+  confirmations: number;
 }
 
-
-export interface InclusionProofSMT {
-
-}
+export interface InclusionProofSMT {}
