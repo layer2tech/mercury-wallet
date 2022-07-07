@@ -1,9 +1,9 @@
 import { checkForServerError, handlePromiseRejection } from "./error";
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 //const axios = require('axios').default;
-import axios, { AxiosRequestConfig } from 'axios'
+import axios, { AxiosRequestConfig } from "axios";
 
-export const TIMEOUT = 20000
+export const TIMEOUT = 20000;
 // Maximum number of concurrent API calls
 export const MAX_SEMAPHORE_COUNT = 5;
 export const semaphore = new AsyncSemaphore(MAX_SEMAPHORE_COUNT);
@@ -22,7 +22,7 @@ export const GET_ROUTE = {
   SWAP_GROUPINFO: "swap/groupinfo",
   TRANSFER_GET_MSG_ADDR: "transfer/get_msg_addr",
   TOR_CIRCUITS: "tor_circuit",
-  NEW_TOR_ID: "newid"
+  NEW_TOR_ID: "newid",
 };
 Object.freeze(GET_ROUTE);
 
@@ -54,67 +54,74 @@ export const POST_ROUTE = {
 };
 Object.freeze(POST_ROUTE);
 
-  export class HttpClient {
-    endpoint: string
-    is_tor: boolean
+export class HttpClient {
+  endpoint: string;
+  is_tor: boolean;
 
-    constructor(endpoint: string, is_tor = false) {
-      this.endpoint = endpoint;
-      this.is_tor = is_tor;
-    }
+  constructor(endpoint: string, is_tor = false) {
+    this.endpoint = endpoint;
+    this.is_tor = is_tor;
+  }
 
-    async new_tor_id() {
-      if (this.is_tor) {
-        const timeout_ms = 20000
-        await this.get('newid', {}, timeout_ms);
-      }
-    };
-
-    async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
-      const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
-      const config: AxiosRequestConfig = {
-        method: 'get',
-        url: url,
-        headers: {
-          'Accept': 'application/json'
-        },
-        timeout: timeout_ms
-      };
-      await semaphore.wait()
-      return axios(config).catch((err: any) => {
-        handlePromiseRejection(err, "Mercury API request timed out")
-      }).finally( () => {
-        semaphore.release()
-      }).then(
-      (res: any) => {
-        checkForServerError(res)
-        return res?.data        
-        })
-      
-      
-    }
-
-    async post(path: string, body: any, timeout_ms: number = TIMEOUT) {
-      let url = this.endpoint + "/" + path.replace(/^\/+/, '');
-      const config: AxiosRequestConfig = {
-        method: 'post',
-        url: url,
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        timeout: timeout_ms,
-        data: body,
-      };
-      await semaphore.wait();
-      return axios(config).catch((err: any) => {
-        handlePromiseRejection(err, "Mercury API request timed out")
-      }).finally(() => {
-        semaphore.release()
-      }).then (
-      (res: any) => {
-        checkForServerError(res)
-        return res?.data
-      })
+  async new_tor_id() {
+    if (this.is_tor) {
+      const timeout_ms = 20000;
+      await this.get("newid", {}, timeout_ms);
     }
   }
+
+  async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
+    const url =
+      this.endpoint +
+      "/" +
+      (
+        path + (Object.entries(params).length === 0 ? "" : "/" + params)
+      ).replace(/^\/+/, "");
+    const config: AxiosRequestConfig = {
+      method: "get",
+      url: url,
+      headers: {
+        Accept: "application/json",
+      },
+      timeout: timeout_ms,
+    };
+    await semaphore.wait();
+    return axios(config)
+      .catch((err: any) => {
+        handlePromiseRejection(err, "Mercury API request timed out");
+      })
+      .finally(() => {
+        semaphore.release();
+      })
+      .then((res: any) => {
+        checkForServerError(res);
+        return res?.data;
+      });
+  }
+
+  async post(path: string, body: any, timeout_ms: number = TIMEOUT) {
+    let url = this.endpoint + "/" + path.replace(/^\/+/, "");
+    const config: AxiosRequestConfig = {
+      method: "post",
+      url: url,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      timeout: timeout_ms,
+      data: body,
+    };
+    await semaphore.wait();
+    return axios(config)
+      .catch((err: any) => {
+        handlePromiseRejection(err, "Mercury API request timed out");
+      })
+      .finally(() => {
+        semaphore.release();
+      })
+      .then((res: any) => {
+        checkForServerError(res);
+        return res?.data;
+      });
+  }
+}
