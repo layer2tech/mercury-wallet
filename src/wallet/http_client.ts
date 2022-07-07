@@ -71,6 +71,7 @@ export class HttpClient {
   }
 
   async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
+    await semaphore.wait();
     const url =
       this.endpoint +
       "/" +
@@ -85,7 +86,7 @@ export class HttpClient {
       },
       timeout: timeout_ms,
     };
-    await semaphore.wait();
+
     return axios(config)
       .catch((err: any) => {
         handlePromiseRejection(err, "Mercury API request timed out");
