@@ -2374,9 +2374,9 @@ export class Wallet {
     if (broadcastTxInfos.length > 0) {
       fee_max = statecoin.getWithdrawalMaxTxFee();
       const fee = getTxFee(fee_per_byte, broadcastTxInfos[0].tx.ins.length);
-      //console.log(
+      /*console.log(
         `Withdrawal transaction fee: ${fee}, fee per byte: ${fee_per_byte}, fee_max: ${fee_max}`
-      );
+      );*/
       if (fee_max > 0) {
         if (fee_max >= fee)
           throw Error(
