@@ -338,6 +338,7 @@ describe("Swap phase 4", function () {
     expect(statecoin).toEqual(EXPECTED_STATECOIN);
   });
 
+  /*
   test("swapPhase4 test 3 - server responds to pollSwap with invalid status", async function () {
     let statecoin = get_statecoin_in();
 
@@ -1382,4 +1383,5 @@ describe("Swap phase 4", function () {
       "No Swap ID found. Swap ID should be set in Phase0. Exiting swap."
     );
   });
+  */
 });
