@@ -734,6 +734,7 @@ describe('backupTxCheckRequired', function () {
   beforeAll(async () => {
     let wallet = await Wallet.buildMock()
     statecoin = wallet.statecoins.coins[0]
+    statecoin.tx_backup = new Transaction()
   })
   beforeEach(() => {
     statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
@@ -748,9 +749,13 @@ describe('backupTxCheckRequired', function () {
     expect(Wallet.backupTxCheckRequired({ tx_backup: undefined })).toEqual(false)
   })
   test('backup statuses', () => {
+    statecoin.status = STATECOIN_STATUS.IN_MEMPOOL;
     Object.values(BACKUP_STATUS).forEach(val => {
       statecoin.backup_status = val
-      expect(Wallet.backupTxCheckRequired(statecoin)).not.toEqual(reqBackupStatuses.has(val))
+      const check_required = Wallet.backupTxCheckRequired(statecoin)
+      const has_status = reqBackupStatuses.has(val)
+      console.log(`backup status: ${val}, check required: ${check_required}`)
+      expect(check_required).not.toEqual(has_status)
     })
   })
   test('statecoin statuses', () => {
@@ -769,6 +774,7 @@ describe('checkLocktime', function () {
     wallet = await Wallet.buildMock()
     wallet.config.swaplimit = 10
     statecoin = wallet.statecoins.coins[0]
+    statecoin.tx_backup = new Transaction()
   })
   beforeEach(() => {
     statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
@@ -816,6 +822,7 @@ describe('checkMempoolTx', function () {
     electrum_mock = jest.genMockFromModule('../mocks/mock_electrum.ts');
     wallet.electrum_client = electrum_mock
     statecoin = wallet.statecoins.coins[0]
+    statecoin.tx_backup = new Transaction()
     statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
     statecoin.status = STATECOIN_STATUS.AVAILABLE
     init_statecoin = cloneDeep(statecoin)
@@ -849,7 +856,7 @@ describe('checkMempoolTx', function () {
     wallet.electrum_client.getTransaction = jest.fn(async (_txid) => {
       return { confirmations: 3 }
     })
-    await expect(wallet.checkMempoolTx(statecoin)).resolves
+    await wallet.checkMempoolTx(statecoin)
     expect(statecoin.backup_status).toEqual(BACKUP_STATUS.CONFIRMED)
     expect(statecoin.status).toEqual(STATECOIN_STATUS.WITHDRAWN)
   })
@@ -901,6 +908,7 @@ describe('broadcastBackupTx', function () {
     statecoin = wallet.statecoins.coins[0]
     statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
     statecoin.status = STATECOIN_STATUS.AVAILABLE
+    statecoin.tx_backup = new Transaction()
     init_statecoin = cloneDeep(statecoin)
   })
   test('broadcast ok', async () => {
@@ -909,7 +917,7 @@ describe('broadcastBackupTx', function () {
       return response
     })
     let spy = jest.spyOn(wallet, 'processTXBroadcastResponse').mockImplementation();
-    await expect(wallet.broadcastBackupTx(statecoin)).resolves
+    await expect(wallet.broadcastBackupTx(statecoin)).resolves.toBe()
     expect(spy).toHaveBeenCalled()
   })
   test('broadcast error', async () => {
@@ -935,6 +943,7 @@ describe('broadcastCPFP', function () {
     console.log(`statecoin: ${statecoin}`)
     statecoin.backup_status = BACKUP_STATUS.UNBROADCAST
     statecoin.status = STATECOIN_STATUS.AVAILABLE
+    statecoin.tx_backup = new Transaction()
     statecoin.tx_cpfp = statecoin.tx_backup
     init_statecoin = cloneDeep(statecoin)
   })
