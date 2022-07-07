@@ -80,7 +80,7 @@ export class HttpClient {
       ).replace(/^\/+/, "");
     const config: AxiosRequestConfig = {
       method: "get",
-      url: url,
+      URL: url,
       headers: {
         Accept: "application/json",
       },
@@ -105,7 +105,7 @@ export class HttpClient {
     let url = this.endpoint + "/" + path.replace(/^\/+/, "");
     const config: AxiosRequestConfig = {
       method: "post",
-      url: url,
+      URL: url,
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
