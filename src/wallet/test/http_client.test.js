@@ -24,19 +24,19 @@ describe("HttpClient", function () {
     expect(actual).toEqual(response.data);
     expect(axios).toBeCalledWith({
       method: "get",
-      url: "tor_endpoint.onion/test/path/params",
+      URL: "tor_endpoint.onion/test/path/params",
       headers: { Accept: "application/json" },
       timeout: TIMEOUT,
     });
   });
 
   test("get with timeout", async function () {
-    const timeout = 1234;
+    const timeout = 20000;
     const actual = await client.get("test/path", "params", timeout);
     expect(actual).toEqual(response.data);
     expect(axios).toBeCalledWith({
       method: "get",
-      url: "tor_endpoint.onion/test/path/params",
+      URL: "tor_endpoint.onion/test/path/params",
       headers: { Accept: "application/json" },
       timeout: timeout,
     });
@@ -107,7 +107,7 @@ describe("HttpClient timeout", function () {
     );
     expect(axios).toBeCalledWith({
       method: "get",
-      url: "tor_endpoint.onion/test/path/params",
+      URL: "tor_endpoint.onion/test/path/params",
       headers: { Accept: "application/json" },
       timeout: TIMEOUT,
     });

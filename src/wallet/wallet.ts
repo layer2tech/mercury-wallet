@@ -348,6 +348,9 @@ export class Wallet {
       http_client,
       wasm
     );
+
+    console.log("wallet created a mock http_client...");
+
     // add some statecoins
     let proof_key1 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
