@@ -302,7 +302,8 @@ describe("Swap phase 4", function () {
     const server_error = () => {
       return new Error("Misc server error");
     };
-    http_mock.post = jest.fn((path, body) => {
+    http_mock.post = jest.fn();
+    http_mock.post.mockImplementation((path, body) => {
       if (path === POST_ROUTE.SWAP_POLL_SWAP) {
         throw server_error();
       }
@@ -311,7 +312,8 @@ describe("Swap phase 4", function () {
 
     let statecoin = get_statecoin_in();
 
-    http_mock.get = jest.fn((path, params) => {
+    http_mock.get = jest.fn();
+    http_mock.get.mockImplementation((path, params) => {
       return transferReceiverGet(path, params, statecoin);
     });
 
