@@ -122,7 +122,7 @@ describe("Swap init", function () {
 
   test("swapInit test 2 - invalid initial statecoin state", async function () {
     let statecoin = get_statecoin_in();
-    console.log(`swap status: ${JSON.stringify(statecoin.swap_status)}`);
+    //console.log(`swap status: ${JSON.stringify(statecoin.swap_status)}`);
     const INIT_STATECOIN = cloneDeep(statecoin);
     let wallet = await getWallet();
     let swap = new Swap(wallet, statecoin, undefined, null);
@@ -132,7 +132,7 @@ describe("Swap init", function () {
     for (let i = 0; i < statecoin_status.length; i++) {
       if (statecoin_status[i] !== STATECOIN_STATUS.AWAITING_SWAP) {
         const sc_status = statecoin_status[i];
-        console.log(`${sc_status}`);
+        //console.log(`${sc_status}`);
         statecoin.status = cloneDeep(sc_status);
         let init_statecoin = cloneDeep(INIT_STATECOIN);
         init_statecoin.status = cloneDeep(sc_status);

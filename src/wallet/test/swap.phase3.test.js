@@ -71,7 +71,7 @@ const swapPhase3 = async (swap) => {
   for (let i = 0; i < swap.swap_steps.length; i++) {
     result = await swap.doNext();
     if (result.is_ok() !== true) {
-      console.log(`retry at step: ${swap.getNextStep().description()}`);
+      //console.log(`retry at step: ${swap.getNextStep().description()}`);
       return result;
     }
   }
@@ -676,7 +676,7 @@ describe("swapPhase3", () => {
       return step.subPhase === "makeSwapCommitment";
     };
     let steps = swapPhase3Steps(swap).filter(step_filter);
-    console.log(`steps: ${JSON.stringify(steps)}`);
+    //console.log(`steps: ${JSON.stringify(steps)}`);
     let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3);
     tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0];
     const tm3_const = tm3;
