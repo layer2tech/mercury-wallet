@@ -66,7 +66,6 @@ export class ElectrsClient {
     params: any,
     timeout_ms: number = TIMEOUT
   ) {
-    await semaphore.wait();
     const url =
       endpoint +
       "/" +
@@ -79,7 +78,7 @@ export class ElectrsClient {
       headers: { Accept: "application/json" },
       timeout: timeout_ms,
     };
-
+    await semaphore.wait();
     return axios(config)
       .catch((err: any) => {
         handlePromiseRejection(err, "Electrum API request timed out");
@@ -99,7 +98,6 @@ export class ElectrsClient {
     body: any,
     timeout_ms: number = TIMEOUT
   ) {
-    await semaphore.wait();
     let url = endpoint + "/" + path.replace(/^\/+/, "");
     const config: AxiosRequestConfig = {
       method: "post",
@@ -111,7 +109,7 @@ export class ElectrsClient {
       data: body,
       timeout: timeout_ms,
     };
-
+    await semaphore.wait();
     return axios(config)
       .catch((err: any) => {
         handlePromiseRejection(err, "Electrum API request timed out");

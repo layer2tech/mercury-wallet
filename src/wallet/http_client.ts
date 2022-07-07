@@ -71,7 +71,6 @@ export class HttpClient {
   }
 
   async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
-    await semaphore.wait();
     const url =
       this.endpoint +
       "/" +
@@ -86,7 +85,7 @@ export class HttpClient {
       },
       timeout: timeout_ms,
     };
-
+    await semaphore.wait();
     console.error(url);
     console.error(config);
 
@@ -104,11 +103,10 @@ export class HttpClient {
   }
 
   async post(path: string, body: any, timeout_ms: number = TIMEOUT) {
-    await semaphore.wait();
     let url = this.endpoint + "/" + path.replace(/^\/+/, "");
     const config: AxiosRequestConfig = {
       method: "post",
-      URL: url,
+      url: url,
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
@@ -116,7 +114,7 @@ export class HttpClient {
       timeout: timeout_ms,
       data: body,
     };
-
+    await semaphore.wait();
     console.error(url);
     console.error(config);
 

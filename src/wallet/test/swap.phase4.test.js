@@ -1,6 +1,8 @@
 /**
  * @jest-environment node
  */
+import { expect, jest, test } from "@jest/globals";
+import { HttpClient } from "../http_client";
 import {
   makeTesterStatecoin,
   STATECOIN_SWAP_DATA,
@@ -50,9 +52,9 @@ let cloneDeep = require("lodash.clonedeep");
 let bitcoin = require("bitcoinjs-lib");
 
 // client side's mock
-let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
+let wasm_mock = jest.createMockFromModule("../mocks/mock_wasm");
 // server side's mock
-let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
+let http_mock = jest.createMockFromModule("../mocks/mock_http_client");
 
 const post_error = (path, body) => {
   return new Error(`Error from POST request - path: ${path}, body: ${body}`);
@@ -302,6 +304,7 @@ describe("Swap phase 4", function () {
     const server_error = () => {
       return new Error("Misc server error");
     };
+
     http_mock.post = jest.fn();
     http_mock.post.mockImplementation((path, body) => {
       if (path === POST_ROUTE.SWAP_POLL_SWAP) {
