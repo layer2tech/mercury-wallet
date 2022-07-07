@@ -70,7 +70,7 @@ async function kill_port_process(port) {
   }
 }
 
-describe('Tor', function () {
+describe.skip('Tor', function () {
 
   let ta_process = undefined
   beforeAll(async () => {
