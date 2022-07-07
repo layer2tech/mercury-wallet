@@ -26,10 +26,9 @@ export const checkForServerError = (response: any) => {
 };
 
 export const handlePromiseRejection = (err: any, timeout_msg: string) => {
-  /*
-    let msg_str = err?.message
-    if (msg_str != null && msg_str.search(/timeout of .*ms exceeded/) > -1) {
-        throw new Error(`${timeout_msg}: ${msg_str}`)
-    } 
-    throw err*/
+  let msg_str = err?.message;
+  if (msg_str != null && msg_str.search(/timeout of .*ms exceeded/) > -1) {
+    throw new Error(`${timeout_msg}: ${msg_str}`);
+  }
+  throw err;
 };
