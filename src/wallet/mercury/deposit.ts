@@ -7,7 +7,7 @@
 // 3. Broadcast funding tx and wait for SE verification
 // 4. Verify funding txid and proof key in SM
 
-
+'use strict';
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
 import { FeeInfo } from "./info_api";
@@ -15,6 +15,7 @@ import { getSigHash, pubKeyTobtcAddr } from "../util";
 
 import { Network } from 'bitcoinjs-lib';
 import { PrepareSignTxMsg } from "./ecdsa";
+const Promise = require('bluebird');
 let typeforce = require('typeforce');
 
 
@@ -73,8 +74,7 @@ export const depositConfirm = async (
 
   // Build unsigned backup tx
   let backup_receive_addr = pubKeyTobtcAddr(statecoin.proof_key, network);
-  let txb_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, statecoin.funding_vout, backup_receive_addr, statecoin.value, fee_info.address, withdraw_fee, init_locktime);
-  let tx_backup_unsigned = txb_backup_unsigned.buildIncomplete();
+  let tx_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, statecoin.funding_vout, backup_receive_addr, statecoin.value, fee_info.address, withdraw_fee, init_locktime).buildIncomplete();
 
   //co sign funding tx input signatureHash
   let pk = statecoin.getSharedPubKey();

@@ -1,4 +1,5 @@
 // Logger import.
+'use strict';
 import { SwapStep, SwapStepResult, SWAP_STATUS } from "./swap_utils";
 import { STATECOIN_STATUS } from "..";
 import Swap from "./swap"
@@ -6,7 +7,7 @@ import Swap from "./swap"
 
 export function swapPhase4(swap: Swap): SwapStep[] {
   return [
-    new SwapStep(
+    new SwapStep( 
       SWAP_STATUS.Phase4, "transferReceiver",
       () => { return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP },
       () => { return swap.statecoin.swap_status === SWAP_STATUS.Phase4 },

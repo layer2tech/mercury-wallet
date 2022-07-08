@@ -1,3 +1,4 @@
+'use strict';
 import { combineReducers } from 'redux'
 import walletDataReducer from '../features/WalletDataSlice'
 import themeDataReducer from '../features/ThemeSlice'

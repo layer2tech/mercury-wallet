@@ -1,3 +1,4 @@
+'use strict';
 export { HttpClient, GET_ROUTE, POST_ROUTE } from "./http_client";
 export { ElectrumClient } from './electrum'
 export { ElectrsClient } from './electrs'

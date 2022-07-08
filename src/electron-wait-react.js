@@ -1,5 +1,5 @@
+'use strict';
 const net = require('net');
-//const fixPath = require('fix-path');
 const port = process.env.PORT ? (process.env.PORT - 100) : 3000;
 
 
@@ -18,7 +18,7 @@ const tryConnection = () => client.connect({port: port}, () => {
             console.log('starting electron');
             const electron = exec('npm run electron');
             
-            electron.stdout.on("data", function(data) {
+            electron.stdout.once("data", function(data) {
                 console.log("stdout: " + data.toString());
             });
         }

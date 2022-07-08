@@ -1,3 +1,4 @@
+'use strict';
 import '../index.css';
 
 export { default as Header } from "./header/header";

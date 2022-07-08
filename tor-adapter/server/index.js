@@ -1,3 +1,4 @@
+'use strict';
 const handle_error = require('./error').handle_error
 const winston = require('winston');
 var path = require('path');

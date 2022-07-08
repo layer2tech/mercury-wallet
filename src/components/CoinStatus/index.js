@@ -1,3 +1,4 @@
+'use strict';
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
 import React, { useState } from 'react'
 import {

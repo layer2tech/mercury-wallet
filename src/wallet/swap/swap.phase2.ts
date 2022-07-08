@@ -1,5 +1,6 @@
 // Poll swap until phase changes to Phase2. In that case all participants have completed Phase1
 
+'use strict';
 import { SWAP_STATUS } from "./swap_utils";
 import { SwapStep } from './swap_utils';
 import { STATECOIN_STATUS } from '..'

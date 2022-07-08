@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+'use strict';
+import React, { useState } from 'react';
 import {Tabs, Tab} from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import { STATECOIN_STATUS } from '../../wallet/statecoin'

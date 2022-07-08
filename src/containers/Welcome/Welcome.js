@@ -1,3 +1,4 @@
+'use strict';
 import plus from '../../images/plus-black.png';
 import restore from '../../images/restore-img.png';
 import check from '../../images/icon-action-check_circle.png';

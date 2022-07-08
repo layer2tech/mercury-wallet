@@ -1,3 +1,4 @@
+'use strict';
 import plus from "../../images/plus-deposit.png";
 import points from "../../images/points.png";
 import React, { useState } from 'react';
