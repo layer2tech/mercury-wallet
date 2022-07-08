@@ -56,13 +56,12 @@ const PanelConnectivity = (props) => {
 
   // every 30s check speed
   useEffect(() => {
-    updateSpeedInfo()
     const interval = setInterval(() => {
       updateSpeedInfo()
-    }, 15000);
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch, torInfo.online]);
+  }, [torInfo.online]);
 
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
