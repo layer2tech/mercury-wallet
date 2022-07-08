@@ -62,6 +62,7 @@
     "electron-builder-notarize": "^1.2.0",
     "electron-devtools-installer": "^3.1.1",
     "electron-notarize": "^1.0.0",
+    "electron-react-devtools": "^0.5.3",
     "foreman": "^3.0.1",
     "mock-req-res": "^1.2.0",
     "react-app-rewired": "^2.1.6",

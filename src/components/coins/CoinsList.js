@@ -326,7 +326,9 @@ const CoinsList = (props) => {
           coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
           coin.status !== STATECOIN_STATUS.EXPIRED));
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: coinsNotWithdraw.length }));
+        if(!swap){
+          dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: coinsNotWithdraw.length }));
+        }
       }
       return () => { isMounted = false }
     }
@@ -396,9 +398,11 @@ const CoinsList = (props) => {
       setTotalCoins(confirmedCoins.length);
       // update balance and amount
       const total = confirmedCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
-      dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: confirmedCoins.length }))
+      if(!swap){
+        dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: confirmedCoins.length }))
+      }
     }
-  }, [callGetUnspentStatecoins(), balance_info])
+  }, [callGetUnspentStatecoins, balance_info])
 
   // Enters/Re-enters coins in auto-swap
   const autoSwapLoop = () => {

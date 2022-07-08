@@ -62,13 +62,13 @@ const PanelConnectivity = (props) => {
   useEffect(() => {
     
     let isMounted = true
-    let interval = setIntervalIfOnline(updateSpeedInfo, torInfo.online, 5000, isMounted)
+    let interval = setIntervalIfOnline(updateSpeedInfo, torInfo.online, 30000, isMounted)
 
     return () => {
       isMounted = false
       clearInterval(interval);
     }
-  }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch, torInfo.online]);
+  }, [torInfo.online]);
 
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
