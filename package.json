@@ -53,9 +53,6 @@
   "dependencies": {
     "concurrently": "^7.2.2",
     "electron": "^19.0.8",
-    "electron-build-env": "^0.2.0",
-    "electron-builder": "^23.1.0",
-    "electron-builder-notarize": "^1.5.0",
     "react": "^18.2.0",
     "react-app-rewired": "^2.2.1",
     "react-dom": "^18.2.0",
@@ -72,7 +69,12 @@
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "@types/uuid": "^8.3.4",
-    "electron-devtools-installer": "^3.2.0"
+    "electron-build-env": "^0.2.0",
+    "electron-builder": "^23.1.0",
+    "electron-builder-notarize": "^1.5.0",
+    "electron-devtools-installer": "^3.2.0",
+    "electron-notarize": "^1.2.1",
+    "electron-react-devtools": "^0.5.3"
   },
   "browserslist": {
     "production": [
