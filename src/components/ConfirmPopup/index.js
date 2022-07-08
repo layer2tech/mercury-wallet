@@ -8,7 +8,7 @@ import {
   removeAllCoinsFromSwapRecords
 } from "../../features/WalletDataSlice";
 
-const ConfirmPopup = ({ children, onOk, onCancel }) => {
+const ConfirmPopup = ({ children, onOk, onCancel, preCheck=null, argsCheck=null }) => {
   const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
   const [closeText, setCloseText] = useState('Are you sure?');
@@ -24,6 +24,20 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
   },[children.props.className,showModal])
   
   const handleClick = () => {
+
+    if(preCheck){
+      var stopCall
+      
+      stopCall = preCheck(...argsCheck);
+      // Cancel open pop up?
+
+      if(stopCall){
+        // Error in Pop Up call
+        return
+      }
+    }
+
+
     setShowModal(true);
     if(children.props.className === 'header-logout'){
       setCloseText('Are you sure you want to log out?')

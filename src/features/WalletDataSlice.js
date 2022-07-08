@@ -6,7 +6,7 @@ import { Wallet, ACTION, STATECOIN_STATUS } from '../wallet'
 import { getFeeInfo, getCoinsInfo } from '../wallet/mercury/info_api'
 import { pingServer as pingConductor } from '../wallet/swap/info_api'
 import { pingServer } from '../wallet/mercury/info_api'
-import { decodeMessage } from '../wallet/util'
+import { decodeMessage, decodeSCEAddress } from '../wallet/util'
 import { resetIndex } from '../containers/Receive/Receive'
 
 import { v4 as uuidv4 } from 'uuid';
@@ -596,6 +596,78 @@ export const setIntervalIfOnline = (func, online, delay, isMounted) => {
   }, delay)
   return interval
 }
+
+// Pre checks actions for use in confirm PopUp modal 
+
+export const checkWithdrawal = ( dispatch, selectedCoins, inputAddr ) => {
+  // Pre action confirmation checks for withdrawal - return true to prevent action
+
+  // check statechain is chosen
+  if (selectedCoins.length === 0) {
+    dispatch(setError({msg: "Please choose a StateCoin to withdraw."}))
+    return true
+  }
+  if (!inputAddr) {
+    dispatch(setError({msg: "Please enter an address to withdraw to."}))
+    return true
+  }
+
+  // if total coin sum is less that 0.001BTC then return error
+  if(callSumStatecoinValues(selectedCoins) < 100000){
+    dispatch(setError({msg: "Mininum withdrawal size is 0.001 BTC."}))
+    return true
+  }
+
+  try { 
+    bitcoin.address.toOutputScript(inputAddr, wallet.config.network)
+  } catch (e){ 
+    dispatch(setError({msg: "Invalid Bitcoin address entered."}))
+    return true
+  }
+
+  if(callIsBatchMixedPrivacy(selectedCoins)) {
+    dispatch(setNotification({msg:"Warning: Withdrawal transaction contains both private and un-swapped inputs."}))
+  }
+}
+
+export const checkSend = (dispatch, inputAddr ) => {
+  // Pre action confirmation checks for send statecoin - return true to prevent action
+
+  var input_pubkey = "";
+
+  try {
+    if(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'){
+      input_pubkey = callProofKeyFromXpub(inputAddr,0);
+    } else{
+      input_pubkey = decodeSCEAddress(inputAddr);
+    }
+  }
+  catch (e) {
+    dispatch(setError({ msg: "Error: " + e.message }))
+    return true
+  }
+
+  if (!(input_pubkey.slice(0, 2) === '02' || input_pubkey.slice(0, 2) === '03')) {
+    if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub') {
+      dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
+      return true
+    }
+    dispatch(setError({ msg: "Error: invalid proof public key." }));
+    return true
+  }
+
+  if (input_pubkey.length !== 66) {
+    if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) ==='tpub') {
+      dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
+      return true
+    }
+
+    dispatch(setError({ msg: "Error: invalid proof public key" }))
+    return true
+  }
+
+}
+
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
