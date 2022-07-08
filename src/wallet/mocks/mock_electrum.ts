@@ -1,8 +1,16 @@
+'use strict';
 let bitcoin = require('bitcoinjs-lib')
+const Promise = require('bluebird');
 
 export class MockElectrumClient {
 
-    async connect() {}
+  async connect() { }
+  
+  enableBlockHeightSubscribe() {
+  }
+
+  disableBlockHeightSubscribe() {
+  }
 
     latestBlockHeight() {
       return 1000
@@ -23,7 +31,7 @@ export class MockElectrumClient {
     }
 
     getTransaction(_txHash: string) {
-      return new Promise(function(resolve) {resolve({ txid:
+      return new Promise(function(resolve: Function) {resolve({ txid:
          'c33c88b149ec86eb99f1b5d6177ccd198833b07735bfd3049d2dd90c9c0328fc',
         hash:
          '47cb606ed7f772a6fbc0e41f3a084e4e54f2ceafffef51c2349ce663ff3095ed',

@@ -1,3 +1,4 @@
+'use strict';
 import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -5,7 +6,8 @@ import {
   callGetUnconfirmedAndUnmindeCoinsFundingTxData, callRemoveCoin,
   callGetConfig,
   callAddDescription,
-  callGetStateCoin
+  callGetStateCoin,
+  setIntervalIfOnline
 } from '../../features/WalletDataSlice'
 import { fromSatoshi } from '../../wallet'
 import { CopiedButton } from '../../components'
@@ -40,7 +42,7 @@ const TransactionsBTC = (props) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   // const { depositLoading } = useSelector((state) => state.walletData); TODO: check why this was placed in redux
-
+  const { torInfo} = useSelector(state => state.walletData);
   const [deleteOccured, setDeleteOccured] = useState(false);
 
   let testing_mode;
@@ -92,11 +94,13 @@ const TransactionsBTC = (props) => {
 
   // Re-fetch every 10 seconds and update state to refresh render
   useEffect(() => {
+    let isMounted = true;
     // remove any coins with confirmations on entry
     deposit_inits.current = deposit_inits.current.filter((obj) => {
       return obj.confirmations === -1;
     });
-    const interval = setInterval(() => {
+
+    const interval = setIntervalIfOnline(() => {
       // if we are not in loading state
       let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
       if (JSON.stringify(deposit_inits) !== JSON.stringify(new_deposit_inits)) {
@@ -106,8 +110,15 @@ const TransactionsBTC = (props) => {
         });
         setState({}); //update state to refresh TransactionDisplay render
       }
-    }, 10000);
-    return () => clearInterval(interval);
+    },
+      torInfo.online,
+        10000,
+        isMounted);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    }
   }, []);
 
 

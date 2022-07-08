@@ -1,3 +1,4 @@
+'use strict';
 import { checkForServerError, handlePromiseRejection } from "./error";
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 //const axios = require('axios').default;

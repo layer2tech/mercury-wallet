@@ -1,4 +1,5 @@
-import {Link, withRouter, Redirect} from "react-router-dom";
+'use strict';
+import { Link, withRouter, Redirect } from "react-router-dom";
 import React, {useState} from 'react';
 import {useDispatch} from 'react-redux';
 import QRCode from 'qrcode.react';

@@ -1,4 +1,8 @@
+'use strict';
 import { isNonNullChain } from "typescript"
+
+import { log } from './swap/swap_utils';
+
 
 // Check if returned value from server is an error. Throw if so.
 export const checkForServerError = (response: any) => {
@@ -15,8 +19,9 @@ export const checkForServerError = (response: any) => {
         }
         throw Error(return_val)
     }
-    if (return_val != null && return_val?.error != null) {
-        throw Error(JSON.stringify(return_val.error))
+    const error = return_val?.error
+    if (error != null) {
+        throw Error(JSON.stringify(error))
     }
 }
 

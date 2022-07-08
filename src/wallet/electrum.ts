@@ -1,5 +1,7 @@
+'use strict';
 import { Mutex } from 'async-mutex';
 import { Network } from "bitcoinjs-lib";
+const Promise = require('bluebird');
 let ElectrumClientLib = require('@aguycalled/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')
 const W3CWebSocket = require('websocket').w3cwebsocket
@@ -38,6 +40,12 @@ export class ElectrumClient {
         throw new Error(`failed to connect: [${err}]`)
       })
     });
+  }
+
+   enableBlockHeightSubscribe() {
+  }
+
+  disableBlockHeightSubscribe() {
   }
 
   // Disconnect from the ElectrumClientServer.

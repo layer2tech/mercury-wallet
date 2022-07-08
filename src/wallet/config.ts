@@ -1,5 +1,6 @@
 // History is a log of all Mercury protocol actions taken by the wallet.
 
+'use strict';
 import { Network } from "bitcoinjs-lib/types/networks";
 import { ElectrumClientConfig } from "./electrum";
 const NETWORK_CONFIG = require('../network.json');
@@ -15,8 +16,6 @@ try {
 } catch (e: any) {
   log = require('electron-log');
 }
-
-
 
 let cloneDeep = require('lodash.clonedeep');
 let current_state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;

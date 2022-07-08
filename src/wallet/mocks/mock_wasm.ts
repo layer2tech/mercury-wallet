@@ -1,6 +1,7 @@
 // Mocks out client side calls to cryptographic protocols.
 // Mock Classes are followed by mock data for full protocol runs.
 
+'use strict';
 import { COMMITMENT_DATA } from "../test/test_data"
 
 

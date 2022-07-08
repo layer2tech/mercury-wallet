@@ -1,3 +1,4 @@
+'use strict';
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import React, { useState, useEffect } from 'react';
@@ -12,6 +13,7 @@ import {
   callSwapDeregisterUtxo,
   callGetSwapGroupInfo,
   callUpdateSwapGroupInfo,
+  callClearSwapGroupInfo,
   callGetConfig,
   callGetStateCoin,
   addCoinToSwapRecords,
@@ -58,9 +60,13 @@ const SwapPage = () => {
     );
   }
 
-  const updateSwapInfo = async (isMounted) => {
+  const updateSwapInfo = (isMounted) => {
     if (isMounted === true) {
-      dispatch(callUpdateSwapGroupInfo());
+      if (torInfo.online === true) {
+        dispatch(callUpdateSwapGroupInfo());  
+      } else {
+        dispatch(callClearSwapGroupInfo());  
+      }
       let swap_groups_data = callGetSwapGroupInfo();
       let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
       let sorted_swap_groups_entry = swap_groups_array.sort((a, b) => b[0].amount - a[0].amount)
@@ -127,7 +133,7 @@ const SwapPage = () => {
       if (checkSwapAvailability(statecoin, swapValues)) {
         swapValues.add(statecoin.value)
         dispatch(addCoinToSwapRecords(selectedCoin));
-        dispatch(setSwapLoad({ ...swapLoad, join: true, swapCoin: statecoin }))
+        dispatch(setSwapLoad({ ...swapLoad, join: true, swapCoin: statecoin }));
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
           .then(res => {
 

@@ -1,3 +1,4 @@
+'use strict';
 import React, { cloneElement, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Modal } from "react-bootstrap";
@@ -7,7 +8,7 @@ import {
   removeAllCoinsFromSwapRecords
 } from "../../features/WalletDataSlice";
 
-const ConfirmPopup = ({ children, onOk, onCancel }) => {
+const ConfirmPopup = ({ children, onOk, onCancel, preCheck=null, argsCheck=null }) => {
   const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
   const [closeText, setCloseText] = useState('Are you sure?');
@@ -23,6 +24,20 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
   },[children.props.className,showModal])
   
   const handleClick = () => {
+
+    if(preCheck){
+      var stopCall
+      
+      stopCall = preCheck(...argsCheck);
+      // Cancel open pop up?
+
+      if(stopCall){
+        // Error in Pop Up call
+        return
+      }
+    }
+
+
     setShowModal(true);
     if(children.props.className === 'header-logout'){
       setCloseText('Are you sure you want to log out?')
@@ -33,7 +48,11 @@ const ConfirmPopup = ({ children, onOk, onCancel }) => {
         setCloseText('Confirm send, statecoin ready to be sent immediately.')
       }
     } else if(children.props.className.includes('withdraw-button')){
-      setCloseText('Confirm withdrawal. Withdrawal fee: ' + withdraw_fee/100 + '%')
+      if(children.props.className.includes("withdrawing-warning")){
+        setCloseText('Confirm withdrawal by RBF: Broadcast new transaction with higher fee.')
+      }else{
+        setCloseText('Confirm withdrawal. Withdrawal fee: ' + withdraw_fee/100 + '%')
+      }
     } else if(swapRecords.length > 0){
       setCloseText('Your swaps will be cancelled, are you sure?');
     } 

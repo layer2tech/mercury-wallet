@@ -1,3 +1,4 @@
+'use strict';
 import key from '../../images/key-blue-img.png';
 import restore from '../../images/restore-red-img.png';
 import secure from '../../images/secure-blue-img.png';
@@ -6,14 +7,6 @@ import React, {useState} from 'react';
 import {Link, withRouter} from "react-router-dom";
 import './CreateWalletInfo.css'
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
-
-let Store
-try {
-  Store = window.require('electron-store');
-} catch (e) {
-  Store = require('electron-store');
-}
-new Store();
 
 const CreateWalletInfoPage = () => {
     const state = useState(false);

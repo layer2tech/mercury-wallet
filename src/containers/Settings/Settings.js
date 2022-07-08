@@ -1,3 +1,4 @@
+'use strict';
 import settings from "../../images/settings.png";
 
 import React, { useState, useEffect } from 'react';

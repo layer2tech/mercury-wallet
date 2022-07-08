@@ -28,7 +28,6 @@ const MultipleReceive = (props) => {
 
     const handleConfirm = () => {
         const customValue = customInputRef.current.value;
-        
         props.setNumReceive(receiveAddrs);
         // props.receiveButtonAction();
         props.setReceive(true);

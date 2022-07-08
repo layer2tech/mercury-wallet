@@ -1,3 +1,4 @@
+'use strict';
 import { SwapStep } from './swap_utils'
 import { swapInit } from './swap.init';
 import { swapPhase0 } from './swap.phase0';

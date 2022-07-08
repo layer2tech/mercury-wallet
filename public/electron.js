@@ -78,7 +78,7 @@ for (let i = 0; i < process.argv.length; i++) {
   }
 }
 
-let mainWindow;
+let mainWindow = null;
 
 function createWindow() {
   let windowSpec = {
@@ -109,8 +109,10 @@ function createWindow() {
     nativeTheme.themeSource = 'light'
   })
 
-  mainWindow = new BrowserWindow(windowSpec);
-
+  if (mainWindow == null) {
+    mainWindow = new BrowserWindow(windowSpec);
+  }
+  
   require("@electron/remote/main").enable(mainWindow.webContents)
 
   if (process.platform !== 'darwin') {
@@ -137,11 +139,30 @@ function createWindow() {
   }
 
   mainWindow.on('close', async () => {
+    mainWindow.removeAllEventListeners();
   });
 
   mainWindow.on('closed', async () => {
     mainWindow = null;
   });
+
+  if(isDev){
+    // Using require
+  const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer');
+
+  installExtension(REACT_DEVELOPER_TOOLS).then((name) => {
+      console.log(`Added Extension:  ${name}`);
+  })
+  .catch((err) => {
+      console.log('An error occurred: ', err);
+  });
+  installExtension(REDUX_DEVTOOLS).then((name) => {
+      console.log(`Added Extension:  ${name}`);
+  })
+  .catch((err) => {
+      console.log('An error occurred: ', err);
+  });
+  }
 }
 
 async function getTorAdapter(path) {

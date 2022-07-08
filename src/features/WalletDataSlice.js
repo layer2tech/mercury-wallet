@@ -1,3 +1,4 @@
+'use strict';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { useSelector } from 'react-redux';
 
@@ -5,14 +6,16 @@ import { Wallet, ACTION, STATECOIN_STATUS } from '../wallet'
 import { getFeeInfo, getCoinsInfo } from '../wallet/mercury/info_api'
 import { pingServer as pingConductor } from '../wallet/swap/info_api'
 import { pingServer } from '../wallet/mercury/info_api'
-import { decodeMessage } from '../wallet/util'
+import { decodeMessage, decodeSCEAddress } from '../wallet/util'
 import { resetIndex } from '../containers/Receive/Receive'
 
 import { v4 as uuidv4 } from 'uuid';
 import * as bitcoin from 'bitcoinjs-lib';
 import { mutex } from '../wallet/electrum';
 import { SWAP_STATUS, UI_SWAP_STATUS } from '../wallet/swap/swap_utils'
+import { handleNetworkError } from '../error'
 
+const Promise = require('bluebird');
 const isEqual = require('lodash').isEqual
 
 // eslint-disable-next-line
@@ -89,7 +92,7 @@ export const isWalletActive = () => {
 export const unloadWallet = () => {
   if (isWalletLoaded()) {
     resetIndex();
-    wallet = undefined
+    wallet = null
   }
 }
 
@@ -168,7 +171,7 @@ export const walletLoad = (name, password) => {
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
-  wallet.deRegisterSwaps().then(() => {
+  wallet.deRegisterSwaps(true).then(() => {
     log.info("Wallet " + name + " loaded from memory. ");
 
     if (testing_mode) log.info("Testing mode set.");
@@ -494,15 +497,13 @@ export const handleEndSwap = (dispatch, selectedCoin, res, setSwapLoad, swapLoad
   dispatch(removeSwapPendingCoin(selectedCoin))
   // get the statecoin for txId method
   let statecoin = callGetStateCoin(selectedCoin)
+  dispatch(removeInSwapValue(statecoin.value))
   if (statecoin === undefined || statecoin === null) {
     statecoin = selectedCoin;
-  } else {
-    dispatch(removeInSwapValue(statecoin.value))
   }
   if (res.payload === null) {
     dispatch(setNotification({ msg: "Coin " + statecoin.getTXIdAndOut() + " removed from swap pool." }))
     dispatch(removeCoinFromSwapRecords(selectedCoin));// added this
-    dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: "" }));
     if (statecoin.swap_auto) {
       dispatch(addSwapPendingCoin(statecoin.shared_key_id))
       dispatch(addCoinToSwapRecords(statecoin.shared_key_id));
@@ -583,22 +584,90 @@ export const handleEndAutoSwap = (dispatch, statecoin, selectedCoin, res, fromSa
 }
 
 export const setIntervalIfOnline = (func, online, delay, isMounted) => {
-  // Runs interval if app online, clears interval if offline
+  // Runs interval if app online
   // Restart online interval in useEffect loop [torInfo.online]
   // make online = torInfo.online
-
-  const interval = setInterval(async () => {
-    // console.log('interval called', online)
-    if (online === false) {
-      clearInterval(interval)
-    }
-    if(isMounted){
-      func(isMounted)
-    }
+  let interval = setInterval(() => {
+      if (isMounted === true && online === true)  {
+        func(isMounted)
+      } else {
+        clearInterval(interval)
+      }
   }, delay)
   return interval
+}
+
+// Pre checks actions for use in confirm PopUp modal 
+
+export const checkWithdrawal = ( dispatch, selectedCoins, inputAddr ) => {
+  // Pre action confirmation checks for withdrawal - return true to prevent action
+
+  // check statechain is chosen
+  if (selectedCoins.length === 0) {
+    dispatch(setError({msg: "Please choose a StateCoin to withdraw."}))
+    return true
+  }
+  if (!inputAddr) {
+    dispatch(setError({msg: "Please enter an address to withdraw to."}))
+    return true
+  }
+
+  // if total coin sum is less that 0.001BTC then return error
+  if(callSumStatecoinValues(selectedCoins) < 100000){
+    dispatch(setError({msg: "Mininum withdrawal size is 0.001 BTC."}))
+    return true
+  }
+
+  try { 
+    bitcoin.address.toOutputScript(inputAddr, wallet.config.network)
+  } catch (e){ 
+    dispatch(setError({msg: "Invalid Bitcoin address entered."}))
+    return true
+  }
+
+  if(callIsBatchMixedPrivacy(selectedCoins)) {
+    dispatch(setNotification({msg:"Warning: Withdrawal transaction contains both private and un-swapped inputs."}))
+  }
+}
+
+export const checkSend = (dispatch, inputAddr ) => {
+  // Pre action confirmation checks for send statecoin - return true to prevent action
+
+  var input_pubkey = "";
+
+  try {
+    if(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'){
+      input_pubkey = callProofKeyFromXpub(inputAddr,0);
+    } else{
+      input_pubkey = decodeSCEAddress(inputAddr);
+    }
+  }
+  catch (e) {
+    dispatch(setError({ msg: "Error: " + e.message }))
+    return true
+  }
+
+  if (!(input_pubkey.slice(0, 2) === '02' || input_pubkey.slice(0, 2) === '03')) {
+    if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub') {
+      dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
+      return true
+    }
+    dispatch(setError({ msg: "Error: invalid proof public key." }));
+    return true
+  }
+
+  if (input_pubkey.length !== 66) {
+    if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) ==='tpub') {
+      dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
+      return true
+    }
+
+    dispatch(setError({ msg: "Error: invalid proof public key" }))
+    return true
+  }
 
 }
+
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
@@ -666,6 +735,12 @@ export const callUpdateSwapGroupInfo = createAsyncThunk(
     await wallet.updateSwapGroupInfo();
   }
 )
+export const callClearSwapGroupInfo = createAsyncThunk(
+  'ClearSwapGroupInfo',
+  async (action, thunkAPI) => {
+    wallet.clearSwapGroupInfo();
+  }
+)
 
 export const callGetNewTorId = createAsyncThunk(
   'UpdateTorId',
@@ -677,7 +752,12 @@ export const callGetNewTorId = createAsyncThunk(
 export const callUpdateTorCircuit = createAsyncThunk(
   'UpdateTorCircuit',
   async (action, thunkAPI) => {
-    wallet.updateTorcircuitInfo();
+    try {
+      wallet.updateTorcircuitInfo();
+    } catch (err) {
+      console.log("handling tor circuit error...")
+      handleNetworkError(err)
+    }
   }
 )
 
@@ -976,6 +1056,9 @@ const WalletSlice = createSlice({
       state.error_dialogue = { seen: false, msg: action.error.name + ": " + action.error.message }
     },
     [callUpdateSwapGroupInfo.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name + ": " + action.error.message }
+    },
+    [callClearSwapGroupInfo.rejected]: (state, action) => {
       state.error_dialogue = { seen: false, msg: action.error.name + ": " + action.error.message }
     },
     [callUpdateSpeedInfo.rejected]: (state, action) => {

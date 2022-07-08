@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react';
+'use strict';
+import React, { useState, useEffect } from 'react';
 import {withRouter} from "react-router-dom";
 import {useDispatch} from 'react-redux';
 import {Tabs, Tab} from 'react-bootstrap';
@@ -10,7 +11,6 @@ import { Storage } from '../../store';
 import { parseBackupData } from '../../wallet/wallet'
 
 import  './RestoreWallet.css'
-import { configureStore } from '@reduxjs/toolkit';
 
 let bip39 = require('bip39');
 
