@@ -73,43 +73,46 @@ async function kill_port_process(port) {
 
 describe.skip('Tor', function () {
 
-  let ta_process = undefined
-  beforeAll(async () => {
-    let resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
-    let execPath = joinPath(resourcesPath, 'linux');
-    let torrc = joinPath(resourcesPath, 'etc', 'torrc');
-    const tor_cmd = joinPath(execPath, 'tor');
-    let tor_adapter_path = `${__dirname}/../../../tor-adapter/server/index.js`
-    let user_data_path = `${__dirname}/data`
-    let tor_adapter_args = [tor_cmd, torrc, user_data_path];
-    console.log(`starting tor_adapter with args: ${tor_adapter_args.toString()}`)
+    let ta_process = undefined
+    const bSkip = true
 
-    //let ta_process = exec("node /home/ldeacon/Projects/mercury-wallet/src /../tor-adapter/server/index.js/home/ldeacon/Projects/mercury-wallet/resources/linux/tor/home/ldeacon/Projects/mercury-wallet/resources/etc/torrc/home/ldeacon /.config/MercuryWallet/tor)
-    ta_process = exec(`node ${tor_adapter_path} ${tor_cmd} ${torrc} ${user_data_path}`,
-      {
-        detached: true,
-        stdio: 'ignore',
-      },
-      (error, stdout, _stderr) => {
-        if (error) {
-          console.log(`tor process error: ${error.toString()}`)
-        };
-      }
-    )
-    const client = new HttpClient('http://localhost:3001');
+    if (bSkip == false) {
+        beforeAll(async () => {
+            let resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
+            let execPath = joinPath(resourcesPath, 'linux');
+            let torrc = joinPath(resourcesPath, 'etc', 'torrc');
+            const tor_cmd = joinPath(execPath, 'tor');
+            let tor_adapter_path = `${__dirname}/../../../tor-adapter/server/index.js`
+            let user_data_path = `${__dirname}/data`
+            let tor_adapter_args = [tor_cmd, torrc, user_data_path];
+            console.log(`starting tor_adapter with args: ${tor_adapter_args.toString()}`)
 
-    let result = await set_endpoints(client, tor_endpoints)
-    console.log(`set tor endpoints: ${JSON.stringify(result)}`)
-    expect(JSON.stringify(result)).toEqual(JSON.stringify({ "state_entity_endpoint": ["http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion", " http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion "], "swap_conductor_endpoint": ["http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion", " http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion "], "electrum_endpoint": ["https://blockstream.info/testnet/api"] }))
+            //let ta_process = exec("node /home/ldeacon/Projects/mercury-wallet/src /../tor-adapter/server/index.js/home/ldeacon/Projects/mercury-wallet/resources/linux/tor/home/ldeacon/Projects/mercury-wallet/resources/etc/torrc/home/ldeacon /.config/MercuryWallet/tor)
+            ta_process = exec(`node ${tor_adapter_path} ${tor_cmd} ${torrc} ${user_data_path}`,
+                {
+                    detached: true,
+                    stdio: 'ignore',
+                },
+                (error, stdout, _stderr) => {
+                    if (error) {
+                        console.log(`tor process error: ${error.toString()}`)
+                    };
+                }
+            )
+            const client = new HttpClient('http://localhost:3001');
 
-    return new Promise(resolve => setTimeout(resolve, 10000))
-  })
+            let result = await set_endpoints(client, tor_endpoints)
+            console.log(`set tor endpoints: ${JSON.stringify(result)}`)
+            expect(JSON.stringify(result)).toEqual(JSON.stringify({ "state_entity_endpoint": ["http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion", " http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion "], "swap_conductor_endpoint": ["http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion", " http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion "], "electrum_endpoint": ["https://blockstream.info/testnet/api"] }))
 
-  afterAll(async () => {
-    await kill_port_process(3001)
-    return new Promise(resolve => setTimeout(resolve, 0))
-  })
+            return new Promise(resolve => setTimeout(resolve, 10000))
+        })
 
+        afterAll(async () => {
+            await kill_port_process(3001)
+            return new Promise(resolve => setTimeout(resolve, 0))
+        })
+    }
   describe('Tor server integration', function () {
     test('tor server get', async function () {
       const client = new HttpClient('http://localhost:3001');
