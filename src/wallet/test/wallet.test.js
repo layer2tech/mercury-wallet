@@ -611,17 +611,18 @@ describe('updateBackupTxStatus', function () {
     expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.IN_MEMPOOL);
   })
 
+
   test('Confirmed', async function () {
     // blockheight 1001, backup tx confirmed, coin WITHDRAWN
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
     wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
-    wallet.block_height = 1000;
-    await wallet.updateBackupTxStatus(false);
     wallet.block_height = 1003;
+    wallet.statecoins.coins[1].status = STATECOIN_STATUS.EXPIRED;
+    wallet.statecoins.coins[1].backup_status = BACKUP_STATUS.IN_MEMPOOL;
     wallet.electrum_client.getTransaction = jest.fn(async (_txid) => {
       return { confirmations: 3 }
-    })
-    await wallet.updateBackupTxStatus(false);
+    });
+    await wallet.updateBackupTxStatus()
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.EXPIRED);
     // verify tx confirmed
     expect(wallet.statecoins.coins[1].backup_status).toBe(BACKUP_STATUS.CONFIRMED);
