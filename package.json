@@ -135,7 +135,6 @@
     "semver": "^7.3.7",
     "socks": "^2.6.1",
     "socks-proxy-agent": "^5.0.0",
-    "superagent": "^6.1.0",
     "suppress-warnings": "^1.0.2",
     "testcafe": "^1.14.2",
     "testcafe-browser-provider-electron": "^0.0.16",
