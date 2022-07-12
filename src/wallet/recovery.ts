@@ -4,18 +4,15 @@
 import { Transaction } from "bitcoinjs-lib";
 import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin, WithdrawalTxBroadcastInfo } from './statecoin';
-import { WithdrawMsg2 } from './mercury/withdraw';
 import {
   getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo,
   getStateChain, getStateChainTransferFinalizeData, TransferFinalizeDataAPI
 } from './mercury/info_api';
-import { StateChainSig, encodeSCEAddress, getTxFee } from "./util";
-import { GET_ROUTE } from '.';
+import { StateChainSig, encodeSCEAddress } from "./util";
 import {
   transferReceiverFinalizeRecovery, TransferFinalizeDataForRecovery
 } from './mercury/transfer';
 import { setProgressComplete, setProgress } from "../features/WalletDataSlice";
-import { forEachChild } from "typescript";
 
 const Promise = require('bluebird');
 let bitcoin = require('bitcoinjs-lib');

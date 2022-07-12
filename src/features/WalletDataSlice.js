@@ -1,6 +1,5 @@
 'use strict';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { useSelector } from 'react-redux';
 
 import { Wallet, ACTION, STATECOIN_STATUS } from '../wallet'
 import { getFeeInfo, getCoinsInfo } from '../wallet/mercury/info_api'

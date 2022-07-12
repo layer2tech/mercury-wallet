@@ -1,7 +1,6 @@
 'use strict';
-import { ElectrumTxData } from '../wallet/electrum';
+
 import {Mutex} from 'async-mutex'
-import { MockHttpClient } from './mocks/mock_http_client';
 const Promise = require('bluebird');
 let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
