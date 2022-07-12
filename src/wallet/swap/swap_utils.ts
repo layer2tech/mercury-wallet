@@ -1,4 +1,3 @@
-'use strict';
 // Conductor Swap protocols
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS, StateCoinList } from '..';
 import { ElectrsClient } from '../electrs'
@@ -10,10 +9,7 @@ import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
 import { v4 as uuidv4 } from 'uuid';
 import { Wallet } from '../wallet'
 import { MockWasm } from '..';
-//import { Swap } from 'client-wasm';
-import Swap from './swap'
 
-const Promise = require('bluebird');
 let bitcoin = require("bitcoinjs-lib");
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -36,7 +32,7 @@ export const pingServer = async (
 }
 
 function delay(s: number) {
-  return Promise.delay(s * 1000); 
+  return new Promise(resolve => setTimeout(resolve, s * 1000));
 }
 
 export const UI_SWAP_STATUS = {
@@ -139,7 +135,7 @@ export class SwapStep {
       this.phase = phase
       this.subPhase = subPhase
       this.statecoin_status = statecoin_status
-      this.swap_status = swap_status 
+      this.swap_status = swap_status
       this.statecoin_properties = statecoin_properties
       this.doit = doit
     }

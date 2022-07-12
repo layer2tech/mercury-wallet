@@ -1,4 +1,3 @@
-'use strict';
 import React from 'react';
 import Moment from 'react-moment';
 import { fromSatoshi } from '../../wallet/util'
@@ -165,7 +164,12 @@ const Activity = () => {
 						: null}
 					{item.action === 'S' ?
 						<table className="swap-row-table" >
+
 							<tbody>
+								<span className="tooltip" >
+									<div><b>New TxID: </b>{swapTxid(item.funding_txid, item.date)}:{item.funding_txvout}</div>
+									<div><b>Swapped TxId: </b>{shortenString(item.funding_txid)}:{item.funding_txvout}</div>
+								</span>
 								<tr>
 									<td>
 										<img src={withrowIcon} alt="withrowIcon" />
@@ -173,10 +177,6 @@ const Activity = () => {
 										<span >Swapped 1 Statecoin</span>
 									</td>
 									<td>
-										<span className="tooltip" >
-											<div><b>New TxID: </b>{swapTxid(item.funding_txid, item.date)}:{item.funding_txvout}</div>
-											<div><b>Swapped TxId: </b>{shortenString(item.funding_txid)}:{item.funding_txvout}</div>
-										</span>
 										<img src={swapIcon} alt="txidIcon" />
 										<span className="txid">{item.funding_txid}:{item.funding_txvout}</span>
 
@@ -234,15 +234,11 @@ const Activity = () => {
 			))}
 		</div>
 	))
-	let activity_data_len = activity_data.length
-	activity_data = null;
-	statecoins = null;
 	return (
 		<div >
-			{!activity_data_len ? (<EmptyCoinDisplay message="No activity recorded." />) : (activitiesTableData)}
+			{!activity_data.length ? (<EmptyCoinDisplay message="No activity recorded." />) : (activitiesTableData)}
 
 		</div>
 	)
-	
 }
 export default Activity

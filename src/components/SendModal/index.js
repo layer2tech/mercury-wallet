@@ -1,4 +1,3 @@
-'use strict';
 import React from "react";
 import { Modal, Spinner} from "react-bootstrap";
 import { CopiedButton } from '../../components';

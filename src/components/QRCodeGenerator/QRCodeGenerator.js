@@ -1,4 +1,3 @@
-'use strict';
 import React from 'react';
 import './qrcode.css'
 let QRCode = require('qrcode.react');

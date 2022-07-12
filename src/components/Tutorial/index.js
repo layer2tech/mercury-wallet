@@ -1,4 +1,3 @@
-'use strict';
 import React from "react";
 import { useDispatch } from 'react-redux';
 import VideoPlaceholder from '../../images/video-placeholder.png';

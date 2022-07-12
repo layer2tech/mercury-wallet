@@ -1,4 +1,3 @@
-'use strict';
 import { checkForServerError, handlePromiseRejection } from './error';
 import { Mutex } from 'async-mutex'
 import { semaphore, TIMEOUT } from './http_client'
@@ -6,7 +5,6 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { Network } from "bitcoinjs-lib";
 let bitcoin = require('bitcoinjs-lib')
 
-const Promise = require('bluebird');
 export const mutex = new Mutex();
 
 class ElectrsLocalClientError extends Error {
@@ -54,12 +52,6 @@ export class ElectrsLocalClient {
     this.scriptIntervals = new Map()
     this.scriptStatus = new Map()
     this.blockHeightLatest = 0
-  }
-
-  enableBlockHeightSubscribe() {
-  }
-
-  disableBlockHeightSubscribe() {
   }
 
   static async get(endpoint: string, path: string, params: any, timeout_ms: number = TIMEOUT){

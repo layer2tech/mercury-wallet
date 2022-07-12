@@ -1,7 +1,4 @@
-'use strict';
 import { ElectrumClient, ElectrsClient, EPSClient, MockElectrumClient, HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE } from "..";
-
-const Promise = require('bluebird');
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -206,7 +203,9 @@ export const delay_s = (s: number) => {
 }
 
 export const delay = (ms: number) => {
-  return Promise.delay(ms)
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  })
 }
 
 export const getSmtProof = async (

@@ -1,4 +1,3 @@
-'use strict';
 import React, { useEffect, useState } from 'react';
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux'
@@ -25,7 +24,6 @@ import '../Send/Send.css';
 
 import { Transaction } from 'bitcoinjs-lib';
 import MultipleReceive from '../MultipleReceive/MultipleReceive';
-import { setIntervalIfOnline } from "../../features/WalletDataSlice";
 
 let addr_index = -2;
 
@@ -71,19 +69,18 @@ const ReceiveStatecoinPage = () => {
     let isMounted = true
     // Check if Electrum server connected on page open
     checkElectrum(isMounted);
-    const interval = setIntervalIfOnline((bmounted) => {
-      if (bmounted === true) {
-        checkElectrum(bmounted);
+    const interval = setInterval(() => {
+      if (isMounted === true) {
+        //Check Electrum server every 5s
+        checkElectrum(isMounted);
       }
-    }, torInfo.online,
-      10000,
-      isMounted);
-    
+    }, 10000)
     return () => {
       isMounted = false
       clearInterval(interval)
     }
-  }, []);
+
+  }, [])
 
   useEffect(() => {
     if(receive){
@@ -91,7 +88,7 @@ const ReceiveStatecoinPage = () => {
       setReceive(false);
     }
 
-  }, [numReceive,receive])
+  }, [numReceive])
 
   const checkElectrum = (isMounted) => {
     callPingElectrumRestart(!torInfo.online).then((res) => {

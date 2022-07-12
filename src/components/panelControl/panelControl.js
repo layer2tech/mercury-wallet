@@ -1,4 +1,3 @@
-'use strict';
 import walletIcon from '../../images/walletIcon.png';
 import walletIconSmall from '../../images/walletIconsmallIcon.png';
 import minusIcon from '../../images/minus.svg'
@@ -80,8 +79,7 @@ const PanelControl = () => {
         <span>{balance_info.hidden ? HIDDEN : balance_info.num_coins} {filterByMsg()}</span>
       </div>
       <div className="ActionGroupLeft">
-        <CheckBox
-        description=""
+      <CheckBox
         label={balance_info.hidden ? "Show balance" : "Hide balance"}
         checked={!!balance_info.hidden}
         onChange={onHideBalanceChange}

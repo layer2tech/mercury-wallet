@@ -1,11 +1,8 @@
-'use strict';
 import { checkForServerError, handlePromiseRejection } from './error';
 import { ElectrumTxData } from '../wallet/electrum';
 import { semaphore, TIMEOUT } from './http_client'
 import { log } from './swap/swap_utils';
 import axios, { AxiosRequestConfig } from 'axios'
-import { handleErrors } from '../error'
-const Promise = require('bluebird');
 let bitcoin = require('bitcoinjs-lib')
 
 class ElectrsClientError extends Error {
@@ -48,8 +45,6 @@ export class ElectrsClient {
   blockHeightLatest: any
   block_height_interval: any
   script_hash_subscriptions: string[]
-  bEnableBlockHeightSubscribe: boolean
-
   
   constructor(endpoint: string, is_tor = true){
     this.endpoint = endpoint
@@ -59,15 +54,6 @@ export class ElectrsClient {
     this.blockHeightLatest = 0
     this.script_hash_subscriptions = []
     this.block_height_interval = null
-    this.bEnableBlockHeightSubscribe = true
-  }
-
-  enableBlockHeightSubscribe() {
-    this.bEnableBlockHeightSubscribe = true
-  }
-
-  disableBlockHeightSubscribe() {
-    this.bEnableBlockHeightSubscribe = false
   }
 
   async new_tor_id() {
@@ -196,7 +182,15 @@ export class ElectrsClient {
     } catch(err: any) {
       this.blockHeightLatest = null
       callBack([{ "height": null }])
-      handleErrors(err)
+      const err_str = err?.message
+      if (err_str &&
+          (err_str.includes('Network Error') ||
+            err_str.includes(`Electrum API request timed out:`))
+      ) {
+        log.warn(JSON.stringify(err))
+      } else {
+        throw err
+      }
     }
   }
 
@@ -206,7 +200,7 @@ export class ElectrsClient {
     if ( this.scriptIntervals.has(scriptHash) ){
       throw new ElectrsClientError(`already subscribed to script: [${scriptHash}]`)
     }
-    let timer = setInterval(this.getScriptHashStatus, 5000, scriptHash, callBack, this.endpoint)
+    let timer = setInterval(this.getScriptHashStatus, 10000, scriptHash, callBack, this.endpoint)
     this.scriptIntervals.set(scriptHash, timer)
     return timer
   }
@@ -217,7 +211,7 @@ export class ElectrsClient {
   }
 
   blockHeightSubscribe(callBack: any) {
-    if(this.block_height_interval != null) return;
+    if(this.block_height_interval) return;
     this.block_height_interval = setInterval(
       async(cb, ep) => {
         await this.getLatestBlock(cb, ep)
@@ -226,14 +220,13 @@ export class ElectrsClient {
   }
 
   blockHeightUnsubscribe() {
-    clearInterval(this.block_height_interval);
-    this.block_height_interval = null;
+    clearInterval(this.block_height_interval)
   }
 
-  unsubscribeAll() {
-    this.blockHeightUnsubscribe()
+  async unsubscribeAll() {
+    await this.blockHeightUnsubscribe()
     this.scriptIntervals.forEach (async function(value, _key) {
-      clearInterval(value)
+     await clearInterval(value)
     })
   }
 

@@ -1,4 +1,3 @@
-'use strict';
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
 import { BIP32Interface, Network, Transaction, script } from "bitcoinjs-lib";
@@ -14,7 +13,6 @@ import { Wallet } from "../wallet";
 import { ACTION } from '../activity_log';
 import { TransferFinalizeData } from "../types";
 
-const Promise = require('bluebird');
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require('lodash.clonedeep');
 let types = require("../types")
@@ -144,10 +142,6 @@ export const transferSender = async (
   let t1_enc = {
     secret_bytes: Array.from(encryptECIES(receiver_addr,t1.toString("hex")))
   }
-
-  o1_bn = null;
-  x1_bn = null;
-  t1 = null;
 
   let transfer_msg3 = {
     shared_key_id: statecoin.shared_key_id,

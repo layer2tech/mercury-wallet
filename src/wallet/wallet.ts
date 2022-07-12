@@ -1,5 +1,4 @@
 // Main wallet struct storing Keys derivation material and Mercury Statecoins.
-'use strict';
 import { BIP32Interface, Network, Transaction } from 'bitcoinjs-lib';
 import { ACTION, ActivityLog, ActivityLogItem } from './activity_log';
 import {
@@ -31,9 +30,6 @@ import { EPSClient } from './eps';
 import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './mercury/torcircuit_api';
 import { callGetNewTorId } from '../features/WalletDataSlice';
 import { Mutex } from 'async-mutex';
-import { handleErrors } from '../error';
-
-const Promise = require('bluebird');
 
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -116,7 +112,7 @@ export class Wallet {
 
   constructor(name: string, password: string, mnemonic: string, account: any, config: Config,
     http_client: any = undefined, wasm: any = undefined) {
-    this.wasm = null;
+    
     this.name = name;
     this.password = password;
     this.config = config;
@@ -191,19 +187,22 @@ export class Wallet {
           torcircuit_ids_existing.push(this.tor_circuit[i].id)
         }
       }
-  
+
       for (var i = 0; i < torcircuit_ids.length; i++) {
         //Unknown tor circuit - request data
         if (torcircuit_ids_existing.indexOf(torcircuit_ids[i]) < 0) {
           torcircuit_ids_req.push(torcircuit_ids[i])
         }
       }
-    
+
+
       for (var i = 0; i < torcircuit_ids_req.length; i++) {
         torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids_req[i]));
       }
 
       this.tor_circuit = torcircuit;
+
+
     } catch (err: any) {
       throw err
     }
@@ -340,7 +339,6 @@ export class Wallet {
   save_nomutex() {
     let wallet_json = cloneDeep(this)
     this.storage.storeWallet(wallet_json)
-    wallet_json = null
   }
 
   // Save wallet names in file
@@ -362,7 +360,6 @@ export class Wallet {
     try {
       let account = cloneDeep(this.account)
       this.storage.storeWalletKeys(this.name, account)
-      account = null
     } finally {
       release()
     }
@@ -547,8 +544,9 @@ export class Wallet {
             return;
           })
         }
-      }).catch((err) => {
-        handleErrors(err)
+      }).catch(err => {
+        console.error('Error InitElectrumClient: ', err)
+
       })
     })
   }
@@ -574,21 +572,19 @@ export class Wallet {
   // Wasm contains all wallet Rust functionality.
   // MockWasm is for Jest testing since we cannot run webAssembly with browser target in Jest's Node environment
   async getWasm() {
-    if (this.wasm == null) {
-      if (this.config.jest_testing_mode) {
-        this.wasm = new MockWasm()
+    let wasm;
+    if (this.config.jest_testing_mode) {
+      if (this.wasm !== undefined && this.wasm !== null) {
+        return this.wasm
       } else {
-        await this.importWasm()
+        wasm = new MockWasm()
       }
-      // Setup
-      await this.wasm.init();
+    } else {
+      wasm = await import('client-wasm');
     }
-    return this.wasm
-  }
-
-  async importWasm() {
-    console.log("importing wasm...")
-    this.wasm = await import('client-wasm');
+    // Setup
+    wasm.init();
+    return wasm
   }
 
   // Getters
@@ -893,7 +889,7 @@ export class Wallet {
   async checkMempoolTx(statecoin: StateCoin) {
     let txid = statecoin!.tx_backup!.getId();
     if (txid != null) {
-        const tx_data: any = await this.electrum_client.getTransaction(txid)
+        const tx_data = await this.electrum_client.getTransaction(txid)
         if (tx_data?.confirmations != null && tx_data.confirmations >= this.config.required_confirmations) {
           
           statecoin.setBackupConfirmed();
@@ -1033,7 +1029,7 @@ export class Wallet {
     statecoin.value = value;
     statecoin.funding_txid = txid;
     statecoin.funding_vout = vout;
-    statecoin.tx_backup = null;
+    statecoin.tx_backup = new Transaction();
     statecoin.setConfirmed();
     if (this.statecoins.addCoin(statecoin)) {
       this.activity.addItem(id, action);
@@ -1358,8 +1354,7 @@ export class Wallet {
   // De register coin from swap on server and set statecoin swap data to null
   async deRegisterSwapCoin(
     statecoin: StateCoin,
-    force: boolean = false,
-    suppress_warning: boolean = false
+    force: boolean = false
   ): Promise<void> {
     //Check if statecoin may be removed from swap
     statecoin = this.statecoins.checkRemoveCoinFromSwapPool(statecoin.shared_key_id, force);
@@ -1446,19 +1441,17 @@ export class Wallet {
     let new_statecoin: StateCoin | null = null;
 
     await swapSemaphore.wait();
-    let swap = null
     try {
       await (async () => {
         while (updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
           delay(1000);
         }
       });
-      swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der, resume)
+      let swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der, resume)
       new_statecoin = await swap.do_swap_poll()
     } catch (e: any) {
       this.handleSwapError(e, statecoin)
     } finally {
-      swap = null;
       return this.doPostSwap(statecoin, new_statecoin)
     }
   }
@@ -1500,27 +1493,26 @@ export class Wallet {
       if (result) {
         this.swap_group_info = result
       } else {
-        this.clearSwapGroupInfo()
+        this.swap_group_info = new Map<SwapGroup, GroupInfo>();
       }
     }).catch((err: any) => {
-      this.clearSwapGroupInfo();
-      handleErrors(err);
+      this.swap_group_info.clear()
+      let err_str = typeof err === 'string' ? err : err?.message
+      if (err_str && (err_str.includes('Network Error') ||
+        err_str.includes('Mercury API request timed out'))) {
+        log.warn(JSON.stringify(err))
+      } else {
+        throw err
+      }
     })
-  }
-
-  clearSwapGroupInfo() {
-    this.swap_group_info.clear()
   }
 
   async updateSpeedInfo(torOnline = true) {
     if (!torOnline) {
-      this.electrum_client.disableBlockHeightSubscribe()
       this.ping_server_ms = null
       this.ping_conductor_ms = null
       this.ping_electrum_ms = null
       return
-    } else {
-      this.electrum_client.enableBlockHeightSubscribe()
     }
     try {
       this.ping_server_ms = await pingServer(this.http_client)
@@ -1578,21 +1570,14 @@ export class Wallet {
 
   // force deregister of all coins in swap and also toggle auto swap off
   // except for in swap phase 4
-  async deRegisterSwaps(suppress_warning: boolean = false) {
+  async deRegisterSwaps() {
     for (let i = 0; i < this.statecoins.coins.length; i++) {
       let statecoin = this.statecoins.coins[i]
       try {
-        await this.deRegisterSwapCoin(statecoin, false, suppress_warning)
-      }
-      
-      catch (err: any) {
-        try {
-            handleErrors(err)
-        } catch (err: any) {
-          const err_str = err?.message
-          if (!(err_str != null && err_str.includes("Coin is not in a swap pool"))) {
-            throw err
-          }
+        await this.deRegisterSwapCoin(statecoin)
+      } catch (e: any) {
+        if (!(e?.message && e.message.includes("Coin is not in a swap pool"))) {
+          throw e
         }
       }
       //REMOVE THIS TRY CATCH
@@ -1878,7 +1863,7 @@ export class Wallet {
           nTries = nTries + 1
           if (nTries < maxNTries) {
             log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
-            await Promise.delay(1000)
+            await new Promise(resolve => setTimeout(resolve, 1000))
             continue
           } else {
             let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. Raw Tx: ${tx_withdraw_d.toHex()}`
@@ -1951,7 +1936,7 @@ export class Wallet {
         nTries = nTries + 1
         if (nTries < maxNTries) {
           log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
-          await Promise.delay(1000)
+          await new Promise(resolve => setTimeout(resolve, 1000))
           continue
         } else {
           let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`
@@ -1969,20 +1954,18 @@ export class Wallet {
     withdraw_msg_2: WithdrawMsg2,
     txid: string
   ) {
-    log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`);
+    log.info(` doing withdraw confirm with message: ${JSON.stringify(withdraw_msg_2)}`)
     try {
-      withdraw_msg_2.shared_key_ids.forEach(async (shared_key_id) => {
-        this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
-        await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
-        this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
+      withdraw_msg_2.shared_key_ids.forEach((shared_key_id) => {
+        this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
+        this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
       });
       await withdraw_confirm(this.http_client, withdraw_msg_2);
     } catch (e) {
       if (`${e}`.includes('No data for id') || `${e}`.includes('No update made')) {
-        withdraw_msg_2.shared_key_ids.forEach( async (shared_key_id) => {
-          this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
-          await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
-          this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
+        withdraw_msg_2.shared_key_ids.forEach((shared_key_id) => {
+          this.statecoins.setCoinWithdrawTxId(shared_key_id, txid)
+          this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW)
         })
       } else {
         log.error(`withdraw confirm error: ${e}`);

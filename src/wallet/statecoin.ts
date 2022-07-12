@@ -1,6 +1,5 @@
 // Statecoin is a Mercury shared key along with all deposit information.
 
-'use strict';
 import { Network, Transaction } from "bitcoinjs-lib";
 import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
 import { ACTION } from ".";
@@ -261,7 +260,7 @@ export class StateCoinList {
     let changed = false
     let coin = this.getCoin(shared_key_id)
     if (coin) {
-      changed = coin.setInMempool()
+      changed = changed || coin.setInMempool()
       if (coin.funding_txid !== funding_tx_data.tx_hash) {
         coin.funding_txid = funding_tx_data.tx_hash
         changed = true
@@ -539,9 +538,9 @@ export class StateCoin {
     this.swap_batch_data = null;
     this.swap_transfer_msg_3_receiver = null;
     this.swap_transfer_msg_4 = null;
+    this.swap_transfer_finalized_data = null;
     this.swap_auto = false;
     this.swap_error = null;
-    this.swap_transfer_finalized_data = null;
   }
 
   setAutoSwap(val: boolean) { this.swap_auto = val }
@@ -731,6 +730,7 @@ export class StateCoin {
     this.swap_batch_data = null;
     this.swap_transfer_msg_3_receiver = null;
     this.swap_transfer_msg_4 = null;
+    this.swap_transfer_finalized_data = null;
     this.ui_swap_status = null;
     this.clearSwapError();
   }

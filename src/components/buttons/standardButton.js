@@ -1,4 +1,3 @@
-'use strict';
 import React from 'react';
 
 class StdButton extends React.Component {

@@ -1,4 +1,3 @@
-'use strict';
 import { ActivityLog, decryptAES, encryptAES, StateCoinList } from "./wallet";
 
 declare const window: any;

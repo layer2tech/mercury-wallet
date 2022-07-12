@@ -1,5 +1,4 @@
-'use strict';
-import React, { useRef, useState } from 'react';
+import React, {useRef, useState } from 'react';
 import {useForm} from "react-hook-form";
 import { Link } from "react-router-dom";
 import eyeIcon from "../../images/eye-icon.svg";

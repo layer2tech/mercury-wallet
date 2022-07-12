@@ -1,5 +1,4 @@
-'use strict';
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {withRouter} from "react-router-dom";
 import {useDispatch} from 'react-redux'
 import {CreateWizardForm, ConfirmSeed, DisplaySeed, Steppers} from "../../components";

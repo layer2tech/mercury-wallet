@@ -1,9 +1,6 @@
 // Mercury 2P-ECDSA KeyGen and Sign protocols
 
-'use strict';
 import { HttpClient, MockHttpClient, StateCoin, POST_ROUTE } from '../';
-
-const Promise = require('bluebird');
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -14,6 +11,10 @@ export const PROTOCOL = {
    WITHDRAW: "Withdraw"
 };
 Object.freeze(PROTOCOL);
+
+function delay(s: number) {
+  return new Promise( resolve => setTimeout(resolve, s*1000) );
+}
 
 // 2P-ECDSA Key generation. Output SharedKey struct.
 export const keyGen = async (

@@ -11,10 +11,15 @@ import { swapInit } from '../swap/swap.init'
 
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 
+import TestComponent, { render } from './test-utils'
 
+import { handleEndSwap } from '../../features/WalletDataSlice.js';
+import { fromSatoshi } from '../util.ts';
+import { fireEvent, screen } from '@testing-library/dom';
+import { AsyncSemaphore } from '@esfx/async-semaphore';
 import { STATECOIN_STATUS } from '../statecoin.ts';
-import { POST_ROUTE } from '../http_client';
-
+import { GET_ROUTE, POST_ROUTE } from '../http_client';
+import { assert } from 'console';
 
 let cloneDeep = require('lodash.clonedeep');
 

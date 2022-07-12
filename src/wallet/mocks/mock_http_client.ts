@@ -1,7 +1,6 @@
 // Mocks out server side calls to cryptographic protocols and other APIs.
 // Mock Classes  are followed by mock data for full protocol runs.
 
-'use strict';
 import { Transaction } from 'bitcoinjs-lib';
 import { createTypeReferenceDirectiveResolutionCache } from "typescript";
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
@@ -11,7 +10,6 @@ import { TransferFinalizeDataForRecovery,
 } from "../mercury/transfer";
 import { SwapID } from "../swap/swap_utils";
 import { StateChainSig } from "../util"
-const Promise = require('bluebird');
 let types = require("../types")
 let typeforce = require('typeforce');
 // import { SIGNSWAPTOKEN_DATA, BST_DATA } from "../test/test_data";

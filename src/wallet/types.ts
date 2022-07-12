@@ -1,4 +1,3 @@
-'use strict';
 let typeforce = require('typeforce');
 
 // re-export some basic types

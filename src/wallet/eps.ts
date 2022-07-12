@@ -1,8 +1,6 @@
-'use strict';
 import { ElectrumTxData } from '../wallet/electrum';
 import {Mutex} from 'async-mutex'
 import { MockHttpClient } from './mocks/mock_http_client';
-const Promise = require('bluebird');
 let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
 export const mutex = new Mutex();
@@ -52,12 +50,6 @@ export class EPSClient {
     this.scriptIntervals = new Map()
     this.scriptStatus = new Map()
     this.blockHeightLatest = 0
-  }
-
-  enableBlockHeightSubscribe() {
-  }
-
-  disableBlockHeightSubscribe() {
   }
 
   static async get (endpoint: string, path: string, params: any){

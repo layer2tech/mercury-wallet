@@ -1,8 +1,5 @@
-'use strict';
-import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE, ElectrumClient, MockElectrumClient } from "..";
+import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE, ElectrumClient, MockElectrumClient  } from "..";
 import { BSTMsg, SwapID, StatechainID, SwapGroup, GroupInfo, log} from './swap_utils';
-
-const Promise = require('bluebird');
 
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -83,8 +80,7 @@ export const getBlindedSpendSignature = async (
 
 export const groupInfo = async(
   http_client: HttpClient |  MockHttpClient,
-): Promise<Map<SwapGroup, GroupInfo> | null> => {
-  try {
+): Promise<Map<SwapGroup, GroupInfo>> => {
     let sgm_json = await http_client.get(GET_ROUTE.SWAP_GROUPINFO, {})
 
     typeforce(types.SwapGroupMap, sgm_json);
@@ -106,8 +102,4 @@ export const groupInfo = async(
       map.set(swap_group, group_info)
     }
     return map
-  } catch (err: any) {
-    log.warn(`groupInfo: ${err}`)
-    return null
-  }
 }

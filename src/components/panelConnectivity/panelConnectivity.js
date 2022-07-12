@@ -1,4 +1,3 @@
-'use strict';
 import arrow from '../../images/arrow-accordion.png';
 
 import React, {useState, useEffect} from "react";
@@ -42,10 +41,7 @@ const PanelConnectivity = (props) => {
   let participants = swap_groups_array.reduce((acc,item)=> acc+item[1].number,0)
   let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1].number * item[0].amount),0);
 
-  const updateSpeedInfo = async (isMounted) => {
-    if (isMounted !== true) {
-      return
-    } 
+  const updateSpeedInfo = async () => {
     dispatch(callUpdateSpeedInfo({ torOnline: torInfo.online }));
     if(server_ping_ms !== callGetPingServerms()){
       setServerPingMs(callGetPingServerms())
@@ -60,15 +56,13 @@ const PanelConnectivity = (props) => {
 
   // every 30s check speed
   useEffect(() => {
-    
-    let isMounted = true
-    let interval = setIntervalIfOnline(updateSpeedInfo, torInfo.online, 30000, isMounted)
+    updateSpeedInfo()
+    const interval = setInterval(() => {
+      updateSpeedInfo()
+    }, 15000);
 
-    return () => {
-      isMounted = false
-      clearInterval(interval);
-    }
-  }, [torInfo.online]);
+    return () => clearInterval(interval);
+  }, [server_ping_ms, conductor_ping_ms, electrum_ping_ms, dispatch, torInfo.online]);
 
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
@@ -78,9 +72,7 @@ const PanelConnectivity = (props) => {
 
     return () => {
       isMounted = false;
-      //if (interval != null) {
-        clearInterval(interval);  
-      //}
+      clearInterval(interval);
     }
   }, [block_height, torInfo.online, props.online]);
 
@@ -156,11 +148,11 @@ const toggleURL = (event) => {
                 condition = { server_ping_ms !== null }/>
             <RadioButton 
                 connection = "Swaps"
-                checked = { swap_groups_array.length > 0 || conductor_ping_ms != null }
+                checked = { swap_groups_array.length || conductor_ping_ms }
                 condition = { conductor_ping_ms !== null }/>
             <RadioButton 
                 connection = "Bitcoin"
-                checked = { block_height > -1 }
+                checked = { block_height }
                 condition = { electrum_ping_ms !== null }/>
 
             <div onClick={toggleContent} className={ state.isToggleOn ? "image rotate" : ' image ' }>

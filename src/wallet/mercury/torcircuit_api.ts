@@ -1,19 +1,9 @@
-'use strict';
 /* TODO - CHECK FOR TYPES */
 import { HttpClient, MockHttpClient, GET_ROUTE } from "..";
-import { handleNetworkError } from "../../error";
 
 let types = require("../types")
 let typeforce = require('typeforce');
 
-
-declare const window: any;
-let log: any;
-try {
-    log = window.require('electron-log');
-} catch (e: any) {
-    log = require('electron-log');
-}
 
 // parent
 export interface TorCircuitData {
@@ -30,12 +20,12 @@ export interface TorCircuit {
 }
 
 export const getNewTorId = async (http_client: HttpClient |  MockHttpClient) => {
-    let tor_id = null
-    try {
+    let tor_id
+    try{
         tor_id = await http_client.get(GET_ROUTE.NEW_TOR_ID, {}, 20000);
 
-    } catch (err: any) {
-        handleNetworkError(err)
+    } catch(e){
+        throw e
     }
     // TODO - check for types
     return tor_id;
@@ -49,7 +39,7 @@ export const getTorCircuitIds = async (http_client: HttpClient |  MockHttpClient
         tor_circuit_ids = await http_client.get(GET_ROUTE.TOR_CIRCUITS, {}, timeout_ms)
         return tor_circuit_ids.circuitData;
     }catch(e){
-        log.warn(e)        
+        console.error(e)        
         return []
     }
 }

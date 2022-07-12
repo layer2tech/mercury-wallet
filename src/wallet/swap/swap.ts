@@ -1,4 +1,3 @@
-'use strict';
 import { EPSClient } from '../eps'
 import {
   transferSender, transferReceiver, TransferFinalizeData,
@@ -22,8 +21,6 @@ import {
 } from './swap_utils';
 import { semaphore, MAX_SEMAPHORE_COUNT } from '../http_client'
 import { AsyncSemaphore } from "@esfx/async-semaphore";
-
-const Promise = require('bluebird');
 
 const newid_semaphore = new AsyncSemaphore(1);
 
@@ -143,7 +140,6 @@ export default class Swap {
       this.resetRetryCounters()
       this.statecoin.clearSwapError()
     } else {
-      console.log(`process step result retry - message: ${sr.message}`)
       await this.processStepResultRetry(sr, next_step)
     }
   }
@@ -838,6 +834,9 @@ export default class Swap {
       }
     }
   }
+
+
+
 
   // Check statecoin is eligible for entering a swap group
   validate = () => {

@@ -1,5 +1,4 @@
-'use strict';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import { Link, useHistory } from "react-router-dom";
 import {useDispatch} from 'react-redux';
 import {Storage} from '../../store';
@@ -81,7 +80,8 @@ const LoadWalletPage = (props) => {
   }
 
   const enterContinue = (event) => {
-    if (event.key === "Enter") {
+
+    if(event.key.charCodeAt(0) === 69){
       // On enter key press: prevent rerender
       event.preventDefault()
       onContinueClick(event)

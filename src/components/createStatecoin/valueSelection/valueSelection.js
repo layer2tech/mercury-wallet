@@ -3,7 +3,6 @@ import { Modal } from 'react-bootstrap';
 import { MINIMUM_DEPOSIT_SATOSHI, fromSatoshi, toSatoshi } from '../../../wallet/util'
 import '../../../containers/Deposit/Deposit.css';
 import { callGetFeeInfo } from '../../../features/WalletDataSlice';
-import { handleErrors } from '../../../error'
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -57,8 +56,16 @@ const ValueSelectionPanel = (props) => {
         callGetFeeInfo().then(fee => {
           setWithdrawFee(fee?.withdraw);
         }).catch((err) => {
-          handleErrors(err)
+          const err_str = err?.message
+          if (err_str && (err_str.includes('Network Error') ||
+            err_str.includes('Mercury API request timed out'))) {
+            log.warn(JSON.stringify(err))
+          } else {
+            throw err
+          }
         })
+
+
         return;
       }
 

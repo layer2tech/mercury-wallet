@@ -1,14 +1,13 @@
-'use strict';
 import React from 'react';
 
 const RadioButton = (props) => {
-    return (
+    return(
     <div className={`connection-title Connection${props.connection}`}>
         <label>
             <input
                 readOnly
                 type="radio"
-                checked={props.checked || false}
+                checked={props.checked}
             />
             {props.condition ?("Connected"):("Connecting") } to {props.connection}
             <span className="checkmark"></span>

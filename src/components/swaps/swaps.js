@@ -1,4 +1,3 @@
-'use strict';
 import coin from "../../images/table-icon1.png";
 import user from "../../images/table-icon-user.png";
 import React, {useState, useEffect} from 'react';
@@ -30,15 +29,14 @@ const Swaps = (props) => {
         }
     },[props.swapGroupsData, swapTime]);
 
-    useEffect(() => {
-        let interval = null;
-        let isMounted = true;
+    useEffect(()=> {
         if(swapTime!==""){
-            interval = setIntervalIfOnline(countdownTimer, torInfo.online, 1000, isMounted);
-        }
-        return () => {
-            isMounted = false;
-            clearInterval(interval);
+            let isMounted = true;
+            let interval = setIntervalIfOnline(countdownTimer, torInfo.online, 1000, isMounted)
+            return () => {
+                isMounted = false;    
+                clearInterval(interval)
+            }
         }
     },[count,swapTime, torInfo.online])
 

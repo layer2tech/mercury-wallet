@@ -1,4 +1,3 @@
-'use strict';
 import React, { useEffect, useState } from 'react';
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
@@ -9,7 +8,6 @@ import { decodeSCEAddress,encodeSCEAddress,  encodeMessage } from '../../wallet/
 import {
   isWalletLoaded, callTransferSender, setError, setNotification,
   removeCoins,
-  checkSend,
   callProofKeyFromXpub,
   callSumStatecoinValues
 } from '../../features/WalletDataSlice';
@@ -92,6 +90,24 @@ const SendStatecoinPage = () => {
       return
     }
 
+    if (!(input_pubkey.slice(0, 2) === '02' || input_pubkey.slice(0, 2) === '03')) {
+      if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub') {
+        dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
+        return
+      }
+      dispatch(setError({ msg: "Error: invalid proof public key." }));
+      return
+    }
+
+    if (input_pubkey.length !== 66) {
+      if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) ==='tpub') {
+        dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
+        return
+      }
+
+      dispatch(setError({ msg: "Error: invalid proof public key" }))
+      return
+    }
 
     var pubKeyArray = [];
 
@@ -252,8 +268,7 @@ const SendStatecoinPage = () => {
                           </tbody>
                       </table>
                       */}
-
-            <ConfirmPopup onOk={sendButtonCheck} preCheck={checkSend} argsCheck={[dispatch, inputAddr]}>
+            <ConfirmPopup onOk={sendButtonCheck}>
               <button type="action-btn-normal" className={`btn send-action-button ${loading} ${ (selectedCoins.length > 1 && !(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'))?("privacy"): (null)  }`} >
                 {loading ? (<Loading />) : "SEND STATECOIN"}
               </button>

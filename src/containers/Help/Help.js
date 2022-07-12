@@ -1,4 +1,3 @@
-'use strict';
 import question from "../../images/question-blue.png";
 
 import React from 'react';

@@ -11,7 +11,7 @@ let cloneDeep = require('lodash.clonedeep');
 
 describe('SwapStatus', function () {
     let store = configureStore({ reducer: reducers, })
-    
+
     test('Error Messaging', function () {
         render(store,
             <SwapStatus

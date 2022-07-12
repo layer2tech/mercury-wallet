@@ -1,4 +1,3 @@
-'use strict';
 var errors = require('request-promise/errors');
 
 function handle_error(res, err) {

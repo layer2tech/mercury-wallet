@@ -1,4 +1,3 @@
-'use strict';
 import React from 'react';
 import { Modal } from "react-bootstrap";
 import { useSelector } from "react-redux";

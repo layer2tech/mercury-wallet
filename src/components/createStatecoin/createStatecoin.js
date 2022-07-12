@@ -1,4 +1,3 @@
-'use strict';
 import '../../containers/Deposit/Deposit.css';
 import React, { useState, useEffect } from 'react';
 import Spinner from 'react-bootstrap/Spinner';

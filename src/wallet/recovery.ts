@@ -1,6 +1,5 @@
 // wallet recovery from server
 
-'use strict';
 import { Transaction } from "bitcoinjs-lib";
 import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin, WithdrawalTxBroadcastInfo } from './statecoin';
@@ -17,7 +16,7 @@ import {
 import { setProgressComplete, setProgress } from "../features/WalletDataSlice";
 import { forEachChild } from "typescript";
 
-const Promise = require('bluebird');
+
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');
 

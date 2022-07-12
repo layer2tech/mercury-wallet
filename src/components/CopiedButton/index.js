@@ -1,4 +1,3 @@
-'use strict';
 import React, { cloneElement, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import "./copiedButton.css";

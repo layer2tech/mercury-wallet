@@ -17,7 +17,6 @@ import {
   SWAP_STATECHAIN_INFO_AFTER_TRANSFER, TRANSFER_FINALIZED_DATA,
   TRANSFER_MSG_4, STATECOIN_AMOUNT, setSwapDetails, SWAP_INFO
 } from './test_data.js'
-import {MockElectrumClient} from '../mocks/mock_electrum'
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -42,8 +41,6 @@ let bitcoin = require('bitcoinjs-lib')
 let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 // server side's mock
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
-
-let electrum_mock = new MockElectrumClient()
 
 const post_error = (path, body) => {
   return new Error(`Error from POST request - path: ${path}, body: ${body}`)
@@ -148,12 +145,11 @@ async function getWallet() {
   wallet.config.jest_testing_mode = true
   wallet.http_client = http_mock
   wallet.wasm = wasm_mock
-  wallet.electrum_client = electrum_mock
   return wallet
 }
 
 function getSwap(wallet, statecoin, pkd = proof_key_der, new_pkd = proof_key_der_new) {
-  let swap = new Swap(wallet, statecoin, pkd, new_pkd, false, false)
+  let swap = new Swap(wallet, statecoin, pkd, new_pkd)
   return swap
 }
 
@@ -304,6 +300,7 @@ describe('Swap phase 4', function () {
     http_mock.get = jest.fn((path, params) => {
       return transferReceiverGet(path, params, statecoin)
     })
+
 
     //Test unexpected phases
     for (let i = 0; i < SWAP_STATUS.length; i++) {
@@ -1202,56 +1199,5 @@ describe('Swap phase 4', function () {
     checkRetryMessage(await swap.doNext(),
       `transferReceiver: Backup tx invalid amount. Expected 0, got ${STATECOIN_AMOUNT} - batch transfer status: statecoin c93ad45a-00b9-449c-a804-aab5530efc90 waiting for completion of batch transfer in swap ID ${statecoin.swap_id.id}`)
   });
-
-  test('swapPhase4 test 22 - invalid statecoin status in swapPhase4PollSwap', async () => {
-    let wallet = await getWallet();
-    let statecoin = get_statecoin_in();
-    get_statecoin_after_transfer_receiver(statecoin)
-
-    const step_filter = (step) => {
-      return step.subPhase === "swapPhase4PollSwap"
-    }
-
-    statecoin.status = null
-    let swap = getSwap(wallet, statecoin)
-    let step = swapPhase4Steps(swap).filter(step_filter)[0]
-    expect(step.statecoin_status()).toBe(false)
-
-    statecoin.status = STATECOIN_STATUS.IN_SWAP;
-    swap = getSwap(wallet, statecoin)
-    step = swapPhase4Steps(swap).filter(step_filter)[0]
-    expect(step.statecoin_status()).toBe(true)
-
-    statecoin.swap_status = null;
-    swap = getSwap(wallet, statecoin)
-    step = swapPhase4Steps(swap).filter(step_filter)[0]
-    expect(step.swap_status()).toBe(false)
-
-    statecoin.swap_status = SWAP_STATUS.Phase4;
-    swap = getSwap(wallet, statecoin)
-    step = swapPhase4Steps(swap).filter(step_filter)[0]
-    expect(step.swap_status()).toBe(true)
-
-    statecoin.swap_transfer_finalized_data = 
-    swap = getSwap(wallet, statecoin)
-    step = swapPhase4Steps(swap).filter(step_filter)[0]
-    step.statecoin_properties()
-
-    statecoin.swap_transfer_finalized_data = null
-    swap = getSwap(wallet, statecoin);
-    step = swapPhase4Steps(swap).filter(step_filter)[0]
-    
-    expect(step.statecoin_properties).toThrowError("No transfer finalize data found for coin. Transfer finalize data should be set in Phase1. Exiting swap.")
-
-    statecoin.swap_info = null
-    swap = getSwap(wallet, statecoin)
-    step = swapPhase4Steps(swap).filter(step_filter)[0]
-    expect(step.statecoin_properties).toThrowError("No swap info found for coin. Swap info should be set in Phase1. Exiting swap.");
-
-    statecoin.swap_id = null
-    swap = getSwap(wallet, statecoin)
-    step = swapPhase4Steps(swap).filter(step_filter)[0]
-    expect(step.statecoin_properties).toThrowError("No Swap ID found. Swap ID should be set in Phase0. Exiting swap.");
-  })
 
 })
