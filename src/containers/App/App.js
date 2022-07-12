@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react';
+'use strict';
+import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import { useSelector } from 'react-redux';
 import { WelcomePage, CreateWalletInfoPage, CreateWalletWizardPage, HomePage, DepositPage, WithdrawPage, SettingsPage, HelpPage,
@@ -23,16 +24,6 @@ const App = () => {
 
   const version = require("../../../package.json").version;
 
-  useEffect(() => {
-    if (window.addEventListener) {
-        console.log("adding online/offline event listeners")
-        window.addEventListener("online", () => setOnline(true), false);
-        window.addEventListener("offline", () => setOnline(false), false);
-    } else {
-        document.body.ononline = () => setOnline(true);
-        document.body.onoffline = () => setOnline(false);
-    }
-  }, []);
 
   async function darkMode() {
     if (dark_mode === '1') {
@@ -47,6 +38,18 @@ const App = () => {
       document.body.classList.remove('dark-mode');
     }
   }
+
+  if (typeof window.addEventListener !== "function") {
+      console.log("no window.addEventListener");
+      document.body.ononline = () => setOnline(true);
+      document.body.onoffline = () => setOnline(false);
+  }
+
+  if (typeof window.addEventListener === "function") {
+    console.log("adding online/offline event listeners")
+    window.addEventListener("online", () => setOnline(true), false);
+    window.addEventListener("offline", () => setOnline(false), false);
+  } 
 
   useEffect(() => {
     darkMode()

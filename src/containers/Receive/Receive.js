@@ -1,3 +1,4 @@
+'use strict';
 import React, { useEffect, useState } from 'react';
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux'
@@ -23,11 +24,13 @@ import './Receive.css';
 import '../Send/Send.css';
 
 import { Transaction } from 'bitcoinjs-lib';
+import MultipleReceive from '../MultipleReceive/MultipleReceive';
+import { setIntervalIfOnline } from "../../features/WalletDataSlice";
 
-let addr_index = - 1;
+let addr_index = -2;
 
 export const resetIndex = () => {
-  addr_index = -1;
+  addr_index = -2;
 }
 
 // Logger import.
@@ -47,6 +50,11 @@ const ReceiveStatecoinPage = () => {
   const [electrumServer, setElectrumServer] = useState(true)
   const [transferLoading, setTransferLoading] = useState(false)
   const [transferKeyLoading, setTransferKeyLoading] = useState(false)
+  const [ receiveMultiple, setReceiveMultiple ] = useState(false)
+  const [receive, setReceive] = useState(false)
+
+  const [numReceive, setNumReceive] = useState(1)
+
   const torInfo = useSelector(state => state.walletData).torInfo
 
   const onTransferMsg3Change = (event) => {
@@ -54,7 +62,8 @@ const ReceiveStatecoinPage = () => {
   };
 
   let num_addresses = callGetNumSeAddr();
-  if (addr_index === -1) { addr_index = num_addresses - 1 };
+
+  if (addr_index === -2 || addr_index === -1  && !receiveMultiple) { addr_index = num_addresses - 1 };
 
   const [rec_sce_addr, setRecAddr] = useState(callGetSeAddr(addr_index));
 
@@ -62,18 +71,27 @@ const ReceiveStatecoinPage = () => {
     let isMounted = true
     // Check if Electrum server connected on page open
     checkElectrum(isMounted);
-    const interval = setInterval(() => {
-      if (isMounted === true) {
-        //Check Electrum server every 5s
-        checkElectrum(isMounted);
+    const interval = setIntervalIfOnline((bmounted) => {
+      if (bmounted === true) {
+        checkElectrum(bmounted);
       }
-    }, 10000)
+    }, torInfo.online,
+      10000,
+      isMounted);
+    
     return () => {
       isMounted = false
       clearInterval(interval)
     }
+  }, []);
 
-  }, [])
+  useEffect(() => {
+    if(receive){
+      receiveButtonAction();
+      setReceive(false);
+    }
+
+  }, [numReceive,receive])
 
   const checkElectrum = (isMounted) => {
     callPingElectrumRestart(!torInfo.online).then((res) => {
@@ -104,12 +122,19 @@ const ReceiveStatecoinPage = () => {
   }
 
   const prevAddrButtonAction = async () => {
-    if (addr_index < 1) {
-      addr_index = 0
+
+    if (addr_index < 0) {
+      addr_index = -1
     } else {
       addr_index--
     }
-    setRecAddr(callGetSeAddr(addr_index))
+
+    if(addr_index > -1){
+      setReceiveMultiple(false)
+      setRecAddr(callGetSeAddr(addr_index))
+    } else{
+      setReceiveMultiple(true)
+    }
   }
 
   const nextAddrButtonAction = async () => {
@@ -118,16 +143,20 @@ const ReceiveStatecoinPage = () => {
     } else {
       addr_index++
     }
-    setRecAddr(callGetSeAddr(addr_index))
+
+    if(addr_index > -1){
+      setReceiveMultiple(false)
+      setRecAddr(callGetSeAddr(addr_index))
+    }
   }
 
 
 
-  const receiveButtonAction = () => {
+  const receiveButtonAction = ( ) => {
     // if transfer key box empty, then query server for transfer messages
     if (electrumServer) {
       setTransferLoading(true)
-      dispatch(callGetTransfers(addr_index)).then((res) => {
+      dispatch(callGetTransfers({addr_index: addr_index, numReceive: numReceive})).then((res) => {
         let [nreceived, error] = res.payload.split("../..")
         // Set Number of received statecoins and error 
         if (nreceived === 0) {
@@ -215,6 +244,11 @@ const ReceiveStatecoinPage = () => {
     else return "Transfer"
   }
 
+  const handleClose = () => {
+    addr_index++  
+    setReceiveMultiple(false)
+  }
+
 
   return (
     <div className="container ">
@@ -260,7 +294,13 @@ const ReceiveStatecoinPage = () => {
               </div>
             </span>
           </div>
-
+            <MultipleReceive 
+              show = { receiveMultiple }
+              handleClose = { handleClose }
+              setNumReceive = {setNumReceive}
+              receiveButtonAction = { receiveButtonAction }
+              setReceive = { setReceive }
+              />
           <div className="receiveStatecoin-scan">
             <div className="receive-qr-code">
               {rec_sce_addr.sce_address ? (<QRCode value={rec_sce_addr.sce_address} />) : (null)}
@@ -296,7 +336,7 @@ const ReceiveStatecoinPage = () => {
                         </span>
                       </div>
                       <button type="button" className={`Body-button receive-btn btn ${transfer_msg3 ? 'active' : ''}`} onClick={(transferLoading || transferKeyLoading) === false ? (receiveButtonAction) : ((e) => { e.stopPropagation() })}>
-                        {transferLoading ? (<Loading />) : (`RECEIVE Index: ${addr_index}`)}
+                        {transferLoading ? (<Loading />) : (`RECEIVE Index: ${addr_index > -1 ? addr_index : 0}`)}
                       </button>
                     </div>
                   </div>

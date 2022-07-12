@@ -1,3 +1,4 @@
+'use strict';
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import React, { useState, useEffect } from 'react';
@@ -12,6 +13,7 @@ import {
   callSwapDeregisterUtxo,
   callGetSwapGroupInfo,
   callUpdateSwapGroupInfo,
+  callClearSwapGroupInfo,
   callGetConfig,
   callGetStateCoin,
   addCoinToSwapRecords,
@@ -58,9 +60,13 @@ const SwapPage = () => {
     );
   }
 
-  const updateSwapInfo = async (isMounted) => {
-    if (isMounted === true) {  
-      dispatch(callUpdateSwapGroupInfo());
+  const updateSwapInfo = (isMounted) => {
+    if (isMounted === true) {
+      if (torInfo.online === true) {
+        dispatch(callUpdateSwapGroupInfo());  
+      } else {
+        dispatch(callClearSwapGroupInfo());  
+      }
       let swap_groups_data = callGetSwapGroupInfo();
       let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
       let sorted_swap_groups_entry = swap_groups_array.sort((a, b) => b[0].amount - a[0].amount)
@@ -111,7 +117,7 @@ const SwapPage = () => {
     }
 
     // Warning on first swap group enter, to not exit wallet mid-swap
-    dispatch(setWarning({ key: "swap_punishment", msg: "WARNING! Exit the wallet whilst a swap is live causes the swap to fail and coins to be temporarily banned from entering swaps." }))
+    dispatch(setWarning({ key: "swap_punishment", msg: "WARNING! Exiting the wallet whilst a swap is live causes the swap to fail and coins to be temporarily banned from entering swaps." }))
 
     let swapValues = new Set(inSwapValues)
     let randomOrderIndices = []
@@ -127,7 +133,7 @@ const SwapPage = () => {
       if (checkSwapAvailability(statecoin, swapValues)) {
         swapValues.add(statecoin.value)
         dispatch(addCoinToSwapRecords(selectedCoin));
-        dispatch(setSwapLoad({ ...swapLoad, join: true, swapCoin: statecoin }))
+        dispatch(setSwapLoad({ ...swapLoad, join: true, swapCoin: statecoin }));
         dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
           .then(res => {
 

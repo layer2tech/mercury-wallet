@@ -1,3 +1,4 @@
+'use strict';
 var Mutex = require('async-mutex').Mutex
 let EPSClientLib = require('@aguycalled/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')

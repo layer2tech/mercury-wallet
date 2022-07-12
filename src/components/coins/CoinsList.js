@@ -1,4 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
+'use strict';
 import anon_icon_none from "../../images/table-icon-grey.png";
 import anon_icon_low from "../../images/table-icon-medium.png";
 import anon_icon_high from "../../images/table-icon.png";
@@ -16,7 +17,7 @@ import copy_img from "../../images/icon2.png";
 import descripIcon from "../../images/description.png";
 import hashIcon from "../../images/hashtag.png";
 import hexIcon from "../../images/hexagon.png";
-import icon2 from "../../images/icon2.png"
+import icon2 from "../../images/icon2.png";
 import React, { useState, useEffect, useCallback } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import { Button, Modal, Spinner } from 'react-bootstrap';
@@ -265,7 +266,6 @@ const CoinsList = (props) => {
 
   // set to withdraw modals
   const expiredToWithdrawn = useCallback((e,item) => {
-    console.log('open Modal')
     e.stopPropagation();
     setCurrentItem(item);
     setConfirmCoinAction({...showConfirmCoinAction, 
@@ -314,8 +314,6 @@ const CoinsList = (props) => {
 
       setInitCoins(undeposited_coins_data);
 
-      setInitCoins(undeposited_coins_data);
-
       // Update total_balance in Redux state
       if (filterBy !== 'default') {
         const coinsByStatus = filterCoinsByStatus([...coins_data, ...unconfirmed_coins_data], filterBy);
@@ -328,7 +326,9 @@ const CoinsList = (props) => {
           coin.status !== STATECOIN_STATUS.IN_TRANSFER &&
           coin.status !== STATECOIN_STATUS.EXPIRED));
         const total = coinsNotWithdraw.reduce((sum, currentItem) => sum + currentItem.value, 0);
-        dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: coinsNotWithdraw.length }));
+        if(!swap){
+          dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: coinsNotWithdraw.length }));
+        }
       }
       return () => { isMounted = false }
     }
@@ -345,8 +345,7 @@ const CoinsList = (props) => {
 
     return () => {
       isMounted = false;
-      clearInterval(interval)};
-
+      clearInterval(interval)};  
   }, [coins.unConfirmedCoins, torInfo.online, balance_info]);
 
 
@@ -374,7 +373,7 @@ const CoinsList = (props) => {
     let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000, isMounted)
     return () => {
       isMounted = false;  
-      clearInterval(interval)
+      clearInterval(interval)  
     };
   },
     [swapPendingCoins, inSwapValues, torInfo.online, dispatch]);
@@ -399,9 +398,11 @@ const CoinsList = (props) => {
       setTotalCoins(confirmedCoins.length);
       // update balance and amount
       const total = confirmedCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
-      dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: confirmedCoins.length }))
+      if(!swap){
+        dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: confirmedCoins.length }))
+      }
     }
-  }, [callGetUnspentStatecoins(), balance_info])
+  }, [callGetUnspentStatecoins, balance_info])
 
   // Enters/Re-enters coins in auto-swap
   const autoSwapLoop = () => {
@@ -432,8 +433,8 @@ const CoinsList = (props) => {
     }
   }
 
-  const swapInfoAndAutoSwap = () => {
-    if (torInfo.online === false) return
+  const swapInfoAndAutoSwap = (isMounted) => {
+    if (torInfo.online != true || isMounted != true) return
     autoSwapLoop()
     if (props?.setRefreshSwapGroupInfo) {
       props.setRefreshSwapGroupInfo((prevState) => !prevState);
@@ -450,11 +451,6 @@ const CoinsList = (props) => {
     let selectedCoin = item.shared_key_id;
 
     // check statechain is chosen
-    if (torInfo.online === false) {
-      dispatch(setError({ msg: "Disconnected from the mercury server" }))
-      return
-    }
-
     if (statecoin === undefined) {
       dispatch(setError({ msg: "Please choose a StateCoin to swap." }))
       return
@@ -463,6 +459,12 @@ const CoinsList = (props) => {
     if (swapLoad.join === true) {
       return
     }
+
+    if (torInfo.online === false && item.swap_auto != true) {
+      dispatch(setError({ msg: "Disconnected from the mercury server" }))
+      return
+    }
+
 
     // turn off swap_auto
     if (item.swap_auto) {
@@ -478,7 +480,6 @@ const CoinsList = (props) => {
         dispatch(setSwapLoad({ ...swapLoad, leave: false }))
       } catch (e) {
         dispatch(setSwapLoad({ ...swapLoad, leave: false }))
-        console.log(`dereg - caught error - ${e}`)
         if (!e.message.includes("Coin is not in a swap pool")) {
           dispatch(setError({ msg: e.message }))
         }

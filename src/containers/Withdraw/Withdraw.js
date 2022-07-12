@@ -1,3 +1,4 @@
+'use strict';
 import walletIcon from '../../images/walletIcon.png';
 import withdrowIcon from "../../images/withdrow-icon.png";
 import icon2 from "../../images/icon2.png";
@@ -6,7 +7,20 @@ import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {isWalletLoaded, callWithdraw, callGetFeeEstimation, setError, setNotification, callGetConfig, callSumStatecoinValues, callIsBatchMixedPrivacy} from '../../features/WalletDataSlice';
+
+
+import {isWalletLoaded, 
+  callWithdraw, 
+  callGetFeeEstimation, 
+  setError, 
+  setNotification, 
+  callGetConfig, 
+  callSumStatecoinValues, 
+  callIsBatchMixedPrivacy, 
+  callGetStateCoin,
+  checkWithdrawal
+} from '../../features/WalletDataSlice';
+
 import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, CoinsList} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
@@ -16,12 +30,15 @@ import Loading from '../../components/Loading/Loading';
 
 import './Withdraw.css';
 
+import { STATECOIN_STATUS } from '../../wallet';
 const WithdrawPage = () => {
   const dispatch = useDispatch();
 
   const { balance_info, filterBy } = useSelector(state => state.walletData);
 
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
+  const [withdrawingWarning, setWithdrawingWarning] = useState(false)
+
   const [inputAddr, setInputAddr] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -55,6 +72,22 @@ const WithdrawPage = () => {
       newSelectedCoins.push(statechain_id);
     }
     setSelectedCoins(newSelectedCoins);
+    
+    let checkWithdrawing = false
+
+    selectedCoins.map( id => {
+      // Checks if a selected coin is in withdrawing state for change in confirmation msg
+      if(callGetStateCoin(id).status === STATECOIN_STATUS.WITHDRAWING){
+        checkWithdrawing = true
+      }
+    })
+
+    if(checkWithdrawing){
+      setWithdrawingWarning(true)
+    }else{
+      setWithdrawingWarning(false)
+    }
+
     setRender({});
   }
 
@@ -96,25 +129,6 @@ const WithdrawPage = () => {
 
 
   const withdrawButtonAction = async () => {
-    // check statechain is chosen
-    if (selectedCoins.length === 0) {
-      dispatch(setError({msg: "Please choose a StateCoin to withdraw."}))
-      return
-    }
-    if (!inputAddr) {
-      dispatch(setError({msg: "Please enter an address to withdraw to."}))
-      return
-    }
-
-    // if total coin sum is less that 0.001BTC then return error
-    if(callSumStatecoinValues(selectedCoins) < 100000){
-      dispatch(setError({msg: "Mininum withdrawal size is 0.001 BTC."}))
-      return
-    }
-
-    if(callIsBatchMixedPrivacy(selectedCoins)) {
-      dispatch(setNotification({msg:"Warning: Withdrawal transaction contains both private and un-swapped inputs."}))
-    }
 
     setLoading(true)
     setOpenModal(true)
@@ -127,10 +141,10 @@ const WithdrawPage = () => {
           setWithdrawTxid(res.payload)
           dispatch(setNotification({msg:"Withdraw to "+inputAddr+" - transaction broadcast complete."}))
         }
-        if(res.error!== undefined){
+      if(res.error!== undefined){
           setOpenModal(false)
-        }
-        setLoading(false)
+      }
+      setLoading(false)
     }))
     
   }
@@ -329,8 +343,9 @@ const WithdrawPage = () => {
                           </tbody>
                       </table>                
                       */}
-                      <ConfirmPopup onOk = {withdrawButtonAction}>
-                        <button type="button" className={`btn withdraw-button ${loading}`} >
+
+                      <ConfirmPopup preCheck={checkWithdrawal} argsCheck={[dispatch, selectedCoins, inputAddr]} onOk = {withdrawButtonAction} >
+                        <button type="button" className={`btn withdraw-button ${loading} ${withdrawingWarning ? ("withdrawing-warning") : (null)}`} >
                             {loading?(null):(<img src={withdrowIcon} alt="withdrowIcon"/>)}
                             {loading?(<Loading/>):("Withdraw btc")}</button>
                       </ConfirmPopup>

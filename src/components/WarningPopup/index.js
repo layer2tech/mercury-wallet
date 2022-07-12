@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+'use strict';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { showWarning, dontShowWarning, setWarningSeen } from '../../features/WalletDataSlice';
 import Modal from "react-bootstrap/Modal";

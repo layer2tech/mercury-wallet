@@ -1,3 +1,4 @@
+'use strict';
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { STATECOIN_STATUS, BACKUP_STATUS, ACTION } from "../../../wallet";

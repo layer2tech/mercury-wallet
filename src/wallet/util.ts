@@ -7,9 +7,9 @@ import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
 import { callGetConfig } from '../features/WalletDataSlice'
 import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
-import { StateCoin } from './statecoin'
-import { LanguageVariant, visitLexicalEnvironment } from 'typescript';
 
+
+const bip32 = require('bip32');
 let bech32 = require('bech32')
 let bitcoin = require('bitcoinjs-lib')
 let typeforce = require('typeforce');
@@ -254,6 +254,25 @@ export const decodeSCEAddress = (sce_address: string): string => {
     throw new Error("Invalid Statechain Address - " + e.message)
   }
   return SCEAddress
+}
+
+export const proofKeyFromXpub = (xpub: string, index: number, network: Network) => {
+  let proof_key;
+  proof_key = bip32.fromBase58(xpub,network).derive(0).derive(index).publicKey.toString('hex');
+  // console.log('public Key',bip32.fromBase58(xpub,network).derive(0).derive(index).publicKey)
+  // const { address } = bitcoin.payments.p2wpkh({
+  //   pubkey: bip32.fromBase58(xpub,network).derive(0).derive(index).publicKey,
+  //   network: network
+  // });
+  // try{
+  //   let decode =  bech32.decode(address)
+  //   let words = bech32.toWords(decode.words)
+  //   proof_key = bech32.encode('tc',words);
+  // }
+  // catch(e : any){
+  //   throw new Error("Invalid Xpub - " + e.message)
+  // }
+  return proof_key
 }
 
 // Bech32 encode transfer message

@@ -1,3 +1,4 @@
+'use strict';
 import { ActivityLog, decryptAES, encryptAES, StateCoinList } from "./wallet";
 
 declare const window: any;
@@ -53,7 +54,6 @@ export class Storage {
   storeWallet(wallet_json: any) {
     delete wallet_json.electrum_client;
     delete wallet_json.storage;
-    delete wallet_json.backupTxUpdateLimiter;
 
     // encrypt mnemonic
     wallet_json.mnemonic = encryptAES(wallet_json.mnemonic, wallet_json.password);
