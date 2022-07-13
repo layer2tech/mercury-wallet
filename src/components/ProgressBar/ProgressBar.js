@@ -17,7 +17,7 @@ const ProgressBar = () => {
       textAlign: 'right',
       transition : 'width 5s ease',
     }
-  
+
     return (
         <Modal show={ progress.msg !== "" } className={'progress-modal'}>
                 <div className={"recovery-txt-container"}>
@@ -25,7 +25,8 @@ const ProgressBar = () => {
                 </div>
             <div className = "progress-container">
                 <div style={fillerStyles} >
-                    {/* <span className = "progress-filler" >{`${progress.msg}%`}</span> 
+                    <span className = "progress-filler" >{`${progress.msg}%`}</span> 
+                    {/*
                     // The percentage number has been removed as the numbers don't increment smoothly
                     */}
                 </div> 
