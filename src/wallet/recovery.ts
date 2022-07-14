@@ -17,7 +17,7 @@ import {
 import { setProgressComplete, setProgress } from "../features/WalletDataSlice";
 import { forEachChild } from "typescript";
 
-const Promise = require('bluebird');
+
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');
 
@@ -207,7 +207,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         if (withdrawing != null && withdrawing != 'None') {
           statecoin.setWithdrawing();
           const tx_hex = withdrawing.tx_hex
-          
+
           const withdraw_transaction = Transaction.fromHex(tx_hex)
           withdraw_tx_id_map.set(withdraw_transaction.getId(), withdraw_transaction)
 
@@ -216,7 +216,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
           if (ids == null) {
             ids = new Set()
           }
-          
+
           ids.add(statecoin.shared_key_id)
           withdrawal_tx_map.set(withdraw_transaction.getId(), ids)
           withdrawal_addr_map.set(withdraw_transaction.getId(), withdrawing.rec_addr)

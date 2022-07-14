@@ -15,7 +15,7 @@ import { mutex } from '../wallet/electrum';
 import { SWAP_STATUS, UI_SWAP_STATUS } from '../wallet/swap/swap_utils'
 import { handleNetworkError } from '../error'
 
-const Promise = require('bluebird');
+
 const isEqual = require('lodash').isEqual
 
 // eslint-disable-next-line
@@ -64,7 +64,7 @@ const initialState = {
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
   warning_dialogue: { key: "", msg: "", seen: false },
-  progress: {active: false, msg: ""},
+  progress: { active: false, msg: "" },
   balance_info: { total_balance: null, num_coins: null, hidden: false },
   fee_info: { deposit: "NA", withdraw: "NA" },
   ping_swap: null,
@@ -186,7 +186,7 @@ export const walletLoad = (name, password) => {
 }
 
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
-export async function walletFromMnemonic(dispatch, name, password, mnemonic,  router, try_restore,  gap_limit = undefined){
+export async function walletFromMnemonic(dispatch, name, password, mnemonic, router, try_restore, gap_limit = undefined) {
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   wallet.resetSwapStates();
   log.info("Wallet " + name + " created.");
@@ -195,20 +195,20 @@ export async function walletFromMnemonic(dispatch, name, password, mnemonic,  ro
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
-      try{
+      try {
 
-        const n_recovered = await wallet.recoverCoinsFromServer(gap_limit,dispatch);
+        const n_recovered = await wallet.recoverCoinsFromServer(gap_limit, dispatch);
         dispatch(addCoins(n_recovered));
       } catch {
-        dispatch(setProgressComplete({msg: ""}))
-        dispatch(setError({msg: "Error in Recovery - check online connection and retry"}))
+        dispatch(setProgressComplete({ msg: "" }))
+        dispatch(setError({ msg: "Error in Recovery - check online connection and retry" }))
         return
       }
     }
     await callNewSeAddr();
     await wallet.save();
     await wallet.saveName();
-    dispatch(setProgressComplete({msg: ""}))
+    dispatch(setProgressComplete({ msg: "" }))
     router.push("/home");
   });
 }
@@ -274,7 +274,7 @@ export const callDeriveXpub = () => {
   return wallet.deriveXpub()
 }
 
-export const callProofKeyFromXpub = ( xpub, index ) => {
+export const callProofKeyFromXpub = (xpub, index) => {
   return wallet.deriveProofKeyFromXpub(xpub, index)
 }
 
@@ -378,7 +378,7 @@ export const callGetActivityLogItems = (num_of_items) => {
 }
 
 export const callGetActivityDate = (shared_key_id, action) => {
-  if(isWalletLoaded()){
+  if (isWalletLoaded()) {
     return wallet.activity.getDate(shared_key_id, action)
   }
 }
@@ -588,57 +588,57 @@ export const setIntervalIfOnline = (func, online, delay, isMounted) => {
   // Restart online interval in useEffect loop [torInfo.online]
   // make online = torInfo.online
   let interval = setInterval(() => {
-      if (isMounted === true && online === true)  {
-        func(isMounted)
-      } else {
-        clearInterval(interval)
-      }
+    if (isMounted === true && online === true) {
+      func(isMounted)
+    } else {
+      clearInterval(interval)
+    }
   }, delay)
   return interval
 }
 
 // Pre checks actions for use in confirm PopUp modal 
 
-export const checkWithdrawal = ( dispatch, selectedCoins, inputAddr ) => {
+export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
   // Pre action confirmation checks for withdrawal - return true to prevent action
 
   // check statechain is chosen
   if (selectedCoins.length === 0) {
-    dispatch(setError({msg: "Please choose a StateCoin to withdraw."}))
+    dispatch(setError({ msg: "Please choose a StateCoin to withdraw." }))
     return true
   }
   if (!inputAddr) {
-    dispatch(setError({msg: "Please enter an address to withdraw to."}))
+    dispatch(setError({ msg: "Please enter an address to withdraw to." }))
     return true
   }
 
   // if total coin sum is less that 0.001BTC then return error
-  if(callSumStatecoinValues(selectedCoins) < 100000){
-    dispatch(setError({msg: "Mininum withdrawal size is 0.001 BTC."}))
+  if (callSumStatecoinValues(selectedCoins) < 100000) {
+    dispatch(setError({ msg: "Mininum withdrawal size is 0.001 BTC." }))
     return true
   }
 
-  try { 
+  try {
     bitcoin.address.toOutputScript(inputAddr, wallet.config.network)
-  } catch (e){ 
-    dispatch(setError({msg: "Invalid Bitcoin address entered."}))
+  } catch (e) {
+    dispatch(setError({ msg: "Invalid Bitcoin address entered." }))
     return true
   }
 
-  if(callIsBatchMixedPrivacy(selectedCoins)) {
-    dispatch(setNotification({msg:"Warning: Withdrawal transaction contains both private and un-swapped inputs."}))
+  if (callIsBatchMixedPrivacy(selectedCoins)) {
+    dispatch(setNotification({ msg: "Warning: Withdrawal transaction contains both private and un-swapped inputs." }))
   }
 }
 
-export const checkSend = (dispatch, inputAddr ) => {
+export const checkSend = (dispatch, inputAddr) => {
   // Pre action confirmation checks for send statecoin - return true to prevent action
 
   var input_pubkey = "";
 
   try {
-    if(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'){
-      input_pubkey = callProofKeyFromXpub(inputAddr,0);
-    } else{
+    if (inputAddr.substring(0, 4) === 'xpub' || inputAddr.substring(0, 4) === 'tpub') {
+      input_pubkey = callProofKeyFromXpub(inputAddr, 0);
+    } else {
       input_pubkey = decodeSCEAddress(inputAddr);
     }
   }
@@ -648,7 +648,7 @@ export const checkSend = (dispatch, inputAddr ) => {
   }
 
   if (!(input_pubkey.slice(0, 2) === '02' || input_pubkey.slice(0, 2) === '03')) {
-    if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub') {
+    if (inputAddr.substring(0, 4) === 'xpub' || inputAddr.substring(0, 4) === 'tpub') {
       dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
       return true
     }
@@ -657,7 +657,7 @@ export const checkSend = (dispatch, inputAddr ) => {
   }
 
   if (input_pubkey.length !== 66) {
-    if (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) ==='tpub') {
+    if (inputAddr.substring(0, 4) === 'xpub' || inputAddr.substring(0, 4) === 'tpub') {
       dispatch(setError({ msg: "Error: Invalid Extended Public Key" }))
       return true
     }
@@ -942,11 +942,11 @@ const WalletSlice = createSlice({
     clearInSwapValues(state, _action) {
       state.inSwapValues = []
     },
-    setSwapLoad(state,action){
+    setSwapLoad(state, action) {
       var update = action.payload
       return {
         ...state,
-        swapLoad: {join: update.join, swapCoin: update.swapCoin, leave: update.leave}
+        swapLoad: { join: update.join, swapCoin: update.swapCoin, leave: update.leave }
       }
     },
     // Deposit
@@ -966,13 +966,13 @@ const WalletSlice = createSlice({
         error_dialogue: { seen: false, msg: action.payload.msg }
       }
     },
-    setProgressComplete(state){
+    setProgressComplete(state) {
       return {
         ...state,
         progress: { active: false, msg: "" }
       }
     },
-    setProgress(state, action){
+    setProgress(state, action) {
       return {
         ...state,
         progress: { active: true, msg: action.payload.msg }

@@ -7,7 +7,7 @@ import { PrepareSignTxMsg } from "./ecdsa";
 import { getSigHash, StateChainSig, txWithdrawBuildBatch, txWithdrawBuild } from "../util";
 import { PROTOCOL, sign, sign_batch } from "./ecdsa";
 import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
-const Promise = require('bluebird');
+
 
 // withdraw() messages:
 // 0. request withdraw and provide withdraw tx data
@@ -15,13 +15,13 @@ const Promise = require('bluebird');
 // 2. Co-sign withdraw tx
 // 3. Broadcast withdraw tx
 
-export interface WithdrawMsg2{
+export interface WithdrawMsg2 {
   shared_key_ids: string[]
 }
 
 // Withdraw coins from state entity. Returns signed withdraw transaction
 export const withdraw = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoins: StateCoin[],
@@ -36,7 +36,7 @@ export const withdraw = async (
 }
 
 export const withdraw_init = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoins: StateCoin[],
@@ -54,8 +54,8 @@ export const withdraw_init = async (
   let amount = 0;
   let index = 0;
 
-    console.log("withdraw init.")
-    for (const sc of statecoins) {
+  console.log("withdraw init.")
+  for (const sc of statecoins) {
     if (sc.funding_txid == null) {
       throw Error("StateChain undefined already withdrawn.");
     }
@@ -102,25 +102,25 @@ export const withdraw_init = async (
 
   // Construct withdraw tx
   let tx_withdraw_unsigned: Transaction;
-  
-  if(statecoins.length > 1) {
-      tx_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info,fee_per_byte).buildIncomplete();
+
+  if (statecoins.length > 1) {
+    tx_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info, fee_per_byte).buildIncomplete();
   } else {
-      let statecoin = statecoins[0];
-      let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
-      tx_withdraw_unsigned = txWithdrawBuild(
-            network,
-            statecoin.funding_txid,
-            statecoin.funding_vout,
-            rec_addr,
-            statecoin.value,
-            fee_info.address,
-            withdraw_fee,
-            fee_per_byte
-          ).buildIncomplete();
+    let statecoin = statecoins[0];
+    let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
+    tx_withdraw_unsigned = txWithdrawBuild(
+      network,
+      statecoin.funding_txid,
+      statecoin.funding_vout,
+      rec_addr,
+      statecoin.value,
+      fee_info.address,
+      withdraw_fee,
+      fee_per_byte
+    ).buildIncomplete();
   }
 
-  
+
 
   let signatureHashes: string[] = [];
 
@@ -142,7 +142,7 @@ export const withdraw_init = async (
   };
 
   let signatures: any[] = new Array()
-  if(shared_key_ids.length === 1) {
+  if (shared_key_ids.length === 1) {
     //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
     let signature = await sign(http_client, wasm_client, shared_key_ids[0], shared_keys[0], prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
     signatures.push(signature);
@@ -151,32 +151,32 @@ export const withdraw_init = async (
   }
   // Complete confirm to get witness
   let withdraw_msg_2 = {
-      shared_key_ids: shared_key_ids,
-      address: rec_addr
+    shared_key_ids: shared_key_ids,
+    address: rec_addr
   }
 
-    // set witness data with signature
-    let tx_backup_signed = tx_withdraw_unsigned;
+  // set witness data with signature
+  let tx_backup_signed = tx_withdraw_unsigned;
 
-    signatures.forEach((signature, index) => {
-      let sig0 = signatures[index][0];
-      let sig1 = signatures[index][1];
-      tx_backup_signed.ins[index].witness = [Buffer.from(sig0),Buffer.from(sig1)];
-    });
-  
+  signatures.forEach((signature, index) => {
+    let sig0 = signatures[index][0];
+    let sig1 = signatures[index][1];
+    tx_backup_signed.ins[index].witness = [Buffer.from(sig0), Buffer.from(sig1)];
+  });
+
   return [tx_backup_signed, withdraw_msg_2]
 }
 
 
 export const withdraw_confirm = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   withdraw_msg_2: WithdrawMsg2
 ) => {
   let signatures: any[][] = await http_client.post(POST_ROUTE.WITHDRAW_CONFIRM, withdraw_msg_2);
 }
 
 export const withdraw_duplicate = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoins: StateCoin[],
@@ -200,7 +200,7 @@ export const withdraw_duplicate = async (
 
     let proof_key_der: BIP32Interface = proof_key_ders[index];
 
-    shared_key_ids.push(statecoin.shared_key_id.slice(0,-4));
+    shared_key_ids.push(statecoin.shared_key_id.slice(0, -4));
 
     amount = amount + statecoin.value;
     amounts.push(statecoin.value);
@@ -214,22 +214,22 @@ export const withdraw_duplicate = async (
   // Construct withdraw tx
   let tx_withdraw_unsigned: Transaction;
 
-  if(statecoins.length > 1) {
+  if (statecoins.length > 1) {
     throw Error("Duplicate deposits cannot be batch withdrawn");
   } else {
-      let statecoin = statecoins[0];
-      console.log(statecoin);
-      let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
-      tx_withdraw_unsigned = txWithdrawBuild(
-            network,
-            statecoin.funding_txid,
-            statecoin.funding_vout,
-            rec_addr,
-            statecoin.value,
-            fee_info.address,
-            withdraw_fee,
-            fee_per_byte
-          ).buildIncomplete();
+    let statecoin = statecoins[0];
+    console.log(statecoin);
+    let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
+    tx_withdraw_unsigned = txWithdrawBuild(
+      network,
+      statecoin.funding_txid,
+      statecoin.funding_vout,
+      rec_addr,
+      statecoin.value,
+      fee_info.address,
+      withdraw_fee,
+      fee_per_byte
+    ).buildIncomplete();
   }
 
   let signatureHashes: string[] = [];
@@ -251,7 +251,7 @@ export const withdraw_duplicate = async (
   };
 
   let signatures: any[] = new Array()
-  if(shared_key_ids.length === 1) {
+  if (shared_key_ids.length === 1) {
     //await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.WITHDRAW);
     let signature = await sign(http_client, wasm_client, shared_key_ids[0], shared_keys[0], prepare_sign_msg, signatureHashes[0], PROTOCOL.WITHDRAW);
     signatures.push(signature);
@@ -259,14 +259,14 @@ export const withdraw_duplicate = async (
     throw Error("Duplicate deposits cannot be batch withdrawn");
   }
 
-    // set witness data with signature
-    let tx_backup_signed = tx_withdraw_unsigned;
+  // set witness data with signature
+  let tx_backup_signed = tx_withdraw_unsigned;
 
-    signatures.forEach((signature, index) => {
-      let sig0 = signatures[index][0];
-      let sig1 = signatures[index][1];
-      tx_backup_signed.ins[index].witness = [Buffer.from(sig0),Buffer.from(sig1)];
-    });
-  
+  signatures.forEach((signature, index) => {
+    let sig0 = signatures[index][0];
+    let sig1 = signatures[index][1];
+    tx_backup_signed.ins[index].witness = [Buffer.from(sig0), Buffer.from(sig1)];
+  });
+
   return tx_backup_signed
 }

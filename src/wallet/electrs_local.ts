@@ -6,11 +6,11 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { Network } from "bitcoinjs-lib";
 let bitcoin = require('bitcoinjs-lib')
 
-const Promise = require('bluebird');
+
 export const mutex = new Mutex();
 
 class ElectrsLocalClientError extends Error {
-  constructor(message: string){
+  constructor(message: string) {
     super(message);
     this.name = "ElectrsLocalClientError";
   }
@@ -44,11 +44,11 @@ Object.freeze(POST_ROUTE);
 export class ElectrsLocalClient {
   endpoint: string
   //client: HttpClient | MockHttpClient
-  scriptIntervals: Map<string,any>
-  scriptStatus: Map<string,any>
+  scriptIntervals: Map<string, any>
+  scriptStatus: Map<string, any>
   blockHeightLatest: any
-  
-  constructor(endpoint: string){
+
+  constructor(endpoint: string) {
     //this.client = new HttpClient('http://localhost:3001', true);
     this.endpoint = endpoint
     this.scriptIntervals = new Map()
@@ -62,39 +62,39 @@ export class ElectrsLocalClient {
   disableBlockHeightSubscribe() {
   }
 
-  static async get(endpoint: string, path: string, params: any, timeout_ms: number = TIMEOUT){
-    
-      const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
-      const config: AxiosRequestConfig = {
-          method: 'get',
-          url: url,
-          headers: { 'Accept': 'application/json' },
-          timeout: timeout_ms
-      };
-      await semaphore.wait()
+  static async get(endpoint: string, path: string, params: any, timeout_ms: number = TIMEOUT) {
+
+    const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
+    const config: AxiosRequestConfig = {
+      method: 'get',
+      url: url,
+      headers: { 'Accept': 'application/json' },
+      timeout: timeout_ms
+    };
+    await semaphore.wait()
     return axios(config).catch((err: any) => {
-        console.log(`${JSON.stringify(err)}`)
-      handlePromiseRejection(err, "Electrum API request timed out" )
-      }).finally(() => { semaphore.release() })
-        .then(
-          (res: any) => {
-            checkForServerError(res)
-            return res?.data
-          })
+      console.log(`${JSON.stringify(err)}`)
+      handlePromiseRejection(err, "Electrum API request timed out")
+    }).finally(() => { semaphore.release() })
+      .then(
+        (res: any) => {
+          checkForServerError(res)
+          return res?.data
+        })
   }
 
   static async post(endpoint: string, path: string, body: any, timeout_ms: number = TIMEOUT) {
-      let url = endpoint + "/" + path.replace(/^\/+/, '');
-      const config: AxiosRequestConfig = {
-          method: 'post',
-          url: url,
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-        },
-          timeout: timeout_ms,
-          data: body,
-      };
+    let url = endpoint + "/" + path.replace(/^\/+/, '');
+    const config: AxiosRequestConfig = {
+      method: 'post',
+      url: url,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      timeout: timeout_ms,
+      data: body,
+    };
     await semaphore.wait();
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, "Electrum API request timed out")
@@ -107,7 +107,7 @@ export class ElectrsLocalClient {
       })
   };
 
-  async isClosed(): Promise<boolean>{
+  async isClosed(): Promise<boolean> {
     let ping = await this.ping();
     let result = ping == false
     return result
@@ -128,7 +128,7 @@ export class ElectrsLocalClient {
     try {
       await ElectrsLocalClient.get(this.endpoint, GET_ROUTE.LATEST_BLOCK_HEADER, {})
       return true
-    } catch(err){
+    } catch (err) {
       return false
     }
   }
@@ -140,7 +140,7 @@ export class ElectrsLocalClient {
   }
 
   async getTransaction(txHash: string): Promise<any> {
-    let result = await ElectrsLocalClient.get(this.endpoint,`${GET_ROUTE.TX}/${txHash}`, {})
+    let result = await ElectrsLocalClient.get(this.endpoint, `${GET_ROUTE.TX}/${txHash}`, {})
     return result
   }
 
@@ -152,7 +152,7 @@ export class ElectrsLocalClient {
   async getScriptHashListUnspent(script: string): Promise<any> {
     let scriptHash = ElectrsLocalClient.scriptToScriptHash(script)
     console.log(`scriptHash: ${scriptHash}`)
-    let result = await ElectrsLocalClient.get(this.endpoint,`/electrs_local/get_scripthash_list_unspent/${scriptHash}`, {})
+    let result = await ElectrsLocalClient.get(this.endpoint, `/electrs_local/get_scripthash_list_unspent/${scriptHash}`, {})
     //let result = await ElectrsLocalClient.get(this.endpoint,GET_ROUTE.LATEST_BLOCK_HEADER, {})
     return result
   }
@@ -160,19 +160,19 @@ export class ElectrsLocalClient {
   async getScriptHashStatus(scriptHash: string, callBack: any, endpoint: string) {
     let history = null
     try {
-      history = await ElectrsLocalClient.get(endpoint,`${GET_ROUTE.SCRIPTHASH_HISTORY}/${scriptHash}`, {})
-    } catch (err){
+      history = await ElectrsLocalClient.get(endpoint, `${GET_ROUTE.SCRIPTHASH_HISTORY}/${scriptHash}`, {})
+    } catch (err) {
     }
-    if( history ) {
-      if (callBack) { 
+    if (history) {
+      if (callBack) {
         callBack()
       }
     }
   }
 
   async getLatestBlock(callBack: any, endpoint: string): Promise<any> {
-    let header = await ElectrsLocalClient.get(endpoint,'/electrs_local/latest_block_header', {})
-    if (this.blockHeightLatest != header.height){
+    let header = await ElectrsLocalClient.get(endpoint, '/electrs_local/latest_block_header', {})
+    if (this.blockHeightLatest != header.height) {
       this.blockHeightLatest = header.height
       callBack([header])
     }
@@ -191,7 +191,7 @@ export class ElectrsLocalClient {
 
   async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
     let scriptHash = ElectrsLocalClient.scriptToScriptHash(script)
-    if ( this.scriptIntervals.has(scriptHash) ){
+    if (this.scriptIntervals.has(scriptHash)) {
       throw new ElectrsLocalClientError(`already subscribed to script: [${scriptHash}]`)
     }
     let timer = setInterval(this.getScriptHashStatus, 10000, scriptHash, callBack, this.endpoint)

@@ -31,7 +31,7 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
 import { ActivityLog, ActivityLogItem, LegacyActivityLog } from '../activity_log';
 import { ElectrumClientError } from '../electrum'
 
-const Promise = require('bluebird');
+
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
 let bip32 = require('bip32')
@@ -359,9 +359,9 @@ describe('Wallet', function () {
     })
   })
 
-  describe('xpub from mnemonic', function(){
+  describe('xpub from mnemonic', function () {
 
-    test('correct xpub returned', function() {
+    test('correct xpub returned', function () {
       expect(getXpub(MOCK_WALLET_MNEMONIC, bitcoin.networks.bitcoin)).toBe(MOCK_WALLET_XPUB)
     })
 
@@ -599,7 +599,7 @@ describe('updateBackupTxStatus', function () {
     await expect(wallet.updateBackupTxStatus()).resolves.toBe(undefined);
   })
   */
-  
+
   test('Expired', async function () {
     // locktime = 1000, height = 1000, EXPIRED triggered
     let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
@@ -973,7 +973,7 @@ describe('broadcastCPFP', function () {
     statecoin.tx_cpfp = statecoin.tx_backup
     wallet.broadcastCPFP(statecoin).then((_result) => {
       expect(true).toEqual(false)
-    }).catch ((err) => {
+    }).catch((err) => {
       expect(err).toEqual(new Error(`failed to broadcast transaction: [an error message]`))
     })
   })

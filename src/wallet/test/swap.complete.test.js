@@ -20,7 +20,7 @@ import {
     UI_SWAP_STATUS
 } from "../swap/swap_utils";
 
-const Promise = require('bluebird');
+
 
 let walletName = `${MOCK_WALLET_NAME}_swap_init_tests`;
 let mock_http_client = require('../mocks/mock_http_client');

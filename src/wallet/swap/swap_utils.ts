@@ -3,7 +3,7 @@
 import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, StateCoin, POST_ROUTE, GET_ROUTE, STATECOIN_STATUS, StateCoinList } from '..';
 import { ElectrsClient } from '../electrs'
 import { EPSClient } from '../eps'
-import { transferReceiver, TransferFinalizeData,  SCEAddress } from "../mercury/transfer"
+import { transferReceiver, TransferFinalizeData, SCEAddress } from "../mercury/transfer"
 import { getStateCoin } from "../mercury/info_api";
 import { StateChainSig } from "../util";
 import { BIP32Interface, Network, script, ECPair } from 'bitcoinjs-lib';
@@ -13,7 +13,7 @@ import { MockWasm } from '..';
 //import { Swap } from 'client-wasm';
 import Swap from './swap'
 
-const Promise = require('bluebird');
+
 let bitcoin = require("bitcoinjs-lib");
 let types = require("../types")
 let typeforce = require('typeforce');
@@ -36,7 +36,9 @@ export const pingServer = async (
 }
 
 function delay(s: number) {
-  return Promise.delay(s * 1000); 
+  return new Promise(resolve => {
+    setTimeout(resolve, s * 1000);
+  });
 }
 
 export const UI_SWAP_STATUS = {
@@ -80,14 +82,14 @@ Object.freeze(TIMEOUT_STATUS);
 export const SWAP_TIMEOUT = {
   RETRY_DELAY: 1,
   STEP_TIMEOUT_S: 120,
-  INIT_TIMEOUT_S: 330 
+  INIT_TIMEOUT_S: 330
 }
 Object.freeze(SWAP_TIMEOUT);
 
 // Constants used for retrying swap phases
 export const SWAP_RETRY = {
-  INIT_RETRY_AFTER: SWAP_TIMEOUT.INIT_TIMEOUT_S/SWAP_TIMEOUT.RETRY_DELAY,
-  MAX_REPS_PER_STEP: SWAP_TIMEOUT.STEP_TIMEOUT_S/SWAP_TIMEOUT.RETRY_DELAY,
+  INIT_RETRY_AFTER: SWAP_TIMEOUT.INIT_TIMEOUT_S / SWAP_TIMEOUT.RETRY_DELAY,
+  MAX_REPS_PER_STEP: SWAP_TIMEOUT.STEP_TIMEOUT_S / SWAP_TIMEOUT.RETRY_DELAY,
 }
 Object.freeze(SWAP_RETRY);
 
@@ -129,20 +131,20 @@ export class SwapStep {
   statecoin_properties: Function
   doit: Function
 
-  constructor( 
+  constructor(
     phase: string,
     subPhase: string,
     statecoin_status: Function,
     swap_status: Function,
     statecoin_properties: Function,
     doit: Function) {
-      this.phase = phase
-      this.subPhase = subPhase
-      this.statecoin_status = statecoin_status
-      this.swap_status = swap_status 
-      this.statecoin_properties = statecoin_properties
-      this.doit = doit
-    }
+    this.phase = phase
+    this.subPhase = subPhase
+    this.statecoin_status = statecoin_status
+    this.swap_status = swap_status
+    this.statecoin_properties = statecoin_properties
+    this.doit = doit
+  }
 
   description = () => {
     return `phase ${this.phase}:${this.subPhase}`
@@ -154,20 +156,20 @@ const SWAP_STEP_STATUS = {
   Retry: "Retry",
 }
 
-export class SwapStepResult{
+export class SwapStepResult {
   status: string
   message: string
 
-  constructor(status: string, message: string = ""){
+  constructor(status: string, message: string = "") {
     this.status = status
     this.message = message
   }
 
-  static Ok(message: string = ""){
+  static Ok(message: string = "") {
     return new SwapStepResult(SWAP_STEP_STATUS.Ok, message)
   }
 
-  static Retry(message: string = ""){
+  static Retry(message: string = "") {
     return new SwapStepResult(SWAP_STEP_STATUS.Retry, message)
   }
 
@@ -184,14 +186,14 @@ export class SwapPhaseClients {
   http_client: HttpClient | MockHttpClient;
   electrum_client: ElectrsClient | ElectrumClient | EPSClient | MockElectrumClient
 
-  constructor(http_client: HttpClient | MockHttpClient, 
-    electrum_client: ElectrsClient | ElectrumClient | EPSClient | MockElectrumClient ) {
+  constructor(http_client: HttpClient | MockHttpClient,
+    electrum_client: ElectrsClient | ElectrumClient | EPSClient | MockElectrumClient) {
     this.http_client = http_client;
     // todo check these
     this.electrum_client = electrum_client;
   }
 
-  static from_wallet(wallet: Wallet){  
+  static from_wallet(wallet: Wallet) {
     return new SwapPhaseClients(wallet.http_client, wallet.electrum_client)
   }
 }

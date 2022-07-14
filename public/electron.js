@@ -138,10 +138,6 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
 
-  mainWindow.on('close', async () => {
-    mainWindow.removeAllEventListeners();
-  });
-
   mainWindow.on('closed', async () => {
     mainWindow = null;
   });
@@ -380,8 +376,17 @@ async function kill_process(pid, init_new) {
     process.kill(pid, 0)
     console.log("process still running - sending kill signal...")
     process.kill(pid, "SIGKILL")
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    process.kill(pid, 0)
   } catch (err) {
-    console.log(err?.message)
+    console.log(`kill_process err: ${err}`)
+    const msg = err?.message
+    console.log(`kill_process msg: ${msg}`)
+    if (msg != null && msg.includes("kill ESRCH")) {
+      console.log(`pid ${pid} killed.`)      
+    } else {
+      console.log(err?.message)  
+    }   
   }
   if (init_new) {
     init_new()
