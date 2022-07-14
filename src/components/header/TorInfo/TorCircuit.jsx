@@ -7,24 +7,13 @@
     CHECK - why clicking new circuit is not always instant -> async
 */
 
-'use strict';
 import React,  { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux';
 import { callGetNewTorId, callGetTorcircuitInfo, callUpdateTorCircuit, 
-    setTorOnline, callGetConfig, setIntervalIfOnline } from '../../../features/WalletDataSlice';
+    setTorOnline, callGetConfig } from '../../../features/WalletDataSlice';
 import './torCircuit.css'
 import TorCircuitNode from './TorCircuitNode'
-import { defaultWalletConfig } from '../../../containers/Settings/Settings'
-import { handleNetworkError } from '../../../error'
-
-// Logger import.
-// Node friendly importing required for Jest tests.
-let log;
-try {
-    log = window.require('electron-log');
-} catch (e) {
-    log = require('electron-log');
-}
+import {defaultWalletConfig} from '../../../containers/Settings/Settings'
 
 
 const TorCircuit = (props) => {
@@ -41,30 +30,26 @@ const TorCircuit = (props) => {
     const [torLoaded, setTorLoaded] = useState(false);
 
     useEffect(() => {
-        let isMounted = true;
-        const interval = setIntervalIfOnline(getTorCircuitInfo, props.online, 10000, isMounted);
+        const interval = setInterval(() => {       
+            getTorCircuitInfo();
+        }, 10000);
         return () => {
-            isMounted = false;
             clearInterval(interval);
         }
-    }, [dispatch, props.online]);
+    }, [dispatch,props.online]);
 
     
     const getTorCircuitInfo = () => {
-        if (props.online) {
-            let torcircuit_data = null
-            try {
-                dispatch(callUpdateTorCircuit());
-                torcircuit_data = callGetTorcircuitInfo();
-            } catch (err) {
-                handleNetworkError(err)
-            }
-            let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
-            const loaded = (torcircuit_data != null && torcircuit_data.length > 0)
+        if(props.online){
+            dispatch(callUpdateTorCircuit());
+            let torcircuit_data = callGetTorcircuitInfo();
+            let torcircuit_array = torcircuit_data ? torcircuit_data : [];
+            const loaded = (torcircuit_data !== undefined && torcircuit_data.length > 0)
             setTorLoaded(loaded)
             dispatch(setTorOnline(loaded))
             setTorcircuitData(torcircuit_array);
-        } else {
+        }
+        else{
             dispatch(setTorOnline(false))
             setTorLoaded(false)
         }
@@ -85,8 +70,6 @@ const TorCircuit = (props) => {
         return shortURL
     }
 
-    const state_entity_endpoint = current_config.state_entity_endpoint;
-
     return (
         <div className = "dropdown tor">
             <TorIcon/>
@@ -100,7 +83,7 @@ const TorCircuit = (props) => {
                             return <TorCircuitNode className='passed' name={circuit.country} ip={circuit.ip} key ={circuit.ip}></TorCircuitNode>
                         })}
                         {/* <TorCircuitNode className='current' name={current_config.state_entity_endpoint}></TorCircuitNode> */}
-                        {<TorCircuitNode class='current' name={shortenURL(state_entity_endpoint)}></TorCircuitNode>}
+                        {<TorCircuitNode class='current' name={shortenURL(current_config.state_entity_endpoint)}></TorCircuitNode>}
                     </ul>
                     <button className = 'Body-button transparent' onClick={newCircuit}>New Circuit</button>
                 </div>) :  
