@@ -113,7 +113,7 @@ export default class Swap {
   }
 
   checkWalletStatus = () => {
-    if (this.wallet.active ===false) {
+    if (this.wallet.active === false) {
       throw Error(`wallet unloading...`)
     }
   }
@@ -534,7 +534,7 @@ export default class Swap {
     try {
       const tm3 = this.getTransferMsg()
       await transferUpdateMsg(this.clients.http_client,
-        tm3, true)        
+        tm3, true)
       return SwapStepResult.Ok("transfer update msg complete")
     } catch (err: any) {
       return SwapStepResult.Retry(`transferUpdateMsg: ${err.message}`)
@@ -862,7 +862,7 @@ export default class Swap {
     }
   }
 
-  do_swap_poll = async (): Promise<StateCoin | null> => {
+  doSwapPoll = async (): Promise<StateCoin | null> => {
     this.validate()
     this.prepare_statecoin()
     this.resetCounters()
