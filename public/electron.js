@@ -138,10 +138,6 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
 
-  mainWindow.on('close', async () => {
-    mainWindow.removeAllEventListeners();
-  });
-
   mainWindow.on('closed', async () => {
     mainWindow = null;
   });
