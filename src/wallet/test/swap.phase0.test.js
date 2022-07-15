@@ -5,6 +5,7 @@ import { STATECOIN_STATUS } from '../statecoin'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import { swapPhase0 as swapPhase0Steps } from '../swap/swap.phase0'
 import { POST_ROUTE } from '../http_client';
+const Promise = require('bluebird');
 
 let bitcoin = require('bitcoinjs-lib')
 
@@ -62,13 +63,6 @@ describe('swapPhase0 test 2 - correct initial statecoin phase', () => {
   statecoin.status = STATECOIN_STATUS.AWAITING_SWAP;
   statecoin.swap_status = SWAP_STATUS.Phase0;
   let swap_id = "12345";
-  // swapPhase0 calls post to: swap/poll/utxo
-  // which takes an id as parameter (the swap_id)
-  // mockReturnValueOnce({...}) means: the first time give null to post 
-  // the second time give swap id to post
-  http_mock.post = jest.fn().mockReset()
-    .mockReturnValueOnce({ id: null })    // return once null => swap has not started
-    .mockReturnValueOnce({ id: swap_id }) // return once an id => swap has begun
   //////////////////////////////////////////////////
 
   let wallet
@@ -81,6 +75,10 @@ describe('swapPhase0 test 2 - correct initial statecoin phase', () => {
 
   it('should have swap_status Phase0, swap_id null', async () => {
     // swap not yet begun
+    // swapPhase0 calls post to: swap/poll/utxo
+    // which takes an id as parameter (the swap_id)
+    http_mock.post = jest.fn().mockReset()
+      .mockReturnValue({ id: null })    // return once null => swap has not started
     await swapPhase0(swap)
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase0)
     expect(statecoin.swap_id).toBe(null)
@@ -88,6 +86,8 @@ describe('swapPhase0 test 2 - correct initial statecoin phase', () => {
 
   it('should have swap_status Phase1, swap_id not null', async () => {
     // swap begun
+    http_mock.post = jest.fn().mockReset()
+      .mockReturnValue({ id: swap_id }) 
     await swapPhase0(swap)
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase1)
     expect(statecoin.swap_id.id).toBe(swap_id)
@@ -177,16 +177,14 @@ describe('swapPhase0 test 6 - coin removed from swap pool', () => {
 
   beforeAll(async () => {
     wallet = await getWallet();
-    wallet.http_client = jest.genMockFromModule('../mocks/mock_http_client');
-    wallet.http_client.post = jest.fn((path, body) => {
+  })
+
+  it('swap Phase 0 should throw error', async () => {
+    http_mock.post = jest.fn((path, body) => {
       if (path === POST_ROUTE.SWAP_POLL_UTXO) {
         throw post_err
       }
     })
-
-  })
-
- it('swap Phase 0 should throw error', async () => {
     let swap = new Swap(wallet, statecoin, null, null) 
     const input = () => {
       return swapPhase0(swap);
@@ -207,17 +205,15 @@ describe('swapPhase0 test 7 - waiting for swap to begin...', () => {
   let wallet
   beforeAll(async () => {
     wallet = await getWallet();
-    wallet.http_client = jest.genMockFromModule('../mocks/mock_http_client');
-    wallet.http_client.post = jest.fn((path, body) => {
-      if (path === POST_ROUTE.SWAP_POLL_UTXO) {
-        return { id: null }
-      }
-    })
-
   })
 
   
   it('swap Phase 0 should remain in phase 0 and not increment the n_retries counter past 1', async () => {
+    http_mock.post = jest.fn((path, body) => {
+      if (path === POST_ROUTE.SWAP_POLL_UTXO) {
+        return { id: null }
+      }
+    })
     let swap = new Swap(wallet, statecoin, null, null) 
     expect(swap.n_retries).toEqual(0)
     const input = () => {
@@ -244,17 +240,16 @@ describe('swapPhase0 test 8 - proceed to phase 1', () => {
   let wallet
   beforeAll(async () => {
     wallet = await getWallet();
-    wallet.http_client = jest.genMockFromModule('../mocks/mock_http_client');
-    wallet.http_client.post = jest.fn((path, body) => {
-      if (path === POST_ROUTE.SWAP_POLL_UTXO) {
-        return final_statecoin.swap_id
-      }
-    })
   })
 
   
 
   it('swap Phase 0 should proceed to phase 1', async () => {
+    http_mock.post = jest.fn((path, body) => {
+      if (path === POST_ROUTE.SWAP_POLL_UTXO) {
+        return final_statecoin.swap_id
+      }
+    })
     let swap = new Swap(wallet, statecoin, null, null) 
     const input = () => {
       return swapPhase0(swap);

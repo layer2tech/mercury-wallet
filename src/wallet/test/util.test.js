@@ -13,6 +13,7 @@ import { Wallet } from '../';
 import { encrypt, decrypt, PrivateKey } from 'eciesjs12b';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 
+var BBuffer = require('buffer/').Buffer  // note: the trailing slash is important!
 let bip32 = require('bip32');
 var crypto = require('crypto')
 let bitcoin = require('bitcoinjs-lib');
@@ -253,15 +254,19 @@ const MERCURY_ENCRYPTIONS = [
   { data: "9302a573b48d11b96ab9459c5899ac461e15197da4c52e5d237536bc2177cc64", enc: "0455c23bb64470139e949298ebf7e7ab9556272fd046d9e12a9ff1280feb6868c37069cdc1e7e7ecb9b4b9ab7e5ca09dfe18b1d954528ba522ba639eb830596b076307c9e13f76f72468bd016a9cd395603cd152b0e416c113bd1a0a19f7c124fb5d59c63b3b3623682d847f4c9e366c8d7523f33a17cee98e1b6757db" }
 ]
 
-test('ECIES encrypt/decrypt', async function() {
+test('ECIES encrypt/decrypt', async function () {
+  console.log("create private key...")
   const sk = PrivateKey.fromHex("0000000000000000000000000000000000000000000000000000000000000001")
   let data = PROOF_KEY
 
+  console.log("encrypt...")
   let enc = encryptECIES(sk.publicKey.toHex(), PROOF_KEY)
+  console.log("decrypt...")
   let dec = decryptECIES(sk.toHex(), enc);
   expect(dec).toBe(data);
 
   MERCURY_ENCRYPTIONS.forEach(item => {
+    console.log("decrypt item...")
     let dec = decryptECIES(sk.toHex(), item.enc);
     expect(dec).toBe(item.data);
   })
