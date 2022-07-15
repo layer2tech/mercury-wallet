@@ -8,6 +8,15 @@ import { callGetConfig } from '../features/WalletDataSlice'
 import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
 
+// Logger import.
+// Node friendly importing required for Jest tests.
+declare const window: any;
+let log: any;
+try {
+  log = window.require('electron-log');
+} catch (e: any) {
+  log = require('electron-log');
+}
 
 const bip32 = require('bip32');
 let bech32 = require('bech32')
@@ -386,15 +395,21 @@ const zero_pad = (num: any) => {
 
 // ECIES encrypt string
 export const encryptECIES = (publicKey: string, data: string): Buffer => {
+  log.debug('encryptECIES...')
   let data_arr = new Uint32Array(Buffer.from(zero_pad(data), "hex"));
-  return encrypt(publicKey, Buffer.from(data_arr));
+  let result = encrypt(publicKey, Buffer.from(data_arr));
+  log.debug('encryptECIES: return...')
+  return result;  
 }
 
 // ECIES decrypt string x1 from Server.
 export const decryptECIES = (secret_key: string, encryption: string): string => {
+  log.debug('decryptECIES...')
   let enc = new Uint32Array(Buffer.from(encryption, "hex"))
   let dec = decrypt(secret_key, Buffer.from(enc));
-  return dec.toString("hex")
+  let result = dec.toString("hex")
+  log.debug('decryptECIES: return...')
+  return result
 }
 
 const AES_ALGORITHM = 'aes-192-cbc';

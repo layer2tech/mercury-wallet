@@ -169,9 +169,11 @@ const transferReceiverGet = (path, params, statecoin) => {
 
 const transferReceiverPost = (path, params) => {
   if (path === POST_ROUTE.TRANSFER_RECEIVER) {
+    console.log(`######## TR POST`)
     return MOCK_SERVER.TRANSFER_RECEIVER
   }
   if (path === POST_ROUTE.TRANSFER_PUBKEY) {
+    console.log(`######## TPK POST`)
     return MOCK_SERVER.TRANSFER_PUBKEY
   }
 }
@@ -276,13 +278,15 @@ describe('Swap phase 4', function () {
     })
 
     let statecoin = get_statecoin_in()
+    console.log(`################## statecoin in tf data: ${JSON.stringify(statecoin.swap_transfer_finalized_data)}`)
 
     http_mock.get = jest.fn((path, params) => {
       return transferReceiverGet(path, params, statecoin)
     })
 
     let EXPECTED_STATECOIN = get_statecoin_after_transfer_receiver(statecoin)
-
+    console.log(`################## expected tf data: ${JSON.stringify(EXPECTED_STATECOIN.swap_transfer_finalized_data)}`)
+    
     let wallet = await getWallet()
     let swap = getSwap(wallet, statecoin)
 
