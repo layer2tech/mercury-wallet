@@ -32,7 +32,7 @@
   "main": "public/electron.js",
   "scripts": {
     "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
-    "install-local": "yarn add file:./tor-adapter",
+    "install-local": "yarn add file:tor-adapter file:../commerceblock/eciesjs",
     "start": "react-app-rewired start",
     "prebuild": "DATE=`date` && YEAR=${DATE##* } && MERC_YEAR=`jq .build.copyright package.json | awk '{print $3}'` && if [ $YEAR -ne $MERC_YEAR ]; then echo 'package.json prebuild - expected .build.copyright year' $YEAR ', got' $MERC_YEAR '- please update year' && return 1; fi",
     "build": "react-app-rewired build",
@@ -113,7 +113,7 @@
     "i18n-iso-countries": "^7.1.0",
     "install": "^0.13.0",
     "lodash.clonedeep": "^4.5.0",
-    "mercury-wallet-tor-adapter": "file:./tor-adapter",
+    "mercury-wallet-tor-adapter": "file:tor-adapter",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
     "mutex-promise": "^0.1.0",

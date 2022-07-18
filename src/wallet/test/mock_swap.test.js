@@ -262,6 +262,7 @@ describe('Resume Swap Successful', function () {
     Swap.mockImplementation(() => {
       return {
         doSwapPoll: () => {
+          console.log("############ doSwapPoll...")
           return returned_statecoin;
         }
       }
