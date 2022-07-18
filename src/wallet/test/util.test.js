@@ -10,8 +10,9 @@ import { encodeSCEAddress } from '../util';
 import { FUNDING_TXID, FUNDING_TXIDS, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
 import { Wallet } from '../';
 
-import { encrypt, decrypt, PrivateKey } from 'eciesjs12b';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
+
+const ecies = require('ecies-lite');
 
 var BBuffer = require('buffer/').Buffer  // note: the trailing slash is important!
 let bip32 = require('bip32');
@@ -249,25 +250,42 @@ test('Secp256k Point encode/decode', async function() {
 
 
 const MERCURY_ENCRYPTIONS = [
-  { data: PROOF_KEY, enc: "04ba10ae2a1112cfe0afc3e3a8308787b1fd748695bb53fd8ca0debef854c732e0e88097342211b15efcf41e1c4476e6394e4d90c9d6fb9ef559984012ff6ed939dbf8b194afcb39bd3508160d4b71e6a3f8552f63dc4e599c6649da1d99f273a9011bbae3c4391d99db11a148bd19c288aed22bcc0684b4c030ef0c87" },
+  {
+    data: PROOF_KEY, enc:
+    {
+      iv: "04ba10ae2a1112cfe0afc3e3",
+      epk: "a8308787b1fd748695bb53fd8ca0debe",
+      ct: "f854c732e0e88097342211b15efcf41e1c4476e6394e4d90c9d6fb9ef559984012ff6ed939dbf8b194afcb39bd3508160d4b71e6a3f8552f63dc4e599c6649da1d99f273a9011bbae3c4391d99db11a148bd19c288aed22bcc0684b4c030ef0c87"
+    }
+  },
   { data: "b26d89e448407500bc6e68a035775f9baa435c644651ffe171c645c0ca94a5ab", enc: "04be40d41b35093999d3e6f23df3401a9fb3e1b01f09cd87cbed8fc74606544095620dbab97bba91bf06ddb578987ac0ce509e781ff7bb2bde35ec464c5af347675df9173618349175e7cc75a9d54f223385a383c669d47409fed6344c7f7c13183e2a025829312138ddbcada1318b38cf056e216dc63fe93a3aaf5439" },
   { data: "9302a573b48d11b96ab9459c5899ac461e15197da4c52e5d237536bc2177cc64", enc: "0455c23bb64470139e949298ebf7e7ab9556272fd046d9e12a9ff1280feb6868c37069cdc1e7e7ecb9b4b9ab7e5ca09dfe18b1d954528ba522ba639eb830596b076307c9e13f76f72468bd016a9cd395603cd152b0e416c113bd1a0a19f7c124fb5d59c63b3b3623682d847f4c9e366c8d7523f33a17cee98e1b6757db" }
 ]
 
 test('ECIES encrypt/decrypt', async function () {
   console.log("create private key...")
-  const sk = PrivateKey.fromHex("0000000000000000000000000000000000000000000000000000000000000001")
+  let ecdh = crypto.createECDH('secp256k1');
+  const sk_hex = "0000000000000000000000000000000000000000000000000000000000000001";
+  const sk_buffer = Buffer.from(sk_hex, "hex");
+  //ecdh.setPrivateKey("0000000000000000000000000000000000000000000000000000000000000001");
+  ecdh.setPrivateKey(sk_buffer);
+  const sk = ecdh.getPrivateKey();
+  const sk_hex_2 = ecdh.getPrivateKey('hex');
+  //expect(sk_hex_2).toEqual(sk_hex);
+  const pk = ecdh.getPublicKey();
+  //const sk = PrivateKey.fromHex("0000000000000000000000000000000000000000000000000000000000000001")
   let data = PROOF_KEY
 
   console.log("encrypt...")
-  let enc = encryptECIES(sk.publicKey.toHex(), PROOF_KEY)
+  let enc = encryptECIES(pk, PROOF_KEY)
+  console.log(`body: ${JSON.stringify(enc)}`)
   console.log("decrypt...")
-  let dec = decryptECIES(sk.toHex(), enc);
+  let dec = decryptECIES(sk, enc);
   expect(dec).toBe(data);
 
   MERCURY_ENCRYPTIONS.forEach(item => {
     console.log("decrypt item...")
-    let dec = decryptECIES(sk.toHex(), item.enc);
+    let dec = decryptECIES(sk, item.enc);
     expect(dec).toBe(item.data);
   })
 });
@@ -281,4 +299,17 @@ test('AES encrypt/decrypt', async () => {
     let decrypted = decryptAES(encrypted, password);
     expect(decrypted).toBe(data);
   })
+})
+
+test('Crypto IV size 12 bytes', async () => {
+  const ivSize = 16;
+  const iv = crypto.randomBytes(ivSize);
+  const ecdh = crypto.createECDH('secp256k1');
+  ecdh.generateKeys();
+  const pk = ecdh.getPublicKey();
+  const hash = crypto.createHash('sha256').update(ecdh.computeSecret(pk)).digest();
+  const cipherAlgorithm = 'aes-256-cbc';
+  const cipherKeyGen = (bytes) => bytes.slice(0, 32);
+  const cipherKey = cipherKeyGen(hash);
+  const _cipher = crypto.createCipheriv(cipherAlgorithm, cipherKey, iv);
 })
