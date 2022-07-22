@@ -202,7 +202,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.statechain_id = recoveredCoins[i].statechain_id;
         statecoin.value = recoveredCoins[i].amount;
         statecoin.tx_hex = recoveredCoins[i].tx_hex;
-        statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
+        statecoin.sc_address = encodeSCEAddress(statecoin.proof_key, wallet);
         const withdrawing = recoveredCoins[i].withdrawing
         if (withdrawing != null && withdrawing != 'None') {
           statecoin.setWithdrawing();
