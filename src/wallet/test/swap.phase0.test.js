@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jsdom
+ */
 import { makeTesterStatecoin, setSwapDetails } from './test_data.js'
 import { SWAP_STATUS } from "../swap/swap_utils";
 import Swap from "../swap/swap"
@@ -128,6 +131,9 @@ describe('swapPhase0 test 4 - poll with no swap_id', () => {
     swap = new Swap(wallet, statecoin, null, null)
   })
   it('should return Retry status', async () => {
+    http_mock.post = jest.fn().mockReset()
+      .mockReturnValue({ id: null }) 
+    
     const input = () => {
       return swapPhase0(swap);
     }

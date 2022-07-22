@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
 let bitcoin = require('bitcoinjs-lib')
 import React from 'react';
 import {
@@ -46,7 +49,7 @@ describe("Recovery", () => {
       await wallet.genProofKey();
     })
   
-    test.skip('run recovery', async () => {
+    test('run recovery', async () => {
 
       http_mock.post = jest.fn().mockReset()
       .mockReturnValueOnce(RECOVERY_DATA)
@@ -304,7 +307,7 @@ describe("Recovery withdrawing", () => {
     await wallet.genProofKey();
   })
 
-  test.skip('run recovery withdrawing', async () => {
+  test('run recovery withdrawing', async () => {
 
     http_mock.post = jest.fn().mockReset()
       .mockReturnValueOnce(RECOVERY_DATA_WITHDRAWING)
@@ -377,7 +380,7 @@ describe("Recovery withdrawing batch", () => {
     await wallet.genProofKey();
   });
 
-  test.skip('run recovery withdrawing batch', async () => {
+  test('run recovery withdrawing batch', async () => {
 
     http_mock.post = jest.fn().mockReset()
       .mockReturnValueOnce(RECOVERY_DATA_WITHDRAWING_BATCH)
@@ -456,7 +459,7 @@ describe("Recovery withdrawing mixed", () => {
     await wallet.genProofKey();
   });
 
-  test.skip('run recovery withdrawing mixed', async () => {
+  test('run recovery withdrawing mixed', async () => {
 
     http_mock.post = jest.fn().mockReset()
       .mockReturnValueOnce(RECOVERY_DATA_WITHDRAWING_MIXED)
@@ -568,7 +571,7 @@ describe("Recovery withdrawing batch 2", () => {
     expect(tx0.getHash()).toEqual(tx1.getHash())
   })
 
-  test.skip('run recovery withdrawing batch 2', async () => {
+  test('run recovery withdrawing batch 2', async () => {
 
     http_mock.post = jest.fn().mockReset()
       .mockReturnValueOnce(RECOVERY_DATA_WITHDRAWING_BATCH_2)
