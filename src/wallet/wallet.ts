@@ -134,6 +134,8 @@ export class Wallet {
     } else if (this.config.testing_mode != true) {
       this.http_client = new HttpClient('http://localhost:3001', true);
       this.set_tor_endpoints();
+    } else {
+      this.http_client = new MockHttpClient();
     }
 
     this.electrum_client = this.newElectrumClient();
