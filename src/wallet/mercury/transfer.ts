@@ -133,7 +133,9 @@ export const transferSender = async (
 
   // Get SE's x1
   let x1 = transfer_msg2.x1.secret_bytes;
+  log.debug(`transferSender - decryptECIES...`)
   let x1_dec = decryptECIES(proof_key_der.privateKey!.toString("hex"), Buffer.from(x1).toString("hex"));
+  log.debug(`transferSender - decryptECIES finished.`)
 
   let o1_bn = new BN(o1, 16);
   let x1_bn = new BN(x1_dec, 16);
@@ -209,6 +211,7 @@ export const getTransferMsg4 = async (
   value: number | null,
   statechain_data: StateChainDataAPI | null
 ): Promise<TransferMsg4> => {
+  log.debug('getTransferMsg4...')
   // Backup tx verification
   if (statechain_data === null || statechain_data === undefined) {
     statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
@@ -229,8 +232,11 @@ export const getTransferMsg4 = async (
   let sighash = getSigHash(tx_backup, 0, pk, statechain_data.amount, network);
   let sighash_bytes = Buffer.from(sighash, "hex");
   let sig = tx_backup.ins[0].witness[0];
+  log.debug('getTransferMsg4: get pk_der...')
   let pk_der = bitcoin.ECPair.fromPublicKey(Buffer.from(pk, "hex"));
+  log.debug('getTransferMsg4: decode sig...')
   let decoded = script.signature.decode(sig);
+  log.debug('getTransferMsg4: verify sig...')
   if (!pk_der.verify(sighash_bytes, decoded.signature)) throw new Error("Backup tx invalid signature.");
   // 4. Ensure backup tx funds are sent to address owned by this wallet
   if (se_rec_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
@@ -300,6 +306,7 @@ export const getTransferMsg4 = async (
     batch_data,
   };
   typeforce(types.TransferMsg4, transfer_msg4);
+  log.debug('getTransferMsg4: return...')
   return transfer_msg4
 }
 
@@ -315,6 +322,7 @@ export const transferReceiver = async (
   value: number | null,
   transfer_msg_4: TransferMsg4 | null
 ): Promise<TransferFinalizeData> => {
+  log.debug('transferReceiver...')
   // Get statechain data (will Err if statechain not yet finalized)
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
 
@@ -325,6 +333,7 @@ export const transferReceiver = async (
   let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
   let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
   let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
+  log.debug('statechain_sig.verify...')
   if (!statechain_sig.verify(prev_owner_proof_key_der)) {
     //if the signature matches the transfer message, then transfer already completed
     if (statechain_data.chain.length > 1) {
@@ -368,7 +377,7 @@ export const transferReceiver = async (
       value,
       statechain_data)
   }
-  
+  log.debug('get transfer_msg_5...')
   let transfer_msg5: TransferMsg5 = await http_client.post(POST_ROUTE.TRANSFER_RECEIVER, transfer_msg_4);
   typeforce(types.TransferMsg5, transfer_msg5);
 
@@ -387,7 +396,7 @@ export const transferReceiver = async (
       tx_backup_psm: tx_backup_psm,
   };
   typeforce(types.TransferFinalizeData, finalize_data);
-
+  log.debug('return finalize_data')
   return finalize_data
 }
 

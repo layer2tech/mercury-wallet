@@ -1,3 +1,4 @@
+
 import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client'
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
 import { makeTesterStatecoin, SWAP_TRANSFER_MSG } from './test_data.js'
@@ -56,8 +57,8 @@ const init_phase3_status = (statecoin) => {
     statecoin.swap_receiver_addr = SWAP_SECOND_SCE_ADDRESS;
 }
 
-const jsdomAlert = window.alert;
-window.alert = () => { };
+//const jsdomAlert = window.alert;
+//window.alert = () => { };
 const proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
 const swapPhase3 = async (swap) => {
@@ -669,5 +670,5 @@ describe('swapPhase3', () => {
     })
 
     // restore windows alert
-    window.alert = jsdomAlert;
+    //window.alert = jsdomAlert;
 });

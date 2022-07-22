@@ -1,3 +1,4 @@
+
 import { makeTesterStatecoin, STATECOIN_SWAP_DATA, SWAP_SHARED_KEY_OUT } from './test_data.js'
 import {
   SWAP_STATUS,
@@ -282,7 +283,7 @@ describe('Swap phase 4', function () {
     })
 
     let EXPECTED_STATECOIN = get_statecoin_after_transfer_receiver(statecoin)
-
+    
     let wallet = await getWallet()
     let swap = getSwap(wallet, statecoin)
 

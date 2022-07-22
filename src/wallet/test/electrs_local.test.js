@@ -1,7 +1,3 @@
-/**
- * @jest-environment node
- */
-
 import { ElectrsLocalClient } from '../electrs_local';
 const Promise = require('bluebird');
 let bitcoin = require('bitcoinjs-lib');
