@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
+
 // This file contains test for the main swap function with Swap class mocked
 
 import { makeTesterStatecoin } from './test_data.js'
