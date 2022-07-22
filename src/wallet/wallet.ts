@@ -129,9 +129,9 @@ export class Wallet {
 
     this.activity = new ActivityLog();
 
-    if (http_client) {
+    if (http_client != null) {
       this.http_client = http_client;
-    } else {
+    } else if (this.config.testing_mode != true) {
       this.http_client = new HttpClient('http://localhost:3001', true);
       this.set_tor_endpoints();
     }

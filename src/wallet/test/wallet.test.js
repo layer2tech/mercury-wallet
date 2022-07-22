@@ -43,9 +43,10 @@ let bip39 = require('bip39');
 const NETWORK_CONFIG = require('../../network.json');
 const SHARED_KEY_DUMMY = { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" };
 
-// electrum mock
-let electrum_mock = new MockElectrumClient;
 const MOCK_WALLET_NAME_BACKUP = MOCK_WALLET_NAME + "_backup"
+
+
+
 
 describe('Wallet', function () {
   let wallet
@@ -595,13 +596,6 @@ describe('updateBackupTxStatus', function () {
     await wallet.updateBackupTxStatus(false);
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPLIMIT);
   })
-
-  /*
-  test('Rate limited', async function () {
-    await expect(wallet.updateBackupTxStatus()).resolves.toBe(undefined);
-    await expect(wallet.updateBackupTxStatus()).resolves.toBe(undefined);
-  })
-  */
   
   test('Expired', async function () {
     // locktime = 1000, height = 1000, EXPIRED triggered
