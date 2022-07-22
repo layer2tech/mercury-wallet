@@ -5,9 +5,8 @@ import { Root, StateChainDataAPI, FeeInfo, OutPoint } from './mercury/info_api';
 import { Secp256k1Point } from './mercury/transfer';
 import { TransferMsg3, PrepareSignTxMsg } from './mercury/transfer';
 import { callGetConfig } from '../features/WalletDataSlice'
-import { encrypt, decrypt } from 'eciesjscb';
+import { encrypt, decrypt } from 'eciesjs12b';
 import { segwitAddr } from './wallet';
-
 
 const bip32 = require('bip32');
 let bech32 = require('bech32')
