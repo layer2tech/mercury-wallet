@@ -1,6 +1,4 @@
-/**
- * @jest-environment node
- */
+
 import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client'
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
 import { makeTesterStatecoin, SWAP_TRANSFER_MSG } from './test_data.js'

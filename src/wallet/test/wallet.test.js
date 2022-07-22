@@ -1,6 +1,4 @@
-/**
- * @jest-environment node
- */
+
 let bitcoin = require('bitcoinjs-lib')
 import {
   Wallet, StateCoin, StateCoinList, ACTION,

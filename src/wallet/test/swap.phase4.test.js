@@ -1,6 +1,4 @@
-/**
- * @jest-environment node
- */
+
 import { makeTesterStatecoin, STATECOIN_SWAP_DATA, SWAP_SHARED_KEY_OUT } from './test_data.js'
 import {
   SWAP_STATUS,
