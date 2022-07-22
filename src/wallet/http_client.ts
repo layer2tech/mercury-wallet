@@ -23,7 +23,9 @@ export const GET_ROUTE = {
   SWAP_GROUPINFO: "swap/groupinfo",
   TRANSFER_GET_MSG_ADDR: "transfer/get_msg_addr",
   TOR_CIRCUITS: "tor_circuit",
-  NEW_TOR_ID: "newid"
+  NEW_TOR_ID: "newid",
+  TOKEN_INIT: "pod/token/init",
+  TOKEN_VERIFY: "pod/token/verify",
 };
 Object.freeze(GET_ROUTE);
 
@@ -51,9 +53,7 @@ export const POST_ROUTE = {
   SWAP_INFO: "swap/info",
   SWAP_FIRST: "swap/first",
   SWAP_BLINDED_SPEND_SIGNATURE: "swap/blinded-spend-signature",
-  SWAP_SECOND: "swap/second",
-  TOKEN_INIT: "token/init",
-  TOKEN_VERIFY: "token/verify",
+  SWAP_SECOND: "swap/second"
 };
 Object.freeze(POST_ROUTE);
 

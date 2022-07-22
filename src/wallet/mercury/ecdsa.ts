@@ -79,6 +79,67 @@ export const keyGen = async (
 
   return new StateCoin(shared_key_id, master_key)
 }
+export const keyGenToken = async (
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
+  shared_key_id: string,
+  secret_key: string,
+  protocol: string
+) => {
+
+  let keygen_msg1 = {
+      shared_key_id: shared_key_id,
+      protocol: protocol
+  };
+
+  // server first
+  let server_resp_key_gen_first
+  let kg_party_one_first_message
+
+  server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
+  kg_party_one_first_message = server_resp_key_gen_first.msg;
+  typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
+
+  // client first
+  let client_resp_key_gen_first: ClientKeyGenFirstMsg =
+    JSON.parse(
+      wasm_client.KeyGen.first_message(secret_key)
+    );
+  typeforce(types.ClientKeyGenFirstMsg, client_resp_key_gen_first);
+  
+  // server second
+  let key_gen_msg2 = {
+    shared_key_id: shared_key_id,
+    dlog_proof:client_resp_key_gen_first.kg_party_two_first_message.d_log_proof,
+  }
+  let kg_party_one_second_message = await http_client.post(POST_ROUTE.KEYGEN_SECOND, key_gen_msg2);
+      typeforce(types.KeyGenParty1Message2, kg_party_one_second_message.msg); 
+ 
+  // client second
+  let key_gen_second_message =
+    JSON.parse(
+      wasm_client.KeyGen.second_message(
+        JSON.stringify(kg_party_one_first_message),
+        JSON.stringify(kg_party_one_second_message.msg)
+      )
+    );
+  typeforce(types.ClientKeyGenSecondMsg, key_gen_second_message);
+
+  // Construct Rust MasterKey struct
+  let master_key: MasterKey2 =
+    JSON.parse(
+      wasm_client.KeyGen.set_master_key(
+        JSON.stringify(client_resp_key_gen_first.kg_ec_key_pair_party2),
+        JSON.stringify(kg_party_one_second_message.msg
+                .ecdh_second_message
+                .comm_witness
+                .public_share),
+        JSON.stringify(key_gen_second_message.party_two_paillier)
+    ));
+  typeforce(types.MasterKey2, master_key);
+
+  return new StateCoin(shared_key_id, master_key)
+}
 
 // 2P-ECDSA Sign.
 // message should be hex string

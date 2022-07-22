@@ -1,5 +1,6 @@
 'use strict';
 import { ActivityLog, decryptAES, encryptAES, StateCoinList } from "./wallet";
+import { Token } from "./wallet/statecoin";
 
 declare const window: any;
 let Store: any;
@@ -98,6 +99,10 @@ export class Storage {
   storeWalletStateCoinsList(wallet_name: string, statecoins: StateCoinList, activity: ActivityLog) {
     this.store.set(wallet_name+'.statecoins', statecoins);
     this.store.set(wallet_name+'.activity', activity);
+  };
+
+  storeToken(wallet_name: string, tokens: Token){
+    this.store.set(wallet_name+'.tokens', tokens)
   };
 
   storeWalletKeys(wallet_name: string, account: any) {

@@ -27,6 +27,8 @@ export class MockHttpClient {
         return true
       case GET_ROUTE.FEES:
         return cloneDeep(FEE_INFO)
+      case GET_ROUTE.COINS_INFO:
+        return COINS_INFO
       case GET_ROUTE.ROOT:
         return cloneDeep(ROOT_INFO)
       case GET_ROUTE.STATECHAIN:
@@ -42,6 +44,10 @@ export class MockHttpClient {
         }
       case GET_ROUTE.SC_TRANSFER_FINALIZE_DATA:
         return cloneDeep(RECOVERY_TRANSFER_FINALIZE_DATA_API)
+      case GET_ROUTE.TOKEN_INIT:
+        return TOKEN_INIT 
+      case GET_ROUTE.TOKEN_VERIFY:
+        return TOKEN_VERIFY
     }
   }
 
@@ -81,10 +87,6 @@ export class MockHttpClient {
         return RECOVERY_STATECHAIN_DATA
       case POST_ROUTE.SWAP_DEREGISTER_UTXO:
         return
-      case POST_ROUTE.TOKEN_INIT:
-        return 
-      case POST_ROUTE.TOKEN_VERIFY:
-        return 
     }
   }
 
@@ -95,12 +97,20 @@ export class MockHttpClient {
 
 export const FEE_INFO = {
   address: "tb1q6xwt00hnwcrtlunvnz8u0xrtdxv5ztx7pj44cp",
-  deposit: 300,
+  deposit: 50,
   withdraw: 141,
   interval: 100,
   initlock: 10000,
   wallet_version: "0.4.66",
   wallet_message: ""
+}
+
+export const COINS_INFO = {
+  values: {
+    0: 205,
+    100000: 356,
+    1000000: 4
+  }
 }
 
 export const ROOT_INFO = {
@@ -789,6 +799,6 @@ export const TOKEN_INIT = {
 }
 
 export const TOKEN_VERIFY = {
-  confirmed: true,
-  spent: true,
+  confirmed: false,
+  spent: false,
 }

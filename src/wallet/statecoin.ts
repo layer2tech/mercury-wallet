@@ -780,6 +780,17 @@ export interface ExpiryData {
   confirmations: number
 }
 
+export interface Token {
+  id: string,
+  btc: string,
+  ln: string
+}
+
+export interface TokenData {
+  token: Token,
+  coins: number[]
+}
+
 
 export interface InclusionProofSMT {
 

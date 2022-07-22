@@ -1,15 +1,17 @@
 'use strict';
 import plus from "../../images/plus-deposit.png";
 import points from "../../images/points.png";
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux'
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux'
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
 import { CreateStatecoin, TransactionsBTC, StdButton, Steppers, Tutorial } from "../../components";
-import { isWalletLoaded, callGetConfig, callGetAccount } from '../../features/WalletDataSlice';
+import { isWalletLoaded, callGetConfig,  callTokenInit, setError, callTokenVerify, setTokenVerifyIdle, resetToken, callGetTokens } from '../../features/WalletDataSlice';
 
 import './Deposit.css';
 import DepositToken from "../../components/DepositToken/DepositToken";
+import { DUST_LIMIT } from "../../wallet/util";
+import PayOnDeposit from "../../components/PayOnDeposit/PayOnDeposit";
 
 // sort_by 0=liquidity, 1=amount.
 const DEFAULT_SETTINGS = {
@@ -35,11 +37,12 @@ const STEPS = [
 
 const DepositPage = () => {
 
-  const fee_info = useSelector(state => state.walletData).fee_info;
+  const dispatch = useDispatch();
+
+  const { fee_info, token_init_status, token, token_verify } = useSelector(state => state.walletData);
   // Show settings
   const [show, setShow] = useState(false);
   const [step, setStep] = useState(1)
-
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -49,7 +52,70 @@ const DepositPage = () => {
   const [smallestOption, setSmallestOption] = useState(DEFAULT_SETTINGS.min_value);
 
   const [childError, setChildError] = useState(false);
+  
+  // const [disableContinue, setDisableContinue] = useState(false);
 
+  useEffect(() => {
+    
+    if(token_init_status === 'fulfilled'){
+      // If new token amount set then push to next 
+      setStep( 2 )
+      // On continue add 1 step
+    } 
+    
+    if(token_init_status === "rejected"){
+      dispatch(setError({msg: "Token Initialise Unsuccessful! Please try again."}))
+      return
+    }
+
+  },[token_init_status, dispatch])
+  useEffect(() => {
+
+    if(token.token.id !== "" && step === 2 ){
+
+      dispatch(callTokenVerify({token_id: token.id}))
+    }
+
+  },[token, dispatch])
+
+
+
+  useEffect(() => {
+    
+    if( token_verify.status === "fulfilled" ){
+      
+      dispatch(setTokenVerifyIdle())
+      if(token_verify.spent){
+        dispatch(resetToken());
+        dispatch(setError({ msg: "Token spent: generate a new token for deposit" }));
+        return
+      }
+
+
+      if(token_verify.confirmed !== true){
+        dispatch(resetToken());
+        dispatch(setError({msg: "Token payment not yet received"}))
+        return
+      } else{
+        setSelectedValues([{ value: null, initialised: false, p_addr: "Initialising.." }])
+        // initialise selected values
+        token.values.map(value => {
+          addValueSelection(0, value)
+          // set selected values according to token
+        })
+        setStep( 3 )
+        return
+      }
+      
+
+    } if( token_verify.status === "rejected" ){
+      dispatch(setTokenVerifyIdle())
+      dispatch(resetToken());
+      dispatch(setError({msg: "Failed to verify token - check internet connection"}))
+      return
+    }
+
+  },[token_verify, selectedValues, dispatch])
 
   const setPicksSetting = (event) => {
     setSettings({
@@ -82,6 +148,107 @@ const DepositPage = () => {
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
   }
+
+  const onContinueClick = (e) => {
+    if(e.target.innerHTML === "Continue"){
+      
+      if(step === 1){
+
+        /*
+
+        Option 1: Show all unspent tokens ( don't generate new token if old token exists )
+        √ Save tokens to wallet file 
+        √ Save info about coins used and replace ( for selected values )
+        √ Allow to pass on to step 2 without depositing statecoins
+        √ Don't show token label if token amount 0
+        √ Confirm button on each token or Confirm All at bottom
+          • setToken function
+          • On confirm setToken, listen for this in useEffect - run tokenVerify
+        
+        √ Add details to coin: to deposit statecoins of: 1x0.001BTC or equivalent value
+        √ Don't create a new token if one already exists of same value and values
+
+        very good to add: 
+
+          √ 'Remove token from wallet' button
+          - Remove spent tokens
+          - Message saying click statecoins to deposit
+
+        Not necessary but maybe: 
+          - Confirm All button
+
+        */
+
+
+        var tokenValue = calculateTokenFee(selectedValues);
+        
+        if(tokenValue <= DUST_LIMIT && tokenValue !== 0){
+          // Can dust limit be avoided by adding token payment to deposit ?
+          dispatch(setError({msg: "Transaction below dust limit! Add another statecoin to deposit."}))
+          return
+        }
+        if(tokenValue <= DUST_LIMIT && tokenValue === 0 ){
+          // no coin selected -> see token list
+          setStep(2)
+          return
+        }
+        
+        
+        if(tokenValue !== 0){
+
+          let valuesArray = selectedValues.map(item => item.value)
+          let newTokenRequired = true;
+          callGetTokens().map(token => {
+            
+            if(JSON.stringify(valuesArray.sort()) == JSON.stringify(token.values.sort())){
+              // check if arrays equivalent
+              // No need to create a new token
+              newTokenRequired = false
+              setStep(2)
+            }
+          })
+          if(newTokenRequired){
+            // List of statecoin values for token
+            dispatch(callTokenInit({amount: tokenValue,  values: valuesArray}));
+
+            setSelectedValues([{ value: null, initialised: false, p_addr: "Initialising.." }]);
+            // Reset selected values so coin not recreated without clicking
+
+          }
+        }
+
+      }
+
+      if( step === 2 ){
+        // could add an automatic check at 5s that pushes to next step if confirmed
+
+        // Throw error - token payment not yet received
+        dispatch(callTokenVerify({token_id: token}))
+        // verifying if token payment made
+
+        // Test how long it takes payment to be received
+      }
+
+    }
+
+    if(e.target.innerHTML === "Go Back") {
+      setStep(step-1)
+      // On Go Back: go back one step
+
+    }
+  }
+
+  const calculateTokenFee = (coins) => {
+
+    var initialValue = 0;
+        
+    var sumWithInitalValue = coins.reduce((prev,curr) => {
+        return prev + curr.value
+    }, initialValue);
+
+
+    return sumWithInitalValue * (fee_info.deposit/(10000));
+}
 
   // Value in some SelectionPanel that has been chosen
   const addValueSelection = (id, value) => {
@@ -144,7 +311,7 @@ const DepositPage = () => {
 
             </div>
           </div>
-          <h3 className="subtitle">Create new statecoins. Withdraw Fee: <b>{fee_info.withdraw / 100}%</b></h3>
+          <h3 className="subtitle">Create new statecoins. Deposit Fee: <b>{fee_info.deposit / 100}%</b></h3>
         </div>
         <div className="wizard">
           <Steppers steps={STEPS} total={3} current={step} />
@@ -158,9 +325,7 @@ const DepositPage = () => {
             />
             ):(null)}
           { step === 2 ? (
-            <DepositToken 
-              selectedValues = {selectedValues}
-              fee = {fee_info.withdraw}/>
+            < PayOnDeposit />
           ):(null)}
           {step === 3? (
             <TransactionsBTC
@@ -169,9 +334,12 @@ const DepositPage = () => {
               setValueSelectionAddr={setValueSelectionAddr}
             />):(null)}
           {step === 1 ? (
-            !childError && <button className={`primary-btn blue ${"step-" + step}`} onClick={() => setStep(step+1)}>Continue</button>
+            !childError && <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Continue</button>
           ) : (
-            <button className={`primary-btn blue ${"step-" + step}`} onClick={() => setStep(step-1)}>Go Back</button>
+            <div className="stepper-buttons">
+              <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Go Back</button>
+              {/* <button className={`primary-btn blue ${"step-" + step} continue`} onClick={(e) => onContinueClick(e)}>Continue</button> */}
+            </div>
           )}
         </div>
 

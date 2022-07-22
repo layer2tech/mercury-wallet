@@ -8,16 +8,74 @@
 // 4. Verify funding txid and proof key in SM
 
 'use strict';
-import { keyGen, PROTOCOL, sign } from "./ecdsa";
+import { keyGen, keyGenToken, PROTOCOL, sign } from "./ecdsa";
 import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
 import { FeeInfo } from "./info_api";
 import { getSigHash, pubKeyTobtcAddr } from "../util";
 
 import { Network } from 'bitcoinjs-lib';
 import { PrepareSignTxMsg } from "./ecdsa";
+import { Token } from "../statecoin";
+import { GET_ROUTE } from "../http_client";
 const Promise = require('bluebird');
 let typeforce = require('typeforce');
 
+// Init Token -> return BTC address and LN invoice for X token amount
+export const tokenInit = async (
+  http_client: HttpClient | MockHttpClient,
+  token_amount: number
+): Promise<Token> => {
+
+  // May need to add proof of work here
+
+  let res = await http_client.get(GET_ROUTE.TOKEN_INIT, token_amount);
+  
+  let token = {
+    id: res.token_id,
+    btc: res.btc_payment_address,
+    ln: res.lightning_invoice
+  }
+  
+  return token
+}
+
+export const tokenVerify = async (
+  http_client: HttpClient | MockHttpClient,
+  token_id: string
+) => {
+
+  let verify = await http_client.get(GET_ROUTE.TOKEN_VERIFY, token_id)
+
+  return verify
+
+}
+
+export const tokenDepositInit = async (
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
+  token_id: string,
+  proof_key: string,
+  secret_key: string
+): Promise<StateCoin> => {
+  // Init. session - Receive shared wallet ID
+  let deposit_msg1 = {
+    auth: "authstr",
+    proof_key: String(proof_key),
+    token_id: token_id
+  };
+  
+  let deposit_init_res = await http_client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
+  let shared_key_id = deposit_init_res.id;
+  typeforce(typeforce.String, shared_key_id)
+
+
+  // 2P-ECDSA with state entity to create a Shared key
+  let statecoin = await keyGenToken(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT );
+
+  statecoin.is_deposited=true
+
+  return statecoin
+}
 
 // Deposit Init. Generate shared key with stateChain Entity.
 // Return Shared_key_id, statecoin and address to send funds to.

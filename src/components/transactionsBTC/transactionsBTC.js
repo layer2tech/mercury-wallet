@@ -7,7 +7,8 @@ import {
   callGetConfig,
   callAddDescription,
   callGetStateCoin,
-  setIntervalIfOnline
+  setIntervalIfOnline,
+  callTokenDepositInit
 } from '../../features/WalletDataSlice'
 import { fromSatoshi } from '../../wallet'
 import { CopiedButton } from '../../components'
@@ -42,7 +43,7 @@ const TransactionsBTC = (props) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   // const { depositLoading } = useSelector((state) => state.walletData); TODO: check why this was placed in redux
-  const { torInfo} = useSelector(state => state.walletData);
+  const { torInfo } = useSelector(state => state.walletData);
   const [deleteOccured, setDeleteOccured] = useState(false);
 
   let testing_mode;
@@ -56,7 +57,7 @@ const TransactionsBTC = (props) => {
   props.selectedValues.forEach((item, id) => {
     if (!item.initialised && item.value !== null) {
       setLoading(true);
-      dispatch(callDepositInit(item.value))
+      dispatch(callTokenDepositInit(item.value))
         .then((res => {  // when finished update p_addr in GUI
           if (res.error === undefined) {
             props.setValueSelectionAddr(id, res.payload[1]);

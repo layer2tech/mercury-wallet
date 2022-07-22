@@ -7,29 +7,18 @@ import {
 import {
   segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC,
   mnemonic_to_bip32_root_account, getBIP32forBtcAddress, parseBackupData,
-  required_fields, backupTxCheckRequired, getXpub, MOCK_WALLET_XPUB
+  required_fields, getXpub, MOCK_WALLET_XPUB
 } from '../wallet';
-import { BIP32Interface, BIP32, fromBase58 } from 'bip32';
-import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
+import { Transaction, TransactionBuilder } from 'bitcoinjs-lib';
 import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr } from '../util';
-import { addRestoredCoinDataToWallet } from '../recovery';
-import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
-import {
-  RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
-  RECOVERY_STATECHAIN_DATA, TRANSFER_FINALIZE_DATA_FOR_RECOVERY,
-  RECOVERY_KEY_GEN_FIRST, RECOVERY_KG_PARTY_ONE_2ND_MESSAGE,
-  RECOVERY_MASTER_KEY, RECOVERY_KEY_GEN_2ND_MESSAGE,
-  RECOVERY_CLIENT_RESP_KG_FIRST
-} from '../mocks/mock_http_client';
 import { MockElectrumClient } from "../mocks/mock_electrum";
 import { Storage } from '../../store';
-import { getFinalizeDataForRecovery } from '../recovery';
-import { assert } from 'console';
+
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 import { argsHasTestnet } from '../config'
 import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
-import { ActivityLog, ActivityLogItem, LegacyActivityLog } from '../activity_log';
-import { ElectrumClientError } from '../electrum'
+import { ActivityLog } from '../activity_log';
+
 
 const Promise = require('bluebird');
 let log = require('electron-log');

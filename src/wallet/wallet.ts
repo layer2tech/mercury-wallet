@@ -12,7 +12,7 @@ import { ElectrsLocalClient } from './electrs_local'
 
 import { txCPFPBuild, FEE, encryptAES, getTxFee, proofKeyFromXpub } from './util';
 import { MasterKey2 } from "./mercury/ecdsa"
-import { depositConfirm, depositInit } from './mercury/deposit';
+import { depositConfirm, depositInit, tokenDepositInit, tokenInit, tokenVerify } from './mercury/deposit';
 import { withdraw, withdraw_init, withdraw_duplicate, withdraw_confirm, WithdrawMsg2 } from './mercury/withdraw';
 import { TransferMsg3, transferSender, transferReceiver, transferReceiverFinalize, TransferFinalizeData, transferUpdateMsg } from './mercury/transfer';
 
@@ -29,9 +29,10 @@ import { AsyncSemaphore } from "@esfx/async-semaphore";
 import { delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum } from './mercury/info_api';
 import { EPSClient } from './eps';
 import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './mercury/torcircuit_api';
-import { callGetNewTorId } from '../features/WalletDataSlice';
+// import { callGetNewTorId } from '../features/WalletDataSlice';
 import { Mutex } from 'async-mutex';
 import { handleErrors } from '../error';
+import { TokenData } from './statecoin';
 
 const Promise = require('bluebird');
 
@@ -108,6 +109,7 @@ export class Wallet {
   ping_conductor_ms: number | null;
   ping_electrum_ms: number | null;
   statechain_id_set: Set<string>;
+  tokens: TokenData[];
   wasm: any;
   saveMutex: Mutex;
 
@@ -129,12 +131,15 @@ export class Wallet {
 
     this.activity = new ActivityLog();
 
-    if (http_client) {
-      this.http_client = http_client;
-    } else {
-      this.http_client = new HttpClient('http://localhost:3001', true);
-      this.set_tor_endpoints();
-    }
+    this.http_client = new MockHttpClient();
+    // if (http_client) {
+    //   this.http_client = http_client;
+    // } else {
+    //   this.http_client = new HttpClient('http://localhost:3001', true);
+    //   this.set_tor_endpoints();
+    // }
+
+    // this.http_client = this. newHttpClient(http_client)
 
     this.electrum_client = this.newElectrumClient();
 
@@ -149,6 +154,8 @@ export class Wallet {
     this.ping_electrum_ms = null;
 
     this.statechain_id_set = new Set();
+
+    this.tokens = []
 
     this.tor_circuit = [];
 
@@ -290,12 +297,15 @@ export class Wallet {
 
     new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
+    if(json_wallet.tokens) new_wallet.tokens = json_wallet.tokens
+
     if (json_wallet.warnings !== undefined) new_wallet.warnings = json_wallet.warnings
     // Make sure properties added to the wallet are handled
     // New properties should not make old wallets break
 
     new_wallet.account = json_wallet_to_bip32_root_account(json_wallet)
 
+    console.log(new_wallet)
 
     return new_wallet
   }
@@ -444,6 +454,20 @@ export class Wallet {
     }
 
     return n_recovered
+  }
+
+  newHttpClient(http_client: HttpClient | MockHttpClient){
+    if (http_client) {
+      return http_client;
+    }
+    if(this.config.testing_mode === true){
+      return new MockHttpClient()
+    }
+    else {
+      let http = new HttpClient('http://localhost:3001', true);
+      this.set_tor_endpoints();
+      return http
+    }
   }
 
   newElectrumClient() {
@@ -1017,6 +1041,37 @@ export class Wallet {
     return true;
   }
 
+  getToken(token_id: string){
+    let token = this.tokens.filter( item => item.token.id === token_id );
+    if(token[0]){
+      return token[0]
+    } else{
+      return null
+    }
+  }
+  
+  getTokens(){
+    return this.tokens
+  }
+
+  //Add token to wallet
+  addToken(token: TokenData){
+    this.tokens.push(token);
+    this.save();
+    return token;
+  }
+
+  deleteToken(token_id: string) {
+    this.tokens = this.tokens.filter(item => {
+      if (item.token.id !== token_id) {
+        return item;
+      }
+      return null;
+    });
+
+    this.save();
+  }
+
   // Add confirmed Statecoin to wallet
   addStatecoin(statecoin: StateCoin, action: string) {
     if (this.statecoins.addCoin(statecoin)) {
@@ -1116,6 +1171,66 @@ export class Wallet {
   getBIP32forProofKeyPubKey(proof_key: string): BIP32Interface {
     const p2wpkh = pubKeyTobtcAddr(proof_key, this.config.network)
     return this.getBIP32forBtcAddress(p2wpkh)
+  }
+
+  // Initialise Token Deposit - Pay on Deposit
+  async tokenInit(token_amount: number) {
+
+    let token = await tokenInit(this.http_client, token_amount);
+    
+    return token;
+  }
+
+  async tokenVerify(token_id: string){
+
+    let verif = await tokenVerify(this.http_client,token_id);
+    // Checks verification of last token with ID: token_id
+    return verif
+  }
+
+  async tokenDepositInit (value: number, token_id: string){
+
+    log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
+
+    let proof_key_bip32 = await this.genProofKey(); // Generate new proof key
+
+    let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
+    let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
+
+    let statecoin = await tokenDepositInit(
+      
+      this.http_client, 
+      await this.getWasm(),
+      token_id,
+      proof_key_pub,
+      proof_key_priv!
+
+    );
+
+    // add proof key bip32 derivation to statecoin
+    statecoin.proof_key = proof_key_pub;
+
+    statecoin.value = value;
+
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+
+    //Coin created and activity list updated
+    this.addStatecoin(statecoin, ACTION.INITIATE);
+
+    // Co-owned key address to send funds to (P_addr)
+    let p_addr = statecoin.getBtcAddress(this.config.network);
+
+    // Import the BTC address into the wallet if using the electum-personal-server
+    await this.importAddress(p_addr)
+
+    // Begin task waiting for tx in mempool and update StateCoin status upon success.
+    this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
+
+    log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
+    await this.saveStateCoinsList();
+    
+    return [statecoin.shared_key_id, p_addr]
+    
   }
 
   // Initialise deposit

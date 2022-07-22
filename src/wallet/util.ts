@@ -18,9 +18,16 @@ let crypto = require('crypto');
 
 let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
+// BTC value -> Satoshi value
+export const toSatoshi = (btc: number) => { return Math.floor(btc * 10e7) }
+// Satoshi value -> BTC value
+export const fromSatoshi = (sat: number) => { return sat / 10e7 }
 
 /// Temporary - fees should be calculated dynamically
 export const FEE = 141;
+// Dust Limit for Pay on Deposit
+export const DUST_LIMIT=toSatoshi(0.00000546)
+
 //FEE for backup transaction 2 outputs 1 input P2WPKH
 export const MINIMUM_DEPOSIT_SATOSHI = 100000;
 export const VIRTUAL_TX_SIZE = 226;
@@ -54,11 +61,6 @@ export const hexToBytes = (hex: string) => {
     bytes.push(parseInt(hex.substr(c, 2), 16));
     return bytes;
 }
-
-// BTC value -> Satoshi value
-export const toSatoshi = (btc: number) => { return Math.floor(btc * 10e7) }
-// Satoshi value -> BTC value
-export const fromSatoshi = (sat: number) => { return sat / 10e7 }
 
 export class StateChainSig {
     purpose: string; // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"

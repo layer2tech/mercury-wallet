@@ -10,6 +10,10 @@
     margin-top: 22px;
 }
 
+.token-deposit .Body-button.expired{
+    margin-top: 0px;
+}
+
 .token-deposit .token-amount{
     display: flex;
     align-items: center;
@@ -20,7 +24,17 @@
 
 .token-amount .amount{
     margin-bottom: 0px;
+    color: var(--)
 }
+
+.coin-count-display{
+    text-align: initial;
+}
+
+.coin-count-display .coin-count{
+    margin-bottom: 1px;
+}
+
 .pay-select{
     display: flex;
     justify-content: space-around;
