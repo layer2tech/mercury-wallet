@@ -12,6 +12,7 @@ describe('HttpClient', function () {
 
     afterEach(() => {
         expect(semaphoreSpy).toHaveBeenCalledTimes(1)
+        jest.clearAllMocks()
     });
 
     beforeEach(() => {

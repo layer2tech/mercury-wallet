@@ -402,7 +402,7 @@ describe('Wallet', function () {
 
       expect(() => {
         Wallet.fromJSON(invalid_json_wallet, true)
-      }).toThrow("Cannot read property 'network' of undefined");
+      }).toThrow("Cannot read properties of undefined (reading 'network')");
 
       json_wallet.password = MOCK_WALLET_PASSWORD
       // redefine password as hashing passwords is one-way
@@ -1210,6 +1210,10 @@ describe("Post-swap functions", () => {
     wallet.doPostSwap(statecoin, null)
   })
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  })
+
   test("Post-swap and swap error handling functions do not alter wallet bip32 account", () => {
     expect(wallet.account).toEqual(account_init)
   })
@@ -1247,6 +1251,10 @@ describe("Handle swap error", () => {
     statecoin = wallet.statecoins.coins[0]
     statecoin.swap_status = SWAP_STATUS.Init
     setSwapDataToNullSpy = jest.spyOn(statecoin, 'setSwapDataToNull')
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks();
   })
 
   test("Swap data set to null for transfer batch timeout error", () => {
