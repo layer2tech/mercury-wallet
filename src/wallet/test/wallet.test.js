@@ -1,4 +1,6 @@
-
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
 let bitcoin = require('bitcoinjs-lib')
 import {
   Wallet, StateCoin, StateCoinList, ACTION,
