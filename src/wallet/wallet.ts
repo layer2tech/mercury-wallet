@@ -256,9 +256,10 @@ export class Wallet {
   }
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
-  static async buildMock(network: Network, http_client: any = undefined, wasm: any = undefined, mnemonic: string | undefined = undefined): Promise<Wallet> {
-    mnemonic = mnemonic ? mnemonic : MOCK_WALLET_MNEMONIC;
-    var wallet = Wallet.fromMnemonic(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, mnemonic, network, true,
+  static async buildMock(network: Network, http_client: any = undefined, wasm: any = undefined, mnemonic: string | undefined = undefined, name: string | undefined = undefined): Promise<Wallet> {
+    mnemonic = mnemonic != null ? mnemonic : MOCK_WALLET_MNEMONIC;
+    name = name != null ? name : MOCK_WALLET_NAME;
+    var wallet = Wallet.fromMnemonic(name, MOCK_WALLET_PASSWORD, mnemonic, network, true,
       http_client, wasm);
     // add some statecoins
     let proof_key1 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
@@ -419,6 +420,7 @@ export class Wallet {
     // Decrypt mnemonic
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+      console.log(`mnemonic decrypted: ${wallet_json.mnemonic}`)
     } catch (e: any) {
       throw Error("Incorrect password.")
     }

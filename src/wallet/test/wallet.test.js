@@ -50,11 +50,13 @@ const MOCK_WALLET_NAME_BACKUP = MOCK_WALLET_NAME + "_backup"
 
 describe('Wallet', function () {
   let wallet
+  const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
+  const WALLET_NAME_1_BACKUP = WALLET_NAME_1 + "_backup";
   beforeEach(async () => {
-    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
-    wallet.storage.clearWallet(MOCK_WALLET_NAME)
-    wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
-    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_1);
+    wallet.storage.clearWallet(WALLET_NAME_1)
+    wallet.storage.clearWallet(WALLET_NAME_1_BACKUP)
+    wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_1);
     wallet.save()
   })
 
@@ -165,23 +167,23 @@ describe('Wallet', function () {
   describe('Storage 1', function () {
     test('save/load', async function () {
       expect(() => {
-        wallet.storage.clearWallet(MOCK_WALLET_NAME)
-        let _ = Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
-      }).toThrow("No wallet called mock_e4c93acf-2f49-414f-b124-65c882eea7e7 stored.");
+        wallet.storage.clearWallet(WALLET_NAME_1)
+        let _ = Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
+      }).toThrow(`No wallet called ${WALLET_NAME_1} stored.`);
 
       await wallet.save()
 
       expect(() => {
-        let _ = Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD + " ", true);
+        let _ = Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD + " ", true);
       }).toThrow("Incorrect password.");
 
       expect(() => {
-        let _ = Wallet.load(MOCK_WALLET_NAME, "", true);
+        let _ = Wallet.load(WALLET_NAME_1, "", true);
       }).toThrow("Incorrect password.");
 
       delete wallet.backupTxUpdateLimiter;
 
-      let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      let loaded_wallet = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
       delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
@@ -232,7 +234,7 @@ describe('Wallet', function () {
       await wallet.save()
 
       //Confirm that the reloaded wallet has the altered settings
-      let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true)
+      let loaded_wallet = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
       delete loaded_wallet.backupTxUpdateLimiter;
       loaded_wallet.stop();
       const loaded_wallet_str = JSON.stringify(loaded_wallet)
@@ -391,11 +393,13 @@ describe('Wallet', function () {
 
   describe('Storage 2', function () {
     let wallet
-    beforeEach(async () => {
-      wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
-      wallet.storage.clearWallet(MOCK_WALLET_NAME)
-      wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
-      wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+    const WALLET_NAME_2 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e9";
+    const WALLET_NAME_2_BACKUP = WALLET_NAME_2 + "_backup";
+    beforeEach(async () => {  
+      wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_2);
+      wallet.storage.clearWallet(WALLET_NAME_2)
+      wallet.storage.clearWallet(WALLET_NAME_2_BACKUP)
+      wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_2);
       await wallet.save();
     })
 
@@ -421,8 +425,8 @@ describe('Wallet', function () {
 
     test('saveName', async function () {
       let name_store = new Storage("wallets/wallet_names");
-      name_store.clearWallet(MOCK_WALLET_NAME)
-      name_store.clearWallet(MOCK_WALLET_NAME_BACKUP)
+      name_store.clearWallet(WALLET_NAME_2)
+      name_store.clearWallet(WALLET_NAME_2_BACKUP)
 
       let wallet_names = name_store.getWalletNames();
       if (wallet_names.filter(w => w.name === wallet.name).length !== 0) {
@@ -442,14 +446,16 @@ describe('Wallet', function () {
 
     describe('parseBackupData', function () {
       let json_wallet
-      beforeAll(async () => {
-        let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
-        wallet.storage.clearWallet(MOCK_WALLET_NAME)
-        wallet.storage.clearWallet(MOCK_WALLET_NAME_BACKUP)
-        wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
+      const WALLET_NAME_3 = "mock_e4c93acf-2f49-414f-b124-65c882eea7f0";
+      const WALLET_NAME_3_BACKUP = WALLET_NAME_3 + "_backup";
+      beforeAll(async () => {  
+        let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_3);
+        wallet.storage.clearWallet(WALLET_NAME_3)
+        wallet.storage.clearWallet(WALLET_NAME_3_BACKUP)
+        wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_3);
         await wallet.save()
-        let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
-        let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
+        let store = new Storage(`wallets/${WALLET_NAME_3}/config`);
+        let wallet_encrypted = store.getWallet(WALLET_NAME_3)
         json_wallet = JSON.stringify(wallet_encrypted)
       })
 
@@ -470,10 +476,10 @@ describe('Wallet', function () {
     })
 
     test('load from backup and save', async function () {
-      let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
-      let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
+      let store = new Storage(`wallets/${WALLET_NAME_2}/config`);
+      let wallet_encrypted = store.getWallet(WALLET_NAME_2)
       let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
-      json_wallet.name = MOCK_WALLET_NAME_BACKUP
+      json_wallet.name = WALLET_NAME_2_BACKUP
 
       expect(() => {
         let _ = Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD + " ", true)
@@ -493,22 +499,22 @@ describe('Wallet', function () {
 
       await loaded_wallet_from_backup.save();
 
-      let loaded_wallet_mod = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true);
+      let loaded_wallet_mod = await Wallet.load(WALLET_NAME_2, MOCK_WALLET_PASSWORD, true);
       delete wallet.backupTxUpdateLimiter;
       delete loaded_wallet_mod.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet_mod))
 
-      let loaded_wallet_backup = await Wallet.load(MOCK_WALLET_NAME_BACKUP, MOCK_WALLET_PASSWORD, true);
+      let loaded_wallet_backup = await Wallet.load(WALLET_NAME_2_BACKUP, MOCK_WALLET_PASSWORD, true);
       //The mock and mock_backup wallets should be the same except for name and storage
-      loaded_wallet_mod.name = MOCK_WALLET_NAME_BACKUP;
+      loaded_wallet_mod.name = WALLET_NAME_2_BACKUP;
       loaded_wallet_mod.storage = loaded_wallet_backup.storage
       delete loaded_wallet_backup.backupTxUpdateLimiter;
       expect(JSON.stringify(loaded_wallet_mod)).toEqual(JSON.stringify(loaded_wallet_backup));
     });
 
     test('decrypt mnemonic', async function () {
-      let store = new Storage(`wallets/${MOCK_WALLET_NAME}/config`);
-      let wallet_encrypted = store.getWallet(MOCK_WALLET_NAME)
+      let store = new Storage(`wallets/${WALLET_NAME_2}/config`);
+      let wallet_encrypted = store.getWallet(WALLET_NAME_2)
       let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
       console.log(`json wallet: ${JSON.stringify(json_wallet)}`)
       let mnemonic = decryptAES(json_wallet.mnemonic, MOCK_WALLET_PASSWORD)
@@ -522,7 +528,7 @@ describe('Wallet', function () {
       wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", SHARED_KEY_DUMMY, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
       await wallet.saveStateCoinsList();
 
-      let loaded_wallet = await Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, true);
+      let loaded_wallet = await Wallet.load(WALLET_NAME_2, MOCK_WALLET_PASSWORD, true);
       let num_coins_after = loaded_wallet.statecoins.coins.length;
       expect(num_coins_after).toEqual(num_coins_before + 1)
       delete wallet.backupTxUpdateLimiter;
