@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
 let bitcoin = require('bitcoinjs-lib')
 import React from 'react';
 import {
@@ -28,6 +31,7 @@ import { encodeSCEAddress } from '../util';
 import { Transaction } from 'bitcoinjs-lib'
 import { assert } from 'console';
 import { WithdrawalTxBroadcastInfo } from '../statecoin';
+import { walletFromMnemonic } from '../../features/WalletDataSlice';
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -39,6 +43,7 @@ describe("Recovery", () => {
     let wallet
     beforeAll(async () => {
       wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+      wallet.config.jest_testing_mode = true
       wallet.statecoins.coins = [];
       await wallet.genProofKey();
       await wallet.genProofKey();
@@ -137,7 +142,7 @@ describe("Recovery unfinalized", () => {
       expect(wallet.statecoins.coins.length).toBe(0);
   
       let rec = RECOVERY_DATA_MSG_UNFINALIZED
-  
+      wallet.config.jest_testing_mode = true
       await addRestoredCoinDataToWallet(wallet, wasm_mock, [rec]);
       expect(wallet.statecoins.coins.length).toBe(1);
       expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);

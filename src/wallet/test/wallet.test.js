@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
 let bitcoin = require('bitcoinjs-lib')
 import {
   Wallet, StateCoin, StateCoinList, ACTION,
@@ -40,9 +43,10 @@ let bip39 = require('bip39');
 const NETWORK_CONFIG = require('../../network.json');
 const SHARED_KEY_DUMMY = { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" };
 
-// electrum mock
-let electrum_mock = new MockElectrumClient;
 const MOCK_WALLET_NAME_BACKUP = MOCK_WALLET_NAME + "_backup"
+
+
+
 
 describe('Wallet', function () {
   let wallet
@@ -401,7 +405,7 @@ describe('Wallet', function () {
 
       expect(() => {
         Wallet.fromJSON(invalid_json_wallet, true)
-      }).toThrow("Cannot read properties of undefined (reading 'network')");
+      }).toThrow("Invalid wallet");
 
       json_wallet.password = MOCK_WALLET_PASSWORD
       // redefine password as hashing passwords is one-way
@@ -592,13 +596,6 @@ describe('updateBackupTxStatus', function () {
     await wallet.updateBackupTxStatus(false);
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPLIMIT);
   })
-
-  /*
-  test('Rate limited', async function () {
-    await expect(wallet.updateBackupTxStatus()).resolves.toBe(undefined);
-    await expect(wallet.updateBackupTxStatus()).resolves.toBe(undefined);
-  })
-  */
   
   test('Expired', async function () {
     // locktime = 1000, height = 1000, EXPIRED triggered
@@ -1209,6 +1206,10 @@ describe("Post-swap functions", () => {
     wallet.doPostSwap(statecoin, null)
   })
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  })
+
   test("Post-swap and swap error handling functions do not alter wallet bip32 account", () => {
     expect(wallet.account).toEqual(account_init)
   })
@@ -1246,6 +1247,10 @@ describe("Handle swap error", () => {
     statecoin = wallet.statecoins.coins[0]
     statecoin.swap_status = SWAP_STATUS.Init
     setSwapDataToNullSpy = jest.spyOn(statecoin, 'setSwapDataToNull')
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks();
   })
 
   test("Swap data set to null for transfer batch timeout error", () => {

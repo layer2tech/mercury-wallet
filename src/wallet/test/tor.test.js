@@ -1,7 +1,3 @@
-/**
- * @jest-environment node
- */
-
 import { HttpClient, GET_ROUTE, POST_ROUTE } from '../http_client';
 import { ElectrsClient } from '../electrs';
 import { assert } from 'console';

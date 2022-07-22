@@ -1,4 +1,3 @@
-'use strict';
 declare const window: any;
 export let log: any;
 try {
