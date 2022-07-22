@@ -41,7 +41,7 @@ const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
 const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
 let bitcoin = require('bitcoinjs-lib');
-let bip32utils = require('bip32-utils');
+let bip32utils = require('@psf/bip32-utils');
 let bip32 = require('bip32');
 let bip39 = require('bip39');
 let cloneDeep = require('lodash.clonedeep');
