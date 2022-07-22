@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 'use strict';
 import anon_icon_none from "../../images/table-icon-grey.png";
 import anon_icon_low from "../../images/table-icon-medium.png";

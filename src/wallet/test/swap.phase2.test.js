@@ -1,4 +1,4 @@
-import {makeTesterStatecoin} from './test_data.js'
+import { makeTesterStatecoin } from './test_data.js'
 import { SWAP_STATUS, UI_SWAP_STATUS} from "../swap/swap_utils";
 import Swap from "../swap/swap"
 import {STATECOIN_STATUS} from '../statecoin'

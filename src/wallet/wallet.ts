@@ -129,11 +129,13 @@ export class Wallet {
 
     this.activity = new ActivityLog();
 
-    if (http_client) {
+    if (http_client != null) {
       this.http_client = http_client;
-    } else {
+    } else if (this.config.testing_mode != true) {
       this.http_client = new HttpClient('http://localhost:3001', true);
       this.set_tor_endpoints();
+    } else {
+      this.http_client = new MockHttpClient();
     }
 
     this.electrum_client = this.newElectrumClient();
@@ -280,24 +282,32 @@ export class Wallet {
 
   // Load wallet from JSON
   static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
-    let config = new Config(json_wallet.config.network, json_wallet.config.testing_mode);
-    config.update(json_wallet.config);
-    //Config needs to be included when constructing the wallet
-    let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
+    try {
+      let config = new Config(json_wallet.config.network, json_wallet.config.testing_mode);
+      config.update(json_wallet.config);
+      //Config needs to be included when constructing the wallet
+      let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
 
-    new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
-    new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
+      new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
+      new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
 
-    new_wallet.current_sce_addr = json_wallet.current_sce_addr;
+      new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
-    if (json_wallet.warnings !== undefined) new_wallet.warnings = json_wallet.warnings
-    // Make sure properties added to the wallet are handled
-    // New properties should not make old wallets break
+      if (json_wallet.warnings !== undefined) new_wallet.warnings = json_wallet.warnings
+      // Make sure properties added to the wallet are handled
+      // New properties should not make old wallets break
 
-    new_wallet.account = json_wallet_to_bip32_root_account(json_wallet)
+      new_wallet.account = json_wallet_to_bip32_root_account(json_wallet)
 
 
-    return new_wallet
+      return new_wallet
+    } catch (err: any) {
+      if (`${err}`.includes("Cannot read prop")) {
+        throw Error("Invalid wallet")
+      } else {
+        throw err
+      }
+    }
   }
 
   async stop() {
