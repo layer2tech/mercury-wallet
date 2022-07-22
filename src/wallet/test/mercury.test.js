@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { verifySmtProof, StateChainSig, proofKeyToSCEAddress, pubKeyTobtcAddr, pubKeyToScriptPubKey, decryptECIES } from '../util';
 import { Wallet, StateCoin, MockHttpClient, HttpClient, MockWasm, StateCoinList, STATECOIN_STATUS } from '../';
 import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";

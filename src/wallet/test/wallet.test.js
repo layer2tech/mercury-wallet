@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 let bitcoin = require('bitcoinjs-lib')
 import {
   Wallet, StateCoin, StateCoinList, ACTION,
@@ -401,7 +404,7 @@ describe('Wallet', function () {
 
       expect(() => {
         Wallet.fromJSON(invalid_json_wallet, true)
-      }).toThrow("Cannot read properties of undefined (reading 'network')");
+      }).toThrow("Cannot read property 'network' of undefined");
 
       json_wallet.password = MOCK_WALLET_PASSWORD
       // redefine password as hashing passwords is one-way

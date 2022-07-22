@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { TransactionBuilder, networks, ECPair, BIP32Interface } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
 import {
@@ -10,7 +13,7 @@ import { encodeSCEAddress } from '../util';
 import { FUNDING_TXID, FUNDING_TXIDS, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
 import { Wallet } from '../';
 
-import { encrypt, decrypt, PrivateKey } from 'eciesjscb';
+import { encrypt, decrypt, PrivateKey } from 'eciesjs12b';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 
 let bip32 = require('bip32');

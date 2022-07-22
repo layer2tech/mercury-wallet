@@ -47,8 +47,8 @@ beforeEach(() => {
 });
 
 /*
-const doSwapPollMock = jest
-  .spyOn(Swap.prototype, 'doSwapPoll')
+const do_swap_pollMock = jest
+  .spyOn(Swap.prototype, 'do_swap_poll')
   .mockImplementation(async () => {
     return makeTesterStatecoin()
   });
@@ -99,12 +99,12 @@ describe('resume_swap', function () {
   // check statecoin && check new_statecoin
 
   test('Swap Break UI Phase 0', async function () {
-    // doSwapPoll no error thrown && returns null new_statecoin
+    // do_swap_poll no error thrown && returns null new_statecoin
     // check statecoin returned with all swap values set to null ?
 
     Swap.mockImplementation(() => {
       return {
-        doSwapPoll: () => {
+        do_swap_poll: () => {
           return null;
         }
       }
@@ -118,10 +118,10 @@ describe('resume_swap', function () {
 
     expect(new_statecoin).toBe(null)
 
-    // Error thrown from doSwapPoll
+    // Error thrown from do_swap_poll
     Swap.mockImplementation(() => {
       return {
-        doSwapPoll: () => {
+        do_swap_poll: () => {
           throw new Error()
         }
       }
@@ -149,11 +149,11 @@ describe('resume_swap', function () {
     expect(statecoin.ui_swap_status).toBe(null)
   })
   test('Swap Break UI Phase 7', async function () {
-    // doSwapPoll no error thrown && returns null new_statecoin
+    // do_swap_poll no error thrown && returns null new_statecoin
     // check statecoin returned with all swap values set to null ?
     Swap.mockImplementation(() => {
       return {
-        doSwapPoll: () => {
+        do_swap_poll: () => {
           return null;
         }
       }
@@ -167,10 +167,10 @@ describe('resume_swap', function () {
 
     expect(new_statecoin).toBe(null)
 
-    // Error thrown from doSwapPoll
+    // Error thrown from do_swap_poll
     Swap.mockImplementation(() => {
       return {
-        doSwapPoll: () => {
+        do_swap_poll: () => {
           throw new Error();
         }
       }
@@ -198,11 +198,11 @@ describe('resume_swap', function () {
     expect(statecoin_out.ui_swap_status).toBe(UI_SWAP_STATUS.Phase7)
   })
   test('Swap Break UI Phase 8', async function () {
-    // doSwapPoll no error thrown && returns null new_statecoin
+    // do_swap_poll no error thrown && returns null new_statecoin
     // check statecoin returned with all swap values set to null ?
     Swap.mockImplementation(() => {
       return {
-        doSwapPoll: () => {
+        do_swap_poll: () => {
           return null;
         }
       }
@@ -216,10 +216,10 @@ describe('resume_swap', function () {
 
     expect(new_statecoin).toBe(null)
 
-    // Error thrown from doSwapPoll
+    // Error thrown from do_swap_poll
     Swap.mockImplementation(() => {
       return {
-        doSwapPoll: () => {
+        do_swap_poll: () => {
           throw new Error();
         }
       }
@@ -261,8 +261,7 @@ describe('Resume Swap Successful', function () {
   test('Swap Successful', async function () {
     Swap.mockImplementation(() => {
       return {
-        doSwapPoll: () => {
-          console.log("############ doSwapPoll...")
+        do_swap_poll: () => {
           return returned_statecoin;
         }
       }
@@ -272,10 +271,9 @@ describe('Resume Swap Successful', function () {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], "End")
     let statecoin = wallet.statecoins.coins[0]
 
-    console.log(`statecoin: ${JSON.stringify(statecoin)}`)
     let new_statecoin = await wallet.resume_swap(statecoin)
 
-    expect(returned_statecoin).toBe(new_statecoin)
+    expect(new_statecoin).toBe(returned_statecoin)
     
     expect(new_statecoin.status).toBe(returned_statecoin.status)
     

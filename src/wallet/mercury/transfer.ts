@@ -133,7 +133,9 @@ export const transferSender = async (
 
   // Get SE's x1
   let x1 = transfer_msg2.x1.secret_bytes;
+  log.debug(`transferSender - decryptECIES...`)
   let x1_dec = decryptECIES(proof_key_der.privateKey!.toString("hex"), Buffer.from(x1).toString("hex"));
+  log.debug(`transferSender - decryptECIES finished.`)
 
   let o1_bn = new BN(o1, 16);
   let x1_bn = new BN(x1_dec, 16);
