@@ -1278,7 +1278,56 @@ describe("Handle swap error", () => {
       expect(setSwapDataToNullSpy).toHaveBeenCalledTimes(nCalls);
     }
   })
+
+  test("setSwapDataToNull nullifies all swap data", () => {
+    statecoin.status = STATECOIN_STATUS.IN_SWAP;
+    statecoin.swap_id = {};
+    statecoin.swap_info = {}; 
+    statecoin.swap_address = {};
+    statecoin.swap_my_bst_data = {};
+    statecoin.swap_receiver_addr = {};
+    statecoin.swap_transfer_msg = {};
+    statecoin.swap_batch_data = {};
+    statecoin.swap_transfer_msg_4 = {};
+    statecoin.swap_transfer_msg_3_receiver = {};
+    statecoin.swap_transfer_finalized_data = {};
+    statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8;
+    statecoin.swap_error = {};
+
+    expect(statecoin.status).not.toEqual(STATECOIN_STATUS.AVAILABLE);
+    expect(statecoin.swap_status).not.toEqual(null);
+    expect(statecoin.swap_id).not.toEqual(null);
+    expect(statecoin.swap_address).not.toEqual(null);
+    expect(statecoin.swap_info).not.toEqual(null);
+    expect(statecoin.swap_my_bst_data).not.toEqual(null);
+    expect(statecoin.swap_receiver_addr).not.toEqual(null);
+    expect(statecoin.swap_transfer_msg).not.toEqual(null);
+    expect(statecoin.swap_batch_data).not.toEqual(null);
+    expect(statecoin.swap_transfer_msg_3_receiver).not.toEqual(null);
+    expect(statecoin.swap_transfer_msg_4).not.toEqual(null);
+    expect(statecoin.ui_swap_status).not.toEqual(null);
+    expect(statecoin.swap_error).not.toEqual(null);
+    expect(statecoin.swap_transfer_finalized_data).not.toEqual(null);
+
+    statecoin.setSwapDataToNull();
+
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.AVAILABLE);
+    expect(statecoin.swap_status).toEqual(null);
+    expect(statecoin.swap_id).toEqual(null);
+    expect(statecoin.swap_address).toEqual(null);
+    expect(statecoin.swap_info).toEqual(null);
+    expect(statecoin.swap_my_bst_data).toEqual(null);
+    expect(statecoin.swap_receiver_addr).toEqual(null);
+    expect(statecoin.swap_transfer_msg).toEqual(null);
+    expect(statecoin.swap_batch_data).toEqual(null);
+    expect(statecoin.swap_transfer_msg_3_receiver).toEqual(null);
+    expect(statecoin.swap_transfer_msg_4).toEqual(null);
+    expect(statecoin.ui_swap_status).toEqual(null);
+    expect(statecoin.swap_error).toEqual(null);
+    expect(statecoin.swap_transfer_finalized_data).toEqual(null);
+  })
 })
+
 
 describe('ActivityLog', function () {
   let log = new ActivityLog()
