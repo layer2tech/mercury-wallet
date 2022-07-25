@@ -5,7 +5,7 @@
 // This file contains test for the main swap function with Swap class mocked
 
 import { makeTesterStatecoin } from './test_data.js'
-import { SwapStep, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
+import { SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
 import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
@@ -21,7 +21,6 @@ import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 import { AsyncSemaphore } from '@esfx/async-semaphore';
 
-let cloneDeep = require('lodash.clonedeep');
 let bitcoin = require('bitcoinjs-lib')
 
 // // client side's mock
@@ -49,14 +48,6 @@ beforeEach(() => {
   // Clear all instances and calls to constructor and all methods:
   Swap.mockClear();
 });
-
-/*
-const do_swap_pollMock = jest
-  .spyOn(Swap.prototype, 'do_swap_poll')
-  .mockImplementation(async () => {
-    return makeTesterStatecoin()
-  });
-  */
 
 describe('Do Swap', function () {
 
