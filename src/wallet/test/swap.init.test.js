@@ -1,23 +1,15 @@
-import { makeTesterStatecoin, STATECOIN_SWAP_DATA, SWAP_SHARED_KEY_OUT } from './test_data.js'
+import { makeTesterStatecoin } from './test_data.js'
 import {
   SWAP_STATUS
 } from "../swap/swap_utils"
 import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
-import { REQUESTOR_CALC_S, MAKE_BST, POST_BST } from '../mocks/mock_wasm'
-import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
-import { GET_ROUTE, POST_ROUTE } from '../http_client';
-import { Wallet, MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD } from '../wallet';
-import { ACTION } from '..';
-import { Transaction } from 'bitcoinjs-lib';
+import { POST_ROUTE } from '../http_client';
+import { Wallet, MOCK_WALLET_NAME } from '../wallet';
 import { swapInit as swapInitSteps } from '../swap/swap.init'
 
 let walletName = `${MOCK_WALLET_NAME}_swap_init_tests`
-
-let mock_http_client = require('../mocks/mock_http_client')
-
-let mock_wasm = require('../mocks/mock_wasm')
 
 let cloneDeep = require('lodash.clonedeep');
 
@@ -33,16 +25,6 @@ let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 const post_error = (path, body) => {
   return new Error(`Error from POST request - path: ${path}, body: ${body}`)
 }
-
-const get_error = (path, params) => {
-  return new Error(`Error from GET request - path: ${path}, params: ${params}`)
-}
-
-const wasm_err = (message) => {
-  return new Error(`Error from wasm_mock: ${message}`)
-}
-
-const SHARED_KEY_DUMMY = { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" };
 
 const WALLET_VERSION = require("../../../package.json").version.substring(1);
 
@@ -63,8 +45,6 @@ function get_statecoin_out_expected() {
 function get_proof_key_der() {
   return bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 }
-
-const SWAP_SIZE = test_data.SIGNSWAPTOKEN_DATA[0].swap_token.statechain_ids.length
 
 async function swapInit(swap) {
   swap.setSwapSteps(swapInitSteps(swap))
@@ -198,7 +178,7 @@ describe('Swap init', function () {
 
     POST_ROUTE.SWAP_REGISTER_UTXO
 
-    http_mock.post = jest.fn((path, body) => {
+    http_mock.post = jest.fn((path, _body) => {
       if (path === POST_ROUTE.SWAP_REGISTER_UTXO) {
       }
     })

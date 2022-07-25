@@ -733,6 +733,7 @@ export class StateCoin {
     this.swap_transfer_msg_4 = null;
     this.ui_swap_status = null;
     this.clearSwapError();
+    this.swap_transfer_finalized_data = null;
   }
 
   getTXIdAndOut(): string {

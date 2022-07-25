@@ -8,7 +8,6 @@ import { STATECOIN_STATUS } from '../statecoin'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import { swapPhase0 as swapPhase0Steps } from '../swap/swap.phase0'
 import { POST_ROUTE } from '../http_client';
-const Promise = require('bluebird');
 
 let bitcoin = require('bitcoinjs-lib')
 

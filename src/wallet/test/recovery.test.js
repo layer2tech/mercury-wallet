@@ -29,11 +29,6 @@ import reducers from '../../reducers';
 import { fireEvent, screen } from '@testing-library/react';
 import { encodeSCEAddress } from '../util';
 import { Transaction } from 'bitcoinjs-lib'
-import { assert } from 'console';
-import { WithdrawalTxBroadcastInfo } from '../statecoin';
-import { walletFromMnemonic } from '../../features/WalletDataSlice';
-
-let cloneDeep = require('lodash.clonedeep');
 
 describe("Recovery", () => {
     // client side's mock

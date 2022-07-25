@@ -1,4 +1,3 @@
-//const axios = require('axios').default;
 import axios from 'axios'
 import { TIMEOUT, semaphore } from '../http_client';
 import { ElectrsClient } from '../electrs';
