@@ -37,6 +37,8 @@ export const callGetArgsHasTestnet = () => {
     return true
   }
   let found = false;
+  /*
+  // NOTE: Keep all electron based calls inside electron.js file only
   try {
     window.require('@electron/remote').process.argv.forEach((arg) => {
       if (arg.includes('testnet')) {
@@ -46,7 +48,8 @@ export const callGetArgsHasTestnet = () => {
   } catch (e) {
     // set testnet for testing
     found = true
-  }
+  }*/
+
   return found;
 }
 
