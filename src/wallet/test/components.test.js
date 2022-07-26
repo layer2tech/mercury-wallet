@@ -1,7 +1,7 @@
 import React from 'react';
 import reducers from '../../reducers';
-import TestComponent, { render } from './test-utils';
-import { fireEvent, screen } from '@testing-library/dom';
+import { render } from './test-utils';
+import { screen } from '@testing-library/dom';
 import SwapStatus from '../../components/coins/SwapStatus/SwapStatus'
 import { coinSort } from '../../components/coins/CoinsList'
 import { configureStore } from '@reduxjs/toolkit';

@@ -8,31 +8,17 @@ import {
   decryptAES
 } from '../';
 import {
-  segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_NAME, MOCK_WALLET_MNEMONIC,
+  segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_MNEMONIC,
   mnemonic_to_bip32_root_account, getBIP32forBtcAddress, parseBackupData,
-  required_fields, backupTxCheckRequired, getXpub, MOCK_WALLET_XPUB
+  required_fields, getXpub, MOCK_WALLET_XPUB
 } from '../wallet';
-import { BIP32Interface, BIP32, fromBase58 } from 'bip32';
-import { ECPair, Network, Transaction, TransactionBuilder } from 'bitcoinjs-lib';
+import { Transaction, TransactionBuilder } from 'bitcoinjs-lib';
 import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr } from '../util';
-import { addRestoredCoinDataToWallet } from '../recovery';
-import { RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED } from './test_data';
-import {
-  RECOVERY_DATA_MSG_UNFINALIZED, RECOVERY_TRANSFER_FINALIZE_DATA_API,
-  RECOVERY_STATECHAIN_DATA, TRANSFER_FINALIZE_DATA_FOR_RECOVERY,
-  RECOVERY_KEY_GEN_FIRST, RECOVERY_KG_PARTY_ONE_2ND_MESSAGE,
-  RECOVERY_MASTER_KEY, RECOVERY_KEY_GEN_2ND_MESSAGE,
-  RECOVERY_CLIENT_RESP_KG_FIRST
-} from '../mocks/mock_http_client';
-import { MockElectrumClient } from "../mocks/mock_electrum";
 import { Storage } from '../../store';
-import { getFinalizeDataForRecovery } from '../recovery';
-import { assert } from 'console';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 import { argsHasTestnet } from '../config'
 import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
-import { ActivityLog, ActivityLogItem, LegacyActivityLog } from '../activity_log';
-import { ElectrumClientError } from '../electrum'
+import { ActivityLog } from '../activity_log';
 
 const Promise = require('bluebird');
 let log = require('electron-log');
@@ -42,11 +28,6 @@ let bip39 = require('bip39');
 
 const NETWORK_CONFIG = require('../../network.json');
 const SHARED_KEY_DUMMY = { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" };
-
-const MOCK_WALLET_NAME_BACKUP = MOCK_WALLET_NAME + "_backup"
-
-
-
 
 describe('Wallet', function () {
   let wallet
@@ -117,10 +98,10 @@ describe('Wallet', function () {
   });
 
   test('addStatecoin', function () {
-    let [coins_before_add, total_before] = wallet.getUnspentStatecoins()
+    let [coins_before_add, _total_before] = wallet.getUnspentStatecoins()
     let activity_log_before_add = wallet.getActivityLogItems(100)
     wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" }, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
-    let [coins_after_add, total_after] = wallet.getUnspentStatecoins()
+    let [coins_after_add, _total_after] = wallet.getUnspentStatecoins()
     let activity_log_after_add = wallet.getActivityLogItems(100)
     expect(coins_before_add.length).toEqual(coins_after_add.length - 1)
     expect(activity_log_before_add.length).toEqual(activity_log_after_add.length - 1)
@@ -1297,7 +1278,56 @@ describe("Handle swap error", () => {
       expect(setSwapDataToNullSpy).toHaveBeenCalledTimes(nCalls);
     }
   })
+
+  test("setSwapDataToNull nullifies all swap data", () => {
+    statecoin.status = STATECOIN_STATUS.IN_SWAP;
+    statecoin.swap_id = {};
+    statecoin.swap_info = {}; 
+    statecoin.swap_address = {};
+    statecoin.swap_my_bst_data = {};
+    statecoin.swap_receiver_addr = {};
+    statecoin.swap_transfer_msg = {};
+    statecoin.swap_batch_data = {};
+    statecoin.swap_transfer_msg_4 = {};
+    statecoin.swap_transfer_msg_3_receiver = {};
+    statecoin.swap_transfer_finalized_data = {};
+    statecoin.ui_swap_status = UI_SWAP_STATUS.Phase8;
+    statecoin.swap_error = {};
+
+    expect(statecoin.status).not.toEqual(STATECOIN_STATUS.AVAILABLE);
+    expect(statecoin.swap_status).not.toEqual(null);
+    expect(statecoin.swap_id).not.toEqual(null);
+    expect(statecoin.swap_address).not.toEqual(null);
+    expect(statecoin.swap_info).not.toEqual(null);
+    expect(statecoin.swap_my_bst_data).not.toEqual(null);
+    expect(statecoin.swap_receiver_addr).not.toEqual(null);
+    expect(statecoin.swap_transfer_msg).not.toEqual(null);
+    expect(statecoin.swap_batch_data).not.toEqual(null);
+    expect(statecoin.swap_transfer_msg_3_receiver).not.toEqual(null);
+    expect(statecoin.swap_transfer_msg_4).not.toEqual(null);
+    expect(statecoin.ui_swap_status).not.toEqual(null);
+    expect(statecoin.swap_error).not.toEqual(null);
+    expect(statecoin.swap_transfer_finalized_data).not.toEqual(null);
+
+    statecoin.setSwapDataToNull();
+
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.AVAILABLE);
+    expect(statecoin.swap_status).toEqual(null);
+    expect(statecoin.swap_id).toEqual(null);
+    expect(statecoin.swap_address).toEqual(null);
+    expect(statecoin.swap_info).toEqual(null);
+    expect(statecoin.swap_my_bst_data).toEqual(null);
+    expect(statecoin.swap_receiver_addr).toEqual(null);
+    expect(statecoin.swap_transfer_msg).toEqual(null);
+    expect(statecoin.swap_batch_data).toEqual(null);
+    expect(statecoin.swap_transfer_msg_3_receiver).toEqual(null);
+    expect(statecoin.swap_transfer_msg_4).toEqual(null);
+    expect(statecoin.ui_swap_status).toEqual(null);
+    expect(statecoin.swap_error).toEqual(null);
+    expect(statecoin.swap_transfer_finalized_data).toEqual(null);
+  })
 })
+
 
 describe('ActivityLog', function () {
   let log = new ActivityLog()
