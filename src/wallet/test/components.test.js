@@ -1,4 +1,3 @@
-import React from 'react';
 import reducers from '../../reducers';
 import { render } from './test-utils';
 import { screen } from '@testing-library/dom';
