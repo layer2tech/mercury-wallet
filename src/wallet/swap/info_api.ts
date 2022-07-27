@@ -1,15 +1,14 @@
 'use strict';
 import { HttpClient, MockHttpClient, GET_ROUTE, POST_ROUTE, ElectrumClient, MockElectrumClient } from "..";
-import { BSTMsg, SwapID, StatechainID, SwapGroup, GroupInfo, log} from './swap_utils';
+import { BSTMsg, SwapID, StatechainID, SwapGroup, GroupInfo, log } from './swap_utils';
 
-const Promise = require('bluebird');
 
 let types = require("../types")
 let typeforce = require('typeforce');
 
 
 export const pingServer = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
 ) => {
   var startTime = performance.now()
   await http_client.get(GET_ROUTE.SWAP_PING, {})
@@ -18,7 +17,7 @@ export const pingServer = async (
 }
 
 export const pingElectrum = async (
-  electrum_client: ElectrumClient |  MockElectrumClient,
+  electrum_client: ElectrumClient | MockElectrumClient,
 ) => {
   var startTime = performance.now()
   await electrum_client.ping()
@@ -27,7 +26,7 @@ export const pingElectrum = async (
 }
 
 export const pollUtxo = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   statechain_id: StatechainID
 ) => {
 
@@ -37,7 +36,7 @@ export const pollUtxo = async (
 }
 
 export const pollSwap = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   swap_id: SwapID
 ) => {
 
@@ -48,21 +47,21 @@ export const pollSwap = async (
 }
 
 export const swapRegisterUtxo = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   registerUtxo: any
 ) => {
   await http_client.post(POST_ROUTE.SWAP_REGISTER_UTXO, registerUtxo);
 }
 
 export const swapDeregisterUtxo = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   statechain_id: StatechainID
 ) => {
   await http_client.post(POST_ROUTE.SWAP_DEREGISTER_UTXO, statechain_id);
 }
 
 export const getSwapInfo = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   swap_id: SwapID
 ) => {
   let swap_info = await http_client.post(POST_ROUTE.SWAP_INFO, swap_id);
@@ -71,7 +70,7 @@ export const getSwapInfo = async (
 }
 
 export const getBlindedSpendSignature = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   bst_msg: BSTMsg
 ) => {
 
@@ -81,8 +80,8 @@ export const getBlindedSpendSignature = async (
   return bst
 }
 
-export const groupInfo = async(
-  http_client: HttpClient |  MockHttpClient,
+export const groupInfo = async (
+  http_client: HttpClient | MockHttpClient,
 ): Promise<Map<SwapGroup, GroupInfo> | null> => {
   try {
     let sgm_json = await http_client.get(GET_ROUTE.SWAP_GROUPINFO, {})

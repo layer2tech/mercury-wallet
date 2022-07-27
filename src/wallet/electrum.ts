@@ -1,7 +1,6 @@
 'use strict';
 import { Mutex } from 'async-mutex';
 import { Network } from "bitcoinjs-lib";
-const Promise = require('bluebird');
 let ElectrumClientLib = require('@aguycalled/electrum-client-js')
 let bitcoin = require('bitcoinjs-lib')
 const W3CWebSocket = require('websocket').w3cwebsocket
@@ -16,7 +15,7 @@ export interface ElectrumClientConfig {
 }
 
 class ElectrumClientError extends Error {
-  constructor(message: string){
+  constructor(message: string) {
     super(message);
     this.name = "ElectrumClientError";
   }
@@ -26,7 +25,7 @@ export class ElectrumClient {
   client = ElectrumClientLib;
 
   constructor(config: ElectrumClientConfig) {
-    this.client = new ElectrumClientLib(Array.isArray(config.host) ? config.host[0] : config.host, Array.isArray(config.port) ? config.port[0]: config.port, config.protocol)
+    this.client = new ElectrumClientLib(Array.isArray(config.host) ? config.host[0] : config.host, Array.isArray(config.port) ? config.port[0] : config.port, config.protocol)
   }
 
   // Connect to Electrum Server if not already connected or in the process of connecting
@@ -42,7 +41,7 @@ export class ElectrumClient {
     });
   }
 
-   enableBlockHeightSubscribe() {
+  enableBlockHeightSubscribe() {
   }
 
   disableBlockHeightSubscribe() {
@@ -54,14 +53,14 @@ export class ElectrumClient {
   }
 
   async serverPing() {
-    this.client.server_ping().catch( (err: any) => {
+    this.client.server_ping().catch((err: any) => {
       throw err;
     });
   }
 
   is_ws_wss(): boolean {
     return (this.client.protocol === 'ws' || this.client.protocol === 'wss')
-  } 
+  }
 
   isOpen(): boolean {
     if (this.is_ws_wss()) {
@@ -102,7 +101,7 @@ export class ElectrumClient {
   }
 
   async ping(): Promise<boolean> {
-    if (this.isOpen()){
+    if (this.isOpen()) {
       await this.serverPing().catch((err) => {
         return false;
       });
@@ -113,7 +112,7 @@ export class ElectrumClient {
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<any> {
-    this.connect().catch((err : any)=> {
+    this.connect().catch((err: any) => {
       console.error(err)
     });
     const header = await this.client
@@ -128,9 +127,9 @@ export class ElectrumClient {
     this.connect();
     const tx = await this.client
       .blockchain_transaction_get(txHash, true)
-        .catch((err: any) => {
-          throw new ElectrumClientError(`failed to get transaction ${txHash}: [${err}]`)
-        }
+      .catch((err: any) => {
+        throw new ElectrumClientError(`failed to get transaction ${txHash}: [${err}]`)
+      }
       )
     return tx
   }
@@ -145,9 +144,9 @@ export class ElectrumClient {
     let script_hash_rev = this.scriptToScriptHash(script);
     const list_unspent = await this.client
       .blockchain_scripthash_listunspent(script_hash_rev)
-        .catch((err: any) => {
-          throw new ElectrumClientError(`failed to get list unspent for script ${script}: [${err}]`)
-        }
+      .catch((err: any) => {
+        throw new ElectrumClientError(`failed to get list unspent for script ${script}: [${err}]`)
+      }
       )
     return list_unspent
   }
@@ -161,16 +160,16 @@ export class ElectrumClient {
     let out_script = bitcoin.address.toOutputScript(addr, network);
     return this.scriptHashUnsubscribe(out_script)
   }
-  
+
   async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
     await this.connect();
     this.client.subscribe.on('blockchain.scripthash.subscribe', callBack)
     let script_hash = this.scriptToScriptHash(script)
     const addr_subscription = await this.client
       .blockchain_scripthash_subscribe(script_hash)
-        .catch((err: any) => {
-          throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
-        }
+      .catch((err: any) => {
+        throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
+      }
       )
     return addr_subscription
   }
@@ -181,9 +180,9 @@ export class ElectrumClient {
     //Unsubscribe is not required for romanz/electrs
     this.client
       .blockchain_scripthash_unsubscribe(script_hash)
-        .catch((err: any) => {
-          throw new ElectrumClientError(`failed to unsubscribe from script ${script}: [${err}]`)
-        }
+      .catch((err: any) => {
+        throw new ElectrumClientError(`failed to unsubscribe from script ${script}: [${err}]`)
+      }
       )
   }
 
@@ -192,9 +191,9 @@ export class ElectrumClient {
     this.client.subscribe.on('blockchain.headers.subscribe', callBack)
     const headers_subscription = await this.client
       .blockchain_headers_subscribe()
-        .catch((err: any) => {
-          throw new ElectrumClientError(`failed to subscribe to headers: [${err}]`)
-        }
+      .catch((err: any) => {
+        throw new ElectrumClientError(`failed to subscribe to headers: [${err}]`)
+      }
       )
     return headers_subscription
   }
@@ -217,15 +216,15 @@ export class ElectrumClient {
     this.connect();
     const fee_histogram = await this.client
       .blockchainEstimatefee(num_blocks)
-        .catch((err: any) => {
-          throw new ElectrumClientError(`failed to get fee estimation: [${err}]`)
-        }
+      .catch((err: any) => {
+        throw new ElectrumClientError(`failed to get fee estimation: [${err}]`)
+      }
       )
     return fee_histogram
   }
 
   async importAddresses(addresses: [string]): Promise<string> {
-   return ""
+    return ""
   }
 }
 
