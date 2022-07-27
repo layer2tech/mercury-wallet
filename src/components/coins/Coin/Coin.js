@@ -268,7 +268,13 @@ const Coin = (props) => {
                   type="checkbox"
                   onChange={e => props.handleAutoSwap(props.coin_data)}
                   checked={props.coin_data.swap_auto}
-                  disabled={props.coin_data.status === "INITIALISED" ? true : false}
+                  disabled={(props.coin_data.status === "INITIALISED" || 
+                  props.coin_data.status === "EXPIRED" || 
+                  props.coin_data.status === "WITHDRAWING" ||
+                  props.coin_data.status === "WITHDRAWN" ||
+                  props.coin_data.status === "SWAPLIMIT" ||
+                  props.coin_data.status === "IN_MEMPOOL" ||
+                  props.coin_data.status === "UNCONFIRMED" ) ? true : false}
                 />
                 <div className="toggle-switch" />
               </label>

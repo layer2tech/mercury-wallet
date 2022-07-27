@@ -1,15 +1,14 @@
-import { makeTesterStatecoin, STATECOIN_SWAP_DATA, SWAP_SHARED_KEY_OUT } from './test_data.js'
+
+import { makeTesterStatecoin, SWAP_SHARED_KEY_OUT } from './test_data.js'
 import {
   SWAP_STATUS,
-  SwapRetryError, UI_SWAP_STATUS
+  UI_SWAP_STATUS
 } from "../swap/swap_utils";
 import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
-import { REQUESTOR_CALC_S, MAKE_BST, POST_BST } from '../mocks/mock_wasm'
-import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
-import { Wallet, MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD } from '../wallet';
+import { Wallet, MOCK_WALLET_NAME } from '../wallet';
 import { ACTION } from '..';
 import { Transaction } from 'bitcoinjs-lib';
 import { swapPhase4 as swapPhase4Steps } from '../swap/swap.phase4'
@@ -282,7 +281,7 @@ describe('Swap phase 4', function () {
     })
 
     let EXPECTED_STATECOIN = get_statecoin_after_transfer_receiver(statecoin)
-
+    
     let wallet = await getWallet()
     let swap = getSwap(wallet, statecoin)
 

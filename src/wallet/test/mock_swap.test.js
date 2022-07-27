@@ -1,7 +1,11 @@
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
+
 // This file contains test for the main swap function with Swap class mocked
 
 import { makeTesterStatecoin } from './test_data.js'
-import { SwapStep, SWAP_RETRY, SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
+import { SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
 import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
 import { Wallet, MOCK_WALLET_NAME } from '../wallet'
@@ -16,8 +20,6 @@ import { handleEndSwap, setSwapLoad } from '../../features/WalletDataSlice.js';
 import { fromSatoshi } from '../util.ts';
 import { fireEvent, screen } from '@testing-library/dom';
 import { AsyncSemaphore } from '@esfx/async-semaphore';
-
-
 
 let bitcoin = require('bitcoinjs-lib')
 
@@ -40,20 +42,11 @@ export async function getWallet() {
   return wallet
 }
 
-let mockDoSwapPoll = jest.fn();
-
-jest.mock( '../swap/swap', () => {
-	return jest.fn().mockImplementation(() => {
-		return {
-			do_swap_poll: mockDoSwapPoll,
-		};
-	});
-})
-
+jest.mock('../swap/swap')
 
 beforeEach(() => {
+  // Clear all instances and calls to constructor and all methods:
   Swap.mockClear();
-  mockDoSwapPoll.mockClear();
 });
 
 describe('Do Swap', function () {
@@ -62,7 +55,7 @@ describe('Do Swap', function () {
   beforeAll(async () => {
     wallet = await getWallet()
   })
-    
+
   test('do_swap', async function () {
 
     http_mock.post = jest.fn().mockReset()
@@ -96,7 +89,7 @@ describe('resume_swap', function () {
     wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
     wallet.config.update({ "jest_testing_mode": true })
   })
-    
+
   // For each phase, check expected output:
   // check statecoin && check new_statecoin
 
@@ -104,7 +97,13 @@ describe('resume_swap', function () {
     // do_swap_poll no error thrown && returns null new_statecoin
     // check statecoin returned with all swap values set to null ?
 
-    mockDoSwapPoll = jest.fn(() => null)
+    Swap.mockImplementation(() => {
+      return {
+        do_swap_poll: () => {
+          return null;
+        }
+      }
+    })
 
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
 
@@ -115,8 +114,12 @@ describe('resume_swap', function () {
     expect(new_statecoin).toBe(null)
 
     // Error thrown from do_swap_poll
-    mockDoSwapPoll = jest.fn(() => {
-      throw new Error()
+    Swap.mockImplementation(() => {
+      return {
+        do_swap_poll: () => {
+          throw new Error()
+        }
+      }
     })
 
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], "Reset")
@@ -143,8 +146,12 @@ describe('resume_swap', function () {
   test('Swap Break UI Phase 7', async function () {
     // do_swap_poll no error thrown && returns null new_statecoin
     // check statecoin returned with all swap values set to null ?
-    mockDoSwapPoll = jest.fn(() => {
-      return null
+    Swap.mockImplementation(() => {
+      return {
+        do_swap_poll: () => {
+          return null;
+        }
+      }
     })
 
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 1)
@@ -156,8 +163,12 @@ describe('resume_swap', function () {
     expect(new_statecoin).toBe(null)
 
     // Error thrown from do_swap_poll
-    mockDoSwapPoll = jest.fn(() => {
-      throw new Error()
+    Swap.mockImplementation(() => {
+      return {
+        do_swap_poll: () => {
+          throw new Error();
+        }
+      }
     })
 
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], "Reset")
@@ -184,8 +195,12 @@ describe('resume_swap', function () {
   test('Swap Break UI Phase 8', async function () {
     // do_swap_poll no error thrown && returns null new_statecoin
     // check statecoin returned with all swap values set to null ?
-    mockDoSwapPoll = jest.fn(() => {
-      return null
+    Swap.mockImplementation(() => {
+      return {
+        do_swap_poll: () => {
+          return null;
+        }
+      }
     })
 
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 8)
@@ -197,8 +212,12 @@ describe('resume_swap', function () {
     expect(new_statecoin).toBe(null)
 
     // Error thrown from do_swap_poll
-    mockDoSwapPoll = jest.fn(() => {
-      throw new Error()
+    Swap.mockImplementation(() => {
+      return {
+        do_swap_poll: () => {
+          throw new Error();
+        }
+      }
     })
 
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], "Reset")
@@ -227,39 +246,42 @@ describe('resume_swap', function () {
 
 describe('Resume Swap Successful', function () {
   let wallet
+  const returned_statecoin = makeTesterStatecoin()
+
   beforeAll(async () => {
-    wallet = await getWallet()  
+    
+    wallet = await getWallet();
   })
-  
+
   test('Swap Successful', async function () {
-    // New statecoin received:
-    let returned_statecoin = makeTesterStatecoin()
-    mockDoSwapPoll.mockClear()
-    mockDoSwapPoll = jest.fn(() => {
-      return returned_statecoin
+    Swap.mockImplementation(() => {
+      return {
+        do_swap_poll: () => {
+          return returned_statecoin;
+        }
+      }
     })
-
-
+    
+    // New statecoin received:
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], "End")
     let statecoin = wallet.statecoins.coins[0]
 
     let new_statecoin = await wallet.resume_swap(statecoin)
 
-    expect(returned_statecoin).toBe(new_statecoin)
-
+    expect(new_statecoin).toBe(returned_statecoin)
+    
     expect(new_statecoin.status).toBe(returned_statecoin.status)
-
-    // statecoin deposited by wallet received:
-
+    
     // Check statecoin status set to SWAPPED
     wallet.statecoins.coins[0].status = STATECOIN_STATUS.AVAILABLE
-
+    
     statecoin = wallet.statecoins.coins[0]
-
+    
     new_statecoin = await wallet.resume_swap(statecoin)
-
+    
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPPED)
     Swap.mockReset()
+        
   })
 })
 
@@ -276,7 +298,7 @@ describe('After Swaps Complete', function () {
     wallet = await Wallet.buildMock(bitcoin.networks['bitcoin'], http_mock, wasm_mock)
     wallet_json = wallet.toEncryptedJSON()
   })
-  
+
   test('Auto-swap clicked after Join Group button', async function () {
     // let wallet_json = Wallet.buildMockToJSON(jest)
 

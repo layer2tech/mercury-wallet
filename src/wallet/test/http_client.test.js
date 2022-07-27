@@ -11,8 +11,8 @@ describe('HttpClient', function () {
     const response = { data: "mock data" };
 
     afterEach(() => {
-        jest.restoreAllMocks();
         expect(semaphoreSpy).toHaveBeenCalledTimes(1)
+        jest.clearAllMocks()
     });
 
     beforeEach(() => {

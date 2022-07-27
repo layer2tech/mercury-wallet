@@ -41,7 +41,7 @@ const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
 const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
 let bitcoin = require('bitcoinjs-lib');
-let bip32utils = require('bip32-utils');
+let bip32utils = require('@psf/bip32-utils');
 let bip32 = require('bip32');
 let bip39 = require('bip39');
 let cloneDeep = require('lodash.clonedeep');
@@ -129,11 +129,13 @@ export class Wallet {
 
     this.activity = new ActivityLog();
 
-    if (http_client) {
+    if (http_client != null) {
       this.http_client = http_client;
-    } else {
+    } else if (this.config.testing_mode != true) {
       this.http_client = new HttpClient('http://localhost:3001', true);
       this.set_tor_endpoints();
+    } else {
+      this.http_client = new MockHttpClient();
     }
 
     this.electrum_client = this.newElectrumClient();
@@ -254,9 +256,10 @@ export class Wallet {
   }
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
-  static async buildMock(network: Network, http_client: any = undefined, wasm: any = undefined, mnemonic: string | undefined = undefined): Promise<Wallet> {
-    mnemonic = mnemonic ? mnemonic : MOCK_WALLET_MNEMONIC;
-    var wallet = Wallet.fromMnemonic(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, mnemonic, network, true,
+  static async buildMock(network: Network, http_client: any = undefined, wasm: any = undefined, mnemonic: string | undefined = undefined, name: string | undefined = undefined): Promise<Wallet> {
+    mnemonic = mnemonic != null ? mnemonic : MOCK_WALLET_MNEMONIC;
+    name = name != null ? name : MOCK_WALLET_NAME;
+    var wallet = Wallet.fromMnemonic(name, MOCK_WALLET_PASSWORD, mnemonic, network, true,
       http_client, wasm);
     // add some statecoins
     let proof_key1 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
@@ -280,24 +283,32 @@ export class Wallet {
 
   // Load wallet from JSON
   static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
-    let config = new Config(json_wallet.config.network, json_wallet.config.testing_mode);
-    config.update(json_wallet.config);
-    //Config needs to be included when constructing the wallet
-    let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
+    try {
+      let config = new Config(json_wallet.config.network, json_wallet.config.testing_mode);
+      config.update(json_wallet.config);
+      //Config needs to be included when constructing the wallet
+      let new_wallet = new Wallet(json_wallet.name, json_wallet.password, json_wallet.mnemonic, json_wallet.account, config);
 
-    new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
-    new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
+      new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins)
+      new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity)
 
-    new_wallet.current_sce_addr = json_wallet.current_sce_addr;
+      new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
-    if (json_wallet.warnings !== undefined) new_wallet.warnings = json_wallet.warnings
-    // Make sure properties added to the wallet are handled
-    // New properties should not make old wallets break
+      if (json_wallet.warnings !== undefined) new_wallet.warnings = json_wallet.warnings
+      // Make sure properties added to the wallet are handled
+      // New properties should not make old wallets break
 
-    new_wallet.account = json_wallet_to_bip32_root_account(json_wallet)
+      new_wallet.account = json_wallet_to_bip32_root_account(json_wallet)
 
 
-    return new_wallet
+      return new_wallet
+    } catch (err: any) {
+      if (`${err}`.includes("Cannot read prop")) {
+        throw Error("Invalid wallet")
+      } else {
+        throw err
+      }
+    }
   }
 
   async stop() {
@@ -409,6 +420,7 @@ export class Wallet {
     // Decrypt mnemonic
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
+      console.log(`mnemonic decrypted: ${wallet_json.mnemonic}`)
     } catch (e: any) {
       throw Error("Incorrect password.")
     }

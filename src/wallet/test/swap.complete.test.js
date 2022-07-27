@@ -1,12 +1,11 @@
 import { makeTesterStatecoin, STATECOIN_SWAP_DATA, SWAP_SHARED_KEY_OUT } from './test_data.js'
 import Swap from "../swap/swap"
 import { STATECOIN_STATUS } from '../statecoin'
-import { REQUESTOR_CALC_S, MAKE_BST, POST_BST } from '../mocks/mock_wasm'
+import { REQUESTOR_CALC_S, MAKE_BST } from '../mocks/mock_wasm'
 import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
-import { Wallet, MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD } from '../wallet';
-import { ACTION } from '..';
+import { Wallet, MOCK_WALLET_NAME } from '../wallet';
 import { Transaction } from 'bitcoinjs-lib';
 import { swapInit as swapInitSteps } from '../swap/swap.init'
 import { swapPhase0 as swapPhase0Steps } from '../swap/swap.phase0'
@@ -35,27 +34,9 @@ let electrum_mock = jest.genMockFromModule('../mocks/mock_electrum');
 // server side's mock
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 
-const post_error = (path, body) => {
-    return new Error(`Error from POST request - path: ${path}, body: ${body}`)
-}
-
-const get_error = (path, params) => {
-    return new Error(`Error from GET request - path: ${path}, params: ${params}`)
-}
-
-const wasm_err = (message) => {
-    return new Error(`Error from wasm_mock: ${message}`)
-}
-
-const SHARED_KEY_DUMMY = { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" };
-
-const WALLET_VERSION = require("../../../package.json").version.substring(1);
-
 const get_proof_key_der = () => {
     return bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 }
-
-const SWAP_SIZE = test_data.SIGNSWAPTOKEN_DATA[0].swap_token.statechain_ids.length
 
 const getWallet = async () => {
     let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
@@ -72,18 +53,6 @@ const get_statecoin_in = () => {
     test_data.setSwapDetails(statecoin, 'Reset')
     statecoin.status = STATECOIN_STATUS.AWAITING_SWAP
     return statecoin
-}
-
-const get_statecoin_init_out_expected = () => {
-    let statecoin = makeTesterStatecoin();
-    test_data.setSwapDetails(statecoin, 0);
-    return statecoin;
-}
-
-const get_statecoin_phase0_out_expected = () => {
-    let statecoin = makeTesterStatecoin();
-    test_data.setSwapDetails(statecoin, 1);
-    return statecoin;
 }
 
 const swapPhaseAll = async (swap) => {
@@ -106,79 +75,6 @@ const swapPhaseAll = async (swap) => {
     }
     return result
 }
-
-const swapInit = async (swap) => {
-    swap.setSwapSteps(swapInitSteps(swap));
-    let result
-    for (let i = 0; i < swap.swap_steps.length; i++) {
-        result = await swap.doNext()
-        if (result.is_ok() === false) {
-            return result
-        }
-    }
-    return result
-}
-
-async function swapPhase0(swap) {
-    swap.setSwapSteps(swapPhase0Steps(swap))
-    let result
-    for (let i = 0; i < swap.swap_steps.length; i++) {
-        result = await swap.doNext()
-        if (result.is_ok() === false) {
-            return result
-        }
-    }
-    return result
-}
-
-async function swapPhase1(swap) {
-    swap.setSwapSteps(swapPhase1Steps(swap))
-    let result
-    for (let i = 0; i < swap.swap_steps.length; i++) {
-        result = await swap.doNext()
-        if (result.is_ok() === false) {
-            return result
-        }
-    }
-    return result
-}
-
-async function swapPhase2(swap) {
-    swap.setSwapSteps(swapPhase2Steps(swap))
-    let result
-    for (let i = 0; i < swap.swap_steps.length; i++) {
-        result = await swap.doNext()
-        if (result.is_ok() === false) {
-            return result
-        }
-    }
-    return result
-}
-
-async function swapPhase3(swap) {
-    swap.setSwapSteps(swapPhase3Steps(swap))
-    let result
-    for (let i = 0; i < swap.swap_steps.length; i++) {
-        result = await swap.doNext()
-        if (result.is_ok() === false) {
-            return result
-        }
-    }
-    return result
-}
-
-async function swapPhase4(swap) {
-    swap.setSwapSteps(swapPhase4Steps(swap))
-    let result
-    for (let i = 0; i < swap.swap_steps.length; i++) {
-        result = await swap.doNext()
-        if (result.is_ok() === false) {
-            return result
-        }
-    }
-    return result
-}
-
 
 const init_phase3_status = (statecoin) => {
     //Set valid statecoin status
@@ -215,32 +111,6 @@ export const setSwapDetails = (statecoin, phase) => {
     statecoin.swap_transfer_finalized_data = new_data.swap_transfer_finalized_data
     statecoin.swap_auto = new_data.swap_autos
     return statecoin
-}
-
-const get_statecoin_out_expected = (statecoin_out, smt_proof = null) => {
-    let statecoin_out_expected = get_statecoin_in()
-    statecoin_out_expected.value = 100000
-    statecoin_out_expected.swap_rounds = 1
-    statecoin_out_expected.anon_set = 5
-    statecoin_out_expected.swap_status = null
-    statecoin_out_expected.swap_transfer_finalized_data = null
-    statecoin_out_expected.status = STATECOIN_STATUS.AVAILABLE
-    statecoin_out_expected.shared_key_id = mock_http_client.TRANSFER_FINALIZE_DATA.new_shared_key_id
-    statecoin_out_expected.statechain_id = mock_http_client.TRANSFER_FINALIZE_DATA.statechain_id
-    statecoin_out_expected.funding_txid = mock_http_client.RECOVERY_STATECHAIN_DATA.utxo.txid
-    statecoin_out_expected.is_new = true
-    statecoin_out_expected.proof_key =
-        mock_http_client.RECOVERY_STATECHAIN_DATA.chain[mock_http_client.RECOVERY_STATECHAIN_DATA.chain.length - 1].data
-    statecoin_out_expected.sc_address = "sc1qvl2s57h77wr93wjvtgdtkzetv2ypjw67k8qysz82zltvjgds29vq3ahfez"
-    statecoin_out_expected.shared_key = SWAP_SHARED_KEY_OUT
-    statecoin_out_expected.swap_my_bst_data = null
-    statecoin_out_expected.swap_id = null
-    statecoin_out_expected.swap_info = null
-    statecoin_out_expected.timestamp = statecoin_out.timestamp
-    statecoin_out_expected.tx_backup = Transaction.fromHex(
-        mock_http_client.TRANSFER_FINALIZE_DATA.tx_backup_psm.tx_hex);
-    statecoin_out_expected.smt_proof = smt_proof
-    return statecoin_out_expected;
 }
 
 // this swap completes a full swap between 0 to 5
