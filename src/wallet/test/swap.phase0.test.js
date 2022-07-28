@@ -1,46 +1,46 @@
 /**
  * @jest-environment jsdom
  */
- import { makeTesterStatecoin, setSwapDetails } from './test_data.js'
- import { SWAP_STATUS } from "../swap/swap_utils";
- import Swap from "../swap/swap"
- import { STATECOIN_STATUS } from '../statecoin'
- import { Wallet, MOCK_WALLET_NAME } from '../wallet'
- import { swapPhase0 as swapPhase0Steps } from '../swap/swap.phase0'
- import { POST_ROUTE } from '../http_client';
+import { makeTesterStatecoin, setSwapDetails } from './test_data.js'
+import { SWAP_STATUS } from "../swap/swap_utils";
+import Swap from "../swap/swap"
+import { STATECOIN_STATUS } from '../statecoin'
+import { Wallet, MOCK_WALLET_NAME } from '../wallet'
+import { swapPhase0 as swapPhase0Steps } from '../swap/swap.phase0'
+import { POST_ROUTE } from '../http_client';
+
+let bitcoin = require('bitcoinjs-lib')
+
+let cloneDeep = require('lodash.clonedeep');
+
+let walletName = `${MOCK_WALLET_NAME}_swap_phase0_tests`
+
+// client side's mock
+let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+// server side's mock
+let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+
+async function getWallet() {
+    let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
+    wallet.config.min_anon_set = 3
+    wallet.config.jest_testing_mode = true
+    wallet.http_client = http_mock
+    wallet.wasm = wasm_mock
+    return wallet
+}
  
- let bitcoin = require('bitcoinjs-lib')
  
- let cloneDeep = require('lodash.clonedeep');
- 
- let walletName = `${MOCK_WALLET_NAME}_swap_phase0_tests`
- 
- // client side's mock
- let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
- // server side's mock
- let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
- 
- async function getWallet() {
-   let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
-   wallet.config.min_anon_set = 3
-   wallet.config.jest_testing_mode = true
-   wallet.http_client = http_mock
-   wallet.wasm = wasm_mock
-   return wallet
- }
- 
- 
- async function swapPhase0(swap) {
-   swap.setSwapSteps(swapPhase0Steps(swap))
-   let result
-   for(let i=0; i< swap.swap_steps.length; i++){
-     result =  await swap.doNext()
-     if(result.is_ok() === false){
-         return result
-     }
-   }
-   return result
- }
+async function swapPhase0(swap) {
+    swap.setSwapSteps(swapPhase0Steps(swap))
+    let result
+    for(let i=0; i< swap.swap_steps.length; i++){
+        result =  await swap.doNext()
+        if(result.is_ok() === false){
+            return result
+        }
+    }
+    return result
+}
  
  
  describe('swapPhase0 test 1 - incorrect initial statecoin phase', () => {
@@ -233,35 +233,35 @@
    })
  })
  
- describe('swapPhase0 test 8 - proceed to phase 1', () => {
-   // input data ////////////////////////////////////
-   let statecoin = cloneDeep(makeTesterStatecoin())
-   setSwapDetails(statecoin, 0)
-   const initStatecoin = cloneDeep(statecoin)
-   let final_statecoin = cloneDeep(statecoin)
-   setSwapDetails(final_statecoin, 1)
-   //////////////////////////////////////////////////
+describe('swapPhase0 test 8 - proceed to phase 1', () => {
+    // input data ////////////////////////////////////
+    let statecoin = cloneDeep(makeTesterStatecoin())
+    setSwapDetails(statecoin, 0)
+    const initStatecoin = cloneDeep(statecoin)
+    let final_statecoin = cloneDeep(statecoin)
+    setSwapDetails(final_statecoin, 1)
+    //////////////////////////////////////////////////
  
-   let wallet
-   beforeAll(async () => {
-     wallet = await getWallet();
-   })
+    let wallet
+    beforeAll(async () => {
+        wallet = await getWallet();
+    })
  
    
  
-   it('swap Phase 0 should proceed to phase 1', async () => {
-     http_mock.post = jest.fn((path, body) => {
-       if (path === POST_ROUTE.SWAP_POLL_UTXO) {
-         return final_statecoin.swap_id
-       }
-     })
-     let swap = new Swap(wallet, statecoin, null, null) 
-     const input = () => {
-       return swapPhase0(swap);
-     }
-     let result = await input()
-     expect(result.is_ok()).toEqual(true)
-     expect(statecoin).toEqual(final_statecoin)
-   })
- })
+    it('swap Phase 0 should proceed to phase 1', async () => {
+        http_mock.post = jest.fn((path, body) => {
+        if (path === POST_ROUTE.SWAP_POLL_UTXO) {
+            return final_statecoin.swap_id
+        }
+        })
+        let swap = new Swap(wallet, statecoin, null, null) 
+        const input = () => {
+        return swapPhase0(swap);
+        }
+        let result = await input()
+        expect(result.is_ok()).toEqual(true)
+        expect(statecoin).toEqual(final_statecoin)
+    })
+})
  
