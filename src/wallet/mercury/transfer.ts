@@ -6,15 +6,16 @@ import { ElectrumClient, MockElectrumClient, HttpClient, MockHttpClient, POST_RO
 import { ElectrsClient } from "../electrs"
 import { EPSClient } from "../eps"
 import { FEE } from "../util";
-import { FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain,
-  getStateCoin, getOwner, RecoveryDataMsg, StateChainDataAPI } from "./info_api";
+import {
+  FeeInfo, getFeeInfo, getRoot, getSmtProof, getStateChain,
+  getStateCoin, getOwner, RecoveryDataMsg, StateChainDataAPI
+} from "./info_api";
 import { keyGen, PROTOCOL, sign } from "./ecdsa";
 import { encodeSecp256k1Point, StateChainSig, proofKeyToSCEAddress, pubKeyToScriptPubKey, encryptECIES, decryptECIES, getSigHash } from "../util";
 import { Wallet } from "../wallet";
 import { ACTION } from '../activity_log';
 import { TransferFinalizeData } from "../types";
 
-const Promise = require('bluebird');
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require('lodash.clonedeep');
 let types = require("../types")
@@ -31,7 +32,7 @@ declare const window: any;
 let log: any;
 try {
   log = window.require('electron-log');
-} catch (e : any) {
+} catch (e: any) {
   log = require('electron-log');
 }
 
@@ -55,7 +56,7 @@ const TESTING_MODE = require("../../settings.json").testing_mode;
 
 
 export const transferSender = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,
@@ -83,18 +84,18 @@ export const transferSender = async (
 
   // Sign statecoin to signal desire to Transfer
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
-  
+
   // Init transfer: Send statechain signature or batch data
   let batch_id = null;
   if (is_batch) {
-    if(statecoin.swap_id) {
+    if (statecoin.swap_id) {
       batch_id = statecoin.swap_id.id
     }
   }
   let transfer_msg1 = {
-      shared_key_id: statecoin.shared_key_id,
-      statechain_sig: statechain_sig,
-      batch_id: batch_id
+    shared_key_id: statecoin.shared_key_id,
+    statechain_sig: statechain_sig,
+    batch_id: batch_id
   }
 
   let transfer_msg2 = await http_client.post(POST_ROUTE.TRANSFER_SENDER, transfer_msg1);
@@ -122,10 +123,10 @@ export const transferSender = async (
 
   // Sign new back up tx
   let signature: any[][] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
- 
+
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;
-  new_tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]),Buffer.from(signature[1])];
+  new_tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]), Buffer.from(signature[1])];
   prepare_sign_msg.tx_hex = new_tx_backup_signed.toHex();
 
   // Get o1 priv key
@@ -144,7 +145,7 @@ export const transferSender = async (
   let t1 = o1_bn.mul(x1_bn).umod(n);
 
   let t1_enc = {
-    secret_bytes: Array.from(encryptECIES(receiver_addr,t1.toString("hex")))
+    secret_bytes: Array.from(encryptECIES(receiver_addr, t1.toString("hex")))
   }
 
   o1_bn = null;
@@ -162,10 +163,10 @@ export const transferSender = async (
   typeforce(types.TransferMsg3, transfer_msg3);
 
   // Mark funds as spent in wallet if this isn't a batch transfer
-  if(!is_batch){
+  if (!is_batch) {
     wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.TRANSFER, transfer_msg3);
   }
-  
+
   return transfer_msg3
 }
 
@@ -189,10 +190,10 @@ export const transferUpdateMsg = async (
         if (force === false) {
           const warning = `Warning: failed to send the transfer message to the server due to error: ${err.toString()}. Please send it to the statecoin recipient manually.`
           log.warn(warning);
-          alert(warning)  
+          alert(warning)
         } else {
           throw err
-        }        
+        }
         break
       }
     }
@@ -200,8 +201,8 @@ export const transferUpdateMsg = async (
 }
 
 export const getTransferMsg4 = async (
-  http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient, 
+  http_client: HttpClient | MockHttpClient,
+  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient,
   network: Network,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
@@ -219,7 +220,7 @@ export const getTransferMsg4 = async (
   // 1. Verify backup transaction amount
   let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
   const backup_tx_amount = tx_backup.outs[0].value + tx_backup.outs[1].value + FEE
-  if(value !== null && value !== undefined){
+  if (value !== null && value !== undefined) {
     if (backup_tx_amount !== value) throw new Error(`Swapped coin value invalid. Expected ${backup_tx_amount}, got ${value}`)
   }
   if (backup_tx_amount !== statechain_data.amount) throw new Error(`Backup tx invalid amount. Expected ${statechain_data.amount}, got ${backup_tx_amount}`);
@@ -242,33 +243,33 @@ export const getTransferMsg4 = async (
   if (se_rec_addr_bip32 === undefined) throw new Error("Cannot find backup receive address. Transfer not made to this wallet.");
   let pk_expected = se_rec_addr_bip32.publicKey.toString("hex");
   let pk_received = transfer_msg3.rec_se_addr.proof_key
-  if (pk_expected !== pk_received) 
+  if (pk_expected !== pk_received)
     throw new Error(`Backup tx not sent to addr derived from receivers proof key. Expected proof key ${pk_expected}, got ${pk_received}. Transfer not made to this wallet.`);
 
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
-  if(typeof block_height === 'number'){
-      await electrum_client.importAddresses([addr], block_height - fee_info.initlock)
+  if (typeof block_height === 'number') {
+    await electrum_client.importAddresses([addr], block_height - fee_info.initlock)
   }
   let out_script = bitcoin.address.toOutputScript(addr, network);
   let match = TESTING_MODE;
   let funding_tx_data = await electrum_client.getScriptHashListUnspent(out_script);
-  if (funding_tx_data===null)  throw new Error("Unspent UTXO not found.");
-   if (funding_tx_data.length === 0) throw new Error("Unspent UTXO not found.");
-   for (let i=0; i<funding_tx_data.length; i++) {
-     if (funding_tx_data[i].tx_hash === tx_backup.ins[0].hash.reverse().toString("hex") && funding_tx_data[i].tx_pos === tx_backup.ins[0].index) {
-       if (funding_tx_data[i].value === (tx_backup.outs[0].value + tx_backup.outs[1].value + FEE)) {
-         match = true;
-         break;
-       }
-     }
-   }
+  if (funding_tx_data === null) throw new Error("Unspent UTXO not found.");
+  if (funding_tx_data.length === 0) throw new Error("Unspent UTXO not found.");
+  for (let i = 0; i < funding_tx_data.length; i++) {
+    if (funding_tx_data[i].tx_hash === tx_backup.ins[0].hash.reverse().toString("hex") && funding_tx_data[i].tx_pos === tx_backup.ins[0].index) {
+      if (funding_tx_data[i].value === (tx_backup.outs[0].value + tx_backup.outs[1].value + FEE)) {
+        match = true;
+        break;
+      }
+    }
+  }
   if (!match) throw new Error("Backup tx input incorrect or spent.");
   // 6. Check coin has the required confirmations
   let tx_data: any = await electrum_client.getTransaction(statechain_data.utxo.txid);
-  if (tx_data===null)  throw new Error("TxID not found.");
+  if (tx_data === null) throw new Error("TxID not found.");
   if (tx_data?.confirmations < req_confirmations) throw new Error("Coin has insufficient confirmations.");
 
   // decrypt t1
@@ -288,12 +289,12 @@ export const getTransferMsg4 = async (
   let t2 = t1_bn.mul(o2_inv_bn).mod(n);
 
   // get SE pub hey share for t2 encryption
-  let user_id = { id: transfer_msg3.shared_key_id};
+  let user_id = { id: transfer_msg3.shared_key_id };
   let s1_pubkey = await http_client.post(POST_ROUTE.TRANSFER_PUBKEY, user_id);
 
   // encrypt t2
   let t2_enc = {
-    secret_bytes: Array.from(encryptECIES(s1_pubkey.key,t2.toString("hex")))
+    secret_bytes: Array.from(encryptECIES(s1_pubkey.key, t2.toString("hex")))
   }
 
   let transfer_msg4 = {
@@ -311,8 +312,8 @@ export const getTransferMsg4 = async (
 }
 
 export const transferReceiver = async (
-  http_client: HttpClient |  MockHttpClient,
-  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient, 
+  http_client: HttpClient | MockHttpClient,
+  electrum_client: ElectrumClient | ElectrsClient | EPSClient | MockElectrumClient,
   network: Network,
   transfer_msg3: any,
   se_rec_addr_bip32: BIP32Interface,
@@ -328,32 +329,32 @@ export const transferReceiver = async (
 
   // get o2 private key
   const o2 = se_rec_addr_bip32.privateKey!.toString("hex");
-  
+
   // Verify state chain represents this address as new owner
-  let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length-1].data;
+  let prev_owner_proof_key = statechain_data.chain[statechain_data.chain.length - 1].data;
   let prev_owner_proof_key_der = bitcoin.ECPair.fromPublicKey(Buffer.from(prev_owner_proof_key, "hex"));
   let statechain_sig = new StateChainSig(transfer_msg3.statechain_sig.purpose, transfer_msg3.statechain_sig.data, transfer_msg3.statechain_sig.sig);
   log.debug('statechain_sig.verify...')
   if (!statechain_sig.verify(prev_owner_proof_key_der)) {
     //if the signature matches the transfer message, then transfer already completed
     if (statechain_data.chain.length > 1) {
-      if (statechain_data.chain[statechain_data.chain.length-2].next_state.sig == transfer_msg3.statechain_sig.sig) {
+      if (statechain_data.chain[statechain_data.chain.length - 2].next_state.sig == transfer_msg3.statechain_sig.sig) {
         // transfer already (partially) completed
 
-        let new_shared_key_id = await getOwner(http_client, transfer_msg3.statechain_id);        
+        let new_shared_key_id = await getOwner(http_client, transfer_msg3.statechain_id);
 
         // Update tx_backup_psm shared_key_id with new one
         let tx_backup_psm = transfer_msg3.tx_backup_psm;
         tx_backup_psm.shared_key_id = new_shared_key_id;
 
         let finalize_data = {
-            new_shared_key_id: new_shared_key_id,
-            o2: o2,
-            s2_pub: null,
-            state_chain_data: statechain_data,
-            proof_key: transfer_msg3.rec_se_addr.proof_key,
-            statechain_id: transfer_msg3.statechain_id,
-            tx_backup_psm: tx_backup_psm,
+          new_shared_key_id: new_shared_key_id,
+          o2: o2,
+          s2_pub: null,
+          state_chain_data: statechain_data,
+          proof_key: transfer_msg3.rec_se_addr.proof_key,
+          statechain_id: transfer_msg3.statechain_id,
+          tx_backup_psm: tx_backup_psm,
         };
         return finalize_data
       } else {
@@ -365,9 +366,9 @@ export const transferReceiver = async (
   }
 
   if (transfer_msg_4 === null || transfer_msg_4 === undefined) {
-    transfer_msg_4 = await getTransferMsg4(  
+    transfer_msg_4 = await getTransferMsg4(
       http_client,
-      electrum_client, 
+      electrum_client,
       network,
       transfer_msg3,
       se_rec_addr_bip32,
@@ -387,13 +388,13 @@ export const transferReceiver = async (
 
   // Data to update wallet with transfer. Should only be applied after StateEntity has finalized.
   let finalize_data = {
-      new_shared_key_id: transfer_msg5.new_shared_key_id,
-      o2: o2,
-      s2_pub: transfer_msg5.s2_pub,
-      state_chain_data: statechain_data,
-      proof_key: transfer_msg3.rec_se_addr.proof_key,
-      statechain_id: transfer_msg3.statechain_id,
-      tx_backup_psm: tx_backup_psm,
+    new_shared_key_id: transfer_msg5.new_shared_key_id,
+    o2: o2,
+    s2_pub: transfer_msg5.s2_pub,
+    state_chain_data: statechain_data,
+    proof_key: transfer_msg3.rec_se_addr.proof_key,
+    statechain_id: transfer_msg3.statechain_id,
+    tx_backup_psm: tx_backup_psm,
   };
   typeforce(types.TransferFinalizeData, finalize_data);
   log.debug('return finalize_data')
@@ -401,27 +402,27 @@ export const transferReceiver = async (
 }
 
 export const transferReceiverFinalize = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   finalize_data: TransferFinalizeData,
 ): Promise<StateCoin> => {
 
-  let finalize_data_rec : TransferFinalizeDataForRecovery = {
+  let finalize_data_rec: TransferFinalizeDataForRecovery = {
     new_shared_key_id: finalize_data.new_shared_key_id,
-    o2: finalize_data.o2, 
+    o2: finalize_data.o2,
     statechain_data: finalize_data.state_chain_data,
     statechain_id: finalize_data.statechain_id,
     proof_key: finalize_data.proof_key,
     tx_backup_hex: finalize_data.tx_backup_psm.tx_hex
   }
-  
+
   let statecoin = await transferReceiverFinalizeRecovery(http_client, wasm_client, finalize_data_rec);
 
   return statecoin
 }
 
 export const transferReceiverFinalizeRecovery = async (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   finalize_data: TransferFinalizeDataForRecovery,
 ): Promise<StateCoin> => {
@@ -466,7 +467,7 @@ export const transferReceiverFinalizeRecovery = async (
 }
 
 export const transferBatchSign = (
-  http_client: HttpClient |  MockHttpClient,
+  http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,
@@ -492,18 +493,18 @@ export interface SCEAddress {
 }
 
 export interface PrepareSignTxMsg {
-    shared_key_ids: string[],
-    protocol: string,
-    tx_hex: string,
-    input_addrs: string[], // keys being spent from
-    input_amounts: number[],
-    proof_key: string | null,
+  shared_key_ids: string[],
+  protocol: string,
+  tx_hex: string,
+  input_addrs: string[], // keys being spent from
+  input_amounts: number[],
+  proof_key: string | null,
 }
 
 export interface TransferMsg3 {
   shared_key_id: string,
   statechain_id: string,
-  t1: {secret_bytes: number[]},
+  t1: { secret_bytes: number[] },
   statechain_sig: StateChainSig,
   tx_backup_psm: PrepareSignTxMsg,
   rec_se_addr: SCEAddress,
@@ -512,7 +513,7 @@ export interface TransferMsg3 {
 export interface TransferMsg4 {
   shared_key_id: string,
   statechain_id: string,
-  t2: {secret_bytes: number[]}, // t2 = t1*o2_inv = o1*x1*o2_inv
+  t2: { secret_bytes: number[] }, // t2 = t1*o2_inv = o1*x1*o2_inv
   statechain_sig: StateChainSig,
   o2_pub: { x: string, y: string },
   tx_backup_hex: string,
@@ -524,22 +525,22 @@ export interface TransferMsg5 {
   s2_pub: any,
 }
 
-export interface  TransferFinalizeData {
-    new_shared_key_id: string,
-    o2: string,
-    s2_pub: any,
-    state_chain_data: any,
-    proof_key: string,
-    statechain_id: string,
-    tx_backup_psm: PrepareSignTxMsg,
+export interface TransferFinalizeData {
+  new_shared_key_id: string,
+  o2: string,
+  s2_pub: any,
+  state_chain_data: any,
+  proof_key: string,
+  statechain_id: string,
+  tx_backup_psm: PrepareSignTxMsg,
 }
 
 
 export interface TransferFinalizeDataForRecovery {
-    new_shared_key_id: string,
-    o2: string,
-    statechain_data: any,
-    proof_key: string,
-    statechain_id: string,
-    tx_backup_hex: string,
+  new_shared_key_id: string,
+  o2: string,
+  statechain_data: any,
+  proof_key: string,
+  statechain_id: string,
+  tx_backup_hex: string,
 }

@@ -1,5 +1,4 @@
 import { ElectrsLocalClient } from '../electrs_local';
-const Promise = require('bluebird');
 let bitcoin = require('bitcoinjs-lib');
 var execSync = require('child_process').execSync;
 var execFileSync = require('child_process').execFileSync;
@@ -28,7 +27,7 @@ function bitcoin_command(command) {
     let result = execSync(`${regtest_command} ${command}`, { shell: "/bin/bash" },
         function (error, stdout, stderr) {
             console.log('stdout: ' + stdout);
-           console.log('stderr: ' + stderr);
+            console.log('stderr: ' + stderr);
             if (error !== null) {
                 console.log('exec error: ' + error);
             }
@@ -67,7 +66,7 @@ function create_wallet(walletName) {
 function load_wallet(walletName) {
     return bitcoin_command(`loadwallet ${walletName}`)
 }
-    
+
 function gen_blocks(address, n) {
     return bitcoin_command(`generatetoaddress ${n} ${address}`)
 }
@@ -93,10 +92,10 @@ describe.skip('ElectrsLocalClient', function () {
     let client = new ElectrsLocalClient('http://localhost:3001', true);
     let ta_process
     let addresses
-    
+
     const network = bitcoin.networks.regtest
 
-        beforeAll(async () => {
+    beforeAll(async () => {
         jest.setTimeout(10000)
         if (ta_process?.pid != null) {
             process.kill(ta_process?.pid, 'SIGTERM')
@@ -150,13 +149,13 @@ describe.skip('ElectrsLocalClient', function () {
 
     test('broadcastTransaction', async function () {
         jest.setTimeout(20000)
-        
+
         let address = await getnewaddress()
         let txid = await sendtoaddress(address, "0.1")
         await gen_blocks(addresses[0], 10)
         let tx = await client.getTransaction(txid)
-        let tx_hex = tx.hex 
-                
+        let tx_hex = tx.hex
+
         await expect(client.broadcastTransaction(tx_hex)).
             rejects.toThrow(Error("\"Transaction already in block chain\""))
     })
@@ -192,7 +191,7 @@ describe.skip('ElectrsLocalClient', function () {
         await client.blockHeightSubscribe(async (status) => {
             block_height = status[0].height
         })
-        
+
         await gen_blocks(addresses[0], 1)
 
         await delay_s(10)
