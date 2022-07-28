@@ -68,7 +68,7 @@ describe('swapPhase1 test 1 - incorrect status', () => {
 })
 
 
-
+/*
 describe('swapPhase1 test 2 - incorrect swap_status', () => {
     // input /////////////////////////////////////////////////
     let statecoin = makeTesterStatecoin();
@@ -111,7 +111,7 @@ describe('swapPhase1 test 3 - incorrect swap id', () => {
         const output = "No Swap ID found. Swap ID should be set in Phase0.";
         await expect(input()).rejects.toThrowError(output);
     })
-});
+});*/
 
 
 //describe('swapPhase1 test 4 - incorrect swap info', () => {
