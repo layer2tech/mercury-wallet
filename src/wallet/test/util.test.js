@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
 
 import { networks, ECPair } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
