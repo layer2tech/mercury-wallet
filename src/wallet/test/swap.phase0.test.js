@@ -33,10 +33,10 @@ async function getWallet() {
 async function swapPhase0(swap) {
   swap.setSwapSteps(swapPhase0Steps(swap))
   let result
-  for(let i=0; i< swap.swap_steps.length; i++){
-    result =  await swap.doNext()
-    if(result.is_ok() === false){
-        return result
+  for (let i = 0; i < swap.swap_steps.length; i++) {
+    result = await swap.doNext()
+    if (result.is_ok() === false) {
+      return result
     }
   }
   return result
@@ -52,8 +52,8 @@ describe('swapPhase0 test 1 - incorrect initial statecoin phase', () => {
 
   it('should throw coin is in wrong swap protocol', async () => {
     let wallet = await getWallet();
-    let swap = new Swap(wallet, statecoin, null, null) 
-    
+    let swap = new Swap(wallet, statecoin, null, null)
+
     const output = 'phase Phase0:pollUtxo: invalid swap status: Phase1';
     await expect(swapPhase0(swap)).rejects.toThrowError(output);
   });
@@ -69,7 +69,7 @@ describe('swapPhase0 test 2 - correct initial statecoin phase', () => {
 
   let wallet
   let swap
-  
+
   beforeAll(async () => {
     wallet = await getWallet();
     swap = new Swap(wallet, statecoin, null, null)
@@ -89,7 +89,7 @@ describe('swapPhase0 test 2 - correct initial statecoin phase', () => {
   it('should have swap_status Phase1, swap_id not null', async () => {
     // swap begun
     http_mock.post = jest.fn().mockReset()
-      .mockReturnValue({ id: swap_id }) 
+      .mockReturnValue({ id: swap_id })
     await swapPhase0(swap)
     expect(statecoin.swap_status).toBe(SWAP_STATUS.Phase1)
     expect(statecoin.swap_id.id).toBe(swap_id)
@@ -131,8 +131,8 @@ describe('swapPhase0 test 4 - poll with no swap_id', () => {
   })
   it('should return Retry status', async () => {
     http_mock.post = jest.fn().mockReset()
-      .mockReturnValue({ id: null }) 
-    
+      .mockReturnValue({ id: null })
+
     const input = () => {
       return swapPhase0(swap);
     }
@@ -190,7 +190,7 @@ describe('swapPhase0 test 6 - coin removed from swap pool', () => {
         throw post_err
       }
     })
-    let swap = new Swap(wallet, statecoin, null, null) 
+    let swap = new Swap(wallet, statecoin, null, null)
     const input = () => {
       return swapPhase0(swap);
     }
@@ -212,14 +212,14 @@ describe('swapPhase0 test 7 - waiting for swap to begin...', () => {
     wallet = await getWallet();
   })
 
-  
+
   it('swap Phase 0 should remain in phase 0 and not increment the n_retries counter past 1', async () => {
     http_mock.post = jest.fn((path, body) => {
       if (path === POST_ROUTE.SWAP_POLL_UTXO) {
         return { id: null }
       }
     })
-    let swap = new Swap(wallet, statecoin, null, null) 
+    let swap = new Swap(wallet, statecoin, null, null)
     expect(swap.n_retries).toEqual(0)
     const input = () => {
       return swapPhase0(swap);
@@ -247,7 +247,7 @@ describe('swapPhase0 test 8 - proceed to phase 1', () => {
     wallet = await getWallet();
   })
 
-  
+
 
   it('swap Phase 0 should proceed to phase 1', async () => {
     http_mock.post = jest.fn((path, body) => {
@@ -255,7 +255,7 @@ describe('swapPhase0 test 8 - proceed to phase 1', () => {
         return final_statecoin.swap_id
       }
     })
-    let swap = new Swap(wallet, statecoin, null, null) 
+    let swap = new Swap(wallet, statecoin, null, null)
     const input = () => {
       return swapPhase0(swap);
     }

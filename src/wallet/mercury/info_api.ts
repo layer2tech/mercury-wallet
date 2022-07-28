@@ -219,13 +219,17 @@ export const getRoot = async (http_client: HttpClient | MockHttpClient) => {
   return root;
 };
 
-export const delay_s = (s: number) => {
+export function delay_s (s: number) {
   return delay(s * 1000);
 };
 
-export const delay = (ms: number) => {
-  return Promise.delay(ms);
+export function delay(ms: number) {
+  return new Promise(function (resolve: any, reject: any) {
+    setTimeout(resolve, ms);
+  });
 };
+
+
 
 export const getSmtProof = async (
   http_client: HttpClient | MockHttpClient,

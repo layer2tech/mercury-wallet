@@ -23,7 +23,6 @@ import {
 import { semaphore, MAX_SEMAPHORE_COUNT } from '../http_client'
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 
-const Promise = require('bluebird');
 
 const newid_semaphore = new AsyncSemaphore(1);
 
@@ -113,7 +112,7 @@ export default class Swap {
   }
 
   checkWalletStatus = () => {
-    if (this.wallet.active ===false) {
+    if (this.wallet.active === false) {
       throw Error(`wallet unloading...`)
     }
   }
@@ -534,7 +533,7 @@ export default class Swap {
     try {
       const tm3 = this.getTransferMsg()
       await transferUpdateMsg(this.clients.http_client,
-        tm3, true)        
+        tm3, true)
       return SwapStepResult.Ok("transfer update msg complete")
     } catch (err: any) {
       return SwapStepResult.Retry(`transferUpdateMsg: ${err.message}`)
