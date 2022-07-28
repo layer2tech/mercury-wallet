@@ -20,7 +20,6 @@
  import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
  import { ActivityLog } from '../activity_log';
  
- const Promise = require('bluebird');
  let log = require('electron-log');
  let cloneDeep = require('lodash.clonedeep');
  let bip32 = require('bip32')
@@ -346,9 +345,9 @@
      })
    })
  
-   describe('xpub from mnemonic', function(){
+   describe('xpub from mnemonic', function () {
  
-     test('correct xpub returned', function() {
+     test('correct xpub returned', function () {
        expect(getXpub(MOCK_WALLET_MNEMONIC, bitcoin.networks.bitcoin)).toBe(MOCK_WALLET_XPUB)
      })
  
@@ -376,7 +375,7 @@
      let wallet
      const WALLET_NAME_2 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e9";
      const WALLET_NAME_2_BACKUP = WALLET_NAME_2 + "_backup";
-     beforeEach(async () => {  
+     beforeEach(async () => {
        wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_2);
        wallet.storage.clearWallet(WALLET_NAME_2)
        wallet.storage.clearWallet(WALLET_NAME_2_BACKUP)
@@ -429,7 +428,7 @@
        let json_wallet
        const WALLET_NAME_3 = "mock_e4c93acf-2f49-414f-b124-65c882eea7f0";
        const WALLET_NAME_3_BACKUP = WALLET_NAME_3 + "_backup";
-       beforeAll(async () => {  
+       beforeAll(async () => {
          let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_3);
          wallet.storage.clearWallet(WALLET_NAME_3)
          wallet.storage.clearWallet(WALLET_NAME_3_BACKUP)
@@ -583,7 +582,7 @@
      await wallet.updateBackupTxStatus(false);
      expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPLIMIT);
    })
-   
+ 
    test('Expired', async function () {
      // locktime = 1000, height = 1000, EXPIRED triggered
      let tx_backup = txBackupBuild(bitcoin.networks.bitcoin, "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 0, await wallet.genBtcAddress(), 10000, await wallet.genBtcAddress(), 10, 1000);
@@ -957,7 +956,7 @@
      statecoin.tx_cpfp = statecoin.tx_backup
      wallet.broadcastCPFP(statecoin).then((_result) => {
        expect(true).toEqual(false)
-     }).catch ((err) => {
+     }).catch((err) => {
        expect(err).toEqual(new Error(`failed to broadcast transaction: [an error message]`))
      })
    })
