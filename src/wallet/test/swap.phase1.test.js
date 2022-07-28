@@ -61,3 +61,22 @@ describe('swapPhase1 test 1 - incorrect status', () => {
         expect(input()).rejects.toThrowError(output);
     })
 })
+
+describe('swapPhase1 test 2 - incorrect swap_status', () => {
+    // input /////////////////////////////////////////////////
+    let statecoin = makeTesterStatecoin();
+    statecoin.status = STATECOIN_STATUS.IN_SWAP;
+    //////////////////////////////////////////////////////////
+
+    it('throws error on null swap_status', async () => {
+        let wallet = await getWallet();
+        let swap = new Swap(wallet, statecoin, null, null); 
+
+        const input = async () => {
+            return await swapPhase1(swap);
+        }
+        const output = `phase Phase1:pollUtxo: invalid swap status: ${statecoin.swap_status}`;
+
+        expect(input()).rejects.toThrowError(output);
+    })
+});
