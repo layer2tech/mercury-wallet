@@ -92,21 +92,23 @@ describe('swapPhase1 test 2 - incorrect swap_status', () => {
 });
 
 describe('swapPhase1 test 3 - incorrect swap id', () => {
+    // input //////////////////////////////////////////////////////////
+    let statecoin = makeTesterStatecoin();
+    statecoin.status = STATECOIN_STATUS.IN_SWAP;
+    // Set swap_status as if coin had already run Phase0
+    statecoin.swap_status = SWAP_STATUS.Phase1;
+    ///////////////////////////////////////////////////////////////////
+    let wallet
+    let swap
+    beforeAll(async () => {
+        wallet = await getWallet();
+        swap = new Swap(, statecoin, null, null);
+    })
     it('throws error on no swap id', async () => {
-         // input //////////////////////////////////////////////////////////
-        let statecoin = makeTesterStatecoin();
-        statecoin.status = STATECOIN_STATUS.IN_SWAP;
-        // Set swap_status as if coin had already run Phase0
-        statecoin.swap_status = SWAP_STATUS.Phase1;
-        let wallet = await getWallet();
-        let swap = new Swap(, statecoin, null, null);
-        ///////////////////////////////////////////////////////////////////
-
         const input = () => {
             return swapPhase1(swap);
         }
         const output = "No Swap ID found. Swap ID should be set in Phase0.";
-
         await expect(input()).rejects.toThrowError(output);
     })
 });
