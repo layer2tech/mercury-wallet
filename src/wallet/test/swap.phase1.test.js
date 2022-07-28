@@ -53,11 +53,11 @@ describe('swapPhase1 test 1 - incorrect status', () => {
         let wallet = await getWallet()
         let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der) 
 
-        const input = () => {
-            return swapPhase1(swap);
+        const input = async () => {
+            return await swapPhase1(swap);
         }
         const output = `phase Phase1:pollUtxo: invalid statecoin status: ${statecoin.status}`;
 
-        await expect(input()).rejects.toThrowError(output);
+        expect(input()).rejects.toThrowError(output);
     })
 })
