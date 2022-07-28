@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
+
 import { pubKeyTobtcAddr, decryptECIES } from '../util';
 import { Wallet, STATECOIN_STATUS } from '../';
 import { keyGen, sign } from "../mercury/ecdsa";
