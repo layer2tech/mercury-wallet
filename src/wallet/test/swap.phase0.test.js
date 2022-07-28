@@ -1,5 +1,5 @@
 /**
- * @jest-environment jest-environment-jsdom-fifteen
+ * @jest-environment jsdom
  */
  
  import { makeTesterStatecoin, setSwapDetails } from './test_data.js'
