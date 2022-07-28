@@ -39,16 +39,25 @@ async function getWallet() {
     return wallet;
 }
 
-describe('swapPhase1 test 1 - incorrect status', () => {
-    it('throws error on null status', async () => {
-        // input /////////////////////////////////////////////////
-        let statecoin = makeTesterStatecoin();
-        let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
-        statecoin.status = null;
-        let wallet = await getWallet();
-        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der);
-        //////////////////////////////////////////////////////////
 
+
+describe('swapPhase1 test 1 - incorrect status', () => {
+    // input data ////////////////////////////////////
+    const statecoin = makeTesterStatecoin();
+    statecoin.status = null;
+    let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
+    statecoin.swap_status = SWAP_STATUS.Phase0;
+    statecoin.statechain_id = null;
+    //////////////////////////////////////////////////
+
+    let wallet
+    let swap
+    beforeAll(async () => {
+        wallet = await getWallet();
+        swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der);
+    })
+
+    it('throws error on null status', async () => {
         const input = () => {
             return swapPhase1(swap);
         }
@@ -58,6 +67,7 @@ describe('swapPhase1 test 1 - incorrect status', () => {
     })
 })
 
+/*
 describe('swapPhase1 test 2 - incorrect swap_status', () => {
     it('throws error on null swap_status', async () => {
         // input /////////////////////////////////////////////////
