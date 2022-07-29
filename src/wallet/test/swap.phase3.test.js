@@ -186,5 +186,53 @@ describe('swapPhase3', () => {
         expect(statecoin).toEqual(INIT_STATECOIN)
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
     });
+
+    test('swapPhase3 test 3 - SwapStep1: server responds to pollSwap with null or invalid status', async () => {
+
+        let statecoin = makeTesterStatecoin();
+
+        //Set valid statecoin status
+        init_phase3_status(statecoin)
+
+        const INIT_STATECOIN = cloneDeep(statecoin)
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+
+        http_mock.post = jest.fn((path, _body) => {
+            if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                return null
+            }
+        })
+
+        let wallet = await getWallet()
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+        await expect(swapPhase3(swap))
+            .rejects.toThrow(Error)
+        await expect(swapPhase3(swap))
+            .rejects.toThrowError("Swap halted at phase 3")
+
+        //Test unexpected phases
+        for (let i = 0; i < SWAP_STATUS.length; i++) {
+            const phase = SWAP_STATUS[i]
+            if (phase !== SWAP_STATUS.Phase3) {
+                http_mock.post = jest.fn((path, _body) => {
+                    if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                        return phase
+                    }
+                })
+                await expect(swapPhase3(swap))
+                    .rejects.toThrow(Error)
+                await expect(swapPhase3(swap))
+                    .rejects.toThrowError(`Swap error: Expected swap phase3. Received: ${phase}`)
+            }
+        }
+
+        //Expect statecoin and proof_key_der to be unchanged
+        expect(statecoin).toEqual(INIT_STATECOIN)
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+
+    });
+
     
+
 });
