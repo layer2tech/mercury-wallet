@@ -1,6 +1,4 @@
-/**
- * @jest-environment jsdom
- */
+
 import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client'
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
 import { makeTesterStatecoin, SWAP_TRANSFER_MSG } from './test_data.js'
@@ -467,6 +465,132 @@ describe('swapPhase3', () => {
         expect(statecoin).toEqual(INIT_STATECOIN);
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
     });
+
+    test('swapPhase3 test 10 - SwapStep2: server responds with error to POST.SIGN_SECOND in transferSender()', async () => {
+        http_mock.post = jest.fn((path, _body) => {
+            if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                return SWAP_STATUS.Phase4
+            }
+            if (path === POST_ROUTE.TRANSFER_SENDER) {
+                return MOCK_SERVER.TRANSFER_SENDER;
+            }
+            if (path === POST_ROUTE.PREPARE_SIGN) {
+                return MOCK_SERVER.PREPARE_SIGN;
+            }
+            if (path === POST_ROUTE.SIGN_FIRST) {
+                return MOCK_SERVER.SIGN_FIRST;
+            }
+            if (path === POST_ROUTE.SIGN_SECOND) {
+                throw post_error(path);
+            }
+        })
+
+        http_mock.get = jest.fn((path, _params) => {
+            if (path === GET_ROUTE.FEES) {
+                return MOCK_SERVER.FEE_INFO;
+            }
+            if (path === GET_ROUTE.STATECOIN) {
+                return MOCK_SERVER.STATECOIN_INFO;
+            }
+        })
+
+        wasm_mock.Sign.first_message = jest.fn((_secret_key) => {
+            return mock_wasm.SIGN_FIRST
+        })
+
+        wasm_mock.Sign.second_message = jest.fn((_secret_key) => {
+            return mock_wasm.SIGN_SECOND
+        })
+
+        let statecoin = makeTesterStatecoin();
+
+        //Set valid statecoin status
+        init_phase3_status(statecoin)
+
+        const INIT_STATECOIN = cloneDeep(statecoin)
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+
+        let wallet = await getWallet()
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+        checkRetryMessage(await swapPhase3(swap),
+            "transferSender: Error from POST request - path: ecdsa/sign/second, body: undefined")
+
+        expect(statecoin).toEqual(INIT_STATECOIN);
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
+    });
+
+    test('swapPhase3 test 11 - SwapStep2: server responds with error to POST.TRANSFER_UPDATE_MSG in transferUpdateMsg()', async () => {
+        http_mock.post = jest.fn((path, _body) => {
+            if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                return SWAP_STATUS.Phase4
+            }
+            if (path === POST_ROUTE.TRANSFER_SENDER) {
+                return MOCK_SERVER.TRANSFER_SENDER;
+            }
+            if (path === POST_ROUTE.PREPARE_SIGN) {
+                return MOCK_SERVER.PREPARE_SIGN;
+            }
+            if (path === POST_ROUTE.SIGN_FIRST) {
+                return MOCK_SERVER.SIGN_FIRST;
+            }
+            if (path === POST_ROUTE.SIGN_SECOND) {
+                return MOCK_SERVER.SIGN_SECOND;
+            }
+            if (path === POST_ROUTE.TRANSFER_UPDATE_MSG) {
+                throw post_error(path);
+            }
+        })
+
+        http_mock.get = jest.fn((path, _params) => {
+            if (path === GET_ROUTE.FEES) {
+                return MOCK_SERVER.FEE_INFO;
+            }
+            if (path === GET_ROUTE.STATECOIN) {
+                return MOCK_SERVER.STATECOIN_INFO;
+            }
+        })
+
+        wasm_mock.Sign.first_message = jest.fn((_secret_key) => {
+            return mock_wasm.SIGN_FIRST
+        })
+
+        wasm_mock.Sign.second_message = jest.fn((_secret_key) => {
+            return mock_wasm.SIGN_SECOND
+        })
+
+        wasm_mock.Commitment.make_commitment = jest.fn(() => JSON.stringify(COMMITMENT_DATA[0].batch_data));
+
+
+        let statecoin = makeTesterStatecoin();
+
+        //Set valid statecoin status
+        init_phase3_status(statecoin)
+
+        const INIT_STATECOIN = cloneDeep(statecoin)
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+
+        let wallet = await getWallet()
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+        
+        checkRetryMessage(await swapPhase3(swap),
+            "transferUpdateMsg: Error from POST request - path: transfer/update_msg, body: undefined")
+        
+
+        let statecoin_expected = cloneDeep(INIT_STATECOIN)
+        statecoin_expected.swap_transfer_msg = SWAP_TRANSFER_MSG
+        statecoin_expected.ui_swap_status = UI_SWAP_STATUS.Phase6
+        
+        expect(statecoin.swap_transfer_msg.t1.secret_bytes).not.toEqual(statecoin_expected.secret_bytes)
+        statecoin.swap_transfer_msg.t1.secret_bytes = statecoin_expected.swap_transfer_msg.t1.secret_bytes
+        const ss1 = statecoin.swap_transfer_msg.statechain_sig
+        const { ...ss2 }= statecoin_expected.swap_transfer_msg.statechain_sig
+        expect(ss1).toEqual(ss2)
+        statecoin.swap_transfer_msg.statechain_sig = statecoin_expected.swap_transfer_msg.statechain_sig
+        expect(statecoin).toEqual(statecoin_expected);
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
+    });
+
 
     
 });
