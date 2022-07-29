@@ -233,6 +233,111 @@ describe('swapPhase3', () => {
 
     });
 
+    test('swapPhase3 test 4 - SwapStep2: server responds with Error to request getFeeInfo() in transferSender()', async () => {
+        http_mock.post = jest.fn((path, _body) => {
+            if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                return SWAP_STATUS.Phase4
+            }
+        })
+
+        http_mock.get = jest.fn((path, _params) => {
+            if (path === GET_ROUTE.FEES) {
+                throw get_error(path)
+            }
+        })
+
+        let statecoin = makeTesterStatecoin();
+        //Set valid statecoin status
+        init_phase3_status(statecoin);
+
+        const INIT_STATECOIN = cloneDeep(statecoin);
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der);
+
+        let wallet = await getWallet()
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+        checkRetryMessage(await swapPhase3(swap),
+            "transferSender: Error from GET request - path: info/fee, params: undefined")
+
+        //Expect statecoin and proof_key_der to be unchanged
+        expect(statecoin).toEqual(INIT_STATECOIN)
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+    });
+
+    test('swapPhase3 test 5 - SwapStep2: server responds with Error to request getStateCoin() in transferSender()', async () => {
+
+        http_mock.post = jest.fn((path, _body) => {
+            if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                return SWAP_STATUS.Phase4
+            }
+        })
+
+        http_mock.get = jest.fn((path, _params) => {
+            if (path === GET_ROUTE.FEES) {
+                return MOCK_SERVER.FEE_INFO;
+            }
+            if (path === GET_ROUTE.STATECOIN) {
+                throw get_error(path)
+            }
+        })
+
+        let statecoin = makeTesterStatecoin();
+        //Set valid statecoin status
+        init_phase3_status(statecoin)
+
+        const INIT_STATECOIN = cloneDeep(statecoin)
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+
+        let wallet = await getWallet()
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+        checkRetryMessage(await swapPhase3(swap),
+            "transferSender: Error from GET request - path: info/statecoin, params: undefined")
+
+
+        //Expect statecoin and proof_key_der to be unchanged
+        expect(statecoin).toEqual(INIT_STATECOIN)
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+    });
+
+    test('swapPhase3 test 6 - SwapStep2: server responds with error to POST_ROUTE.TRANSFER_SENDER in transferSender()', async () => {
+        http_mock.post = jest.fn((path, _body) => {
+            if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                return SWAP_STATUS.Phase4
+            }
+            if (path === POST_ROUTE.TRANSFER_SENDER) {
+                throw post_error(path);
+            }
+        })
+
+        http_mock.get = jest.fn((path, _params) => {
+            if (path === GET_ROUTE.FEES) {
+                return MOCK_SERVER.FEE_INFO;
+            }
+            if (path === GET_ROUTE.STATECOIN) {
+                return MOCK_SERVER.STATECOIN_INFO;
+            }
+        })
+
+        // todo
+        let statecoin = makeTesterStatecoin();
+        //Set valid statecoin status
+        init_phase3_status(statecoin)
+
+        const INIT_STATECOIN = cloneDeep(statecoin)
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+
+        let wallet = await getWallet()
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+        checkRetryMessage(await swapPhase3(swap),
+            `transferSender: ${post_error(POST_ROUTE.TRANSFER_SENDER).message}`)
+
+        //Expect statecoin and proof_key_der to be unchanged
+        expect(statecoin).toEqual(INIT_STATECOIN)
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+    });
+
     
 
 });
