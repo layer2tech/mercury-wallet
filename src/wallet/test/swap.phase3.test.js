@@ -338,6 +338,135 @@ describe('swapPhase3', () => {
         expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
     });
 
-    
+    test('swapPhase3 test 7 - SwapStep2: an invalid data type is returned from request for POST.TRANSFER_SENDER in transferSender()', async () => {
+        http_mock.post = jest.fn((path, _body) => {
+            if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                return SWAP_STATUS.Phase4
+            }
+            if (path === POST_ROUTE.TRANSFER_SENDER) {
+                return { invalid_transfer_sender: "some transfer sender" };
+            }
+        })
 
+        http_mock.get = jest.fn((path, _params) => {
+            if (path === GET_ROUTE.FEES) {
+                return MOCK_SERVER.FEE_INFO;
+            }
+            if (path === GET_ROUTE.STATECOIN) {
+                return MOCK_SERVER.STATECOIN_INFO;
+            }
+        })
+
+        const transfer_missing_x1_error = "transferSender: Expected property \"x1\" of type Object, got undefined";
+
+        let statecoin = makeTesterStatecoin();
+
+        //Set valid statecoin status
+        init_phase3_status(statecoin)
+
+        const INIT_STATECOIN = cloneDeep(statecoin)
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+
+        let wallet = await getWallet()
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+        checkRetryMessage(await swapPhase3(swap),
+            transfer_missing_x1_error)
+
+        expect(statecoin).toEqual(INIT_STATECOIN);
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
+    });
+
+    test('swapPhase3 test 8 - SwapStep2: server responds with error to POST.PREPARE_SIGN in transferSender()', async () => {
+        http_mock.post = jest.fn((path, _body) => {
+            if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                return SWAP_STATUS.Phase4
+            }
+            if (path === POST_ROUTE.TRANSFER_SENDER) {
+                return MOCK_SERVER.TRANSFER_SENDER;
+            }
+            if (path === POST_ROUTE.PREPARE_SIGN) {
+                throw post_error(path);
+            }
+        })
+
+        http_mock.get = jest.fn((path, _params) => {
+            if (path === GET_ROUTE.FEES) {
+                return MOCK_SERVER.FEE_INFO;
+            }
+            if (path === GET_ROUTE.STATECOIN) {
+                return MOCK_SERVER.STATECOIN_INFO;
+            }
+        })
+
+        let statecoin = makeTesterStatecoin();
+
+        //Set valid statecoin status
+        init_phase3_status(statecoin)
+
+        const INIT_STATECOIN = cloneDeep(statecoin)
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+
+        let wallet = await getWallet()
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+        checkRetryMessage(await swapPhase3(swap),
+            "transferSender: Error from POST request - path: prepare-sign, body: undefined")
+
+        expect(statecoin).toEqual(INIT_STATECOIN);
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
+    });
+
+    test('swapPhase3 test 9 - SwapStep2: server responds with error to POST.SIGN_FIRST in transferSender()', async () => {
+        http_mock.post = jest.fn((path, _body) => {
+            if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                return SWAP_STATUS.Phase4
+            }
+            if (path === POST_ROUTE.TRANSFER_SENDER) {
+                return MOCK_SERVER.TRANSFER_SENDER;
+            }
+            if (path === POST_ROUTE.PREPARE_SIGN) {
+                return MOCK_SERVER.PREPARE_SIGN;
+            }
+            if (path === POST_ROUTE.SIGN_FIRST) {
+                throw post_error(path);
+            }
+        })
+
+        http_mock.get = jest.fn((path, _params) => {
+            if (path === GET_ROUTE.FEES) {
+                return MOCK_SERVER.FEE_INFO;
+            }
+            if (path === GET_ROUTE.STATECOIN) {
+                return MOCK_SERVER.STATECOIN_INFO;
+            }
+        })
+
+        wasm_mock.Sign.first_message = jest.fn((_secret_key) => {
+            throw wasm_err("Sign.first_message");
+        })
+
+        wasm_mock.KeyGen.first_message = jest.fn((_secret_key) => {
+            throw wasm_err("KeyGen.first_message");
+        })
+
+        let statecoin = makeTesterStatecoin();
+
+        //Set valid statecoin status
+        init_phase3_status(statecoin)
+
+        const INIT_STATECOIN = cloneDeep(statecoin)
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+
+        let wallet = await getWallet()
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+        checkRetryMessage(await swapPhase3(swap),
+            "transferSender: Error from wasm_client: Sign.first_message")
+
+        expect(statecoin).toEqual(INIT_STATECOIN);
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER);
+    });
+
+    
 });
