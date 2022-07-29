@@ -160,5 +160,31 @@ describe('swapPhase3', () => {
 
         statecoin.swap_receiver_addr = mock_http_client.SWAP_SECOND_SCE_ADDRESS;
     });
-});
 
+    test('swapPhase3 test 2 - SwapStep1: server responds to pollSwap with miscellaneous error', async () => {
+
+        const server_error = () => { return new Error("Misc server error") }
+        http_mock.post = jest.fn((path, _body) => {
+            if (path === POST_ROUTE.SWAP_POLL_SWAP) {
+                throw server_error()
+            }
+        })
+
+        let statecoin = makeTesterStatecoin();
+        init_phase3_status(statecoin)
+
+        const INIT_STATECOIN = cloneDeep(statecoin)
+        const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
+
+        let wallet = await getWallet()
+        let swap = new Swap(wallet, statecoin, proof_key_der, proof_key_der)
+
+        checkRetryMessage(await swapPhase3(swap),
+            `${server_error().message}`)
+
+        //Expect statecoin and proof_key_der to be unchanged
+        expect(statecoin).toEqual(INIT_STATECOIN)
+        expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
+    });
+    
+});
