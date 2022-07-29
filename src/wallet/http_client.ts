@@ -38,6 +38,7 @@ export const POST_ROUTE = {
   SIGN_SECOND: "ecdsa/sign/second",
   SMT_PROOF: "info/proof",
   DEPOSIT_INIT: "deposit/init",
+  POD_DEPOSIT_INIT: "pod/deposit/init",
   DEPOSIT_CONFIRM: "deposit/confirm",
   WITHDRAW_INIT: "withdraw/init",
   WITHDRAW_CONFIRM: "withdraw/confirm",

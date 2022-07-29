@@ -1203,8 +1203,8 @@ export class Wallet {
       await this.getWasm(),
       token_id,
       proof_key_pub,
-      proof_key_priv!
-
+      proof_key_priv!,
+      value
     );
 
     // add proof key bip32 derivation to statecoin

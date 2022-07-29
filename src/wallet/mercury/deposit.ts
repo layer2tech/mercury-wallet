@@ -55,16 +55,18 @@ export const tokenDepositInit = async (
   wasm_client: any,
   token_id: string,
   proof_key: string,
-  secret_key: string
+  secret_key: string,
+  amount: number
 ): Promise<StateCoin> => {
   // Init. session - Receive shared wallet ID
   let deposit_msg1 = {
     auth: "authstr",
     proof_key: String(proof_key),
-    token_id: token_id
+    token_id: token_id,
+    amount: amount,
   };
   
-  let deposit_init_res = await http_client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
+  let deposit_init_res = await http_client.post(POST_ROUTE.POD_DEPOSIT_INIT, deposit_msg1);
   let shared_key_id = deposit_init_res.id;
   typeforce(typeforce.String, shared_key_id)
 
