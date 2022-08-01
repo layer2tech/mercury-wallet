@@ -33,7 +33,6 @@ export class StateCoinList {
   }
 
   static fromJSON(coins_json: StateCoinList): StateCoinList {
-    let count = 0;
     let statecoinsList = new StateCoinList()
     coins_json.coins.forEach((item: StateCoin) => {
 
@@ -91,8 +90,6 @@ export class StateCoinList {
       }
       
     })
-
-    console.log('there was ', count, ' swaps in coinlist');
     return statecoinsList
   }
 
@@ -159,9 +156,7 @@ export class StateCoinList {
 
   // Find all coins in mempool or mined but with required_confirmations confirmations
   getUnconfirmedCoins() {
-
     return this.coins.filter((item: StateCoin) => {
-
       if (item.status === STATECOIN_STATUS.UNCONFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.INITIALISED) {
         return item
       }
