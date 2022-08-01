@@ -1,4 +1,3 @@
-
 on:
   push:
     #branches: [ main ]
@@ -7,30 +6,34 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Test using Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: '14'
-      - name: Test testing mode is 'false' in settings.json
-        run: |
-          ps -p $$
-          jq --version
-          MERCURY_WALLET_TESTING_MODE=`jq .testing_mode src/settings.json`
-          if [ $MERCURY_WALLET_TESTING_MODE != false ]; then exit 1; fi
-      - run: sed -i -e 's/false/true/g' src/settings.json 
-      - run: yarn install
-      - run: yarn test
-
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - name: Test using Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: '16.16'
+        - name: Test testing mode is 'false' in settings.json
+          run: |
+            ps -p $$
+            jq --version
+            MERCURY_WALLET_TESTING_MODE=`jq .testing_mode src/settings.json`
+            if [ $MERCURY_WALLET_TESTING_MODE != false ]; then exit 1; fi
+        - run: sed -i -e 's/false/true/g' src/settings.json 
+        - run: yarn install
+        - run: yarn test
   linux-win:
     runs-on: ubuntu-latest
     container:
       image: electronuserland/builder:wine
     steps:
       - name: Checkout git repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.16"
 
       - name: build
         env:
@@ -49,13 +52,13 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout git repository
-        uses: actions/checkout@v2
-        
+        uses: actions/checkout@v3
+
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '14'
-          
+          node-version: "16.16"
+
       - name: build
         env:
           CI: false

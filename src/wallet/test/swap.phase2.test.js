@@ -1,4 +1,7 @@
-import {makeTesterStatecoin} from './test_data.js'
+/**
+ * @jest-environment jsdom
+ */
+import { makeTesterStatecoin } from './test_data.js'
 import { SWAP_STATUS, UI_SWAP_STATUS} from "../swap/swap_utils";
 import Swap from "../swap/swap"
 import {STATECOIN_STATUS} from '../statecoin'
@@ -21,7 +24,7 @@ let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 
 //Set a valid initial statecoin status for phase2
-function init_phase2_status(statecoin) {
+const init_phase2_status = (statecoin) => {
   //Set valid statecoin status
   statecoin.status = STATECOIN_STATUS.IN_SWAP
   //Set valid swap status
@@ -34,7 +37,7 @@ function init_phase2_status(statecoin) {
   statecoin.swap_info = "a swap info"
 }
 
-async function swapPhase2(swap) {
+const swapPhase2 = async (swap) => {
   swap.setSwapSteps(swapPhase2Steps(swap))
   let result
   for(let i=0; i< swap.swap_steps.length; i++){
@@ -46,7 +49,7 @@ async function swapPhase2(swap) {
   return result
 }
 
-async function getWallet() {
+const getWallet = async () => {
   let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
   wallet.config.min_anon_set = 3
   wallet.config.jest_testing_mode = true
@@ -55,8 +58,8 @@ async function getWallet() {
   return wallet
 }
 
-describe('Swap phase 2', function() {
-  test('swapPhase2 test 1 - invalid initial statecoin state', async function() {
+describe('Swap phase 2', () => {
+  test('swapPhase2 test 1 - invalid initial statecoin state', async () => {
     
   let statecoin = makeTesterStatecoin();
   let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
@@ -121,7 +124,7 @@ describe('Swap phase 2', function() {
 
 })
       
-test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error', async function() {
+test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error', async () => {
   
   const server_error = () => { return new Error("Misc server error")}
 
@@ -159,7 +162,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
   expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
   })
 
-  test('swapPhase2 test 3 - server responds to pollSwap with null or invalid status', async function() {
+  test('swapPhase2 test 3 - server responds to pollSwap with null or invalid status', async () => {
     
     let statecoin = makeTesterStatecoin();
     let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
@@ -210,7 +213,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
   
     })
 
-    test('swapPhase2 test 4 - server responds with Error to request for blinded spend signature', async function() {
+    test('swapPhase2 test 4 - server responds with Error to request for blinded spend signature', async () => {
     
       const server_bst_error = () => { return new Error("Misc server error retrieving BST")}
       
@@ -247,7 +250,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
     
     })
 
-    test('swapPhase2 test 5 - an invalid data type is returned from request for BST', async function() {
+    test('swapPhase2 test 5 - an invalid data type is returned from request for BST', async () => {
     
         let statecoin = makeTesterStatecoin();
         let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
@@ -282,7 +285,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
     })
     
      
-        test('swapPhase2 test 6 - an Error is returned from the new_torid() function', async function() {
+        test('swapPhase2 test 6 - an Error is returned from the new_torid() function', async () => {
     
           let statecoin = makeTesterStatecoin();
           let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
@@ -321,7 +324,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
           
           })
 
-          test('swapPhase2 test 7 - Error making blind spend token in requester_calc_s()', async function() {
+          test('swapPhase2 test 7 - Error making blind spend token in requester_calc_s()', async () => {
       
             let statecoin = makeTesterStatecoin();
             let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
@@ -365,7 +368,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
             expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)            
             })
 
-            test('swapPhase2 test 8 - Error making blind spend token in make_blind_spend_token()', async function() {
+            test('swapPhase2 test 8 - Error making blind spend token in make_blind_spend_token()', async () => {
       
               let statecoin = makeTesterStatecoin();
               let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
@@ -412,7 +415,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
               expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
             })
 
-            test(`swapPhase2 test 9 - Error calling server API ${POST_ROUTE.SWAP_SECOND}`, async function() {
+            test(`swapPhase2 test 9 - Error calling server API ${POST_ROUTE.SWAP_SECOND}`, async () => {
     
                 let statecoin = makeTesterStatecoin();
                 let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
@@ -469,7 +472,7 @@ test('swapPhase2 test 2 - server responds to pollSwap with miscellaneous error',
                 expect(proof_key_der).toEqual(INIT_PROOF_KEY_DER)
             })
 
-            test(`swapPhase2 test 10 - complete swap phase 2`, async function() {
+            test(`swapPhase2 test 10 - complete swap phase 2`, async () => {
         
               let statecoin = makeTesterStatecoin();
               let proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));

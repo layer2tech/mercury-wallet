@@ -1,17 +1,17 @@
-import { verifySmtProof, StateChainSig, proofKeyToSCEAddress, pubKeyTobtcAddr, pubKeyToScriptPubKey, decryptECIES } from '../util';
-import { Wallet, StateCoin, MockHttpClient, HttpClient, MockWasm, StateCoinList, STATECOIN_STATUS } from '../';
-import { keyGen, PROTOCOL, sign } from "../mercury/ecdsa";
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
+
+import { pubKeyTobtcAddr, decryptECIES } from '../util';
+import { Wallet, STATECOIN_STATUS } from '../';
+import { keyGen, sign } from "../mercury/ecdsa";
 import { depositConfirm } from "../mercury/deposit";
 import { withdraw } from "../mercury/withdraw";
 import { transferSender, transferReceiver, transferReceiverFinalize } from "../mercury/transfer";
-import { TransferMsg3, TransferFinalizeData } from "../mercury/transfer";
 import { MockElectrumClient } from "../mocks/mock_electrum";
-
 import { BTC_ADDR, KEYGEN_SIGN_DATA, makeTesterStatecoin, makeTesterStatecoins, FINALIZE_DATA, FUNDING_TXID, SHARED_KEY_ID } from './test_data.js'
 import * as MOCK_CLIENT from '../mocks/mock_wasm';
 import * as MOCK_SERVER from '../mocks/mock_http_client'
-
-import { BIP32Interface, BIP32,  fromBase58, fromSeed} from 'bip32';
 
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');

@@ -1,7 +1,11 @@
-import { TransactionBuilder, networks, ECPair, BIP32Interface } from 'bitcoinjs-lib';
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
+
+import { networks, ECPair } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
 import {
-  FEE, txBackupBuild, txWithdrawBuild, txWithdrawBuildBatch, txCPFPBuild, StateChainSig,
+  txBackupBuild, txWithdrawBuild, txWithdrawBuildBatch, txCPFPBuild, StateChainSig,
   toSatoshi, fromSatoshi,
   decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
   encryptECIES, decryptECIES, encryptAES, decryptAES, proofKeyToSCEAddress, encodeMessage,
@@ -14,7 +18,6 @@ import { encrypt, decrypt, PrivateKey } from 'eciesjs12b';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 
 let bip32 = require('bip32');
-var crypto = require('crypto')
 let bitcoin = require('bitcoinjs-lib');
 
 let network = networks.testnet;

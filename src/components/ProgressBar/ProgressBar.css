@@ -10,6 +10,11 @@
     box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
 }
 
+.progress-modal p {
+    max-width: initial;
+    width:100%
+}
+
 .progress-filler{
     padding: 5px;
     color: white;

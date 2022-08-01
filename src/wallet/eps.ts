@@ -1,13 +1,15 @@
 'use strict';
 
 import {Mutex} from 'async-mutex'
-const Promise = require('bluebird');
+// const Promise = require('bluebird');
+
+
 let bitcoin = require('bitcoinjs-lib')
 const axios = require('axios').default;
 export const mutex = new Mutex();
 
 class EPSClientError extends Error {
-  constructor(message: string){
+  constructor(message: string) {
     super(message);
     this.name = "EPSClientError";
   }
@@ -41,11 +43,11 @@ Object.freeze(POST_ROUTE);
 export class EPSClient {
   endpoint: string
   //client: HttpClient | MockHttpClient
-  scriptIntervals: Map<string,any>
-  scriptStatus: Map<string,any>
+  scriptIntervals: Map<string, any>
+  scriptStatus: Map<string, any>
   blockHeightLatest: any
-  
-  constructor(endpoint: string){
+
+  constructor(endpoint: string) {
     //this.client = new HttpClient('http://localhost:3001', true);
     this.endpoint = endpoint
     this.scriptIntervals = new Map()
@@ -59,14 +61,14 @@ export class EPSClient {
   disableBlockHeightSubscribe() {
   }
 
-  static async get (endpoint: string, path: string, params: any){
+  static async get(endpoint: string, path: string, params: any) {
     const release = await mutex.acquire();
     try {
       const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
       const config = {
-          method: 'get',
-          url: url,
-          headers: { 'Accept': 'application/json' }
+        method: 'get',
+        url: url,
+        headers: { 'Accept': 'application/json' }
       };
       let res = await axios(config)
       let return_data = res.data
@@ -74,38 +76,38 @@ export class EPSClient {
       release();
       return return_data
 
-    } catch (err : any) {
+    } catch (err: any) {
       release();
       throw err;
     }
   }
 
-  static async post (endpoint: string, path: string, body: any) {
+  static async post(endpoint: string, path: string, body: any) {
     const release = await mutex.acquire();
     try {
       let url = endpoint + "/" + path.replace(/^\/+/, '');
       const config = {
-          method: 'post',
-          url: url,
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          data: body,
+        method: 'post',
+        url: url,
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        data: body,
       };
       let res = await axios(config)
       let return_data = res.data
-      
+
       release();
       return return_data
 
-    } catch (err : any) {
+    } catch (err: any) {
       release();
       throw err;
     }
   };
 
-  async isClosed(): Promise<boolean>{
+  async isClosed(): Promise<boolean> {
     let ping = await this.ping();
     let result = ping == false
     return result
@@ -127,40 +129,40 @@ export class EPSClient {
 
   async ping(): Promise<boolean> {
     try {
-      await EPSClient.get(this.endpoint,GET_ROUTE.LATEST_BLOCK_HEADER, {})
+      await EPSClient.get(this.endpoint, GET_ROUTE.LATEST_BLOCK_HEADER, {})
       return true
-    } catch(err){
+    } catch (err) {
       return false
     }
   }
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<any> {
-    let header = await EPSClient.get(this.endpoint,GET_ROUTE.LATEST_BLOCK_HEADER, {})
+    let header = await EPSClient.get(this.endpoint, GET_ROUTE.LATEST_BLOCK_HEADER, {})
     header.height = header.block_height
     return header
   }
 
   async getTransaction(txHash: string): Promise<any> {
-    let result = await EPSClient.get(this.endpoint,`${GET_ROUTE.TX}/${txHash}`, {})
+    let result = await EPSClient.get(this.endpoint, `${GET_ROUTE.TX}/${txHash}`, {})
     return result
   }
 
   async getScriptHashListUnspent(script: string): Promise<any> {
     let scriptHash = EPSClient.scriptToScriptHash(script)
-    let result = await EPSClient.get(this.endpoint,`/eps/get_scripthash_list_unspent/${scriptHash}`, {})
- 
+    let result = await EPSClient.get(this.endpoint, `/eps/get_scripthash_list_unspent/${scriptHash}`, {})
+
     return result
   }
 
   async getScriptHashStatus(scriptHash: string, callBack: any, endpoint: string) {
     let history = null
     try {
-      history = await EPSClient.get(endpoint,`${GET_ROUTE.SCRIPTHASH_HISTORY}/${scriptHash}`, {})
-    } catch (err){
+      history = await EPSClient.get(endpoint, `${GET_ROUTE.SCRIPTHASH_HISTORY}/${scriptHash}`, {})
+    } catch (err) {
     }
-    if( history ) {
-      if (callBack) { 
+    if (history) {
+      if (callBack) {
         callBack()
       }
     }
@@ -168,9 +170,9 @@ export class EPSClient {
 
   async getLatestBlock(callBack: any, endpoint: string): Promise<any> {
     //this.connect()
-    let header = await EPSClient.get(endpoint,'/eps/latest_block_header', {})
+    let header = await EPSClient.get(endpoint, '/eps/latest_block_header', {})
     header.height = header.block_height
-    if (this.blockHeightLatest != header.height){
+    if (this.blockHeightLatest != header.height) {
       this.blockHeightLatest = header.height
       callBack([header])
     }
@@ -179,7 +181,7 @@ export class EPSClient {
 
   async scriptHashSubscribe(script: string, callBack: any): Promise<any> {
     let scriptHash = EPSClient.scriptToScriptHash(script)
-    if ( this.scriptIntervals.has(scriptHash) ){
+    if (this.scriptIntervals.has(scriptHash)) {
       throw new EPSClientError(`already subscribed to script: [${scriptHash}]`)
     }
     let timer = setInterval(this.getScriptHashStatus, 10000, scriptHash, callBack, this.endpoint)
@@ -201,26 +203,26 @@ export class EPSClient {
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
-    return EPSClient.post(this.endpoint,GET_ROUTE.TX, {"data": rawTX})
+    return EPSClient.post(this.endpoint, GET_ROUTE.TX, { "data": rawTX })
   }
   async importAddresses(addresses: [string], rescan_height: number = -1): Promise<string> {
-        return EPSClient.post(this.endpoint,'/eps/import_addresses', { "addresses": addresses, "rescan_height": rescan_height})
+    return EPSClient.post(this.endpoint, '/eps/import_addresses', { "addresses": addresses, "rescan_height": rescan_height })
   }
 
   async getFeeEstimation(num_blocks: number, net_config: string): Promise<any> {
-      
-    let url : string
-    
-    switch(net_config){
+
+    let url: string
+
+    switch (net_config) {
       case "tb":
         url = "https://blockstream.info/testnet"
         break
       default:
         url = "https://blockstream.info/"
-        //REMOVE TESTNET PART FOR MAIN NET
+      //REMOVE TESTNET PART FOR MAIN NET
     }
 
-    let result = await EPSClient.get(url,"api/fee-estimates", {}).then((histo) => histo[`${num_blocks}`])
+    let result = await EPSClient.get(url, "api/fee-estimates", {}).then((histo) => histo[`${num_blocks}`])
     return result
   }
 

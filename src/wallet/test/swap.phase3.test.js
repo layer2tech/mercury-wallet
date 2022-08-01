@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
 import { SWAP_SECOND_SCE_ADDRESS } from '../mocks/mock_http_client'
 import { GET_ROUTE, POST_ROUTE } from '../http_client';
 import { makeTesterStatecoin, SWAP_TRANSFER_MSG } from './test_data.js'
@@ -10,8 +13,7 @@ import { Wallet, MOCK_WALLET_NAME } from '../wallet'
 import * as MOCK_SERVER from '../mocks/mock_http_client'
 import Swap from '../swap/swap'
 import { swapPhase3 as swapPhase3Steps } from '../swap/swap.phase3'
-import { COMMITMENT_DATA, SWAP_SHARED_KEY_OUT, setSwapDetails } from './test_data.js'
-import { StateChainSig } from '../util';
+import { COMMITMENT_DATA } from './test_data.js'
 
 let walletName = `${MOCK_WALLET_NAME}_swap_phase3_tests`;
 let cloneDeep = require('lodash.clonedeep');
@@ -56,8 +58,6 @@ const init_phase3_status = (statecoin) => {
     statecoin.swap_receiver_addr = SWAP_SECOND_SCE_ADDRESS;
 }
 
-const jsdomAlert = window.alert;
-window.alert = () => { };
 const proof_key_der = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D));
 
 const swapPhase3 = async (swap) => {
@@ -164,7 +164,7 @@ describe('swapPhase3', () => {
     test('swapPhase3 test 2 - SwapStep1: server responds to pollSwap with miscellaneous error', async () => {
 
         const server_error = () => { return new Error("Misc server error") }
-        http_mock.post = jest.fn((path, body) => {
+        http_mock.post = jest.fn((path, _body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 throw server_error()
             }
@@ -197,7 +197,7 @@ describe('swapPhase3', () => {
         const INIT_STATECOIN = cloneDeep(statecoin)
         const INIT_PROOF_KEY_DER = cloneDeep(proof_key_der)
 
-        http_mock.post = jest.fn((path, body) => {
+        http_mock.post = jest.fn((path, _body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 return null
             }
@@ -215,7 +215,7 @@ describe('swapPhase3', () => {
         for (let i = 0; i < SWAP_STATUS.length; i++) {
             const phase = SWAP_STATUS[i]
             if (phase !== SWAP_STATUS.Phase3) {
-                http_mock.post = jest.fn((path, body) => {
+                http_mock.post = jest.fn((path, _body) => {
                     if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                         return phase
                     }
@@ -234,13 +234,13 @@ describe('swapPhase3', () => {
     });
 
     test('swapPhase3 test 4 - SwapStep2: server responds with Error to request getFeeInfo() in transferSender()', async () => {
-        http_mock.post = jest.fn((path, body) => {
+        http_mock.post = jest.fn((path, _body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 return SWAP_STATUS.Phase4
             }
         })
 
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.FEES) {
                 throw get_error(path)
             }
@@ -266,13 +266,13 @@ describe('swapPhase3', () => {
 
     test('swapPhase3 test 5 - SwapStep2: server responds with Error to request getStateCoin() in transferSender()', async () => {
 
-        http_mock.post = jest.fn((path, body) => {
+        http_mock.post = jest.fn((path, _body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 return SWAP_STATUS.Phase4
             }
         })
 
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.FEES) {
                 return MOCK_SERVER.FEE_INFO;
             }
@@ -301,7 +301,7 @@ describe('swapPhase3', () => {
     });
 
     test('swapPhase3 test 6 - SwapStep2: server responds with error to POST_ROUTE.TRANSFER_SENDER in transferSender()', async () => {
-        http_mock.post = jest.fn((path, body) => {
+        http_mock.post = jest.fn((path, _body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 return SWAP_STATUS.Phase4
             }
@@ -310,7 +310,7 @@ describe('swapPhase3', () => {
             }
         })
 
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.FEES) {
                 return MOCK_SERVER.FEE_INFO;
             }
@@ -339,7 +339,7 @@ describe('swapPhase3', () => {
     });
 
     test('swapPhase3 test 7 - SwapStep2: an invalid data type is returned from request for POST.TRANSFER_SENDER in transferSender()', async () => {
-        http_mock.post = jest.fn((path, body) => {
+        http_mock.post = jest.fn((path, _body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 return SWAP_STATUS.Phase4
             }
@@ -348,7 +348,7 @@ describe('swapPhase3', () => {
             }
         })
 
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.FEES) {
                 return MOCK_SERVER.FEE_INFO;
             }
@@ -378,7 +378,7 @@ describe('swapPhase3', () => {
     });
 
     test('swapPhase3 test 8 - SwapStep2: server responds with error to POST.PREPARE_SIGN in transferSender()', async () => {
-        http_mock.post = jest.fn((path, body) => {
+        http_mock.post = jest.fn((path, _body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 return SWAP_STATUS.Phase4
             }
@@ -390,7 +390,7 @@ describe('swapPhase3', () => {
             }
         })
 
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.FEES) {
                 return MOCK_SERVER.FEE_INFO;
             }
@@ -418,7 +418,7 @@ describe('swapPhase3', () => {
     });
 
     test('swapPhase3 test 9 - SwapStep2: server responds with error to POST.SIGN_FIRST in transferSender()', async () => {
-        http_mock.post = jest.fn((path, body) => {
+        http_mock.post = jest.fn((path, _body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 return SWAP_STATUS.Phase4
             }
@@ -433,7 +433,7 @@ describe('swapPhase3', () => {
             }
         })
 
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.FEES) {
                 return MOCK_SERVER.FEE_INFO;
             }
@@ -469,7 +469,7 @@ describe('swapPhase3', () => {
     });
 
     test('swapPhase3 test 10 - SwapStep2: server responds with error to POST.SIGN_SECOND in transferSender()', async () => {
-        http_mock.post = jest.fn((path, body) => {
+        http_mock.post = jest.fn((path, _body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 return SWAP_STATUS.Phase4
             }
@@ -487,7 +487,7 @@ describe('swapPhase3', () => {
             }
         })
 
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.FEES) {
                 return MOCK_SERVER.FEE_INFO;
             }
@@ -523,7 +523,7 @@ describe('swapPhase3', () => {
     });
 
     test('swapPhase3 test 11 - SwapStep2: server responds with error to POST.TRANSFER_UPDATE_MSG in transferUpdateMsg()', async () => {
-        http_mock.post = jest.fn((path, body) => {
+        http_mock.post = jest.fn((path, _body) => {
             if (path === POST_ROUTE.SWAP_POLL_SWAP) {
                 return SWAP_STATUS.Phase4
             }
@@ -544,7 +544,7 @@ describe('swapPhase3', () => {
             }
         })
 
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.FEES) {
                 return MOCK_SERVER.FEE_INFO;
             }
@@ -603,7 +603,7 @@ describe('swapPhase3', () => {
         expect(swap.statecoin.swap_transfer_msg_3_receiver).toEqual(null)
         swap.statecoin.swap_transfer_msg = mock_http_client.TRANSFER_MSG3
        
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.TRANSFER_GET_MSG_ADDR) {
                 throw new Error(`Error: ${path}`)
             }
@@ -613,7 +613,7 @@ describe('swapPhase3', () => {
             .toThrowError(Error(`Error: ${GET_ROUTE.TRANSFER_GET_MSG_ADDR}`))
         expect(swap.statecoin.swap_transfer_msg_3_receiver).toEqual(null)
 
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.TRANSFER_GET_MSG_ADDR) {
                 return [mock_http_client.TRANSFER_MSG3]
             }
@@ -628,7 +628,7 @@ describe('swapPhase3', () => {
         tm3.rec_se_addr.proof_key = proof_key_der.publicKey.toString("hex")
         const tm3_const = tm3
 
-        http_mock.get = jest.fn((path, params) => {
+        http_mock.get = jest.fn((path, _params) => {
             if (path === GET_ROUTE.TRANSFER_GET_MSG_ADDR) {
                 return [tm3_const]
             }
@@ -668,6 +668,4 @@ describe('swapPhase3', () => {
         expect(swap.statecoin.swap_batch_data).toEqual(commitment_data)
     })
 
-    // restore windows alert
-    window.alert = jsdomAlert;
 });

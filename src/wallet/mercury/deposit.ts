@@ -89,10 +89,10 @@ export const depositInit = async (
 ): Promise<StateCoin> => {
   // Init. session - Receive shared wallet ID
   let deposit_msg1 = {
-      auth: "authstr",
-      proof_key: String(proof_key)
+    auth: "authstr",
+    proof_key: String(proof_key)
   };
-  
+
   let deposit_init_res = await http_client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
   let shared_key_id = deposit_init_res.id;
   typeforce(typeforce.String, shared_key_id)
@@ -106,7 +106,7 @@ export const depositInit = async (
 
   // 2P-ECDSA with state entity to create a Shared key
   let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT, pow_solution);
-  statecoin.is_deposited=true
+  statecoin.is_deposited = true
   return statecoin
 }
 
@@ -153,18 +153,18 @@ export const depositConfirm = async (
 
   // construct shared signatures
   let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.DEPOSIT);
-  
+
 
   // set witness data with signature
   let tx_backup_signed = tx_backup_unsigned;
 
-  tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]),Buffer.from(signature[1])];
+  tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]), Buffer.from(signature[1])];
 
   prepare_sign_msg.tx_hex = tx_backup_signed.toHex();
 
   // Wait for server confirmation of funding tx and receive new StateChain's id
   let deposit_msg2 = {
-      shared_key_id: statecoin.shared_key_id,
+    shared_key_id: statecoin.shared_key_id,
   }
 
   let statechain_id = await http_client.post(POST_ROUTE.DEPOSIT_CONFIRM, deposit_msg2);

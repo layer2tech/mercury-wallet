@@ -23,7 +23,6 @@ import {
 import { semaphore, MAX_SEMAPHORE_COUNT } from '../http_client'
 import { AsyncSemaphore } from "@esfx/async-semaphore";
 
-const Promise = require('bluebird');
 
 const newid_semaphore = new AsyncSemaphore(1);
 
@@ -113,7 +112,7 @@ export default class Swap {
   }
 
   checkWalletStatus = () => {
-    if (this.wallet.active ===false) {
+    if (this.wallet.active === false) {
       throw Error(`wallet unloading...`)
     }
   }
@@ -534,7 +533,7 @@ export default class Swap {
     try {
       const tm3 = this.getTransferMsg()
       await transferUpdateMsg(this.clients.http_client,
-        tm3, true)        
+        tm3, true)
       return SwapStepResult.Ok("transfer update msg complete")
     } catch (err: any) {
       return SwapStepResult.Retry(`transferUpdateMsg: ${err.message}`)
@@ -636,10 +635,12 @@ export default class Swap {
       electrum_client, network, msg3, rec_se_addr_bip32,
       batch_data, req_confirmations, block_height, value, null);
     typeforce(types.TransferMsg4, transfer_msg_4);
+    log.debug('finished do_get_transfer_msg_4')
     return transfer_msg_4;
   }
 
   do_transfer_receiver = async (): Promise<TransferFinalizeData> => {
+    log.debug('do_transfer_receiver...')
     let http_client = this.clients.http_client
     let electrum_client = this.clients.electrum_client
     let network = this.network
@@ -733,6 +734,7 @@ export default class Swap {
   }
 
   async getTransferFinalizedData(): Promise<TransferFinalizeData> {
+    log.debug('getTransferFinalizedData...')
     let data = this.statecoin.swap_transfer_finalized_data
     if (data === null || data === undefined) {
       data = await this.do_transfer_receiver()
@@ -743,6 +745,7 @@ export default class Swap {
   }
 
   async getTransferMsg4(): Promise<TransferMsg4> {
+    log.debug('getTransferMsg4...')
     let data = this.statecoin.swap_transfer_msg_4
     if (data === null || data === undefined) {
       data = await this.do_get_transfer_msg_4()

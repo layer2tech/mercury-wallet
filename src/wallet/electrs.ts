@@ -4,11 +4,10 @@ import { ElectrumTxData } from '../wallet/electrum';
 import { semaphore, TIMEOUT } from './http_client'
 import axios, { AxiosRequestConfig } from 'axios'
 import { handleErrors } from '../error'
-const Promise = require('bluebird');
 let bitcoin = require('bitcoinjs-lib')
 
 class ElectrsClientError extends Error {
-  constructor(message: string){
+  constructor(message: string) {
     super(message);
     this.name = "ElectrsClientError";
   }
@@ -42,15 +41,15 @@ Object.freeze(POST_ROUTE);
 export class ElectrsClient {
   endpoint: string
   is_tor: boolean
-  scriptIntervals: Map<string,any>
-  scriptStatus: Map<string,any>
+  scriptIntervals: Map<string, any>
+  scriptStatus: Map<string, any>
   blockHeightLatest: any
   block_height_interval: any
   script_hash_subscriptions: string[]
   bEnableBlockHeightSubscribe: boolean
 
-  
-  constructor(endpoint: string, is_tor = true){
+
+  constructor(endpoint: string, is_tor = true) {
     this.endpoint = endpoint
     this.is_tor = is_tor
     this.scriptIntervals = new Map()
@@ -71,58 +70,58 @@ export class ElectrsClient {
 
   async new_tor_id() {
     if (this.is_tor) {
-      await ElectrsClient.get(this.endpoint,'newid', {});
+      await ElectrsClient.get(this.endpoint, 'newid', {});
     }
   };
 
 
   static async get(endpoint: string, path: string,
     params: any, timeout_ms: number = TIMEOUT) {
-    
-      const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
-      const config: AxiosRequestConfig = {
-          method: 'get',
-          url: url,
-        headers: { 'Accept': 'application/json' },
-        timeout: timeout_ms
-      };
+
+    const url = endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
+    const config: AxiosRequestConfig = {
+      method: 'get',
+      url: url,
+      headers: { 'Accept': 'application/json' },
+      timeout: timeout_ms
+    };
     await semaphore.wait()
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, "Electrum API request timed out")
     }).finally(() => { semaphore.release() })
       .then(
-      (res: any) => {
-        checkForServerError(res)
-        return res?.data
-      })
- 
+        (res: any) => {
+          checkForServerError(res)
+          return res?.data
+        })
+
   }
 
-  static async post (endpoint: string, path: string, body: any, timeout_ms: number = TIMEOUT) {
+  static async post(endpoint: string, path: string, body: any, timeout_ms: number = TIMEOUT) {
 
-      let url = endpoint + "/" + path.replace(/^\/+/, '');
-      const config: AxiosRequestConfig = {
-          method: 'post',
-          url: url,
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-        data: body,
-        timeout: timeout_ms
-      };
+    let url = endpoint + "/" + path.replace(/^\/+/, '');
+    const config: AxiosRequestConfig = {
+      method: 'post',
+      url: url,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      data: body,
+      timeout: timeout_ms
+    };
     await semaphore.wait()
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, "Electrum API request timed out")
     }).finally(() => { semaphore.release() })
-    .then(
-      (res: any) => {
-        checkForServerError(res)
-        return res?.data
-      })
+      .then(
+        (res: any) => {
+          checkForServerError(res)
+          return res?.data
+        })
   }
 
-  async isClosed(): Promise<boolean>{
+  async isClosed(): Promise<boolean> {
     let ping = await this.ping();
     let result = ping == false
     return result
@@ -139,45 +138,47 @@ export class ElectrsClient {
 
   async ping(): Promise<boolean> {
     try {
-      await ElectrsClient.get(this.endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
+      await ElectrsClient.get(this.endpoint, GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
       return true
-    } catch(err){
+    } catch (err) {
       return false
     }
   }
 
   // Get header of the latest mined block.
   async latestBlockHeader(): Promise<number> {
-     let latesthash = await ElectrsClient.get(this.endpoint,GET_ROUTE.BLOCKS_TIP_HASH, {})
-     let header = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.BLOCK}/${latesthash}/${GET_ROUTE.HEADER}`, {})
-     let info = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.BLOCK}/${latesthash}`, {})
-     info.header = header
-     return info
+    let latesthash = await ElectrsClient.get(this.endpoint, GET_ROUTE.BLOCKS_TIP_HASH, {})
+    let header = await ElectrsClient.get(this.endpoint, `${GET_ROUTE.BLOCK}/${latesthash}/${GET_ROUTE.HEADER}`, {})
+    let info = await ElectrsClient.get(this.endpoint, `${GET_ROUTE.BLOCK}/${latesthash}`, {})
+    info.header = header
+    return info
   }
 
   async getTransaction(txHash: string): Promise<any> {
-    let result = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.TX}/${txHash}`, {})
+    let result = await ElectrsClient.get(this.endpoint, `${GET_ROUTE.TX}/${txHash}`, {})
     return result
   }
 
   async getScriptHashListUnspent(script: string): Promise<any> {
     let scriptHash = ElectrsClient.scriptToScriptHash(script)
-    let data: Array<any> = await ElectrsClient.get(this.endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}/${GET_ROUTE.UTXO}`, {})
+    let data: Array<any> = await ElectrsClient.get(this.endpoint, `${GET_ROUTE.SCRIPTHASH}/${scriptHash}/${GET_ROUTE.UTXO}`, {})
     let result = new Array<ElectrumTxData>()
 
     data.forEach((item, index) => {
-      result.push({"tx_hash":item.txid, 
-                    "tx_pos":item.vout, 
-                    "value":item.value,
-                    "height":item.status.block_height})
+      result.push({
+        "tx_hash": item.txid,
+        "tx_pos": item.vout,
+        "value": item.value,
+        "height": item.status.block_height
+      })
     })
     return result
   }
 
   async getScriptHashStatus(scriptHash: string, callBack: any, endpoint: string) {
-    let status = await ElectrsClient.get(endpoint,`${GET_ROUTE.SCRIPTHASH}/${scriptHash}`, {})
-    if( status.chain_stats.tx_count > 0 || status.mempool_stats.tx_count > 0 ) {
-      if (callBack) { 
+    let status = await ElectrsClient.get(endpoint, `${GET_ROUTE.SCRIPTHASH}/${scriptHash}`, {})
+    if (status.chain_stats.tx_count > 0 || status.mempool_stats.tx_count > 0) {
+      if (callBack) {
         callBack()
       }
     }
@@ -185,14 +186,14 @@ export class ElectrsClient {
 
   async getLatestBlock(callBack: any, endpoint: string): Promise<any> {
     //this.connect()
-    try{
-      let blockHeight = await ElectrsClient.get(endpoint,GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
-      if (this.blockHeightLatest != blockHeight){
+    try {
+      let blockHeight = await ElectrsClient.get(endpoint, GET_ROUTE.BLOCKS_TIP_HEIGHT, {})
+      if (this.blockHeightLatest != blockHeight) {
         this.blockHeightLatest = blockHeight
-        callBack([{"height":blockHeight}])
+        callBack([{ "height": blockHeight }])
       }
       return blockHeight
-    } catch(err: any) {
+    } catch (err: any) {
       this.blockHeightLatest = null
       callBack([{ "height": null }])
       handleErrors(err)
@@ -202,7 +203,7 @@ export class ElectrsClient {
   scriptHashSubscribe(script: string, callBack: any): any {
     this.script_hash_subscriptions.push(script)
     let scriptHash = ElectrsClient.scriptToScriptHash(script)
-    if ( this.scriptIntervals.has(scriptHash) ){
+    if (this.scriptIntervals.has(scriptHash)) {
       throw new ElectrsClientError(`already subscribed to script: [${scriptHash}]`)
     }
     let timer = setInterval(this.getScriptHashStatus, 5000, scriptHash, callBack, this.endpoint)
@@ -216,11 +217,11 @@ export class ElectrsClient {
   }
 
   blockHeightSubscribe(callBack: any) {
-    if(this.block_height_interval != null) return;
+    if (this.block_height_interval != null) return;
     this.block_height_interval = setInterval(
-      async(cb, ep) => {
+      async (cb, ep) => {
         await this.getLatestBlock(cb, ep)
-      }, 
+      },
       5000, callBack, this.endpoint)
   }
 
@@ -231,22 +232,22 @@ export class ElectrsClient {
 
   unsubscribeAll() {
     this.blockHeightUnsubscribe()
-    this.scriptIntervals.forEach (async function(value, _key) {
+    this.scriptIntervals.forEach(async function (value, _key) {
       clearInterval(value)
     })
   }
 
   async broadcastTransaction(rawTX: string): Promise<string> {
-    return ElectrsClient.post(this.endpoint,GET_ROUTE.TX, { "data": rawTX })
+    return ElectrsClient.post(this.endpoint, GET_ROUTE.TX, { "data": rawTX })
   }
 
   async getFeeEstimation(num_blocks: number): Promise<any> {
     //improvement: load 
-    let result = await ElectrsClient.get(this.endpoint,GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
+    let result = await ElectrsClient.get(this.endpoint, GET_ROUTE.FEE_ESTIMATES, {}).then((histo) => histo[`${num_blocks}`])
     return result
   }
 
   async importAddresses(addresses: [string]): Promise<string> {
     return ""
-  }  
+  }
 }

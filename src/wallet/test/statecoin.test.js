@@ -1,7 +1,6 @@
-
 import { getTxFee } from "../util";
 import { makeTesterStatecoins, recovery_withdrawal_tx, BTC_ADDR } from "./test_data";
-import { StateCoin, StateCoinList, WithdrawalTxBroadcastInfo } from "../";
+import { StateCoinList } from "../";
 import {Transaction} from "bitcoinjs-lib"
 
 describe('Statecoin', function () {

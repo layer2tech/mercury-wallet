@@ -14,7 +14,6 @@ import {
 } from './mercury/transfer';
 import { setProgressComplete, setProgress } from "../features/WalletDataSlice";
 
-const Promise = require('bluebird');
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');
 
@@ -199,12 +198,12 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.statechain_id = recoveredCoins[i].statechain_id;
         statecoin.value = recoveredCoins[i].amount;
         statecoin.tx_hex = recoveredCoins[i].tx_hex;
-        statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
+        statecoin.sc_address = encodeSCEAddress(statecoin.proof_key, wallet);
         const withdrawing = recoveredCoins[i].withdrawing
         if (withdrawing != null && withdrawing != 'None') {
           statecoin.setWithdrawing();
           const tx_hex = withdrawing.tx_hex
-          
+
           const withdraw_transaction = Transaction.fromHex(tx_hex)
           withdraw_tx_id_map.set(withdraw_transaction.getId(), withdraw_transaction)
 
@@ -213,7 +212,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
           if (ids == null) {
             ids = new Set()
           }
-          
+
           ids.add(statecoin.shared_key_id)
           withdrawal_tx_map.set(withdraw_transaction.getId(), ids)
           withdrawal_addr_map.set(withdraw_transaction.getId(), withdrawing.rec_addr)

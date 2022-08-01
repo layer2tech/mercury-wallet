@@ -1,4 +1,3 @@
-//const axios = require('axios').default;
 import axios from 'axios'
 import { TIMEOUT, semaphore } from '../http_client';
 import { ElectrsClient } from '../electrs';
@@ -11,8 +10,8 @@ describe('ElectrsClient', function () {
     const response = { data: "mock data" };
 
     afterEach(() => {
-        jest.restoreAllMocks();
-        expect(semaphoreSpy).toHaveBeenCalledTimes(1)
+        expect(semaphoreSpy).toHaveBeenCalledTimes(1);
+        jest.clearAllMocks();
     });
         
     beforeEach(() => {
