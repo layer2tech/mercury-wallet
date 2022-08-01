@@ -435,3 +435,42 @@ input.quantity {
     text-align: left;
     width: 70%;
 }
+
+.backupTx-status {
+    display: flex!important;
+    overflow: visible!important;
+}
+.backupTx-status .info-container{
+    overflow: visible!important;
+}
+
+.backupTx-status .tooltip-info{
+    visibility: hidden;
+    background-color: var(--button-border);
+    color: var(--text-primary);
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 10px 5px 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 26px;
+    right: 46px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.backupTx-status .info-container:hover .tooltip-info{
+    visibility: visible;
+    opacity: 1;
+}
+.backupTx-status .info-container .tooltip-info p{
+    margin-bottom: 0px;
+    color: var(--text-primary);
+}
+
+.backupTx .info-container img{
+    position: initial;
+    margin-bottom: 12px;
+    margin-left: 4px;
+    height: 8px;
+}

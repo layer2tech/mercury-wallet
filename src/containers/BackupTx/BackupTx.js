@@ -14,6 +14,7 @@ import { StdButton, CopiedButton, Tutorial, CoinsList} from "../../components";
 
 import settings from "../../images/settings.png";
 import icon2 from "../../images/icon2.png";
+import info from "../../images/info.png";
 import './BackupTx.css';
 
 const DEFAULT_TX_DATA = {tx_backup_hex:"",priv_key_hex:"",key_wif:"",expiry_data:{blocks:"",days:"",months:""}};
@@ -252,8 +253,18 @@ const BackupTxPage = () => {
 
                   <div className="item">
                       <span className="sub">Status:</span>
-                      <div>
+                      <div className="backupTx-status">
                         {showBackupStatus(selectedCoinTxData.backup_status)}
+                        {selectedCoinTxData.backup_status === BACKUP_STATUS.CONFIRMED || selectedCoinTxData.backup_status === BACKUP_STATUS.PRE_LOCKTIME ? (
+                          <div className="info-container">
+                            <img src={info} alt="info" />
+                            <span className="tooltip-info index">
+                              <p>{selectedCoinTxData.backup_status === BACKUP_STATUS.CONFIRMED ? 
+                                ("Backup transaction sent and confirmed.") : 
+                                ("Backup transaction locktime not yet reached. Coin is not expired.")}</p>
+                            </span>
+                          </div>
+                        ): (null) }
                       </div>
                   </div>
 
