@@ -457,6 +457,8 @@ input.quantity {
     right: 46px;
     opacity: 0;
     transition: opacity 0.3s;
+    white-space: normal;
+    width: 350px;
 }
 
 .backupTx-status .info-container:hover .tooltip-info{

@@ -104,6 +104,25 @@ const BackupTxPage = () => {
     }
   }
 
+  const tooltipText = (backup_status) => {
+    switch (backup_status) {
+      case BACKUP_STATUS.CONFIRMED:
+        return 'Backup transaction sent and confirmed. Either import the private key to a new wallet or send to any address via CPFP. ';
+      case BACKUP_STATUS.POST_INTERVAL:
+        return 'Backup transaction in not confirmed, but previous owner transaction is now valid';
+      case BACKUP_STATUS.UNBROADCAST:
+        return 'Backup transaction broadcast not completed'
+      case BACKUP_STATUS.IN_MEMPOOL:
+        return 'Backup transaction in mempool but not yet confirmed';
+      case BACKUP_STATUS.TAKEN:
+        return 'Backup transaction not confirmed. Coin output is spent by another transaction.';
+      case BACKUP_STATUS.PRE_LOCKTIME:
+      return 'Backup transaction locktime not yet reached. Coin is not expired.';
+      default:
+        return '';
+    }
+  }
+
   const addCPFP = async () => {
     // check statechain is chosen
     if (!selectedCoin) {
@@ -255,16 +274,13 @@ const BackupTxPage = () => {
                       <span className="sub">Status:</span>
                       <div className="backupTx-status">
                         {showBackupStatus(selectedCoinTxData.backup_status)}
-                        {selectedCoinTxData.backup_status === BACKUP_STATUS.CONFIRMED || selectedCoinTxData.backup_status === BACKUP_STATUS.PRE_LOCKTIME ? (
+                          { selectedCoinTxData.backup_status &&
                           <div className="info-container">
                             <img src={info} alt="info" />
                             <span className="tooltip-info index">
-                              <p>{selectedCoinTxData.backup_status === BACKUP_STATUS.CONFIRMED ? 
-                                ("Backup transaction sent and confirmed.") : 
-                                ("Backup transaction locktime not yet reached. Coin is not expired.")}</p>
+                              <p>{tooltipText(selectedCoinTxData.backup_status)}</p>
                             </span>
-                          </div>
-                        ): (null) }
+                          </div>}
                       </div>
                   </div>
 
