@@ -10,7 +10,8 @@ import { isWalletLoaded,
   callGetCoinBackupTxData, 
   callCreateBackupTxCPFP, 
   callGetConfig, 
-  setNotification} from '../../features/WalletDataSlice';
+  setNotification,
+  callGetStateCoin} from '../../features/WalletDataSlice';
 import { StdButton, CopiedButton, Tutorial, CoinsList} from "../../components";
 
 import settings from "../../images/settings.png";
@@ -118,14 +119,18 @@ const BackupTxPage = () => {
       dispatch(setError({msg: "Please enter a fee rate."}))
       return;
     }
-
     let sucess = await callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
 
     if (!sucess) {
       dispatch(setError({msg: "CPFP build error: please check address is correct"}))
       return;
     } else{
-      dispatch(setNotification({ msg: `CPFP Created! Address: ${cpfpAddr}, Fee: ${txFee} Sat/B` }))
+      let statecoin = callGetStateCoin(selectedCoin);
+      let text = "Created";
+      if(statecoin.status === "EXPIRED"){
+        text = "Tx Broadcasted";
+      }
+      dispatch(setNotification({ msg: `CPFP ${text}! Address: ${cpfpAddr}, Fee: ${txFee} Sat/B` }))
     }
 
    }
