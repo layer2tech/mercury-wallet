@@ -9,7 +9,8 @@ import { isWalletLoaded,
   setError, 
   callGetCoinBackupTxData, 
   callCreateBackupTxCPFP, 
-  callGetConfig } from '../../features/WalletDataSlice';
+  callGetConfig, 
+  setNotification} from '../../features/WalletDataSlice';
 import { StdButton, CopiedButton, Tutorial, CoinsList} from "../../components";
 
 import settings from "../../images/settings.png";
@@ -118,11 +119,13 @@ const BackupTxPage = () => {
       return;
     }
 
-    let sucess = callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
+    let sucess = await callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
 
     if (!sucess) {
       dispatch(setError({msg: "CPFP build error: please check address is correct"}))
       return;
+    } else{
+      dispatch(setNotification({ msg: `CPFP Created! Address: ${cpfpAddr}, Fee: ${txFee} Sat/B` }))
     }
 
    }
