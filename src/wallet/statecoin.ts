@@ -25,63 +25,75 @@ export const HIDDEN = "*****"
 
 export class StateCoinList {
   coins: StateCoin[]
+  swapped_coins: StateCoin[];
 
   constructor() {
     this.coins = [];
+    this.swapped_coins = [];
   }
 
   static fromJSON(coins_json: StateCoinList): StateCoinList {
-    let statecoins = new StateCoinList()
+    let count = 0;
+    let statecoinsList = new StateCoinList()
     coins_json.coins.forEach((item: StateCoin) => {
-      let coin = new StateCoin(item.shared_key_id, item.shared_key);
-      coin.wallet_version = "";
 
-      let replca = false;
-      statecoins.coins.filter((existing_coin: StateCoin) => {
-        if (item.shared_key_id === existing_coin.shared_key_id && item.status === STATECOIN_STATUS.AVAILABLE && existing_coin.status === STATECOIN_STATUS.AVAILABLE) {
-          replca = true;
-        }
-      });
+      // if this is a swapped coin then move it to a new list
+      if(item.status == 'SWAPPED'){
+        statecoinsList.swapped_coins.push(item); // save to swap coins array
+      }else{
+        let coin = new StateCoin(item.shared_key_id, item.shared_key);
+        coin.wallet_version = "";
 
-      // re-build tx_backup as Transaction
-      if (item.tx_backup !== undefined && item.tx_backup !== null) {
-        let tx_backup_any: any = item.tx_backup;
-        let tx_backup = new Transaction();
-        tx_backup.version = tx_backup_any.version;
-        tx_backup.locktime = tx_backup_any.locktime;
-        if (tx_backup_any.ins.length > 0) {
-          tx_backup.addInput(Buffer.from(tx_backup_any.ins[0].hash), tx_backup_any.ins[0].index, tx_backup_any.ins[0].sequence)
-          if (tx_backup_any.ins[0].witness.length > 0) {
-            tx_backup.ins[0].witness = [Buffer.from(tx_backup_any.ins[0].witness[0]), Buffer.from(tx_backup_any.ins[0].witness[1])];
+        let replca = false;
+        statecoinsList.coins.filter((existing_coin: StateCoin) => {
+          if (item.shared_key_id === existing_coin.shared_key_id && item.status === STATECOIN_STATUS.AVAILABLE && existing_coin.status === STATECOIN_STATUS.AVAILABLE) {
+            replca = true;
           }
-        }
-        if (tx_backup_any.outs.length > 0) {
-          tx_backup.addOutput(Buffer.from(tx_backup_any.outs[0].script), tx_backup_any.outs[0].value)
-          tx_backup.addOutput(Buffer.from(tx_backup_any.outs[1].script), tx_backup_any.outs[1].value)
-        }
-        item.tx_backup = tx_backup;
-      }
+        });
 
-      // re-build tx_cpfp as Transaction
-      if (item.tx_cpfp !== undefined && item.tx_cpfp !== null) {
-        let tx_cpfp_any: any = item.tx_cpfp;
-        let tx_cpfp = new Transaction();
-        tx_cpfp.version = tx_cpfp_any.version;
-        tx_cpfp.locktime = tx_cpfp_any.locktime;
-        if (tx_cpfp_any.ins.length > 0) {
-          tx_cpfp.addInput(Buffer.from(tx_cpfp_any.ins[0].hash), tx_cpfp_any.ins[0].index, tx_cpfp_any.ins[0].sequence)
-          if (tx_cpfp_any.ins[0].witness.length > 0) {
-            tx_cpfp.ins[0].witness = [Buffer.from(tx_cpfp_any.ins[0].witness[0]), Buffer.from(tx_cpfp_any.ins[0].witness[1])];
+        // re-build tx_backup as Transaction
+        if (item.tx_backup !== undefined && item.tx_backup !== null) {
+          let tx_backup_any: any = item.tx_backup;
+          let tx_backup = new Transaction();
+          tx_backup.version = tx_backup_any.version;
+          tx_backup.locktime = tx_backup_any.locktime;
+          if (tx_backup_any.ins.length > 0) {
+            tx_backup.addInput(Buffer.from(tx_backup_any.ins[0].hash), tx_backup_any.ins[0].index, tx_backup_any.ins[0].sequence)
+            if (tx_backup_any.ins[0].witness.length > 0) {
+              tx_backup.ins[0].witness = [Buffer.from(tx_backup_any.ins[0].witness[0]), Buffer.from(tx_backup_any.ins[0].witness[1])];
+            }
           }
+          if (tx_backup_any.outs.length > 0) {
+            tx_backup.addOutput(Buffer.from(tx_backup_any.outs[0].script), tx_backup_any.outs[0].value)
+            tx_backup.addOutput(Buffer.from(tx_backup_any.outs[1].script), tx_backup_any.outs[1].value)
+          }
+          item.tx_backup = tx_backup;
         }
-        if (tx_cpfp_any.outs.length > 0) {
-          tx_cpfp.addOutput(Buffer.from(tx_cpfp_any.outs[0].script), tx_cpfp_any.outs[0].value)
+
+        // re-build tx_cpfp as Transaction
+        if (item.tx_cpfp !== undefined && item.tx_cpfp !== null) {
+          let tx_cpfp_any: any = item.tx_cpfp;
+          let tx_cpfp = new Transaction();
+          tx_cpfp.version = tx_cpfp_any.version;
+          tx_cpfp.locktime = tx_cpfp_any.locktime;
+          if (tx_cpfp_any.ins.length > 0) {
+            tx_cpfp.addInput(Buffer.from(tx_cpfp_any.ins[0].hash), tx_cpfp_any.ins[0].index, tx_cpfp_any.ins[0].sequence)
+            if (tx_cpfp_any.ins[0].witness.length > 0) {
+              tx_cpfp.ins[0].witness = [Buffer.from(tx_cpfp_any.ins[0].witness[0]), Buffer.from(tx_cpfp_any.ins[0].witness[1])];
+            }
+          }
+          if (tx_cpfp_any.outs.length > 0) {
+            tx_cpfp.addOutput(Buffer.from(tx_cpfp_any.outs[0].script), tx_cpfp_any.outs[0].value)
+          }
+          item.tx_cpfp = tx_cpfp;
         }
-        item.tx_cpfp = tx_cpfp;
+        if (!replca) statecoinsList.coins.push(Object.assign(coin, item));
       }
-      if (!replca) statecoins.coins.push(Object.assign(coin, item));
+      
     })
-    return statecoins
+
+    console.log('there was ', count, ' swaps in coinlist');
+    return statecoinsList
   }
 
   getAllCoins(block_height: number) {
