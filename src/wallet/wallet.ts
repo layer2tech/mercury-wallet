@@ -305,8 +305,6 @@ export class Wallet {
 
     new_wallet.account = json_wallet_to_bip32_root_account(json_wallet)
 
-    console.log(new_wallet)
-
     return new_wallet
   }
 
