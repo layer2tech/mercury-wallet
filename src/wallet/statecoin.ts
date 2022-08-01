@@ -38,7 +38,7 @@ export class StateCoinList {
     coins_json.coins.forEach((item: StateCoin) => {
 
       // if this is a swapped coin then move it to a new list
-      if(item.status == 'SWAPPED'){
+      if(item.status === STATECOIN_STATUS.SWAPPED){
         statecoinsList.swapped_coins.push(item); // save to swap coins array
       }else{
         let coin = new StateCoin(item.shared_key_id, item.shared_key);
