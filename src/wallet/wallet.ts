@@ -33,7 +33,6 @@ import { callGetNewTorId } from '../features/WalletDataSlice';
 import { Mutex } from 'async-mutex';
 import { handleErrors } from '../error';
 
-const Promise = require('bluebird');
 
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
 const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -193,14 +192,14 @@ export class Wallet {
           torcircuit_ids_existing.push(this.tor_circuit[i].id)
         }
       }
-  
+
       for (var i = 0; i < torcircuit_ids.length; i++) {
         //Unknown tor circuit - request data
         if (torcircuit_ids_existing.indexOf(torcircuit_ids[i]) < 0) {
           torcircuit_ids_req.push(torcircuit_ids[i])
         }
       }
-    
+
       for (var i = 0; i < torcircuit_ids_req.length; i++) {
         torcircuit.push(await getTorCircuit(this.http_client, torcircuit_ids_req[i]));
       }
@@ -502,10 +501,10 @@ export class Wallet {
     }
     this.electrum_client.connect(config).then(async () => {
 
-      if(!this.checkElectrumNetwork()) return;
+      if (!this.checkElectrumNetwork()) return;
 
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack)
-      
+
       let fee_info: FeeInfo
 
       getFeeInfo(this.http_client).then(async (res) => {
@@ -828,7 +827,7 @@ export class Wallet {
       statecoin.setBackupInMempool();
     } else if (bresponse.includes('block')) {
       statecoin.setBackupConfirmed();
-      if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+      if (statecoin.status !== STATECOIN_STATUS.EXPIRED) {
         // Keep expired coins in main CoinsList
         this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
       }
@@ -844,7 +843,7 @@ export class Wallet {
     } else if (err.toString().includes('already') && err.toString().includes('block')) {
       statecoin.setBackupConfirmed();
 
-      if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
+      if (statecoin.status !== STATECOIN_STATUS.EXPIRED) {
         // Keep expired coins in main CoinsList
         this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false);
       }
@@ -881,7 +880,7 @@ export class Wallet {
     // pre-locktime - update locktime swap limit status
     if (blocks_to_locktime > 0) {
       if (statecoin.backup_status !== BACKUP_STATUS.PRE_LOCKTIME) {
-        statecoin.setBackupPreLocktime();  
+        statecoin.setBackupPreLocktime();
       }
       if (statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && blocks_to_locktime < this.config.swaplimit && statecoin.status === STATECOIN_STATUS.AVAILABLE) {
         statecoin.setSwapLimit()
@@ -905,16 +904,16 @@ export class Wallet {
   async checkMempoolTx(statecoin: StateCoin) {
     let txid = statecoin!.tx_backup!.getId();
     if (txid != null) {
-        const tx_data: any = await this.electrum_client.getTransaction(txid)
-        if (tx_data?.confirmations != null && tx_data.confirmations >= this.config.required_confirmations) {
-          
-          statecoin.setBackupConfirmed();
+      const tx_data: any = await this.electrum_client.getTransaction(txid)
+      if (tx_data?.confirmations != null && tx_data.confirmations >= this.config.required_confirmations) {
 
-          if(statecoin.status !== STATECOIN_STATUS.EXPIRED){
-            // Keep expired coins in Main Coins List
-            this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false)
-          }
+        statecoin.setBackupConfirmed();
+
+        if (statecoin.status !== STATECOIN_STATUS.EXPIRED) {
+          // Keep expired coins in Main Coins List
+          this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false)
         }
+      }
     }
   }
 
@@ -924,8 +923,8 @@ export class Wallet {
     try {
       let bresponse = await this.electrum_client.broadcastTransaction(backup_tx)
       this.processTXBroadcastResponse(statecoin, bresponse)
-    } catch(err: any) {
-      await this.processTXBroadcastError(statecoin, err)  
+    } catch (err: any) {
+      await this.processTXBroadcastError(statecoin, err)
     }
   }
 
@@ -1088,7 +1087,7 @@ export class Wallet {
     if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE ||
       statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
       statecoin.status === STATECOIN_STATUS.EXPIRED ||
-      statecoin.status === STATECOIN_STATUS.SWAPPED || 
+      statecoin.status === STATECOIN_STATUS.SWAPPED ||
       statecoin.status === STATECOIN_STATUS.DUPLICATE
     )) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
@@ -1221,8 +1220,8 @@ export class Wallet {
   }
 
   // check all shared keys to see if there are multiple confirmed deposits and then create coins
-  async checkMultipleDeposits(): Promise<number>  {
-      let count = 0;
+  async checkMultipleDeposits(): Promise<number> {
+    let count = 0;
 
     for (let i = 0; i < this.statecoins.coins.length; i++) {
 
@@ -1235,8 +1234,8 @@ export class Wallet {
       }
       if (!(this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWN ||
         this.statecoins.coins[i].status === STATECOIN_STATUS.WITHDRAWING ||
-        this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE || 
-        this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPLIMIT || 
+        this.statecoins.coins[i].status === STATECOIN_STATUS.AVAILABLE ||
+        this.statecoins.coins[i].status === STATECOIN_STATUS.SWAPLIMIT ||
         this.statecoins.coins[i].status === STATECOIN_STATUS.EXPIRED)) {
         continue;
       }
@@ -1245,41 +1244,41 @@ export class Wallet {
       let out_script = bitcoin.address.toOutputScript(addr, this.config.network);
       let funding_tx_data = await this.electrum_client.getScriptHashListUnspent(out_script);
 
-      for (let j=0; j<funding_tx_data.length; j++) {
+      for (let j = 0; j < funding_tx_data.length; j++) {
         if (funding_tx_data[j].tx_hash === this.statecoins.coins[i].funding_txid && funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout) {
-           continue;
+          continue;
         } else {
-            // check that no existing coin exists with this outpoint
-            let existing_output = false;
-            for (let k = 0; k < this.statecoins.coins.length; k++) {
-              if (this.statecoins.coins[k].funding_txid === funding_tx_data[j].tx_hash && this.statecoins.coins[k].funding_vout === funding_tx_data[j].tx_pos) {
-                existing_output = true;
-                break;
-              }
-            }
-
-            if (!existing_output) {
-              // if there is only one coin found but the txid:index does not match, this is an RBF deposit error coin
-              // update the txid:index and remove the backup tx
-              if (funding_tx_data.length === 1) {
-                this.statecoins.coins[i].funding_txid = funding_tx_data[j].tx_hash;
-                this.statecoins.coins[i].funding_vout = funding_tx_data[j].tx_pos;
-                this.statecoins.coins[i].status = STATECOIN_STATUS.DUPLICATE;
-              } else {
-                // create new duplicate coin
-                let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
-                statecoin.proof_key = this.statecoins.coins[i].proof_key;
-                statecoin.value = funding_tx_data[j].value;
-                statecoin.funding_txid = funding_tx_data[j].tx_hash;
-                statecoin.funding_vout = funding_tx_data[j].tx_pos;
-                statecoin.tx_backup = new Transaction();
-                statecoin.status = STATECOIN_STATUS.DUPLICATE;
-
-                this.statecoins.addCoin(statecoin)
-                count = count + 1;
-              }
+          // check that no existing coin exists with this outpoint
+          let existing_output = false;
+          for (let k = 0; k < this.statecoins.coins.length; k++) {
+            if (this.statecoins.coins[k].funding_txid === funding_tx_data[j].tx_hash && this.statecoins.coins[k].funding_vout === funding_tx_data[j].tx_pos) {
+              existing_output = true;
+              break;
             }
           }
+
+          if (!existing_output) {
+            // if there is only one coin found but the txid:index does not match, this is an RBF deposit error coin
+            // update the txid:index and remove the backup tx
+            if (funding_tx_data.length === 1) {
+              this.statecoins.coins[i].funding_txid = funding_tx_data[j].tx_hash;
+              this.statecoins.coins[i].funding_vout = funding_tx_data[j].tx_pos;
+              this.statecoins.coins[i].status = STATECOIN_STATUS.DUPLICATE;
+            } else {
+              // create new duplicate coin
+              let statecoin = new StateCoin(this.statecoins.coins[i].shared_key_id + "-" + j + "-R", this.statecoins.coins[i].shared_key);
+              statecoin.proof_key = this.statecoins.coins[i].proof_key;
+              statecoin.value = funding_tx_data[j].value;
+              statecoin.funding_txid = funding_tx_data[j].tx_hash;
+              statecoin.funding_vout = funding_tx_data[j].tx_pos;
+              statecoin.tx_backup = new Transaction();
+              statecoin.status = STATECOIN_STATUS.DUPLICATE;
+
+              this.statecoins.addCoin(statecoin)
+              count = count + 1;
+            }
+          }
+        }
       }
     }
     return count
@@ -1395,9 +1394,9 @@ export class Wallet {
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
 
     // check there is no duplicate
-    for (let i = 0; i < this.statecoins.coins.length; i++) {      
+    for (let i = 0; i < this.statecoins.coins.length; i++) {
       if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
-        if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
+        if (this.statecoins.coins[i].shared_key_id.slice(0, -4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
           throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
         }
       }
@@ -1596,10 +1595,10 @@ export class Wallet {
       try {
         await this.deRegisterSwapCoin(statecoin, false, suppress_warning)
       }
-      
+
       catch (err: any) {
         try {
-            handleErrors(err)
+          handleErrors(err)
         } catch (err: any) {
           const err_str = err?.message
           if (!(err_str != null && err_str.includes("Coin is not in a swap pool"))) {
@@ -1645,49 +1644,49 @@ export class Wallet {
   async transfer_sender(
     shared_key_ids: string[],
     receiver_se_addrs: string[]
-  ): Promise<Array<TransferMsg3>>{
+  ): Promise<Array<TransferMsg3>> {
     let transferMsgArr: TransferMsg3[] = []
 
     log.info("Transfer Sender for " + shared_key_ids)
 
-    for ( var i = 0; i < shared_key_ids.length ; i++ ){
-      await mutex.runExclusive(async () => { 
+    for (var i = 0; i < shared_key_ids.length; i++) {
+      await mutex.runExclusive(async () => {
         // ensure receiver se address is valid
         try { pubKeyTobtcAddr(receiver_se_addrs[i], this.config.network) }
         catch (e: any) { throw Error("Invalid receiver address - Should be hexadecimal public key.") }
-        
+
         //shared_key_ids[i] ....
         let statecoin = this.statecoins.getCoin(shared_key_ids[i]);
         if (!statecoin) throw Error("No coin found with id " + shared_key_ids[i]);
         if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
         if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
         if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
-        
+
         // check there is no duplicate
         for (let i = 0; i < this.statecoins.coins.length; i++) {
           if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
-            if (this.statecoins.coins[i].shared_key_id.slice(0,-4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
+            if (this.statecoins.coins[i].shared_key_id.slice(0, -4) === statecoin.shared_key_id && this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE) {
               throw Error("This coin has a duplicate deposit - this must be withdraw to recover");
             }
           }
         }
-        
+
         let proof_key_der = this.getBIP32forProofKeyPubKey(statecoin.proof_key);
-        
+
         let transfer_sender = await transferSender(this.http_client, await this.getWasm(), this.config.network, statecoin, proof_key_der, receiver_se_addrs[i], false, this)
-        
+
         transferMsgArr.push(transfer_sender)
-        
+
         await transferUpdateMsg(this.http_client, transfer_sender, false)
-        
+
         log.info("Transfer Sender complete.");
         await this.saveStateCoinsList();
-        
+
       })
     }
-      
-      return transferMsgArr;
-    }
+
+    return transferMsgArr;
+  }
 
   // Perform transfer_receiver
   // Args: transfer_messager retuned from sender's TransferSender
@@ -1754,19 +1753,19 @@ export class Wallet {
     const MAX_RETRIES = 10;
     console.log('numRecieve: ', numReceive)
 
-    for(var i = 0; i < numReceive; i++){
-      if(numReceive === 1){
+    for (var i = 0; i < numReceive; i++) {
+      if (numReceive === 1) {
         addr = this.account.chains[0].addresses[addr_index];
         proofkey = this.getBIP32forBtcAddress(addr).publicKey.toString("hex");
-      } else{
-        if(i >= this.account.chains[0].addresses.length){
+      } else {
+        if (i >= this.account.chains[0].addresses.length) {
           this.newSEAddress()
         }
         addr = this.account.chains[0].addresses[i];
         proofkey = this.getBIP32forBtcAddress(addr).publicKey.toString("hex");
       }
 
-  
+
       while (n_retries < MAX_RETRIES) {
         try {
           transfer_msgs = await this.http_client.get(GET_ROUTE.TRANSFER_GET_MSG_ADDR, proofkey);
@@ -1779,7 +1778,7 @@ export class Wallet {
           }
         }
       }
-  
+
       for (let i = 0; i < transfer_msgs.length; i++) {
         // check if the coin is in the wallet
         let walletcoins = this.statecoins.getCoins(transfer_msgs[i].statechain_id);
@@ -1810,12 +1809,12 @@ export class Wallet {
           catch (e: any) {
             error_message = e.message
           }
-  
+
         }
       }
-  
+
       //this.activity.addItem(addr, ACTION.RECEIVED);
-      
+
     }
     return num_transfers + "../.." + error_message
   }
@@ -1867,12 +1866,12 @@ export class Wallet {
       if (statecoin.status !== STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && statecoin.status !== STATECOIN_STATUS.WITHDRAWING && statecoin.status !== STATECOIN_STATUS.DUPLICATE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for withdraw.");
       statecoins.push(statecoin);
       proof_key_ders.push(this.getBIP32forProofKeyPubKey(statecoin.proof_key));
-      if (shared_key_id.slice(-2) === "-R") duplicate = true; 
+      if (shared_key_id.slice(-2) === "-R") duplicate = true;
     });
 
-    if(duplicate) {
+    if (duplicate) {
       if (shared_key_ids.length > 1) throw Error("Duplicate deposits cannot be batch withdrawn");
-      let existing_coin = this.statecoins.getCoin(shared_key_ids[0].slice(0,-4));
+      let existing_coin = this.statecoins.getCoin(shared_key_ids[0].slice(0, -4));
       if (existing_coin) {
         if (!(existing_coin.status === STATECOIN_STATUS.WITHDRAWN)) {
           throw Error("Statecoin must be withdrawn before duplicate");
@@ -1890,7 +1889,7 @@ export class Wallet {
           nTries = nTries + 1
           if (nTries < maxNTries) {
             log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
-            await Promise.delay(1000)
+            await new Promise(resolve => setTimeout(resolve, 1000));
             continue
           } else {
             let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. Raw Tx: ${tx_withdraw_d.toHex()}`
@@ -1963,7 +1962,7 @@ export class Wallet {
         nTries = nTries + 1
         if (nTries < maxNTries) {
           log.info(`Transaction broadcast failed with error: ${error}. Retry: ${nTries}`);
-          await Promise.delay(1000)
+          await new Promise(resolve => setTimeout(resolve, 1000));
           continue
         } else {
           let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`
@@ -1991,7 +1990,7 @@ export class Wallet {
       await withdraw_confirm(this.http_client, withdraw_msg_2);
     } catch (e) {
       if (`${e}`.includes('No data for id') || `${e}`.includes('No update made')) {
-        withdraw_msg_2.shared_key_ids.forEach( async (shared_key_id) => {
+        withdraw_msg_2.shared_key_ids.forEach(async (shared_key_id) => {
           this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
           await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
           this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
@@ -2003,11 +2002,11 @@ export class Wallet {
     }
   }
 
-  deriveXpub(){
-  return getXpub(this.mnemonic, this.config.network);
+  deriveXpub() {
+    return getXpub(this.mnemonic, this.config.network);
   }
 
-  deriveProofKeyFromXpub(xpub: string, index: number){
+  deriveProofKeyFromXpub(xpub: string, index: number) {
     return proofKeyFromXpub(xpub, index, this.config.network)
   }
 
