@@ -125,8 +125,13 @@ const BackupTxPage = () => {
       dispatch(setError({msg: "CPFP build error: please check address is correct"}))
       return;
     } else{
+      // Get statecoin
       let statecoin = callGetStateCoin(selectedCoin);
+
+      // set notification text
       let text = "Created";
+
+      // Check if coin already expired
       if(statecoin.status === "EXPIRED"){
         text = "Tx Broadcasted";
       }
