@@ -129,13 +129,13 @@ const BackupTxPage = () => {
       let statecoin = callGetStateCoin(selectedCoin);
 
       // set notification text
-      let text = "Created";
+      let text = "created";
 
       // Check if coin already expired
       if(statecoin.status === "EXPIRED"){
-        text = "Tx Broadcasted";
+        text = "transaction broadcasted";
       }
-      dispatch(setNotification({ msg: `CPFP ${text}! Address: ${cpfpAddr}, Fee: ${txFee} Sat/B` }))
+      dispatch(setNotification({ msg: `CPFP ${text}. Address: ${cpfpAddr}, Fee: ${txFee} Sat/B` }))
     }
 
    }
