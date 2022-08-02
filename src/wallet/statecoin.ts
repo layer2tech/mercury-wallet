@@ -7,7 +7,7 @@ import { ACTION } from ".";
 import { ElectrumTxData } from "../wallet/electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
-import { BatchData, BSTRequestorData, SwapErrorMsg, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap_utils";
+import { BatchData, BSTRequestorData, StatechainID, SwapErrorMsg, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap_utils";
 import { SCEAddress, TransferFinalizeData, TransferMsg3, TransferMsg4 } from "./mercury/transfer";
 import { WithdrawMsg2 } from "./mercury/withdraw"
 
@@ -34,6 +34,14 @@ export class StateCoinList {
 
   static fromJSON(coins_json: StateCoinList): StateCoinList {
     let statecoinsList = new StateCoinList()
+
+    if(coins_json.swapped_coins){
+      coins_json.swapped_coins.forEach((coin: StateCoin) => {
+        statecoinsList.swapped_coins.push(coin);
+      })
+    }
+    
+
     coins_json.coins.forEach((item: StateCoin) => {
 
       // if this is a swapped coin then move it to a new list
