@@ -137,7 +137,11 @@ const Coin = (props) => {
             dispatch(setError({ msg: 'Swap not available for this coin value' }))
             return false;
           }
-          if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.swap || props.send || props.withdraw)) {
+          if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.swap || props.send)) {
+            dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap or withdrawal' }))
+            return false;
+          }
+          if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.withdraw) && (props.coin_data.BACKUP_STATUS !== BACKUP_STATUS.MISSING)) {
             dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap or withdrawal' }))
             return false;
           }

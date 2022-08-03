@@ -246,6 +246,10 @@ export const getTransferMsg4 = async (
   if (pk_expected !== pk_received)
     throw new Error(`Backup tx not sent to addr derived from receivers proof key. Expected proof key ${pk_expected}, got ${pk_received}. Transfer not made to this wallet.`);
 
+  // check the tx output script
+  if (tx_backup.outs[0].script != pubKeyToScriptPubKey(pk_expected, network))
+    throw new Error(`Backup tx output script incorrect.`);
+
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);
   // Get state entity fee info

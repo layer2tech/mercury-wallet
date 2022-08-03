@@ -204,7 +204,6 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         let tx_copy = cloneDeep(tx_backup);
 
         statecoin.proof_key = recoveredCoins[i].proof_key
-        statecoin.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
         statecoin.funding_vout = tx_copy.ins[0].index;
         statecoin.funding_txid = tx_copy.ins[0].hash.reverse().toString("hex");
         statecoin.statechain_id = recoveredCoins[i].statechain_id;
@@ -216,9 +215,11 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
           log.warn(warning);
           alert(warning)
           statecoin.tx_backup = null
+          statecoin.backup_status = BACKUP_STATUS.MISSING;
         } else {
           statecoin.tx_backup = tx_backup;
           statecoin.tx_hex = recoveredCoins[i].tx_hex;
+          statecoin.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
         }
 
         statecoin.sc_address = encodeSCEAddress(statecoin.proof_key, wallet);
