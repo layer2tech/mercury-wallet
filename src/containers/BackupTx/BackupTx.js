@@ -107,7 +107,7 @@ const BackupTxPage = () => {
   const tooltipText = (backup_status) => {
     switch (backup_status) {
       case BACKUP_STATUS.CONFIRMED:
-        return 'Backup transaction sent and confirmed. Either import the private key to a new wallet or send to any address via CPFP. ';
+        return 'Backup transaction sent and confirmed. Either import the private key to a new wallet, or send to any address via CPFP if you have not already done so. ';
       case BACKUP_STATUS.POST_INTERVAL:
         return 'Backup transaction in not confirmed, but previous owner transaction is now valid';
       case BACKUP_STATUS.UNBROADCAST:
