@@ -1025,6 +1025,16 @@ export class Wallet {
       }
     }
     await this.saveStateCoinsList();
+
+    // if statecoin expired, broadcast immediately
+    if (statecoin.status === STATECOIN_STATUS.EXPIRED) {
+      try {
+        await this.broadcastCPFP(statecoin)
+      } catch (err: any) {
+        log.error(`Error broadcasting CPFP: ${err.toString()}`)
+      }      
+    }
+
     return true;
   }
 
