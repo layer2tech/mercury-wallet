@@ -14,6 +14,7 @@ import { StdButton, CopiedButton, Tutorial, CoinsList} from "../../components";
 
 import settings from "../../images/settings.png";
 import icon2 from "../../images/icon2.png";
+import info from "../../images/info.png";
 import './BackupTx.css';
 
 const DEFAULT_TX_DATA = {tx_backup_hex:"",priv_key_hex:"",key_wif:"",expiry_data:{blocks:"",days:"",months:""}};
@@ -100,6 +101,25 @@ const BackupTxPage = () => {
             {selectedCoinTxData.backup_status}
           </span>
         );
+    }
+  }
+
+  const tooltipText = (backup_status) => {
+    switch (backup_status) {
+      case BACKUP_STATUS.CONFIRMED:
+        return 'Backup transaction sent and confirmed. Either import the private key to a new wallet, or send to any address via CPFP if you have not already done so. ';
+      case BACKUP_STATUS.POST_INTERVAL:
+        return 'Backup transaction in not confirmed, but previous owner transaction is now valid';
+      case BACKUP_STATUS.UNBROADCAST:
+        return 'Backup transaction broadcast not completed'
+      case BACKUP_STATUS.IN_MEMPOOL:
+        return 'Backup transaction in mempool but not yet confirmed';
+      case BACKUP_STATUS.TAKEN:
+        return 'Backup transaction not confirmed. Coin output is spent by another transaction.';
+      case BACKUP_STATUS.PRE_LOCKTIME:
+      return 'Backup transaction locktime not yet reached. Coin is not expired.';
+      default:
+        return '';
     }
   }
 
@@ -252,8 +272,15 @@ const BackupTxPage = () => {
 
                   <div className="item">
                       <span className="sub">Status:</span>
-                      <div>
+                      <div className="backupTx-status">
                         {showBackupStatus(selectedCoinTxData.backup_status)}
+                          { selectedCoinTxData.backup_status &&
+                          <div className="info-container">
+                            <img src={info} alt="info" />
+                            <span className="tooltip-info index">
+                              <p>{tooltipText(selectedCoinTxData.backup_status)}</p>
+                            </span>
+                          </div>}
                       </div>
                   </div>
 
