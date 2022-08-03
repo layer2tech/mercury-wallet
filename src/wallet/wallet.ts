@@ -431,12 +431,12 @@ export class Wallet {
   async recoverCoinsFromServer(gap_limit: number, dispatch: any): Promise<number> {
     log.info("Recovering StateCoins from server for mnemonic.");
     let recoveredCoins = await recoverCoins(this, gap_limit, dispatch);
-    const n_recovered = recoverCoins.length
+    const n_recovered = recoveredCoins.length
     if (n_recovered > 0) {
       log.info("Found " + recoveredCoins.length + " StateCoins. Saving to wallet.");
       await this.saveKeys();
       console.log(`recoveredCoins: ${JSON.stringify(recoveredCoins)}`)
-      await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
+      await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins, this.config.network);
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
     }

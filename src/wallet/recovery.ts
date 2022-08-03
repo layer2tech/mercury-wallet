@@ -1,7 +1,7 @@
 // wallet recovery from server
 
 'use strict';
-import { Transaction } from "bitcoinjs-lib";
+import { Transaction, Network } from "bitcoinjs-lib";
 import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin, WithdrawalTxBroadcastInfo } from './statecoin';
 import { WithdrawMsg2 } from './mercury/withdraw';
@@ -9,7 +9,7 @@ import {
   getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo,
   getStateChain, getStateChainTransferFinalizeData, TransferFinalizeDataAPI
 } from './mercury/info_api';
-import { StateChainSig, encodeSCEAddress, getTxFee } from "./util";
+import { StateChainSig, encodeSCEAddress, getTxFee, pubKeyToScriptPubKey } from "./util";
 import { GET_ROUTE } from '.';
 import {
   transferReceiverFinalizeRecovery, TransferFinalizeDataForRecovery
@@ -23,6 +23,16 @@ let cloneDeep = require('lodash.clonedeep');
 let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
 const n = secp256k1.curve.n
+
+// Logger import.
+// Node friendly importing required for Jest tests.
+declare const window: any;
+let log: any;
+try {
+  log = window.require('electron-log');
+} catch (e: any) {
+  log = require('electron-log');
+}
 
 // number of keys to generate per recovery call. If no statecoins are found for this number
 // of keys then assume there are no more statecoins owned by this wallet.
@@ -159,7 +169,7 @@ export const groupRecoveredWithdrawalTransactions = (
 }
 
 // Gen proof key. Address: tb1qgl76l9gg9qrgv9e9unsxq40dee5gvue0z2uxe2. Proof key: 03b2483ab9bea9843bd9bfb941e8c86c1308e77aa95fccd0e63c2874c0e3ead3f5
-export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[]) => {
+export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, recoveredCoins: RecoveryDataMsg[], network: Network) => {
   let withdrawal_tx_map = new Map<string, Set<string>>()
   let withdraw_tx_id_map = new Map<string, Transaction>()
   let withdrawal_addr_map = new Map<string, string>()
@@ -194,13 +204,23 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         let tx_copy = cloneDeep(tx_backup);
 
         statecoin.proof_key = recoveredCoins[i].proof_key
-        statecoin.tx_backup = tx_backup;
         statecoin.backup_status = BACKUP_STATUS.PRE_LOCKTIME;
         statecoin.funding_vout = tx_copy.ins[0].index;
         statecoin.funding_txid = tx_copy.ins[0].hash.reverse().toString("hex");
         statecoin.statechain_id = recoveredCoins[i].statechain_id;
         statecoin.value = recoveredCoins[i].amount;
-        statecoin.tx_hex = recoveredCoins[i].tx_hex;
+
+        // check that the received backup transaction belongs to the proof key
+        if (tx_backup.outs[0].script != pubKeyToScriptPubKey(recoveredCoins[i].proof_key, network)) {
+          const warning = `Warning: backup transaction recovered for coin: ${statecoin.funding_txid} is incorrect. Withdraw coin immediately.`
+          log.warn(warning);
+          alert(warning)
+          statecoin.tx_backup = null
+        } else {
+          statecoin.tx_backup = tx_backup;
+          statecoin.tx_hex = recoveredCoins[i].tx_hex;
+        }
+
         statecoin.sc_address = encodeSCEAddress(statecoin.proof_key, wallet);
         const withdrawing = recoveredCoins[i].withdrawing
         if (withdrawing != null && withdrawing != 'None') {
