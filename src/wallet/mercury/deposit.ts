@@ -9,9 +9,9 @@
 
 'use strict';
 import { keyGen, keyGenToken, PROTOCOL, sign } from "./ecdsa";
-import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
-import { FeeInfo } from "./info_api";
-import { getSigHash, pubKeyTobtcAddr } from "../util";
+import { getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
+import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
+import { getSigHash, pubKeyTobtcAddr, txBuilder } from "../util";
 
 import { Network } from 'bitcoinjs-lib';
 import { PrepareSignTxMsg } from "./ecdsa";
@@ -121,7 +121,8 @@ export const depositConfirm = async (
 ): Promise<StateCoin> => {
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
-  let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
+  let nSequence = 0xFFFFFFFE;
+  
 
   // Calculate initial locktime
   let init_locktime = (chaintip_height) + (fee_info.initlock);
@@ -132,9 +133,24 @@ export const depositConfirm = async (
     statecoin.init_locktime = init_locktime;
   }
 
+  let sc_infos: StateChainDataAPI[] = [];
+
+  let statechain: StateChainDataAPI = {
+    utxo: {
+      txid: statecoin.funding_txid,
+      vout: statecoin.funding_vout
+    },
+    amount: statecoin.value,
+    chain: [statecoin.statechain_id],
+    locktime: init_locktime
+  };
+
+  sc_infos.push(statechain);
+
   // Build unsigned backup tx
   let backup_receive_addr = pubKeyTobtcAddr(statecoin.proof_key, network);
-  let tx_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, statecoin.funding_vout, backup_receive_addr, statecoin.value, fee_info.address, withdraw_fee, init_locktime).buildIncomplete();
+
+  let tx_backup_unsigned = txBuilder(network, sc_infos, backup_receive_addr, fee_info, nSequence, undefined, init_locktime).buildIncomplete();
 
   //co sign funding tx input signatureHash
   let pk = statecoin.getSharedPubKey();

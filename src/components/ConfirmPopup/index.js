@@ -51,7 +51,12 @@ const ConfirmPopup = ({ children, onOk, onCancel, preCheck=null, argsCheck=null 
       if(children.props.className.includes("withdrawing-warning")){
         setCloseText('Confirm withdrawal by RBF: Broadcast new transaction with higher fee.')
       }else{
-        setCloseText('Confirm withdrawal. Withdrawal fee: ' + withdraw_fee/100 + '%')
+        // Pay On Deposit or Withdrawal ?
+        if( withdraw_fee && withdraw_fee > 0 ){
+          setCloseText('Confirm withdrawal. Withdrawal fee: ' + withdraw_fee/100 + '%')
+        } else{
+          setCloseText('Confirm withdrawal.')
+        }
       }
     } else if(swapRecords.length > 0){
       setCloseText('Your swaps will be cancelled, are you sure?');

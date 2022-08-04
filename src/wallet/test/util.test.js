@@ -3,18 +3,18 @@
  */
 
 import { networks, ECPair } from 'bitcoinjs-lib';
-import { FEE_INFO } from '../mocks/mock_http_client';
+import { BACKUP_SEQUENCE, FEE_INFO, WITHDRAW_SEQUENCE } from '../mocks/mock_http_client';
 import {
-  txBackupBuild, txWithdrawBuild, txWithdrawBuildBatch, txCPFPBuild, StateChainSig,
+  txCPFPBuild, StateChainSig,
   toSatoshi, fromSatoshi,
   decodeSCEAddress, encodeSecp256k1Point, decodeSecp256k1Point,
   encryptECIES, decryptECIES, encryptAES, decryptAES, proofKeyToSCEAddress, encodeMessage,
-  decodeMessage, VIRTUAL_TX_SIZE, getTxFee } from '../util';
+  decodeMessage, VIRTUAL_TX_SIZE, getTxFee, txBuilder } from '../util';
 import { encodeSCEAddress } from '../util';
-import { FUNDING_TXID, FUNDING_TXIDS, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, SECRET_BYTES, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID } from './test_data.js'
+import { FUNDING_TXID, FUNDING_TXIDS, FUNDING_VOUT, BTC_ADDR, SIGNSTATECHAIN_DATA, PROOF_KEY, BACKUP_TX_HEX, SHARED_KEY_ID, STATECHAIN_ID, makeTesterStatecoin } from './test_data.js'
 import { Wallet } from '../';
 
-import { encrypt, decrypt, PrivateKey } from 'eciesjs12b';
+import { PrivateKey } from 'eciesjs12b';
 import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
 
 let bip32 = require('bip32');
@@ -41,27 +41,58 @@ describe('signStateChain', function() {
   });
 })
 
-describe('txBackupBuild', function() {
-    let funding_txid = FUNDING_TXID;
-    let funding_vout = FUNDING_VOUT;
+describe('txBuilder - Back Up Transaction', function() {
     let backup_receive_addr = BTC_ADDR
-    let value = 10000;
     let locktime = 100;
 
-  test('txBackupBuild throw on value < fee', async function() {
+
+    let fee_info = FEE_INFO;
+    fee_info.withdraw = 100;
+    let nSequence = BACKUP_SEQUENCE;
+
+    let statecoin = makeTesterStatecoin();
+    
+    let sc_infos = [{
+      utxo: {txid: statecoin.funding_txid, vout: statecoin.funding_vout},
+      amount: 100,
+      chain: statecoin.chain,
+      locktime: statecoin.init_locktime
+    }];
+    
+
+  test('txBuilder - Back up transaction throw on value < fee', async function() {
     expect(() => {  // not enough value
-      txBackupBuild(network, funding_txid, funding_vout, backup_receive_addr, 100, backup_receive_addr, 100, locktime);
+      txBuilder(network, sc_infos, backup_receive_addr, FEE_INFO, nSequence, undefined, locktime);
     }).toThrowError('Not enough value to cover fee.');
   });
 
   test('Check built tx correct 1', async function() {
-    let tx_backup = txBackupBuild(network, funding_txid, funding_vout, backup_receive_addr, value, backup_receive_addr, 100, locktime).buildIncomplete();
+    // Set withdrawal statecoin to 10000
+    sc_infos[0].amount = 10000;
+
+    let tx_backup = txBuilder(network, sc_infos, backup_receive_addr, FEE_INFO, nSequence, undefined, locktime).buildIncomplete();
+
     expect(tx_backup.ins.length).toBe(1);
-    expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
+    expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(sc_infos[0].utxo.txid);
     expect(tx_backup.outs.length).toBe(2);
-    expect(tx_backup.outs[0].value).toBeLessThan(value);
+    expect(tx_backup.outs[0].value).toBeLessThan(sc_infos[0].amount);
     expect(tx_backup.locktime).toBe(locktime);
   });
+
+  test('Check built tx correct: no withdrawal fee', async function() {
+    // Set withdrawal statecoin to 10000
+    sc_infos[0].amount = 10000;
+
+    fee_info.withdraw = 0;
+    
+    let tx_backup = txBuilder(network, sc_infos, backup_receive_addr, fee_info, nSequence, undefined, locktime).buildIncomplete();
+    
+    expect(tx_backup.ins.length).toBe(1);
+    expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(sc_infos[0].utxo.txid);
+    expect(tx_backup.outs.length).toBe(1);
+    expect(tx_backup.outs[0].value).toBeLessThan(sc_infos[0].amount);
+    expect(tx_backup.locktime).toBe(locktime);
+  })
 });
 
 describe('getTxFee', function () {
@@ -93,25 +124,52 @@ describe('getTxFee', function () {
   })
 })
 
-describe('txWithdrawBuild', function () {
+describe('txBuilder - Withdrawal', function () {
   let funding_txid = FUNDING_TXID;
   let funding_vout = FUNDING_VOUT;
   let rec_address = BTC_ADDR
   let value = 10000;
   let fee_info = FEE_INFO
   let fee_per_byte = 1 // 1 sat/byte 
+  
+  // I added everything below
+  
+  let nSequence = WITHDRAW_SEQUENCE
+  // let network = bitcoin.networks.bitcoin;
+  
+  let sc_infos = [{
+    utxo: {txid:  FUNDING_TXID, 
+    vout: FUNDING_VOUT},
+    amount: 10000,
+    chain: [],
+    locktime: -1
+  }];
+
 
   test('Throw on invalid value', async function() {
+
+    sc_infos[0].amount = 0;
+    // set input value 0, so fee higher than inputs
+
     expect(() => {  // not enough value
-      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 0, fee_info.address, Number(fee_info.withdraw), fee_per_byte);
+      txBuilder( network, sc_infos, rec_address, fee_info, WITHDRAW_SEQUENCE, fee_per_byte );
     }).toThrowError('Not enough value to cover fee.');
+
+    sc_infos[0].amount = 100;
+    // set input value 100, so fee higher than inputs
+
     expect(() => {  // not enough value
-      txWithdrawBuild(network, funding_txid, funding_vout, rec_address, 100, fee_info.address, Number(fee_info.withdraw), fee_per_byte); // should be atleast + value of network FEE also
+      txBuilder( network, sc_infos, rec_address, fee_info, WITHDRAW_SEQUENCE, fee_per_byte );
     }).toThrowError('Not enough value to cover fee.');
+
   });
 
   test('Check built tx correct 2', async function() {
-    let tx_backup = txWithdrawBuild(network, funding_txid, funding_vout, rec_address, value, rec_address, Number(fee_info.withdraw), fee_per_byte).buildIncomplete();
+    sc_infos[0].amount = 10000;
+    // set input value 100000
+
+    fee_info.withdraw = 141;
+    let tx_backup = txBuilder( network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte ).buildIncomplete();
 
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
@@ -122,16 +180,35 @@ describe('txWithdrawBuild', function () {
     // With a 1 s/b fee, tx fee should be equal to signed tx size
     expect(fee_value).toBe(VIRTUAL_TX_SIZE)
   });
+
+  test('Check built tx correct 3 - withdrawal fee removed', async function() {
+    sc_infos[0].amount = 10000;
+    // set input value 100000
+
+    fee_info.withdraw = 0;
+    let tx_backup = txBuilder( network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte ).buildIncomplete();
+
+    expect(tx_backup.ins.length).toBe(1);
+    expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
+    expect(tx_backup.outs.length).toBe(1);
+    expect(tx_backup.outs[0].value).toBeLessThan(value);
+    let fee_value = value - tx_backup.outs[0].value ;
+    // With a 1 s/b fee, tx fee should be equal to signed tx size
+    expect(fee_value).toBe(VIRTUAL_TX_SIZE)
+  });
 });
 
-describe('txWithdrawBuildBatch', function () {
+describe('txBuilder - Batch Withdrawals', function () {
   let funding_txid = FUNDING_TXID;
   let funding_vout = FUNDING_VOUT;
   let rec_address = BTC_ADDR
   let value = 10000;
-  let fee_info = FEE_INFO
+  let fee_info = FEE_INFO;
+
   let fee_per_byte = 1 // 1 sat/byte 
-  let sc_infos = new Array()
+  let nSequence = WITHDRAW_SEQUENCE;
+  let sc_infos = new Array();
+
 
   beforeEach(() => {
     sc_infos = new Array()
@@ -140,16 +217,18 @@ describe('txWithdrawBuildBatch', function () {
   test('Throw on invalid value', async function () {
     sc_infos.push({ utxo: { txid: funding_txid, vout: funding_vout }, amount: 1, chain: [], locktime: 0 })
     sc_infos.push({ utxo: { txid: FUNDING_TXIDS[1], vout: funding_vout }, amount: 1, chain: [], locktime: 0 })
+    
     expect(() => {  // not enough value
-      txWithdrawBuildBatch(network, sc_infos, rec_address, fee_info, fee_per_byte)
+      txBuilder( network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte );
     }).toThrowError('Not enough value to cover fee.');
   });
 
   test('Check built tx correct 2', async function () {
     sc_infos.push({ utxo: { txid: funding_txid, vout: funding_vout }, amount: value, chain: [], locktime: 0 })
     sc_infos.push({ utxo: { txid: FUNDING_TXIDS[1], vout: funding_vout }, amount: value, chain: [], locktime: 0 })
-
-    let tx_backup = txWithdrawBuildBatch(network, sc_infos, rec_address, fee_info, fee_per_byte).buildIncomplete()      
+    
+    fee_info.withdraw = 141;
+    let tx_backup = txBuilder(network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte).buildIncomplete();
 
     expect(tx_backup.ins.length).toBe(sc_infos.length);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
@@ -158,6 +237,25 @@ describe('txWithdrawBuildBatch', function () {
     const withdraw_fee = Math.round((sc_infos.length * value * fee_info.withdraw) / 10000)
     expect(tx_backup.outs[1].value).toEqual(withdraw_fee);
     let fee_value = sc_infos.length* value - tx_backup.outs[0].value - tx_backup.outs[1].value;
+
+    // With a 1 s/b fee, tx fee should be equal to signed tx size
+    expect(fee_value).toBe(getTxFee(fee_per_byte, sc_infos.length))
+  });
+
+  test('Check built tx correct 3 - withdrawal fee removed', async function () {
+    sc_infos.push({ utxo: { txid: funding_txid, vout: funding_vout }, amount: value, chain: [], locktime: 0 })
+    sc_infos.push({ utxo: { txid: FUNDING_TXIDS[1], vout: funding_vout }, amount: value, chain: [], locktime: 0 })
+    
+    fee_info.withdraw = 0;
+    let tx_backup = txBuilder(network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte).buildIncomplete();
+
+    expect(tx_backup.ins.length).toBe(sc_infos.length);
+    expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
+    expect(tx_backup.outs.length).toBe(1);
+    expect(tx_backup.outs[0].value).toBeLessThan(sc_infos.length * value);
+
+    let fee_value = sc_infos.length* value - tx_backup.outs[0].value
+
     // With a 1 s/b fee, tx fee should be equal to signed tx size
     expect(fee_value).toBe(getTxFee(fee_per_byte, sc_infos.length))
   });
