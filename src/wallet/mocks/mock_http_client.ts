@@ -105,6 +105,9 @@ export const FEE_INFO = {
   wallet_message: ""
 }
 
+export const BACKUP_SEQUENCE = 0xFFFFFFFE;
+export const WITHDRAW_SEQUENCE = 0xFFFFFFFD;
+
 export const COINS_INFO = {
   values: {
     0: 205,

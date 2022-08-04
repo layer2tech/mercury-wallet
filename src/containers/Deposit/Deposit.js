@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
-import { CreateStatecoin, TransactionsBTC, StdButton, Steppers, Tutorial } from "../../components";
+import { CreateStatecoin, StdButton, Steppers, Tutorial, TransactionsBTC } from "../../components";
 import { isWalletLoaded, callGetConfig,  callTokenInit, setError, callTokenVerify, setTokenVerifyIdle, resetToken, callGetTokens } from '../../features/WalletDataSlice';
 
 import './Deposit.css';
@@ -20,7 +20,7 @@ const DEFAULT_SETTINGS = {
   picks: 8
 }
 
-const STEPS = [
+const STEPS_POD = [
   {
     id: 1,
     description: 'Choose Amount and Value',
@@ -31,6 +31,17 @@ const STEPS = [
   },
   {
     id: 3,
+    description: 'Complete BTC Transactions',
+  },
+];
+
+const STEPS = [
+  {
+    id: 1,
+    description: 'Choose Amount and Value',
+  },
+  {
+    id: 2,
     description: 'Complete BTC Transactions',
   },
 ];
@@ -311,37 +322,75 @@ const DepositPage = () => {
 
             </div>
           </div>
-          <h3 className="subtitle">Create new statecoins. Deposit Fee: <b>{fee_info.deposit / 100}%</b></h3>
-        </div>
-        <div className="wizard">
-          <Steppers steps={STEPS} total={3} current={step} />
-          {step === 1 ? (
-            <CreateStatecoin
-              selectedValues={selectedValues}
-              addValueSelection={addValueSelection}
-              addSelectionPanel={addSelectionPanel}
-              settings={settings}
-              handleChildErrors={handleChildErrors}
-            />
-            ):(null)}
-          { step === 2 ? (
-            < PayOnDeposit />
-          ):(null)}
-          {step === 3? (
-            <TransactionsBTC
-              selectedValues={selectedValues}
-              setValueSelectionInitialised={setValueSelectionInitialised}
-              setValueSelectionAddr={setValueSelectionAddr}
-            />):(null)}
-          {step === 1 ? (
-            !childError && <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Continue</button>
-          ) : (
-            <div className="stepper-buttons">
-              <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Go Back</button>
-              {/* <button className={`primary-btn blue ${"step-" + step} continue`} onClick={(e) => onContinueClick(e)}>Continue</button> */}
-            </div>
+          { fee_info.deposit > 0 ? (
+          
+          <h3 className="subtitle"> Create new statecoins. Deposit Fee: 
+            <b>{fee_info.deposit / 100}%</b>
+          </h3>):(
+            <h3 className="subtitle"> Create new statecoins. Withdrawal Fee: 
+              <b>{fee_info.withdraw / 100}%</b>
+            </h3>
           )}
+
         </div>
+        {fee_info.withdraw <= 0 ? (
+          <div className="wizard">
+            {console.log('POD VERSION SELECTED')}
+            {/* Pay on Deposit */}
+              <Steppers steps={STEPS_POD} total={3} current={step} />
+              {step === 1 ? (
+                <CreateStatecoin
+                  selectedValues={selectedValues}
+                  addValueSelection={addValueSelection}
+                  addSelectionPanel={addSelectionPanel}
+                  settings={settings}
+                  handleChildErrors={handleChildErrors}
+                />
+                ):(null)}
+              { step === 2 ? (
+                < PayOnDeposit />
+              ):(null)}
+              {step === 3? (
+                <TransactionsBTC
+                  selectedValues={selectedValues}
+                  setValueSelectionInitialised={setValueSelectionInitialised}
+                  setValueSelectionAddr={setValueSelectionAddr}
+                />):(null)}
+              {step === 1 ? (
+                !childError && <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Continue</button>
+              ) : (
+                <div className="stepper-buttons">
+                  <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Go Back</button>
+                  {/* <button className={`primary-btn blue ${"step-" + step} continue`} onClick={(e) => onContinueClick(e)}>Continue</button> */}
+                </div>
+              )}
+
+          </div>
+            ):(
+              <div className = "wizard">
+                {/* Pay on Withdrawal */}
+                <Steppers steps={STEPS} total={2} current={step} />
+                {step === 1 ? (
+                  <CreateStatecoin
+                    selectedValues={selectedValues}
+                    addValueSelection={addValueSelection}
+                    addSelectionPanel={addSelectionPanel}
+                    settings={settings}
+                    handleChildErrors={handleChildErrors}
+                  />
+                ) : (
+                  <TransactionsBTC
+                    selectedValues={selectedValues}
+                    setValueSelectionInitialised={setValueSelectionInitialised}
+                    setValueSelectionAddr={setValueSelectionAddr}/>
+                )}
+                {step === 1 ? (
+                  !childError && <button className="primary-btn blue" onClick={() => setStep(2)}>Continue</button>
+                ) : (
+                  <button className="primary-btn blue" onClick={() => setStep(1)}>Go Back</button>
+                )}
+              </div>
+            )}
 
         <Modal show={show} onHide={handleClose} className="modal deposit-settings">
           <Modal.Header>
