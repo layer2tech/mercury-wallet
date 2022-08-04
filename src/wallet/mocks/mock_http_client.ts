@@ -99,6 +99,10 @@ export const FEE_INFO = {
   wallet_message: ""
 }
 
+export const FEE_INFO_2 = {
+  "address": "tb1qzvv6yfeg0navfkrxpqc0fjdsu9ey4qgqqsarq4", "deposit": 0, "withdraw": 50, "interval": 6, "initlock": 12960, "wallet_version": "0.6.5", "wallet_message": ""
+}
+
 export const ROOT_INFO = {
   id: 5,
   value: [154, 53, 38, 46, 29, 91, 126, 195, 142, 244, 188, 68, 180, 174, 33, 99, 89, 117, 11, 239, 187, 250, 220, 78, 240, 130, 228, 20, 23, 113, 225, 113],
@@ -142,6 +146,19 @@ export const STATECHAIN_INFO = {
   locktime: 1000
 }
 
+export const STATECHAIN_INFO_2 = {
+  utxo: {
+    txid: "13b53cb72f2871af1e54161bec52dfb285ababe48e3a0e17924f60d4ea3f200c",
+    vout: 0
+  },
+  amount: 100000,
+  chain: [{
+    data: "030ae3c9a6c64aab319fcdd254ff86405602c844ffb67a399a8489e9ab0daefd28", next_state: null
+  }],
+  locktime: 2327470,
+  confirmed: true
+}
+
 export const STATECOIN_INFO = {
   utxo: "794610eff71928df4d6814843945dbe51d8d11cdbcbeb11eb1c42e8199298494:0",
   amount: 500000,
@@ -170,12 +187,57 @@ export const STATECOIN_PROOF_KEY_DER =
 export const TRANSFER_SENDER = { x1: { secret_bytes: [4, 246, 192, 43, 69, 23, 178, 71, 110, 243, 18, 94, 63, 218, 196, 108, 233, 206, 106, 46, 41, 119, 58, 111, 27, 34, 131, 168, 191, 159, 116, 47, 105, 16, 0, 229, 91, 242, 129, 148, 9, 32, 169, 35, 147, 81, 145, 89, 120, 113, 52, 219, 120, 240, 95, 65, 18, 151, 19, 183, 175, 85, 35, 45, 4, 31, 193, 58, 52, 12, 133, 131, 108, 240, 63, 84, 93, 72, 57, 107, 174, 117, 10, 86, 11, 178, 235, 78, 195, 200, 49, 189, 224, 117, 14, 185, 5, 56, 84, 96, 142, 194, 95, 115, 175, 248, 103, 37, 171, 122, 249, 121, 183, 251, 135, 172, 10, 43, 14, 156, 21, 216, 155, 241, 67] }, proof_key: "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477" };
 export const TRANSFER_MSG3 = { shared_key_id: "96c77c1a-b3c1-4e2a-9e86-636f59306bbc", t1: { secret_bytes: [4, 236, 178, 53, 9, 218, 194, 137, 0, 80, 132, 88, 82, 233, 158, 111, 162, 176, 232, 242, 83, 145, 84, 237, 210, 14, 216, 37, 106, 178, 113, 194, 216, 124, 152, 234, 104, 207, 84, 50, 69, 2, 141, 244, 153, 196, 12, 15, 221, 230, 202, 18, 138, 142, 233, 40, 105, 46, 26, 246, 75, 65, 16, 45, 195, 220, 181, 217, 215, 157, 150, 114, 135, 83, 46, 39, 152, 130, 187, 242, 104, 125, 236, 253, 222, 76, 97, 111, 114, 95, 147, 241, 98, 85, 228, 71, 243, 74, 168, 25, 24, 237, 123, 50, 251, 204, 219, 74, 169, 37, 155, 177, 122, 36, 23, 36, 157, 169, 111, 107, 168, 152, 138, 58, 221] }, statechain_sig: { purpose: "TRANSFER", data: "028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41", sig: "3044022026a22bb2b8c0e43094d9baa9de1abd1de914b59f8bbcf5b740900180da575ed10220544e27e2861edf01b5c383fc90d8b1fd41211628516789f771b2c3536e650bda" }, "statechain_id": "f7ac71c1-0937-4718-bc9b-7f4d77321981", tx_backup_psm: { shared_key_ids: ["96c77c1a-b3c1-4e2a-9e86-636f59306bbc"], protocol: "Transfer", tx_hex: "0200000000010194842999812ec4b11eb1bebccd118d1de5db45398414684ddf2819f7ef1046790000000000feffffff02cf960700000000001600140b6d2d569da09a1201fa2cd50264d64bafc950cdc4090000000000001600143f17a0ef09f4889e5824dd4b37dd9cc5b50089ea02483045022100f749e391fa0980cf1ecc7f3e8e48d8c1fa8f87b86e987ac7bd0533ce4d215afe02205048dc2a2fe0f51097b4b214910eb261125bd122f771d321a49fa8127dc0dfc00121039422862ce37422c170c5529e9f2d278c5f32b0d39923d3ed412a10e8352fc7e92ca61f00", input_addrs: ["02303b83bc0a2980d353cc4a9474afb35e5d8d183b2ad9a1722e4a957fc15aa9b0"], input_amounts: [1000], proof_key: "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477" }, rec_se_addr: { tx_backup_addr: "tb1qsfdj64n7x6p8earaekppy0pcaxam6qeqzljw8m", proof_key: "028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41" } }
 export const TRANSFER_MSG3_2 = { shared_key_id: "96c77c1a-b3c1-4e2a-9e86-636f59306bbc", t1: { secret_bytes: [4, 236, 178, 53, 9, 218, 194, 137, 0, 80, 132, 88, 82, 233, 158, 111, 162, 176, 232, 242, 83, 145, 84, 237, 210, 14, 216, 37, 106, 178, 113, 194, 216, 124, 152, 234, 104, 207, 84, 50, 69, 2, 141, 244, 153, 196, 12, 15, 221, 230, 202, 18, 138, 142, 233, 40, 105, 46, 26, 246, 75, 65, 16, 45, 195, 220, 181, 217, 215, 157, 150, 114, 135, 83, 46, 39, 152, 130, 187, 242, 104, 125, 236, 253, 222, 76, 97, 111, 114, 95, 147, 241, 98, 85, 228, 71, 243, 74, 168, 25, 24, 237, 123, 50, 251, 204, 219, 74, 169, 37, 155, 177, 122, 36, 23, 36, 157, 169, 111, 107, 168, 152, 138, 58, 221] }, statechain_sig: { purpose: "TRANSFER", data: "028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41", sig: "3044022026a22bb2b8c0e43094d9baa9de1abd1de914b59f8bbcf5b740900180da575ed10220544e27e2861edf01b5c383fc90d8b1fd41211628516789f771b2c3536e650bda" }, "statechain_id": "f7ac71c1-0937-4718-bc9b-7f4d77321981", tx_backup_psm: { shared_key_ids: ["96c77c1a-b3c1-4e2a-9e86-636f59306bbc"], protocol: "Transfer", tx_hex: "0200000000010194842999812ec4b11eb1bebccd118d1de5db45398414684ddf2819f7ef1046790000000000feffffff02cf960700000000001600140b6d2d569da09a1201fa2cd50264d64bafc950cdc4090000000000001600143f17a0ef09f4889e5824dd4b37dd9cc5b50089ea02483045022100f749e391fa0980cf1ecc7f3e8e48d8c1fa8f87b86e987ac7bd0533ce4d215afe02205048dc2a2fe0f51097b4b214910eb261125bd122f771d321a49fa8127dc0dfc00121039422862ce37422c170c5529e9f2d278c5f32b0d39923d3ed412a10e8352fc7e92ca61f00", input_addrs: ["02303b83bc0a2980d353cc4a9474afb35e5d8d183b2ad9a1722e4a957fc15aa9b0"], input_amounts: [1000], proof_key: "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477" }, rec_se_addr: { tx_backup_addr: "tb1qsfdj64n7x6p8earaekppy0pcaxam6qeqzljw8m", proof_key: "0209c0ac5eaa010d1c964209260c17f4793cd1bb967a0d715bad190dc8fae89cad" } }
+export const TRANSFER_MSG3_3 = {
+  shared_key_id: "0168b205-e855-4ebb-87cd-e31dded8889b",
+  t1: {
+    secret_bytes: [4, 225, 236, 58, 132, 61, 229, 155, 207, 40, 185, 57, 255, 13, 47, 199, 92, 85, 144, 15, 228, 174, 239, 157, 55, 151, 90, 37, 237, 161, 87, 175, 33, 216, 92, 224, 49, 115, 219, 23, 7, 18, 157, 144, 44, 135, 187, 98, 107, 68, 235, 53, 75, 48, 166, 211, 151, 66, 169, 21, 204, 69, 172, 148, 221, 228, 129, 38, 26, 165, 195, 80, 221, 240, 34, 135, 8, 12, 36, 177, 244, 206, 239, 167, 109, 168, 16, 237, 148, 135, 32, 156, 144, 245, 238, 94, 29, 0, 177, 30, 132, 172, 186, 123, 223, 130, 27, 202, 202, 140, 187, 137, 28, 235, 6, 32, 105, 46, 211, 71, 231, 217, 78, 171, 77]
+  },
+  statechain_sig: {
+    purpose: "TRANSFER",
+    data: "030cedcfdada3d6950301a6c370c3042def4e1f5a6ac4e65b2730db075b85a400a",
+    sig: "304402204753e1b63b0a2a36c1ce426f8b50dd57ab40ed2ee3fbb82cce0bfc28c95eb7cb02202f9ed1403f8d0bae9bc4f2a5bf6a7dff40d846edecc6efc06db326c7f81ebbb6"
+  },
+  statechain_id: "776762ca-35e1-4e0f-a7cb-ccf6f34a1c75",
+  tx_backup_psm: {
+    shared_key_ids: ["0168b205-e855-4ebb-87cd-e31dded8889b"],
+    protocol: "Transfer",
+    tx_hex: "020000000001010c203fead4604f92170e3a8ee4abab85b2df52ec1b16541eaf71282fb73cb5130000000000feffffff021f8401000000000016001416ddc3def0effff9326e8672c83c00c8d504ed17f4010000000000001600141319a227287cfac4d8660830f4c\
+9b0e1724a81000247304402204c1f736f9bfe0582742fdd23cac6bf021eda6576081f07c61c3ac1b2c69d447a02203eee159dd2ee495c60729862353bdc94efdd5f64b1\
+ac4f386973557a0d4dbfec01210214e06215b708dc3373448cfa72dab91facdc238b6b7444b15b641d04ccb4acc5ae832300",
+    input_addrs: ["0214e06215b708dc3373448cfa72dab91facdc238b6b7444b15b641d04ccb4acc5"],
+    input_amounts: [100000],
+    proof_key: "030ae3c9a6c64aab319fcdd254ff86405602c844ffb67a399a8489e9ab0daefd28"
+  },
+  rec_se_addr: {
+    tx_backup_addr: "tb1qzmwu8hhsallljvnwseevs0qqer2sfmghe4t6r0",
+    proof_key: "030cedcfdada3d6950301a6c370c3042def4e1f5a6ac4e65b2730db075b85a400a"
+  }
+}
+
 export const STATECHAIN_INFO_AFTER_TRANSFER = { utxo: "794610eff71928df4d6814843945dbe51d8d11cdbcbeb11eb1c42e8199298494:0", amount: 500000, chain: [{ data: "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", next_state: null }], locktime: 1990441 }
+export const STATECHAIN_INFO_AFTER_TRANSFER_2 = {
+  "utxo": {
+    "txid": "13b53cb72f2871af1e54161bec52dfb285ababe48e3a0e17924f60d4ea3f200c", "vout": 0
+  }, "amount": 100000, "chain": [{
+    "data": "030ae3c9a6c64aab319fcdd254ff86405602c844ffb67a399a8489e9ab0daefd28", "next_state": null}], "locktime": 2327470, "confirmed": true
+}
 export const STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER = { __D: [12, 167, 86, 244, 1, 71, 143, 177, 161, 102, 210, 121, 69, 80, 29, 138, 245, 154, 218, 28, 181, 82, 197, 152, 80, 157, 252, 180, 148, 244, 117, 184], __Q: [2, 138, 155, 102, 208, 210, 198, 239, 127, 244, 74, 16, 61, 68, 212, 233, 34, 43, 31, 162, 253, 52, 205, 93, 226, 154, 84, 135, 92, 85, 42, 189, 65], chainCode: [17, 103, 219, 181, 100, 221, 223, 210, 34, 16, 230, 138, 129, 23, 181, 247, 233, 17, 25, 193, 254, 149, 5, 150, 20, 118, 66, 82, 146, 33, 29, 195], network: { messagePrefix: "\u0018Bitcoin Signed Message:\n", bech32: "tb", bip32: { public: 70617039, private: 70615956 }, pubKeyHash: 111, scriptHash: 196, wif: 239 }, __DEPTH: 3, __INDEX: 3, __PARENT_FINGERPRINT: 278430330, lowR: false }
+export const STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER_2 = {
+  type: "Buffer", data: [114, 96, 212, 179, 221, 42, 107, 126, 26, 75, 47, 67, 23, 240, 166, 56, 17, 189, 137, 78, 140, 42, 170, 188, 100, 171, 197, 102, 147, 250, 251, 50]
+}
 export const TRANSFER_PUBKEY = { key: "03b1e51eb08539dcbf58995f9e75519071d4acd88d16314fd7231e707c75707098" }
+export const TRANSFER_PUBKEY_2 = { key: "030ae3c9a6c64aab319fcdd254ff86405602c844ffb67a399a8489e9ab0daefd28" }
 export const TRANSFER_RECEIVER = { new_shared_key_id: "d91553ca-8cab-4eef-b315-28583fd4180b", s2_pub: { x: "abc03bfe5e2fb3d54a58069bb06cef5d25533da24d928679b1fa9e9c97b6e0e0", y: "d47dc07001729dd5adb19c52a1ce1b9c360b0e15abb5dabd652dbba787fe35c0" } }
 //export const TRANSFER_FINALIZE_DATA = {"new_shared_key_id":"d91553ca-8cab-4eef-b315-28583fd4180b","o2":"0ca756f401478fb1a166d27945501d8af59ada1cb552c598509dfcb494f475b8","s2_pub":{"x":"abc03bfe5e2fb3d54a58069bb06cef5d25533da24d928679b1fa9e9c97b6e0e0","y":"d47dc07001729dd5adb19c52a1ce1b9c360b0e15abb5dabd652dbba787fe35c0"},"state_chain_data":{"utxo":{"txid":"794610eff71928df4d6814843945dbe51d8d11cdbcbeb11eb1c42e8199298494","vout":0},"amount":500000,"chain":[{"data":"03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477","next_state":null}],"locktime":1990441},"proof_key":"028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41","statechain_id":"a11dbb04-38c4-4db2-946a-e972c9f1632d","tx_backup_psm":{"shared_key_ids":["96c77c1a-b3c1-4e2a-9e86-636f59306bbc"],"protocol":"Transfer","tx_hex":"0200000000010194842999812ec4b11eb1bebccd118d1de5db45398414684ddf2819f7ef1046790000000000feffffff02cf960700000000001600140b6d2d569da09a1201fa2cd50264d64bafc950cdc4090000000000001600143f17a0ef09f4889e5824dd4b37dd9cc5b50089ea02483045022100f749e391fa0980cf1ecc7f3e8e48d8c1fa8f87b86e987ac7bd0533ce4d215afe02205048dc2a2fe0f51097b4b214910eb261125bd122f771d321a49fa8127dc0dfc00121039422862ce37422c170c5529e9f2d278c5f32b0d39923d3ed412a10e8352fc7e92ca61f00","input_addrs":["02303b83bc0a2980d353cc4a9474afb35e5d8d183b2ad9a1722e4a957fc15aa9b0"],"input_amounts":[1000],"proof_key":"03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477","shared_key_id":"d91553ca-8cab-4eef-b315-28583fd4180b"}}
 //SwapID
+export const TRANSFER_RECEIVER_2 = {
+  new_shared_key_id: "5dbdf019-772d-45b6-8f38-9539431ec955",
+  s2_pub: {
+    x: "a354235b65b9a5cf9c59f4debdad352aaf93d92aef0687bc6de7d1d1f22a609",
+    y: "2b483edbcf931e94541d303a80ba98f4eb8c79bddcfff2225c21e03d6155114"
+  }
+}
+
 export const POLL_UTXO: SwapID = { id: "00000000-0000-0000-0000-000000000001" };
 
 //SwapID
