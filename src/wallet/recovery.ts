@@ -24,16 +24,6 @@ let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
 const n = secp256k1.curve.n
 
-// Logger import.
-// Node friendly importing required for Jest tests.
-declare const window: any;
-let log: any;
-try {
-  log = window.require('electron-log');
-} catch (e: any) {
-  log = require('electron-log');
-}
-
 // number of keys to generate per recovery call. If no statecoins are found for this number
 // of keys then assume there are no more statecoins owned by this wallet.
 const NUM_KEYS_PER_RECOVERY_ATTEMPT = 200;
@@ -212,8 +202,8 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         // check that the received backup transaction belongs to the proof key
         if (tx_backup.outs[0].script != pubKeyToScriptPubKey(recoveredCoins[i].proof_key, network)) {
           const warning = `Warning: backup transaction recovered for coin: ${statecoin.funding_txid} is incorrect. Withdraw coin immediately.`
-          log.warn(warning);
-          alert(warning)
+//          alert(warning)
+          console.log("Warning: backup transaction recovered for coin is incorrect. Withdraw coin immediately.");
           statecoin.tx_backup = null
           statecoin.backup_status = BACKUP_STATUS.MISSING;
         } else {

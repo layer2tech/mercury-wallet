@@ -115,7 +115,7 @@
     "jest-environment-jsdom-fifteen": "^1.0.2",
     "jest-environment-jsdom-fourteen": "^1.0.1",
     "lodash.clonedeep": "^4.5.0",
-    "mercury-wallet-tor-adapter": "file:tor-adapter",
+    "mercury-wallet-tor-adapter": "file:./tor-adapter",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
     "mutex-promise": "^0.1.0",
