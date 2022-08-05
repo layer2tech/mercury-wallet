@@ -142,7 +142,7 @@
     "suppress-warnings": "^1.0.2",
     "testcafe": "^1.14.2",
     "testcafe-browser-provider-electron": "^0.0.16",
-    "ts-jest": "^26.4.4",
+    "ts-jest": "^28.0.7",
     "typeforce": "^1.11.3",
     "uuid": "^8.3.2",
     "wasm-pack": "^0.10.0"
@@ -221,8 +221,8 @@
     ]
   },
   "resolutions": {
-    "**/@typescript-eslint/eslint-plugin": "^4.1.1",
-    "**/@typescript-eslint/parser": "^4.1.1"
+    "**/@typescript-eslint/eslint-plugin": "^5.32.0",
+    "**/@typescript-eslint/parser": "^5.32.0"
   },
   "eslintConfig": {
     "extends": [
