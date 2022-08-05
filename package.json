@@ -222,7 +222,8 @@
   },
   "resolutions": {
     "**/@typescript-eslint/eslint-plugin": "^5.32.0",
-    "**/@typescript-eslint/parser": "^5.32.0"
+    "**/@typescript-eslint/parser": "^5.32.0",
+    "jest-environment-jsdom": "27.4.6"
   },
   "eslintConfig": {
     "extends": [
