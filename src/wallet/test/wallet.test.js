@@ -525,8 +525,8 @@ describe('Wallet', function () {
       let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_5);
   
       // change the first statecoin status to swapped
-      statecoin = wallet.statecoins.coins[0]
-      statecoin.status = STATECOIN_STATUS.SWAPPED
+      let statecoin = wallet.statecoins.coins[0];
+      statecoin.status = STATECOIN_STATUS.SWAPPED;
   
       // expect there to be this statecoin inside statecoin.coins
       expect(wallet.statecoins.coins.filter((coin) => coin === statecoin)[0]).toBe(statecoin);
