@@ -75,18 +75,16 @@ export const transferSender = async (
 
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
-  log.debug(`###### transferSender - fee_info: ${JSON.stringify(fee_info)}`)
 
   // Get statechain from SE and check ownership
   let statecoin_data = await getStateCoin(http_client, statecoin.statechain_id);
-  log.debug(`###### transferSender - statecoin_data: ${JSON.stringify(statecoin_data)}`)
   if (statecoin_data.amount === 0) throw Error("StateChain " + statecoin.statechain_id + " already withdrawn.");
   let sc_statecoin = statecoin_data.statecoin;
   if (sc_statecoin.data !== statecoin.proof_key) throw Error("StateChain not owned by this Wallet. Incorrect proof key: chain has " + sc_statecoin.data + ", expected " + statecoin.proof_key);
 
   // Sign statecoin to signal desire to Transfer
   let statechain_sig = StateChainSig.create(proof_key_der, "TRANSFER", receiver_addr);
-  
+
   // Init transfer: Send statechain signature or batch data
   let batch_id = null;
   if (is_batch) {
@@ -102,7 +100,6 @@ export const transferSender = async (
 
   let transfer_msg2 = await http_client.post(POST_ROUTE.TRANSFER_SENDER, transfer_msg1);
   typeforce(types.TransferMsg2, transfer_msg2);
-  log.debug(`###### transferSender - transfer_msg2: ${JSON.stringify(statecoin_data)}`)
 
   // wallet.decrypt(&mut transfer_msg2)?;
 
@@ -126,8 +123,7 @@ export const transferSender = async (
 
   // Sign new back up tx
   let signature: any[][] = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.TRANSFER);
-  log.debug(`###### transferSender - signature: ${JSON.stringify(signature)}`)
-  
+
   // Set witness data as signature
   let new_tx_backup_signed = new_tx_backup;
   new_tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]), Buffer.from(signature[1])];
@@ -165,7 +161,6 @@ export const transferSender = async (
     rec_se_addr: proofKeyToSCEAddress(receiver_addr, network),
   };
   typeforce(types.TransferMsg3, transfer_msg3);
-  log.debug(`###### transferSender - transfer_msg3: ${JSON.stringify(transfer_msg3)}`)
 
   // Mark funds as spent in wallet if this isn't a batch transfer
   if (!is_batch) {
@@ -254,11 +249,12 @@ export const getTransferMsg4 = async (
   console.log(pk_expected);
   console.log(transfer_msg3.tx_backup_psm.tx_hex);
 
+  console.log(tx_backup.outs[0].script.toString());
+  console.log(pubKeyToScriptPubKey(pk_expected, network).toString());
+
   // check the tx output script
-  let output_script_expected = pubKeyToScriptPubKey(pk_expected, network).toString('hex');
-  let output_script_actual = tx_backup.outs[0].script.toString('hex');
-  if (output_script_actual != output_script_expected)
-    throw new Error(`Backup tx output script incorrect -expected ${output_script_expected}, got ${output_script_actual}`);
+  if (tx_backup.outs[0].script.toString() != pubKeyToScriptPubKey(pk_expected, network).toString())
+    throw new Error(`Backup tx output script incorrect.`);
 
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);
@@ -338,10 +334,8 @@ export const transferReceiver = async (
   transfer_msg_4: TransferMsg4 | null
 ): Promise<TransferFinalizeData> => {
   log.debug('transferReceiver...')
-  log.debug(`###### transferReceiver - se_rec_addr_bip32.privateKey: ${JSON.stringify(se_rec_addr_bip32.privateKey)}`)
   // Get statechain data (will Err if statechain not yet finalized)
   let statechain_data = await getStateChain(http_client, transfer_msg3.statechain_id);
-  log.debug(`###### transferReceiver - statechain_data: ${JSON.stringify(statechain_data)}`)
 
   // get o2 private key
   const o2 = se_rec_addr_bip32.privateKey!.toString("hex");
@@ -358,7 +352,6 @@ export const transferReceiver = async (
         // transfer already (partially) completed
 
         let new_shared_key_id = await getOwner(http_client, transfer_msg3.statechain_id);
-        log.debug(`###### transferReceiver - new_shared_key_id: ${JSON.stringify(new_shared_key_id)}`)
 
         // Update tx_backup_psm shared_key_id with new one
         let tx_backup_psm = transfer_msg3.tx_backup_psm;
@@ -395,11 +388,9 @@ export const transferReceiver = async (
       value,
       statechain_data)
   }
-  log.debug(`###### transferReceiver - transfer_msg_4: ${JSON.stringify(transfer_msg_4)}`)
   log.debug('get transfer_msg_5...')
   let transfer_msg5: TransferMsg5 = await http_client.post(POST_ROUTE.TRANSFER_RECEIVER, transfer_msg_4);
   typeforce(types.TransferMsg5, transfer_msg5);
-  log.debug(`###### transferReceiver - transfer_msg5: ${JSON.stringify(transfer_msg5)}`)
 
   // Update tx_backup_psm shared_key_id with new one
   let tx_backup_psm = transfer_msg3.tx_backup_psm;
@@ -416,7 +407,6 @@ export const transferReceiver = async (
     tx_backup_psm: tx_backup_psm,
   };
   typeforce(types.TransferFinalizeData, finalize_data);
-  log.debug(`###### transferReceiver - finalize_data: ${JSON.stringify(finalize_data)}`)
   log.debug('return finalize_data')
   return finalize_data
 }

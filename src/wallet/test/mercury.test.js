@@ -2,10 +2,7 @@
  * @jest-environment jest-environment-jsdom-fifteen
  */
 
-import {
-  pubKeyTobtcAddr, decryptECIES, txBackupBuild,
-  pubKeyToScriptPubKey, FEE
-} from '../util';
+import { pubKeyTobtcAddr, decryptECIES } from '../util';
 import { Wallet, STATECOIN_STATUS } from '../';
 import { keyGen, sign } from "../mercury/ecdsa";
 import { depositConfirm } from "../mercury/deposit";
@@ -323,34 +320,21 @@ describe('StateChain Entity', function() {
   describe('TransferReceiver', function() {
     test('Expect complete', async function() {
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER_2)
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO_2))
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO_2))
+        .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
         
         
         
       http_mock.post = jest.fn().mockReset()
-        .mockReturnValueOnce(MOCK_SERVER.TRANSFER_PUBKEY_2)
-        .mockReturnValueOnce(MOCK_SERVER.TRANSFER_RECEIVER_2)
+        .mockReturnValueOnce(MOCK_SERVER.TRANSFER_PUBKEY)
+        .mockReturnValueOnce(MOCK_SERVER.TRANSFER_RECEIVER)
       //POST.TRANSFER_UPDATE_MSG;
         .mockReturnValueOnce(true)
 
-      let transfer_msg3 = cloneDeep(MOCK_SERVER.TRANSFER_MSG3_3);
-      let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER_2.data)); 
-
-      /*
-      let tx_backup_0 = bitcoin.Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
-      let tx_backup_1 = txBackupBuild(bitcoin.networks.testnet, tx_backup_0.ins[0].hash, tx_backup_0.ins[0].index,
-        pubKeyToScriptPubKey(se_rec_addr_bip32.publicKey, bitcoin.networks.testnet),
-        tx_backup_0.outs[0].value + FEE + tx_backup_0.outs[1].value,
-        tx_backup_0.outs[1].script, tx_backup_0.outs[1].value,
-        tx_backup_0.locktime
-      );
-      //tx_backup_1.sign(se_rec_addr_bip32);
-
-      transfer_msg3.tx_backup_psm.tx_hex = tx_backup_1.toHex();
-      */
-
+      let transfer_msg3 = cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
+      let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER.__D));
+      
       let finalize_data = await transferReceiver(http_mock, electrum_mock, network, transfer_msg3, se_rec_addr_bip32, null);
       expect(finalize_data.shared_key_id).not.toBe(transfer_msg3.shared_key_id);
     });
@@ -370,16 +354,16 @@ describe('StateChain Entity', function() {
     });
     test('Incorrect decryption key', async function() {
       http_mock.get = jest.fn().mockReset()
-        .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER_2)
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO_2))
+        .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO))
 
-      let transfer_msg3 = cloneDeep(MOCK_SERVER.TRANSFER_MSG3_3);
-      let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER_2.data));
+      let transfer_msg3 = cloneDeep(MOCK_SERVER.TRANSFER_MSG3_2);
+      let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER.__D));
       se_rec_addr_bip32.__D = Buffer.from("0ca756f401478fb1a166d27945501d8af59ada1cb552c598509dfcb494f475b9", "hex")
 
       await expect(transferReceiver(http_mock, electrum_mock, network, transfer_msg3, se_rec_addr_bip32, null))
         .rejects
-        .toThrowError("Backup tx not sent to addr derived from receivers proof key. Expected proof key 0209c0ac5eaa010d1c964209260c17f4793cd1bb967a0d715bad190dc8fae89cad, got 030cedcfdada3d6950301a6c370c3042def4e1f5a6ac4e65b2730db075b85a400a. Transfer not made to this wallet.");
+        .toThrowError("Unsupported state or unable to authenticate data");
     });
   });
 
