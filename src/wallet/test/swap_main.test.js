@@ -453,9 +453,11 @@ describe('Deregister statecoin',  function () {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
     let initStatecoin = cloneDeep(statecoin)
+    let removeSpy = jest.spyOn(wallet, 'removeCoinFromSwapPool');
     setSwapDetails(initStatecoin, "Reset")
     await expect(wallet.removeCoinFromSwapPool(statecoin.shared_key_id)).resolves
     expect(statecoin).toEqual(initStatecoin)
+    expect(removeSpy).toHaveBeenCalledTimes(1)
   })
   
   test('Deregister statecoin in swap unsuccessful', async function () {
@@ -468,23 +470,27 @@ describe('Deregister statecoin',  function () {
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 1)
     let statecoin = wallet.statecoins.coins[0]
     let phase1Statecoin = cloneDeep(statecoin)
+    let removeSpy = jest.spyOn(wallet, 'removeCoinFromSwapPool');
     await expect(wallet.deRegisterSwapCoin(statecoin)).rejects.toThrow(
       Error(`Coin is not in a swap pool.`))
     expect(statecoin).toEqual(phase1Statecoin)
+    expect(removeSpy).not.toHaveBeenCalled()
   })
 
   test('Deregister statecoin - server returns error', async function () {
     wallet.http_client.post = jest.fn((path, body) => {
       if(path === POST_ROUTE.SWAP_DEREGISTER_UTXO){
-        throw Error(`${path}:${body}`)
+        promise.reject(new Error(`${path}:${body}`))
       }
     })
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
     let statecoin = wallet.statecoins.coins[0]
     let phase0Statecoin = cloneDeep(statecoin)
+    let removeSpy = jest.spyOn(wallet, 'removeCoinFromSwapPool');
     await expect(() => {wallet.deRegisterSwapCoin(statecoin)}).rejects.toThrow
       Error(`${POST_ROUTE.SWAP_DEREGISTER_UTXO}:${statecoin.statechain_id}`);
     expect(statecoin).toEqual(phase0Statecoin)
+    expect(removeSpy).not.toHaveBeenCalled()
   })  
 })
 
