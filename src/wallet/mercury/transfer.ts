@@ -246,15 +246,14 @@ export const getTransferMsg4 = async (
   if (pk_expected !== pk_received)
     throw new Error(`Backup tx not sent to addr derived from receivers proof key. Expected proof key ${pk_expected}, got ${pk_received}. Transfer not made to this wallet.`);
 
-  console.log(pk_expected);
-  console.log(transfer_msg3.tx_backup_psm.tx_hex);
-
-  console.log(tx_backup.outs[0].script.toString());
-  console.log(pubKeyToScriptPubKey(pk_expected, network).toString());
+  // decrypt t1
+  let t1 = decryptECIES(se_rec_addr_bip32.privateKey!.toString("hex"), transfer_msg3.t1.secret_bytes)
 
   // check the tx output script
-  if (tx_backup.outs[0].script.toString() != pubKeyToScriptPubKey(pk_expected, network).toString())
-    throw new Error(`Backup tx output script incorrect.`);
+  let output_script_expected = pubKeyToScriptPubKey(pk_expected, network).toString('hex');
+  let output_script_actual = tx_backup.outs[0].script.toString('hex');
+  if (output_script_actual != output_script_expected)
+    throw new Error(`Backup tx output script incorrect -expected ${output_script_expected}, got ${output_script_actual}`);
 
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);
@@ -281,9 +280,6 @@ export const getTransferMsg4 = async (
   let tx_data: any = await electrum_client.getTransaction(statechain_data.utxo.txid);
   if (tx_data === null) throw new Error("TxID not found.");
   if (tx_data?.confirmations < req_confirmations) throw new Error("Coin has insufficient confirmations.");
-
-  // decrypt t1
-  let t1 = decryptECIES(se_rec_addr_bip32.privateKey!.toString("hex"), transfer_msg3.t1.secret_bytes)
 
   // calculate t2
   let t1_bn = new BN(t1, 16);

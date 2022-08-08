@@ -258,7 +258,7 @@ describe('Wallet', function () {
   describe('bitcoin.address.fromOutputScript', function () {
     const http_mock = jest.genMockFromModule('../mocks/mock_http_client');
     const tx_backup = bitcoin.Transaction.fromHex(http_mock.TRANSFER_MSG3.tx_backup_psm.tx_hex);
-    const addr_expected = "bc1qpdkj645a5zdpyq069n2syexkfwhuj5xda665q8"
+    const addr_expected = "bc1q6xwt00hnwcrtlunvnz8u0xrtdxv5ztx7t5wxrj"
 
     let network = bitcoin.networks.bitcoin
     test('Address from output script in bitcoin network', function () {

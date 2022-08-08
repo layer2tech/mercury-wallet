@@ -200,9 +200,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.value = recoveredCoins[i].amount;
 
         // check that the received backup transaction belongs to the proof key
-        if (tx_backup.outs[0].script != pubKeyToScriptPubKey(recoveredCoins[i].proof_key, network)) {
-          const warning = `Warning: backup transaction recovered for coin: ${statecoin.funding_txid} is incorrect. Withdraw coin immediately.`
-//          alert(warning)
+        if (tx_backup.outs[0].script.toString() != pubKeyToScriptPubKey(recoveredCoins[i].proof_key, network).toString()) {
           console.log("Warning: backup transaction recovered for coin is incorrect. Withdraw coin immediately.");
           statecoin.tx_backup = null
           statecoin.backup_status = BACKUP_STATUS.MISSING;
