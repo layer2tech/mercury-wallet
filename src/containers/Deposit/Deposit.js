@@ -109,9 +109,11 @@ const DepositPage = () => {
         return
       } else{
         setSelectedValues([{ value: null, initialised: false, p_addr: "Initialising.." }])
+        let id = 0
         // initialise selected values
         token.values.map(value => {
-          addValueSelection(0, value)
+          addValueSelection(id, value)
+          id += 1
           // set selected values according to token
         })
         setStep( 3 )
@@ -165,39 +167,9 @@ const DepositPage = () => {
       
       if(step === 1){
 
-        /*
-
-        Option 1: Show all unspent tokens ( don't generate new token if old token exists )
-        √ Save tokens to wallet file 
-        √ Save info about coins used and replace ( for selected values )
-        √ Allow to pass on to step 2 without depositing statecoins
-        √ Don't show token label if token amount 0
-        √ Confirm button on each token or Confirm All at bottom
-          • setToken function
-          • On confirm setToken, listen for this in useEffect - run tokenVerify
-        
-        √ Add details to coin: to deposit statecoins of: 1x0.001BTC or equivalent value
-        √ Don't create a new token if one already exists of same value and values
-
-        very good to add: 
-
-          √ 'Remove token from wallet' button
-          - Remove spent tokens
-          - Message saying click statecoins to deposit
-
-        Not necessary but maybe: 
-          - Confirm All button
-
-        */
-
-
         var tokenValue = calculateTokenFee(selectedValues);
-        
-        if(tokenValue <= DUST_LIMIT && tokenValue !== 0){
-          // Can dust limit be avoided by adding token payment to deposit ?
-          dispatch(setError({msg: "Transaction below dust limit! Add another statecoin to deposit."}))
-          return
-        }
+
+
         if(tokenValue <= DUST_LIMIT && tokenValue === 0 ){
           // no coin selected -> see token list
           setStep(2)
@@ -325,17 +297,16 @@ const DepositPage = () => {
           { fee_info.deposit > 0 ? (
           
           <h3 className="subtitle"> Create new statecoins. Deposit Fee: 
-            <b>{fee_info.deposit / 100}%</b>
+            <b> {fee_info.deposit / 100}%</b>
           </h3>):(
             <h3 className="subtitle"> Create new statecoins. Withdrawal Fee: 
-              <b>{fee_info.withdraw / 100}%</b>
+              <b> {fee_info.withdraw / 100}%</b>
             </h3>
           )}
 
         </div>
         {fee_info.withdraw <= 0 ? (
           <div className="wizard">
-            {console.log('POD VERSION SELECTED')}
             {/* Pay on Deposit */}
               <Steppers steps={STEPS_POD} total={3} current={step} />
               {step === 1 ? (

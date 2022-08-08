@@ -303,7 +303,7 @@ export const callGetToken = () => {
 }
 export const callGetTokens = () => {
   if(isWalletLoaded()){
-    return wallet.getTokens()
+    return wallet.getTokens().reverse()
   }
 }
 
@@ -311,6 +311,13 @@ export const callDeleteToken = (token_id) => {
   if (isWalletLoaded()) {
     log.info("Removing token " + token_id + " from wallet.");
     wallet.deleteToken(token_id);
+  }
+}
+
+export const callSpendToken = (token_id, amount) => {
+  if (isWalletLoaded()) {
+    log.info("Spending " + amount + " from token " + token_id + ".");
+    wallet.spendToken(token_id, amount);
   }
 }
 
@@ -721,8 +728,8 @@ export const callDepositInit = createAsyncThunk(
 
 export const callTokenDepositInit = createAsyncThunk(
   'tokenDepositInit',
-  async (value, thunkAPI) => {
-    return wallet.tokenDepositInit(value)
+  async (action, thunkAPI) => {
+    return wallet.tokenDepositInit(action.value, action.token_id)
   }
 )
 

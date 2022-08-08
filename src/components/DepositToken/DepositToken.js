@@ -8,6 +8,7 @@ import { fromSatoshi } from '../../wallet';
 import QRCodeGenerator from '../QRCodeGenerator/QRCodeGenerator';
 import { setToken } from '../../features/WalletDataSlice';
 import close_img from "../../images/close-icon.png";
+import { DUST_LIMIT } from '../../wallet/util';
 
 
 // Add Animation for when button clicked
@@ -147,9 +148,11 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
                 </div>
             </div>):(
                 <div className='pay-select'>
+                    { tokenFee > DUST_LIMIT ? (
                     <button className='Body-button token' onClick={(e) => onHandleClick(e)}>
                         <p>BTC</p>
                     </button>
+                    ): (null)}
                     <button className='Body-button token' onClick={(e) => onHandleClick(e)}>
                         <p>LN</p>
                     </button>

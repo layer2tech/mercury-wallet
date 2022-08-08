@@ -45,7 +45,7 @@ describe('Deposit', function(){
 
     })
 
-    test('Token Verify: Successful Call', async function(){
+    test('Token Verify: Server Error', async function(){
     
         http_mock.get = jest.fn().mockReset()
             .mockImplementation(() => {

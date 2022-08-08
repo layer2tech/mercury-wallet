@@ -31,13 +31,16 @@ const PayOnDeposit = () => {
     return(
         <div className = 'pod-container'>
             {callGetTokens()?.map(token => {
-                return(
-                    <div className = 'pod-token' key = { token.token.id } >
-                        < DepositToken 
-                            token = { token }
-                            confirmDelete = { confirmDelete } />
-                    </div>
-                )
+                console.log(token)
+                if(token.values.length > 0){
+                    return(
+                        <div className = 'pod-token' key = { token.token.id } >
+                            < DepositToken 
+                                token = { token }
+                                confirmDelete = { confirmDelete } />
+                        </div>
+                    )
+                }
             })}
              <Modal
                 show={showConfirmCoinAction.show}

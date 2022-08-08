@@ -25,7 +25,7 @@ export const fromSatoshi = (sat: number) => { return sat / 10e7 }
 /// Temporary - fees should be calculated dynamically
 export const FEE = 141;
 // Dust Limit for Pay on Deposit
-export const DUST_LIMIT = toSatoshi(0.00000546);
+export const DUST_LIMIT = 546;
 
 //FEE for backup transaction 2 outputs 1 input P2WPKH
 export const MINIMUM_DEPOSIT_SATOSHI = 100000;

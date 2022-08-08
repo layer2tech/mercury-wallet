@@ -66,7 +66,10 @@ export class MockHttpClient {
       case POST_ROUTE.SMT_PROOF:
         return SMT_PROOF
       case POST_ROUTE.DEPOSIT_INIT:
-        return { id: "861d2223-7d84-44f1-ba3e-4cd7dd418560" };
+        return { id: "861d2223-7d84-44f1-ba3e-4cd7dd418560",
+      challenge: "861d22237d8444f1ba3e4cd7dd418560" };
+      case POST_ROUTE.POD_DEPOSIT_INIT:
+        return { id: "861d2223-7d84-44f1-ba3e-4cd7dd418560"};
       case POST_ROUTE.DEPOSIT_CONFIRM:
         return DEPOSIT_CONFIRM
       case POST_ROUTE.WITHDRAW_INIT:
@@ -98,7 +101,7 @@ export class MockHttpClient {
 export const FEE_INFO = {
   address: "tb1q6xwt00hnwcrtlunvnz8u0xrtdxv5ztx7pj44cp",
   deposit: 50,
-  withdraw: 141,
+  withdraw: 0,
   interval: 100,
   initlock: 10000,
   wallet_version: "0.4.66",
@@ -802,6 +805,6 @@ export const TOKEN_INIT = {
 }
 
 export const TOKEN_VERIFY = {
-  confirmed: false,
+  confirmed: true,
   spent: false,
 }

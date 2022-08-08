@@ -1061,6 +1061,26 @@ export class Wallet {
     return this.tokens
   }
 
+  spendToken(token_id: string, amount: number){
+
+    let token = this.getToken(token_id);
+    if(token){
+      let values = Array.from(token.values)
+      let index = values.indexOf(amount);
+      values.splice(index,1);
+      this.deleteToken(token_id);
+      let updated_token = {
+        token: token.token,
+        values: values
+      }
+      this.addToken(updated_token);
+    }
+
+
+
+    this.save();
+  }
+
   //Add token to wallet
   addToken(token: TokenData){
     this.tokens.push(token);
@@ -1249,10 +1269,11 @@ export class Wallet {
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
 
+    let wasm_client = await this.getWasm();
     // Initisalise deposit - gen shared keys and create statecoin
     let statecoin = await depositInit(
       this.http_client,
-      await this.getWasm(),
+      wasm_client,
       proof_key_pub,
       proof_key_priv!
     );

@@ -789,7 +789,7 @@ export interface Token {
 
 export interface TokenData {
   token: Token,
-  coins: number[]
+  values: number[]
 }
 
 
