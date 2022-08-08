@@ -449,7 +449,7 @@ p.short{
 .main-coin-wrap.no-coin {
   min-height: 50px;
 }
-.swap .coin-item.SWAPLIMIT, .sendStatecoin .coin-item.SWAPLIMIT{
+.swap .coin-item.SWAPLIMIT, .sendStatecoin .coin-item.SWAPLIMIT, .swap .coin-item.EXPIRED, .sendStatecoin .coin-item.EXPIRED {
   opacity: 0.3;
 }
 
@@ -461,7 +461,7 @@ p.short{
   opacity: 0.3;
 }
 
-.coin-item.UNCONFIRMED, .coin-item.IN_MEMPOOL, .coin-item.EXPIRED, .coin-item.INITIALISED {
+.coin-item.UNCONFIRMED, .coin-item.IN_MEMPOOL, .coin-item.INITIALISED {
   opacity: .3;
 }
 .sendStatecoin .coin-item.IN_SWAP,.sendStatecoin .coin-item.AWAITING_SWAP,.withdraw .coin-item.IN_SWAP,.withdraw .coin-item.AWAITING_SWAP{

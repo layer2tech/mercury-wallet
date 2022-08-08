@@ -352,6 +352,7 @@ describe('StateChain Entity', function() {
         .rejects
         .toThrowError("Invalid StateChainSig.");
     });
+
     test('Incorrect decryption key', async function() {
       http_mock.get = jest.fn().mockReset()
         .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
@@ -364,6 +365,19 @@ describe('StateChain Entity', function() {
       await expect(transferReceiver(http_mock, electrum_mock, network, transfer_msg3, se_rec_addr_bip32, null))
         .rejects
         .toThrowError("Unsupported state or unable to authenticate data");
+    });
+
+    test('Incorrect backup tx script', async function() {
+      http_mock.get = jest.fn().mockReset()
+        .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO))
+
+      let transfer_msg3 = cloneDeep(MOCK_SERVER.TRANSFER_MSG3_3);
+      let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER.__D));
+
+      await expect(transferReceiver(http_mock, electrum_mock, network, transfer_msg3, se_rec_addr_bip32, null))
+        .rejects
+        .toThrowError("Backup tx not sent to addr derived from receivers proof key. Expected proof key 028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41, got 0209c0ac5eaa010d1c964209260c17f4793cd1bb967a0d715bad190dc8fae89cad. Transfer not made to this wallet.");
     });
   });
 
