@@ -1305,11 +1305,12 @@ describe("Handle swap error", () => {
     let error = Error("Misc error")
     let nCalls = 0;
     for (let s in SWAP_STATUS) {
-      statecoin.swap_status = s;
-      wallet.handleSwapError(error, statecoin);
+      let sc = cloneDeep(statecoin)
+      sc.swap_status = s;
+      wallet.handleSwapError(error, sc);
       if (s != SWAP_STATUS.Phase4) {
         nCalls = nCalls + 1;
-      }
+      } 
       expect(setSwapDataToNullSpy).toHaveBeenCalledTimes(nCalls);
     }
   })
