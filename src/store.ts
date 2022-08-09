@@ -1,5 +1,7 @@
 'use strict';
-import { ActivityLog, decryptAES, encryptAES, StateCoinList } from "./wallet";
+
+import { ActivityLog, decryptAES, encryptAES, StateCoin, StateCoinList, STATECOIN_STATUS } from "./wallet";
+import { SWAP_STATUS } from "./wallet/swap/swap_utils";
 import { Token } from "./wallet/statecoin";
 
 declare const window: any;
@@ -66,6 +68,24 @@ export class Storage {
     delete wallet_json.config.jest_testing_mode;
     // remove active status flag
     delete wallet_json.active
+
+    // move swapped coins to swapped_coins array
+    if(wallet_json){
+      if(wallet_json.statecoins){
+        if(wallet_json.statecoins.coins){
+          let new_statecoins : StateCoin[] = [];
+
+          wallet_json.statecoins.coins.forEach( (coin: StateCoin) => {
+              if (coin.status === STATECOIN_STATUS.SWAPPED) {
+                wallet_json.statecoins.swapped_coins.push(coin);
+              } else {
+                new_statecoins.push(coin);
+              }
+          });
+          wallet_json.statecoins.coins = new_statecoins;
+        }
+      }
+    }
 
     this.store.set(wallet_json.name, wallet_json);
   }

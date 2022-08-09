@@ -9,11 +9,14 @@ import { isWalletLoaded,
   setError, 
   callGetCoinBackupTxData, 
   callCreateBackupTxCPFP, 
-  callGetConfig } from '../../features/WalletDataSlice';
+  callGetConfig, 
+  setNotification,
+  callGetStateCoin} from '../../features/WalletDataSlice';
 import { StdButton, CopiedButton, Tutorial, CoinsList} from "../../components";
 
 import settings from "../../images/settings.png";
 import icon2 from "../../images/icon2.png";
+import info from "../../images/info.png";
 import './BackupTx.css';
 
 const DEFAULT_TX_DATA = {tx_backup_hex:"",priv_key_hex:"",key_wif:"",expiry_data:{blocks:"",days:"",months:""}};
@@ -103,6 +106,25 @@ const BackupTxPage = () => {
     }
   }
 
+  const tooltipText = (backup_status) => {
+    switch (backup_status) {
+      case BACKUP_STATUS.CONFIRMED:
+        return 'Backup transaction sent and confirmed. Either import the private key to a new wallet, or send to any address via CPFP if you have not already done so. ';
+      case BACKUP_STATUS.POST_INTERVAL:
+        return 'Backup transaction in not confirmed, but previous owner transaction is now valid';
+      case BACKUP_STATUS.UNBROADCAST:
+        return 'Backup transaction broadcast not completed'
+      case BACKUP_STATUS.IN_MEMPOOL:
+        return 'Backup transaction in mempool but not yet confirmed';
+      case BACKUP_STATUS.TAKEN:
+        return 'Backup transaction not confirmed. Coin output is spent by another transaction.';
+      case BACKUP_STATUS.PRE_LOCKTIME:
+      return 'Backup transaction locktime not yet reached. Coin is not expired.';
+      default:
+        return '';
+    }
+  }
+
   const addCPFP = async () => {
     // check statechain is chosen
     if (!selectedCoin) {
@@ -117,12 +139,23 @@ const BackupTxPage = () => {
       dispatch(setError({msg: "Please enter a fee rate."}))
       return;
     }
-
-    let sucess = callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
+    let sucess = await callCreateBackupTxCPFP({selected_coin: selectedCoin, cpfp_addr: cpfpAddr, fee_rate: txFee});
 
     if (!sucess) {
       dispatch(setError({msg: "CPFP build error: please check address is correct"}))
       return;
+    } else{
+      // Get statecoin
+      let statecoin = callGetStateCoin(selectedCoin);
+
+      // set notification text
+      let text = "created";
+
+      // Check if coin already expired
+      if(statecoin.status === "EXPIRED"){
+        text = "transaction broadcasted";
+      }
+      dispatch(setNotification({ msg: `CPFP ${text}. Address: ${cpfpAddr}, Fee: ${txFee} Sat/B` }))
     }
 
    }
@@ -252,8 +285,15 @@ const BackupTxPage = () => {
 
                   <div className="item">
                       <span className="sub">Status:</span>
-                      <div>
+                      <div className="backupTx-status">
                         {showBackupStatus(selectedCoinTxData.backup_status)}
+                          { selectedCoinTxData.backup_status &&
+                          <div className="info-container">
+                            <img src={info} alt="info" />
+                            <span className="tooltip-info index">
+                              <p>{tooltipText(selectedCoinTxData.backup_status)}</p>
+                            </span>
+                          </div>}
                       </div>
                   </div>
 

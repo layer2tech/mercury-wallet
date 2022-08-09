@@ -518,6 +518,42 @@ describe('Wallet', function () {
     });
   });
 
+  describe('Storage 3', () => {
+    test('save/load swapped coins', async () => {
+    
+      const WALLET_NAME_5 = "mock_s5c93acx-5f49-418f-b124-95c882eea7e4";
+  
+      let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_5);
+  
+      // change the first statecoin status to swapped
+      let statecoin = wallet.statecoins.coins[0];
+      statecoin.status = STATECOIN_STATUS.SWAPPED;
+  
+      // expect there to be this statecoin inside statecoin.coins
+      expect(wallet.statecoins.coins.filter((coin) => coin === statecoin)[0]).toBe(statecoin);
+  
+      // expect there to be no swapped_coins array with the above coin
+      expect(wallet.statecoins.swapped_coins.filter((coin) => coin === statecoin)[0]).toBe(undefined);
+  
+      // expect swapped_coins to be of length 0
+      expect(wallet.statecoins.swapped_coins.length).toBe(0);
+  
+      // save the wallet
+      await wallet.save();
+  
+      // reload wallet
+      let loaded_wallet = await Wallet.load(WALLET_NAME_5, MOCK_WALLET_PASSWORD, true);
+  
+      // expect there to be no swapped coin in statecoins.coins
+      expect(loaded_wallet.statecoins.coins.filter((coin) => coin.status === STATECOIN_STATUS.SWAPPED)[0]).toBe(undefined);
+  
+      // expect swapped_coins to have changed to length 1
+      expect(loaded_wallet.statecoins.swapped_coins.length).toBe(1);
+  
+      // check that this coin has a status of swapped
+      expect(loaded_wallet.statecoins.swapped_coins.filter((coin) => coin.status === STATECOIN_STATUS.SWAPPED)[0]).toBeDefined()
+    });
+  })
 
 });
 

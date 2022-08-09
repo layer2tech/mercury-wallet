@@ -41,7 +41,7 @@
     "eject": "react-scripts eject",
     "electron": "electron --inspect=5858 --testnet --term_existing .",
     "dev": "NODE_ENV=development BROWSER=none nf start -p 3000",
-    "dev-windows": "cross-env BROWSER=none nf start -p 3000",
+    "dev-windows": "cross-env NODE_ENV=development BROWSER=none nf start -p 3000",
     "postinstall": "electron-builder install-app-deps",
     "build-wasm": "wasm-pack build --dev client-wasm",
     "app-windows": "yarn install-local && yarn install && yarn build && electron-builder -w -p always",
