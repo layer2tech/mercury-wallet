@@ -72,9 +72,13 @@ if (isPackaged === true) {
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;
 
 let term_existing = false;
+let testnet_mode = false;
 for (let i = 0; i < process.argv.length; i++) {
   if (process.argv[i].includes('term_existing')) {
     term_existing = true
+  }
+  if (process.argv[i].includes('testnet')) {
+    testnet_mode = true
   }
 }
 
@@ -97,6 +101,11 @@ function createWindow() {
   if (iconPath) {
     windowSpec.icon = iconPath
   }
+
+  // Get "testnet" setting
+  ipcMain.handle('testnet-mode', () => {
+    return testnet_mode
+  })
 
   // Add function to change Main Window DarkMode  
   ipcMain.handle('dark-mode:on', () => {
