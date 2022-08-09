@@ -259,7 +259,7 @@ describe('Wallet', function () {
   describe('bitcoin.address.fromOutputScript', function () {
     const http_mock = jest.genMockFromModule('../mocks/mock_http_client');
     const tx_backup = bitcoin.Transaction.fromHex(http_mock.TRANSFER_MSG3.tx_backup_psm.tx_hex);
-    const addr_expected = "bc1qpdkj645a5zdpyq069n2syexkfwhuj5xda665q8"
+    const addr_expected = "bc1q6xwt00hnwcrtlunvnz8u0xrtdxv5ztx7t5wxrj"
 
     let network = bitcoin.networks.bitcoin
     test('Address from output script in bitcoin network', function () {
@@ -1345,11 +1345,12 @@ describe("Handle swap error", () => {
     let error = Error("Misc error")
     let nCalls = 0;
     for (let s in SWAP_STATUS) {
-      statecoin.swap_status = s;
-      wallet.handleSwapError(error, statecoin);
+      let sc = cloneDeep(statecoin)
+      sc.swap_status = s;
+      wallet.handleSwapError(error, sc);
       if (s != SWAP_STATUS.Phase4) {
         nCalls = nCalls + 1;
-      }
+      } 
       expect(setSwapDataToNullSpy).toHaveBeenCalledTimes(nCalls);
     }
   })

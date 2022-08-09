@@ -437,12 +437,12 @@ export class Wallet {
   async recoverCoinsFromServer(gap_limit: number, dispatch: any): Promise<number> {
     log.info("Recovering StateCoins from server for mnemonic.");
     let recoveredCoins = await recoverCoins(this, gap_limit, dispatch);
-    const n_recovered = recoverCoins.length
+    const n_recovered = recoveredCoins.length
     if (n_recovered > 0) {
       log.info("Found " + recoveredCoins.length + " StateCoins. Saving to wallet.");
       await this.saveKeys();
       console.log(`recoveredCoins: ${JSON.stringify(recoveredCoins)}`)
-      await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
+      await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins, this.config.network);
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
     }
@@ -1045,6 +1045,16 @@ export class Wallet {
       }
     }
     await this.saveStateCoinsList();
+
+    // if statecoin expired, broadcast immediately
+    if (statecoin.status === STATECOIN_STATUS.EXPIRED) {
+      try {
+        await this.broadcastCPFP(statecoin)
+      } catch (err: any) {
+        log.error(`Error broadcasting CPFP: ${err.toString()}`)
+      }      
+    }
+
     return true;
   }
 
@@ -1995,7 +2005,7 @@ export class Wallet {
       if (!statecoin) throw Error("No coin found with id " + shared_key_id)
       if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
       if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in  swap pool. Remove from pool to withdraw.");
-      if (statecoin.status !== STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && statecoin.status !== STATECOIN_STATUS.WITHDRAWING && statecoin.status !== STATECOIN_STATUS.DUPLICATE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for withdraw.");
+      if (statecoin.status !== STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && statecoin.status !== STATECOIN_STATUS.WITHDRAWING && statecoin.status !== STATECOIN_STATUS.DUPLICATE && statecoin.status !== STATECOIN_STATUS.EXPIRED) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for withdraw.");
       statecoins.push(statecoin);
       proof_key_ders.push(this.getBIP32forProofKeyPubKey(statecoin.proof_key));
       if (shared_key_id.slice(-2) === "-R") duplicate = true;

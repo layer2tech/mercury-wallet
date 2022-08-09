@@ -434,7 +434,9 @@ export const BACKUP_STATUS = {
   // TAKEN backup transactions have failed to confirm in time and the output has been spent by a previous owner
   TAKEN: "Output taken",
   // SPENT backup transactions have been spent to a specified address
-  SPENT: "Spent"
+  SPENT: "Spent",
+  // MISSING correct backup tx not recovered
+  MISSING: "Missing"
 };
 Object.freeze(BACKUP_STATUS);
 
