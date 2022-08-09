@@ -28,29 +28,7 @@ export const argsHasTestnet = () => {
   if (require("../settings.json").testing_mode) {
     return true
   }
-  let found = false;
-  let remote: any;
-  /* NOTE: Keep all electron based calls inside electron.js file only
-  try {
-    remote = window.require('@electron/remote')
-  } catch (e: any) {
-    try {
-      remote = require('@electron/remote')
-    } catch (e: any) {
-      console.log(e)
-    }
-  }*/
-  if (remote != null && remote?.process != null) {
-    remote.process.argv.forEach((arg: string) => {
-      if (arg.includes('testnet')) {
-        found = true;
-      }
-    });
-  } else {
-    //no remote - set to testnet mode for testing
-    found = true
-  }
-  return found;
+  return window.electron.ipcRenderer.invoke('testnet-mode')
 }
 
 // check values of arguments
