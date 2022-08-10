@@ -72,15 +72,12 @@ if (isPackaged === true) {
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;
 
 let term_existing = false;
-let testnet_mode = false;
 for (let i = 0; i < process.argv.length; i++) {
   if (process.argv[i].includes('term_existing')) {
     term_existing = true
   }
-  if (process.argv[i].includes('testnet')) {
-    testnet_mode = true
-  }
 }
+
 
 let mainWindow = null;
 
@@ -103,8 +100,13 @@ function createWindow() {
   }
 
   // Get "testnet" setting
-  ipcMain.handle('testnet-mode', () => {
-    return testnet_mode
+  ipcMain.handle('testnet-mode', async () => {
+    for (let i = 0; i < process.argv.length; i++) {
+      if (process.argv[i].includes('testnet')) {
+        return true
+      }
+    }
+    return false
   })
 
   // Add function to change Main Window DarkMode  

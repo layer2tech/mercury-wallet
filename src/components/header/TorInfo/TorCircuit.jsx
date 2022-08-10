@@ -14,8 +14,8 @@ import { callGetNewTorId, callGetTorcircuitInfo, callUpdateTorCircuit,
     setTorOnline, callGetConfig, setIntervalIfOnline } from '../../../features/WalletDataSlice';
 import './torCircuit.css'
 import TorCircuitNode from './TorCircuitNode'
-import { defaultWalletConfig } from '../../../containers/Settings/Settings'
 import { handleNetworkError } from '../../../error'
+import {defaultWalletConfig} from '../../../containers/Settings/Settings'
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -28,18 +28,22 @@ try {
 
 
 const TorCircuit = (props) => {
-    let current_config;
-    try {
-      current_config = callGetConfig();
-    } catch {
-      current_config = defaultWalletConfig()
-    }
-
     const dispatch = useDispatch();
-
+ 
     const [torcircuitData, setTorcircuitData] = useState([]);
     const [torLoaded, setTorLoaded] = useState(false);
 
+    let config
+    try {
+        config = callGetConfig();
+    } catch {
+        defaultWalletConfig().then(
+            result => {
+                config = result
+            }
+        )
+    }
+    
     useEffect(() => {
         let isMounted = true;
         const interval = setIntervalIfOnline(getTorCircuitInfo, props.online, 10000, isMounted);
@@ -77,6 +81,9 @@ const TorCircuit = (props) => {
     }
 
     function shortenURL(url){
+        if (url == null) {
+            return url
+        }
         let shortURL = ""
         
         url = url.replace("http://","")
@@ -85,7 +92,7 @@ const TorCircuit = (props) => {
         return shortURL
     }
 
-    const state_entity_endpoint = current_config.state_entity_endpoint;
+    const state_entity_endpoint = config?.state_entity_endpoint;
 
     return (
         <div className = "dropdown tor">
@@ -99,7 +106,7 @@ const TorCircuit = (props) => {
                             if(circuit.ip === "") return
                             return <TorCircuitNode className='passed' name={circuit.country} ip={circuit.ip} key ={circuit.ip}></TorCircuitNode>
                         })}
-                        {/* <TorCircuitNode className='current' name={current_config.state_entity_endpoint}></TorCircuitNode> */}
+                        {/* <TorCircuitNode className='current' name={config.state_entity_endpoint}></TorCircuitNode> */}
                         {<TorCircuitNode class='current' name={shortenURL(state_entity_endpoint)}></TorCircuitNode>}
                     </ul>
                     <button className = 'Body-button transparent' onClick={newCircuit}>New Circuit</button>
