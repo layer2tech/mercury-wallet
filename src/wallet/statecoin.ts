@@ -691,6 +691,20 @@ export class StateCoin {
   }
 
   getBackupTxData(block_height: number) {
+
+    if (this.backup_status === BACKUP_STATUS.MISSING) {
+      return {
+        tx_backup_hex: "",
+        priv_key_hex: "",
+        key_wif: "",
+        expiry_data: 0,
+        backup_status: this.backup_status,
+        txid: "None",
+        output_value: this.value,
+        cpfp_status: "Disabled",
+      }      
+    }
+
     if (this.tx_backup == null) throw Error("null")
 
     return {

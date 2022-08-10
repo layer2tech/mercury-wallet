@@ -145,6 +145,10 @@ const Coin = (props) => {
             dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap or withdrawal' }))
             return false;
           }
+          if ((props.coin_data.backup_status === BACKUP_STATUS.MISSING) && (props.swap || props.send)) {
+            dispatch(setError({ msg: 'Backup transaction missing on recovery. Coin must be withdrawn.' }))
+            return false;
+          }          
           if ((props.coin_data.status === STATECOIN_STATUS.IN_MEMPOOL || props.coin_data.status === STATECOIN_STATUS.UNCONFIRMED) && (props.swap || props.send || props.withdraw) && !TESTING_MODE) {
             dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
             return false
