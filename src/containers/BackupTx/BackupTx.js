@@ -111,7 +111,7 @@ const BackupTxPage = () => {
       case BACKUP_STATUS.CONFIRMED:
         return 'Backup transaction sent and confirmed. Either import the private key to a new wallet, or send to any address via CPFP if you have not already done so. ';
       case BACKUP_STATUS.POST_INTERVAL:
-        return 'Backup transaction in not confirmed, but previous owner transaction is now valid';
+        return 'Backup transaction is not confirmed, but previous owner transaction is now valid';
       case BACKUP_STATUS.UNBROADCAST:
         return 'Backup transaction broadcast not completed'
       case BACKUP_STATUS.IN_MEMPOOL:
@@ -119,7 +119,9 @@ const BackupTxPage = () => {
       case BACKUP_STATUS.TAKEN:
         return 'Backup transaction not confirmed. Coin output is spent by another transaction.';
       case BACKUP_STATUS.PRE_LOCKTIME:
-      return 'Backup transaction locktime not yet reached. Coin is not expired.';
+        return 'Backup transaction locktime not yet reached. Coin is not expired.';
+      case BACKUP_STATUS.MISSING:
+        return 'Backup transaction unable to be recovered. Transfer or withdraw coin ASAP.';
       default:
         return '';
     }
