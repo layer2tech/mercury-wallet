@@ -20,8 +20,8 @@ let bitcoin = require('bitcoinjs-lib')
 
 const NETWORK_CONFIG =  require('../../network.json');
 
-export const defaultWalletConfig = () => {
-  if(callGetArgsHasTestnet() === true){
+export const defaultWalletConfig = async () => {
+  if (await callGetArgsHasTestnet() === true) {
     return ({
       network: 'testnet',
       notifications: false,
@@ -34,7 +34,7 @@ export const defaultWalletConfig = () => {
       tor_proxy: { ip: "localhost", port: 9060, controlPassword: "password", controlPort: 9061 },
       min_anon_set: ""
     });
-  }else{
+  } else {
     return ({
       network: 'bitcoin',
       notifications: false,
@@ -53,22 +53,22 @@ export const defaultWalletConfig = () => {
 const SettingsPage = (props) => {
   const dispatch = useDispatch();
 
-  let current_config;
+  let config
   try {
-    current_config = callGetConfig();
-  } catch {
-    current_config = defaultWalletConfig()
+    config = callGetConfig();
+  } catch (error) {
+      console.warn('Can not get config', error)
   }
 
-  const [notifications, setNotification] = useState(current_config.notifications);
-  const [singleSwapMode, setSingleSwapMode] = useState(current_config.singleSwapMode);
-  const [tutorials, setTutorials] = useState(current_config.tutorials);
-  const [stateEntityAddr, setStateEntityAddr] = useState(current_config.state_entity_endpoint);
-  const [swapAddr, setSwapAddr] = useState(current_config.swap_conductor_endpoint);
-  const [elecAddr, setElecAddr] = useState(current_config.electrum_config);
-  const [blockExplorer, setBlockExplorer] = useState(current_config.block_explorer_endpoint);
-  const [torProxy, setTorProxy] = useState(current_config.tor_proxy);
-  const [minAnonSet, setMinAnonSet] = useState(current_config.min_anon_set);
+  const [notifications, setNotification] = useState(config.notifications);
+  const [singleSwapMode, setSingleSwapMode] = useState(config.singleSwapMode);
+  const [tutorials, setTutorials] = useState(config.tutorials);
+  const [stateEntityAddr, setStateEntityAddr] = useState(config.state_entity_endpoint);
+  const [swapAddr, setSwapAddr] = useState(config.swap_conductor_endpoint);
+  const [elecAddr, setElecAddr] = useState(config.electrum_config);
+  const [blockExplorer, setBlockExplorer] = useState(config.block_explorer_endpoint);
+  const [torProxy, setTorProxy] = useState(config.tor_proxy);
+  const [minAnonSet, setMinAnonSet] = useState(config.min_anon_set);
   const [openBackupModal, setOpenBackupModal] = useState(false);
   const [password, setPassword] = useState(false);
   const [passwordConfirm, setPasswordConfirm] = useState(false);
@@ -132,15 +132,15 @@ const SettingsPage = (props) => {
   }
 
   const cancelButtonOnClick = () => {
-    setNotification(current_config.notifications);
-    setSingleSwapMode(current_config.singleSwapMode);
-    setTutorials(current_config.tutorials);
-    setStateEntityAddr(current_config.state_entity_endpoint);
-    setSwapAddr(current_config.swap_conductor_endpoint);
-    setBlockExplorer(current_config.block_explorer_endpoint);
-    setElecAddr(current_config.electrum_config);
-    setTorProxy(current_config.tor_proxy);
-    setMinAnonSet(current_config.min_anon_set);
+    setNotification(config.notifications);
+    setSingleSwapMode(config.singleSwapMode);
+    setTutorials(config.tutorials);
+    setStateEntityAddr(config.state_entity_endpoint);
+    setSwapAddr(config.swap_conductor_endpoint);
+    setBlockExplorer(config.block_explorer_endpoint);
+    setElecAddr(config.electrum_config);
+    setTorProxy(config.tor_proxy);
+    setMinAnonSet(config.min_anon_set);
   }
 
   const checkButtonOnClick = async () => {
@@ -183,7 +183,7 @@ const SettingsPage = (props) => {
   
 
   return (
-    <div className={`${current_config.tutorials ? 'container-with-tutorials' : ''}`}>
+    <div className={`${config.tutorials ? 'container-with-tutorials' : ''}`}>
       <div className="container">
           <div className="Body settings">
               <div className="swap-header">
@@ -407,7 +407,7 @@ const SettingsPage = (props) => {
               </div>
 
           </div>
-          {current_config.testing_mode ?
+          {config.testing_mode ?
             <ConfirmPopup
             onOk={clearWalletButtonOnClick}
             >
@@ -426,7 +426,7 @@ const SettingsPage = (props) => {
           show={openBackupModal}
         />
       </div>
-      { current_config.tutorials && <Tutorial />}
+      { config.tutorials && <Tutorial />}
     </div>
   )
 }

@@ -12,12 +12,18 @@ const CreateWalletInfoPage = () => {
     const state = useState(false);
     const checked = state[0];
     const changeCheckbox = state[1]
+    const [testnet, setTestnet] = useState(false)
+    
+    callGetArgsHasTestnet().then(result => {
+        setTestnet(result);
+    })
+    
     // Change handlers
 
     return (
         <div className="welcome-second ">
             <h1>Create a New Wallet</h1>
-            {callGetArgsHasTestnet() && <b><p className="red">IMPORTANT: Wallet was opened in testnet, therefore new wallets will be created in testnet. Existing wallets are not changed.</p></b>}
+            {testnet === true && <b><p className="red">IMPORTANT: Wallet was opened in testnet, therefore new wallets will be created in testnet. Existing wallets are not changed.</p></b>}
             <div className="create-welcome">
                 <div className="create-welcome-item">
                     <img src={secure} alt="secure"/>

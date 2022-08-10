@@ -15,8 +15,6 @@ import {
 import { Transaction, TransactionBuilder } from 'bitcoinjs-lib';
 import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr } from '../util';
 import { Storage } from '../../store';
-import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
-import { argsHasTestnet } from '../config'
 import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
 import { ActivityLog } from '../activity_log';
 
@@ -40,6 +38,20 @@ describe('Wallet', function () {
     wallet.save()
   })
 
+  test('wallet default network settings', async function () {
+    //Check the default network settings
+    expect(wallet.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.mainnet_state_entity_endpoint)
+    expect(wallet.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.mainnet_swap_conductor_endpoint)
+    expect(wallet.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.mainnet_block_explorer_endpoint)
+    expect(wallet.config.electrum_config).toEqual(NETWORK_CONFIG.mainnet_electrum_config)
+
+    //Check the default network settings for a testnet wallet
+    let wallet_tn = await Wallet.buildMock(bitcoin.networks.testnet, undefined, undefined, undefined, WALLET_NAME_1 + "_2");
+    expect(wallet_tn.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.testnet_state_entity_endpoint)
+    expect(wallet_tn.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.testnet_swap_conductor_endpoint)
+    expect(wallet_tn.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.testnet_block_explorer_endpoint)
+    expect(wallet_tn.config.electrum_config).toEqual(NETWORK_CONFIG.testnet_electrum_config)
+  })
 
   test('genBtcAddress', async function () {
     let addr1 = await wallet.genBtcAddress();
@@ -169,15 +181,11 @@ describe('Wallet', function () {
     });
 
     test('load, edit network settings, save and reload', async function () {
-      //Check we are in mainnet mode
-      expect(callGetArgsHasTestnet()).toEqual(true)
-      expect(argsHasTestnet()).toEqual(true)
-
       //Check the default network settings
-      expect(wallet.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.testnet_state_entity_endpoint)
-      expect(wallet.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.testnet_swap_conductor_endpoint)
-      expect(wallet.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.testnet_block_explorer_endpoint)
-      expect(wallet.config.electrum_config).toEqual(NETWORK_CONFIG.testnet_electrum_config)
+      expect(wallet.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.mainnet_state_entity_endpoint)
+      expect(wallet.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.mainnet_swap_conductor_endpoint)
+      expect(wallet.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.mainnet_block_explorer_endpoint)
+      expect(wallet.config.electrum_config).toEqual(NETWORK_CONFIG.mainnet_electrum_config)
 
       //Edit the network settings
       const test_state_entity_endpoint = "test SEE"

@@ -5,11 +5,11 @@ import React, {useState, useEffect} from "react";
 import {useSelector, useDispatch} from 'react-redux'
 
 import {callGetBlockHeight, callGetConfig, callGetSwapGroupInfo,callGetPingServerms, callGetPingConductorms, callGetPingElectrumms, callUpdateSpeedInfo, setIntervalIfOnline } from '../../features/WalletDataSlice'
-import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
 import './panelConnectivity.css';
 import '../index.css';
 import RadioButton from './RadioButton';
+import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -41,6 +41,18 @@ const PanelConnectivity = (props) => {
 
   let participants = swap_groups_array.reduce((acc,item)=> acc+item[1].number,0)
   let total_pooled_btc = swap_groups_array.reduce((acc, item) => acc+(item[1].number * item[0].amount),0);
+
+  let config
+  try {
+    config = callGetConfig();
+  } catch {
+    defaultWalletConfig().then(
+      result => {
+        config = result
+      }
+    )
+  }
+
 
   const updateSpeedInfo = async (isMounted) => {
     if (isMounted !== true) {
@@ -114,6 +126,9 @@ const PanelConnectivity = (props) => {
 
   //function shortens urls to fit better with styling
   function shortenURLs(url){
+    if (url == null) {
+      return url
+    }
     let shortURL = ""
     
     url = url.replace("http://","")
@@ -122,15 +137,8 @@ const PanelConnectivity = (props) => {
     return shortURL
     }
 
-  let current_config;
-  try {
-    current_config = callGetConfig();
-  } catch {
-    current_config = defaultWalletConfig()
-  }
-  
 
-  const toggleContent = (event) => {
+const toggleContent = (event) => {
     setState({isToggleOn: !state.isToggleOn})
 }
 const toggleURL = (event) => {
@@ -175,9 +183,9 @@ const toggleURL = (event) => {
 
                         Host: 
                         {state.isServerHover ? 
-                        (<span className ={state.isServerHover ? "url-hover server": "url-hide server"}>{ current_config.state_entity_endpoint}</span>)
+                        (<span className ={state.isServerHover ? "url-hover server": "url-hide server"}>{ config.state_entity_endpoint}</span>)
                         :
-                        (` ${shortenURLs(current_config.state_entity_endpoint)}`)}
+                        (` ${shortenURLs(config.state_entity_endpoint)}`)}
 
                     </span>
                     <span>Deposit Fee: <b>{fee_info.deposit /100}%</b></span>
@@ -190,9 +198,9 @@ const toggleURL = (event) => {
                         
                         Host: 
                         {state.isSwapsHover ? 
-                        (<span className ={state.isSwapsHover ? "url-hover swaps": 'url-hide swaps'}>{ current_config.swap_conductor_endpoint}</span>)
+                        (<span className ={state.isSwapsHover ? "url-hover swaps": 'url-hide swaps'}>{ config.swap_conductor_endpoint}</span>)
                         :
-                        (` ${shortenURLs(current_config.swap_conductor_endpoint)}`)}
+                        (` ${shortenURLs(config.swap_conductor_endpoint)}`)}
 
                     </span>
                     <span>Pending Swaps: <b>{pending_swaps}</b></span>
@@ -207,12 +215,12 @@ const toggleURL = (event) => {
                         {state.isBTCHover ? 
                         (
                             <span className = {state.isBTCHover ? "url-hover btc" : "url-hide btc"}>
-                                {current_config.electrum_config.host}
+                                {config?.electrum_config?.host}
                             </span>
-                        ):(`${shortenURLs(current_config.electrum_config.host)}`)}
+                        ):(`${shortenURLs(config?.electrum_config?.host)}`)}
                     </span>
-                    <span>Port: {current_config.electrum_config.port}</span>
-                    <span>Protocol: {current_config.electrum_config.protocol}</span>
+                    <span>Port: {config?.electrum_config?.port}</span>
+                    <span>Protocol: {config?.electrum_config?.protocol}</span>
                     <span>Ping: <b>{electrum_ping_ms !== null ? electrum_ping_ms.toLocaleString(undefined, { maximumFractionDigits:0}) + " ms":"N/A"} </b></span>
               </div>
               </div>

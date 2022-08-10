@@ -59,7 +59,6 @@ import './coins.css';
 import '../index.css';
 import CoinDescription from "../inputs/CoinDescription/CoinDescription";
 import './DeleteCoin/DeleteCoin.css'
-import { defaultWalletConfig } from '../../containers/Settings/Settings'
 
 import {
   setNotification,
@@ -70,6 +69,7 @@ import {
 } from "../../features/WalletDataSlice";
 import Coin from "./Coin/Coin";
 import { ACTION } from "../../wallet";
+import {defaultWalletConfig} from '../../containers/Settings/Settings'
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -166,12 +166,17 @@ const CoinsList = (props) => {
 
   let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
-  let current_config;
+  let config
   try {
-    current_config = callGetConfig();
+    config = callGetConfig();
   } catch {
-    current_config = defaultWalletConfig()
+    defaultWalletConfig().then(
+      result => {
+        config = result
+      }
+    )
   }
+
   const handleCloseCoinDetails = () => {
     if (!(selectedCoins.length > 0)) {
       // do not reset the selected coins if we already have selected coins
@@ -650,7 +655,7 @@ const CoinsList = (props) => {
   }
 
   const onClickContinueTXID = () => {
-    let block_explorer_endpoint = current_config.block_explorer_endpoint;
+    let block_explorer_endpoint = config.block_explorer_endpoint;
 
     // ensure there is https
     if (block_explorer_endpoint.substring(0, 8) !== 'https://') {
