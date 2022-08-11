@@ -7,7 +7,7 @@ import { ACTION } from ".";
 import { ElectrumTxData } from "../wallet/electrum";
 import { MasterKey2 } from "./mercury/ecdsa"
 import { decodeSecp256k1Point, pubKeyTobtcAddr } from "./util";
-import { BatchData, BSTRequestorData, SwapErrorMsg, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap_utils";
+import { BatchData, BSTRequestorData, StatechainID, SwapErrorMsg, SwapID, SwapInfo, SWAP_STATUS } from "./swap/swap_utils";
 import { SCEAddress, TransferFinalizeData, TransferMsg3, TransferMsg4 } from "./mercury/transfer";
 import { WithdrawMsg2 } from "./mercury/withdraw"
 
@@ -25,63 +25,80 @@ export const HIDDEN = "*****"
 
 export class StateCoinList {
   coins: StateCoin[]
+  swapped_coins: StateCoin[];
 
   constructor() {
     this.coins = [];
+    this.swapped_coins = [];
   }
 
   static fromJSON(coins_json: StateCoinList): StateCoinList {
-    let statecoins = new StateCoinList()
+    let statecoinsList = new StateCoinList()
+
+    if(coins_json.swapped_coins){
+      coins_json.swapped_coins.forEach((coin: StateCoin) => {
+        statecoinsList.swapped_coins.push(coin);
+      })
+    }
+    
+
     coins_json.coins.forEach((item: StateCoin) => {
-      let coin = new StateCoin(item.shared_key_id, item.shared_key);
-      coin.wallet_version = "";
 
-      let replca = false;
-      statecoins.coins.filter((existing_coin: StateCoin) => {
-        if (item.shared_key_id === existing_coin.shared_key_id && item.status === STATECOIN_STATUS.AVAILABLE && existing_coin.status === STATECOIN_STATUS.AVAILABLE) {
-          replca = true;
-        }
-      });
+      // if this is a swapped coin then move it to a new list
+      if(item.status === STATECOIN_STATUS.SWAPPED){
+        statecoinsList.swapped_coins.push(item); // save to swap coins array
+      }else{
+        let coin = new StateCoin(item.shared_key_id, item.shared_key);
+        coin.wallet_version = "";
 
-      // re-build tx_backup as Transaction
-      if (item.tx_backup !== undefined && item.tx_backup !== null) {
-        let tx_backup_any: any = item.tx_backup;
-        let tx_backup = new Transaction();
-        tx_backup.version = tx_backup_any.version;
-        tx_backup.locktime = tx_backup_any.locktime;
-        if (tx_backup_any.ins.length > 0) {
-          tx_backup.addInput(Buffer.from(tx_backup_any.ins[0].hash), tx_backup_any.ins[0].index, tx_backup_any.ins[0].sequence)
-          if (tx_backup_any.ins[0].witness.length > 0) {
-            tx_backup.ins[0].witness = [Buffer.from(tx_backup_any.ins[0].witness[0]), Buffer.from(tx_backup_any.ins[0].witness[1])];
+        let replca = false;
+        statecoinsList.coins.filter((existing_coin: StateCoin) => {
+          if (item.shared_key_id === existing_coin.shared_key_id && item.status === STATECOIN_STATUS.AVAILABLE && existing_coin.status === STATECOIN_STATUS.AVAILABLE) {
+            replca = true;
           }
-        }
-        if (tx_backup_any.outs.length > 0) {
-          tx_backup.addOutput(Buffer.from(tx_backup_any.outs[0].script), tx_backup_any.outs[0].value)
-          tx_backup.addOutput(Buffer.from(tx_backup_any.outs[1].script), tx_backup_any.outs[1].value)
-        }
-        item.tx_backup = tx_backup;
-      }
+        });
 
-      // re-build tx_cpfp as Transaction
-      if (item.tx_cpfp !== undefined && item.tx_cpfp !== null) {
-        let tx_cpfp_any: any = item.tx_cpfp;
-        let tx_cpfp = new Transaction();
-        tx_cpfp.version = tx_cpfp_any.version;
-        tx_cpfp.locktime = tx_cpfp_any.locktime;
-        if (tx_cpfp_any.ins.length > 0) {
-          tx_cpfp.addInput(Buffer.from(tx_cpfp_any.ins[0].hash), tx_cpfp_any.ins[0].index, tx_cpfp_any.ins[0].sequence)
-          if (tx_cpfp_any.ins[0].witness.length > 0) {
-            tx_cpfp.ins[0].witness = [Buffer.from(tx_cpfp_any.ins[0].witness[0]), Buffer.from(tx_cpfp_any.ins[0].witness[1])];
+        // re-build tx_backup as Transaction
+        if (item.tx_backup !== undefined && item.tx_backup !== null) {
+          let tx_backup_any: any = item.tx_backup;
+          let tx_backup = new Transaction();
+          tx_backup.version = tx_backup_any.version;
+          tx_backup.locktime = tx_backup_any.locktime;
+          if (tx_backup_any.ins.length > 0) {
+            tx_backup.addInput(Buffer.from(tx_backup_any.ins[0].hash), tx_backup_any.ins[0].index, tx_backup_any.ins[0].sequence)
+            if (tx_backup_any.ins[0].witness.length > 0) {
+              tx_backup.ins[0].witness = [Buffer.from(tx_backup_any.ins[0].witness[0]), Buffer.from(tx_backup_any.ins[0].witness[1])];
+            }
           }
+          if (tx_backup_any.outs.length > 0) {
+            tx_backup.addOutput(Buffer.from(tx_backup_any.outs[0].script), tx_backup_any.outs[0].value)
+            tx_backup.addOutput(Buffer.from(tx_backup_any.outs[1].script), tx_backup_any.outs[1].value)
+          }
+          item.tx_backup = tx_backup;
         }
-        if (tx_cpfp_any.outs.length > 0) {
-          tx_cpfp.addOutput(Buffer.from(tx_cpfp_any.outs[0].script), tx_cpfp_any.outs[0].value)
+
+        // re-build tx_cpfp as Transaction
+        if (item.tx_cpfp !== undefined && item.tx_cpfp !== null) {
+          let tx_cpfp_any: any = item.tx_cpfp;
+          let tx_cpfp = new Transaction();
+          tx_cpfp.version = tx_cpfp_any.version;
+          tx_cpfp.locktime = tx_cpfp_any.locktime;
+          if (tx_cpfp_any.ins.length > 0) {
+            tx_cpfp.addInput(Buffer.from(tx_cpfp_any.ins[0].hash), tx_cpfp_any.ins[0].index, tx_cpfp_any.ins[0].sequence)
+            if (tx_cpfp_any.ins[0].witness.length > 0) {
+              tx_cpfp.ins[0].witness = [Buffer.from(tx_cpfp_any.ins[0].witness[0]), Buffer.from(tx_cpfp_any.ins[0].witness[1])];
+            }
+          }
+          if (tx_cpfp_any.outs.length > 0) {
+            tx_cpfp.addOutput(Buffer.from(tx_cpfp_any.outs[0].script), tx_cpfp_any.outs[0].value)
+          }
+          item.tx_cpfp = tx_cpfp;
         }
-        item.tx_cpfp = tx_cpfp;
+        if (!replca) statecoinsList.coins.push(Object.assign(coin, item));
       }
-      if (!replca) statecoins.coins.push(Object.assign(coin, item));
+      
     })
-    return statecoins
+    return statecoinsList
   }
 
   getAllCoins(block_height: number) {
@@ -147,9 +164,7 @@ export class StateCoinList {
 
   // Find all coins in mempool or mined but with required_confirmations confirmations
   getUnconfirmedCoins() {
-
     return this.coins.filter((item: StateCoin) => {
-
       if (item.status === STATECOIN_STATUS.UNCONFIRMED || item.status === STATECOIN_STATUS.IN_MEMPOOL || item.status === STATECOIN_STATUS.INITIALISED) {
         return item
       }
@@ -419,7 +434,9 @@ export const BACKUP_STATUS = {
   // TAKEN backup transactions have failed to confirm in time and the output has been spent by a previous owner
   TAKEN: "Output taken",
   // SPENT backup transactions have been spent to a specified address
-  SPENT: "Spent"
+  SPENT: "Spent",
+  // MISSING correct backup tx not recovered
+  MISSING: "Missing"
 };
 Object.freeze(BACKUP_STATUS);
 
@@ -674,6 +691,20 @@ export class StateCoin {
   }
 
   getBackupTxData(block_height: number) {
+
+    if (this.backup_status === BACKUP_STATUS.MISSING) {
+      return {
+        tx_backup_hex: "",
+        priv_key_hex: "",
+        key_wif: "",
+        expiry_data: 0,
+        backup_status: this.backup_status,
+        txid: "None",
+        output_value: this.value,
+        cpfp_status: "Disabled",
+      }      
+    }
+
     if (this.tx_backup == null) throw Error("null")
 
     return {

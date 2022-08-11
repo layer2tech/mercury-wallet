@@ -78,6 +78,7 @@ for (let i = 0; i < process.argv.length; i++) {
   }
 }
 
+
 let mainWindow = null;
 
 function createWindow() {
@@ -97,6 +98,16 @@ function createWindow() {
   if (iconPath) {
     windowSpec.icon = iconPath
   }
+
+  // Get "testnet" setting
+  ipcMain.handle('testnet-mode', async () => {
+    for (let i = 0; i < process.argv.length; i++) {
+      if (process.argv[i].includes('testnet')) {
+        return true
+      }
+    }
+    return false
+  })
 
   // Add function to change Main Window DarkMode  
   ipcMain.handle('dark-mode:on', () => {

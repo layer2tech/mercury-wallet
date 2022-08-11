@@ -431,12 +431,12 @@ export class Wallet {
   async recoverCoinsFromServer(gap_limit: number, dispatch: any): Promise<number> {
     log.info("Recovering StateCoins from server for mnemonic.");
     let recoveredCoins = await recoverCoins(this, gap_limit, dispatch);
-    const n_recovered = recoverCoins.length
+    const n_recovered = recoveredCoins.length
     if (n_recovered > 0) {
       log.info("Found " + recoveredCoins.length + " StateCoins. Saving to wallet.");
       await this.saveKeys();
       console.log(`recoveredCoins: ${JSON.stringify(recoveredCoins)}`)
-      await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins);
+      await addRestoredCoinDataToWallet(this, await this.getWasm(), recoveredCoins, this.config.network);
     } else {
       log.info("No StateCoins found in Server for this mnemonic.");
     }
@@ -778,21 +778,25 @@ export class Wallet {
   // Get Backup Tx hex and receive private key
   getCoinBackupTxData(shared_key_id: string) {
     let statecoin = this.statecoins.getCoin(shared_key_id);
+
     if (statecoin === undefined) throw Error("StateCoin does not exist.");
     if (statecoin.status === STATECOIN_STATUS.INITIALISED) throw Error("StateCoin is not availble.");
 
     // Get tx hex
     let backup_tx_data = statecoin.getBackupTxData(this.block_height);
-    //extract receive address private key
-    let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
 
-    let bip32 = this.getBIP32forBtcAddress(addr);
+    if (backup_tx_data.backup_status != BACKUP_STATUS.MISSING) {
+      //extract receive address private key
+      let addr = bitcoin.address.fromOutputScript(statecoin.tx_backup?.outs[0].script, this.config.network);
 
-    let priv_key = bip32.privateKey;
-    if (priv_key === undefined) throw Error("Backup receive address private key not found.");
+      let bip32 = this.getBIP32forBtcAddress(addr);
 
-    backup_tx_data.priv_key_hex = priv_key.toString("hex");
-    backup_tx_data.key_wif = `p2wpkh:${bip32.toWIF()}`;
+      let priv_key = bip32.privateKey;
+      if (priv_key === undefined) throw Error("Backup receive address private key not found.");
+
+      backup_tx_data.priv_key_hex = priv_key.toString("hex");
+      backup_tx_data.key_wif = `p2wpkh:${bip32.toWIF()}`;
+    }
 
     if (statecoin.tx_cpfp !== null) {
       let fee_rate = (FEE + (backup_tx_data?.output_value ?? 0) - (statecoin.tx_cpfp?.outs[0]?.value ?? 0)) / 250;
@@ -1025,6 +1029,16 @@ export class Wallet {
       }
     }
     await this.saveStateCoinsList();
+
+    // if statecoin expired, broadcast immediately
+    if (statecoin.status === STATECOIN_STATUS.EXPIRED) {
+      try {
+        await this.broadcastCPFP(statecoin)
+      } catch (err: any) {
+        log.error(`Error broadcasting CPFP: ${err.toString()}`)
+      }      
+    }
+
     return true;
   }
 
@@ -1392,6 +1406,7 @@ export class Wallet {
   ): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
+    if (statecoin.backup_status === BACKUP_STATUS.MISSING) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for swap.");
 
     // check there is no duplicate
     for (let i = 0; i < this.statecoins.coins.length; i++) {
@@ -1661,6 +1676,7 @@ export class Wallet {
         if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
         if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in swap pool. Remove from pool to transfer.");
         if (statecoin.status !== STATECOIN_STATUS.AVAILABLE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
+        if (statecoin.backup_status === BACKUP_STATUS.MISSING) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for Transfer.");
 
         // check there is no duplicate
         for (let i = 0; i < this.statecoins.coins.length; i++) {
@@ -1863,7 +1879,7 @@ export class Wallet {
       if (!statecoin) throw Error("No coin found with id " + shared_key_id)
       if (statecoin.status === STATECOIN_STATUS.IN_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " currenlty involved in swap protocol.");
       if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) throw Error("Coin " + statecoin.getTXIdAndOut() + " waiting in  swap pool. Remove from pool to withdraw.");
-      if (statecoin.status !== STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && statecoin.status !== STATECOIN_STATUS.WITHDRAWING && statecoin.status !== STATECOIN_STATUS.DUPLICATE) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for withdraw.");
+      if (statecoin.status !== STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.SWAPLIMIT && statecoin.status !== STATECOIN_STATUS.WITHDRAWING && statecoin.status !== STATECOIN_STATUS.DUPLICATE && statecoin.status !== STATECOIN_STATUS.EXPIRED) throw Error("Coin " + statecoin.getTXIdAndOut() + " not available for withdraw.");
       statecoins.push(statecoin);
       proof_key_ders.push(this.getBIP32forProofKeyPubKey(statecoin.proof_key));
       if (shared_key_id.slice(-2) === "-R") duplicate = true;

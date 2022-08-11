@@ -15,8 +15,6 @@ import {
 import { Transaction, TransactionBuilder } from 'bitcoinjs-lib';
 import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr } from '../util';
 import { Storage } from '../../store';
-import { callGetArgsHasTestnet } from '../../features/WalletDataSlice';
-import { argsHasTestnet } from '../config'
 import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
 import { ActivityLog } from '../activity_log';
 
@@ -40,6 +38,20 @@ describe('Wallet', function () {
     wallet.save()
   })
 
+  test('wallet default network settings', async function () {
+    //Check the default network settings
+    expect(wallet.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.mainnet_state_entity_endpoint)
+    expect(wallet.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.mainnet_swap_conductor_endpoint)
+    expect(wallet.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.mainnet_block_explorer_endpoint)
+    expect(wallet.config.electrum_config).toEqual(NETWORK_CONFIG.mainnet_electrum_config)
+
+    //Check the default network settings for a testnet wallet
+    let wallet_tn = await Wallet.buildMock(bitcoin.networks.testnet, undefined, undefined, undefined, WALLET_NAME_1 + "_2");
+    expect(wallet_tn.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.testnet_state_entity_endpoint)
+    expect(wallet_tn.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.testnet_swap_conductor_endpoint)
+    expect(wallet_tn.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.testnet_block_explorer_endpoint)
+    expect(wallet_tn.config.electrum_config).toEqual(NETWORK_CONFIG.testnet_electrum_config)
+  })
 
   test('genBtcAddress', async function () {
     let addr1 = await wallet.genBtcAddress();
@@ -169,15 +181,11 @@ describe('Wallet', function () {
     });
 
     test('load, edit network settings, save and reload', async function () {
-      //Check we are in mainnet mode
-      expect(callGetArgsHasTestnet()).toEqual(true)
-      expect(argsHasTestnet()).toEqual(true)
-
       //Check the default network settings
-      expect(wallet.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.testnet_state_entity_endpoint)
-      expect(wallet.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.testnet_swap_conductor_endpoint)
-      expect(wallet.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.testnet_block_explorer_endpoint)
-      expect(wallet.config.electrum_config).toEqual(NETWORK_CONFIG.testnet_electrum_config)
+      expect(wallet.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.mainnet_state_entity_endpoint)
+      expect(wallet.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.mainnet_swap_conductor_endpoint)
+      expect(wallet.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.mainnet_block_explorer_endpoint)
+      expect(wallet.config.electrum_config).toEqual(NETWORK_CONFIG.mainnet_electrum_config)
 
       //Edit the network settings
       const test_state_entity_endpoint = "test SEE"
@@ -258,7 +266,7 @@ describe('Wallet', function () {
   describe('bitcoin.address.fromOutputScript', function () {
     const http_mock = jest.genMockFromModule('../mocks/mock_http_client');
     const tx_backup = bitcoin.Transaction.fromHex(http_mock.TRANSFER_MSG3.tx_backup_psm.tx_hex);
-    const addr_expected = "bc1qpdkj645a5zdpyq069n2syexkfwhuj5xda665q8"
+    const addr_expected = "bc1q6xwt00hnwcrtlunvnz8u0xrtdxv5ztx7t5wxrj"
 
     let network = bitcoin.networks.bitcoin
     test('Address from output script in bitcoin network', function () {
@@ -517,6 +525,42 @@ describe('Wallet', function () {
     });
   });
 
+  describe('Storage 3', () => {
+    test('save/load swapped coins', async () => {
+    
+      const WALLET_NAME_5 = "mock_s5c93acx-5f49-418f-b124-95c882eea7e4";
+  
+      let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_5);
+  
+      // change the first statecoin status to swapped
+      let statecoin = wallet.statecoins.coins[0];
+      statecoin.status = STATECOIN_STATUS.SWAPPED;
+  
+      // expect there to be this statecoin inside statecoin.coins
+      expect(wallet.statecoins.coins.filter((coin) => coin === statecoin)[0]).toBe(statecoin);
+  
+      // expect there to be no swapped_coins array with the above coin
+      expect(wallet.statecoins.swapped_coins.filter((coin) => coin === statecoin)[0]).toBe(undefined);
+  
+      // expect swapped_coins to be of length 0
+      expect(wallet.statecoins.swapped_coins.length).toBe(0);
+  
+      // save the wallet
+      await wallet.save();
+  
+      // reload wallet
+      let loaded_wallet = await Wallet.load(WALLET_NAME_5, MOCK_WALLET_PASSWORD, true);
+  
+      // expect there to be no swapped coin in statecoins.coins
+      expect(loaded_wallet.statecoins.coins.filter((coin) => coin.status === STATECOIN_STATUS.SWAPPED)[0]).toBe(undefined);
+  
+      // expect swapped_coins to have changed to length 1
+      expect(loaded_wallet.statecoins.swapped_coins.length).toBe(1);
+  
+      // check that this coin has a status of swapped
+      expect(loaded_wallet.statecoins.swapped_coins.filter((coin) => coin.status === STATECOIN_STATUS.SWAPPED)[0]).toBeDefined()
+    });
+  })
 
 });
 
@@ -1269,11 +1313,12 @@ describe("Handle swap error", () => {
     let error = Error("Misc error")
     let nCalls = 0;
     for (let s in SWAP_STATUS) {
-      statecoin.swap_status = s;
-      wallet.handleSwapError(error, statecoin);
+      let sc = cloneDeep(statecoin)
+      sc.swap_status = s;
+      wallet.handleSwapError(error, sc);
       if (s != SWAP_STATUS.Phase4) {
         nCalls = nCalls + 1;
-      }
+      } 
       expect(setSwapDataToNullSpy).toHaveBeenCalledTimes(nCalls);
     }
   })

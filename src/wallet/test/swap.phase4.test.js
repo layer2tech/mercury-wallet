@@ -1,4 +1,6 @@
-
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
 import { makeTesterStatecoin, SWAP_SHARED_KEY_OUT } from './test_data.js'
 import {
   SWAP_STATUS,

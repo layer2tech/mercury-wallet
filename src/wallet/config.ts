@@ -18,47 +18,6 @@ try {
 }
 
 let cloneDeep = require('lodash.clonedeep');
-let current_state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;
-let current_swap_conductor_endpoint = NETWORK_CONFIG.mainnet_swap_conductor_endpoint;
-let current_block_explorer_endpoint = NETWORK_CONFIG.mainnet_block_explorer_endpoint;
-let current_electrum_config: ElectrumClientConfig = NETWORK_CONFIG.mainnet_electrum_config;
-
-export const argsHasTestnet = () => {
-  // set to testnet mode for testing
-  if (require("../settings.json").testing_mode) {
-    return true
-  }
-  let found = false;
-  let remote: any;
-  try {
-    remote = window.require('@electron/remote')
-  } catch (e: any) {
-    try {
-      remote = require('@electron/remote')
-    } catch (e: any) {
-      console.log(e)
-    }
-  }
-  if (remote != null && remote?.process != null) {
-    remote.process.argv.forEach((arg: string) => {
-      if (arg.includes('testnet')) {
-        found = true;
-      }
-    });
-  } else {
-    //no remote - set to testnet mode for testing
-    found = true
-  }
-  return found;
-}
-
-// check values of arguments
-if (argsHasTestnet() === true) {
-  current_state_entity_endpoint = NETWORK_CONFIG.testnet_state_entity_endpoint;
-  current_swap_conductor_endpoint = NETWORK_CONFIG.testnet_swap_conductor_endpoint;
-  current_block_explorer_endpoint = NETWORK_CONFIG.testnet_block_explorer_endpoint;
-  current_electrum_config = NETWORK_CONFIG.testnet_electrum_config;
-} 
 
 export class Config {
   // Set at startup only
@@ -97,10 +56,19 @@ export class Config {
     this.electrum_fee_estimation_blocks = 6;
     this.swap_amounts = [100000,500000,1000000,5000000,10000000,50000000,100000000];
 
-    this.state_entity_endpoint = current_state_entity_endpoint;
-    this.swap_conductor_endpoint = current_swap_conductor_endpoint;
-    this.electrum_config = current_electrum_config;
-    this.block_explorer_endpoint = current_block_explorer_endpoint;
+    //Mainnet or testnet urls
+    if (this.network === bitcoin.networks.bitcoin) {
+      this.state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;
+      this.swap_conductor_endpoint = NETWORK_CONFIG.mainnet_swap_conductor_endpoint;
+      this.electrum_config = NETWORK_CONFIG.mainnet_electrum_config;
+      this.block_explorer_endpoint = NETWORK_CONFIG.mainnet_block_explorer_endpoint;
+        
+    } else  {
+      this.state_entity_endpoint = NETWORK_CONFIG.testnet_state_entity_endpoint;
+      this.swap_conductor_endpoint = NETWORK_CONFIG.testnet_swap_conductor_endpoint;
+      this.electrum_config = NETWORK_CONFIG.testnet_electrum_config;
+      this.block_explorer_endpoint = NETWORK_CONFIG.testnet_block_explorer_endpoint;
+    }
 
     this.tor_proxy = {
       ip: 'localhost',

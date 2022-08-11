@@ -1,3 +1,6 @@
+/**
+ * @jest-environment jest-environment-jsdom-fifteen
+ */
 
 import { networks, ECPair } from 'bitcoinjs-lib';
 import { FEE_INFO } from '../mocks/mock_http_client';
@@ -188,8 +191,12 @@ describe('txCPFPBuild', function() {
   });
 });
 
+test('callGetArgsHasTestnet', async function () {
+  let result = await callGetArgsHasTestnet()
+  expect(result).toEqual(true)
+})
+
 test('bech32 encode/decode', async function () {
-  expect(callGetArgsHasTestnet()).toEqual(true)
   let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin);
   wallet.config.update({min_anon_set: 1000, jest_testing_mode: true}); // update config to ensure defaults are not revered to after fromJSON.
   

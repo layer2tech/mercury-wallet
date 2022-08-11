@@ -30,30 +30,13 @@ try {
   log = require('electron-log');
 }
 
-export const callGetArgsHasTestnet = () => {
+export const callGetArgsHasTestnet = async () => {
   // set to testnet mode for testing
   if (require("../settings.json").testing_mode) {
     return true
   }
-  let found = false;
-  try {
-    window.require('@electron/remote').process.argv.forEach((arg) => {
-      if (arg.includes('testnet')) {
-        found = true;
-      }
-    });
-  } catch (e) {
-    // set testnet for testing
-    found = true
-  }
-  return found;
-}
-
-let network;
-if (callGetArgsHasTestnet()) {
-  network = bitcoin.networks['testnet'];
-} else {
-  network = bitcoin.networks['bitcoin'];
+  let result = await window.electron.ipcRenderer.invoke('testnet-mode')
+  return result
 }
 
 let wallet;
@@ -186,6 +169,12 @@ export const walletLoad = (name, password) => {
 
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
 export async function walletFromMnemonic(dispatch, name, password, mnemonic, router, try_restore, gap_limit = undefined) {
+  let network;
+  if (await callGetArgsHasTestnet() === true) {
+    network = bitcoin.networks['testnet'];
+  } else {
+    network = bitcoin.networks['bitcoin'];
+  }
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   wallet.resetSwapStates();
   log.info("Wallet " + name + " created.");
@@ -699,7 +688,7 @@ export const callTransferSender = createAsyncThunk(
 export const callTransferReceiver = createAsyncThunk(
   'TransferReceiver',
   async (action, thunkAPI) => {
-    return wallet.transfer_receiver(decodeMessage(action, network))
+    return wallet.transfer_receiver(decodeMessage(action, wallet.config.network))
   }
 )
 export const callGetTransfers = createAsyncThunk(
