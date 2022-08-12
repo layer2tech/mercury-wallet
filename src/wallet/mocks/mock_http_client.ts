@@ -2,16 +2,13 @@
 // Mock Classes  are followed by mock data for full protocol runs.
 
 'use strict';
-import { Transaction } from 'bitcoinjs-lib';
-import { createTypeReferenceDirectiveResolutionCache } from "typescript";
 import { GET_ROUTE, POST_ROUTE } from "../http_client"
 import { RecoveryDataMsg, StateChainDataAPI, TransferFinalizeDataAPI } from "../mercury/info_api";
 import {
   TransferFinalizeDataForRecovery,
-  transferReceiverFinalizeRecovery, TransferFinalizeData, PrepareSignTxMsg
+  TransferFinalizeData, PrepareSignTxMsg
 } from "../mercury/transfer";
 import { SwapID } from "../swap/swap_utils";
-import { StateChainSig } from "../util"
 let types = require("../types")
 let typeforce = require('typeforce');
 // import { SIGNSWAPTOKEN_DATA, BST_DATA } from "../test/test_data";

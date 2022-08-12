@@ -166,22 +166,23 @@ function setBlockHeightCallBack(item) {
 }
 
 // Load wallet from store
-export const walletLoad = (name, password) => {
+export async function walletLoad(name, password) {
+
   wallet = Wallet.load(name, password, testing_mode);
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
-  wallet.deRegisterSwaps(true).then(() => {
-    log.info("Wallet " + name + " loaded from memory. ");
+  await wallet.deRegisterSwaps(true);
 
-    if (testing_mode) log.info("Testing mode set.");
-    mutex.runExclusive(async () => {
-      await wallet.set_tor_endpoints();
-      wallet.initElectrumClient(setBlockHeightCallBack);
-      wallet.updateSwapStatus();
-      await wallet.updateSwapGroupInfo();
-      wallet.updateSpeedInfo();
-    });
+  log.info("Wallet " + name + " loaded from memory. ");
+
+  if (testing_mode) log.info("Testing mode set.");
+  await mutex.runExclusive(async () => {
+    await wallet.set_tor_endpoints();
+    wallet.initElectrumClient(setBlockHeightCallBack);
+    wallet.updateSwapStatus();
+    await wallet.updateSwapGroupInfo();
+    wallet.updateSpeedInfo();
   });
 }
 
@@ -220,7 +221,9 @@ export const checkWalletPassword = (password) => {
 // Create wallet from backup file
 export const walletFromJson = (wallet_json, password) => {
   wallet = Wallet.loadFromBackup(wallet_json, password, testing_mode);
+  
   wallet.resetSwapStates();
+  wallet.disableAutoSwaps();
 
   log.info("Wallet " + wallet.name + " loaded from backup.");
   if (testing_mode) log.info("Testing mode set.");
@@ -229,6 +232,7 @@ export const walletFromJson = (wallet_json, password) => {
       await wallet.set_tor_endpoints();
       wallet.initElectrumClient(setBlockHeightCallBack);
       await callNewSeAddr();
+      wallet.updateSwapStatus();
       await wallet.save();
       await wallet.saveName();
       return wallet;
