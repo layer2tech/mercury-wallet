@@ -548,7 +548,7 @@ describe('Process step result Ok',  function () {
   }
 )
 
-describe('Quit Wallet Mid Swap', async function () {
+describe('Quit Wallet Mid Swap', function () {
   let wallet
 
   let torEndpointsMock;
