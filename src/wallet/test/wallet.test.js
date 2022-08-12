@@ -638,7 +638,7 @@ describe('Wallet', function () {
       expect(swapped_coins.length).toEqual(s1_swapped.length);
 
       // Remove statecoin and confirm that statecoin is removed from file
-      await loaded_wallet.removeCoin(s1[0].shared_key_id)
+      await loaded_wallet.removeStatecoin(s1[0].shared_key_id)
       loaded_wallet = await Wallet.load(WALLET_NAME_6_BACKUP, WALLET_PASSWORD_6, true)
       expect(loaded_wallet.statecoins.coins.length).toBe(s1.length - 1)
 
