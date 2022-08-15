@@ -326,8 +326,10 @@ export class Wallet {
   }
 
   async start() {
-    swapSemaphore.release(MAX_SWAP_SEMAPHORE_COUNT)
-    updateSwapSemaphore.release(MAX_SWAP_SEMAPHORE_COUNT)
+
+    swapSemaphore.release(MAX_SWAP_SEMAPHORE_COUNT);
+    updateSwapSemaphore.release(MAX_SWAP_SEMAPHORE_COUNT);
+
   }
 
   // unload wallet
@@ -1537,7 +1539,7 @@ export class Wallet {
       swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der, resume)
       new_statecoin = await swap.do_swap_poll()
     } catch (e: any) {
-      this.handleSwapError(e, statecoin)
+      this.handleSwapError(e, statecoin);
     } finally {
       swap = null;
       return this.doPostSwap(statecoin, new_statecoin)
@@ -1637,11 +1639,21 @@ export class Wallet {
     this.statecoins.coins.forEach(
       (statecoin) => {
         // if this statecoin is in a swap on load, set it back to available
-        if (statecoin.status === 'IN_SWAP') {
-          statecoin.status = 'AVAILABLE';
-          statecoin.swap_id = null;
+        if (statecoin.status === 'IN_SWAP' && statecoin.swap_status !== SWAP_STATUS.Phase4) {
+          statecoin.setConfirmed();
           statecoin.swap_status = null;
+          statecoin.swap_id = null;
+          statecoin.swap_address = null;
+          statecoin.swap_info = null;
+          statecoin.swap_my_bst_data = null;
+          statecoin.swap_receiver_addr = null;
+          statecoin.swap_transfer_msg = null;
+          statecoin.swap_batch_data = null;
+          statecoin.swap_transfer_msg_3_receiver = null;
+          statecoin.swap_transfer_msg_4 = null;
           statecoin.ui_swap_status = null;
+          statecoin.clearSwapError();
+          statecoin.swap_transfer_finalized_data = null;
         }
       }
     )
@@ -1682,8 +1694,7 @@ export class Wallet {
 
   //If there are no swaps running then set all the statecoin swap data to null
   async updateSwapStatus() {
-    //If there are no do_swap processes running then the swap statuses should all be nullified
-      
+    
     this.statecoins.coins.forEach(
       async (statecoin) => {
         if (statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) {
@@ -1697,7 +1708,6 @@ export class Wallet {
         }
       }
     );
-
   }
 
   // Perform transfer_sender
