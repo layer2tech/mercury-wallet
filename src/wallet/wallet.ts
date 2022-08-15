@@ -1683,28 +1683,21 @@ export class Wallet {
   //If there are no swaps running then set all the statecoin swap data to null
   async updateSwapStatus() {
     //If there are no do_swap processes running then the swap statuses should all be nullified
-    await swapSemaphore.wait();
-    await updateSwapSemaphore.wait();
-    try {
-      if (swapSemaphore.count === MAX_SWAP_SEMAPHORE_COUNT - 1) {
-        this.statecoins.coins.forEach(
-          async (statecoin) => {
-            if (statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) {
-              if (statecoin && statecoin?.swap_status !== SWAP_STATUS.Phase4) {
-                statecoin.setSwapDataToNull();
-                await this.saveStateCoin(statecoin);
-              } else {
-                log.info(`resuming swap for statechain id: ${statecoin.statechain_id}`)
-                this.resume_swap(statecoin)
-              }
-            }
+      
+    this.statecoins.coins.forEach(
+      async (statecoin) => {
+        if (statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) {
+          if (statecoin && statecoin?.swap_status !== SWAP_STATUS.Phase4) {
+            statecoin.setSwapDataToNull();
+            await this.saveStateCoin(statecoin);
+          } else {
+            log.info(`resuming swap for statechain id: ${statecoin.statechain_id}`)
+            this.resume_swap(statecoin)
           }
-        );
+        }
       }
-    } finally {
-      swapSemaphore.release();
-      updateSwapSemaphore.release();
-    }
+    );
+
   }
 
   // Perform transfer_sender
