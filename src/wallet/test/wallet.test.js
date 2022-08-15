@@ -121,9 +121,9 @@ describe('Wallet', function () {
 
     // pre conditions
     wallet.statecoins.coins[0].status = STATECOIN_STATUS.IN_SWAP;
-    wallet.statecoins.coins[0].ui_swap_status = UI_SWAP_STATUS.Phase6;
+    wallet.statecoins.coins[0].ui_swap_status = UI_SWAP_STATUS.Phase5;
     wallet.statecoins.coins[0].swap_id = 20;
-    wallet.statecoins.coins[0].swap_status = SWAP_STATUS.Phase4;
+    wallet.statecoins.coins[0].swap_status = SWAP_STATUS.Phase3;
 
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.IN_SWAP)
     // run resetSwapStates code
