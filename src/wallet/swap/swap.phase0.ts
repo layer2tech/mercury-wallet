@@ -4,6 +4,7 @@ import Swap from "./swap"
 
 export function swapPhase0(swap: Swap): SwapStep[] {
     return [
+      // Step 2
         new SwapStep(
             SWAP_STATUS.Phase0, "pollUtxo",
             () => {return swap.statecoin.status === STATECOIN_STATUS.AWAITING_SWAP},
