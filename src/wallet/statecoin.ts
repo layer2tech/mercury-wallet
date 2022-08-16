@@ -25,29 +25,16 @@ export const HIDDEN = "*****"
 
 export class StateCoinList {
   coins: StateCoin[]
-  swapped_coins: StateCoin[];
 
   constructor() {
     this.coins = [];
-    this.swapped_coins = [];
   }
 
   static fromJSON(coins_json: StateCoinList): StateCoinList {
     let statecoinsList = new StateCoinList()
-
-    if(coins_json.swapped_coins){
-      coins_json.swapped_coins.forEach((coin: StateCoin) => {
-        statecoinsList.swapped_coins.push(coin);
-      })
-    }
     
 
     coins_json.coins.forEach((item: StateCoin) => {
-
-      // if this is a swapped coin then move it to a new list
-      if(item.status === STATECOIN_STATUS.SWAPPED){
-        statecoinsList.swapped_coins.push(item); // save to swap coins array
-      }else{
         let coin = new StateCoin(item.shared_key_id, item.shared_key);
         coin.wallet_version = "";
 
@@ -95,8 +82,6 @@ export class StateCoinList {
           item.tx_cpfp = tx_cpfp;
         }
         if (!replca) statecoinsList.coins.push(Object.assign(coin, item));
-      }
-      
     })
     return statecoinsList
   }

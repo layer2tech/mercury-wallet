@@ -258,7 +258,7 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
   groupRecoveredWithdrawalTransactions(withdrawal_tx_map, withdraw_tx_id_map, withdrawal_addr_map, statecoins)
 
   statecoins.forEach((statecoin, _) => {
-    wallet.statecoins.addCoin(statecoin);
+    wallet.addStatecoin(statecoin, undefined)
   })
-  await wallet.saveStateCoinsList();
+
 }

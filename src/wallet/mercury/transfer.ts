@@ -164,7 +164,7 @@ export const transferSender = async (
 
   // Mark funds as spent in wallet if this isn't a batch transfer
   if (!is_batch) {
-    wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.TRANSFER, transfer_msg3);
+    await wallet.setStateCoinSpent(statecoin.shared_key_id, ACTION.TRANSFER, transfer_msg3, true);
   }
 
   return transfer_msg3

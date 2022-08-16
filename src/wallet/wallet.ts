@@ -343,6 +343,7 @@ export class Wallet {
   async save() {
     const release = await this.saveMutex.acquire();
     try {
+      log.debug(`saving wallet: ${this.name}`)
       this.save_nomutex()
     } finally {
       release();
@@ -380,15 +381,44 @@ export class Wallet {
     }
   };
 
-  // Update coins list in storage. Store in file as JSON string.
-  async saveStateCoinsList() {
+  // Update/save a single statecoin in storage. 
+  async saveStateCoin(statecoin: StateCoin) {
     const release = await this.saveMutex.acquire();
     try {
-      this.storage.storeWalletStateCoinsList(this.name, this.statecoins, this.activity);
+      this.storage.storeWalletStateCoin(this.name, statecoin);
     } finally {
       release()
     }
   };
+
+  async deleteStateCoin(shared_key_id: string) {
+    const release = await this.saveMutex.acquire();
+    try {
+      this.storage.deleteWalletStateCoin(this.name, shared_key_id);
+    } finally {
+      release()
+    }
+  }
+
+  // Update coins list in storage. Store in file as JSON string.
+  async saveStateCoinsList() {
+    const release = await this.saveMutex.acquire();
+    try {
+      this.storage.storeWalletStateCoinsList(this.name, this.statecoins);
+    } finally {
+      release()
+    }
+  };
+
+  async saveActivityLog() {
+    const release = await this.saveMutex.acquire();
+    try {
+      this.storage.storeWalletActivityLog(this.name, this.activity);
+    } finally {
+      release()
+    }
+  }
+
   // Clear storage.
   async clearSave() {
     const release = await this.saveMutex.acquire();
@@ -421,7 +451,6 @@ export class Wallet {
     // Decrypt mnemonic
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
-      console.log(`mnemonic decrypted: ${wallet_json.mnemonic}`)
     } catch (e: any) {
       throw Error("Incorrect password.")
     }
@@ -895,11 +924,11 @@ export class Wallet {
       if (statecoin.status === STATECOIN_STATUS.EXPIRED) {
         if (blocks_to_locktime > this.config.swaplimit) {
           statecoin.setConfirmed()
+          await this.saveStateCoin(statecoin)
         } else if (blocks_to_locktime > 1) {
-          statecoin.setSwapLimit()
+          await this.saveStateCoin(statecoin)
         }
       }
-      await this.saveStateCoinsList()
       return false
     } else {
       // locktime reached
@@ -917,7 +946,9 @@ export class Wallet {
 
         if (statecoin.status !== STATECOIN_STATUS.EXPIRED) {
           // Keep expired coins in Main Coins List
-          this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, false)
+          this.setStateCoinSpent(statecoin.shared_key_id, ACTION.WITHDRAW, undefined, true)
+        } else {
+          this.saveStateCoin(statecoin)
         }
       }
     }
@@ -953,7 +984,7 @@ export class Wallet {
       if (await this.checkLocktime(statecoin) === true) {
         // set expired
         if (statecoin.status === STATECOIN_STATUS.SWAPLIMIT || statecoin.status === STATECOIN_STATUS.AVAILABLE) {
-          await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, false)
+          await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.EXPIRED, undefined, true)
         }
         // in mempool - check if confirmed
         if (statecoin.backup_status === BACKUP_STATUS.IN_MEMPOOL) {
@@ -977,7 +1008,6 @@ export class Wallet {
         }
       }
     }
-    await this.saveStateCoinsList()
   }
 
   // create CPFP transaction to spend from backup tx
@@ -1030,7 +1060,7 @@ export class Wallet {
         break;
       }
     }
-    await this.saveStateCoinsList();
+    await this.saveStateCoin(statecoin);
 
     // if statecoin expired, broadcast immediately
     if (statecoin.status === STATECOIN_STATUS.EXPIRED) {
@@ -1038,20 +1068,39 @@ export class Wallet {
         await this.broadcastCPFP(statecoin)
       } catch (err: any) {
         log.error(`Error broadcasting CPFP: ${err.toString()}`)
-      }      
+      }
     }
 
     return true;
   }
 
   // Add confirmed Statecoin to wallet
-  addStatecoin(statecoin: StateCoin, action: string) {
+  addStatecoin(statecoin: StateCoin, action: string | undefined): boolean {
     if (this.statecoins.addCoin(statecoin)) {
-      this.activity.addItem(statecoin.shared_key_id, action);
+      this.storage.storeWalletStateCoin(this.name, statecoin);
+      if (action != null) {
+        this.activity.addItem(statecoin.shared_key_id, action);
+        this.storage.storeWalletActivityLog(this.name, this.activity);
+      }
       log.debug("Added Statecoin: " + statecoin.shared_key_id);
+      return true;
     } else {
       log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
+      return false;
     }
+  }
+
+  // Add confirmed Statecoin to wallet
+  addStatecoins(statecoins: StateCoin[]) {
+    statecoins.forEach((statecoin: any) => {
+      if (this.statecoins.addCoin(statecoin)) {
+        this.storage.storeWalletStateCoin(this.name, statecoin);
+        log.debug("Added Statecoin: " + statecoin.shared_key_id);
+      } else {
+        log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
+      }
+      this.storage.storeWalletActivityLog(this.name, this.activity);
+    })
   }
 
   addStatecoinFromValues(id: string, shared_key: MasterKey2, value: number, txid: string, vout: number, proof_key: string, action: string) {
@@ -1062,16 +1111,11 @@ export class Wallet {
     statecoin.funding_vout = vout;
     statecoin.tx_backup = null;
     statecoin.setConfirmed();
-    if (this.statecoins.addCoin(statecoin)) {
-      this.activity.addItem(id, action);
-      log.debug("Added Statecoin: " + statecoin.shared_key_id);
-    } else {
-      log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
-    }
+    this.addStatecoin(statecoin, action);
   }
   async removeStatecoin(shared_key_id: string) {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode)
-    await this.saveStateCoinsList()
+    await this.deleteStateCoin(shared_key_id)
   }
 
   getStatecoin(shared_key_id: string) {
@@ -1099,7 +1143,7 @@ export class Wallet {
 
   // Mark statecoin as spent after transfer or withdraw
   async setStateCoinSpent(id: string, action: string, transfer_msg?: TransferMsg3, bSave: boolean = true) {
-    let statecoin = this.statecoins.getCoin(id);
+    let statecoin: StateCoin | undefined = this.statecoins.getCoin(id);
     if (statecoin && (statecoin.status === STATECOIN_STATUS.AVAILABLE ||
       statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
       statecoin.status === STATECOIN_STATUS.EXPIRED ||
@@ -1108,11 +1152,13 @@ export class Wallet {
     )) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
+      if (bSave) {
+        await this.saveStateCoin(statecoin)  
+        await this.saveActivityLog()
+      }
       log.debug("Set Statecoin spent: " + id);
     }
-    if (bSave) {
-      await this.saveStateCoinsList()
-    }
+    
   }
 
   setStateCoinAutoSwap(shared_key_id: string) {
@@ -1182,7 +1228,8 @@ export class Wallet {
     this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
 
     log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
-    await this.saveStateCoinsList();
+    await this.saveStateCoin(statecoin);
+    await this.saveActivityLog();
     return [statecoin.shared_key_id, p_addr]
   }
 
@@ -1221,13 +1268,17 @@ export class Wallet {
         if (!funding_tx_data[i].height) {
           if (this.statecoins.setCoinInMempool(shared_key_id, funding_tx_data[i]) === true) {
             log.info("Found funding tx for p_addr " + p_addr + " in mempool. txid: " + funding_tx_data[i].tx_hash)
-            await this.saveStateCoinsList()
+            if (coin != null) {
+              await this.saveStateCoin(coin)  
+            }
           }
         } else {
           log.info("Funding tx for p_addr " + p_addr + " mined. Height: " + funding_tx_data[i].height)
           // Set coin UNCONFIRMED.
           this.statecoins.setCoinUnconfirmed(shared_key_id, funding_tx_data[i])
-          await this.saveStateCoinsList()
+          if (coin != null) {
+            await this.saveStateCoin(coin)
+          }
           // No longer need subscription
           this.electrum_client.scriptHashUnsubscribe(p_addr_script);
         }
@@ -1290,7 +1341,7 @@ export class Wallet {
               statecoin.tx_backup = new Transaction();
               statecoin.status = STATECOIN_STATUS.DUPLICATE;
 
-              this.statecoins.addCoin(statecoin)
+              this.addStatecoin(statecoin, undefined)
               count = count + 1;
             }
           }
@@ -1358,7 +1409,8 @@ export class Wallet {
     this.activity.addItem(shared_key_id, ACTION.DEPOSIT)
 
     log.info("Deposit Backup done.");
-    await this.saveStateCoinsList();
+    await this.saveStateCoin(statecoin_finalized);
+    await this.saveActivityLog();
 
     return statecoin_finalized
   }
@@ -1397,7 +1449,10 @@ export class Wallet {
 
   async removeCoinFromSwapPool(shared_key_id: string, force: boolean = false) {
     this.statecoins.removeCoinFromSwapPool(shared_key_id, force);
-    await this.saveStateCoinsList()
+    let coin = this.getStatecoin(shared_key_id)
+    if (coin != null) {
+      await this.saveStateCoin(coin)  
+    }
   }
 
 
@@ -1507,10 +1562,9 @@ export class Wallet {
     if (new_statecoin && new_statecoin instanceof StateCoin) {
       this.setIfNewCoin(new_statecoin)
       statecoin.setSwapDataToNull();
-      await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP)
+      await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP, undefined, true)
       new_statecoin.setSwapDataToNull();
     }
-    await this.saveStateCoinsList();
     swapSemaphore.release();
     return new_statecoin
   }
@@ -1640,26 +1694,20 @@ export class Wallet {
 
   //If there are no swaps running then set all the statecoin swap data to null
   async updateSwapStatus() {
-    //If there are no do_swap processes running then the swap statuses should all be nullified
-
-    try {
-      
-      this.statecoins.coins.forEach(
-        async (statecoin) => {
-          if (statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) {
-            if (statecoin && statecoin?.swap_status !== SWAP_STATUS.Phase4) {
-              statecoin.setSwapDataToNull();
-            } else {
-              log.info(`resuming swap for statechain id: ${statecoin.statechain_id}`)
-              this.resume_swap(statecoin)
-            }
+    
+    this.statecoins.coins.forEach(
+      async (statecoin) => {
+        if (statecoin.status === STATECOIN_STATUS.IN_SWAP || statecoin.status === STATECOIN_STATUS.AWAITING_SWAP) {
+          if (statecoin && statecoin?.swap_status !== SWAP_STATUS.Phase4) {
+            statecoin.setSwapDataToNull();
+            await this.saveStateCoin(statecoin);
+          } else {
+            log.info(`resuming swap for statechain id: ${statecoin.statechain_id}`)
+            this.resume_swap(statecoin)
           }
         }
-      );
-
-    } finally {
-      await this.saveStateCoinsList();
-    }
+      }
+    );
   }
 
   // Perform transfer_sender
@@ -1705,7 +1753,8 @@ export class Wallet {
         await transferUpdateMsg(this.http_client, transfer_sender, false)
 
         log.info("Transfer Sender complete.");
-        await this.saveStateCoinsList();
+        await this.saveStateCoin(statecoin);
+        await this.saveActivityLog();
 
       })
     }
@@ -1736,7 +1785,6 @@ export class Wallet {
     // Finalize protocol run by generating new shared key and updating wallet.
     await this.transfer_receiver_finalize(finalize_data);
 
-    await this.saveStateCoinsList();
     return finalize_data
   }
 
@@ -1753,13 +1801,8 @@ export class Wallet {
     // update in wallet
     statecoin_finalized.setConfirmed();
 
-    if (this.statecoins.addCoin(statecoin_finalized)) {
-      this.activity.addItem(statecoin_finalized.shared_key_id, ACTION.RECEIVED)
-      await this.saveStateCoinsList();
-      log.info("Transfer Finalize complete.")
-    } else {
-      log.info("Transfer finalize error: replica coin")
-    }
+    this.addStatecoin(statecoin_finalized, ACTION.RECEIVED);
+
     return statecoin_finalized
   }
 
@@ -1963,7 +2006,7 @@ export class Wallet {
     let [tx_withdraw, withdraw_msg_2] = await withdraw_init(this.http_client, await this.getWasm(), this.config.network, statecoins, proof_key_ders, rec_addr, fee_per_byte);
 
     // Mark funds as withdrawn in wallet
-    shared_key_ids.forEach((shared_key_id) => {
+    shared_key_ids.forEach(async (shared_key_id) => {
       let statecoin = this.statecoins.getCoin(shared_key_id);
       if (!statecoin) throw Error("No coin found with id " + shared_key_id)
       if (statecoin.status !== STATECOIN_STATUS.WITHDRAWING &&
@@ -1973,8 +2016,9 @@ export class Wallet {
       let tx_fee = getTxFee(fee_per_byte, tx_withdraw.ins.length)
       this.statecoins.setCoinWithdrawBroadcastTx(shared_key_id, tx_withdraw, tx_fee, withdraw_msg_2, rec_addr);
       this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
+      await this.saveStateCoin(statecoin)
     });
-    await this.saveStateCoinsList();
+    this.saveActivityLog();
 
     // Broadcast transcation
     let withdraw_txid: string = ""
