@@ -62,6 +62,7 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number, dispatch: 
       if(e.message.includes("Network Error")){
         throw e
       }
+      console.error(e.message);
     }
     recovery_request = [];
     recovery_data = recovery_data.concat(new_recovery_data_load);
