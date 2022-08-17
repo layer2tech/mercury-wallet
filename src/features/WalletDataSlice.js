@@ -52,6 +52,7 @@ const initialState = {
   ping_swap: null,
   ping_server: null,
   filterBy: 'default',
+  walletLoaded: false,
   depositLoading: false,
   swapRecords: [],
   swapPendingCoins: [],
@@ -168,6 +169,11 @@ export async function walletLoad(name, password) {
   });
 }
 
+async function recoverCoins(wallet, dispatch, gap_limit){
+  const n_recovered = await wallet.recoverCoinsFromServer(gap_limit, dispatch);
+  dispatch(addCoins(n_recovered));
+}
+
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
 export async function walletFromMnemonic(dispatch, name, password, mnemonic, router, try_restore, gap_limit = undefined) {
   let network;
@@ -180,19 +186,34 @@ export async function walletFromMnemonic(dispatch, name, password, mnemonic, rou
   wallet.resetSwapStates();
   log.info("Wallet " + name + " created.");
   if (testing_mode) log.info("Testing mode set.");
-  mutex.runExclusive(async () => {
+  await mutex.runExclusive(async () => {
     await wallet.set_tor_endpoints();
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
-      try {
-
-        const n_recovered = await wallet.recoverCoinsFromServer(gap_limit, dispatch);
-        dispatch(addCoins(n_recovered));
-      } catch {
-        dispatch(setProgressComplete({ msg: "" }))
-        dispatch(setError({ msg: "Error in Recovery - check online connection and retry" }))
-        return
+      let recoveryComplete = false;
+      let recoveryCount = 8;
+      let recoveryError = "";
+      while(!recoveryComplete && recoveryCount !== 0){
+        try {
+          await recoverCoins(wallet, dispatch, gap_limit)
+          recoveryComplete = true;
+          recoveryError = "";
+        } catch(e) {
+          recoveryCount -= 1;
+          // Lower retry amount by 1
+          recoveryError = e;
+          // Set Recovery Error msg;
+        }
       }
+      if(recoveryError !== ""){
+        await stopWallet();
+        unloadWallet();
+        dispatch(setProgressComplete({ msg: "" }));
+        dispatch(setError({ msg: `Error in Recovery: ${recoveryError.message}` }));
+        recoveryComplete = true;
+        throw recoveryError
+      }
+      dispatch(setWalletLoaded({loaded: true}))
     }
     await callNewSeAddr();
     await wallet.save();
@@ -952,7 +973,7 @@ const WalletSlice = createSlice({
       state.error_dialogue.seen = true
     },
     setError(state, action) {
-      log.error(action.payload.msg)
+      if(!testing_mode) log.error(action.payload.msg)
       return {
         ...state,
         error_dialogue: { seen: false, msg: action.payload.msg }
@@ -997,6 +1018,12 @@ const WalletSlice = createSlice({
           key: action.payload.key,
           msg: action.payload.msg
         }
+      }
+    },
+    setWalletLoaded(state, action) {
+      return {
+        ...state,
+        walletLoaded: action.payload.loaded
       }
     },
     setWarningSeen(state) {
@@ -1071,7 +1098,7 @@ const WalletSlice = createSlice({
   }
 })
 
-export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setProgressComplete, setProgress, setWarning, setWarningSeen, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
+export const { callGenSeAddr, refreshCoinData, setErrorSeen, setError, setProgressComplete, setProgress, setWarning, setWarningSeen, setWalletLoaded, addCoinToSwapRecords, removeCoinFromSwapRecords, removeAllCoinsFromSwapRecords, updateFeeInfo, updatePingServer, updatePingSwap,
   setNotification, setNotificationSeen, updateBalanceInfo, callClearSave, updateFilter, updateSwapPendingCoins, addSwapPendingCoin, removeSwapPendingCoin,
   clearSwapPendingCoins, clearInSwapValues,
   updateInSwapValues, addInSwapValue, removeInSwapValue, setSwapLoad, updateTxFeeEstimate, addCoins, removeCoins, setTorOnline } = WalletSlice.actions
