@@ -152,13 +152,20 @@ export async function walletLoad(name, password) {
 
   wallet = Wallet.load(name, password, testing_mode);
 
-  wallet.resetSwapStates();
-  wallet.disableAutoSwaps();
-
-  await wallet.deRegisterSwaps(true);
+  stopSwaps(wallet);
 
   log.info("Wallet " + name + " loaded from memory. ");
 
+  setupThreads(wallet);
+}
+
+export async function stopSwaps(wallet) {
+  wallet.resetSwapStates();
+  wallet.disableAutoSwaps();
+  await wallet.deRegisterSwaps(true);
+}
+
+export async function setupThreads(wallet) {
   if (testing_mode) log.info("Testing mode set.");
   await mutex.runExclusive(async () => {
     await wallet.set_tor_endpoints();
