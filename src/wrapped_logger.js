@@ -5,6 +5,11 @@ export default class WrappedLogger {
 
   constructor(version) {
     console.log("version passed:", version);
+    if (typeof version === "undefined" || version === null) return;
+    if (typeof version.NODE_ENV === "undefined" || version.NODE_ENV === null) {
+      return;
+    }
+
     if (version.NODE_ENV === "development") {
       try {
         this.log = window.require("electron-log");
