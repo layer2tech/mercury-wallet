@@ -134,6 +134,8 @@ export class Storage {
   }
 
   getSwappedCoins(wallet_name: string) {
+    // An error is thrown if an old wallet is loaded i.e. v0.7.10 & 
+    // it has no swapped coins
     let sc: any = this.store.get(`${wallet_name}.swapped_statecoins_obj`) 
     if (sc === undefined) throw Error("No wallet called " + wallet_name + " stored.");
     log.debug(`swapped_coins: ${JSON.stringify(sc)}`)
