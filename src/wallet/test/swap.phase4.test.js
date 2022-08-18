@@ -24,7 +24,7 @@ import WrappedLogger from "../../wrapped_logger.js";
 
 // Logger import.
 // Node friendly importing required for Jest tests.
-//let log = new WrappedLogger();
+let log = new WrappedLogger();
 
 let walletName = `${MOCK_WALLET_NAME}_phase4_tests`;
 
