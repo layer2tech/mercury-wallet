@@ -30,7 +30,7 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
 import { ActivityLog } from "../activity_log";
 import WrappedLogger from "../../wrapped_logger";
 
-let log = new WrappedLogger(process.env);
+let log = new WrappedLogger();
 let cloneDeep = require("lodash.clonedeep");
 let bip32 = require("bip32");
 let bip39 = require("bip39");
