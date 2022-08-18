@@ -1,12 +1,41 @@
 // wrapper class for logging on machines of windows and web version
 export default class WrappedLogger {
-  constructor() {}
+  log = null;
+  development = false;
 
-  warn() {}
+  constructor(version) {
+    console.log("version passed:", version);
+    if (version.NODE_ENV === "development") {
+      try {
+        this.log = window.require("electron-log");
+      } catch (e) {
+        this.log = require("electron-log");
+      }
+      this.development = true;
+    }
+  }
 
-  debug() {}
+  warn(msg) {
+    if (this.development) {
+      this.log.warn(msg);
+    }
+  }
 
-  info() {}
+  debug(msg) {
+    if (this.development) {
+      this.log.debug(msg);
+    }
+  }
 
-  error() {}
+  info(msg, data) {
+    if (this.development) {
+      this.log.debug(msg, data);
+    }
+  }
+
+  error(msg) {
+    if (this.development) {
+      this.log.error(msg);
+    }
+  }
 }

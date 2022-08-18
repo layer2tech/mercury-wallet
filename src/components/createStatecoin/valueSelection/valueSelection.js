@@ -9,15 +9,11 @@ import "../../../containers/Deposit/Deposit.css";
 import { callGetFeeInfo } from "../../../features/WalletDataSlice";
 import { handleErrors } from "../../../error";
 import { useSelector } from "react-redux";
+import WrappedLogger from "../../../wrapped_logger";
 
 // Logger import.
 // Node friendly importing required for Jest tests.
-let log;
-try {
-  log = window.require("electron-log");
-} catch (e) {
-  log = require("electron-log");
-}
+//let log = new WrappedLogger(process.env);
 
 const ValueSelectionPanel = (props) => {
   const customInputRef = useRef();

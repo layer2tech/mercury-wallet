@@ -147,7 +147,8 @@
     "ts-jest": "^26.4.4",
     "typeforce": "^1.11.3",
     "uuid": "^8.3.2",
-    "wasm-pack": "^0.10.0"
+    "wasm-pack": "^0.10.0",
+    "@koale/useworker": "^4.0.2"
   },
   "browserslist": {
     "production": [
