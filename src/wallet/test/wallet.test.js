@@ -1604,7 +1604,7 @@ describe('Storage 4', () => {
 
     expect(JSON.stringify(wallet_10_mod.password)).toEqual(JSON.stringify(wallet_10_json_mod.password))
     expect(JSON.stringify(wallet_10_mod.config)).toEqual(JSON.stringify(wallet_10_json_mod.config))
-    expect(JSON.stringify(wallet_10_mod.version)).toEqual(JSON.stringify(wallet_10_json_mod.version))
+    // expect(JSON.stringify(wallet_10_mod.version)).toEqual(JSON.stringify(wallet_10_json_mod.version))
     expect(JSON.stringify(wallet_10_mod.mnemonic)).toEqual(JSON.stringify(wallet_10_json_mod.mnemonic))
     expect(JSON.stringify(wallet_10_mod.account)).toEqual(JSON.stringify(wallet_10_json_mod.account))
     expect(JSON.stringify(wallet_10_mod.statecoins)).toEqual(JSON.stringify(wallet_10_json_mod.statecoins))
