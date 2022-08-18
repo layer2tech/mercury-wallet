@@ -8,6 +8,7 @@ import Swap from "./swap"
 
 export function swapPhase2(swap: Swap): SwapStep[] {
     return [
+        // Step 6
         new SwapStep(
             SWAP_STATUS.Phase2, "pollSwapPhase2", 
             () => {return swap.statecoin.status === STATECOIN_STATUS.IN_SWAP},
@@ -20,6 +21,7 @@ export function swapPhase2(swap: Swap): SwapStep[] {
             },
             swap.pollSwapPhase2
           ),
+          // Step 7
           new SwapStep(
             SWAP_STATUS.Phase2, "getBSS",
             () => {return true},
@@ -27,6 +29,7 @@ export function swapPhase2(swap: Swap): SwapStep[] {
             () => {return true},
             swap.getBSS
           ),
+          // Step 8
           new SwapStep(
             SWAP_STATUS.Phase2, "doSwapSecondMessage",
             () => {return true},

@@ -23,6 +23,10 @@ let cloneDeep = require('lodash.clonedeep');
 let bip32 = require('bip32')
 let bip39 = require('bip39');
 
+const fs = require('fs');
+const path = require('path')
+const process = require('process')
+
 const NETWORK_CONFIG = require('../../network.json');
 const SHARED_KEY_DUMMY = { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" };
 
@@ -133,9 +137,9 @@ describe('Wallet', function () {
 
     // pre conditions
     wallet.statecoins.coins[0].status = STATECOIN_STATUS.IN_SWAP;
-    wallet.statecoins.coins[0].ui_swap_status = UI_SWAP_STATUS.Phase6;
+    wallet.statecoins.coins[0].ui_swap_status = UI_SWAP_STATUS.Phase5;
     wallet.statecoins.coins[0].swap_id = 20;
-    wallet.statecoins.coins[0].swap_status = SWAP_STATUS.Phase4;
+    wallet.statecoins.coins[0].swap_status = SWAP_STATUS.Phase3;
 
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.IN_SWAP)
     // run resetSwapStates code
@@ -177,6 +181,7 @@ describe('Wallet', function () {
 
       let loaded_wallet = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
       delete loaded_wallet.backupTxUpdateLimiter;
+      expect(JSON.stringify(wallet.statecoins)).toEqual(JSON.stringify(loaded_wallet.statecoins))
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
 
@@ -539,12 +544,7 @@ describe('Wallet', function () {
       // expect there to be this statecoin inside statecoin.coins
       expect(wallet.statecoins.coins.filter((coin) => coin === statecoin)[0]).toBe(statecoin);
   
-      // expect there to be no swapped_coins array with the above coin
-      expect(wallet.statecoins.swapped_coins.filter((coin) => coin === statecoin)[0]).toBe(undefined);
-  
-      // expect swapped_coins to be of length 0
-      expect(wallet.statecoins.swapped_coins.length).toBe(0);
-  
+
       // save the wallet
       await wallet.save();
   
@@ -553,16 +553,12 @@ describe('Wallet', function () {
   
       // expect there to be no swapped coin in statecoins.coins
       expect(loaded_wallet.statecoins.coins.filter((coin) => coin.status === STATECOIN_STATUS.SWAPPED)[0]).toBe(undefined);
-  
-      // expect swapped_coins to have changed to length 1
-      expect(loaded_wallet.statecoins.swapped_coins.length).toBe(1);
-  
-      // check that this coin has a status of swapped
-      expect(loaded_wallet.statecoins.swapped_coins.filter((coin) => coin.status === STATECOIN_STATUS.SWAPPED)[0]).toBeDefined()
     });
   })
 
-});
+})
+
+ 
 
 describe("getCoinBackupTxData", () => {
   it('shared_key_id doesnt exist', async () => {

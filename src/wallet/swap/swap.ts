@@ -514,7 +514,7 @@ export default class Swap {
         await this.wallet.getWasm(), this.network, this.statecoin, this.proof_key_der,
         this.getSwapReceiverAddr().proof_key, true, this.wallet);
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase6;
-      await this.wallet.saveStateCoinsList()
+      await this.wallet.saveStateCoin(this.statecoin)
       return SwapStepResult.Ok("transfer sender complete")
     } catch (err: any) {
       return SwapStepResult.Retry(`transferSender: ${err.message}`)
@@ -543,7 +543,7 @@ export default class Swap {
   makeSwapCommitment = async (): Promise<SwapStepResult> => {
     this.statecoin.swap_batch_data = await this.make_swap_commitment();
     this.statecoin.swap_status = SWAP_STATUS.Phase4;
-    await this.wallet.saveStateCoinsList()
+    await this.wallet.saveStateCoin(this.statecoin)
     return SwapStepResult.Ok("made swap commitment")
   }
 
@@ -601,7 +601,7 @@ export default class Swap {
     }
     if (result.length === 1) {
       this.statecoin.swap_transfer_msg_3_receiver = result[0]
-      await this.wallet.saveStateCoinsList()
+      await this.wallet.saveStateCoin(this.statecoin)
       return SwapStepResult.Ok("retrieved transfer_msg_3_receiver")
     }
     if (this.statecoin.swap_status === SWAP_STATUS.Phase4) {
@@ -739,7 +739,7 @@ export default class Swap {
     if (data === null || data === undefined) {
       data = await this.do_transfer_receiver()
       this.statecoin.swap_transfer_finalized_data = data
-      await this.wallet.saveStateCoinsList()
+      await this.wallet.saveStateCoin(this.statecoin)
     }
     return data
   }
@@ -750,7 +750,7 @@ export default class Swap {
     if (data === null || data === undefined) {
       data = await this.do_get_transfer_msg_4()
       this.statecoin.swap_transfer_msg_4 = data
-      await this.wallet.saveStateCoinsList()
+      await this.wallet.saveStateCoin(this.statecoin)
     }
     return data
   }
@@ -769,8 +769,7 @@ export default class Swap {
     statecoin_out.setConfirmed();
     statecoin_out.sc_address = encodeSCEAddress(statecoin_out.proof_key, this.wallet)
     this.statecoin_out = statecoin_out
-    if (this.wallet.statecoins.addCoin(statecoin_out)) {
-      await this.wallet.saveStateCoinsList();
+    if (this.wallet.addStatecoin(statecoin_out, undefined)) {
       log.info("Swap complete for Coin: " + this.statecoin.shared_key_id + ". New statechain_id: " + statecoin_out.shared_key_id);
     } else {
       log.info("Error on swap complete for coin: " + this.statecoin.shared_key_id + " statechain_id: " + statecoin_out.shared_key_id + "Coin duplicate");

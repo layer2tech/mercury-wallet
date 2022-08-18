@@ -4,7 +4,7 @@ import { makeTesterStatecoin } from './test_data.js'
 
 import { SWAP_STATUS, UI_SWAP_STATUS, SwapStep, SWAP_RETRY, TIMEOUT_STATUS, SwapStepResult } from "../swap/swap_utils";
 import Swap from "../swap/swap"
-import { Wallet, MOCK_WALLET_NAME } from '../wallet'
+import { Wallet, MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD } from '../wallet'
 import { SIGNSWAPTOKEN_DATA, COMMITMENT_DATA, setSwapDetails } from './test_data.js'
 import { SwapToken } from "../swap/swap_utils";
 import { swapInit } from '../swap/swap.init'
@@ -14,6 +14,7 @@ import * as MOCK_SERVER from '../mocks/mock_http_client'
 
 import { STATECOIN_STATUS } from '../statecoin.ts';
 import { POST_ROUTE } from '../http_client';
+import { walletLoad } from '../../features/WalletDataSlice.js';
 
 
 let cloneDeep = require('lodash.clonedeep');
@@ -552,3 +553,93 @@ describe('Process step result Ok',  function () {
   })
   }
 )
+
+describe('Quit Wallet Mid Swap', function () {
+  let wallet
+
+  let torEndpointsMock;
+  let electrumInitMock;
+  let swapGroupMock;
+  let speedInfoMock;
+  let resumeSwapMock;
+  let WalletMock;
+
+  beforeEach(async () => {
+    wallet = await Wallet.buildMock(bitcoin.networks.testnet, http_mock);
+
+    // Set Mocks for walletLoad call
+    torEndpointsMock = jest.spyOn(wallet, 'set_tor_endpoints').mockImplementation();
+    electrumInitMock = jest.spyOn(wallet, 'initElectrumClient').mockImplementation();
+    swapGroupMock = jest.spyOn(wallet, 'updateSwapGroupInfo').mockImplementation();
+    // speedInfoMock = jest.spyOn(wallet, 'updateSpeedInfo').mockImplementation();
+    speedInfoMock = jest.spyOn(wallet, 'updateSpeedInfo').mockImplementation();
+    
+    
+    WalletMock = jest.spyOn(Wallet, 'load').mockImplementation(() => {
+      return wallet
+    })
+
+    // resume_swap called if coins in swap phase 4
+    resumeSwapMock = jest.spyOn(wallet, 'resume_swap').mockImplementation();
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  })
+
+  test('Swap Phase 4 Statecoins Re-Enter Swaps', async() => {
+    
+    setSwapDetails(wallet.statecoins.coins[0], 8);
+
+    let mockWallet = Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD)
+    // Wallet loads mock wallet
+    expect(WalletMock).toHaveBeenCalled();
+    expect(mockWallet).toBe(wallet);
+
+    let statecoin = makeTesterStatecoin();
+
+    setSwapDetails( statecoin, 8 );
+
+    // Statecoin in wallet is set to UI swap phase 8 before wallet load
+    expect( wallet.statecoins.coins[0].status ).toBe( statecoin.status );
+    expect( wallet.statecoins.coins[0].swap_status ).toBe( statecoin.swap_status );
+    expect( wallet.statecoins.coins[0].swap_info ).toBe( statecoin.swap_info );
+
+    // Load wallet
+    await walletLoad( MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD )
+
+    expect(resumeSwapMock).toHaveBeenCalled();
+
+  })
+
+  test('Swap Phase 3 Statecoins Removed from Swaps', async () => {
+
+    setSwapDetails(wallet.statecoins.coins[0], 3);
+
+    let mockWallet = Wallet.load(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD)
+
+    // Wallet loads mock wallet
+    expect(WalletMock).toHaveBeenCalled();
+    expect(mockWallet).toBe(wallet);
+
+    let statecoin = makeTesterStatecoin();
+
+    setSwapDetails( statecoin, 3 );
+
+    // Statecoin in wallet is set to UI swap phase 8 before wallet load
+    expect( wallet.statecoins.coins[0].status ).toBe( statecoin.status );
+    expect( wallet.statecoins.coins[0].swap_status ).toBe( statecoin.swap_status );
+    expect( wallet.statecoins.coins[0].swap_info ).toBe( statecoin.swap_info );
+
+    // Load wallet
+    await walletLoad( MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD )
+
+    // Statecoin in wallet is set to UI swap phase 8 before wallet load
+    expect( wallet.statecoins.coins[0].status ).toBe( STATECOIN_STATUS.AVAILABLE );
+    expect( wallet.statecoins.coins[0].swap_status ).toBe( null );
+    expect( wallet.statecoins.coins[0].swap_info ).toBe( null );
+
+    expect(resumeSwapMock).not.toHaveBeenCalled();
+  })
+
+})
