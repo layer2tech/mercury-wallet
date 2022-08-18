@@ -1599,6 +1599,9 @@ describe('Storage 4', () => {
     delete wallet_10_json_mod.saveMutex
     delete wallet_10_mod.storage
 
+    delete wallet_10_mod.version
+    delete wallet_10_json_mod.version
+
     // active value is not saved to file
     wallet_10_json_mod.active = true;
 
