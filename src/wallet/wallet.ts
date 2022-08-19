@@ -459,9 +459,9 @@ export class Wallet {
     return wallet;
   }
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
-  async recoverCoinsFromServer(gap_limit: number, dispatch: any): Promise<number> {
+  async recoverCoinsFromServer(gap_limit: number, gap_start: number, dispatch: any): Promise<number> {
     log.info("Recovering StateCoins from server for mnemonic.");
-    let recoveredCoins = await recoverCoins(this, gap_limit, dispatch);
+    let recoveredCoins = await recoverCoins(this, gap_limit, gap_start, dispatch);
     const n_recovered = recoveredCoins.length
     if (n_recovered > 0) {
       log.info("Found " + recoveredCoins.length + " StateCoins. Saving to wallet.");

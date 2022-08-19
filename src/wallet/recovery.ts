@@ -30,7 +30,8 @@ const NUM_KEYS_PER_RECOVERY_ATTEMPT = 200;
 
 // Send all proof keys to server to check for statecoins owned by this wallet.
 // Should be used as a last resort only due to privacy leakage.
-export const recoverCoins = async (wallet: Wallet, gap_limit: number, dispatch: any): Promise<RecoveryDataMsg[]> => {
+export const recoverCoins = async (wallet: Wallet, gap_limit: number, gap_start: number, dispatch: any): Promise<RecoveryDataMsg[]> => {
+
   let recovery_data: any = [];
   let new_recovery_data_load = [null];
   let recovery_request = [];
@@ -51,9 +52,11 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number, dispatch: 
       recovery_request.push({ key: wallet.getBIP32forBtcAddress(addr).publicKey.toString("hex"), sig: "" });
       count++;
     }
-    new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
+    if(count >= gap_start) {
+      new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
+      recovery_data = recovery_data.concat(new_recovery_data_load);
+    }
     recovery_request = [];
-    recovery_data = recovery_data.concat(new_recovery_data_load);
 
     if (count > gap_limit) {
       // Once upper limit of addresses have been searched set graphic load complete
