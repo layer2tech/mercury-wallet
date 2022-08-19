@@ -89,7 +89,7 @@ const LoadWalletPage = (props) => {
   }
 
   const populateWalletNameOptions = () => {
-    return wallet_names.map((item, index) => (<option key={index} value={item.name}>{item.name}</option>))
+    return wallet_names.reverse().map((item, index) => (<option key={index} value={item.name}>{item.name}</option>))
   }
 
   return (
