@@ -198,6 +198,8 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.funding_txid = tx_copy.ins[0].hash.reverse().toString("hex");
         statecoin.statechain_id = recoveredCoins[i].statechain_id;
         statecoin.value = recoveredCoins[i].amount;
+        // set all recovered coins to is_deposited to ensure correct privacy score
+        statecoin.is_deposited = true;
 
         // check that the received backup transaction belongs to the proof key
         if (tx_backup.outs[0].script.toString() != pubKeyToScriptPubKey(recoveredCoins[i].proof_key, network).toString()) {
