@@ -217,7 +217,7 @@ export class ElectrsClient {
     clearInterval(this.scriptIntervals.get(scriptHash))
   }
 
-  blockHeightSubscribe(callBack: any) {
+  async blockHeightSubscribe(callBack: any) {
     if (this.block_height_interval != null) return;
     this.block_height_interval = setInterval(
       async (cb, ep) => {

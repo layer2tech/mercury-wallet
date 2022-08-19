@@ -7,7 +7,7 @@ import {
   Wallet, STATECOIN_STATUS
 } from '../';
 
-import { addRestoredCoinDataToWallet, groupRecoveredWithdrawalTransactions } from '../recovery';
+import { addRestoredCoinDataToWallet, groupRecoveredWithdrawalTransactions, recoverCoins } from '../recovery';
 import {
   RECOVERY_DATA, RECOVERY_DATA_C_KEY_CONVERTED, makeTesterStatecoins,
   BTC_ADDRS, recovery_withdrawal_tx_batch, RECOVERY_DATA_WITHDRAWING_BATCH,
@@ -19,7 +19,8 @@ import {
   RECOVERY_STATECHAIN_DATA, TRANSFER_FINALIZE_DATA_FOR_RECOVERY,
   RECOVERY_KEY_GEN_FIRST, RECOVERY_KG_PARTY_ONE_2ND_MESSAGE,
   RECOVERY_MASTER_KEY, RECOVERY_KEY_GEN_2ND_MESSAGE,
-  RECOVERY_CLIENT_RESP_KG_FIRST
+  RECOVERY_CLIENT_RESP_KG_FIRST,
+  FEE_INFO
 } from '../mocks/mock_http_client';
 
 import { getFinalizeDataForRecovery } from '../recovery';
@@ -29,6 +30,7 @@ import reducers from '../../reducers';
 import { fireEvent, screen } from '@testing-library/react';
 import { encodeSCEAddress } from '../util';
 import { Transaction } from 'bitcoinjs-lib'
+import { walletFromMnemonic } from '../../features/WalletDataSlice';
 
 describe("Recovery", () => {
     // client side's mock
@@ -634,3 +636,131 @@ describe("Recovery withdrawing batch 2", () => {
 
 })
 
+describe('Retry Recovery', function () {
+  let wallet
+
+  // client side's mock
+  let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
+  // server side's mock
+  let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
+
+  let resetSwapStates;
+  let set_tor_endpoints;
+  let initElectrumClient;
+  let recoverCoinsMock;
+  let WalletMock;
+  let stopMock;
+  let router = [];
+
+  let store = configureStore({ reducer: reducers, });
+  // Load state
+  
+  afterEach(() => {
+    // WalletMock = jest.spyOn(Wallet, 'fromMnemonic').mockImplementation(() => {
+    //   return Wallet.fromMnemonic
+    // })
+    jest.restoreAllMocks();
+    router = [];
+  })
+  
+  beforeEach(async () => {
+    wallet = await Wallet.buildMock(bitcoin.networks.testnet, http_mock);
+
+    // Set Mocks for walletFromMnemonic call
+    resetSwapStates = jest.spyOn(wallet, 'resetSwapStates').mockImplementation();
+    set_tor_endpoints = jest.spyOn(wallet, 'set_tor_endpoints').mockImplementation();
+    initElectrumClient = jest.spyOn(wallet, 'initElectrumClient').mockImplementation();
+    stopMock = jest.spyOn(wallet, 'stop').mockImplementation();
+
+    WalletMock = jest.spyOn(Wallet, 'fromMnemonic').mockImplementation(() => {
+      return wallet
+    })
+
+  })
+
+  test('Success',async () => {
+
+    wallet.recoverCoinsFromServer = jest.fn()
+
+    await walletFromMnemonic(store.dispatch, wallet.name, wallet.password, wallet.mnemonic, router, true, 200);
+    
+    expect(router[0]).toBe("/home")
+
+  })
+
+  test('Failure',async () => {
+
+    let recoverCoinMock = jest.spyOn(wallet, 'recoverCoinsFromServer').mockImplementation(() => {
+      throw new Error("Network Error");
+    })
+
+    try{
+      await walletFromMnemonic(store.dispatch, wallet.name, wallet.password, wallet.mnemonic, router, true, 200);
+
+    } catch{
+
+    }
+
+    let errorMessage = store.getState().walletData.error_dialogue.msg;
+
+    
+    expect(errorMessage).toBe('Error in Recovery: Network Error');
+
+
+  })
+
+  test('Fails 3 times then passes', async ()=> {
+
+    let recoverCoinMock = jest.spyOn(wallet, 'recoverCoinsFromServer')
+      .mockReturnValueOnce(() => {
+        throw new Error("Network Error")
+      })
+      .mockReturnValueOnce(() => {
+        throw new Error("Network Error")
+      })
+      .mockReturnValueOnce(() => {
+        throw new Error("Network Error")
+      })
+      .mockReturnValueOnce();
+
+    try{
+      await walletFromMnemonic(store.dispatch, wallet.name, wallet.password, wallet.mnemonic, router, true, 200);
+
+    } catch{
+
+    }
+
+    let progressMsg = store.getState().walletData.progress.msg;
+
+    
+    expect(progressMsg).toBe("");
+
+    expect(router[0]).toBe("/home");
+
+  })
+
+  test('Wallet account reset after each retry', async () => {
+
+    wallet.http_client.post = jest.fn().mockReset()
+      .mockImplementation(() => {
+        return []
+      });
+
+    wallet.http_client.get = jest.fn().mockReset()
+      .mockImplementation(() => {
+        return FEE_INFO
+      });
+
+    let gap_limit = 200
+      
+
+    await recoverCoins(wallet, gap_limit, store.dispatch);
+    
+    await recoverCoins(wallet, gap_limit, store.dispatch);
+    
+    expect(wallet.account.chains[0].k).toBe(200);
+
+
+  })
+
+})

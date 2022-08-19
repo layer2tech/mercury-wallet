@@ -36,7 +36,7 @@ const RestoreWalletPage = (props) => {
   const setStateGapLimit = (event) => setState({...state, gap_limit: event.target.value});
 
   // Confirm mnemonic is valid
-  const onClickConf = () => {
+  const onClickConf = async () => {
     let store = new Storage("wallets/wallet_names");
     let wallet_names = store.getWalletNames();
 
@@ -88,12 +88,9 @@ const RestoreWalletPage = (props) => {
     }
 
     // Create wallet and load into Redux state
-    try {
-      walletFromMnemonic(dispatch, state.wallet_name, state.wallet_password, state.mnemonic, props.history ,true, gap_limit, gap_start);
-    } catch (e) {
-      dispatch(setError({msg: e.message}));
-    }
-    props.setWalletLoaded(true);
+
+    await walletFromMnemonic(dispatch, state.wallet_name, state.wallet_password, state.mnemonic, props.history ,true, gap_limit, gap_start);
+
   }
 
   const handleSelectBackupFile = () => {
