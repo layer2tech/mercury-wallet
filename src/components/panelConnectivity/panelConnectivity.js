@@ -156,7 +156,6 @@ const PanelConnectivity = (props) => {
   ]);
 
   const getBlockHeight = async () => {
-    console.log("torInfo.online", torInfo.online);
     if (torInfo.online !== true) {
       // setBlockHeight(null)
       return;

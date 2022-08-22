@@ -9,7 +9,7 @@ import info from "../../images/info.png";
 
 import {StdButton, CheckBox, ConfirmPopup, BackupWalletPopup, CopiedButton} from "../../components";
 import {isWalletLoaded, setNotification as setNotificationMsg, callGetConfig,
-  callUpdateConfig, callClearSave, unloadWallet, stopWallet, saveWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic, callCheckCoins, callDeriveXpub} from '../../features/WalletDataSlice'
+  callUpdateConfig, callClearSave, unloadWallet, stopWallet, callGetActivityLogItems,callGetActivityLog, callGetArgsHasTestnet, callGetPassword, callGetMnemonic, callCheckCoins, callDeriveXpub, setWalletLoaded} from '../../features/WalletDataSlice'
 
 import Loading from '../../components/Loading/Loading';
 
@@ -154,7 +154,7 @@ const SettingsPage = (props) => {
     await stopWallet()
     dispatch(callClearSave());
     unloadWallet();
-    props.setWalletLoaded(false);
+    dispatch(setWalletLoaded({loaded: false}));
   }
 
   const onPasswordChange = (event) => {

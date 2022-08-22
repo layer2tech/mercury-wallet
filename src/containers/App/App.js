@@ -1,7 +1,7 @@
 'use strict';
 import { useState, useEffect } from 'react';
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
-import { useDispatch, useSelector } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { WelcomePage, CreateWalletInfoPage, CreateWalletWizardPage, HomePage, DepositPage, WithdrawPage, SettingsPage, HelpPage,
 SendStatecoinPage, ReceiveStatecoinPage, SwapPage, BackupTxPage, LoadWalletPage, RestoreWalletPage } from '../index'
 import { getWalletName, setWalletLoaded } from '../../features/WalletDataSlice';
@@ -14,8 +14,7 @@ import './AppDarkMode.css';
 const App = () => {
   // State tell header whether wallet is loaded: home is Home page
   // or not: home is Welcome screen
-  const walletLoaded = useSelector(state => state.walletData).walletLoaded
-  const dispatch = useDispatch();
+  const walletLoaded = useSelector(state => state.walletData.walletLoaded, shallowEqual)
   const [online, setOnline] = useState(navigator.onLine);
 
   const { dark_mode } = useSelector(state => state.themeData);
@@ -44,21 +43,18 @@ const App = () => {
     }
   }
 
-  if (typeof window.addEventListener !== "function") {
-      console.log("no window.addEventListener");
-      document.body.ononline = () => setOnline(true);
-      document.body.onoffline = () => setOnline(false);
-  }
+    if (typeof window.addEventListener !== "function") {
+        console.log("no window.addEventListener");
+        document.body.ononline = () => setOnline(true);
+        document.body.onoffline = () => setOnline(false);
+    }
+  
+    if (typeof window.addEventListener === "function") {
+      console.log("adding online/offline event listeners")
+      window.addEventListener("online", () => setOnline(true), false);
+      window.addEventListener("offline", () => setOnline(false), false);
+    }
 
-  if (typeof window.addEventListener === "function") {
-    console.log("adding online/offline event listeners")
-    window.addEventListener("online", () => setOnline(true), false);
-    window.addEventListener("offline", () => setOnline(false), false);
-  }
-
-  const handleWalletLoad = (isLoaded) => {
-    dispatch(setWalletLoaded({loaded: isLoaded}))
-  }
 
   useEffect(() => {
 
@@ -70,16 +66,16 @@ const App = () => {
     <div className={`App ${dark_mode === '1' ? 'dark-mode': ''}`}>
       {walletLoaded ? <title>Mercury Wallet {version} - {walletName} </title> : <title>Mercury Wallet {version}</title>}
       <Router>
-      <Header walletLoaded={walletLoaded} setWalletLoaded={handleWalletLoad} online = {online} />
+      <Header walletLoaded={walletLoaded} online = {online} />
       <Switch>
         <Route path="/" exact component={() => <WelcomePage />} />
         <Route path="/create_wallet" exact component={() => <CreateWalletInfoPage />} />
-        <Route path="/create_wizard" exact component={() => <CreateWalletWizardPage setWalletLoaded={handleWalletLoad}/>} />
-        <Route path="/load_wallet" exact component={() => <LoadWalletPage setWalletLoaded={handleWalletLoad}/>} />
-        <Route path="/restore_wallet" exact component={() => <RestoreWalletPage setWalletLoaded={handleWalletLoad}/>} />
+        <Route path="/create_wizard" exact component={() => <CreateWalletWizardPage />} />
+        <Route path="/load_wallet" exact component={() => <LoadWalletPage />} />
+        <Route path="/restore_wallet" exact component={() => <RestoreWalletPage/>} />
         <Route path="/home" exact component={() => <HomePage online = {online}/>} />
-        <Route path="/settings" exact component={() => <SettingsPage setWalletLoaded={handleWalletLoad}/>} />
-        <Route path="/help" exact component={() => <HelpPage walletLoaded={walletLoaded}/>} />
+        <Route path="/settings" exact component={() => <SettingsPage />} />
+        <Route path="/help" exact component={() => <HelpPage />} />
         <Route path="/deposit" exact component={() => <DepositPage />} />
         <Route path="/withdraw" exact component={() => <WithdrawPage />} />
         <Route path="/swap_statecoin" exact component={() => <SwapPage />} />
