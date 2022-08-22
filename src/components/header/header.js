@@ -4,16 +4,24 @@ import { Link, withRouter } from "react-router-dom";
 import { Logo, Settings, Help, Logout } from './headerIcons';
 import { NotificationBar, ErrorPopup, ConfirmPopup, ProgressBar } from "../../components";
 import WarningPopup from '../WarningPopup';
-import { unloadWallet, stopWallet } from '../../features/WalletDataSlice'
+import { unloadWallet, stopWallet, setWalletLoaded } from '../../features/WalletDataSlice'
 import './header.css';
 import TorCircuit from './TorInfo/TorCircuit';
+import { useDispatch, useSelector } from 'react-redux';
+
 
 const Header = (props) => {
 
+  
+  const dispatch = useDispatch();
+
+  const walletLoaded = useSelector(state => state.walletData).walletLoaded;
+
+  
   const handleLogout = async () => {
     await stopWallet();
     unloadWallet();
-    props.setWalletLoaded(false);
+    dispatch(setWalletLoaded({loaded: false}));
   }
 
   let isDarkMode = localStorage.getItem('dark_mode');
@@ -39,7 +47,7 @@ const Header = (props) => {
     <div className="Header">
 
       <div className="container block">
-        <Link className="navbar-brand" to={props.walletLoaded ? "/home" : "/"}>
+        <Link className="navbar-brand" to={walletLoaded ? "/home" : "/"}>
           <Logo />
         </Link>
 
@@ -48,7 +56,7 @@ const Header = (props) => {
 
         <div className="menu">
           {
-            props.walletLoaded &&
+            walletLoaded &&
             <TorCircuit online={props.online} />
           }
           <div title="Light/Dark mode">
@@ -70,7 +78,7 @@ const Header = (props) => {
             </Link>
           </div>
 
-          {props.walletLoaded ?
+          {walletLoaded ?
             <div title="Settings" className={`nav-item  ${props.location.pathname === "/settings" ? "active" : ""}`}>
               <Link className="nav-link" to="/settings">
                 <Settings />
@@ -81,7 +89,7 @@ const Header = (props) => {
           }
 
 
-          {props.walletLoaded && (
+          {walletLoaded && (
             <div className={`nav-item`}>
               <ConfirmPopup onOk={handleLogout}>
                 <div title="Exit wallet" className="header-logout">
