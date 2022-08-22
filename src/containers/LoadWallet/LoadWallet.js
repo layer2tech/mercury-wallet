@@ -19,7 +19,7 @@ const LoadWalletPage = (props) => {
   
   let store = new Storage("wallets/wallet_names");
 
-  let wallet_names = store.getWalletNames();
+  let wallet_names = store.getWalletNames().reverse();
 
   const [selectedWallet, setSelected] = useState(wallet_names.length ? wallet_names[0] : "")
   const toggleShowPass = () => setShowPass(!showPass);
@@ -55,22 +55,24 @@ const LoadWalletPage = (props) => {
   }
 
   // Attempt to load wallet. If fail display error.
-  const onContinueClick = (event) => {
+  const onContinueClick = async (event) => {
     // check for password
+
     if(typeof selectedWallet === 'string' || selectedWallet instanceof String) {
-        try { 
-          walletLoad(selectedWallet, passwordEntered) 
+      try { 
+          await walletLoad(selectedWallet, passwordEntered) 
         }
-        catch (e) {
-            event.preventDefault();
-            dispatch(setError({msg: e.message}));
-            return
-        }
-    } else { 
-        try {
-          walletLoad(selectedWallet.name, passwordEntered) }
         catch (e) {
           event.preventDefault();
+          dispatch(setError({msg: e.message}));
+          return
+        }
+      } else { 
+        try {
+
+          await walletLoad(selectedWallet.name, passwordEntered) }
+          catch (e) {
+            event.preventDefault();
           dispatch(setError({msg: e.message}));
           return
         }
@@ -89,7 +91,7 @@ const LoadWalletPage = (props) => {
   }
 
   const populateWalletNameOptions = () => {
-    return wallet_names.reverse().map((item, index) => (<option key={index} value={item.name}>{item.name}</option>))
+    return wallet_names.map((item, index) => (<option key={index} value={item.name}>{item.name}</option>))
   }
 
   return (
