@@ -121,9 +121,12 @@ export class Storage {
     
     //Read the statecoin data stored in objects
     let coins_obj: any = this.store.get(`${wallet_name}.statecoins_obj`);
-    Object.values(coins_obj).forEach((coin: any) => {
-      coins.push(coin)
-    })
+
+    if(coins_obj){
+      Object.values(coins_obj).forEach((coin: any) => {
+        coins.push(coin)
+      })
+    }
 
     wallet_json.statecoins = new StateCoinList();
     wallet_json.statecoins.coins = coins;
