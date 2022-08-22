@@ -1543,7 +1543,7 @@ describe('ActivityLog', function () {
 
 
 describe('Storage 4', () => {
-  const CURRENT_VERSION = "v0.7.11"
+  const CURRENT_VERSION = require("../../../package.json").version
   const WALLET_NAME_6 = "test_wallet_3cb3c0b4-7679-49dd-8b23-bbc15dd09b67"
   const WALLET_NAME_6_BACKUP = `${WALLET_NAME_6}_backup`
   const WALLET_PASSWORD_6 = "aaaaaaaa"
@@ -1628,6 +1628,15 @@ describe('Storage 4', () => {
     //Check that the swapped coins can be retrieved
     let swapped_coins = loaded_wallet.storage.getSwappedCoins(WALLET_NAME_6_BACKUP);
     expect(swapped_coins.length).toEqual(s1_swapped.length);
+
+    //Check that a single swapped coin can be retrieved
+    let swapped_coin = loaded_wallet.storage.getSwappedCoin(WALLET_NAME_6_BACKUP, swapped_coins[0].shared_key_id);
+    expect(swapped_coin).toEqual(swapped_coins[0])
+
+    //Check that trying to retrieve a non existent coin throws an error
+    expect(() => {
+      loaded_wallet.storage.getSwappedCoin(WALLET_NAME_6_BACKUP, "unknownID")
+    }).toThrowError("No swapped statecoin with shared key ID unknownID stored.")
 
     // Remove statecoin and confirm that statecoin is removed from file
     await loaded_wallet.removeStatecoin(s1[0].shared_key_id)

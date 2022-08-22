@@ -138,12 +138,17 @@ export class Storage {
     // it has no swapped coins
     let sc: any = this.store.get(`${wallet_name}.swapped_statecoins_obj`) 
     if (sc === undefined) throw Error("No wallet called " + wallet_name + " stored.");
-    log.debug(`swapped_coins: ${JSON.stringify(sc)}`)
     let sc_array: StateCoin[] = []
     Object.values(sc).forEach((coin: any) => {
       sc_array.push(coin)
     })
     return sc_array;
+  }
+
+  getSwappedCoin(wallet_name: String, shared_key_id: String): StateCoin {  
+    let sc = this.store.get(`${wallet_name}.swapped_statecoins_obj.${shared_key_id}`)
+    if (sc === undefined) throw Error("No swapped statecoin with shared key ID " + shared_key_id + " stored.");
+    return sc
   }
 
   getWalletDecrypted(wallet_name: string, password: string) {

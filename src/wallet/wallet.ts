@@ -841,10 +841,18 @@ export class Wallet {
     return this.activity;
   }
 
+  getSwappedCoin(shared_key_id: String): StateCoin {
+    return this.storage.getSwappedCoin(this.name, shared_key_id)
+  }
+
   // ActivityLog data with relevant Coin data
   getActivityLogItems(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
-      let coin = this.statecoins.getCoin(item.shared_key_id) // should err here if no coin found
+      let coin = this.statecoins.getCoin(item.shared_key_id) 
+      if (coin == null) {
+        //This throws an error if the awapped coin is not found.
+        coin = this.getSwappedCoin(item.shared_key_id) 
+      }
       return {
         date: item.date,
         action: item.action,
