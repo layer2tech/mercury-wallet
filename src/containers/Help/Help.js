@@ -9,10 +9,13 @@ import { StdButton } from '../../components/'
 
 import './Help.css';
 import TermsConditions from "../../components/TermsConditions/TermsConditions";
+import { useSelector } from "react-redux";
 
 
 const HelpPage = (props) => {
+  const walletLoaded = useSelector(state => state.walletData).walletLoaded
   const version = require("../../../package.json").version;
+  
   return (
     <div className="container">
       <div className="Body help">
@@ -22,7 +25,7 @@ const HelpPage = (props) => {
                   Help & Support
               </h2>
               <div>
-                  <Link className="nav-link" to={props.walletLoaded ? "/home" : "/"}>
+                  <Link className="nav-link" to={walletLoaded ? "/home" : "/"}>
                       <StdButton
                           label="Back"
                           className="Body-button transparent"/>
