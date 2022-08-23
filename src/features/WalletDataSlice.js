@@ -169,13 +169,13 @@ export async function walletLoad(name, password) {
   });
 }
 
-async function recoverCoins(wallet, dispatch, gap_limit){
-  const n_recovered = await wallet.recoverCoinsFromServer(gap_limit, dispatch);
+async function recoverCoins(wallet, gap_limit, gap_start, dispatch){
+  const n_recovered = await wallet.recoverCoinsFromServer(gap_limit, gap_start, dispatch);
   dispatch(addCoins(n_recovered));
 }
 
 // Create wallet from nmemonic and load wallet. Try restore wallet if set.
-export async function walletFromMnemonic(dispatch, name, password, mnemonic, router, try_restore, gap_limit = undefined) {
+export async function walletFromMnemonic(dispatch, name, password, mnemonic, router, try_restore, gap_limit = undefined, gap_start = undefined) {
   let network;
   if (await callGetArgsHasTestnet() === true) {
     network = bitcoin.networks['testnet'];
@@ -195,7 +195,7 @@ export async function walletFromMnemonic(dispatch, name, password, mnemonic, rou
       let recoveryError = "";
       while(!recoveryComplete && recoveryCount !== 0){
         try {
-          await recoverCoins(wallet, dispatch, gap_limit)
+          await recoverCoins(wallet, gap_limit, gap_start, dispatch)
           recoveryComplete = true;
           recoveryError = "";
         } catch(e) {
