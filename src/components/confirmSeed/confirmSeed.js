@@ -54,7 +54,7 @@ const ConfirmSeed = (props) => {
   ))
 
   // Confirm words are correct
-  const onConfirmClick = (event) => {
+  const onConfirmClick = async (event) => {
     // Verify mnemonic confirmation
     for (let i=0;i<missingwords.length; i++) {
       if (missingwords[i].word!==words[missingwords[i].pos]) {
@@ -82,7 +82,7 @@ const ConfirmSeed = (props) => {
 
     // Create wallet and load into Redux state
     try {
-      walletFromMnemonic(dispatch, props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic,props.history)
+      await walletFromMnemonic(dispatch, props.wizardState.wallet_name, props.wizardState.wallet_password, props.wizardState.mnemonic,props.history)
     } catch (e) {
       event.preventDefault();
       dispatch(setError({msg: e.message}))
