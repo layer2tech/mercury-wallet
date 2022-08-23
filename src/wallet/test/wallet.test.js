@@ -17,7 +17,7 @@ import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr, encryptAES } from '../
 import { Storage } from '../../store';
 import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
 import { ActivityLog } from '../activity_log';
-import { WALLET_V_0_7_10 } from './test_data';
+import { WALLET as WALLET_V_0_7_10_JSON } from './data/test_wallet_3cb3c0b4-7679-49dd-8b23-bbc15dd09b67';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -1543,6 +1543,7 @@ describe('ActivityLog', function () {
 
 
 describe('Storage 4', () => {
+  const CURRENT_VERSION = "v0.7.11"
   const WALLET_NAME_6 = "test_wallet_3cb3c0b4-7679-49dd-8b23-bbc15dd09b67"
   const WALLET_NAME_6_BACKUP = `${WALLET_NAME_6}_backup`
   const WALLET_PASSWORD_6 = "aaaaaaaa"
@@ -1554,12 +1555,8 @@ describe('Storage 4', () => {
   let loaded_wallet;
 
   beforeAll(async () => {
-    //store.clearWallet(WALLET_NAME_6_BACKUP);
-
-    // const rootPath = `${process.cwd()}/src/wallet/test`
-    const backupData = WALLET_V_0_7_10;
-
-    wallet_10_json = parseBackupData(JSON.stringify(backupData));
+    wallet_10_json = WALLET_V_0_7_10_JSON;
+    console.log(`name: ${wallet_10_json.name}`)
     expect(wallet_10_json.name).toEqual(WALLET_NAME_6)
     wallet_10_json.name = WALLET_NAME_6_BACKUP;  
     wallet_10 = Wallet.loadFromBackup(wallet_10_json, WALLET_PASSWORD_6, true)
@@ -1581,17 +1578,13 @@ describe('Storage 4', () => {
       let wallet_10_json_mod = cloneDeep(wallet_10_json)
       let wallet_10_mod = cloneDeep(wallet_10)
 
-
-    delete wallet_10_json_mod.statecoins
-    delete wallet_10_mod.statecoins
-    delete wallet_10_json_mod.name
-    delete wallet_10_mod.name
-
+    
     delete wallet_10_mod.config.testing_mode
     delete wallet_10_mod.config.jest_testing_mode
     delete wallet_10_mod.account
     delete wallet_10_json_mod.account
-
+    delete wallet_10_json_mod.statecoins
+    delete wallet_10_mod.statecoins
     delete wallet_10_mod.electrum_client
     delete wallet_10_mod.http_client
     delete wallet_10_json_mod.http_client
@@ -1599,19 +1592,22 @@ describe('Storage 4', () => {
     delete wallet_10_json_mod.saveMutex
     delete wallet_10_mod.storage
 
-    delete wallet_10_mod.version
-    delete wallet_10_json_mod.version
-
     // active value is not saved to file
     wallet_10_json_mod.active = true;
 
     expect(JSON.stringify(wallet_10_mod.password)).toEqual(JSON.stringify(wallet_10_json_mod.password))
     expect(JSON.stringify(wallet_10_mod.config)).toEqual(JSON.stringify(wallet_10_json_mod.config))
-    // expect(JSON.stringify(wallet_10_mod.version)).toEqual(JSON.stringify(wallet_10_json_mod.version))
+    expect(JSON.stringify(wallet_10_json_mod.version)).toEqual(JSON.stringify("v0.7.10"))
+    expect(JSON.stringify(wallet_10_mod.version)).toEqual(JSON.stringify(CURRENT_VERSION))
     expect(JSON.stringify(wallet_10_mod.mnemonic)).toEqual(JSON.stringify(wallet_10_json_mod.mnemonic))
+    
     expect(JSON.stringify(wallet_10_mod.account)).toEqual(JSON.stringify(wallet_10_json_mod.account))
+    
     expect(JSON.stringify(wallet_10_mod.statecoins)).toEqual(JSON.stringify(wallet_10_json_mod.statecoins))
     expect(JSON.stringify(wallet_10_mod.wallet_version)).toEqual(JSON.stringify(wallet_10_json_mod.wallet_version))
+    
+    delete wallet_10_mod.version
+    delete wallet_10_json_mod.version
     expect(JSON.stringify(wallet_10_mod)).toEqual(JSON.stringify(wallet_10_json_mod))
 
 
