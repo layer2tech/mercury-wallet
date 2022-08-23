@@ -95,7 +95,7 @@ export const reloadWallet = async () => {
   let name = wallet.name;
   let password = wallet.password;
   unloadWallet()
-  walletLoad(name, password);
+  await walletLoad(name, password);
 }
 
 export const getWalletName = () => {

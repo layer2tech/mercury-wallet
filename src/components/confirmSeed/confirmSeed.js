@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { withRouter } from "react-router-dom";
 import {useDispatch} from 'react-redux'
-import {setError, walletFromMnemonic, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice'
+import {setError, walletFromMnemonic, callGetVersion, callGetUnspentStatecoins, setWalletLoaded} from '../../features/WalletDataSlice'
 import './confirmSeed.css'
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
@@ -88,7 +88,7 @@ const ConfirmSeed = (props) => {
       dispatch(setError({msg: e.message}))
     }
     checkForCoinsHealth();
-    props.setWalletLoaded(true);
+    dispatch(setWalletLoaded({loaded: true}));
   }
 
   return (

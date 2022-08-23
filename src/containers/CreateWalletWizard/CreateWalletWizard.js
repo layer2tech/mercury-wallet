@@ -120,7 +120,6 @@ const CreateWizardPage = (props) => {
       default:
         return (
           <ConfirmSeed
-            setWalletLoaded={props.setWalletLoaded}
             onPrevStep={() => setStep(CreateWizardStep.DISPLAYSEED)}
             wizardState={wizardState}
           />
