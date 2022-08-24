@@ -19,15 +19,12 @@ import "./panelConnectivity.css";
 import "../index.css";
 import RadioButton from "./RadioButton";
 import { defaultWalletConfig } from "../../containers/Settings/Settings";
+import WrappedLogger from "../../wrapped_logger";
 
 // Logger import.
 // Node friendly importing required for Jest tests.
 let log;
-try {
-  log = window.require("electron-log");
-} catch (_e) {
-  log = require("electron-log");
-}
+log = new WrappedLogger();
 
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();
