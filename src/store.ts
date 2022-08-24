@@ -1,5 +1,6 @@
 'use strict';
 import { ActivityLog, decryptAES, encryptAES, StateCoin, StateCoinList, STATECOIN_STATUS } from "./wallet";
+import { OutPoint } from "./wallet/mercury/info_api";
 import { SWAP_STATUS } from "./wallet/swap/swap_utils";
 let cloneDeep = require('lodash.clonedeep');
 
@@ -95,7 +96,7 @@ export class Storage {
     this.store.set(wallet_name, { name: wallet_name })
   }
 
-  getWallet(wallet_name: string) {
+  getWallet(wallet_name: string, load_all: boolean = false) {
     let wallet_json: any = { name: this.store.get(`${wallet_name}.name`)};    
     if (wallet_json.name === undefined) throw Error("No wallet called " + wallet_name + " stored.");
 
@@ -120,11 +121,17 @@ export class Storage {
     }
     
     //Read the statecoin data stored in objects
-    let coins_obj: any = this.store.get(`${wallet_name}.statecoins_obj`);
-    Object.values(coins_obj).forEach((coin: any) => {
-      coins.push(coin)
-    })
-
+    const coins_obj = this.store.get(`${wallet_name}.statecoins_obj`);
+    if (load_all) {
+      wallet_json.statecoins_obj = coins_obj;
+      let swapped_statecoins_obj = this.store.get(`${wallet_name}.swapped_statecoins_obj`)
+      wallet_json.swapped_statecoins_obj = swapped_statecoins_obj;
+      coins = coins.concat(Object.values(swapped_statecoins_obj))
+      wallet_json.swapped_ids = this.store.get(`${wallet_name}.swapped_ids`);
+    }
+    
+    coins = coins.concat(Object.values(coins_obj))
+  
     wallet_json.statecoins = new StateCoinList();
     wallet_json.statecoins.coins = coins;
 
@@ -133,15 +140,18 @@ export class Storage {
     return wallet_json
   }
 
-  getSwappedCoins(wallet_name: string) {
+  getSwappedCoins(wallet_name: string): StateCoin[] {
+    // An error is thrown if an old wallet is loaded i.e. v0.7.10 & 
+    // it has no swapped coins
     let sc: any = this.store.get(`${wallet_name}.swapped_statecoins_obj`) 
-    if (sc === undefined) throw Error("No wallet called " + wallet_name + " stored.");
-    log.debug(`swapped_coins: ${JSON.stringify(sc)}`)
-    let sc_array: StateCoin[] = []
-    Object.values(sc).forEach((coin: any) => {
-      sc_array.push(coin)
-    })
-    return sc_array;
+    if (sc === undefined) return []
+    return Object.values(sc);
+  }
+
+  getSwappedCoin(wallet_name: String, shared_key_id: String): StateCoin {  
+    let sc = this.store.get(`${wallet_name}.swapped_statecoins_obj.${shared_key_id}`)
+    if (sc === undefined) throw Error("No swapped statecoin with shared key ID " + shared_key_id + " stored.");
+    return sc
   }
 
   getWalletDecrypted(wallet_name: string, password: string) {
@@ -172,12 +182,36 @@ export class Storage {
   
   storeWalletStateCoin(wallet_name: string, statecoin: StateCoin) {
     if (statecoin.status == STATECOIN_STATUS.SWAPPED) {
-      this.store.set(`${wallet_name}.swapped_statecoins_obj.${statecoin.shared_key_id}`, statecoin)
+      this.store.set(
+        `${wallet_name}.swapped_statecoins_obj.${statecoin.shared_key_id}`,
+        statecoin)
+      let funding_outpoint = { txid: statecoin.funding_txid, vout: statecoin.funding_vout }
+      let swapped_ids = this.getSwappedIds(wallet_name, funding_outpoint)
+      if (swapped_ids == null) {
+        swapped_ids = []
+      }
+      swapped_ids.push(statecoin.shared_key_id)
+      this.store.set(`${wallet_name}.swapped_ids.${funding_outpoint.txid}:${funding_outpoint.vout}`, swapped_ids)
       // Delete the coin from the statecoins map if it has been swapped.
       this.store.delete(`${wallet_name}.statecoins_obj.${statecoin.shared_key_id}`)
     } else {
       this.store.set(`${wallet_name}.statecoins_obj.${statecoin.shared_key_id}`, statecoin)
     }
+  }
+
+  getSwappedIds(wallet_name: string, outpoint: OutPoint) {
+    let loc_str = `${wallet_name}.swapped_ids.${outpoint.txid}:${outpoint.vout}`
+    return this.store.get(loc_str)
+  }
+
+  getSwappedCoinsByOutPoint(wallet_name: string, outpoint: OutPoint) {
+    const swapped_ids = this.getSwappedIds(wallet_name, outpoint)
+    let result = []
+    for (let i in swapped_ids) {
+      const swappedCoin = this.getSwappedCoin(wallet_name, swapped_ids[i]);
+      result.push(swappedCoin)
+    }
+    return result
   }
 
   deleteWalletStateCoin(wallet_name: string, shared_key_id: string) {

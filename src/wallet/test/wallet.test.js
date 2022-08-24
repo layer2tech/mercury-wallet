@@ -13,10 +13,11 @@ import {
   required_fields, getXpub, MOCK_WALLET_XPUB
 } from '../wallet';
 import { Transaction, TransactionBuilder } from 'bitcoinjs-lib';
-import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr } from '../util';
+import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr, encryptAES } from '../util';
 import { Storage } from '../../store';
 import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
 import { ActivityLog } from '../activity_log';
+import { WALLET as WALLET_V_0_7_10_JSON } from './data/test_wallet_3cb3c0b4-7679-49dd-8b23-bbc15dd09b67';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -544,7 +545,6 @@ describe('Wallet', function () {
       // expect there to be this statecoin inside statecoin.coins
       expect(wallet.statecoins.coins.filter((coin) => coin === statecoin)[0]).toBe(statecoin);
   
-
       // save the wallet
       await wallet.save();
   
@@ -1349,7 +1349,24 @@ describe("Handle swap error", () => {
     expect(statecoin.swap_error).not.toEqual(null);
     expect(statecoin.swap_transfer_finalized_data).not.toEqual(null);
 
-    statecoin.setSwapDataToNull();
+    statecoin.setSwapDataToNull(false);
+
+    expect(statecoin.status).toEqual(STATECOIN_STATUS.AVAILABLE);
+    expect(statecoin.swap_status).toEqual(null);
+    expect(statecoin.swap_id).toEqual(null);
+    expect(statecoin.swap_address).toEqual(null);
+    expect(statecoin.swap_info).toEqual(null);
+    expect(statecoin.swap_my_bst_data).toEqual(null);
+    expect(statecoin.swap_receiver_addr).toEqual(null);
+    expect(statecoin.swap_transfer_msg).toEqual(null);
+    expect(statecoin.swap_batch_data).toEqual(null);
+    expect(statecoin.swap_transfer_msg_3_receiver).toEqual(null);
+    expect(statecoin.swap_transfer_msg_4).toEqual(null);
+    expect(statecoin.ui_swap_status).toEqual(null);
+    expect(statecoin.swap_error).toEqual(null);
+    expect(statecoin.swap_transfer_finalized_data).not.toEqual(null);
+
+    statecoin.setSwapDataToNull(true);
 
     expect(statecoin.status).toEqual(STATECOIN_STATUS.AVAILABLE);
     expect(statecoin.swap_status).toEqual(null);
@@ -1416,95 +1433,100 @@ describe('ActivityLog', function () {
     const http_mock = jest.genMockFromModule('../mocks/mock_http_client');
     const wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
     beforeEach(async () => {
+      wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
+      wallet.statecoins.coins[0].status = STATECOIN_STATUS.SWAPPED;
+      wallet.statecoins.coins[1].status = STATECOIN_STATUS.SWAPPED;
+      wallet.save()
+
       alog = ActivityLog.fromJSON({
         "items": [
           {
-            "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc",
+            "shared_key_id": wallet.statecoins.coins[0].shared_key_id,
             "action": "D",
             "date": 1647256708087
           },
           {
-            "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc",
+            "shared_key_id": wallet.statecoins.coins[0].shared_key_id,
             "action": "I",
             "date": 1647256645325
           },
           {
-            "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd",
+            "shared_key_id": wallet.statecoins.coins[1].shared_key_id,
             "action": "G",
             "date": 1647017677534
           },
           {
-            "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd",
+            "shared_key_id": wallet.statecoins.coins[1].shared_key_id,
             "action": "R",
             "date": 1647017656778
           },
           {
-            "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
+            "shared_key_id": wallet.statecoins.coins[0].shared_key_id,
             "action": "T",
             "date": 1647017641542
           },
           {
-            "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
+            "shared_key_id": wallet.statecoins.coins[0].shared_key_id,
             "action": "D",
             "date": 1647017616483
           },
           {
-            "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6",
+            "shared_key_id": wallet.statecoins.coins[1].shared_key_id,
             "action": "I",
             "date": 1647012970643
           },
           {
-            "shared_key_id": "86e693ca-997e-4e15-badf-2e0a2861dacf",
+            "shared_key_id": wallet.statecoins.coins[0].shared_key_id,
             "action": "G",
             "date": 1647007584756
           },
           {
-            "shared_key_id": "f3c3a565-9e10-4c9f-9358-998715977fe5",
+            "shared_key_id": wallet.statecoins.coins[1].shared_key_id,
             "action": "S",
             "date": 1647007539901
           },
           {
-            "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b",
+            "shared_key_id": wallet.statecoins.coins[0].shared_key_id,
             "action": "S",
             "date": 1647007456423
           },
           {
-            "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b",
+            "shared_key_id": wallet.statecoins.coins[1].shared_key_id,
             "action": "R",
             "date": 1647007210579
           },
           {
-            "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e",
+            "shared_key_id": wallet.statecoins.coins[0].shared_key_id,
             "action": "T",
             "date": 1647007194893
           },
           {
-            "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e",
+            "shared_key_id": wallet.statecoins.coins[0].shared_key_id,
             "action": "R",
             "date": 1647006777365
           },
           {
-            "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
+            "shared_key_id": wallet.statecoins.coins[1].shared_key_id,
             "action": "T",
             "date": 1647006754866
           },
           {
-            "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
+            "shared_key_id": wallet.statecoins.coins[1].shared_key_id,
             "action": "D",
             "date": 1647006314736
           },
           {
-            "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243",
+            "shared_key_id": wallet.statecoins.coins[1].shared_key_id,
             "action": "I",
             "date": 1647006282213
           }
         ]
       })
 
-
-      wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, http_mock, wasm_mock);
-      expected_date_merged = [[{ "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc", "action": "D", "date": 1647256708087 }, { "shared_key_id": "b00a5e15-65d1-4602-bb99-8908ea8dd3dc", "action": "I", "date": 1647256645325 }], [{ "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd", "action": "G", "date": 1647017677534 }, { "shared_key_id": "d45e683f-dfbd-4df2-96dc-ac9ae3a5a0dd", "action": "R", "date": 1647017656778 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "T", "date": 1647017641542 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "D", "date": 1647017616483 }, { "shared_key_id": "10ff60ed-4a91-4260-9f73-95e7011bfcb6", "action": "I", "date": 1647012970643 }, { "shared_key_id": "86e693ca-997e-4e15-badf-2e0a2861dacf", "action": "G", "date": 1647007584756 }, { "shared_key_id": "f3c3a565-9e10-4c9f-9358-998715977fe5", "action": "S", "date": 1647007539901 }, { "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b", "action": "S", "date": 1647007456423 }, { "shared_key_id": "90c24e32-ad14-4b8e-978a-6f6ab1f6ff9b", "action": "R", "date": 1647007210579 }, { "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e", "action": "T", "date": 1647007194893 }, { "shared_key_id": "cb75d755-7a10-4b9c-a1fa-27e6d0d9927e", "action": "R", "date": 1647006777365 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "T", "date": 1647006754866 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "D", "date": 1647006314736 }, { "shared_key_id": "30443084-bbce-4bd3-bd58-30565b595243", "action": "I", "date": 1647006282213 }]]
-
+      expected_date_merged = [
+        alog.items.slice(0, 2),
+        alog.items.slice(2,alog.length)
+      ]
     })
 
     test('getActivityLogItems returns all activity log items', () => {
@@ -1538,4 +1560,115 @@ describe('ActivityLog', function () {
     })
 
   })
+})
+
+
+describe('Storage 4', () => {
+  const CURRENT_VERSION = require("../../../package.json").version
+  const WALLET_NAME_6 = "test_wallet_3cb3c0b4-7679-49dd-8b23-bbc15dd09b67"
+  const WALLET_NAME_6_BACKUP = `${WALLET_NAME_6}_backup`
+  const WALLET_PASSWORD_6 = "aaaaaaaa"
+
+  let wallet_10_json;
+  let wallet_10;
+  let store = new Storage(`wallets/wallet_names`);
+  store.clearWallet(WALLET_NAME_6_BACKUP);
+  let loaded_wallet;
+
+  beforeAll(async () => {
+    wallet_10_json = WALLET_V_0_7_10_JSON;
+    console.log(`name: ${wallet_10_json.name}`)
+    expect(wallet_10_json.name).toEqual(WALLET_NAME_6)
+    wallet_10_json.name = WALLET_NAME_6_BACKUP;  
+    wallet_10 = Wallet.loadFromBackup(wallet_10_json, WALLET_PASSWORD_6, true)
+
+    //Make a coin SWAPPED
+    //wallet_10.statecoins.coins[0].status=STATECOIN_STATUS.SWAPPED
+
+    await wallet_10.save()
+    await wallet_10.saveName()
+    
+    loaded_wallet = Wallet.load(WALLET_NAME_6_BACKUP, WALLET_PASSWORD_6, true)
+    return loaded_wallet
+  })
+
+  afterAll(() => {
+    //Cleanup
+    store.clearWallet(WALLET_NAME_6)
+    store.clearWallet(WALLET_NAME_6_BACKUP)
+  })
+
+  test('load/save wallet file from version 0.7.10', async () => {
+
+      let wallet_10_json_mod = cloneDeep(wallet_10_json)
+      let wallet_10_mod = cloneDeep(wallet_10)
+
+    
+    delete wallet_10_mod.config.testing_mode
+    delete wallet_10_mod.config.jest_testing_mode
+    delete wallet_10_mod.account
+    delete wallet_10_json_mod.account
+    delete wallet_10_json_mod.statecoins
+    delete wallet_10_mod.statecoins
+    delete wallet_10_mod.electrum_client
+    delete wallet_10_mod.http_client
+    delete wallet_10_json_mod.http_client
+    delete wallet_10_mod.saveMutex
+    delete wallet_10_json_mod.saveMutex
+    delete wallet_10_mod.storage
+
+    // active value is not saved to file
+    wallet_10_json_mod.active = true;
+
+    expect(JSON.stringify(wallet_10_mod.wallet_version)).toEqual(JSON.stringify(wallet_10_json_mod.wallet_version))
+    
+    delete wallet_10_mod.version
+    delete wallet_10_json_mod.version
+    expect(JSON.stringify(wallet_10_mod)).toEqual(JSON.stringify(wallet_10_json_mod))
+
+    delete loaded_wallet.backupTxUpdateLimiter;
+
+    // Swapped coins should be removed from the coins list in the saved file
+    
+    const s1 = wallet_10.statecoins.coins.filter(item => { if (item.status !== STATECOIN_STATUS.SWAPPED) { return item } })
+
+    const s1_swapped = wallet_10.statecoins.coins.filter(item => { if (item.status === STATECOIN_STATUS.SWAPPED) { return item } })
+    const s2 = loaded_wallet.statecoins.coins
+    expect(s1.length).toEqual(s2.length)
+    expect(s1).toEqual(s2)
+
+    wallet_10.statecoins.coins = s1
+    expect(JSON.stringify(wallet_10)).toEqual(JSON.stringify(loaded_wallet))
+
+    //Check that the swapped coins can be retrieved
+    let swapped_coins = loaded_wallet.storage.getSwappedCoins(loaded_wallet.name);
+    expect(swapped_coins.length).toEqual(2);
+    expect(JSON.stringify(swapped_coins)).toEqual(JSON.stringify(s1_swapped));
+
+    //Check that a single swapped coin can be retrieved
+    let swapped_coin = loaded_wallet.storage.getSwappedCoin(WALLET_NAME_6_BACKUP, swapped_coins[0].shared_key_id);
+    expect(swapped_coin).toEqual(swapped_coins[0])
+
+    const outPoint = { txid: swapped_coins[0].funding_txid, vout: swapped_coins[0].funding_vout }
+    //Check that swapped statecoin shared key ids can be retrieved from outpoints
+    let shared_key_ids = loaded_wallet.storage.getSwappedIds(loaded_wallet.name,
+      outPoint)
+    expect(shared_key_ids).toEqual(["89ee7160-0c27-4d0a-b10c-c7c3d7637d15"])
+    //Check that swapped statecoins can be retrieved from outpoints
+    let swapped_coins_by_output = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint)
+    expect(swapped_coins_by_output).toEqual([swapped_coins[0]])
+    
+    //Check that trying to retrieve a non existent coin throws an error
+    expect(() => {
+      loaded_wallet.storage.getSwappedCoin(WALLET_NAME_6_BACKUP, "unknownID")
+    }).toThrowError("No swapped statecoin with shared key ID unknownID stored.")
+
+    // Remove statecoin and confirm that statecoin is removed from file
+    await loaded_wallet.removeStatecoin(s1[0].shared_key_id)
+    loaded_wallet = await Wallet.load(WALLET_NAME_6_BACKUP, WALLET_PASSWORD_6, true)
+    expect(loaded_wallet.statecoins.coins.length).toBe(s1.length - 1)
+
+  })
+
+
 })

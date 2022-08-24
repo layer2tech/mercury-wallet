@@ -36,22 +36,34 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number, dispatch: 
   let recovery_request = [];
   let addrs: any = [];
 
+  // Reset addresses for retry recovery
+  wallet.account.chains[0].addresses = [];
+  // Reset addresses for retry recovery
+  wallet.account.chains[0].k = 0;
+
   let addr = wallet.account.getChainAddress(0);
   addrs.push(addr);
   recovery_request.push({ key: wallet.getBIP32forBtcAddress(addr).publicKey.toString("hex"), sig: "" });
   let count = 0;
-  let percentageComplete
+  let percentageComplete = 0;
+
   while (count < gap_limit) {
     for (let i = 0; i < NUM_KEYS_PER_RECOVERY_ATTEMPT; i++) {
-      percentageComplete = Math.floor(wallet.account.chains[0].k / (Math.ceil(gap_limit / NUM_KEYS_PER_RECOVERY_ATTEMPT) * NUM_KEYS_PER_RECOVERY_ATTEMPT) * 100);
+      percentageComplete = Math.floor((wallet.account.chains[0].k) / (Math.ceil(gap_limit / NUM_KEYS_PER_RECOVERY_ATTEMPT) * NUM_KEYS_PER_RECOVERY_ATTEMPT) * 100);
       dispatch(setProgress({ msg: percentageComplete }));
 
       let addr = wallet.account.nextChainAddress(0);
       addrs.push(addr);
       recovery_request.push({ key: wallet.getBIP32forBtcAddress(addr).publicKey.toString("hex"), sig: "" });
       count++;
+    } try{
+      new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
+    } catch(e : any){
+      if(e.message.includes("Network Error")){
+        throw e
+      }
+      console.error(e.message);
     }
-    new_recovery_data_load = await getRecoveryRequest(wallet.http_client, recovery_request);
     recovery_request = [];
     recovery_data = recovery_data.concat(new_recovery_data_load);
 
@@ -198,6 +210,8 @@ export const addRestoredCoinDataToWallet = async (wallet: Wallet, wasm: any, rec
         statecoin.funding_txid = tx_copy.ins[0].hash.reverse().toString("hex");
         statecoin.statechain_id = recoveredCoins[i].statechain_id;
         statecoin.value = recoveredCoins[i].amount;
+        // set all recovered coins to is_deposited to ensure correct privacy score
+        statecoin.is_deposited = true;
 
         // check that the received backup transaction belongs to the proof key
         if (tx_backup.outs[0].script.toString() != pubKeyToScriptPubKey(recoveredCoins[i].proof_key, network).toString()) {

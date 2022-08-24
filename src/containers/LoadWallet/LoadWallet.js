@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useHistory } from "react-router-dom";
 import {useDispatch} from 'react-redux';
 import {Storage} from '../../store';
-import {walletLoad, setError, callGetVersion, callGetUnspentStatecoins} from '../../features/WalletDataSlice';
+import {walletLoad, setError, callGetUnspentStatecoins, setWalletLoaded} from '../../features/WalletDataSlice';
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 import  './LoadWallet.css';
@@ -19,7 +19,7 @@ const LoadWalletPage = (props) => {
   
   let store = new Storage("wallets/wallet_names");
 
-  let wallet_names = store.getWalletNames();
+  let wallet_names = store.getWalletNames().reverse();
 
   const [selectedWallet, setSelected] = useState(wallet_names.length ? wallet_names[0] : "")
   const toggleShowPass = () => setShowPass(!showPass);
@@ -55,28 +55,30 @@ const LoadWalletPage = (props) => {
   }
 
   // Attempt to load wallet. If fail display error.
-  const onContinueClick = (event) => {
+  const onContinueClick = async (event) => {
     // check for password
+
     if(typeof selectedWallet === 'string' || selectedWallet instanceof String) {
-        try { 
-          walletLoad(selectedWallet, passwordEntered) 
+      try { 
+          await walletLoad(selectedWallet, passwordEntered) 
         }
-        catch (e) {
-            event.preventDefault();
-            dispatch(setError({msg: e.message}));
-            return
-        }
-    } else { 
-        try {
-          walletLoad(selectedWallet.name, passwordEntered) }
         catch (e) {
           event.preventDefault();
           dispatch(setError({msg: e.message}));
           return
         }
+      } else { 
+        try {
+
+          await walletLoad(selectedWallet.name, passwordEntered) }
+          catch (e) {
+            event.preventDefault();
+          dispatch(setError({msg: e.message}));
+          return
+        }
     }
     checkForCoinsHealth();
-    props.setWalletLoaded(true);
+    dispatch(setWalletLoaded({loaded: true}));
     history.push('/home')
   }
 
