@@ -24,7 +24,11 @@ const CLOSED = require("websocket").w3cwebsocket.CLOSED;
 const OPEN = require("websocket").w3cwebsocket.OPEN;
 
 let log;
-log = new WrappedLogger();
+try {
+  log = window.require('electron-log');
+} catch (e) {
+  log = require('electron-log');
+}
 
 export const callGetArgsHasTestnet = async () => {
   // set to testnet mode for testing
