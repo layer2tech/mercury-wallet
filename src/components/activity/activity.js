@@ -2,7 +2,10 @@
 import React from 'react';
 import Moment from 'react-moment';
 import { fromSatoshi } from '../../wallet/util'
-import { callGetActivityLogItems, callGetAllStatecoins } from '../../features/WalletDataSlice'
+import {
+	callGetActivityLogItems, callGetAllStatecoins,
+	callGetSwappedStatecoinsByFundingOutPoint
+} from '../../features/WalletDataSlice'
 import txidIcon from '../../images/txid-icon.png';
 import createIcon from '../../images/create-icon-dep.png';
 import transferIcon from '../../images/transfer-icon.png';
@@ -14,16 +17,29 @@ import { ActivityLog } from '../../wallet/activity_log';
 
 const Activity = () => {
 	let activity_data = callGetActivityLogItems(10);
-	let statecoins = callGetAllStatecoins();
 
 	function shortenString(long) {
 		let short = ""
-		short = short.concat(long.slice(0, 6), "...")
+		if (long != null) {
+			if (long.length > 6) {
+				short = short.concat(long.slice(0, 6), "...")	
+			} else {
+				short = long
+			}
+		}
 		return short
 	}
 
-	function swapTxid(funding_txid, date) {
-		let dateIndexArray = activity_data.filter(item => item.funding_txid === funding_txid && item.action === "S")
+	function swapOutPointString(funding_out_point, date) {
+		let outPoint = swapOutPoint(funding_out_point, date);
+		return `${shortenString(outPoint.txid)}:${outPoint.vout}`
+	}
+
+	function swapOutPoint(funding_out_point, date) {
+		let dateIndexArray = activity_data.filter(item =>
+			item.funding_txid === funding_out_point.txid && 
+			item.funding_txvout === funding_out_point.vout &&
+			item.action === "S")
 		// Filter activity for txid and swap actions
 
 		dateIndexArray = dateIndexArray.map(item => item.date).sort((a, b) => b - a)
@@ -32,19 +48,21 @@ const Activity = () => {
 		let dateIndex = dateIndexArray.indexOf(date)
 		// Get index of swapped coin
 
-		let swappedCoins = statecoins.filter(coin => coin.funding_txid === funding_txid && coin.status === "SWAPPED").sort((a, b) => a.date - b.date).reverse()
 		// Filter all statecoins for swapped TxID and sort by date (most recent to least recent)
+		let swappedCoins = callGetSwappedStatecoinsByFundingOutPoint(funding_out_point).sort((a, b) => a.date - b.date).reverse()
 
 		// Check data exists : some unforeseen error
 		//Get the data for the swap of coin with funding_txid
 		let datedSwappedCoins = swappedCoins[dateIndex];
-		let finalTxid = datedSwappedCoins ? datedSwappedCoins?.swap_transfer_finalized_data?.state_chain_data?.utxo?.txid :
-			undefined;
-		if (finalTxid) {
-			return shortenString(finalTxid)
-		}
-		else {
+
+		if (datedSwappedCoins == null) {
 			return "Data not found"
+		} else {
+			let finalUtxo = datedSwappedCoins?.swap_transfer_finalized_data?.state_chain_data?.utxo;
+			return {
+				txid: finalUtxo?.txid,
+				vout: finalUtxo?.vout
+			}
 		}
 	}
 
@@ -174,7 +192,7 @@ const Activity = () => {
 									</td>
 									<td>
 										<span className="tooltip" >
-											<div><b>New TxID: </b>{swapTxid(item.funding_txid, item.date)}:{item.funding_txvout}</div>
+											<div><b>New TxID: </b>{swapOutPointString({ txid: item.funding_txid, vout: item.funding_txvout }, item.date)}</div>
 											<div><b>Swapped TxId: </b>{shortenString(item.funding_txid)}:{item.funding_txvout}</div>
 										</span>
 										<img src={swapIcon} alt="txidIcon" />
@@ -236,7 +254,6 @@ const Activity = () => {
 	))
 	let activity_data_len = activity_data.length
 	activity_data = null;
-	statecoins = null;
 	return (
 		<div >
 			{!activity_data_len ? (<EmptyCoinDisplay message="No activity recorded." />) : (activitiesTableData)}

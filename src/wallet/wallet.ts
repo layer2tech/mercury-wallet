@@ -26,7 +26,9 @@ import { groupInfo, swapDeregisterUtxo } from './swap/info_api';
 import { addRestoredCoinDataToWallet, recoverCoins } from './recovery';
 
 import { AsyncSemaphore } from "@esfx/async-semaphore";
-import { delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum } from './mercury/info_api';
+import {
+  delay, FeeInfo, getFeeInfo, pingServer, pingConductor, pingElectrum,
+  OutPoint } from './mercury/info_api';
 import { EPSClient } from './eps';
 import { getNewTorId, getTorCircuit, getTorCircuitIds, TorCircuit } from './mercury/torcircuit_api';
 import { callGetNewTorId } from '../features/WalletDataSlice';
@@ -863,6 +865,10 @@ export class Wallet {
     })
   }
 
+  getSwappedStatecoinsByFundingOutPoint(funding_out_point: OutPoint): StateCoin[] {
+    return this.storage.getSwappedCoinsByOutPoint(this.name, funding_out_point)
+  }
+
   processTXBroadcastResponse(statecoin: StateCoin, bresponse: string) {
     if (bresponse.includes('txn-already-in-mempool') || bresponse.length === 64) {
       statecoin.setBackupInMempool();
@@ -1547,14 +1553,14 @@ export class Wallet {
       swap = new Swap(this, statecoin, proof_key_der, new_proof_key_der, resume)
       new_statecoin = await swap.do_swap_poll()
     } catch (e: any) {
-      this.handleSwapError(e, statecoin);
+      await this.handleSwapError(e, statecoin);
     } finally {
       swap = null;
       return this.doPostSwap(statecoin, new_statecoin)
     }
   }
 
-  handleSwapError(e: any, statecoin: StateCoin) {
+  async handleSwapError(e: any, statecoin: StateCoin) {
     log.info(`Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e} `);
     // Do not delete swap data for statecoins with transfer
     // completed server side
@@ -1563,13 +1569,14 @@ export class Wallet {
       || `${e} `.includes("Exiting swap.")) {
       log.info(`Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`);
       statecoin.setSwapDataToNull();
+      await this.saveStateCoinsList();
     }
   }
 
   async doPostSwap(statecoin: StateCoin, new_statecoin: StateCoin | null): Promise<StateCoin | null> {
     if (new_statecoin && new_statecoin instanceof StateCoin) {
       this.setIfNewCoin(new_statecoin)
-      statecoin.setSwapDataToNull();
+      statecoin.setSwapDataToNull(false);
       await this.setStateCoinSpent(statecoin.shared_key_id, ACTION.SWAP, undefined, true)
       new_statecoin.setSwapDataToNull();
     }
