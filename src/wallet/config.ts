@@ -96,7 +96,11 @@ export class Config {
     let connectionChanged = false
     Object.entries(config_changes).forEach((item) => {
       switch (item[0]) {
+        case "date_format":
+          this.date_format = item[1]
+          break;
         case "network":
+          this.network = item[1]
           break;
         case "testing_mode":
           this.testing_mode = item[1];
