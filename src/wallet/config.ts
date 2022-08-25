@@ -11,8 +11,7 @@ const bitcoin = require("bitcoinjs-lib");
 declare const window: any;
 
 // Logger import.
-let log: any;
-log = new WrappedLogger();
+export let log = new WrappedLogger();
 
 let cloneDeep = require("lodash.clonedeep");
 
