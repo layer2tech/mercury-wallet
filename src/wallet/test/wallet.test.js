@@ -1127,7 +1127,8 @@ describe("Config", () => {
 
 
   test('expect update invalid value to log a warning', () => {
-    const logWarnSpy = jest.spyOn(log, 'warn')
+    const configLog = require('../config').log
+    const logWarnSpy = jest.spyOn(configLog, 'warn')
     config.update({ invalid: "" });
     expect(logWarnSpy).toHaveBeenCalled()
   })
