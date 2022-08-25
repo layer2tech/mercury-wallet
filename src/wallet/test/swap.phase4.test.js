@@ -1254,5 +1254,5 @@ describe('Swap phase 4', function () {
     step = swapPhase4Steps(swap).filter(step_filter)[0]
     expect(step.statecoin_properties).toThrowError("No Swap ID found. Swap ID should be set in Phase0. Exiting swap.");
   })
-
+  
 })
