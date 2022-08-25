@@ -405,6 +405,12 @@ export const callGetActivityLogItems = (num_of_items) => {
   }
 };
 
+export const callGetSwappedStatecoinsByFundingOutPoint = (funding_out_point) => {
+  if (isWalletLoaded()) {
+    return wallet.getSwappedStatecoinsByFundingOutPoint(funding_out_point)
+  }
+}
+
 export const callGetActivityDate = (shared_key_id, action) => {
   if (isWalletLoaded()) {
     return wallet.activity.getDate(shared_key_id, action);
@@ -495,7 +501,7 @@ export const callCreateBackupTxCPFP = async (cpfp_data) => {
 
 export const callGetWalletJsonToBackup = () => {
   if (isWalletLoaded()) {
-    return wallet.storage.getWallet(wallet.name);
+    return wallet.storage.getWallet(wallet.name, true);
   }
 };
 

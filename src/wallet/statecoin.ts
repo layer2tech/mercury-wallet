@@ -879,7 +879,7 @@ export class StateCoin {
   }
 
   // Set all StateCoin swap data to null.
-  setSwapDataToNull() {
+  setSwapDataToNull(delete_swap_transfer_finalized_data: boolean = true) {
     this.setConfirmed();
     this.swap_status = null;
     this.swap_id = null;
@@ -893,7 +893,9 @@ export class StateCoin {
     this.swap_transfer_msg_4 = null;
     this.ui_swap_status = null;
     this.clearSwapError();
-    this.swap_transfer_finalized_data = null;
+    if (delete_swap_transfer_finalized_data) {
+      this.swap_transfer_finalized_data = null;  
+    }
   }
 
   getTXIdAndOut(): string {

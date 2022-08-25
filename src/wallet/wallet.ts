@@ -63,6 +63,7 @@ import {
   pingServer,
   pingConductor,
   pingElectrum,
+  OutPoint,
 } from "./mercury/info_api";
 import { EPSClient } from "./eps";
 import {
@@ -213,9 +214,9 @@ export class Wallet {
   }
 
   async updateConfig(config_changes: object) {
-    let connectionChanged = this.config.update(config_changes)
-    await this.save()
-    return connectionChanged
+    let connectionChanged = this.config.update(config_changes);
+    await this.save();
+    return connectionChanged;
   }
 
   async updateTorId() {
@@ -1044,10 +1045,18 @@ export class Wallet {
     return this.activity;
   }
 
+  getSwappedCoin(shared_key_id: String): StateCoin {
+    return this.storage.getSwappedCoin(this.name, shared_key_id);
+  }
+
   // ActivityLog data with relevant Coin data
   getActivityLogItems(depth: number) {
     return this.activity.getItems(depth).map((item: ActivityLogItem) => {
-      let coin = this.statecoins.getCoin(item.shared_key_id); // should err here if no coin found
+      let coin = this.statecoins.getCoin(item.shared_key_id);
+      if (coin == null) {
+        //This throws an error if the awapped coin is not found.
+        coin = this.getSwappedCoin(item.shared_key_id);
+      }
       return {
         date: item.date,
         action: item.action,
@@ -1056,6 +1065,12 @@ export class Wallet {
         funding_txvout: coin ? coin.funding_vout : "",
       };
     });
+  }
+
+  getSwappedStatecoinsByFundingOutPoint(
+    funding_out_point: OutPoint
+  ): StateCoin[] {
+    return this.storage.getSwappedCoinsByOutPoint(this.name, funding_out_point);
   }
 
   processTXBroadcastResponse(statecoin: StateCoin, bresponse: string) {
@@ -1919,14 +1934,14 @@ export class Wallet {
       );
       new_statecoin = await swap.do_swap_poll();
     } catch (e: any) {
-      this.handleSwapError(e, statecoin);
+      await this.handleSwapError(e, statecoin);
     } finally {
       swap = null;
       return this.doPostSwap(statecoin, new_statecoin);
     }
   }
 
-  handleSwapError(e: any, statecoin: StateCoin) {
+  async handleSwapError(e: any, statecoin: StateCoin) {
     log.info(
       `Swap not completed for statecoin ${statecoin.getTXIdAndOut()} - ${e} `
     );
@@ -1941,6 +1956,7 @@ export class Wallet {
         `Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`
       );
       statecoin.setSwapDataToNull();
+      await this.saveStateCoinsList();
     }
   }
 
@@ -1950,7 +1966,7 @@ export class Wallet {
   ): Promise<StateCoin | null> {
     if (new_statecoin && new_statecoin instanceof StateCoin) {
       this.setIfNewCoin(new_statecoin);
-      statecoin.setSwapDataToNull();
+      statecoin.setSwapDataToNull(false);
       await this.setStateCoinSpent(
         statecoin.shared_key_id,
         ACTION.SWAP,
