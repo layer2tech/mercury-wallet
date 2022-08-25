@@ -22,11 +22,7 @@ try {
 // Logger import.
 // Node friendly importing required for Jest tests.
 let log: any;
-try {
-  log = window.require('electron-log');
-} catch (e) {
-  log = require('electron-log');
-}
+log = new WrappedLogger();
 
 export class Storage {
   store: any;
