@@ -212,10 +212,10 @@ export class Wallet {
     this.start();
   }
 
-  updateConfig(config_changes: object) {
-    let connectionChanged = this.config.update(config_changes);
-    this.save();
-    return connectionChanged;
+  async updateConfig(config_changes: object) {
+    let connectionChanged = this.config.update(config_changes)
+    await this.save()
+    return connectionChanged
   }
 
   async updateTorId() {
