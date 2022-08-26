@@ -115,6 +115,9 @@ export class Storage {
     if (wallet_json.name === undefined)
       throw Error("No wallet called " + wallet_name + " stored.");
 
+    //Wallet is initally inactive
+    wallet_json.active = false;
+
     let wallet_keys = [
       "password",
       "config",
@@ -136,13 +139,22 @@ export class Storage {
     const saved_coins: StateCoin[] | undefined = this.store.get(
       `${wallet_name}.statecoins.coins`
     );
+    const saved_swapped_coins: StateCoin[] | undefined = this.store.get(
+      `${wallet_name}.statecoins.swapped_coins`
+    );
+    
     let coins: StateCoin[] = saved_coins === undefined ? [] : saved_coins;
+    if (saved_swapped_coins != null) {
+      coins = coins.concat(saved_swapped_coins)
+    }
 
     //Move any existing coins from the arrays to the objects
     if (coins.length > 0) {
       this.storeWalletStateCoinsArray(wallet_name, coins);
-      this.store.delete(`${wallet_name}.statecoins.coins`);
     }
+
+    this.store.delete(`${wallet_name}.statecoins.coins`);
+    this.store.delete(`${wallet_name}.statecoins.swapped_coins`);
 
     //Read the statecoin data stored in objects
     const coins_obj = this.store.get(`${wallet_name}.statecoins_obj`);

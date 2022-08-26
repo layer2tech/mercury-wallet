@@ -401,12 +401,14 @@ export const callGetActivityLog = () => {
 
 export const callGetActivityLogItems = (num_of_items) => {
   if (isWalletLoaded()) {
+    console.log(`callGetActivity isWalletLoaded(): ${isWalletLoaded()}`)
     return wallet.getActivityLogItems(num_of_items);
   }
 };
 
 export const callGetSwappedStatecoinsByFundingOutPoint = (funding_out_point) => {
   if (isWalletLoaded()) {
+    console.log(`callGetSwapped isWalletLoaded(): ${isWalletLoaded()}`)
     return wallet.getSwappedStatecoinsByFundingOutPoint(funding_out_point)
   }
 }
