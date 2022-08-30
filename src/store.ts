@@ -230,7 +230,6 @@ export class Storage {
         password
       );
     } catch (e: any) {
-      log.err(`Error decrypting wallet: ${e}. Encrypted mnemonic: ${JSON.stringify(wallet_json_encrypted.mnemonic)}`);
       throw Error(`Incorrect password.`);
     }
     return wallet_json_decrypted;
