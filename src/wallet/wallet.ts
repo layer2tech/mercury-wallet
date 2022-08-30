@@ -405,7 +405,8 @@ export class Wallet {
         config
       );
 
-      new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
+
+      new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);       
       new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity);
 
       new_wallet.current_sce_addr = json_wallet.current_sce_addr;
@@ -420,7 +421,7 @@ export class Wallet {
       return new_wallet;
     } catch (err: any) {
       if (`${err}`.includes("Cannot read prop")) {
-        throw Error("Invalid wallet");
+        throw Error(`Invalid wallet - ${err}`);
       } else {
         throw err;
       }

@@ -97,7 +97,7 @@ export class Storage {
     
         // Store statecoins individually by key
         const statecoins = wallet_json.statecoins;
-        delete wallet_json.statecoins;
+        wallet_json.statecoins = new StateCoinList();
         this.store.set(wallet_json.name, wallet_json);
         if (statecoins != null) {
           this.storeWalletStateCoinsList(wallet_json.name, statecoins);
@@ -190,11 +190,15 @@ export class Storage {
       wallet_json.statecoins_obj = coins_obj;
       let swapped_statecoins_obj = this.store.get(`${wallet_name}.swapped_statecoins_obj`)
       wallet_json.swapped_statecoins_obj = swapped_statecoins_obj;
-      coins = coins.concat(Object.values(swapped_statecoins_obj))
+      if (swapped_statecoins_obj != null) {
+        coins = coins.concat(Object.values(swapped_statecoins_obj))  
+      }
       wallet_json.swapped_ids = this.store.get(`${wallet_name}.swapped_ids`);
     }
     
-    coins = coins.concat(Object.values(coins_obj))
+    if (coins_obj != null) {
+      coins = coins.concat(Object.values(coins_obj))  
+    }
     //Remove duplicates
     coins = Array.from(new Set(coins))
 

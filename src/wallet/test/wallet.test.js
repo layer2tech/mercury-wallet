@@ -19,6 +19,7 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
 import { ActivityLog } from '../activity_log';
 import { WALLET as WALLET_V_0_7_10_JSON } from './data/test_wallet_3cb3c0b4-7679-49dd-8b23-bbc15dd09b67';
 import { WALLET as WALLET_V_0_7_10_JSON_2 } from './data/test_wallet_25485aff-d332-427d-a082-8d0a8c0509a7';
+import { WALLET as WALLET_NOCOINS_JSON } from './data/test_wallet_nocoins';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -1671,7 +1672,6 @@ describe('Storage 4', () => {
   })
 
   describe('Storage 5', () => {
-    const CURRENT_VERSION = require("../../../package.json").version
     const WALLET_NAME_7 = "test_wallet_25485aff-d332-427d-a082-8d0a8c0509a7"
     const WALLET_NAME_7_BACKUP = `${WALLET_NAME_7}_backup`
     const WALLET_PASSWORD_7 = "aaaaaaaa"
@@ -1815,6 +1815,55 @@ describe('Storage 4', () => {
       }]
       
       expect(finalUtxos).toEqual(finalUtxosExpected)
+
+      //Remove all coins, save and reload wallet
+      let all_coins = cloneDeep(loaded_wallet.statecoins.getAllCoins())
+      await all_coins.forEach((coin) => {
+        loaded_wallet.removeStatecoin(coin.shared_key_id)
+      })
+      await loaded_wallet.save();
+      loaded_wallet = await Wallet.load(WALLET_NAME_7_BACKUP, WALLET_PASSWORD_7, true);
+      // Expect zero -length arrays for statecoin data
+      expect(loaded_wallet.statecoins.coins.length).toEqual(0);
     })
   })  
+
+  describe('Storage 6', () => {
+    const WALLET_NAME_8 = "test_wallet_nocoins"
+    const WALLET_NAME_8_BACKUP = `${WALLET_NAME_8}_backup`
+    const WALLET_PASSWORD_8 = "aaaaaaaa"
+
+
+    let wallet_nocoins_json;
+    let wallet_nocoins;
+    let store = new Storage(`wallets/wallet_names`);
+    store.clearWallet(WALLET_NAME_8_BACKUP);
+    let loaded_wallet;
+
+    beforeAll(async () => {
+      wallet_nocoins_json = WALLET_NOCOINS_JSON;
+      expect(wallet_nocoins_json.name).toEqual(WALLET_NAME_8)
+      wallet_nocoins_json.name = WALLET_NAME_8_BACKUP;
+      wallet_nocoins = Wallet.loadFromBackup(wallet_nocoins_json, WALLET_PASSWORD_8, true)
+
+      await wallet_nocoins.save()
+      await wallet_nocoins.saveName()
+
+      loaded_wallet = Wallet.load(WALLET_NAME_8_BACKUP, WALLET_PASSWORD_8, true)
+      return loaded_wallet
+    })
+
+    afterAll(() => {
+      //Cleanup
+      store.clearWallet(WALLET_NAME_8)
+      store.clearWallet(WALLET_NAME_8_BACKUP)
+    })
+
+    test('loaded wallet with no statecoins has statecoins.coins array with length 0', async () => {
+      expect(loaded_wallet.statecoins.coins.length).toEqual(0)
+    })
+
+
+  })
+
 })
