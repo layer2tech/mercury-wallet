@@ -352,6 +352,7 @@ export class Wallet {
       http_client,
       wasm
     );
+    wallet.setActive();
     // add some statecoins
     let proof_key1 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
@@ -376,7 +377,6 @@ export class Wallet {
       ACTION.DEPOSIT
     );
     wallet.activity.addItem(uuid2, ACTION.TRANSFER);
-    wallet.setActive();
     return wallet;
   }
 
@@ -1061,20 +1061,20 @@ export class Wallet {
     let items = this.activity.getItems(depth).map((item: ActivityLogItem) => {
       let coin = this.statecoins.getCoin(item.shared_key_id);
       if (coin == null) {
-        try {
-          coin = this.getSwappedCoin(item.shared_key_id);
-          return {
-            date: item.date,
-            action: item.action,
-            value: coin ? coin.value : "",
-            funding_txid: coin ? coin.funding_txid : "",
-            funding_txvout: coin ? coin.funding_vout : "",
-          };
+        try {  
+          coin = this.getSwappedCoin(item.shared_key_id);  
         } catch (err) {
-          throw err
-          log.warn(`getActivityLogItems - ${err}`)
-        }
-      }
+          log.warn(`getActivityLog - ${err}`);
+          return null;
+        }        
+      }  
+      return {
+          date: item.date,
+          action: item.action,
+          value: coin ? coin.value : "",
+          funding_txid: coin ? coin.funding_txid : "",
+          funding_txvout: coin ? coin.funding_vout : "",
+      };
     });
     return items.filter((item) => {
       return item != null;
