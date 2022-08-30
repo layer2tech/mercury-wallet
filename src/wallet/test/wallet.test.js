@@ -1535,7 +1535,6 @@ describe('ActivityLog', function () {
     test('getActivityLogItems returns all activity log items', () => {
       wallet.activity = cloneDeep(alog)
       expect(wallet.activity).toEqual(alog)
-      console.log(JSON.stringify(alog))
       let result = wallet.getActivityLogItems(alog.length)
       expect(result.length).toEqual(alog.items.length)
     })
@@ -1543,7 +1542,6 @@ describe('ActivityLog', function () {
     test('getActivityLogItems(5) returns 5 activity log items', () => {
       wallet.activity = cloneDeep(alog)
       expect(wallet.activity).toEqual(alog)
-      console.log(JSON.stringify(alog))
       let result = wallet.getActivityLogItems(5)
       expect(result.length).toEqual(5)
     })
@@ -1580,7 +1578,6 @@ describe('Storage 4', () => {
 
   beforeAll(async () => {
     wallet_10_json = WALLET_V_0_7_10_JSON;
-    console.log(`name: ${wallet_10_json.name}`)
     expect(wallet_10_json.name).toEqual(WALLET_NAME_6)
     wallet_10_json.name = WALLET_NAME_6_BACKUP;  
     wallet_10 = Wallet.loadFromBackup(wallet_10_json, WALLET_PASSWORD_6, true)
@@ -1687,7 +1684,6 @@ describe('Storage 4', () => {
 
     beforeAll(async () => {
       wallet_10_json = WALLET_V_0_7_10_JSON_2;
-      console.log(`name: ${wallet_10_json.name}`)
       expect(wallet_10_json.name).toEqual(WALLET_NAME_7)
       wallet_10_json.name = WALLET_NAME_7_BACKUP;
       //wallet_10_json.password = WALLET_PASSWORD_7
@@ -1779,6 +1775,46 @@ describe('Storage 4', () => {
       loaded_wallet = await Wallet.load(WALLET_NAME_7_BACKUP, WALLET_PASSWORD_7, true)
       expect(loaded_wallet.statecoins.coins.length).toBe(s1.length - 1)
 
+      let activityLogItems = loaded_wallet.getActivityLogItems(10);
+      expect(activityLogItems.length === 10)
+
+      let logMerged = ActivityLog.mergeActivityByDate(activityLogItems)
+      expect(logMerged.length === 10)
+
+      let nSwapped = 0;
+      let tableData = []
+      let finalUtxos = []
+      logMerged.map((activityGroup, groupIndex) => {
+        activityGroup.map((item, index) => {
+          if (item.action === 'S') {
+            let swappedCoins = loaded_wallet.getSwappedStatecoinsByFundingOutPoint({ txid: item.funding_txid, vout: item.funding_txvout });
+            nSwapped = nSwapped + 1;
+            tableData = tableData.concat(swappedCoins)
+            let finalUtxo = swappedCoins[0]?.swap_transfer_finalized_data?.state_chain_data?.utxo;
+            finalUtxos.push({
+              txid: finalUtxo?.txid,
+              vout: finalUtxo?.vout
+            })
+          }            
+        })
+      });
+
+      expect(loaded_wallet.statecoins.coins.length).toEqual(6)
+      expect(tableData.length).toEqual(2)
+      expect(tableData[0].shared_key_id).toEqual('6880cb2c-5d65-4100-99d3-db9dd15c2810')
+      expect(tableData[1].shared_key_id).toEqual('e515da8d-9c4f-47c4-a8c0-8c6d00ef860c')
+
+      // Version 10 wallets did not store the swap_transfer_finalized_data for swapped coins.
+      const finalUtxosExpected = [{
+        txid:undefined,
+        vout: undefined       
+      },
+        {
+          txid: undefined,
+          vout: undefined
+      }]
+      
+      expect(finalUtxos).toEqual(finalUtxosExpected)
     })
   })  
 })
