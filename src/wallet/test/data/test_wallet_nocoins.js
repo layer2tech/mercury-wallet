@@ -298,5 +298,7 @@ export const WALLET = {
 	"activity": {
 		"items": []
 	},
-	"statecoins": {}
+	"statecoins": {
+		"coins": []
+	}
 }

@@ -1580,7 +1580,7 @@ describe('Storage 4', () => {
   beforeAll(async () => {
     wallet_10_json = WALLET_V_0_7_10_JSON;
     expect(wallet_10_json.name).toEqual(WALLET_NAME_6)
-    wallet_10_json.name = WALLET_NAME_6_BACKUP;  
+    wallet_10_json.name = WALLET_NAME_6_BACKUP;
     wallet_10 = Wallet.loadFromBackup(wallet_10_json, WALLET_PASSWORD_6, true)
 
     //Make a coin SWAPPED
@@ -1601,8 +1601,8 @@ describe('Storage 4', () => {
 
   test('load/save wallet file from version 0.7.10', async () => {
 
-      let wallet_10_json_mod = cloneDeep(wallet_10_json)
-      let wallet_10_mod = cloneDeep(wallet_10)
+    let wallet_10_json_mod = cloneDeep(wallet_10_json)
+    let wallet_10_mod = cloneDeep(wallet_10)
 
     
     delete wallet_10_mod.config.testing_mode
@@ -1670,8 +1670,9 @@ describe('Storage 4', () => {
     expect(loaded_wallet.statecoins.coins.length).toBe(s1.length - 1)
 
   })
+})
 
-  describe('Storage 5', () => {
+describe('Storage 5', () => {
     const WALLET_NAME_7 = "test_wallet_25485aff-d332-427d-a082-8d0a8c0509a7"
     const WALLET_NAME_7_BACKUP = `${WALLET_NAME_7}_backup`
     const WALLET_PASSWORD_7 = "aaaaaaaa"
@@ -1865,5 +1866,3 @@ describe('Storage 4', () => {
 
 
   })
-
-})
