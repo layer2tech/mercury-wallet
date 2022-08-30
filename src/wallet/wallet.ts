@@ -121,7 +121,6 @@ export const parseBackupData = (backupData: string) => {
         throw Error(`invalid: missing field \"${item}\"`);
       }
     });
-
     return walletJson;
   } catch (err: any) {
     throw Error(`parsing wallet backup data: ${err.message}`);
@@ -209,7 +208,7 @@ export class Wallet {
     this.tor_circuit = [];
 
     this.saveMutex = new Mutex();
-    this.active = true;
+    this.active = false;
     this.start();
   }
 
@@ -324,6 +323,7 @@ export class Wallet {
       http_client,
       wasm
     );
+    wallet.setActive();
     return wallet;
   }
 
@@ -352,6 +352,7 @@ export class Wallet {
       http_client,
       wasm
     );
+    wallet.setActive();
     // add some statecoins
     let proof_key1 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
@@ -404,7 +405,8 @@ export class Wallet {
         config
       );
 
-      new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
+
+      new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);       
       new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity);
 
       new_wallet.current_sce_addr = json_wallet.current_sce_addr;
@@ -419,7 +421,7 @@ export class Wallet {
       return new_wallet;
     } catch (err: any) {
       if (`${err}`.includes("Cannot read prop")) {
-        throw Error("Invalid wallet");
+        throw Error(`Invalid wallet - ${err}`);
       } else {
         throw err;
       }
@@ -548,6 +550,10 @@ export class Wallet {
     return this.active;
   }
 
+  setActive(state = true){
+    this.active = state;
+  }
+
   // Load wallet JSON from store
   static load(wallet_name: string, password: string, testing_mode: boolean) {
     let store = new Storage(`wallets/${wallet_name}/config`);
@@ -555,6 +561,7 @@ export class Wallet {
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    wallet.setActive();
     return wallet;
   }
 
@@ -573,6 +580,7 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    wallet.setActive();
     return wallet;
   }
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
@@ -1051,19 +1059,26 @@ export class Wallet {
 
   // ActivityLog data with relevant Coin data
   getActivityLogItems(depth: number) {
-    return this.activity.getItems(depth).map((item: ActivityLogItem) => {
+    let items = this.activity.getItems(depth).map((item: ActivityLogItem) => {
       let coin = this.statecoins.getCoin(item.shared_key_id);
       if (coin == null) {
-        //This throws an error if the awapped coin is not found.
-        coin = this.getSwappedCoin(item.shared_key_id);
-      }
+        try {  
+          coin = this.getSwappedCoin(item.shared_key_id);  
+        } catch (err) {
+          log.warn(`getActivityLog - ${err}`);
+          return null;
+        }        
+      }  
       return {
-        date: item.date,
-        action: item.action,
-        value: coin ? coin.value : "",
-        funding_txid: coin ? coin.funding_txid : "",
-        funding_txvout: coin ? coin.funding_vout : "",
+          date: item.date,
+          action: item.action,
+          value: coin ? coin.value : "",
+          funding_txid: coin ? coin.funding_txid : "",
+          funding_txvout: coin ? coin.funding_vout : "",
       };
+    });
+    return items.filter((item) => {
+      return item != null;
     });
   }
 
