@@ -98,10 +98,8 @@ export class Storage {
         // Store statecoins individually by key
         const statecoins = wallet_json.statecoins;
         delete wallet_json.statecoins;
-        log.debug(`saving wallet: ${this.name}`);
         this.store.set(wallet_json.name, wallet_json);
         if (statecoins != null) {
-          log.debug(`saving statecoins for wallet ${wallet_json.name}`);
           this.storeWalletStateCoinsList(wallet_json.name, statecoins);
         }
       
@@ -172,24 +170,14 @@ export class Storage {
     const saved_swapped_coins: StateCoin[] | undefined = this.store.get(
       `${wallet_name}.statecoins.swapped_coins`
     );
-
-    if (saved_swapped_coins != null) {
-      console.log(`saved swapped coins length: ${JSON.stringify(saved_swapped_coins.length)}`)
-    } else {
-      console.log(`saved swapped coins: ${saved_swapped_coins}`)
-    }
-    
     
     let coins: StateCoin[] = saved_coins === undefined ? [] : saved_coins;
     let coins_swapped: StateCoin[] = saved_swapped_coins === undefined ? [] : saved_swapped_coins;
     let coins_all = coins.concat(coins_swapped)
 
-    console.log(`coins length: ${JSON.stringify(coins.length)}`)
-    console.log(`coins_all length: ${JSON.stringify(coins_all.length)}`)
 
     //Move any existing coins from the arrays to the objects
     if (coins_all.length > 0) {
-      console.log(`storing coins_all...`);
       this.storeWalletStateCoinsArray(wallet_name, coins_all);
     }
 
@@ -219,19 +207,14 @@ export class Storage {
   }
 
   getSwappedCoins(wallet_name: string): StateCoin[] {
-    // An error is thrown if an old wallet is loaded i.e. v0.7.10 &
-    // it has no swapped coins
     const source = `${wallet_name}.swapped_statecoins_obj`;
-    console.log(`retrieving swapped coins from ${source}...`);
     let sc: any = this.store.get(source);
-    console.log(`retrieved swapped coins: ${JSON.stringify(sc)}`);
     if (sc === undefined) return []
     return Object.values(sc);
   }
 
   getSwappedCoin(wallet_name: String, shared_key_id: String): StateCoin {  
     const source = `${wallet_name}.swapped_statecoins_obj.${shared_key_id}`;
-    console.log(`retrieving swapped coin from ${source}...`);
     let sc = this.store.get(source)
     if (sc === undefined) throw Error("No swapped statecoin with shared key ID " + shared_key_id + " stored.");
     return sc
@@ -247,7 +230,7 @@ export class Storage {
         password
       );
     } catch (e: any) {
-      console.log(`Error decrypting wallet: ${e}. Encrypted mnemonic: ${JSON.stringify(wallet_json_encrypted.mnemonic)}`);
+      log.err(`Error decrypting wallet: ${e}. Encrypted mnemonic: ${JSON.stringify(wallet_json_encrypted.mnemonic)}`);
       throw Error(`Incorrect password.`);
     }
     return wallet_json_decrypted;
@@ -270,7 +253,6 @@ export class Storage {
   storeWalletStateCoin(wallet_name: string, statecoin: StateCoin) {
     if (statecoin.status == STATECOIN_STATUS.SWAPPED) {
       const dest = `${wallet_name}.swapped_statecoins_obj.${statecoin.shared_key_id}`
-      console.log(`saving swapped coin to ${dest}`)
       this.store.set(dest, statecoin)
       let funding_outpoint = { txid: statecoin.funding_txid, vout: statecoin.funding_vout }
       let swapped_ids = this.getSwappedIds(wallet_name, funding_outpoint)
