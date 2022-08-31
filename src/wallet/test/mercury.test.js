@@ -79,7 +79,8 @@ describe('StateChain Entity', function() {
       wasm_mock.verify_statechain_smt = jest.fn(() => true);
 
       let statecoin = makeTesterStatecoin();
-      let statecoin_finalized = await depositConfirm(http_mock,wasm_mock,network,statecoin,10);
+      statecoin.init_locktime = 10;
+      let statecoin_finalized = await depositConfirm(http_mock,wasm_mock,network,statecoin);
 
       expect(statecoin_finalized.statechain_id.length).toBeGreaterThan(0);
       expect(statecoin_finalized.proof_key.length).toBeGreaterThan(0);
@@ -94,7 +95,8 @@ describe('StateChain Entity', function() {
         .mockReturnValueOnce(fee_info)
 
       let statecoin = makeTesterStatecoin();
-      await expect(depositConfirm(http_mock,wasm_mock,network,statecoin,10))
+      statecoin.init_locktime = 10;
+      await expect(depositConfirm(http_mock,wasm_mock,network,statecoin))
         .rejects
         .toThrowError("Not enough value to cover fee.");
     });
@@ -104,7 +106,8 @@ describe('StateChain Entity', function() {
 
       let statecoin = makeTesterStatecoin();
       statecoin.proof_key = "a";
-      await expect(depositConfirm(http_mock,wasm_mock,network,statecoin,10))
+      statecoin.init_locktime = 10;
+      await expect(depositConfirm(http_mock,wasm_mock,network,statecoin))
         .rejects
         .toThrowError("Expected property \"pubkey\" of type ?isPoint, got Buffer");
     });
@@ -114,7 +117,8 @@ describe('StateChain Entity', function() {
 
       let statecoin = makeTesterStatecoin();
       statecoin.proof_key = "aaaaaaaad651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e";
-      await expect(depositConfirm(http_mock,wasm_mock,network,statecoin,10))
+      statecoin.init_locktime = 10;
+      await expect(depositConfirm(http_mock,wasm_mock,network,statecoin))
         .rejects
         .toThrowError("Expected property \"pubkey\" of type ?isPoint, got Buffer");
     });

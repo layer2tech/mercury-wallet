@@ -20,6 +20,7 @@ import { ActivityLog } from '../activity_log';
 import { WALLET as WALLET_V_0_7_10_JSON } from './data/test_wallet_3cb3c0b4-7679-49dd-8b23-bbc15dd09b67';
 import { WALLET as WALLET_V_0_7_10_JSON_2 } from './data/test_wallet_25485aff-d332-427d-a082-8d0a8c0509a7';
 import { WALLET as WALLET_NOCOINS_JSON } from './data/test_wallet_nocoins';
+import { getFeeInfo } from "../mercury/info_api";
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -163,6 +164,76 @@ describe('Wallet', function () {
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.AVAILABLE)
   });
 
+  
+  test('initBlockTime', async () => {
+    wallet.electrum_client = jest.genMockFromModule('../mocks/mock_electrum.ts');
+    wallet.electrum_client.latestBlockHeader = jest.fn(async () => {
+      return Promise.resolve([{
+        "block_height": 1000,
+        "height": 1000,
+      }]);
+    });
+
+    await expect(wallet.initBlockTime()).rejects.toThrowError("Block height not updated");
+    
+    const init_block_height = 800000;
+
+    wallet.electrum_client.latestBlockHeader = jest.fn(async () => {
+      return Promise.resolve([{
+        "block_height": init_block_height,
+        "height": init_block_height,
+      }]);
+    });
+    
+    await wallet.initBlockTime();
+
+    expect(wallet.block_height).toEqual(init_block_height);
+    
+    const new_block_height = init_block_height + 1;
+
+    wallet.electrum_client.latestBlockHeader = jest.fn(async () => {
+      return Promise.resolve([{
+        "block_height": new_block_height,
+        "height": new_block_height,
+      }]);
+    });
+
+    await wallet.initBlockTime();
+    // Initial block height update already done. wallet.block_height should still be init_block_height.
+    expect(wallet.block_height).toEqual(init_block_height);
+  })
+
+  test('initCoinLockTime', async () => {
+    const init_block_height = 800000;
+    wallet.electrum_client = jest.genMockFromModule('../mocks/mock_electrum.ts');
+    wallet.electrum_client.latestBlockHeader = jest.fn(async () => {
+      return Promise.resolve([{
+        "block_height": init_block_height,
+        "height": init_block_height,
+      }]);
+    });
+
+    let statecoin = wallet.statecoins.coins[0];
+    expect(statecoin.init_locktime).toEqual(null);
+    let saveSpy = jest.spyOn(wallet, 'saveStateCoin');
+    await wallet.initCoinLocktime(statecoin);
+    expect(saveSpy).toHaveBeenCalledTimes(1);
+    let fee_info = await getFeeInfo(wallet.http_client);
+    expect(fee_info.initlock > 0).toEqual(true);
+    expect(statecoin.init_locktime).toEqual(init_block_height + fee_info.initlock);
+
+    // Expect the init_locktime not to be changed if already != null
+    wallet.electrum_client.latestBlockHeader = jest.fn(async () => {
+      return Promise.resolve([{
+        "block_height": init_block_height + 1,
+        "height": init_block_height + 1,
+      }]);
+    });
+    await wallet.initCoinLocktime(statecoin);
+    expect(statecoin.init_locktime).toEqual(init_block_height + fee_info.initlock);
+  })
+
+  
   describe('Storage 1', function () {
     test('save/load', async function () {
       expect(() => {
