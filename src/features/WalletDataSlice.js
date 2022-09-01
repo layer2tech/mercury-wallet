@@ -31,7 +31,13 @@ export const callGetArgsHasTestnet = async () => {
   if (require("../settings.json").testing_mode) {
     return true;
   }
-  let result = await window.electron.ipcRenderer.invoke("testnet-mode");
+
+  let result = true;
+  // #1612 note: use of electron outside of electron.js - please remove or change.
+  if(window.electron && window.electron.ipcRenderer){
+    result = await window.electron.ipcRenderer.invoke("testnet-mode");
+  }
+  
   return result;
 };
 
