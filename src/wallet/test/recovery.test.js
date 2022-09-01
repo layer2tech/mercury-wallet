@@ -682,7 +682,7 @@ describe('Retry Recovery', function () {
 
     wallet.recoverCoinsFromServer = jest.fn()
 
-    await walletFromMnemonic(store.dispatch, wallet.name, wallet.password, wallet.mnemonic, router, true, 200);
+    await walletFromMnemonic(store.dispatch, wallet.name, wallet.password, wallet.mnemonic, router, true, 200, 0);
     
     expect(router[0]).toBe("/home")
 
@@ -695,7 +695,7 @@ describe('Retry Recovery', function () {
     })
 
     try{
-      await walletFromMnemonic(store.dispatch, wallet.name, wallet.password, wallet.mnemonic, router, true, 200);
+      await walletFromMnemonic(store.dispatch, wallet.name, wallet.password, wallet.mnemonic, router, true, 200, 0);
 
     } catch{
 
@@ -751,12 +751,13 @@ describe('Retry Recovery', function () {
         return FEE_INFO
       });
 
-    let gap_limit = 200
+    let gap_start = 0;
+    let gap_limit = 200;
       
 
-    await recoverCoins(wallet, gap_limit, store.dispatch);
+    await recoverCoins(wallet, gap_limit, gap_start, store.dispatch);
     
-    await recoverCoins(wallet, gap_limit, store.dispatch);
+    await recoverCoins(wallet, gap_limit, gap_start, store.dispatch);
     
     expect(wallet.account.chains[0].k).toBe(200);
 

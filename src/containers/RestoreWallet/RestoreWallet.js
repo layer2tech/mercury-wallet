@@ -14,6 +14,10 @@ import  './RestoreWallet.css'
 
 let bip39 = require('bip39');
 
+function isInDesiredForm(str) {
+    var n = Math.floor(Number(str));
+    return n !== Infinity && String(n) === str && n >= 0;
+}
 
 const RestoreWalletPage = (props) => {
   const dispatch = useDispatch();
@@ -51,16 +55,41 @@ const RestoreWalletPage = (props) => {
       return;
     }
 
-    if (state.gap_limit === parseInt(state.gap_limit, 10)) {
-      dispatch(setError({msg: "Address limit must be a positive integer"}));
-      return;
+
+    let gap_range = state.gap_limit.split('-');
+    let gap_start = 0;
+    let gap_limit = 0;
+
+    if (gap_range.length === 1) {
+      if (!isInDesiredForm(gap_range[0])) {
+        dispatch(setError({msg: "Address limit must be a positive integer or range"}));
+        return;
+      }
+      gap_limit = Number(gap_range[0]);
+    } else if (gap_range.length === 2) {
+      if (!isInDesiredForm(gap_range[0])) {
+        dispatch(setError({msg: "Address range start must be a positive integer"}));
+        return;
+      }
+      if (!isInDesiredForm(gap_range[1])) {
+        dispatch(setError({msg: "Address range end must be a positive integer"}));
+        return;
+      }
+      gap_start = Number(gap_range[0])
+      gap_limit = Number(gap_range[1])
+
+      if (gap_start >= gap_limit) {
+        dispatch(setError({msg: "Address range must be greater than zero"}));
+        return;        
+      }
+    } else {
+      dispatch(setError({msg: "Address limit must be a single positive integer or range separated by a dash"}));
+      return;      
     }
 
-    
     // Create wallet and load into Redux state
 
-    await walletFromMnemonic(dispatch, state.wallet_name, state.wallet_password, state.mnemonic, props.history ,true, Number(state.gap_limit));
-
+    await walletFromMnemonic(dispatch, state.wallet_name, state.wallet_password, state.mnemonic, props.history ,true, gap_limit, gap_start);
 
   }
 
