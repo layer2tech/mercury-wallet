@@ -1766,6 +1766,31 @@ export class Wallet {
     this.electrum_client.importAddresses([p_addr], -1);
   }
 
+  async initBlockTime() {
+    // check that blockheight is recent
+    // if not, update it
+    if (this.block_height < 709862) {
+      let header = await this.electrum_client.latestBlockHeader();
+      this.setBlockHeight(header);
+    }
+    if (this.block_height < 709862) throw Error("Block height not updated");
+  }
+
+  // Set the init_locktime of the statecoin to the current block
+  // tip height if not already set and save the statecoin.
+  async initCoinLocktime(statecoin: StateCoin) {
+    // if previously set (RBF) use initial height
+    if (statecoin.init_locktime == null) {
+      let fee_info: FeeInfo = await getFeeInfo(this.http_client);
+      await this.initBlockTime();
+      let chaintip_height = this.block_height;
+      // Calculate initial locktime
+      let init_locktime = (chaintip_height) + (fee_info.initlock);
+      statecoin.init_locktime = init_locktime;
+      await this.saveStateCoin(statecoin);
+    }
+  }
+
   // Confirm deposit after user has sent funds to p_addr, or send funds to wallet for building of funding_tx.
   // Either way, enter confirmed funding txid here to conf with StateEntity and complete deposit
   async depositConfirm(shared_key_id: string): Promise<StateCoin> {
@@ -1783,21 +1808,17 @@ export class Wallet {
           "."
       );
 
-    // check that blockheight is recent
-    // if not, update it
-    if (this.block_height < 709862) {
-      let header = await this.electrum_client.latestBlockHeader();
-      this.setBlockHeight(header);
-    }
-    if (this.block_height < 709862) throw Error("Block height not updated");
+    await this.initCoinLocktime(statecoin);
 
     let statecoin_finalized = await depositConfirm(
       this.http_client,
       await this.getWasm(),
       this.config.network,
-      statecoin,
-      this.block_height
-    );
+      statecoin
+    ).catch((err) => {
+      log.error(`depositConfirm error: ${err}`);
+      throw err
+    })
 
     // update in wallet
     if (this.config.testing_mode) {

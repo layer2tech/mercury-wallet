@@ -56,20 +56,17 @@ export const depositConfirm = async (
   wasm_client: any,
   network: Network,
   statecoin: StateCoin,
-  chaintip_height: number,
 ): Promise<StateCoin> => {
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
   let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
 
   // Calculate initial locktime
-  let init_locktime = (chaintip_height) + (fee_info.initlock);
+  let init_locktime = statecoin.init_locktime;
   // if previously set (RBF) use initial height
-  if (statecoin.init_locktime) {
-    init_locktime = statecoin.init_locktime;
-  } else {
-    statecoin.init_locktime = init_locktime;
-  }
+  if (init_locktime == null) {
+    throw Error("depositConfirm - statecoin.init_locktime not set.")
+  } 
 
   // Build unsigned backup tx
   let backup_receive_addr = pubKeyTobtcAddr(statecoin.proof_key, network);
@@ -93,7 +90,6 @@ export const depositConfirm = async (
   // construct shared signatures
   let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.DEPOSIT);
 
-
   // set witness data with signature
   let tx_backup_signed = tx_backup_unsigned;
 
@@ -107,7 +103,7 @@ export const depositConfirm = async (
   }
 
   let statechain_id = await http_client.post(POST_ROUTE.DEPOSIT_CONFIRM, deposit_msg2);
-
+  
   typeforce(typeforce.String, statecoin.shared_key_id)
 
   // Verify proof key inclusion in SE sparse merkle tree
