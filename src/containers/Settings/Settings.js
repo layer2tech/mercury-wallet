@@ -371,7 +371,12 @@ const SettingsPage = (props) => {
                           <div className="info-container">
                             <img src={info} alt="info" />
                             <span className="tooltip-info index">
-                              <div>Use the xpub to transfer all statecoins to a new wallet</div>
+                              <div><h6>xPub: transfer all statecoins to a new wallet.</h6> 
+                              For best privacy practice send statecoins to an xpub instead of a statecoin address.
+                              Each statecoin is sent to a separate statecoin address.
+                              Statecoins are sent to the first X indexes found on the receive page.
+                              </div>
+
                             </span>
                           </div>
                           <span>
