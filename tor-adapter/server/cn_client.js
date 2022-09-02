@@ -22,13 +22,13 @@ class CNClient {
     async stopTorNode(){
     }
 
-    async newTorConnection() {
+    async newTorCircuit() {
         await this.sleep(6000);
         return `Tor signal "newnym" successfully sent`;  
     }
 
-    async confirmNewTorConnection() {
-        this.newTorConnection()
+    async confirmNewTorCircuit() {
+        this.newTorCircuit()
     }
 
     async getip() {

@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import { HttpClient, GET_ROUTE, POST_ROUTE } from '../http_client';
 import { ElectrsClient } from '../electrs';
 import { assert } from 'console';
@@ -45,6 +49,7 @@ async function get_endpoints(client, config) {
   return await client.get('tor_endpoints', {})
 }
 
+/*
 function get_port_pid(port) {
   const command = `lsof -i:${port}`
   console.log(`get_port_pid:`)
@@ -65,14 +70,18 @@ async function kill_port_process(port) {
     }
   }
 }
+*/
 
-describe.skip('Tor', function () {
-
+describe('Tor', function () {
+  console.log('Tor testing...');
   let ta_process = undefined
-  const bSkip = true
-
-  if (bSkip == false) {
-    beforeAll(async () => {
+  const start_tor_adapter = false;
+  beforeAll(async () => {
+    if (start_tor_adapter != true) {
+      return;
+    }
+    
+      console.log('Before all...');
       let resourcesPath = joinPath(dirname(rootPath), 'mercury-wallet/resources');
       let execPath = joinPath(resourcesPath, 'linux');
       let torrc = joinPath(resourcesPath, 'etc', 'torrc');
@@ -100,22 +109,23 @@ describe.skip('Tor', function () {
       console.log(`set tor endpoints: ${JSON.stringify(result)}`)
       expect(JSON.stringify(result)).toEqual(JSON.stringify({ "state_entity_endpoint": ["http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion", " http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion "], "swap_conductor_endpoint": ["http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion", " http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion "], "electrum_endpoint": ["https://blockstream.info/testnet/api"] }))
 
-      return new Promise(resolve => setTimeout(resolve, 10000))
+    return new Promise(resolve => setTimeout(resolve, 0))
     })
 
     afterAll(async () => {
       await kill_port_process(3001)
       return new Promise(resolve => setTimeout(resolve, 0))
     })
-  }
-  describe('Tor server integration', function () {
-    test('tor server get', async function () {
+  
+  test.skip('tor server get', async function () {
+      console.log('tor server get...');
       const client = new HttpClient('http://localhost:3001');
       let result2 = undefined
       const n_tries = 10;
       let n = 0;
       while (result2 === undefined && n < n_tries) {
         try {
+          console.log('getting fees...');
           result2 = await client.get(GET_ROUTE.FEES, {});
           console.log(`tor server get: ${JSON.stringify(result2)}`);
         } catch (err) {
@@ -126,7 +136,7 @@ describe.skip('Tor', function () {
       expect(JSON.stringify(result2)).toBe(JSON.stringify({ "address": "tb1qzvv6yfeg0navfkrxpqc0fjdsu9ey4qgqqsarq4", "deposit": 0, "withdraw": 50, "interval": 6, "initlock": 12960, "wallet_version": "0.6.5", "wallet_message": "" }))
     });
 
-    test('tor server get unknown route', async function () {
+    test.skip('tor server get unknown route', async function () {
       const client = new HttpClient('http://localhost:3001');
 
       try {
@@ -137,7 +147,7 @@ describe.skip('Tor', function () {
       }
     });
 
-    test('tor server post unknown route', async function () {
+    test.skip('tor server post unknown route', async function () {
       const client = new HttpClient('http://localhost:3001');
 
       let transfer_msg1 = {
@@ -153,7 +163,7 @@ describe.skip('Tor', function () {
       }
     });
 
-    test('tor server unprocessable request', async function () {
+    test.skip('tor server unprocessable request', async function () {
       const client = new HttpClient('http://localhost:3001');
 
       let transfer_msg1 = {
@@ -169,7 +179,7 @@ describe.skip('Tor', function () {
       }
     });
 
-    test('tor server post success', async function () {
+    test.skip('tor server post success', async function () {
       const client = new HttpClient('http://localhost:3001');
 
       let deposit_msg1 = {
@@ -196,7 +206,7 @@ describe.skip('Tor', function () {
 
 
     describe('electrs', function () {
-      test('broadcast transaction', async function () {
+      test.skip('broadcast transaction', async function () {
         const electrsClient = new ElectrsClient('http://localhost:3001');
         const rawTX = "0100000000010159c2ae349c2dafd349253a9ac4f877c6e244b2ca8f6a5b8391e20a9323962f470000000000fdffffff021027000000000000160014e3c1f3b69ce67a7ab47b55749fe75162a62c341831db020000000000160014f796c0123e2924d09cc9cfb6007a534d85f306df0247304402201137cc0d643c04f2432deaad3d4f6e647e6c88486bacfb35fc2a2d491ce54e220220343787ff6e20aaa964e7aba34b6c270b39ced8446abd2ff892a1c5b50d4bafe5012102847c0858d0a5b5e78c3cb8096ee7d0fd08a3026f0b85c3f4122cb2420c50264e00000000"
         try {
@@ -209,7 +219,7 @@ describe.skip('Tor', function () {
         throw Error("Expected function to throw.")
       })
 
-      test('get transaction', async function () {
+      test.skip('get transaction', async function () {
         const electrsClient = new ElectrsClient('http://localhost:3001');
         const txid = "8197859978177a8f3cc41996cc59205eb9a7457e2a3bbd046e755ea71b3a6849"
         let response = await electrsClient.getTransaction(txid)
@@ -218,7 +228,7 @@ describe.skip('Tor', function () {
     })
 
 
-  });
+  //});
 
 });
 

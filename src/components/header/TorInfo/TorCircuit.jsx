@@ -11,9 +11,9 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import {
-  callGetNewTorId,
+  callGetNewTorCircuit,
   callGetTorcircuitInfo,
-  callUpdateTorCircuit,
+  callUpdateTorCircuitInfo,
   setTorOnline,
   callGetConfig,
   setIntervalIfOnline,
@@ -62,7 +62,7 @@ const TorCircuit = (props) => {
     if (props.online) {
       let torcircuit_data = null;
       try {
-        dispatch(callUpdateTorCircuit());
+        dispatch(callUpdateTorCircuitInfo());
         torcircuit_data = callGetTorcircuitInfo();
       } catch (err) {
         handleNetworkError(err);
@@ -79,7 +79,7 @@ const TorCircuit = (props) => {
   };
 
   const newCircuit = () => {
-    dispatch(callGetNewTorId()).then(() => {
+    dispatch(callGetNewTorCircuit()).then(() => {
       getTorCircuitInfo();
     });
   };
