@@ -31,7 +31,12 @@ export const callGetArgsHasTestnet = async () => {
   if (require("../settings.json").testing_mode) {
     return true;
   }
-  let result = await window.electron.ipcRenderer.invoke("testnet-mode");
+
+  let result = false;
+  if (window.electron && window.electron.ipcRenderer) {
+    result = await window.electron.ipcRenderer.invoke("testnet-mode");
+  }
+
   return result;
 };
 
@@ -405,11 +410,13 @@ export const callGetActivityLogItems = (num_of_items) => {
   }
 };
 
-export const callGetSwappedStatecoinsByFundingOutPoint = (funding_out_point) => {
+export const callGetSwappedStatecoinsByFundingOutPoint = (
+  funding_out_point
+) => {
   if (isWalletLoaded()) {
-    return wallet.getSwappedStatecoinsByFundingOutPoint(funding_out_point)
+    return wallet.getSwappedStatecoinsByFundingOutPoint(funding_out_point);
   }
-}
+};
 
 export const callGetActivityDate = (shared_key_id, action) => {
   if (isWalletLoaded()) {
