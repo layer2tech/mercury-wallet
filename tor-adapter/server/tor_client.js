@@ -254,16 +254,9 @@ class TorClient {
     newSocksAuthentication() {
         this.log('debug', "TorClient.newSocksAuthentication()...");
         const userId = uuidv4();
-        //const hostname = `socks://${userId}:${userId}@${this.torConfig.ip}:${this.torConfig.port}`;
-        const hostname = `socks://${userId}:@${this.torConfig.ip}:${this.torConfig.port}`;
-        //const hostname = `socks://${this.torConfig.ip}:${this.torConfig.port}`;
-        const socksOptions = {
-            host: this.torConfig.ip,
-            port: this.torConfig.port,
-            protocol: 'socks5h'
-            //password: userId
-        };
-        let agent = new SocksProxyAgent(hostname);
+        this.hostname = `socks://${userId}:@${this.torConfig.ip}:${this.torConfig.port}`;
+      
+        let agent = new SocksProxyAgent(this.hostname);
         this.proxyConfig = {
             agent: agent,
             headers: {
@@ -283,7 +276,7 @@ class TorClient {
                 return;
             }
         }
-        throw Error("Failed to get new TOR circuit and exit IP after " + maxNTries + " attempts");
+        throw Error("Failed to get new Tor exit IP after " + maxNTries + " attempts");
     }
 
     async getip() {
