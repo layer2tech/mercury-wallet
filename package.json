@@ -67,7 +67,7 @@
     "eslint-config-react-app": "^7.0.1",
     "foreman": "^3.0.1",
     "mock-req-res": "^1.2.0",
-    "react-app-rewired": "^2.1.6",
+    "react-app-rewired": "^2.2.1",
     "react-scripts": "5.0.0",
     "sinon": "^13.0.1",
     "typescript": "^4.7.4",
@@ -114,9 +114,7 @@
     "html-react-parser": "^0.14.2",
     "i18n-iso-countries": "^7.1.0",
     "install": "^0.13.0",
-    "jest-environment-jsdom": "25",
-    "jest-environment-jsdom-fifteen": "^1.0.2",
-    "jest-environment-jsdom-fourteen": "^1.0.1",
+    "jest-environment-jsdom": "^27.5.1",
     "levenary": "^1.1.1",
     "lodash.clonedeep": "^4.5.0",
     "mercury-wallet-tor-adapter": "file:./tor-adapter",
@@ -146,10 +144,27 @@
     "suppress-warnings": "^1.0.2",
     "testcafe": "^1.14.2",
     "testcafe-browser-provider-electron": "^0.0.16",
-    "ts-jest": "^28.0.8",
+    "ts-jest": "^27.1.5",
     "typeforce": "^1.11.3",
     "uuid": "^8.3.2",
-    "wasm-pack": "^0.10.0"
+    "wasm-pack": "^0.10.0",
+    "assert": "^2.0.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
+    "crypto": "npm:crypto-browserify",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "rewire": "^6.0.0",
+    "stream-browserify": "^3.0.0",
+    "stream": "npm:stream-browserify",
+    "constants-browserify": "^1.0.0",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.0",
+    "web-vitals": "^2.1.2",
+    "web3": "^1.6.1",
+    "conf": "^1.2.0",
+    "limiter": "^2.1.0"
   },
   "browserslist": {
     "production": [
@@ -227,11 +242,5 @@
   "resolutions": {
     "**/@typescript-eslint/eslint-plugin": "^5.33.0",
     "**/@typescript-eslint/parser": "^5.33.0"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   }
 }
