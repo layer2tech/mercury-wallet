@@ -76,7 +76,6 @@
   "dependencies": {
     "@aguycalled/electrum-client-js": "^0.1.9",
     "@electron/remote": "^2.0.7",
-    "@esfx/async-semaphore": "^1.0.0-pre.19",
     "@happy-dom/jest-environment": "^6.0.4",
     "@psf/bip32-utils": "^1.0.4",
     "@reduxjs/toolkit": "^1.4.0",
@@ -137,6 +136,7 @@
     "react-use-clipboard": "1.0.7",
     "request-debug": "^0.2.0",
     "request-promise": "^4.2.6",
+    "semaphore-async-await": "^1.5.1",
     "semver": "^7.3.7",
     "socks": "^2.6.1",
     "socks-proxy-agent": "^5.0.0",

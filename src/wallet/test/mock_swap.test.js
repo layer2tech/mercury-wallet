@@ -18,8 +18,7 @@ import TestComponent, { render } from './test-utils'
 
 import { handleEndSwap, setSwapLoad } from '../../features/WalletDataSlice.js';
 import { fromSatoshi } from '../util.ts';
-import { fireEvent, screen } from '@testing-library/dom';
-import { AsyncSemaphore } from '@esfx/async-semaphore';
+import Semaphore from 'semaphore-async-await';
 
 let bitcoin = require('bitcoinjs-lib')
 
@@ -66,9 +65,9 @@ describe('Do Swap', function () {
     // test it joins swap
 
     const MAX_SWAP_SEMAPHORE_COUNT = 100;
-    const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
+    const swapSemaphore = new Semaphore(MAX_SWAP_SEMAPHORE_COUNT);
     const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
-    const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
+    const updateSwapSemaphore = new Semaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], 0)
 
@@ -249,7 +248,7 @@ describe('Resume Swap Successful', function () {
   const returned_statecoin = makeTesterStatecoin()
 
   beforeAll(async () => {
-    
+
     wallet = await getWallet();
   })
 
@@ -261,7 +260,7 @@ describe('Resume Swap Successful', function () {
         }
       }
     })
-    
+
     // New statecoin received:
     wallet.statecoins.coins[0] = setSwapDetails(wallet.statecoins.coins[0], "End")
     let statecoin = wallet.statecoins.coins[0]
@@ -269,19 +268,19 @@ describe('Resume Swap Successful', function () {
     let new_statecoin = await wallet.resume_swap(statecoin)
 
     expect(new_statecoin).toBe(returned_statecoin)
-    
+
     expect(new_statecoin.status).toBe(returned_statecoin.status)
-    
+
     // Check statecoin status set to SWAPPED
     wallet.statecoins.coins[0].status = STATECOIN_STATUS.AVAILABLE
-    
+
     statecoin = wallet.statecoins.coins[0]
-    
+
     new_statecoin = await wallet.resume_swap(statecoin)
-    
+
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPPED)
     Swap.mockReset()
-        
+
   })
 })
 
