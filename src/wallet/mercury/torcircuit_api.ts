@@ -26,14 +26,21 @@ export interface TorCircuit {
 }
 
 export const getNewTorId = async (http_client: HttpClient | MockHttpClient) => {
-  let tor_id = null;
   try {
-    tor_id = await http_client.get(GET_ROUTE.NEW_TOR_ID, {}, 20000);
+    await http_client.get(GET_ROUTE.NEW_TOR_ID, {}, 20000);
   } catch (err: any) {
     handleNetworkError(err);
   }
-  // TODO - check for types
-  return tor_id;
+};
+
+export const getNewTorCircuit = async (http_client: HttpClient | MockHttpClient) => {
+  let tor_circuit = null;
+  try {
+    tor_circuit = await http_client.get(GET_ROUTE.NEW_TOR_CIRCUIT, {}, 20000);
+  } catch (err: any) {
+    handleNetworkError(err);
+  }
+  return tor_circuit;
 };
 
 // parent

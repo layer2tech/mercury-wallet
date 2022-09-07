@@ -149,9 +149,18 @@ async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
 
 app.get('/newid', async function (req, res) {
   try {
-    console.log("getting new tor id...")
-    let response = await tor.confirmNewTorConnection();
-    console.log(`got new tor id: ${JSON.stringify(response)}`)
+    tor.newSocksAuthentication();
+    res.status(200).json({});
+  } catch (err) {
+    const err_msg = `Get new tor id error: ${err}`;
+    log('error', err_msg);
+    res.status(500).json(err_msg);
+  }
+});
+
+app.get('/newcircuit', async function (req, res) {
+  try {
+    let response = await tor.confirmNewTorCircuit();
     res.status(200).json(response);
   } catch (err) {
     const err_msg = `Get new tor id error: ${err}`;
