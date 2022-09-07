@@ -18,6 +18,7 @@ import TestComponent, { render } from './test-utils'
 
 import { handleEndSwap, setSwapLoad } from '../../features/WalletDataSlice.js';
 import { fromSatoshi } from '../util.ts';
+import { fireEvent, screen } from '@testing-library/react';
 import Semaphore from 'semaphore-async-await';
 
 let bitcoin = require('bitcoinjs-lib')

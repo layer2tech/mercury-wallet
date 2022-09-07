@@ -534,7 +534,9 @@ export default class Swap {
       await this.clients.http_client.new_tor_id();
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase4;
     } catch (err: any) {
-      semaphore.release(count);
+      for (let i = 0; i < count; i++){
+        semaphore.release(); 
+      }
       newid_semaphore.release();
       return SwapStepResult.Retry(`Error getting new TOR id: ${err}`);
     }
@@ -554,7 +556,9 @@ export default class Swap {
     } catch (err: any) {
       return SwapStepResult.Retry(err.message);
     } finally {
-      semaphore.release(count);
+      for (let i = 0; i < count; i++){
+        semaphore.release();
+      }      
       newid_semaphore.release();
     }
   };

@@ -75,6 +75,13 @@ export class ElectrsClient {
     }
   };
 
+  async new_tor_circuit() {
+    if (this.is_tor) {
+      await ElectrsClient.get(this.endpoint, 'newcircuit', {});
+    }
+  };
+
+
 
   static async get(endpoint: string, path: string,
     params: any, timeout_ms: number = TIMEOUT) {

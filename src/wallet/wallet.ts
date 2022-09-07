@@ -67,11 +67,11 @@ import {
 import { EPSClient } from "./eps";
 import {
   getNewTorId,
+  getNewTorCircuit,
   getTorCircuit,
   getTorCircuitIds,
   TorCircuit,
 } from "./mercury/torcircuit_api";
-import { callGetNewTorId } from "../features/WalletDataSlice";
 import { Mutex } from "async-mutex";
 import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
@@ -225,6 +225,15 @@ export class Wallet {
       throw err;
     }
   }
+
+  async updateTorCircuit() {
+    try {
+      await getNewTorCircuit(this.http_client);
+    } catch (err: any) {
+      throw err;
+    }
+  }
+
 
   // TODO - add additional checks and error handling
   async updateTorcircuitInfo() {
@@ -444,8 +453,12 @@ export class Wallet {
   }
 
   async start() {
-    swapSemaphore.release(MAX_SWAP_SEMAPHORE_COUNT);
-    updateSwapSemaphore.release(MAX_SWAP_SEMAPHORE_COUNT);
+    for (let i = 0; i < MAX_SWAP_SEMAPHORE_COUNT; i++){
+      swapSemaphore.release();
+    }
+    for (let i = 0; i < MAX_SWAP_SEMAPHORE_COUNT; i++){
+      updateSwapSemaphore.release();
+    }
   }
 
   // unload wallet
@@ -1908,7 +1921,7 @@ export class Wallet {
       await swapSemaphore.acquire();
       try {
         await (async () => {
-          while (updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+          while (updateSwapSemaphore.getPermits() < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
             delay(1000);
           }
         });
@@ -1957,7 +1970,7 @@ export class Wallet {
     let swap = null;
     try {
       await (async () => {
-        while (updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+        while (updateSwapSemaphore.getPermits() < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
           delay(1000);
         }
       });

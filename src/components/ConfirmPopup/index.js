@@ -43,8 +43,14 @@ const ConfirmPopup = ({ children, onOk, onCancel, preCheck=null, argsCheck=null 
       setCloseText('Are you sure you want to log out?')
     } else if(children.props.className.includes('send-action-button')){
       if(children.props.className.includes('privacy')){
-        setCloseText('Privacy Warning: Address reuse against best privacy practice, send anyway?')
-      } else{
+        setCloseText('Privacy Warning: address reuse against best privacy practice, send anyway?')
+      } else if(children.props.className.includes('xpub-key')){
+        let list = children.props.className.split(" ")
+        let sendAddr = list[list.length-1]
+        
+        setCloseText(`Send statecoin(s) to each of the first ${sendAddr} addresses`)
+      }
+      else{
         setCloseText('Confirm send, statecoin ready to be sent immediately.')
       }
     } else if(children.props.className.includes('withdraw-button')){
