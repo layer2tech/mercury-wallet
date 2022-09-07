@@ -405,9 +405,10 @@ export const callGetActivityLogItems = (num_of_items) => {
   }
 };
 
-export const callGetSwappedStatecoinsByFundingOutPoint = (funding_out_point) => {
+export const callGetSwappedStatecoinsByFundingOutPoint = (funding_out_point, depth) => {
+  // depth:- last X swaps for a coin with utxo: funding_out_point
   if (isWalletLoaded()) {
-    return wallet.getSwappedStatecoinsByFundingOutPoint(funding_out_point)
+    return wallet.getSwappedStatecoinsByFundingOutPoint(funding_out_point, depth)
   }
 }
 

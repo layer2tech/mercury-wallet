@@ -52,6 +52,7 @@ export const POST_ROUTE = {
   SWAP_FIRST: "swap/first",
   SWAP_BLINDED_SPEND_SIGNATURE: "swap/blinded-spend-signature",
   SWAP_SECOND: "swap/second",
+  TOR_ENDPOINTS: "tor_endpoints"
 };
 Object.freeze(POST_ROUTE);
 
