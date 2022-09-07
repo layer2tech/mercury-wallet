@@ -23,7 +23,8 @@ export const GET_ROUTE = {
   SWAP_GROUPINFO: "swap/groupinfo",
   TRANSFER_GET_MSG_ADDR: "transfer/get_msg_addr",
   TOR_CIRCUITS: "tor_circuit",
-  NEW_TOR_ID: "newid"
+  NEW_TOR_ID: "newid",
+  NEW_TOR_CIRCUIT: "newid"
 };
 Object.freeze(GET_ROUTE);
 
@@ -70,6 +71,15 @@ Object.freeze(POST_ROUTE);
         await this.get('newid', {}, timeout_ms);
       }
     };
+    
+    async new_tor_circuit() {
+      if (this.is_tor) {
+        const timeout_ms = 20000
+        await this.get('newcircuit', {}, timeout_ms);
+      }
+    };
+
+
 
     async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
       const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');

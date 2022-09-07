@@ -859,8 +859,16 @@ export const callGetNewTorId = createAsyncThunk(
   }
 );
 
-export const callUpdateTorCircuit = createAsyncThunk(
-  "UpdateTorCircuit",
+
+export const callGetNewTorCircuit = createAsyncThunk(
+  "GetNewTorCircuit",
+  async (action, thunkAPI) => {
+    wallet.updateTorCircuit();
+  }
+);
+
+export const callUpdateTorCircuitInfo = createAsyncThunk(
+  "UpdateTorCircuitInfo",
   async (action, thunkAPI) => {
     try {
       wallet.updateTorcircuitInfo();

@@ -68,11 +68,11 @@ import {
 import { EPSClient } from "./eps";
 import {
   getNewTorId,
+  getNewTorCircuit,
   getTorCircuit,
   getTorCircuitIds,
   TorCircuit,
 } from "./mercury/torcircuit_api";
-import { callGetNewTorId } from "../features/WalletDataSlice";
 import { Mutex } from "async-mutex";
 import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
@@ -225,6 +225,15 @@ export class Wallet {
       throw err;
     }
   }
+
+  async updateTorCircuit() {
+    try {
+      await getNewTorCircuit(this.http_client);
+    } catch (err: any) {
+      throw err;
+    }
+  }
+
 
   // TODO - add additional checks and error handling
   async updateTorcircuitInfo() {
