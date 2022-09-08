@@ -1,12 +1,5 @@
 const NodeEnvironment = require("jest-environment-node");
 
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  clear: jest.fn(),
-};
-global.localStorage = localStorageMock;
-
 class CustomEnvironment extends NodeEnvironment {
   constructor(config) {
     super(config);

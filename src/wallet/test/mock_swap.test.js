@@ -1,5 +1,5 @@
 /**
- * @jest-environment ./jest-environment-uint8array-27.js
+ * @jest-environment jsdom
  */
 
 // This file contains test for the main swap function with Swap class mocked
