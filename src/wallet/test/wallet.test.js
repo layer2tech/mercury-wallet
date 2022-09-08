@@ -623,7 +623,7 @@ describe('Wallet', function () {
             let num_coins_after = wallet.statecoins.coins.length;
             expect(saveSpy).toHaveBeenCalledTimes(1);
             expect(saveLogSpy).toHaveBeenCalledTimes(1);
-            expect(num_coins_after).toEqual(num_coins_before - 1);
+            expect(num_coins_after).toEqual(num_coins_before);
           });
     
           test('setStateCoinSpent - check swapped saved', async function () {
@@ -638,7 +638,7 @@ describe('Wallet', function () {
               expect(saveLogSpy).toHaveBeenCalledTimes(1);
               const swappedCoins2 = wallet.storage.getSwappedCoins(wallet.name);
               expect(swappedCoins2.length).toEqual(1);
-              expect(num_coins_after).toEqual(num_coins_before - 1);
+              expect(num_coins_after).toEqual(num_coins_before);
       });
     });
   });
