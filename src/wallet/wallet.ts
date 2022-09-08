@@ -65,6 +65,7 @@ import {
   OutPoint,
 } from "./mercury/info_api";
 import { EPSClient } from "./eps";
+import { POST_ROUTE } from "./http_client";
 import {
   getNewTorId,
   getNewTorCircuit,
@@ -303,7 +304,7 @@ export class Wallet {
       state_entity_endpoint: this.config.state_entity_endpoint,
       electrum_endpoint: electr_ep,
     };
-    this.http_client.post("tor_endpoints", endpoints_config);
+    this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -1096,9 +1097,10 @@ export class Wallet {
   }
 
   getSwappedStatecoinsByFundingOutPoint(
-    funding_out_point: OutPoint
+    funding_out_point: OutPoint,
+    depth: number
   ): StateCoin[] {
-    return this.storage.getSwappedCoinsByOutPoint(this.name, funding_out_point);
+    return this.storage.getSwappedCoinsByOutPoint(this.name, depth, funding_out_point);
   }
 
   processTXBroadcastResponse(statecoin: StateCoin, bresponse: string) {
@@ -2005,7 +2007,7 @@ export class Wallet {
         `Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`
       );
       statecoin.setSwapDataToNull();
-      await this.saveStateCoinsList();
+      await this.saveStateCoin(statecoin);
     }
   }
 
@@ -2647,7 +2649,6 @@ export class Wallet {
       withdraw_msg_2.shared_key_ids.forEach(async (shared_key_id) => {
         this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
         await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
-        this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
       });
       await withdraw_confirm(this.http_client, withdraw_msg_2);
     } catch (e) {
@@ -2658,7 +2659,6 @@ export class Wallet {
         withdraw_msg_2.shared_key_ids.forEach(async (shared_key_id) => {
           this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
           await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
-          this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
         });
       } else {
         log.error(`withdraw confirm error: ${e}`);
