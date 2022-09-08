@@ -74,9 +74,19 @@ export class MockHttpClient {
         return TRANSFER_PUBKEY
       case POST_ROUTE.SWAP_POLL_UTXO:
         return POLL_UTXO
+      case POST_ROUTE.SWAP_POLL_SWAP:
+        return POLL_UTXO
       case POST_ROUTE.RECOVER:
         return RECOVERY_STATECHAIN_DATA
       case POST_ROUTE.SWAP_DEREGISTER_UTXO:
+        return
+      case POST_ROUTE.TOR_ENDPOINTS:
+        return
+      case POST_ROUTE.SWAP_REGISTER_UTXO:
+        return
+      case  POST_ROUTE.SWAP_INFO:
+        return
+      case  POST_ROUTE.SWAP_FIRST:
         return
     }
   }
