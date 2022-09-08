@@ -164,7 +164,7 @@
     "web-vitals": "^2.1.2",
     "web3": "^1.6.1",
     "conf": "^1.2.0",
-    "limiter": "^2.1.0"
+    "limiter": "^2.1.0",
     "winston": "^3.8.1"
   },
   "browserslist": {
