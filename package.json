@@ -113,7 +113,6 @@
     "html-react-parser": "^0.14.2",
     "i18n-iso-countries": "^7.1.0",
     "install": "^0.13.0",
-    "jest-environment-jsdom": "^27.5.1",
     "levenary": "^1.1.1",
     "lodash.clonedeep": "^4.5.0",
     "mercury-wallet-tor-adapter": "file:./tor-adapter",
