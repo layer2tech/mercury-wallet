@@ -1445,7 +1445,15 @@ export class Wallet {
   }
 
   getStatecoin(shared_key_id: string) {
-    return this.statecoins.getCoin(shared_key_id);
+    let result = this.statecoins.getCoin(shared_key_id);
+    if (result == null) {
+      try {
+        result = this.storage.getSwappedCoin(this.name, shared_key_id);
+      } catch (err) {
+        log.debug(err); 
+      }
+    }
+    return result;
   }
 
   addDescription(shared_key_id: string, description: string) {
@@ -1474,6 +1482,7 @@ export class Wallet {
     transfer_msg?: TransferMsg3,
     bSave: boolean = true
   ) {
+    console.log(`setStateCoinSpent - saveStateCoin...`);
     let statecoin: StateCoin | undefined = this.statecoins.getCoin(id);
     if (
       statecoin &&
@@ -1485,7 +1494,8 @@ export class Wallet {
     ) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
-      if (bSave) {
+      if (bSave === true) {
+        console.log(`setStateCoinSpent - saveStateCoin...`)
         await this.saveStateCoin(statecoin);
         await this.saveActivityLog();
       }
@@ -2015,6 +2025,8 @@ export class Wallet {
   ): Promise<StateCoin | null> {
     if (new_statecoin && new_statecoin instanceof StateCoin) {
       this.setIfNewCoin(new_statecoin);
+      new_statecoin.setSwapDataToNull();
+      await this.saveStateCoin(new_statecoin);
       statecoin.setSwapDataToNull(false);
       await this.setStateCoinSpent(
         statecoin.shared_key_id,
@@ -2022,7 +2034,6 @@ export class Wallet {
         undefined,
         true
       );
-      new_statecoin.setSwapDataToNull();
     }
     swapSemaphore.release();
     return new_statecoin;
