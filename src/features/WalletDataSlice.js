@@ -31,7 +31,12 @@ export const callGetArgsHasTestnet = async () => {
   if (require("../settings.json").testing_mode) {
     return true;
   }
-  let result = await window.electron.ipcRenderer.invoke("testnet-mode");
+
+  let result = false;
+  if (window.electron && window.electron.ipcRenderer) {
+    result = await window.electron.ipcRenderer.invoke("testnet-mode");
+  }
+
   return result;
 };
 
@@ -410,7 +415,7 @@ export const callGetSwappedStatecoinsByFundingOutPoint = (funding_out_point, dep
   if (isWalletLoaded()) {
     return wallet.getSwappedStatecoinsByFundingOutPoint(funding_out_point, depth)
   }
-}
+};
 
 export const callGetActivityDate = (shared_key_id, action) => {
   if (isWalletLoaded()) {

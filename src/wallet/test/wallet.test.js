@@ -1,5 +1,5 @@
 /**
- * @jest-environment jest-environment-jsdom-fifteen
+ * @jest-environment ./jest-environment-uint8array-27.js
  */
 let bitcoin = require('bitcoinjs-lib')
 import {
