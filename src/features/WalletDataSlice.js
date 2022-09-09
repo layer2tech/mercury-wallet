@@ -463,7 +463,7 @@ export const callGetNumSeAddr = () => {
     return wallet.getNumSEAddress();
   }
 };
-// Remove coin from coins list
+// Remove coin from coins list and file
 export const callRemoveCoin = async (shared_key_id) => {
   if (isWalletLoaded()) {
     log.info("Removing coin " + shared_key_id + " from wallet.");

@@ -276,10 +276,12 @@ describe('Resume Swap Successful', function () {
     wallet.statecoins.coins[0].status = STATECOIN_STATUS.AVAILABLE
 
     statecoin = wallet.statecoins.coins[0]
-
+    
+    
     new_statecoin = await wallet.resume_swap(statecoin)
 
-    expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPPED)
+    expect(new_statecoin).not.toBe(undefined);
+
     Swap.mockReset()
 
   })
@@ -305,7 +307,6 @@ describe('After Swaps Complete', function () {
     // shared_key_id of statecoin in mock created wallet
     //add statecoin to wallet
     let statecoin = wallet_json.statecoins.coins[0]
-
     let store = configureStore({ reducer: reducers, })
 
     // test redux state before and after handleEndSwap
@@ -332,7 +333,6 @@ describe('After Swaps Complete', function () {
     }))
 
     expect(store.getState().walletData.swapPendingCoins[0]).toBe(statecoin.shared_key_id)
-
   })
 })
 

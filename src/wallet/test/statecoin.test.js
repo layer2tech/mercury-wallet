@@ -1,7 +1,9 @@
 import { getTxFee } from "../util";
 import { makeTesterStatecoins, recovery_withdrawal_tx, BTC_ADDR } from "./test_data";
 import { StateCoinList } from "../";
-import {Transaction} from "bitcoinjs-lib"
+import { Transaction } from "bitcoinjs-lib"
+import { STATECOIN_STATUS } from "../statecoin"
+import { ACTION } from "../activity_log"
 
 describe('Statecoin', function () {
 
@@ -30,5 +32,11 @@ describe('Statecoin', function () {
 
     test('getWithdrawalMaxTxFee - no broadcast tx', function () {
         expect(statecoin.getWithdrawalMaxTxFee()).toEqual(-1)
+    })
+
+    test('setCoinSpent - swap', () => {
+        expect(statecoins.coins[0].status).not.toEqual(STATECOIN_STATUS.SWAPPED);
+        statecoins.setCoinSpent(statecoins.coins[0].shared_key_id, ACTION.SWAP);
+        expect(statecoins.coins[0].status).toEqual(STATECOIN_STATUS.SWAPPED);
     })
 })
