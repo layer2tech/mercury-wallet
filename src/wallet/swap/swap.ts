@@ -47,6 +47,8 @@ import {
 } from "./swap_utils";
 import { semaphore, MAX_SEMAPHORE_COUNT } from "../http_client";
 import WrappedLogger from "../../wrapped_logger";
+import Semaphore from 'semaphore-async-await';
+
 const newid_semaphore = new Semaphore(1);
 
 let types = require("../types");
