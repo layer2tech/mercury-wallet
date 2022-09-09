@@ -468,6 +468,7 @@ export const callGetNumSeAddr = () => {
     return wallet.getNumSEAddress();
   }
 };
+
 // Remove coin from coins list and file
 export const callRemoveCoin = async (shared_key_id) => {
   if (isWalletLoaded()) {
@@ -865,7 +866,6 @@ export const callGetNewTorId = createAsyncThunk(
   }
 );
 
-
 export const callGetNewTorCircuit = createAsyncThunk(
   "GetNewTorCircuit",
   async (action, thunkAPI) => {
@@ -875,6 +875,7 @@ export const callGetNewTorCircuit = createAsyncThunk(
 
 export const callUpdateTorCircuitInfo = createAsyncThunk(
   "UpdateTorCircuitInfo",
+
   async (action, thunkAPI) => {
     try {
       wallet.updateTorcircuitInfo();
