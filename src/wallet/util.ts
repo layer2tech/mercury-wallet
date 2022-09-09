@@ -21,6 +21,9 @@ let secp256k1 = new EC('secp256k1')
 /// Temporary - fees should be calculated dynamically
 export const FEE = 141;
 //FEE for backup transaction 2 outputs 1 input P2WPKH
+export const FEE_1I1O = 110
+// FEE for 1 input 1 output P2WPKH
+
 export const MINIMUM_DEPOSIT_SATOSHI = 100000;
 export const VIRTUAL_TX_SIZE = 226;
 //VIRTUAL_TX: 2 outputs 1 input (max byte size P2PKH)
@@ -151,7 +154,7 @@ export const txBackupBuild = (network: Network, funding_txid: string, funding_vo
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
 //     - amount 'fee' to State Entity fee address
-export const txWithdrawBuild = (network: Network,    funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_byte: number): TransactionBuilder => {
+export const txWithdrawBuild = (network: Network,funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_byte: number): TransactionBuilder => {
 
   let tx_fee = getTxFee(fee_per_byte, 1)
 
@@ -206,9 +209,12 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
 
 // CPFP tx builder spending backup tx to user specified address
 export const txCPFPBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_rate: number, p2wpkh: any): TransactionBuilder => {
-  // Total size of backup_tx (1 input 2 outputs) + 1-input-1-output = 140 + 110 bytes
+  // Total size of backup_tx (1 input 2 outputs) + (1-input-1-output) = 141 + 110 bytes
   // Subtract the fee already paid in the backup-tx
-  let total_fee = (fee_rate * 250) - FEE;
+
+  let tx_bytes = FEE + FEE_1I1O
+  
+  let total_fee = (fee_rate * tx_bytes) - FEE;
 
   if (total_fee >= value) throw Error("Not enough value to cover fee.");
 

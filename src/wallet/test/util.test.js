@@ -24,6 +24,8 @@ import {
   decodeMessage,
   VIRTUAL_TX_SIZE,
   getTxFee,
+  FEE,
+  FEE_1I1O
 } from "../util";
 import { encodeSCEAddress } from "../util";
 import {
@@ -333,6 +335,15 @@ describe("txCPFPBuild", function () {
     expect(tx_backup.outs.length).toBe(1);
     expect(tx_backup.outs[0].value).toBeLessThan(value);
   });
+
+  test('Check correct fee rate', async function(){
+    let txb = txCPFPBuild(network, funding_txid, funding_vout, rec_address, value, fee_rate, p2wpkh).buildIncomplete();
+
+    let tx_fee = (fee_rate * (FEE + FEE_1I1O)) - FEE;
+
+    expect(value - tx_fee).toBe(txb.outs[0].value)
+
+  })
 });
 
 test("callGetArgsHasTestnet", async function () {
