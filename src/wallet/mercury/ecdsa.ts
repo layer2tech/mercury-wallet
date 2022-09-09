@@ -40,23 +40,22 @@ export const keyGen = async (
   let server_resp_key_gen_first
   let kg_party_one_first_message
 
-  try {
-    server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
-    kg_party_one_first_message = server_resp_key_gen_first.msg;
-    typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
-  } catch (err: any) {
-    console.log(err.message);
-    console.log("Perform keyupdate second and re-try ...")
-    let ku_finalize: KUFinalize = {
-      statechain_id,
-      shared_key_id
+  server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
+  kg_party_one_first_message = server_resp_key_gen_first.msg;
+  if(statechain_id && !kg_party_one_first_message) {
+    if(server_resp_key_gen_first.includes("sealed_secrets for DB key "+shared_key_id+" is None")) {
+      console.log("Perform keyupdate second and re-try ...")
+      let ku_finalize: KUFinalize = {
+        statechain_id,
+        shared_key_id
+      }
+      let ku_response = await http_client.post(POST_ROUTE.TRANSFER_COMPLETE_KU, ku_finalize);
+      //re-try keygen
+      server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
+      kg_party_one_first_message = server_resp_key_gen_first.msg;
     }
-    let ku_response = await http_client.post(POST_ROUTE.TRANSFER_COMPLETE_KU, ku_finalize);
-    //re-try keygen
-    server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
-    kg_party_one_first_message = server_resp_key_gen_first.msg;
-    typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);
   }
+  typeforce(types.KeyGenFirstMsgParty1, kg_party_one_first_message);    
 
   // client first
   let client_resp_key_gen_first: ClientKeyGenFirstMsg =
