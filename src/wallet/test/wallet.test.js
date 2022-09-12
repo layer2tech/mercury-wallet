@@ -1779,7 +1779,7 @@ describe('Storage 4', () => {
       outPoint)
     expect(shared_key_ids).toEqual(["89ee7160-0c27-4d0a-b10c-c7c3d7637d15"])
     //Check that swapped statecoins can be retrieved from outpoints
-    let swapped_coins_by_output = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint)
+    let swapped_coins_by_output = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint,1)
     expect(swapped_coins_by_output).toEqual([swapped_coins[0]])
     
     //Check that trying to retrieve a non existent coin throws an error
@@ -1791,6 +1791,15 @@ describe('Storage 4', () => {
     await loaded_wallet.removeStatecoin(s1[0].shared_key_id)
     loaded_wallet = await Wallet.load(WALLET_NAME_6_BACKUP, WALLET_PASSWORD_6, true)
     expect(loaded_wallet.statecoins.coins.length).toBe(s1.length - 1)
+
+    const outPoint2 = { txid: "NON-EXISTENT-UTXO", vout: "8" }
+    // OutPoint of coin that has not been swapped before
+
+    let swapHistory = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint2,1);
+
+    expect(swapHistory).toStrictEqual([])
+
+    
 
   })
 })
@@ -1957,6 +1966,15 @@ describe('Storage 5', () => {
       loaded_wallet = await Wallet.load(WALLET_NAME_7_BACKUP, WALLET_PASSWORD_7, true);
       // Expect zero -length arrays for statecoin data
       expect(loaded_wallet.statecoins.coins.length).toEqual(0);
+
+
+      const outPoint2 = { txid: "NON-EXISTENT-UTXO".funding_txid, vout: "8" }
+      // OutPoint of coin that has not been swapped before
+  
+      let swapHistory = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint2,1);
+  
+      expect(swapHistory).toStrictEqual([])
+
     })
   })  
 
@@ -1993,5 +2011,12 @@ describe('Storage 5', () => {
 
     test('loaded wallet with no statecoins has statecoins.coins array with length 0', async () => {
       expect(loaded_wallet.statecoins.coins.length).toEqual(0)
+
+      const outPoint = { txid: "NON-EXISTENT-UTXO", vout: "0" }
+      // OutPoint of coin that has not been swapped before
+  
+      let swapHistory = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint,1);
+  
+      expect(swapHistory).toStrictEqual([])
     })
   })
