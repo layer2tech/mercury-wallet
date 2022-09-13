@@ -284,9 +284,11 @@ export class Storage {
   getSwappedCoinsByOutPoint(wallet_name: string, depth: number, outpoint: OutPoint) {
     let swapped_ids = this.getSwappedIds(wallet_name, outpoint);
 
-    swapped_ids = swapped_ids.slice(-depth);
+    if(swapped_ids){
+      swapped_ids = swapped_ids.slice(-depth);
+      
+    }
     let result = [];
-
     for (let i in swapped_ids) {
       const swappedCoin = this.getSwappedCoin(wallet_name, swapped_ids[i]);
       result.push(swappedCoin);

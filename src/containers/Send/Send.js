@@ -257,7 +257,7 @@ const SendStatecoinPage = () => {
               <button type="action-btn-normal" 
                 className = { `btn send-action-button ${loading} 
                 ${ (selectedCoins.length > 1 && !(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'))?("privacy"): (null)  }
-                ${inputAddr && inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub' ? (`xpub-key ${selectedCoins.length}`) : null }`} >
+                ${typeof(inputAddr) == "string" && (inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub') ? (`xpub-key ${selectedCoins.length}`) : null }`} >
                 {loading ? (<Loading />) : "SEND STATECOIN"}
               </button>
             </ConfirmPopup >
