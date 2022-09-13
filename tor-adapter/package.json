@@ -1,11 +1,11 @@
 {
-    "name": "mercury-wallet-tor-adapter",
-    "version": "1.0.3",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-	"test": "echo \"Error: no test specified\" && exit 1",
-	"start": "node server/index.js"
+  "name": "mercury-wallet-tor-adapter",
+  "version": "1.0.4",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server/index.js"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +28,7 @@
     "request-promise": "^4.2.6",
     "socks-proxy-agent": "^5.0.0",
     "tor-control": "0.0.3",
+    "uuid": "^8.3.2",
     "websocket": "^1.0.34",
     "winston": "^3.3.3"
   }

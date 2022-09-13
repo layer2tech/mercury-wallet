@@ -48,6 +48,10 @@ const PanelConnectivity = (props) => {
     callGetPingElectrumms()
   );
 
+  const [server_connected, setServerConnected] = useState(null);
+  const [conductor_connected, setConductorConnected] = useState(null);
+  const [electrum_connected, setElectrumConnected] = useState(null);
+
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data
     ? Array.from(swap_groups_data.entries())
@@ -77,14 +81,20 @@ const PanelConnectivity = (props) => {
       return;
     }
     dispatch(callUpdateSpeedInfo({ torOnline: torInfo.online }));
-    if (server_ping_ms !== callGetPingServerms()) {
-      setServerPingMs(callGetPingServerms());
+    const server_ping_ms_new = callGetPingServerms();
+    if (server_ping_ms !== server_ping_ms_new) {
+      setServerPingMs(server_ping_ms_new);
+      setServerConnected(server_ping_ms_new != null);
     }
-    if (conductor_ping_ms !== callGetPingConductorms()) {
-      setConductorPingMs(callGetPingConductorms());
+    const conductor_ping_ms_new = callGetPingConductorms();
+    if (conductor_ping_ms !== conductor_ping_ms_new) {
+      setConductorPingMs(conductor_ping_ms_new);
+      setConductorConnected(conductor_ping_ms_new != null);
     }
-    if (electrum_ping_ms !== callGetPingElectrumms()) {
-      setElectrumPingMs(callGetPingElectrumms());
+    const electrum_ping_ms_new = callGetPingElectrumms();
+    if (electrum_ping_ms !== electrum_ping_ms_new) {
+      setElectrumPingMs(electrum_ping_ms_new);
+      setElectrumConnected(electrum_ping_ms_new != null);
     }
   };
 
@@ -127,20 +137,29 @@ const PanelConnectivity = (props) => {
     //Displaying connecting spinners
     let connection_pending = document.getElementsByClassName("checkmark");
 
+    if (server_connected == null && fee_info?.deposit != null) {
+      setServerConnected(true);
+    }
     //Add spinner for loading connection to Server
-    server_ping_ms !== null
+    server_connected === true
       ? connection_pending[0].classList.add("connected")
       : connection_pending[0].classList.remove("connected");
 
     //Add spinner for loading connection to Swaps
-    if (conductor_ping_ms !== null) {
+    if (conductor_connected == null && swap_groups_array?.length != null) {
+      setConductorConnected(true);
+    }
+    if (conductor_connected === true) {
       connection_pending[1].classList.add("connected");
     } else {
       connection_pending[1].classList.remove("connected");
     }
 
     //Add spinner for loading connection to Electrum server
-    electrum_ping_ms !== null
+    if (electrum_connected == null && block_height != null && block_height >= 0) {
+      setElectrumConnected(true);
+    }
+    electrum_connected === true
       ? connection_pending[2].classList.add("connected")
       : connection_pending[2].classList.remove("connected");
   }, [
@@ -149,7 +168,7 @@ const PanelConnectivity = (props) => {
     block_height,
     server_ping_ms,
     conductor_ping_ms,
-    electrum_ping_ms,
+    electrum_ping_ms
   ]);
 
   const getBlockHeight = async () => {
@@ -199,18 +218,18 @@ const PanelConnectivity = (props) => {
       <div className="Collapse">
         <RadioButton
           connection="Server"
-          checked={fee_info.deposit !== "NA"}
-          condition={server_ping_ms !== null}
+          checked={server_connected === true}
+          condition={server_connected === true}
         />
         <RadioButton
           connection="Swaps"
-          checked={swap_groups_array.length > 0 || conductor_ping_ms != null}
-          condition={conductor_ping_ms !== null}
+          checked={conductor_connected === true}
+          condition={conductor_connected === true}
         />
         <RadioButton
           connection="Bitcoin"
-          checked={block_height > -1}
-          condition={electrum_ping_ms !== null}
+          checked={electrum_connected === true}
+          condition={electrum_connected === true}
         />
 
         <div

@@ -96,12 +96,12 @@ const LoadWalletPage = (props) => {
 
   return (
   <div className="memory-form">
-    <form>
+    <form data-testid="form">
       {wallet_names.length ?
         <div>
           <p>Select a wallet to load and input its password </p>
 
-          <select value={selectedWallet} onChange={onSelectedWalletChange}>
+          <select value={selectedWallet} onChange={onSelectedWalletChange} data-testid="select">
             {populateWalletNameOptions()}
           </select>
 

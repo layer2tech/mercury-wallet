@@ -7,6 +7,8 @@ const execFile = require('child_process').execFile;
 const defaultShell = require('default-shell');
 const TorControl = require('tor-control');
 const Promise = require('bluebird');
+const { v4: uuidv4 } = require('uuid');
+const { agent } = require('superagent');
 
 class TorClient {
 
@@ -27,12 +29,7 @@ class TorClient {
 
         this.dataPath = dataPath;
 
-        this.proxyConfig={
-            agent: new SocksProxyAgent('socks://' + ip + ':' + port),
-            headers: {
-                'User-Agent': 'Request-Promise'
-            }
-        };
+        this.newSocksAuthentication();
 
         this.control = new TorControl({
             password: this.torConfig.controlPassword,
@@ -225,8 +222,8 @@ class TorClient {
     }
 
 
-    async newTorConnection() {
-        this.log('debug',"TorClient.newTorConnection()...")
+    async newTorCircuit() {
+        this.log('debug',"TorClient.newTorCircuit()...")
         let retval;
         await this.control.signalNewnym(function (err, status) {
             if(err){
@@ -235,23 +232,51 @@ class TorClient {
             }
         });        
         await this.sleep(6000);
-        retval = `TorClient.newTorConnection() - tor signal "newnym" successfully sent`;
+        retval = `TorClient.newTorCircuit() - tor signal "newnym" successfully sent`;
         this.log('debug',retval)
         return retval;
     }
 
-    
-    async confirmNewTorConnection() {
-        const maxNTries=3;
-        for(let nTries = 0; nTries < maxNTries; nTries++){
+    async confirmNewTorCircuit() {
+        const maxNTries = 3;
+        for (let nTries = 0; nTries < maxNTries; nTries++) {
             let ipOld = await this.getip();
-            let tc_result = await this.newTorConnection();
+            this.newSocksAuthentication();
             let ipNew = await this.getip();
-            if(ipNew !== ipOld){
+            if (ipNew !== ipOld) {
                 return tc_result;
             }
         }
         throw Error("Failed to get new TOR circuit and exit IP after " + maxNTries + " attempts");
+    }
+
+    //Generate a new socks authentication with a random user ID
+    newSocksAuthentication() {
+        this.log('debug', "TorClient.newSocksAuthentication()...");
+        const userId = uuidv4();
+        this.hostname = `socks://${userId}:@${this.torConfig.ip}:${this.torConfig.port}`;
+      
+        let agent = new SocksProxyAgent(this.hostname);
+        this.proxyConfig = {
+            agent: agent,
+            headers: {
+                'User-Agent': 'Request-Promise'
+            }
+        };
+    }
+
+
+    async confirmNewSocksAuthentication() {
+        const maxNTries=3;
+        for(let nTries = 0; nTries < maxNTries; nTries++){
+            let ipOld = await this.getip();
+            this.newSocksAuthentication();
+            let ipNew = await this.getip();
+            if(ipNew !== ipOld){
+                return;
+            }
+        }
+        throw Error("Failed to get new Tor exit IP after " + maxNTries + " attempts");
     }
 
     async getip() {

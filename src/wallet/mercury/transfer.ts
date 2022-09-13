@@ -577,7 +577,8 @@ export const transferReceiverFinalizeRecovery = async (
     finalize_data.new_shared_key_id,
     finalize_data.o2,
     PROTOCOL.TRANSFER,
-    null
+    null,
+    finalize_data.statechain_id
   );
   statecoin.funding_txid = finalize_data.statechain_data.utxo.txid;
   statecoin.funding_vout = finalize_data.statechain_data.utxo.vout;

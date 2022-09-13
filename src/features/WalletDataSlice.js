@@ -31,7 +31,12 @@ export const callGetArgsHasTestnet = async () => {
   if (require("../settings.json").testing_mode) {
     return true;
   }
-  let result = await window.electron.ipcRenderer.invoke("testnet-mode");
+
+  let result = false;
+  if (window.electron && window.electron.ipcRenderer) {
+    result = await window.electron.ipcRenderer.invoke("testnet-mode");
+  }
+
   return result;
 };
 
@@ -405,11 +410,12 @@ export const callGetActivityLogItems = (num_of_items) => {
   }
 };
 
-export const callGetSwappedStatecoinsByFundingOutPoint = (funding_out_point) => {
+export const callGetSwappedStatecoinsByFundingOutPoint = (funding_out_point, depth) => {
+  // depth:- last X swaps for a coin with utxo: funding_out_point
   if (isWalletLoaded()) {
-    return wallet.getSwappedStatecoinsByFundingOutPoint(funding_out_point)
+    return wallet.getSwappedStatecoinsByFundingOutPoint(funding_out_point, depth)
   }
-}
+};
 
 export const callGetActivityDate = (shared_key_id, action) => {
   if (isWalletLoaded()) {
@@ -462,7 +468,8 @@ export const callGetNumSeAddr = () => {
     return wallet.getNumSEAddress();
   }
 };
-// Remove coin from coins list
+
+// Remove coin from coins list and file
 export const callRemoveCoin = async (shared_key_id) => {
   if (isWalletLoaded()) {
     log.info("Removing coin " + shared_key_id + " from wallet.");
@@ -859,8 +866,16 @@ export const callGetNewTorId = createAsyncThunk(
   }
 );
 
-export const callUpdateTorCircuit = createAsyncThunk(
-  "UpdateTorCircuit",
+export const callGetNewTorCircuit = createAsyncThunk(
+  "GetNewTorCircuit",
+  async (action, thunkAPI) => {
+    wallet.updateTorCircuit();
+  }
+);
+
+export const callUpdateTorCircuitInfo = createAsyncThunk(
+  "UpdateTorCircuitInfo",
+
   async (action, thunkAPI) => {
     try {
       wallet.updateTorcircuitInfo();

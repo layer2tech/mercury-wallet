@@ -10,7 +10,7 @@ const RadioButton = (props) => {
                 type="radio"
                 checked={props.checked || false}
             />
-            {props.condition ?("Connected"):("Connecting") } to {props.connection}
+            {props.condition === true ?("Connected"):("Connecting") } to {props.connection}
             <span className="checkmark"></span>
         </label>
     </div>

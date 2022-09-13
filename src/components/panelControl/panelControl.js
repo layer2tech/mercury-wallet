@@ -19,6 +19,7 @@ import { CheckBox } from "../../components";
 
 import './panelControl.css';
 import '../index.css';
+import RouterButton from '../buttons/RouterButton/RouterButton';
 
 export const FILTER_BY_OPTION = [
   {
@@ -89,38 +90,39 @@ const PanelControl = () => {
       </div>
       <div className="ButtonsPanel">
         <div className="ActionGroupLeft">
-
-          
-         
-
-          <Link to="/deposit">
-              <StdButton
-                  label="Deposit"  icon={pluseIcon}
-                  className="Body-button blue"/>
-          </Link>
-          <Link to="/withdraw">
-            <StdButton
-                label="Withdraw" icon={minusIcon}
-                className="Body-button blue"/>
-          </Link>
+          <RouterButton 
+            route={"/deposit"}
+            label={"Deposit"}
+            icon={pluseIcon}
+            class={"Body-button blue"}
+            tooltip={"Deposit BTC"}/>
+          <RouterButton 
+            route={"/withdraw"}
+            label={"Withdraw"}
+            icon={minusIcon}
+            class={"Body-button blue"}
+            tooltip={"Withdraw BTC"}/>
 
         </div>
         <div className="ActionGroupRight">
-          <Link to="/swap_statecoin">
-            <StdButton
-                label="Swap" icon={swapIcon}
-                className="Body-button blue"/>
-          </Link>
-          <Link to="/send_statecoin">
-            <StdButton
-                label="Send" icon={arrowUp}
-                className="Body-button "/>
-          </Link>
-          <Link to="/receive_statecoin">
-            <StdButton
-                label="Receive" icon={arrowDown}
-                className="Body-button"/>
-          </Link>
+          <RouterButton 
+              route={"/swap_statecoin"}
+              label={"Swap"}
+              icon={swapIcon}
+              class={"Body-button blue"}
+              tooltip={"Swap Statecoins"}/>
+          <RouterButton 
+              route={"/send_statecoin"}
+              label={"Send"}
+              icon={arrowUp}
+              class={"Body-button blue"}
+              tooltip={"Send Statecoins"}/>
+          <RouterButton 
+              route={"/receive_statecoin"}
+              label={"Receive"}
+              icon={arrowDown}
+              class={"Body-button blue"}
+              tooltip={"Receive Statecoins"}/>
         </div>
       </div>
     </div>

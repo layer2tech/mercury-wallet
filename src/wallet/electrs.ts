@@ -75,6 +75,13 @@ export class ElectrsClient {
     }
   };
 
+  async new_tor_circuit() {
+    if (this.is_tor) {
+      await ElectrsClient.get(this.endpoint, 'newcircuit', {});
+    }
+  };
+
+
 
   static async get(endpoint: string, path: string,
     params: any, timeout_ms: number = TIMEOUT) {
@@ -86,7 +93,7 @@ export class ElectrsClient {
       headers: { 'Accept': 'application/json' },
       timeout: timeout_ms
     };
-    await semaphore.wait()
+    await semaphore.acquire()
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, "Electrum API request timed out")
     }).finally(() => { semaphore.release() })
@@ -111,7 +118,7 @@ export class ElectrsClient {
       data: body,
       timeout: timeout_ms
     };
-    await semaphore.wait()
+    await semaphore.acquire()
     return axios(config).catch((err: any) => {
       handlePromiseRejection(err, "Electrum API request timed out")
     }).finally(() => { semaphore.release() })

@@ -55,7 +55,6 @@ import { Storage } from "../store";
 import { groupInfo, swapDeregisterUtxo } from "./swap/info_api";
 import { addRestoredCoinDataToWallet, recoverCoins } from "./recovery";
 
-import { AsyncSemaphore } from "@esfx/async-semaphore";
 import {
   delay,
   FeeInfo,
@@ -66,21 +65,23 @@ import {
   OutPoint,
 } from "./mercury/info_api";
 import { EPSClient } from "./eps";
+import { POST_ROUTE } from "./http_client";
 import {
   getNewTorId,
+  getNewTorCircuit,
   getTorCircuit,
   getTorCircuitIds,
   TorCircuit,
 } from "./mercury/torcircuit_api";
-import { callGetNewTorId } from "../features/WalletDataSlice";
 import { Mutex } from "async-mutex";
 import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
+import Semaphore from 'semaphore-async-await';
 
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
-const swapSemaphore = new AsyncSemaphore(MAX_SWAP_SEMAPHORE_COUNT);
+const swapSemaphore = new Semaphore(MAX_SWAP_SEMAPHORE_COUNT);
 const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
-const updateSwapSemaphore = new AsyncSemaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
+const updateSwapSemaphore = new Semaphore(MAX_UPDATE_SWAP_SEMAPHORE_COUNT);
 
 let bitcoin = require("bitcoinjs-lib");
 let bip32utils = require("@psf/bip32-utils");
@@ -226,6 +227,15 @@ export class Wallet {
     }
   }
 
+  async updateTorCircuit() {
+    try {
+      await getNewTorCircuit(this.http_client);
+    } catch (err: any) {
+      throw err;
+    }
+  }
+
+
   // TODO - add additional checks and error handling
   async updateTorcircuitInfo() {
     try {
@@ -294,7 +304,7 @@ export class Wallet {
       state_entity_endpoint: this.config.state_entity_endpoint,
       electrum_endpoint: electr_ep,
     };
-    this.http_client.post("tor_endpoints", endpoints_config);
+    this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -309,10 +319,10 @@ export class Wallet {
   ): Wallet {
     log.debug(
       "New wallet named " +
-        name +
-        " created. Testing mode: " +
-        testing_mode +
-        "."
+      name +
+      " created. Testing mode: " +
+      testing_mode +
+      "."
     );
     let wallet = new Wallet(
       name,
@@ -406,7 +416,7 @@ export class Wallet {
       );
 
 
-      new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);       
+      new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
       new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity);
 
       new_wallet.current_sce_addr = json_wallet.current_sce_addr;
@@ -432,20 +442,24 @@ export class Wallet {
     this.active = false;
     let n_semaphores = 0;
     while (n_semaphores < MAX_SWAP_SEMAPHORE_COUNT) {
-      await swapSemaphore.wait();
+      await swapSemaphore.acquire();
       n_semaphores++;
     }
     n_semaphores = 0;
     while (n_semaphores < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-      await updateSwapSemaphore.wait();
+      await updateSwapSemaphore.acquire();
       n_semaphores++;
     }
     await this.electrum_client.unsubscribeAll();
   }
 
   async start() {
-    swapSemaphore.release(MAX_SWAP_SEMAPHORE_COUNT);
-    updateSwapSemaphore.release(MAX_SWAP_SEMAPHORE_COUNT);
+    for (let i = 0; i < MAX_SWAP_SEMAPHORE_COUNT; i++){
+      swapSemaphore.release();
+    }
+    for (let i = 0; i < MAX_SWAP_SEMAPHORE_COUNT; i++){
+      updateSwapSemaphore.release();
+    }
   }
 
   // unload wallet
@@ -550,7 +564,7 @@ export class Wallet {
     return this.active;
   }
 
-  setActive(state = true){
+  setActive(state = true) {
     this.active = state;
   }
 
@@ -966,7 +980,7 @@ export class Wallet {
       if (
         statecoin.status === STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >=
-          this.config.required_confirmations
+        this.config.required_confirmations
       ) {
         if (statecoin.tx_backup === null) {
           this.depositConfirm(statecoin.shared_key_id);
@@ -1062,19 +1076,19 @@ export class Wallet {
     let items = this.activity.getItems(depth).map((item: ActivityLogItem) => {
       let coin = this.statecoins.getCoin(item.shared_key_id);
       if (coin == null) {
-        try {  
-          coin = this.getSwappedCoin(item.shared_key_id);  
+        try {
+          coin = this.getSwappedCoin(item.shared_key_id);
         } catch (err) {
           log.warn(`getActivityLog - ${err}`);
           return null;
-        }        
-      }  
+        }
+      }
       return {
-          date: item.date,
-          action: item.action,
-          value: coin ? coin.value : "",
-          funding_txid: coin ? coin.funding_txid : "",
-          funding_txvout: coin ? coin.funding_vout : "",
+        date: item.date,
+        action: item.action,
+        value: coin ? coin.value : "",
+        funding_txid: coin ? coin.funding_txid : "",
+        funding_txvout: coin ? coin.funding_vout : "",
       };
     });
     return items.filter((item) => {
@@ -1083,9 +1097,10 @@ export class Wallet {
   }
 
   getSwappedStatecoinsByFundingOutPoint(
-    funding_out_point: OutPoint
+    funding_out_point: OutPoint,
+    depth: number
   ): StateCoin[] {
-    return this.storage.getSwappedCoinsByOutPoint(this.name, funding_out_point);
+    return this.storage.getSwappedCoinsByOutPoint(this.name, depth, funding_out_point);
   }
 
   processTXBroadcastResponse(statecoin: StateCoin, bresponse: string) {
@@ -1432,7 +1447,15 @@ export class Wallet {
   }
 
   getStatecoin(shared_key_id: string) {
-    return this.statecoins.getCoin(shared_key_id);
+    let result = this.statecoins.getCoin(shared_key_id);
+    if (result == null) {
+      try {
+        result = this.storage.getSwappedCoin(this.name, shared_key_id);
+      } catch (err) {
+        log.debug(err); 
+      }
+    }
+    return result;
   }
 
   addDescription(shared_key_id: string, description: string) {
@@ -1461,6 +1484,7 @@ export class Wallet {
     transfer_msg?: TransferMsg3,
     bSave: boolean = true
   ) {
+    console.log(`setStateCoinSpent - saveStateCoin...`);
     let statecoin: StateCoin | undefined = this.statecoins.getCoin(id);
     if (
       statecoin &&
@@ -1472,7 +1496,8 @@ export class Wallet {
     ) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       this.activity.addItem(id, action);
-      if (bSave) {
+      if (bSave === true) {
+        console.log(`setStateCoinSpent - saveStateCoin...`)
         await this.saveStateCoin(statecoin);
         await this.saveActivityLog();
       }
@@ -1504,9 +1529,9 @@ export class Wallet {
     let proof_key = this.getBIP32forBtcAddress(addr);
     log.debug(
       "Gen proof key. Address: " +
-        addr +
-        ". Proof key: " +
-        proof_key.publicKey.toString("hex")
+      addr +
+      ". Proof key: " +
+      proof_key.publicKey.toString("hex")
     );
     return proof_key;
   }
@@ -1594,12 +1619,12 @@ export class Wallet {
           if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
             log.error(
               "Funding tx for p_addr " +
-                p_addr +
-                " has value " +
-                funding_tx_data[i].value +
-                " expected " +
-                value +
-                "."
+              p_addr +
+              " has value " +
+              funding_tx_data[i].value +
+              " expected " +
+              value +
+              "."
             );
             log.error(
               "Setting value of statecoin to " + funding_tx_data[i].value
@@ -1629,9 +1654,9 @@ export class Wallet {
             ) {
               log.info(
                 "Found funding tx for p_addr " +
-                  p_addr +
-                  " in mempool. txid: " +
-                  funding_tx_data[i].tx_hash
+                p_addr +
+                " in mempool. txid: " +
+                funding_tx_data[i].tx_hash
               );
               if (coin != null) {
                 await this.saveStateCoin(coin);
@@ -1640,9 +1665,9 @@ export class Wallet {
           } else {
             log.info(
               "Funding tx for p_addr " +
-                p_addr +
-                " mined. Height: " +
-                funding_tx_data[i].height
+              p_addr +
+              " mined. Height: " +
+              funding_tx_data[i].height
             );
             // Set coin UNCONFIRMED.
             this.statecoins.setCoinUnconfirmed(
@@ -1695,7 +1720,7 @@ export class Wallet {
       for (let j = 0; j < funding_tx_data.length; j++) {
         if (
           funding_tx_data[j].tx_hash ===
-            this.statecoins.coins[i].funding_txid &&
+          this.statecoins.coins[i].funding_txid &&
           funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout
         ) {
           continue;
@@ -1705,9 +1730,9 @@ export class Wallet {
           for (let k = 0; k < this.statecoins.coins.length; k++) {
             if (
               this.statecoins.coins[k].funding_txid ===
-                funding_tx_data[j].tx_hash &&
+              funding_tx_data[j].tx_hash &&
               this.statecoins.coins[k].funding_vout ===
-                funding_tx_data[j].tx_pos
+              funding_tx_data[j].tx_pos
             ) {
               existing_output = true;
               break;
@@ -1804,8 +1829,8 @@ export class Wallet {
     if (statecoin.status === STATECOIN_STATUS.INITIALISED)
       throw Error(
         "Awaiting funding transaction for StateCoin " +
-          statecoin.getTXIdAndOut() +
-          "."
+        statecoin.getTXIdAndOut() +
+        "."
       );
 
     await this.initCoinLocktime(statecoin);
@@ -1891,7 +1916,7 @@ export class Wallet {
       if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
         if (
           this.statecoins.coins[i].shared_key_id.slice(0, -4) ===
-            statecoin.shared_key_id &&
+          statecoin.shared_key_id &&
           this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE
         ) {
           throw Error(
@@ -1905,10 +1930,10 @@ export class Wallet {
     if (statecoin.swap_status !== SWAP_STATUS.Phase4) {
       // Checks statecoin is available and not already in swap group
       statecoin.validateSwap();
-      await swapSemaphore.wait();
+      await swapSemaphore.acquire();
       try {
         await (async () => {
-          while (updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+          while (updateSwapSemaphore.getPermits() < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
             delay(1000);
           }
         });
@@ -1953,11 +1978,11 @@ export class Wallet {
 
     let new_statecoin: StateCoin | null = null;
 
-    await swapSemaphore.wait();
+    await swapSemaphore.acquire();
     let swap = null;
     try {
       await (async () => {
-        while (updateSwapSemaphore.count < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+        while (updateSwapSemaphore.getPermits() < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
           delay(1000);
         }
       });
@@ -1992,7 +2017,7 @@ export class Wallet {
         `Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`
       );
       statecoin.setSwapDataToNull();
-      await this.saveStateCoinsList();
+      await this.saveStateCoin(statecoin);
     }
   }
 
@@ -2002,6 +2027,8 @@ export class Wallet {
   ): Promise<StateCoin | null> {
     if (new_statecoin && new_statecoin instanceof StateCoin) {
       this.setIfNewCoin(new_statecoin);
+      new_statecoin.setSwapDataToNull();
+      await this.saveStateCoin(new_statecoin);
       statecoin.setSwapDataToNull(false);
       await this.setStateCoinSpent(
         statecoin.shared_key_id,
@@ -2009,7 +2036,6 @@ export class Wallet {
         undefined,
         true
       );
-      new_statecoin.setSwapDataToNull();
     }
     swapSemaphore.release();
     return new_statecoin;
@@ -2186,14 +2212,14 @@ export class Wallet {
         if (statecoin.status === STATECOIN_STATUS.IN_SWAP)
           throw Error(
             "Coin " +
-              statecoin.getTXIdAndOut() +
-              " currenlty involved in swap protocol."
+            statecoin.getTXIdAndOut() +
+            " currenlty involved in swap protocol."
           );
         if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP)
           throw Error(
             "Coin " +
-              statecoin.getTXIdAndOut() +
-              " waiting in swap pool. Remove from pool to transfer."
+            statecoin.getTXIdAndOut() +
+            " waiting in swap pool. Remove from pool to transfer."
           );
         if (statecoin.status !== STATECOIN_STATUS.AVAILABLE)
           throw Error(
@@ -2209,7 +2235,7 @@ export class Wallet {
           if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
             if (
               this.statecoins.coins[i].shared_key_id.slice(0, -4) ===
-                statecoin.shared_key_id &&
+              statecoin.shared_key_id &&
               this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE
             ) {
               throw Error(
@@ -2442,14 +2468,14 @@ export class Wallet {
       if (statecoin.status === STATECOIN_STATUS.IN_SWAP)
         throw Error(
           "Coin " +
-            statecoin.getTXIdAndOut() +
-            " currenlty involved in swap protocol."
+          statecoin.getTXIdAndOut() +
+          " currenlty involved in swap protocol."
         );
       if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP)
         throw Error(
           "Coin " +
-            statecoin.getTXIdAndOut() +
-            " waiting in  swap pool. Remove from pool to withdraw."
+          statecoin.getTXIdAndOut() +
+          " waiting in  swap pool. Remove from pool to withdraw."
         );
       if (
         statecoin.status !== STATECOIN_STATUS.AVAILABLE &&
@@ -2634,7 +2660,6 @@ export class Wallet {
       withdraw_msg_2.shared_key_ids.forEach(async (shared_key_id) => {
         this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
         await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
-        this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
       });
       await withdraw_confirm(this.http_client, withdraw_msg_2);
     } catch (e) {
@@ -2645,7 +2670,6 @@ export class Wallet {
         withdraw_msg_2.shared_key_ids.forEach(async (shared_key_id) => {
           this.statecoins.setCoinWithdrawTxId(shared_key_id, txid);
           await this.setStateCoinSpent(shared_key_id, ACTION.WITHDRAW);
-          this.activity.addItem(shared_key_id, ACTION.WITHDRAW);
         });
       } else {
         log.error(`withdraw confirm error: ${e}`);

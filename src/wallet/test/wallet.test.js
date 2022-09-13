@@ -1,5 +1,5 @@
 /**
- * @jest-environment jest-environment-jsdom-fifteen
+ * @jest-environment ./jest-environment-uint8array-27.js
  */
 let bitcoin = require('bitcoinjs-lib')
 import {
@@ -21,6 +21,8 @@ import { WALLET as WALLET_V_0_7_10_JSON } from './data/test_wallet_3cb3c0b4-7679
 import { WALLET as WALLET_V_0_7_10_JSON_2 } from './data/test_wallet_25485aff-d332-427d-a082-8d0a8c0509a7';
 import { WALLET as WALLET_NOCOINS_JSON } from './data/test_wallet_nocoins';
 import { getFeeInfo } from "../mercury/info_api";
+import { callSetStatecoinSpent } from '../../features/WalletDataSlice';
+import { isExportDeclaration } from 'typescript';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -590,18 +592,54 @@ describe('Wallet', function () {
     });
 
     test('save coins list', async function () {
-      let num_coins_before = wallet.statecoins.coins.length;
+      let num_coins_before = cloneDeep(wallet.statecoins.coins.length);
 
       // new coin
       wallet.addStatecoinFromValues("103d2223-7d84-44f1-ba3e-4cd7dd418560", SHARED_KEY_DUMMY, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+      // expect wallet coins list to have grown by 1
+      expect(num_coins_before + 1).toEqual(wallet.statecoins.coins.length);
       await wallet.saveStateCoinsList();
 
       let loaded_wallet = await Wallet.load(WALLET_NAME_2, MOCK_WALLET_PASSWORD, true);
-      let num_coins_after = loaded_wallet.statecoins.coins.length;
+      let num_coins_after = cloneDeep(loaded_wallet.statecoins.coins.length);
       expect(num_coins_after).toEqual(num_coins_before + 1)
       delete wallet.backupTxUpdateLimiter;
       delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
+
+      //check that wallet and loaded wallet have the same number of coins in the coins array
+      expect(num_coins_after).toEqual(wallet.statecoins.coins.length);
+      
+      // check that statecoins_obj is saved and has the correct number of entries
+      const coins_obj = loaded_wallet.storage.store.get(`${loaded_wallet.name}.statecoins_obj`);
+      expect(Object.values(coins_obj).length).toEqual(num_coins_after);
+    });
+
+    test('setStateCoinSpent - swap', async function () {
+            let num_coins_before = wallet.statecoins.coins.length;
+            let saveSpy = jest.spyOn(wallet, 'saveStateCoin');
+            let saveLogSpy = jest.spyOn(wallet, 'saveActivityLog');
+            await wallet.setStateCoinSpent(wallet.statecoins.coins[0].shared_key_id, ACTION.SWAP, undefined, true);
+            let num_coins_after = wallet.statecoins.coins.length;
+            expect(saveSpy).toHaveBeenCalledTimes(1);
+            expect(saveLogSpy).toHaveBeenCalledTimes(1);
+            expect(num_coins_after).toEqual(num_coins_before);
+          });
+    
+          test('setStateCoinSpent - check swapped saved', async function () {
+              let num_coins_before = wallet.statecoins.coins.length;
+              let saveSpy = jest.spyOn(wallet, 'saveStateCoin');
+              let saveLogSpy = jest.spyOn(wallet, 'saveActivityLog');
+              const swappedCoins1 = wallet.storage.getSwappedCoins(wallet.name);
+              expect(swappedCoins1.length).toEqual(0);
+              await wallet.setStateCoinSpent(wallet.statecoins.coins[0].shared_key_id, ACTION.SWAP);
+              let num_coins_after = wallet.statecoins.coins.length;
+              expect(saveSpy).toHaveBeenCalledTimes(1);
+              expect(saveLogSpy).toHaveBeenCalledTimes(1);
+              const swappedCoins2 = wallet.storage.getSwappedCoins(wallet.name);
+              expect(swappedCoins2.length).toEqual(1);
+              expect(num_coins_after).toEqual(num_coins_before);
+      });
     });
   });
 
@@ -630,7 +668,6 @@ describe('Wallet', function () {
     });
   })
 
-})
 
  
 
@@ -670,7 +707,7 @@ describe('createBackupTxCPFP', function () {
   });
 
   test('createdBackupTxCPFP valid', async function () {
-    const tx_cpfp_expected = "{\"version\":2,\"locktime\":0,\"ins\":[{\"hash\":{\"type\":\"Buffer\",\"data\":[107,245,5,137,241,80,23,28,183,252,131,220,83,180,180,95,165,245,238,183,114,192,141,211,50,46,35,131,211,5,156,74]},\"index\":0,\"script\":{\"type\":\"Buffer\",\"data\":[]},\"sequence\":4294967295,\"witness\":[{\"type\":\"Buffer\",\"data\":[48,69,2,33,0,157,63,93,156,188,198,179,60,185,242,248,163,35,202,173,37,23,138,126,145,195,29,58,94,101,237,138,250,240,107,14,247,2,32,52,31,26,192,111,251,159,117,192,140,105,104,85,156,163,103,154,90,49,209,68,125,90,146,56,65,232,90,229,119,39,101,1]},{\"type\":\"Buffer\",\"data\":[3,214,96,240,27,83,235,26,229,172,212,94,11,164,20,16,104,4,44,105,22,118,111,177,140,62,233,71,15,87,226,220,153]}]}],\"outs\":[{\"script\":{\"type\":\"Buffer\",\"data\":[0,20,209,156,183,190,243,118,6,191,242,108,152,143,199,152,107,105,153,65,44,222]},\"value\":9155}]}"
+    const tx_cpfp_expected = "{\"version\":2,\"locktime\":0,\"ins\":[{\"hash\":{\"type\":\"Buffer\",\"data\":[107,245,5,137,241,80,23,28,183,252,131,220,83,180,180,95,165,245,238,183,114,192,141,211,50,46,35,131,211,5,156,74]},\"index\":0,\"script\":{\"type\":\"Buffer\",\"data\":[]},\"sequence\":4294967295,\"witness\":[{\"type\":\"Buffer\",\"data\":[48,68,2,32,124,193,61,125,110,126,38,94,100,20,19,66,29,91,43,45,46,99,79,74,37,50,242,171,56,135,238,191,140,89,177,31,2,32,47,190,230,160,147,196,117,253,230,152,213,193,60,72,130,71,127,83,95,250,79,247,211,170,20,22,133,204,219,144,97,199,1]},{\"type\":\"Buffer\",\"data\":[3,214,96,240,27,83,235,26,229,172,212,94,11,164,20,16,104,4,44,105,22,118,111,177,140,62,233,71,15,87,226,220,153]}]}],\"outs\":[{\"script\":{\"type\":\"Buffer\",\"data\":[0,20,209,156,183,190,243,118,6,191,242,108,152,143,199,152,107,105,153,65,44,222]},\"value\":9152}]}"
     await expect(wallet.createBackupTxCPFP(cpfp_data)).resolves.toBe(true);
     expect(wallet.statecoins.coins[0].tx_cpfp.outs.length).toBe(1);
     expect(JSON.stringify(wallet.statecoins.coins[0].tx_cpfp)).toEqual(tx_cpfp_expected);
@@ -1304,7 +1341,8 @@ describe("Post-swap functions", () => {
     account_init = cloneDeep(wallet.account)
     wallet.handleSwapError(swap_error, statecoin)
     statecoin.status = STATECOIN_STATUS.SWAPPED
-    wallet.doPostSwap(statecoin, null)
+    await wallet.doPostSwap(statecoin, null)
+    return wallet
   })
 
   afterEach(() => {
@@ -1319,11 +1357,25 @@ describe("Post-swap functions", () => {
     expect(setCoinSpentSpy).not.toHaveBeenCalled()
   })
 
-  test("Confirm that setStateCoinSpent was called if there is a new statecoin", () => {
-    let new_statecoin = cloneDeep(statecoin)
-    new_statecoin.status = STATECOIN_STATUS.AVAILABLE
-    wallet.doPostSwap(statecoin, new_statecoin)
-    expect(setCoinSpentSpy).toHaveBeenCalled()
+
+  test("Confirm that setStateCoinSpent was called if there is a new statecoin, and that saveStateCoin was called twice (once for each statecoin)", async () => {
+    wallet.statecoins.coins = [];
+    wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" }, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
+    statecoin = wallet.statecoins.coins[0]
+    statecoin.swap_status = SWAP_STATUS.Init
+    statecoin = wallet.statecoins.coins[0];
+    expect(wallet.statecoins.coins.length).toEqual(1);
+    let new_statecoin = cloneDeep(statecoin);
+    new_statecoin.status = STATECOIN_STATUS.AVAILABLE;
+    new_statecoin.shared_key_id = "new_shared_key_id";
+    let saveSpy = jest.spyOn(wallet, 'saveStateCoin');
+    let setStateCoinSpentSpy = jest.spyOn(wallet, 'setStateCoinSpent')
+    let statecoin_got = wallet.statecoins.getCoin(statecoin.shared_key_id);
+    expect(statecoin_got).not.toEqual(undefined);
+    await wallet.doPostSwap(statecoin, new_statecoin);
+    //confirm that the old statecoin has been set to spent
+    expect(setStateCoinSpentSpy).toHaveBeenCalledTimes(1);
+    expect(saveSpy).toHaveBeenCalledTimes(2);
   })
 })
 
@@ -1727,7 +1779,7 @@ describe('Storage 4', () => {
       outPoint)
     expect(shared_key_ids).toEqual(["89ee7160-0c27-4d0a-b10c-c7c3d7637d15"])
     //Check that swapped statecoins can be retrieved from outpoints
-    let swapped_coins_by_output = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint)
+    let swapped_coins_by_output = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint,1)
     expect(swapped_coins_by_output).toEqual([swapped_coins[0]])
     
     //Check that trying to retrieve a non existent coin throws an error
@@ -1739,6 +1791,15 @@ describe('Storage 4', () => {
     await loaded_wallet.removeStatecoin(s1[0].shared_key_id)
     loaded_wallet = await Wallet.load(WALLET_NAME_6_BACKUP, WALLET_PASSWORD_6, true)
     expect(loaded_wallet.statecoins.coins.length).toBe(s1.length - 1)
+
+    const outPoint2 = { txid: "NON-EXISTENT-UTXO", vout: "8" }
+    // OutPoint of coin that has not been swapped before
+
+    let swapHistory = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint2,1);
+
+    expect(swapHistory).toStrictEqual([])
+
+    
 
   })
 })
@@ -1828,6 +1889,14 @@ describe('Storage 5', () => {
       let swapped_coin = loaded_wallet.storage.getSwappedCoin(WALLET_NAME_7_BACKUP, swapped_coins[0].shared_key_id);
       expect(swapped_coin).toEqual(swapped_coins[0])
 
+      //Check that wallet.getStatecoin also retrieves swapped coins
+      let swapped_coin_2 = loaded_wallet.getStatecoin(swapped_coins[0].shared_key_id);
+      expect(swapped_coin_2).toEqual(swapped_coin);
+
+      //Check that wallet.getStatecoin returns undefined for unknown statecoin
+      expect(loaded_wallet.getStatecoin("unknown_id")).toEqual(undefined);
+
+
       const outPoint = { txid: swapped_coins[0].funding_txid, vout: swapped_coins[0].funding_vout }
       //Check that swapped statecoin shared key ids can be retrieved from outpoints
       let shared_key_ids = loaded_wallet.storage.getSwappedIds(loaded_wallet.name,
@@ -1897,6 +1966,15 @@ describe('Storage 5', () => {
       loaded_wallet = await Wallet.load(WALLET_NAME_7_BACKUP, WALLET_PASSWORD_7, true);
       // Expect zero -length arrays for statecoin data
       expect(loaded_wallet.statecoins.coins.length).toEqual(0);
+
+
+      const outPoint2 = { txid: "NON-EXISTENT-UTXO".funding_txid, vout: "8" }
+      // OutPoint of coin that has not been swapped before
+  
+      let swapHistory = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint2,1);
+  
+      expect(swapHistory).toStrictEqual([])
+
     })
   })  
 
@@ -1933,7 +2011,12 @@ describe('Storage 5', () => {
 
     test('loaded wallet with no statecoins has statecoins.coins array with length 0', async () => {
       expect(loaded_wallet.statecoins.coins.length).toEqual(0)
+
+      const outPoint = { txid: "NON-EXISTENT-UTXO", vout: "0" }
+      // OutPoint of coin that has not been swapped before
+  
+      let swapHistory = loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint,1);
+  
+      expect(swapHistory).toStrictEqual([])
     })
-
-
   })
