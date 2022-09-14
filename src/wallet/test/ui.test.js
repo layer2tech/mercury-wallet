@@ -14,10 +14,6 @@ import { delay } from '../mercury/info_api';
 import { ACTIVITY_LOG, SWAPPED_IDS, SWAPPED_STATECOINS_OBJ } from './test_data';
 // import { bitcoin } from 'bitcoinjs-lib/types/networks';
 
-const { JSDOM } = require("jsdom")
-
-const { window } = new JSDOM()
-
 // client side's mock
 let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 // server side's mock
@@ -47,23 +43,6 @@ async function getWallet() {
     wallet.electrum_mock = electrum_mock;
     wallet.wasm = wasm_mock;
     return wallet
-}
-
-async function testClickTime(buttonName, outTime, backTime) {
-    // Go to receive page within the time limit
-    expect(screen.getByText(buttonName)).toBeTruthy();
-    //let now = window.performance.now();
-    const click_time = window.performance.now();
-    fireEvent.click(screen.getByText(buttonName));
-    await waitFor(() => expect(screen.getByText(/back/i)).toBeTruthy(), { timeout: 10000 });
-    expect(window.performance.now() - click_time).toBeLessThanOrEqual(outTime);
-
-    // Go back to the home page within the time limit
-    expect(screen.getByText(/back/i)).toBeTruthy();
-    const click_back_time = window.performance.now();
-    fireEvent.click(screen.getByText(/back/i));
-    await waitFor(() => expect(screen.getByText(buttonName)).toBeTruthy(), { timeout: 10000 });
-    expect(window.performance.now() - click_back_time).toBeLessThanOrEqual(backTime);
 }
 
 describe('Wallet Load - Large Swapped IDs Storage', function () {
@@ -123,7 +102,7 @@ describe('Wallet Load - Large Swapped IDs Storage', function () {
         // Check continue click worked
 
     })
-    test('Open Wallet - large file and test UI responsiveness', async function(){
+    test('Open Wallet - large file', async function(){
         
         expect(screen.getByText(/Select a wallet to load and input its password/i)).toBeTruthy();
         // App at position last test finished
@@ -145,14 +124,6 @@ describe('Wallet Load - Large Swapped IDs Storage', function () {
 
         await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {timeout: 10000});
         await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {timeout: 10000});
-                
-        const timeLimit =100;
-
-        await testClickTime('Receive', timeLimit, timeLimit);
-        await testClickTime('Send',timeLimit, timeLimit);       
-        await testClickTime('Swap', timeLimit, timeLimit);       
-        await testClickTime('Deposit', timeLimit, timeLimit);       
-        await testClickTime('Withdraw', timeLimit, timeLimit);       
+        
     })
-    
 })
