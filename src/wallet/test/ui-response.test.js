@@ -132,7 +132,7 @@ describe('UI performance', function () {
         await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {timeout: 10000});
         await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {timeout: 10000});
                 
-        const timeLimit =100;
+        const timeLimit = 200;
 
         await testClickTime('Receive', timeLimit, timeLimit);
         await testClickTime('Send',timeLimit, timeLimit);       
