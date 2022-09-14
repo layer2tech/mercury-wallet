@@ -49,6 +49,23 @@ async function getWallet() {
     return wallet
 }
 
+async function testClickTime(buttonName, outTime, backTime) {
+    // Go to receive page within the time limit
+    expect(screen.getByText(buttonName)).toBeTruthy();
+    //let now = window.performance.now();
+    const click_time = window.performance.now();
+    fireEvent.click(screen.getByText(buttonName));
+    await waitFor(() => expect(screen.getByText(/back/i)).toBeTruthy(), { timeout: 10000 });
+    expect(window.performance.now() - click_time).toBeLessThanOrEqual(outTime);
+
+    // Go back to the home page within the time limit
+    expect(screen.getByText(/back/i)).toBeTruthy();
+    const click_back_time = window.performance.now();
+    fireEvent.click(screen.getByText(/back/i));
+    await waitFor(() => expect(screen.getByText(buttonName)).toBeTruthy(), { timeout: 10000 });
+    expect(window.performance.now() - click_back_time).toBeLessThanOrEqual(backTime);
+}
+
 describe('Wallet Load - Large Swapped IDs Storage', function () {
 
     beforeEach(async () => {
@@ -128,22 +145,14 @@ describe('Wallet Load - Large Swapped IDs Storage', function () {
 
         await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {timeout: 10000});
         await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {timeout: 10000});
-        
-        // Go to receive page within the time limit
-        expect(screen.getByText('Receive')).toBeTruthy();
-        //let now = window.performance.now();
-        const click_receive_time = window.performance.now();
-        fireEvent.click(screen.getByText('Receive'));
-        await waitFor(() => expect(screen.getByText(/back/i)).toBeTruthy(), {timeout: 10000});
-        expect(window.performance.now() - click_receive_time).toBeLessThanOrEqual(150);
+                
+        const timeLimit =100;
 
-
-        // Go back to the home page within the time limit
-        expect(screen.getByText(/back/i)).toBeTruthy();
-        const click_back_time = window.performance.now();
-        fireEvent.click(screen.getByText(/back/i));
-        await waitFor(() => expect(screen.getByText('Receive')).toBeTruthy(), { timeout: 10000 });
-        expect(window.performance.now() - click_back_time).toBeLessThanOrEqual(150);
+        await testClickTime('Receive', timeLimit, timeLimit);
+        await testClickTime('Send',timeLimit, timeLimit);       
+        await testClickTime('Swap', timeLimit, timeLimit);       
+        await testClickTime('Deposit', timeLimit, timeLimit);       
+        await testClickTime('Withdraw', timeLimit, timeLimit);       
     })
     
 })
