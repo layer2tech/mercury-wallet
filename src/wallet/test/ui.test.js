@@ -14,6 +14,10 @@ import { delay } from '../mercury/info_api';
 import { ACTIVITY_LOG, SWAPPED_IDS, SWAPPED_STATECOINS_OBJ } from './test_data';
 // import { bitcoin } from 'bitcoinjs-lib/types/networks';
 
+const { JSDOM } = require("jsdom")
+
+const { window } = new JSDOM()
+
 // client side's mock
 let wasm_mock = jest.genMockFromModule('../mocks/mock_wasm');
 // server side's mock
@@ -102,7 +106,7 @@ describe('Wallet Load - Large Swapped IDs Storage', function () {
         // Check continue click worked
 
     })
-    test('Open Wallet - large file', async function(){
+    test('Open Wallet - large file and test UI responsiveness', async function(){
         
         expect(screen.getByText(/Select a wallet to load and input its password/i)).toBeTruthy();
         // App at position last test finished
@@ -125,5 +129,21 @@ describe('Wallet Load - Large Swapped IDs Storage', function () {
         await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {timeout: 10000});
         await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {timeout: 10000});
         
+        // Go to receive page within the time limit
+        expect(screen.getByText('Receive')).toBeTruthy();
+        //let now = window.performance.now();
+        const click_receive_time = window.performance.now();
+        fireEvent.click(screen.getByText('Receive'));
+        await waitFor(() => expect(screen.getByText(/back/i)).toBeTruthy(), {timeout: 10000});
+        expect(window.performance.now() - click_receive_time).toBeLessThanOrEqual(150);
+
+
+        // Go back to the home page within the time limit
+        expect(screen.getByText(/back/i)).toBeTruthy();
+        const click_back_time = window.performance.now();
+        fireEvent.click(screen.getByText(/back/i));
+        await waitFor(() => expect(screen.getByText('Receive')).toBeTruthy(), { timeout: 10000 });
+        expect(window.performance.now() - click_back_time).toBeLessThanOrEqual(150);
     })
+    
 })
