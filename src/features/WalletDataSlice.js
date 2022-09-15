@@ -404,9 +404,9 @@ export const callGetActivityLog = () => {
   }
 };
 
-export const callGetActivityLogItems = (num_of_items) => {
+export const callGetActivityLogItems = () => {
   if (isWalletLoaded()) {
-    return wallet.getActivityLogItems(num_of_items);
+    return wallet.getActivityLogItems();
   }
 };
 

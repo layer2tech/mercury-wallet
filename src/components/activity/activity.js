@@ -16,8 +16,7 @@ import './activity.css';
 import { ActivityLog } from '../../wallet/activity_log';
 
 const Activity = () => {
-	let activity_data = []
-	//callGetActivityLogItems(10);
+	let activity_data = callGetActivityLogItems();
 
 	function shortenString(long) {
 		let short = ""

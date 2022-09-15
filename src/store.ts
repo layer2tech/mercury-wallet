@@ -79,6 +79,7 @@ export class Storage {
       delete wallet_json.electrum_client;
       delete wallet_json.storage;
       delete wallet_json.saveMutex;
+      delete wallet_json.activityLogItems;
 
       // encrypt mnemonic
       wallet_json.mnemonic = encryptAES(
@@ -94,19 +95,19 @@ export class Storage {
       // remove active status flag
       delete wallet_json.active;
 
-    
+
       // Store statecoins individually by key
       const statecoins = wallet_json.statecoins;
       wallet_json.statecoins = new StateCoinList();
       this.store.set(wallet_json.name, wallet_json);
       if (statecoins != null) {
         this.storeWalletStateCoinsList(wallet_json.name, statecoins);
-      }     
+      }
     }
   }
 
   //For testing
-  storeWalletVersion10(wallet_json: any) { 
+  storeWalletVersion10(wallet_json: any) {
     if (wallet_json != null) {
       delete wallet_json.electrum_client;
       delete wallet_json.storage;
@@ -169,7 +170,7 @@ export class Storage {
     const saved_swapped_coins: StateCoin[] | undefined = this.store.get(
       `${wallet_name}.statecoins.swapped_coins`
     );
-    
+
     let coins: StateCoin[] = saved_coins === undefined ? [] : saved_coins;
     let coins_swapped: StateCoin[] = saved_swapped_coins === undefined ? [] : saved_swapped_coins;
     let coins_all = coins.concat(coins_swapped)
@@ -190,13 +191,13 @@ export class Storage {
       let swapped_statecoins_obj = this.store.get(`${wallet_name}.swapped_statecoins_obj`)
       wallet_json.swapped_statecoins_obj = swapped_statecoins_obj;
       if (swapped_statecoins_obj != null) {
-        coins = coins.concat(Object.values(swapped_statecoins_obj))  
+        coins = coins.concat(Object.values(swapped_statecoins_obj))
       }
       wallet_json.swapped_ids = this.store.get(`${wallet_name}.swapped_ids`);
     }
-    
+
     if (coins_obj != null) {
-      coins = coins.concat(Object.values(coins_obj))  
+      coins = coins.concat(Object.values(coins_obj))
     }
     //Remove duplicates
     coins = Array.from(new Set(coins))
@@ -231,14 +232,14 @@ export class Storage {
     return Object.values(sc);
   }
 
-  getSwappedCoin(wallet_name: String, shared_key_id: String): StateCoin {  
+  getSwappedCoin(wallet_name: String, shared_key_id: String): StateCoin {
     const source = `${wallet_name}.swapped_statecoins_obj.${shared_key_id}`;
     let sc = this.store.get(source)
     if (sc === undefined) throw Error("No swapped statecoin with shared key ID " + shared_key_id + " stored.");
     return sc
   }
 
-  getWalletDecrypted(wallet_name: string, password: string, load_all: boolean=false) {
+  getWalletDecrypted(wallet_name: string, password: string, load_all: boolean = false) {
     let wallet_json_encrypted = this.getWallet(wallet_name, load_all);
     let wallet_json_decrypted = wallet_json_encrypted;
     // Decrypt mnemonic
@@ -298,9 +299,9 @@ export class Storage {
   getSwappedCoinsByOutPoint(wallet_name: string, depth: number, outpoint: OutPoint) {
     let swapped_ids = this.getSwappedIds(wallet_name, outpoint);
 
-    if(swapped_ids){
+    if (swapped_ids) {
       swapped_ids = swapped_ids.slice(-depth);
-      
+
     }
     let result = [];
     for (let i in swapped_ids) {

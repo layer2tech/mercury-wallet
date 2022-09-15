@@ -160,7 +160,7 @@ export class Wallet {
 
   storage: Storage;
   active: boolean;
-  activityLogitems: any[];
+  activityLogItems: any[];
 
   constructor(
     name: string,
@@ -209,7 +209,7 @@ export class Wallet {
 
     this.tor_circuit = [];
 
-    this.activityLogitems = [];
+    this.activityLogItems = [];
 
     this.saveMutex = new Mutex();
     this.active = false;
@@ -389,7 +389,8 @@ export class Wallet {
       proof_key2,
       ACTION.DEPOSIT
     );
-    wallet.activity.addItem(uuid2, ACTION.TRANSFER);
+    const new_item = wallet.activity.addItem(uuid2, ACTION.TRANSFER);
+    wallet.addActivityLogItem(new_item, 10);
     return wallet;
   }
 
@@ -457,10 +458,10 @@ export class Wallet {
   }
 
   async start() {
-    for (let i = 0; i < MAX_SWAP_SEMAPHORE_COUNT; i++){
+    for (let i = 0; i < MAX_SWAP_SEMAPHORE_COUNT; i++) {
       swapSemaphore.release();
     }
-    for (let i = 0; i < MAX_SWAP_SEMAPHORE_COUNT; i++){
+    for (let i = 0; i < MAX_SWAP_SEMAPHORE_COUNT; i++) {
       updateSwapSemaphore.release();
     }
   }
@@ -579,7 +580,7 @@ export class Wallet {
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     wallet.setActive();
-    wallet.getActivityLogItems(10);
+    wallet.initActivityLogItems(10);
     return wallet;
   }
 
@@ -600,7 +601,7 @@ export class Wallet {
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     let prunedStatecoins = wallet.storage.getPrunedWalletStateCoinsList(wallet.name);
     wallet.statecoins = prunedStatecoins;
-    wallet.getActivityLogItems(10);
+    wallet.initActivityLogItems(10);
     wallet.setActive();
     return wallet;
   }
@@ -1079,35 +1080,43 @@ export class Wallet {
   }
 
   // ActivityLog data with relevant Coin data
-  getActivityLogItems(depth: number) {
-    if (this.activityLogitems.length > 0) {
-      return this.activityLogitems;
+  initActivityLogItems(depth: number) {
+    this.activityLogItems = [];
+    const itemsIn = this.activity.getItems(depth);
+    for (let i in itemsIn) {
+      const item = itemsIn[i];
+      this.addActivityLogItem(item, depth);
     }
-    let items = this.activity.getItems(depth).map((item: ActivityLogItem) => {
-      let coin = this.statecoins.getCoin(item.shared_key_id);
-      if (coin == null) {
-        try {
-          coin = this.getSwappedCoin(item.shared_key_id);
-        } catch (err) {
-          log.warn(`getActivityLog - ${err}`);
-          return null;
-        }
+  }
+
+  addActivityLogItem(item: ActivityLogItem, maxLength: number = 10) {
+    let coin = this.statecoins.getCoin(item.shared_key_id);
+    if (coin == null) {
+      try {
+        coin = this.getSwappedCoin(item.shared_key_id);
+      } catch (err) {
+        log.warn(`addActivityLogItem - ${err}`);
+        return;
       }
-      return {
-        date: item.date,
-        action: item.action,
-        value: coin ? coin.value : "",
-        funding_txid: coin ? coin.funding_txid : "",
-        funding_txvout: coin ? coin.funding_vout : "",
-      };
-    });
-    let result = items.filter((item) => {
-      return item != null;
-    });
-    if (result != null) {
-      this.activityLogitems = result;
     }
-    return this.activityLogitems;
+    let result = {
+      date: item.date,
+      action: item.action,
+      value: coin ? coin.value : "",
+      funding_txid: coin ? coin.funding_txid : "",
+      funding_txvout: coin ? coin.funding_vout : "",
+    };
+    // Push the result to the front of the items
+    this.activityLogItems.unshift(result);
+    // Remove the last items if greater than max length
+    while (this.activityLogItems.length > maxLength) {
+      this.activityLogItems.pop();
+    }
+  }
+
+
+  getActivityLogItems(): any[] {
+    return this.activityLogItems;
   }
 
   getSwappedStatecoinsByFundingOutPoint(
@@ -1413,7 +1422,8 @@ export class Wallet {
     if (this.statecoins.addCoin(statecoin)) {
       this.storage.storeWalletStateCoin(this.name, statecoin);
       if (action != null) {
-        this.activity.addItem(statecoin.shared_key_id, action);
+        const new_item = this.activity.addItem(statecoin.shared_key_id, action);
+        this.addActivityLogItem(new_item, 10);
         this.storage.storeWalletActivityLog(this.name, this.activity);
       }
       log.debug("Added Statecoin: " + statecoin.shared_key_id);
@@ -1466,7 +1476,7 @@ export class Wallet {
       try {
         result = this.storage.getSwappedCoin(this.name, shared_key_id);
       } catch (err) {
-        log.debug(err); 
+        log.debug(err);
       }
     }
     return result;
@@ -1509,7 +1519,8 @@ export class Wallet {
         statecoin.status === STATECOIN_STATUS.DUPLICATE)
     ) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
-      this.activity.addItem(id, action);
+      const new_item = this.activity.addItem(id, action);
+      this.addActivityLogItem(new_item, 10);
       if (bSave === true) {
         console.log(`setStateCoinSpent - saveStateCoin...`)
         await this.saveStateCoin(statecoin);
@@ -1866,7 +1877,8 @@ export class Wallet {
     this.statecoins.setCoinFinalized(statecoin_finalized);
 
     //Confirm BTC sent to address in ActivityLog
-    this.activity.addItem(shared_key_id, ACTION.DEPOSIT);
+    const new_item = this.activity.addItem(shared_key_id, ACTION.DEPOSIT);
+    this.addActivityLogItem(new_item, 10);
 
     log.info("Deposit Backup done.");
     await this.saveStateCoin(statecoin_finalized);
@@ -2429,7 +2441,6 @@ export class Wallet {
         }
       }
 
-      //this.activity.addItem(addr, ACTION.RECEIVED);
     }
     return num_transfers + "../.." + error_message;
   }
@@ -2632,7 +2643,8 @@ export class Wallet {
         withdraw_msg_2,
         rec_addr
       );
-      this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
+      const new_item = this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
+      this.addActivityLogItem(new_item, 10);
       await this.saveStateCoin(statecoin);
     });
     this.saveActivityLog();
