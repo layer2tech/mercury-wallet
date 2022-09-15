@@ -187,7 +187,7 @@ const SettingsPage = (props) => {
       <div className="container">
           <div className="Body settings">
               <div className="swap-header">
-                  <h2 className="WalletAmount">
+                  <h2 className="main-header">
                       <img src={settings} alt="question"/>
                       Settings
                   </h2>

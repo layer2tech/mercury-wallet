@@ -50,21 +50,6 @@
   filter: brightness(0) invert(1);
 }
 
-.WalletAmount {
-  display: flex;
-  text-align: left;
-  position: relative;
-}
-.no-wallet {
-  color: var(--text-secondary-sub);
-  text-align: left;
-  font-size: 20px;
-}
-.WalletAmount img {
-  margin-right: 10px;
-  width: 38px;
-}
-
 .ActionGroupLeft {
   display: flex;
   align-items: center;
@@ -82,7 +67,7 @@
   padding: 0;
 }
 
-.filter-coin-options {
+.filter-options {
   position: absolute;
   min-width: 158px;
   top: 37px;
@@ -97,27 +82,27 @@
   z-index: 1000;
 }
 
-.filter-coin-options > div,
-.filter-coin-options > label {
+.filter-options > div,
+.filter-options > label {
   padding: 8px 10px;
 }
 
-.filter-coin-options label {
+.filter-options label {
   display: block;
   margin: 0;
 }
 
-.filter-coin-options .checkmark {
+.filter-options .checkmark {
   top: 9px;
   left: 16px;
   border-color: #000;
 }
 
-.filter-coin-options .checkmark:after {
+.filter-options .checkmark:after {
   background-color: #000;
 }
 
-.filter-coin-options label input {
+.filter-options label input {
   margin-right: 12px;
 }
 
@@ -130,7 +115,7 @@
   z-index: 300;
 }
 
-.filter-coin-head {
+.filter-head {
   border-bottom: 1px solid #D3D3D3;
 }
 
@@ -160,11 +145,5 @@
   }
   .Body-button {
     box-shadow: 0 4px 6px -6px var(--box-shadow);
-  }
-  .WalletAmount {
-    justify-content: center;
-  }
-  .no-wallet {
-    text-align: center;
   }
 }

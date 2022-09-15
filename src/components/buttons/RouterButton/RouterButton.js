@@ -1,5 +1,4 @@
 'use strict';
-import React  from "react";
 import { Link } from "react-router-dom";
 import StdButton from '../standardButton';
 import '../RouterButton/RouterButton.css';

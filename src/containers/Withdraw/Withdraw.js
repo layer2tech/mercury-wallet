@@ -22,7 +22,7 @@ import {isWalletLoaded,
 } from '../../features/WalletDataSlice';
 
 import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, CoinsList} from "../../components";
-import {FILTER_BY_OPTION} from "../../components/panelControl/panelControl"
+import {FILTER_BY_OPTION} from "../../components/MainHeader/MainHeader"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
 import {Modal, Spinner} from 'react-bootstrap';
 
@@ -244,7 +244,7 @@ const WithdrawPage = () => {
       <div className="container">
           <div className="Body withdraw">
               <div className="swap-header">
-                  <h2 className="WalletAmount">
+                  <h2 className="main-header">
                       <img src={walletIcon} alt="walletIcon"/>
                       Withdraw Statecoins
                   </h2>

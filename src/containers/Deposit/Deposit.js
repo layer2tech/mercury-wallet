@@ -122,7 +122,7 @@ const DepositPage = () => {
       <div className="container deposit">
         <div className="Body ">
           <div className="deposit-header">
-            <h2 className="WalletAmount">
+            <h2 className="main-header">
               <img src={plus} alt="plus" />
                      Deposit BTC
                  </h2>

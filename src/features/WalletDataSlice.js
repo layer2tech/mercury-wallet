@@ -43,7 +43,13 @@ export const callGetArgsHasTestnet = async () => {
 let wallet;
 let testing_mode = require("../settings.json").testing_mode;
 
+export const WALLET_MODE = {
+  STATECHAIN: "STATECHAIN",
+  LIGHTNING: "LIGHTING"
+}
+
 const initialState = {
+  walletMode: WALLET_MODE.STATECHAIN,
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
   warning_dialogue: { key: "", msg: "", seen: false },
@@ -1028,6 +1034,12 @@ const WalletSlice = createSlice({
         filterBy: action.payload,
       };
     },
+    updateWalletMode(state, action) {
+      return {
+        ...state,
+        walletMode: action.payload,
+      };
+    },
     updateSwapPendingCoins(state, action) {
       return {
         ...state,
@@ -1310,6 +1322,7 @@ export const {
   updateBalanceInfo,
   callClearSave,
   updateFilter,
+  updateWalletMode,
   updateSwapPendingCoins,
   addSwapPendingCoin,
   removeSwapPendingCoin,

@@ -279,7 +279,7 @@ input.quantity {
         padding-left: 0;
         text-align: center;
     }
-    .WalletAmount {
+    .main-header {
         font-size: 26px;
     }
     .withdraw.content {

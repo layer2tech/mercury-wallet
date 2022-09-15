@@ -269,7 +269,7 @@ const ReceiveStatecoinPage = () => {
     <div className="container ">
       <div className="Body receiveStatecoin">
         <div className="swap-header">
-          <h2 className="WalletAmount">
+          <h2 className="main-header">
             <img src={arrow} alt="arrow" />
             Receive Statecoins
           </h2>

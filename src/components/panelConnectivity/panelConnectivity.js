@@ -1,7 +1,7 @@
 "use strict";
 import arrow from "../../images/arrow-accordion.png";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import {
@@ -20,6 +20,8 @@ import "../index.css";
 import RadioButton from "./RadioButton";
 import { defaultWalletConfig } from "../../containers/Settings/Settings";
 import WrappedLogger from "../../wrapped_logger";
+import DropdownArrow from "../DropdownArrow/DropdownArrow";
+
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -232,12 +234,11 @@ const PanelConnectivity = (props) => {
           condition={electrum_connected === true}
         />
 
-        <div
-          onClick={toggleContent}
-          className={state.isToggleOn ? "image rotate" : " image "}
-        >
-          <img src={arrow} alt="arrowIcon" />
-        </div>
+        <DropdownArrow 
+          isToggleOn = {state.isToggleOn}
+          toggleContent = {toggleContent} />
+      
+
       </div>
 
       <div className={state.isToggleOn ? "show" : " hide"}>
