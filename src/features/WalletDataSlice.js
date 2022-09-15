@@ -264,7 +264,7 @@ export const walletFromJson = async (wallet_json, password) => {
         wallet.updateSwapStatus();
         await wallet.save();
         await wallet.saveName();
-        //wallet.pruneStateCoinList();
+        await wallet.pruneStatecoins();
         return wallet;
       })
       .catch((error) => {

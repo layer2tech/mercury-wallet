@@ -208,7 +208,6 @@ export class Wallet {
 
     this.tor_circuit = [];
 
-
     this.saveMutex = new Mutex();
     this.active = false;
     this.start();
@@ -541,14 +540,6 @@ export class Wallet {
     }
   }
 
-  // Prune in-memory statecoin list (remove swapped coins)
-  pruneStateCoinList() {    
-    let wallet_json = cloneDeep(this);
-    const pruned_statecoins = this.storage.getPrunedWalletStateCoinsList(wallet_json, false);
-    this.statecoins.coins = cloneDeep(pruned_statecoins.coins);
-    wallet_json = null;
-  }
-
   async saveActivityLog() {
     const release = await this.saveMutex.acquire();
     try {
@@ -569,6 +560,16 @@ export class Wallet {
     }
   }
 
+  async pruneStatecoins() {
+    const release = await this.saveMutex.acquire();
+    try {
+      let prunedCoins = this.storage.getPrunedCoins(this.name);
+      this.statecoins.coins = prunedCoins;  
+    } finally {
+      release();
+    }
+  }
+
   isActive(): boolean {
     return this.active;
   }
@@ -578,10 +579,10 @@ export class Wallet {
   }
 
   // Load wallet JSON from store
-  static async load(wallet_name: string, password: string, testing_mode: boolean) {
+  static load(wallet_name: string, password: string, testing_mode: boolean) {
     let store = new Storage(`wallets/${wallet_name}/config`);
     // Fetch decrypted wallet json
-    let wallet_json = await store.getWalletDecrypted(wallet_name, password);
+    let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     wallet.setActive();
@@ -1493,9 +1494,10 @@ export class Wallet {
     transfer_msg?: TransferMsg3,
     bSave: boolean = true
   ) {
+    console.log(`setStateCoinSpent - saveStateCoin...`);
     let statecoin: StateCoin | undefined = this.statecoins.getCoin(id);
     if (
-      statecoin != null &&
+      statecoin &&
       (statecoin.status === STATECOIN_STATUS.AVAILABLE ||
         statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
         statecoin.status === STATECOIN_STATUS.EXPIRED ||

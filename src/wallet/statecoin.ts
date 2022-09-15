@@ -165,9 +165,7 @@ export class StateCoinList {
       return null;
     });
     return [
-      coins.map((item: StateCoin) => {
-        item.getDisplayInfo(block_height)
-      }),
+      coins.map((item: StateCoin) => item.getDisplayInfo(block_height)),
       total,
     ];
   }
@@ -293,7 +291,7 @@ export class StateCoinList {
     transfer_msg?: TransferMsg3
   ) {
     let coin = this.getCoin(shared_key_id);
-    if (coin != null) {
+    if (coin) {
       switch (action) {
         case ACTION.WITHDRAW:
           coin.setWithdrawn();
