@@ -564,6 +564,16 @@ export class Wallet {
     }
   }
 
+  async pruneStatecoins() {
+    const release = await this.saveMutex.acquire();
+    try {
+      let prunedCoins = this.storage.getPrunedCoins(this.name);
+      this.statecoins.coins = prunedCoins;  
+    } finally {
+      release();
+    }
+  }
+
   isActive(): boolean {
     return this.active;
   }

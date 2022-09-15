@@ -133,13 +133,16 @@ describe('UI performance', function () {
         await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {timeout: 10000});
         await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {timeout: 10000});
                 
-        const timeLimit = 200;
+        const timeLimit = 500;
 
-        await testClickTime('Receive', timeLimit, timeLimit);
-        await testClickTime('Send',timeLimit, timeLimit);       
-        await testClickTime('Swap', timeLimit, timeLimit);       
-        await testClickTime('Deposit', timeLimit, timeLimit);       
-        await testClickTime('Withdraw', timeLimit, timeLimit);       
+        for (let i = 0; i < 1; i++){
+            await testClickTime('Receive', timeLimit, timeLimit);
+            await testClickTime('Send',timeLimit, timeLimit);       
+            await testClickTime('Swap', timeLimit, timeLimit);       
+            await testClickTime('Deposit', timeLimit, timeLimit);       
+            await testClickTime('Withdraw', timeLimit, timeLimit);           
+        }
+        
     })
     
 })

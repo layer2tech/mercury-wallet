@@ -84,7 +84,7 @@ const Activity = () => {
 	};
 
 	let activityDataMergeDate = mergeActivityByDate();
-
+	
 	const activitiesTableData = activityDataMergeDate.map((activityGroup, groupIndex) => (
 		<div key={groupIndex}>
 			<div className="date">
@@ -197,7 +197,7 @@ const Activity = () => {
 									</td>
 									<td>
 										<span className="tooltip" >
-											<div><b>New TxID: </b>foo</div>
+											<div><b>New TxID: </b>{swapOutPointString({ txid: item.funding_txid, vout: item.funding_txvout }, item.date)}</div>
 											<div><b>Swapped TxId: </b>{shortenString(item.funding_txid)}:{item.funding_txvout}</div>
 										</span>
 										<img src={swapIcon} alt="txidIcon" />

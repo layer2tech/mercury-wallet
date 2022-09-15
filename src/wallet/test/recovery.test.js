@@ -106,7 +106,7 @@ describe("Recovery", () => {
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
     expect(wallet.statecoins.coins[0].value).toBe(RECOVERY_DATA[0].amount);
     expect(wallet.statecoins.coins[0].sc_address).toBe(
-      encodeSCEAddress(RECOVERY_DATA[0].proof_key)
+      encodeSCEAddress(RECOVERY_DATA[0].proof_key, wallet)
     );
   });
 });

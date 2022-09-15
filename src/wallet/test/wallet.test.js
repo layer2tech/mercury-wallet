@@ -248,22 +248,22 @@ describe('Wallet', function () {
     test('save/load', async function () {
       expect(() => {
         wallet.storage.clearWallet(WALLET_NAME_1)
-        let _ = Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
+        let _ = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
       }).toThrow(`No wallet called ${WALLET_NAME_1} stored.`);
 
       await wallet.save()
 
       expect(() => {
-        let _ = Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD + " ", true);
+        let _ = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD + " ", true);
       }).toThrow("Incorrect password.");
 
       expect(() => {
-        let _ = Wallet.load(WALLET_NAME_1, "", true);
+        let _ = await Wallet.load(WALLET_NAME_1, "", true);
       }).toThrow("Incorrect password.");
 
       delete wallet.backupTxUpdateLimiter;
 
-      let loaded_wallet = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
+      let loaded_wallet = await await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
       delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet.statecoins)).toEqual(JSON.stringify(loaded_wallet.statecoins))
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
@@ -625,8 +625,10 @@ describe('Wallet', function () {
 
     test('setStateCoinSpent - swap', async function () {
       let num_coins_before = wallet.statecoins.coins.length;
+      expect(num_coins_before).toBeGreaterThan(0);
       let saveSpy = jest.spyOn(wallet, 'saveStateCoin');
       let saveLogSpy = jest.spyOn(wallet, 'saveActivityLog');
+      expect(wallet.statecoins.coins.length).toBeGreaterThan(0);
       await wallet.setStateCoinSpent(wallet.statecoins.coins[0].shared_key_id, ACTION.SWAP, undefined, true);
       let num_coins_after = wallet.statecoins.coins.length;
       expect(saveSpy).toHaveBeenCalledTimes(1);
@@ -640,6 +642,7 @@ describe('Wallet', function () {
       let saveLogSpy = jest.spyOn(wallet, 'saveActivityLog');
       const swappedCoins1 = wallet.storage.getSwappedCoins(wallet.name);
       expect(swappedCoins1.length).toEqual(0);
+      let coin_id = wallet.statecoins.coins[0].shared_key_id;
       await wallet.setStateCoinSpent(wallet.statecoins.coins[0].shared_key_id, ACTION.SWAP);
       let num_coins_after = wallet.statecoins.coins.length;
       expect(saveSpy).toHaveBeenCalledTimes(1);
@@ -1722,7 +1725,7 @@ describe('Storage 4', () => {
     await wallet_10.save()
     await wallet_10.saveName()
 
-    loaded_wallet = Wallet.load(WALLET_NAME_6_BACKUP, WALLET_PASSWORD_6, true)
+    loaded_wallet = await Wallet.load(WALLET_NAME_6_BACKUP, WALLET_PASSWORD_6, true)
     return loaded_wallet
   })
 
@@ -1839,7 +1842,7 @@ describe('Storage 5', () => {
     await wallet_10.save()
     await wallet_10.saveName()
 
-    loaded_wallet = Wallet.load(WALLET_NAME_7_BACKUP, WALLET_PASSWORD_7, true)
+    loaded_wallet = await Wallet.load(WALLET_NAME_7_BACKUP, WALLET_PASSWORD_7, true)
     return loaded_wallet
   })
 

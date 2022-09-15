@@ -95,15 +95,24 @@ export class Storage {
       // remove active status flag
       delete wallet_json.active;
 
-
-      // Store statecoins individually by key
-      const statecoins = wallet_json.statecoins;
-      wallet_json.statecoins = new StateCoinList();
-      this.store.set(wallet_json.name, wallet_json);
+    
+        // Store statecoins individually by key
+        const statecoins = wallet_json.statecoins;
+        wallet_json.statecoins = new StateCoinList();
+        this.store.set(wallet_json.name, wallet_json);
       if (statecoins != null) {
         this.storeWalletStateCoinsList(wallet_json.name, statecoins);
       }
     }
+  }
+
+  getPrunedCoins(wallet_name: string): StateCoin[] {
+    //Read the statecoin data stored in objects
+    const coins_obj = this.store.get(`${wallet_name}.statecoins_obj`);
+    let coins: StateCoin[] = Object.values(coins_obj);
+    //Remove duplicates
+    coins = Array.from(new Set(coins))
+    return coins;
   }
 
   //For testing
@@ -299,10 +308,12 @@ export class Storage {
   getSwappedCoinsByOutPoint(wallet_name: string, depth: number, outpoint: OutPoint) {
     let swapped_ids = this.getSwappedIds(wallet_name, outpoint);
 
+    
     if (swapped_ids) {
       swapped_ids = swapped_ids.slice(-depth);
 
     }
+    
     let result = [];
     for (let i in swapped_ids) {
       const swappedCoin = this.getSwappedCoin(wallet_name, swapped_ids[i]);

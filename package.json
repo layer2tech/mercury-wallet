@@ -157,6 +157,7 @@
     "suppress-warnings": "^1.0.2",
     "testcafe": "^1.14.2",
     "testcafe-browser-provider-electron": "^0.0.16",
+    "tls": "^0.0.1",
     "ts-jest": "^27.1.5",
     "typeforce": "^1.11.3",
     "url": "^0.11.0",
