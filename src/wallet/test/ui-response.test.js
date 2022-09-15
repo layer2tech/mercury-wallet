@@ -56,6 +56,7 @@ async function getWallet() {
     walletSave.http_client = http_mock;
     walletSave.electrum_mock = electrum_mock;
     walletSave.wasm = wasm_mock;
+    expect(walletSave.statecoins.coins.length).toEqual(8);
     await walletSave.save();
     await walletSave.saveName();
 }

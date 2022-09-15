@@ -16,7 +16,8 @@ import './activity.css';
 import { ActivityLog } from '../../wallet/activity_log';
 
 const Activity = () => {
-	let activity_data = callGetActivityLogItems(10);
+	let activity_data = []
+	//callGetActivityLogItems(10);
 
 	function shortenString(long) {
 		let short = ""
@@ -197,7 +198,7 @@ const Activity = () => {
 									</td>
 									<td>
 										<span className="tooltip" >
-											<div><b>New TxID: </b>{swapOutPointString({ txid: item.funding_txid, vout: item.funding_txvout }, item.date)}</div>
+											<div><b>New TxID: </b>foo</div>
 											<div><b>Swapped TxId: </b>{shortenString(item.funding_txid)}:{item.funding_txvout}</div>
 										</span>
 										<img src={swapIcon} alt="txidIcon" />

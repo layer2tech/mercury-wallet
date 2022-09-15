@@ -160,6 +160,7 @@ export class Wallet {
 
   storage: Storage;
   active: boolean;
+  activityLogitems: any[];
 
   constructor(
     name: string,
@@ -207,6 +208,8 @@ export class Wallet {
     this.statechain_id_set = new Set();
 
     this.tor_circuit = [];
+
+    this.activityLogitems = [];
 
     this.saveMutex = new Mutex();
     this.active = false;
@@ -576,6 +579,7 @@ export class Wallet {
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     wallet.setActive();
+    wallet.getActivityLogItems(10);
     return wallet;
   }
 
@@ -594,6 +598,9 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    let prunedStatecoins = wallet.storage.getPrunedWalletStateCoinsList(wallet.name);
+    wallet.statecoins = prunedStatecoins;
+    wallet.getActivityLogItems(10);
     wallet.setActive();
     return wallet;
   }
@@ -1073,6 +1080,9 @@ export class Wallet {
 
   // ActivityLog data with relevant Coin data
   getActivityLogItems(depth: number) {
+    if (this.activityLogitems.length > 0) {
+      return this.activityLogitems;
+    }
     let items = this.activity.getItems(depth).map((item: ActivityLogItem) => {
       let coin = this.statecoins.getCoin(item.shared_key_id);
       if (coin == null) {
@@ -1091,9 +1101,13 @@ export class Wallet {
         funding_txvout: coin ? coin.funding_vout : "",
       };
     });
-    return items.filter((item) => {
+    let result = items.filter((item) => {
       return item != null;
     });
+    if (result != null) {
+      this.activityLogitems = result;
+    }
+    return this.activityLogitems;
   }
 
   getSwappedStatecoinsByFundingOutPoint(

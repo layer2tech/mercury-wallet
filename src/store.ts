@@ -95,14 +95,13 @@ export class Storage {
       delete wallet_json.active;
 
     
-        // Store statecoins individually by key
-        const statecoins = wallet_json.statecoins;
-        wallet_json.statecoins = new StateCoinList();
-        this.store.set(wallet_json.name, wallet_json);
-        if (statecoins != null) {
-          this.storeWalletStateCoinsList(wallet_json.name, statecoins);
-        }
-      
+      // Store statecoins individually by key
+      const statecoins = wallet_json.statecoins;
+      wallet_json.statecoins = new StateCoinList();
+      this.store.set(wallet_json.name, wallet_json);
+      if (statecoins != null) {
+        this.storeWalletStateCoinsList(wallet_json.name, statecoins);
+      }     
     }
   }
 
@@ -208,6 +207,21 @@ export class Storage {
     //Wallet is active on startup
     wallet_json.active = true;
     return wallet_json;
+  }
+
+  // Wallet state coins list with most of the swapped coins removed.
+  getPrunedWalletStateCoinsList(wallet_name: string): StateCoinList {
+    let coins: StateCoin[] = [];
+    //Read the statecoin data stored in objects
+    const coins_obj = this.store.get(`${wallet_name}.statecoins_obj`);
+    if (coins_obj != null) {
+      coins = coins.concat(Object.values(coins_obj))
+    }
+    //Remove duplicates
+    coins = Array.from(new Set(coins))
+    let state_coin_list = new StateCoinList();
+    state_coin_list.coins = coins;
+    return state_coin_list;
   }
 
   getSwappedCoins(wallet_name: string): StateCoin[] {
