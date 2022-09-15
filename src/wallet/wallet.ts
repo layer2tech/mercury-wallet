@@ -208,6 +208,7 @@ export class Wallet {
 
     this.tor_circuit = [];
 
+
     this.saveMutex = new Mutex();
     this.active = false;
     this.start();
@@ -594,6 +595,8 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    let prunedStatecoins = wallet.storage.getPrunedWalletStateCoinsList(wallet.name);
+    wallet.statecoins = prunedStatecoins;
     wallet.setActive();
     return wallet;
   }
