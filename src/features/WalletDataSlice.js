@@ -155,7 +155,7 @@ function setBlockHeightCallBack(item) {
 
 // Load wallet from store
 export async function walletLoad(name, password) {
-  wallet = Wallet.load(name, password, testing_mode);
+  wallet = await Wallet.load(name, password, testing_mode);
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
@@ -242,13 +242,13 @@ export async function walletFromMnemonic(
   });
 }
 // Try to decrypt wallet. Throw if invalid password
-export const checkWalletPassword = (password) => {
-  Wallet.load(wallet.name, password);
+export const checkWalletPassword = async (password) => {
+  await Wallet.load(wallet.name, password);
 };
 
 // Create wallet from backup file
-export const walletFromJson = (wallet_json, password) => {
-  wallet = Wallet.loadFromBackup(wallet_json, password, testing_mode);
+export const walletFromJson = async (wallet_json, password) => {
+  wallet = await Wallet.loadFromBackup(wallet_json, password, testing_mode);
 
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
@@ -264,6 +264,7 @@ export const walletFromJson = (wallet_json, password) => {
         wallet.updateSwapStatus();
         await wallet.save();
         await wallet.saveName();
+        //wallet.pruneStateCoinList();
         return wallet;
       })
       .catch((error) => {
@@ -919,9 +920,8 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
         } else {
           action.dispatch(
             setNotification({
-              msg: `Statecoin: ${statecoin.getTXIdAndOut()}: ${
-                e?.message ? e?.message : e
-              }`,
+              msg: `Statecoin: ${statecoin.getTXIdAndOut()}: ${e?.message ? e?.message : e
+                }`,
             })
           );
         }

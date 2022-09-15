@@ -58,6 +58,7 @@ async function getWallet() {
     walletSave.wasm = wasm_mock;
     await walletSave.save();
     await walletSave.saveName();
+    return walletSave;
 }
 
 async function testClickTime(buttonName, outTime, backTime) {
@@ -80,7 +81,8 @@ async function testClickTime(buttonName, outTime, backTime) {
 describe('UI performance', function () {
 
     beforeAll(async () => {
-        await getWallet();
+        let wallet = await getWallet();
+        return wallet;
     })
 
     beforeEach(() => {
