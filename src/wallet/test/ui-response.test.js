@@ -63,7 +63,8 @@ async function getWallet() {
 
 async function testClickTime(buttonName, outTime, backTime) {
     // Go to receive page within the time limit
-    expect(screen.getByText(buttonName)).toBeTruthy();
+    await waitFor(() => expect(screen.getByText(buttonName)).toBeTruthy(), { timeout: 10000 });
+    expect(() => screen.getByText('Back')).toThrow();
     //let now = window.performance.now();
     const click_time = window.performance.now();
     fireEvent.click(screen.getByText(buttonName));
@@ -76,6 +77,7 @@ async function testClickTime(buttonName, outTime, backTime) {
     fireEvent.click(screen.getByText('Back'));
     await waitFor(() => expect(screen.getByText(buttonName)).toBeTruthy(), { timeout: 10000 });
     expect(window.performance.now() - click_back_time).toBeLessThanOrEqual(backTime);
+    expect(() => screen.getByText('Back')).toThrow();
 }
 
 describe('UI performance', function () {
@@ -133,14 +135,15 @@ describe('UI performance', function () {
         await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {timeout: 10000});
         await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {timeout: 10000});
                 
-        const timeLimit = 500;
+        const timeLimit1 = 1000;
+        const timeLimit2 = 150;
 
-        for (let i = 0; i < 1; i++){
-            await testClickTime('Receive', timeLimit, timeLimit);
-            await testClickTime('Send',timeLimit, timeLimit);       
-            await testClickTime('Swap', timeLimit, timeLimit);       
-            await testClickTime('Deposit', timeLimit, timeLimit);       
-            await testClickTime('Withdraw', timeLimit, timeLimit);           
+        for (let i = 0; i < 10; i++){
+            await testClickTime('Receive', timeLimit1, timeLimit2);
+            await testClickTime('Send',timeLimit1, timeLimit2);       
+            await testClickTime('Swap', timeLimit1, timeLimit2);       
+            await testClickTime('Deposit', timeLimit1, timeLimit2);       
+            await testClickTime('Withdraw', timeLimit1, timeLimit2);           
         }
         
     })

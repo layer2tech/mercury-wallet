@@ -31,6 +31,7 @@ const Activity = () => {
 	}
 
 	function swapOutPointString(funding_out_point, date) {
+		//return "Data not found"
 		let outPoint = swapOutPoint(funding_out_point, date);
 		if (!outPoint){
 			return "Data not found"

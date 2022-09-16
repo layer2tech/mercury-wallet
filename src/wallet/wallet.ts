@@ -567,8 +567,9 @@ export class Wallet {
   async pruneStatecoins() {
     const release = await this.saveMutex.acquire();
     try {
-      let prunedCoins = this.storage.getPrunedCoins(this.name);
-      this.statecoins.coins = prunedCoins;  
+      let prunedCoins = new StateCoinList();
+      prunedCoins.coins = this.storage.getPrunedCoins(this.name);
+      this.statecoins = StateCoinList.fromJSON(prunedCoins);  
     } finally {
       release();
     }
@@ -583,12 +584,15 @@ export class Wallet {
   }
 
   // Load wallet JSON from store
-  static load(wallet_name: string, password: string, testing_mode: boolean) {
+  static async load(wallet_name: string, password: string, testing_mode: boolean) {
     let store = new Storage(`wallets/${wallet_name}/config`);
     // Fetch decrypted wallet json
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    console.log(`n statecoins before prune: ${wallet.statecoins.coins.length}`)
+    await wallet.pruneStatecoins();
+    console.log(`n statecoins after prune: ${wallet.statecoins.coins.length}`)
     wallet.setActive();
     wallet.initActivityLogItems(10);
     return wallet;
