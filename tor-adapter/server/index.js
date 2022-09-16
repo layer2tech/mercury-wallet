@@ -147,11 +147,7 @@ async function get_endpoint(path, res, endpoint, i_hs) {
     res.status(200).json(result);
   } catch (err) {
     console.log("error found ->", err);
-
-    if (endpoint !== undefined) {
-      i_hs["i"] = (i_hs.i + 1) % endpoint.length;
-    }
-
+    i_hs["i"] = (i_hs.i + 1) % endpoint.length;
     handle_error(res, err);
   }
 }
