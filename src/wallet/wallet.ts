@@ -161,6 +161,7 @@ export class Wallet {
   storage: Storage;
   active: boolean;
   activityLogItems: any[];
+  swappedStatecoinsFundingOutpointMap: Map<OutPoint, StateCoin[]>;
 
   constructor(
     name: string,
@@ -210,6 +211,7 @@ export class Wallet {
     this.tor_circuit = [];
 
     this.activityLogItems = [];
+    this.swappedStatecoinsFundingOutpointMap = new Map<OutPoint, StateCoin[]>();
 
     this.saveMutex = new Mutex();
     this.active = false;
@@ -590,9 +592,6 @@ export class Wallet {
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
-    console.log(`n statecoins before prune: ${wallet.statecoins.coins.length}`)
-    await wallet.pruneStatecoins();
-    console.log(`n statecoins after prune: ${wallet.statecoins.coins.length}`)
     wallet.setActive();
     wallet.initActivityLogItems(10);
     return wallet;
@@ -1113,6 +1112,7 @@ export class Wallet {
         return;
       }
     }
+  
     let result = {
       date: item.date,
       action: item.action,
@@ -1120,11 +1120,18 @@ export class Wallet {
       funding_txid: coin ? coin.funding_txid : "",
       funding_txvout: coin ? coin.funding_vout : "",
     };
+
+    if (coin) {
+      const outPoint: OutPoint = { txid: coin.funding_txid, vout: coin.funding_vout };
+      const swappedCoinsByOutPoint = this.storage.getSwappedCoinsByOutPoint(this.name, 99999999999, outPoint);
+      this.swappedStatecoinsFundingOutpointMap.set(outPoint, swappedCoinsByOutPoint);
+    }
+  
     // Push the result to the front of the items
     this.activityLogItems.unshift(result);
     // Remove the last items if greater than max length
     while (this.activityLogItems.length > maxLength) {
-      this.activityLogItems.pop();
+      this.activityLogItems.pop();     
     }
   }
 
@@ -1136,8 +1143,9 @@ export class Wallet {
   getSwappedStatecoinsByFundingOutPoint(
     funding_out_point: OutPoint,
     depth: number
-  ): StateCoin[] {
-    return this.storage.getSwappedCoinsByOutPoint(this.name, depth, funding_out_point);
+  ): StateCoin[] | undefined {
+    let result = this.swappedStatecoinsFundingOutpointMap.get(funding_out_point);
+    return result;
   }
 
   processTXBroadcastResponse(statecoin: StateCoin, bresponse: string) {

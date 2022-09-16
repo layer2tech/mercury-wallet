@@ -31,7 +31,6 @@ const Activity = () => {
 	}
 
 	function swapOutPointString(funding_out_point, date) {
-		//return "Data not found"
 		let outPoint = swapOutPoint(funding_out_point, date);
 		if (!outPoint){
 			return "Data not found"
@@ -54,12 +53,13 @@ const Activity = () => {
 		// Get index of swapped coin
 
 		// Filter all statecoins for swapped TxID and sort by date (most recent to least recent)
-		let swappedCoins = callGetSwappedStatecoinsByFundingOutPoint(funding_out_point, dateIndexArray.length).sort((a, b) => a.date - b.date).reverse()
+		let swappedCoins = callGetSwappedStatecoinsByFundingOutPoint(funding_out_point, dateIndexArray.length);
+		swappedCoins = swappedCoins ?	swappedCoins.sort((a, b) => a.date - b.date).reverse() : undefined;
 		// Should load this activity data into Redux state so dont have to keep getting it from store ? - whenever it runs the ui is unusable
 
 		// Check data exists : some unforeseen error
 		//Get the data for the swap of coin with funding_txid
-		let datedSwappedCoins = swappedCoins[dateIndex];
+		let datedSwappedCoins = swappedCoins ? swappedCoins[dateIndex] : undefined;
 
 		if (!datedSwappedCoins) {
 			return datedSwappedCoins

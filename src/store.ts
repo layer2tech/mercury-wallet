@@ -311,7 +311,6 @@ export class Storage {
     
     if (swapped_ids) {
       swapped_ids = swapped_ids.slice(-depth);
-
     }
     
     let result = [];
