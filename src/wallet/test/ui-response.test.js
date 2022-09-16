@@ -50,7 +50,7 @@ async function getWallet() {
     let walletJSON = LARGE_WALLET;
     expect(walletJSON.name).toEqual(walletName);
     walletJSON.name = walletNameBackup;
-    let walletSave = Wallet.loadFromBackup(walletJSON, walletPassword, true);
+    let walletSave = await Wallet.loadFromBackup(walletJSON, walletPassword, true);
     walletSave.config.min_anon_set = 3;
     walletSave.config.jest_testing_mode = true;
     walletSave.http_client = http_mock;
@@ -135,8 +135,8 @@ describe('UI performance', function () {
         await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {timeout: 10000});
         await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {timeout: 10000});
                 
-        const timeLimit1 = 1000;
-        const timeLimit2 = 150;
+        const timeLimit1 = 300;
+        const timeLimit2 = 300;
 
         for (let i = 0; i < 10; i++){
             await testClickTime('Receive', timeLimit1, timeLimit2);

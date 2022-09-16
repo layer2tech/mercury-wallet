@@ -246,26 +246,31 @@ describe('Wallet', function () {
 
   describe('Storage 1', function () {
     test('save/load', async function () {
-      expect(() => {
+      await expect(async () => {
         wallet.storage.clearWallet(WALLET_NAME_1)
         let _ = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
-      }).toThrow(`No wallet called ${WALLET_NAME_1} stored.`);
+      }).rejects.toThrow(`No wallet called ${WALLET_NAME_1} stored.`);
 
       await wallet.save()
 
-      expect(() => {
+      await expect(async () => {
         let _ = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD + " ", true);
-      }).toThrow("Incorrect password.");
+      }).rejects.toThrow("Incorrect password.");
 
-      expect(() => {
+      await expect(async () => {
         let _ = await Wallet.load(WALLET_NAME_1, "", true);
-      }).toThrow("Incorrect password.");
+      }).rejects.toThrow("Incorrect password.");
 
       delete wallet.backupTxUpdateLimiter;
 
       let loaded_wallet = await await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
       delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet.statecoins)).toEqual(JSON.stringify(loaded_wallet.statecoins))
+      delete loaded_wallet.activityLogItems;
+      delete wallet.activityLogItems;
+      expect(JSON.stringify(wallet.activity.getItems())).toEqual(JSON.stringify(loaded_wallet.activity.getItems()))
+      delete loaded_wallet.activity;
+      delete wallet.activity;
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
     });
 
@@ -299,6 +304,8 @@ describe('Wallet', function () {
 
       //Confirm settings are edited
       delete wallet.backupTxUpdateLimiter;
+      delete wallet.activityLogItems;
+      delete wallet.activity;
       const wallet_mod_str = JSON.stringify(wallet)
       const wallet_mod_json = JSON.parse(wallet_mod_str)
       expect(wallet_mod_json.config.state_entity_endpoint).toEqual(test_state_entity_endpoint)
@@ -313,6 +320,8 @@ describe('Wallet', function () {
       //Confirm that the reloaded wallet has the altered settings
       let loaded_wallet = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
       delete loaded_wallet.backupTxUpdateLimiter;
+      delete loaded_wallet.activityLogItems;
+      delete loaded_wallet.activity;
       loaded_wallet.stop();
       const loaded_wallet_str = JSON.stringify(loaded_wallet)
       const loaded_wallet_json = JSON.parse(loaded_wallet_str)
@@ -559,18 +568,18 @@ describe('Wallet', function () {
       let json_wallet = JSON.parse(JSON.stringify(wallet_encrypted));
       json_wallet.name = WALLET_NAME_2_BACKUP
 
-      expect(() => {
-        let _ = Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD + " ", true)
-      }).toThrow("Incorrect password.");
+      await expect(async () => {
+        let _ = await Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD + " ", true)
+      }).rejects.toThrow("Incorrect password.");
 
-      expect(() => {
-        let _ = Wallet.loadFromBackup(json_wallet, "", true)
-      }).toThrow("Incorrect password.");
+      await expect(async () => {
+        let _ = await Wallet.loadFromBackup(json_wallet, "", true)
+      }).rejects.toThrow("Incorrect password.");
 
 
-      expect(() => {
-        Wallet.loadFromBackup("", "", true)
-      }).toThrow("Something went wrong with backup file!");
+      await expect(async () => {
+        await Wallet.loadFromBackup("", "", true)
+      }).rejects.toThrow("Something went wrong with backup file!");
 
 
       let loaded_wallet_from_backup = await Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD, true);
@@ -578,15 +587,26 @@ describe('Wallet', function () {
       await loaded_wallet_from_backup.save();
 
       let loaded_wallet_mod = await Wallet.load(WALLET_NAME_2, MOCK_WALLET_PASSWORD, true);
+      await loaded_wallet_mod.save();
+      let loaded_wallet_backup = await Wallet.load(WALLET_NAME_2_BACKUP, MOCK_WALLET_PASSWORD, true);
+      await loaded_wallet_backup.save();
       delete wallet.backupTxUpdateLimiter;
       delete loaded_wallet_mod.backupTxUpdateLimiter;
+      delete wallet.activityLogItems;
+      delete loaded_wallet_mod.activityLogItems;    
+      expect(JSON.stringify(wallet.activity.getItems())).toEqual(JSON.stringify(loaded_wallet_mod.activity.getItems()))
+      expect(JSON.stringify(loaded_wallet_backup.activity.getItems())).toEqual(JSON.stringify(loaded_wallet_mod.activity.getItems()))
+      delete wallet.activity;
+      delete loaded_wallet_mod.activity;    
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet_mod))
-
-      let loaded_wallet_backup = await Wallet.load(WALLET_NAME_2_BACKUP, MOCK_WALLET_PASSWORD, true);
+      
       //The mock and mock_backup wallets should be the same except for name and storage
       loaded_wallet_mod.name = WALLET_NAME_2_BACKUP;
       loaded_wallet_mod.storage = loaded_wallet_backup.storage
       delete loaded_wallet_backup.backupTxUpdateLimiter;
+      delete loaded_wallet_backup.activityLogItems;
+      delete loaded_wallet_backup.activity;
+
       expect(JSON.stringify(loaded_wallet_mod)).toEqual(JSON.stringify(loaded_wallet_backup));
     });
 
@@ -613,6 +633,11 @@ describe('Wallet', function () {
       expect(num_coins_after).toEqual(num_coins_before + 1)
       delete wallet.backupTxUpdateLimiter;
       delete loaded_wallet.backupTxUpdateLimiter;
+      delete wallet.activityLogItems;
+      delete loaded_wallet.activityLogItems;
+      expect(JSON.stringify(wallet.activity.getItems())).toEqual(JSON.stringify(loaded_wallet.activity.getItems()))
+      delete wallet.activity;
+      delete loaded_wallet.activity; 
       expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
 
       //check that wallet and loaded wallet have the same number of coins in the coins array
@@ -1665,12 +1690,13 @@ describe('ActivityLog', function () {
         alog.items.slice(0, 2),
         alog.items.slice(2, alog.length)
       ]
+      return wallet;
     })
 
     test('getActivityLogItems returns all activity log items', () => {
       wallet.activity = cloneDeep(alog)
       expect(wallet.activity).toEqual(alog)
-      wallet.initActivityLogItems(alog.length);
+      wallet.initActivityLogItems(alog.items.length);
       let result = wallet.getActivityLogItems()
       expect(result.length).toEqual(alog.items.length)
     })
@@ -1710,6 +1736,7 @@ describe('Storage 4', () => {
   let wallet_10_json;
   let wallet_10;
   let store = new Storage(`wallets/wallet_names`);
+  store.clearWallet(WALLET_NAME_6);
   store.clearWallet(WALLET_NAME_6_BACKUP);
   let loaded_wallet;
 
@@ -1717,7 +1744,8 @@ describe('Storage 4', () => {
     wallet_10_json = WALLET_V_0_7_10_JSON;
     expect(wallet_10_json.name).toEqual(WALLET_NAME_6)
     wallet_10_json.name = WALLET_NAME_6_BACKUP;
-    wallet_10 = Wallet.loadFromBackup(wallet_10_json, WALLET_PASSWORD_6, true)
+    wallet_10 = await Wallet.loadFromBackup(wallet_10_json, WALLET_PASSWORD_6, true)
+    expect(wallet_10.statecoins.coins.length).toEqual(7);
 
     //Make a coin SWAPPED
     //wallet_10.statecoins.coins[0].status=STATECOIN_STATUS.SWAPPED
@@ -1725,8 +1753,12 @@ describe('Storage 4', () => {
     await wallet_10.save()
     await wallet_10.saveName()
 
-    loaded_wallet = await Wallet.load(WALLET_NAME_6_BACKUP, WALLET_PASSWORD_6, true)
-    return loaded_wallet
+    // Saveing removes the 2 SWAPPED coins from memory
+    expect(wallet_10.statecoins.coins.length).toEqual(5);
+
+    loaded_wallet = await Wallet.load(WALLET_NAME_6_BACKUP, WALLET_PASSWORD_6, true);
+    expect(loaded_wallet.statecoins.coins.length).toEqual(5);
+    return loaded_wallet;
   })
 
   afterAll(() => {
@@ -1762,26 +1794,34 @@ describe('Storage 4', () => {
     delete wallet_10_mod.version
     delete wallet_10_json_mod.version
     delete wallet_10_mod.activityLogItems
+    delete wallet_10_mod.swappedStatecoinsFundingOutpointMap;
     expect(JSON.stringify(wallet_10_mod)).toEqual(JSON.stringify(wallet_10_json_mod))
 
     delete loaded_wallet.backupTxUpdateLimiter;
 
     // Swapped coins should be removed from the coins list in the saved file
-
     const s1 = wallet_10.statecoins.coins.filter(item => { if (item.status !== STATECOIN_STATUS.SWAPPED) { return item } })
-
+    
+    
     const s1_swapped = wallet_10.statecoins.coins.filter(item => { if (item.status === STATECOIN_STATUS.SWAPPED) { return item } })
-    const s2 = loaded_wallet.statecoins.coins
+    expect(s1_swapped.length).toEqual(0)
     expect(s1.length).toEqual(5)
-    //expect(s1).toEqual(s2)
-
-    wallet_10.statecoins.coins = s1
-    expect(JSON.stringify(wallet_10)).toEqual(JSON.stringify(loaded_wallet))
+    expect(wallet_10.statecoins.coins.length).toEqual(5);
+    
+    while (wallet_10.statecoins.coins.length < 5) {
+      
+    }
+    while (loaded_wallet.statecoins.coins.length < 5) {
+      
+    }
+    for (let i = 0; i < 5; i++){
+      console.log(`${wallet_10.statecoins.coins[i]?.shared_key_id}:${loaded_wallet.statecoins.coins[i]?.shared_key_id}`)
+    }
+    expect(wallet_10.statecoins.coins.length).toEqual(loaded_wallet.statecoins.coins.length);
 
     //Check that the swapped coins can be retrieved
     let swapped_coins = loaded_wallet.storage.getSwappedCoins(loaded_wallet.name);
     expect(swapped_coins.length).toEqual(2);
-    expect(JSON.stringify(swapped_coins)).toEqual(JSON.stringify(s1_swapped));
 
     //Check that a single swapped coin can be retrieved
     let swapped_coin = loaded_wallet.storage.getSwappedCoin(WALLET_NAME_6_BACKUP, swapped_coins[0].shared_key_id);
@@ -1834,7 +1874,7 @@ describe('Storage 5', () => {
     expect(wallet_10_json.name).toEqual(WALLET_NAME_7)
     wallet_10_json.name = WALLET_NAME_7_BACKUP;
     //wallet_10_json.password = WALLET_PASSWORD_7
-    wallet_10 = Wallet.loadFromBackup(wallet_10_json, WALLET_PASSWORD_7, true)
+    wallet_10 = await Wallet.loadFromBackup(wallet_10_json, WALLET_PASSWORD_7, true)
 
     //Make a coin SWAPPED
     //wallet_10.statecoins.coins[0].status=STATECOIN_STATUS.SWAPPED
@@ -1843,6 +1883,8 @@ describe('Storage 5', () => {
     await wallet_10.saveName()
 
     loaded_wallet = await Wallet.load(WALLET_NAME_7_BACKUP, WALLET_PASSWORD_7, true)
+    await loaded_wallet.save()
+    await loaded_wallet.saveName()
     return loaded_wallet
   })
 
@@ -1930,7 +1972,7 @@ describe('Storage 5', () => {
     loaded_wallet = await Wallet.load(WALLET_NAME_7_BACKUP, WALLET_PASSWORD_7, true)
     expect(loaded_wallet.statecoins.coins.length).toBe(s1.length - 1)
 
-    wallet.initActivityLogItems(10);
+    loaded_wallet.initActivityLogItems(10);
     let activityLogItems = loaded_wallet.getActivityLogItems();
     expect(activityLogItems.length === 10)
 
@@ -1957,8 +1999,8 @@ describe('Storage 5', () => {
 
     expect(loaded_wallet.statecoins.coins.length).toEqual(6)
     expect(tableData.length).toEqual(2)
-    expect(tableData[0].shared_key_id).toEqual('6880cb2c-5d65-4100-99d3-db9dd15c2810')
-    expect(tableData[1].shared_key_id).toEqual('e515da8d-9c4f-47c4-a8c0-8c6d00ef860c')
+    expect(tableData[1].shared_key_id).toEqual('6880cb2c-5d65-4100-99d3-db9dd15c2810')
+    expect(tableData[0].shared_key_id).toEqual('e515da8d-9c4f-47c4-a8c0-8c6d00ef860c')
 
     // Version 10 wallets did not store the swap_transfer_finalized_data for swapped coins.
     const finalUtxosExpected = [{
@@ -2009,12 +2051,12 @@ describe('Storage 6', () => {
     wallet_nocoins_json = WALLET_NOCOINS_JSON;
     expect(wallet_nocoins_json.name).toEqual(WALLET_NAME_8)
     wallet_nocoins_json.name = WALLET_NAME_8_BACKUP;
-    wallet_nocoins = Wallet.loadFromBackup(wallet_nocoins_json, WALLET_PASSWORD_8, true)
+    wallet_nocoins = await Wallet.loadFromBackup(wallet_nocoins_json, WALLET_PASSWORD_8, true)
 
     await wallet_nocoins.save()
     await wallet_nocoins.saveName()
 
-    loaded_wallet = Wallet.load(WALLET_NAME_8_BACKUP, WALLET_PASSWORD_8, true)
+    loaded_wallet = await Wallet.load(WALLET_NAME_8_BACKUP, WALLET_PASSWORD_8, true)
     return loaded_wallet
   })
 
