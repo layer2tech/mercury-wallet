@@ -358,6 +358,7 @@ export class Wallet {
   ): Promise<Wallet> {
     mnemonic = mnemonic != null ? mnemonic : MOCK_WALLET_MNEMONIC;
     name = name != null ? name : MOCK_WALLET_NAME;
+    console.log(`fromMnemonic...`);
     var wallet = Wallet.fromMnemonic(
       name,
       MOCK_WALLET_PASSWORD,
@@ -368,6 +369,7 @@ export class Wallet {
       wasm
     );
     wallet.setActive();
+    console.log(`add statecoins...`);
     // add some statecoins
     let proof_key1 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
     let proof_key2 = (await wallet.genProofKey()).publicKey.toString("hex"); // Generate new proof key
@@ -391,8 +393,10 @@ export class Wallet {
       proof_key2,
       ACTION.DEPOSIT
     );
+    console.log(`add activity log item...`);
     const new_item = wallet.activity.addItem(uuid2, ACTION.TRANSFER);
     wallet.addActivityLogItem(new_item);
+    console.log(`return wallet...`);
     return wallet;
   }
 
