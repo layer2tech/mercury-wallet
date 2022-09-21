@@ -36,10 +36,9 @@ const process = require('process')
 const NETWORK_CONFIG = require('../../network.json');
 const SHARED_KEY_DUMMY = { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" };
 
+const name_store = new Storage(`wallets/wallet_names`);
 
-
-let clearWallet = (wallet_name) => {
-  const name_store = new Storage(`wallets/wallet_names`);
+let clearWallet = (wallet_name) => {  
   name_store.clearWallet(wallet_name);
   const wallet_store = new Storage(`wallets/${wallet_name}/config`);
   wallet_store.clearWallet(wallet_name);
