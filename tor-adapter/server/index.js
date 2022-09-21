@@ -1,4 +1,3 @@
-"use strict";
 const handle_error = require("./error").handle_error;
 const winston = require("winston");
 var path = require("path");
@@ -54,6 +53,8 @@ var Config = new require("./config");
 const config = new Config();
 const tpc = config.tor_proxy;
 const express = require("express");
+var cors = require("cors");
+
 var geoip = require("geoip-country");
 var countries = require("i18n-iso-countries");
 countries.registerLocale(require("i18n-iso-countries/langs/en.json"));
@@ -102,6 +103,7 @@ const PORT = 3001;
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 app.listen(PORT, () => {
   log(
@@ -141,12 +143,10 @@ tor.startTorNode(tor_cmd, torrc);
 log("info", "finished starting tor node.");
 
 async function get_endpoint(path, res, endpoint, i_hs) {
-  console.log("endpoint ->", endpoint);
   try {
     let result = await tor.get(path, undefined, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err) {
-    console.log("error found ->", err);
     i_hs["i"] = (i_hs.i + 1) % endpoint.length;
     handle_error(res, err);
   }
@@ -174,18 +174,9 @@ async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
 
 app.get("/newid", async function (req, res) {
   try {
-    tor.newSocksAuthentication();
-    res.status(200).json({});
-  } catch (err) {
-    const err_msg = `Get new tor id error: ${err}`;
-    log("error", err_msg);
-    res.status(500).json(err_msg);
-  }
-});
-
-app.get("/newcircuit", async function (req, res) {
-  try {
-    let response = await tor.confirmNewTorCircuit();
+    console.log("getting new tor id...");
+    let response = await tor.confirmNewTorConnection();
+    console.log(`got new tor id: ${JSON.stringify(response)}`);
     res.status(200).json(response);
   } catch (err) {
     const err_msg = `Get new tor id error: ${err}`;
@@ -223,7 +214,7 @@ app.post("/tor_settings", async function (req, res) {
     const err_msg = `Bad request: ${err}`;
     log("error", err_msg);
     log("info", `info - ${err_msg}`);
-    handle_error(res, err);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -430,7 +421,7 @@ app.post("/tor_endpoints", function (req, res) {
   } catch (err) {
     const err_msg = `Error setting tor endpoints: ${err}`;
     log("error", err_msg);
-    handle_error(res, err);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -474,9 +465,13 @@ async function shutdown() {
 app.get("/electrs/*", function (req, res) {
   let path = req.path.replace("/electrs", "");
   if (!config?.electrum_endpoint) {
-    handle_error(res, "tor-adapter: get: config.electrum_endpoint not set");
+    res.status(400).json("tor-adapter: get: config.electrum_endpoint not set");
   }
-  console.log(i_elect_hs);
+  if (!Array.isArray(config.swap_conductor_endpoint)) {
+    res
+      .status(400)
+      .json("tor-adapter: get: config.electrum_endpoint is not an array");
+  }
   get_endpoint(path, res, config.electrum_endpoint, i_elect_hs);
 });
 
@@ -485,55 +480,60 @@ app.post("/electrs/*", function (req, res) {
   let body = req.body;
   let data = body?.data ? body.data : "";
   if (!config?.electrum_endpoint) {
-    handle_error(res, "tor-adapter: post: config.electrum_endpoint not set");
+    res.status(400).json("tor-adapter: post: config.electrum_endpoint not set");
+  }
+  if (!Array.isArray(config.swap_conductor_endpoint)) {
+    res
+      .status(400)
+      .json("tor-adapter: post: config.electrum_endpoint is not an array");
   }
   post_plain_endpoint(path, data, res, config.electrum_endpoint, i_elect_hs);
 });
 
 app.get("/swap/ping", function (req, res) {
   if (!config?.swap_conductor_endpoint) {
-    handle_error(
-      res,
-      "tor-adapter: get /swap/ping: config.swap_conductor_endpoint not set"
-    );
+    res
+      .status(400)
+      .json(
+        "tor-adapter: get /swap/ping: config.swap_conductor_endpoint not set"
+      );
   }
   if (!Array.isArray(config.swap_conductor_endpoint)) {
-    handle_error(
-      res,
-      "tor-adapter: get /swap/ping: config.swap_conductor_endpoint is not an array"
-    );
+    res
+      .status(400)
+      .json(
+        "tor-adapter: get /swap/ping: config.swap_conductor_endpoint is not an array"
+      );
   }
   get_endpoint("/ping", res, config.swap_conductor_endpoint, i_cond_hs);
 });
 
 app.get("/swap/*", function (req, res) {
   if (!config?.swap_conductor_endpoint) {
-    handle_error(
-      res,
-      "tor-adapter: get: config.swap_conductor_endpoint not set"
-    );
+    res
+      .status(400)
+      .json("tor-adapter: get: config.swap_conductor_endpoint not set");
   }
   if (!Array.isArray(config.swap_conductor_endpoint)) {
-    handle_error(
-      res,
-      "tor-adapter: get: config.swap_conductor_endpoint is not an array"
-    );
+    res
+      .status(400)
+      .json("tor-adapter: get: config.swap_conductor_endpoint is not an array");
   }
   get_endpoint(req.path, res, config.swap_conductor_endpoint, i_cond_hs);
 });
 
 app.post("/swap/*", function (req, res) {
   if (!config?.swap_conductor_endpoint) {
-    handle_error(
-      res,
-      "tor-adapter: post: config.swap_conductor_endpoint not set"
-    );
+    res
+      .status(400)
+      .json("tor-adapter: post: config.swap_conductor_endpoint not set");
   }
   if (!Array.isArray(config.swap_conductor_endpoint)) {
-    handle_error(
-      res,
-      "tor-adapter: post: config.swap_conductor_endpoint is not an array"
-    );
+    res
+      .status(400)
+      .json(
+        "tor-adapter: post: config.swap_conductor_endpoint is not an array"
+      );
   }
   post_endpoint(
     req.path,
@@ -570,7 +570,7 @@ app.get("/eps/ping", async function (req, res) {
   } catch (err) {
     const err_msg = `EPS ping failed: ${err}`;
     log("error", err_msg);
-    handle_error(res, err);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -581,7 +581,7 @@ app.get("/eps/latest_block_header", async function (req, res) {
   } catch (err) {
     const err_msg = `EPS latestBlockHeader failed: ${err}`;
     log("error", err_msg);
-    handle_error(res, err);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -602,7 +602,7 @@ app.get("/eps/scripthash_history/*$/", async function (req, res) {
   } catch (err) {
     const err_msg = `EPS scripthash failed: ${err}`;
     log("error", err_msg);
-    handle_error(res, err);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -614,6 +614,7 @@ app.get("/eps/get_scripthash_list_unspent/*$/", async function (req, res) {
   } catch (err) {
     const err_msg = `EPS scripthash failed: ${err}`;
     log("error", err_msg);
+    //res.status(400).json(err_msg);
     handle_error(res, err);
   }
 });
@@ -625,7 +626,7 @@ app.get("/eps/fee-estimates", async function (req, res) {
   } catch (err) {
     const err_msg = `EPS fee-estimates failed: ${err}`;
     log("error", err_msg);
-    handle_error(res, err);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -636,7 +637,7 @@ app.post("/eps/tx", async function (req, res) {
   } catch (err) {
     const err_msg = `EPS scripthash failed: ${err}`;
     log("error", err_msg);
-    handle_error(res, err);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -654,7 +655,7 @@ app.post("/eps/import_addresses", async function (req, res) {
   } catch (err) {
     const err_msg = `importAddresses failed: ${err}`;
     log("error", err_msg);
-    handle_error(res, err);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -680,7 +681,7 @@ app.get("/electrs_local/ping", async function (req, res) {
   } catch (err) {
     const err_msg = `electrs_local ping failed: ${err}`;
     log("error", err_msg);
-    handle_error(res, err);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -691,7 +692,7 @@ app.get("/electrs_local/latest_block_header", async function (req, res) {
   } catch (err) {
     const err_msg = `electrs_local latestBlockHeader failed: ${err}`;
     log("error", err_msg);
-    handle_error(res, err);
+    res.status(400).json(err_msg);
   }
 });
 
@@ -755,7 +756,6 @@ app.post("/electrs_local/tx", async function (req, res) {
     log("info", `broadcastTransaction response: ${response}`);
     res.status(200).json(response);
   } catch (err) {
-    log("error", `broadcastTransaction error: ${JSON.stringify(err)}`);
     handle_error(res, err);
   }
 });
@@ -781,13 +781,14 @@ app.post("/electrs_local/import_addresses", async function (req, res) {
 app.get("*", function (req, res) {
   log("info", "get *");
   if (!config?.state_entity_endpoint) {
-    handle_error(res, "tor-adapter: get: config.state_entity_endpoint not set");
+    res
+      .status(400)
+      .json("tor-adapter: get: config.state_entity_endpoint not set");
   }
   if (!Array.isArray(config.state_entity_endpoint)) {
-    handle_error(
-      res,
-      "tor-adapter: get: config.state_entity_endpoint is not an array"
-    );
+    res
+      .status(400)
+      .json("tor-adapter: get: config.state_entity_endpoint is not an array");
   }
   get_endpoint(req.path, res, config.state_entity_endpoint, i_merc_hs);
 });
@@ -795,16 +796,14 @@ app.get("*", function (req, res) {
 app.post("*", function (req, res) {
   log("info", "post *");
   if (!config?.state_entity_endpoint) {
-    handle_error(
-      res,
-      "tor-adapter: post: config.state_entity_endpoint not set"
-    );
+    res
+      .status(400)
+      .json("tor-adapter: post: config.state_entity_endpoint not set");
   }
   if (!Array.isArray(config.state_entity_endpoint)) {
-    handle_error(
-      res,
-      "tor-adapter: post: config.state_entity_endpoint is not an array"
-    );
+    res
+      .status(400)
+      .json("tor-adapter: post: config.state_entity_endpoint is not an array");
   }
   post_endpoint(
     req.path,
