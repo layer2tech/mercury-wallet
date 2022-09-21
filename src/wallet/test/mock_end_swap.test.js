@@ -4,8 +4,13 @@
 
 // This file contains test for the main swap function with Swap class mocked
 
+import { makeTesterStatecoin } from "./test_data.js";
+import { SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
 import Swap from "../swap/swap";
+import { STATECOIN_STATUS } from "../statecoin";
 import { Wallet, MOCK_WALLET_NAME } from "../wallet";
+import React from "react";
+import { setSwapDetails } from "./test_data.js";
 import reducers from "../../reducers";
 import { configureStore } from "@reduxjs/toolkit";
 
@@ -14,27 +19,9 @@ import TestComponent, { render } from "./test-utils";
 import { handleEndSwap, setSwapLoad } from "../../features/WalletDataSlice.js";
 import { fromSatoshi } from "../util.ts";
 import { fireEvent, screen } from "@testing-library/react";
+import Semaphore from "semaphore-async-await";
 
 let bitcoin = require("bitcoinjs-lib");
-
-// // client side's mock
-let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
-// // server side's mock
-let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
-// //electrum mock
-let electrum_mock = jest.genMockFromModule("../mocks/mock_electrum.ts");
-
-let walletName = `${MOCK_WALLET_NAME}_swap_tests`;
-
-export async function getWallet() {
-    let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, walletName);
-    wallet.config.min_anon_set = 3;
-    wallet.config.jest_testing_mode = true;
-    wallet.http_client = http_mock;
-    wallet.electrum_mock = electrum_mock;
-    wallet.wasm = wasm_mock;
-    return wallet;
-}
 
 jest.mock("../swap/swap");
 
@@ -57,6 +44,7 @@ describe("After Swaps Complete", function () {
             http_mock,
             wasm_mock
         );
+        expect(wallet.isActive()).toEqual(true);
         wallet_json = wallet.toEncryptedJSON();
         return wallet_json;
     });
