@@ -28,7 +28,14 @@ let http_mock = jest.genMockFromModule('../mocks/mock_http_client');
 let electrum_mock = new MockElectrumClient;
 let bip39 = require('bip39');
 
-jest.setTimeout(20000);
+jest.setTimeout(70000);
+
+let clearWallet = (wallet_name) => {
+    const name_store = new Storage(`wallets/wallet_names`);
+    name_store.clearWallet(wallet_name);
+    const wallet_store = new Storage(`wallets/${wallet_name}/config`);
+    wallet_store.clearWallet(wallet_name);
+}
 
 function render(mockStore, ui){
     function Wrapper({children}) {
@@ -45,8 +52,7 @@ let walletNameBackup = `${walletName}_backup`;
 let walletPassword = "aaaaaaaa";
 
 async function getWallet() {
-    let store = new Storage(`wallets/wallet_names`);
-    store.clearWallet(walletNameBackup);
+    clearWallet(walletNameBackup);
     let walletJSON = LARGE_WALLET;
     expect(walletJSON.name).toEqual(walletName);
     walletJSON.name = walletNameBackup;
@@ -56,7 +62,7 @@ async function getWallet() {
     walletSave.http_client = http_mock;
     walletSave.electrum_mock = electrum_mock;
     walletSave.wasm = wasm_mock;
-    expect(walletSave.statecoins.coins.length).toEqual(8);
+    expect(walletSave.statecoins.coins.length).toEqual(9);
     await walletSave.save();
     await walletSave.saveName();
 }
@@ -84,18 +90,14 @@ describe('UI performance', function () {
 
     beforeAll(async () => {
         await getWallet();
-    })
-
-    beforeEach(() => {
         let store = configureStore({reducer: reducers, });
         const { renderedObj } = render(store, <App />, true);
     })
 
     afterAll(() => {
         //Cleanup
-        let store = new Storage(`wallets/wallet_names`);
-        store.clearWallet(walletName)
-        store.clearWallet(walletNameBackup)
+        clearWallet(walletName)
+        clearWallet(walletNameBackup)
     })
 
     test('responsiveness of main buttons', async function(){
@@ -135,8 +137,8 @@ describe('UI performance', function () {
         await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {timeout: 10000});
         await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {timeout: 10000});
                 
-        const timeLimit1 = 300;
-        const timeLimit2 = 300;
+        const timeLimit1 = 350;
+        const timeLimit2 = 350;
 
         for (let i = 0; i < 10; i++){
             await testClickTime('Receive', timeLimit1, timeLimit2);

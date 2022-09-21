@@ -600,6 +600,8 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    await wallet.save();
+    wallet.storage.loadStatecoins(wallet);
     wallet.initActivityLogItems(10);
     wallet.setActive();
     return wallet;
@@ -1139,7 +1141,11 @@ export class Wallet {
   ): StateCoin[] | undefined {
     let result = this.swappedStatecoinsFundingOutpointMap.get(JSON.stringify(funding_out_point));
     if (result == null) {
-      result = this.storage.getSwappedCoinsByOutPoint(this.name, depth, funding_out_point);
+      try {
+        result = this.storage.getSwappedCoinsByOutPoint(this.name, depth, funding_out_point);
+      } catch (err) {
+        log.debug(`getSwappedStatecoinsByFundingOutpoint: getSwappedCoinsByOutPoint: ${err}`);
+      }
       if (result != null) {
         this.swappedStatecoinsFundingOutpointMap.set(JSON.stringify(funding_out_point), result);
       }
@@ -1529,7 +1535,6 @@ export class Wallet {
     transfer_msg?: TransferMsg3,
     bSave: boolean = true
   ) {
-    console.log(`setStateCoinSpent - saveStateCoin...`);
     let statecoin: StateCoin | undefined = this.statecoins.getCoin(id);
     if (
       statecoin &&
@@ -1543,7 +1548,6 @@ export class Wallet {
       const new_item = this.activity.addItem(id, action);
       this.addActivityLogItem(new_item);
       if (bSave === true) {
-        console.log(`setStateCoinSpent - saveStateCoin...`)
         await this.saveStateCoin(statecoin);
         await this.saveActivityLog();
       }
