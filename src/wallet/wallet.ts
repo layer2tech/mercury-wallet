@@ -1114,7 +1114,7 @@ export class Wallet {
     if (coin) {
       const outPoint: OutPoint = { txid: coin.funding_txid, vout: coin.funding_vout };
       // To store the data in the map.
-      this.getSwappedStatecoinsByFundingOutPoint(outPoint, Number.MAX_SAFE_INTEGER);
+      this.getSwappedStatecoinsByFundingOutPoint(outPoint, maxLength);
     }
   
     // Push the result to the front of the items
