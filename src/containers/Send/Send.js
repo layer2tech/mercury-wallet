@@ -1,11 +1,11 @@
 'use strict';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { StdButton, AddressInput, SendModal, ConfirmPopup, Loading, CoinsList } from "../../components";
 
-import { fromSatoshi, pubKeyFromXpub } from '../../wallet/util';
-import { decodeSCEAddress,encodeSCEAddress,  encodeMessage } from '../../wallet/util';
+import { fromSatoshi } from '../../wallet/util';
+import { decodeSCEAddress,  encodeMessage } from '../../wallet/util';
 import {
   isWalletLoaded, callTransferSender, setError, setNotification,
   removeCoins,
@@ -15,6 +15,7 @@ import {
 } from '../../features/WalletDataSlice';
 import arrow from "../../images/arrow-up.png"
 import './Send.css';
+import PageHeader from '../PageHeader/PageHeader';
 
 const SendStatecoinPage = () => {
 
@@ -27,6 +28,7 @@ const SendStatecoinPage = () => {
   const [forceRender, setRender]  =  useState({});
 
   const [coinDetails, setCoinDetails] = useState({}); // store selected coins shared_key_id
+
   const [inputAddr, setInputAddr] = useState("");
   // eslint-disable-next-line no-unused-vars
   const [transferMsg3, setTransferMsg3] = useState('');
@@ -182,32 +184,19 @@ const SendStatecoinPage = () => {
       <SendModal
         {...openSendModal}
         onClose={() => setOpenSendModal({ show: false })}
-        onConfirm={handleConfirm}
-      />
-      <div className="Body sendStatecoin">
-        <div className="swap-header">
-          <h2 className="main-header">
-            <img src={arrow} alt="arrow" />
-                      Send StateCoins
-                  </h2>
-          <div>
-            <Link className="nav-link" to="/home">
-              <StdButton
-                label="Back"
-                className="Body-button transparent" />
-            </Link>
-          </div>
-        </div>
-        <h3 className="subtitle">
-          <b> {fromSatoshi(balance_info.total_balance)} BTC</b> available as <b>{balance_info.num_coins}</b> Statecoins
-              </h3>
-      </div>
+        onConfirm={handleConfirm}/>
+
+      <PageHeader 
+        title = "Send Statecoins"
+        className = "sendStatecoin"
+        icon = {arrow}
+        subText = "statecoins" />
 
       <div className="sendStatecoin content">
         <div className="Body left ">
           <div>
-            <h3 className="subtitle">Select statecoin to send</h3>
-            <span className="sub">Click to select coins below</span>
+            <h3 className = "subtitle" > Select statecoin to send </h3>
+            <span className = "sub" > Click to select coins below </span>
             <CoinsList
               displayDetailsOnClick={false}
               showCoinStatus={true}
@@ -232,26 +221,7 @@ const SendStatecoinPage = () => {
               smallTxtMsg='Statechain Address' />
           </div>
           <div>
-            {/* -- NOT implemented at this stage
-                      <p className="table-title">Use Only:</p>
-                      <table>
-                          <tbody>
-                          <tr>
-                              <td>
-                                  <input
-                                      name="isGoing"
-                                      type="checkbox"
-                                      className="checkbox"
-                                      />
-                              </td>
-                              <td>
-                                  <img src={orange} alt="walletIcon"/>
-                                  <span>UTXO’s with a High Privacy Score <br/> Balance: <b>0.55 BTC</b></span>
-                              </td>
-                          </tr>
-                          </tbody>
-                      </table>
-                      */}
+
 
             <ConfirmPopup onOk={sendButtonCheck} preCheck={checkSend} argsCheck={[dispatch, inputAddr]}>
               <button type="action-btn-normal" 
@@ -265,17 +235,6 @@ const SendStatecoinPage = () => {
         </div>
       </div>
 
-      {/* <div className="Body transferMsg">
-            <h3 className="subtitle">Transfer Message:</h3>
-            <div className="transferMsg scan-trasfermsg">
-              <CopiedButton style={{left: 0, top: -7 }} handleCopy={copyTransferMsgToClipboard}>
-                <img type="button" src={icon2} alt="icon" />
-              </CopiedButton>
-                <span>
-                  {transferMsg3}
-                </span>
-            </div>
-          </div> */}
     </div>
   )
 }

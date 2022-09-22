@@ -33,7 +33,7 @@ width: 38px;
 }
 
 .home-header .selection .filter-options{
-    position: fixed;
+    position: absolute;
     top: auto;
     right: auto;
 }

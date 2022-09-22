@@ -45,7 +45,7 @@ let testing_mode = require("../settings.json").testing_mode;
 
 export const WALLET_MODE = {
   STATECHAIN: "STATECHAIN",
-  LIGHTNING: "LIGHTING"
+  LIGHTNING: "LIGHTNING"
 }
 
 const initialState = {

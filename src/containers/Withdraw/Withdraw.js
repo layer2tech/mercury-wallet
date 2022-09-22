@@ -31,6 +31,7 @@ import Loading from '../../components/Loading/Loading';
 import './Withdraw.css';
 
 import { STATECOIN_STATUS } from '../../wallet';
+import PageHeader from '../PageHeader/PageHeader';
 const WithdrawPage = () => {
   const dispatch = useDispatch();
 
@@ -242,25 +243,13 @@ const WithdrawPage = () => {
       </Modal>
 
       <div className="container">
-          <div className="Body withdraw">
-              <div className="swap-header">
-                  <h2 className="main-header">
-                      <img src={walletIcon} alt="walletIcon"/>
-                      Withdraw Statecoins
-                  </h2>
-                  <div>
-                      <Link className="nav-link" to="/home">
-                          <StdButton
-                              label="Back"
-                              className="Body-button transparent"/>
-                      </Link>
-                  </div>
-              </div>
-              <h3 className="subtitle">
-                  Send statecoins to a Bitcoin address<br/>
-                <b> {fromSatoshi(balance_info.total_balance)} BTC</b> as <b>{balance_info.num_coins}</b> {filterByMsg()}
-              </h3>
-          </div>
+
+          <PageHeader 
+            title = "Withdraw Statecoins"
+            className = "withdraw"
+            icon = {walletIcon}
+            subTitle = "Send statecoins to a Bitcoin address"
+            subText = {filterByMsg()} />
 
           <div className="withdraw content">
               <div className="Body left ">
@@ -275,7 +264,7 @@ const WithdrawPage = () => {
                         refresh = {refreshCoins}
                         render = {forceRender}
                         withdraw/>
-                    </div>
+                  </div>
 
               </div>
               <div className="Body right">

@@ -13,6 +13,7 @@ import {
   callGetPingElectrumms,
   callUpdateSpeedInfo,
   setIntervalIfOnline,
+  WALLET_MODE,
 } from "../../features/WalletDataSlice";
 
 import "./panelConnectivity.css";
@@ -30,6 +31,9 @@ log = new WrappedLogger();
 
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();
+
+  const { walletMode, fee_info, torInfo } = useSelector((state) => state.walletData)
+
   // Arrow down state and url hover state
   const [state, setState] = useState({
     isToggleOn: false,
@@ -38,8 +42,6 @@ const PanelConnectivity = (props) => {
     isBTCHover: false,
   });
 
-  const fee_info = useSelector((state) => state.walletData).fee_info;
-  const torInfo = useSelector((state) => state.walletData).torInfo;
   const [block_height, setBlockHeight] = useState(callGetBlockHeight());
 
   const [server_ping_ms, setServerPingMs] = useState(callGetPingServerms());
@@ -116,6 +118,14 @@ const PanelConnectivity = (props) => {
     };
   }, [torInfo.online]);
 
+  useEffect(() => {
+    // PLACEHOLDER :- CLOSE TAB WITH DATA INFO
+
+    if(state.isToggleOn && (walletMode === WALLET_MODE.LIGHTNING)){
+      setState({isToggleOn: false})
+    }
+  }, [state.isToggleOn, walletMode])
+
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
     let isMounted = true;
@@ -136,34 +146,37 @@ const PanelConnectivity = (props) => {
   }, [block_height, torInfo.online, props.online]);
 
   useEffect(() => {
-    //Displaying connecting spinners
-    let connection_pending = document.getElementsByClassName("checkmark");
+    if( walletMode === WALLET_MODE.STATECHAIN ){
 
-    if (server_connected == null && fee_info?.deposit != null) {
-      setServerConnected(true);
+      //Displaying connecting spinners
+      let connection_pending = document.getElementsByClassName("checkmark");
+  
+      if (server_connected == null && fee_info?.deposit != null) {
+        setServerConnected(true);
+      }
+      //Add spinner for loading connection to Server
+      server_connected === true
+        ? connection_pending[0].classList.add("connected")
+        : connection_pending[0].classList.remove("connected");
+  
+      //Add spinner for loading connection to Swaps
+      if (conductor_connected == null && swap_groups_array?.length != null) {
+        setConductorConnected(true);
+      }
+      if (conductor_connected === true) {
+        connection_pending[1].classList.add("connected");
+      } else {
+        connection_pending[1].classList.remove("connected");
+      }
+  
+      //Add spinner for loading connection to Electrum server
+      if (electrum_connected == null && block_height != null && block_height >= 0) {
+        setElectrumConnected(true);
+      }
+      electrum_connected === true
+        ? connection_pending[2].classList.add("connected")
+        : connection_pending[2].classList.remove("connected");
     }
-    //Add spinner for loading connection to Server
-    server_connected === true
-      ? connection_pending[0].classList.add("connected")
-      : connection_pending[0].classList.remove("connected");
-
-    //Add spinner for loading connection to Swaps
-    if (conductor_connected == null && swap_groups_array?.length != null) {
-      setConductorConnected(true);
-    }
-    if (conductor_connected === true) {
-      connection_pending[1].classList.add("connected");
-    } else {
-      connection_pending[1].classList.remove("connected");
-    }
-
-    //Add spinner for loading connection to Electrum server
-    if (electrum_connected == null && block_height != null && block_height >= 0) {
-      setElectrumConnected(true);
-    }
-    electrum_connected === true
-      ? connection_pending[2].classList.add("connected")
-      : connection_pending[2].classList.remove("connected");
   }, [
     fee_info.deposit,
     swap_groups_array.length,
@@ -217,29 +230,53 @@ const PanelConnectivity = (props) => {
 
   return (
     <div className="Body small accordion connection-wrap">
-      <div className="Collapse">
-        <RadioButton
-          connection="Server"
-          checked={server_connected === true}
-          condition={server_connected === true}
-        />
-        <RadioButton
-          connection="Swaps"
-          checked={conductor_connected === true}
-          condition={conductor_connected === true}
-        />
-        <RadioButton
-          connection="Bitcoin"
-          checked={electrum_connected === true}
-          condition={electrum_connected === true}
-        />
+        {
+          walletMode === WALLET_MODE.STATECHAIN ? (
 
-        <DropdownArrow 
-          isToggleOn = {state.isToggleOn}
-          toggleContent = {toggleContent} />
-      
+            <div className="Collapse">
+              <RadioButton
+                connection="Server"
+                checked={server_connected === true}
+                condition={server_connected === true}
+              />
+              <RadioButton
+                connection="Swaps"
+                checked={conductor_connected === true}
+                condition={conductor_connected === true}
+              />
+              <RadioButton
+                connection="Bitcoin"
+                checked={electrum_connected === true}
+                condition={electrum_connected === true}
+              />
 
-      </div>
+              <DropdownArrow 
+                isToggleOn = {state.isToggleOn}
+                toggleContent = {toggleContent} />   
+
+            </div>
+
+          ) : (
+            <div className="Collapse">
+              <RadioButton
+                connection="Lightning server"
+                checked={true}
+                condition={true}
+              />
+
+              <RadioButton
+                connection="Bitcoin"
+                checked={true}
+                condition={true}
+              />
+
+              <DropdownArrow 
+                isToggleOn = {false}
+                toggleContent = {() => {}} />   
+
+            </div>
+          )
+        }
 
       <div className={state.isToggleOn ? "show" : " hide"}>
         <div className="collapse-content">

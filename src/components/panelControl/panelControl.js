@@ -1,5 +1,6 @@
 'use strict';
 import walletIcon from '../../images/walletIcon.png';
+import statechainIcon from '../../images/statechainIcon.png';
 import lightningLogo from '../../images/lightning_logo.png'
 import minusIcon from '../../images/minus.svg'
 import pluseIcon from '../../images/pluseIcon.png';
@@ -83,7 +84,7 @@ const PanelControl = () => {
 const PANEL_CONTROL_BTC = {
   MainHeader: {
     mainUnit: "BTC",
-    icon: walletIcon
+    icon: statechainIcon
   },
   ActionGroupLeft: [
     {

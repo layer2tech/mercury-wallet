@@ -1,10 +1,4 @@
 'use strict';
-import anon_icon_none from "../../images/table-icon-grey.png";
-import anon_icon_low from "../../images/table-icon-medium.png";
-import anon_icon_high from "../../images/table-icon.png";
-import anon_icon2_none from "../../images/close-grey.png";
-import anon_icon2_low from "../../images/question-mark.png";
-import anon_icon2_high from "../../images/check-grey.png";
 import utx from "../../images/utxo_id.png";
 import time from "../../images/time_left.png";
 import calendar from "../../images/calendar.png";
@@ -12,6 +6,7 @@ import swapNumber from "../../images/swap-number.png";
 import walleticon from "../../images/walletIcon.png";
 import txidIcon from "../../images/txid-icon.png";
 import scAddrIcon from "../../images/sc_address_logo.png";
+import statechainIcon from "../../images/statechainIcon.png";
 import copy_img from "../../images/icon2.png";
 import descripIcon from "../../images/description.png";
 import hashIcon from "../../images/hashtag.png";
@@ -19,7 +14,7 @@ import hexIcon from "../../images/hexagon.png";
 import icon2 from "../../images/icon2.png";
 import React, { useState, useEffect, useCallback } from 'react';
 import ProgressBar from 'react-bootstrap/ProgressBar';
-import { Button, Modal, Spinner } from 'react-bootstrap';
+import { Button, Modal } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import Moment from 'react-moment';
 import { fromSatoshi } from '../../wallet/util';
@@ -70,6 +65,7 @@ import {
 import Coin from "./Coin/Coin";
 import { ACTION } from "../../wallet";
 import {defaultWalletConfig} from '../../containers/Settings/Settings'
+import { coinSort, displayExpiryTime, getPrivacyScoreDesc } from "./CoinFunctionUtils/CoinFunctionUtils";
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -101,35 +97,6 @@ export const SWAP_STATUS_INFO = {
   Phase7: "Phase 7/8: finalizing transfers",
   Phase8: "Phase 8/8: completing swap",
   End: "End",
-}
-
-export const coinSort = (sortCoin) => {
-  return (a, b) => {
-    const conditionalProp = sortCoin?.condition;
-
-    //List coins that are available to swap first.
-    if (conditionalProp === 'swap') {
-      const a_available = ((a.status === STATECOIN_STATUS.AVAILABLE) || (a.ui_swap_status !== null))
-      const b_available = ((b.status === STATECOIN_STATUS.AVAILABLE) || (b.ui_swap_status !== null))
-      if (a_available !== b_available) {
-        return a_available ? -1 : 1
-      }
-    }
-    let compareProp = sortCoin.by;
-    if (compareProp === 'expiry_data') {
-      a = (parseInt(a[compareProp]['months']) * 30) + parseInt(a[compareProp]['days']);
-      b = (parseInt(b[compareProp]['months']) * 30) + parseInt(b[compareProp]['days']);
-    } else {
-      a = a[compareProp];
-      b = b[compareProp];
-    }
-    if (a > b) {
-      return sortCoin.direction ? 1 : -1;
-    } else if (a < b) {
-      return sortCoin.direction ? -1 : 1;
-    }
-    return 0;
-  }
 }
 
 const CoinsList = (props) => {
@@ -189,39 +156,6 @@ const CoinsList = (props) => {
     return coins.filter(coin => coin.status === status);
   }
 
-  const validExpiryTime = (expiry_data) => {
-    let block_height = callGetBlockHeight()
-
-    if (block_height === 0 || expiry_data.block === 0 || !block_height) {
-      // set its actual block to 0 so next time we can return  '--' until an actual block is received
-      expiry_data.blocks = 0;
-      return false;
-    }
-
-    if (expiry_data === -1) {
-      return false
-    }
-
-    return true;
-  }
-
-  const displayExpiryTime = (expiry_data, show_days = false) => {
-    if (validExpiryTime(expiry_data)) {
-      if (show_days && (expiry_data.days % 30) > 0) {
-        return expiry_time_to_string(expiry_data) + " and " + getRemainingDays(expiry_data.days);
-      } else {
-        return expiry_time_to_string(expiry_data);
-      }
-    }
-    return <Spinner animation="border" variant="primary" size='sm'></Spinner>;
-  }
-
-  const getRemainingDays = (numberOfDays) => {
-    let days = Math.floor(numberOfDays % 365 % 30);
-    let daysDisplay = days > 0 ? days + (days === 1 ? " day" : " days") : "";
-    return daysDisplay;
-  }
-
   const getAddress = (shared_key_id) => {
     let coin = initCoins.filter(coin => coin.shared_key_id === shared_key_id)
     if (coin != undefined) {
@@ -230,12 +164,6 @@ const CoinsList = (props) => {
       }
     }
     return null
-  }
-
-
-  // Convert expiry_data to string displaying months or days left
-  const expiry_time_to_string = (expiry_data) => {
-    return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days";
   }
 
   const validCoinData = (coins_data, new_unconfirmed_coins_data) => {
@@ -550,46 +478,6 @@ const CoinsList = (props) => {
     }
   }
 
-  // data to display in privacy related sections
-  const getPrivacyScoreDesc = (coin) => {
-
-    let anon_set = coin?.anon_set ? coin.anon_set : 0
-    let swap_rounds = coin?.swap_rounds ? coin.swap_rounds : 0
-
-    if (coin?.is_deposited) {
-      return {
-        icon1: anon_icon_none,
-        icon2: anon_icon2_none,
-        score_desc: "Original",
-        msg: " this statecoin was created in this wallet",
-        rounds: "Original",
-        rounds_msg: " this statecoin was created in this wallet",
-      }
-    }
-
-
-
-    if (anon_set) {
-      return {
-        icon1: anon_icon_high,
-        icon2: anon_icon2_high,
-        score_desc: "Swap set: " + anon_set.toString(),
-        rounds: `Swaps: ${swap_rounds}`,
-        msg: " cumulative swap group size",
-        rounds_msg: " number of swap rounds completed",
-      }
-    }
-
-    return {
-      icon1: anon_icon_low,
-      icon2: anon_icon2_high,
-      score_desc: "Swap set: " + anon_set.toString(),
-      rounds: `Swaps: ${swap_rounds}`,
-      msg: " cumulative swap group size",
-      rounds_msg: " number of swap rounds completed",
-    }
-  }
-
   // Filter coins by status
   if (filterBy === 'default') {
     all_coins_data = all_coins_data.filter(coin => (coin.status !== STATECOIN_STATUS.WITHDRAWN && coin.status !== STATECOIN_STATUS.IN_TRANSFER))
@@ -701,7 +589,6 @@ const CoinsList = (props) => {
             expiredToWithdrawn={expiredToWithdrawn}
             isMainPage={isMainPage} // all clear - boolean
             coin_data={item} // FIX
-            getPrivacyScoreDesc={getPrivacyScoreDesc} // FIX
             swap={props.swap} // All clear - boolean
             send={props.send} // All clear - boolean
             withdraw={props.withdraw} // All clear - boolean
@@ -712,12 +599,10 @@ const CoinsList = (props) => {
             setCoinDetails={props.setCoinDetails} // Check 
             handleSetCoinDetails={handleSetCoinDetails}
             handleOpenCoinDetails={handleOpenCoinDetails}
-            filterBy={filterBy}
             getAddress={getAddress}
-            displayExpiryTime={displayExpiryTime}
             handleAutoSwap={handleAutoSwap}
             render={props.render ? (props.render) : null}
-            balance_info={balance_info}
+
           />
         )
       })}
@@ -790,7 +675,7 @@ const CoinsList = (props) => {
                 <div>
 
                   <div className='item'>
-                    <img src={scAddrIcon} className="sc-address-icon" alt="icon" />
+                    <img src={statechainIcon} className="sc-address-icon" alt="icon" />
                     <div className="block">
                       <span>Statecoin Address</span>
                       {
@@ -802,7 +687,7 @@ const CoinsList = (props) => {
                   </div>
 
                   <div className="item">
-                    <img src={utx} alt="icon" />
+                    <img src={utx} alt="icon" className="utxo" />
                     <div className="block">
                       <span>UTXO ID</span>
                       <span><button className='coinURLButton' onClick={() => onClickTXID(showCoinDetails.coin.funding_txid)}><div className='coinURLText'>{showCoinDetails.coin.funding_txid}:{showCoinDetails.coin.funding_vout}</div></button></span>
@@ -811,7 +696,7 @@ const CoinsList = (props) => {
 
                   <div className="item expiry-time">
                     <div className="expiry-time-wrap">
-                      <img src={time} alt="icon" />
+                      <img src={time} alt="icon" className="time" />
                       <div className="block">
                         <span>
                           Time Left Until Expiry
@@ -853,7 +738,7 @@ const CoinsList = (props) => {
                   </div>
 
                   <div className="item">
-                    <img src={calendar} alt="icon" />
+                    <img src={calendar} alt="icon" className="calendar" />
                     <div className="block">
                       <span>Date Created</span>
                       <Moment format="MM.DD.YYYY">
@@ -866,7 +751,7 @@ const CoinsList = (props) => {
                   </div>
 
                   <div className="item">
-                    <img src={showCoinDetails.coin.privacy_data.icon1} alt="icon" />
+                    <img src={showCoinDetails.coin.privacy_data.icon1} alt="icon" className="privacy" />
 
                     <div className="block">
                       <span>Privacy Score</span>
@@ -874,7 +759,7 @@ const CoinsList = (props) => {
                     </div>
                   </div>
                   <div className="item">
-                    <img src={swapNumber} alt="icon" />
+                    <img src={swapNumber} alt="icon" className="swap" />
                     <div className="block">
                       <span>Number of Swaps Rounds</span>
                       <span>
@@ -891,7 +776,7 @@ const CoinsList = (props) => {
               (
                 <div>
                   <div className="item tx_hex">
-                    <img src={hexIcon} alt="hexagon" />
+                    <img src={hexIcon} alt="hexagon" className="hex" />
                     <div className="block">
                       <span>Transaction Hex</span>
                       <span>
@@ -909,7 +794,7 @@ const CoinsList = (props) => {
                     </div>
                   </div>
                   <div className="item">
-                    <img src={hashIcon} alt="hashtag" />
+                    <img src={hashIcon} alt="hashtag" className="hash" />
                     <div className="block">
                       <span>Withdrawal TXID</span>
                       <div className="txhex-container">
@@ -930,7 +815,7 @@ const CoinsList = (props) => {
               )
               :
               (<div className="item">
-                <img src={descripIcon} alt="description-icon" />
+                <img src={descripIcon} alt="description-icon" className="description"/>
                 <div className="block">
                   <span>Description</span>
                   <CoinDescription

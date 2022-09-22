@@ -494,7 +494,8 @@ p.short{
 
 .coin-status-or-txid .sc-address-icon{
   height: 16px;
-  width:16px
+  width:16px;
+  filter: grayscale(100%) invert(100%);
 }
 
 .sort-filter{
@@ -516,8 +517,25 @@ div.lower.coin-details-modal > div:first-child >div:first-child{
 }
 
 .modal-body .item img.sc-address-icon{
-  height: 29px;
-  width: 29px;
+  height: 36px;
+  width: 36px;
+}
+.modal-body .item img.time,
+.modal-body .item img.calendar,
+.modal-body .item img.privacy,
+.modal-body .item img.swap{
+  height: 36px;
+  width: 36px;
+}
+
+.modal-body .item img.utxo{
+  height: 32px;
+  width: 32px;
+}
+
+.modal-body .item img.description{
+  height: 30px;
+  width: 30px;
 }
 
 .coin-details-modal .modal-body .item.expiry-time {

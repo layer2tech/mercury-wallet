@@ -1,6 +1,7 @@
 'use strict';
 import './MenuPopUp.css';
 
+
 const MenuPopUp = ({openMenu, setOpenMenu, selected, 
     handleChange, options, title }) => {
 
