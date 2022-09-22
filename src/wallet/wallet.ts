@@ -77,6 +77,7 @@ import { Mutex } from "async-mutex";
 import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from 'semaphore-async-await';
+import { setProgressComplete, setProgress } from "../features/WalletDataSlice";
 
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
 const swapSemaphore = new Semaphore(MAX_SWAP_SEMAPHORE_COUNT);
@@ -574,14 +575,19 @@ export class Wallet {
   }
 
   // Load wallet JSON from store
-  static async load(wallet_name: string, password: string, testing_mode: boolean) {
+  static load(wallet_name: string, password: string, testing_mode: boolean, dispatch: any) {
+    const progressTitle = "Loading wallet";
+    if (dispatch) { dispatch(setProgress({ msg: 0, title: progressTitle })) }
     let store = new Storage(`wallets/${wallet_name}/config`);
     // Fetch decrypted wallet json
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
+    if (dispatch) { dispatch(setProgress({ msg: 30, title: progressTitle })) }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
-    wallet.setActive();
+    if (dispatch) { dispatch(setProgress({ msg: 50, title: progressTitle })) }
     wallet.initActivityLogItems(10);
+    wallet.setActive();
+    if (dispatch) { dispatch(setProgressComplete("")) }
     return wallet;
   }
 
@@ -589,9 +595,12 @@ export class Wallet {
   static async loadFromBackup(
     wallet_json: any,
     password: string,
-    testing_mode: boolean
+    testing_mode: boolean,
+    dispatch: any
   ) {
     if (!wallet_json) throw Error("Something went wrong with backup file!");
+    const progressTitle = "Loading wallet from backup";
+    if (dispatch) { dispatch(setProgress({ msg: 0, title: progressTitle })) }
     // Decrypt mnemonic
     try {
       wallet_json.mnemonic = decryptAES(wallet_json.mnemonic, password);
@@ -599,11 +608,16 @@ export class Wallet {
       throw Error("Incorrect password.");
     }
     wallet_json.password = password;
+    if (dispatch) { dispatch(setProgress({ msg: 5, title: progressTitle })) }
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    if (dispatch) { dispatch(setProgress({ msg: 30, title: progressTitle })) }
     await wallet.save();
+    if (dispatch) { dispatch(setProgress({ msg: 50, title: progressTitle })) }
     wallet.storage.loadStatecoins(wallet);
+    if (dispatch) { dispatch(setProgress({ msg: 70, title: progressTitle })) }
     wallet.initActivityLogItems(10);
     wallet.setActive();
+    if (dispatch) { dispatch(setProgressComplete("")) }
     return wallet;
   }
   // Recover active statecoins from server. Should be used as a last resort only due to privacy leakage.
@@ -823,7 +837,6 @@ export class Wallet {
   }
 
   async importWasm() {
-    console.log("importing wasm...");
     this.wasm = await import("client-wasm");
   }
 
@@ -1081,7 +1094,7 @@ export class Wallet {
   }
 
   // ActivityLog data with relevant Coin data
-  initActivityLogItems(depth: number) {
+  async initActivityLogItems(depth: number) {
     this.activityLogItems = [];
     const itemsIn = this.activity.getItems(depth);
     for (let i in itemsIn) {
@@ -1090,17 +1103,19 @@ export class Wallet {
     }
   }
 
-  addActivityLogItem(item: ActivityLogItem, maxLength?: number) {
+  async addActivityLogItem(item: ActivityLogItem, maxLength?: number) {
     // Maintain the array at it's current length by default
     maxLength = maxLength ? maxLength : this.activityLogItems.length;
-    let coin = this.statecoins.getCoin(item.shared_key_id);
-    if (coin == null) {
+    let coin;
+    if (item.action === "S") {
       try {
         coin = this.getSwappedCoin(item.shared_key_id);
       } catch (err) {
         log.warn(`addActivityLogItem - ${err}`);
         return;
       }
+    } else {
+      coin = this.statecoins.getCoin(item.shared_key_id);
     }
   
     let result = {
@@ -1111,10 +1126,10 @@ export class Wallet {
       funding_txvout: coin ? coin.funding_vout : "",
     };
 
-    if (coin) {
+    if (coin && item.action === "S") {
       const outPoint: OutPoint = { txid: coin.funding_txid, vout: coin.funding_vout };
       // To store the data in the map.
-      this.getSwappedStatecoinsByFundingOutPoint(outPoint, Number.MAX_SAFE_INTEGER);
+      this.getSwappedStatecoinsByFundingOutPoint(outPoint, maxLength);
     }
   
     // Push the result to the front of the items

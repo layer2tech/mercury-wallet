@@ -21,7 +21,7 @@ const ProgressBar = () => {
     return (
         <Modal show={ progress.msg !== "" } className={'progress-modal'}>
                 <div className={"recovery-txt-container"}>
-                    <Loading title = {"Recovering Wallet"} className = {"loading-recovery"}/>
+                    <Loading title = {progress.title} className = {"loading-recovery"}/>
                 </div>
             <div className = "progress-container">
                 <div style={fillerStyles} >

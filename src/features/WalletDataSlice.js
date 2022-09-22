@@ -47,7 +47,7 @@ const initialState = {
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
   warning_dialogue: { key: "", msg: "", seen: false },
-  progress: { active: false, msg: "" },
+  progress: { active: false, msg: "", title: "" },
   balance_info: { total_balance: null, num_coins: null, hidden: false },
   fee_info: { deposit: "NA", withdraw: "NA" },
   ping_swap: null,
@@ -154,8 +154,8 @@ function setBlockHeightCallBack(item) {
 }
 
 // Load wallet from store
-export async function walletLoad(name, password) {
-  wallet = await Wallet.load(name, password, testing_mode);
+export async function walletLoad(name, password, dispatch) {
+  wallet = Wallet.load(name, password, testing_mode, dispatch);
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
@@ -239,17 +239,17 @@ export async function walletFromMnemonic(
     await wallet.saveName();
     dispatch(setProgressComplete({ msg: "" }));
     router.push("/home");
+    dispatch(callInitActivityLogItems(10));
   });
 }
 // Try to decrypt wallet. Throw if invalid password
-export const checkWalletPassword = async (password) => {
-  await Wallet.load(wallet.name, password);
+export const checkWalletPassword = (password) => {
+  Wallet.load(wallet.name, password);
 };
 
 // Create wallet from backup file
-export const walletFromJson = async (wallet_json, password) => {
-  wallet = await Wallet.loadFromBackup(wallet_json, password, testing_mode);
-
+export const walletFromJson = async (wallet_json, password, dispatch) => {
+  wallet = await Wallet.loadFromBackup(wallet_json, password, testing_mode, dispatch);
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
@@ -783,7 +783,12 @@ export const checkSend = (dispatch, inputAddr) => {
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
-
+export const callInitActivityLogItems = createAsyncThunk(
+  "initActivityLogItems",
+  async (n, thunkAPI) => {
+    wallet.initActivityLogItems(n);
+  }
+);
 export const callDepositInit = createAsyncThunk(
   "depositInit",
   async (value, thunkAPI) => {
@@ -1128,7 +1133,7 @@ const WalletSlice = createSlice({
     setProgress(state, action) {
       return {
         ...state,
-        progress: { active: true, msg: action.payload.msg },
+        progress: { active: true, msg: action.payload.msg, title: action.payload.title },
       };
     },
     setNotificationSeen(state, action) {
