@@ -82,7 +82,6 @@ export class Storage {
       delete wallet_json.saveMutex;
       delete wallet_json.activityLogItems;
       delete wallet_json.swappedStatecoinsFundingOutpointMap;
-      delete wallet_json.swappedStatecoinsMap;
 
       // encrypt mnemonic
       wallet_json.mnemonic = encryptAES(
@@ -175,6 +174,8 @@ export class Storage {
       wallet_json[key] = this.store.get(`${wallet_name}.${key}`);
     });
 
+    log.error(`loadStatecoins outer...`);
+
     this.loadStatecoins(wallet_json, load_all);
 
     //Wallet is active on startup
@@ -218,7 +219,8 @@ export class Storage {
     
     let coins_from_obj: StateCoin[] = []; 
     if (coins_obj != null) {
-      coins_from_obj = Object.values(coins_obj);     
+      coins_from_obj = Object.values(coins_obj);      
+      const keys_from_obj = Object.keys(coins_obj);
     }    
     coins = coins_from_obj
     
@@ -322,6 +324,7 @@ export class Storage {
   getSwappedCoinsByOutPoint(wallet_name: string, depth: number, outpoint: OutPoint) {
     let swapped_ids = this.getSwappedIds(wallet_name, outpoint);
 
+    
     if (swapped_ids) {
       swapped_ids = swapped_ids.slice(-depth);
     }

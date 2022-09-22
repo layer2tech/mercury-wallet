@@ -51,7 +51,7 @@ export const recoverCoins = async (wallet: Wallet, gap_limit: number, gap_start:
   while (count < gap_limit) {
     for (let i = 0; i < NUM_KEYS_PER_RECOVERY_ATTEMPT; i++) {
       percentageComplete = Math.floor((wallet.account.chains[0].k) / (Math.ceil(gap_limit / NUM_KEYS_PER_RECOVERY_ATTEMPT) * NUM_KEYS_PER_RECOVERY_ATTEMPT) * 100);
-      dispatch(setProgress({ msg: percentageComplete, title: "Recovering wallet" }));
+      dispatch(setProgress({ msg: percentageComplete }));
 
       let addr = wallet.account.nextChainAddress(0);
       addrs.push(addr);

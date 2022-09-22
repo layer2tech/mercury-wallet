@@ -3,10 +3,7 @@ import React, { useState } from 'react';
 import { Link, useHistory } from "react-router-dom";
 import {useDispatch} from 'react-redux';
 import {Storage} from '../../store';
-import {
-  walletLoad, setError, callGetUnspentStatecoins, setWalletLoaded,
-  callInitActivityLogItems
-} from '../../features/WalletDataSlice';
+import {walletLoad, setError, callGetUnspentStatecoins, setWalletLoaded} from '../../features/WalletDataSlice';
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 import  './LoadWallet.css';
@@ -63,7 +60,7 @@ const LoadWalletPage = (props) => {
 
     if(typeof selectedWallet === 'string' || selectedWallet instanceof String) {
       try { 
-          await walletLoad(selectedWallet, passwordEntered, dispatch) 
+          await walletLoad(selectedWallet, passwordEntered) 
         }
         catch (e) {
           event.preventDefault();
@@ -73,7 +70,7 @@ const LoadWalletPage = (props) => {
       } else { 
         try {
 
-          await walletLoad(selectedWallet.name, passwordEntered, dispatch) }
+          await walletLoad(selectedWallet.name, passwordEntered) }
           catch (e) {
             event.preventDefault();
           dispatch(setError({msg: e.message}));

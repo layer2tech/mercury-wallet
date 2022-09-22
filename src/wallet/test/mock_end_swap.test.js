@@ -30,10 +30,6 @@ beforeEach(() => {
     Swap.mockClear();
 });
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 describe("After Swaps Complete", function () {
     // client side's mock
     let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
@@ -50,7 +46,6 @@ describe("After Swaps Complete", function () {
         );
         expect(wallet.isActive()).toEqual(true);
         wallet_json = wallet.toEncryptedJSON();
-        expect(wallet_json.active).toEqual(true);
         return wallet_json;
     });
 
@@ -85,30 +80,19 @@ describe("After Swaps Complete", function () {
             />
         );
 
-        await sleep(30000)
+        console.log(`click...`)
+        fireEvent(
+            screen.getByText(/FireFunction/i),
+            new MouseEvent("click", {
+                bubbles: true,
+                cancelable: true,
+            })
+        );
 
-        let isPending = false;
-        while (isPending == false) {
-            console.log(`click...`)
-            fireEvent(
-                screen.getByText(/FireFunction/i),
-                new MouseEvent("click", {
-                    bubbles: true,
-                    cancelable: true,
-                })
-            );
-            console.log(`get state...`);
-            const state = store.getState();
-            console.log(`get pending coins...`)
-            const pendingCoins = state.walletData.swapPendingCoins;
-            console.log(`get isPending...`)
-            isPending = pendingCoins.length > 0 ? true : false;
-            console.log(`isPending: ${isPending}`)
-            await sleep(3000)
-        }
-        
-
-        
+        console.log(`get state...`);
+        const state = store.getState();
+        console.log(`get pending coins...`)
+        const pendingCoins = state.walletData.swapPendingCoins;
         console.log(`check pending coins length...`)
         expect(pendingCoins.length).toEqual(1);
         console.log(`expect shared key id...`)
