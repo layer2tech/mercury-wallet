@@ -595,6 +595,7 @@ describe('Wallet', function () {
 
 
       let loaded_wallet_from_backup = await Wallet.loadFromBackup(json_wallet, MOCK_WALLET_PASSWORD, true);
+      loaded_wallet_from_backup.storage.loadStatecoins(loaded_wallet_from_backup);
 
       await loaded_wallet_from_backup.save();
 
@@ -1777,6 +1778,7 @@ describe('Storage 4', () => {
     expect(coins_nodupes.length).toEqual(5);
   
     wallet_10 = await Wallet.loadFromBackup(cloneDeep(wallet_10_json), WALLET_PASSWORD_6, true)
+    wallet_10.storage.loadStatecoins(wallet_10);
 
     const non_swapped_coins_json = wallet_10_json.statecoins.coins.filter((item) => item.status !== "SWAPPED");
     const nsj_arr = non_swapped_coins_json.map((x) => x.shared_key_id);
@@ -1925,7 +1927,8 @@ describe('Storage 5', () => {
     wallet_10_json.name = WALLET_NAME_7_BACKUP;
     //wallet_10_json.password = WALLET_PASSWORD_7
     wallet_10 = await Wallet.loadFromBackup(wallet_10_json, WALLET_PASSWORD_7, true)
-
+    wallet_10.storage.loadStatecoins(wallet_10);
+    
     //Make a coin SWAPPED
     //wallet_10.statecoins.coins[0].status=STATECOIN_STATUS.SWAPPED
 
@@ -2108,6 +2111,7 @@ describe('Storage 6', () => {
     expect(wallet_nocoins_json.name).toEqual(WALLET_NAME_8)
     wallet_nocoins_json.name = WALLET_NAME_8_BACKUP;
     wallet_nocoins = await Wallet.loadFromBackup(wallet_nocoins_json, WALLET_PASSWORD_8, true)
+    wallet_nocoins.storage.loadStatecoins(wallet_nocoins);
 
     await wallet_nocoins.save()
     await wallet_nocoins.saveName()

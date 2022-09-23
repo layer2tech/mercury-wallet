@@ -600,7 +600,6 @@ export class Wallet {
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     await wallet.save();
-    wallet.storage.loadStatecoins(wallet);
     wallet.setActive();
     return wallet;
   }

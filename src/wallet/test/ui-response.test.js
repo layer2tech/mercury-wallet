@@ -57,6 +57,7 @@ async function getWallet() {
     expect(walletJSON.name).toEqual(walletName);
     walletJSON.name = walletNameBackup;
     let walletSave = await Wallet.loadFromBackup(walletJSON, walletPassword, true);
+    walletSave.storage.loadStatecoins(walletSave);
     expect(walletSave.statecoins.coins.length).toEqual(9);
     walletSave.config.min_anon_set = 3;
     walletSave.config.jest_testing_mode = true;
