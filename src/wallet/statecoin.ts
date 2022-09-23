@@ -40,10 +40,14 @@ export class StateCoinList {
     this.coins = [];
   }
 
-  static fromJSON(coins_json: StateCoinList): StateCoinList {
+  static fromJSON(sclist_json: StateCoinList): StateCoinList {
+    return StateCoinList.fromCoinsArray(sclist_json.coins)
+  }
+
+  static fromCoinsArray(coins: StateCoin[]): StateCoinList {
     let statecoinsList = new StateCoinList();
 
-    coins_json.coins.forEach((item: StateCoin) => {
+    coins.forEach((item: StateCoin) => {
       let coin = new StateCoin(item.shared_key_id, item.shared_key);
       coin.wallet_version = "";
 
@@ -621,6 +625,10 @@ export class StateCoin {
     this.swap_transfer_finalized_data = null;
   }
 
+  static fromJSON(statecoin: StateCoin): StateCoin {
+    return StateCoinList.fromCoinsArray([statecoin]).coins[0];    
+  }
+
   setAutoSwap(val: boolean) {
     this.swap_auto = val;
   }
@@ -723,13 +731,13 @@ export class StateCoin {
         `Coin ${this.shared_key_id} is in swap phase 4. Swap must be resumed.`
       );
     if (this.status === STATECOIN_STATUS.AWAITING_SWAP)
-      throw Error("Coin " + this.getTXIdAndOut() + " already in swap pool.");
+      throw Error("Coin " + this?.getTXIdAndOut() + " already in swap pool.");
     if (this.status === STATECOIN_STATUS.IN_SWAP)
       throw Error(
-        "Coin " + this.getTXIdAndOut() + " already involved in swap."
+        "Coin " + this?.getTXIdAndOut() + " already involved in swap."
       );
     if (this.status !== STATECOIN_STATUS.AVAILABLE)
-      throw Error("Coin " + this.getTXIdAndOut() + " not available for swap.");
+      throw Error("Coin " + this?.getTXIdAndOut() + " not available for swap.");
   }
 
   validateResumeSwap() {
@@ -740,9 +748,9 @@ export class StateCoin {
     if (this.swap_status !== SWAP_STATUS.Phase4)
       throw Error(
         "Cannot resume coin " +
-          this.shared_key_id +
-          " - swap status: " +
-          this.swap_status
+        this.shared_key_id +
+        " - swap status: " +
+        this.swap_status
       );
   }
 
@@ -894,7 +902,7 @@ export class StateCoin {
     this.ui_swap_status = null;
     this.clearSwapError();
     if (delete_swap_transfer_finalized_data) {
-      this.swap_transfer_finalized_data = null;  
+      this.swap_transfer_finalized_data = null;
     }
   }
 
@@ -943,4 +951,4 @@ export interface ExpiryData {
   confirmations: number;
 }
 
-export interface InclusionProofSMT {}
+export interface InclusionProofSMT { }

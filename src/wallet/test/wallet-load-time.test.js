@@ -65,6 +65,6 @@ describe('Wallet load time', function () {
         await getWallet();
         const load_time = window.performance.now() - start_time;
         console.log(`wallet load time: ${load_time}`)
-        expect(load_time).toBeLessThanOrEqual(6000);
+        expect(load_time).toBeLessThanOrEqual(10000);
     })
 })

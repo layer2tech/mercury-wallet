@@ -1777,7 +1777,7 @@ describe('Storage 4', () => {
     expect(coins_nodupes.length).toEqual(5);
   
     wallet_10 = await Wallet.loadFromBackup(cloneDeep(wallet_10_json), WALLET_PASSWORD_6, true)
-    
+
     const non_swapped_coins_json = wallet_10_json.statecoins.coins.filter((item) => item.status !== "SWAPPED");
     const nsj_arr = non_swapped_coins_json.map((x) => x.shared_key_id);
     const nsj_set = new Set(nsj_arr);

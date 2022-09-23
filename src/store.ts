@@ -227,8 +227,7 @@ export class Storage {
     
     //Remove duplicates
     coins = Array.from(new Set(coins))
-    wallet.statecoins = new StateCoinList();
-    wallet.statecoins.coins = coins;
+    wallet.statecoins = StateCoinList.fromCoinsArray(coins);
   }
 
   getSwappedCoins(wallet_name: string): StateCoin[] {
@@ -251,14 +250,17 @@ export class Storage {
       log.debug(`${source} not found in storage.`)
       return []
     }
-    return Object.values(sc);
+
+    let sc_list = StateCoinList.fromCoinsArray(Object.values(sc));
+
+    return sc_list.coins;
   }
 
   getSwappedCoin(wallet_name: String, shared_key_id: String): StateCoin {
     const source = `${wallet_name}.swapped_statecoins_obj.${shared_key_id}`;
     let sc = this.store.get(source)
     if (sc === undefined) throw Error("No swapped statecoin with shared key ID " + shared_key_id + " stored.");
-    return sc
+    return StateCoin.fromJSON(sc);
   }
 
   getWalletDecrypted(wallet_name: string, password: string, load_all: boolean = false) {
@@ -306,10 +308,39 @@ export class Storage {
       stored_swapped_sc_obj = {};
     }
 
-    Object.assign(stored_swapped_sc_obj, Object.fromEntries(swapped_sc_map));
-    
+    const swapped_sc_obj = Object.fromEntries(swapped_sc_map)
+    Object.assign(stored_swapped_sc_obj, swapped_sc_obj);
+
+       
+    const swapped_ids_dest= `${wallet_name}.swapped_ids`;
+    let stored_swapped_ids = this.store.get(swapped_ids_dest);
+    if (stored_swapped_ids == null) {
+      stored_swapped_ids = {}
+    }
+
+    Object.entries(swapped_sc_obj).forEach((key_value) => {
+      const sc = key_value[1];
+      const funding_outpoint = { txid: sc.funding_txid, vout: sc.funding_vout }
+      const funding_outpoint_str = `${funding_outpoint.txid}:${funding_outpoint.vout}`
+      let swapped_ids = stored_swapped_ids[funding_outpoint_str];  
+      //Remove duplicates
+      let swapped_ids_set;
+      if (swapped_ids == null) {
+        swapped_ids_set = new Set();
+      } else {
+        swapped_ids_set = new Set(swapped_ids);
+      }
+      swapped_ids_set.add(sc.shared_key_id)
+      swapped_ids = Array.from(swapped_ids_set);
+      stored_swapped_ids[funding_outpoint_str] = swapped_ids;
+      // Delete the coin from the statecoins map if it has been swapped.
+      delete stored_sc_obj[sc.shared_key_id];  
+    })
+
+    //Store the update objects
     this.store.set(sc_dest, stored_sc_obj);
     this.store.set(swapped_sc_dest, stored_swapped_sc_obj);
+    this.store.set(swapped_ids_dest, stored_swapped_ids);
   }
 
   storeWalletActivityLog(wallet_name: string, activity_log: ActivityLog) {

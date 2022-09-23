@@ -420,7 +420,7 @@ export class Wallet {
         json_wallet.account,
         config
       );
-      
+
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
       new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity);
 
@@ -1099,7 +1099,7 @@ export class Wallet {
         return;
       }
     }
-  
+
     let result = {
       date: item.date,
       action: item.action,
@@ -1113,16 +1113,16 @@ export class Wallet {
       // To store the data in the map.
       this.getSwappedStatecoinsByFundingOutPoint(outPoint, maxLength);
     }
-  
+
     // Push the result to the front of the items
     this.activityLogItems.unshift(result);
     // Remove the last items if greater than max length
     while (this.activityLogItems.length > maxLength) {
-      let popped = this.activityLogItems.pop();     
+      let popped = this.activityLogItems.pop();
       if (popped.funding_txid && popped.funding_txvout) {
         const popped_outpoint = { txid: popped.funding_txid, vout: popped.funding_txvout };
         this.swappedStatecoinsFundingOutpointMap.delete(JSON.stringify(popped_outpoint));
-      }      
+      }
     }
   }
 
@@ -1494,8 +1494,8 @@ export class Wallet {
     await this.deleteStateCoin(shared_key_id);
   }
 
-  getStatecoin(shared_key_id: string) {
-    let result = this.statecoins.getCoin(shared_key_id);
+  getStatecoin(shared_key_id: string): StateCoin | undefined {
+    let result: StateCoin | undefined = this.statecoins.getCoin(shared_key_id);
     if (result == null) {
       try {
         result = this.storage.getSwappedCoin(this.name, shared_key_id);

@@ -7,6 +7,9 @@ import { Provider, useDispatch } from 'react-redux';
 import { isWalletLoaded, walletFromJson } from '../../features/WalletDataSlice';
 import { MOCK_WALLET_PASSWORD } from '../wallet';
 
+import Semaphore from 'semaphore-async-await';
+
+export const semaphore = new Semaphore(1);
 
 function render(
     mockStore,
@@ -25,7 +28,8 @@ function render(
 // edit preloaded state to test different state variables
 
 
-const TestComponent = ({wallet_json ,dispatchUsed = false, fn, args = []}) => {
+const TestComponent = ({wallet_json ,dispatchUsed = false, fn, args = [], password = MOCK_WALLET_PASSWORD}) => {
+    semaphore.acquire();
     /*
 
     Mock Component for Testing function that manipulates redux state
@@ -41,11 +45,14 @@ const TestComponent = ({wallet_json ,dispatchUsed = false, fn, args = []}) => {
     */
 
     const dispatch = useDispatch()
-    if(!isWalletLoaded()){
-        walletFromJson(wallet_json, MOCK_WALLET_PASSWORD)
-    }
+    
+    
 
-    const fireEvent = () => {
+    const fireEvent = async () => {
+        if (!isWalletLoaded()) {
+            await walletFromJson(wallet_json, password)
+        }
+        semaphore.release();
         if(dispatchUsed){
             fn(dispatch,...args)
         }
@@ -58,7 +65,6 @@ const TestComponent = ({wallet_json ,dispatchUsed = false, fn, args = []}) => {
         <div className = {'function-tester'} onClick={() => fireEvent()}>FireFunction</div>
     )
 }
-
 
 export default TestComponent
 // re-export everything
