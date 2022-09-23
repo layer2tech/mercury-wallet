@@ -60,18 +60,18 @@ describe("After Swaps Complete", function () {
         //add statecoin to wallet
         let statecoin = wallet_json.statecoins.coins[0];
         expect(statecoin != null).toBe(true);
-        console.log(`${JSON.stringify(statecoin)}`)
+        
         let store = configureStore({ reducer: reducers });
 
         // test redux state before and after handleEndSwap
         // check: if swap_auto = true then the coin should be added to swapPendingGroup
-        console.log(`get swap load...`)
+        
         let swapLoad = store.getState().swapLoad;
 
         statecoin.swap_auto = true;
         // Turn auto swap on for coin
 
-        console.log(`render...`)
+        
         const { renderedObj } = render(
             store,
             <TestComponent
@@ -90,8 +90,8 @@ describe("After Swaps Complete", function () {
         );
 
         let pendingCoinsLength = 0;
-        console.log(`click...`)
-        //while (pendingCoinsLength === 0) {
+        
+        
             fireEvent(
                 screen.getByText(/FireFunction/i),
                 new MouseEvent("click", {
@@ -103,20 +103,20 @@ describe("After Swaps Complete", function () {
         await semaphore.acquire();
         semaphore.release();
         
-            console.log(`get state...`);
+            
             const state = store.getState();
-            console.log(`get pending coins...`)
+            
         
         
             pendingCoinsLength = state.walletData.swapPendingCoins.length;
-        //} 
+        
         const pendingCoins = state.walletData.swapPendingCoins;
-        console.log(`check pending coins length...`)
+        
         expect(pendingCoinsLength).toEqual(1);
-        console.log(`expect shared key id...`)
+        
         expect(pendingCoins[0]).toBe(
             statecoin.shared_key_id
         );
-        console.log(`finished test.`)
+        
     });
 });

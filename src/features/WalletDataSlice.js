@@ -252,9 +252,7 @@ export const checkWalletPassword = async (password) => {
 
 // Create wallet from backup file
 export const walletFromJson = async (wallet_json, password) => {
-  console.log('walletFromJson - loadFromBackup...')
   wallet = await Wallet.loadFromBackup(wallet_json, password, testing_mode);
-  console.log('walletFromJson - loadFromBackup finished.')
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
@@ -549,8 +547,7 @@ export const handleEndSwap = (
   if (statecoin === undefined || statecoin === null) {
     statecoin = selectedCoin;
   }
-  console.log(`handleEndSwap -statecoin: ${JSON.stringify(statecoin)}`)
-  console.log(`handleEndSwap -statecoin.getTXIdAndOut(): ${statecoin.getTXIdAndOut()}`)
+  
   if (res.payload === null) {
     dispatch(
         setNotification({

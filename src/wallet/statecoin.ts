@@ -68,7 +68,6 @@ export class StateCoinList {
         let tx_backup = new Transaction();
         tx_backup.version = tx_backup_any.version;
         tx_backup.locktime = tx_backup_any.locktime;
-        try{
         if (tx_backup_any.ins.length > 0) {
           tx_backup.addInput(
             Buffer.from(tx_backup_any.ins[0].hash),
@@ -91,10 +90,6 @@ export class StateCoinList {
             Buffer.from(tx_backup_any.outs[1].script),
             tx_backup_any.outs[1].value
           );
-          }
-        } catch (err) {
-          console.log(`Error rebuilding tx_backup: ${JSON.stringify(tx_backup)} - error: ${err}`);
-          throw err;
         }
         item.tx_backup = tx_backup;
       }
@@ -105,32 +100,27 @@ export class StateCoinList {
         let tx_cpfp = new Transaction();
         tx_cpfp.version = tx_cpfp_any.version;
         tx_cpfp.locktime = tx_cpfp_any.locktime;
-        try {
-          if (tx_cpfp_any.ins.length > 0) {
-            tx_cpfp.addInput(
-              Buffer.from(tx_cpfp_any.ins[0].hash),
-              tx_cpfp_any.ins[0].index,
-              tx_cpfp_any.ins[0].sequence
-            );
-            if (tx_cpfp_any.ins[0].witness.length > 0) {
-              tx_cpfp.ins[0].witness = [
-                Buffer.from(tx_cpfp_any.ins[0].witness[0]),
-                Buffer.from(tx_cpfp_any.ins[0].witness[1]),
-              ];
-            }
+        if (tx_cpfp_any.ins.length > 0) {
+          tx_cpfp.addInput(
+            Buffer.from(tx_cpfp_any.ins[0].hash),
+            tx_cpfp_any.ins[0].index,
+            tx_cpfp_any.ins[0].sequence
+          );
+          if (tx_cpfp_any.ins[0].witness.length > 0) {
+            tx_cpfp.ins[0].witness = [
+              Buffer.from(tx_cpfp_any.ins[0].witness[0]),
+              Buffer.from(tx_cpfp_any.ins[0].witness[1]),
+            ];
           }
-          if (tx_cpfp_any.outs.length > 0) {
-            tx_cpfp.addOutput(
-              Buffer.from(tx_cpfp_any.outs[0].script),
-              tx_cpfp_any.outs[0].value
-            );
-          }
-        } catch (err) {
-            console.log(`Error rebuilding tx_cpfp: ${JSON.stringify(tx_cpfp)} - error: ${err}`);
-            throw err;
-          }
+        }
+        if (tx_cpfp_any.outs.length > 0) {
+          tx_cpfp.addOutput(
+            Buffer.from(tx_cpfp_any.outs[0].script),
+            tx_cpfp_any.outs[0].value
+          );
+        }
         item.tx_cpfp = tx_cpfp;
-      } 
+      }
       if (!replca) statecoinsList.coins.push(Object.assign(coin, item));
     });
     return statecoinsList;
