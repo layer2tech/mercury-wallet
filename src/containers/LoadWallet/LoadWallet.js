@@ -3,7 +3,10 @@ import React, { useState } from 'react';
 import { Link, useHistory } from "react-router-dom";
 import {useDispatch} from 'react-redux';
 import {Storage} from '../../store';
-import {walletLoad, setError, callGetUnspentStatecoins, setWalletLoaded} from '../../features/WalletDataSlice';
+import {
+  walletLoad, setError, callGetUnspentStatecoins,
+  setWalletLoaded, initActivityLogItems
+} from '../../features/WalletDataSlice';
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 import  './LoadWallet.css';
@@ -78,7 +81,7 @@ const LoadWalletPage = (props) => {
         }
     }
     checkForCoinsHealth();
-    wallet.initActivityLogItems(10);
+    initActivityLogItems();
     dispatch(setWalletLoaded({loaded: true}));
     history.push('/home')
   }

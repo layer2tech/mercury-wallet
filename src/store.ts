@@ -100,6 +100,7 @@ export class Storage {
       // Store statecoins individually by key
       const statecoins = wallet_json.statecoins;
       wallet_json.statecoins = new StateCoinList();
+     
       if (statecoins != null) {
         this.storeWalletStateCoinsList(wallet_json.name, statecoins);
       }
@@ -280,9 +281,35 @@ export class Storage {
   }
 
   storeWalletStateCoinsArray(wallet_name: string, statecoins: StateCoin[]) {
+    let swapped_sc_map = new Map<string, StateCoin>();
+    let sc_map = new Map<string, StateCoin>();
+    
     statecoins.forEach((coin: StateCoin) => {
-      this.storeWalletStateCoin(wallet_name, coin);
+      if (coin.status === "SWAPPED") {
+        swapped_sc_map.set(coin.shared_key_id, coin);
+      } else {
+        sc_map.set(coin.shared_key_id, coin);
+      }
     });
+
+    const sc_dest = `${wallet_name}.statecoins_obj`;
+    let stored_sc_obj = this.store.get(sc_dest);
+    if (stored_sc_obj == null) {
+      stored_sc_obj = {};
+    }
+
+    Object.assign(stored_sc_obj, Object.fromEntries(sc_map));
+
+    const swapped_sc_dest = `${wallet_name}.swapped_statecoins_obj`;
+    let stored_swapped_sc_obj = this.store.get(swapped_sc_dest);
+    if (stored_swapped_sc_obj == null) {
+      stored_swapped_sc_obj = {};
+    }
+
+    Object.assign(stored_swapped_sc_obj, Object.fromEntries(swapped_sc_map));
+    
+    this.store.set(sc_dest, stored_sc_obj);
+    this.store.set(swapped_sc_dest, stored_swapped_sc_obj);
   }
 
   storeWalletActivityLog(wallet_name: string, activity_log: ActivityLog) {

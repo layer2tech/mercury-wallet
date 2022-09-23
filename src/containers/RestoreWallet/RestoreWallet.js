@@ -3,7 +3,10 @@ import React, { useState, useEffect } from 'react';
 import {withRouter} from "react-router-dom";
 import {useDispatch} from 'react-redux';
 import {Tabs, Tab} from 'react-bootstrap';
-import {setError, walletFromMnemonic, walletFromJson, setWalletLoaded} from '../../features/WalletDataSlice'
+import {
+  setError, walletFromMnemonic, walletFromJson,
+  setWalletLoaded, initActivityLogItems
+} from '../../features/WalletDataSlice'
 import {CreateWizardForm} from '../../components'
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg"
@@ -119,7 +122,7 @@ const RestoreWalletPage = (props) => {
         if(!wallet) {
           throw new Error("error loading wallet")
         } else {
-          wallet.initActivityLogItems(10);
+          initActivityLogItems();
           props.history.push('/home');
           dispatch(setWalletLoaded({loaded: true}));
         }

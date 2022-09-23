@@ -52,25 +52,25 @@ let walletNameBackup = `${walletName}_backup`;
 let walletPassword = "aaaaaaaa";
 
 async function getWallet() {
-    console.log('getWallet()...')
     clearWallet(walletNameBackup);
     let walletJSON = LARGE_WALLET;
     expect(walletJSON.name).toEqual(walletName);
     walletJSON.name = walletNameBackup;
     let walletSave = await Wallet.loadFromBackup(walletJSON, walletPassword, true);
+    expect(walletSave.statecoins.coins.length).toEqual(9);
     walletSave.config.min_anon_set = 3;
     walletSave.config.jest_testing_mode = true;
     walletSave.http_client = http_mock;
     walletSave.electrum_mock = electrum_mock;
     walletSave.wasm = wasm_mock;
-    expect(walletSave.statecoins.coins.length).toEqual(9);
     await walletSave.save();
     await walletSave.saveName();
+    expect(walletSave.statecoins.coins.length).toEqual(9);
     console.log('getWallet() finished.')
     return walletSave;
 }
 
-async function testClickTime(buttonName, outTime, backTime) {
+async function testClickTime(buttonName) {
     // Go to receive page within the time limit
     await waitFor(() => expect(screen.getByText(buttonName)).toBeTruthy(), { timeout: 10000 });
     expect(() => screen.getByText('Back')).toThrow();
@@ -78,15 +78,34 @@ async function testClickTime(buttonName, outTime, backTime) {
     const click_time = window.performance.now();
     fireEvent.click(screen.getByText(buttonName));
     await waitFor(() => expect(screen.getByText('Back')).toBeTruthy(), { timeout: 10000 });
-    expect(window.performance.now() - click_time).toBeLessThanOrEqual(outTime);
+    let outTime = window.performance.now() - click_time;
 
     // Go back to the home page within the time limit
     expect(screen.getByText('Back')).toBeTruthy();
     const click_back_time = window.performance.now();
     fireEvent.click(screen.getByText('Back'));
     await waitFor(() => expect(screen.getByText(buttonName)).toBeTruthy(), { timeout: 10000 });
-    expect(window.performance.now() - click_back_time).toBeLessThanOrEqual(backTime);
+    let backTime = window.performance.now() - click_back_time
     expect(() => screen.getByText('Back')).toThrow();
+    return { outTime: outTime, backTime: backTime };
+}
+
+async function testClickTimeAverage(buttonName) {
+    let outTotal = 0;
+    let backTotal = 0;
+    const n_iter = 10;
+    const timeLimitOut = 250;
+    const timeLimitBack = 250;
+    for (let i = 0; i < n_iter; i++) {
+        let result = await testClickTime(buttonName, timeLimitOut, timeLimitBack);
+        outTotal += result.outTime;
+        backTotal += result.backTime;
+    }
+    const outAverage = outTotal / n_iter;
+    const backAverage = backTotal / n_iter;
+    console.log(`testClickTimeAverage- result: ${buttonName}: ${outAverage}: ${backAverage}`)
+    expect(outAverage).toBeLessThan(timeLimitOut);
+    expect(backAverage).toBeLessThan(timeLimitBack);
 }
 
 describe('UI performance', function () {
@@ -145,17 +164,10 @@ describe('UI performance', function () {
         await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {timeout: 10000});
         await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {timeout: 10000});
                 
-        const timeLimit1 = 350;
-        const timeLimit2 = 350;
-
-        for (let i = 0; i < 1; i++){
-            await testClickTime('Receive', timeLimit1, timeLimit2);
-            await testClickTime('Send',timeLimit1, timeLimit2);       
-            await testClickTime('Swap', timeLimit1, timeLimit2);       
-            await testClickTime('Deposit', timeLimit1, timeLimit2);       
-            await testClickTime('Withdraw', timeLimit1, timeLimit2);           
-        }
-        
-    })
-    
+        await testClickTimeAverage('Receive');
+        await testClickTimeAverage('Send');
+        await testClickTimeAverage('Swap');
+        await testClickTimeAverage('Deposit');
+        await testClickTimeAverage('Withdraw');         
+    })    
 })

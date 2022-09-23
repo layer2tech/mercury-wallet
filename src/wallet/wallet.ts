@@ -598,12 +598,9 @@ export class Wallet {
       throw Error("Incorrect password.");
     }
     wallet_json.password = password;
-    console.log('loadFromBackup - Wallet.fromJSON...')
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     await wallet.save();
-    console.log('loadFromBackup - loadStatecoins...')
     wallet.storage.loadStatecoins(wallet);
-    console.log('loadFromBackup - loadStatecoins finished.')
     wallet.setActive();
     return wallet;
   }
@@ -824,7 +821,6 @@ export class Wallet {
   }
 
   async importWasm() {
-    console.log("importing wasm...");
     this.wasm = await import("client-wasm");
   }
 
