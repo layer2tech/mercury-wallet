@@ -32,16 +32,25 @@ const Header = (props) => {
   let isDarkMode = localStorage.getItem("dark_mode");
   const activeDarkMode = async () => {
     isDarkMode = document.body.classList.contains("dark-mode");
-    if (isDarkMode) {
-      //await window.darkMode.off()
-      document.body.classList.remove("dark-mode");
-      document.querySelector(".App").classList.remove("dark-mode");
+    if (document.documentElement.classList.contains("light")) {
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark-mode");
+      localStorage.setItem("dark_mode", "1");
+    } else if (document.documentElement.classList.contains("dark-mode")) {
+      document.documentElement.classList.remove("dark-mode");
+      document.documentElement.classList.add("light");
       localStorage.removeItem("dark_mode");
     } else {
-      //await window.darkMode.on()
-      document.body.classList.add("dark-mode");
-      document.querySelector(".App").classList.add("dark-mode");
-      localStorage.setItem("dark_mode", "1");
+      if (
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      ) {
+        document.documentElement.classList.add("dark-mode");
+        localStorage.setItem("dark_mode", "1");
+      } else {
+        document.documentElement.classList.add("light");
+        localStorage.removeItem("dark_mode");
+      }
     }
   };
 
