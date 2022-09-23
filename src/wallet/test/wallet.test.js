@@ -1851,7 +1851,6 @@ describe('Storage 4', () => {
       return !skipped_keys.has(key);
     }).
       forEach((key) => {
-        console.log(key)
         expect(JSON.stringify(wallet_10_mod[key])).toEqual(JSON.stringify(wallet_10_json_mod[key]))
       })
   

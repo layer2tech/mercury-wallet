@@ -78,6 +78,7 @@ const LoadWalletPage = (props) => {
         }
     }
     checkForCoinsHealth();
+    wallet.initActivityLogItems(10);
     dispatch(setWalletLoaded({loaded: true}));
     history.push('/home')
   }

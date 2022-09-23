@@ -581,7 +581,6 @@ export class Wallet {
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     wallet.setActive();
-    wallet.initActivityLogItems(10);
     return wallet;
   }
 
@@ -599,10 +598,12 @@ export class Wallet {
       throw Error("Incorrect password.");
     }
     wallet_json.password = password;
+    console.log('loadFromBackup - Wallet.fromJSON...')
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
     await wallet.save();
+    console.log('loadFromBackup - loadStatecoins...')
     wallet.storage.loadStatecoins(wallet);
-    wallet.initActivityLogItems(10);
+    console.log('loadFromBackup - loadStatecoins finished.')
     wallet.setActive();
     return wallet;
   }

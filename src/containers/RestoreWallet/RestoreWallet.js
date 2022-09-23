@@ -119,6 +119,7 @@ const RestoreWalletPage = (props) => {
         if(!wallet) {
           throw new Error("error loading wallet")
         } else {
+          wallet.initActivityLogItems(10);
           props.history.push('/home');
           dispatch(setWalletLoaded({loaded: true}));
         }

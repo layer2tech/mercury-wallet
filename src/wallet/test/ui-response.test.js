@@ -52,6 +52,7 @@ let walletNameBackup = `${walletName}_backup`;
 let walletPassword = "aaaaaaaa";
 
 async function getWallet() {
+    console.log('getWallet()...')
     clearWallet(walletNameBackup);
     let walletJSON = LARGE_WALLET;
     expect(walletJSON.name).toEqual(walletName);
@@ -65,6 +66,8 @@ async function getWallet() {
     expect(walletSave.statecoins.coins.length).toEqual(9);
     await walletSave.save();
     await walletSave.saveName();
+    console.log('getWallet() finished.')
+    return walletSave;
 }
 
 async function testClickTime(buttonName, outTime, backTime) {
@@ -89,10 +92,15 @@ async function testClickTime(buttonName, outTime, backTime) {
 describe('UI performance', function () {
 
     beforeAll(async () => {
-        await getWallet();
-        let store = configureStore({reducer: reducers, });
+        let wallet = await getWallet();
+        return wallet;
+    })
+
+    beforeEach(() => {
+        let store = configureStore({ reducer: reducers, });
         const { renderedObj } = render(store, <App />, true);
     })
+
 
     afterAll(() => {
         //Cleanup
@@ -140,7 +148,7 @@ describe('UI performance', function () {
         const timeLimit1 = 350;
         const timeLimit2 = 350;
 
-        for (let i = 0; i < 10; i++){
+        for (let i = 0; i < 1; i++){
             await testClickTime('Receive', timeLimit1, timeLimit2);
             await testClickTime('Send',timeLimit1, timeLimit2);       
             await testClickTime('Swap', timeLimit1, timeLimit2);       

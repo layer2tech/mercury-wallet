@@ -249,7 +249,6 @@ export const checkWalletPassword = async (password) => {
 // Create wallet from backup file
 export const walletFromJson = async (wallet_json, password) => {
   wallet = await Wallet.loadFromBackup(wallet_json, password, testing_mode);
-
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
