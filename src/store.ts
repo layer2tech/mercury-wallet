@@ -97,13 +97,11 @@ export class Storage {
       // remove active status flag
       delete wallet_json.active;
 
-      // Store statecoins individually by key
-      const statecoins = wallet_json.statecoins;
-      wallet_json.statecoins = new StateCoinList();
-     
-      if (statecoins != null) {
-        this.storeWalletStateCoinsList(wallet_json.name, statecoins);
+      // Store statecoins individually by key           
+      if (wallet_json.statecoins != null) {
+        this.storeWalletStateCoinsList(wallet_json.name, wallet_json.statecoins);
       }
+      
       Object.keys(wallet_json).forEach((key) => {
         //Functions cannot be stored.
         if (typeof wallet_json[key] !== "function") {
@@ -224,7 +222,6 @@ export class Storage {
     let coins_from_obj: StateCoin[] = []; 
     if (coins_obj != null) {
       coins_from_obj = Object.values(coins_obj);      
-      const keys_from_obj = Object.keys(coins_obj);
     }    
     coins = coins_from_obj
     
