@@ -524,6 +524,7 @@ export class Wallet {
     } finally {
       release();
     }
+    await this.saveItem("statecoins");
   }
 
   async deleteStateCoin(shared_key_id: string) {
@@ -533,6 +534,7 @@ export class Wallet {
     } finally {
       release();
     }
+    await this.saveItem("statecoins");
   }
 
   // Update coins list in storage. Store in file as JSON string.
@@ -543,6 +545,7 @@ export class Wallet {
     } finally {
       release();
     }
+    await this.saveItem("statecoins");
   }
 
   async saveActivityLog() {
@@ -1449,6 +1452,8 @@ export class Wallet {
   // Add confirmed Statecoin to wallet
   addStatecoin(statecoin: StateCoin, action: string | undefined): boolean {
     if (this.statecoins.addCoin(statecoin)) {
+      //For backwards compatibility, save this.statecoins
+      this.saveItem("statecoins");
       this.storage.storeWalletStateCoin(this.name, statecoin);
       if (action != null) {
         const new_item = this.activity.addItem(statecoin.shared_key_id, action);
@@ -1474,6 +1479,8 @@ export class Wallet {
       }
       this.storage.storeWalletActivityLog(this.name, this.activity);
     });
+    //For backwards compatibility, save this.statecoins
+    this.saveItem("statecoins");
   }
 
   addStatecoinFromValues(
@@ -1496,7 +1503,8 @@ export class Wallet {
   }
   async removeStatecoin(shared_key_id: string) {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode);
-    await this.deleteStateCoin(shared_key_id);
+    await this.saveItem("statecoins");
+    await this.deleteStateCoin(shared_key_id);    
   }
 
   getStatecoin(shared_key_id: string): StateCoin | undefined {

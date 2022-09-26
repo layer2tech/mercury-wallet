@@ -2043,6 +2043,7 @@ describe('Storage 5', () => {
 
     // Remove statecoin and confirm that statecoin is removed from file
     await loaded_wallet.removeStatecoin(s1[0].shared_key_id)
+    expect(loaded_wallet.statecoins.coins.length).toBe(s1.length - 1)
     loaded_wallet = await Wallet.load(WALLET_NAME_7_BACKUP, WALLET_PASSWORD_7, true)
     expect(loaded_wallet.statecoins.coins.length).toBe(s1.length - 1)
 
@@ -2089,11 +2090,18 @@ describe('Storage 5', () => {
     expect(finalUtxos).toEqual(finalUtxosExpected)
 
     //Remove all coins, save and reload wallet
-    let all_coins = cloneDeep(loaded_wallet.statecoins.getAllCoins())
-    await all_coins.forEach((coin) => {
-      loaded_wallet.removeStatecoin(coin.shared_key_id)
-    })
+    let all_coins = cloneDeep(loaded_wallet.statecoins.coins);
+    expect(all_coins.length).toEqual(6);
+
+    for (let i in all_coins) {
+      const coin = all_coins[i];
+      let length = loaded_wallet.statecoins.coins.length;
+      await loaded_wallet.removeStatecoin(coin.shared_key_id);
+      expect(loaded_wallet.statecoins.coins.length).toEqual(length - 1);
+    }
+    expect(loaded_wallet.statecoins.coins.length).toEqual(0);
     await loaded_wallet.save();
+    expect(loaded_wallet.statecoins.coins.length).toEqual(0);
     loaded_wallet = await Wallet.load(WALLET_NAME_7_BACKUP, WALLET_PASSWORD_7, true);
     // Expect zero -length arrays for statecoin data
     expect(loaded_wallet.statecoins.coins.length).toEqual(0);
