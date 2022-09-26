@@ -266,7 +266,7 @@ const ReceiveStatecoinPage = () => {
   };
 
   return (
-    <div className="container ">
+    <div label="Receive container" className="container">
       <div className="Body receiveStatecoin">
         <div className="swap-header">
           <h2 className="WalletAmount">
@@ -346,7 +346,7 @@ const ReceiveStatecoinPage = () => {
                   }
                 >
                   <div className="address-index">
-                    <div className="address">
+                    <div data-testid="Receive address" className="address">
                       <img type="button" src={icon2} alt="icon" />
                       <span className="rec-address">
                         {rec_sce_addr.sce_address}
@@ -406,6 +406,7 @@ const ReceiveStatecoinPage = () => {
               </div>
               <div className="btns-container">
                 <button
+                  label="Generate address"
                   type="button"
                   className="Body-button transparent"
                   onClick={genAddrButtonAction}

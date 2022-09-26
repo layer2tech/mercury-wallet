@@ -48,9 +48,9 @@ const PanelConnectivity = (props) => {
     callGetPingElectrumms()
   );
 
-  const [server_connected, setServerConnected] = useState(null);
-  const [conductor_connected, setConductorConnected] = useState(null);
-  const [electrum_connected, setElectrumConnected] = useState(null);
+  const [server_connected, setServerConnected] = useState(callGetPingServerms() ? true : false);
+  const [conductor_connected, setConductorConnected] = useState(callGetPingConductorms() ? true : false);
+  const [electrum_connected, setElectrumConnected] = useState(callGetPingElectrumms() ? true : false);
 
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data
