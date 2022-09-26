@@ -24,6 +24,7 @@ function createWindow() {
       nodeIntegration: true,
       backgroundThrottling: false,
       enableRemoteModule: true,
+      nodeIntegrationInWorker: true
     }
   });
     // Open the DevTools.

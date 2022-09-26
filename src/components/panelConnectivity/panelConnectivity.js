@@ -20,6 +20,13 @@ import "../index.css";
 import RadioButton from "./RadioButton";
 import { defaultWalletConfig } from "../../containers/Settings/Settings";
 import WrappedLogger from "../../wrapped_logger";
+import workerThread from '../../worker';
+
+function loadWebWorker(worker) {
+  const code = worker.toString();
+  const blob = new Blob(['('+code+')()'], {type: 'text/javascript'});
+  return new Worker(URL.createObjectURL(blob));
+}
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -97,6 +104,7 @@ const PanelConnectivity = (props) => {
       setElectrumConnected(electrum_ping_ms_new != null);
     }
   };
+  
 
   // every 30s check speed
   useEffect(() => {
@@ -114,22 +122,46 @@ const PanelConnectivity = (props) => {
     };
   }, [torInfo.online]);
 
+//   function workerThread () {
+//     onmessage = function (e) {
+//       // let interval = setIntervalIfOnline(
+//       //   getBlockHeight,
+//       //   torInfo.online,
+//       //   5000,
+//       //   isMounted
+//       // );
+
+//       console.log('YES CALLED')
+//     }
+// }
+
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
     let isMounted = true;
 
-    let interval = setIntervalIfOnline(
-      getBlockHeight,
-      torInfo.online,
-      5000,
-      isMounted
-    );
+    const worker = loadWebWorker(workerThread);
+
+    worker.postMessage( 5000 );
+
+    worker.onmessage = e => {
+
+      if(torInfo.online && isMounted){
+        getBlockHeight();
+      }
+
+    };
+
+    // let interval = setIntervalIfOnline(
+    //   getBlockHeight,
+    //   torInfo.online,
+    //   5000,
+    //   isMounted
+    // );
 
     return () => {
       isMounted = false;
       //if (interval != null) {
-      clearInterval(interval);
-      //}
+      worker.terminate();
     };
   }, [block_height, torInfo.online, props.online]);
 
@@ -172,6 +204,7 @@ const PanelConnectivity = (props) => {
   ]);
 
   const getBlockHeight = async () => {
+    console.log('called')
     if (torInfo.online !== true) {
       // setBlockHeight(null)
       return;
