@@ -107,7 +107,7 @@ export class Storage {
       Object.keys(wallet_json).forEach((key) => {
         //Functions cannot be stored.
         if (typeof wallet_json[key] !== "function") {
-          this.store.set(`${wallet_json.name}.${key}`, wallet_json[key]);  
+          this.saveKey(wallet_json, key);
         }        
       })
   
@@ -145,6 +145,9 @@ export class Storage {
     }
   }
 
+  saveKey(wallet_json: any, key: string) {
+    this.store.set(`${wallet_json.name}.${key}`, wallet_json[key]);  
+  }
 
   setName(wallet_name: Object) {
     this.store.set(wallet_name, { name: wallet_name });

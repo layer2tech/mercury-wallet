@@ -800,7 +800,13 @@ export class Wallet {
   // Gen new SCEAddress and set in this.current_sce_addr
   async newSEAddress() {
     this.current_sce_addr = await this.genSEAddress();
-    await this.save();
+    this.saveItem("current_sce_addr");
+  }
+
+  async saveItem(key: string) {
+    let release = await this.saveMutex.acquire();
+    this.storage.saveKey(this, key);
+    release();
   }
 
   // Initialise and return Wasm object.
