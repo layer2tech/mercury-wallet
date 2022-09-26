@@ -71,40 +71,32 @@ async function getWallet() {
     return walletSave;
 }
 
-async function testClickTime(buttonName) {
+async function testClickTime(toButtonName, fromButtonName='Back') {
     // Go to receive page within the time limit
-    await waitFor(() => expect(screen.getByText(buttonName)).toBeTruthy(), { timeout: 10000 });
-    expect(() => screen.getByText('Back')).toThrow();
+    await waitFor(() => expect(screen.getByText(toButtonName)).toBeTruthy(), { timeout: 10000 });
+    expect(() => screen.getByText(fromButtonName)).toThrow();
     //let now = window.performance.now();
     const click_time = window.performance.now();
-    fireEvent.click(screen.getByText(buttonName));
-    await waitFor(() => expect(screen.getByText('Back')).toBeTruthy(), { timeout: 10000 });
-    let outTime = window.performance.now() - click_time;
-
-    // Go back to the home page within the time limit
-    expect(screen.getByText('Back')).toBeTruthy();
-    const click_back_time = window.performance.now();
-    fireEvent.click(screen.getByText('Back'));
-    await waitFor(() => expect(screen.getByText(buttonName)).toBeTruthy(), { timeout: 10000 });
-    let backTime = window.performance.now() - click_back_time
-    expect(() => screen.getByText('Back')).toThrow();
-    return { outTime: outTime, backTime: backTime };
+    fireEvent.click(screen.getByText(toButtonName));
+    await waitFor(() => expect(screen.getByText(fromButtonName)).toBeTruthy(), { timeout: 10000 });
+    return window.performance.now() - click_time;
 }
 
-async function testClickTimeAverage(buttonName) {
+async function testClickTimeAverage(toButtonName, fromButtonName='Back') {
     let outTotal = 0;
     let backTotal = 0;
     const n_iter = 10;
     const timeLimitOut = 250;
     const timeLimitBack = 250;
     for (let i = 0; i < n_iter; i++) {
-        let result = await testClickTime(buttonName, timeLimitOut, timeLimitBack);
-        outTotal += result.outTime;
-        backTotal += result.backTime;
+        let result = await testClickTime(toButtonName, fromButtonName);
+        outTotal += result;
+        result = await testClickTime(fromButtonName, toButtonName);
+        backTotal += result;
     }
     const outAverage = outTotal / n_iter;
     const backAverage = backTotal / n_iter;
-    console.log(`testClickTimeAverage- result: ${buttonName}: ${outAverage}: ${backAverage}`)
+    console.log(`testClickTimeAverage- result: ${toButtonName}: ${outAverage}: ${backAverage}`)
     expect(outAverage).toBeLessThan(timeLimitOut);
     expect(backAverage).toBeLessThan(timeLimitBack);
 }
@@ -165,6 +157,25 @@ describe('UI performance', function () {
         await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {timeout: 10000});
         await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {timeout: 10000});
                 
+        //Test address generation
+        await testClickTime('Receive');
+        await waitFor(() => expect(screen.getByText('Back')).toBeTruthy(), { timeout: 10000 });
+        await waitFor(() => expect(screen.getByText('GENERATE ADDRESS')).toBeTruthy(), { timeout: 10000 });
+
+        //Get current address and measure time for new address to be generated and displayed
+        const address1 = screen.getByTestId("Receive address").textContent;
+        console.log(`Receive address 1: ${address1}`)
+        const click_time = window.performance.now();
+        fireEvent.click(screen.getByText('GENERATE ADDRESS'));
+        await waitFor(() => expect(screen.getByTestId("Receive address").textContent).not.
+            toEqual(address1), { timeout: 10000 });
+        expect(window.performance.now() - click_time).toBeLessThan(250);
+        
+        //Go back to main page
+        await testClickTime('Back');
+        await waitFor(() => expect(screen.getByText('Receive')).toBeTruthy(), { timeout: 10000 });
+
+        
         await testClickTimeAverage('Receive');
         await testClickTimeAverage('Send');
         await testClickTimeAverage('Swap');
