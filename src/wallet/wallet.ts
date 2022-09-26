@@ -1544,7 +1544,8 @@ export class Wallet {
         statecoin.status === STATECOIN_STATUS.SWAPLIMIT ||
         statecoin.status === STATECOIN_STATUS.EXPIRED ||
         statecoin.status === STATECOIN_STATUS.SWAPPED ||
-        statecoin.status === STATECOIN_STATUS.DUPLICATE)
+        statecoin.status === STATECOIN_STATUS.DUPLICATE ||
+        statecoin.status === STATECOIN_STATUS.WITHDRAWN)
     ) {
       this.statecoins.setCoinSpent(id, action, transfer_msg);
       const new_item = this.activity.addItem(id, action);
