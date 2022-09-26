@@ -176,8 +176,6 @@ export class Storage {
       wallet_json[key] = this.store.get(`${wallet_name}.${key}`);
     });
 
-    log.error(`loadStatecoins outer...`);
-
     this.loadStatecoins(wallet_json, load_all);
 
     //Wallet is active on startup
@@ -204,7 +202,7 @@ export class Storage {
       this.storeWalletStateCoinsArray(wallet_name, coins_all);
     }
 
-    this.store.delete(`${wallet_name}.statecoins.coins`);
+    //Keep statecoins.coins for backwards compatibility
     this.store.delete(`${wallet_name}.statecoins.swapped_coins`);
 
     //Read the statecoin data stored in objects
