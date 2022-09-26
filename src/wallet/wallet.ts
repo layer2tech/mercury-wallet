@@ -800,7 +800,7 @@ export class Wallet {
   // Gen new SCEAddress and set in this.current_sce_addr
   async newSEAddress() {
     this.current_sce_addr = await this.genSEAddress();
-    this.saveItem("current_sce_addr");
+    await this.saveItem("current_sce_addr");
   }
 
   async saveItem(key: string) {

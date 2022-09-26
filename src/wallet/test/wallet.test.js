@@ -336,6 +336,20 @@ describe('Wallet', function () {
       expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
       expect(wallet_mod_str).toEqual(loaded_wallet_str)
     });
+
+    test('saveItem saves an item in the wallet store', async function () {
+      const key = "test_item_key";
+      const value = "test_item_value";
+      const dest = `${wallet.name}.${key}`;
+      expect(wallet.storage.store.get(dest)).toEqual(undefined);
+      wallet[key] = value;
+      await wallet.saveItem(key);
+      expect(wallet.storage.store.get(dest)).toEqual(value);
+      delete wallet[key];
+      wallet.storage.store.delete(dest);
+      expect(wallet.storage.store.get(dest)).toEqual(undefined);
+      expect(wallet[key]).toEqual(undefined);
+    })
   });
 
   describe('segwitAddr', function () {
