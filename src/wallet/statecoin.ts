@@ -269,17 +269,18 @@ export class StateCoinList {
 
   // Remove coin from list
   removeCoin(shared_key_id: string, testing_mode: boolean) {
-    this.coins = this.coins.filter((item) => {
+    const new_coins = this.coins.filter((item) => {
       if (item.shared_key_id !== shared_key_id) {
-        return item;
+        return true;
       }
       if (item.status !== STATECOIN_STATUS.INITIALISED && !testing_mode) {
         throw Error(
           "Should not remove coin whose funding transaction has been broadcast."
         );
       }
-      return null;
+      return false;
     });
+    this.coins = new_coins;
   }
 
   setAutoSwap(shared_key_id: string) {
