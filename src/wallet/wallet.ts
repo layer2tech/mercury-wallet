@@ -986,6 +986,7 @@ export class Wallet {
           this.depositConfirm(statecoin.shared_key_id);
         } else {
           statecoin.setConfirmed();
+          this.saveStateCoin(statecoin);
         }
         // update in wallet
         this.statecoins.setCoinFinalized(statecoin);
@@ -2130,6 +2131,7 @@ export class Wallet {
         statecoin.ui_swap_status = null;
         statecoin.clearSwapError();
         statecoin.swap_transfer_finalized_data = null;
+        this.saveStateCoin(statecoin);
       }
     });
   }
