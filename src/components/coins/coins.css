@@ -198,7 +198,7 @@ p.short{
 
 
 .CoinPanel .coin-status-or-txid {
-  width: 30%;
+  /* width: 30%; */
   display: flex;
   justify-content: flex-end;
 }
@@ -257,6 +257,11 @@ p.short{
 }
 .CoinFundingTxid img {
   margin-right: 5px;
+}
+.CoinFundingTxid img.awaiting-icon {
+  margin-right: 5px;
+  height: 18px;
+  width: 18px;
 }
 
 .modal .item {

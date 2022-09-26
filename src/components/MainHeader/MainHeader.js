@@ -105,14 +105,15 @@ const MainHeader = ({mainUnit, icon})=> {
                         HIDDEN : 
                         ( walletMode === WALLET_MODE.STATECHAIN ?
                             (`${balance_info.num_coins} `) :
-                            "2 " )} 
-                        {/*  PLACEHOLDER TOTAL LN CHANNEL NUMBER OPEN */}
+                            "2 " )}
+                            {/* Placeholder total channel number  */}
+                        
                         {walletMode === WALLET_MODE.STATECHAIN ? 
                             (filterByMsg()) :
                             ("Open channels")}</span>
                     </div>
                 </div>
-                <div className='selection'>
+                {/* <div className='selection'>
                     < DropdownArrow 
                         isToggleOn = {isToggleOn}
                         toggleContent = {toggleContent} />
@@ -123,7 +124,7 @@ const MainHeader = ({mainUnit, icon})=> {
                         handleChange = {handleFilter}
                         options = {WALLET_OPTIONS}
                         title = {"Select Wallet"}/>
-                </div>
+                </div> */}
             </div>
                 <div className="ActionGroupLeft">
                     <CheckBox

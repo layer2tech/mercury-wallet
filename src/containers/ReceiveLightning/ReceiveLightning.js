@@ -65,8 +65,15 @@ const ReceiveLightning = () => {
                       <AddressInput
                         inputAddr={inputAddr}
                         onChange={onInputAddrChange}
+                        placeholder='Enter amount'
+                        smallTxtMsg='Amount Sats'/>
+                  </div>
+                  <div>
+                      <AddressInput
+                        inputAddr={inputAddr}
+                        onChange={onInputAddrChange}
                         placeholder='Description'
-                        smallTxtMsg='Your Bitcoin Address'/>
+                        smallTxtMsg='Description'/>
                   </div>
 
                   <div>

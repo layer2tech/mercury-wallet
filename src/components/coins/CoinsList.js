@@ -122,11 +122,6 @@ const CoinsList = (props) => {
   const handleCloseWarningDetails = () => setShowWarningDetails(false);
   const [currentTXID, setCurrentTXID] = useState(null);
 
-
-
-
-
-
   // deleting coins
   const [currentItem, setCurrentItem] = useState(null);
   const [showConfirmCoinAction, setConfirmCoinAction] = useState({show: false, msg: ""});

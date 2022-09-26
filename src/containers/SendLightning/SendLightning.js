@@ -67,12 +67,13 @@ const SendLightning = () => {
                         inputAddr={inputAddr}
                         onChange={onInputAddrChange}
                         placeholder='Lightning address'
-                        smallTxtMsg='Your Bitcoin Address'/>
+                        smallTxtMsg='Your LN Invoice'/>
                   </div>
 
                   <div>
                     <button type="button" className={`btn withdraw-button `} >
-                        Send Lightning </button>
+                      Pay
+                    </button>
                   </div>
               </div>
           </div>

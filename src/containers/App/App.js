@@ -13,6 +13,7 @@ import './AppDarkMode.css';
 import WithdrawLightning from '../WithdrawLigtning/WithdrawLightning';
 import SendLightning from '../SendLightning/SendLightning';
 import ReceiveLightning from '../ReceiveLightning/ReceiveLightning';
+import DepositLightning from '../DepositLightning/DepositLightning';
 
 const App = () => {
   // State tell header whether wallet is loaded: home is Home page
@@ -80,6 +81,7 @@ const App = () => {
         <Route path="/settings" exact component={() => <SettingsPage />} />
         <Route path="/help" exact component={() => <HelpPage />} />
         <Route path="/deposit" exact component={() => <DepositPage />} />
+        <Route path="/deposit_ln" exact component={() => <DepositLightning />} />
         <Route path="/withdraw" exact component={() => <WithdrawPage />} />
         <Route path="/withdraw_ln" exact component={() => <WithdrawLightning />} />
         <Route path="/swap_statecoin" exact component={() => <SwapPage />} />
