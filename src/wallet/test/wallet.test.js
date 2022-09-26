@@ -23,6 +23,7 @@ import { WALLET as WALLET_NOCOINS_JSON } from './data/test_wallet_nocoins';
 import { getFeeInfo } from "../mercury/info_api";
 import { callSetStatecoinSpent } from '../../features/WalletDataSlice';
 import { isExportDeclaration } from 'typescript';
+import { assert } from 'console';
 
 let log = require('electron-log');
 let cloneDeep = require('lodash.clonedeep');
@@ -128,7 +129,7 @@ describe('Wallet', function () {
     expect(activity_log_before_add.length).toEqual(activity_log_after_add.length - 1)
   });
 
-  test('resetSwapStates', function () {
+  test('resetSwapStates', async function () {
     // add a statecoin with swap status to 'IN_SWAP'
     let statecoin = new StateCoin("001d2223-7d84-44f1-ba3e-4cd7dd418560", "003ad45a-00b9-449c-a804-aab5530efc90");
     statecoin.proof_key = "aaaaaaaad651cd921fc490a6691f0dd1dcbf725510f1fbd80d7bf7abdfef7fea0e";
@@ -149,7 +150,15 @@ describe('Wallet', function () {
 
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.IN_SWAP)
     // run resetSwapStates code
+    let saveStatecoinSpy = jest.spyOn(wallet, "saveStateCoin");
+    let coins_length = wallet.statecoins.coins.filter((statecoin) => {
+      return statecoin.status === "IN_SWAP" &&
+        statecoin.swap_status !== SWAP_STATUS.Phase4
+    }).length;
+    expect(coins_length).toBeGreaterThan(0);
+    expect(coins_length).not.toEqual(wallet.statecoins.length);
     wallet.resetSwapStates();
+    expect(saveStatecoinSpy).toHaveBeenCalledTimes(coins_length);
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE)
   })
 
@@ -161,7 +170,10 @@ describe('Wallet', function () {
     let list = [statecoin];
     wallet.block_height = 20;
     wallet.addStatecoin(statecoin);
+    let saveStatecoinSpy = jest.spyOn(wallet, "saveStateCoin");
+    expect(saveStatecoinSpy).not.toHaveBeenCalled();
     wallet.checkUnconfirmedCoinsStatus(list);
+    expect(saveStatecoinSpy).not.toHaveBeenCalledTimes(1);
 
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.AVAILABLE)
   });
