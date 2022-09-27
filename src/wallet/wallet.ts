@@ -522,6 +522,8 @@ export class Wallet {
     const release = await this.saveMutex.acquire();
     try {
       this.storage.storeWalletStateCoin(this.name, statecoin);
+      this.swappedStatecoinsFundingOutpointMap =
+        new Map<string, StateCoin[]>();
     } finally {
       release();
     }
@@ -532,6 +534,8 @@ export class Wallet {
     const release = await this.saveMutex.acquire();
     try {
       this.storage.deleteWalletStateCoin(this.name, shared_key_id);
+      this.swappedStatecoinsFundingOutpointMap =
+        new Map<string, StateCoin[]>();
     } finally {
       release();
     }
@@ -543,6 +547,8 @@ export class Wallet {
     const release = await this.saveMutex.acquire();
     try {
       this.storage.storeWalletStateCoinsList(this.name, this.statecoins);
+      this.swappedStatecoinsFundingOutpointMap =
+        new Map<string, StateCoin[]>();
     } finally {
       release();
     }
@@ -1115,7 +1121,7 @@ export class Wallet {
       value: coin ? coin.value : "",
       funding_txid: coin ? coin.funding_txid : "",
       funding_txvout: coin ? coin.funding_vout : "",
-    };
+    };    
 
     if (coin) {
       const outPoint: OutPoint = { txid: coin.funding_txid, vout: coin.funding_vout };
@@ -1124,9 +1130,7 @@ export class Wallet {
     }
 
     // Push the result to the front of the items
-    console.log(`activityLogItems before: ${JSON.stringify(this.activityLogItems.length)}`)
     this.activityLogItems.unshift(result);
-    console.log(`activityLogItems after: ${JSON.stringify(this.activityLogItems.length)}`)
     // Remove the last items if greater than max length
     while (this.activityLogItems.length > maxLength) {
       let popped = this.activityLogItems.pop();
@@ -1135,7 +1139,6 @@ export class Wallet {
         this.swappedStatecoinsFundingOutpointMap.delete(JSON.stringify(popped_outpoint));
       }
     }
-    console.log(`activityLogItems final: ${JSON.stringify(this.activityLogItems.length)}`)
   }
 
 
@@ -1458,7 +1461,7 @@ export class Wallet {
     if (this.statecoins.addCoin(statecoin)) {
       //For backwards compatibility, save this.statecoins
       this.saveItem("statecoins");
-      this.storage.storeWalletStateCoin(this.name, statecoin);
+      this.saveStateCoin(statecoin);
       if (action != null) {
         const new_item = this.activity.addItem(statecoin.shared_key_id, action);
         this.addActivityLogItem(new_item);
@@ -1476,7 +1479,7 @@ export class Wallet {
   addStatecoins(statecoins: StateCoin[]) {
     statecoins.forEach((statecoin: any) => {
       if (this.statecoins.addCoin(statecoin)) {
-        this.storage.storeWalletStateCoin(this.name, statecoin);
+        this.saveStateCoin(statecoin);
         log.debug("Added Statecoin: " + statecoin.shared_key_id);
       } else {
         log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
