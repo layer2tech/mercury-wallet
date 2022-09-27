@@ -97,6 +97,10 @@ export class Storage {
       // remove active status flag
       delete wallet_json.active;
 
+      // Remove duplicates
+      const coins = new Array(new Set(wallet_json.statecoins.coins));
+      wallet_json.statecoins.coins = coins;
+
       // Store statecoins individually by key           
       if (wallet_json.statecoins != null) {
         this.storeWalletStateCoinsList(wallet_json.name, wallet_json.statecoins);
