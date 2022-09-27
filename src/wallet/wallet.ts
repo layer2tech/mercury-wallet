@@ -78,6 +78,7 @@ import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from 'semaphore-async-await';
 
+export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
 const swapSemaphore = new Semaphore(MAX_SWAP_SEMAPHORE_COUNT);
 const MAX_UPDATE_SWAP_SEMAPHORE_COUNT = 1;
@@ -1086,7 +1087,7 @@ export class Wallet {
   }
 
   // ActivityLog data with relevant Coin data
-  initActivityLogItems(depth: number) {
+  initActivityLogItems(depth: number = MAX_ACTIVITY_LOG_LENGTH) {
     this.activityLogItems = [];
     const itemsIn = this.activity.getItems(depth);
     for (let i in itemsIn) {
@@ -1095,9 +1096,8 @@ export class Wallet {
     }
   }
 
-  addActivityLogItem(item: ActivityLogItem, maxLength?: number) {
-    // Maintain the array at it's current length by default
-    maxLength = maxLength ? maxLength : this.activityLogItems.length;
+  addActivityLogItem(item: ActivityLogItem,
+    maxLength: number = MAX_ACTIVITY_LOG_LENGTH) {
     let coin = this.statecoins.getCoin(item.shared_key_id);
     if (coin == null) {
       try {
@@ -1123,7 +1123,9 @@ export class Wallet {
     }
 
     // Push the result to the front of the items
+    console.log(`activityLogItems before: ${JSON.stringify(this.activityLogItems.length)}`)
     this.activityLogItems.unshift(result);
+    console.log(`activityLogItems after: ${JSON.stringify(this.activityLogItems.length)}`)
     // Remove the last items if greater than max length
     while (this.activityLogItems.length > maxLength) {
       let popped = this.activityLogItems.pop();
@@ -1132,6 +1134,7 @@ export class Wallet {
         this.swappedStatecoinsFundingOutpointMap.delete(JSON.stringify(popped_outpoint));
       }
     }
+    console.log(`activityLogItems final: ${JSON.stringify(this.activityLogItems.length)}`)
   }
 
 

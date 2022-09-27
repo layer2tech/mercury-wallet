@@ -10,13 +10,13 @@ import {
 import {
   segwitAddr, MOCK_WALLET_PASSWORD, MOCK_WALLET_MNEMONIC,
   mnemonic_to_bip32_root_account, getBIP32forBtcAddress, parseBackupData,
-  required_fields, getXpub, MOCK_WALLET_XPUB
+  required_fields, getXpub, MOCK_WALLET_XPUB, MAX_ACTIVITY_LOG_LENGTH
 } from '../wallet';
 import { Transaction, TransactionBuilder } from 'bitcoinjs-lib';
 import { txWithdrawBuild, txBackupBuild, pubKeyTobtcAddr, encryptAES } from '../util';
 import { Storage } from '../../store';
 import { SWAP_STATUS, UI_SWAP_STATUS } from '../swap/swap_utils';
-import { ActivityLog } from '../activity_log';
+import { ActivityLog, ActivityLogItem } from '../activity_log';
 import { WALLET as WALLET_V_0_7_10_JSON } from './data/test_wallet_3cb3c0b4-7679-49dd-8b23-bbc15dd09b67';
 import { WALLET as WALLET_V_0_7_10_JSON_2 } from './data/test_wallet_25485aff-d332-427d-a082-8d0a8c0509a7';
 import { WALLET as WALLET_NOCOINS_JSON } from './data/test_wallet_nocoins';
@@ -99,7 +99,7 @@ describe('Wallet', function () {
     expect(activity_log.length).toBe(2)
     wallet.initActivityLogItems(10);
     activity_log = wallet.getActivityLogItems();
-    expect(activity_log.length).toBeLessThan(10)
+    expect(activity_log.length).toEqual(3)
     for (let i = 0; i < activity_log.length; i++) {
       expect(activity_log[i]).toEqual(expect.objectContaining(
         {
@@ -111,16 +111,25 @@ describe('Wallet', function () {
     }
   });
 
-  test('getActivityLogItems', function () {
-    wallet.initActivityLogItems(0);
+  test('addActivityLogItem', function () {
+    wallet.initActivityLogItems();
     let activity_log = wallet.getActivityLogItems();
-    expect(activity_log.length).toBe(0)
-    wallet.initActivityLogItems(2);
-    activity_log = wallet.getActivityLogItems();
-    expect(activity_log.length).toBe(2)
-    wallet.initActivityLogItems(10);
-    activity_log = wallet.getActivityLogItems();
-    expect(activity_log.length).toBeLessThan(10)
+    const initial_length = 3;
+    expect(activity_log.length).toEqual(initial_length);    
+    const sk_id = wallet.statecoins.coins[0].shared_key_id;
+    //Activity log item is not added for unknown shared key id
+    wallet.addActivityLogItem(new ActivityLogItem("unknown_sk_id", "D"));     
+    expect(wallet.getActivityLogItems().length).toEqual(initial_length);
+    //Activity log grows for known shared key id
+    for (let i = 0; i < MAX_ACTIVITY_LOG_LENGTH - initial_length; i++){
+      expect(wallet.getActivityLogItems().length).toEqual(i + initial_length);
+      wallet.addActivityLogItem(new ActivityLogItem(sk_id, "D"));            
+    }
+    //Length does not exceed the maximum
+    expect(wallet.getActivityLogItems().length).toEqual(MAX_ACTIVITY_LOG_LENGTH);
+    wallet.addActivityLogItem(new ActivityLogItem(sk_id,"D"));
+    expect(wallet.getActivityLogItems().length).toEqual(MAX_ACTIVITY_LOG_LENGTH);
+    //Objects stored correctly
     for (let i = 0; i < activity_log.length; i++) {
       expect(activity_log[i]).toEqual(expect.objectContaining(
         {
@@ -135,13 +144,12 @@ describe('Wallet', function () {
   test('addStatecoin', function () {
     let [coins_before_add, _total_before] = wallet.getUnspentStatecoins()
     wallet.initActivityLogItems(100);
-    let activity_log_before_add = wallet.getActivityLogItems()
+    let activity_log_before_add_length = wallet.getActivityLogItems().length;
     wallet.addStatecoinFromValues("861d2223-7d84-44f1-ba3e-4cd7dd418560", { public: { q: "", p2: "", p1: "", paillier_pub: {}, c_key: "", }, private: "", chain_code: "" }, 0.1, "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41", 0, "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477", ACTION.DEPOSIT)
-    let [coins_after_add, _total_after] = wallet.getUnspentStatecoins()
-    wallet.initActivityLogItems(100);
-    let activity_log_after_add = wallet.getActivityLogItems()
-    expect(coins_before_add.length).toEqual(coins_after_add.length - 1)
-    expect(activity_log_before_add.length).toEqual(activity_log_after_add.length - 1)
+    let [coins_after_add, _total_after] = wallet.getUnspentStatecoins();
+    let activity_log_after_add_length = wallet.getActivityLogItems().length;
+    expect(coins_before_add.length).toEqual(coins_after_add.length - 1);
+    expect(activity_log_before_add_length).toEqual(activity_log_after_add_length - 1)
   });
 
   test('resetSwapStates', function () {
@@ -533,6 +541,7 @@ describe('Wallet', function () {
 
       delete wallet.backupTxUpdateLimiter;
       delete from_json.backupTxUpdateLimiter;
+      wallet.activityLogItems = [];
       from_json.active = true;
 
       expect(JSON.stringify(from_json)).toEqual(JSON.stringify(wallet));
