@@ -521,9 +521,7 @@ export class Wallet {
   async saveStateCoin(statecoin: StateCoin) {
     const release = await this.saveMutex.acquire();
     try {
-      this.storage.storeWalletStateCoin(this.name, statecoin);
-      this.swappedStatecoinsFundingOutpointMap =
-        new Map<string, StateCoin[]>();
+      this.storage.storeWalletStateCoin(this.name, statecoin);      
     } finally {
       release();
     }
@@ -533,9 +531,7 @@ export class Wallet {
   async deleteStateCoin(shared_key_id: string) {
     const release = await this.saveMutex.acquire();
     try {
-      this.storage.deleteWalletStateCoin(this.name, shared_key_id);
-      this.swappedStatecoinsFundingOutpointMap =
-        new Map<string, StateCoin[]>();
+      this.storage.deleteWalletStateCoin(this.name, shared_key_id);      
     } finally {
       release();
     }
@@ -546,9 +542,7 @@ export class Wallet {
   async saveStateCoinsList() {
     const release = await this.saveMutex.acquire();
     try {
-      this.storage.storeWalletStateCoinsList(this.name, this.statecoins);
-      this.swappedStatecoinsFundingOutpointMap =
-        new Map<string, StateCoin[]>();
+      this.storage.storeWalletStateCoinsList(this.name, this.statecoins);      
     } finally {
       release();
     }
@@ -1461,7 +1455,9 @@ export class Wallet {
     if (this.statecoins.addCoin(statecoin)) {
       //For backwards compatibility, save this.statecoins
       this.saveItem("statecoins");
-      this.saveStateCoin(statecoin);
+      this.storage.storeWalletStateCoin(this.name, statecoin);
+      this.swappedStatecoinsFundingOutpointMap =
+        new Map<string, StateCoin[]>();
       if (action != null) {
         const new_item = this.activity.addItem(statecoin.shared_key_id, action);
         this.addActivityLogItem(new_item);
@@ -1479,12 +1475,14 @@ export class Wallet {
   addStatecoins(statecoins: StateCoin[]) {
     statecoins.forEach((statecoin: any) => {
       if (this.statecoins.addCoin(statecoin)) {
-        this.saveStateCoin(statecoin);
+        this.storage.storeWalletStateCoin(this.name, statecoin);
         log.debug("Added Statecoin: " + statecoin.shared_key_id);
       } else {
         log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
       }
       this.storage.storeWalletActivityLog(this.name, this.activity);
+      this.swappedStatecoinsFundingOutpointMap =
+          new Map<string, StateCoin[]>();
     });
     //For backwards compatibility, save this.statecoins
     this.saveItem("statecoins");
