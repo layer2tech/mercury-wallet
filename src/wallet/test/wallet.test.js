@@ -54,7 +54,8 @@ describe('Wallet', function () {
     clearWallet(WALLET_NAME_1)
     clearWallet(WALLET_NAME_1_BACKUP)
     wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_1);
-    wallet.save()
+    await wallet.save()
+    return wallet;
   })
 
   test('wallet default network settings', async function () {
@@ -269,108 +270,7 @@ describe('Wallet', function () {
     });
     await wallet.initCoinLocktime(statecoin);
     expect(statecoin.init_locktime).toEqual(init_block_height + fee_info.initlock);
-  })
-
-
-  describe('Storage 1', function () {
-    test('save/load', async function () {
-      await expect(async () => {
-        clearWallet(WALLET_NAME_1)
-        let _ = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
-      }).rejects.toThrow(`No wallet called ${WALLET_NAME_1} stored.`);
-
-      await wallet.save()
-
-      await expect(async () => {
-        let _ = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD + " ", true);
-      }).rejects.toThrow("Incorrect password.");
-
-      await expect(async () => {
-        let _ = await Wallet.load(WALLET_NAME_1, "", true);
-      }).rejects.toThrow("Incorrect password.");
-
-      delete wallet.backupTxUpdateLimiter;
-
-      let loaded_wallet = await await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
-      delete loaded_wallet.backupTxUpdateLimiter;
-      expect(JSON.stringify(wallet.statecoins)).toEqual(JSON.stringify(loaded_wallet.statecoins))
-      delete loaded_wallet.activityLogItems;
-      delete wallet.activityLogItems;
-      expect(JSON.stringify(wallet.activity.getItems())).toEqual(JSON.stringify(loaded_wallet.activity.getItems()))
-      delete loaded_wallet.activity;
-      delete wallet.activity;
-      expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
-    });
-
-    test('load, edit network settings, save and reload', async function () {
-      //Check the default network settings
-      expect(wallet.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.mainnet_state_entity_endpoint)
-      expect(wallet.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.mainnet_swap_conductor_endpoint)
-      expect(wallet.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.mainnet_block_explorer_endpoint)
-      expect(wallet.config.electrum_config).toEqual(NETWORK_CONFIG.mainnet_electrum_config)
-
-      //Edit the network settings
-      const test_state_entity_endpoint = "test SEE"
-      const test_swap_conductor_endpoint = "test SCE"
-      const test_block_explorer_endpoint = "test BEE"
-      const test_electrum_config = {
-        host: "test EC host",
-        port: 123456789,
-        protocol: "tcp",
-        type: "test EC type"
-      }
-      const test_blocks = wallet.config.electrum_fee_estimation_blocks + 1
-
-      wallet.config.state_entity_endpoint = test_state_entity_endpoint
-      wallet.config.swap_conductor_endpoint = test_swap_conductor_endpoint
-      wallet.config.block_explorer_endpoint = test_block_explorer_endpoint
-      wallet.config.electrum_config = test_electrum_config
-      wallet.config.electrum_fee_estimation_blocks = test_blocks
-
-      //Stop wallet
-      await wallet.stop()
-
-      //Confirm settings are edited
-      delete wallet.backupTxUpdateLimiter;
-      delete wallet.activityLogItems;
-      delete wallet.activity;
-      const wallet_mod_str = JSON.stringify(wallet)
-      const wallet_mod_json = JSON.parse(wallet_mod_str)
-      expect(wallet_mod_json.config.state_entity_endpoint).toEqual(test_state_entity_endpoint)
-      expect(wallet_mod_json.config.swap_conductor_endpoint).toEqual(test_swap_conductor_endpoint)
-      expect(wallet_mod_json.config.block_explorer_endpoint).toEqual(test_block_explorer_endpoint)
-      expect(wallet_mod_json.config.electrum_config).toEqual(test_electrum_config)
-      expect(wallet_mod_json.config.electrum_fee_estimation_blocks).toEqual(test_blocks)
-
-      //Save wallet
-      await wallet.save()
-
-      //Confirm that the reloaded wallet has the altered settings
-      let loaded_wallet = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
-      delete loaded_wallet.backupTxUpdateLimiter;
-      delete loaded_wallet.activityLogItems;
-      delete loaded_wallet.activity;
-      loaded_wallet.stop();
-      const loaded_wallet_str = JSON.stringify(loaded_wallet)
-      const loaded_wallet_json = JSON.parse(loaded_wallet_str)
-      expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
-      expect(wallet_mod_str).toEqual(loaded_wallet_str)
-    });
-
-    test('saveItem saves an item in the wallet store', async function () {
-      const key = "test_item_key";
-      const value = "test_item_value";
-      const dest = `${wallet.name}.${key}`;
-      expect(wallet.storage.store.get(dest)).toEqual(undefined);
-      wallet[key] = value;
-      await wallet.saveItem(key);
-      expect(wallet.storage.store.get(dest)).toEqual(value);
-      delete wallet[key];
-      wallet.storage.store.delete(dest);
-      expect(wallet.storage.store.get(dest)).toEqual(undefined);
-      expect(wallet[key]).toEqual(undefined);
-    })
-  });
+  })  
 
   describe('segwitAddr', function () {
     let publicKeyStr = "027d73eafd92135741e28ce14e240ec2c5fdeb3ae8c123eafad774af277372bb5f"
@@ -518,6 +418,122 @@ describe('Wallet', function () {
     })
   })
 
+  describe('Storage 1', function () {
+    const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
+    const WALLET_NAME_1_BACKUP = WALLET_NAME_1 + "_backup";
+    let wallet
+    beforeEach(async () => {
+      try {
+        clearWallet(WALLET_NAME_1);
+        clearWallet(WALLET_NAME_1_BACKUP);
+      } catch (err) {
+        console.log(`${err}`);
+      }      
+      wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_1);
+      await wallet.save();
+      return wallet;
+    })
+
+    afterAll(() => {
+      try {
+        clearWallet(WALLET_NAME_1);
+        clearWallet(WALLET_NAME_1_BACKUP);
+      } catch (err) {
+        console.log(`${err}`);
+      }
+    })
+
+    test('save/load', async function () {
+      await expect(async () => {
+        let _ = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD + " ", true);
+      }).rejects.toThrow("Incorrect password.");
+
+      await expect(async () => {
+        let _ = await Wallet.load(WALLET_NAME_1, "", true);
+      }).rejects.toThrow("Incorrect password.");
+
+      delete wallet.backupTxUpdateLimiter;
+
+      let loaded_wallet = await await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
+      delete loaded_wallet.backupTxUpdateLimiter;
+      expect(JSON.stringify(wallet.statecoins)).toEqual(JSON.stringify(loaded_wallet.statecoins))
+      delete loaded_wallet.activityLogItems;
+      delete wallet.activityLogItems;
+      expect(JSON.stringify(wallet.activity.getItems())).toEqual(JSON.stringify(loaded_wallet.activity.getItems()))
+      delete loaded_wallet.activity;
+      delete wallet.activity;
+      expect(JSON.stringify(wallet)).toEqual(JSON.stringify(loaded_wallet))
+    });
+
+    test('load, edit network settings, save and reload', async function () {
+      //Check the default network settings
+      expect(wallet.config.state_entity_endpoint).toEqual(NETWORK_CONFIG.mainnet_state_entity_endpoint)
+      expect(wallet.config.swap_conductor_endpoint).toEqual(NETWORK_CONFIG.mainnet_swap_conductor_endpoint)
+      expect(wallet.config.block_explorer_endpoint).toEqual(NETWORK_CONFIG.mainnet_block_explorer_endpoint)
+      expect(wallet.config.electrum_config).toEqual(NETWORK_CONFIG.mainnet_electrum_config)
+
+      //Edit the network settings
+      const test_state_entity_endpoint = "test SEE"
+      const test_swap_conductor_endpoint = "test SCE"
+      const test_block_explorer_endpoint = "test BEE"
+      const test_electrum_config = {
+        host: "test EC host",
+        port: 123456789,
+        protocol: "tcp",
+        type: "test EC type"
+      }
+      const test_blocks = wallet.config.electrum_fee_estimation_blocks + 1
+
+      wallet.config.state_entity_endpoint = test_state_entity_endpoint
+      wallet.config.swap_conductor_endpoint = test_swap_conductor_endpoint
+      wallet.config.block_explorer_endpoint = test_block_explorer_endpoint
+      wallet.config.electrum_config = test_electrum_config
+      wallet.config.electrum_fee_estimation_blocks = test_blocks
+
+      //Stop wallet
+      await wallet.stop()
+
+      //Confirm settings are edited
+      delete wallet.backupTxUpdateLimiter;
+      delete wallet.activityLogItems;
+      delete wallet.activity;
+      const wallet_mod_str = JSON.stringify(wallet)
+      const wallet_mod_json = JSON.parse(wallet_mod_str)
+      expect(wallet_mod_json.config.state_entity_endpoint).toEqual(test_state_entity_endpoint)
+      expect(wallet_mod_json.config.swap_conductor_endpoint).toEqual(test_swap_conductor_endpoint)
+      expect(wallet_mod_json.config.block_explorer_endpoint).toEqual(test_block_explorer_endpoint)
+      expect(wallet_mod_json.config.electrum_config).toEqual(test_electrum_config)
+      expect(wallet_mod_json.config.electrum_fee_estimation_blocks).toEqual(test_blocks)
+
+      //Save wallet
+      await wallet.save()
+
+      //Confirm that the reloaded wallet has the altered settings
+      let loaded_wallet = await Wallet.load(WALLET_NAME_1, MOCK_WALLET_PASSWORD, true)
+      delete loaded_wallet.backupTxUpdateLimiter;
+      delete loaded_wallet.activityLogItems;
+      delete loaded_wallet.activity;
+      loaded_wallet.stop();
+      const loaded_wallet_str = JSON.stringify(loaded_wallet)
+      const loaded_wallet_json = JSON.parse(loaded_wallet_str)
+      expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
+      expect(wallet_mod_str).toEqual(loaded_wallet_str)
+    });
+
+    test('saveItem saves an item in the wallet store', async function () {
+      const key = "test_item_key";
+      const value = "test_item_value";
+      const dest = `${wallet.name}.${key}`;
+      expect(wallet.storage.store.get(dest)).toEqual(undefined);
+      wallet[key] = value;
+      await wallet.saveItem(key);
+      expect(wallet.storage.store.get(dest)).toEqual(value);
+      delete wallet[key];
+      wallet.storage.store.delete(dest);
+      expect(wallet.storage.store.get(dest)).toEqual(undefined);
+      expect(wallet[key]).toEqual(undefined);
+    })
+  });
 
   describe('Storage 2', function () {
     let wallet

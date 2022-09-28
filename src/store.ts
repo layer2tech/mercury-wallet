@@ -95,7 +95,7 @@ export class Storage {
       delete wallet_json.config.testing_mode;
       delete wallet_json.config.jest_testing_mode;
       // remove active status flag
-      delete wallet_json.active;
+      delete wallet_json.active;      
 
       // Store statecoins individually by key           
       if (wallet_json.statecoins != null) {

@@ -517,6 +517,10 @@ export class Wallet {
     }
   }
 
+  clearFundingOutpointMap() {
+    this.swappedStatecoinsFundingOutpointMap.clear();
+  }
+
   // Update/save a single statecoin in storage.
   async saveStateCoin(statecoin: StateCoin) {
     const release = await this.saveMutex.acquire();
@@ -526,16 +530,18 @@ export class Wallet {
       release();
     }
     await this.saveItem("statecoins");
+    this.clearFundingOutpointMap();
   }
 
   async deleteStateCoin(shared_key_id: string) {
     const release = await this.saveMutex.acquire();
     try {
       this.storage.deleteWalletStateCoin(this.name, shared_key_id);
-    } finally {
+    } finally {      
       release();
-    }
+    }    
     await this.saveItem("statecoins");
+    this.clearFundingOutpointMap();
   }
 
   // Update coins list in storage. Store in file as JSON string.
@@ -547,6 +553,7 @@ export class Wallet {
       release();
     }
     await this.saveItem("statecoins");
+    this.clearFundingOutpointMap();
   }
 
   async saveActivityLog() {
@@ -1124,9 +1131,7 @@ export class Wallet {
     }
 
     // Push the result to the front of the items
-    console.log(`activityLogItems before: ${JSON.stringify(this.activityLogItems.length)}`)
     this.activityLogItems.unshift(result);
-    console.log(`activityLogItems after: ${JSON.stringify(this.activityLogItems.length)}`)
     // Remove the last items if greater than max length
     while (this.activityLogItems.length > maxLength) {
       let popped = this.activityLogItems.pop();
@@ -1135,7 +1140,6 @@ export class Wallet {
         this.swappedStatecoinsFundingOutpointMap.delete(JSON.stringify(popped_outpoint));
       }
     }
-    console.log(`activityLogItems final: ${JSON.stringify(this.activityLogItems.length)}`)
   }
 
 
@@ -1454,37 +1458,34 @@ export class Wallet {
   }
 
   // Add confirmed Statecoin to wallet
-  addStatecoin(statecoin: StateCoin, action: string | undefined): boolean {
+  async addStatecoin(statecoin: StateCoin, action: string | undefined): Promise<boolean> {
+    let b_new_coin = false;
     if (this.statecoins.addCoin(statecoin)) {
-      //For backwards compatibility, save this.statecoins
-      this.saveItem("statecoins");
-      this.storage.storeWalletStateCoin(this.name, statecoin);
+      b_new_coin = true;
       if (action != null) {
         const new_item = this.activity.addItem(statecoin.shared_key_id, action);
         this.addActivityLogItem(new_item);
         this.storage.storeWalletActivityLog(this.name, this.activity);
       }
       log.debug("Added Statecoin: " + statecoin.shared_key_id);
-      return true;
     } else {
       log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
-      return false;
     }
+    await this.saveStateCoin(statecoin);
+    return b_new_coin;
   }
 
   // Add confirmed Statecoin to wallet
-  addStatecoins(statecoins: StateCoin[]) {
+  async addStatecoins(statecoins: StateCoin[]) {
     statecoins.forEach((statecoin: any) => {
       if (this.statecoins.addCoin(statecoin)) {
-        this.storage.storeWalletStateCoin(this.name, statecoin);
         log.debug("Added Statecoin: " + statecoin.shared_key_id);
       } else {
         log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
       }
-      this.storage.storeWalletActivityLog(this.name, this.activity);
     });
-    //For backwards compatibility, save this.statecoins
-    this.saveItem("statecoins");
+    await this.saveStateCoinsList();
+    this.storage.storeWalletActivityLog(this.name, this.activity);
   }
 
   addStatecoinFromValues(
@@ -1508,7 +1509,7 @@ export class Wallet {
   async removeStatecoin(shared_key_id: string) {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode);
     await this.saveItem("statecoins");
-    await this.deleteStateCoin(shared_key_id);    
+    await this.deleteStateCoin(shared_key_id);
   }
 
   getStatecoin(shared_key_id: string): StateCoin | undefined {
