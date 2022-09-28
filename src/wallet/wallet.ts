@@ -517,36 +517,43 @@ export class Wallet {
     }
   }
 
+  clearFundingOutpointMap() {
+    this.swappedStatecoinsFundingOutpointMap.clear();
+  }
+
   // Update/save a single statecoin in storage.
   async saveStateCoin(statecoin: StateCoin) {
     const release = await this.saveMutex.acquire();
     try {
-      this.storage.storeWalletStateCoin(this.name, statecoin);      
+      this.storage.storeWalletStateCoin(this.name, statecoin);
     } finally {
       release();
     }
     await this.saveItem("statecoins");
+    this.clearFundingOutpointMap();
   }
 
   async deleteStateCoin(shared_key_id: string) {
     const release = await this.saveMutex.acquire();
     try {
-      this.storage.deleteWalletStateCoin(this.name, shared_key_id);      
-    } finally {
+      this.storage.deleteWalletStateCoin(this.name, shared_key_id);
+    } finally {      
       release();
-    }
+    }    
     await this.saveItem("statecoins");
+    this.clearFundingOutpointMap();
   }
 
   // Update coins list in storage. Store in file as JSON string.
   async saveStateCoinsList() {
     const release = await this.saveMutex.acquire();
     try {
-      this.storage.storeWalletStateCoinsList(this.name, this.statecoins);      
+      this.storage.storeWalletStateCoinsList(this.name, this.statecoins);
     } finally {
       release();
     }
     await this.saveItem("statecoins");
+    this.clearFundingOutpointMap();
   }
 
   async saveActivityLog() {
@@ -1115,7 +1122,7 @@ export class Wallet {
       value: coin ? coin.value : "",
       funding_txid: coin ? coin.funding_txid : "",
       funding_txvout: coin ? coin.funding_vout : "",
-    };    
+    };
 
     if (coin) {
       const outPoint: OutPoint = { txid: coin.funding_txid, vout: coin.funding_vout };
@@ -1451,41 +1458,34 @@ export class Wallet {
   }
 
   // Add confirmed Statecoin to wallet
-  addStatecoin(statecoin: StateCoin, action: string | undefined): boolean {
+  async addStatecoin(statecoin: StateCoin, action: string | undefined): Promise<boolean> {
+    let b_new_coin = false;
     if (this.statecoins.addCoin(statecoin)) {
-      //For backwards compatibility, save this.statecoins
-      this.saveItem("statecoins");
-      this.storage.storeWalletStateCoin(this.name, statecoin);
-      this.swappedStatecoinsFundingOutpointMap =
-        new Map<string, StateCoin[]>();
+      b_new_coin = true;
       if (action != null) {
         const new_item = this.activity.addItem(statecoin.shared_key_id, action);
         this.addActivityLogItem(new_item);
         this.storage.storeWalletActivityLog(this.name, this.activity);
       }
       log.debug("Added Statecoin: " + statecoin.shared_key_id);
-      return true;
     } else {
       log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
-      return false;
     }
+    await this.saveStateCoin(statecoin);
+    return b_new_coin;
   }
 
   // Add confirmed Statecoin to wallet
-  addStatecoins(statecoins: StateCoin[]) {
+  async addStatecoins(statecoins: StateCoin[]) {
     statecoins.forEach((statecoin: any) => {
       if (this.statecoins.addCoin(statecoin)) {
-        this.storage.storeWalletStateCoin(this.name, statecoin);
         log.debug("Added Statecoin: " + statecoin.shared_key_id);
       } else {
         log.debug("Replica, did not add Statecoin: " + statecoin.shared_key_id);
       }
-      this.storage.storeWalletActivityLog(this.name, this.activity);
-      this.swappedStatecoinsFundingOutpointMap =
-          new Map<string, StateCoin[]>();
     });
-    //For backwards compatibility, save this.statecoins
-    this.saveItem("statecoins");
+    await this.saveStateCoinsList();
+    this.storage.storeWalletActivityLog(this.name, this.activity);
   }
 
   addStatecoinFromValues(
@@ -1509,7 +1509,7 @@ export class Wallet {
   async removeStatecoin(shared_key_id: string) {
     this.statecoins.removeCoin(shared_key_id, this.config.testing_mode);
     await this.saveItem("statecoins");
-    await this.deleteStateCoin(shared_key_id);    
+    await this.deleteStateCoin(shared_key_id);
   }
 
   getStatecoin(shared_key_id: string): StateCoin | undefined {
