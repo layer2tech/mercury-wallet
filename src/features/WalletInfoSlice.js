@@ -51,6 +51,26 @@ export const WalletInfoSlice = createSlice({
         },
       };
     },
+    save_statecoinObj: (state, action) => {
+      console.log("SAVE STATECOIN OBJECT !!!!!!!");
+      // check which account this belongs to with its key-value pair
+      const { key, value } = action.payload;
+      // ensure no .statecoins is within the key string
+      var realKey = key.split(".")[0];
+      var currentWallet = state.wallets[realKey];
+      var newWallet = {
+        ...currentWallet,
+        statecoins_obj: { ...currentWallet.statecoins_obj, ...value },
+      };
+
+      return {
+        ...state,
+        wallets: {
+          ...state.wallets,
+          [realKey]: newWallet,
+        },
+      };
+    },
     save_statecoins: (state, action) => {
       // check which account this belongs to with its key-value pair
       const { key, value } = action.payload;
@@ -96,6 +116,7 @@ export const {
   save_wallet,
   save_login,
   save_statecoins,
+  save_statecoinObj,
   delete_statecoins,
   save_activity,
   save_account,

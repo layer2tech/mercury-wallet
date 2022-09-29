@@ -3,6 +3,7 @@ import {
   save_wallet,
   save_login,
   save_statecoins,
+  save_statecoinObj,
   delete_statecoins,
   save_activity,
   save_account,
@@ -39,10 +40,20 @@ export class WrappedStore {
       // wallets.walletName.walletAttribute
       let getWalletAttribute = wallets[walletObject][walletAttribute];
 
-      if (walletAttribute.includes("statecoins")) {
-        return undefined;
+      if (walletAttribute === "statecoins") {
+        return wallets[walletObject].statecoins;
+      } else if (walletAttribute === "statecoins_obj") {
+        console.log("get->statecoins_obj", walletAttribute);
+        console.log("the value was:", value);
+
+        console.log(wallets[walletObject].statecoins_obj);
+
+        return wallets[walletObject].statecoins_obj;
       } else if (getWalletAttribute === {}) {
         return undefined;
+      } else if (walletAttribute === "swapped_statecoins_obj") {
+        console.log("get->swapped_coins_obj...");
+        return wallets[walletObject].swapped_statecoins_obj;
       } else {
         return getWalletAttribute;
       }
@@ -89,6 +100,8 @@ export class WrappedStore {
     // set for activity
     else if (key.includes(".activity")) {
       store.dispatch(save_activity({ key, value }));
+    } else if (key.includes(".statecoins_obj")) {
+      store.dispatch(save_statecoinObj({ key, value }));
     }
     // set for statecoins
     else if (key.includes(".statecoins")) {
