@@ -45,6 +45,8 @@ let clearWallet = (wallet_name) => {
   wallet_store.clearWallet(wallet_name);
 }
 
+jest.mock("../../application/wrappedStore", () => jest.fn());
+
 describe('Wallet', function () {
   let wallet
   const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
