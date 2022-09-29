@@ -52,6 +52,7 @@ async function getWallet() {
     return walletSave;
 }
 
+jest.mock("../../application/wrappedStore", () => jest.fn());
 
 describe('Wallet load time', function () {
 

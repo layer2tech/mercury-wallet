@@ -139,6 +139,8 @@ async function goToMainPage() {
     await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), { timeout: 10000 });
 }
 
+jest.mock("../../application/wrappedStore", () => jest.fn());
+
 describe('UI performance', function () {
 
     beforeAll(async () => {
