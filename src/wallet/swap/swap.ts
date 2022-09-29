@@ -47,7 +47,7 @@ import {
 } from "./swap_utils";
 import { semaphore, MAX_SEMAPHORE_COUNT } from "../http_client";
 import WrappedLogger from "../../wrapped_logger";
-import Semaphore from 'semaphore-async-await';
+import Semaphore from "semaphore-async-await";
 
 const newid_semaphore = new Semaphore(1);
 
@@ -120,7 +120,8 @@ export default class Swap {
   checkStatecoinStatus = (step: SwapStep) => {
     if (!step.statecoin_status()) {
       throw Error(
-        `${step.description()}: invalid statecoin status: ${this.statecoin.status
+        `${step.description()}: invalid statecoin status: ${
+          this.statecoin.status
         }`
       );
     }
@@ -129,7 +130,8 @@ export default class Swap {
   checkSwapStatus = (step: SwapStep) => {
     if (!step.swap_status()) {
       throw Error(
-        `${step.description()}: invalid swap status: ${this.statecoin.swap_status
+        `${step.description()}: invalid swap status: ${
+          this.statecoin.swap_status
         }`
       );
     }
@@ -187,7 +189,8 @@ export default class Swap {
   ) => {
     if (this.n_retries === 0) {
       log.info(
-        `Retrying swap step: ${nextStep.description()} for statecoin: ${this.statecoin.shared_key_id
+        `Retrying swap step: ${nextStep.description()} for statecoin: ${
+          this.statecoin.shared_key_id
         } - reason: ${step_result.message}`
       );
     }
@@ -534,8 +537,8 @@ export default class Swap {
       await this.clients.http_client.new_tor_id();
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase4;
     } catch (err: any) {
-      for (let i = 0; i < count; i++){
-        semaphore.release(); 
+      for (let i = 0; i < count; i++) {
+        semaphore.release();
       }
       newid_semaphore.release();
       return SwapStepResult.Retry(`Error getting new TOR id: ${err}`);
@@ -556,9 +559,9 @@ export default class Swap {
     } catch (err: any) {
       return SwapStepResult.Retry(err.message);
     } finally {
-      for (let i = 0; i < count; i++){
+      for (let i = 0; i < count; i++) {
         semaphore.release();
-      }      
+      }
       newid_semaphore.release();
     }
   };
@@ -855,7 +858,7 @@ export default class Swap {
     } else if (phase !== SWAP_STATUS.Phase4 && phase !== null) {
       throw new Error(
         "Swap error: swapPhase4: Expected swap phase4 or null. Received: " +
-        phase
+          phase
       );
     }
     return SwapStepResult.Ok(
@@ -910,17 +913,17 @@ export default class Swap {
     if (await this.wallet.addStatecoin(statecoin_out, undefined)) {
       log.info(
         "Swap complete for Coin: " +
-        this.statecoin.shared_key_id +
-        ". New statechain_id: " +
-        statecoin_out.shared_key_id
+          this.statecoin.shared_key_id +
+          ". New statechain_id: " +
+          statecoin_out.shared_key_id
       );
     } else {
       log.info(
         "Error on swap complete for coin: " +
-        this.statecoin.shared_key_id +
-        " statechain_id: " +
-        statecoin_out.shared_key_id +
-        "Coin duplicate"
+          this.statecoin.shared_key_id +
+          " statechain_id: " +
+          statecoin_out.shared_key_id +
+          "Coin duplicate"
       );
     }
   };
@@ -936,8 +939,9 @@ export default class Swap {
 
   handleTimeoutError = (err: any) => {
     if (err.message.includes("Transfer batch ended. Timeout")) {
-      let error = new Error(`swap id: ${this.getSwapID().id}, shared key id: ${this.statecoin.shared_key_id
-        } - swap failed at phase 4/4 
+      let error = new Error(`swap id: ${this.getSwapID().id}, shared key id: ${
+        this.statecoin.shared_key_id
+      } - swap failed at phase 4/4 
     due to Error: ${err.message}`);
       throw error;
     }
@@ -961,13 +965,16 @@ export default class Swap {
     }
     if (batch_status?.finalized === true) {
       return SwapStepResult.Retry(
-        `${err_msg}: statecoin ${this.statecoin.shared_key_id
+        `${err_msg}: statecoin ${
+          this.statecoin.shared_key_id
         } - batch transfer complete for swap ID ${this.getSwapID().id}`
       );
     } else {
       return SwapStepResult.Retry(
-        `statecoin ${this.statecoin.shared_key_id
-        } waiting for completion of batch transfer in swap ID ${this.getSwapID().id
+        `statecoin ${
+          this.statecoin.shared_key_id
+        } waiting for completion of batch transfer in swap ID ${
+          this.getSwapID().id
         }`
       );
     }

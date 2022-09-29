@@ -41,7 +41,7 @@ export class StateCoinList {
   }
 
   static fromJSON(sclist_json: StateCoinList): StateCoinList {
-    return StateCoinList.fromCoinsArray(sclist_json.coins)
+    return StateCoinList.fromCoinsArray(sclist_json.coins);
   }
 
   static fromCoinsArray(coins: StateCoin[]): StateCoinList {
@@ -627,7 +627,7 @@ export class StateCoin {
   }
 
   static fromJSON(statecoin: StateCoin): StateCoin {
-    return StateCoinList.fromCoinsArray([statecoin]).coins[0];    
+    return StateCoinList.fromCoinsArray([statecoin]).coins[0];
   }
 
   setAutoSwap(val: boolean) {
@@ -749,9 +749,9 @@ export class StateCoin {
     if (this.swap_status !== SWAP_STATUS.Phase4)
       throw Error(
         "Cannot resume coin " +
-        this.shared_key_id +
-        " - swap status: " +
-        this.swap_status
+          this.shared_key_id +
+          " - swap status: " +
+          this.swap_status
       );
   }
 
@@ -952,4 +952,4 @@ export interface ExpiryData {
   confirmations: number;
 }
 
-export interface InclusionProofSMT { }
+export interface InclusionProofSMT {}
