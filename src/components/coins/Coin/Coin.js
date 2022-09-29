@@ -39,14 +39,12 @@ const Coin = (props) => {
 
   props.coin_data.privacy_data = props.getPrivacyScoreDesc(props.coin_data)
 
-  let activityData = callGetActivityLogItems(10)
-
   const updateTransferDate = (coin_data) => {
 
     if (coin_data.status === STATECOIN_STATUS.IN_TRANSFER) {
       let transferDate = 'DATE'
 
-      let activity_log = callGetActivityLogItems(callGetActivityLog().items.length)
+      let activity_log = callGetActivityLogItems()
       let date = activity_log.filter(e => e.funding_txid === coin_data.funding_txid && e.action === "T" && e.date > coin_data.timestamp)
       // filter Activity Log for txid, transferred icon and activity sent after coin created (timestamp)
 

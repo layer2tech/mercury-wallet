@@ -88,6 +88,8 @@ const checkRetryMessage = (swapStepResult, message) => {
   expect(swapStepResult.message).toEqual(message);
 };
 
+jest.setTimeout(15000);
+
 describe("swapPhase3", () => {
   test("swapPhase3 test 1 - SwapStep1: invalid initial statecoin state", async () => {
     let statecoin = makeTesterStatecoin();

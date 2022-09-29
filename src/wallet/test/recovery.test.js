@@ -36,12 +36,13 @@ import {
 
 import { getFinalizeDataForRecovery } from "../recovery";
 import { configureStore } from "@reduxjs/toolkit";
-import TestComponent, { render } from "./test-utils";
+import TestComponent, { render, semaphore } from "./test-utils";
 import reducers from "../../reducers";
 import { fireEvent, screen } from "@testing-library/react";
 import { encodeSCEAddress } from "../util";
 import { Transaction } from "bitcoinjs-lib";
 import { walletFromMnemonic } from "../../features/WalletDataSlice";
+import { StateCoinList } from "../statecoin"
 
 describe("Recovery", () => {
   // client side's mock
@@ -60,6 +61,13 @@ describe("Recovery", () => {
     await wallet.genProofKey();
     await wallet.genProofKey();
   });
+
+  
+  test("rebuild StateCoinList", () => {
+    let stateCoinListRebuilt = StateCoinList.fromJSON(wallet.statecoins);
+    expect(JSON.stringify(stateCoinListRebuilt)).toEqual(JSON.stringify(wallet.statecoins))
+  })
+
 
   test("run recovery", async () => {
     http_mock.post = jest
@@ -102,12 +110,16 @@ describe("Recovery", () => {
     );
     // Firing this event, fires the function
 
+    await semaphore.acquire();
+
     expect(wallet.statecoins.coins.length).toBe(1);
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);
     expect(wallet.statecoins.coins[0].value).toBe(RECOVERY_DATA[0].amount);
     expect(wallet.statecoins.coins[0].sc_address).toBe(
-      encodeSCEAddress(RECOVERY_DATA[0].proof_key)
+      encodeSCEAddress(RECOVERY_DATA[0].proof_key, wallet)
     );
+
+    semaphore.release();
   });
 });
 
@@ -452,7 +464,7 @@ describe("Recovery withdrawing", () => {
       })
     );
     // Firing this event, fires the function
-
+    await semaphore.acquire();
     expect(wallet.statecoins.coins.length).toBe(2);
     expect(wallet.statecoins.coins[0].status).toBe(
       STATECOIN_STATUS.WITHDRAWING
@@ -509,6 +521,7 @@ describe("Recovery withdrawing", () => {
     expect(
       wallet.statecoins.coins[1].tx_withdraw_broadcast[0].withdraw_msg_2
     ).toEqual({ shared_key_ids: [RECOVERY_DATA_WITHDRAWING[1].shared_key_id] });
+    semaphore.release();
   });
 });
 
@@ -569,7 +582,7 @@ describe("Recovery withdrawing batch", () => {
       })
     );
     // Firing this event, fires the function
-
+    await semaphore.acquire();
     expect(wallet.statecoins.coins.length).toBe(2);
     expect(wallet.statecoins.coins[0].status).toBe(
       STATECOIN_STATUS.WITHDRAWING
@@ -636,6 +649,7 @@ describe("Recovery withdrawing batch", () => {
         RECOVERY_DATA_WITHDRAWING_BATCH[1].shared_key_id,
       ],
     });
+    semaphore.release();
   });
 });
 

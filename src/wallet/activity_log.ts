@@ -3,6 +3,7 @@
 'use strict';
 import { constants } from "perf_hooks";
 import { textSpanIsEmpty } from "typescript";
+let cloneDeep = require("lodash.clonedeep");
 
 
 export class ActivityLog {
@@ -31,8 +32,10 @@ export class ActivityLog {
     return this.items.sort((a,b) => b.date - a.date).slice(0,depth)
   }
 
-  addItem(shared_key_id: string, action: string) {
-    this.items.push(new ActivityLogItem(shared_key_id, action))
+  addItem(shared_key_id: string, action: string): ActivityLogItem {
+    const new_item = new ActivityLogItem(shared_key_id, action);
+    this.items.push(new_item);
+    return cloneDeep(new_item);
   };
 
   getDate(shared_key_id: string, action: string){

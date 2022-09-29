@@ -66,6 +66,8 @@ async function getWallet() {
   return wallet
 }
 
+jest.setTimeout(15000)
+
 describe('Swap init', function () {
   test('swapInit test 1 - invalid proof_key_der', async function () {
     let statecoin = get_statecoin_in();
@@ -142,8 +144,8 @@ describe('Swap init', function () {
     }
 
   })
-
-  test('swapInit test 3 - error registering utxo', async function () {
+  
+  test('swapInit test 3 - error registering utxo', async function () {    
     let statecoin = get_statecoin_in();
     const INIT_STATECOIN = cloneDeep(statecoin)
     const proof_key_der = get_proof_key_der()
