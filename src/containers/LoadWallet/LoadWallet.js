@@ -11,12 +11,13 @@ import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 import  './LoadWallet.css';
 import { STATECOIN_STATUS } from '../../wallet';
-
+import Loading from "../../components/Loading/Loading";
 
 
 
 const LoadWalletPage = (props) => {
   const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState({ loading: false });
   const dispatch = useDispatch();
   const history = useHistory();
   
@@ -59,15 +60,21 @@ const LoadWalletPage = (props) => {
 
   // Attempt to load wallet. If fail display error.
   const onContinueClick = async (event) => {
+    if (loading.loading) {
+      console.log('already loading...')
+      return;
+    }
+    dispatch(setLoading({ loading: true }));
     // check for password
-
+    console.log('button clicked...')
     if(typeof selectedWallet === 'string' || selectedWallet instanceof String) {
       try { 
           await walletLoad(selectedWallet, passwordEntered) 
         }
         catch (e) {
           event.preventDefault();
-          dispatch(setError({msg: e.message}));
+          dispatch(setError({ msg: e.message }));
+          dispatch(setLoading({ loading: false }));
           return
         }
       } else { 
@@ -76,15 +83,30 @@ const LoadWalletPage = (props) => {
           await walletLoad(selectedWallet.name, passwordEntered) }
           catch (e) {
             event.preventDefault();
-          dispatch(setError({msg: e.message}));
+          dispatch(setError({ msg: e.message }));
+          dispatch(setLoading({ loading: false }));
           return
         }
     }
     checkForCoinsHealth();
     initActivityLogItems();
-    dispatch(setWalletLoaded({loaded: true}));
+    dispatch(setWalletLoaded({ loaded: true }));
     history.push('/home')
   }
+
+  //const btn = document.querySelector(".footer-btns .primary-button")
+//  const btn = document.getElementById("continue_button");
+    const btn = document.querySelector(".primary-btn");
+  //  .footer - btns.primary - btn");
+  //const btn = document.body.getElementByType("submit");
+  if (btn) {
+    console.log('add click event listener')
+    btn.addEventListener("click", onContinueClick);
+  } else {
+    console.log('button not found')
+  }
+
+
 
   const enterContinue = (event) => {
     if (event.key === "Enter") {
@@ -128,10 +150,12 @@ const LoadWalletPage = (props) => {
           <div className="footer-btns">
             <Link to="/" className="primary-btn-link back">
               Go Back
-            </Link>
-            <button type="submit" className="primary-btn blue" onClick={onContinueClick}>
-              Continue
-            </button>
+              </Link>
+              <button id="continue_button" type="submit" className="primary-btn blue">
+                  {loading.loading ? (<Loading />) :
+                    (`Continue`)
+                  }
+              </button>
           </div>
         </div>
         :
