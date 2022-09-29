@@ -30,6 +30,12 @@ export class WrappedStore {
     console.log("Value ->", value);
 
     if (value !== undefined && value.includes(".")) {
+      // get from login store
+      if (value.includes("logins.")) {
+        console.log("Logins...");
+        return loginInfo[value];
+      }
+
       walletVar = value.split("."); // array of for e.g. wallet.name into ["wallet", "name"]
 
       walletObject = walletVar[0] + ""; // key to whole object {}
@@ -58,11 +64,7 @@ export class WrappedStore {
           return wallets;
         }
       }
-      // get from login store
-      else if (value.includes("logins.")) {
-        console.log("Logins...");
-        return loginInfo[value];
-      } else if (wallets[value] !== undefined) {
+      else if (wallets[value] !== undefined) {
         console.log("wallets[value] !== undefined");
         return wallets[value];
       } else {
