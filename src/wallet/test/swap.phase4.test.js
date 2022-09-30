@@ -202,8 +202,9 @@ const transferReceiverPost = (path, params) => {
   }
 };
 
+jest.setTimeout(20000);
+
 describe("Swap phase 4", function () {
-  jest.setTimeout(10000);
   test("swapPhase4 test 1 - invalid initial statecoin state", async function () {
     let statecoin = get_statecoin_in();
     const INIT_STATECOIN = cloneDeep(statecoin);

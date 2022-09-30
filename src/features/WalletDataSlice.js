@@ -159,9 +159,13 @@ function setBlockHeightCallBack(item) {
   }
 }
 
+export function initActivityLogItems() {
+  wallet.initActivityLogItems(10);
+}
+
 // Load wallet from store
 export async function walletLoad(name, password) {
-  wallet = Wallet.load(name, password, testing_mode);
+  wallet = await Wallet.load(name, password, testing_mode);
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
@@ -248,14 +252,13 @@ export async function walletFromMnemonic(
   });
 }
 // Try to decrypt wallet. Throw if invalid password
-export const checkWalletPassword = (password) => {
-  Wallet.load(wallet.name, password);
+export const checkWalletPassword = async (password) => {
+  await Wallet.load(wallet.name, password);
 };
 
 // Create wallet from backup file
-export const walletFromJson = (wallet_json, password) => {
-  wallet = Wallet.loadFromBackup(wallet_json, password, testing_mode);
-
+export const walletFromJson = async (wallet_json, password) => {
+  wallet = await Wallet.loadFromBackup(wallet_json, password, testing_mode);
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
@@ -410,9 +413,9 @@ export const callGetActivityLog = () => {
   }
 };
 
-export const callGetActivityLogItems = (num_of_items) => {
+export const callGetActivityLogItems = () => {
   if (isWalletLoaded()) {
-    return wallet.getActivityLogItems(num_of_items);
+    return wallet.getActivityLogItems();
   }
 };
 
@@ -550,11 +553,12 @@ export const handleEndSwap = (
   if (statecoin === undefined || statecoin === null) {
     statecoin = selectedCoin;
   }
+  
   if (res.payload === null) {
     dispatch(
-      setNotification({
-        msg: "Coin " + statecoin.getTXIdAndOut() + " removed from swap pool.",
-      })
+        setNotification({
+          msg: "Coin " + statecoin.getTXIdAndOut() + " removed from swap pool.",
+        })
     );
     dispatch(removeCoinFromSwapRecords(selectedCoin)); // added this
     if (statecoin.swap_auto) {
@@ -574,24 +578,24 @@ export const handleEndSwap = (
   if (res.error === undefined) {
     if (res.payload?.is_deposited) {
       dispatch(
-        setNotification({
-          msg:
-            "Warning - received coin in swap that was previously deposited or recovered in this wallet: " +
-            statecoin.getTXIdAndOut() +
-            " of value " +
-            fromSatoshi(res.payload.value),
-        })
-      );
+          setNotification({
+            msg:
+              "Warning - received coin in swap that was previously deposited or recovered in this wallet: " +
+              statecoin.getTXIdAndOut() +
+              " of value " +
+              fromSatoshi(res.payload.value),
+          })
+      );      
       dispatch(removeCoinFromSwapRecords(selectedCoin));
     } else {
       dispatch(
-        setNotification({
-          msg:
-            "Swap complete for coin " +
-            statecoin.getTXIdAndOut() +
-            " of value " +
-            fromSatoshi(res.payload.value),
-        })
+          setNotification({
+            msg:
+              "Swap complete for coin " +
+              statecoin.getTXIdAndOut() +
+              " of value " +
+              fromSatoshi(res.payload.value),
+          })
       );
       dispatch(removeCoinFromSwapRecords(selectedCoin));
     }
@@ -925,9 +929,8 @@ export const callSwapDeregisterUtxo = createAsyncThunk(
         } else {
           action.dispatch(
             setNotification({
-              msg: `Statecoin: ${statecoin.getTXIdAndOut()}: ${
-                e?.message ? e?.message : e
-              }`,
+              msg: `Statecoin: ${statecoin.getTXIdAndOut()}: ${e?.message ? e?.message : e
+                }`,
             })
           );
         }

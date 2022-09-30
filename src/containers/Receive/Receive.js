@@ -267,6 +267,7 @@ const ReceiveStatecoinPage = () => {
   };
 
   return (
+
     <div className="container ">
       <PageHeader 
         title = "Receive Statecoins"
@@ -336,7 +337,7 @@ const ReceiveStatecoinPage = () => {
                   }
                 >
                   <div className="address-index">
-                    <div className="address">
+                    <div data-testid="Receive address" className="address">
                       <img type="button" src={icon2} alt="icon" />
                       <span className="rec-address">
                         {rec_sce_addr.sce_address}
@@ -396,6 +397,7 @@ const ReceiveStatecoinPage = () => {
               </div>
               <div className="btns-container">
                 <button
+                  label="Generate address"
                   type="button"
                   className="Body-button transparent"
                   onClick={genAddrButtonAction}

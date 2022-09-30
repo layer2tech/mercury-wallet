@@ -58,6 +58,8 @@ const getWallet = async () => {
   return wallet
 }
 
+jest.setTimeout(20000)
+
 describe('Swap phase 2', () => {
   test('swapPhase2 test 1 - invalid initial statecoin state', async () => {
     
