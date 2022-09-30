@@ -11,7 +11,6 @@ const PageHeader = ({title, className, icon,
 
     const { walletMode, balance_info } = useSelector((state) => state.walletData);
     
-    console.log(svgIcon )
     return(
     <div className={`Body ${className}`}>
         <div className="swap-header">

@@ -1527,6 +1527,7 @@ export class Wallet {
   addDescription(shared_key_id: string, description: string) {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (statecoin) statecoin.description = description;
+    this.save();
   }
 
   // Returns aggregate sum of statecoin amounts from list of shared key ids
@@ -2821,10 +2822,12 @@ export const segwitAddr = (node: any, network: Network) => {
   if (!pubkey) {
     throw new Error(`wallet::segwitAddr: node.publicKey is ${pubkey}`);
   }
+  
   const p2wpkh = bitcoin.payments.p2wpkh({
     pubkey: pubkey,
-    network: network,
+    network: network
   });
+
   return p2wpkh.address;
 };
 

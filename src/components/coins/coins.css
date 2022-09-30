@@ -350,6 +350,10 @@ p.short{
   text-transform: uppercase;
 }
 
+.coin-description p {
+  margin-bottom: 0;
+}
+
 .widthdrawn-status {
   display: flex;
   align-items: center;
