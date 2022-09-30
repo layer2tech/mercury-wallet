@@ -46,12 +46,11 @@ export class WrappedStore {
       let getWalletAttribute = wallets[walletObject][walletAttribute];
 
       if (walletAttribute.includes("statecoins")) {
-        return undefined;
-      } else if (getWalletAttribute === {}) {
-        return undefined;
-      } else {
-        return getWalletAttribute;
+        if (getWalletAttribute === {}) {
+          return undefined;
+        }
       }
+      return getWalletAttribute;
     } else {
       if (value === undefined) {
         console.log("value !=== undefined?");
