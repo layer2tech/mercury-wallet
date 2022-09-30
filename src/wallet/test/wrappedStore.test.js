@@ -69,11 +69,11 @@ describe("Wallet", function () {
       expect(walletInfo).toEqual(WALLET_V_0_7_10_JSON);
     });
 
-    // test("save login", async function () {
-    //   store.set("logins." + WALLET_V_0_7_10_JSON.name, MOCK_WALLET_PASSWORD);
-    //   let storeLoginPwd = store.get("logins." + WALLET_V_0_7_10_JSON.name);
-    //   expect(storeLoginPwd).toEqual(MOCK_WALLET_PASSWORD);
-    // });
+    test("save login", async function () {
+      store.set("logins." + WALLET_V_0_7_10_JSON.name, MOCK_WALLET_PASSWORD);
+      let storeLoginPwd = store.get("logins." + WALLET_V_0_7_10_JSON.name);
+      expect(storeLoginPwd).toEqual(MOCK_WALLET_PASSWORD);
+    });
 
     test("save account", async function () {
       store.set(WALLET_V_0_7_10_JSON.name + ".account", WALLET_V_0_7_10_JSON.account)

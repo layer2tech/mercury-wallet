@@ -31,9 +31,15 @@ export const WalletInfoSlice = createSlice({
       };
     },
     save_login: (state, action) => {
+      const { key, value } = action.payload;
+      var realKey = key.split(".")[1];
+
       return {
         ...state,
-        loginInfo: [...state.loginInfo, action.payload.value],
+        loginInfo: {
+          ...state.loginInfo,
+          [realKey]: value,
+        }
       };
     },
     save_account: (state, action) => {
