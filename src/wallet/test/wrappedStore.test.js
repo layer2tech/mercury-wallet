@@ -87,10 +87,11 @@ describe("Wallet", function () {
       expect(activityInfo).toEqual(WALLET_V_0_7_10_JSON.activity);
     });
 
-    // test("save statecoins", async function () {
-    //   store.set(WALLET_V_0_7_10_JSON.name + ".statecoins", WALLET_V_0_7_10_JSON.statecoins)
-    //   let statecoinsInfo = store.get(WALLET_V_0_7_10_JSON.name + ".statecoins");
-    //   expect(statecoinsInfo).toEqual(WALLET_V_0_7_10_JSON.statecoins);
-    // });
+    test("save statecoins", async function () {
+      let statecoinsInfo;
+      store.set(WALLET_V_0_7_10_JSON.name + ".statecoins", WALLET_V_0_7_10_JSON.statecoins)
+      statecoinsInfo = store.get(WALLET_V_0_7_10_JSON.name + ".statecoins");
+      expect(statecoinsInfo).toEqual(WALLET_V_0_7_10_JSON.statecoins);
+    });
   });
 });
