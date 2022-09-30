@@ -34,6 +34,7 @@ import { Transaction } from "bitcoinjs-lib";
 import MultipleReceive from "../MultipleReceive/MultipleReceive";
 import { setIntervalIfOnline } from "../../features/WalletDataSlice";
 import WrappedLogger from "../../wrapped_logger";
+import PageHeader from "../PageHeader/PageHeader";
 
 let addr_index = -2;
 
@@ -266,23 +267,13 @@ const ReceiveStatecoinPage = () => {
   };
 
   return (
-    <div label="Receive container" className="container">
-      <div className="Body receiveStatecoin">
-        <div className="swap-header">
-          <h2 className="WalletAmount">
-            <img src={arrow} alt="arrow" />
-            Receive Statecoins
-          </h2>
-          <div>
-            <Link className="nav-link" to="/home">
-              <StdButton label="Back" className="Body-button transparent" />
-            </Link>
-          </div>
-        </div>
-        <h3 className="subtitle">
-          Use the address below to receive Statecoins
-        </h3>
-      </div>
+
+    <div className="container ">
+      <PageHeader 
+        title = "Receive Statecoins"
+        className = "receiveStatecoin"
+        icon = {arrow}
+        subTitle = "Use the address below to receive statecoins"/>
 
       <div className="receiveStatecoin content">
         <div className="Body">

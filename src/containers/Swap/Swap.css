@@ -5,8 +5,6 @@
     margin-bottom: 20px;
     box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
 }
-
-
 label {
     display: block;
     position: relative;
@@ -32,32 +30,9 @@ input {
     margin-left: 23px;
 
 }
-.swap-header{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.swap-header .subtitle{
-    font-size: 20px;
-    line-height: 26px;
-    letter-spacing: 0.36px;
-    font-weight: normal;
-    margin: 0 0 0 44px;
-}
 
 .swap.content .btn .loading#loading {
     font-size: 14px;
-}
-
-.swap-header h2 {
-    font-weight: 500;
-    font-size: 34px;
-    line-height: 36px;
-    letter-spacing: 0.255px;
-}
-.swap-header svg {
-    margin-right: 13px;
 }
 
 /* Create the indicator (the dot/circle - hidden when not checked) */
@@ -70,8 +45,8 @@ input:checked ~ .checkmark:after {
     display: block;
 }
 .checkmark:after {
-    top: 1.5px;
-    left: 2.1px;
+    top: 2px;
+    left: 2px;
     width: 7px;
     height: 7px;
     border-radius: 50%;
@@ -195,10 +170,8 @@ input:checked ~ .checkmark:after {
 }
 
 @media only screen and (max-width: 768px)  {
-    .swap-header {
-    flex-direction: column-reverse;
-    }
-    .WalletAmount {
+
+    .main-header {
         padding-left: 0;
     }
     .swap .subtitle {

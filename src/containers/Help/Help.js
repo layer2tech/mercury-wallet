@@ -20,7 +20,7 @@ const HelpPage = (props) => {
     <div className="container">
       <div className="Body help">
           <div className="swap-header">
-              <h2 className="WalletAmount">
+              <h2 className="main-header">
                   <img src={question} alt="question"/>
                   Help & Support
               </h2>

@@ -2,14 +2,14 @@
     min-width: 500px;
 }
 
-.receiveStatecoin .subtitle {
+/* .receiveStatecoin .subtitle {
     color: #676767;
     font-size: 20px;
     text-align: left;
     font-weight: 400;
-    padding-left: 62px;
+    padding-left: 50px;
 
-}
+} */
 
 .receiveStatecoin.content .body-title{
     display: flex;

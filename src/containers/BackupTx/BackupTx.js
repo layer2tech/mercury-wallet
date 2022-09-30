@@ -201,7 +201,7 @@ const BackupTxPage = () => {
         </Modal>
           <div className="Body backupTx">
               <div className="swap-header">
-                  <h2 className="WalletAmount">
+                  <h2 className="main-header">
                       <img src={settings} alt="question"/>
                       Backup Transactions
                   </h2>

@@ -1,10 +1,11 @@
 'use strict';
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { STATECOIN_STATUS, BACKUP_STATUS, ACTION } from "../../../wallet";
 import close_img from "../../../images/close-icon.png";
 import copy_img from "../../../images/icon2.png";
 import scAddrIcon from "../../../images/sc_address_logo.png";
+import statechainIcon from "../../../images/statechainIcon.png"
 import timeIcon from "../../../images/time.png";
 import awaitingIcon from "../../../images/time_left.png";
 import duplicateIcon from "../../../images/plus-black.png";
@@ -16,6 +17,7 @@ import SwapStatus from "../SwapStatus/SwapStatus";
 import { callGetActivityDate, callGetActivityLog, callGetActivityLogItems, setError } from "../../../features/WalletDataSlice";
 import { CoinStatus, CopiedButton } from "../..";
 import { HIDDEN } from '../../../wallet/statecoin';
+import { displayExpiryTime, getPrivacyScoreDesc } from "../CoinFunctionUtils/CoinFunctionUtils";
 
 const TESTING_MODE = require("../../../settings.json").testing_mode;
 const SWAP_AMOUNTS = require("../../../settings.json").swap_amounts;
@@ -37,7 +39,10 @@ const SWAP_TOOLTIP_TXT = {
 const Coin = (props) => {
   const dispatch = useDispatch()
 
-  props.coin_data.privacy_data = props.getPrivacyScoreDesc(props.coin_data)
+  const { balance_info, filterBy } = useSelector((state) => state.walletData)
+
+
+  props.coin_data.privacy_data = getPrivacyScoreDesc(props.coin_data)
 
   const updateTransferDate = (coin_data) => {
 
@@ -111,10 +116,10 @@ const Coin = (props) => {
     // otherwise return the proper time until expiry
     return (
       <div className="CoinTimeLeft">
-        <img src={timeIcon} alt="icon" />
+        <img src={timeIcon} alt="icon" className="time" />
 
         <div className="scoreAmount">
-          Time Until Expiry: <span className='expiry-time-left'>{props.displayExpiryTime(props.coin_data.expiry_data)}</span>
+          Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(props.coin_data.expiry_data)}</span>
           <span className="tooltip">
             <b>Important: </b>
                   Statecoin must be withdrawn before expiry.
@@ -122,6 +127,7 @@ const Coin = (props) => {
         </div>
       </div>)
   }
+
   return (
     <div>
       <div
@@ -172,13 +178,13 @@ const Coin = (props) => {
           }
         }}
       >
-        <div className={`CoinPanel ${props.coin_data.status === STATECOIN_STATUS.EXPIRED ? ("expired"):(null)}` }>
+        < div className={`CoinPanel ${props.coin_data.status === STATECOIN_STATUS.EXPIRED ? ("expired"):(null)}` } >
         {(props.coin_data.status === STATECOIN_STATUS.DUPLICATE) ?(
           <div className="dup-container">
             <span className="tooltip">
               <b>Duplicate Coin Warning!</b> This coin can only be withdrawn after the statecoin sharing the deposit address has been withdrawn and confirmed. 
             </span>
-          </div>):(null)}
+          </div>): (null) }
           {/* TO DO: ADD WITHDRAWAL ADDRESS */}
           {props.coin_data.status === STATECOIN_STATUS.EXPIRED ? (
             <div className="expired-tooltip">
@@ -192,16 +198,16 @@ const Coin = (props) => {
             </div>
           ):(null)}
           <div className="CoinAmount-block">
-            <img src={props.coin_data.privacy_data.icon1} alt="icon" />
+            <img src={props.coin_data.privacy_data.icon1} alt="icon" className="privacy" />
             <span className="sub">
-              <b className={props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI ? "CoinAmountError" : "CoinAmount"}>  {props.balance_info.hidden ? HIDDEN : fromSatoshi(props.coin_data.value)} BTC</b>
-              {props.filterBy === STATECOIN_STATUS.IN_TRANSFER ? (
+              <b className={props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI ? "CoinAmountError" : "CoinAmount"}>  {balance_info.hidden ? HIDDEN : fromSatoshi(props.coin_data.value)} BTC</b>
+              {filterBy === STATECOIN_STATUS.IN_TRANSFER ? (
                 <div className="scoreAmount">
                   {updateTransferDate(props.coin_data)}
                 </div>
               ) : (
                 <div className="scoreAmount">
-                  <img src={props.coin_data.privacy_data.icon2} alt="icon" />
+                  <img src={props.coin_data.privacy_data.icon2} alt="icon" className="privacy" />
                   {props.coin_data.privacy_data.rounds}
                   <span className="tooltip">
                     <b>{props.coin_data.privacy_data.rounds}:</b>
@@ -210,8 +216,8 @@ const Coin = (props) => {
                 </div>)}
             </span>
           </div>
-          {(props.filterBy !== STATECOIN_STATUS.WITHDRAWN
-            && props.filterBy !== STATECOIN_STATUS.WITHDRAWING) ? (
+          {(filterBy !== STATECOIN_STATUS.WITHDRAWN
+            && filterBy !== STATECOIN_STATUS.WITHDRAWING) ? (
             props.coin_data.status === STATECOIN_STATUS.INITIALISED ?
               <div>
                 <div className="deposit-scan-main-item">
@@ -266,7 +272,7 @@ const Coin = (props) => {
             <div>
               <label className='toggle'>
                 Auto-swap
-                  </label>
+              </label>
               <label className="toggle-sm">
 
                 <input
@@ -310,7 +316,7 @@ const Coin = (props) => {
                     ) :
                     (
                       <b className="CoinFundingTxid">
-                        <img src={scAddrIcon} className="sc-address-icon" alt="icon" />
+                        <img src={statechainIcon} className="sc-address-icon" alt="icon" />
                         {props.coin_data.sc_address}
                       </b>
                     )
@@ -354,7 +360,7 @@ const Coin = (props) => {
           ) : (
             <div className="coin-status-or-txid">
               <b className="CoinFundingTxid">
-                <img src={scAddrIcon} className="sc-address-icon" alt="icon" />
+                <img src={statechainIcon} className="sc-address-icon" alt="icon" />
                 {props.coin_data.sc_address}
               </b>
             </div>
@@ -387,7 +393,6 @@ export default React.memo(Coin, (prevProps, nextProps) => {
     prevProps.selectedCoin !== nextProps.selectedCoin ||
     prevProps.selectedCoins !== nextProps.selectedCoins ||
     prevProps.displayDetailsOnClick !== nextProps.displayDetailsOnClick ||
-    prevProps.filterBy !== nextProps.filterBy ||
     prevProps.render !== nextProps.render) {
     return false
     // will rerender if these props change
