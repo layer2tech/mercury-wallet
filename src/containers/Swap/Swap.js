@@ -7,7 +7,7 @@ import Loading from "../../components/Loading/Loading";
 import {
   isWalletLoaded,
   setError,
-  setWarning,
+  setOneOffMsg,
   callDoAutoSwap,
   callDoSwap,
   callSwapDeregisterUtxo,
@@ -120,7 +120,7 @@ const SwapPage = () => {
     }
 
     // Warning on first swap group enter, to not exit wallet mid-swap
-    dispatch(setWarning({ key: "swap_punishment", msg: "WARNING! Exiting the wallet whilst a swap is live causes the swap to fail and coins to be temporarily banned from entering swaps." }))
+    dispatch(setOneOffMsg({ key: "swap_punishment", msg: "WARNING! Exiting the wallet whilst a swap is live causes the swap to fail and coins to be temporarily banned from entering swaps." }))
 
     let swapValues = new Set(inSwapValues)
     let randomOrderIndices = []

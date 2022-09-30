@@ -40,6 +40,10 @@ export const callGetArgsHasTestnet = async () => {
   return result;
 };
 
+export const callGetNetwork = () => {
+  return wallet.config.network
+}
+
 let wallet;
 let testing_mode = require("../settings.json").testing_mode;
 
@@ -48,11 +52,15 @@ export const WALLET_MODE = {
   LIGHTNING: "LIGHTNING"
 }
 
+const DEFAULT_STATE_COIN_DETAILS = { show: false, coin: { value: 0, expiry_data: { blocks: "", months: "", days: "" }, privacy_data: { score_desc: "" }, tx_hex: null, withdraw_tx: null } }
+
 const initialState = {
   walletMode: WALLET_MODE.STATECHAIN,
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
-  warning_dialogue: { key: "", msg: "", seen: false },
+  one_off_msg: { key: "", msg: "", seen: false },
+  warning_dialogue: { title: "", msg: "", onConfirm: undefined,  onHide: undefined},
+  showDetails: DEFAULT_STATE_COIN_DETAILS,
   progress: { active: false, msg: "" },
   balance_info: { total_balance: null, num_coins: null, hidden: false },
   fee_info: { deposit: "NA", withdraw: "NA" },
@@ -1162,14 +1170,65 @@ const WalletSlice = createSlice({
         ],
       };
     },
+    setOneOffMsg(state, action) {
+      return {
+        ...state,
+        one_off_msg: {
+          ...state.one_off_msg,
+          key: action.payload.key,
+          msg: action.payload.msg,
+        },
+      };
+    },
+    setOneOffMsgSeen(state) {
+      state.one_off_msg.seen = true;
+    },
     setWarning(state, action) {
+      let onHide, onConfirm, data;
+
+      if(action.payload.onHide){
+        onHide = action.payload.onHide;
+      }
+      if(action.payload.onConfirm){
+        onConfirm = action.payload.onConfirm;
+      }
+      if(action.payload.data){
+        data = action.payload.data;
+      }
+
       return {
         ...state,
         warning_dialogue: {
           ...state.warning_dialogue,
-          key: action.payload.key,
+          title: action.payload.title,
           msg: action.payload.msg,
+          onHide: onHide,
+          onConfirm: onConfirm,
+          data: data
         },
+      };
+    },
+    setWarningSeen(state, action) {
+      return {
+        ...state,
+        warning_dialogue: {
+          title: "",
+          msg: "",
+          onHide: undefined,
+          onConfirm: undefined
+        },
+      };
+    },
+    setShowDetails(state, action) {
+      return {
+        ...state,
+        showDetails: action.payload
+      };
+    },
+    setShowDetailsSeen(state, action) {
+      return {
+        ...state,
+        showDetails: DEFAULT_STATE_COIN_DETAILS
       };
     },
     setWalletLoaded(state, action) {
@@ -1177,9 +1236,6 @@ const WalletSlice = createSlice({
         ...state,
         walletLoaded: action.payload.loaded,
       };
-    },
-    setWarningSeen(state) {
-      state.warning_dialogue.seen = true;
     },
     callClearSave(state) {
       wallet.clearSave();
@@ -1308,8 +1364,12 @@ export const {
   setError,
   setProgressComplete,
   setProgress,
+  setOneOffMsg,
+  setOneOffMsgSeen,
   setWarning,
   setWarningSeen,
+  setShowDetails,
+  setShowDetailsSeen,
   setWalletLoaded,
   addCoinToSwapRecords,
   removeCoinFromSwapRecords,

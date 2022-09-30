@@ -14,7 +14,16 @@ import { DAYS_WARNING, SWAP_STATUS_INFO } from "../CoinsList";
 import { ProgressBar, Spinner } from "react-bootstrap";
 import Moment from "react-moment";
 import SwapStatus from "../SwapStatus/SwapStatus";
-import { callGetActivityDate, callGetActivityLog, callGetActivityLogItems, setError } from "../../../features/WalletDataSlice";
+import { callGetActivityDate, 
+  callGetActivityLog, 
+  callGetActivityLogItems, 
+  callGetNetwork, 
+  callGetStateCoin, 
+  callRemoveCoin, 
+  callSetStatecoinSpent, 
+  setError, 
+  setShowDetails, 
+  setWarning } from "../../../features/WalletDataSlice";
 import { CoinStatus, CopiedButton } from "../..";
 import { HIDDEN } from '../../../wallet/statecoin';
 import { displayExpiryTime, getPrivacyScoreDesc } from "../CoinFunctionUtils/CoinFunctionUtils";
@@ -39,10 +48,12 @@ const SWAP_TOOLTIP_TXT = {
 const Coin = (props) => {
   const dispatch = useDispatch()
 
-  const { balance_info, filterBy } = useSelector((state) => state.walletData)
+  const { balance_info, filterBy, showDetails } = useSelector((state) => state.walletData)
 
+  // console.log('Coin data: ', getPrivacyScoreDesc(props.coin_data));
 
-  props.coin_data.privacy_data = getPrivacyScoreDesc(props.coin_data)
+  // console.log('Coin: ', props.coin_data)
+  // props.coin_data.privacy_data = getPrivacyScoreDesc(props.coin_data)
 
   let activityData = callGetActivityLogItems(10)
 
@@ -72,10 +83,10 @@ const Coin = (props) => {
     props.setSelectedCoin(shared_key_id);
     //setRefreshCoins((prevState) => !prevState); - not being used
     if (props.displayDetailsOnClick) {
-      props.handleOpenCoinDetails(shared_key_id)
+      handleOpenCoinDetails()
     }
     if (props.setCoinDetails) {
-      props.handleSetCoinDetails(shared_key_id)
+      handleSetCoinDetails()
     }
   }
 
@@ -94,6 +105,17 @@ const Coin = (props) => {
     }
     return selected;
   }
+
+  const getAddress = (shared_key_id) => {
+        
+    let sc = callGetStateCoin(shared_key_id)
+
+    if (sc != undefined) {
+      let addr = sc.getBtcAddress(callGetNetwork());
+      return addr
+    }
+    return null
+}
 
   //Button to handle copying p address to keyboard
   const copyAddressToClipboard = (event, address) => {
@@ -128,6 +150,48 @@ const Coin = (props) => {
             </span>
         </div>
       </div>)
+  }
+
+  const handleOpenCoinDetails = () => {
+    dispatch(setShowDetails({ show: true, coin: props.coin_data }))
+  }
+
+  const deleteCoin = async (item) => {
+    item = {...item, status: STATECOIN_STATUS.DELETED,
+      deleting: true, privacy_data: {...item.privacy_data, 
+        msg: 'coin currently being deleted'}}
+
+    await callRemoveCoin(item.shared_key_id);
+    // setConfirmCoinAction({ show: false});
+  }
+
+  const handleDeleteCoin = (e) => {
+    e.stopPropagation();
+    // props.unmountMe();
+    dispatch(setWarning({ 
+    title: 'Delete coin...',
+    msg: "Are you sure you want to delete this coin ?",
+    onConfirm: deleteCoin,
+    data: props.coin_data}))
+  }
+
+  const handleWithdrawExpiredCoin = (e) => {
+    e.stopPropagation();
+
+    dispatch(setWarning({
+      title: 'Change coin status',
+      msg: "Are you sure you wish to set this expired coin as withdrawn?",
+      onConfirm: withdrawExpiredCoin,
+      data: props.coin_data
+    }))
+  }
+
+  const withdrawExpiredCoin = async (item) => {
+    dispatch(callSetStatecoinSpent({id: item.shared_key_id, action:  ACTION.WITHDRAW}));
+  }
+
+  const handleSetCoinDetails = () => {
+    props.setCoinDetails(props.coin_data);
   }
 
   return (
@@ -223,10 +287,10 @@ const Coin = (props) => {
             props.coin_data.status === STATECOIN_STATUS.INITIALISED ?
               <div>
                 <div className="deposit-scan-main-item">
-                  <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, props.getAddress(props.coin_data.shared_key_id))}>
+                  <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, getAddress(props.coin_data.shared_key_id))}>
                     <img type="button" src={copy_img} alt="icon" />
                   </CopiedButton>
-                  <span className="long"><b>{props.getAddress(props.coin_data.shared_key_id)}</b></span>
+                  <span className="long"><b>{getAddress(props.coin_data.shared_key_id)}</b></span>
                 </div>
               </div>
               : (
@@ -370,13 +434,13 @@ const Coin = (props) => {
           {
           props.coin_data.status === STATECOIN_STATUS.EXPIRED &&
             <button className="Body-button expired">
-              <img className='close' src={close_img} alt="arrow" onClick={(e) => props.expiredToWithdrawn(e,props.coin_data)} />
+              <img className='close' src={close_img} alt="arrow" onClick={(e) => handleWithdrawExpiredCoin(e)} />
             </button>
           }
           {
             props.isMainPage && !props.coin_data.deleting && props.coin_data.status === "INITIALISED" &&
             <div className="Body-button expired">
-              <img className='close' src={close_img} alt="arrow" onClick={(e) => props.onDeleteCoinDetails(e,props.coin_data)} />
+              <img className='close' src={close_img} alt="arrow" onClick={(e) => handleDeleteCoin(e)} />
             </div>
           }
         </div>

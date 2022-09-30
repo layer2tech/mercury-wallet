@@ -3,11 +3,13 @@ import React from 'react';
 import { Link, withRouter } from "react-router-dom";
 import { Logo, Settings, Help, Logout } from './headerIcons';
 import { NotificationBar, ErrorPopup, ConfirmPopup, ProgressBar } from "../../components";
-import WarningPopup from '../WarningPopup';
+import OneOffMessage from '../OneOffMessage/OneOffMessage';
 import { unloadWallet, stopWallet, setWalletLoaded } from '../../features/WalletDataSlice'
 import './header.css';
 import TorCircuit from './TorInfo/TorCircuit';
 import { useDispatch, useSelector } from 'react-redux';
+import WarningPopup from '../WarningPopUp/WarningPopUp';
+import InfoModal from '../InfoModal/InfoModal';
 
 
 const Header = (props) => {
@@ -100,10 +102,13 @@ const Header = (props) => {
           )}
         </div>
       </div>
+      
       <NotificationBar />
       <ErrorPopup />
-      <WarningPopup />
+      <OneOffMessage />
       <ProgressBar /> 
+      <WarningPopup />
+      <InfoModal />
     </div>
   );
 }
