@@ -1,10 +1,11 @@
 'use strict';
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { STATECOIN_STATUS, BACKUP_STATUS, ACTION } from "../../../wallet";
 import close_img from "../../../images/close-icon.png";
 import copy_img from "../../../images/icon2.png";
 import scAddrIcon from "../../../images/sc_address_logo.png";
+import statechainIcon from "../../../images/statechainIcon.png"
 import timeIcon from "../../../images/time.png";
 import awaitingIcon from "../../../images/time_left.png";
 import duplicateIcon from "../../../images/plus-black.png";
@@ -13,9 +14,19 @@ import { DAYS_WARNING, SWAP_STATUS_INFO } from "../CoinsList";
 import { ProgressBar, Spinner } from "react-bootstrap";
 import Moment from "react-moment";
 import SwapStatus from "../SwapStatus/SwapStatus";
-import { callGetActivityDate, callGetActivityLog, callGetActivityLogItems, setError } from "../../../features/WalletDataSlice";
+import { callGetActivityDate, 
+  callGetActivityLog, 
+  callGetActivityLogItems, 
+  callGetNetwork, 
+  callGetStateCoin, 
+  callRemoveCoin, 
+  callSetStatecoinSpent, 
+  setError, 
+  setShowDetails, 
+  setWarning } from "../../../features/WalletDataSlice";
 import { CoinStatus, CopiedButton } from "../..";
 import { HIDDEN } from '../../../wallet/statecoin';
+import { displayExpiryTime, getPrivacyScoreDesc } from "../CoinFunctionUtils/CoinFunctionUtils";
 
 const TESTING_MODE = require("../../../settings.json").testing_mode;
 const SWAP_AMOUNTS = require("../../../settings.json").swap_amounts;
@@ -37,16 +48,19 @@ const SWAP_TOOLTIP_TXT = {
 const Coin = (props) => {
   const dispatch = useDispatch()
 
-  props.coin_data.privacy_data = props.getPrivacyScoreDesc(props.coin_data)
+  const { balance_info, filterBy, showDetails } = useSelector((state) => state.walletData)
 
-  let activityData = callGetActivityLogItems(10)
+  // console.log('Coin data: ', getPrivacyScoreDesc(props.coin_data));
+
+  // console.log('Coin: ', props.coin_data)
+  // props.coin_data.privacy_data = getPrivacyScoreDesc(props.coin_data)
 
   const updateTransferDate = (coin_data) => {
 
     if (coin_data.status === STATECOIN_STATUS.IN_TRANSFER) {
       let transferDate = 'DATE'
 
-      let activity_log = callGetActivityLogItems(callGetActivityLog().items.length)
+      let activity_log = callGetActivityLogItems()
       let date = activity_log.filter(e => e.funding_txid === coin_data.funding_txid && e.action === "T" && e.date > coin_data.timestamp)
       // filter Activity Log for txid, transferred icon and activity sent after coin created (timestamp)
 
@@ -67,10 +81,10 @@ const Coin = (props) => {
     props.setSelectedCoin(shared_key_id);
     //setRefreshCoins((prevState) => !prevState); - not being used
     if (props.displayDetailsOnClick) {
-      props.handleOpenCoinDetails(shared_key_id)
+      handleOpenCoinDetails()
     }
     if (props.setCoinDetails) {
-      props.handleSetCoinDetails(shared_key_id)
+      handleSetCoinDetails()
     }
   }
 
@@ -89,6 +103,17 @@ const Coin = (props) => {
     }
     return selected;
   }
+
+  const getAddress = (shared_key_id) => {
+        
+    let sc = callGetStateCoin(shared_key_id)
+
+    if (sc != undefined) {
+      let addr = sc.getBtcAddress(callGetNetwork());
+      return addr
+    }
+    return null
+}
 
   //Button to handle copying p address to keyboard
   const copyAddressToClipboard = (event, address) => {
@@ -113,10 +138,10 @@ const Coin = (props) => {
     // otherwise return the proper time until expiry
     return (
       <div className="CoinTimeLeft">
-        <img src={timeIcon} alt="icon" />
+        <img src={timeIcon} alt="icon" className="time" />
 
         <div className="scoreAmount">
-          Time Until Expiry: <span className='expiry-time-left'>{props.displayExpiryTime(props.coin_data.expiry_data)}</span>
+          Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(props.coin_data.expiry_data)}</span>
           <span className="tooltip">
             <b>Important: </b>
                   Statecoin must be withdrawn before expiry.
@@ -124,6 +149,49 @@ const Coin = (props) => {
         </div>
       </div>)
   }
+
+  const handleOpenCoinDetails = () => {
+    dispatch(setShowDetails({ show: true, coin: props.coin_data }))
+  }
+
+  const deleteCoin = async (item) => {
+    item = {...item, status: STATECOIN_STATUS.DELETED,
+      deleting: true, privacy_data: {...item.privacy_data, 
+        msg: 'coin currently being deleted'}}
+
+    await callRemoveCoin(item.shared_key_id);
+    // setConfirmCoinAction({ show: false});
+  }
+
+  const handleDeleteCoin = (e) => {
+    e.stopPropagation();
+    // props.unmountMe();
+    dispatch(setWarning({ 
+    title: 'Delete coin...',
+    msg: "Are you sure you want to delete this coin ?",
+    onConfirm: deleteCoin,
+    data: props.coin_data}))
+  }
+
+  const handleWithdrawExpiredCoin = (e) => {
+    e.stopPropagation();
+
+    dispatch(setWarning({
+      title: 'Change coin status',
+      msg: "Are you sure you wish to set this expired coin as withdrawn?",
+      onConfirm: withdrawExpiredCoin,
+      data: props.coin_data
+    }))
+  }
+
+  const withdrawExpiredCoin = async (item) => {
+    dispatch(callSetStatecoinSpent({id: item.shared_key_id, action:  ACTION.WITHDRAW}));
+  }
+
+  const handleSetCoinDetails = () => {
+    props.setCoinDetails(props.coin_data);
+  }
+
   return (
     <div>
       <div
@@ -174,13 +242,13 @@ const Coin = (props) => {
           }
         }}
       >
-        <div className={`CoinPanel ${props.coin_data.status === STATECOIN_STATUS.EXPIRED ? ("expired"):(null)}` }>
+        < div className={`CoinPanel ${props.coin_data.status === STATECOIN_STATUS.EXPIRED ? ("expired"):(null)}` } >
         {(props.coin_data.status === STATECOIN_STATUS.DUPLICATE) ?(
           <div className="dup-container">
             <span className="tooltip">
               <b>Duplicate Coin Warning!</b> This coin can only be withdrawn after the statecoin sharing the deposit address has been withdrawn and confirmed. 
             </span>
-          </div>):(null)}
+          </div>): (null) }
           {/* TO DO: ADD WITHDRAWAL ADDRESS */}
           {props.coin_data.status === STATECOIN_STATUS.EXPIRED ? (
             <div className="expired-tooltip">
@@ -194,16 +262,16 @@ const Coin = (props) => {
             </div>
           ):(null)}
           <div className="CoinAmount-block">
-            <img src={props.coin_data.privacy_data.icon1} alt="icon" />
+            <img src={props.coin_data.privacy_data.icon1} alt="icon" className="privacy" />
             <span className="sub">
-              <b className={props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI ? "CoinAmountError" : "CoinAmount"}>  {props.balance_info.hidden ? HIDDEN : fromSatoshi(props.coin_data.value)} BTC</b>
-              {props.filterBy === STATECOIN_STATUS.IN_TRANSFER ? (
+              <b className={props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI ? "CoinAmountError" : "CoinAmount"}>  {balance_info.hidden ? HIDDEN : fromSatoshi(props.coin_data.value)} BTC</b>
+              {filterBy === STATECOIN_STATUS.IN_TRANSFER ? (
                 <div className="scoreAmount">
                   {updateTransferDate(props.coin_data)}
                 </div>
               ) : (
                 <div className="scoreAmount">
-                  <img src={props.coin_data.privacy_data.icon2} alt="icon" />
+                  <img src={props.coin_data.privacy_data.icon2} alt="icon" className="privacy" />
                   {props.coin_data.privacy_data.rounds}
                   <span className="tooltip">
                     <b>{props.coin_data.privacy_data.rounds}:</b>
@@ -212,15 +280,15 @@ const Coin = (props) => {
                 </div>)}
             </span>
           </div>
-          {(props.filterBy !== STATECOIN_STATUS.WITHDRAWN
-            && props.filterBy !== STATECOIN_STATUS.WITHDRAWING) ? (
+          {(filterBy !== STATECOIN_STATUS.WITHDRAWN
+            && filterBy !== STATECOIN_STATUS.WITHDRAWING) ? (
             props.coin_data.status === STATECOIN_STATUS.INITIALISED ?
               <div>
                 <div className="deposit-scan-main-item">
-                  <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, props.getAddress(props.coin_data.shared_key_id))}>
+                  <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, getAddress(props.coin_data.shared_key_id))}>
                     <img type="button" src={copy_img} alt="icon" />
                   </CopiedButton>
-                  <span className="long"><b>{props.getAddress(props.coin_data.shared_key_id)}</b></span>
+                  <span className="long"><b>{getAddress(props.coin_data.shared_key_id)}</b></span>
                 </div>
               </div>
               : (
@@ -268,7 +336,7 @@ const Coin = (props) => {
             <div>
               <label className='toggle'>
                 Auto-swap
-                  </label>
+              </label>
               <label className="toggle-sm">
 
                 <input
@@ -312,7 +380,7 @@ const Coin = (props) => {
                     ) :
                     (
                       <b className="CoinFundingTxid">
-                        <img src={scAddrIcon} className="sc-address-icon" alt="icon" />
+                        <img src={statechainIcon} className="sc-address-icon" alt="icon" />
                         {props.coin_data.sc_address}
                       </b>
                     )
@@ -356,7 +424,7 @@ const Coin = (props) => {
           ) : (
             <div className="coin-status-or-txid">
               <b className="CoinFundingTxid">
-                <img src={scAddrIcon} className="sc-address-icon" alt="icon" />
+                <img src={statechainIcon} className="sc-address-icon" alt="icon" />
                 {props.coin_data.sc_address}
               </b>
             </div>
@@ -364,13 +432,13 @@ const Coin = (props) => {
           {
           props.coin_data.status === STATECOIN_STATUS.EXPIRED &&
             <button className="Body-button expired">
-              <img className='close' src={close_img} alt="arrow" onClick={(e) => props.expiredToWithdrawn(e,props.coin_data)} />
+              <img className='close' src={close_img} alt="arrow" onClick={(e) => handleWithdrawExpiredCoin(e)} />
             </button>
           }
           {
             props.isMainPage && !props.coin_data.deleting && props.coin_data.status === "INITIALISED" &&
             <div className="Body-button expired">
-              <img className='close' src={close_img} alt="arrow" onClick={(e) => props.onDeleteCoinDetails(e,props.coin_data)} />
+              <img className='close' src={close_img} alt="arrow" onClick={(e) => handleDeleteCoin(e)} />
             </div>
           }
         </div>
@@ -389,7 +457,6 @@ export default React.memo(Coin, (prevProps, nextProps) => {
     prevProps.selectedCoin !== nextProps.selectedCoin ||
     prevProps.selectedCoins !== nextProps.selectedCoins ||
     prevProps.displayDetailsOnClick !== nextProps.displayDetailsOnClick ||
-    prevProps.filterBy !== nextProps.filterBy ||
     prevProps.render !== nextProps.render) {
     return false
     // will rerender if these props change

@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { STATECOIN_STATUS } from "../../../wallet/statecoin";
 import { updateFilter } from "../../../features/WalletDataSlice";
 import "./FilterBy.css";
+import MenuPopUp from "../../MenuPopUp/MenuPopUp";
 
 const FILTER_BY_OPTION = [
   {
@@ -61,28 +62,13 @@ const FilterBy = (props) => {
           />
         </svg>
       </div>
-      {openFilterMenu && (
-        <>
-          <div className="filter-coin-options">
-            <div className="filter-coin-head">Display UTXO’s</div>
-            {FILTER_BY_OPTION.map((item) => (
-              <label key={item.id} onClick={() => handleFilter(item.value)}>
-                <input
-                  readOnly
-                  type="radio"
-                  checked={filterBy === item.value}
-                />
-                {item.text}
-                <span className="checkmark"></span>
-              </label>
-            ))}
-          </div>
-          <div
-            className="menu-overlay"
-            onClick={() => setOpenFilterMenu(false)}
-          />
-        </>
-      )}
+      <MenuPopUp
+        openMenu = {openFilterMenu} 
+        setOpenMenu = {setOpenFilterMenu}
+        selected = {filterBy}
+        handleChange = {handleFilter}
+        options = {FILTER_BY_OPTION}
+        title = {"Display UTXO's"}/>
     </div>
   );
 };

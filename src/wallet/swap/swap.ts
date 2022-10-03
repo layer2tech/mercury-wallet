@@ -907,7 +907,7 @@ export default class Swap {
       this.wallet
     );
     this.statecoin_out = statecoin_out;
-    if (this.wallet.addStatecoin(statecoin_out, undefined)) {
+    if (await this.wallet.addStatecoin(statecoin_out, undefined)) {
       log.info(
         "Swap complete for Coin: " +
         this.statecoin.shared_key_id +

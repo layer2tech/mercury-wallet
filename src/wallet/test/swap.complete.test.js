@@ -115,7 +115,7 @@ export const setSwapDetails = (statecoin, phase) => {
 // this swap completes a full swap between 0 to 5
 describe('full swap test 1 - correct swap', () => {
     // starting coin
-
+    jest.setTimeout(10000)
     // make sure everything is setup for swaps
     it('should give a new statecoin', async () => {
         let statecoin = get_statecoin_in();

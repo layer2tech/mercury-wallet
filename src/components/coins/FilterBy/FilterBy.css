@@ -7,63 +7,7 @@
   z-index:300;
 }
 
-
-.menu-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 300;
-}
-
-.filter-coin-head {
-  border-bottom: 1px solid #D3D3D3;
-}
-
-.filter-coin-options {
-  position: absolute;
-  min-width: 170px;
-  top: 3px;
-  right: 25px;
-  background-color: var(--container);
-  font-size: 14px;
-  line-height: 16px;
-  font-weight: normal;
-  color: var(--text-primary);
-  border-radius: 4px 0px 4px 4px;
-  box-shadow: 0px 2px 12px -7px var(--box-shadow);
-  z-index: 301;
-}
-
-
-
-.filter-coin-options > div,
-.filter-coin-options > label {
-  padding: 8px 10px;
-}
-
-.filter-coin-options label {
-  display: block;
-  margin: 0;
-  text-align: left;
-}
-
-.filter-coin-options .checkmark {
-  top: 9px;
-  left: 16px;
-  border-color: var(--text-secondary);
-}
-
-.filter-coin-options .checkmark:after {
-  background-color: var(--text-secondary);
-}
-
-.filter-coin-options label input {
-  margin-right: 12px;
-}
-
-.main-coin-wrap.WITHDRAWN .filter-coin-options {
+.main-coin-wrap.WITHDRAWN .filter-options {
   right: 30px;
 }
 

@@ -29,15 +29,6 @@
     padding: 30px 10px;
 }
 
-.image {
-    cursor: pointer;
-}
-
-.image.rotate img {
-    transform: rotate(180deg);
-    transition: all .5s linear;
-}
-
 label {
     display: block;
     position: relative;
@@ -105,8 +96,8 @@ label {
 }
 
 .checkmark:after {
-    top: 1.5px;
-    left: 2.1px;
+    top: 2px;
+    left: 2px;
     width: 7px;
     height: 7px;
     border-radius: 50%;

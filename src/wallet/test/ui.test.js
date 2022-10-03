@@ -45,6 +45,8 @@ async function getWallet() {
     return wallet
 }
 
+jest.setTimeout(60000)
+
 describe('Wallet Load - Large Swapped IDs Storage', function () {
 
     beforeEach(async () => {

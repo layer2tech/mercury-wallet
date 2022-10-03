@@ -1,5 +1,4 @@
 "use strict";
-import React from "react";
 import { withRouter, Redirect } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 

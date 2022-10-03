@@ -282,7 +282,7 @@ export const TransferMsg5 = typeforce.compile({
 export const TransferFinalizeData = typeforce.compile({
   new_shared_key_id: String,
   o2: String,
-  s2_pub: Secp256k1Point,
+  s2_pub: typeforce.oneOf(Secp256k1Point,Null),
   state_chain_data: StateChainDataAPI,
   proof_key: String,
   statechain_id: String,

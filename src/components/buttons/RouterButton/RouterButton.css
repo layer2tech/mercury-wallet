@@ -11,3 +11,7 @@
     transition: all .4s ease;
     -webkit-transition: all .4s ease;
 }
+
+.ActionGroupRight .tooltip {
+    margin-left: 10px;
+}

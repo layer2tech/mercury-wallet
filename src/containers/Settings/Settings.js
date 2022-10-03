@@ -166,7 +166,7 @@ const SettingsPage = (props) => {
 
   const downloadActivity = () => {
     
-    let activity_data = callGetActivityLogItems(callGetActivityLog().items.length);
+    let activity_data = callGetActivityLogItems();
     activity_data = JSON.stringify(activity_data)
 
     var a = document.createElement("a");
@@ -187,7 +187,7 @@ const SettingsPage = (props) => {
       <div className="container">
           <div className="Body settings">
               <div className="swap-header">
-                  <h2 className="WalletAmount">
+                  <h2 className="main-header">
                       <img src={settings} alt="question"/>
                       Settings
                   </h2>
