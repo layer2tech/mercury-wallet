@@ -13,6 +13,7 @@ import { MINIMUM_DEPOSIT_SATOSHI, fromSatoshi } from "../../../wallet/util";
 import { DAYS_WARNING, SWAP_STATUS_INFO } from "../CoinsList";
 import { ProgressBar, Spinner } from "react-bootstrap";
 import Moment from "react-moment";
+import {useLocation} from 'react-router-dom';
 import SwapStatus from "../SwapStatus/SwapStatus";
 import { callGetActivityDate, 
   callGetActivityLog, 
@@ -27,6 +28,11 @@ import { callGetActivityDate,
 import { CoinStatus, CopiedButton } from "../..";
 import { HIDDEN } from '../../../wallet/statecoin';
 import { displayExpiryTime, getPrivacyScoreDesc } from "../CoinFunctionUtils/CoinFunctionUtils";
+import Tooltip from "../../tooltips/Tooltip";
+import ImgAndInfo from "../../ImgAndInfo/ImgAndInfo";
+import AddressDisplay from "../../AddressDisplay/AddressDisplay";
+import ProgressContainer from "../ProgressContainer/ProgressContainer";
+import AutoSwapToggle from "../../AutoSwapToggle/AutoSwapToggle";
 
 const TESTING_MODE = require("../../../settings.json").testing_mode;
 const SWAP_AMOUNTS = require("../../../settings.json").swap_amounts;
@@ -46,14 +52,15 @@ const SWAP_TOOLTIP_TXT = {
 }
 
 const Coin = (props) => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  const location = useLocation();
+  
+  const [swapPage, setSwapPage] = useState(location.pathname === "/swap_statecoin");
+  const [sendPage, setSendPage] = useState(location.pathname === "/send_statecoin");
+  const [withdrawPage, setWithdrawPage] = useState(location.pathname === "/withdraw");
 
-  const { balance_info, filterBy, showDetails } = useSelector((state) => state.walletData)
 
-  // console.log('Coin data: ', getPrivacyScoreDesc(props.coin_data));
-
-  // console.log('Coin: ', props.coin_data)
-  // props.coin_data.privacy_data = getPrivacyScoreDesc(props.coin_data)
+  const { balance_info, filterBy } = useSelector((state) => state.walletData)
 
   const updateTransferDate = (coin_data) => {
 
@@ -104,23 +111,6 @@ const Coin = (props) => {
     return selected;
   }
 
-  const getAddress = (shared_key_id) => {
-        
-    let sc = callGetStateCoin(shared_key_id)
-
-    if (sc != undefined) {
-      let addr = sc.getBtcAddress(callGetNetwork());
-      return addr
-    }
-    return null
-}
-
-  //Button to handle copying p address to keyboard
-  const copyAddressToClipboard = (event, address) => {
-    event.stopPropagation()
-    navigator.clipboard.writeText(address);
-  }
-
   const displayExpiry = (coin_data) => {
 
     let invalidDisplay = [STATECOIN_STATUS.IN_MEMPOOL, STATECOIN_STATUS.UNCONFIRMED, BACKUP_STATUS.IN_MEMPOOL, BACKUP_STATUS.PRE_LOCKTIME]
@@ -142,10 +132,10 @@ const Coin = (props) => {
 
         <div className="scoreAmount">
           Time Until Expiry: <span className='expiry-time-left'>{displayExpiryTime(props.coin_data.expiry_data)}</span>
-          <span className="tooltip">
-            <b>Important: </b>
-                  Statecoin must be withdrawn before expiry.
-            </span>
+          <Tooltip 
+            boldText = {"Important:"}
+            text = {"Statecoin must be withdrawn before expiry."}/>
+
         </div>
       </div>)
   }
@@ -195,45 +185,45 @@ const Coin = (props) => {
   return (
     <div>
       <div
-        className={`coin-item ${(props.swap || props.send || props.withdraw) ? props.coin_data.status : ''} ${isSelected(props.coin_data.shared_key_id) ? 'selected' : ''}`}
+        className={`coin-item ${(swapPage || sendPage || withdrawPage) ? props.coin_data.status : ''} ${isSelected(props.coin_data.shared_key_id) ? 'selected' : ''}`}
         onClick={() => {
-          if ((props.coin_data.status === STATECOIN_STATUS.SWAPLIMIT) && (props.swap)) {
+          if ((props.coin_data.status === STATECOIN_STATUS.SWAPLIMIT) && (swapPage)) {
             dispatch(setError({ msg: 'Locktime below limit for swap participation' }))
             return false;
           }
-          if ((!SWAP_AMOUNTS.includes(props.coin_data.value)) && (props.swap)) {
+          if ((!SWAP_AMOUNTS.includes(props.coin_data.value)) && (swapPage)) {
             dispatch(setError({ msg: 'Swap not available for this coin value' }))
             return false;
           }
-          if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.swap || props.send)) {
+          if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (swapPage || sendPage)) {
             dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap or withdrawal' }))
             return false;
           }
-          if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (props.withdraw) && (props.coin_data.BACKUP_STATUS !== BACKUP_STATUS.MISSING)) {
+          if ((props.coin_data.status === STATECOIN_STATUS.EXPIRED) && (withdrawPage) && (props.coin_data.BACKUP_STATUS !== BACKUP_STATUS.MISSING)) {
             dispatch(setError({ msg: 'Expired coins are unavailable for transfer, swap or withdrawal' }))
             return false;
           }
-          if ((props.coin_data.backup_status === BACKUP_STATUS.MISSING) && (props.swap || props.send)) {
+          if ((props.coin_data.backup_status === BACKUP_STATUS.MISSING) && (swapPage || sendPage)) {
             dispatch(setError({ msg: 'Backup transaction missing on recovery. Coin must be withdrawn.' }))
             return false;
           }          
-          if ((props.coin_data.status === STATECOIN_STATUS.IN_MEMPOOL || props.coin_data.status === STATECOIN_STATUS.UNCONFIRMED) && (props.swap || props.send || props.withdraw) && !TESTING_MODE) {
+          if ((props.coin_data.status === STATECOIN_STATUS.IN_MEMPOOL || props.coin_data.status === STATECOIN_STATUS.UNCONFIRMED) && (swapPage || sendPage || withdrawPage) && !TESTING_MODE) {
             dispatch(setError({ msg: 'Coin unavailable for swap - awaiting confirmations' }))
             return false
           }
-          if (props.coin_data.status === STATECOIN_STATUS.INITIALISED && (props.swap || props.send || props.withdraw)) {
+          if (props.coin_data.status === STATECOIN_STATUS.INITIALISED && (swapPage || sendPage || withdrawPage)) {
             dispatch(setError({ msg: `Coin uninitialised: send BTC to address displayed` }))
             return false
           }
-          if (props.coin_data.status === (STATECOIN_STATUS.IN_SWAP || STATECOIN_STATUS.AWAITING_SWAP) && (props.send || props.withdraw)) {
+          if (props.coin_data.status === (STATECOIN_STATUS.IN_SWAP || STATECOIN_STATUS.AWAITING_SWAP) && (sendPage || withdrawPage)) {
             dispatch(setError({ msg: `Unavailable while coin in swap group` }))
             return false
           }
-          if (props.coin_data.status === (STATECOIN_STATUS.WITHDRAWING) && (props.send || props.swap)) {
+          if (props.coin_data.status === (STATECOIN_STATUS.WITHDRAWING) && (sendPage || swapPage)) {
             dispatch(setError({ msg: `Coin withdrawn - unavailable for transfer` }))
             return false
           }
-          if (props.coin_data.status === (STATECOIN_STATUS.DUPLICATE) && (props.send || props.swap)) {
+          if (props.coin_data.status === (STATECOIN_STATUS.DUPLICATE) && (sendPage || swapPage)) {
             dispatch(setError({ msg: `Deposit duplicate - unavailable for transfer or swap` }))
             return false
           }          
@@ -241,123 +231,73 @@ const Coin = (props) => {
             selectCoin(props.coin_data.shared_key_id)
           }
         }}
-      >
+        >
         < div className={`CoinPanel ${props.coin_data.status === STATECOIN_STATUS.EXPIRED ? ("expired"):(null)}` } >
+          <Tooltip 
+            condition = {(props.coin_data.status === STATECOIN_STATUS.DUPLICATE)}
+            className = {'dup-container'}
+            boldText = {"Duplicate Coin Warning!"}
+            text = {"This coin can only be withdrawn after the statecoin sharing the deposit address has been withdrawn and confirmed."}/>
+          
+          <Tooltip 
+            condition = {(props.coin_data.status === STATECOIN_STATUS.EXPIRED)}
+            className = {'expired-tooltip'}
+            title = {"Backup tx sent."}
+            text = {'To retrieve coin, go to Settings -> Manage Backup Transactions to export private key or send to new address'}/>
+
+        {/* 
+          Needs double check that no styling is incorrect
+          
         {(props.coin_data.status === STATECOIN_STATUS.DUPLICATE) ?(
           <div className="dup-container">
             <span className="tooltip">
               <b>Duplicate Coin Warning!</b> This coin can only be withdrawn after the statecoin sharing the deposit address has been withdrawn and confirmed. 
             </span>
-          </div>): (null) }
-          {/* TO DO: ADD WITHDRAWAL ADDRESS */}
-          {props.coin_data.status === STATECOIN_STATUS.EXPIRED ? (
-            <div className="expired-tooltip">
-              <span className="tooltip">
-                <div><b> Backup tx sent.</b></div>
-                {/* <div>Withdrawal Address: XXXXXXXXXXX</div> */}
-                <div>
-                  <p>To retrieve coin, go to Settings -&gt; Manage Backup Transactions to export private key or send to new address</p>
-                </div>
-              </span>
-            </div>
-          ):(null)}
-          <div className="CoinAmount-block">
-            <img src={props.coin_data.privacy_data.icon1} alt="icon" className="privacy" />
-            <span className="sub">
-              <b className={props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI ? "CoinAmountError" : "CoinAmount"}>  {balance_info.hidden ? HIDDEN : fromSatoshi(props.coin_data.value)} BTC</b>
-              {filterBy === STATECOIN_STATUS.IN_TRANSFER ? (
-                <div className="scoreAmount">
-                  {updateTransferDate(props.coin_data)}
-                </div>
-              ) : (
-                <div className="scoreAmount">
-                  <img src={props.coin_data.privacy_data.icon2} alt="icon" className="privacy" />
-                  {props.coin_data.privacy_data.rounds}
-                  <span className="tooltip">
-                    <b>{props.coin_data.privacy_data.rounds}:</b>
-                    {props.coin_data.privacy_data.rounds_msg}
-                  </span>
-                </div>)}
-            </span>
-          </div>
+          </div>): (null) } */}
+
+
+          <ImgAndInfo 
+            imgsrc1 = {props.coin_data.privacy_data.icon1}
+            imgsrc2 = {props.coin_data.privacy_data.icon2}
+            bClass = {props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI ? "CoinAmountError" : "CoinAmount"}
+            boldText = {`${balance_info.hidden ? HIDDEN : fromSatoshi(props.coin_data.value)} BTC`}
+            condition = {filterBy === STATECOIN_STATUS.IN_TRANSFER}
+            subText = {updateTransferDate(props.coin_data)}
+            imgSubText = {props.coin_data.privacy_data.rounds}
+            tooltipBoldText = {`${props.coin_data.privacy_data.rounds}:`}
+            tooltipText = {props.coin_data.privacy_data.rounds_msg}/> 
+
           {(filterBy !== STATECOIN_STATUS.WITHDRAWN
             && filterBy !== STATECOIN_STATUS.WITHDRAWING) ? (
             props.coin_data.status === STATECOIN_STATUS.INITIALISED ?
-              <div>
-                <div className="deposit-scan-main-item">
-                  <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, getAddress(props.coin_data.shared_key_id))}>
-                    <img type="button" src={copy_img} alt="icon" />
-                  </CopiedButton>
-                  <span className="long"><b>{getAddress(props.coin_data.shared_key_id)}</b></span>
-                </div>
-              </div>
+
+              <AddressDisplay 
+                shared_key_id={props.coin_data.shared_key_id} />
+
               : (
-                <div className="progress_bar" id={props.coin_data.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}>
-                  <div className="coin-description">
-                    <p>{props.coin_data.description}</p>
-                  </div>
-                  {
-                    props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI &&
-                    (
-                      <div class='CoinAmountError'>
-                        <div className="scoreAmount">
-                          Coin in error state: below minimum deposit values
-                            <span className="tooltip">
-                            This coin cannot be swapped but can be withdrawn in a batch with other coins.
-                            </span>
-                        </div>
-                      </div>
-                    )
-                  }
-                  <div className="sub">
-                    <ProgressBar>
-                      <ProgressBar striped variant={props.coin_data.expiry_data.days < DAYS_WARNING ? 'danger' : 'success'}
-                        now={props.coin_data.expiry_data.days * 100 / 90}
-                        key={1} />
-                    </ProgressBar>
-                  </div>
-                  {
-                    displayExpiry(props.coin_data)
-                  }
+
+                <ProgressContainer 
+                  progressAlert = {props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI}
+                  description = {props.coin_data.description}
+                  ifErr = { props.coin_data.value < MINIMUM_DEPOSIT_SATOSHI}
+                  percentage = { props.coin_data.expiry_data.days * 100 / 90 }
+                  subText = {displayExpiry(props.coin_data)} />
+
+              )) : 
+              (
+                <div className="widthdrawn-status">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 0.5C3.875 0.5 0.5 3.875 0.5 8C0.5 12.125 3.875 15.5 8 15.5C12.125 15.5 15.5 12.125 15.5 8C15.5 3.875 12.125 0.5 8 0.5ZM12.875 9.125H3.125V6.875H12.875V9.125Z" fill="#BDBDBD" />
+                  </svg>
+                  <span>
+                    Withdrawn <span className="widthdrawn-status-time">| {<Moment format="MM.DD.YYYY HH:mm">{callGetActivityDate(props.coin_data.shared_key_id, ACTION.WITHDRAW)}</Moment>}</span>
+                  </span>
                 </div>
-              )) : (
-            <div className="widthdrawn-status">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 0.5C3.875 0.5 0.5 3.875 0.5 8C0.5 12.125 3.875 15.5 8 15.5C12.125 15.5 15.5 12.125 15.5 8C15.5 3.875 12.125 0.5 8 0.5ZM12.875 9.125H3.125V6.875H12.875V9.125Z" fill="#BDBDBD" />
-              </svg>
-              <span>
-                Withdrawn <span className="widthdrawn-status-time">| {<Moment format="MM.DD.YYYY HH:mm">{callGetActivityDate(props.coin_data.shared_key_id, ACTION.WITHDRAW)}</Moment>}</span>
-              </span>
-            </div>
           )}
 
-          {
-            props.swap &&
-            <div>
-              <label className='toggle'>
-                Auto-swap
-              </label>
-              <label className="toggle-sm">
+          <AutoSwapToggle coin_data={props.coin_data} />
 
-                <input
-                  className="toggle-checkbox"
-                  type="checkbox"
-                  onChange={e => props.handleAutoSwap(props.coin_data)}
-                  checked={props.coin_data.swap_auto}
-                  disabled={(props.coin_data.status === "INITIALISED" || 
-                  props.coin_data.status === "EXPIRED" || 
-                  props.coin_data.status === "WITHDRAWING" ||
-                  props.coin_data.status === "WITHDRAWN" ||
-                  props.coin_data.status === "SWAPLIMIT" ||
-                  props.coin_data.status === "IN_MEMPOOL" ||
-                  props.coin_data.status === "UNCONFIRMED" ) ? true : false}
-                />
-                <div className="toggle-switch" />
-              </label>
-            </div>
-          }
-
-          {props.showCoinStatus ? (
+          { props.showCoinStatus ? (
             <div className="coin-status-or-txid">
 
               {(props.coin_data.status === STATECOIN_STATUS.AVAILABLE
@@ -451,9 +391,6 @@ export default React.memo(Coin, (prevProps, nextProps) => {
   if (prevProps.showCoinStatus !== nextProps.showCoinStatus ||
     prevProps.isMainPage !== nextProps.isMainPage ||
     prevProps.coin_data !== nextProps.coin_data ||
-    prevProps.swap !== nextProps.swap ||
-    prevProps.send !== nextProps.send ||
-    prevProps.withdraw !== nextProps.withdraw ||
     prevProps.selectedCoin !== nextProps.selectedCoin ||
     prevProps.selectedCoins !== nextProps.selectedCoins ||
     prevProps.displayDetailsOnClick !== nextProps.displayDetailsOnClick ||

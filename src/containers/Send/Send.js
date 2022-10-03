@@ -204,8 +204,7 @@ const SendStatecoinPage = () => {
               setSelectedCoin={addSelectedCoin}
               setCoinDetails={setCoinDetails}
               refresh={refreshCoins}
-              render = {forceRender}
-              send={true} />
+              render = {forceRender} />
           </div>
 
         </div>
