@@ -66,7 +66,9 @@ export const WalletInfoSlice = createSlice({
       var currentWallet = state.wallets[realKey];
       var newWallet = {
         ...currentWallet,
-        statecoins_obj: { ...currentWallet.statecoins_obj, ...value },
+        statecoins: {
+          coins: [...currentWallet.statecoins.coins, value]
+        },
       };
 
       return {
@@ -94,10 +96,23 @@ export const WalletInfoSlice = createSlice({
         },
       };
     },
-    delete_statecoins: (state, action) => {
-      // does nothing with the state for now
+    delete_statecoinObj: (state, action) => {
+      const { key, value } = action.payload;
+
+      var realKey = key.split(".")[0];
+      var currentWallet = state.wallets[realKey];
+      // Delete state coin of given shared_key_id if status is "INITIALISED" 
+      var newStatecoins = currentWallet.statecoins.coins.filter(
+        coin => !(coin.shared_key_id ===  action.payload.value && coin.status === "INITIALISED")
+      )
+      var newWallet = { ...currentWallet, statecoins: { coins: newStatecoins }};
+
       return {
         ...state,
+        wallets: {
+          ...state.wallets,
+          [realKey]: newWallet,
+        }
       };
     },
     save_activity: (state, action) => {
@@ -123,7 +138,7 @@ export const {
   save_login,
   save_statecoins,
   save_statecoinObj,
-  delete_statecoins,
+  delete_statecoinObj,
   save_activity,
   save_account,
 } = WalletInfoSlice.actions;

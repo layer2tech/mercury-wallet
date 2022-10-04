@@ -4,7 +4,7 @@ import {
   save_login,
   save_statecoins,
   save_statecoinObj,
-  delete_statecoins,
+  delete_statecoinObj,
   save_activity,
   save_account,
 } from "../features/WalletInfoSlice";
@@ -21,6 +21,7 @@ export class WrappedStore {
     let walletVar = undefined;
     let walletObject = undefined;
     let walletAttribute = undefined;
+    let walletAttributeItem =  undefined;
 
     let walletInfo = store.getState().walletInfo;
     let wallets = walletInfo.wallets;
@@ -54,9 +55,13 @@ export class WrappedStore {
         console.log("get->statecoins_obj", walletAttribute);
         console.log("the value was:", value);
 
-        console.log(wallets[walletObject].statecoins_obj);
-
-        return wallets[walletObject].statecoins_obj;
+        walletAttributeItem = walletVar[2] + "";
+        let statecoinObj = wallets[walletObject].statecoins.coins.find(
+          coin => {
+            return coin.shared_key_id === walletAttributeItem;
+          }
+        );
+        return statecoinObj;
       } else if (getWalletAttribute === {}) {
         return undefined;
       } else if (walletAttribute === "swapped_statecoins_obj") {
@@ -117,8 +122,8 @@ export class WrappedStore {
   }
 
   delete(key, value) {
-    if (key.includes(".statecoins")) {
-      store.dispatch(delete_statecoins({ key, value }));
+    if (key.includes(".statecoins_obj")) {
+      store.dispatch(delete_statecoinObj({ key, value }));
     }
   }
 }
