@@ -157,7 +157,6 @@ export class Wallet {
   ping_electrum_ms: number | null;
   statechain_id_set: Set<string>;
   wasm: any;
-  ldk: any;
   saveMutex: Mutex;
 
   storage: Storage;
@@ -838,7 +837,7 @@ export class Wallet {
   }
 
   async importLDK(){
-    this.ldk = await import('lightningdevkit')
+    await import('lightningdevkit')
   }
 
   async importWasm() {
