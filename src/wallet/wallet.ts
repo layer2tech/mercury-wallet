@@ -157,6 +157,7 @@ export class Wallet {
   ping_electrum_ms: number | null;
   statechain_id_set: Set<string>;
   wasm: any;
+  ldk: any;
   saveMutex: Mutex;
 
   storage: Storage;
@@ -829,11 +830,18 @@ export class Wallet {
         this.wasm = new MockWasm();
       } else {
         await this.importWasm();
+        await this.importLDK();
       }
       // Setup
       await this.wasm.init();
     }
     return this.wasm;
+  }
+
+  async importLDK(){
+    console.log('importing ldk')
+    this.ldk = await import('lightningdevkit')
+    console.log(this.ldk)
   }
 
   async importWasm() {
