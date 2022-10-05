@@ -94,15 +94,11 @@ describe("Wallet", function () {
       expect(statecoinsInfo).toEqual(WALLET_V_0_7_10_JSON.statecoins);
     });
 
-    test("save and delete statecoin object", async function() {
+    test("save statecoin object", async function() {
       let statecoinObjInfo;      
       store.set(WALLET_V_0_7_10_JSON.name + ".statecoins_obj", WALLET_V_0_7_10_JSON_2.statecoins.coins[8]);
-      statecoinObjInfo = store.get(WALLET_V_0_7_10_JSON.name + ".statecoins_obj" + "." + WALLET_V_0_7_10_JSON_2.statecoins.coins[8].shared_key_id);
+      statecoinObjInfo = store.get(WALLET_V_0_7_10_JSON.name + ".statecoins_obj");
       expect(statecoinObjInfo).toEqual(WALLET_V_0_7_10_JSON_2.statecoins.coins[8]);
-
-      store.delete(WALLET_V_0_7_10_JSON.name + ".statecoins_obj", WALLET_V_0_7_10_JSON_2.statecoins.coins[8].shared_key_id);
-      statecoinObjInfo = store.get(WALLET_V_0_7_10_JSON.name + ".statecoins_obj" + "." + WALLET_V_0_7_10_JSON_2.statecoins.coins[8].shared_key_id);
-      expect(statecoinObjInfo).toEqual(undefined);
     });
   });
 });

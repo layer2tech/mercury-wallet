@@ -66,9 +66,7 @@ export const WalletInfoSlice = createSlice({
       var currentWallet = state.wallets[realKey];
       var newWallet = {
         ...currentWallet,
-        statecoins: {
-          coins: [...currentWallet.statecoins.coins, value]
-        },
+        statecoins_obj: { ...currentWallet.statecoins_obj, ...value },
       };
 
       return {
@@ -96,7 +94,7 @@ export const WalletInfoSlice = createSlice({
         },
       };
     },
-    delete_statecoinObj: (state, action) => {
+    delete_statecoins: (state, action) => {
       const { key, value } = action.payload;
 
       var realKey = key.split(".")[0];
@@ -138,7 +136,7 @@ export const {
   save_login,
   save_statecoins,
   save_statecoinObj,
-  delete_statecoinObj,
+  delete_statecoins,
   save_activity,
   save_account,
 } = WalletInfoSlice.actions;
