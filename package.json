@@ -4,14 +4,12 @@
     "moduleDirectories": [
       "node_modules",
       "src",
-      "client-wasm/pkg",
-      "lightningdevkit"
+      "client-wasm/pkg"
     ],
     "modulePaths": [
       "src",
       "node_modules",
-      "client-wasm/pkg",
-      "lightningdevkit"
+      "client-wasm/pkg"
     ],
     "moduleFileExtensions": [
       "js",

@@ -830,7 +830,6 @@ export class Wallet {
         this.wasm = new MockWasm();
       } else {
         await this.importWasm();
-        await this.importLDK();
       }
       // Setup
       await this.wasm.init();
@@ -839,9 +838,7 @@ export class Wallet {
   }
 
   async importLDK(){
-    console.log('importing ldk')
     this.ldk = await import('lightningdevkit')
-    console.log(this.ldk)
   }
 
   async importWasm() {
