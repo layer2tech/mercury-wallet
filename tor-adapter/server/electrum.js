@@ -74,7 +74,8 @@ class ElectrumClient {
     const header = await this.client
       .blockchain_headers_subscribe()
       .catch((err) => {
-        throw new ElectrumClientError(`failed to get block header: [${err}]`)
+        console.error(`Electrum Server Error! failed to get block header: [${err}]`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to get block header`)
       })
     return header
   }
@@ -84,7 +85,8 @@ class ElectrumClient {
     const tx = await this.client
       .blockchain_transaction_get(txHash, true)
         .catch((err) => {
-          throw new ElectrumClientError(`failed to get transaction ${txHash}: [${err}]`)
+          console.error(`Electrum Server Error! failed to get transaction ${txHash}: [${err}]`)
+          throw new ElectrumClientError(`Electrum Server Error! failed to get transaction`)
         }
       )
     return tx
@@ -101,9 +103,9 @@ class ElectrumClient {
     const list_unspent = await this.client
       .blockchain_scripthash_listunspent(script_hash)
         .catch((err) => {
-          let err_msg = `failed to get list unspent for script hash ${script_hash}: [${err}]`
-          console.log(`${err_msg}`)
-          throw new ElectrumClientError(err_msg)
+          let err_msg = `Electrum Server Error! failed to get list unspent for script hash ${script_hash}: [${err}]`
+          console.error(`${err_msg}`)
+          throw new ElectrumClientError(`Electrum Server Error! failed to get list unspent for script hash`)
         }
     )
     return list_unspent
@@ -126,7 +128,8 @@ class ElectrumClient {
     const addr_subscription = await this.client
       .blockchain_scripthash_subscribe(script_hash)
         .catch((err) => {
-          throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
+          console.error(`Electrum Server Error! failed to subscribe to script ${script}: [${err}]`)
+          throw new ElectrumClientError(`Electrum Server Error! failed to subscribe to script`)
         }
       )
     return addr_subscription
@@ -138,7 +141,8 @@ class ElectrumClient {
     this.client
       .blockchain_scripthash_unsubscribe(script_hash)
         .catch((err) => {
-          throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
+          console.error(`Electrum Server Error! failed to subscribe to script ${script}: [${err}]`)
+          throw new ElectrumClientError(`Electrum Server Error! failed to subscribe to script`)
         }
       )
   }
@@ -149,7 +153,8 @@ class ElectrumClient {
     const headers_subscription = await this.client
       .blockchain_headers_subscribe()
         .catch((err) => {
-          throw new ElectrumClientError(`failed to subscribe to headers: [${err}]`)
+          console.error(`Electrum Server Error! failed to subscribe to headers: [${err}]`)
+          throw new ElectrumClientError(`Electrum Server Error! failed to subscribe to headers`)
         }
       )
     return headers_subscription
@@ -160,8 +165,8 @@ class ElectrumClient {
     const txHash = await this.client
       .blockchain_transaction_broadcast(rawTX)
       .catch((err) => {
-      //  throw new ElectrumClientError(`failed to broadcast transaction: [${err}]`)
-        throw err
+        console.error(`Electrum Server Error! failed to broadcast transaction: [${err}]`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to broadcast transaction`)
       })
     return txHash
   }
@@ -172,7 +177,8 @@ class ElectrumClient {
     const fee_histogram = await this.client
       .request('mempool.get_fee_histogram')
       .catch((err) => {
-          throw new ElectrumClientError(`failed to get fee estimation: [${err}]`)
+          console.error(`Electrum Server Error! failed to get fee estimation: [${err}]`)
+          throw new ElectrumClientError(`Electrum Server Error! failed to get fee estimation`)
         }
       )
   
@@ -190,7 +196,8 @@ class ElectrumClient {
         //if (err.message.includes("close connect")){
         //  return null
         //}
-        throw new ElectrumClientError(`failed to get scripthash  history: ${err.name}:${err.message}`)
+        console.error(`Electrum Server Error! failed to get scripthash  history: ${err.name}:${err.message}`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to get scripthash  history`)
       }
     )
     return history
@@ -203,7 +210,8 @@ class ElectrumClient {
     await this.client.importAddresses
     await this.client.request('import_addresses', addresses)
       .catch( (err) => {
-        throw new ElectrumClientError(`failed to import addresses: ${err.name}:${err.message}`)
+        console.error(`Electrum Server Error! failed to import addresses: ${err.name}:${err.message}`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to import addresses`)
     })
   }
   

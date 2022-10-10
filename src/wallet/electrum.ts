@@ -118,7 +118,8 @@ export class ElectrumClient {
     const header = await this.client
       .blockchain_headers_subscribe()
       .catch((err: any) => {
-        throw new ElectrumClientError(`failed to get block header: [${err}]`)
+        console.error(`Electrum Server Error! failed to get block header: [${err}]`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to get block header`)
       })
     return header
   }
@@ -128,7 +129,8 @@ export class ElectrumClient {
     const tx = await this.client
       .blockchain_transaction_get(txHash, true)
       .catch((err: any) => {
-        throw new ElectrumClientError(`failed to get transaction ${txHash}: [${err}]`)
+        console.error(`Electrum Server Error! failed to get transaction ${txHash}: [${err}]`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to get transaction`)
       }
       )
     return tx
@@ -145,7 +147,8 @@ export class ElectrumClient {
     const list_unspent = await this.client
       .blockchain_scripthash_listunspent(script_hash_rev)
       .catch((err: any) => {
-        throw new ElectrumClientError(`failed to get list unspent for script ${script}: [${err}]`)
+        console.error(`Electrum Server Error! failed to get list unspent for script ${script}: [${err}]`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to get list unspent for script`)
       }
       )
     return list_unspent
@@ -168,7 +171,8 @@ export class ElectrumClient {
     const addr_subscription = await this.client
       .blockchain_scripthash_subscribe(script_hash)
       .catch((err: any) => {
-        throw new ElectrumClientError(`failed to subscribe to script ${script}: [${err}]`)
+        console.error(`Electrum Server Error! failed to subscribe to script ${script}: [${err}]`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to subscribe to script`)
       }
       )
     return addr_subscription
@@ -181,7 +185,8 @@ export class ElectrumClient {
     this.client
       .blockchain_scripthash_unsubscribe(script_hash)
       .catch((err: any) => {
-        throw new ElectrumClientError(`failed to unsubscribe from script ${script}: [${err}]`)
+        console.error(`Electrum Server Error! failed to unsubscribe from script ${script}: [${err}]`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to unsubscribe from script`)
       }
       )
   }
@@ -192,7 +197,8 @@ export class ElectrumClient {
     const headers_subscription = await this.client
       .blockchain_headers_subscribe()
       .catch((err: any) => {
-        throw new ElectrumClientError(`failed to subscribe to headers: [${err}]`)
+        console.error(`Electrum Server Error! failed to subscribe to headers: [${err}]`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to subscribe to headers`)
       }
       )
     return headers_subscription
@@ -207,7 +213,8 @@ export class ElectrumClient {
     const txHash = await this.client
       .blockchain_transaction_broadcast(rawTX)
       .catch((err: any) => {
-        throw new ElectrumClientError(`failed to broadcast transaction: [${err}]`)
+        console.error(`Electrum Server Error! failed to broadcast transaction: [${err}]`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to broadcast transaction`)
       })
     return txHash
   }
@@ -217,7 +224,8 @@ export class ElectrumClient {
     const fee_histogram = await this.client
       .blockchainEstimatefee(num_blocks)
       .catch((err: any) => {
-        throw new ElectrumClientError(`failed to get fee estimation: [${err}]`)
+        console.error(`Electrum Server Error! failed to get fee estimation: [${err}]`)
+        throw new ElectrumClientError(`Electrum Server Error! failed to get fee estimation`)
       }
       )
     return fee_histogram
