@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -20,8 +16,10 @@
     "jsx": "react-jsx",
     "noFallthroughCasesInSwitch": true
   },
-  "include": [
-    "src",
-    "tor-adapter/server/electrum.js"
-  ]
+  "paths": {
+    "crypto": ["node_modules/crypto-browserify"],
+    "http": ["node_modules/stream-http"],
+    "https": ["node_modules/https-browserify"]
+  },
+  "include": ["src", "tor-adapter/server/electrum.js"]
 }
