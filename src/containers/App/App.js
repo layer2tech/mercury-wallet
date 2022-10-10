@@ -50,12 +50,12 @@ const App = () => {
   async function darkMode() {
     if (dark_mode === "1") {
       if (window.darkMode !== undefined) {
-        await window.darkMode.on();
+        //await window.darkMode.on(); - await window doesn't work on browser - find alternative
       }
       document.body.classList.add("dark-mode");
     } else {
       if (window.darkMode !== undefined) {
-        await window.darkMode.off();
+        //await window.darkMode.off();
       }
       document.body.classList.remove("dark-mode");
     }
