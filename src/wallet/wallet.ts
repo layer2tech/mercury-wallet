@@ -2715,6 +2715,7 @@ export const mnemonic_to_bip32_root_account = (
 export const json_wallet_to_bip32_root_account = (json_wallet: any): object => {
   const network: Network = json_wallet.config.network;
   // Rederive root and root chain keys
+
   const seed = bip39.mnemonicToSeedSync(json_wallet.mnemonic);
   const root = bip32.fromSeed(seed, network);
 
@@ -2722,6 +2723,9 @@ export const json_wallet_to_bip32_root_account = (json_wallet: any): object => {
   let external = i.derive(0);
   let internal = i.derive(1);
 
+  // ensure account stores with different encoding/decoding are in same format
+  json_wallet.account = JSON.parse(JSON.stringify(json_wallet.account))
+  
   // Re-map Account JSON data to root chains
   const chains = json_wallet.account.map(function (j: any) {
     let node;
@@ -2731,17 +2735,18 @@ export const json_wallet_to_bip32_root_account = (json_wallet: any): object => {
     } else {
       node = internal;
     }
-
     const chain = new bip32utils.Chain(node, j.k, segwitAddr);
+    
     chain.map = j.map;
-
+    
+    
     chain.addresses = Object.keys(chain.map).sort(function (a, b) {
       return chain.map[a] - chain.map[b];
     });
-
+    
     return chain;
   });
-
+  
   let account = new bip32utils.Account(chains);
   return account;
 };

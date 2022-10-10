@@ -40,7 +40,7 @@ export class Storage {
   constructor(fileName: string) {
     this.name = fileName;
 
-    if (isElectron() || TestingWithJest()) {
+    if ((isElectron())|| TestingWithJest()) {
       this.store = new Store({ name: this.name });
     } else {
       this.store = new WrappedStore(name);
@@ -77,7 +77,8 @@ export class Storage {
   }
 
   accountToAddrMap(account_json: any) {
-    return [
+
+    let account = [
       {
         k: account_json.chains[0].k,
         map: account_json.chains[0].map,
@@ -87,6 +88,8 @@ export class Storage {
         map: account_json.chains[1].map,
       },
     ];
+
+    return account
   }
 
   // Wallet storage
@@ -96,6 +99,8 @@ export class Storage {
       delete wallet_json.storage;
       delete wallet_json.saveMutex;
 
+
+      // console.log(wallet_json)
       // encrypt mnemonic
       wallet_json.mnemonic = encryptAES(
         wallet_json.mnemonic,
@@ -104,6 +109,7 @@ export class Storage {
       // remove password and root keys
       wallet_json.password = "";
       wallet_json.account = this.accountToAddrMap(wallet_json.account);
+
       // remove testing_mode config
       delete wallet_json.config.testing_mode;
       delete wallet_json.config.jest_testing_mode;
@@ -151,8 +157,13 @@ export class Storage {
     this.store.set(wallet_name, { name: wallet_name });
   }
 
+  loadWalletFromStore(wallet_json: any, load_all: boolean = false){
+    
+  }
+
   getWallet(wallet_name: string, load_all: boolean = false) {
     let wallet_json: any = { name: this.store.get(`${wallet_name}.name`) };
+
     if (wallet_json.name === undefined)
       throw Error("No wallet called " + wallet_name + " stored.");
 
@@ -175,8 +186,6 @@ export class Storage {
     wallet_keys.forEach((key: string) => {
       wallet_json[key] = this.store.get(`${wallet_name}.${key}`);
     });
-
-    console.log("wallet_json now:", wallet_json);
 
     //Read the statecoin data saved in previous versions of the wallet
     let saved_coins: StateCoin[] | undefined = this.store.get(
@@ -260,18 +269,15 @@ export class Storage {
     password: string,
     load_all: boolean = false
   ) {
-    console.log("getWalletDecrypted");
     let wallet_json_encrypted = this.getWallet(wallet_name, load_all);
-
-    console.log("wallet_json_encrypted", wallet_json_encrypted);
-
+  
     let wallet_json_decrypted = wallet_json_encrypted;
     // Decrypt mnemonic
     try {
       wallet_json_decrypted.mnemonic = decryptAES(
         wallet_json_decrypted.mnemonic,
         password
-      );
+        );
     } catch (e: any) {
       throw Error(`Incorrect password.`);
     }
