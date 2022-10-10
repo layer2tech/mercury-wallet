@@ -1,0 +1,42 @@
+{"level":"info","message":"init TorClient...","service":"user-service"}
+{"level":"info","message":"finished init TorClient.","service":"user-service"}
+{"level":"info","message":"starting tor node...","service":"user-service"}
+{"level":"info","message":"TorClient.startTorNode...","service":"user-service"}
+{"level":"info","message":"finished starting tor node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir: /Users/samgershuny/Documents/mercury-wallet/tor/tor","service":"user-service"}
+{"level":"info","message":"TorClient.startTorNode - started tor node with pid 5122","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}

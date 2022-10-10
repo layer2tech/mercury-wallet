@@ -26,10 +26,6 @@ export class WrappedStore {
     let wallets = walletInfo.wallets;
     let loginInfo = walletInfo.loginInfo;
 
-    console.log("WalletInfo ->", walletInfo);
-    console.log("LoginInfo ->", loginInfo);
-    console.log("Value ->", value);
-
     if (value !== undefined && value.includes(".")) {
       walletVar = value.split("."); // array of for e.g. wallet.name into ["wallet", "name"]
 
@@ -43,54 +39,46 @@ export class WrappedStore {
       if (walletAttribute === "statecoins") {
         return wallets[walletObject].statecoins;
       } else if (walletAttribute === "statecoins_obj") {
-        console.log("get->statecoins_obj", walletAttribute);
-        console.log("the value was:", value);
-
-        console.log(wallets[walletObject].statecoins_obj);
 
         return wallets[walletObject].statecoins_obj;
       } else if (getWalletAttribute === {}) {
         return undefined;
       } else if (walletAttribute === "swapped_statecoins_obj") {
-        console.log("get->swapped_coins_obj...");
+
         return wallets[walletObject].swapped_statecoins_obj;
       } else {
         return getWalletAttribute;
       }
     } else {
       if (value === undefined) {
-        console.log("value !=== undefined?");
+
         const hasKeys = !!Object.keys(wallets).length;
         if (!hasKeys) {
-          console.log("there is no keys here...");
+
           return null;
         } else {
-          console.log("return the wallets object");
+
           return wallets;
         }
       }
       // get from login store
       else if (value.includes("logins.")) {
-        console.log("Logins...");
+
         return loginInfo[value];
       } else if (wallets[value] !== undefined) {
-        console.log("wallets[value] !== undefined");
+
         return wallets[value];
       } else {
-        console.log(wallets["12345"].name);
-        console.log("wallets is equal to:", wallets);
-        console.log("looking for value ", value);
+
       }
     }
 
-    console.log("found nothing.. returning false...");
     return undefined;
   }
 
   set(key, value) {
     // set for login
     if (key.includes("logins.")) {
-      console.log("set login. of account");
       store.dispatch(save_login({ key, value }));
     }
     // set for account

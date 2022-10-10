@@ -49,7 +49,6 @@ export class Storage {
 
   // return map of wallet names->passwords
   getWalletNames() {
-    console.log("getWalletNames()");
     let wallets = this.store.get();
 
     if (wallets == null) {
@@ -68,7 +67,6 @@ export class Storage {
 
   // Check password for a wallet
   checkLogin(wallet_name: string, pw_attempt: string) {
-    console.log("checking for passwords");
     let pw = this.store.get("logins." + wallet_name, pw_attempt);
     if (pw === undefined)
       throw Error("Wallet " + wallet_name + " does not exist.");
@@ -176,8 +174,6 @@ export class Storage {
       wallet_json[key] = this.store.get(`${wallet_name}.${key}`);
     });
 
-    console.log("wallet_json now:", wallet_json);
-
     //Read the statecoin data saved in previous versions of the wallet
     let saved_coins: StateCoin[] | undefined = this.store.get(
       `${wallet_name}.statecoins.coins`
@@ -260,7 +256,6 @@ export class Storage {
     password: string,
     load_all: boolean = false
   ) {
-    console.log("getWalletDecrypted");
     let wallet_json_encrypted = this.getWallet(wallet_name, load_all);
 
     console.log("wallet_json_encrypted", wallet_json_encrypted);
