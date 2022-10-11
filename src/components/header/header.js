@@ -1,5 +1,5 @@
 "use strict";
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, withRouter } from "react-router-dom";
 import { Logo, Settings, Help, Logout } from "./headerIcons";
 import {
@@ -32,6 +32,22 @@ const Header = (props) => {
     dispatch(setWalletLoaded({ loaded: false }));
   };
 
+  useEffect(() => {
+    if(!isElectron()){
+      if(localStorage.dark_mode){
+        document.documentElement.classList.remove("light");
+        document.documentElement.classList.add("dark");
+        document.querySelector(".App").classList.add("dark-mode");
+        localStorage.setItem("dark_mode", "1");
+      } else{
+        document.documentElement.classList.remove("dark");
+        document.documentElement.classList.add("light");
+        document.querySelector(".App").classList.remove("dark-mode");
+        localStorage.removeItem("dark_mode");
+      }
+    }
+  })
+
   let isDarkMode = localStorage.getItem("dark_mode");
   const activeDarkMode = async () => {
     isDarkMode = document.body.classList.contains("dark-mode");
@@ -50,25 +66,16 @@ const Header = (props) => {
       }
     } else {
       // browser changes
-      if (document.documentElement.classList.contains("light")) {
+      if (!localStorage.dark_mode) {
         document.documentElement.classList.remove("light");
-        document.documentElement.classList.add("dark-mode");
+        document.documentElement.classList.add("dark");
+        document.querySelector(".App").classList.add("dark-mode");
         localStorage.setItem("dark_mode", "1");
-      } else if (document.documentElement.classList.contains("dark-mode")) {
-        document.documentElement.classList.remove("dark-mode");
+      } else if (localStorage.dark_mode) {
+        document.documentElement.classList.remove("dark");
         document.documentElement.classList.add("light");
+        document.querySelector(".App").classList.remove("dark-mode");
         localStorage.removeItem("dark_mode");
-      } else {
-        if (
-          window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-        ) {
-          document.documentElement.classList.add("dark-mode");
-          localStorage.setItem("dark_mode", "1");
-        } else {
-          document.documentElement.classList.add("light");
-          localStorage.removeItem("dark_mode");
-        }
       }
     }
   };
@@ -88,7 +95,7 @@ const Header = (props) => {
                 className="toggle-checkbox2"
                 type="checkbox"
                 onChange={activeDarkMode}
-                checked={isDarkMode}
+                checked={isElectron ? (isDarkMode): (!localStorage.dark_mode)}
               />
               <div className="toggle-switch2" />
             </label>
