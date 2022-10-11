@@ -2,14 +2,14 @@
  * @jest-environment jsdom
  */
 
- import { WrappedStore } from '../../application/wrappedStore';
+
  import { decryptAES, encryptAES } from '../util';
  import TEST_WALLET from './data/test_config.json';
  const bitcoin = require("bitcoinjs-lib");
  let cloneDeep = require("lodash.clonedeep");
- 
  import { json_wallet_to_bip32_root_account, Wallet } from '../wallet';
  import { StateCoinList } from '../statecoin';
+
  
     describe("Account Breaks - Storing and Loading wallets in Redux", () => {
      let wallet;
