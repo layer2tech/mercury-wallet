@@ -1,5 +1,4 @@
 "use strict";
-import { type } from "os";
 import {
   ActivityLog,
   decryptAES,
@@ -9,9 +8,8 @@ import {
   STATECOIN_STATUS,
 } from "./wallet";
 import { OutPoint } from "./wallet/mercury/info_api";
-import { SWAP_STATUS } from "./wallet/swap/swap_utils";
 import WrappedLogger from "./wrapped_logger";
-let cloneDeep = require("lodash.clonedeep");
+import { WebStore } from "./application/webStore";
 
 let isElectron = require("is-electron");
 const TestingWithJest = () => {
@@ -38,7 +36,11 @@ export class Storage {
   name: string;
   constructor(fileName: string) {
     this.name = fileName;
-    this.store = new Store({ name: this.name });
+    if (isElectron()) {
+      this.store = new Store({ name: this.name });
+    } else {
+      this.store = new WebStore();
+    }
   }
 
   // return map of wallet names->passwords

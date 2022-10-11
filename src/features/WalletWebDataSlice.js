@@ -62,7 +62,10 @@ export const WalletWebDataSlice = createSlice({
       var currentWallet = state.wallets[realKey];
       var newWallet = {
         ...currentWallet,
-        statecoins_obj: { ...currentWallet.statecoins_obj,  [`${shared_key_id}`]: value },
+        statecoins_obj: {
+          ...currentWallet.statecoins_obj,
+          [`${shared_key_id}`]: value,
+        },
       };
 
       return {
