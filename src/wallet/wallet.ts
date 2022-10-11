@@ -2791,6 +2791,10 @@ export const json_wallet_to_bip32_root_account = (json_wallet: any): object => {
   let external = i.derive(0);
   let internal = i.derive(1);
 
+  // ensure account stores with different encoding/decoding are in same format
+  json_wallet.account = JSON.parse(JSON.stringify(json_wallet.account))
+
+
   // Re-map Account JSON data to root chains
   const chains = json_wallet.account.map(function (j: any) {
     let node;
