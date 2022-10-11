@@ -39,7 +39,7 @@ export class Storage {
     if (isElectron()) {
       this.store = new Store({ name: this.name });
     } else {
-      this.store = new WebStore();
+      this.store = new WebStore(this.name);
     }
   }
 
