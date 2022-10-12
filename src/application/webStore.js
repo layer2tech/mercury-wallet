@@ -21,7 +21,7 @@ export class WebStore {
     let walletVar = undefined;
     let walletObject = undefined;
     let walletAttribute = undefined;
-    let walletInfo = store.getState().walletInfo;
+    let walletInfo = store.getState().walletWebData;
     let wallets = walletInfo.wallets;
     let loginInfo = walletInfo.loginInfo;
     //console.log("WalletInfo ->", walletInfo);
@@ -32,16 +32,25 @@ export class WebStore {
       walletVar = value.split("."); // array of for e.g. wallet.name into ["wallet", "name"]
       walletObject = walletVar[0] + ""; // key to whole object {}
       walletAttribute = walletVar[1] + ""; // variable {}.variable
+
+      // get from login store
+      if (value.includes("logins.")) {
+        console.log("Logins...");
+        console.log(walletAttribute)
+        return loginInfo[walletAttribute];
+      }
+
       // wallets : { test123:{}, wallet2:{}, wallet3: {}}
       // wallets.walletName.walletAttribute
       let getWalletAttribute = wallets[walletObject][walletAttribute];
       if (walletAttribute === "statecoins") {
         return wallets[walletObject].statecoins;
       } else if (walletAttribute === "statecoins_obj") {
+        let shared_key_id = walletVar[2] + "";
         //console.log("get->statecoins_obj", walletAttribute);
         //console.log("the value was:", value);
         //console.log(wallets[walletObject].statecoins_obj);
-        return wallets[walletObject].statecoins_obj;
+        return wallets[walletObject].statecoins_obj[shared_key_id];
       } else if (getWalletAttribute === {}) {
         return undefined;
       } else if (walletAttribute === "swapped_statecoins_obj") {
@@ -62,11 +71,7 @@ export class WebStore {
           return wallets;
         }
       }
-      // get from login store
-      else if (value.includes("logins.")) {
-        //console.log("Logins...");
-        return loginInfo[value];
-      } else if (wallets[value] !== undefined) {
+      else if (wallets[value] !== undefined) {
         //console.log("wallets[value] !== undefined");
         return wallets[value];
       } else {
