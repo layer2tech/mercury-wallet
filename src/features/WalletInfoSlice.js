@@ -6,8 +6,8 @@ const initialState = {
 };
 
 // stores all the wallet info into redux
-export const WalletWebDataSlice = createSlice({
-  name: "walletWebData",
+export const WalletInfoSlice = createSlice({
+  name: "walletInfo",
   initialState,
   reducers: {
     save_wallet: (state, action) => {
@@ -52,20 +52,15 @@ export const WalletWebDataSlice = createSlice({
       };
     },
     save_statecoinObj: (state, action) => {
+      console.log("SAVE STATECOIN OBJECT !!!!!!!");
       // check which account this belongs to with its key-value pair
       const { key, value } = action.payload;
-
-      let shared_key_id = value.shared_key_id;
-
       // ensure no .statecoins is within the key string
       var realKey = key.split(".")[0];
       var currentWallet = state.wallets[realKey];
       var newWallet = {
         ...currentWallet,
-        statecoins_obj: {
-          ...currentWallet.statecoins_obj,
-          [`${shared_key_id}`]: value,
-        },
+        statecoins_obj: { ...currentWallet.statecoins_obj, ...value },
       };
 
       return {
@@ -125,6 +120,6 @@ export const {
   delete_statecoins,
   save_activity,
   save_account,
-} = WalletWebDataSlice.actions;
+} = WalletInfoSlice.actions;
 
-export default WalletWebDataSlice.reducer;
+export default WalletInfoSlice.reducer;

@@ -1,4 +1,3 @@
-import { store } from "./reduxStore";
 import {
   save_wallet,
   save_login,
@@ -7,7 +6,9 @@ import {
   delete_statecoins,
   save_activity,
   save_account,
-} from "../features/WalletWebDataSlice";
+} from "../features/WalletInfoSlice";
+
+import { store } from "./reduxStore";
 
 // class the wraps in-built redux store
 export class WebStore {
