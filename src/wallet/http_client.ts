@@ -4,7 +4,7 @@ import { checkForServerError, handlePromiseRejection } from "./error";
 import axios, { AxiosRequestConfig } from 'axios'
 import Semaphore from 'semaphore-async-await';
 
-export const TIMEOUT = 20000
+export const TIMEOUT = 25000
 // Maximum number of concurrent API calls
 export const MAX_SEMAPHORE_COUNT = 5;
 export const semaphore = new Semaphore(MAX_SEMAPHORE_COUNT);
@@ -69,14 +69,14 @@ export class HttpClient {
 
   async new_tor_id() {
     if (this.is_tor) {
-      const timeout_ms = 20000
+      const timeout_ms = 25000
       await this.get('newid', {}, timeout_ms);
     }
   };
 
   async new_tor_circuit() {
     if (this.is_tor) {
-      const timeout_ms = 20000
+      const timeout_ms = 25000
       await this.get('newcircuit', {}, timeout_ms);
     }
   };

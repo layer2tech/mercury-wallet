@@ -2002,7 +2002,7 @@ export class Wallet {
       try {
         await (async () => {
           while (updateSwapSemaphore.getPermits() < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-            delay(1000);
+            delay(2000);
           }
         });
 
@@ -2051,7 +2051,7 @@ export class Wallet {
     try {
       await (async () => {
         while (updateSwapSemaphore.getPermits() < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
-          delay(1000);
+          delay(2000);
         }
       });
       swap = new Swap(
@@ -2595,7 +2595,7 @@ export class Wallet {
             log.info(
               `Transaction broadcast failed with error: ${error}. Retry: ${nTries}`
             );
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
             continue;
           } else {
             let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. Raw Tx: ${tx_withdraw_d.toHex()}`;
@@ -2707,7 +2707,7 @@ export class Wallet {
           log.info(
             `Transaction broadcast failed with error: ${error}. Retry: ${nTries}`
           );
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 2000));
           continue;
         } else {
           let errMsg = `Transaction broadcast failed with error: ${error} after ${nTries} attempts. See the withdrawn statecoins list for the raw transaction.`;
