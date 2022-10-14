@@ -44,8 +44,14 @@ export class WebStore {
       if (walletObject === "" || walletAttribute === "") {
         return null;
       }
-      let getWalletAttribute = wallets[walletObject][walletAttribute];
-      if (getWalletAttribute === undefined) {
+
+      let getWalletAttribute;
+      if (wallets[walletObject] !== undefined) {
+        getWalletAttribute = wallets[walletObject][walletAttribute];
+        if (getWalletAttribute === undefined) {
+          return null;
+        }
+      } else {
         return null;
       }
 
