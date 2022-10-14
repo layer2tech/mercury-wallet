@@ -13,20 +13,25 @@ export const WalletInfoSlice = createSlice({
     save_wallet: (state, action) => {
       const { key, value } = action.payload;
 
-      // don't save .account or objects without password attached
-      if (key.includes(".account")) {
-        return;
-      }
-      if (value.password === undefined) {
-        return;
-      }
+      console.log("key---------->", key);
+      console.log("value--------->", value);
+
+      var keySplit = key.split(".");
+      // assume key looks like this -> walletName.property -> v123.password
+      // value is the object {}
+
+      var walletName = keySplit[0];
+      var walletProperty = keySplit[1];
 
       // this replaces the update instead of 'updating' it
       return {
         ...state,
         wallets: {
           ...state.wallets,
-          [key]: value,
+          [walletName]: {
+            ...state.wallets[walletName],
+            [walletProperty]: value,
+          },
         },
       };
     },

@@ -110,6 +110,8 @@ export class Storage {
       delete wallet_json.active;
 
       Object.keys(wallet_json).forEach((key) => {
+        console.log("saving key->", key);
+
         //Functions cannot be stored.
         if (typeof wallet_json[key] !== "function") {
           this.saveKey(wallet_json, key);
