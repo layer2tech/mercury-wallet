@@ -38,16 +38,22 @@ export class WebStore {
 
       // wallets : { test123:{}, wallet2:{}, wallet3: {}}
       // wallets.walletName.walletAttribute
+      if (walletObject === undefined || walletAttribute === undefined) {
+        return null;
+      }
       let getWalletAttribute = wallets[walletObject][walletAttribute];
+      if (getWalletAttribute == undefined) {
+        return null;
+      }
 
+      // get the wallet Name
       if (walletAttribute === "name") {
-        console.log("return the name:", wallets[walletObject]);
-
         if (wallets[walletObject] !== undefined) {
           return walletObject + "";
         }
       }
 
+      // get statecoins
       if (walletAttribute === "statecoins") {
         if (walletAttributeProperty === "coins") {
           return wallets[walletObject].statecoins.coins;
@@ -65,7 +71,6 @@ export class WebStore {
       } else if (getWalletAttribute === {}) {
         return undefined;
       } else if (walletAttribute === "swapped_statecoins_obj") {
-        console.log("get->swapped_coins_obj...");
         return wallets[walletObject].swapped_statecoins_obj;
       } else {
         return getWalletAttribute;
@@ -120,6 +125,7 @@ export class WebStore {
     else if (key.includes(".statecoins")) {
       store.dispatch(save_statecoins({ key, value }));
     } else {
+      console.log(key);
       // must be saving wallet only
       store.dispatch(save_wallet({ key, value }));
     }
