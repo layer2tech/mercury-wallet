@@ -97,14 +97,24 @@ export class Storage {
         wallet_json.mnemonic,
         wallet_json.password
       );
+
       // remove password and root keys
       wallet_json.password = "";
       wallet_json.account = this.accountToAddrMap(wallet_json.account);
+
       // remove testing_mode config
       delete wallet_json.config.testing_mode;
       delete wallet_json.config.jest_testing_mode;
+
       // remove active status flag
       delete wallet_json.active;
+
+      Object.keys(wallet_json).forEach((key) => {
+        //Functions cannot be stored.
+        if (typeof wallet_json[key] !== "function") {
+          this.saveKey(wallet_json, key);
+        }
+      });
 
       // Store statecoins individually by key
       if (wallet_json.statecoins != null) {
@@ -113,13 +123,6 @@ export class Storage {
           wallet_json.statecoins
         );
       }
-
-      Object.keys(wallet_json).forEach((key) => {
-        //Functions cannot be stored.
-        if (typeof wallet_json[key] !== "function") {
-          this.saveKey(wallet_json, key);
-        }
-      });
     }
   }
 
