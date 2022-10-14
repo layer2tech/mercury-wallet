@@ -71,30 +71,24 @@
        expect(k+1).toBe(mapLength)
      });
      test("Account stored and loaded", async function () {
- 
-       // let create_json_wallet = JSON.parse(JSON.stringify(wallet))
-       let accountPreStore = wallet.account;
- 
-       mock_wallet.storage.storeWallet( wallet );
- 
-       let wallet_loaded = loadWalletFromStore( TEST_WALLET.asdfghjkl.name, mock_wallet.storage );
- 
-       let accountPostStore = wallet_loaded.account;
- 
-       // expect(accountPostStore).toBe(accountPreStore);
- 
-       let account1 = wallet_loaded.account.chains[0].k;
-       let map1 = wallet_loaded.account.chains[0].map;
- 
-       expect(account1+1).toBe(Object.values(map1).length)
- 
-       wallet_loaded.account.derive(wallet_loaded.account.chains[0].addresses[0]);
-       wallet_loaded.account.nextChainAddress(0);
- 
-       let account2 = wallet_loaded.account.chains[0].k;
-       let map2 = wallet_loaded.account.chains[0].map;
- 
-       expect(account2+1).toBe(Object.values(map2).length)
+
+
+      mock_wallet.storage.storeWallet( wallet );
+
+      let wallet_loaded = loadWalletFromStore( TEST_WALLET.asdfghjkl.name, mock_wallet.storage );
+
+      let account1 = wallet_loaded.account.chains[0].k;
+      let map1 = wallet_loaded.account.chains[0].map;
+
+      expect(account1+1).toBe(Object.values(map1).length)
+
+      wallet_loaded.account.derive(wallet_loaded.account.chains[0].addresses[0]);
+      wallet_loaded.account.nextChainAddress(0);
+
+      let account2 = wallet_loaded.account.chains[0].k;
+      let map2 = wallet_loaded.account.chains[0].map;
+
+      expect(account2+1).toBe(Object.values(map2).length)
  
      });
     })
