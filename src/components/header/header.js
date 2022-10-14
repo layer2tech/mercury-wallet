@@ -32,7 +32,8 @@ const Header = (props) => {
     dispatch(setWalletLoaded({ loaded: false }));
   };
 
-  useEffect(() => {
+  useEffect(async () => {
+    console.log('isEllectrion: ', isElectron());
     if(!isElectron()){
       if(localStorage.dark_mode){
         document.documentElement.classList.remove("light");
@@ -45,13 +46,25 @@ const Header = (props) => {
         document.querySelector(".App").classList.remove("dark-mode");
         localStorage.removeItem("dark_mode");
       }
+    } else{
+      if (isDarkMode) {
+        await window.darkMode.on();
+        document.body.classList.add("dark-mode");
+        document.querySelector(".App").classList.add("dark-mode");
+        localStorage.setItem("dark_mode", "1");
+      } else {
+        await window.darkMode.off();
+        document.body.classList.remove("dark-mode");
+        document.querySelector(".App").classList.remove("dark-mode");
+        localStorage.removeItem("dark_mode");
+      }
     }
   })
 
   let isDarkMode = localStorage.getItem("dark_mode");
   const activeDarkMode = async () => {
     isDarkMode = document.body.classList.contains("dark-mode");
-
+    console.log('here')
     if (isElectron()) {
       if (isDarkMode) {
         await window.darkMode.off();
