@@ -222,6 +222,9 @@ export class Storage {
 
     //Read the statecoin data stored in objects
     const coins_obj = this.store.get(`${wallet_name}.statecoins_obj`);
+    
+    console.log('Coins Obj: ', coins_obj);
+
     if (load_all) {
       wallet.statecoins_obj = coins_obj;
       let swapped_statecoins_obj = this.store.get(
@@ -238,6 +241,7 @@ export class Storage {
     if (coins_obj != null) {
       coins_from_obj = Object.values(coins_obj);
     }
+    console.log('coins from obj: ',coins_from_obj)
     coins = coins_from_obj;
 
     //Remove duplicates
@@ -304,6 +308,13 @@ export class Storage {
     this.storeWalletStateCoinsArray(wallet_name, statecoins.coins);
   }
 
+  // storeWalletStateCoinsArray(wallet_name: string, statecoins: StateCoin[]) {
+  //   statecoins.forEach((coin: StateCoin) => {
+  //     this.storeWalletStateCoin(wallet_name, coin);
+  //   });
+  // }
+
+
   storeWalletStateCoinsArray(wallet_name: string, statecoins: StateCoin[]) {
     let swapped_sc_map = new Map<string, StateCoin>();
     let sc_map = new Map<string, StateCoin>();
@@ -322,7 +333,13 @@ export class Storage {
       stored_sc_obj = {};
     }
 
-    Object.assign(stored_sc_obj, Object.fromEntries(sc_map));
+    console.log('enter entries: ',Object.keys(Object.fromEntries(sc_map)))
+    let entries_sc_map = Object.fromEntries(sc_map);
+
+    Object.keys(entries_sc_map).map( key => {
+      stored_sc_obj = {...stored_sc_obj, [key]: entries_sc_map[key]}
+    })
+    // Object.assign(stored_sc_obj, Object.fromEntries(sc_map));
 
     const swapped_sc_dest = `${wallet_name}.swapped_statecoins_obj`;
     let stored_swapped_sc_obj = this.store.get(swapped_sc_dest);
@@ -331,7 +348,10 @@ export class Storage {
     }
 
     const swapped_sc_obj = Object.fromEntries(swapped_sc_map);
-    Object.assign(stored_swapped_sc_obj, swapped_sc_obj);
+    Object.keys(swapped_sc_obj).map( key => {
+      stored_swapped_sc_obj = {...stored_swapped_sc_obj, [key]: entries_sc_map[key]}
+    })
+    // Object.assign(stored_swapped_sc_obj, swapped_sc_obj);
 
     const swapped_ids_dest = `${wallet_name}.swapped_ids`;
     let stored_swapped_ids = this.store.get(swapped_ids_dest);
