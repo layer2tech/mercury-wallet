@@ -33,7 +33,6 @@ const Header = (props) => {
   };
 
   useEffect(async () => {
-    console.log('isEllectrion: ', isElectron());
     if(!isElectron()){
       if(localStorage.dark_mode){
         document.documentElement.classList.remove("light");
@@ -64,7 +63,7 @@ const Header = (props) => {
   let isDarkMode = localStorage.getItem("dark_mode");
   const activeDarkMode = async () => {
     isDarkMode = document.body.classList.contains("dark-mode");
-    console.log('here')
+
     if (isElectron()) {
       if (isDarkMode) {
         await window.darkMode.off();
