@@ -41,6 +41,9 @@ export class WebStore {
       if (walletObject === undefined || walletAttribute === undefined) {
         return null;
       }
+      if (walletObject === "" || walletAttribute === "") {
+        return null;
+      }
       let getWalletAttribute = wallets[walletObject][walletAttribute];
       if (getWalletAttribute === undefined) {
         return null;
