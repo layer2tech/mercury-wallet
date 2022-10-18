@@ -321,8 +321,7 @@ export class Storage {
     if (stored_sc_obj == null) {
       stored_sc_obj = {};
     }
-
-    console.log('enter entries: ',Object.keys(Object.fromEntries(sc_map)))
+    
     let entries_sc_map = Object.fromEntries(sc_map);
 
     Object.keys(entries_sc_map).map( key => {
