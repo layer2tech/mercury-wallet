@@ -25,7 +25,7 @@ import {
   VIRTUAL_TX_SIZE,
   getTxFee,
   FEE,
-  FEE_1I1O
+  FEE_1I1O,
 } from "../util";
 import { encodeSCEAddress } from "../util";
 import {
@@ -49,6 +49,9 @@ let bip32 = require("bip32");
 let bitcoin = require("bitcoinjs-lib");
 
 let network = networks.testnet;
+
+// Ignore and do not import wrappedStore
+jest.mock("../../application/wrappedStore", () => jest.fn());
 
 test("to/from Satoshi", async function () {
   let btc = 1;
@@ -336,14 +339,21 @@ describe("txCPFPBuild", function () {
     expect(tx_backup.outs[0].value).toBeLessThan(value);
   });
 
-  test('Check correct fee rate', async function(){
-    let txb = txCPFPBuild(network, funding_txid, funding_vout, rec_address, value, fee_rate, p2wpkh).buildIncomplete();
+  test("Check correct fee rate", async function () {
+    let txb = txCPFPBuild(
+      network,
+      funding_txid,
+      funding_vout,
+      rec_address,
+      value,
+      fee_rate,
+      p2wpkh
+    ).buildIncomplete();
 
-    let tx_fee = (fee_rate * (FEE + FEE_1I1O)) - FEE;
+    let tx_fee = fee_rate * (FEE + FEE_1I1O) - FEE;
 
-    expect(value - tx_fee).toBe(txb.outs[0].value)
-
-  })
+    expect(value - tx_fee).toBe(txb.outs[0].value);
+  });
 });
 
 test("callGetArgsHasTestnet", async function () {
