@@ -24,8 +24,8 @@ let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
 let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
 // electrum mock
 let electrum_mock = new MockElectrumClient();
-// Ignore and do not import wrappedStore
-jest.mock("../../application/wrappedStore", () => jest.fn());
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
 
 let bip39 = require("bip39");
 

@@ -9,8 +9,8 @@ import { makeDummyStatecoins } from "./test_data.js";
 
 let cloneDeep = require("lodash.clonedeep");
 
-// Ignore and do not import wrappedStore
-jest.mock("../../application/wrappedStore", () => jest.fn());
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
 
 describe("SwapStatus", function () {
   let store = configureStore({ reducer: reducers });

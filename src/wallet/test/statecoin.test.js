@@ -9,8 +9,8 @@ import { Transaction } from "bitcoinjs-lib";
 import { STATECOIN_STATUS } from "../statecoin";
 import { ACTION } from "../activity_log";
 
-// Ignore and do not import wrappedStore
-jest.mock("../../application/wrappedStore", () => jest.fn());
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
 
 describe("Statecoin", function () {
   let statecoins = new StateCoinList();

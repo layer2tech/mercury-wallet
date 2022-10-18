@@ -47,8 +47,8 @@ let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
 
 let electrum_mock = new MockElectrumClient();
 
-// Ignore and do not import wrappedStore
-jest.mock("../../application/wrappedStore", () => jest.fn());
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
 
 const post_error = (path, body) => {
   return new Error(`Error from POST request - path: ${path}, body: ${body}`);

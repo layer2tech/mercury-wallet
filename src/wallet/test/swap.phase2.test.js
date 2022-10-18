@@ -23,8 +23,8 @@ let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
 // server side's mock
 let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
 
-// Ignore and do not import wrappedStore
-jest.mock("../../application/wrappedStore", () => jest.fn());
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
 
 //Set a valid initial statecoin status for phase2
 const init_phase2_status = (statecoin) => {

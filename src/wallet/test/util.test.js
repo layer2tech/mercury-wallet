@@ -50,8 +50,8 @@ let bitcoin = require("bitcoinjs-lib");
 
 let network = networks.testnet;
 
-// Ignore and do not import wrappedStore
-jest.mock("../../application/wrappedStore", () => jest.fn());
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
 
 test("to/from Satoshi", async function () {
   let btc = 1;

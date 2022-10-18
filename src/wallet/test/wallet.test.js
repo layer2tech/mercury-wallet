@@ -51,8 +51,8 @@ const fs = require("fs");
 const path = require("path");
 const process = require("process");
 
-// Ignore and do not import wrappedStore
-jest.mock("../../application/wrappedStore", () => jest.fn());
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
 
 const NETWORK_CONFIG = require("../../network.json");
 const SHARED_KEY_DUMMY = {
