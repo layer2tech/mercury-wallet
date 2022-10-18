@@ -222,9 +222,6 @@ export class Storage {
 
     //Read the statecoin data stored in objects
     const coins_obj = this.store.get(`${wallet_name}.statecoins_obj`);
-    
-    console.log('Coins Obj: ', coins_obj);
-
     if (load_all) {
       wallet.statecoins_obj = coins_obj;
       let swapped_statecoins_obj = this.store.get(
@@ -241,7 +238,6 @@ export class Storage {
     if (coins_obj != null) {
       coins_from_obj = Object.values(coins_obj);
     }
-    console.log('coins from obj: ',coins_from_obj)
     coins = coins_from_obj;
 
     //Remove duplicates
@@ -307,13 +303,6 @@ export class Storage {
   storeWalletStateCoinsList(wallet_name: string, statecoins: StateCoinList) {
     this.storeWalletStateCoinsArray(wallet_name, statecoins.coins);
   }
-
-  // storeWalletStateCoinsArray(wallet_name: string, statecoins: StateCoin[]) {
-  //   statecoins.forEach((coin: StateCoin) => {
-  //     this.storeWalletStateCoin(wallet_name, coin);
-  //   });
-  // }
-
 
   storeWalletStateCoinsArray(wallet_name: string, statecoins: StateCoin[]) {
     let swapped_sc_map = new Map<string, StateCoin>();

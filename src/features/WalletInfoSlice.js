@@ -57,7 +57,6 @@ export const WalletInfoSlice = createSlice({
       };
     },
     save_statecoinObj: (state, action) => {
-      console.log("SAVE STATECOIN OBJECT !!!!!!!");
       // check which account this belongs to with its key-value pair
       const { key, value } = action.payload;
       // ensure no .statecoins is within the key string

@@ -86,38 +86,28 @@ export class WebStore {
       }
     } else {
       if (value === undefined) {
-        console.log("value !=== undefined?");
         const hasKeys = !!Object.keys(wallets).length;
         if (!hasKeys) {
-          console.log("there is no keys here...");
           return null;
         } else {
-          console.log("return the wallets object");
           return wallets;
         }
       }
       // get from login store
       else if (value.includes("logins.")) {
-        console.log("Logins...");
         return loginInfo[value];
       } else if (wallets[value] !== undefined) {
-        console.log("wallets[value] !== undefined");
         return wallets[value];
       } else {
-        console.log(wallets["12345"].name);
-        console.log("wallets is equal to:", wallets);
-        console.log("looking for value ", value);
       }
     }
 
-    console.log("found nothing.. returning false...");
     return undefined;
   }
 
   set(key, value) {
     // set for login
     if (key.includes("logins.")) {
-      console.log("set login. of account");
       store.dispatch(save_login({ key, value }));
     }
     // set for account
@@ -134,7 +124,6 @@ export class WebStore {
     else if (key.includes(".statecoins")) {
       store.dispatch(save_statecoins({ key, value }));
     } else {
-      console.log(key);
       // must be saving wallet only
       store.dispatch(save_wallet({ key, value }));
     }
