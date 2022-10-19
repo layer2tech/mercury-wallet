@@ -32,7 +32,7 @@ jobs:
         uses: cypress-io/github-action@v3
         with:
           start: npm start
-          wait-on: http://localhost:3030
+          wait-on: http://localhost:3000/#/
   linux-win:
     runs-on: ubuntu-latest
     container:
