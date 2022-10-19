@@ -50,13 +50,16 @@
     "app-linux-local-test": "yarn install-local && npm install --force && yarn build && DEBUG=electron-builder electron-builder -l AppImage -p never",
     "app-macos": "yarn install-local && npm install --force && yarn build && electron-builder -m -p always",
     "app-macos-local-test": "yarn install-local && npm install --force && yarn build && DEBUG=electron-builder electron-builder -m -p never",
-    "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
+    "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
+    "cypress": "cypress open"
   },
   "devDependencies": {
+    "@testing-library/cypress": "^8.0.3",
     "@testing-library/react": "^12.1.2",
     "@types/jest": "^29.0.0",
     "@types/uuid": "^8.3.0",
     "concurrently": "^5.3.0",
+    "cypress": "^10.10.0",
     "electron": "^17.1.2",
     "electron-build-env": "^0.2.0",
     "electron-builder": "^22.9.1",
