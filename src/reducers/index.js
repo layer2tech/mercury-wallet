@@ -2,10 +2,10 @@
 import { combineReducers } from "redux";
 import walletDataReducer from "../features/WalletDataSlice";
 import themeDataReducer from "../features/ThemeSlice";
-import walletWebDataReducer from "../features/WalletWebDataSlice";
+import walletInfoReducer from "../features/WalletInfoSlice";
 
 export default combineReducers({
   walletData: walletDataReducer,
   themeData: themeDataReducer,
-  walletWebData: walletWebDataReducer,
+  walletInfo: walletInfoReducer,
 });

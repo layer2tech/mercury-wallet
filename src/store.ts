@@ -1,5 +1,6 @@
 "use strict";
 import { type } from "os";
+import { WebStore } from "./application/webStore";
 import {
   ActivityLog,
   decryptAES,
@@ -38,7 +39,12 @@ export class Storage {
   name: string;
   constructor(fileName: string) {
     this.name = fileName;
-    this.store = new Store({ name: this.name });
+
+    if (isElectron() || TestingWithJest()) {
+      this.store = new Store({ name: this.name });
+    } else {
+      this.store = new WebStore({ name: this.name });
+    }
   }
 
   // return map of wallet names->passwords

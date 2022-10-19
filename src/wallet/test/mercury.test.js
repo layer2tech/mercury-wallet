@@ -36,6 +36,9 @@ let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
 // electrum mock
 let electrum_mock = new MockElectrumClient();
 
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
+
 describe("2P-ECDSA", function () {
   test("KeyGen", async function () {
     http_mock.post = jest

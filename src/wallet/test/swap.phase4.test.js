@@ -47,6 +47,9 @@ let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
 
 let electrum_mock = new MockElectrumClient();
 
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
+
 const post_error = (path, body) => {
   return new Error(`Error from POST request - path: ${path}, body: ${body}`);
 };
@@ -1360,7 +1363,7 @@ describe("Swap phase 4", function () {
     expect(step.statecoin_properties).toThrowError(
       "No swap info found for coin. Swap info should be set in Phase1. Exiting swap."
     );
-  
+
     statecoin.swap_id = null;
     swap = getSwap(wallet, statecoin);
     step = swapPhase4Steps(swap).filter(step_filter)[0];
@@ -1369,4 +1372,3 @@ describe("Swap phase 4", function () {
     );
   });
 });
-

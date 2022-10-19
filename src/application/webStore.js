@@ -1,4 +1,3 @@
-import { store } from "./reduxStore";
 import {
   save_wallet,
   save_login,
@@ -7,7 +6,9 @@ import {
   delete_statecoins,
   save_activity,
   save_account,
-} from "../features/WalletWebDataSlice";
+} from "../features/WalletInfoSlice";
+
+import { store } from "./reduxStore";
 
 // class the wraps in-built redux store
 export class WebStore {
@@ -21,69 +22,92 @@ export class WebStore {
     let walletVar = undefined;
     let walletObject = undefined;
     let walletAttribute = undefined;
+    let walletAttributeProperty = undefined;
     let walletInfo = store.getState().walletInfo;
     let wallets = walletInfo.wallets;
     let loginInfo = walletInfo.loginInfo;
-    //console.log("WalletInfo ->", walletInfo);
-    //console.log("LoginInfo ->", loginInfo);
-    //console.log("Value ->", value);
+    console.log("WalletInfo ->", walletInfo);
+    console.log("LoginInfo ->", loginInfo);
+    console.log("Value ->", value);
 
     if (value !== undefined && value.includes(".")) {
       walletVar = value.split("."); // array of for e.g. wallet.name into ["wallet", "name"]
       walletObject = walletVar[0] + ""; // key to whole object {}
       walletAttribute = walletVar[1] + ""; // variable {}.variable
+      walletAttributeProperty = walletVar[2] + "";
+
       // wallets : { test123:{}, wallet2:{}, wallet3: {}}
       // wallets.walletName.walletAttribute
-      let getWalletAttribute = wallets[walletObject][walletAttribute];
+      if (walletObject === undefined || walletAttribute === undefined) {
+        return undefined;
+      }
+      if (walletObject === "" || walletAttribute === "") {
+        return undefined;
+      }
+
+      let getWalletAttribute;
+      if (wallets[walletObject] !== undefined) {
+        getWalletAttribute = wallets[walletObject][walletAttribute];
+        if (getWalletAttribute === undefined) {
+          return undefined;
+        }
+      } else {
+        return undefined;
+      }
+
+      // get the wallet Name
+      if (walletAttribute === "name") {
+        if (wallets[walletObject] !== undefined) {
+          return walletObject + "";
+        }
+      }
+
+      // get statecoins
       if (walletAttribute === "statecoins") {
+        if (walletAttributeProperty === "coins") {
+          return wallets[walletObject].statecoins.coins;
+        } else if (walletAttributeProperty === "swapped_coins") {
+          return wallets[walletObject].statecoins.swapped_coins;
+        }
         return wallets[walletObject].statecoins;
       } else if (walletAttribute === "statecoins_obj") {
-        //console.log("get->statecoins_obj", walletAttribute);
-        //console.log("the value was:", value);
-        //console.log(wallets[walletObject].statecoins_obj);
+        if (walletAttributeProperty === "coins") {
+          return wallets[walletObject].statecoins_obj.coins;
+        } else if (walletAttributeProperty === "swapped_coins") {
+          return wallets[walletObject].statecoins_obj.swapped_coins;
+        }
         return wallets[walletObject].statecoins_obj;
       } else if (getWalletAttribute === {}) {
         return undefined;
       } else if (walletAttribute === "swapped_statecoins_obj") {
-        //console.log("get->swapped_coins_obj...");
         return wallets[walletObject].swapped_statecoins_obj;
       } else {
         return getWalletAttribute;
       }
     } else {
       if (value === undefined) {
-        //console.log("value !=== undefined?");
         const hasKeys = !!Object.keys(wallets).length;
         if (!hasKeys) {
-          //console.log("there is no keys here...");
           return null;
         } else {
-          //console.log("return the wallets object");
           return wallets;
         }
       }
       // get from login store
       else if (value.includes("logins.")) {
-        //console.log("Logins...");
         return loginInfo[value];
       } else if (wallets[value] !== undefined) {
-        //console.log("wallets[value] !== undefined");
         return wallets[value];
       } else {
-        //console.log(wallets["12345"].name);
-        //console.log("wallets is equal to:", wallets);
-        //console.log("looking for value ", value);
       }
     }
 
-    //console.log("found nothing.. returning false...");
     return undefined;
   }
 
   set(key, value) {
     // set for login
     if (key.includes("logins.")) {
-      console.log("set login. of account");
       store.dispatch(save_login({ key, value }));
     }
     // set for account
@@ -104,6 +128,7 @@ export class WebStore {
       store.dispatch(save_wallet({ key, value }));
     }
   }
+
   delete(key, value) {
     if (key.includes(".statecoins")) {
       store.dispatch(delete_statecoins({ key, value }));
