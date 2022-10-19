@@ -22,17 +22,30 @@ jobs:
       - run: sed -i -e 's/false/true/g' src/settings.json
       - run: npm install --force
       - run: yarn test
-  cypress-run:
-    runs-on: ubuntu-latest
+  cypress-test:
+    runs-on: ubuntu-20.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - run: npm install --force
-      - name: Cypress run
-        uses: cypress-io/github-action@v3
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        uses: actions/setup-node@v3
         with:
-          start: npm start
-          wait-on: http://localhost:3000/#/
+          node-version: "16.16"
+          runTests: false
+      - name: Test testing mode is 'false' in settings.json
+        run: |
+          ps -p $$
+          jq --version
+          MERCURY_WALLET_TESTING_MODE=`jq .testing_mode src/settings.json`
+          if [ $MERCURY_WALLET_TESTING_MODE != false ]; then exit 1; fi
+      - run: sed -i -e 's/false/true/g' src/settings.json
+      - run: npm install --force
+      - name: Run e2e tests
+        uses: cypress-io/github-action@v4
+        with:
+          # we have already installed all dependencies above
+          install: false
+          # Cypress tests and config file are in "e2e" folder
+          working-directory: e2e
   linux-win:
     runs-on: ubuntu-latest
     container:
