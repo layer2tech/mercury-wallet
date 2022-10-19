@@ -27,11 +27,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
+      - run: npm install --force
       - name: Cypress run
         uses: cypress-io/github-action@v3
         with:
-          run: npm install --force
           start: npm start
           wait-on: http://localhost:3030
   linux-win:
