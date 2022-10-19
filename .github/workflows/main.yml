@@ -5,16 +5,6 @@ on:
     #branches: [ main ]
 
 jobs:
-  cypress-run:
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Cypress run
-        uses: cypress-io/github-action@v4
-        run: npm install --force
-        with:
-          start: npm start
   test:
     runs-on: ubuntu-latest
     steps:
@@ -32,6 +22,15 @@ jobs:
       - run: sed -i -e 's/false/true/g' src/settings.json
       - run: npm install --force
       - run: yarn test
+  cypress-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cypress run
+        uses: cypress-io/github-action@v4
+        with:
+          start: npm start
   linux-win:
     runs-on: ubuntu-latest
     container:
