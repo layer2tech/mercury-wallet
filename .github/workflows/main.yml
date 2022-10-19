@@ -5,7 +5,7 @@ on:
     #branches: [ main ]
 
 jobs:
-  test:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -22,7 +22,7 @@ jobs:
       - run: sed -i -e 's/false/true/g' src/settings.json
       - run: npm install --force
       - run: yarn test
-  cypress-test:
+  e2e-tests:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
