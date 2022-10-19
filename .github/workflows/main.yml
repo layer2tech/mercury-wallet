@@ -44,6 +44,7 @@ jobs:
         with:
           start: npm start
           wait-on: "http://localhost:3000/#/"
+          browser: chrome
           # we have already installed all dependencies above
           install: false
   linux-win:
