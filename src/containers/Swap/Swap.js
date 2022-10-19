@@ -234,7 +234,6 @@ const SwapPage = () => {
                       setSelectedCoins={setSelectedCoins}
                       refresh={refreshCoins}
                       setRefreshSwapGroupInfo={setRefreshSwapGroupInfo}
-                      swap
                     />
                   </div>
                 </div>

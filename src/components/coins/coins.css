@@ -51,7 +51,7 @@
 }
 
 .expired-tooltip{
-  position:relative
+  position:absolute;
 }
 
 .expired-tooltip .tooltip{

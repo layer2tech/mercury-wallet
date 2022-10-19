@@ -1,6 +1,7 @@
 'use strict';
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import {useLocation} from 'react-router-dom';
 import { fromSatoshi } from '../../wallet/util';
 import {
   callGetUnspentStatecoins,
@@ -11,29 +12,18 @@ import {
   handleEndAutoSwap,
   setIntervalIfOnline,
   updateInSwapValues,
-  checkSwapAvailability,
-  setError,
-  removeSwapPendingCoin,
-  removeInSwapValue,
-  setSwapLoad,
-  callSwapDeregisterUtxo,
-  callDoAutoSwap,
-  handleEndSwap,
-  addSwapPendingCoin
+  checkSwapAvailability
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
-import { STATECOIN_STATUS, HIDDEN } from '../../wallet/statecoin';
+import { STATECOIN_STATUS } from '../../wallet/statecoin';
 import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay';
 import './coins.css';
 import '../index.css';
 import './DeleteCoin/DeleteCoin.css'
 
 import {
-  callDoSwap,
-  addCoinToSwapRecords,
-  removeCoinFromSwapRecords,
-  addInSwapValue
+  callDoSwap
 } from "../../features/WalletDataSlice";
 import Coin from "./Coin/Coin";
 import { coinSort, getPrivacyScoreDesc } from "./CoinFunctionUtils/CoinFunctionUtils";
@@ -71,15 +61,21 @@ export const SWAP_STATUS_INFO = {
 }
 
 const CoinsList = (props) => {
-  const [state, setState] = useState({});
-
-  const { selectedCoins, isMainPage, swap } = props;
+  const location = useLocation();
   const dispatch = useDispatch();
+  
+  
+  const { selectedCoins, isMainPage } = props;
+  
   const { filterBy, swapPendingCoins, swapRecords, coinsAdded,
     coinsRemoved, torInfo, inSwapValues, balance_info, swapLoad,
     showDetails, warning_dialogue } = useSelector(state => state.walletData);
+    
+    
+  const [swap, setSwapPage] = useState(location.pathname === "/swap_statecoin");
+  const [state, setState] = useState({});
 
-  const [sortCoin, setSortCoin] = useState({ ...INITIAL_SORT_BY, condition: props.swap ? 'swap' : null });
+  const [sortCoin, setSortCoin] = useState({ ...INITIAL_SORT_BY, condition: swap ? 'swap' : null });
 
   const [coins, setCoins] = useState(INITIAL_COINS);
 
@@ -91,6 +87,8 @@ const CoinsList = (props) => {
 
   //Load coins once component done render
   useEffect(() => {
+    // This Use effect gets latest coin data and triggers rerenders when coin data has changed
+
     let isMounted = true
     const [coins_data] = callGetUnspentStatecoins();
     //Load all coins that are confirmed
@@ -136,9 +134,10 @@ const CoinsList = (props) => {
     // Refresh coinslist on showDetails change
     // when InfoModal opens & closes so:
     // If description is added the change appears immediately
-    warning_dialogue
+    warning_dialogue,
     // When coin deleted: CoinsList rerenders
     // coin is removed from list immediately
+    swap
   ]);
 
   // Re-fetch every 5 seconds and update state to refresh render
@@ -189,11 +188,12 @@ const CoinsList = (props) => {
       setTotalCoins(confirmedCoins.length);
       // update balance and amount
       const total = confirmedCoins.reduce((sum, currentItem) => sum + currentItem.value, 0);
+
       if(!swap){
         dispatch(updateBalanceInfo({ ...balance_info, total_balance: total, num_coins: confirmedCoins.length }))
       }
     }
-  }, [callGetUnspentStatecoins, balance_info])
+  }, [callGetUnspentStatecoins, balance_info, swap])
 
 
   const filterCoinsByStatus = (coins = [], status) => {
@@ -257,76 +257,6 @@ const CoinsList = (props) => {
     }
   }
 
-  const handleAutoSwap = async (item) => {
-    if (item.status === 'UNCONFIRMED' || item.status === 'IN_MEMPOOL') {
-      return;
-    }
-
-    let statecoin = callGetStateCoin(item.shared_key_id);
-    // get the statecoin and set auto to true - then call auto_swap
-    let selectedCoin = item.shared_key_id;
-
-    // check statechain is chosen
-    if (statecoin === undefined) {
-      dispatch(setError({ msg: "Please choose a StateCoin to swap." }))
-      return
-    }
-
-    if (swapLoad.join === true) {
-      return
-    }
-
-    if (torInfo.online === false && item.swap_auto != true) {
-      dispatch(setError({ msg: "Disconnected from the mercury server" }))
-      return
-    }
-
-
-    // turn off swap_auto
-    if (item.swap_auto) {
-      dispatch(removeSwapPendingCoin(item.shared_key_id))
-      dispatch(removeInSwapValue(statecoin.value))
-      statecoin.swap_auto = false;
-      dispatch(setSwapLoad({ ...swapLoad, leave: true }))
-      try {
-        await dispatch(callSwapDeregisterUtxo({ "shared_key_id": selectedCoin, "dispatch": dispatch, "autoswap": true }))
-        dispatch(() => {
-          removeCoinFromSwapRecords(selectedCoin)
-        });
-        dispatch(setSwapLoad({ ...swapLoad, leave: false }))
-      } catch (e) {
-        dispatch(setSwapLoad({ ...swapLoad, leave: false }))
-        if (!e.message.includes("Coin is not in a swap pool")) {
-          dispatch(setError({ msg: e.message }))
-        }
-      } finally {
-        // Refresh Coins list
-        // var timeout = setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
-      }
-      // return () =>  clearTimeout(timeout)
-    } else {
-      statecoin.swap_auto = true
-      dispatch(callDoAutoSwap(selectedCoin));
-      dispatch(addCoinToSwapRecords(selectedCoin));
-      dispatch(setSwapLoad({ ...swapLoad, join: true, swapCoin: callGetStateCoin(selectedCoin) }));
-
-      if (checkSwapAvailability(statecoin, new Set(inSwapValues))) {
-        // if StateCoin in not already in swap group
-        dispatch(addInSwapValue(statecoin.value))
-        dispatch(callDoSwap({ "shared_key_id": selectedCoin }))
-          .then(res => {
-            handleEndSwap(dispatch, selectedCoin, res, setSwapLoad, swapLoad, fromSatoshi)
-          })
-      } else {
-        dispatch(setSwapLoad({ ...swapLoad, join: false, swapCoin: callGetStateCoin(selectedCoin) }));
-        dispatch(addSwapPendingCoin(item.shared_key_id))
-      }
-    }
-
-    // Refresh Coins list
-    // var timeout2 = setTimeout(() => { setRefreshCoins((prevState) => !prevState); }, 1000);
-    // return () => clearTimeout(timeout2);
-  }
 
   const updateUnconfirmedUnspentCoins = () => {
     setState({});
@@ -409,17 +339,13 @@ const CoinsList = (props) => {
           <Coin
             key={item.shared_key_id}
             showCoinStatus={props.showCoinStatus} // all clear - boolean
-            isMainPage={isMainPage} // all clear - boolean
             coin_data={item} // FIX
-            swap={props.swap} // All clear - boolean
-            send={props.send} // All clear - boolean
-            withdraw={props.withdraw} // All clear - boolean
+            isMainPage={isMainPage} // all clear - boolean
             selectedCoin={props.selectedCoin} // Check
             selectedCoins={selectedCoins} // Check
             setSelectedCoin={props.setSelectedCoin} // Check this causes rerendering
             displayDetailsOnClick={props.displayDetailsOnClick} // All clear - boolean
             setCoinDetails={props.setCoinDetails} // Check
-            handleAutoSwap={handleAutoSwap}
             render={ props.render ? (props.render) : null}
 
           />
