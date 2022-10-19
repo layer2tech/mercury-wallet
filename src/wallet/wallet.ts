@@ -2084,6 +2084,11 @@ export class Wallet {
         `Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`
       );
       statecoin.setSwapDataToNull();
+      
+      if(e.message === "Failed statecoin registration"){
+        statecoin.swap_auto = false;
+      }
+
       await this.saveStateCoin(statecoin);
     }
   }

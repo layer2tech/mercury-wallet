@@ -12,7 +12,8 @@ import {
   handleEndAutoSwap,
   setIntervalIfOnline,
   updateInSwapValues,
-  checkSwapAvailability
+  checkSwapAvailability,
+  callUpdateSwapGroupInfo
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
