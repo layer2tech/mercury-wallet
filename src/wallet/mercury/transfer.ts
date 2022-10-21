@@ -453,11 +453,6 @@ export const transferReceiver = async (
   // get o2 private key
   const o2 = se_rec_addr_bip32.privateKey!.toString("hex");
 
-  // verify receiver proof key
-  if(se_rec_addr_bip32.publicKey!.toString("hex") !==  transfer_msg3.rec_se_addr.proof_key) {
-    throw new Error("Receive: Incorrect proof key for private key");
-  }
-
   // Verify state chain represents this address as new owner
   let prev_owner_proof_key =
     statechain_data.chain[statechain_data.chain.length - 1].data;
@@ -471,6 +466,12 @@ export const transferReceiver = async (
   );
   log.debug("statechain_sig.verify...");
   if (!statechain_sig.verify(prev_owner_proof_key_der)) {
+
+  // verify receiver proof key
+  if(se_rec_addr_bip32.publicKey!.toString("hex") !==  transfer_msg3.rec_se_addr.proof_key) {
+    throw new Error("Receive: Incorrect proof key for private key");
+  }
+    
     //if the signature matches the transfer message, then transfer already completed
     if (statechain_data.chain.length > 1) {
       if (
