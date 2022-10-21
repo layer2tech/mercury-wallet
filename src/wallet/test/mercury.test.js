@@ -540,7 +540,7 @@ describe("StateChain Entity", function () {
           se_rec_addr_bip32,
           null
         )
-      ).rejects.toThrowError("Invalid StateChainSig.");
+      ).rejects.toThrowError("Receive: Incorrect proof key for private key");
     });
 
     test("Incorrect decryption key", async function () {
