@@ -44,6 +44,7 @@ const Welcome = () => {
         </div>
 
         <div
+          data-cy="load-wallet-btn"
           onClick={() => changeCheckbox(3)}
           className={`${checked === 3 ? "selected" : ""}`}
         >
@@ -53,6 +54,7 @@ const Welcome = () => {
         </div>
       </div>
       <Link
+        data-cy="landing-continue-btn"
         to={`${
           checked === 1
             ? "create_wallet"
