@@ -433,7 +433,6 @@ export class Wallet {
       // New properties should not make old wallets break
 
       new_wallet.account = json_wallet_to_bip32_root_account(json_wallet);
-
       return new_wallet;
     } catch (err: any) {
       if (`${err}`.includes("Cannot read prop")) {
@@ -2085,6 +2084,11 @@ export class Wallet {
         `Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`
       );
       statecoin.setSwapDataToNull();
+      
+      if(e.message === "Failed statecoin registration"){
+        statecoin.swap_auto = false;
+      }
+
       await this.saveStateCoin(statecoin);
     }
   }
@@ -2790,6 +2794,10 @@ export const json_wallet_to_bip32_root_account = (json_wallet: any): object => {
   let i = root.deriveHardened(0);
   let external = i.derive(0);
   let internal = i.derive(1);
+
+  // ensure account stores with different encoding/decoding are in same format
+  json_wallet.account = JSON.parse(JSON.stringify(json_wallet.account))
+
 
   // Re-map Account JSON data to root chains
   const chains = json_wallet.account.map(function (j: any) {

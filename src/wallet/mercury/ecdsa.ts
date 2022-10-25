@@ -42,7 +42,7 @@ export const keyGen = async (
 
   server_resp_key_gen_first = await http_client.post(POST_ROUTE.KEYGEN_FIRST, keygen_msg1);
   kg_party_one_first_message = server_resp_key_gen_first.msg;
-  if(statechain_id && !kg_party_one_first_message) {
+  if(statechain_id && protocol == PROTOCOL.TRANSFER && !kg_party_one_first_message) {
     if(server_resp_key_gen_first.includes("sealed_secrets for DB key "+shared_key_id+" is None")) {
       console.log("Perform keyupdate second and re-try ...")
       let ku_finalize: KUFinalize = {

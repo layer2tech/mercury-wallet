@@ -262,8 +262,7 @@ const WithdrawPage = () => {
                         selectedCoins={selectedCoins}
                         setSelectedCoin = {addSelectedCoin}
                         refresh = {refreshCoins}
-                        render = {forceRender}
-                        withdraw/>
+                        render = {forceRender}/>
                   </div>
 
               </div>

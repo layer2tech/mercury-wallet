@@ -6,6 +6,9 @@ import { networks } from "bitcoinjs-lib";
 
 let cloneDeep = require("lodash.clonedeep");
 
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
+
 describe("Config", function () {
   let config;
   const testing_mode = true;
@@ -164,4 +167,3 @@ describe("Config", function () {
     });
   });
 });
-

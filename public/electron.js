@@ -1,5 +1,5 @@
 const isPackaged = require.main.filename.replace(/\\/g, "/").indexOf('app/build/electron.js') !== -1 
-const { app, BrowserWindow, dialog, ipcMain, shell, nativeTheme } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, shell, nativeTheme, session } = require('electron');
 const { join, dirname } = require('path');
 const joinPath = join;
 const url = require('url');
@@ -119,6 +119,10 @@ function createWindow() {
   ipcMain.handle('dark-mode:off', () => {
     nativeTheme.themeSource = 'light'
   })
+
+  // Clears cookie storage
+  // Persisted web store must be wiped for electron in case redux store has changed
+  // session.defaultSession.clearStorageData([], data => {})
 
   if (mainWindow == null) {
     mainWindow = new BrowserWindow(windowSpec);

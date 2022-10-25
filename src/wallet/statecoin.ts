@@ -69,27 +69,52 @@ export class StateCoinList {
         tx_backup.version = tx_backup_any.version;
         tx_backup.locktime = tx_backup_any.locktime;
         if (tx_backup_any.ins.length > 0) {
-          tx_backup.addInput(
-            Buffer.from(tx_backup_any.ins[0].hash),
-            tx_backup_any.ins[0].index,
-            tx_backup_any.ins[0].sequence
-          );
-          if (tx_backup_any.ins[0].witness.length > 0) {
-            tx_backup.ins[0].witness = [
-              Buffer.from(tx_backup_any.ins[0].witness[0]),
-              Buffer.from(tx_backup_any.ins[0].witness[1]),
-            ];
+          if(Array.isArray(tx_backup_any.ins[0].hash.data)) {
+            tx_backup.addInput(
+              Buffer.from(tx_backup_any.ins[0].hash),
+              tx_backup_any.ins[0].index,
+              tx_backup_any.ins[0].sequence
+            );
+            if (tx_backup_any.ins[0].witness.length > 0) {
+              tx_backup.ins[0].witness = [
+                Buffer.from(tx_backup_any.ins[0].witness[0]),
+                Buffer.from(tx_backup_any.ins[0].witness[1]),
+              ];
+            }
+          } else {
+            tx_backup.addInput(
+              Buffer.from(Object.values(tx_backup_any.ins[0].hash as object)),
+              tx_backup_any.ins[0].index,
+              tx_backup_any.ins[0].sequence
+            );
+            if (tx_backup_any.ins[0].witness.length > 0) {
+              tx_backup.ins[0].witness = [
+                Buffer.from(Object.values(tx_backup_any.ins[0].witness[0] as object)),
+                Buffer.from(Object.values(tx_backup_any.ins[0].witness[1] as object)),
+              ];
+            }
           }
         }
         if (tx_backup_any.outs.length > 0) {
-          tx_backup.addOutput(
-            Buffer.from(tx_backup_any.outs[0].script),
-            tx_backup_any.outs[0].value
-          );
-          tx_backup.addOutput(
-            Buffer.from(tx_backup_any.outs[1].script),
-            tx_backup_any.outs[1].value
-          );
+          if(Array.isArray(tx_backup_any.outs[0].script.data)) {      
+            tx_backup.addOutput(
+              Buffer.from(tx_backup_any.outs[0].script),
+              tx_backup_any.outs[0].value
+            );
+            tx_backup.addOutput(
+              Buffer.from(tx_backup_any.outs[1].script),
+              tx_backup_any.outs[1].value
+            );
+          } else {
+            tx_backup.addOutput(
+              Buffer.from(Object.values(tx_backup_any.outs[0].script as object)),
+              tx_backup_any.outs[0].value
+            );
+            tx_backup.addOutput(
+              Buffer.from(Object.values(tx_backup_any.outs[1].script as object)),
+              tx_backup_any.outs[1].value
+            );
+          }
         }
         item.tx_backup = tx_backup;
       }

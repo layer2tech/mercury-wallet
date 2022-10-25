@@ -78,6 +78,22 @@
     cursor: pointer;
 }
 
+
+.dark-mode .Header .toggle-checkbox2 + .toggle-switch2:before {
+    left: 22px;
+    background-color: #2c2c2c;
+}
+.dark-mode .Header .toggle-checkbox2:checked + .toggle-switch2 {
+    background-color: #fff;
+}
+.dark-mode .Header .toggle-checkbox2 + .toggle-switch2 {
+    background-color: #fff;
+}
+.dark-mode .Header .toggle2:hover .toggle-switch2:before {
+    background: #2d2d2d;
+}
+
+
 .Header .toggle-switch2 {
     width: 45px;
     height: 24px;
