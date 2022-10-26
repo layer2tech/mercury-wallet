@@ -70,6 +70,7 @@ if (isPackaged === true) {
 }
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;
+const i2p_cmd = `${joinPath(execPath, 'i2p')}`;
 
 let term_existing = false;
 for (let i = 0; i < process.argv.length; i++) {
@@ -261,13 +262,30 @@ Store.initRenderer();
 
 async function init_tor_adapter() {
   fixPath();
+
   let user_data_path = app.getPath('userData');
   let tor_adapter_args = [tor_cmd, torrc, user_data_path];
+  tor_adapter_args.push(`${joinPath(execPath, '3001')}`);
   if (getPlatform() === 'win') {
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip6')}`);
   }
   ta_process = fork(`${tor_adapter_path}`, tor_adapter_args,
+    {
+      detached: false,
+      stdio: 'ignore',
+    },
+    (error, stdout, _stderr) => {
+      if (error) {
+        app.exit(error);
+      };
+    }
+  );
+
+  let i2p_adapter_args = [i2p_cmd, user_data_path];
+  // Init i2p adapterz
+  i2p_adapter_args.push(`${joinPath(execPath, '3002')}`);
+  ta_process = fork(`${tor_adapter_path}`, i2p_adapter_args,
     {
       detached: false,
       stdio: 'ignore',

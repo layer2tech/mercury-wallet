@@ -2227,7 +2227,8 @@ export class Wallet {
           if (
             !(err_str != null && err_str.includes("Coin is not in a swap pool"))
           ) {
-            throw err;
+            log.info(`Error in deRegisterSwaps: ${err_str}`)
+            throw Error('Error: Connection Error - check connection and try again');
           }
         }
       }

@@ -64,12 +64,16 @@ const torrc = process.argv[3];
 
 let geoIpFile = undefined;
 let geoIpV6File = undefined;
-if (process.argv.length > 5) {
-  geoIpFile = process.argv[5];
-}
+let PORT = undefined
+PORT = parseInt(process.argv.length[5])
 if (process.argv.length > 6) {
-  geoIpV6File = process.argv[6];
+  geoIpFile = process.argv[6];
 }
+if (process.argv.length > 7) {
+  geoIpV6File = process.argv[7];
+}
+
+
 console.log(`tor cmd: ${tor_cmd}`);
 console.log(`torrc: ${torrc}`);
 
@@ -99,7 +103,8 @@ const POST_ROUTE = {
 };
 Object.freeze(POST_ROUTE);
 
-const PORT = 3001;
+const PORT_TOR = 3001;
+const PORT_I2P = 3002;
 
 const app = express();
 app.use(cors());
@@ -114,6 +119,7 @@ app.listen(PORT, () => {
 });
 
 let tor;
+let i2p;
 
 if (config.tor_proxy.ip === "mock") {
   tor = new CNClient();
@@ -129,6 +135,9 @@ if (config.tor_proxy.ip === "mock") {
     geoIpV6File,
     logger
   );
+  i2p = new TorClient(
+
+  )
   log("info", `finished init TorClient.`);
 }
 
