@@ -411,7 +411,7 @@ export class Wallet {
   }
 
   // Load wallet from JSON
-  static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
+  static fromJSON(json_wallet: any, testing_mode: boolean, storage_type: string | undefined = undefined): Wallet {
     try {
       let config = new Config(
         json_wallet.config.network,
@@ -424,7 +424,10 @@ export class Wallet {
         json_wallet.password,
         json_wallet.mnemonic,
         json_wallet.account,
-        config
+        config,
+        undefined,
+        undefined,
+        storage_type
       );
 
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);

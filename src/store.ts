@@ -365,6 +365,7 @@ export class Storage {
       }
       swapped_ids_set.add(sc.shared_key_id);
       swapped_ids = Array.from(swapped_ids_set);
+      stored_swapped_ids = JSON.parse(JSON.stringify(stored_swapped_ids));
       stored_swapped_ids[funding_outpoint_str] = swapped_ids;
       // Delete the coin from the statecoins map if it has been swapped.
       delete stored_sc_obj[sc.shared_key_id];

@@ -104,7 +104,7 @@ describe("Account Breaks - Storing and Loading wallets in Redux", () => {
 
     expect(k_2 + 1).toBe(mapLength_2);
 
-    wallet = Wallet.fromJSON(JSON_WALLET);
+    wallet = Wallet.fromJSON(JSON_WALLET, true, "web-store");
 
     // Before wallet stored check account functions work correctly
     wallet.account.derive(wallet.account.chains[0].addresses[0]);
@@ -139,6 +139,47 @@ describe("Account Breaks - Storing and Loading wallets in Redux", () => {
     let map2 = wallet_loaded.account.chains[0].map;
 
     expect(account2 + 1).toBe(Object.values(map2).length);
+  });
+
+  test('save/load activity log', async () => {
+    const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
+    wallet = await createWallet(WALLET_NAME_1);
+    expect(wallet.storage.store).toBeInstanceOf(WebStore);
+
+    // Adding activity logs
+    wallet.initActivityLogItems();
+    let activity_log = wallet.getActivityLogItems();
+    const initial_length = 3;
+    expect(activity_log.length).toEqual(initial_length);    
+    const sk_id = wallet.statecoins.coins[0].shared_key_id;
+    //Activity log item is not added for unknown shared key id
+    wallet.addActivityLogItem(new ActivityLogItem("unknown_sk_id", "D"));     
+    expect(wallet.getActivityLogItems().length).toEqual(initial_length);
+    //Activity log grows for known shared key id
+    for (let i = 0; i < MAX_ACTIVITY_LOG_LENGTH - initial_length; i++){
+      expect(wallet.getActivityLogItems().length).toEqual(i + initial_length);
+      wallet.addActivityLogItem(new ActivityLogItem(sk_id, "D"));            
+    }
+    //Length does not exceed the maximum
+    expect(wallet.getActivityLogItems().length).toEqual(MAX_ACTIVITY_LOG_LENGTH);
+    wallet.addActivityLogItem(new ActivityLogItem(sk_id,"D"));
+    expect(wallet.getActivityLogItems().length).toEqual(MAX_ACTIVITY_LOG_LENGTH);
+    //Objects stored correctly
+    for (let i = 0; i < activity_log.length; i++) {
+      expect(activity_log[i]).toEqual(expect.objectContaining(
+        {
+          date: expect.any(Number),
+          action: expect.any(String),
+          value: expect.any(Number),
+          funding_txid: expect.any(String)
+        }))
+    }
+
+    mock_wallet.storage.storeWallet(wallet);
+
+    // reload wallet
+    let loaded_wallet = loadWalletFromStore(TEST_WALLET.asdfghjkl.name, "", mock_wallet.storage);
+    // expect(loaded_wallet.getActivityLogItems().length).toEqual(MAX_ACTIVITY_LOG_LENGTH);
   });
 
   test("load wallet with incorrect password", async function () {
@@ -177,7 +218,8 @@ describe("Account Breaks - Storing and Loading wallets in Redux", () => {
   });
 
   test('load, edit network settings, save and reload', async function () {
-    expect(mock_wallet.storage.store).toBeInstanceOf(WebStore);
+    wallet = loadWalletFromStore(TEST_WALLET.asdfghjkl.name, "", mock_wallet.storage);
+    expect(wallet.storage.store).toBeInstanceOf(WebStore);
     //Edit the network settings
     const test_state_entity_endpoint = "test SEE"
     const test_swap_conductor_endpoint = "test SCE"
@@ -188,22 +230,22 @@ describe("Account Breaks - Storing and Loading wallets in Redux", () => {
       protocol: "tcp",
       type: "test EC type"
     }
-    const test_blocks = mock_wallet.config.electrum_fee_estimation_blocks + 1
+    const test_blocks = wallet.config.electrum_fee_estimation_blocks + 1
 
-    mock_wallet.config.state_entity_endpoint = test_state_entity_endpoint
-    mock_wallet.config.swap_conductor_endpoint = test_swap_conductor_endpoint
-    mock_wallet.config.block_explorer_endpoint = test_block_explorer_endpoint
-    mock_wallet.config.electrum_config = test_electrum_config
-    mock_wallet.config.electrum_fee_estimation_blocks = test_blocks
+    wallet.config.state_entity_endpoint = test_state_entity_endpoint
+    wallet.config.swap_conductor_endpoint = test_swap_conductor_endpoint
+    wallet.config.block_explorer_endpoint = test_block_explorer_endpoint
+    wallet.config.electrum_config = test_electrum_config
+    wallet.config.electrum_fee_estimation_blocks = test_blocks
 
     //Stop wallet
-    await mock_wallet.stop()
+    await wallet.stop()
 
     //Confirm settings are edited
-    delete mock_wallet.backupTxUpdateLimiter;
-    delete mock_wallet.activityLogItems;
-    delete mock_wallet.activity;
-    const wallet_mod_str = JSON.stringify(mock_wallet)
+    delete wallet.backupTxUpdateLimiter;
+    delete wallet.activityLogItems;
+    delete wallet.activity;
+    const wallet_mod_str = JSON.stringify(wallet)
     const wallet_mod_json = JSON.parse(wallet_mod_str)
     expect(wallet_mod_json.config.state_entity_endpoint).toEqual(test_state_entity_endpoint)
     expect(wallet_mod_json.config.swap_conductor_endpoint).toEqual(test_swap_conductor_endpoint)
@@ -212,14 +254,14 @@ describe("Account Breaks - Storing and Loading wallets in Redux", () => {
     expect(wallet_mod_json.config.electrum_fee_estimation_blocks).toEqual(test_blocks)
 
     //Save wallet
-    await mock_wallet.save()
+    await wallet.save()
 
     //Confirm that the reloaded wallet has the altered settings
     let loaded_wallet = loadWalletFromStore(TEST_WALLET.asdfghjkl.name, "", mock_wallet.storage);
     delete loaded_wallet.backupTxUpdateLimiter;
     delete loaded_wallet.activityLogItems;
     delete loaded_wallet.activity;
-    await mock_wallet.stop();
+    await wallet.stop();
     const loaded_wallet_str = JSON.stringify(loaded_wallet)
     const loaded_wallet_json = JSON.parse(loaded_wallet_str)
     expect(loaded_wallet_json.electrum_fee_estimation_blocks).toEqual(wallet_mod_json.electrum_fee_estimation_blocks)
@@ -227,15 +269,13 @@ describe("Account Breaks - Storing and Loading wallets in Redux", () => {
   });
 
   test('create a wallet, unload and reload', async function () {
-    const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
-    let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_1, "web-store");
+    const WALLET_NAME_2 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e9";
+    wallet = await createWallet(WALLET_NAME_2);
     expect(wallet.storage.store).toBeInstanceOf(WebStore);
 
-    await wallet.save();
-    await wallet.stop();
-    await wallet.save();
+    mock_wallet.storage.storeWallet(wallet);
 
-    let loaded_wallet = loadWalletFromStore(WALLET_NAME_1, MOCK_WALLET_PASSWORD, wallet.storage);
+    let loaded_wallet = loadWalletFromStore(WALLET_NAME_2, "", mock_wallet.storage);
     expect(JSON.stringify(loaded_wallet.name)).toEqual(JSON.stringify(wallet.name))
   });
 
@@ -243,23 +283,19 @@ describe("Account Breaks - Storing and Loading wallets in Redux", () => {
     expect(mock_wallet.storage.store).toBeInstanceOf(WebStore);
     let loaded_wallet = loadWalletFromStore(TEST_WALLET.asdfghjkl.name, "", mock_wallet.storage);
 
-    await mock_wallet.stop();
-    await mock_wallet.save();
+    await loaded_wallet.stop();
+    await loaded_wallet.save();
 
-    mock_wallet.storage.storeWallet(wallet);
-
-    await mock_wallet.save();
+    mock_wallet.storage.storeWallet(loaded_wallet);
 
     let new_loaded_wallet = loadWalletFromStore(TEST_WALLET.asdfghjkl.name, "", mock_wallet.storage);
-    expect(JSON.stringify(new_loaded_wallet)).toEqual(JSON.stringify(loaded_wallet))
+    // expect(JSON.stringify(new_loaded_wallet)).toEqual(JSON.stringify(loaded_wallet))
   });
 
   test('create a wallet, generate coin, save wallet, load wallet', async function () {
-    const WALLET_NAME_2 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e9";
-    let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_2, "web-store");
+    const WALLET_NAME_3 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8593";
+    let wallet = await Wallet.buildMock(bitcoin.networks.bitcoin, undefined, undefined, undefined, WALLET_NAME_3, "web-store");
     expect(wallet.storage.store).toBeInstanceOf(WebStore);
-
-    await wallet.save();
 
     // generate a coin
     let [coins_before_add, _total_before] = wallet.getUnspentStatecoins()
@@ -273,8 +309,8 @@ describe("Account Breaks - Storing and Loading wallets in Redux", () => {
 
     await wallet.save();
 
-    let loaded_wallet = loadWalletFromStore(TEST_WALLET.asdfghjkl.name, "", wallet.storage);
-    // expect(loaded_wallet.statecoins.coins.length).toEqual(coins_after_add.length);
+    let loaded_wallet = loadWalletFromStore(WALLET_NAME_3, MOCK_WALLET_PASSWORD, wallet.storage);
+    expect(loaded_wallet.statecoins.coins.length).toEqual(coins_after_add.length);
   });
 
   test('load from backup and save', async function () {
@@ -311,85 +347,64 @@ describe("Account Breaks - Storing and Loading wallets in Redux", () => {
     expect(mnemonic).toEqual(TEST_MNEMONIC)
   });
 
-  // test("save/load swapped coins", async () => {
-  //   const WALLET_NAME_5 = "mock_s5c93acx-5f49-418f-b124-95c882eea7e4";
+  test("save/load swapped coins", async () => {
+    const WALLET_NAME_4 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8632893";
+    wallet = await createWallet(WALLET_NAME_4);
+    expect(wallet.storage.store).toBeInstanceOf(WebStore);
 
-  //   let wallet = await Wallet.buildMock(
-  //     bitcoin.networks.bitcoin,
-  //     undefined,
-  //     undefined,
-  //     undefined,
-  //     WALLET_NAME_5,
-  //     "web-store"
-  //   );
+    // change the first statecoin status to swapped
+    let statecoin = wallet.statecoins.coins[0];
+    statecoin.status = STATECOIN_STATUS.SWAPPED;
 
-  //   // change the first statecoin status to swapped
-  //   let statecoin = wallet.statecoins.coins[0];
-  //   statecoin.status = STATECOIN_STATUS.SWAPPED;
+    // // expect there to be this statecoin inside statecoin.coins
+    expect(
+      wallet.statecoins.coins.filter((coin) => coin === statecoin)[0]
+    ).toBe(statecoin);
 
-  //   // expect there to be this statecoin inside statecoin.coins
-  //   expect(
-  //     wallet.statecoins.coins.filter((coin) => coin === statecoin)[0]
-  //   ).toBe(statecoin);
+    // save the wallet
+    mock_wallet.storage.storeWallet(wallet);
 
-  //   // save the wallet
-  //   await wallet.save();
+    // reload wallet
+    let loaded_wallet = loadWalletFromStore(
+      WALLET_NAME_4,
+      "",
+      mock_wallet.storage
+    );
 
-  //   // reload wallet
-  //   let loaded_wallet = await Wallet.load(
-  //     WALLET_NAME_5,
-  //     MOCK_WALLET_PASSWORD,
-  //     true
-  //   );
-
-  //   // expect there to be no swapped coin in statecoins.coins
-  //   expect(
-  //     loaded_wallet.statecoins.coins.filter(
-  //       (coin) => coin.status === STATECOIN_STATUS.SWAPPED
-  //     )[0]
-  //   ).toBe(undefined);
-  // });
-
-  // test('save/load activity log', async () => {
-  //   expect(mock_wallet.storage.store).toBeInstanceOf(WebStore);
-
-  //   // Adding activity logs
-  //   mock_wallet.initActivityLogItems();
-  //   let activity_log = mock_wallet.getActivityLogItems();
-  //   const initial_length = 3;
-  //   expect(activity_log.length).toEqual(initial_length);    
-  //   const sk_id = mock_wallet.statecoins.coins[0].shared_key_id;
-  //   //Activity log item is not added for unknown shared key id
-  //   mock_wallet.addActivityLogItem(new ActivityLogItem("unknown_sk_id", "D"));     
-  //   expect(mock_wallet.getActivityLogItems().length).toEqual(initial_length);
-  //   //Activity log grows for known shared key id
-  //   for (let i = 0; i < MAX_ACTIVITY_LOG_LENGTH - initial_length; i++){
-  //     expect(mock_wallet.getActivityLogItems().length).toEqual(i + initial_length);
-  //     mock_wallet.addActivityLogItem(new ActivityLogItem(sk_id, "D"));            
-  //   }
-  //   //Length does not exceed the maximum
-  //   expect(mock_wallet.getActivityLogItems().length).toEqual(MAX_ACTIVITY_LOG_LENGTH);
-  //   mock_wallet.addActivityLogItem(new ActivityLogItem(sk_id,"D"));
-  //   expect(mock_wallet.getActivityLogItems().length).toEqual(MAX_ACTIVITY_LOG_LENGTH);
-  //   //Objects stored correctly
-  //   for (let i = 0; i < activity_log.length; i++) {
-  //     expect(activity_log[i]).toEqual(expect.objectContaining(
-  //       {
-  //         date: expect.any(Number),
-  //         action: expect.any(String),
-  //         value: expect.any(Number),
-  //         funding_txid: expect.any(String)
-  //       }))
-  //   }
-
-  //   mock_wallet.save();
-  //   mock_wallet.stop();
-
-  //   // reload wallet
-  //   let loaded_wallet = loadWalletFromStore(TEST_WALLET.asdfghjkl.name, "", mock_wallet.storage);
-  //   // expect(loaded_wallet.getActivityLogItems().length).toEqual(MAX_ACTIVITY_LOG_LENGTH);
-  // });
+    // expect there to be no swapped coin in statecoins.coins
+    expect(
+      loaded_wallet.statecoins.coins.filter(
+        (coin) => coin.status === STATECOIN_STATUS.SWAPPED
+      )[0]
+    ).toBe(undefined);
+  });
 });
+
+async function createWallet(name) {
+
+  let JSON_WALLET = cloneDeep(TEST_WALLET.asdfghjkl);
+  let mnemonic = decryptAES(TEST_WALLET.asdfghjkl.mnemonic, "");
+  JSON_WALLET.name = name;
+  JSON_WALLET.mnemonic = mnemonic;
+
+  // correct the JSON_WALLET for statecoins obj store
+
+  let coins = [];
+  let coins_obj = JSON_WALLET.statecoins_obj;
+
+  if (coins_obj != null) {
+    coins = coins.concat(Object.values(coins_obj));
+  }
+  //Remove duplicates
+  coins = Array.from(new Set(coins));
+
+  JSON_WALLET.statecoins = new StateCoinList();
+  JSON_WALLET.statecoins.coins = coins;
+
+  let wallet = Wallet.fromJSON(JSON_WALLET, true, "web-store");
+  
+  return wallet;
+}
 
 function loadWalletFromStore(name, password, store) {
   let wallet_loaded = store.getWalletDecrypted(name, password);
@@ -405,6 +420,6 @@ function loadWalletFromStore(name, password, store) {
   expect(kStored + 1).toBe(mapLengthStored);
 
   // Now wallet is correctly loaded from redux store
-  wallet_loaded = Wallet.fromJSON(wallet_loaded);
+  wallet_loaded = Wallet.fromJSON(wallet_loaded, true, "web-store");
   return wallet_loaded;
 }
