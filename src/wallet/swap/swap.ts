@@ -331,7 +331,11 @@ export default class Swap {
     try {
       await swapRegisterUtxo(this.clients.http_client, registerUtxo);
     } catch (err: any) {
-      return SwapStepResult.Retry(err.message);
+      if(this.n_retries > 10){
+        throw new Error("Failed statecoin registration")
+      } else {
+        return SwapStepResult.Retry(err.message);
+      }
     }
 
     log.info(
