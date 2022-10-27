@@ -25,6 +25,7 @@ const CreateWalletInfoPage = () => {
     }
   }, []);
 
+
   return (
     <div className="welcome-second ">
       <h1 data-cy="create-new-wallet-title">Create a New Wallet</h1>

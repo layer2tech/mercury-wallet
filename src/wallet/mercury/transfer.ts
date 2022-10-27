@@ -466,11 +466,18 @@ export const transferReceiver = async (
   );
   log.debug("statechain_sig.verify...");
   if (!statechain_sig.verify(prev_owner_proof_key_der)) {
+
+  // verify receiver proof key
+  if(se_rec_addr_bip32.publicKey!.toString("hex") !==  transfer_msg3.rec_se_addr.proof_key) {
+    throw new Error("Receive: Incorrect proof key for private key");
+  }
+    
     //if the signature matches the transfer message, then transfer already completed
     if (statechain_data.chain.length > 1) {
       if (
-        statechain_data.chain[statechain_data.chain.length - 2].next_state
-          .sig == transfer_msg3.statechain_sig.sig
+        statechain_data.chain[statechain_data.chain.length - 2].next_state.sig === transfer_msg3.statechain_sig.sig &&
+        transfer_msg3.rec_se_addr.proof_key === statechain_data.chain[statechain_data.chain.length - 2].next_state.data &&
+        statechain_data.chain[statechain_data.chain.length - 2].next_state.data === transfer_msg3.statechain_sig.data
       ) {
         // transfer already (partially) completed
 
@@ -515,6 +522,7 @@ export const transferReceiver = async (
       statechain_data
     );
   }
+
   log.debug("get transfer_msg_5...");
   let transfer_msg5: TransferMsg5 = await http_client.post(
     POST_ROUTE.TRANSFER_RECEIVER,
@@ -582,16 +590,6 @@ export const transferReceiverFinalizeRecovery = async (
   );
   statecoin.funding_txid = finalize_data.statechain_data.utxo.txid;
   statecoin.funding_vout = finalize_data.statechain_data.utxo.vout;
-
-  // Check shared key master public key === private share * SE public share
-  // let P = BigInt("0x" + finalize_data.s2_pub) * BigInt("0x" + finalize_data.o2) * BigInt("0x" + finalize_data.theta)
-  // if (P
-  //     != wallet
-  //         .get_shared_key(&finalize_data.new_shared_key_id)?
-  //         .share
-  //         .public
-  //         .q
-  //         .get_element()
 
   // Verify proof key inclusion in SE sparse merkle tree
   let root = null;

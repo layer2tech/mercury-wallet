@@ -86,12 +86,12 @@ const SwapPage = () => {
       return
     }
     let isMounted = true
-    let delay = swapLoad.join ? 500 : 0;
-    const timeout = setTimeout(() => {
+    // let delay = swapLoad.join ? 0 : 0;
+    // const timeout = setTimeout(() => {
       updateSwapInfo(isMounted)
-    }, delay);
+    // }, delay);
     return () => { 
-      clearTimeout(timeout);
+    //   clearTimeout(timeout);
       isMounted = false; }
   },
     [swapLoad, refreshSwapGroupInfo]);

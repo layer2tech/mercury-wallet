@@ -12,7 +12,8 @@ import {
   handleEndAutoSwap,
   setIntervalIfOnline,
   updateInSwapValues,
-  checkSwapAvailability
+  checkSwapAvailability,
+  callUpdateSwapGroupInfo
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -146,7 +147,7 @@ const CoinsList = (props) => {
 
     let isMounted = true;
 
-    let interval = setIntervalIfOnline(updateUnconfirmedUnspentCoins, torInfo.online, 5000, isMounted)
+    let interval = setIntervalIfOnline(updateUnconfirmedUnspentCoins, torInfo.online, 10000, isMounted)
 
     return () => {
       isMounted = false;
@@ -158,7 +159,7 @@ const CoinsList = (props) => {
   // Initiate auto swap
   useEffect(() => {
     let isMounted = true;
-    let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 3000, isMounted)
+    let interval = setIntervalIfOnline(swapInfoAndAutoSwap, torInfo.online, 5000, isMounted)
     return () => {
       isMounted = false;  
       clearInterval(interval)  
