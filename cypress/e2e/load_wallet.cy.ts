@@ -1,3 +1,4 @@
+// loading wallets
 describe("load wallet", () => {
   it("visit root page", () => {
     cy.visit("/");
