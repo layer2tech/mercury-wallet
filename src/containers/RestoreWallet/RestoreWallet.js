@@ -17,6 +17,7 @@ import { Storage } from "../../store";
 import { parseBackupData } from "../../wallet/wallet";
 
 import "./RestoreWallet.css";
+import isElectron from "is-electron";
 
 let bip39 = require("bip39");
 
@@ -29,6 +30,7 @@ const RestoreWalletPage = (props) => {
   const dispatch = useDispatch();
   const [showPass, setShowPass] = useState(false);
   const toggleShowPass = () => setShowPass(!showPass);
+
   const [state, setState] = useState({
     wallet_name: "",
     wallet_password: "",
@@ -205,33 +207,56 @@ const RestoreWalletPage = (props) => {
             />
           </div>
         </Tab>
-        <Tab eventKey="Restore from Backup" title="Restore from Backup">
-          <div className="restore-form">
-            <div className="inputs-item">
-              <input
-                type={showPass ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                onChange={setStateWalletPassword}
-              />
-              <span className={"eye-icon"} onClick={toggleShowPass}>
-                {showPass ? (
-                  <img alt="eyeIconOff" src={eyeIconOff} />
-                ) : (
-                  <img alt="eyeIcon" src={eyeIcon} />
-                )}
-              </span>
-            </div>
 
-            <button
-              type="button"
-              onClick={handleSelectBackupFile}
-              className="Body-button blue backup-btn"
-            >
-              Select Your Backup File
-            </button>
-          </div>
-        </Tab>
+        {isElectron() ? (
+          <Tab
+            eventKey="Restore from Backup File"
+            title="Restore from Backup File"
+          >
+            <div className="restore-form">
+              <div className="inputs-item">
+                <input
+                  type={showPass ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  onChange={setStateWalletPassword}
+                />
+                <span className={"eye-icon"} onClick={toggleShowPass}>
+                  {showPass ? (
+                    <img alt="eyeIconOff" src={eyeIconOff} />
+                  ) : (
+                    <img alt="eyeIcon" src={eyeIcon} />
+                  )}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSelectBackupFile}
+                className="Body-button blue backup-btn"
+              >
+                Select Your Backup File
+              </button>
+            </div>
+          </Tab>
+        ) : (
+          <Tab
+            eventKey="Restore from Backup File"
+            title="Restore from Backup File"
+          >
+            <div className="restore-form">
+              <p>
+                Mercury Wallet web version does not support loading wallets from
+                file, please download and use the electron wallet to restore
+                from file. You can download mercury wallet below:
+              </p>
+              <br />
+              <a href="http://mercurywallet.com" rel="noreferrer">
+                Mercury Wallet
+              </a>
+            </div>
+          </Tab>
+        )}
       </Tabs>
     </div>
   );
