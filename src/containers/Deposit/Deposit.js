@@ -1,75 +1,89 @@
-'use strict';
+"use strict";
 import plus from "../../images/plus-deposit.png";
 import points from "../../images/points.png";
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux'
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { Button, Modal } from "react-bootstrap";
-import { CreateStatecoin, TransactionsBTC, StdButton, Steppers, Tutorial } from "../../components";
-import { isWalletLoaded, callGetConfig, callGetAccount } from '../../features/WalletDataSlice';
+import {
+  CreateStatecoin,
+  TransactionsBTC,
+  StdButton,
+  Steppers,
+  Tutorial,
+} from "../../components";
+import {
+  isWalletLoaded,
+  callGetConfig,
+  callGetAccount,
+} from "../../features/WalletDataSlice";
 
-import './Deposit.css';
+import "./Deposit.css";
 
 // sort_by 0=liquidity, 1=amount.
 const DEFAULT_SETTINGS = {
   sort_by: "Liquidity",
   min_value: 0.001,
-  picks: 8
-}
+  picks: 8,
+};
 
 const STEPS = [
   {
     id: 1,
-    description: 'Choose Amount and Value',
+    description: "Choose Amount and Value",
   },
   {
     id: 2,
-    description: 'Complete BTC Transactions',
+    description: "Complete BTC Transactions",
   },
 ];
 
 const DepositPage = () => {
-
-  const fee_info = useSelector(state => state.walletData).fee_info;
+  const fee_info = useSelector((state) => state.walletData).fee_info;
   // Show settings
   const [show, setShow] = useState(false);
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(1);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  const [selectedValues, setSelectedValues] = useState([{ value: null, initialised: false, p_addr: "Initialising.." }]);
+  const [selectedValues, setSelectedValues] = useState([
+    { value: null, initialised: false, p_addr: "Initialising.." },
+  ]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [smallestOption, setSmallestOption] = useState(DEFAULT_SETTINGS.min_value);
+  const [smallestOption, setSmallestOption] = useState(
+    DEFAULT_SETTINGS.min_value
+  );
 
   const [childError, setChildError] = useState(false);
-
 
   const setPicksSetting = (event) => {
     setSettings({
       ...settings,
-      picks: event.target.value
-    })
-  }
-  const setSortbySetting = (event) => setSettings({
-    ...settings,
-    sort_by: event.target.value
-  })
+      picks: event.target.value,
+    });
+  };
+  const setSortbySetting = (event) =>
+    setSettings({
+      ...settings,
+      sort_by: event.target.value,
+    });
 
   const handleChangeSmallest = (e) => {
     const value = e.target.value;
     setSmallestOption(value);
-    if (value !== 'other') {
+    if (value !== "other") {
       setSettings({
         ...settings,
-        min_value: value
+        min_value: value,
       });
     }
   };
 
-  const handleCustomSmallest = (e) => setSettings({
-    ...settings,
-    min_value: e.target.value
-  })
+  const handleCustomSmallest = (e) =>
+    setSettings({
+      ...settings,
+      min_value: e.target.value,
+    });
 
   // Check if wallet is loaded. Avoids crash when Electron real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -81,21 +95,21 @@ const DepositPage = () => {
     let current_values = selectedValues;
     current_values[id] = { value: value, initialised: false };
     setSelectedValues(current_values);
-  }
+  };
 
   // Store value chosen and whether statecoin has been initialised yet
   const setValueSelectionInitialised = (id, value) => {
     let current_values = selectedValues;
     selectedValues[id].initialised = value;
     setSelectedValues(current_values);
-  }
+  };
 
   // Set value chosen address. Called after depositInit has returned p_addr
   const setValueSelectionAddr = (id, p_addr) => {
     let current_values = selectedValues;
     selectedValues[id].p_addr = p_addr;
     setSelectedValues(current_values);
-  }
+  };
 
   // Add SelectionPanel to form
   const addSelectionPanel = (id, value) => {
@@ -103,40 +117,43 @@ const DepositPage = () => {
     current_values.push({ value: null, initialised: false });
     // current_values.push({value: DEFUALT_VALUE_SELECTION, initialised: false});
     setSelectedValues(current_values);
-  }
-
+  };
 
   const handleChildErrors = (retChildError) => {
     setChildError(retChildError);
-  }
+  };
 
   let current_config;
   try {
     current_config = callGetConfig();
   } catch (error) {
-    console.warn('Can not get config', error)
+    console.warn("Can not get config", error);
   }
 
   return (
-    <div className={`${current_config.tutorials ? 'container-with-tutorials' : ''}`}>
+    <div
+      className={`${
+        current_config.tutorials ? "container-with-tutorials" : ""
+      }`}
+    >
       <div className="container deposit">
         <div className="Body ">
           <div className="deposit-header">
             <h2 className="main-header">
               <img src={plus} alt="plus" />
-                     Deposit BTC
-                 </h2>
+              Deposit BTC
+            </h2>
             <div className="nav-item">
               <Link className="nav-link" to="/home">
-                <StdButton
-                  label="Back"
-                  className="Body-button transparent" />
+                <StdButton label="Back" className="Body-button transparent" />
               </Link>
               <img onClick={handleShow} src={points} alt="points" />
-
             </div>
           </div>
-          <h3 className="subtitle">Create new statecoins. Withdraw Fee: <b>{fee_info.withdraw / 100}%</b></h3>
+          <h3 className="subtitle">
+            Create new statecoins. Withdraw Fee:{" "}
+            <b>{fee_info.withdraw / 100}%</b>
+          </h3>
         </div>
         <div className="wizard">
           <Steppers steps={STEPS} total={2} current={step} />
@@ -156,23 +173,34 @@ const DepositPage = () => {
             />
           )}
           {step === 1 ? (
-            !childError && <button className="primary-btn blue" onClick={() => setStep(2)}>Continue</button>
+            !childError && (
+              <button
+                data-cy="deposit-continue-btn"
+                className="primary-btn blue"
+                onClick={() => setStep(2)}
+              >
+                Continue
+              </button>
+            )
           ) : (
-            <button className="primary-btn blue" onClick={() => setStep(1)}>Go Back</button>
+            <button className="primary-btn blue" onClick={() => setStep(1)}>
+              Go Back
+            </button>
           )}
         </div>
 
-        <Modal show={show} onHide={handleClose} className="modal deposit-settings">
+        <Modal
+          show={show}
+          onHide={handleClose}
+          className="modal deposit-settings"
+        >
           <Modal.Header>
             <h6>Display Settings</h6>
           </Modal.Header>
           <Modal.Body>
             <div className="selected-item">
               <span>Sort By</span>
-              <select
-                onChange={setSortbySetting}
-                value={settings.sort_by}
-              >
+              <select onChange={setSortbySetting} value={settings.sort_by}>
                 <option value="Liquidity">Highest Liquidity</option>
                 <option value="LowToHigh">Value Low to High</option>
                 <option value="HighToLow">Value High to Low</option>
@@ -188,12 +216,13 @@ const DepositPage = () => {
                 <option value="0.01">0.01 BTC</option>
                 <option value="other">Other</option>
               </select>
-              {smallestOption === 'other' && (
+              {smallestOption === "other" && (
                 <input
                   className="custom-smallest"
                   type="text"
                   value={settings.min_value}
-                  onChange={handleCustomSmallest} />
+                  onChange={handleCustomSmallest}
+                />
               )}
             </div>
             <div className="selected-item">
@@ -204,7 +233,6 @@ const DepositPage = () => {
                 <option value="12">12 options</option>
               </select>
             </div>
-
           </Modal.Body>
           <Modal.Footer>
             <Button className="action-btn-normal" onClick={handleClose}>
@@ -215,7 +243,7 @@ const DepositPage = () => {
       </div>
       {current_config.tutorials && <Tutorial />}
     </div>
-  )
-}
+  );
+};
 
 export default withRouter(DepositPage);

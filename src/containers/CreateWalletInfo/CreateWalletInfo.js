@@ -3,7 +3,7 @@ import key from "../../images/key-blue-img.png";
 import restore from "../../images/restore-red-img.png";
 import secure from "../../images/secure-blue-img.png";
 import store_img from "../../images/store-red-img.png";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, withRouter } from "react-router-dom";
 import "./CreateWalletInfo.css";
 import { callGetArgsHasTestnet } from "../../features/WalletDataSlice";
@@ -14,11 +14,16 @@ const CreateWalletInfoPage = () => {
   const changeCheckbox = state[1];
   const [testnet, setTestnet] = useState(false);
 
-  callGetArgsHasTestnet().then((result) => {
-    setTestnet(result);
-  });
-
   // Change handlers
+  useEffect(() => {
+    callGetArgsHasTestnet().then((result) => {
+      setTestnet(result);
+    });
+
+    if (require("../../settings.json").e2e_mode) {
+      setTestnet(true);
+    }
+  }, []);
 
   return (
     <div className="welcome-second ">

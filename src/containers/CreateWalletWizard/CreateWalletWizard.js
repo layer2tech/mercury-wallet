@@ -1,104 +1,112 @@
-'use strict';
-import React, { useEffect, useState } from 'react';
-import {withRouter} from "react-router-dom";
-import {useDispatch} from 'react-redux'
-import {CreateWizardForm, ConfirmSeed, DisplaySeed, Steppers} from "../../components";
-import {setError} from '../../features/WalletDataSlice'
-import {Storage} from '../../store';
+"use strict";
+import React, { useEffect, useState } from "react";
+import { withRouter } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import {
+  CreateWizardForm,
+  ConfirmSeed,
+  DisplaySeed,
+  Steppers,
+} from "../../components";
+import { setError } from "../../features/WalletDataSlice";
+import { Storage } from "../../store";
 
-import './CreateWalletWizard.css'
+import "./CreateWalletWizard.css";
 
-let bip39 = require('bip39');
+let bip39 = require("bip39");
 const mnemonic = bip39.generateMnemonic();
 
 const CreateWizardStep = {
   FORM: 1,
   DISPLAYSEED: 2,
-  CONFIRMSEED: 3
-}
+  CONFIRMSEED: 3,
+};
 
 const STEPS = [
   {
     id: 1,
-    description: 'Create Password',
+    description: "Create Password",
   },
   {
     id: 2,
-    description: 'New Wallet Seed',
+    description: "New Wallet Seed",
   },
   {
     id: 3,
-    description: 'Confirm Seed',
+    description: "Confirm Seed",
   },
 ];
-
 
 // MultiStep wizard for wallet setup
 const CreateWizardPage = (props) => {
   const dispatch = useDispatch();
-  const [walletNames,setWalletNames] = useState()
-  const [confirmDetails,setConfirmDetails] = useState(false)
-  const [startSeed,setStartSeed] = useState(false)
+  const [walletNames, setWalletNames] = useState();
+  const [confirmDetails, setConfirmDetails] = useState(false);
+  const [startSeed, setStartSeed] = useState(false);
 
-  
-  const [step, setStep] = useState(CreateWizardStep.FORM)
-  const [wizardState, setWizardState] = useState(
-    {
-      wallet_name: "",
-      wallet_password: "",
-      mnemonic: mnemonic,
-    });
-    
-  useEffect(()=>{
+  const [step, setStep] = useState(CreateWizardStep.FORM);
+  const [wizardState, setWizardState] = useState({
+    wallet_name: "",
+    wallet_password: "",
+    mnemonic: mnemonic,
+  });
 
-    let store
-    if(confirmDetails === true) {
+  useEffect(() => {
+    let store;
+    if (confirmDetails === true) {
       store = new Storage(`wallets/${wizardState.wallet_name}/config`);
       //Store wallet in own directory
 
       let wallet_names = store.getWalletNames();
       //Check for if wallet name already exists, check in above directory
-    
-      setWalletNames(wallet_names)
-    
-      setStartSeed(true)
+
+      setWalletNames(wallet_names);
+
+      setStartSeed(true);
       //When submit button pressed check applied by changing state of startSeed
-      setConfirmDetails(false)
+      setConfirmDetails(false);
       //Reset submit button
     }
+  }, [confirmDetails, wizardState.wallet_name]);
 
-  },[confirmDetails, wizardState.wallet_name])
-
-  useEffect(()=>{
-    if(startSeed === true){
-      let inputName = wizardState.wallet_name
+  useEffect(() => {
+    if (startSeed === true) {
+      let inputName = wizardState.wallet_name;
       //init wallet name check
 
-      if (walletNames.filter(wallet => wallet.name === inputName).length === 0) {
-      // Check for file with this wallet name
+      if (
+        walletNames.filter((wallet) => wallet.name === inputName).length === 0
+      ) {
+        // Check for file with this wallet name
         //if no file: move to next step
         setStep(CreateWizardStep.DISPLAYSEED);
         setStartSeed(false);
         //Reset check
-        return
+        return;
       }
-      dispatch(setError({msg: "Wallet with name "+wizardState.wallet_name+" already exists."}));
+      dispatch(
+        setError({
+          msg:
+            "Wallet with name " + wizardState.wallet_name + " already exists.",
+        })
+      );
       setStartSeed(false);
       //Reset check
     }
-  },[startSeed, dispatch, walletNames, wizardState.wallet_name])
-    
-  const setStateWalletName = (event) => setWizardState({...wizardState, wallet_name: event.target.value});
-  const setStateWalletPassword = (event) => setWizardState({...wizardState, wallet_password: event.target.value});
+  }, [startSeed, dispatch, walletNames, wizardState.wallet_name]);
 
+  const setStateWalletName = (event) =>
+    setWizardState({ ...wizardState, wallet_name: event.target.value });
+  const setStateWalletPassword = (event) =>
+    setWizardState({ ...wizardState, wallet_password: event.target.value });
 
   const handleSubmit = () => {
-    setConfirmDetails(true)
+    setConfirmDetails(true);
     //Initialise check to see if wallet name already exists
-  }
+  };
 
   const Component = () => {
-    switch(step) {
+    switch (step) {
       case 1:
         return (
           <CreateWizardForm
@@ -108,34 +116,32 @@ const CreateWizardPage = (props) => {
             setStateWalletPassword={setStateWalletPassword}
             submitTitle="Create"
           />
-        )
+        );
       case 2:
         return (
           <DisplaySeed
+            data-cy="display-seed-values"
             onPrevStep={() => setStep(CreateWizardStep.FORM)}
             onNextStep={() => setStep(CreateWizardStep.CONFIRMSEED)}
             wizardState={wizardState}
           />
-        )
+        );
       default:
         return (
           <ConfirmSeed
             onPrevStep={() => setStep(CreateWizardStep.DISPLAYSEED)}
             wizardState={wizardState}
           />
-        )
+        );
     }
-  }
+  };
 
   return (
     <div className="container wizard">
-      <Steppers
-        steps={STEPS}
-        current={step}
-      />
+      <Steppers steps={STEPS} current={step} />
       {Component()}
     </div>
-  )
-}
+  );
+};
 
 export default withRouter(CreateWizardPage);

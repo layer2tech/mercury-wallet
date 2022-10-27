@@ -181,7 +181,7 @@ const CreateStatecoin = (props) => {
         props.handleChildErrors(true);
       });
 
-    // timeout after 25 seconds, if we are still in loading
+    // timeout after 60 seconds, if we are still in loading
     const timer = setTimeout(() => {
       setLoading((prevValue) => {
         if (prevValue) {
@@ -194,7 +194,7 @@ const CreateStatecoin = (props) => {
         }
         return prevValue;
       });
-    }, 25000);
+    }, 60000);
 
     return () => {
       isMounted = false;

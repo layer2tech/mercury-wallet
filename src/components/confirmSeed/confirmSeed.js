@@ -12,6 +12,7 @@ import {
 import "./confirmSeed.css";
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
+const E2E_MODE = require("../../settings.json").e2e_mode;
 
 const ConfirmSeed = (props) => {
   const dispatch = useDispatch();
@@ -26,7 +27,7 @@ const ConfirmSeed = (props) => {
   };
 
   const [rands] = useState(() =>
-    !TESTING_MODE ? generateUniqueSeedArr() : []
+    !TESTING_MODE && !E2E_MODE ? generateUniqueSeedArr() : []
   );
 
   let words = props.wizardState.mnemonic.split(" ");

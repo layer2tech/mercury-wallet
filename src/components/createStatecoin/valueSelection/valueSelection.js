@@ -153,10 +153,11 @@ const ValueSelectionPanel = (props) => {
       <div className="deposit-main">
         <span>Select Statecoin Value</span>
         <div className="deposit-statecoins">
-          <div className="numbers">
+          <div data-cy="deposit-statecoins-numbers" className="numbers">
             {populateValueSelections}
             {customDeposit.value === 0 && (
               <div
+                data-cy="deposit-statecoin-other"
                 className="numbers-item"
                 onClick={() => setShowCustomInput(true)}
               >
@@ -177,6 +178,7 @@ const ValueSelectionPanel = (props) => {
           <div className="selected-item">
             <span>Custom Value</span>
             <input
+              data-cy="deposit-custom-input"
               name="depositBtc"
               type="number"
               className="custom-smallest"
@@ -195,6 +197,7 @@ const ValueSelectionPanel = (props) => {
             Cancel
           </button>
           <button
+            data-cy="deposit-custom-confirm-btn"
             className={`Body-button ${disable ? "grey" : "blue"}`}
             onClick={handleConfirm}
             disabled={disable}
