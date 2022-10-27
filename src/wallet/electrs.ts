@@ -214,7 +214,7 @@ export class ElectrsClient {
     if (this.scriptIntervals.has(scriptHash)) {
       throw new ElectrsClientError(`already subscribed to script: [${scriptHash}]`)
     }
-    let timer = setInterval(this.getScriptHashStatus, 5000, scriptHash, callBack, this.endpoint)
+    let timer = setInterval(this.getScriptHashStatus, 10000, scriptHash, callBack, this.endpoint)
     this.scriptIntervals.set(scriptHash, timer)
     return timer
   }
@@ -230,7 +230,7 @@ export class ElectrsClient {
       async (cb, ep) => {
         await this.getLatestBlock(cb, ep)
       },
-      5000, callBack, this.endpoint)
+      30000, callBack, this.endpoint)
   }
 
   blockHeightUnsubscribe() {
