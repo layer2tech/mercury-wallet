@@ -57,13 +57,13 @@ describe("deposit coin", () => {
 
   it("should select a statecoin of 0.001 btc", () => {
     //cy.get("[data-cy=deposit-statecoins-numbers]").contains("0.001").click();
-    cy.get("[data-cy=deposit-statecoin-other]").should("be.visible").click();
-    cy.get("[data-cy=deposit-custom-input]").type("0.001");
-    cy.get("[data-cy=deposit-custom-confirm-btn]").click();
+    //cy.get("[data-cy=deposit-statecoin-other]").should("be.visible").click();
+    //cy.get("[data-cy=deposit-custom-input]").type("0.001");
+    //cy.get("[data-cy=deposit-custom-confirm-btn]").click();
   });
 
   it("should generate a statecoin deposit of 0.001", () => {
-    cy.get("[data-cy=deposit-continue-btn]").click();
+    //cy.get("[data-cy=deposit-continue-btn]").click();
   });
 
   it("should get the deposit id address and pay the deposit", async () => {
