@@ -171,7 +171,8 @@ export class Wallet {
     account: any,
     config: Config,
     http_client: any = undefined,
-    wasm: any = undefined
+    wasm: any = undefined,
+    storage_type: string | undefined = undefined,
   ) {
     this.wasm = null;
     this.name = name;
@@ -202,7 +203,7 @@ export class Wallet {
 
     this.warnings = [{ name: "swap_punishment", show: true }];
 
-    this.storage = new Storage(`wallets/${this.name}/config`);
+    this.storage = new Storage(`wallets/${this.name}/config`, storage_type);
     this.ping_conductor_ms = null;
     this.ping_server_ms = null;
     this.ping_electrum_ms = null;
@@ -321,7 +322,8 @@ export class Wallet {
     network: Network,
     testing_mode: boolean,
     http_client: any = undefined,
-    wasm: any = undefined
+    wasm: any = undefined,
+    storage_type: string | undefined = undefined,
   ): Wallet {
     log.debug(
       "New wallet named " +
@@ -337,7 +339,8 @@ export class Wallet {
       mnemonic_to_bip32_root_account(mnemonic, network),
       new Config(network, testing_mode),
       http_client,
-      wasm
+      wasm,
+      storage_type,
     );
     wallet.setActive();
     return wallet;
@@ -355,7 +358,8 @@ export class Wallet {
     http_client: any = undefined,
     wasm: any = undefined,
     mnemonic: string | undefined = undefined,
-    name: string | undefined = undefined
+    name: string | undefined = undefined,
+    storage_type: string | undefined = undefined
   ): Promise<Wallet> {
     mnemonic = mnemonic != null ? mnemonic : MOCK_WALLET_MNEMONIC;
     name = name != null ? name : MOCK_WALLET_NAME;
@@ -366,7 +370,8 @@ export class Wallet {
       network,
       true,
       http_client,
-      wasm
+      wasm,
+      storage_type
     );
     wallet.setActive();
     // add some statecoins
@@ -406,7 +411,7 @@ export class Wallet {
   }
 
   // Load wallet from JSON
-  static fromJSON(json_wallet: any, testing_mode: boolean): Wallet {
+  static fromJSON(json_wallet: any, testing_mode: boolean, storage_type: string | undefined = undefined): Wallet {
     try {
       let config = new Config(
         json_wallet.config.network,
@@ -419,7 +424,10 @@ export class Wallet {
         json_wallet.password,
         json_wallet.mnemonic,
         json_wallet.account,
-        config
+        config,
+        undefined,
+        undefined,
+        storage_type
       );
 
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
