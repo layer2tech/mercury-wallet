@@ -325,13 +325,8 @@ export class Storage {
       stored_sc_obj = {};
     }
 
-    console.log('enter entries: ',Object.keys(Object.fromEntries(sc_map)))
-    let entries_sc_map = Object.fromEntries(sc_map);
-
-    Object.keys(entries_sc_map).map( key => {
-      stored_sc_obj = {...stored_sc_obj, [key]: entries_sc_map[key]}
-    })
-    // Object.assign(stored_sc_obj, Object.fromEntries(sc_map));
+    stored_sc_obj = JSON.parse(JSON.stringify(stored_sc_obj));
+    Object.assign(stored_sc_obj, Object.fromEntries(sc_map));
 
     const swapped_sc_dest = `${wallet_name}.swapped_statecoins_obj`;
     let stored_swapped_sc_obj = this.store.get(swapped_sc_dest);
@@ -340,10 +335,8 @@ export class Storage {
     }
 
     const swapped_sc_obj = Object.fromEntries(swapped_sc_map);
-    Object.keys(swapped_sc_obj).map( key => {
-      stored_swapped_sc_obj = {...stored_swapped_sc_obj, [key]: entries_sc_map[key]}
-    })
-    // Object.assign(stored_swapped_sc_obj, swapped_sc_obj);
+    stored_swapped_sc_obj = JSON.parse(JSON.stringify(stored_swapped_sc_obj));
+    Object.assign(stored_swapped_sc_obj, swapped_sc_obj);
 
     const swapped_ids_dest = `${wallet_name}.swapped_ids`;
     let stored_swapped_ids = this.store.get(swapped_ids_dest);
