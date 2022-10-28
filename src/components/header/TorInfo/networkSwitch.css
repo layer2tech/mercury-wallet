@@ -1,0 +1,5 @@
+.network-switch button {
+    background-color: var(--button-main);
+    color: var(--button-main-text);
+    border: 1px solid var(--button-border);
+}

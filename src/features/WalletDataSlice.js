@@ -76,6 +76,7 @@ const initialState = {
   coinsAdded: 0,
   coinsRemoved: 0,
   torInfo: { online: false },
+  networkType: "Tor"
 };
 
 // Check if a wallet is loaded in memory
@@ -1246,6 +1247,12 @@ const WalletSlice = createSlice({
         ...state,
       };
     },
+    setNetworkType(state, action) {
+      return {
+        ...state,
+        networkType: action.payload.networkType,
+      };
+    },
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -1399,6 +1406,7 @@ export const {
   addCoins,
   removeCoins,
   setTorOnline,
+  setNetworkType
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 

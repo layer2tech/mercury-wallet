@@ -9,7 +9,7 @@
 
 "use strict";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   callGetNewTorCircuit,
   callGetTorcircuitInfo,
@@ -17,8 +17,11 @@ import {
   setTorOnline,
   callGetConfig,
   setIntervalIfOnline,
+  setWarning,
+  setNetworkType,
 } from "../../../features/WalletDataSlice";
 import "./torCircuit.css";
+import "./networkSwitch.css";
 import TorCircuitNode from "./TorCircuitNode";
 import { handleNetworkError } from "../../../error";
 import { defaultWalletConfig } from "../../../containers/Settings/Settings";
@@ -31,6 +34,7 @@ log = new WrappedLogger();
 
 const TorCircuit = (props) => {
   const dispatch = useDispatch();
+  let network = useSelector(state => state.walletData).networkType;
 
   const [torcircuitData, setTorcircuitData] = useState([]);
   const [torLoaded, setTorLoaded] = useState(false);
@@ -84,6 +88,22 @@ const TorCircuit = (props) => {
     });
   };
 
+  const setNetwork = () => {
+    if (network === "Tor") {
+      dispatch(setNetworkType({ networkType: "I2P"}));
+    } else {  
+      dispatch(setNetworkType({ networkType: "Tor"}));
+    }
+  }
+
+  const networkSwitch = () => {
+    dispatch(setWarning({
+      title: "Switch Network...",
+      msg: "WARNING! Terminate all swaps before changing connection.",
+      onConfirm: setNetwork,
+    }));
+  };
+
   function shortenURL(url) {
     if (url == null) {
       return url;
@@ -104,47 +124,67 @@ const TorCircuit = (props) => {
 
   return (
     <div className="dropdown tor">
-      <TorIcon />
-      <div className="dropdown-content">
-        {torLoaded ? (
-          <div>
-            <ul>
-              <TorCircuitNode
-                class="passed"
-                name="Mercury Wallet"
-              ></TorCircuitNode>
-              {torcircuitData.map((circuit, index) => {
-                if (circuit.ip === "") return;
-                return (
-                  <TorCircuitNode
-                    className="passed"
-                    name={circuit.country}
-                    ip={circuit.ip}
-                    key={circuit.ip}
-                  ></TorCircuitNode>
-                );
-              })}
-              {/* <TorCircuitNode className='current' name={config.state_entity_endpoint}></TorCircuitNode> */}
-              {
+      <NetworkSwitch 
+        networkType={network}
+        onClick={networkSwitch}
+        />
+      {network === "Tor" ? (
+          <div className="dropdown-content">
+          {torLoaded ? (
+            <div>
+              <ul>
                 <TorCircuitNode
-                  class="current"
-                  name={shortenURL(state_entity_endpoint)}
+                  class="passed"
+                  name="Mercury Wallet"
                 ></TorCircuitNode>
-              }
-            </ul>
-            <button className="Body-button transparent" onClick={newCircuit}>
-              New Circuit
-            </button>
-          </div>
+                {torcircuitData.map((circuit, index) => {
+                  if (circuit.ip === "") return;
+                  return (
+                    <TorCircuitNode
+                      className="passed"
+                      name={circuit.country}
+                      ip={circuit.ip}
+                      key={circuit.ip}
+                    ></TorCircuitNode>
+                  );
+                })}
+                {/* <TorCircuitNode className='current' name={config.state_entity_endpoint}></TorCircuitNode> */}
+                {
+                  <TorCircuitNode
+                    class="current"
+                    name={shortenURL(state_entity_endpoint)}
+                  ></TorCircuitNode>
+                }
+              </ul>
+              <button className="Body-button transparent" onClick={newCircuit}>
+                New Circuit
+              </button>
+            </div>
+          ) : (
+            <div>
+              <p>Couldn't establish connection to tor</p>
+            </div>
+          )}
+        </div>
         ) : (
-          <div>
-            <p>Couldn't establish connection to tor</p>
-          </div>
-        )}
-      </div>
+          <div className="dropdown-content">
+              <button className="Body-button transparent">
+                New Tunnel
+              </button>
+            </div>
+        )
+      }
     </div>
   );
 };
+
+export const NetworkSwitch = (props) => (
+  <div className="network-switch">
+    <button onClick={props.onClick}>
+      {props.networkType}
+    </button>
+  </div>
+);
 
 export const TorIcon = () => (
   <svg

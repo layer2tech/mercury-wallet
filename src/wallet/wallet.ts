@@ -129,6 +129,11 @@ export const parseBackupData = (backupData: string) => {
   }
 };
 
+export interface Warning {
+  name: string;
+  show: boolean;
+}
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -151,7 +156,7 @@ export class Wallet {
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
   tor_circuit: TorCircuit[];
-  warnings: [{ name: string; show: boolean }];
+  warnings: Warning[];
   ping_server_ms: number | null;
   ping_conductor_ms: number | null;
   ping_electrum_ms: number | null;
@@ -201,7 +206,7 @@ export class Wallet {
     this.block_height = 0;
     this.current_sce_addr = "";
 
-    this.warnings = [{ name: "swap_punishment", show: true }];
+    this.warnings = [{ name: "swap_punishment", show: true }, { name: "switch_network", show: true }];
 
     this.storage = new Storage(`wallets/${this.name}/config`, storage_type);
     this.ping_conductor_ms = null;
