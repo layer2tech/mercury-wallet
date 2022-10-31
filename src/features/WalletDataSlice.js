@@ -1,6 +1,5 @@
 "use strict";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { useSelector } from "react-redux";
 
 import { Wallet, ACTION, STATECOIN_STATUS } from "../wallet";
 import { getFeeInfo, getCoinsInfo } from "../wallet/mercury/info_api";
@@ -15,6 +14,7 @@ import { mutex } from "../wallet/electrum";
 import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
+import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
 
@@ -178,13 +178,15 @@ export async function walletLoad(name, password) {
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
+  const networkType = store.getState().walletData.networkType;
+
   await wallet.deRegisterSwaps(true);
 
   log.info("Wallet " + name + " loaded from memory. ");
 
   if (testing_mode) log.info("Testing mode set.");
   await mutex.runExclusive(async () => {
-    await wallet.set_tor_endpoints();
+    await wallet.setHttpClient(networkType);
     wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapStatus();
     await wallet.updateSwapGroupInfo();
@@ -220,10 +222,13 @@ export async function walletFromMnemonic(
   }
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   wallet.resetSwapStates();
+
+  const networkType = store.getState().walletData.networkType;
+
   log.info("Wallet " + name + " created.");
   if (testing_mode) log.info("Testing mode set.");
   await mutex.runExclusive(async () => {
-    await wallet.set_tor_endpoints();
+    await wallet.setHttpClient(networkType);
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
       let recoveryComplete = false;
@@ -271,12 +276,14 @@ export const walletFromJson = async (wallet_json, password) => {
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
+  const networkType = store.getState().walletData.networkType;
+
   log.info("Wallet " + wallet.name + " loaded from backup.");
   if (testing_mode) log.info("Testing mode set.");
   return Promise.resolve().then(() => {
     return mutex
       .runExclusive(async () => {
-        await wallet.set_tor_endpoints();
+        await wallet.setHttpClient(networkType);
         wallet.initElectrumClient(setBlockHeightCallBack);
         await callNewSeAddr();
         wallet.updateSwapStatus();
@@ -1248,6 +1255,7 @@ const WalletSlice = createSlice({
       };
     },
     setNetworkType(state, action) {
+      wallet.setHttpClient(action.payload.networkType);
       return {
         ...state,
         networkType: action.payload.networkType,

@@ -65,7 +65,7 @@ import {
   OutPoint,
 } from "./mercury/info_api";
 import { EPSClient } from "./eps";
-import { POST_ROUTE } from "./http_client";
+import { I2P_URL, POST_ROUTE, TOR_URL } from "./http_client";
 import {
   getNewTorId,
   getNewTorCircuit,
@@ -77,6 +77,7 @@ import { Mutex } from "async-mutex";
 import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from 'semaphore-async-await';
+import { store } from "../application/reduxStore";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -195,8 +196,13 @@ export class Wallet {
     if (http_client != null) {
       this.http_client = http_client;
     } else if (this.config.testing_mode != true) {
-      this.http_client = new HttpClient("http://localhost:3001", true);
-      this.set_tor_endpoints();
+      let networkType = store.getState().walletData.networkType;
+      if (networkType === "I2P") {
+        this.http_client = new HttpClient(I2P_URL, false);
+      } else {
+        this.http_client = new HttpClient(TOR_URL, true);
+        this.set_tor_endpoints();
+      }
     } else {
       this.http_client = new MockHttpClient();
     }
@@ -319,6 +325,15 @@ export class Wallet {
     this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
   }
 
+  setHttpClient(networkType: string) {
+    if (networkType === "I2P") {
+      this.http_client = new HttpClient(I2P_URL, false);
+    } else {
+      this.http_client = new HttpClient(TOR_URL, true);
+      this.set_tor_endpoints();
+    }
+  }
+  
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(
     name: string,
