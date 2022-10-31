@@ -98,8 +98,8 @@ const TorCircuit = (props) => {
 
   const networkSwitch = () => {
     dispatch(setWarning({
-      title: "Switch Network...",
-      msg: "WARNING! Terminate all swaps before changing connection.",
+      title: "Network Warning...",
+      msg: "Please terminate all swaps before changing connection.",
       onConfirm: setNetwork,
     }));
   };
