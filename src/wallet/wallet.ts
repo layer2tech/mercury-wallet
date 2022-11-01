@@ -77,7 +77,6 @@ import { Mutex } from "async-mutex";
 import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from 'semaphore-async-await';
-import { store } from "../application/reduxStore";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -169,6 +168,7 @@ export class Wallet {
   active: boolean;
   activityLogItems: any[];
   swappedStatecoinsFundingOutpointMap: Map<string, StateCoin[]>;
+  networkType: string;
 
   constructor(
     name: string,
@@ -192,17 +192,13 @@ export class Wallet {
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
+    this.networkType = "Tor"
 
     if (http_client != null) {
       this.http_client = http_client;
     } else if (this.config.testing_mode != true) {
-      let networkType = store.getState().walletData.networkType;
-      if (networkType === "I2P") {
-        this.http_client = new HttpClient(I2P_URL, false);
-      } else {
-        this.http_client = new HttpClient(TOR_URL, true);
-        this.set_tor_endpoints();
-      }
+      this.http_client = new HttpClient(TOR_URL, true);
+      this.set_tor_endpoints();
     } else {
       this.http_client = new MockHttpClient();
     }

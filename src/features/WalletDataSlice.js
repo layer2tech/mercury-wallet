@@ -14,7 +14,6 @@ import { mutex } from "../wallet/electrum";
 import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
-import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
 
@@ -76,7 +75,6 @@ const initialState = {
   coinsAdded: 0,
   coinsRemoved: 0,
   torInfo: { online: false },
-  networkType: "Tor"
 };
 
 // Check if a wallet is loaded in memory
@@ -178,7 +176,7 @@ export async function walletLoad(name, password) {
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
-  const networkType = store.getState().walletData.networkType;
+  const networkType = wallet.networkType;
 
   await wallet.deRegisterSwaps(true);
 
@@ -223,7 +221,7 @@ export async function walletFromMnemonic(
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   wallet.resetSwapStates();
 
-  const networkType = store.getState().walletData.networkType;
+  const networkType = wallet.networkType;
 
   log.info("Wallet " + name + " created.");
   if (testing_mode) log.info("Testing mode set.");
@@ -276,7 +274,7 @@ export const walletFromJson = async (wallet_json, password) => {
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
-  const networkType = store.getState().walletData.networkType;
+  const networkType = wallet.networkType;
 
   log.info("Wallet " + wallet.name + " loaded from backup.");
   if (testing_mode) log.info("Testing mode set.");
@@ -807,6 +805,18 @@ export const checkSend = (dispatch, inputAddr) => {
   }
 };
 
+export const setNetworkType = (networkType) => {
+  if (isWalletLoaded()) {
+    wallet.networkType = networkType;
+  }
+}
+
+export const getNetworkType = () => {
+  if (isWalletLoaded()) {
+    return wallet.networkType;
+  }
+}
+
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
 
@@ -1254,13 +1264,6 @@ const WalletSlice = createSlice({
         ...state,
       };
     },
-    setNetworkType(state, action) {
-      wallet.setHttpClient(action.payload.networkType);
-      return {
-        ...state,
-        networkType: action.payload.networkType,
-      };
-    },
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -1414,7 +1417,6 @@ export const {
   addCoins,
   removeCoins,
   setTorOnline,
-  setNetworkType
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 

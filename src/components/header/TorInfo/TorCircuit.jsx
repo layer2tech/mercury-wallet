@@ -19,6 +19,7 @@ import {
   setIntervalIfOnline,
   setWarning,
   setNetworkType,
+  getNetworkType,
 } from "../../../features/WalletDataSlice";
 import "./torCircuit.css";
 import "./networkSwitch.css";
@@ -34,7 +35,7 @@ log = new WrappedLogger();
 
 const TorCircuit = (props) => {
   const dispatch = useDispatch();
-  let network = useSelector(state => state.walletData).networkType;
+  let network = getNetworkType();
 
   const [torcircuitData, setTorcircuitData] = useState([]);
   const [torLoaded, setTorLoaded] = useState(false);
@@ -90,9 +91,9 @@ const TorCircuit = (props) => {
 
   const setNetwork = () => {
     if (network === "Tor") {
-      dispatch(setNetworkType({ networkType: "I2P"}));
+      setNetworkType("I2P");
     } else {  
-      dispatch(setNetworkType({ networkType: "Tor"}));
+      setNetworkType("Tor");
     }
   }
 
