@@ -1,3 +1,15 @@
+let diffIndexes: any = [];
+function arrayDiff(a, b) {
+  return a.filter(function (i) {
+    if (b.indexOf(i) < 0) {
+      diffIndexes.push(a.indexOf(i));
+      return true;
+    } else {
+      return false;
+    }
+  });
+}
+
 describe("create wallet", () => {
   it("visit root page", () => {
     cy.visit("/");
@@ -81,24 +93,18 @@ describe("create wallet", () => {
           .get("input")
           .then(($els2) => {
             let texts2 = Array.from($els2, (el2) => el2.placeholder);
+            var diffValues = arrayDiff(texts2, texts);
+            for (var i = 0; i < 3; i++) {
+              cy.get("[data-cy=confirm-seed]")
+                .get("input")
+                .eq(diffIndexes[i])
+                .type(texts[diffIndexes[i]]);
+            }
 
-            // figure out which seeds are missing and fill in the gaps into the ui
+            cy.get("[data-cy=create-wallet-confirm-seed-btn]")
+              .should("be.visible")
+              .click();
           });
       });
-  });
-
-  it("should remember mnemonic and go to next page", () => {
-    // since we are on testnet we don't need to - TODO - actually test this when not in testnet mode...
-    /*
-    
-      */
-  });
-
-  it("should press confirm on final seed page", () => {
-    /*
-    cy.get("[data-cy=create-wallet-confirm-seed-btn]")
-      .should("be.visible")
-      .click();
-      */
   });
 });
