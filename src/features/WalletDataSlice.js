@@ -34,11 +34,14 @@ export const callGetArgsHasTestnet = async () => {
     callSetArgsHasTestnet(true);
   }
 
+  /*
+  
+
   let result = false;
   if (window.electron && window.electron.ipcRenderer) {
     result = await window.electron.ipcRenderer.invoke("testnet-mode");
     callSetArgsHasTestnet(result);
-  }
+  }*/
 
   return isTestnet;
 };

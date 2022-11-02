@@ -23,6 +23,9 @@ describe("create wallet", () => {
     // click on continue btn
     cy.get("[data-cy=landing-continue-btn]").click();
 
+    // click on testnet button
+    cy.get("[data-cy=network-btn-testnet]").click();
+
     const createNWTitle = "Create a New Wallet";
     const createNWImportant =
       "IMPORTANT: Wallet was opened in testnet, therefore new wallets will be created in testnet. Existing wallets are not changed.";
@@ -64,19 +67,38 @@ describe("create wallet", () => {
 
   it("should enter mnemonic page", () => {
     // verify things are on this page that should be here i.e the mnemonic key
+    cy.get("[data-cy=seed-phrase]")
+      .get("input")
+      .then(($els) => {
+        let texts = Array.from($els, (el) => el.placeholder);
+        console.log(texts); //Your array
+
+        cy.get("[data-cy=create-wallet-seed-btn-next]")
+          .should("be.visible")
+          .click();
+
+        cy.get("[data-cy=confirm-seed]")
+          .get("input")
+          .then(($els2) => {
+            let texts2 = Array.from($els2, (el2) => el2.placeholder);
+
+            // figure out which seeds are missing and fill in the gaps into the ui
+          });
+      });
   });
 
   it("should remember mnemonic and go to next page", () => {
     // since we are on testnet we don't need to - TODO - actually test this when not in testnet mode...
-
-    cy.get("[data-cy=create-wallet-seed-btn-next]")
-      .should("be.visible")
-      .click();
+    /*
+    
+      */
   });
 
   it("should press confirm on final seed page", () => {
+    /*
     cy.get("[data-cy=create-wallet-confirm-seed-btn]")
       .should("be.visible")
       .click();
+      */
   });
 });

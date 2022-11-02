@@ -39,6 +39,7 @@ const CreateWalletInfoPage = () => {
 
       <div className="network-btns">
         <div
+          data-cy="network-btn-testnet"
           onClick={() => selectNetwork(0)}
           className={`${networkChecked === 0 ? "selected" : ""}`}
         >
@@ -46,6 +47,7 @@ const CreateWalletInfoPage = () => {
           <img className="check-img" src={check} alt="plus" />
         </div>
         <div
+          data-cy="network-btn-mainnet"
           onClick={() => selectNetwork(1)}
           className={`${networkChecked === 1 ? "selected" : ""}`}
         >

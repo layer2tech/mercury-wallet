@@ -40,7 +40,7 @@ const DisplaySeed = (props) => {
         the seed if lost.
       </p>
 
-      <form>{inputs}</form>
+      <form data-cy="seed-phrase">{inputs}</form>
       {/* <div className="copy">
                 <CopiedButton 
                     handleCopy={copyMnemonicToClipboard} 
