@@ -3,10 +3,14 @@ import key from "../../images/key-blue-img.png";
 import restore from "../../images/restore-red-img.png";
 import secure from "../../images/secure-blue-img.png";
 import store_img from "../../images/store-red-img.png";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, withRouter } from "react-router-dom";
 import "./CreateWalletInfo.css";
-import { callGetArgsHasTestnet } from "../../features/WalletDataSlice";
+import check from "../../images/icon-action-check_circle.png";
+import {
+  callGetArgsHasTestnet,
+  callSetArgsHasTestnet,
+} from "../../features/WalletDataSlice";
 
 const CreateWalletInfoPage = () => {
   const state = useState(false);
@@ -14,15 +18,42 @@ const CreateWalletInfoPage = () => {
   const changeCheckbox = state[1];
   const [testnet, setTestnet] = useState(false);
 
-  callGetArgsHasTestnet().then((result) => {
-    setTestnet(result);
-  });
+  const networkState = useState(1);
+  const networkChecked = networkState[0];
+  const changeNetwork = networkState[1];
+
+  useEffect(() => {
+    callSetArgsHasTestnet(false);
+  }, []);
+
+  const selectNetwork = (mode) => {
+    changeNetwork(mode);
+    setTestnet(mode === 1 ? false : true);
+    callSetArgsHasTestnet(mode === 1 ? false : true);
+  };
 
   // Change handlers
-
   return (
-    <div className="welcome-second ">
+    <div className="welcome-second">
       <h1 data-cy="create-new-wallet-title">Create a New Wallet</h1>
+
+      <div className="network-btns">
+        <div
+          onClick={() => selectNetwork(0)}
+          className={`${networkChecked === 0 ? "selected" : ""}`}
+        >
+          <span>Testnet</span>
+          <img className="check-img" src={check} alt="plus" />
+        </div>
+        <div
+          onClick={() => selectNetwork(1)}
+          className={`${networkChecked === 1 ? "selected" : ""}`}
+        >
+          <span>Mainnet</span>
+          <img className="check-img" src={check} alt="plus" />
+        </div>
+      </div>
+
       {testnet === true && (
         <b>
           <p data-cy="create-new-wallet-important" className="red">
