@@ -4,6 +4,7 @@ Cypress.Commands.add("login", () => {
   cy.visit("/");
   cy.get("[data-cy=create-wallet-btn]").click();
   cy.get("[data-cy=landing-continue-btn]").click();
+  cy.get("[data-cy=network-btn-testnet]").click();
   cy.get("[data-cy=c-n-w-checkbox]").click();
   cy.get("[data-cy=c-n-w-continue-btn]").click();
   cy.get("[data-cy=cwf-wallet-name-input]")
