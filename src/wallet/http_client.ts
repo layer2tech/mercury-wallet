@@ -60,7 +60,7 @@ Object.freeze(POST_ROUTE);
 
 export const TOR_URL = "http://localhost:3001";
 
-export const I2P_URL = "http://localhost:3002";
+export const I2P_URL = "http://localhost:3001";
 
 export class HttpClient {
   endpoint: string
