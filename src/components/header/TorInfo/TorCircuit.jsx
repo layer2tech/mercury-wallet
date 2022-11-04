@@ -182,7 +182,9 @@ const TorCircuit = (props) => {
 export const NetworkSwitch = (props) => (
   <div className="network-switch">
     <button onClick={props.onClick}>
-      {props.networkType}
+      <span className={"network-switch-btn " + (props.networkType === "Tor" ? "white" : "grey")}>{"TOR"}</span>
+      <span>{" / "}</span>
+      <span className={"network-switch-btn " + (props.networkType === "I2P" ? "white" : "grey")}>{"I2P"}</span>
     </button>
   </div>
 );
