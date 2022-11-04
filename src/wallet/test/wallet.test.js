@@ -2843,13 +2843,15 @@ describe("Storage 6", () => {
 
 describe("Tor/I2P configuration", () => {
   const WALLET_NAME_9 = "test_wallet_25485aff-d332-427d-a082-8d0a8c0509a7";
+  const WALLET_NAME_9_BACKUP = `${WALLET_NAME_9}_backup`;
   let wallet_9_json;
-  const WALLET_PASSWORD_9 = "";
+  const WALLET_PASSWORD_9 = "aaaaaaaa";
 
   clearWallet(WALLET_NAME_9);
 
   test("load wallet and test for network type", async () => {
     wallet_9_json = WALLET_V_0_7_10_JSON_2;
+    wallet_9_json.name = WALLET_NAME_9_BACKUP;
     // wallet json with networkType property missing
     expect(wallet_9_json.networkType).toBe(undefined);
     const loaded_wallet = await Wallet.loadFromBackup(
