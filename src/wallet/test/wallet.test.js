@@ -2840,3 +2840,22 @@ describe("Storage 6", () => {
     expect(swapHistory).toStrictEqual([]);
   });
 });
+
+describe("Tor/I2P configuration", () => {
+  const WALLET_NAME_9 = "test_wallet_25485aff-d332-427d-a082-8d0a8c0509a7";
+  let wallet_9_json;
+  const WALLET_PASSWORD_9 = "aaaaaaaa";
+
+  test("load wallet and test for network type", async () => {
+    wallet_9_json = WALLET_V_0_7_10_JSON_2;
+    // wallet json with networkType property missing
+    expect(wallet_9_json.networkType).toBe(undefined);
+    const loaded_wallet = await Wallet.loadFromBackup(
+      wallet_9_json,
+      WALLET_PASSWORD_9,
+      true
+    );
+    // set wallet networkType property to Tor
+    expect(loaded_wallet.networkType).toBe("Tor");
+  });
+});

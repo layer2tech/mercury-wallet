@@ -179,6 +179,7 @@ export class Wallet {
     http_client: any = undefined,
     wasm: any = undefined,
     storage_type: string | undefined = undefined,
+    networkType: string | undefined = undefined,
   ) {
     this.wasm = null;
     this.name = name;
@@ -192,7 +193,11 @@ export class Wallet {
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
-    this.networkType = "Tor"
+    if (networkType === undefined){
+      this.networkType = "Tor";
+    } else {
+      this.networkType = networkType;
+    }
 
     if (http_client != null) {
       this.http_client = http_client;
@@ -445,7 +450,8 @@ export class Wallet {
         config,
         undefined,
         undefined,
-        storage_type
+        storage_type,
+        json_wallet.networkType,
       );
 
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);

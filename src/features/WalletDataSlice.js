@@ -805,9 +805,10 @@ export const checkSend = (dispatch, inputAddr) => {
   }
 };
 
-export const setNetworkType = (networkType) => {
+export const setNetworkType = async (networkType) => {
   if (isWalletLoaded()) {
     wallet.networkType = networkType;
+    await wallet.save();
   }
 }
 
