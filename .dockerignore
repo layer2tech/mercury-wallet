@@ -9,3 +9,5 @@ cypress
 .idea
 .yarn
 cypress.config.ts
+tor-adapter
+tor
