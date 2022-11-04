@@ -322,7 +322,7 @@ export class Wallet {
   }
 
   setHttpClient(networkType: string) {
-    if (this.config.testing_mode != true) {
+    if (this.config.testing_mode !== true) {
       if (networkType === "I2P") {
         this.http_client = new HttpClient(I2P_URL, false);
       } else {
