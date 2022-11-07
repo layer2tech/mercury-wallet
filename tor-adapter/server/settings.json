@@ -1,9 +1,21 @@
 {
-  "state_entity_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion",
-  "swap_conductor_endpoint": "http://5q4bfk46or5kopl4hrwmjclk6aharjetumegjcx7vcjlko6euuvjyjad.onion",
+  "i2p_endpoints": {
+    "state_entity_endpoint": "http://n3degk6ywbs7urq57zopjbfewijlkb4rqqmolh7ycvmnzaeajv6a.b32.i2p:32452",
+    "swap_conductor_endpoint": "http://n3degk6ywbs7urq57zopjbfewijlkb4rqqmolh7ycvmnzaeajv6a.b32.i2p:32452"
+  },
+  "tor_endpoints": {
+    "state_entity_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion",
+    "swap_conductor_endpoint": "http://5q4bfk46or5kopl4hrwmjclk6aharjetumegjcx7vcjlko6euuvjyjad.onion"
+  },
   "tor_proxy": {"ip": "localhost",
                 "port": 9060,
                 "controlPassword": "",
                 "controlPort": 9061
-              }
+              },
+  "i2p_proxy": {
+    "ip": "localhost",
+    "port": 4446,
+    "controlPassword": "",
+    "controlPort": 7650
+  }
 }
