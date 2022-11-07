@@ -196,8 +196,7 @@ export function initActivityLogItems() {
   wallet.initActivityLogItems(10);
 }
 
-// Load wallet from store
-export async function walletLoad(name, password, router) {
+export async function walletLoadFromMem(name, password) {
   wallet = await Wallet.load(name, password, testing_mode);
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
@@ -205,8 +204,13 @@ export async function walletLoad(name, password, router) {
   await wallet.deRegisterSwaps(true);
 
   log.info("Wallet " + name + " loaded from memory. ");
+  return wallet
+}
+// Load wallet from store
+export async function walletLoad(name, password, router) {
+  wallet = await walletLoadFromMem(name, password);
 
-  router.push("/home")
+  router.push("/home");
 
   await walletLoadConnection(wallet);
 }
