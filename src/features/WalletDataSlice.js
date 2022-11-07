@@ -134,7 +134,8 @@ export const reloadWallet = async () => {
   let name = wallet.name;
   let password = wallet.password;
   unloadWallet();
-  await walletLoad(name, password);
+  let router = [];
+  await walletLoad(name, password, router);
 };
 
 export const getWalletName = () => {
@@ -196,7 +197,7 @@ export function initActivityLogItems() {
 }
 
 // Load wallet from store
-export async function walletLoad(name, password) {
+export async function walletLoad(name, password, router) {
   wallet = await Wallet.load(name, password, testing_mode);
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
@@ -205,6 +206,12 @@ export async function walletLoad(name, password) {
 
   log.info("Wallet " + name + " loaded from memory. ");
 
+  router.push("/home")
+
+  await walletLoadConnection(wallet);
+}
+
+export async function walletLoadConnection(wallet) {
   if (testing_mode) log.info("Testing mode set.");
   await mutex.runExclusive(async () => {
     await wallet.set_tor_endpoints();
