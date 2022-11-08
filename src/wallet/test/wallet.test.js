@@ -38,7 +38,7 @@ import { WALLET as WALLET_V_0_7_10_JSON } from "./data/test_wallet_3cb3c0b4-7679
 import { WALLET as WALLET_V_0_7_10_JSON_2 } from "./data/test_wallet_25485aff-d332-427d-a082-8d0a8c0509a7";
 import { WALLET as WALLET_NOCOINS_JSON } from "./data/test_wallet_nocoins";
 import { getFeeInfo } from "../mercury/info_api";
-import { callSetStatecoinSpent } from "../../features/WalletDataSlice";
+import { callSetStatecoinSpent, getNetworkType } from "../../features/WalletDataSlice";
 import { isExportDeclaration } from "typescript";
 import { assert } from "console";
 
@@ -73,6 +73,8 @@ describe("Wallet", function () {
   let wallet;
   const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
   const WALLET_NAME_1_BACKUP = WALLET_NAME_1 + "_backup";
+  const networkType = "tor";
+
   beforeEach(async () => {
     wallet = await Wallet.buildMock(
       bitcoin.networks.bitcoin,
@@ -97,16 +99,16 @@ describe("Wallet", function () {
   test("wallet default network settings", async function () {
     //Check the default network settings
     expect(wallet.config.state_entity_endpoint).toEqual(
-      NETWORK_CONFIG.mainnet_state_entity_endpoint
+      NETWORK_CONFIG[networkType].mainnet_state_entity_endpoint
     );
     expect(wallet.config.swap_conductor_endpoint).toEqual(
-      NETWORK_CONFIG.mainnet_swap_conductor_endpoint
+      NETWORK_CONFIG[networkType].mainnet_swap_conductor_endpoint
     );
     expect(wallet.config.block_explorer_endpoint).toEqual(
-      NETWORK_CONFIG.mainnet_block_explorer_endpoint
+      NETWORK_CONFIG[networkType].mainnet_block_explorer_endpoint
     );
     expect(wallet.config.electrum_config).toEqual(
-      NETWORK_CONFIG.mainnet_electrum_config
+      NETWORK_CONFIG[networkType].mainnet_electrum_config
     );
 
     //Check the default network settings for a testnet wallet
@@ -118,16 +120,16 @@ describe("Wallet", function () {
       WALLET_NAME_1 + "_2"
     );
     expect(wallet_tn.config.state_entity_endpoint).toEqual(
-      NETWORK_CONFIG.testnet_state_entity_endpoint
+      NETWORK_CONFIG[networkType].testnet_state_entity_endpoint
     );
     expect(wallet_tn.config.swap_conductor_endpoint).toEqual(
-      NETWORK_CONFIG.testnet_swap_conductor_endpoint
+      NETWORK_CONFIG[networkType].testnet_swap_conductor_endpoint
     );
     expect(wallet_tn.config.block_explorer_endpoint).toEqual(
-      NETWORK_CONFIG.testnet_block_explorer_endpoint
+      NETWORK_CONFIG[networkType].testnet_block_explorer_endpoint
     );
     expect(wallet_tn.config.electrum_config).toEqual(
-      NETWORK_CONFIG.testnet_electrum_config
+      NETWORK_CONFIG[networkType].testnet_electrum_config
     );
   });
 
@@ -565,6 +567,7 @@ describe("Wallet", function () {
   describe("Storage 1", function () {
     const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
     const WALLET_NAME_1_BACKUP = WALLET_NAME_1 + "_backup";
+    const networkType = "tor";
     let wallet;
     beforeEach(async () => {
       try {
@@ -630,16 +633,16 @@ describe("Wallet", function () {
     test("load, edit network settings, save and reload", async function () {
       //Check the default network settings
       expect(wallet.config.state_entity_endpoint).toEqual(
-        NETWORK_CONFIG.mainnet_state_entity_endpoint
+        NETWORK_CONFIG[networkType].mainnet_state_entity_endpoint
       );
       expect(wallet.config.swap_conductor_endpoint).toEqual(
-        NETWORK_CONFIG.mainnet_swap_conductor_endpoint
+        NETWORK_CONFIG[networkType].mainnet_swap_conductor_endpoint
       );
       expect(wallet.config.block_explorer_endpoint).toEqual(
-        NETWORK_CONFIG.mainnet_block_explorer_endpoint
+        NETWORK_CONFIG[networkType].mainnet_block_explorer_endpoint
       );
       expect(wallet.config.electrum_config).toEqual(
-        NETWORK_CONFIG.mainnet_electrum_config
+        NETWORK_CONFIG[networkType].mainnet_electrum_config
       );
 
       //Edit the network settings
