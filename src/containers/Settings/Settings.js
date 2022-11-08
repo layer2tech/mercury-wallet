@@ -30,6 +30,7 @@ import {
   callCheckCoins,
   callDeriveXpub,
   setWalletLoaded,
+  getNetworkType,
 } from "../../features/WalletDataSlice";
 
 import Loading from "../../components/Loading/Loading";
@@ -111,6 +112,7 @@ const SettingsPage = (props) => {
   const [passwordConfirm, setPasswordConfirm] = useState(false);
   const [showSeed, setShowSeed] = useState(false);
   const [checkLoading, setCheckLoading] = useState(false);
+  const [networkType, setNetworkType] = useState(getNetworkType())
 
   useEffect(() => {
     if (
@@ -344,7 +346,7 @@ const SettingsPage = (props) => {
                     required
                   />
                   <label className="control-label" htmlFor="proxy-ip">
-                    Tor Proxy Host
+                    {networkType} Proxy Host
                   </label>
                 </div>
                 <div className="inputs-item">
@@ -357,7 +359,7 @@ const SettingsPage = (props) => {
                     required
                   />
                   <label className="control-label" htmlFor="proxy-port">
-                    Tor Proxy Port
+                    {networkType} Proxy Port
                   </label>
                 </div>
                 <div className="inputs-item">
@@ -373,7 +375,7 @@ const SettingsPage = (props) => {
                     className="control-label"
                     htmlFor="proxy-controlPassword"
                   >
-                    Tor Proxy Control Password
+                    {networkType} Proxy Control Password
                   </label>
                 </div>
                 <div className="inputs-item">
@@ -386,7 +388,7 @@ const SettingsPage = (props) => {
                     required
                   />
                   <label className="control-label" htmlFor="proxy-controlPort">
-                    Tor Proxy Control Port
+                    { networkType } Proxy Control Port
                   </label>
                 </div>
                 <div className="inputs-item">

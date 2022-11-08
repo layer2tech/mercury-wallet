@@ -18,7 +18,7 @@ import {
   LoadWalletPage,
   RestoreWalletPage,
 } from "../index";
-import { getWalletName, setWalletLoaded } from "../../features/WalletDataSlice";
+import { getNetworkType, getWalletName, setWalletLoaded } from "../../features/WalletDataSlice";
 import { Header } from "../../components";
 
 import "./App.css";
@@ -36,6 +36,7 @@ const App = () => {
     shallowEqual
   );
   const [online, setOnline] = useState(navigator.onLine);
+  const [networkType, setNetworkType] = useState(getNetworkType())
 
   const { dark_mode } = useSelector((state) => state.themeData);
 
@@ -87,7 +88,7 @@ const App = () => {
         <title>Mercury Wallet {version}</title>
       )}
       <Router>
-        <Header walletLoaded={walletLoaded} online={online} />
+        <Header walletLoaded={walletLoaded} online={online}  networkType={networkType} setNetworkType={setNetworkType}/>
         <Switch>
           <Route path="/" exact component={() => <WelcomePage />} />
           <Route
@@ -113,7 +114,7 @@ const App = () => {
           <Route
             path="/home"
             exact
-            component={() => <HomePage online={online} />}
+            component={() => <HomePage online={online}/>}
           />
           <Route path="/settings" exact component={() => <SettingsPage />} />
           <Route path="/help" exact component={() => <HelpPage />} />
