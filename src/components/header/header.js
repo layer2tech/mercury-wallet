@@ -33,19 +33,19 @@ const Header = (props) => {
   };
 
   useEffect(async () => {
-    if(!isElectron()){
-      if(localStorage.dark_mode){
+    if (!isElectron()) {
+      if (localStorage.dark_mode) {
         document.documentElement.classList.remove("light");
         document.documentElement.classList.add("dark");
         document.querySelector(".App").classList.add("dark-mode");
         localStorage.setItem("dark_mode", "1");
-      } else{
+      } else {
         document.documentElement.classList.remove("dark");
         document.documentElement.classList.add("light");
         document.querySelector(".App").classList.remove("dark-mode");
         localStorage.removeItem("dark_mode");
       }
-    } else{
+    } else {
       if (isDarkMode) {
         await window.darkMode.on();
         document.body.classList.add("dark-mode");
@@ -58,7 +58,7 @@ const Header = (props) => {
         localStorage.removeItem("dark_mode");
       }
     }
-  })
+  });
 
   let isDarkMode = localStorage.getItem("dark_mode");
   const activeDarkMode = async () => {
@@ -107,7 +107,7 @@ const Header = (props) => {
                 className="toggle-checkbox2"
                 type="checkbox"
                 onChange={activeDarkMode}
-                checked={isElectron ? (isDarkMode): (!localStorage.dark_mode)}
+                checked={isElectron ? isDarkMode : !localStorage.dark_mode}
               />
               <div className="toggle-switch2" />
             </label>
@@ -140,7 +140,11 @@ const Header = (props) => {
           {walletLoaded && (
             <div className={`nav-item`}>
               <ConfirmPopup onOk={handleLogout}>
-                <div title="Exit wallet" className="header-logout">
+                <div
+                  data-cy="exit-wallet-btn"
+                  title="Exit wallet"
+                  className="header-logout"
+                >
                   <Logout />
                 </div>
               </ConfirmPopup>

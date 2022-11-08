@@ -36,6 +36,13 @@ export class WebStore {
       walletAttribute = walletVar[1] + ""; // variable {}.variable
       walletAttributeProperty = walletVar[2] + "";
 
+      // get from login store
+      if (value.includes("logins.")) {
+        console.log("Logins...");
+        console.log(walletAttribute)
+        return loginInfo[walletAttribute];
+      }
+
       // wallets : { test123:{}, wallet2:{}, wallet3: {}}
       // wallets.walletName.walletAttribute
       if (walletObject === undefined || walletAttribute === undefined) {
@@ -92,10 +99,6 @@ export class WebStore {
         } else {
           return wallets;
         }
-      }
-      // get from login store
-      else if (value.includes("logins.")) {
-        return loginInfo[value];
       } else if (wallets[value] !== undefined) {
         return wallets[value];
       } else {
