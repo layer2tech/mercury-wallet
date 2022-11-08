@@ -65,7 +65,7 @@ import {
   OutPoint,
 } from "./mercury/info_api";
 import { EPSClient } from "./eps";
-import { POST_ROUTE } from "./http_client";
+import { I2P_URL, POST_ROUTE, TOR_URL } from "./http_client";
 import {
   getNewTorId,
   getNewTorCircuit,
@@ -129,6 +129,11 @@ export const parseBackupData = (backupData: string) => {
   }
 };
 
+export interface Warning {
+  name: string;
+  show: boolean;
+}
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -151,7 +156,7 @@ export class Wallet {
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
   tor_circuit: TorCircuit[];
-  warnings: [{ name: string; show: boolean }];
+  warnings: Warning[];
   ping_server_ms: number | null;
   ping_conductor_ms: number | null;
   ping_electrum_ms: number | null;
@@ -163,6 +168,7 @@ export class Wallet {
   active: boolean;
   activityLogItems: any[];
   swappedStatecoinsFundingOutpointMap: Map<string, StateCoin[]>;
+  networkType: string;
 
   constructor(
     name: string,
@@ -173,6 +179,7 @@ export class Wallet {
     http_client: any = undefined,
     wasm: any = undefined,
     storage_type: string | undefined = undefined,
+    networkType: string | undefined = undefined,
   ) {
     this.wasm = null;
     this.name = name;
@@ -186,11 +193,16 @@ export class Wallet {
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
+    if (networkType === undefined){
+      this.networkType = "Tor";
+    } else {
+      this.networkType = networkType;
+    }
 
     if (http_client != null) {
       this.http_client = http_client;
     } else if (this.config.testing_mode != true) {
-      this.http_client = new HttpClient("http://localhost:3001", true);
+      this.http_client = new HttpClient(TOR_URL, true);
       this.set_tor_endpoints();
     } else {
       this.http_client = new MockHttpClient();
@@ -201,7 +213,7 @@ export class Wallet {
     this.block_height = 0;
     this.current_sce_addr = "";
 
-    this.warnings = [{ name: "swap_punishment", show: true }];
+    this.warnings = [{ name: "swap_punishment", show: true }, { name: "switch_network", show: true }];
 
     this.storage = new Storage(`wallets/${this.name}/config`, storage_type);
     this.ping_conductor_ms = null;
@@ -314,6 +326,17 @@ export class Wallet {
     this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
   }
 
+  setHttpClient(networkType: string) {
+    if (this.config.testing_mode !== true) {
+      if (networkType === "I2P") {
+        this.http_client = new HttpClient(I2P_URL, false);
+      } else {
+        this.http_client = new HttpClient(TOR_URL, true);
+        this.set_tor_endpoints();
+      }
+    }
+  }
+  
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(
     name: string,
@@ -427,7 +450,8 @@ export class Wallet {
         config,
         undefined,
         undefined,
-        storage_type
+        storage_type,
+        json_wallet.networkType,
       );
 
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);

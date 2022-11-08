@@ -1,6 +1,5 @@
 "use strict";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { useSelector } from "react-redux";
 
 import { Wallet, ACTION, STATECOIN_STATUS } from "../wallet";
 import { getFeeInfo, getCoinsInfo } from "../wallet/mercury/info_api";
@@ -201,6 +200,8 @@ export async function walletLoadFromMem(name, password) {
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
+  const networkType = wallet.networkType;
+
   await wallet.deRegisterSwaps(true);
 
   log.info("Wallet " + name + " loaded from memory. ");
@@ -218,7 +219,7 @@ export async function walletLoad(name, password, router) {
 export async function walletLoadConnection(wallet) {
   if (testing_mode) log.info("Testing mode set.");
   await mutex.runExclusive(async () => {
-    await wallet.set_tor_endpoints();
+    await wallet.setHttpClient(networkType);
     wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapStatus();
     await wallet.updateSwapGroupInfo();
@@ -254,10 +255,13 @@ export async function walletFromMnemonic(
   }
   wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
   wallet.resetSwapStates();
+
+  const networkType = wallet.networkType;
+
   log.info("Wallet " + name + " created.");
   if (testing_mode) log.info("Testing mode set.");
   await mutex.runExclusive(async () => {
-    await wallet.set_tor_endpoints();
+    await wallet.setHttpClient(networkType);
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
       let recoveryComplete = false;
@@ -305,12 +309,14 @@ export const walletFromJson = async (wallet_json, password) => {
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
+  const networkType = wallet.networkType;
+
   log.info("Wallet " + wallet.name + " loaded from backup.");
   if (testing_mode) log.info("Testing mode set.");
   return Promise.resolve().then(() => {
     return mutex
       .runExclusive(async () => {
-        await wallet.set_tor_endpoints();
+        await wallet.setHttpClient(networkType);
         wallet.initElectrumClient(setBlockHeightCallBack);
         await callNewSeAddr();
         wallet.updateSwapStatus();
@@ -839,6 +845,19 @@ export const checkSend = (dispatch, inputAddr) => {
     return true;
   }
 };
+
+export const setNetworkType = async (networkType) => {
+  if (isWalletLoaded()) {
+    wallet.networkType = networkType;
+    await wallet.save();
+  }
+}
+
+export const getNetworkType = () => {
+  if (isWalletLoaded()) {
+    return wallet.networkType;
+  }
+}
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
