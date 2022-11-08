@@ -37,10 +37,14 @@ log = new WrappedLogger();
 export class Storage {
   store: any;
   name: string;
-  constructor(fileName: string) {
+  constructor(fileName: string, storage_type: string | undefined = undefined) {
     this.name = fileName;
 
-    if (isElectron() || TestingWithJest()) {
+    if (storage_type === "electron-store") {
+      this.store = new Store({ name: this.name });
+    } else if (storage_type === "web-store") {
+      this.store = new WebStore({ name: this.name });
+    } else if (isElectron() || TestingWithJest()) {
       this.store = new Store({ name: this.name });
     } else {
       this.store = new WebStore({ name: this.name });
@@ -321,6 +325,7 @@ export class Storage {
       stored_sc_obj = {};
     }
 
+    stored_sc_obj = JSON.parse(JSON.stringify(stored_sc_obj));
     Object.assign(stored_sc_obj, Object.fromEntries(sc_map));
 
     const swapped_sc_dest = `${wallet_name}.swapped_statecoins_obj`;
@@ -330,6 +335,7 @@ export class Storage {
     }
 
     const swapped_sc_obj = Object.fromEntries(swapped_sc_map);
+    stored_swapped_sc_obj = JSON.parse(JSON.stringify(stored_swapped_sc_obj));
     Object.assign(stored_swapped_sc_obj, swapped_sc_obj);
 
     const swapped_ids_dest = `${wallet_name}.swapped_ids`;
@@ -352,6 +358,7 @@ export class Storage {
       }
       swapped_ids_set.add(sc.shared_key_id);
       swapped_ids = Array.from(swapped_ids_set);
+      stored_swapped_ids = JSON.parse(JSON.stringify(stored_swapped_ids));
       stored_swapped_ids[funding_outpoint_str] = swapped_ids;
       // Delete the coin from the statecoins map if it has been swapped.
       delete stored_sc_obj[sc.shared_key_id];
