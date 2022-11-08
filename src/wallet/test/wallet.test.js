@@ -2839,4 +2839,12 @@ describe("Storage 6", () => {
 
     expect(swapHistory).toStrictEqual([]);
   });
+
+  test("load wallet and test for network type", async () => {
+    // wallet json with networkType property missing
+    expect(wallet_nocoins_json.networkType).toBe(undefined);
+
+    // loaded wallet networkType property is Tor
+    expect(loaded_wallet.networkType).toBe("Tor");
+  });
 });
