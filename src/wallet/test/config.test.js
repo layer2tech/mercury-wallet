@@ -3,6 +3,7 @@
  */
 import { Config } from "../";
 import { networks } from "bitcoinjs-lib";
+import { DEFAULT_NETWORK_TYPE } from "../wallet";
 
 let cloneDeep = require("lodash.clonedeep");
 
@@ -13,7 +14,7 @@ describe("Config", function () {
   let config;
   const testing_mode = true;
   const network = networks.testnet;
-  const const_config = new Config(network, testing_mode);
+  const const_config = new Config(network, DEFAULT_NETWORK_TYPE, testing_mode);
 
   beforeEach(() => {
     config = cloneDeep(const_config);

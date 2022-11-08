@@ -129,6 +129,8 @@ export const parseBackupData = (backupData: string) => {
   }
 };
 
+export const DEFAULT_NETWORK_TYPE = "Tor";
+
 export interface Warning {
   name: string;
   show: boolean;
@@ -194,7 +196,7 @@ export class Wallet {
 
     this.activity = new ActivityLog();
     if (networkType === undefined){
-      this.networkType = "Tor";
+      this.networkType = DEFAULT_NETWORK_TYPE;
     } else {
       this.networkType = networkType;
     }
@@ -360,7 +362,7 @@ export class Wallet {
       password,
       mnemonic,
       mnemonic_to_bip32_root_account(mnemonic, network),
-      new Config(network, testing_mode),
+      new Config(network, DEFAULT_NETWORK_TYPE, testing_mode),
       http_client,
       wasm,
       storage_type,
@@ -438,6 +440,7 @@ export class Wallet {
     try {
       let config = new Config(
         json_wallet.config.network,
+        json_wallet.networkType,
         json_wallet.config.testing_mode
       );
       config.update(json_wallet.config);
