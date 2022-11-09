@@ -96,7 +96,7 @@ let anon_client;
 if (config.proxy.ip === "mock") {
   anon_client = new CNClient();
 } else {
-  log("info", `init TorClient...`);
+  log("info", `init Anon Net Client...`);
   anon_client = new AnonClient(
     network,
     tpc.ip,
@@ -108,10 +108,7 @@ if (config.proxy.ip === "mock") {
     geoIpV6File,
     logger
   );
-  i2p = new TorClient(
-
-  )
-  log("info", `finished init TorClient.`);
+  log("info", `finished init Anon Net Client.`);
 }
 
 //Electrum personal server client
