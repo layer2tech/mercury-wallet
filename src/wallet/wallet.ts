@@ -96,6 +96,11 @@ declare const window: any;
 let log: any;
 log = new WrappedLogger();
 
+// Set Network Type Tor || I2P
+export enum NETWORK_TYPE {
+  TOR = "Tor",
+  I2P = "I2P"
+}
 export const mutex = new Mutex();
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890";
 export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7";
@@ -194,7 +199,7 @@ export class Wallet {
 
     this.activity = new ActivityLog();
     if (networkType === undefined){
-      this.networkType = "Tor";
+      this.networkType = NETWORK_TYPE.TOR;
     } else {
       this.networkType = networkType;
     }

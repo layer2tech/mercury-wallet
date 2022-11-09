@@ -27,6 +27,7 @@ import TorCircuitNode from "./TorCircuitNode";
 import { handleNetworkError } from "../../../error";
 import { defaultWalletConfig } from "../../../containers/Settings/Settings";
 import WrappedLogger from "../../../wrapped_logger";
+import { NETWORK_TYPE } from "../../../wallet/wallet";
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -90,10 +91,10 @@ const TorCircuit = (props) => {
   };
 
   const setNetwork = () => {
-    if (network === "Tor") {
-      setNetworkType("I2P");
+    if (network === NETWORK_TYPE.TOR) {
+      setNetworkType(NETWORK_TYPE.I2P);
     } else {  
-      setNetworkType("Tor");
+      setNetworkType(NETWORK_TYPE.TOR);
     }
   }
 
@@ -129,7 +130,7 @@ const TorCircuit = (props) => {
         networkType={network}
         onClick={networkSwitch}
         />
-      {network === "Tor" ? (
+      {network === NETWORK_TYPE.TOR ? (
           <div className="dropdown-content">
           {torLoaded ? (
             <div>
@@ -182,9 +183,9 @@ const TorCircuit = (props) => {
 export const NetworkSwitch = (props) => (
   <div className="network-switch">
     <button onClick={props.onClick}>
-      <span className={"network-switch-btn " + (props.networkType === "Tor" ? "white" : "grey")}>{"TOR"}</span>
+      <span className={"network-switch-btn " + (props.networkType === NETWORK_TYPE.TOR ? "white" : "grey")}>{"TOR"}</span>
       <span>{" / "}</span>
-      <span className={"network-switch-btn " + (props.networkType === "I2P" ? "white" : "grey")}>{"I2P"}</span>
+      <span className={"network-switch-btn " + (props.networkType === NETWORK_TYPE.I2P ? "white" : "grey")}>{"I2P"}</span>
     </button>
   </div>
 );
