@@ -14,6 +14,7 @@ import { mutex } from "../wallet/electrum";
 import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
+import { NETWORK_TYPE } from "../wallet/wallet";
 
 const isEqual = require("lodash").isEqual;
 
@@ -203,6 +204,7 @@ export async function walletLoadFromMem(name, password) {
   log.info("Wallet " + name + " loaded from memory. ");
   return wallet
 }
+
 // Load wallet from store
 export async function walletLoad(name, password, router) {
   wallet = await walletLoadFromMem(name, password);
@@ -217,8 +219,8 @@ export async function walletLoadConnection(wallet) {
 
   let networkType = wallet.networkType;
   if(!networkType) {
-    networkType = "Tor"
-    wallet.networkType = "Tor"
+    networkType = NETWORK_TYPE.TOR
+    wallet.networkType = NETWORK_TYPE.TOR
   }
   await wallet.setHttpClient(networkType);
   await wallet.deRegisterSwaps(true);
