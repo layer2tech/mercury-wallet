@@ -91,9 +91,17 @@ class Config{
                         }
                         break;
 
-                case "i2p_endpoints" || "tor_endpoints":
-                    this.state_entity_endpoint = item[1].state_entity_endpoint.split(',');
-                    this.swap_conductor_endpoint = item[1].swap_conductor_endpoint.split(',');
+                case "i2p_endpoints":
+                    if(this.network === "i2p"){
+                        this.state_entity_endpoint = item[1].state_entity_endpoint.split(',');
+                        this.swap_conductor_endpoint = item[1].swap_conductor_endpoint.split(',');
+                    }
+                    break;
+                case "tor_endpoints":
+                    if(this.network === "tor"){
+                        this.state_entity_endpoint = item[1].state_entity_endpoint.split(',');
+                        this.swap_conductor_endpoint = item[1].swap_conductor_endpoint.split(',');
+                    }
                     break;
 
                 case "electrum_endpoint":
