@@ -297,7 +297,7 @@ export class Wallet {
     }
   }
 
-  set_tor_endpoints() {
+  async set_tor_endpoints() {
     let electr_ep = this.config.electrum_config.host;
     let electr_ep_arr = electr_ep.split(",");
     let electr_port = this.config.electrum_config.port;
@@ -325,16 +325,16 @@ export class Wallet {
       state_entity_endpoint: this.config.state_entity_endpoint,
       electrum_endpoint: electr_ep,
     };
-    this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
+    await this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
   }
 
-  setHttpClient(networkType: string) {
+  async setHttpClient(networkType: string) {
     if (this.config.testing_mode !== true) {
       if (networkType === "I2P") {
         this.http_client = new HttpClient(I2P_URL, false);
       } else {
         this.http_client = new HttpClient(TOR_URL, true);
-        this.set_tor_endpoints();
+        await this.set_tor_endpoints();
       }
     }
   }

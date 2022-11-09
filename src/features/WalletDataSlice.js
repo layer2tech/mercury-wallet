@@ -200,13 +200,10 @@ export async function walletLoadFromMem(name, password) {
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
-  const networkType = wallet.networkType;
-
-  await wallet.deRegisterSwaps(true);
-
   log.info("Wallet " + name + " loaded from memory. ");
   return wallet
 }
+
 // Load wallet from store
 export async function walletLoad(name, password, router) {
   wallet = await walletLoadFromMem(name, password);
@@ -218,8 +215,16 @@ export async function walletLoad(name, password, router) {
 
 export async function walletLoadConnection(wallet) {
   if (testing_mode) log.info("Testing mode set.");
+
+  let networkType = wallet.networkType;
+  if(!networkType) {
+    networkType = "Tor"
+    wallet.networkType = "Tor"
+  }
+  await wallet.setHttpClient(networkType);
+  await wallet.deRegisterSwaps(true);
+
   await mutex.runExclusive(async () => {
-    await wallet.setHttpClient(networkType);
     wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapStatus();
     await wallet.updateSwapGroupInfo();
