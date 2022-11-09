@@ -222,7 +222,10 @@ const getPercentByLabel = (label) => {
 
 const ValueSelection = (props) => {
   return (
-    <div onClick={() => props.selectValue(props.value)}>
+    <div
+      data-cy="valueSelection-btn"
+      onClick={() => props.selectValue(props.value)}
+    >
       <span>
         <b>{fromSatoshi(props.value)}</b> BTC
       </span>
