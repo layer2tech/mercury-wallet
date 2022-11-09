@@ -1,7 +1,7 @@
 {
   "i2p_endpoints": {
-    "state_entity_endpoint": "http://n3degk6ywbs7urq57zopjbfewijlkb4rqqmolh7ycvmnzaeajv6a.b32.i2p:32452",
-    "swap_conductor_endpoint": "http://n3degk6ywbs7urq57zopjbfewijlkb4rqqmolh7ycvmnzaeajv6a.b32.i2p:32452"
+    "state_entity_endpoint": "http://j4rfuwvuk3jhffdohmmmot3lb5bc6jzhc7wrox5fmvsz5me455xa.b32.i2p:32452",
+    "swap_conductor_endpoint": "http://j4rfuwvuk3jhffdohmmmot3lb5bc6jzhc7wrox5fmvsz5me455xa.b32.i2p:32452"
   },
   "tor_endpoints": {
     "state_entity_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion",
