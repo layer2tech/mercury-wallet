@@ -74,7 +74,7 @@ describe("Wallet", function () {
   let wallet;
   const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
   const WALLET_NAME_1_BACKUP = WALLET_NAME_1 + "_backup";
-  const networkType = DEFAULT_NETWORK_TYPE;
+  const networkType = DEFAULT_NETWORK_TYPE.toLowerCase();
 
   beforeEach(async () => {
     wallet = await Wallet.buildMock(
@@ -568,7 +568,7 @@ describe("Wallet", function () {
   describe("Storage 1", function () {
     const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
     const WALLET_NAME_1_BACKUP = WALLET_NAME_1 + "_backup";
-    const networkType = DEFAULT_NETWORK_TYPE;
+    const networkType = DEFAULT_NETWORK_TYPE.toLowerCase();
     let wallet;
     beforeEach(async () => {
       try {

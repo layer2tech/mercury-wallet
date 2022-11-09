@@ -438,9 +438,10 @@ export class Wallet {
   // Load wallet from JSON
   static fromJSON(json_wallet: any, testing_mode: boolean, storage_type: string | undefined = undefined): Wallet {
     try {
+      let networkType = (json_wallet.networkType === undefined) ? DEFAULT_NETWORK_TYPE : json_wallet.networkType;
       let config = new Config(
         json_wallet.config.network,
-        json_wallet.networkType,
+        networkType,
         json_wallet.config.testing_mode
       );
       config.update(json_wallet.config);
