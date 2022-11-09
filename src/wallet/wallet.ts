@@ -333,10 +333,21 @@ export class Wallet {
 
   async setHttpClient(networkType: string) {
     if (this.config.testing_mode !== true) {
-      if (networkType === "I2P") {
+      if (networkType === NETWORK_TYPE.I2P) {
         this.http_client = new HttpClient(I2P_URL, false);
       } else {
         this.http_client = new HttpClient(TOR_URL, true);
+        await this.set_tor_endpoints();
+      }
+    }
+  }
+
+  async setElectrsClient(networkType: string) {
+    if (this.config.testing_mode !== true) {
+      if (networkType === NETWORK_TYPE.I2P) {
+        this.electrum_client = new ElectrsClient(I2P_URL, false);
+      } else {
+        this.electrum_client = new ElectrsClient(TOR_URL, true);
         await this.set_tor_endpoints();
       }
     }

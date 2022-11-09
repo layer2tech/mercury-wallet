@@ -23,6 +23,7 @@ import {
   getXpub,
   MOCK_WALLET_XPUB,
   MAX_ACTIVITY_LOG_LENGTH,
+  NETWORK_TYPE,
 } from "../wallet";
 import { Transaction, TransactionBuilder } from "bitcoinjs-lib";
 import {
@@ -2845,6 +2846,6 @@ describe("Storage 6", () => {
     expect(wallet_nocoins_json.networkType).toBe(undefined);
 
     // loaded wallet networkType property is Tor
-    expect(loaded_wallet.networkType).toBe("Tor");
+    expect(loaded_wallet.networkType).toBe(NETWORK_TYPE.TOR);
   });
 });
