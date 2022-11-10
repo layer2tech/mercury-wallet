@@ -35,6 +35,7 @@ const Welcome = () => {
           <img className="check-img" src={check} alt="plus" />
         </div>
         <div
+          data-cy="recover-wallet-btn"
           onClick={() => changeCheckbox(2)}
           className={`${checked === 2 ? "selected" : ""}`}
         >
