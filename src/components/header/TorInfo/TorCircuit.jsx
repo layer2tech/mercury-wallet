@@ -76,7 +76,11 @@ const TorCircuit = (props) => {
       let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
       const loaded = torcircuit_data != null && torcircuit_data.length > 0;
       setTorLoaded(loaded);
-      dispatch(setTorOnline(loaded));
+      if( network === NETWORK_TYPE.I2P){
+        dispatch(setTorOnline(true));
+      } else{
+        dispatch(setTorOnline(loaded));
+      }
       setTorcircuitData(torcircuit_array);
     } else {
       dispatch(setTorOnline(false));

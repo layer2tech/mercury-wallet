@@ -23,7 +23,7 @@ import {
   getXpub,
   MOCK_WALLET_XPUB,
   MAX_ACTIVITY_LOG_LENGTH,
-  DEFAULT_NETWORK_TYPE,
+  NETWORK_TYPE,
 } from "../wallet";
 import { Transaction, TransactionBuilder } from "bitcoinjs-lib";
 import {
@@ -74,7 +74,7 @@ describe("Wallet", function () {
   let wallet;
   const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
   const WALLET_NAME_1_BACKUP = WALLET_NAME_1 + "_backup";
-  const networkType = DEFAULT_NETWORK_TYPE.toLowerCase();
+  const networkType = NETWORK_TYPE.TOR.toLowerCase();
 
   beforeEach(async () => {
     wallet = await Wallet.buildMock(
@@ -568,7 +568,7 @@ describe("Wallet", function () {
   describe("Storage 1", function () {
     const WALLET_NAME_1 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8";
     const WALLET_NAME_1_BACKUP = WALLET_NAME_1 + "_backup";
-    const networkType = DEFAULT_NETWORK_TYPE.toLowerCase();
+    const networkType = NETWORK_TYPE.TOR.toLowerCase();
     let wallet;
     beforeEach(async () => {
       try {
@@ -1794,7 +1794,7 @@ describe("Statecoins/Coin", () => {
 });
 
 describe("Config", () => {
-  var config = new Config(bitcoin.networks.bitcoin, DEFAULT_NETWORK_TYPE, true);
+  var config = new Config(bitcoin.networks.bitcoin, NETWORK_TYPE.TOR, true);
   let update = { min_anon_set: 20 };
 
   test("update", () => {
@@ -2849,6 +2849,6 @@ describe("Storage 6", () => {
     expect(wallet_nocoins_json.networkType).toBe(undefined);
 
     // loaded wallet networkType property is Tor
-    expect(loaded_wallet.networkType).toBe(DEFAULT_NETWORK_TYPE);
+    expect(loaded_wallet.networkType).toBe(NETWORK_TYPE.TOR);
   });
 });
