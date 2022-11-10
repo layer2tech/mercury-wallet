@@ -363,7 +363,11 @@ const terminate_tor_process = () => {
 function terminate_mercurywallet_process(init_new, network) {
   let command
   if (getPlatform() === 'win') {
-    command = 'wmic process where name=\'mercurywallet.exe\' get ParentProcessId,ProcessId'
+    if(isDev){
+      command = 'wmic process where name=\'electron.exe\' get ParentProcessId,ProcessId'
+    } else{
+      command = 'wmic process where name=\'electron.exe\' get ParentProcessId,ProcessId'
+    }
   } else {
     if(network === "tor"){
       command = 'echo `ps axo \"pid,ppid,command\" | grep mercury | grep tor | grep -v grep`'
