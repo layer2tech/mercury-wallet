@@ -366,7 +366,7 @@ function terminate_mercurywallet_process(init_new, network) {
     if(isDev){
       command = 'wmic process where name=\'electron.exe\' get ParentProcessId,ProcessId'
     } else{
-      command = 'wmic process where name=\'electron.exe\' get ParentProcessId,ProcessId'
+      command = 'wmic process where name=\'mercurywallet.exe\' get ParentProcessId,ProcessId'
     }
   } else {
     if(network === "tor"){
