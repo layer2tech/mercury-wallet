@@ -18,6 +18,15 @@ Cypress.on("uncaught:exception", (err, runnable) => {
   return false;
 });
 
+Cypress.Commands.add("logout", () => {
+  cy.get("[data-cy=exit-wallet-btn]", { timeout: 130000 })
+    .should("be.visible")
+    .click();
+  cy.get("[data-cy=modal-close-confirm-btn]", { timeout: 130000 })
+    .should("be.visible")
+    .click();
+});
+
 Cypress.Commands.add("login", () => {
   cy.visit("/");
   cy.get("[data-cy=create-wallet-btn]").click();
