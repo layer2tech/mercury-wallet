@@ -1,7 +1,7 @@
 "use strict";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-import { Wallet, ACTION, STATECOIN_STATUS } from "../wallet";
+import { Wallet, ACTION, STATECOIN_STATUS, Config } from "../wallet";
 import { getFeeInfo, getCoinsInfo } from "../wallet/mercury/info_api";
 import { pingServer as pingConductor } from "../wallet/swap/info_api";
 import { pingServer } from "../wallet/mercury/info_api";
@@ -859,6 +859,7 @@ export const checkSend = (dispatch, inputAddr) => {
 export const setNetworkType = async (networkType) => {
   if (isWalletLoaded()) {
     wallet.networkType = networkType;
+    wallet.config = new Config(wallet.network, networkType, testing_mode);
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
     await wallet.save();
