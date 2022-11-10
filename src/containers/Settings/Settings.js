@@ -52,7 +52,9 @@ export const defaultWalletConfig = async () => {
       state_entity_endpoint: NETWORK_CONFIG.testnet_state_entity_endpoint,
       swap_conductor_endpoint: NETWORK_CONFIG.testnet_swap_conductor_endpoint,
       block_explorer_endpoint: NETWORK_CONFIG.testnet_block_explorer_endpoint,
-      electrum_config: NETWORK_CONFIG.testnet_electrum_config,
+      electrum_config: process.env.TESTNET_ELECTRUM_CONFIG
+        ? process.env.TESTNET_ELECTRUM_CONFIG
+        : NETWORK_CONFIG.testnet_electrum_config,
       tor_proxy: {
         ip: "localhost",
         port: 9060,
@@ -71,7 +73,9 @@ export const defaultWalletConfig = async () => {
       state_entity_endpoint: NETWORK_CONFIG.mainnet_state_entity_endpoint,
       swap_conductor_endpoint: NETWORK_CONFIG.mainnet_swap_conductor_endpoint,
       block_explorer_endpoint: NETWORK_CONFIG.mainnet_block_explorer_endpoint,
-      electrum_config: NETWORK_CONFIG.mainnet_electrum_config,
+      electrum_config: process.env.MAINNET_ELECTRUM_CONFIG
+        ? process.env.MAINNET_ELECTRUM_CONFIG
+        : NETWORK_CONFIG.mainnet_electrum_config,
       tor_proxy: {
         ip: "localhost",
         port: 9060,
