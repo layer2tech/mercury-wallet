@@ -77,7 +77,13 @@ class AnonClient {
     async startNode(start_cmd, torrc, network) {
         this.log('info',`TorClient.startTorNode...`)
         
-        let terminalPasswordArg = [`--hash-password=${this.config.controlPassword}`]
+        let terminalPasswordArg = []
+
+        if(network === 'tor'){
+            terminalPasswordArg = [`--hash-password=${this.config.controlPassword}`]
+        } else{
+            terminalPasswordArg = [`--i2pcontrol.password=${this.config.controlPassword}`]
+        }
 
         //Get the Geo Args if required
         let geo_args =[];
