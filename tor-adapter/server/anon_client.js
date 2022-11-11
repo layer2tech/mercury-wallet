@@ -75,9 +75,16 @@ class AnonClient {
     }
 
     async startNode(start_cmd, torrc, network) {
-        this.log('info',`TorClient.startTorNode...`)
-        
-        let terminalPasswordArg = [`--hash-password=${this.config.controlPassword}`]
+        this.log('info',`${network}: AnonClient.startNode...`)
+
+        let terminalPasswordArg
+
+        if(start_cmd.slice(-18).includes('win')){
+            // Check if windows to add arg differently
+            terminalPasswordArg = [ `%hash-password=${this.config.controlPassword}` ]
+        } else {
+            terminalPasswordArg = [`--hash-password=${this.config.controlPassword}`]
+        }
 
         //Get the Geo Args if required
         let geo_args =[];

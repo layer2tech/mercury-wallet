@@ -1,7 +1,7 @@
 "use strict";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-import { Wallet, ACTION, STATECOIN_STATUS } from "../wallet";
+import { Wallet, ACTION, STATECOIN_STATUS, Config } from "../wallet";
 import { getFeeInfo, getCoinsInfo } from "../wallet/mercury/info_api";
 import { pingServer as pingConductor } from "../wallet/swap/info_api";
 import { pingServer } from "../wallet/mercury/info_api";
@@ -15,6 +15,7 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import { NETWORK_TYPE } from "../wallet/wallet";
+import { defaultWalletConfig } from "../containers/Settings/Settings";
 
 const isEqual = require("lodash").isEqual;
 
@@ -223,6 +224,7 @@ export async function walletLoadConnection(wallet) {
     wallet.networkType = NETWORK_TYPE.TOR
   }
   await wallet.setHttpClient(networkType);
+  await wallet.setElectrsClient(networkType);
   await wallet.deRegisterSwaps(true);
 
   await mutex.runExclusive(async () => {
@@ -268,6 +270,7 @@ export async function walletFromMnemonic(
   if (testing_mode) log.info("Testing mode set.");
   await mutex.runExclusive(async () => {
     await wallet.setHttpClient(networkType);
+    await wallet.setElectrsClient(networkType);
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
       let recoveryComplete = false;
@@ -323,6 +326,7 @@ export const walletFromJson = async (wallet_json, password) => {
     return mutex
       .runExclusive(async () => {
         await wallet.setHttpClient(networkType);
+        await wallet.setElectrsClient(networkType);
         wallet.initElectrumClient(setBlockHeightCallBack);
         await callNewSeAddr();
         wallet.updateSwapStatus();
@@ -855,7 +859,11 @@ export const checkSend = (dispatch, inputAddr) => {
 export const setNetworkType = async (networkType) => {
   if (isWalletLoaded()) {
     wallet.networkType = networkType;
+    wallet.config = new Config(wallet.network, networkType, testing_mode);
+    await wallet.setHttpClient(networkType);
+    await wallet.setElectrsClient(networkType);
     await wallet.save();
+    defaultWalletConfig();
   }
 }
 

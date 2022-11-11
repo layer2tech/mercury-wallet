@@ -134,6 +134,8 @@ export const parseBackupData = (backupData: string) => {
   }
 };
 
+export const DEFAULT_NETWORK_TYPE = "Tor";
+
 export interface Warning {
   name: string;
   show: boolean;
@@ -334,7 +336,7 @@ export class Wallet {
 
   async setHttpClient(networkType: string) {
     if (this.config.testing_mode !== true) {
-      if (networkType === "I2P") {
+      if (networkType === NETWORK_TYPE.I2P) {
         this.http_client = new HttpClient(I2P_URL, false);
       } else {
         this.http_client = new HttpClient(TOR_URL, true);
@@ -343,6 +345,17 @@ export class Wallet {
     }
   }
 
+
+  async setElectrsClient(networkType: string) {
+    if (this.config.testing_mode !== true) {
+      if (networkType === NETWORK_TYPE.I2P) {
+        this.electrum_client = new ElectrsClient(I2P_URL, false);
+      } else {
+        this.electrum_client = new ElectrsClient(TOR_URL, true);
+        await this.set_tor_endpoints();
+      }
+    }
+  }
   
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(
@@ -367,7 +380,7 @@ export class Wallet {
       password,
       mnemonic,
       mnemonic_to_bip32_root_account(mnemonic, network),
-      new Config(network, testing_mode),
+      new Config(network, DEFAULT_NETWORK_TYPE, testing_mode),
       http_client,
       wasm,
       storage_type,
@@ -443,8 +456,10 @@ export class Wallet {
   // Load wallet from JSON
   static fromJSON(json_wallet: any, testing_mode: boolean, storage_type: string | undefined = undefined): Wallet {
     try {
+      let networkType = (json_wallet.networkType === undefined) ? DEFAULT_NETWORK_TYPE : json_wallet.networkType;
       let config = new Config(
         json_wallet.config.network,
+        networkType,
         json_wallet.config.testing_mode
       );
       config.update(json_wallet.config);

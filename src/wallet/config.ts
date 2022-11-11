@@ -6,6 +6,7 @@ import WrappedLogger from "../wrapped_logger";
 import { ElectrumClientConfig } from "./electrum";
 const NETWORK_CONFIG = require("../network.json");
 const bitcoin = require("bitcoinjs-lib");
+import { getNetworkType } from "../features/WalletDataSlice";
 
 // Node friendly importing required for Jest tests.
 declare const window: any;
@@ -44,7 +45,7 @@ export class Config {
   tutorials: boolean;
   swaplimit: number;
 
-  constructor(network: Network, testing_mode: boolean) {
+  constructor(network: Network, networkType: String, testing_mode: boolean) {
     this.network = network;
     this.testing_mode = testing_mode;
     this.jest_testing_mode = false;
@@ -54,21 +55,23 @@ export class Config {
       100000, 500000, 1000000, 5000000, 10000000, 50000000, 100000000,
     ];
 
+    const networkTypeLcase = networkType.toLowerCase();
+
     //Mainnet or testnet urls
     if (this.network === bitcoin.networks.bitcoin) {
-      this.state_entity_endpoint = NETWORK_CONFIG.mainnet_state_entity_endpoint;
+      this.state_entity_endpoint = NETWORK_CONFIG[networkTypeLcase].mainnet_state_entity_endpoint;
       this.swap_conductor_endpoint =
-        NETWORK_CONFIG.mainnet_swap_conductor_endpoint;
-      this.electrum_config = NETWORK_CONFIG.mainnet_electrum_config;
+        NETWORK_CONFIG[networkTypeLcase].mainnet_swap_conductor_endpoint;
+      this.electrum_config = NETWORK_CONFIG[networkTypeLcase].mainnet_electrum_config;
       this.block_explorer_endpoint =
-        NETWORK_CONFIG.mainnet_block_explorer_endpoint;
+        NETWORK_CONFIG[networkTypeLcase].mainnet_block_explorer_endpoint;
     } else {
-      this.state_entity_endpoint = NETWORK_CONFIG.testnet_state_entity_endpoint;
+      this.state_entity_endpoint = NETWORK_CONFIG[networkTypeLcase].testnet_state_entity_endpoint;
       this.swap_conductor_endpoint =
-        NETWORK_CONFIG.testnet_swap_conductor_endpoint;
-      this.electrum_config = NETWORK_CONFIG.testnet_electrum_config;
+        NETWORK_CONFIG[networkTypeLcase].testnet_swap_conductor_endpoint;
+      this.electrum_config = NETWORK_CONFIG[networkTypeLcase].testnet_electrum_config;
       this.block_explorer_endpoint =
-        NETWORK_CONFIG.testnet_block_explorer_endpoint;
+        NETWORK_CONFIG[networkTypeLcase].testnet_block_explorer_endpoint;
     }
 
     this.tor_proxy = {
