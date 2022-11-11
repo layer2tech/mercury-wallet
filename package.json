@@ -51,7 +51,8 @@
     "app-macos": "yarn install-local && npm install --force && yarn build && electron-builder -m -p always",
     "app-macos-local-test": "yarn install-local && npm install --force && yarn build && DEBUG=electron-builder electron-builder -m -p never",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
-    "cypress": "cypress open"
+    "cypress": "cypress open",
+    "tor-adapter": "cd tor-adapter && npm start"
   },
   "devDependencies": {
     "@testing-library/cypress": "^8.0.3",
