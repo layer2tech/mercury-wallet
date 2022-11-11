@@ -228,6 +228,7 @@ export async function walletLoadConnection(wallet) {
   await wallet.deRegisterSwaps(true);
 
   await mutex.runExclusive(async () => {
+    await wallet.set_tor_endpoints()
     wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapStatus();
     await wallet.updateSwapGroupInfo();
