@@ -39,7 +39,7 @@ jobs:
           browser: chrome
           # we have already installed all dependencies above
           install: false
-  build_on_linux:
+  build_on_linux_win:
     runs-on: ubuntu-latest
     container:
       image: electronuserland/builder:wine
@@ -61,23 +61,10 @@ jobs:
           id
           yarn app-linux
           echo "finished linux"
-  build_on_win:
-    runs-on: windows-latest
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v1
-
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v1
-        with:
-          node-version: "16.16"
-
-      - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@v1
-        with:
-          # GitHub token, automatically provided to the action
-          # (No need to define this secret in the repo settings)
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          chown -R root:root /github/home
+          yarn app-windows
+          echo "finished windows"
+          ls -la dist
   build_on_mac:
     runs-on: macos-latest
     steps:
