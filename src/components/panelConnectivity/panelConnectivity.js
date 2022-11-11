@@ -8,9 +8,6 @@ import {
   callGetBlockHeight,
   callGetConfig,
   callGetSwapGroupInfo,
-  getPingServerms,
-  getPingConductorms,
-  getPingElectrumms,
   setIntervalIfOnline,
   WALLET_MODE,
   UpdateSpeedInfo
@@ -32,7 +29,7 @@ log = new WrappedLogger();
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();
 
-  const { walletMode, fee_info, torInfo } = useSelector((state) => state.walletData)
+  const { walletMode, fee_info, torInfo, ping_conductor_ms, ping_server_ms, ping_electrum_ms } = useSelector((state) => state.walletData)
 
   // Arrow down state and url hover state
   const [state, setState] = useState({
@@ -44,17 +41,17 @@ const PanelConnectivity = (props) => {
 
   const [block_height, setBlockHeight] = useState(callGetBlockHeight());
 
-  const [server_ping_ms, setServerPingMs] = useState(getPingServerms());
+  const [server_ping_ms, setServerPingMs] = useState(ping_server_ms);
   const [conductor_ping_ms, setConductorPingMs] = useState(
-    getPingConductorms()
+    ping_conductor_ms
   );
   const [electrum_ping_ms, setElectrumPingMs] = useState(
-    getPingElectrumms()
+    ping_electrum_ms
   );
 
-  const [server_connected, setServerConnected] = useState(getPingServerms() ? true : false);
-  const [conductor_connected, setConductorConnected] = useState(getPingConductorms() ? true : false);
-  const [electrum_connected, setElectrumConnected] = useState(getPingElectrumms() ? true : false);
+  const [server_connected, setServerConnected] = useState(ping_server_ms ? true : false);
+  const [conductor_connected, setConductorConnected] = useState(ping_conductor_ms ? true : false);
+  const [electrum_connected, setElectrumConnected] = useState(ping_electrum_ms ? true : false);
 
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data
@@ -85,17 +82,17 @@ const PanelConnectivity = (props) => {
       return;
     }
     UpdateSpeedInfo(dispatch, { torOnline: torInfo.online });
-    const server_ping_ms_new = getPingServerms();
+    const server_ping_ms_new = ping_server_ms;
     if (server_ping_ms !== server_ping_ms_new) {
       setServerPingMs(server_ping_ms_new);
       setServerConnected(server_ping_ms_new != null);
     }
-    const conductor_ping_ms_new = getPingConductorms();
+    const conductor_ping_ms_new = ping_conductor_ms;
     if (conductor_ping_ms !== conductor_ping_ms_new) {
       setConductorPingMs(conductor_ping_ms_new);
       setConductorConnected(conductor_ping_ms_new != null);
     }
-    const electrum_ping_ms_new = getPingElectrumms();
+    const electrum_ping_ms_new = ping_electrum_ms;
     if (electrum_ping_ms !== electrum_ping_ms_new) {
       setElectrumPingMs(electrum_ping_ms_new);
       setElectrumConnected(electrum_ping_ms_new != null);

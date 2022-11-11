@@ -428,18 +428,6 @@ export const callGetSwapGroupInfo = () => {
   }
 };
 
-export const getPingConductorms = () => {
-  return store.getState().walletData.ping_conductor_ms;
-}
-
-export const getPingServerms = () => {
-  return store.getState().walletData.ping_server_ms;
-}
-
-export const getPingElectrumms = () => {
-  return store.getState().walletData.ping_electrum_ms;
-}
-
 export const showWarning = (key) => {
   if (wallet) {
     if (!key) {
@@ -900,6 +888,9 @@ export const UpdateSpeedInfo = async(dispatch, torOnline = true) => {
       ping_electrum_ms = null;
     }
   }
+  console.log(ping_server_ms)
+  console.log(ping_conductor_ms)
+  console.log(ping_electrum_ms)
   dispatch(setPingServerMs(ping_server_ms));
   dispatch(setPingConductorMs(ping_conductor_ms));
   dispatch(setPingElectrumMs(ping_electrum_ms));
