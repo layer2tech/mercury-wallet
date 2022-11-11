@@ -19,7 +19,6 @@ import {
   setIntervalIfOnline,
   setWarning,
   setNetworkType,
-  getNetworkType,
 } from "../../../features/WalletDataSlice";
 import "./torCircuit.css";
 import "./networkSwitch.css";
@@ -75,7 +74,9 @@ const TorCircuit = (props) => {
       let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
       const loaded = torcircuit_data != null && torcircuit_data.length > 0;
       setTorLoaded(loaded);
-      if( network === NETWORK_TYPE.I2P){
+      if( props.networkType === NETWORK_TYPE.I2P){
+        // If I2P connection selected check for I2P connection
+        // If callUpdateTorCircuitInfo doesn't throw error then there is connection
         dispatch(setTorOnline(true));
       } else{
         dispatch(setTorOnline(loaded));

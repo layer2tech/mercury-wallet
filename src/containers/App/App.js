@@ -78,6 +78,14 @@ const App = () => {
     darkMode();
   }, [dark_mode]);
 
+  useEffect(() => {
+    // Get network type after wallet load/ wallet creation
+
+    if(!networkType){
+      setNetworkType(getNetworkType());
+    }
+  }, [walletLoaded, networkType]);
+
   return (
     <div className={`App ${dark_mode === "1" ? "dark-mode" : ""}`}>
       {walletLoaded ? (
