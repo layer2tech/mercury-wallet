@@ -63,28 +63,49 @@ jobs:
           echo "finished linux"
   build_on_win:
     runs-on: windows-latest
-    container:
-      image: electronuserland/builder:wine
     steps:
-      - name: Checkout git repository
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@master
+        with:
+          ref: feature/github-actions
+      - uses: actions/setup-node@master
         with:
           node-version: "16.16"
-
-      - name: build
+      - name: install node tools
+        run: npm install --global --production windows-build-tools@4.0.0
+      - name: install node-gyp
+        run: npm install --global node-gyp@latest
+      - name: Set node config to use python2.7
+        run: npm config set python python2.7
+      - name: Set node config to set msvs_version to 2015
+        run: npm config set msvs_version 2015
+      - name: Work around for Windows Server 2019
+        run: set path=%path%;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin
+      - name: Install dependencies
+        run: npm install --force
+      - name: check env
         env:
-          CI: false
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pwd
-          id
-          chown -R root:root /github/home
-          yarn app-windows
-          echo "finished windows"
-          ls -la dist
+          ELECTRON: true
+          APP_VERSION_NUMBER: 0.5.9
+        run: set
+      - name: Build on Windows
+        env:
+          ELECTRON: true
+          APP_VERSION_NUMBER: 0.5.9
+        run: yarn app-windows
+      - name: Build Electron
+        env:
+          ELECTRON: true
+          APP_VERSION_NUMBER: 0.5.9
+        run: yarn electron:buildWin
+      - name: see directory
+        run: ls ./electron_dist/squirrel-windows
+      - uses: lucyio/upload-to-release@master
+        with:
+          name: lucyio/electron
+          path: ./electron_dist/squirrel-windows
+          action: unpublished
+          release_id: 0.5.9
+          release-repo: lucyio/electron
   build_on_mac:
     runs-on: macos-latest
     steps:
