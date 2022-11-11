@@ -41,13 +41,6 @@ const PanelConnectivity = (props) => {
 
   const [block_height, setBlockHeight] = useState(callGetBlockHeight());
 
-  const [server_ping_ms, setServerPingMs] = useState(ping_server_ms);
-  const [conductor_ping_ms, setConductorPingMs] = useState(
-    ping_conductor_ms
-  );
-  const [electrum_ping_ms, setElectrumPingMs] = useState(
-    ping_electrum_ms
-  );
 
   const [server_connected, setServerConnected] = useState(ping_server_ms ? true : false);
   const [conductor_connected, setConductorConnected] = useState(ping_conductor_ms ? true : false);
@@ -81,22 +74,8 @@ const PanelConnectivity = (props) => {
     if (isMounted !== true) {
       return;
     }
-    UpdateSpeedInfo(dispatch, { torOnline: torInfo.online });
-    const server_ping_ms_new = ping_server_ms;
-    if (server_ping_ms !== server_ping_ms_new) {
-      setServerPingMs(server_ping_ms_new);
-      setServerConnected(server_ping_ms_new != null);
-    }
-    const conductor_ping_ms_new = ping_conductor_ms;
-    if (conductor_ping_ms !== conductor_ping_ms_new) {
-      setConductorPingMs(conductor_ping_ms_new);
-      setConductorConnected(conductor_ping_ms_new != null);
-    }
-    const electrum_ping_ms_new = ping_electrum_ms;
-    if (electrum_ping_ms !== electrum_ping_ms_new) {
-      setElectrumPingMs(electrum_ping_ms_new);
-      setElectrumConnected(electrum_ping_ms_new != null);
-    }
+    await UpdateSpeedInfo(dispatch, torInfo.online, ping_server_ms, ping_electrum_ms, ping_conductor_ms
+      ,setServerConnected, setConductorConnected, setElectrumConnected);
   };
 
   // every 30s check speed
@@ -178,9 +157,9 @@ const PanelConnectivity = (props) => {
     fee_info.deposit,
     swap_groups_array.length,
     block_height,
-    server_ping_ms,
-    conductor_ping_ms,
-    electrum_ping_ms
+    ping_server_ms,
+    ping_conductor_ms,
+    ping_electrum_ms
   ]);
 
   const getBlockHeight = async () => {
@@ -305,10 +284,10 @@ const PanelConnectivity = (props) => {
             <span>
               Ping:{" "}
               <b>
-                {server_ping_ms !== null
-                  ? server_ping_ms.toLocaleString(undefined, {
-                      maximumFractionDigits: 0,
-                    }) + " ms"
+                {ping_server_ms !== null
+                  ? ping_server_ms.toLocaleString(undefined, {
+                    maximumFractionDigits: 0,
+                  }) + " ms"
                   : "N/A"}{" "}
               </b>
             </span>
@@ -345,10 +324,10 @@ const PanelConnectivity = (props) => {
             <span>
               Ping:{" "}
               <b>
-                {conductor_ping_ms !== null
-                  ? conductor_ping_ms.toLocaleString(undefined, {
-                      maximumFractionDigits: 0,
-                    }) + " ms"
+                {ping_conductor_ms !== null
+                  ? ping_conductor_ms.toLocaleString(undefined, {
+                    maximumFractionDigits: 0,
+                  }) + " ms"
                   : "N/A"}{" "}
               </b>
             </span>
@@ -378,10 +357,10 @@ const PanelConnectivity = (props) => {
             <span>
               Ping:{" "}
               <b>
-                {electrum_ping_ms !== null
-                  ? electrum_ping_ms.toLocaleString(undefined, {
-                      maximumFractionDigits: 0,
-                    }) + " ms"
+                {ping_electrum_ms !== null
+                  ? ping_electrum_ms.toLocaleString(undefined, {
+                    maximumFractionDigits: 0,
+                  }) + " ms"
                   : "N/A"}{" "}
               </b>
             </span>
