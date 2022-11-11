@@ -39,7 +39,7 @@ jobs:
           browser: chrome
           # we have already installed all dependencies above
           install: false
-  linux-win:
+  linux-win-build:
     runs-on: ubuntu-latest
     container:
       image: electronuserland/builder:wine
@@ -65,7 +65,7 @@ jobs:
           yarn app-windows
           echo "finished windows"
           ls -la dist
-  macos:
+  macos-build:
     runs-on: macos-latest
     steps:
       - name: Checkout git repository
