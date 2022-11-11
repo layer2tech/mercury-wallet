@@ -152,9 +152,6 @@ export class Wallet {
   swap_group_info: Map<SwapGroup, GroupInfo>;
   tor_circuit: TorCircuit[];
   warnings: [{ name: string; show: boolean }];
-  ping_server_ms: number | null;
-  ping_conductor_ms: number | null;
-  ping_electrum_ms: number | null;
   statechain_id_set: Set<string>;
   wasm: any;
   saveMutex: Mutex;
@@ -204,9 +201,6 @@ export class Wallet {
     this.warnings = [{ name: "swap_punishment", show: true }];
 
     this.storage = new Storage(`wallets/${this.name}/config`, storage_type);
-    this.ping_conductor_ms = null;
-    this.ping_server_ms = null;
-    this.ping_electrum_ms = null;
 
     this.statechain_id_set = new Set();
 
@@ -2146,45 +2140,6 @@ export class Wallet {
 
   clearSwapGroupInfo() {
     this.swap_group_info.clear();
-  }
-
-  async updateSpeedInfo(torOnline = true) {
-    if (!torOnline) {
-      this.electrum_client.disableBlockHeightSubscribe();
-      this.ping_server_ms = null;
-      this.ping_conductor_ms = null;
-      this.ping_electrum_ms = null;
-      return;
-    } else {
-      this.electrum_client.enableBlockHeightSubscribe();
-    }
-    try {
-      this.ping_server_ms = await pingServer(this.http_client);
-    } catch (err) {
-      this.ping_server_ms = null;
-    }
-    try {
-      this.ping_conductor_ms = await pingConductor(this.http_client);
-    } catch (err) {
-      this.ping_conductor_ms = null;
-    }
-    try {
-      this.ping_electrum_ms = await pingElectrum(this.electrum_client);
-    } catch (err) {
-      this.ping_electrum_ms = null;
-    }
-  }
-
-  getPingConductorms(): number | null {
-    return this.ping_conductor_ms;
-  }
-
-  getPingServerms(): number | null {
-    return this.ping_server_ms;
-  }
-
-  getPingElectrumms(): number | null {
-    return this.ping_electrum_ms;
   }
 
   resetSwapStates() {
