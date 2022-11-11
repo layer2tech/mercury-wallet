@@ -148,6 +148,7 @@ const TorCircuit = (props) => {
 
 export const TorIcon = () => (
   <svg
+    data-cy="Header-tor-icon"
     width="24px"
     height="24px"
     viewBox="0 0 512 512 "

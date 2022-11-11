@@ -23,7 +23,6 @@ import { defaultWalletConfig } from "../../containers/Settings/Settings";
 import WrappedLogger from "../../wrapped_logger";
 import DropdownArrow from "../DropdownArrow/DropdownArrow";
 
-
 // Logger import.
 // Node friendly importing required for Jest tests.
 let log;
@@ -32,7 +31,9 @@ log = new WrappedLogger();
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();
 
-  const { walletMode, fee_info, torInfo } = useSelector((state) => state.walletData)
+  const { walletMode, fee_info, torInfo } = useSelector(
+    (state) => state.walletData
+  );
 
   // Arrow down state and url hover state
   const [state, setState] = useState({
@@ -52,9 +53,15 @@ const PanelConnectivity = (props) => {
     callGetPingElectrumms()
   );
 
-  const [server_connected, setServerConnected] = useState(callGetPingServerms() ? true : false);
-  const [conductor_connected, setConductorConnected] = useState(callGetPingConductorms() ? true : false);
-  const [electrum_connected, setElectrumConnected] = useState(callGetPingElectrumms() ? true : false);
+  const [server_connected, setServerConnected] = useState(
+    callGetPingServerms() ? true : false
+  );
+  const [conductor_connected, setConductorConnected] = useState(
+    callGetPingConductorms() ? true : false
+  );
+  const [electrum_connected, setElectrumConnected] = useState(
+    callGetPingElectrumms() ? true : false
+  );
 
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data
@@ -121,10 +128,10 @@ const PanelConnectivity = (props) => {
   useEffect(() => {
     // PLACEHOLDER :- CLOSE TAB WITH DATA INFO
 
-    if(state.isToggleOn && (walletMode === WALLET_MODE.LIGHTNING)){
-      setState({isToggleOn: false})
+    if (state.isToggleOn && walletMode === WALLET_MODE.LIGHTNING) {
+      setState({ isToggleOn: false });
     }
-  }, [state.isToggleOn, walletMode])
+  }, [state.isToggleOn, walletMode]);
 
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
@@ -146,11 +153,10 @@ const PanelConnectivity = (props) => {
   }, [block_height, torInfo.online, props.online]);
 
   useEffect(() => {
-    if( walletMode === WALLET_MODE.STATECHAIN ){
-
+    if (walletMode === WALLET_MODE.STATECHAIN) {
       //Displaying connecting spinners
       let connection_pending = document.getElementsByClassName("checkmark");
-  
+
       if (server_connected == null && fee_info?.deposit != null) {
         setServerConnected(true);
       }
@@ -158,7 +164,7 @@ const PanelConnectivity = (props) => {
       server_connected === true
         ? connection_pending[0].classList.add("connected")
         : connection_pending[0].classList.remove("connected");
-  
+
       //Add spinner for loading connection to Swaps
       if (conductor_connected == null && swap_groups_array?.length != null) {
         setConductorConnected(true);
@@ -168,9 +174,13 @@ const PanelConnectivity = (props) => {
       } else {
         connection_pending[1].classList.remove("connected");
       }
-  
+
       //Add spinner for loading connection to Electrum server
-      if (electrum_connected == null && block_height != null && block_height >= 0) {
+      if (
+        electrum_connected == null &&
+        block_height != null &&
+        block_height >= 0
+      ) {
         setElectrumConnected(true);
       }
       electrum_connected === true
@@ -183,7 +193,7 @@ const PanelConnectivity = (props) => {
     block_height,
     server_ping_ms,
     conductor_ping_ms,
-    electrum_ping_ms
+    electrum_ping_ms,
   ]);
 
   const getBlockHeight = async () => {
@@ -229,59 +239,52 @@ const PanelConnectivity = (props) => {
   };
 
   return (
-    <div className="Body small accordion connection-wrap">
-        {
-          walletMode === WALLET_MODE.STATECHAIN ? (
+    <div
+      data-cy="connection-wrap"
+      className="Body small accordion connection-wrap"
+    >
+      {walletMode === WALLET_MODE.STATECHAIN ? (
+        <div className="Collapse">
+          <RadioButton
+            connection="Server"
+            checked={server_connected === true}
+            condition={server_connected === true}
+          />
+          <RadioButton
+            connection="Swaps"
+            checked={conductor_connected === true}
+            condition={conductor_connected === true}
+          />
+          <RadioButton
+            connection="Bitcoin"
+            checked={electrum_connected === true}
+            condition={electrum_connected === true}
+          />
 
-            <div className="Collapse">
-              <RadioButton
-                connection="Server"
-                checked={server_connected === true}
-                condition={server_connected === true}
-              />
-              <RadioButton
-                connection="Swaps"
-                checked={conductor_connected === true}
-                condition={conductor_connected === true}
-              />
-              <RadioButton
-                connection="Bitcoin"
-                checked={electrum_connected === true}
-                condition={electrum_connected === true}
-              />
+          <DropdownArrow
+            isToggleOn={state.isToggleOn}
+            toggleContent={toggleContent}
+          />
+        </div>
+      ) : (
+        <div className="Collapse">
+          <RadioButton
+            connection="Lightning server"
+            checked={true}
+            condition={true}
+          />
 
-              <DropdownArrow 
-                isToggleOn = {state.isToggleOn}
-                toggleContent = {toggleContent} />   
+          <RadioButton connection="Bitcoin" checked={true} condition={true} />
 
-            </div>
-
-          ) : (
-            <div className="Collapse">
-              <RadioButton
-                connection="Lightning server"
-                checked={true}
-                condition={true}
-              />
-
-              <RadioButton
-                connection="Bitcoin"
-                checked={true}
-                condition={true}
-              />
-
-              <DropdownArrow 
-                isToggleOn = {false}
-                toggleContent = {() => {}} />   
-
-            </div>
-          )
-        }
+          <DropdownArrow isToggleOn={false} toggleContent={() => {}} />
+        </div>
+      )}
 
       <div className={state.isToggleOn ? "show" : " hide"}>
         <div className="collapse-content">
-          <div className="collapse-content-item">
+          <div data-cy="host-server" className="collapse-content-item">
             <span
+              data-cy="host-server-host"
               className="host server"
               onMouseEnter={toggleURL}
               onMouseLeave={toggleURL}
@@ -299,13 +302,13 @@ const PanelConnectivity = (props) => {
                 ` ${shortenURLs(config.state_entity_endpoint)}`
               )}
             </span>
-            <span>
+            <span data-cy="host-server-deposit-fee">
               Deposit Fee: <b>{fee_info.deposit / 100}%</b>
             </span>
-            <span>
+            <span data-cy="host-server-host-withdraw-fee">
               Withdraw Fee: <b>{fee_info.withdraw / 100}%</b>
             </span>
-            <span>
+            <span data-cy="host-server-host-ping">
               Ping:{" "}
               <b>
                 {server_ping_ms !== null
@@ -315,10 +318,13 @@ const PanelConnectivity = (props) => {
                   : "N/A"}{" "}
               </b>
             </span>
-            <span>{fee_info.endpoint}</span>
+            <span data-cy="host-server-host-fee-info-endpoint">
+              {fee_info.endpoint}
+            </span>
           </div>
           <div className="collapse-content-item">
             <span
+              data-cy="host-swaps-host"
               className="host swaps"
               onMouseEnter={toggleURL}
               onMouseLeave={toggleURL}
@@ -336,16 +342,16 @@ const PanelConnectivity = (props) => {
                 ` ${shortenURLs(config.swap_conductor_endpoint)}`
               )}
             </span>
-            <span>
+            <span data-cy="host-swaps-pending-swaps">
               Pending Swaps: <b>{pending_swaps}</b>
             </span>
-            <span>
+            <span data-cy="host-swaps-participants">
               Participants: <b>{participants}</b>
             </span>
-            <span>
+            <span data-cy="host-swaps-pooled-btc">
               Total pooled BTC: <b>{total_pooled_btc / Math.pow(10, 8)}</b>
             </span>
-            <span>
+            <span data-cy="host-swaps-ping">
               Ping:{" "}
               <b>
                 {conductor_ping_ms !== null
@@ -357,8 +363,9 @@ const PanelConnectivity = (props) => {
             </span>
           </div>
           <div className="collapse-content-item">
-            <span>Block height: {block_height}</span>
+            <span data-cy="block-height">Block height: {block_height}</span>
             <span
+              data-cy="host-btc"
               className="host btc"
               onMouseEnter={toggleURL}
               onMouseLeave={toggleURL}
@@ -376,9 +383,13 @@ const PanelConnectivity = (props) => {
                 `${shortenURLs(config?.electrum_config?.host)}`
               )}
             </span>
-            <span>Port: {config?.electrum_config?.port}</span>
-            <span>Protocol: {config?.electrum_config?.protocol}</span>
-            <span>
+            <span data-cy="host-btc-port">
+              Port: {config?.electrum_config?.port}
+            </span>
+            <span data-cy="host-btc-protocol">
+              Protocol: {config?.electrum_config?.protocol}
+            </span>
+            <span data-cy="host-btc-ping">
               Ping:{" "}
               <b>
                 {electrum_ping_ms !== null

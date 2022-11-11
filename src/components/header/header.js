@@ -93,7 +93,7 @@ const Header = (props) => {
   };
 
   return (
-    <div className="Header">
+    <div data-cy="Header" className="Header">
       <div className="container block">
         <Link className="navbar-brand" to={walletLoaded ? "/home" : "/"}>
           <Logo />
@@ -101,7 +101,8 @@ const Header = (props) => {
 
         <div className="menu">
           {walletLoaded && <TorCircuit online={props.online} />}
-          <div title="Light/Dark mode">
+
+          <div data-cy="Header-dark-light-mode" title="Light/Dark mode">
             <label className="toggle2">
               <input
                 className="toggle-checkbox2"
@@ -109,11 +110,12 @@ const Header = (props) => {
                 onChange={activeDarkMode}
                 checked={isElectron ? isDarkMode : !localStorage.dark_mode}
               />
-              <div className="toggle-switch2" />
+              <div data-cy="toggle-switch-theme" className="toggle-switch2" />
             </label>
           </div>
 
           <div
+            data-cy="Header-help"
             title="Help"
             className={`nav-item  ${
               props.location.pathname === "/" ? "active" : ""
@@ -126,6 +128,7 @@ const Header = (props) => {
 
           {walletLoaded ? (
             <div
+              data-cy="Header-settings"
               title="Settings"
               className={`nav-item  ${
                 props.location.pathname === "/settings" ? "active" : ""

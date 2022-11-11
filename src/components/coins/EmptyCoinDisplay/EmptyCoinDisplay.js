@@ -1,36 +1,40 @@
-'use strict';
-import React from 'react';
-import { Link } from 'react-router-dom';
+"use strict";
+import React from "react";
+import { Link } from "react-router-dom";
 
-import FilterBy from '../FilterBy/FilterBy';
+import FilterBy from "../FilterBy/FilterBy";
 
-import '../coins.css';
+import "../coins.css";
 
 const EmptyCoinDisplay = (props) => {
-    return(
-        <div className="empty-coin-list">
-            <div className = "main-coin-wrap">
-                <FilterBy />
-            </div>
-            <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className={"exclamation"}
-            >
-                <path
-                    d="M9.9999 19.9998C4.48594 19.9998 0 15.5139 0 9.9999C0 4.48594 4.48594 0 9.9999 0C15.5139 0 19.9998 4.48594 19.9998 9.9999C19.9998 15.5139 15.5139 19.9998 9.9999 19.9998ZM9 12.9996V15.0003H10.9998V12.9996H9ZM9 5.0004V10.9998H10.9998V5.0004H9Z"
-                    fill="var(--button-border)"
-                />
-            </svg>
-            <div className="empty-message">
-                <b>{props.message}</b> <Link to="/deposit" >Deposit BTC</Link>
-                <br/> to create new Statecoin UTXO's
-            </div>
-        </div>
-    )
-}
+  return (
+    <div data-cy="empty-coin-list" className="empty-coin-list">
+      <div className="main-coin-wrap">
+        <FilterBy />
+      </div>
+      <svg
+        data-cy="empty-coin-list-img"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className={"exclamation"}
+      >
+        <path
+          d="M9.9999 19.9998C4.48594 19.9998 0 15.5139 0 9.9999C0 4.48594 4.48594 0 9.9999 0C15.5139 0 19.9998 4.48594 19.9998 9.9999C19.9998 15.5139 15.5139 19.9998 9.9999 19.9998ZM9 12.9996V15.0003H10.9998V12.9996H9ZM9 5.0004V10.9998H10.9998V5.0004H9Z"
+          fill="var(--button-border)"
+        />
+      </svg>
+      <div data-cy="empty-coin-list-message" className="empty-message">
+        <b data-cy="empty-coin-list-deposit-btc">{props.message}</b>{" "}
+        <Link data-cy="empty-coin-list-deposit" to="/deposit">
+          Deposit BTC
+        </Link>
+        <br /> to create new Statecoin UTXO's
+      </div>
+    </div>
+  );
+};
 
 export default EmptyCoinDisplay;

@@ -57,7 +57,7 @@ const HomePage = (props) => {
     console.warn("Can not get config", error);
   }
   return (
-    <div className="container home-page">
+    <div data-cy="container-home-page" className="container home-page">
       <PanelControl />
       <PanelConnectivity online={props.online} />
       <PanelCoinsActivity />

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { STATECOIN_STATUS } from "../../../wallet/statecoin";
@@ -21,9 +21,8 @@ const FILTER_BY_OPTION = [
     id: 3,
     value: STATECOIN_STATUS.IN_TRANSFER,
     text: "Transferred coins",
-  }
+  },
 ];
-
 
 const FilterBy = (props) => {
   const dispatch = useDispatch();
@@ -31,11 +30,15 @@ const FilterBy = (props) => {
   const { filterBy } = useSelector((state) => state.walletData);
 
   //Show spendable coins on page load
-  useEffect(()=> {
-    if(document.querySelector('.swap')|| document.querySelector('.withdraw')||document.querySelector('.sendStatecoin')){
-      dispatch(updateFilter("default"))
+  useEffect(() => {
+    if (
+      document.querySelector(".swap") ||
+      document.querySelector(".withdraw") ||
+      document.querySelector(".sendStatecoin")
+    ) {
+      dispatch(updateFilter("default"));
     }
-  },[dispatch]);
+  }, [dispatch]);
 
   const handleFilter = (filterBy) => {
     dispatch(updateFilter(filterBy));
@@ -44,10 +47,12 @@ const FilterBy = (props) => {
   return (
     <div className="filter-by-wrap">
       <div
+        data-cy="filter-coin-icon-button"
         className="filter-coin-icon"
         onClick={() => setOpenFilterMenu(!openFilterMenu)}
       >
         <svg
+          data-cy="filter-coin-icon"
           width="24"
           height="24"
           viewBox="0 0 24 24"
@@ -63,12 +68,13 @@ const FilterBy = (props) => {
         </svg>
       </div>
       <MenuPopUp
-        openMenu = {openFilterMenu} 
-        setOpenMenu = {setOpenFilterMenu}
-        selected = {filterBy}
-        handleChange = {handleFilter}
-        options = {FILTER_BY_OPTION}
-        title = {"Display UTXO's"}/>
+        openMenu={openFilterMenu}
+        setOpenMenu={setOpenFilterMenu}
+        selected={filterBy}
+        handleChange={handleFilter}
+        options={FILTER_BY_OPTION}
+        title={"Display UTXO's"}
+      />
     </div>
   );
 };
