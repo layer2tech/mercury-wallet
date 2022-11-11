@@ -333,6 +333,7 @@ export class Wallet {
     await this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
   }
 
+
   async setHttpClient(networkType: string) {
     if (this.config.testing_mode !== true) {
       if (networkType === NETWORK_TYPE.I2P) {
@@ -343,6 +344,7 @@ export class Wallet {
       }
     }
   }
+
 
   async setElectrsClient(networkType: string) {
     if (this.config.testing_mode !== true) {

@@ -36,7 +36,6 @@ log = new WrappedLogger();
 
 const TorCircuit = (props) => {
   const dispatch = useDispatch();
-  let network = getNetworkType();
 
   const [torcircuitData, setTorcircuitData] = useState([]);
   const [torLoaded, setTorLoaded] = useState(false);
@@ -95,10 +94,12 @@ const TorCircuit = (props) => {
   };
 
   const setNetwork = () => {
-    if (network === NETWORK_TYPE.TOR) {
+    if (props.networkType === NETWORK_TYPE.TOR) {
       setNetworkType(NETWORK_TYPE.I2P);
+      props.setNetworkType(NETWORK_TYPE.I2P);
     } else {  
       setNetworkType(NETWORK_TYPE.TOR);
+      props.setNetworkType(NETWORK_TYPE.TOR);
     }
   }
 
@@ -131,10 +132,10 @@ const TorCircuit = (props) => {
   return (
     <div className="dropdown tor">
       <NetworkSwitch 
-        networkType={network}
+        networkType={props.networkType}
         onClick={networkSwitch}
         />
-      {network === NETWORK_TYPE.TOR ? (
+      {props.networkType === NETWORK_TYPE.TOR ? (
           <div className="dropdown-content">
           {torLoaded ? (
             <div>
