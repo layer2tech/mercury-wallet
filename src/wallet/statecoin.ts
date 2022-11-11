@@ -47,7 +47,8 @@ export class StateCoinList {
   static fromCoinsArray(coins: StateCoin[]): StateCoinList {
     let statecoinsList = new StateCoinList();
 
-    coins.forEach((item: StateCoin) => {
+    coins.forEach((itemCoin: StateCoin) => {
+      let item = { ...itemCoin };
       let coin = new StateCoin(item.shared_key_id, item.shared_key);
       coin.wallet_version = "";
 
