@@ -39,7 +39,7 @@ jobs:
           browser: chrome
           # we have already installed all dependencies above
           install: false
-  linux-win-build:
+  build_on_linux:
     runs-on: ubuntu-latest
     container:
       image: electronuserland/builder:wine
@@ -61,11 +61,31 @@ jobs:
           id
           yarn app-linux
           echo "finished linux"
+  build_on_win:
+    runs-on: windows-latest
+    container:
+      image: electronuserland/builder:wine
+    steps:
+      - name: Checkout git repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.16"
+
+      - name: build
+        env:
+          CI: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pwd
+          id
           chown -R root:root /github/home
           yarn app-windows
           echo "finished windows"
           ls -la dist
-  macos-build:
+  build_on_mac:
     runs-on: macos-latest
     steps:
       - name: Checkout git repository
