@@ -14,7 +14,7 @@
               },
   "i2p_proxy": {
     "ip": "localhost",
-    "port": 4446,
+    "port": 4447,
     "controlPassword": "",
     "controlPort": 7650
   }
