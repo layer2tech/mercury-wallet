@@ -41,13 +41,14 @@ export class StateCoinList {
   }
 
   static fromJSON(sclist_json: StateCoinList): StateCoinList {
-    return StateCoinList.fromCoinsArray(sclist_json.coins)
+    return StateCoinList.fromCoinsArray(sclist_json.coins);
   }
 
   static fromCoinsArray(coins: StateCoin[]): StateCoinList {
     let statecoinsList = new StateCoinList();
 
-    coins.forEach((item: StateCoin) => {
+    coins.forEach((itemCoin: StateCoin) => {
+      let item = { ...itemCoin };
       let coin = new StateCoin(item.shared_key_id, item.shared_key);
       coin.wallet_version = "";
 
@@ -69,7 +70,7 @@ export class StateCoinList {
         tx_backup.version = tx_backup_any.version;
         tx_backup.locktime = tx_backup_any.locktime;
         if (tx_backup_any.ins.length > 0) {
-          if(Array.isArray(tx_backup_any.ins[0].hash.data)) {
+          if (Array.isArray(tx_backup_any.ins[0].hash.data)) {
             tx_backup.addInput(
               Buffer.from(tx_backup_any.ins[0].hash),
               tx_backup_any.ins[0].index,
@@ -89,14 +90,18 @@ export class StateCoinList {
             );
             if (tx_backup_any.ins[0].witness.length > 0) {
               tx_backup.ins[0].witness = [
-                Buffer.from(Object.values(tx_backup_any.ins[0].witness[0] as object)),
-                Buffer.from(Object.values(tx_backup_any.ins[0].witness[1] as object)),
+                Buffer.from(
+                  Object.values(tx_backup_any.ins[0].witness[0] as object)
+                ),
+                Buffer.from(
+                  Object.values(tx_backup_any.ins[0].witness[1] as object)
+                ),
               ];
             }
           }
         }
         if (tx_backup_any.outs.length > 0) {
-          if(Array.isArray(tx_backup_any.outs[0].script.data)) {      
+          if (Array.isArray(tx_backup_any.outs[0].script.data)) {
             tx_backup.addOutput(
               Buffer.from(tx_backup_any.outs[0].script),
               tx_backup_any.outs[0].value
@@ -107,11 +112,15 @@ export class StateCoinList {
             );
           } else {
             tx_backup.addOutput(
-              Buffer.from(Object.values(tx_backup_any.outs[0].script as object)),
+              Buffer.from(
+                Object.values(tx_backup_any.outs[0].script as object)
+              ),
               tx_backup_any.outs[0].value
             );
             tx_backup.addOutput(
-              Buffer.from(Object.values(tx_backup_any.outs[1].script as object)),
+              Buffer.from(
+                Object.values(tx_backup_any.outs[1].script as object)
+              ),
               tx_backup_any.outs[1].value
             );
           }
@@ -652,7 +661,7 @@ export class StateCoin {
   }
 
   static fromJSON(statecoin: StateCoin): StateCoin {
-    return StateCoinList.fromCoinsArray([statecoin]).coins[0];    
+    return StateCoinList.fromCoinsArray([statecoin]).coins[0];
   }
 
   setAutoSwap(val: boolean) {
@@ -774,9 +783,9 @@ export class StateCoin {
     if (this.swap_status !== SWAP_STATUS.Phase4)
       throw Error(
         "Cannot resume coin " +
-        this.shared_key_id +
-        " - swap status: " +
-        this.swap_status
+          this.shared_key_id +
+          " - swap status: " +
+          this.swap_status
       );
   }
 
@@ -977,4 +986,4 @@ export interface ExpiryData {
   confirmations: number;
 }
 
-export interface InclusionProofSMT { }
+export interface InclusionProofSMT {}

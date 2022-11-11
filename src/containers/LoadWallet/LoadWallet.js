@@ -118,6 +118,7 @@ const LoadWalletPage = (props) => {
             <p>Select a wallet to load and input its password </p>
 
             <select
+              data-cy="load-wallet-names"
               value={selectedWallet}
               onChange={onSelectedWalletChange}
               data-testid="select"

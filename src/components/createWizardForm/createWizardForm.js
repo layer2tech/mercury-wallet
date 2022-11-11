@@ -58,6 +58,7 @@ const CreateWizardForm = (props) => {
         {props.setStateMnemonic && (
           <div className="inputs-item">
             <input
+              data-cy="mnemonic"
               id="Mnemonic"
               type="text"
               name="Mnemonic"
@@ -79,6 +80,7 @@ const CreateWizardForm = (props) => {
             </div>
             <div className="inputs-item">
               <input
+                data-cy="address-gap-limit"
                 id="GapLimit"
                 type="text"
                 name="Address gap limit"
@@ -166,7 +168,9 @@ const CreateWizardForm = (props) => {
           </span>
         </div>
         <div className="error">
-          {errors.password_repeat && <p>{errors.password_repeat.message}</p>}
+          {errors.password_repeat && (
+            <p data-cy="recovery-error">{errors.password_repeat.message}</p>
+          )}
         </div>
         <div className="inputs-item checkbox">
           <input

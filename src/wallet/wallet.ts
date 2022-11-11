@@ -76,7 +76,7 @@ import {
 import { Mutex } from "async-mutex";
 import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
-import Semaphore from 'semaphore-async-await';
+import Semaphore from "semaphore-async-await";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -261,7 +261,6 @@ export class Wallet {
     }
   }
 
-
   // TODO - add additional checks and error handling
   async updateTorcircuitInfo() {
     try {
@@ -366,14 +365,14 @@ export class Wallet {
     testing_mode: boolean,
     http_client: any = undefined,
     wasm: any = undefined,
-    storage_type: string | undefined = undefined,
+    storage_type: string | undefined = undefined
   ): Wallet {
     log.debug(
       "New wallet named " +
-      name +
-      " created. Testing mode: " +
-      testing_mode +
-      "."
+        name +
+        " created. Testing mode: " +
+        testing_mode +
+        "."
     );
     let wallet = new Wallet(
       name,
@@ -383,7 +382,7 @@ export class Wallet {
       new Config(network, DEFAULT_NETWORK_TYPE, testing_mode),
       http_client,
       wasm,
-      storage_type,
+      storage_type
     );
     wallet.setActive();
     return wallet;
@@ -454,7 +453,11 @@ export class Wallet {
   }
 
   // Load wallet from JSON
-  static fromJSON(json_wallet: any, testing_mode: boolean, storage_type: string | undefined = undefined): Wallet {
+  static fromJSON(
+    json_wallet: any,
+    testing_mode: boolean,
+    storage_type: string | undefined = undefined
+  ): Wallet {
     try {
       let networkType = (json_wallet.networkType === undefined) ? DEFAULT_NETWORK_TYPE : json_wallet.networkType;
       let config = new Config(
@@ -590,9 +593,9 @@ export class Wallet {
     const release = await this.saveMutex.acquire();
     try {
       this.storage.deleteWalletStateCoin(this.name, shared_key_id);
-    } finally {      
+    } finally {
       release();
-    }    
+    }
     await this.saveItem("statecoins");
     this.clearFundingOutpointMap();
   }
@@ -638,7 +641,11 @@ export class Wallet {
   }
 
   // Load wallet JSON from store
-  static async load(wallet_name: string, password: string, testing_mode: boolean) {
+  static async load(
+    wallet_name: string,
+    password: string,
+    testing_mode: boolean
+  ) {
     let store = new Storage(`wallets/${wallet_name}/config`);
     // Fetch decrypted wallet json
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
@@ -1055,7 +1062,7 @@ export class Wallet {
       if (
         statecoin.status === STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >=
-        this.config.required_confirmations
+          this.config.required_confirmations
       ) {
         if (statecoin.tx_backup === null) {
           this.depositConfirm(statecoin.shared_key_id);
@@ -1157,8 +1164,10 @@ export class Wallet {
     }
   }
 
-  addActivityLogItem(item: ActivityLogItem,
-    maxLength: number = MAX_ACTIVITY_LOG_LENGTH) {
+  addActivityLogItem(
+    item: ActivityLogItem,
+    maxLength: number = MAX_ACTIVITY_LOG_LENGTH
+  ) {
     let coin = this.statecoins.getCoin(item.shared_key_id);
     if (coin == null) {
       try {
@@ -1178,7 +1187,10 @@ export class Wallet {
     };
 
     if (coin) {
-      const outPoint: OutPoint = { txid: coin.funding_txid, vout: coin.funding_vout };
+      const outPoint: OutPoint = {
+        txid: coin.funding_txid,
+        vout: coin.funding_vout,
+      };
       // To store the data in the map.
       this.getSwappedStatecoinsByFundingOutPoint(outPoint, maxLength);
     }
@@ -1189,12 +1201,16 @@ export class Wallet {
     while (this.activityLogItems.length > maxLength) {
       let popped = this.activityLogItems.pop();
       if (popped.funding_txid && popped.funding_txvout) {
-        const popped_outpoint = { txid: popped.funding_txid, vout: popped.funding_txvout };
-        this.swappedStatecoinsFundingOutpointMap.delete(JSON.stringify(popped_outpoint));
+        const popped_outpoint = {
+          txid: popped.funding_txid,
+          vout: popped.funding_txvout,
+        };
+        this.swappedStatecoinsFundingOutpointMap.delete(
+          JSON.stringify(popped_outpoint)
+        );
       }
     }
   }
-
 
   getActivityLogItems(): any[] {
     return this.activityLogItems;
@@ -1205,15 +1221,26 @@ export class Wallet {
     funding_out_point: OutPoint,
     depth: number
   ): StateCoin[] | undefined {
-    let result = this.swappedStatecoinsFundingOutpointMap.get(JSON.stringify(funding_out_point));
+    let result = this.swappedStatecoinsFundingOutpointMap.get(
+      JSON.stringify(funding_out_point)
+    );
     if (result == null) {
       try {
-        result = this.storage.getSwappedCoinsByOutPoint(this.name, depth, funding_out_point);
+        result = this.storage.getSwappedCoinsByOutPoint(
+          this.name,
+          depth,
+          funding_out_point
+        );
       } catch (err) {
-        log.debug(`getSwappedStatecoinsByFundingOutpoint: getSwappedCoinsByOutPoint: ${err}`);
+        log.debug(
+          `getSwappedStatecoinsByFundingOutpoint: getSwappedCoinsByOutPoint: ${err}`
+        );
       }
       if (result != null) {
-        this.swappedStatecoinsFundingOutpointMap.set(JSON.stringify(funding_out_point), result);
+        this.swappedStatecoinsFundingOutpointMap.set(
+          JSON.stringify(funding_out_point),
+          result
+        );
       }
     }
     return result;
@@ -1511,7 +1538,10 @@ export class Wallet {
   }
 
   // Add confirmed Statecoin to wallet
-  async addStatecoin(statecoin: StateCoin, action: string | undefined): Promise<boolean> {
+  async addStatecoin(
+    statecoin: StateCoin,
+    action: string | undefined
+  ): Promise<boolean> {
     let b_new_coin = false;
     if (this.statecoins.addCoin(statecoin)) {
       b_new_coin = true;
@@ -1649,9 +1679,9 @@ export class Wallet {
     let proof_key = this.getBIP32forBtcAddress(addr);
     log.debug(
       "Gen proof key. Address: " +
-      addr +
-      ". Proof key: " +
-      proof_key.publicKey.toString("hex")
+        addr +
+        ". Proof key: " +
+        proof_key.publicKey.toString("hex")
     );
     return proof_key;
   }
@@ -1739,12 +1769,12 @@ export class Wallet {
           if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
             log.error(
               "Funding tx for p_addr " +
-              p_addr +
-              " has value " +
-              funding_tx_data[i].value +
-              " expected " +
-              value +
-              "."
+                p_addr +
+                " has value " +
+                funding_tx_data[i].value +
+                " expected " +
+                value +
+                "."
             );
             log.error(
               "Setting value of statecoin to " + funding_tx_data[i].value
@@ -1774,9 +1804,9 @@ export class Wallet {
             ) {
               log.info(
                 "Found funding tx for p_addr " +
-                p_addr +
-                " in mempool. txid: " +
-                funding_tx_data[i].tx_hash
+                  p_addr +
+                  " in mempool. txid: " +
+                  funding_tx_data[i].tx_hash
               );
               if (coin != null) {
                 await this.saveStateCoin(coin);
@@ -1785,9 +1815,9 @@ export class Wallet {
           } else {
             log.info(
               "Funding tx for p_addr " +
-              p_addr +
-              " mined. Height: " +
-              funding_tx_data[i].height
+                p_addr +
+                " mined. Height: " +
+                funding_tx_data[i].height
             );
             // Set coin UNCONFIRMED.
             this.statecoins.setCoinUnconfirmed(
@@ -1840,7 +1870,7 @@ export class Wallet {
       for (let j = 0; j < funding_tx_data.length; j++) {
         if (
           funding_tx_data[j].tx_hash ===
-          this.statecoins.coins[i].funding_txid &&
+            this.statecoins.coins[i].funding_txid &&
           funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout
         ) {
           continue;
@@ -1850,9 +1880,9 @@ export class Wallet {
           for (let k = 0; k < this.statecoins.coins.length; k++) {
             if (
               this.statecoins.coins[k].funding_txid ===
-              funding_tx_data[j].tx_hash &&
+                funding_tx_data[j].tx_hash &&
               this.statecoins.coins[k].funding_vout ===
-              funding_tx_data[j].tx_pos
+                funding_tx_data[j].tx_pos
             ) {
               existing_output = true;
               break;
@@ -1930,7 +1960,7 @@ export class Wallet {
       await this.initBlockTime();
       let chaintip_height = this.block_height;
       // Calculate initial locktime
-      let init_locktime = (chaintip_height) + (fee_info.initlock);
+      let init_locktime = chaintip_height + fee_info.initlock;
       statecoin.init_locktime = init_locktime;
       await this.saveStateCoin(statecoin);
     }
@@ -1949,8 +1979,8 @@ export class Wallet {
     if (statecoin.status === STATECOIN_STATUS.INITIALISED)
       throw Error(
         "Awaiting funding transaction for StateCoin " +
-        statecoin.getTXIdAndOut() +
-        "."
+          statecoin.getTXIdAndOut() +
+          "."
       );
 
     await this.initCoinLocktime(statecoin);
@@ -1962,8 +1992,8 @@ export class Wallet {
       statecoin
     ).catch((err) => {
       log.error(`depositConfirm error: ${err}`);
-      throw err
-    })
+      throw err;
+    });
 
     // update in wallet
     if (this.config.testing_mode) {
@@ -2037,7 +2067,7 @@ export class Wallet {
       if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
         if (
           this.statecoins.coins[i].shared_key_id.slice(0, -4) ===
-          statecoin.shared_key_id &&
+            statecoin.shared_key_id &&
           this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE
         ) {
           throw Error(
@@ -2054,7 +2084,9 @@ export class Wallet {
       await swapSemaphore.acquire();
       try {
         await (async () => {
-          while (updateSwapSemaphore.getPermits() < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+          while (
+            updateSwapSemaphore.getPermits() < MAX_UPDATE_SWAP_SEMAPHORE_COUNT
+          ) {
             delay(1000);
           }
         });
@@ -2103,7 +2135,9 @@ export class Wallet {
     let swap = null;
     try {
       await (async () => {
-        while (updateSwapSemaphore.getPermits() < MAX_UPDATE_SWAP_SEMAPHORE_COUNT) {
+        while (
+          updateSwapSemaphore.getPermits() < MAX_UPDATE_SWAP_SEMAPHORE_COUNT
+        ) {
           delay(1000);
         }
       });
@@ -2138,8 +2172,8 @@ export class Wallet {
         `Setting swap data to null for statecoin ${statecoin.getTXIdAndOut()}`
       );
       statecoin.setSwapDataToNull();
-      
-      if(e.message === "Failed statecoin registration"){
+
+      if (e.message === "Failed statecoin registration") {
         statecoin.swap_auto = false;
       }
 
@@ -2340,14 +2374,14 @@ export class Wallet {
         if (statecoin.status === STATECOIN_STATUS.IN_SWAP)
           throw Error(
             "Coin " +
-            statecoin.getTXIdAndOut() +
-            " currenlty involved in swap protocol."
+              statecoin.getTXIdAndOut() +
+              " currenlty involved in swap protocol."
           );
         if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP)
           throw Error(
             "Coin " +
-            statecoin.getTXIdAndOut() +
-            " waiting in swap pool. Remove from pool to transfer."
+              statecoin.getTXIdAndOut() +
+              " waiting in swap pool. Remove from pool to transfer."
           );
         if (statecoin.status !== STATECOIN_STATUS.AVAILABLE)
           throw Error(
@@ -2363,7 +2397,7 @@ export class Wallet {
           if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
             if (
               this.statecoins.coins[i].shared_key_id.slice(0, -4) ===
-              statecoin.shared_key_id &&
+                statecoin.shared_key_id &&
               this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE
             ) {
               throw Error(
@@ -2542,7 +2576,6 @@ export class Wallet {
           }
         }
       }
-
     }
     return num_transfers + "../.." + error_message;
   }
@@ -2595,14 +2628,14 @@ export class Wallet {
       if (statecoin.status === STATECOIN_STATUS.IN_SWAP)
         throw Error(
           "Coin " +
-          statecoin.getTXIdAndOut() +
-          " currenlty involved in swap protocol."
+            statecoin.getTXIdAndOut() +
+            " currenlty involved in swap protocol."
         );
       if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP)
         throw Error(
           "Coin " +
-          statecoin.getTXIdAndOut() +
-          " waiting in  swap pool. Remove from pool to withdraw."
+            statecoin.getTXIdAndOut() +
+            " waiting in  swap pool. Remove from pool to withdraw."
         );
       if (
         statecoin.status !== STATECOIN_STATUS.AVAILABLE &&
@@ -2745,7 +2778,10 @@ export class Wallet {
         withdraw_msg_2,
         rec_addr
       );
-      const new_item = this.activity.addItem(statecoin.shared_key_id, ACTION.WITHDRAWING);
+      const new_item = this.activity.addItem(
+        statecoin.shared_key_id,
+        ACTION.WITHDRAWING
+      );
       this.addActivityLogItem(new_item);
       await this.saveStateCoin(statecoin);
     });
@@ -2851,8 +2887,7 @@ export const json_wallet_to_bip32_root_account = (json_wallet: any): object => {
   let internal = i.derive(1);
 
   // ensure account stores with different encoding/decoding are in same format
-  json_wallet.account = JSON.parse(JSON.stringify(json_wallet.account))
-
+  json_wallet.account = JSON.parse(JSON.stringify(json_wallet.account));
 
   // Re-map Account JSON data to root chains
   const chains = json_wallet.account.map(function (j: any) {
@@ -2885,10 +2920,10 @@ export const segwitAddr = (node: any, network: Network) => {
   if (!pubkey) {
     throw new Error(`wallet::segwitAddr: node.publicKey is ${pubkey}`);
   }
-  
+
   const p2wpkh = bitcoin.payments.p2wpkh({
     pubkey: pubkey,
-    network: network
+    network: network,
   });
 
   return p2wpkh.address;
