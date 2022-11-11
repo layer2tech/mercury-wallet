@@ -1,21 +1,26 @@
 "use strict";
 
-var isWin = process.platform === "win32";
-var isLinux = process.platform === "linux";
-var isMac = process.platform === "darwin";
+const isElectron = require("is-electron");
 
-if (isWin) {
-  process.argv[2] = __dirname + "/resources/win/Tor/tor.exe";
-} else if (isLinux) {
-  process.argv[2] = __dirname + "/resources/linux/tor";
-} else if (isMac) {
-  process.argv[2] = __dirname + "/resources/mac/tor";
+// only for web version
+if (!isElectron()) {
+  var isWin = process.platform === "win32";
+  var isLinux = process.platform === "linux";
+  var isMac = process.platform === "darwin";
+
+  if (isWin) {
+    process.argv[2] = __dirname + "/resources/win/Tor/tor.exe";
+  } else if (isLinux) {
+    process.argv[2] = __dirname + "/resources/linux/tor";
+  } else if (isMac) {
+    process.argv[2] = __dirname + "/resources/mac/tor";
+  }
+
+  process.argv[3] = __dirname + "/resources/etc/torrc";
+  process.argv[4] = __dirname + "/tor";
+  process.argv[5] = __dirname + "/resources/win/Data/Tor/geoip";
+  process.argv[6] = __dirname + "/resources/win/Data/Tor/geoip6";
 }
-
-process.argv[3] = __dirname + "/resources/etc/torrc";
-process.argv[4] = __dirname + "/tor";
-process.argv[5] = __dirname + "/resources/win/Data/Tor/geoip";
-process.argv[6] = __dirname + "/resources/win/Data/Tor/geoip6";
 
 const fs = require("fs"); // Or `import fs from "fs";` with ESM
 if (!fs.existsSync(process.argv[2])) {
@@ -27,9 +32,6 @@ const handle_error = require("./error").handle_error;
 const winston = require("winston");
 var path = require("path");
 const dataDir = process.argv[4];
-
-console.log("dataDir found was ->", dataDir);
-
 const torDataDir = path.join(dataDir, "tor");
 const logDir = path.join(dataDir, "tor-adapter-log");
 console.log(`logDir: ${logDir}`);
