@@ -30,6 +30,12 @@ log = new WrappedLogger();
 
 let isTestnet = false;
 
+export const callIsTestnet = () => {
+  if(isWalletLoaded()){
+    return wallet.config.electrum_config.host.includes('testnet')
+  }
+}
+
 export const callGetArgsHasTestnet = async () => {
   // override existing value - SHOULD really be calling set whenever true
   if (require("../settings.json").testing_mode) {
