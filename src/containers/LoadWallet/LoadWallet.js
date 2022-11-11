@@ -74,7 +74,7 @@ const LoadWalletPage = (props) => {
       selectedWallet instanceof String
     ) {
       try {
-        await walletLoad(selectedWallet, passwordEntered);
+        await walletLoad(selectedWallet, passwordEntered, history);
       } catch (e) {
         event.preventDefault();
         dispatch(setError({ msg: e.message }));
@@ -82,7 +82,7 @@ const LoadWalletPage = (props) => {
       }
     } else {
       try {
-        await walletLoad(selectedWallet.name, passwordEntered);
+        await walletLoad(selectedWallet.name, passwordEntered, history);
       } catch (e) {
         event.preventDefault();
         dispatch(setError({ msg: e.message }));
@@ -92,7 +92,6 @@ const LoadWalletPage = (props) => {
     checkForCoinsHealth();
     initActivityLogItems();
     dispatch(setWalletLoaded({ loaded: true }));
-    history.push("/home");
   };
 
   const enterContinue = (event) => {

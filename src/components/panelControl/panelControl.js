@@ -41,33 +41,38 @@ const PanelControl = () => {
       />
 
       <div className="ButtonsPanel">
-        <div className="ActionGroupLeft">
-          {data.ActionGroupLeft.map((item) => {
-            return (
-              <RouterButton
-                route={item.route}
-                label={item.label}
-                icon={item.icon}
-                class={item.class}
-                tooltip={item.tooltip}
-              />
-            );
-          })}
+        <div className="ActionGroupLeft" key="ActionGroupLeft">
+          {
+            data.ActionGroupLeft.map(item => {
+              return(
+                <RouterButton 
+                  key = {item.label}
+                  route = {item.route}
+                  label = {item.label}
+                  icon = {item.icon}
+                  class = {item.class}
+                  tooltip = {item.tooltip}/>
+              )
+            })
+          }
+
         </div>
-        <div className="ActionGroupRight">
-          {data.ActionGroupRight.map((item) => {
-            return (
-              <>
-                <RouterButton
-                  route={item.route}
-                  label={item.label}
-                  icon={item.icon}
-                  class={item.class}
-                  tooltip={item.tooltip}
-                />
-              </>
-            );
-          })}
+        <div className="ActionGroupRight" key="ActionGroupRight">
+        {
+            data.ActionGroupRight.map(item => {
+              
+              return(
+                <div key = {item.label}>
+                  <RouterButton
+                    route = {item.route}
+                    label = {item.label}
+                    icon = {item.icon}
+                    class = {item.class}
+                    tooltip = {item.tooltip}/>
+                </div>
+              )
+            })
+          }
         </div>
       </div>
     </div>

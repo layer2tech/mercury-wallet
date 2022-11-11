@@ -9,7 +9,7 @@
 
 "use strict";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   callGetNewTorCircuit,
   callGetTorcircuitInfo,
@@ -17,12 +17,16 @@ import {
   setTorOnline,
   callGetConfig,
   setIntervalIfOnline,
+  setWarning,
+  setNetworkType,
 } from "../../../features/WalletDataSlice";
 import "./torCircuit.css";
+import "./networkSwitch.css";
 import TorCircuitNode from "./TorCircuitNode";
 import { handleNetworkError } from "../../../error";
 import { defaultWalletConfig } from "../../../containers/Settings/Settings";
 import WrappedLogger from "../../../wrapped_logger";
+import { NETWORK_TYPE } from "../../../wallet/wallet";
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -70,7 +74,13 @@ const TorCircuit = (props) => {
       let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
       const loaded = torcircuit_data != null && torcircuit_data.length > 0;
       setTorLoaded(loaded);
-      dispatch(setTorOnline(loaded));
+      if( props.networkType === NETWORK_TYPE.I2P){
+        // If I2P connection selected check for I2P connection
+        // If callUpdateTorCircuitInfo doesn't throw error then there is connection
+        dispatch(setTorOnline(true));
+      } else{
+        dispatch(setTorOnline(loaded));
+      }
       setTorcircuitData(torcircuit_array);
     } else {
       dispatch(setTorOnline(false));
@@ -82,6 +92,24 @@ const TorCircuit = (props) => {
     dispatch(callGetNewTorCircuit()).then(() => {
       getTorCircuitInfo();
     });
+  };
+
+  const setNetwork = () => {
+    if (props.networkType === NETWORK_TYPE.TOR) {
+      setNetworkType(NETWORK_TYPE.I2P);
+      props.setNetworkType(NETWORK_TYPE.I2P);
+    } else {  
+      setNetworkType(NETWORK_TYPE.TOR);
+      props.setNetworkType(NETWORK_TYPE.TOR);
+    }
+  }
+
+  const networkSwitch = () => {
+    dispatch(setWarning({
+      title: "Restart Wallet",
+      msg: "Please restart the wallet after a network change.",
+      onConfirm: setNetwork,
+    }));
   };
 
   function shortenURL(url) {
@@ -104,47 +132,69 @@ const TorCircuit = (props) => {
 
   return (
     <div className="dropdown tor">
-      <TorIcon />
-      <div className="dropdown-content">
-        {torLoaded ? (
-          <div>
-            <ul>
-              <TorCircuitNode
-                class="passed"
-                name="Mercury Wallet"
-              ></TorCircuitNode>
-              {torcircuitData.map((circuit, index) => {
-                if (circuit.ip === "") return;
-                return (
-                  <TorCircuitNode
-                    className="passed"
-                    name={circuit.country}
-                    ip={circuit.ip}
-                    key={circuit.ip}
-                  ></TorCircuitNode>
-                );
-              })}
-              {/* <TorCircuitNode className='current' name={config.state_entity_endpoint}></TorCircuitNode> */}
-              {
+      <NetworkSwitch 
+        networkType={props.networkType}
+        onClick={networkSwitch}
+        />
+      {props.networkType === NETWORK_TYPE.TOR ? (
+          <div className="dropdown-content">
+          {torLoaded ? (
+            <div>
+              <ul>
                 <TorCircuitNode
-                  class="current"
-                  name={shortenURL(state_entity_endpoint)}
+                  class="passed"
+                  name="Mercury Wallet"
                 ></TorCircuitNode>
-              }
-            </ul>
-            <button className="Body-button transparent" onClick={newCircuit}>
-              New Circuit
-            </button>
-          </div>
+                {torcircuitData.map((circuit, index) => {
+                  if (circuit.ip === "") return;
+                  return (
+                    <TorCircuitNode
+                      className="passed"
+                      name={circuit.country}
+                      ip={circuit.ip}
+                      key={circuit.ip}
+                    ></TorCircuitNode>
+                  );
+                })}
+                {/* <TorCircuitNode className='current' name={config.state_entity_endpoint}></TorCircuitNode> */}
+                {
+                  <TorCircuitNode
+                    class="current"
+                    name={shortenURL(state_entity_endpoint)}
+                  ></TorCircuitNode>
+                }
+              </ul>
+              <button className="Body-button transparent" onClick={newCircuit}>
+                New Circuit
+              </button>
+            </div>
+          ) : (
+            <div>
+              <p>Couldn't establish connection to tor</p>
+            </div>
+          )}
+        </div>
         ) : (
-          <div>
-            <p>Couldn't establish connection to tor</p>
-          </div>
-        )}
-      </div>
+          <div className="dropdown-content">
+              <button className="Body-button transparent">
+                New Tunnel
+              </button>
+            </div>
+        )
+      }
     </div>
   );
 };
+
+export const NetworkSwitch = (props) => (
+  <div className="network-switch">
+    <button onClick={props.onClick}>
+      <span className={"network-switch-btn " + (props.networkType === NETWORK_TYPE.TOR ? "white" : "grey")}>{"TOR"}</span>
+      <span>{" / "}</span>
+      <span className={"network-switch-btn " + (props.networkType === NETWORK_TYPE.I2P ? "white" : "grey")}>{"I2P"}</span>
+    </button>
+  </div>
+);
 
 export const TorIcon = () => (
   <svg
