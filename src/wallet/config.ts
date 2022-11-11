@@ -74,12 +74,7 @@ export class Config {
         NETWORK_CONFIG[networkTypeLcase].testnet_block_explorer_endpoint;
     }
 
-    this.tor_proxy = {
-      ip: "localhost",
-      port: 9060,
-      controlPassword: "",
-      controlPort: 9061,
-    };
+    this.tor_proxy = NETWORK_CONFIG[networkTypeLcase].proxy;
 
     this.min_anon_set = 5;
     this.notifications = true;

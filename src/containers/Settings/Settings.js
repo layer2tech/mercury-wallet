@@ -58,12 +58,7 @@ export const defaultWalletConfig = async () => {
       swap_conductor_endpoint: NETWORK_CONFIG[networkType].testnet_swap_conductor_endpoint,
       block_explorer_endpoint: NETWORK_CONFIG[networkType].testnet_block_explorer_endpoint,
       electrum_config: NETWORK_CONFIG[networkType].testnet_electrum_config,
-      tor_proxy: {
-        ip: "localhost",
-        port: 9060,
-        controlPassword: "password",
-        controlPort: 9061,
-      },
+      tor_proxy:  NETWORK_CONFIG[networkType].proxy,
       min_anon_set: "",
     };
   } else {
@@ -77,12 +72,7 @@ export const defaultWalletConfig = async () => {
       swap_conductor_endpoint: NETWORK_CONFIG[networkType].mainnet_swap_conductor_endpoint,
       block_explorer_endpoint: NETWORK_CONFIG[networkType].mainnet_block_explorer_endpoint,
       electrum_config: NETWORK_CONFIG[networkType].mainnet_electrum_config,
-      tor_proxy: {
-        ip: "localhost",
-        port: 9060,
-        controlPassword: "password",
-        controlPort: 9061,
-      },
+      tor_proxy: NETWORK_CONFIG[networkType].proxy,
       min_anon_set: "",
     };
   }
