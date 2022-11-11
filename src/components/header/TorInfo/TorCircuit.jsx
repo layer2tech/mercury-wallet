@@ -74,11 +74,11 @@ const TorCircuit = (props) => {
       let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
       const loaded = torcircuit_data != null && torcircuit_data.length > 0;
       setTorLoaded(loaded);
-      if( props.networkType === NETWORK_TYPE.I2P){
+      if (props.networkType === NETWORK_TYPE.I2P) {
         // If I2P connection selected check for I2P connection
         // If callUpdateTorCircuitInfo doesn't throw error then there is connection
         dispatch(setTorOnline(true));
-      } else{
+      } else {
         dispatch(setTorOnline(loaded));
       }
       setTorcircuitData(torcircuit_array);
@@ -98,18 +98,20 @@ const TorCircuit = (props) => {
     if (props.networkType === NETWORK_TYPE.TOR) {
       setNetworkType(NETWORK_TYPE.I2P);
       props.setNetworkType(NETWORK_TYPE.I2P);
-    } else {  
+    } else {
       setNetworkType(NETWORK_TYPE.TOR);
       props.setNetworkType(NETWORK_TYPE.TOR);
     }
-  }
+  };
 
   const networkSwitch = () => {
-    dispatch(setWarning({
-      title: "Restart Wallet",
-      msg: "Please restart the wallet after a network change.",
-      onConfirm: setNetwork,
-    }));
+    dispatch(
+      setWarning({
+        title: "Restart Wallet",
+        msg: "Please restart the wallet after a network change.",
+        onConfirm: setNetwork,
+      })
+    );
   };
 
   function shortenURL(url) {
@@ -132,12 +134,9 @@ const TorCircuit = (props) => {
 
   return (
     <div className="dropdown tor">
-      <NetworkSwitch 
-        networkType={props.networkType}
-        onClick={networkSwitch}
-        />
+      <NetworkSwitch networkType={props.networkType} onClick={networkSwitch} />
       {props.networkType === NETWORK_TYPE.TOR ? (
-          <div className="dropdown-content">
+        <div className="dropdown-content">
           {torLoaded ? (
             <div>
               <ul>
@@ -174,24 +173,35 @@ const TorCircuit = (props) => {
             </div>
           )}
         </div>
-        ) : (
-          <div className="dropdown-content">
-              <button className="Body-button transparent">
-                New Tunnel
-              </button>
-            </div>
-        )
-      }
+      ) : (
+        <div className="dropdown-content">
+          <button className="Body-button transparent">New Tunnel</button>
+        </div>
+      )}
     </div>
   );
 };
 
 export const NetworkSwitch = (props) => (
-  <div className="network-switch">
+  <div data-cy="network-switch" className="network-switch">
     <button onClick={props.onClick}>
-      <span className={"network-switch-btn " + (props.networkType === NETWORK_TYPE.TOR ? "white" : "grey")}>{"TOR"}</span>
+      <span
+        className={
+          "network-switch-btn " +
+          (props.networkType === NETWORK_TYPE.TOR ? "white" : "grey")
+        }
+      >
+        {"TOR"}
+      </span>
       <span>{" / "}</span>
-      <span className={"network-switch-btn " + (props.networkType === NETWORK_TYPE.I2P ? "white" : "grey")}>{"I2P"}</span>
+      <span
+        className={
+          "network-switch-btn " +
+          (props.networkType === NETWORK_TYPE.I2P ? "white" : "grey")
+        }
+      >
+        {"I2P"}
+      </span>
     </button>
   </div>
 );

@@ -24,11 +24,11 @@ describe("Main navigation", () => {
     cy.get("[data-cy=Header-logo]").should("have.css", "width", "115px");
     cy.get("[data-cy=Header-logo]").should("have.css", "height", "38px");
 
-    // check for a tor icon
-    cy.get("[data-cy=Header-tor-icon]").should("be.visible");
+    // check for a tor/i2p icon
+    cy.get("[data-cy=network-switch]").should("be.visible");
 
     // check for a dark/light mode switch
-    cy.get("[data-cy=Header-dark-light-mode]").should("be.visible");
+    cy.get("[data-cy=toggle-switch-theme]").should("be.visible");
 
     // check for a help button
     cy.get("[data-cy=Header-help]").should("be.visible");

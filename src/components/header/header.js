@@ -100,8 +100,13 @@ const Header = (props) => {
         </Link>
 
         <div className="menu">
-          <div data-cy="Header-dark-light-mode" title="Light/Dark mode">
-          {walletLoaded && <TorCircuit online={props.online}  networkType={props.networkType} setNetworkType={props.setNetworkType}/>}
+          {walletLoaded && (
+            <TorCircuit
+              online={props.online}
+              networkType={props.networkType}
+              setNetworkType={props.setNetworkType}
+            />
+          )}
           <div title="Light/Dark mode">
             <label className="toggle2">
               <input
