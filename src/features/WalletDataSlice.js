@@ -16,6 +16,7 @@ import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import { NETWORK_TYPE } from "../wallet/wallet";
 import { defaultWalletConfig } from "../containers/Settings/Settings";
+import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
 
@@ -89,6 +90,9 @@ const initialState = {
   progress: { active: false, msg: "" },
   balance_info: { total_balance: null, num_coins: null, hidden: false },
   fee_info: { deposit: "NA", withdraw: "NA" },
+  ping_server_ms: null,
+  ping_conductor_ms: null,
+  ping_electrum_ms: null,
   ping_swap: null,
   ping_server: null,
   filterBy: "default",
@@ -231,7 +235,7 @@ export async function walletLoadConnection(wallet) {
     wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapStatus();
     await wallet.updateSwapGroupInfo();
-    wallet.updateSpeedInfo();
+    await UpdateSpeedInfo(store.dispatch);
   });
 }
 
@@ -423,21 +427,18 @@ export const callGetSwapGroupInfo = () => {
     return wallet.getSwapGroupInfo();
   }
 };
-export const callGetPingServerms = () => {
-  if (isWalletLoaded()) {
-    return wallet.getPingServerms();
-  }
-};
-export const callGetPingConductorms = () => {
-  if (isWalletLoaded()) {
-    return wallet.getPingConductorms();
-  }
-};
-export const callGetPingElectrumms = () => {
-  if (isWalletLoaded()) {
-    return wallet.getPingElectrumms();
-  }
-};
+
+export const getPingConductorms = () => {
+  return store.getState().walletData.ping_conductor_ms;
+}
+
+export const getPingServerms = () => {
+  return store.getState().walletData.ping_server_ms;
+}
+
+export const getPingElectrumms = () => {
+  return store.getState().walletData.ping_electrum_ms;
+}
 
 export const showWarning = (key) => {
   if (wallet) {
@@ -872,6 +873,37 @@ export const getNetworkType = () => {
     return wallet.networkType;
   }
 }
+export const UpdateSpeedInfo = async(dispatch, torOnline = true) => {
+  let ping_server_ms;
+  let ping_conductor_ms;
+  let ping_electrum_ms;
+  if (!torOnline) {
+    wallet.electrum_client.disableBlockHeightSubscribe();
+    ping_server_ms = null;
+    ping_conductor_ms = null;
+    ping_electrum_ms = null;
+  } else {
+    wallet.electrum_client.enableBlockHeightSubscribe();
+    try {
+      ping_server_ms = await pingServer(this.http_client);
+    } catch (err) {
+      ping_server_ms = null;
+    }
+    try {
+      ping_conductor_ms = await pingConductor(this.http_client);
+    } catch (err) {
+      ping_conductor_ms = null;
+    }
+    try {
+      ping_electrum_ms = await pingElectrum(this.electrum_client);
+    } catch (err) {
+      ping_electrum_ms = null;
+    }
+  }
+  dispatch(setPingServerMs(ping_server_ms));
+  dispatch(setPingConductorMs(ping_conductor_ms));
+  dispatch(setPingElectrumMs(ping_electrum_ms));
+};
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
@@ -978,12 +1010,6 @@ export const callUpdateTorCircuitInfo = createAsyncThunk(
   }
 );
 
-export const callUpdateSpeedInfo = createAsyncThunk(
-  "UpdateSpeedInfo",
-  async (action, thunkAPI) => {
-    wallet.updateSpeedInfo(action.torOnline);
-  }
-);
 export const callUpdateSwapStatus = createAsyncThunk(
   "UpdateSwapStatus",
   async (action, thunkAPI) => {
@@ -1321,6 +1347,24 @@ const WalletSlice = createSlice({
         ...state,
       };
     },
+    setPingServerMs(state, action) {
+      return {
+        ...state,
+        ping_server_ms: action.payload,
+      };
+    },
+    setPingConductorMs(state, action) {
+      return {
+        ...state,
+        ping_conductor_ms: action.payload,
+      };
+    },
+    setPingElectrumMs(state, action) {
+      return {
+        ...state,
+        ping_electrum_ms: action.payload,
+      };
+    }
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -1402,12 +1446,6 @@ const WalletSlice = createSlice({
         msg: action.error.name + ": " + action.error.message,
       };
     },
-    [callUpdateSpeedInfo.rejected]: (state, action) => {
-      state.error_dialogue = {
-        seen: false,
-        msg: action.error.name + ": " + action.error.message,
-      };
-    },
     [callUpdateSwapStatus.rejected]: (state, action) => {
       state.error_dialogue = {
         seen: false,
@@ -1474,6 +1512,9 @@ export const {
   addCoins,
   removeCoins,
   setTorOnline,
+  setPingServerMs,
+  setPingConductorMs,
+  setPingElectrumMs
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 
