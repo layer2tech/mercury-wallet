@@ -30,6 +30,7 @@ import {
   callCheckCoins,
   callDeriveXpub,
   setWalletLoaded,
+  getNetworkType,
 } from "../../features/WalletDataSlice";
 
 import Loading from "../../components/Loading/Loading";
@@ -42,6 +43,10 @@ let bitcoin = require("bitcoinjs-lib");
 const NETWORK_CONFIG = require("../../network.json");
 
 export const defaultWalletConfig = async () => {
+  
+  let networkType = getNetworkType();
+  networkType = (networkType === undefined) ? "tor" : networkType.toLowerCase();
+
   if ((await callGetArgsHasTestnet()) === true) {
     console.log("use testnet network settings");
     return {
@@ -49,10 +54,10 @@ export const defaultWalletConfig = async () => {
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
-      state_entity_endpoint: NETWORK_CONFIG.testnet_state_entity_endpoint,
-      swap_conductor_endpoint: NETWORK_CONFIG.testnet_swap_conductor_endpoint,
-      block_explorer_endpoint: NETWORK_CONFIG.testnet_block_explorer_endpoint,
-      electrum_config: NETWORK_CONFIG.testnet_electrum_config,
+      state_entity_endpoint: NETWORK_CONFIG[networkType].testnet_state_entity_endpoint,
+      swap_conductor_endpoint: NETWORK_CONFIG[networkType].testnet_swap_conductor_endpoint,
+      block_explorer_endpoint: NETWORK_CONFIG[networkType].testnet_block_explorer_endpoint,
+      electrum_config: NETWORK_CONFIG[networkType].testnet_electrum_config,
       tor_proxy: {
         ip: "localhost",
         port: 9060,
@@ -68,10 +73,10 @@ export const defaultWalletConfig = async () => {
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
-      state_entity_endpoint: NETWORK_CONFIG.mainnet_state_entity_endpoint,
-      swap_conductor_endpoint: NETWORK_CONFIG.mainnet_swap_conductor_endpoint,
-      block_explorer_endpoint: NETWORK_CONFIG.mainnet_block_explorer_endpoint,
-      electrum_config: NETWORK_CONFIG.mainnet_electrum_config,
+      state_entity_endpoint: NETWORK_CONFIG[networkType].mainnet_state_entity_endpoint,
+      swap_conductor_endpoint: NETWORK_CONFIG[networkType].mainnet_swap_conductor_endpoint,
+      block_explorer_endpoint: NETWORK_CONFIG[networkType].mainnet_block_explorer_endpoint,
+      electrum_config: NETWORK_CONFIG[networkType].mainnet_electrum_config,
       tor_proxy: {
         ip: "localhost",
         port: 9060,
