@@ -16,7 +16,6 @@ import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import { NETWORK_TYPE } from "../wallet/wallet";
 import { defaultWalletConfig } from "../containers/Settings/Settings";
-import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
 
@@ -141,12 +140,12 @@ export const saveWallet = async () => {
   }
 };
 
-export const reloadWallet = async () => {
+export const reloadWallet = async (dispatch) => {
   let name = wallet.name;
   let password = wallet.password;
   unloadWallet();
   let router = [];
-  await walletLoad(name, password, router);
+  await walletLoad(name, password, router, dispatch);
 };
 
 export const getWalletName = () => {
@@ -217,15 +216,15 @@ export async function walletLoadFromMem(name, password) {
 }
 
 // Load wallet from store
-export async function walletLoad(name, password, router) {
+export async function walletLoad(name, password, router, dispatch) {
   wallet = await walletLoadFromMem(name, password);
 
   router.push("/home");
 
-  await walletLoadConnection(wallet);
+  await walletLoadConnection(wallet, dispatch);
 }
 
-export async function walletLoadConnection(wallet) {
+export async function walletLoadConnection(wallet, dispatch) {
   if (testing_mode) log.info("Testing mode set.");
 
   let networkType = wallet.networkType;
@@ -242,7 +241,7 @@ export async function walletLoadConnection(wallet) {
     wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapStatus();
     await wallet.updateSwapGroupInfo();
-    await UpdateSpeedInfo(store.dispatch);
+    await UpdateSpeedInfo(dispatch);
   });
 }
 
@@ -560,10 +559,10 @@ export const callAddDescription = (shared_key_id, description) => {
 };
 
 // Update config with JSON of field to change
-export const callUpdateConfig = async (config_changes) => {
+export const callUpdateConfig = async (config_changes, dispatch) => {
   if (isWalletLoaded()) {
     if ((await wallet.updateConfig(config_changes)) === true) {
-      await reloadWallet();
+      await reloadWallet(dispatch);
     }
   }
 };

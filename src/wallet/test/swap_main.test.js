@@ -565,6 +565,7 @@ describe('Quit Wallet Mid Swap', function () {
   let resumeSwapMock;
   let WalletMock;
   let router = [];
+  let mockDispatch;
 
   beforeEach(async () => {
     wallet = await Wallet.buildMock(bitcoin.networks.testnet, http_mock);
@@ -583,6 +584,8 @@ describe('Quit Wallet Mid Swap', function () {
 
     // resume_swap called if coins in swap phase 4
     resumeSwapMock = jest.spyOn(wallet, 'resume_swap').mockImplementation();
+
+    mockDispatch = jest.fn();
   })
 
   afterEach(() => {
@@ -608,7 +611,7 @@ describe('Quit Wallet Mid Swap', function () {
     expect(wallet.statecoins.coins[0].swap_info).toBe(statecoin.swap_info);
 
     // Load wallet
-    await walletLoad(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, router);
+    await walletLoad(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, router, mockDispatch);
 
     expect(router[0]).toBe("/home");
 
@@ -636,7 +639,7 @@ describe('Quit Wallet Mid Swap', function () {
     expect(wallet.statecoins.coins[0].swap_info).toBe(statecoin.swap_info);
 
     // Load wallet
-    await walletLoad(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, router);
+    await walletLoad(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, router, mockDispatch);
 
     expect(router[0]).toBe("/home");
 

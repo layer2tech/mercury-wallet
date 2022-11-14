@@ -169,7 +169,8 @@ const SettingsPage = (props) => {
       notifications: notifications,
       singleSwapMode: singleSwapMode,
       tutorials: tutorials,
-    });
+    },
+    dispatch);
     dispatch(setNotificationMsg({ msg: "Settings successfully updated." }));
   };
 

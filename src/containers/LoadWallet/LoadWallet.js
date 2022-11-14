@@ -74,7 +74,7 @@ const LoadWalletPage = (props) => {
       selectedWallet instanceof String
     ) {
       try {
-        await walletLoad(selectedWallet, passwordEntered, history);
+        await walletLoad(selectedWallet, passwordEntered, history, dispatch);
       } catch (e) {
         event.preventDefault();
         dispatch(setError({ msg: e.message }));
@@ -82,7 +82,7 @@ const LoadWalletPage = (props) => {
       }
     } else {
       try {
-        await walletLoad(selectedWallet.name, passwordEntered, history);
+        await walletLoad(selectedWallet.name, passwordEntered, history, dispatch);
       } catch (e) {
         event.preventDefault();
         dispatch(setError({ msg: e.message }));

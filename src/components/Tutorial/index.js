@@ -13,7 +13,8 @@ const Tutorial = () => {
   const hideTutorial = () => {
     callUpdateConfig({
       tutorials: false,
-    });
+    },
+    dispatch);
     dispatch(setNotification({ msg: "Settings successfully updated." }));
   };
   return (
