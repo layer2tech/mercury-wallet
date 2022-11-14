@@ -14,4 +14,3 @@ yarn.lock
 src/react-app-env.d.ts
 
 .env
-tor/

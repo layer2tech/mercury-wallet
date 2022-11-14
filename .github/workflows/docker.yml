@@ -1,13 +1,10 @@
-name: Release
+name: Docker
 on:
-  push:
+  pull_request:
     branches: [master]
-    tags: ["*"]
-  release:
-    types: [published]
 
 jobs:
-  docker:
+  docker-front-end:
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
