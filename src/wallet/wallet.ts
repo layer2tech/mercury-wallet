@@ -492,7 +492,7 @@ export class Wallet {
       // New properties should not make old wallets break
 
       new_wallet.account = json_wallet_to_bip32_root_account(json_wallet);
-      new_wallet.save();
+
       return new_wallet;
     } catch (err: any) {
       if (`${err}`.includes("Cannot read prop")) {
