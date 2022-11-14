@@ -44,7 +44,7 @@ const PanelConnectivity = (props) => {
 
   const [server_connected, setServerConnected] = useState(ping_server_ms ? true : false);
   const [conductor_connected, setConductorConnected] = useState(ping_conductor_ms ? true : false);
-  const [electrum_connected, setElectrumConnected] = useState(ping_electrum_ms ? true : false);
+  const [electrum_connected, setElectrumConnected] = useState((ping_electrum_ms && block_height) ? true : false);
 
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data
@@ -75,7 +75,7 @@ const PanelConnectivity = (props) => {
       return;
     }
     await UpdateSpeedInfo(dispatch, torInfo.online, ping_server_ms, ping_electrum_ms, ping_conductor_ms
-      ,setServerConnected, setConductorConnected, setElectrumConnected);
+      ,setServerConnected, setConductorConnected, setElectrumConnected, block_height);
   };
 
   // every 30s check speed
@@ -168,6 +168,9 @@ const PanelConnectivity = (props) => {
       return;
     }
     setBlockHeight(callGetBlockHeight());
+    if(block_height && (block_height !== 0)){
+      setElectrumConnected(true);
+    }
   };
 
   //function shortens urls to fit better with styling

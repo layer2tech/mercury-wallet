@@ -47,7 +47,7 @@ if (process.argv.length > 7) {
 const network = start_cmd.includes('tor') ? "tor" : "i2p";
 
 /**
- * • PORT 3001 for Tor
+ * • PORT 3001 for Tor
  * • PORT 3002 for I2P 
 */
 

@@ -112,6 +112,7 @@ class AnonClient {
                 "ControlPort",`${this.config.controlPort}`, "DataDir", `"${this.dataPath}"`]
             } else {
                 netConfigArgs = [`--socksproxy.port=${this.config.port}`,
+                "--http.enabled=false",
                 "--i2pcontrol.enabled=true",
                 `--i2pcontrol.password=${this.config.controlPassword}`,
                 `--i2pcontrol.port=${this.config.controlPort}`,    
