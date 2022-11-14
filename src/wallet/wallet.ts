@@ -59,9 +59,6 @@ import {
   delay,
   FeeInfo,
   getFeeInfo,
-  pingServer,
-  pingConductor,
-  pingElectrum,
   OutPoint,
 } from "./mercury/info_api";
 import { EPSClient } from "./eps";
@@ -454,6 +451,12 @@ export class Wallet {
   ): Wallet {
     try {
       let networkType = (json_wallet.networkType === undefined) ? DEFAULT_NETWORK_TYPE : json_wallet.networkType;
+
+      if(json_wallet.config.electrum_config.host.includes('testnet')){
+        json_wallet.config.network = bitcoin.networks.testnet
+      } else {
+        json_wallet.config.network = bitcoin.networks.bitcoin
+      }
       let config = new Config(
         json_wallet.config.network,
         networkType,

@@ -3,8 +3,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 import { Wallet, ACTION, STATECOIN_STATUS, Config } from "../wallet";
 import { getFeeInfo, getCoinsInfo } from "../wallet/mercury/info_api";
-import { pingServer as pingConductor } from "../wallet/swap/info_api";
-import { pingServer } from "../wallet/mercury/info_api";
+import { pingServer, pingConductor, pingElectrum } from "../wallet/mercury/info_api";
 import { decodeMessage, decodeSCEAddress } from "../wallet/util";
 import { resetIndex } from "../containers/Receive/Receive";
 
@@ -874,17 +873,17 @@ export const UpdateSpeedInfo = async(dispatch, torOnline = true) => {
   } else {
     wallet.electrum_client.enableBlockHeightSubscribe();
     try {
-      ping_server_ms = await pingServer(this.http_client);
+      ping_server_ms = await pingServer(wallet.http_client);
     } catch (err) {
       ping_server_ms = null;
     }
     try {
-      ping_conductor_ms = await pingConductor(this.http_client);
+      ping_conductor_ms = await pingConductor(wallet.http_client);
     } catch (err) {
       ping_conductor_ms = null;
     }
     try {
-      ping_electrum_ms = await pingElectrum(this.electrum_client);
+      ping_electrum_ms = await pingElectrum(wallet.electrum_client);
     } catch (err) {
       ping_electrum_ms = null;
     }
