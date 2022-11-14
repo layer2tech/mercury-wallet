@@ -867,7 +867,8 @@ export const getNetworkType = () => {
     return wallet.networkType;
   }
 }
-export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, ping_electrum_ms, ping_conductor_ms) => {
+export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, ping_electrum_ms, ping_conductor_ms
+  ,setServerConnected, setConductorConnected, setElectrumConnected, block_height) => {
   let server_ping_ms_new;
   let conductor_ping_ms_new;
   let electrum_ping_ms_new;
@@ -900,7 +901,9 @@ export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, 
       electrum_ping_ms_new = await pingElectrum(wallet.electrum_client);
       if(electrum_ping_ms_new !== ping_electrum_ms){
         dispatch(setPingElectrumMs(electrum_ping_ms_new));
-        setElectrumConnected(electrum_ping_ms_new != null);
+        if(block_height && (block_height !== 0)){
+          setElectrumConnected(electrum_ping_ms_new != null);
+        }
       }
     } catch (err) {
       electrum_ping_ms_new = null;

@@ -575,7 +575,7 @@ describe('Quit Wallet Mid Swap', function () {
     electrumInitMock = jest.spyOn(wallet, 'initElectrumClient').mockImplementation();
     swapGroupMock = jest.spyOn(wallet, 'updateSwapGroupInfo').mockImplementation();
     // speedInfoMock = jest.spyOn(wallet, 'updateSpeedInfo').mockImplementation();
-    speedInfoMock = jest.spyOn(wallet, 'updateSpeedInfo').mockImplementation();
+    // speedInfoMock = jest.spyOn(wallet, 'updateSpeedInfo').mockImplementation();
 
 
     WalletMock = jest.spyOn(Wallet, 'load').mockImplementation(() => {
