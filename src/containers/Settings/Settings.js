@@ -31,6 +31,7 @@ import {
   callDeriveXpub,
   setWalletLoaded,
   getNetworkType,
+  callIsTestnet,
 } from "../../features/WalletDataSlice";
 
 import Loading from "../../components/Loading/Loading";
@@ -46,11 +47,10 @@ export const defaultWalletConfig = async () => {
   
   let networkType = getNetworkType();
   networkType = (networkType === undefined) ? "tor" : networkType.toLowerCase();
-
-  if ((await callGetArgsHasTestnet()) === true) {
+  if (callIsTestnet()) {
     console.log("use testnet network settings");
     return {
-      network: "testnet",
+      network: bitcoin.networks.testnet,
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
@@ -58,18 +58,13 @@ export const defaultWalletConfig = async () => {
       swap_conductor_endpoint: NETWORK_CONFIG[networkType].testnet_swap_conductor_endpoint,
       block_explorer_endpoint: NETWORK_CONFIG[networkType].testnet_block_explorer_endpoint,
       electrum_config: NETWORK_CONFIG[networkType].testnet_electrum_config,
-      tor_proxy: {
-        ip: "localhost",
-        port: 9060,
-        controlPassword: "password",
-        controlPort: 9061,
-      },
+      tor_proxy:  NETWORK_CONFIG[networkType].proxy,
       min_anon_set: "",
     };
   } else {
     console.log("use mainnet network settings");
     return {
-      network: "bitcoin",
+      network: bitcoin.networks.bitcoin,
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
@@ -77,12 +72,7 @@ export const defaultWalletConfig = async () => {
       swap_conductor_endpoint: NETWORK_CONFIG[networkType].mainnet_swap_conductor_endpoint,
       block_explorer_endpoint: NETWORK_CONFIG[networkType].mainnet_block_explorer_endpoint,
       electrum_config: NETWORK_CONFIG[networkType].mainnet_electrum_config,
-      tor_proxy: {
-        ip: "localhost",
-        port: 9060,
-        controlPassword: "password",
-        controlPort: 9061,
-      },
+      tor_proxy: NETWORK_CONFIG[networkType].proxy,
       min_anon_set: "",
     };
   }

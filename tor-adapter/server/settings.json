@@ -7,10 +7,11 @@
     "state_entity_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion",
     "swap_conductor_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion"
   },
-  "tor_proxy": {"ip": "localhost",
-                "port": 9060,
-                "controlPassword": "",
-                "controlPort": 9061
+  "tor_proxy": {
+    "ip": "localhost",
+    "port": 9060,
+    "controlPassword": "",
+    "controlPort": 9061
               },
   "i2p_proxy": {
     "ip": "localhost",

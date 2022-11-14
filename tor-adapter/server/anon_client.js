@@ -83,7 +83,7 @@ class AnonClient {
             // Check if windows to add arg differently
             terminalPasswordArg = [ `%hash-password=${this.config.controlPassword}` ]
         } else {
-            terminalPasswordArg = [`--hash-password=${this.config.controlPassword}`]
+            terminalPasswordArg = [`--hash-password`,`${this.config.controlPassword}`]
         }
 
         //Get the Geo Args if required
@@ -101,20 +101,22 @@ class AnonClient {
         let netConfigArgs
 
 
-        // Sets config when launching network
-        if(network === "tor"){
-            netConfigArgs = ["-f", `${torrc}`, "SOCKSPort", `${this.config.port}`,
-            , "ControlPort",`${this.config.controlPort}`, "DataDir", `"${this.dataPath}"`]
-        } else {
-            netConfigArgs = [`--socksproxy.port=${this.config.port}`,
-            "--i2pcontrol.enabled=true",
-            `--i2pcontrol.password=${this.config.controlPassword}`,
-            `--i2pcontrol.port=${this.config.controlPort}`,    
-            `--datadir=${this.dataPath}`]
-        }
-
-        execFile(start_cmd, terminalPasswordArg, (_error, stdout, _stderr) => {
-            // let hashedPassword = stdout.replace(/\n*$/, "");
+        
+        execFile(start_cmd, terminalPasswordArg.concat(geo_args), (_error, stdout, _stderr) => {
+            let hashedPassword = stdout.replace(/\n*$/, "");
+            
+            // Sets config when launching network
+            if(network === "tor"){
+                netConfigArgs = ["-f", `${torrc}`, "SOCKSPort", `${this.config.port}`,
+                ,"HashedControlPassword", `${hashedPassword}`,
+                "ControlPort",`${this.config.controlPort}`, "DataDir", `"${this.dataPath}"`]
+            } else {
+                netConfigArgs = [`--socksproxy.port=${this.config.port}`,
+                "--i2pcontrol.enabled=true",
+                `--i2pcontrol.password=${this.config.controlPassword}`,
+                `--i2pcontrol.port=${this.config.controlPort}`,    
+                `--datadir=${this.dataPath}`]
+            }
 
             /* *
             * ToDo: Check Hash password is in proper use for Tor

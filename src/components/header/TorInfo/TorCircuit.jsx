@@ -106,8 +106,8 @@ const TorCircuit = (props) => {
 
   const networkSwitch = () => {
     dispatch(setWarning({
-      title: "Network Warning...",
-      msg: "Please terminate all swaps before changing connection.",
+      title: "Restart Wallet",
+      msg: "Please restart the wallet after a network change.",
       onConfirm: setNetwork,
     }));
   };

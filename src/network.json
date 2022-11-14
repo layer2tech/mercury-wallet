@@ -17,6 +17,12 @@
             "port": null,
             "protocol": "http",
             "type": "electrs"
+        },
+        "proxy": {
+            "ip": "localhost",
+            "port": 9060,
+            "controlPassword": "",
+            "controlPort": 9061
         }
     },
     "i2p": {
@@ -37,6 +43,12 @@
             "port": null,
             "protocol": "http",
             "type": "electrs"
-        }
+        },
+        "proxy": {
+            "ip": "localhost",
+            "port": 4447,
+            "controlPassword": "",
+            "controlPort": 7650
+          }
     }
 }

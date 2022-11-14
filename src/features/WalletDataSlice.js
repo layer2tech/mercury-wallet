@@ -2,8 +2,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 import { Wallet, ACTION, STATECOIN_STATUS, Config } from "../wallet";
-import { getFeeInfo, getCoinsInfo } from "../wallet/mercury/info_api";
-import { pingServer, pingConductor, pingElectrum } from "../wallet/mercury/info_api";
+import { getFeeInfo, getCoinsInfo, pingElectrum } from "../wallet/mercury/info_api";
+import { pingServer as pingConductor } from "../wallet/swap/info_api";
+import { pingServer } from "../wallet/mercury/info_api";
 import { decodeMessage, decodeSCEAddress } from "../wallet/util";
 import { resetIndex } from "../containers/Receive/Receive";
 
@@ -28,6 +29,12 @@ let log;
 log = new WrappedLogger();
 
 let isTestnet = false;
+
+export const callIsTestnet = () => {
+  if(isWalletLoaded()){
+    return wallet.config.electrum_config.host.includes('testnet')
+  }
+}
 
 export const callGetArgsHasTestnet = async () => {
   // override existing value - SHOULD really be calling set whenever true
@@ -103,7 +110,7 @@ const initialState = {
   swapLoad: { join: false, swapCoin: "", leave: false },
   coinsAdded: 0,
   coinsRemoved: 0,
-  torInfo: { online: false },
+  torInfo: { online: true },
 };
 
 // Check if a wallet is loaded in memory
@@ -861,39 +868,45 @@ export const getNetworkType = () => {
     return wallet.networkType;
   }
 }
-export const UpdateSpeedInfo = async(dispatch, torOnline = true) => {
-  let ping_server_ms;
-  let ping_conductor_ms;
-  let ping_electrum_ms;
+export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, ping_electrum_ms, ping_conductor_ms) => {
+  let server_ping_ms_new;
+  let conductor_ping_ms_new;
+  let electrum_ping_ms_new;
   if (!torOnline) {
     wallet.electrum_client.disableBlockHeightSubscribe();
-    ping_server_ms = null;
-    ping_conductor_ms = null;
-    ping_electrum_ms = null;
+    server_ping_ms_new = null;
+    conductor_ping_ms_new = null;
+    electrum_ping_ms_new = null;
   } else {
     wallet.electrum_client.enableBlockHeightSubscribe();
     try {
-      ping_server_ms = await pingServer(wallet.http_client);
+      server_ping_ms_new = await pingServer(wallet.http_client);
+      if(server_ping_ms_new !== ping_server_ms){
+        dispatch(setPingServerMs( server_ping_ms_new ));
+        setServerConnected(server_ping_ms_new != null);
+      }
     } catch (err) {
-      ping_server_ms = null;
+      server_ping_ms_new = null;
     }
     try {
-      ping_conductor_ms = await pingConductor(wallet.http_client);
+      conductor_ping_ms_new = await pingConductor(wallet.http_client);
+      if(conductor_ping_ms_new !== ping_conductor_ms){
+        dispatch(setPingConductorMs(conductor_ping_ms_new));
+        setConductorConnected(conductor_ping_ms_new != null);
+      }
     } catch (err) {
-      ping_conductor_ms = null;
+      conductor_ping_ms_new = null;
     }
     try {
-      ping_electrum_ms = await pingElectrum(wallet.electrum_client);
+      electrum_ping_ms_new = await pingElectrum(wallet.electrum_client);
+      if(electrum_ping_ms_new !== ping_electrum_ms){
+        dispatch(setPingElectrumMs(electrum_ping_ms_new));
+        setElectrumConnected(electrum_ping_ms_new != null);
+      }
     } catch (err) {
-      ping_electrum_ms = null;
+      electrum_ping_ms_new = null;
     }
   }
-  console.log(ping_server_ms)
-  console.log(ping_conductor_ms)
-  console.log(ping_electrum_ms)
-  dispatch(setPingServerMs(ping_server_ms));
-  dispatch(setPingConductorMs(ping_conductor_ms));
-  dispatch(setPingElectrumMs(ping_electrum_ms));
 };
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
