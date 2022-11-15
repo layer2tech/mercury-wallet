@@ -2,8 +2,8 @@
 
 const isElectron = require("is-electron");
 
-console.log('PROCESS.ARGV: ', process.argv)
-const network = process.argv[2]
+console.log("PROCESS.ARGV: ", process.argv);
+const network = process.argv[2];
 
 // only for web version
 if (!isElectron()) {
@@ -12,7 +12,11 @@ if (!isElectron()) {
   var isMac = process.platform === "darwin";
 
   if (isWin) {
-    process.argv[2] = __dirname + "/resources/win/Tor/tor.exe";
+    if (network === "tor") {
+      process.argv[2] = __dirname + "/resources/win/Tor/tor.exe";
+    } else {
+      process.argv[2] = __dirname + "/resources/win/i2pd.exe";
+    }
   } else if (isLinux) {
     process.argv[2] = __dirname + `/resources/linux/${network}`;
   } else if (isMac) {
@@ -40,28 +44,26 @@ var cors = require("cors");
 var path = require("path");
 
 const handle_error = require("./error").handle_error;
-const { logger, log } = require('./logger');
-const { GET_ROUTE, POST_ROUTE } = require('./routes');
+const { logger, log } = require("./logger");
+const { GET_ROUTE, POST_ROUTE } = require("./routes");
 
 var ElectrumClient = require("./electrum");
 var EPSClient = require("./eps");
 var AnonClient = require("./anon_client");
 var CNClient = require("./cn_client");
 
-/*** 
- * 
+/***
+ *
  * Adapter starts Tor or I2P
  * - depends on binary name passed
- * 
-***/
-
+ *
+ ***/
 
 const logDataDir = process.argv[4];
 const start_cmd = process.argv[2];
 const torrc = process.argv[3];
 let geoIpFile = undefined;
 let geoIpV6File = undefined;
-
 
 if (process.argv.length > 5) {
   geoIpFile = process.argv[5];
@@ -74,29 +76,26 @@ if (process.argv.length > 7) {
   geoIpV6File = process.argv[7];
 }
 
-
-
-
 /**
  * • PORT 3001 for Tor
- * • PORT 3002 for I2P 
-*/
+ * • PORT 3002 for I2P
+ */
 
-console.log('START CMD: ', start_cmd)
+console.log("START CMD: ", start_cmd);
 
-const PORT = network === "tor" ? 3001 : 3002
+const PORT = network === "tor" ? 3001 : 3002;
 
 console.log(`tor cmd: ${start_cmd}`);
 console.log(`torrc: ${torrc}`);
 
-const dataDir = ( network === "tor" ) ? 
-    ( path.join(logDataDir, "tor") ) :
-    ( path.join(logDataDir, "i2p") )
+const dataDir =
+  network === "tor"
+    ? path.join(logDataDir, "tor")
+    : path.join(logDataDir, "i2p");
 
 var Config = new require("./config");
 const config = new Config(network);
 const tpc = config.proxy;
-
 
 // Hidden service indices for hidden service switching
 let i_elect_hs = { i: 0 };
@@ -118,7 +117,6 @@ app.listen(PORT, () => {
   );
   log("info", `${network} data dir` + dataDir);
 });
-
 
 /**
  * Initialising Tor or I2P
@@ -190,7 +188,7 @@ async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
 
 app.get("/newid", async function (req, res) {
   try {
-    if( network === "tor" ) anon_client.newSocksAuthentication();
+    if (network === "tor") anon_client.newSocksAuthentication();
     res.status(200).json({});
   } catch (err) {
     const err_msg = `Get new tor id error: ${err}`;
@@ -201,8 +199,8 @@ app.get("/newid", async function (req, res) {
 
 app.get("/newcircuit", async function (req, res) {
   try {
-    let response
-    if( network === "tor" ) response = await anon_client.confirmNewTorCircuit();
+    let response;
+    if (network === "tor") response = await anon_client.confirmNewTorCircuit();
     res.status(200).json(response);
   } catch (err) {
     const err_msg = `Get new tor id error: ${err}`;

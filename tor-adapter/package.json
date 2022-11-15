@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "concurrently \"node server/index tor\" \"node server/index i2pd\""
+    "start": "concurrently \"node server/index tor\" \"node server/index i2pd\"",
+    "tor-adapter": "node server/index tor"
   },
   "keywords": [],
   "author": "",
