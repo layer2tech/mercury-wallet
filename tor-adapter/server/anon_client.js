@@ -103,15 +103,19 @@ class AnonClient {
 
         
         execFile(start_cmd, terminalPasswordArg.concat(geo_args), (_error, stdout, _stderr) => {
+            if(stdout.includes('[warn]') || stdout.includes('[notice]')){
+                stdout = stdout.replace('\r','');
+                stdout = stdout.split('\n')[1]
+            }
             let hashedPassword = stdout.replace(/\n*$/, "");
             
             // Sets config when launching network
             if(network === "tor"){
                 netConfigArgs = ["-f", `${torrc}`, "SOCKSPort", `${this.config.port}`,
-                ,"HashedControlPassword", `${hashedPassword}`,
-                "ControlPort",`${this.config.controlPort}`, "DataDir", `"${this.dataPath}"`]
+                "HashedControlPassword", `${hashedPassword}`,
+                "ControlPort",`${this.config.controlPort}`, "DataDir", `${this.dataPath}`]
             } else {
-                netConfigArgs = [`--socksproxy.port=${this.config.port}`,
+                netConfigArgs = [`%socksproxy.port=${this.config.port}`,
                 "--http.enabled=false",
                 "--i2pcontrol.enabled=true",
                 `--i2pcontrol.password=${this.config.controlPassword}`,
