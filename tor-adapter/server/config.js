@@ -6,7 +6,7 @@ const HASH_PASSWORD = Math.random().toString(36).substring(2, 15) + Math.random(
 const TOR_CONFIG = {
     ip: "localhost",
     port: 9060,
-    controlPassword: "",
+    controlPassword: HASH_PASSWORD,
     controlPort: 9061
 }
 
