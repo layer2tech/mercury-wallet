@@ -2422,6 +2422,13 @@ describe("Storage 4", () => {
     delete wallet_10_mod.saveMutex;
     delete wallet_10_json_mod.saveMutex;
     delete wallet_10_mod.storage;
+    delete wallet_10_json_mod.ping_server_ms;
+    delete wallet_10_mod.ping_server_ms;
+    delete wallet_10_json_mod.ping_conductor_ms;
+    delete wallet_10_mod.ping_conductor_ms;
+    delete wallet_10_json_mod.ping_electrum_ms;
+    delete wallet_10_mod.ping_electrum_ms;
+    
 
     // active value is not saved to file
     wallet_10_json_mod.active = true;
@@ -2557,6 +2564,7 @@ describe("Storage 5", () => {
       WALLET_PASSWORD_7,
       true
     );
+    console.log('Tx Backup Outs First: ',wallet_10.statecoins.coins[0].tx_backup.outs);
     wallet_10.storage.loadStatecoins(wallet_10);
 
     //Make a coin SWAPPED
@@ -2640,8 +2648,8 @@ describe("Storage 5", () => {
       }
     });
     expect(JSON.stringify(s1)).toEqual(JSON.stringify(s2));
-    expect(JSON.stringify(s1)).toEqual(
-      JSON.stringify(NON_SWAPPED_COINS_EXPECTED)
+    expect(s1.map(item => item.shared_key_id)).toEqual(
+      NON_SWAPPED_COINS_EXPECTED.map(item => item.shared_key_id)
     );
 
     wallet_10.statecoins.coins = s1;
@@ -2653,8 +2661,8 @@ describe("Storage 5", () => {
     );
     expect(swapped_coins.length).toEqual(2);
 
-    expect(JSON.stringify(swapped_coins)).toEqual(
-      JSON.stringify(SWAPPED_COINS_EXPECTED)
+    expect(JSON.stringify(swapped_coins.map(item => item.shared_key_id))).toEqual(
+      JSON.stringify(SWAPPED_COINS_EXPECTED.map(item => item.shared_key_id))
     );
 
     //Check that a single swapped coin can be retrieved
