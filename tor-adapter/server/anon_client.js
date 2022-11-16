@@ -103,6 +103,11 @@ class AnonClient {
 
         
         execFile(start_cmd, terminalPasswordArg.concat(geo_args), (_error, stdout, _stderr) => {
+            if(stdout.includes('[warn]') || stdout.includes('[notice]')){
+                stdout = stdout.replace('\r','');
+                stdout = stdout.split('\n')[1]
+            }
+            
             let hashedPassword = stdout.replace(/\n*$/, "");
             
             // Sets config when launching network
