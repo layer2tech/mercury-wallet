@@ -10,6 +10,7 @@ class Config{
                                 Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
             controlPort: 9061
         }
+        this.electrum_endpoint = ["https://blockstream.info/api"]
   
         this.update(require("./settings.json"));
     }
@@ -47,7 +48,7 @@ class Config{
                     this.swap_conductor_endpoint = item[1].split(',');
                     break;
                 case "electrum_endpoint":
-                    this.electrum_endpoint = item[1].split(',');
+                    this.electrum_endpoint = ["https://blockstream.info/api"];
                     break;
             }
         })
@@ -63,7 +64,7 @@ class Config{
                     this.swap_conductor_endpoint = item[1].split(',');
                     break;
                 case "electrum_endpoint":
-                    this.electrum_endpoint = item[1].split(',');
+                    this.electrum_endpoint =[ "https://blockstream.info/api"];
                     break;
             }
         })

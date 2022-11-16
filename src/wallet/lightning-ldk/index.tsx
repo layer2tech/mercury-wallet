@@ -92,8 +92,6 @@ export var scorer: MultiThreadedLockableScore | null = null; // optional, used o
 
 export var networkGraphPath = "";
 
-
-
 class RnLdkImplementation {
   static CHANNEL_MANAGER_PREFIX = 'channel_manager';
   static CHANNEL_PREFIX = 'channel_monitor_';

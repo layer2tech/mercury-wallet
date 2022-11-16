@@ -147,6 +147,25 @@ async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
   }
 }
 
+app.get('/electrs/*', function (req, res) {
+  let path = req.path.replace('\/electrs', '')
+  if (!config?.electrum_endpoint) {
+    handle_error(res, 'tor-adapter: get: config.electrum_endpoint not set')
+  }
+  
+  get_endpoint(path, res, config.electrum_endpoint, i_elect_hs)
+});
+
+app.post('/electrs/*', function (req, res) {
+  let path = req.path.replace('\/electrs', '')
+  let body = req.body
+  let data = body?.data ? body.data : ""
+  if (!config?.electrum_endpoint) {
+    handle_error(res, 'tor-adapter: post: config.electrum_endpoint not set')
+  }
+  post_plain_endpoint(path, data, res, config.electrum_endpoint, i_elect_hs)
+});
+
 app.get('/newid', async function (req, res) {
   try {
     tor.newSocksAuthentication();
@@ -449,23 +468,7 @@ async function shutdown() {
   process.exit(0);
 }
 
-app.get('/electrs/*', function (req, res) {
-  let path = req.path.replace('\/electrs', '')
-  if (!config?.electrum_endpoint) {
-    handle_error(res, 'tor-adapter: get: config.electrum_endpoint not set')
-  }
-  get_endpoint(path, res, config.electrum_endpoint, i_elect_hs)
-});
 
-app.post('/electrs/*', function (req, res) {
-  let path = req.path.replace('\/electrs', '')
-  let body = req.body
-  let data = body?.data ? body.data : ""
-  if (!config?.electrum_endpoint) {
-    handle_error(res, 'tor-adapter: post: config.electrum_endpoint not set')
-  }
-  post_plain_endpoint(path, data, res, config.electrum_endpoint, i_elect_hs)
-});
 
 
 app.get('/swap/ping', function (req, res) {
