@@ -113,9 +113,9 @@ class AnonClient {
             if(network === "tor"){
                 netConfigArgs = ["-f", `${torrc}`, "SOCKSPort", `${this.config.port}`,
                 "HashedControlPassword", `${hashedPassword}`,
-                "ControlPort",`${this.config.controlPort}`, "DataDir", `${this.dataPath}`]
+                "ControlPort",`${this.config.controlPort}`, "DataDir", `"${this.dataPath}"`]
             } else {
-                netConfigArgs = [`%socksproxy.port=${this.config.port}`,
+                netConfigArgs = [`--socksproxy.port=${this.config.port}`,
                 "--http.enabled=false",
                 "--i2pcontrol.enabled=true",
                 `--i2pcontrol.password=${this.config.controlPassword}`,
