@@ -2,11 +2,8 @@
 
 const isElectron = require("is-electron");
 
-console.log("PROCESS.ARGV: ", process.argv);
-const network = process.argv[2];
-
-// only for web version
 if (!isElectron()) {
+  var network = process.argv[2];
   var isWin = process.platform === "win32";
   var isLinux = process.platform === "linux";
   var isMac = process.platform === "darwin";
@@ -27,14 +24,9 @@ if (!isElectron()) {
   process.argv[4] = __dirname + `/${network}`;
   process.argv[5] = __dirname + "/resources/win/Data/Tor/geoip";
   process.argv[6] = __dirname + "/resources/win/Data/Tor/geoip6";
+} else{
+  var network = process.argv[2].includes('tor') ? "tor" : "i2p";
 }
-
-const fs = require("fs"); // Or `import fs from "fs";` with ESM
-if (!fs.existsSync(process.argv[2])) {
-  console.log("File doesnt exist. Exiting...");
-  return;
-}
-
 const express = require("express");
 var geoip = require("geoip-country");
 var countries = require("i18n-iso-countries");

@@ -304,21 +304,6 @@ async function init_adapter() {
       };
     }
   );
-
-  let i2p_adapter_args = [i2p_cmd, user_data_path];
-  // Init i2p adapterz
-  i2p_adapter_args.push(`${joinPath(execPath, '3002')}`);
-  ta_process = fork(`${tor_adapter_path}`, i2p_adapter_args,
-    {
-      detached: false,
-      stdio: 'ignore',
-    },
-    (error, stdout, _stderr) => {
-      if (error) {
-        app.exit(error);
-      };
-    }
-  );
 }
 
 

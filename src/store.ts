@@ -286,10 +286,13 @@ export class Storage {
   }
 
   getWalletDecrypted(
-    wallet_name: string,
+    wallet_name: any,
     password: string,
     load_all: boolean = false
   ) {
+    if(!isElectron()){
+      wallet_name = wallet_name.name
+    }
     let wallet_json_encrypted = this.getWallet(wallet_name, load_all);
     let wallet_json_decrypted = wallet_json_encrypted;
     // Decrypt mnemonic

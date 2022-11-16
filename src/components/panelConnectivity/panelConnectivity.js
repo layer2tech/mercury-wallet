@@ -288,9 +288,7 @@ const PanelConnectivity = (props) => {
               Ping:{" "}
               <b>
                 {ping_server_ms !== null
-                  ? ping_server_ms.toLocaleString(undefined, {
-                    maximumFractionDigits: 0,
-                  }) + " ms"
+                  ? `${Math.round(ping_server_ms)} ms`
                   : "N/A"}{" "}
               </b>
             </span>
@@ -328,9 +326,7 @@ const PanelConnectivity = (props) => {
               Ping:{" "}
               <b>
                 {ping_conductor_ms !== null
-                  ? ping_conductor_ms.toLocaleString(undefined, {
-                    maximumFractionDigits: 0,
-                  }) + " ms"
+                  ? `${Math.round(ping_conductor_ms)} ms`
                   : "N/A"}{" "}
               </b>
             </span>
@@ -361,9 +357,7 @@ const PanelConnectivity = (props) => {
               Ping:{" "}
               <b>
                 {ping_electrum_ms !== null
-                  ? ping_electrum_ms.toLocaleString(undefined, {
-                    maximumFractionDigits: 0,
-                  }) + " ms"
+                  ? `${Math.round(ping_electrum_ms)} ms`
                   : "N/A"}{" "}
               </b>
             </span>

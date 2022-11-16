@@ -77,6 +77,7 @@ import { Mutex } from "async-mutex";
 import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
+import isElectron from "is-electron";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -454,12 +455,13 @@ export class Wallet {
   ): Wallet {
     try {
       let networkType = (json_wallet.networkType === undefined) ? DEFAULT_NETWORK_TYPE : json_wallet.networkType;
-
-
-      if(json_wallet.config.electrum_config.host.includes('testnet')){
-        json_wallet.config.network = bitcoin.networks.testnet
-      } else {
-        json_wallet.config.network = bitcoin.networks.bitcoin
+      
+      if(isElectron()){
+        if(json_wallet.config.electrum_config.host.includes('testnet')){
+          json_wallet.config.network = bitcoin.networks.testnet
+        } else {
+          json_wallet.config.network = bitcoin.networks.bitcoin
+        }
       }
 
       let config = new Config(
