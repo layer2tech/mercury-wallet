@@ -290,7 +290,7 @@ export class Storage {
     password: string,
     load_all: boolean = false
   ) {
-    if(!isElectron()){
+    if(!isElectron() && !TestingWithJest()){
       wallet_name = wallet_name.name
     }
     let wallet_json_encrypted = this.getWallet(wallet_name, load_all);
