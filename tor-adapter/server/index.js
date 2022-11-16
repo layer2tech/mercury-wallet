@@ -65,6 +65,7 @@ const torrc = process.argv[3];
 let geoIpFile = undefined;
 let geoIpV6File = undefined;
 
+
 if (process.argv.length > 5) {
   geoIpFile = process.argv[5];
 }
@@ -76,14 +77,14 @@ if (process.argv.length > 7) {
   geoIpV6File = process.argv[7];
 }
 
+
 /**
  * • PORT 3001 for Tor
  * • PORT 3002 for I2P
  */
 
-console.log("START CMD: ", start_cmd);
-
 const PORT = network === "tor" ? 3001 : 3002;
+
 
 console.log(`tor cmd: ${start_cmd}`);
 console.log(`torrc: ${torrc}`);
@@ -93,9 +94,11 @@ const dataDir =
     ? path.join(logDataDir, "tor")
     : path.join(logDataDir, "i2p");
 
+
 var Config = new require("./config");
 const config = new Config(network);
 const tpc = config.proxy;
+
 
 // Hidden service indices for hidden service switching
 let i_elect_hs = { i: 0 };
@@ -117,6 +120,7 @@ app.listen(PORT, () => {
   );
   log("info", `${network} data dir` + dataDir);
 });
+
 
 /**
  * Initialising Tor or I2P

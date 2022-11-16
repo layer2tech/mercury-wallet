@@ -1,7 +1,10 @@
 'use strict';
 import React from 'react';
+import { getNetworkType } from '../../../features/WalletDataSlice';
 
 const SwapStatus = (props) => {
+
+    const network = getNetworkType();
 
     const stringIncludes = (str, include_str) => {
         if (str) return str.includes(include_str)
@@ -47,7 +50,7 @@ const SwapStatus = (props) => {
                     }
                     {
                         props.swapStatus ?
-                            (props.swapStatus.slice(0, 7) === "Phase 3/8" ?
+                            (!network==="I2P" && props.swapStatus.slice(0, 7) === "Phase 3/8" ?
                                 (<div className="new-tor-id"><p>New Tor ID</p></div>)
                                 : (null))
                             : (null)

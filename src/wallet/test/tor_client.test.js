@@ -2,12 +2,12 @@
  * @jest-environment node
  */
 
-var TorClient = require('../../../tor-adapter/server/tor_client');
+var AnonClient = require('../../../tor-adapter/server/anon_client');
 var path = require('path');
 const winston = require('winston');
 let cloneDeep = require('lodash.clonedeep');
 
-describe('TorClient', function () {
+describe('AnonClient', function () {
     const ip = 'localhost';
     const port = 90000;
     const controlPassword = 'controlPassword';
@@ -37,7 +37,7 @@ describe('TorClient', function () {
     let client;
 
     beforeEach(() => {
-        client = new TorClient(ip, port, controlPassword,
+        client = new AnonClient("tor",ip, port, controlPassword,
             controlPort, dataPath, geoIpFile, geoIpV6File, logger);
     })
 

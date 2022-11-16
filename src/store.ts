@@ -187,6 +187,7 @@ export class Storage {
       "block_height",
       "current_sce_addr",
       "saveMutex",
+      "networkType"
     ];
 
     wallet_keys.forEach((key: string) => {
