@@ -65,7 +65,7 @@ import {
   OutPoint,
 } from "./mercury/info_api";
 import { EPSClient } from "./eps";
-import { POST_ROUTE } from "./http_client";
+import { I2P_URL, POST_ROUTE, TOR_URL } from "./http_client";
 import {
   getNewTorId,
   getNewTorCircuit,
@@ -77,6 +77,7 @@ import { Mutex } from "async-mutex";
 import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
+import isElectron from "is-electron";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -96,6 +97,11 @@ declare const window: any;
 let log: any;
 log = new WrappedLogger();
 
+// Set Network Type Tor || I2P
+export enum NETWORK_TYPE {
+  TOR = "Tor",
+  I2P = "I2P"
+}
 export const mutex = new Mutex();
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890";
 export const MOCK_WALLET_NAME = "mock_e4c93acf-2f49-414f-b124-65c882eea7e7";
@@ -129,6 +135,13 @@ export const parseBackupData = (backupData: string) => {
   }
 };
 
+export const DEFAULT_NETWORK_TYPE = "Tor";
+
+export interface Warning {
+  name: string;
+  show: boolean;
+}
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -151,10 +164,7 @@ export class Wallet {
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
   tor_circuit: TorCircuit[];
-  warnings: [{ name: string; show: boolean }];
-  ping_server_ms: number | null;
-  ping_conductor_ms: number | null;
-  ping_electrum_ms: number | null;
+  warnings: Warning[];
   statechain_id_set: Set<string>;
   wasm: any;
   saveMutex: Mutex;
@@ -163,6 +173,7 @@ export class Wallet {
   active: boolean;
   activityLogItems: any[];
   swappedStatecoinsFundingOutpointMap: Map<string, StateCoin[]>;
+  networkType: string;
 
   constructor(
     name: string,
@@ -172,7 +183,8 @@ export class Wallet {
     config: Config,
     http_client: any = undefined,
     wasm: any = undefined,
-    storage_type: string | undefined = undefined
+    storage_type: string | undefined = undefined,
+    networkType: string | undefined = undefined,
   ) {
     this.wasm = null;
     this.name = name;
@@ -186,11 +198,16 @@ export class Wallet {
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
+    if (networkType === undefined){
+      this.networkType = NETWORK_TYPE.TOR;
+    } else {
+      this.networkType = networkType;
+    }
 
     if (http_client != null) {
       this.http_client = http_client;
     } else if (this.config.testing_mode != true) {
-      this.http_client = new HttpClient("http://localhost:3001", true);
+      this.http_client = new HttpClient(TOR_URL, true);
       this.set_tor_endpoints();
     } else {
       this.http_client = new MockHttpClient();
@@ -201,12 +218,9 @@ export class Wallet {
     this.block_height = 0;
     this.current_sce_addr = "";
 
-    this.warnings = [{ name: "swap_punishment", show: true }];
+    this.warnings = [{ name: "swap_punishment", show: true }, { name: "switch_network", show: true }];
 
     this.storage = new Storage(`wallets/${this.name}/config`, storage_type);
-    this.ping_conductor_ms = null;
-    this.ping_server_ms = null;
-    this.ping_electrum_ms = null;
 
     this.statechain_id_set = new Set();
 
@@ -282,7 +296,7 @@ export class Wallet {
     }
   }
 
-  set_tor_endpoints() {
+  async set_tor_endpoints() {
     let electr_ep = this.config.electrum_config.host;
     let electr_ep_arr = electr_ep.split(",");
     let electr_port = this.config.electrum_config.port;
@@ -310,9 +324,33 @@ export class Wallet {
       state_entity_endpoint: this.config.state_entity_endpoint,
       electrum_endpoint: electr_ep,
     };
-    this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
+    await this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
   }
 
+
+  async setHttpClient(networkType: string) {
+    if (this.config.testing_mode !== true) {
+      if (networkType === NETWORK_TYPE.I2P) {
+        this.http_client = new HttpClient(I2P_URL, false);
+      } else {
+        this.http_client = new HttpClient(TOR_URL, true);
+        await this.set_tor_endpoints();
+      }
+    }
+  }
+
+
+  async setElectrsClient(networkType: string) {
+    if (this.config.testing_mode !== true) {
+      if (networkType === NETWORK_TYPE.I2P) {
+        this.electrum_client = new ElectrsClient(I2P_URL, false);
+      } else {
+        this.electrum_client = new ElectrsClient(TOR_URL, true);
+        await this.set_tor_endpoints();
+      }
+    }
+  }
+  
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(
     name: string,
@@ -336,7 +374,7 @@ export class Wallet {
       password,
       mnemonic,
       mnemonic_to_bip32_root_account(mnemonic, network),
-      new Config(network, testing_mode),
+      new Config(network, DEFAULT_NETWORK_TYPE, testing_mode),
       http_client,
       wasm,
       storage_type
@@ -416,8 +454,19 @@ export class Wallet {
     storage_type: string | undefined = undefined
   ): Wallet {
     try {
+      let networkType = (json_wallet.networkType === undefined) ? DEFAULT_NETWORK_TYPE : json_wallet.networkType;
+      
+      if(isElectron()){
+        if(json_wallet.config.electrum_config.host.includes('testnet')){
+          json_wallet.config.network = bitcoin.networks.testnet
+        } else {
+          json_wallet.config.network = bitcoin.networks.bitcoin
+        }
+      }
+
       let config = new Config(
         json_wallet.config.network,
+        networkType,
         json_wallet.config.testing_mode
       );
       config.update(json_wallet.config);
@@ -430,7 +479,8 @@ export class Wallet {
         config,
         undefined,
         undefined,
-        storage_type
+        storage_type,
+        json_wallet.networkType,
       );
 
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
@@ -444,6 +494,7 @@ export class Wallet {
       // New properties should not make old wallets break
 
       new_wallet.account = json_wallet_to_bip32_root_account(json_wallet);
+
       return new_wallet;
     } catch (err: any) {
       if (`${err}`.includes("Cannot read prop")) {
@@ -2182,45 +2233,6 @@ export class Wallet {
     this.swap_group_info.clear();
   }
 
-  async updateSpeedInfo(torOnline = true) {
-    if (!torOnline) {
-      this.electrum_client.disableBlockHeightSubscribe();
-      this.ping_server_ms = null;
-      this.ping_conductor_ms = null;
-      this.ping_electrum_ms = null;
-      return;
-    } else {
-      this.electrum_client.enableBlockHeightSubscribe();
-    }
-    try {
-      this.ping_server_ms = await pingServer(this.http_client);
-    } catch (err) {
-      this.ping_server_ms = null;
-    }
-    try {
-      this.ping_conductor_ms = await pingConductor(this.http_client);
-    } catch (err) {
-      this.ping_conductor_ms = null;
-    }
-    try {
-      this.ping_electrum_ms = await pingElectrum(this.electrum_client);
-    } catch (err) {
-      this.ping_electrum_ms = null;
-    }
-  }
-
-  getPingConductorms(): number | null {
-    return this.ping_conductor_ms;
-  }
-
-  getPingServerms(): number | null {
-    return this.ping_server_ms;
-  }
-
-  getPingElectrumms(): number | null {
-    return this.ping_electrum_ms;
-  }
-
   resetSwapStates() {
     // resets swap state to AVAILABLE
     this.statecoins.coins.forEach((statecoin) => {
@@ -2269,7 +2281,8 @@ export class Wallet {
           if (
             !(err_str != null && err_str.includes("Coin is not in a swap pool"))
           ) {
-            throw err;
+            log.info(`Error in deRegisterSwaps: ${err_str}`)
+            throw Error('Error: Connection Error - check connection and try again');
           }
         }
       }

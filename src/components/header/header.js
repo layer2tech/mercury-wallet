@@ -100,7 +100,7 @@ const Header = (props) => {
         </Link>
 
         <div className="menu">
-          {walletLoaded && <TorCircuit online={props.online} />}
+          {walletLoaded && <TorCircuit online={props.online}  networkType={props.networkType} setNetworkType={props.setNetworkType}/>}
           <div title="Light/Dark mode">
             <label className="toggle2">
               <input

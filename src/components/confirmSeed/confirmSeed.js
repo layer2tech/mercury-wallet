@@ -125,6 +125,7 @@ const ConfirmSeed = (props) => {
     } catch (e) {
       event.preventDefault();
       dispatch(setError({ msg: e.message }));
+      return;
     }
     checkForCoinsHealth();
     dispatch(setWalletLoaded({ loaded: true }));

@@ -30,6 +30,8 @@ import {
   callCheckCoins,
   callDeriveXpub,
   setWalletLoaded,
+  getNetworkType,
+  callIsTestnet,
 } from "../../features/WalletDataSlice";
 
 import Loading from "../../components/Loading/Loading";
@@ -42,46 +44,39 @@ let bitcoin = require("bitcoinjs-lib");
 const NETWORK_CONFIG = require("../../network.json");
 
 export const defaultWalletConfig = async () => {
-  if ((await callGetArgsHasTestnet()) === true) {
+  
+  let networkType = getNetworkType();
+  networkType = (networkType === undefined) ? "tor" : networkType.toLowerCase();
+  if (callIsTestnet()) {
     console.log("use testnet network settings");
     return {
-      network: "testnet",
+      network: bitcoin.networks.testnet,
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
-      state_entity_endpoint: NETWORK_CONFIG.testnet_state_entity_endpoint,
-      swap_conductor_endpoint: NETWORK_CONFIG.testnet_swap_conductor_endpoint,
-      block_explorer_endpoint: NETWORK_CONFIG.testnet_block_explorer_endpoint,
+      state_entity_endpoint: NETWORK_CONFIG[networkType].testnet_state_entity_endpoint,
+      swap_conductor_endpoint: NETWORK_CONFIG[networkType].testnet_swap_conductor_endpoint,
+      block_explorer_endpoint: NETWORK_CONFIG[networkType].testnet_block_explorer_endpoint,
       electrum_config: process.env.TESTNET_ELECTRUM_CONFIG
-        ? process.env.TESTNET_ELECTRUM_CONFIG
-        : NETWORK_CONFIG.testnet_electrum_config,
-      tor_proxy: {
-        ip: "localhost",
-        port: 9060,
-        controlPassword: "password",
-        controlPort: 9061,
-      },
+      ? process.env.TESTNET_ELECTRUM_CONFIG
+      :NETWORK_CONFIG[networkType].testnet_electrum_config,
+      tor_proxy:  NETWORK_CONFIG[networkType].proxy,
       min_anon_set: "",
     };
   } else {
     console.log("use mainnet network settings");
     return {
-      network: "bitcoin",
+      network: bitcoin.networks.bitcoin,
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
-      state_entity_endpoint: NETWORK_CONFIG.mainnet_state_entity_endpoint,
-      swap_conductor_endpoint: NETWORK_CONFIG.mainnet_swap_conductor_endpoint,
-      block_explorer_endpoint: NETWORK_CONFIG.mainnet_block_explorer_endpoint,
+      state_entity_endpoint: NETWORK_CONFIG[networkType].mainnet_state_entity_endpoint,
+      swap_conductor_endpoint: NETWORK_CONFIG[networkType].mainnet_swap_conductor_endpoint,
+      block_explorer_endpoint: NETWORK_CONFIG[networkType].mainnet_block_explorer_endpoint,
       electrum_config: process.env.MAINNET_ELECTRUM_CONFIG
-        ? process.env.MAINNET_ELECTRUM_CONFIG
-        : NETWORK_CONFIG.mainnet_electrum_config,
-      tor_proxy: {
-        ip: "localhost",
-        port: 9060,
-        controlPassword: "password",
-        controlPort: 9061,
-      },
+      ? process.env.MAINNET_ELECTRUM_CONFIG
+      :NETWORK_CONFIG[networkType].mainnet_electrum_config,
+      tor_proxy: NETWORK_CONFIG[networkType].proxy,
       min_anon_set: "",
     };
   }
@@ -115,6 +110,7 @@ const SettingsPage = (props) => {
   const [passwordConfirm, setPasswordConfirm] = useState(false);
   const [showSeed, setShowSeed] = useState(false);
   const [checkLoading, setCheckLoading] = useState(false);
+  const [networkType, setNetworkType] = useState(getNetworkType())
 
   useEffect(() => {
     if (
@@ -348,7 +344,7 @@ const SettingsPage = (props) => {
                     required
                   />
                   <label className="control-label" htmlFor="proxy-ip">
-                    Tor Proxy Host
+                    {networkType} Proxy Host
                   </label>
                 </div>
                 <div className="inputs-item">
@@ -361,7 +357,7 @@ const SettingsPage = (props) => {
                     required
                   />
                   <label className="control-label" htmlFor="proxy-port">
-                    Tor Proxy Port
+                    {networkType} Proxy Port
                   </label>
                 </div>
                 <div className="inputs-item">
@@ -377,7 +373,7 @@ const SettingsPage = (props) => {
                     className="control-label"
                     htmlFor="proxy-controlPassword"
                   >
-                    Tor Proxy Control Password
+                    {networkType} Proxy Control Password
                   </label>
                 </div>
                 <div className="inputs-item">
@@ -390,7 +386,7 @@ const SettingsPage = (props) => {
                     required
                   />
                   <label className="control-label" htmlFor="proxy-controlPort">
-                    Tor Proxy Control Port
+                    { networkType } Proxy Control Port
                   </label>
                 </div>
                 <div className="inputs-item">

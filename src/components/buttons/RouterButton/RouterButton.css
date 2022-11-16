@@ -10,6 +10,7 @@
     opacity: 1;
     transition: all .4s ease;
     -webkit-transition: all .4s ease;
+    z-index: 1;
 }
 
 .ActionGroupRight .tooltip {
