@@ -164,7 +164,7 @@ async function goToMainPage() {
   fireEvent.submit(screen.getByTestId("form"));
   fireEvent.click(screen.getByText(/continue/i));
 
-  // await waitForElementToBeRemoved(screen.getByText(/continue/i));
+  await waitForElementToBeRemoved(screen.getByText(/continue/i));
 
   await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {
     timeout: 10000,

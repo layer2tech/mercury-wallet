@@ -34,7 +34,7 @@
   "scripts": {
     "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
     "install-local": "yarn add file:./tor-adapter",
-    "start": "node ./setup && react-app-rewired start",
+    "start": "concurrently \"node ./setup && react-app-rewired start\" \" npm run tor-adapter\" ",
     "prebuild": "DATE=`date` && YEAR=${DATE##* } && MERC_YEAR=`jq .build.copyright package.json | awk '{print $3}'` && if [ $YEAR -ne $MERC_YEAR ]; then echo 'package.json prebuild - expected .build.copyright year' $YEAR ', got' $MERC_YEAR '- please update year' && return 1; fi",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test --maxWorkers 2",
