@@ -36,6 +36,9 @@ let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
 // electrum mock
 let electrum_mock = new MockElectrumClient();
 
+// Ignore and do not import webStore
+jest.mock("../../application/webStore", () => jest.fn());
+
 describe("2P-ECDSA", function () {
   test("KeyGen", async function () {
     http_mock.post = jest
@@ -537,7 +540,7 @@ describe("StateChain Entity", function () {
           se_rec_addr_bip32,
           null
         )
-      ).rejects.toThrowError("Invalid StateChainSig.");
+      ).rejects.toThrowError("Receive: Incorrect proof key for private key");
     });
 
     test("Incorrect decryption key", async function () {

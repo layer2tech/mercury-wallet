@@ -1,0 +1,41 @@
+name: Test
+on:
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test using Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.16"
+      - name: Test testing mode is 'false' in settings.json
+        run: |
+          ps -p $$
+          jq --version
+          MERCURY_WALLET_TESTING_MODE=`jq .testing_mode src/settings.json`
+          if [ $MERCURY_WALLET_TESTING_MODE != false ]; then exit 1; fi
+      - run: sed -i -e 's/false/true/g' src/settings.json
+      - run: npm install --force
+      - run: yarn test
+  e2e-tests:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.16"
+          runTests: false
+      - run: npm install --force
+      - name: Run e2e tests
+        uses: cypress-io/github-action@v4
+        with:
+          start: npm start && npm run tor-adapter
+          wait-on: "http://localhost:3000/#/"
+          browser: chrome
+          # we have already installed all dependencies above
+          install: false

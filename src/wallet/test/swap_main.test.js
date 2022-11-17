@@ -564,6 +564,7 @@ describe('Quit Wallet Mid Swap', function () {
   let speedInfoMock;
   let resumeSwapMock;
   let WalletMock;
+  let router = [];
 
   beforeEach(async () => {
     wallet = await Wallet.buildMock(bitcoin.networks.testnet, http_mock);
@@ -573,7 +574,7 @@ describe('Quit Wallet Mid Swap', function () {
     electrumInitMock = jest.spyOn(wallet, 'initElectrumClient').mockImplementation();
     swapGroupMock = jest.spyOn(wallet, 'updateSwapGroupInfo').mockImplementation();
     // speedInfoMock = jest.spyOn(wallet, 'updateSpeedInfo').mockImplementation();
-    speedInfoMock = jest.spyOn(wallet, 'updateSpeedInfo').mockImplementation();
+    // speedInfoMock = jest.spyOn(wallet, 'updateSpeedInfo').mockImplementation();
 
 
     WalletMock = jest.spyOn(Wallet, 'load').mockImplementation(() => {
@@ -607,7 +608,9 @@ describe('Quit Wallet Mid Swap', function () {
     expect(wallet.statecoins.coins[0].swap_info).toBe(statecoin.swap_info);
 
     // Load wallet
-    await walletLoad(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD)
+    await walletLoad(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, router);
+
+    expect(router[0]).toBe("/home");
 
     expect(resumeSwapMock).toHaveBeenCalled();
 
@@ -633,7 +636,9 @@ describe('Quit Wallet Mid Swap', function () {
     expect(wallet.statecoins.coins[0].swap_info).toBe(statecoin.swap_info);
 
     // Load wallet
-    await walletLoad(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD)
+    await walletLoad(MOCK_WALLET_NAME, MOCK_WALLET_PASSWORD, router);
+
+    expect(router[0]).toBe("/home");
 
     // Statecoin in wallet is set to UI swap phase 8 before wallet load
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.AVAILABLE);

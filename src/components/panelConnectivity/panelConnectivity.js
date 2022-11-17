@@ -8,12 +8,9 @@ import {
   callGetBlockHeight,
   callGetConfig,
   callGetSwapGroupInfo,
-  callGetPingServerms,
-  callGetPingConductorms,
-  callGetPingElectrumms,
-  callUpdateSpeedInfo,
   setIntervalIfOnline,
   WALLET_MODE,
+  UpdateSpeedInfo
 } from "../../features/WalletDataSlice";
 
 import "./panelConnectivity.css";
@@ -32,7 +29,7 @@ log = new WrappedLogger();
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();
 
-  const { walletMode, fee_info, torInfo } = useSelector((state) => state.walletData)
+  const { walletMode, fee_info, torInfo, ping_conductor_ms, ping_server_ms, ping_electrum_ms } = useSelector((state) => state.walletData)
 
   // Arrow down state and url hover state
   const [state, setState] = useState({
@@ -44,17 +41,10 @@ const PanelConnectivity = (props) => {
 
   const [block_height, setBlockHeight] = useState(callGetBlockHeight());
 
-  const [server_ping_ms, setServerPingMs] = useState(callGetPingServerms());
-  const [conductor_ping_ms, setConductorPingMs] = useState(
-    callGetPingConductorms()
-  );
-  const [electrum_ping_ms, setElectrumPingMs] = useState(
-    callGetPingElectrumms()
-  );
 
-  const [server_connected, setServerConnected] = useState(callGetPingServerms() ? true : false);
-  const [conductor_connected, setConductorConnected] = useState(callGetPingConductorms() ? true : false);
-  const [electrum_connected, setElectrumConnected] = useState(callGetPingElectrumms() ? true : false);
+  const [server_connected, setServerConnected] = useState(ping_server_ms ? true : false);
+  const [conductor_connected, setConductorConnected] = useState(ping_conductor_ms ? true : false);
+  const [electrum_connected, setElectrumConnected] = useState((ping_electrum_ms && block_height) ? true : false);
 
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data
@@ -84,22 +74,8 @@ const PanelConnectivity = (props) => {
     if (isMounted !== true) {
       return;
     }
-    dispatch(callUpdateSpeedInfo({ torOnline: torInfo.online }));
-    const server_ping_ms_new = callGetPingServerms();
-    if (server_ping_ms !== server_ping_ms_new) {
-      setServerPingMs(server_ping_ms_new);
-      setServerConnected(server_ping_ms_new != null);
-    }
-    const conductor_ping_ms_new = callGetPingConductorms();
-    if (conductor_ping_ms !== conductor_ping_ms_new) {
-      setConductorPingMs(conductor_ping_ms_new);
-      setConductorConnected(conductor_ping_ms_new != null);
-    }
-    const electrum_ping_ms_new = callGetPingElectrumms();
-    if (electrum_ping_ms !== electrum_ping_ms_new) {
-      setElectrumPingMs(electrum_ping_ms_new);
-      setElectrumConnected(electrum_ping_ms_new != null);
-    }
+    await UpdateSpeedInfo(dispatch, torInfo.online, ping_server_ms, ping_electrum_ms, ping_conductor_ms
+      ,setServerConnected, setConductorConnected, setElectrumConnected, block_height);
   };
 
   // every 30s check speed
@@ -181,9 +157,9 @@ const PanelConnectivity = (props) => {
     fee_info.deposit,
     swap_groups_array.length,
     block_height,
-    server_ping_ms,
-    conductor_ping_ms,
-    electrum_ping_ms
+    ping_server_ms,
+    ping_conductor_ms,
+    ping_electrum_ms
   ]);
 
   const getBlockHeight = async () => {
@@ -192,6 +168,9 @@ const PanelConnectivity = (props) => {
       return;
     }
     setBlockHeight(callGetBlockHeight());
+    if(block_height && (block_height !== 0)){
+      setElectrumConnected(true);
+    }
   };
 
   //function shortens urls to fit better with styling
@@ -308,10 +287,8 @@ const PanelConnectivity = (props) => {
             <span>
               Ping:{" "}
               <b>
-                {server_ping_ms !== null
-                  ? server_ping_ms.toLocaleString(undefined, {
-                      maximumFractionDigits: 0,
-                    }) + " ms"
+                {ping_server_ms !== null
+                  ? `${Math.round(ping_server_ms)} ms`
                   : "N/A"}{" "}
               </b>
             </span>
@@ -348,10 +325,8 @@ const PanelConnectivity = (props) => {
             <span>
               Ping:{" "}
               <b>
-                {conductor_ping_ms !== null
-                  ? conductor_ping_ms.toLocaleString(undefined, {
-                      maximumFractionDigits: 0,
-                    }) + " ms"
+                {ping_conductor_ms !== null
+                  ? `${Math.round(ping_conductor_ms)} ms`
                   : "N/A"}{" "}
               </b>
             </span>
@@ -381,10 +356,8 @@ const PanelConnectivity = (props) => {
             <span>
               Ping:{" "}
               <b>
-                {electrum_ping_ms !== null
-                  ? electrum_ping_ms.toLocaleString(undefined, {
-                      maximumFractionDigits: 0,
-                    }) + " ms"
+                {ping_electrum_ms !== null
+                  ? `${Math.round(ping_electrum_ms)} ms`
                   : "N/A"}{" "}
               </b>
             </span>

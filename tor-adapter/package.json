@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server/index.js"
+    "start": "concurrently \"node server/index tor\" \"node server/index i2pd\"",
+    "tor-adapter": "node server/index tor"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +18,7 @@
     "cors": "^2.8.5",
     "default-shell": "^1.0.1",
     "electron-root-path": "^1.0.16",
-    "electrum-client-js": "^3.0.0",
+    "@aguycalled/electrum-client-js": "^0.1.9",
     "express": "^4.17.3",
     "fs": "0.0.1-security",
     "geoip-country": "^4.0.98",
@@ -30,6 +31,9 @@
     "tor-control": "0.0.3",
     "uuid": "^8.3.2",
     "websocket": "^1.0.34",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "bitcoinjs-lib": "^5.2.0",
+    "superagent": "^6.1.0",
+    "is-electron": "^2.2.1"
   }
 }

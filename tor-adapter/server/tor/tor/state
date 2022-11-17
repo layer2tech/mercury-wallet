@@ -1,0 +1,73 @@
+# Tor state file last generated on 2022-11-16 19:24:01 local time
+# Other times below are in UTC
+# You *do not* need to edit this file.
+
+Guard in=default rsa_id=DF7868EAF856654E73E72F774BF3CE1FEC5CB049 nickname=applesandoranges sampled_on=2022-11-05T09:31:11 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=F852A11B7725DC294DF7063B590C582883B1310F nickname=legitrelayfi sampled_on=2022-11-15T11:52:10 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=04DAB3B5205C0EE19A702EBAFBBBC7AD21C24805 nickname=Spellbound sampled_on=2022-11-13T01:48:08 sampled_by=0.3.5.7 listed=1 confirmed_on=2022-11-07T14:38:59 confirmed_idx=0 pb_use_attempts=2.000000 pb_use_successes=2.000000 pb_circ_attempts=45.000000 pb_circ_successes=40.000000 pb_successful_circuits_closed=40.000000 pb_timeouts=2.000000
+Guard in=default rsa_id=0439AB73BB2B8730FCB15B18252928FC0C2EDF91 nickname=johnsrelay sampled_on=2022-11-07T13:47:12 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=6D6EC2A2E2ED8BFF2D4834F8D669D82FC2A9FA8D nickname=ForPrivacyNET sampled_on=2022-11-05T22:55:03 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=4A4EFB3E9347189B6AB9453844692CCA1F46A4C7 nickname=netzwerkspaB sampled_on=2022-11-06T00:44:19 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=224C3DD1DFF6F11219604870D48953249EE3C26F nickname=nasiOne sampled_on=2022-11-13T15:07:05 sampled_by=0.3.5.7 listed=1 confirmed_on=2022-11-10T06:31:43 confirmed_idx=1 pb_use_attempts=4.000000 pb_use_successes=4.000000 pb_circ_attempts=49.000000 pb_circ_successes=43.000000 pb_successful_circuits_closed=43.000000 pb_timeouts=2.000000
+Guard in=default rsa_id=8BECBB573318BF6061ED110224EA636FCE4E5984 nickname=onionmatic sampled_on=2022-11-08T10:09:55 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=7C22E89AB620E77DF1B4A33787A5EC3F2AB4A8D1 nickname=ZKP1984 sampled_on=2022-11-16T13:02:34 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=3BA2A8C1BE4FD6CCEBBCE4689B66372A0519E0C8 nickname=noxdafox sampled_on=2022-11-12T09:13:36 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=6B96796FA984AAD378BBDF9636191330F4E9A322 nickname=EnterAndBeFree sampled_on=2022-11-16T12:27:15 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=12BEEFD6406B5F285CF35A456583FC1C9726506E nickname=bauruine sampled_on=2022-11-12T10:08:03 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=046F2D59A85FAE693676A87533717C57436261C2 nickname=Zwiebelmett sampled_on=2022-11-14T22:34:12 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=E8968612613C548BFCA63D7BE547E2D1C594F53A nickname=Azula sampled_on=2022-11-14T10:57:13 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=3A63820A01459135D2A66188278199130F6B0015 nickname=RMK sampled_on=2022-11-10T19:30:33 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=32364BEF873944BE481E8BCC7FAE9297F5F39781 nickname=tirz sampled_on=2022-11-06T18:20:43 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=BC206665803DB7C730C25A1316889A4D7E7BFF03 nickname=h7nOq sampled_on=2022-11-06T00:06:43 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=1EFBACCD28A07FD6AD7AA6F1293177D71397E918 nickname=cb1820 sampled_on=2022-11-11T13:36:41 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=A1F0CE79654498732F100925230BE9E4801DFBBC nickname=daeyang sampled_on=2022-11-11T03:36:40 sampled_by=0.3.5.7 listed=1
+Guard in=default rsa_id=B16E3A397A07CFE4A23E630FC6EB13690083715A nickname=arthur sampled_on=2022-11-12T05:52:08 sampled_by=0.3.5.7 listed=1
+TorVersion Tor 0.3.5.7 (git-9beb085c10562a25)
+LastWritten 2022-11-16 17:24:01
+TotalBuildTimes 83
+CircuitBuildTimeBin 475 1
+CircuitBuildTimeBin 525 4
+CircuitBuildTimeBin 575 6
+CircuitBuildTimeBin 625 6
+CircuitBuildTimeBin 675 3
+CircuitBuildTimeBin 725 3
+CircuitBuildTimeBin 775 4
+CircuitBuildTimeBin 825 2
+CircuitBuildTimeBin 875 3
+CircuitBuildTimeBin 925 7
+CircuitBuildTimeBin 975 4
+CircuitBuildTimeBin 1025 2
+CircuitBuildTimeBin 1075 1
+CircuitBuildTimeBin 1125 2
+CircuitBuildTimeBin 1175 1
+CircuitBuildTimeBin 1225 1
+CircuitBuildTimeBin 1425 1
+CircuitBuildTimeBin 1475 1
+CircuitBuildTimeBin 1525 1
+CircuitBuildTimeBin 1575 1
+CircuitBuildTimeBin 1675 1
+CircuitBuildTimeBin 1825 1
+CircuitBuildTimeBin 2475 2
+CircuitBuildTimeBin 2775 1
+CircuitBuildTimeBin 2925 1
+CircuitBuildTimeBin 3325 1
+CircuitBuildTimeBin 3975 1
+CircuitBuildTimeBin 4125 1
+CircuitBuildTimeBin 4225 2
+CircuitBuildTimeBin 4475 1
+CircuitBuildTimeBin 5025 1
+CircuitBuildTimeBin 5225 1
+CircuitBuildTimeBin 5275 1
+CircuitBuildTimeBin 5375 1
+CircuitBuildTimeBin 5525 1
+CircuitBuildTimeBin 5675 1
+CircuitBuildTimeBin 6225 1
+CircuitBuildTimeBin 6875 1
+CircuitBuildTimeBin 7175 1
+CircuitBuildTimeBin 8425 1
+CircuitBuildTimeBin 8725 2
+CircuitBuildTimeBin 8775 1
+CircuitBuildTimeBin 9025 1
+CircuitBuildTimeBin 9375 1
+CircuitBuildTimeBin 9825 1
+CircuitBuildTimeBin 9925 1

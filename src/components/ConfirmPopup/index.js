@@ -1,77 +1,84 @@
-'use strict';
+"use strict";
 import React, { cloneElement, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Modal } from "react-bootstrap";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
-import {
-  removeAllCoinsFromSwapRecords
-} from "../../features/WalletDataSlice";
+import { removeAllCoinsFromSwapRecords } from "../../features/WalletDataSlice";
 
-const ConfirmPopup = ({ children, onOk, onCancel, preCheck=null, argsCheck=null }) => {
+const ConfirmPopup = ({
+  children,
+  onOk,
+  onCancel,
+  preCheck = null,
+  argsCheck = null,
+}) => {
   const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
-  const [closeText, setCloseText] = useState('Are you sure?');
-  const swapRecords = useSelector(state => state.walletData.swapRecords);
-  const withdraw_fee = useSelector(state => state.walletData).fee_info.withdraw;
+  const [closeText, setCloseText] = useState("Are you sure?");
+  const swapRecords = useSelector((state) => state.walletData.swapRecords);
+  const withdraw_fee = useSelector((state) => state.walletData).fee_info
+    .withdraw;
 
-  useEffect(()=> {
-
-    if(children.props.className.includes('true')){
-      setShowModal(false)
+  useEffect(() => {
+    if (children.props.className.includes("true")) {
+      setShowModal(false);
     }
+  }, [children.props.className, showModal]);
 
-  },[children.props.className,showModal])
-  
   const handleClick = () => {
+    if (preCheck) {
+      var stopCall;
 
-    if(preCheck){
-      var stopCall
-      
       stopCall = preCheck(...argsCheck);
       // Cancel open pop up?
 
-      if(stopCall){
+      if (stopCall) {
         // Error in Pop Up call
-        return
+        return;
       }
     }
-
 
     setShowModal(true);
-    if(children.props.className === 'header-logout'){
-      setCloseText('Are you sure you want to log out?')
-    } else if(children.props.className.includes('send-action-button')){
-      if(children.props.className.includes('privacy')){
-        setCloseText('Privacy Warning: address reuse against best privacy practice, send anyway?')
-      } else if(children.props.className.includes('xpub-key')){
-        let list = children.props.className.split(" ")
-        let sendAddr = list[list.length-1]
-        
-        setCloseText(`Send statecoin(s) to each of the first ${sendAddr} addresses`)
+    if (children.props.className === "header-logout") {
+      setCloseText("Are you sure you want to log out?");
+    } else if (children.props.className.includes("send-action-button")) {
+      if (children.props.className.includes("privacy")) {
+        setCloseText(
+          "Privacy Warning: address reuse against best privacy practice, send anyway?"
+        );
+      } else if (children.props.className.includes("xpub-key")) {
+        let list = children.props.className.split(" ");
+        let sendAddr = list[list.length - 1];
+
+        setCloseText(
+          `Send statecoin(s) to each of the first ${sendAddr} addresses`
+        );
+      } else {
+        setCloseText("Confirm send, statecoin ready to be sent immediately.");
       }
-      else{
-        setCloseText('Confirm send, statecoin ready to be sent immediately.')
+    } else if (children.props.className.includes("withdraw-button")) {
+      if (children.props.className.includes("withdrawing-warning")) {
+        setCloseText(
+          "Confirm withdrawal by RBF: Broadcast new transaction with higher fee."
+        );
+      } else {
+        setCloseText(
+          "Confirm withdrawal. Withdrawal fee: " + withdraw_fee / 100 + "%"
+        );
       }
-    } else if(children.props.className.includes('withdraw-button')){
-      if(children.props.className.includes("withdrawing-warning")){
-        setCloseText('Confirm withdrawal by RBF: Broadcast new transaction with higher fee.')
-      }else{
-        setCloseText('Confirm withdrawal. Withdrawal fee: ' + withdraw_fee/100 + '%')
-      }
-    } else if(swapRecords.length > 0){
-      setCloseText('Your swaps will be cancelled, are you sure?');
-    } 
-    else{
-      setCloseText('Are you sure?')
+    } else if (swapRecords.length > 0) {
+      setCloseText("Your swaps will be cancelled, are you sure?");
+    } else {
+      setCloseText("Are you sure?");
     }
-  }
+  };
   const handleClose = () => {
     onCancel && onCancel();
     setShowModal(false);
   };
   const handleConfirm = (event) => {
-    if(children.props.className === 'header-logout'){
+    if (children.props.className === "header-logout") {
       // ensure to delete all recorded swapped coins then close wallet
       dispatch(removeAllCoinsFromSwapRecords());
     }
@@ -86,10 +93,17 @@ const ConfirmPopup = ({ children, onOk, onCancel, preCheck=null, argsCheck=null 
           <p className="confirm-question">{closeText}</p>
         </Modal.Body>
         <div className="custom-modal-footer group-btns">
-          <button className="action-btn-normal Body-button transparent" onClick={handleClose}>
+          <button
+            className="action-btn-normal Body-button transparent"
+            onClick={handleClose}
+          >
             Cancel
           </button>
-          <button className="action-btn-blue" onClick={handleConfirm}>
+          <button
+            data-cy="modal-close-confirm-btn"
+            className="action-btn-blue"
+            onClick={handleConfirm}
+          >
             Confirm
           </button>
         </div>
