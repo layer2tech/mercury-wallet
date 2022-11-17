@@ -141,7 +141,7 @@
 
 /* manual dark mode 
 /* ❗️ keep the rules in sync with the automatic dark mode above! */
-:root.dark {
+:root:root.dark {
   --primary: var(--dark1);
   --background: var(--dark2);
   --container: var(--dark3);
