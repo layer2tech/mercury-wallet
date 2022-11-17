@@ -34,7 +34,7 @@ jobs:
       - name: Run e2e tests
         uses: cypress-io/github-action@v4
         with:
-          start: npm start
+          start: npm run adapters-browser
           wait-on: "http://localhost:3000/#/"
           browser: chrome
           # we have already installed all dependencies above
