@@ -25,7 +25,7 @@ if (!isElectron()) {
   process.argv[5] = __dirname + "/resources/win/Data/Tor/geoip";
   process.argv[6] = __dirname + "/resources/win/Data/Tor/geoip6";
 } else{
-  var network = process.argv[2].includes('tor') ? "tor" : "i2p";
+  var network = process.argv[2].includes('tor') ? "tor" : "i2pd";
 }
 const express = require("express");
 var geoip = require("geoip-country");
