@@ -66,7 +66,7 @@ class Config{
                         }
                         break;
                 case "i2p_proxy":
-                    if(this.network === "i2p"){
+                    if(this.network === "i2pd"){
                         Object.entries(item[1]).forEach((tp_item) => {
                             switch(tp_item[0]){
                                 case "ip":
@@ -92,7 +92,7 @@ class Config{
                         break;
 
                 case "i2p_endpoints":
-                    if(this.network === "i2p"){
+                    if(this.network === "i2pd"){
                         this.state_entity_endpoint = item[1].state_entity_endpoint.split(',');
                         this.swap_conductor_endpoint = item[1].swap_conductor_endpoint.split(',');
                     }
