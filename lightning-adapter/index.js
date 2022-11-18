@@ -5,3 +5,4 @@ const wasm_file = fs.readFileSync(
   "node_modules/lightningdevkit/liblightningjs.wasm"
 );
 await ldk.initializeWasmFromBinary(wasm_file);
+
