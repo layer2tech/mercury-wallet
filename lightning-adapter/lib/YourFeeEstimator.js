@@ -1,12 +1,12 @@
-import { ConfirmationTarget, FeeEstimatorInterface } from "lightningdevkit";
+import { ConfirmationTarget, FeeEstimator } from "lightningdevkit";
 
 var feerate_fast = 7500; // estimate fee rate in BTC/kB
 var feerate_medium = 7500; // estimate fee rate in BTC/kB
 var feerate_slow = 7500; // estimate fee rate in BTC/kB
 
-class YourFeeEstimator extends FeeEstimatorInterface {
+class YourFeeEstimator extends FeeEstimator {
 
-  get_est_sat_per_1000_weight(conf_target) {
+  get_sat_per_1000_weight(conf_target) {
     switch (conf_target) {
       case ConfirmationTarget.LDKConfirmationTarget_Background:
         // insert code to retireve a background feerate

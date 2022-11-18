@@ -2,7 +2,7 @@ import * as ldk from "lightningdevkit";
 import * as fs from "fs";
 // import YourFeeEstimator from './lib/YourFeeEstimator.ts';
 import { strict as assert } from "assert";
-import YourFeeEstimator from "./lib/YourFeeEstimator";
+import YourFeeEstimator from "./lib/YourFeeEstimator.js";
 
 
 
@@ -14,7 +14,7 @@ await ldk.initializeWasmFromBinary(wasm_file);
 
 const fee_estimator = ldk.FeeEstimator.new_impl(new YourFeeEstimator());
 
-console.log(fee_estimator);
+// console.log('FEE: ',fee_estimator.get_sat_per_1000_weight(1));
 
 
 
