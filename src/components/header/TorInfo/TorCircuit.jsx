@@ -19,6 +19,10 @@ import {
   setIntervalIfOnline,
   setWarning,
   setNetworkType,
+  saveWallet,
+  setWalletLoaded,
+  stopWallet,
+  unloadWallet,
 } from "../../../features/WalletDataSlice";
 import "./torCircuit.css";
 import "./networkSwitch.css";
@@ -93,21 +97,28 @@ const TorCircuit = (props) => {
       getTorCircuitInfo();
     });
   };
+  const handleLogout = async () => {
+    await stopWallet();
+    unloadWallet();
+    dispatch(setWalletLoaded({ loaded: false }));
+  };
 
   const setNetwork = () => {
     if (props.networkType === NETWORK_TYPE.TOR) {
       setNetworkType(NETWORK_TYPE.I2P);
       props.setNetworkType(NETWORK_TYPE.I2P);
+      handleLogout();
     } else {  
       setNetworkType(NETWORK_TYPE.TOR);
       props.setNetworkType(NETWORK_TYPE.TOR);
+      handleLogout();
     }
   }
 
   const networkSwitch = () => {
     dispatch(setWarning({
-      title: "Restart Wallet",
-      msg: "Please restart the wallet after a network change.",
+      title: "Log Out Required",
+      msg: "Log out require on network change.",
       onConfirm: setNetwork,
     }));
   };
