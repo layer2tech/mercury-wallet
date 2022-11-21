@@ -59,7 +59,9 @@ export const callSetArgsHasTestnet = async (value) => {
 };
 
 export const callGetNetwork = () => {
-  return wallet.config.network;
+  if (isWalletLoaded()) {
+    return wallet.config.network;
+  }
 };
 
 let wallet;
@@ -855,12 +857,12 @@ export const checkSend = (dispatch, inputAddr) => {
 export const setNetworkType = async (networkType) => {
   if (isWalletLoaded()) {
     wallet.networkType = networkType;
-    wallet.config = new Config(wallet.network, networkType, testing_mode);
+    wallet.config = new Config(wallet.config.network, networkType, testing_mode);
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
+    defaultWalletConfig();
     await wallet.set_tor_endpoints();
     await wallet.save();
-    defaultWalletConfig();
   }
 }
 
