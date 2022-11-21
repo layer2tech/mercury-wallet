@@ -118,7 +118,7 @@ const TorCircuit = (props) => {
   const networkSwitch = () => {
     dispatch(setWarning({
       title: "Log Out Required",
-      msg: "Log out require on network change.",
+      msg: "Log out required on network change.",
       onConfirm: setNetwork,
     }));
   };
