@@ -59,7 +59,9 @@ export const callSetArgsHasTestnet = async (value) => {
 };
 
 export const callGetNetwork = () => {
-  return wallet.config.network;
+  if (isWalletLoaded()) {
+    return wallet.config.network;
+  }
 };
 
 let wallet;
