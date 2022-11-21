@@ -164,7 +164,7 @@ const CreateStatecoin = (props) => {
               .catch((e) => {
                 setError({
                   error: true,
-                  message: "Failed retrieving fee info from server...",
+                  message: "Awaiting fee info from server... retry",
                 });
                 props.handleChildErrors(true);
                 setLoading(false);
@@ -176,7 +176,7 @@ const CreateStatecoin = (props) => {
         setLoading(false);
         setError({
           error: true,
-          message: "Failed retrieving statecoin values from server...",
+          message: "Awaiting statecoin values from server... retry",
         });
         props.handleChildErrors(true);
       });
@@ -194,7 +194,7 @@ const CreateStatecoin = (props) => {
         }
         return prevValue;
       });
-    }, 25000);
+    }, 30000);
 
     return () => {
       isMounted = false;
