@@ -13,7 +13,7 @@ import { AddressInput, Tutorial } from "../../components";
 
 import PageHeader from '../PageHeader/PageHeader';
 import { useState } from "react";
-import ChannelList from "../../components/Channels/ChannelList";
+import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
 const ReceiveLightning = () => {
     const [inputAddr, setInputAddr] = useState("");
@@ -50,10 +50,11 @@ const ReceiveLightning = () => {
 
           <div className="withdraw content">
               <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select channel to receive</h3>
-                  </div>
-                  <ChannelList />
+                <ItemsContainer 
+                  channelListProps={{
+                    title: "Select channel to receive"
+                  }}
+                />
               </div>
               <div className="Body right">
                   <div className="header">

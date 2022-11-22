@@ -17,7 +17,7 @@ import { AddressInput, Tutorial } from "../../components";
 
 import './WithdrawLightning.css';
 import PageHeader from '../PageHeader/PageHeader';
-import ChannelList from '../../components/Channels/ChannelList';
+import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
 const WithdrawLightning = () => {
 
@@ -116,10 +116,11 @@ const WithdrawLightning = () => {
 
           <div className="withdraw content">
               <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select channel to withdraw</h3>
-                  </div>
-                  <ChannelList />
+                <ItemsContainer 
+                  channelListProps={{
+                    title: "Select channel to withdraw"
+                  }}
+                />
 
               </div>
               <div className="Body right">

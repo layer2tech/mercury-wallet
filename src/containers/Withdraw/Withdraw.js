@@ -253,17 +253,16 @@ const WithdrawPage = () => {
 
           <div className="withdraw content">
               <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select statecoins to withdraw</h3>
-                      <span className="sub">Click to select coins below</span>
-                      <CoinsList
-                        showCoinStatus={true}
-                        displayDetailsOnClick={false}
-                        selectedCoins={selectedCoins}
-                        setSelectedCoin = {addSelectedCoin}
-                        refresh = {refreshCoins}
-                        render = {forceRender}/>
-                  </div>
+              <ItemsContainer
+                coinsListProps={{
+                  title: "Select statecoins to withdraw",
+                  subtitle: "Click to select coins below",
+                  selectedCoins: selectedCoins,
+                  setSelectedCoin: addSelectedCoin,
+                  refresh: refreshCoins,
+                  render: forceRender
+                }}
+              />
 
               </div>
               <div className="Body right">

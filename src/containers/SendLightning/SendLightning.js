@@ -13,7 +13,7 @@ import { AddressInput, Tutorial } from "../../components";
 
 import PageHeader from '../PageHeader/PageHeader';
 import { useState } from "react";
-import ChannelList from "../../components/Channels/ChannelList";
+import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
 const SendLightning = () => {
 
@@ -51,10 +51,11 @@ const SendLightning = () => {
 
           <div className="withdraw content">
               <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select channel to send</h3>
-                  </div>
-                  <ChannelList />
+                <ItemsContainer 
+                  channelListProps={{
+                    title: "Select channel to send"
+                  }}
+                  />
 
               </div>
               <div className="Body right">
