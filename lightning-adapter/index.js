@@ -126,7 +126,7 @@ class LDK {
     );
 
     // Step 10: Read ChannelMonitor from disk
-    const channel_monitor_list = persister.read_channel_monitors(keys_manager);
+    // const channel_monitor_list = persister.read_channel_monitors(keys_manager);
 
     // Step 11: Initialize the ChannelManager
     const channel_manager = ldk.ChannelManager.constructor_new(
