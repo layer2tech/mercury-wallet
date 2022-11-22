@@ -32,12 +32,12 @@ class LDK {
   }
 
   start() {
-    // step 1 fee estimator
+    // Step 1 fee estimator
     const fee_estimator = ldk.FeeEstimator.new_impl(new MercuryFeeEstimator());
-    // step 2 logger
+    // Step 2 logger
     const logger = ldk.Logger.new_impl(new MercuryLogger());
 
-    // step 3 broadcast interface
+    // Step 3 broadcast interface
     var tx_broadcaster;
     const tx_broadcasted = new Promise((resolve, reject) => {
       tx_broadcaster = ldk.BroadcasterInterface.new_impl({
@@ -49,7 +49,9 @@ class LDK {
       });
     });
 
-    // Step 4: Initialize Persist
+    // Step 4: Optional: Initialize the NetworkGraph
+
+    // Step 5: Initialize Persist
     const persister = ldk.Persist.new_impl(new MercuryPersister());
 
     // Step 6: Initialize the EventHandler
@@ -79,6 +81,8 @@ class LDK {
         }
       },
     });
+
+    // Step 7: Optional: Initialize the transaction filter
 
     // Step 8: Initialize the ChainMonitor
     const chain_monitor = ldk.ChainMonitor.constructor_new(
@@ -121,6 +125,8 @@ class LDK {
       )
     );
 
+    // Step 10: Read ChannelMonitor from disk
+
     // Step 11: Initialize the ChannelManager
     const channel_manager = ldk.ChannelManager.constructor_new(
       fee_estimator,
@@ -132,7 +138,9 @@ class LDK {
       params
     );
 
-    // Step 12: ChannelMonitor and ChannelManager to chain tip
+    // Step 12: Sync ChannelMonitors and ChannelManager to chain tip - needs electrum
+
+    // Step 13: Optional: Bind a listening port
 
     // Step 14: Keep LDK Up-to-date with chain info
   }
