@@ -32,12 +32,12 @@ class LDK {
   }
 
   start() {
-    // Step 1 fee estimator
+    // Step 1: fee estimator
     const fee_estimator = ldk.FeeEstimator.new_impl(new MercuryFeeEstimator());
-    // Step 2 logger
+    // Step 2: logger
     const logger = ldk.Logger.new_impl(new MercuryLogger());
 
-    // Step 3 broadcast interface
+    // Step 3: broadcast interface
     var tx_broadcaster;
     const tx_broadcasted = new Promise((resolve, reject) => {
       tx_broadcaster = ldk.BroadcasterInterface.new_impl({
