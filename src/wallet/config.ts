@@ -122,6 +122,7 @@ export class Config {
     this.tutorials = false;
     this.swaplimit = 1440;
 
+    this.update(require('../settings.json'));
     this.update(defaultWalletConfig());
   }
 
