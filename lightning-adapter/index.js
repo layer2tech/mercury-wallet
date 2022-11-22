@@ -12,16 +12,6 @@ const wasm_file = fs.readFileSync(
 
 await ldk.initializeWasmFromBinary(wasm_file);
 
-// example way of using this and getting a reference to ElectrumClient
-
-/*
-class LDK {
-  electrum_client : ElectrumClient;
-  constructor(ElectrumClient){
-
-  }
-}*/
-
 class LDK {
   electrum_client;
   fee_estimator;
@@ -147,4 +137,4 @@ class LDK {
   }
 }
 
-//new LDK().start();
+new LDK().start();
