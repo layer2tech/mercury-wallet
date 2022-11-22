@@ -6,7 +6,7 @@ import WrappedLogger from "../wrapped_logger";
 import { ElectrumClientConfig } from "./electrum";
 const NETWORK_CONFIG = require("../network.json");
 const bitcoin = require("bitcoinjs-lib");
-import { getNetworkType } from "../features/WalletDataSlice";
+import { callGetNetwork, getNetworkType } from "../features/WalletDataSlice";
 
 // Node friendly importing required for Jest tests.
 declare const window: any;
@@ -15,6 +15,46 @@ declare const window: any;
 export let log = new WrappedLogger();
 
 let cloneDeep = require("lodash.clonedeep");
+
+
+export const defaultWalletConfig = async () => {
+  
+  let networkType = getNetworkType();
+  networkType = (networkType === undefined) ? "tor" : networkType.toLowerCase();
+  if (callGetNetwork() === bitcoin.networks.testnet) {
+    console.log("use testnet network settings");
+    return {
+      network: bitcoin.networks.testnet,
+      notifications: false,
+      singleSwapMode: false,
+      tutorials: false,
+      state_entity_endpoint: NETWORK_CONFIG[networkType].testnet_state_entity_endpoint,
+      swap_conductor_endpoint: NETWORK_CONFIG[networkType].testnet_swap_conductor_endpoint,
+      block_explorer_endpoint: NETWORK_CONFIG[networkType].testnet_block_explorer_endpoint,
+      electrum_config: process.env.TESTNET_ELECTRUM_CONFIG
+      ? process.env.TESTNET_ELECTRUM_CONFIG
+      :NETWORK_CONFIG[networkType].testnet_electrum_config,
+      tor_proxy:  NETWORK_CONFIG[networkType].proxy,
+      min_anon_set: "",
+    };
+  } else {
+    console.log("use mainnet network settings");
+    return {
+      network: bitcoin.networks.bitcoin,
+      notifications: false,
+      singleSwapMode: false,
+      tutorials: false,
+      state_entity_endpoint: NETWORK_CONFIG[networkType].mainnet_state_entity_endpoint,
+      swap_conductor_endpoint: NETWORK_CONFIG[networkType].mainnet_swap_conductor_endpoint,
+      block_explorer_endpoint: NETWORK_CONFIG[networkType].mainnet_block_explorer_endpoint,
+      electrum_config: process.env.MAINNET_ELECTRUM_CONFIG
+      ? process.env.MAINNET_ELECTRUM_CONFIG
+      :NETWORK_CONFIG[networkType].mainnet_electrum_config,
+      tor_proxy: NETWORK_CONFIG[networkType].proxy,
+      min_anon_set: "",
+    };
+  }
+};
 
 export class Config {
   // Set at startup only
@@ -82,7 +122,7 @@ export class Config {
     this.tutorials = false;
     this.swaplimit = 1440;
 
-    this.update(require("../settings.json"));
+    this.update(defaultWalletConfig());
   }
 
   getConfig() {
