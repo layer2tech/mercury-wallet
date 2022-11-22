@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { StdButton, AddressInput, SendModal, ConfirmPopup, Loading, CoinsList, ItemsContainer } from "../../components";
+import { StdButton, AddressInput, SendModal, ConfirmPopup, Loading, ItemsContainer } from "../../components";
 
 import { fromSatoshi } from '../../wallet/util';
 import { decodeSCEAddress,  encodeMessage } from '../../wallet/util';

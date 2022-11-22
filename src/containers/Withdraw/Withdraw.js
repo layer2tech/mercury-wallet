@@ -21,7 +21,7 @@ import {isWalletLoaded,
   checkWithdrawal
 } from '../../features/WalletDataSlice';
 
-import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, CoinsList} from "../../components";
+import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, ItemsContainer} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/MainHeader/MainHeader"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
 import {Modal, Spinner} from 'react-bootstrap';
