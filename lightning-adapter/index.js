@@ -52,7 +52,35 @@ class LDK {
     // Step 4: Initialize Persist
     const persister = ldk.Persist.new_impl(new MercuryPersister());
 
-    // Step 5: Initialize the ChainMonitor
+    // Step 6: Initialize the EventHandler
+    let event_handler = ldk.EventHandler.new_impl({
+      handle_event: function (e) {
+        console.log(">>>>>>> Handling Event here <<<<<<<", e);
+        if (e instanceof ldk.Event_FundingGenerationReady) {
+          //console.log(e)
+          var final_tx = 0;
+          console.log(e.temporary_channel_id, e.counterparty_node_id, final_tx);
+          //channel_manager.funding_transaction_generated(e.temporary_channel_id, e.counterparty_node_id, final_tx);
+          // <insert code to handle this event>
+        } else if (e instanceof Event.Event_PaymentReceived) {
+          // <insert code to handle this event>
+        } else if (e instanceof Event.Event_PaymentSent) {
+          // <insert code to handle this event>
+        } else if (e instanceof Event.Event_PaymentPathFailed) {
+          // <insert code to handle this event>
+        } else if (e instanceof Event.Event_PendingHTLCsForwardable) {
+          // <insert code to handle this event>
+        } else if (e instanceof Event.Event_SpendableOutputs) {
+          // <insert code to handle this event>
+        } else if (e instanceof Event.Event_PaymentForwarded) {
+          // <insert code to handle this event>
+        } else if (e instanceof Event.Event_ChannelClosed) {
+          // <insert code to handle this event>
+        }
+      },
+    });
+
+    // Step 8: Initialize the ChainMonitor
     const chain_monitor = ldk.ChainMonitor.constructor_new(
       ldk.Option_FilterZ.constructor_none(),
       tx_broadcaster,
@@ -62,7 +90,7 @@ class LDK {
     );
     const chain_watch = chain_monitor.as_Watch();
 
-    // Step 6: Initialize the KeysManager
+    // Step 9: Initialize the KeysManager
     const ldk_data_dir = "./.ldk/";
     if (!fs.existsSync(ldk_data_dir)) {
       fs.mkdirSync(ldk_data_dir);
@@ -93,7 +121,7 @@ class LDK {
       )
     );
 
-    // Step 8: Initialize the ChannelManager
+    // Step 11: Initialize the ChannelManager
     const channel_manager = ldk.ChannelManager.constructor_new(
       fee_estimator,
       chain_watch,
@@ -104,49 +132,8 @@ class LDK {
       params
     );
 
-    // Step 11: Optional: Initialize the P2PGossipSync
-    /*
-    let genesis_hash =
-      "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f";
-    let network_graph = ldk.NetworkGraph.constructor_new(
-      Buffer.from(genesis_hash, "hex"),
-      logger
-    );
+    // Step 12: ChannelMonitor and ChannelManager to chain tip
 
-    console.log(network_graph);
-
-    let gossip_sync = ldk.P2PGossipSync.constructor_new(
-      network_graph,
-      new ldk.Option_AccessZ(),
-      logger
-    );*/
-
-    // Initialize the EventHandler
-    let event_handler = ldk.EventHandler.new_impl({
-      handle_event: function (e) {
-        console.log(">>>>>>> Handling Event here <<<<<<<", e);
-        if (e instanceof ldk.Event_FundingGenerationReady) {
-          //console.log(e)
-          var final_tx = 0;
-          console.log(e.temporary_channel_id, e.counterparty_node_id, final_tx);
-          //channel_manager.funding_transaction_generated(e.temporary_channel_id, e.counterparty_node_id, final_tx);
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_PaymentReceived) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_PaymentSent) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_PaymentPathFailed) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_PendingHTLCsForwardable) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_SpendableOutputs) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_PaymentForwarded) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_ChannelClosed) {
-          // <insert code to handle this event>
-        }
-      },
-    });
+    // Step 14: Keep LDK Up-to-date with chain info
   }
 }
