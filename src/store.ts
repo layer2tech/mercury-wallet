@@ -15,7 +15,7 @@ import WrappedLogger from "./wrapped_logger";
 let cloneDeep = require("lodash.clonedeep");
 
 let isElectron = require("is-electron");
-const TestingWithJest = () => {
+export const TestingWithJest = () => {
   return process.env.JEST_WORKER_ID !== undefined;
 };
 // required on ELECTRON  ////////////////////////// -> must be changed to detect if browser or electrion
