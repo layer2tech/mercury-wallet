@@ -113,6 +113,8 @@ const initialState = {
   coinsAdded: 0,
   coinsRemoved: 0,
   torInfo: { online: true },
+  showWithdrawPopup: false,
+  withdraw_txid: "",
 };
 
 // Check if a wallet is loaded in memory
@@ -1374,6 +1376,18 @@ const WalletSlice = createSlice({
         ...state,
         ping_electrum_ms: action.payload,
       };
+    },
+    setShowWithdrawPopup(state, action) {
+      return {
+        ...state,
+        showWithdrawPopup: action.payload,
+      };
+    },
+    setWithdrawTxid(state, action) {
+      return {
+        ...state,
+        withdrawTxid: action.payload,
+      };
     }
   },
   extraReducers: {
@@ -1524,7 +1538,9 @@ export const {
   setTorOnline,
   setPingServerMs,
   setPingConductorMs,
-  setPingElectrumMs
+  setPingElectrumMs,
+  setShowWithdrawPopup,
+  setWithdrawTxid
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 

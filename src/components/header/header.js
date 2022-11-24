@@ -20,6 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import WarningPopup from "../WarningPopUp/WarningPopUp";
 import InfoModal from "../InfoModal/InfoModal";
 import isElectron from "is-electron";
+import WithdrawModal from "../WithdrawModal/WithdrawModal";
 
 const Header = (props) => {
   const dispatch = useDispatch();
@@ -159,6 +160,7 @@ const Header = (props) => {
       <ProgressBar />
       <WarningPopup />
       <InfoModal />
+      <WithdrawModal />
     </div>
   );
 };
