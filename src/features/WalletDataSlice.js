@@ -176,6 +176,8 @@ async function pingElectrumRestart(force = false) {
     mutex.runExclusive(async () => {
       wallet.electrum_client = wallet.newElectrumClient();
       try {
+        //init Block height
+        await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
         wallet.initElectrumClient(setBlockHeightCallBack);
       } catch (err) {
         log.info(`Failed to initialize electrum client: ${err}`);
@@ -227,6 +229,12 @@ export async function walletLoad(name, password, router) {
   await walletLoadConnection(wallet);
 }
 
+export async function callGetLatestBlock(){
+  if(isWalletLoaded){
+    return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+  }
+}
+
 export async function walletLoadConnection(wallet) {
   if (testing_mode) log.info("Testing mode set.");
 
@@ -240,8 +248,10 @@ export async function walletLoadConnection(wallet) {
   await wallet.deRegisterSwaps(true);
 
   await mutex.runExclusive(async () => {
-    await wallet.set_tor_endpoints()
-    wallet.initElectrumClient(setBlockHeightCallBack);
+    await wallet.set_tor_endpoints();
+    //init Block height
+    await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+    await wallet.initElectrumClient(setBlockHeightCallBack);
     wallet.updateSwapStatus();
     await wallet.updateSwapGroupInfo();
     // await UpdateSpeedInfo(store.dispatch);
@@ -284,6 +294,8 @@ export async function walletFromMnemonic(
   await mutex.runExclusive(async () => {
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
+    //init Block height
+    await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
       let recoveryComplete = false;
@@ -340,6 +352,9 @@ export const walletFromJson = async (wallet_json, password) => {
       .runExclusive(async () => {
         await wallet.setHttpClient(networkType);
         await wallet.setElectrsClient(networkType);
+        //init Block height
+        await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+
         wallet.initElectrumClient(setBlockHeightCallBack);
         await callNewSeAddr();
         wallet.updateSwapStatus();
