@@ -14,18 +14,22 @@ import {isWalletLoaded,
   setWithdrawTxid
 } from '../../features/WalletDataSlice';
 
-import { AddressInput, Tutorial } from "../../components";
-
+import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
 
 import './WithdrawLightning.css';
 import PageHeader from '../PageHeader/PageHeader';
 import ChannelList from '../../components/Channels/ChannelList';
+import Loading from '../../components/Loading/Loading';
 
 const WithdrawLightning = () => {
 
     const dispatch = useDispatch();
   
     const [inputAddr, setInputAddr] = useState("");
+
+    const [loading, setLoading] = useState(false);
+
+    const [withdrawingWarning, setWithdrawingWarning] = useState(false);
   
     const [txFeePerB, setTxFeePerB] = useState(7); // chosen fee per kb value
   
@@ -74,8 +78,10 @@ const WithdrawLightning = () => {
     }
 
     const withdrawButtonAction = async () => {
+      setLoading(true);
       dispatch(setShowWithdrawPopup(true));
       dispatch(setWithdrawTxid("abcdefghijklmno123456789"));
+      // setLoading(false);
     }
 
   
@@ -175,9 +181,11 @@ const WithdrawLightning = () => {
                   </div>
 
                   <div>
-                    <button type="button" className={`btn withdraw-button `} onClick={withdrawButtonAction}>
-                        <img src={withdrowIcon} alt="withdrowIcon"/>
-                        Withdraw btc</button>
+                  <ConfirmPopup onOk = {withdrawButtonAction} >
+                        <button type="button" className={`btn withdraw-button ${loading} ${withdrawingWarning ? ("withdrawing-warning") : (null)}`} >
+                            {loading?(null):(<img src={withdrowIcon} alt="withdrowIcon"/>)}
+                            {loading?(<Loading/>):("Withdraw btc")}</button>
+                      </ConfirmPopup>
                   </div>
               </div>
           </div>
