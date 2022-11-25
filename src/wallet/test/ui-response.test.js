@@ -167,7 +167,7 @@ async function goToMainPage() {
   await waitForElementToBeRemoved(screen.getByText(/continue/i));
 
   await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {
-    timeout: 15000,
+    timeout: 30000,
   });
   await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {
     timeout: 10000,
