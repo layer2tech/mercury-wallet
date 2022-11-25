@@ -9,7 +9,9 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {isWalletLoaded,
   callGetFeeEstimation,
-  callGetConfig
+  callGetConfig,
+  setShowWithdrawPopup,
+  setWithdrawTxid
 } from '../../features/WalletDataSlice';
 
 import { AddressInput, Tutorial } from "../../components";
@@ -69,6 +71,11 @@ const WithdrawLightning = () => {
     // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
     if (!isWalletLoaded()) {
       return <Redirect to="/" />;
+    }
+
+    const withdrawButtonAction = async () => {
+      dispatch(setShowWithdrawPopup(true));
+      dispatch(setWithdrawTxid("abcdefghijklmno123456789"));
     }
 
   
@@ -168,7 +175,7 @@ const WithdrawLightning = () => {
                   </div>
 
                   <div>
-                    <button type="button" className={`btn withdraw-button `} >
+                    <button type="button" className={`btn withdraw-button `} onClick={withdrawButtonAction}>
                         <img src={withdrowIcon} alt="withdrowIcon"/>
                         Withdraw btc</button>
                   </div>
