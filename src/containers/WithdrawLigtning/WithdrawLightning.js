@@ -11,7 +11,8 @@ import {isWalletLoaded,
   callGetFeeEstimation,
   callGetConfig,
   setShowWithdrawPopup,
-  setWithdrawTxid
+  setWithdrawTxid,
+  checkChannelWithdrawal
 } from '../../features/WalletDataSlice';
 
 import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
@@ -29,6 +30,11 @@ const WithdrawLightning = () => {
 
     const [loading, setLoading] = useState(false);
 
+    const [forceRender, setRender]  =  useState({});
+    const [refreshChannels, setRefreshChannels] = useState(false);
+
+    const [selectedChannels, setSelectedChannels] = useState([]);
+
     const [withdrawingWarning, setWithdrawingWarning] = useState(false);
   
     const [txFeePerB, setTxFeePerB] = useState(7); // chosen fee per kb value
@@ -40,6 +46,22 @@ const WithdrawLightning = () => {
     const onInputAddrChange = (event) => {
       setInputAddr(event.target.value);
     };
+
+    const addSelectedChannel = (channel_id) => {
+      if(loading) return
+      // Stop coins removing if clicked while pending transaction
+      
+      let newSelectedChannels = selectedChannels;
+      const isChannelId = (element) => element === channel_id;
+      let index = newSelectedChannels.findIndex(isChannelId);
+      if (index !== -1){
+        newSelectedChannels.splice(index,1);
+      } else {
+        newSelectedChannels.push(channel_id);
+      }
+      setSelectedChannels(newSelectedChannels);
+      setRender({});
+    }
 
     // Get Tx fee estimate
     useEffect(() => {
@@ -79,8 +101,9 @@ const WithdrawLightning = () => {
 
     const withdrawButtonAction = async () => {
       setLoading(true);
+      setRefreshChannels((prevState) => !prevState);
       dispatch(setShowWithdrawPopup(true));
-      dispatch(setWithdrawTxid("abcdefghijklmno123456789"));
+      dispatch(setWithdrawTxid("wzxykmopq123456"));
       // setLoading(false);
     }
 
@@ -132,7 +155,12 @@ const WithdrawLightning = () => {
                   <div>
                       <h3 className="subtitle">Select channel to withdraw</h3>
                   </div>
-                  <ChannelList />
+                  <ChannelList 
+                    selectedChannels={selectedChannels}
+                    setSelectedChannel = {addSelectedChannel}
+                    refresh = {refreshChannels}
+                    render = {forceRender}
+                  />
 
               </div>
               <div className="Body right">
@@ -181,7 +209,7 @@ const WithdrawLightning = () => {
                   </div>
 
                   <div>
-                  <ConfirmPopup onOk = {withdrawButtonAction} >
+                  <ConfirmPopup preCheck={checkChannelWithdrawal} argsCheck={[dispatch, selectedChannels, inputAddr]} onOk = {withdrawButtonAction} >
                         <button type="button" className={`btn withdraw-button ${loading} ${withdrawingWarning ? ("withdrawing-warning") : (null)}`} >
                             {loading?(null):(<img src={withdrowIcon} alt="withdrowIcon"/>)}
                             {loading?(<Loading/>):("Withdraw btc")}</button>

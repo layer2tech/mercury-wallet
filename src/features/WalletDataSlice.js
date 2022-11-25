@@ -809,6 +809,27 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
   }
 };
 
+export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) => {
+  // Pre action confirmation checks for withdrawal - return true to prevent action
+
+  // check statechain is chosen
+  if (selectedChannels.length === 0) {
+    dispatch(setError({ msg: "Please choose a channel to withdraw." }));
+    return true;
+  }
+  if (!inputAddr) {
+    dispatch(setError({ msg: "Please enter an address to withdraw to." }));
+    return true;
+  }
+
+  try {
+    bitcoin.address.toOutputScript(inputAddr, wallet.config.network);
+  } catch (e) {
+    dispatch(setError({ msg: "Invalid Bitcoin address entered." }));
+    return true;
+  }
+};
+
 export const checkSend = (dispatch, inputAddr) => {
   // Pre action confirmation checks for send statecoin - return true to prevent action
 
