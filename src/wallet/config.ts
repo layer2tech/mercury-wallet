@@ -15,7 +15,9 @@ declare const window: any;
 export let log = new WrappedLogger();
 
 let cloneDeep = require("lodash.clonedeep");
-
+export const TestingWithJest = () => {
+  return process.env.JEST_WORKER_ID !== undefined;
+};
 
 export const defaultWalletConfig = async () => {
   
@@ -123,7 +125,10 @@ export class Config {
     this.swaplimit = 1440;
 
     this.update(require('../settings.json'));
-    this.update(defaultWalletConfig());
+    if(TestingWithJest()){
+
+      this.update(defaultWalletConfig());
+    }
   }
 
   getConfig() {
