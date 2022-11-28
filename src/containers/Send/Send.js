@@ -221,7 +221,7 @@ const SendStatecoinPage = () => {
           <div>
 
 
-            <ConfirmPopup onOk={sendButtonCheck} preCheck={checkSend} argsCheck={[dispatch, inputAddr]}>
+            <ConfirmPopup onOk={sendButtonCheck} preCheck={checkSend} argsCheck={[dispatch, selectedCoins, inputAddr]}>
               <button type="action-btn-normal" 
                 className = { `btn send-action-button ${loading} 
                 ${ (selectedCoins.length > 1 && !(inputAddr.substring(0,4) === 'xpub' || inputAddr.substring(0,4) === 'tpub'))?("privacy"): (null)  }
