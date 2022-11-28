@@ -830,9 +830,14 @@ export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) =>
   }
 };
 
-export const checkSend = (dispatch, inputAddr) => {
+export const checkSend = (dispatch, selectedCoins, inputAddr) => {
   // Pre action confirmation checks for send statecoin - return true to prevent action
 
+  // check statechain is chosen
+  if (selectedCoins.length === 0) {
+    dispatch(setError({ msg: "Please choose a StateCoin to send." }));
+    return true;
+  }
   var input_pubkey = "";
 
   try {
