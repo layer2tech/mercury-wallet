@@ -366,9 +366,18 @@ export class Storage {
     });
 
     //Store the update objects
-    this.store.set(sc_dest, stored_sc_obj);
-    this.store.set(swapped_sc_dest, stored_swapped_sc_obj);
-    this.store.set(swapped_ids_dest, stored_swapped_ids);
+    if(isElectron()){
+      let getStoredWallet = this.store.get(`${wallet_name}`)
+      getStoredWallet.statecoins_obj = stored_sc_obj;
+      getStoredWallet.swapped_statecoins_obj = stored_swapped_sc_obj;
+      getStoredWallet.swapped_ids = stored_swapped_ids;
+      this.store.set(`${wallet_name}`, getStoredWallet);
+    }else{
+      this.store.set(sc_dest, stored_sc_obj);
+      this.store.set(swapped_sc_dest, stored_swapped_sc_obj);
+      this.store.set(swapped_ids_dest, stored_swapped_ids);
+    }
+
   }
 
   storeWalletActivityLog(wallet_name: string, activity_log: ActivityLog) {
