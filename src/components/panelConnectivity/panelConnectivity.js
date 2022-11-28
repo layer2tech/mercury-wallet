@@ -156,7 +156,7 @@ const PanelConnectivity = (props) => {
     } else{
       if( block_height === null || block_height === 0 ){
         // call to electrum server to set wallet var
-        setBlockHeight(await callGetLatestBlock())
+        setBlockHeight(await callGetLatestBlock()?.header)
       }
     }
     // set blockheight with wallet variable
