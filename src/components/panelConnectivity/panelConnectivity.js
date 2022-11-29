@@ -17,9 +17,9 @@ import {
 import "./panelConnectivity.css";
 import "../index.css";
 import RadioButton from "./RadioButton";
-import { defaultWalletConfig } from "../../containers/Settings/Settings";
 import WrappedLogger from "../../wrapped_logger";
 import DropdownArrow from "../DropdownArrow/DropdownArrow";
+import { defaultWalletConfig } from "../../wallet/config";
 
 
 // Logger import.

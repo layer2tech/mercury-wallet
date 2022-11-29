@@ -1015,11 +1015,14 @@ describe("Retry Recovery", function () {
     // WalletMock = jest.spyOn(Wallet, 'fromMnemonic').mockImplementation(() => {
     //   return Wallet.fromMnemonic
     // })
+    console.log('Reset all')
     jest.restoreAllMocks();
+    jest.clearAllMocks();
     router = [];
   });
 
   beforeEach(async () => {
+
     wallet = await Wallet.buildMock(bitcoin.networks.testnet, http_mock);
 
     // Set Mocks for walletFromMnemonic call
@@ -1052,7 +1055,7 @@ describe("Retry Recovery", function () {
       200,
       0
     );
-
+    console.log('Success: ', router[0])
     expect(router[0]).toBe("/home");
   });
 
@@ -1077,7 +1080,7 @@ describe("Retry Recovery", function () {
     } catch {}
 
     let errorMessage = store.getState().walletData.error_dialogue.msg;
-
+    console.log('Failure: ', errorMessage)
     expect(errorMessage).toBe("Error in Recovery: Network Error");
   });
 
@@ -1108,10 +1111,64 @@ describe("Retry Recovery", function () {
     } catch {}
 
     let progressMsg = store.getState().walletData.progress.msg;
-
+    console.log('fail 3 times then passes: ', progressMsg)
     expect(progressMsg).toBe("");
-
+    
+    console.log('fail 3 times then passes: ', router[0])
     expect(router[0]).toBe("/home");
+  });
+});
+
+describe.only('Recovery Account Reset', () => {
+
+  let wallet;
+
+  // client side's mock
+  let wasm_mock = jest.genMockFromModule("../mocks/mock_wasm");
+  // server side's mock
+  let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
+
+  let resetSwapStates;
+  let set_tor_endpoints;
+  let initElectrumClient;
+  let recoverCoinsMock;
+  let WalletMock;
+  let stopMock;
+  let router = [];
+
+  let store = configureStore({ reducer: reducers });
+  // Load state
+
+
+  afterEach(() => {
+    // WalletMock = jest.spyOn(Wallet, 'fromMnemonic').mockImplementation(() => {
+    //   return Wallet.fromMnemonic
+    // })
+    console.log('Reset all')
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+    router = [];
+  });
+
+  beforeEach(async () => {
+
+    wallet = await Wallet.buildMock(bitcoin.networks.testnet, http_mock);
+
+    // Set Mocks for walletFromMnemonic call
+    resetSwapStates = jest
+      .spyOn(wallet, "resetSwapStates")
+      .mockImplementation();
+    set_tor_endpoints = jest
+      .spyOn(wallet, "set_tor_endpoints")
+      .mockImplementation();
+    initElectrumClient = jest
+      .spyOn(wallet, "initElectrumClient")
+      .mockImplementation();
+    stopMock = jest.spyOn(wallet, "stop").mockImplementation();
+
+    WalletMock = jest.spyOn(Wallet, "fromMnemonic").mockImplementation(() => {
+      return wallet;
+    });
   });
 
   test("Wallet account reset after each retry", async () => {
@@ -1132,10 +1189,14 @@ describe("Retry Recovery", function () {
     let gap_start = 0;
     let gap_limit = 200;
 
+    console.log('wallet account reset after retry: begin' )
+    
     await recoverCoins(wallet, gap_limit, gap_start, store.dispatch);
-
+    
     await recoverCoins(wallet, gap_limit, gap_start, store.dispatch);
-
+    
+    console.log('wallet account reset after retry: end',  wallet.account.chains[0].k)
     expect(wallet.account.chains[0].k).toBe(200);
   });
-});
+}
+)

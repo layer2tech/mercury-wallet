@@ -51,7 +51,7 @@ import Swap from "./swap/swap";
 
 import { v4 as uuidv4 } from "uuid";
 import { Config } from "./config";
-import { Storage } from "../store";
+import { Storage, TestingWithJest } from "../store";
 import { groupInfo, swapDeregisterUtxo } from "./swap/info_api";
 import { addRestoredCoinDataToWallet, recoverCoins } from "./recovery";
 
@@ -329,7 +329,7 @@ export class Wallet {
 
 
   async setHttpClient(networkType: string) {
-    if (this.config.testing_mode !== true) {
+    if (this.config.testing_mode !== true && !TestingWithJest()) {
       if (networkType === NETWORK_TYPE.I2P) {
         this.http_client = new HttpClient(I2P_URL, false);
       } else {
@@ -341,7 +341,7 @@ export class Wallet {
 
 
   async setElectrsClient(networkType: string) {
-    if (this.config.testing_mode !== true) {
+    if (this.config.testing_mode !== true && !TestingWithJest()) {
       if (networkType === NETWORK_TYPE.I2P) {
         this.electrum_client = new ElectrsClient(I2P_URL, false);
       } else {

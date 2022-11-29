@@ -28,10 +28,9 @@ import "./torCircuit.css";
 import "./networkSwitch.css";
 import TorCircuitNode from "./TorCircuitNode";
 import { handleNetworkError } from "../../../error";
-import { defaultWalletConfig } from "../../../containers/Settings/Settings";
 import WrappedLogger from "../../../wrapped_logger";
 import { NETWORK_TYPE } from "../../../wallet/wallet";
-
+import { defaultWalletConfig } from "../../../wallet/config";
 // Logger import.
 // Node friendly importing required for Jest tests.
 let log;

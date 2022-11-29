@@ -15,7 +15,6 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import { NETWORK_TYPE } from "../wallet/wallet";
-import { defaultWalletConfig } from "../containers/Settings/Settings";
 // import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
@@ -880,7 +879,6 @@ export const setNetworkType = async (networkType) => {
     wallet.config = new Config(wallet.config.network, networkType, testing_mode);
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
-    defaultWalletConfig();
     await wallet.set_tor_endpoints();
     await wallet.save();
   }
