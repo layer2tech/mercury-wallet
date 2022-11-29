@@ -217,7 +217,9 @@ export class Wallet {
 
     this.electrum_client = this.newElectrumClient();
 
+    // reference to lightning
     this.lightning_client = new LightningClient(this.electrum_client);
+    // start a lightning node here
     this.lightning_client.start();
 
     this.block_height = 0;

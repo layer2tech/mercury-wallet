@@ -1,6 +1,5 @@
 "use strict";
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   updateBalanceInfo,
@@ -52,25 +51,7 @@ const WALLET_OPTIONS = [
   },
 ];
 
-import * as ldk from "lightningdevkit";
-const compileWasm = (pathToWasm) => {
-  fetch(pathToWasm)
-    .then((response) => {
-      return response.arrayBuffer();
-    })
-    .then((bytes) => {
-      ldk
-        .initializeWasmFromBinary(bytes)
-        .then(() => {})
-        .catch((err) => console.error(err));
-    });
-};
-
 const MainHeader = ({ mainUnit, icon }) => {
-  useEffect(async () => {
-    compileWasm("liblightningjs.wasm");
-  });
-
   const dispatch = useDispatch();
   const { filterBy, balance_info, walletMode } = useSelector(
     (state) => state.walletData
