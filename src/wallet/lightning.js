@@ -2,11 +2,11 @@ import * as ldk from "lightningdevkit";
 import * as fs from "fs";
 import MercuryFeeEstimator from "./lightning/MercuryFeeEstimator";
 import MercuryLogger from "./lightning/MercuryLogger";
-import * as AsBind from "as-bind";
 
 console.log("initialize the wasm from fetch...");
 
-//ldk.initializeWasmWebFetch("node_modules/lightningdevkit/liblightningjs.wasm");
+// THIS BREAKS THE PROJECT but we need the ldk/wasm initialized  somehow
+ldk.initializeWasmFromBinary("../../static/liblightningjs.wasm");
 
 export class LightningClient {
   fee_estimator;
