@@ -6,7 +6,21 @@ import MercuryLogger from "./lightning/MercuryLogger";
 console.log("initialize the wasm from fetch...");
 
 // THIS BREAKS THE PROJECT but we need the ldk/wasm initialized  somehow
-ldk.initializeWasmFromBinary("../../static/liblightningjs.wasm");
+fetch("../../static/liblightningjs.wasm")
+  .then((response) => {
+    return response.arrayBuffer();
+  })
+  .then((bytes) => {
+    ldk
+      .initializeWasmFromBinary(bytes)
+      .then(() => {
+        const result = testMessageExchange();
+        result
+          ? console.log("TESTMESSAGEEXCHANGE WORKED!")
+          : console.log("WE BROKE SOMETHING");
+      })
+      .catch((err) => console.error(err));
+  });
 
 export class LightningClient {
   fee_estimator;
