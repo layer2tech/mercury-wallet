@@ -11,13 +11,11 @@ fetch("../../static/liblightningjs.wasm")
     return response.arrayBuffer();
   })
   .then((bytes) => {
+    console.log("THEN....", bytes);
     ldk
       .initializeWasmFromBinary(bytes)
       .then(() => {
-        const result = testMessageExchange();
-        result
-          ? console.log("TESTMESSAGEEXCHANGE WORKED!")
-          : console.log("WE BROKE SOMETHING");
+        console.log(".then called after initializeWasmFromBinary");
       })
       .catch((err) => console.error(err));
   });
