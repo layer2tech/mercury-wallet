@@ -1412,7 +1412,7 @@ const WalletSlice = createSlice({
     setWithdrawTxid(state, action) {
       return {
         ...state,
-        withdrawTxid: action.payload,
+        withdraw_txid: action.payload,
       };
     }
   },
