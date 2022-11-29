@@ -68,24 +68,27 @@ const TorCircuit = (props) => {
 
   const getTorCircuitInfo = () => {
     if (props.online) {
-      let torcircuit_data = null;
-      try {
-        dispatch(callUpdateTorCircuitInfo());
-        torcircuit_data = callGetTorcircuitInfo();
-      } catch (err) {
-        handleNetworkError(err);
-      }
-      let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
-      const loaded = torcircuit_data != null && torcircuit_data.length > 0;
-      setTorLoaded(loaded);
       if( props.networkType === NETWORK_TYPE.I2P){
+
         // If I2P connection selected check for I2P connection
         // If callUpdateTorCircuitInfo doesn't throw error then there is connection
         dispatch(setTorOnline(true));
+        return
       } else{
+        let torcircuit_data = null;
+        try {
+          dispatch(callUpdateTorCircuitInfo());
+          torcircuit_data = callGetTorcircuitInfo();
+        } catch (err) {
+          handleNetworkError(err);
+        }
+        let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
+        const loaded = torcircuit_data != null && torcircuit_data.length > 0;
+        setTorLoaded(loaded);
         dispatch(setTorOnline(loaded));
+        
+        setTorcircuitData(torcircuit_array);
       }
-      setTorcircuitData(torcircuit_array);
     } else {
       dispatch(setTorOnline(false));
       setTorLoaded(false);

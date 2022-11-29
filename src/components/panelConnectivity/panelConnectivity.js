@@ -10,7 +10,8 @@ import {
   callGetSwapGroupInfo,
   setIntervalIfOnline,
   WALLET_MODE,
-  UpdateSpeedInfo
+  UpdateSpeedInfo,
+  callGetLatestBlock
 } from "../../features/WalletDataSlice";
 
 import "./panelConnectivity.css";
@@ -40,7 +41,6 @@ const PanelConnectivity = (props) => {
   });
 
   const [block_height, setBlockHeight] = useState(callGetBlockHeight());
-
 
   const [server_connected, setServerConnected] = useState(ping_server_ms ? true : false);
   const [conductor_connected, setConductorConnected] = useState(ping_conductor_ms ? true : false);
@@ -78,6 +78,9 @@ const PanelConnectivity = (props) => {
       ,setServerConnected, setConductorConnected, setElectrumConnected, block_height);
   };
 
+  useEffect(() => {
+    updateSpeedInfo(true)
+  }, [])
   // every 30s check speed
   useEffect(() => {
     let isMounted = true;
@@ -105,7 +108,6 @@ const PanelConnectivity = (props) => {
   // every 500ms check if block_height changed and set a new value
   useEffect(() => {
     let isMounted = true;
-
     let interval = setIntervalIfOnline(
       getBlockHeight,
       torInfo.online,
@@ -124,34 +126,19 @@ const PanelConnectivity = (props) => {
   useEffect(() => {
     if( walletMode === WALLET_MODE.STATECHAIN ){
 
-      //Displaying connecting spinners
-      let connection_pending = document.getElementsByClassName("checkmark");
-  
-      if (server_connected == null && fee_info?.deposit != null) {
+      if (fee_info?.deposit != "NA") {
         setServerConnected(true);
       }
-      //Add spinner for loading connection to Server
-      server_connected === true
-        ? connection_pending[0].classList.add("connected")
-        : connection_pending[0].classList.remove("connected");
   
       //Add spinner for loading connection to Swaps
-      if (conductor_connected == null && swap_groups_array?.length != null) {
+
+      if (swap_groups_array?.length != null) {
         setConductorConnected(true);
       }
-      if (conductor_connected === true) {
-        connection_pending[1].classList.add("connected");
-      } else {
-        connection_pending[1].classList.remove("connected");
-      }
-  
       //Add spinner for loading connection to Electrum server
-      if (electrum_connected == null && block_height != null && block_height >= 0) {
+      if (block_height != null && block_height > 0) {
         setElectrumConnected(true);
       }
-      electrum_connected === true
-        ? connection_pending[2].classList.add("connected")
-        : connection_pending[2].classList.remove("connected");
     }
   }, [
     fee_info.deposit,
@@ -161,12 +148,18 @@ const PanelConnectivity = (props) => {
     ping_conductor_ms,
     ping_electrum_ms
   ]);
-
   const getBlockHeight = async () => {
     if (torInfo.online !== true) {
-      // setBlockHeight(null)
+      // set blockheight to null if app offline
+      setBlockHeight(null)
       return;
+    } else{
+      if( block_height === null || block_height === 0 ){
+        // call to electrum server to set wallet var
+        setBlockHeight(await callGetLatestBlock()?.header)
+      }
     }
+    // set blockheight with wallet variable
     setBlockHeight(callGetBlockHeight());
     if(block_height && (block_height !== 0)){
       setElectrumConnected(true);
@@ -215,18 +208,18 @@ const PanelConnectivity = (props) => {
             <div className="Collapse">
               <RadioButton
                 connection="Server"
-                checked={server_connected === true}
-                condition={server_connected === true}
+                checked={server_connected}
+                condition={ server_connected && ( ping_server_ms === "NA" || ping_server_ms < 10000 ) }
               />
               <RadioButton
                 connection="Swaps"
-                checked={conductor_connected === true}
-                condition={conductor_connected === true}
+                checked={conductor_connected}
+                condition={conductor_connected && ( ping_conductor_ms === "NA" || ping_conductor_ms < 10000 )}
               />
               <RadioButton
                 connection="Bitcoin"
-                checked={electrum_connected === true}
-                condition={electrum_connected === true}
+                checked={electrum_connected}
+                condition={electrum_connected && ( ping_electrum_ms === "NA" || ping_electrum_ms < 10000 )}
               />
 
               <DropdownArrow 
