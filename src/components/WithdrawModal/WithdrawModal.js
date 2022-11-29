@@ -14,7 +14,7 @@ const WithdrawModal = () => {
   const dispatch = useDispatch();
 
   const showWithdrawPopup = useSelector((state) => state.walletData).showWithdrawPopup;
-  const withdraw_txid = useSelector((state) => state.walletData).withdrawTxid;
+  const withdraw_txid = useSelector((state) => state.walletData).withdraw_txid;
   
   const handleClose = () => {
     dispatch(setShowWithdrawPopup(!showWithdrawPopup));
@@ -24,6 +24,8 @@ const WithdrawModal = () => {
   const copyTxIDToClipboard = () => {
     navigator.clipboard.writeText(withdraw_txid);
   }
+
+  console.log('withdraw_txid: ',withdraw_txid)
 
     return (
         <Modal show ={showWithdrawPopup} 
