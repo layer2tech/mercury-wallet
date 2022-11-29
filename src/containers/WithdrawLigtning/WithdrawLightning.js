@@ -49,7 +49,7 @@ const WithdrawLightning = () => {
 
     const addSelectedChannel = (channel_id) => {
       if(loading) return
-      // Stop coins removing if clicked while pending transaction
+      // Stop channels removing if clicked while pending transaction
       
       let newSelectedChannels = selectedChannels;
       const isChannelId = (element) => element === channel_id;

@@ -812,7 +812,7 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
 export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) => {
   // Pre action confirmation checks for withdrawal - return true to prevent action
 
-  // check statechain is chosen
+  // check if channel is chosen
   if (selectedChannels.length === 0) {
     dispatch(setError({ msg: "Please choose a channel to withdraw." }));
     return true;
@@ -829,6 +829,21 @@ export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) =>
     return true;
   }
 };
+
+export const checkChannelSend = (dispatch, selectedChannels, inputAddr) => {
+  // Pre action confirmation checks for send sats - return true to prevent action
+
+  // check if channel is chosen
+  if (selectedChannels.length === 0) {
+    dispatch(setError({ msg: "Please choose a channel to send sats." }));
+    return true;
+  }
+  if (!inputAddr) {
+    dispatch(setError({ msg: "Please enter a lightning address to send sats." }));
+    return true;
+  }
+  // Check for valid lightning address needs to be included
+}
 
 export const checkSend = (dispatch, selectedCoins, inputAddr) => {
   // Pre action confirmation checks for send statecoin - return true to prevent action
