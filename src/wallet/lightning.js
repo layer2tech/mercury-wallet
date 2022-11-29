@@ -4,15 +4,9 @@ import MercuryFeeEstimator from "./lightning/MercuryFeeEstimator";
 import MercuryLogger from "./lightning/MercuryLogger";
 import * as AsBind from "as-bind";
 
-/*
-(async () => {
-  console.log("fetch wasm file...");
-  const response = await fetch("liblightningjs.wasm");
-  const buffer = await response.arrayBuffer();
-  const obj = await WebAssembly.instantiate(buffer);
-})();
-console.log("wasm was finished...");
-*/
+console.log("initialize the wasm from fetch...");
+
+//ldk.initializeWasmWebFetch("node_modules/lightningdevkit/liblightningjs.wasm");
 
 export class LightningClient {
   fee_estimator;

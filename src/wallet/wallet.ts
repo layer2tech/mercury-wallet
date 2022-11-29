@@ -169,6 +169,7 @@ export class Wallet {
   warnings: Warning[];
   statechain_id_set: Set<string>;
   wasm: any;
+  lightningWasm: any;
   saveMutex: Mutex;
 
   storage: Storage;
@@ -914,6 +915,19 @@ export class Wallet {
 
   async importWasm() {
     this.wasm = await import("client-wasm");
+  }
+
+  async importLightningWasm() {
+    this.lightningWasm = await import("lightningdevkit");
+  }
+
+  async getLightningWasm() {
+    if (this.lightningWasm == null) {
+      await this.importLightningWasm();
+    } else {
+      await this.lightningWasm.init();
+    }
+    return this.lightningWasm;
   }
 
   // Getters
