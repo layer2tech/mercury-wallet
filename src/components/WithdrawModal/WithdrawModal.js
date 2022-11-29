@@ -25,8 +25,6 @@ const WithdrawModal = () => {
     navigator.clipboard.writeText(withdraw_txid);
   }
 
-  console.log('withdraw_txid: ',withdraw_txid)
-
     return (
         <Modal show ={showWithdrawPopup} 
           onHide = {() => {
