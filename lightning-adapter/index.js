@@ -15,7 +15,7 @@ class LDK {
     this.electrum_client = _electrumclient;
   }
 
-  start() {
+  async start() {
     // Step 1: fee estimator
     const fee_estimator = ldk.FeeEstimator.new_impl(new MercuryFeeEstimator());
     // Step 2: logger
@@ -79,11 +79,6 @@ class LDK {
     const chain_watch = chain_monitor.as_Watch();
 
     // Step 9: Initialize the KeysManager
-    const ldk_data_dir = "./.ldk/";
-    if (!fs.existsSync(ldk_data_dir)) {
-      fs.mkdirSync(ldk_data_dir);
-    }
-    const keys_seed_path = ldk_data_dir + "keys_seed";
 
     var seed = null;
     if (!fs.existsSync(keys_seed_path)) {
@@ -113,15 +108,14 @@ class LDK {
     // const channel_monitor_list = persister.read_channel_monitors(keys_manager);
 
     // Step 11: Initialize the ChannelManager
-    const channel_manager = ldk.ChannelManager.constructor_new(
-      fee_estimator,
-      chain_watch,
-      tx_broadcaster,
-      logger,
-      keys_interface,
-      config,
-      params
-    );
+
+    const confRes = await this.initConfig(
+      true,
+      false,
+      ChannelHandshakeConfig,
+      false,
+      1
+    ); //TODO Verify correct min - maybe not 1
 
     // Step 12: Sync ChannelMonitors and ChannelManager to chain tip - needs electrum
 
@@ -142,6 +136,162 @@ class LDK {
       chain_monitor.as_EventsProvider().process_pending_events(event_handler);
     }, 2000);
   }
+
+  async initConfig(
+    acceptInboundChannels,
+    manuallyAcceptInboundChannels,
+    ChannelHandshakeConfig,
+    announcedChannels,
+    minChannelHandshakeDepth,
+    promise
+  ) {
+    //   if (userConfig !== null) {
+    //     // return handleReject(promise, LdkErrors.already_init)
+    // }
+
+    let userConfig = ldk.UserConfig.constructor_default();
+    if (!userConfig) {
+      throw "Error";
+    }
+
+    userConfig.set_accept_inbound_channels(acceptInboundChannels);
+    userConfig.set_manually_accept_inbound_channels(
+      manuallyAcceptInboundChannels
+    );
+
+    const channelConfig = ldk.ChannelConfig.constructor_default();
+    userConfig.set_channel_config(channelConfig);
+
+    ChannelHandshakeConfig.set_minimum_depth(
+      parseInt(minChannelHandshakeDepth)
+    );
+    ChannelHandshakeConfig.set_announced_channel(announcedChannels);
+
+    userConfig.set_channel_handshake_config(ChannelHandshakeConfig);
+
+    const channelHandshakeLimits =
+      ldk.ChannelHandshakeLimits.constructor_default();
+    channelHandshakeLimits.set_force_announced_channel_preference(true);
+    channelHandshakeLimits.set_max_minimum_depth(
+      parseInt(minChannelHandshakeDepth)
+    );
+    userConfig.set_channel_handshake_limits(channelHandshakeLimits);
+
+    // handleResolve(promise, LdkCallbackResponses.config_init_success)
+  }
+
+  //   initChannelManager(network, blockHash, blockHeight, chainMonitor, keysManager, promise) {
+  //     // if (channelManager !== null) {
+  //     //     // return handleReject(promise, LdkErrors.already_init)
+  //     //     throw 'Error'
+  //     // }
+
+  //     // chainMonitor ?: return handleReject(promise, LdkErrors.init_chain_monitor)
+  //     // keysManager ?: return handleReject(promise, LdkErrors.init_keys_manager)
+  //     // userConfig ?: return handleReject(promise, LdkErrors.init_user_config)
+  //     // networkGraph ?: return handleReject(promise, LdkErrors.init_network_graph)
+
+  //     if (accountStoragePath == "") {
+  //       throw 'Account storage Error'
+  //         // return handleReject(promise, LdkErrors.init_storage_path)
+  //     }
+  //     if (channelStoragePath == "") {
+  //       throw 'Channel Storage Error'
+  //         // return handleReject(promise, LdkErrors.init_storage_path)
+  //     }
+
+  //     let ldkNetwork;
+  //     let ldkCurrency;
+
+  //     switch (network) {
+  //       case "regtest":
+  //         ldkNetwork = ldk.Network.LDKNetwork_Regtest
+  //         ldkCurrency = ldk.Currency.LDKCurrency_Regtest
+  //         break
+  //       case "testnet":
+  //         ldkNetwork = ldk.Network.LDKNetwork_Testnet
+  //         ldkCurrency = ldk.Currency.LDKCurrency_BitcoinTestnet
+  //         break
+  //       case "mainnet":
+  //         ldkNetwork = ldk.Network.LDKNetwork_Bitcoin
+  //         ldkCurrency = ldk.Currency.LDKCurrency_Bitcoin
+  //         break
+  //       default:
+  //           // return handleReject(promise, LdkErrors.invalid_network)
+  //           throw 'error'
+  //     }
+
+  //     var channelManagerSerialized = null
+  //     var channelManagerFile = accountStoragePath + "/" + "channel_manager.bin"
+
+  //     if (fs.existsSync(channelManagerFile)) {
+  //       channelManagerSerialized = fs.readFile(channelManagerFile)
+  //     }
+
+  //     try {
+  //         if (channelManagerSerialized != null) {
+  //             //Restoring node
+  //             LdkEventEmitter.send(EventTypes.native_log, "Restoring node from disk")
+  //             var channelMonitors = arrayListOf()
+  //             Files.walk(Paths.get(channelStoragePath))
+  //                 .filter { Files.isRegularFile(it) }
+  //                 .forEach {
+  //                     LdkEventEmitter.send(EventTypes.native_log, "Loading channel from file " + it.fileName)
+  //                     channelMonitors.add(it.toFile().readBytes())
+  //                 }
+
+  //             const channelManagerConstructor = ldk.ChannelManager.constructor_new(
+  //               fee_estimator,
+  //               chain_watch,
+  //               tx_broadcaster,
+  //               logger,
+  //               keys_interface,
+  //               config,
+  //               params
+  //             );
+  //         } else {
+  //             //New node
+  //             LdkEventEmitter.send(EventTypes.native_log, "Creating new channel manager")
+  //             channelManagerConstructor = ChannelManagerConstructor(
+  //                 ldkNetwork,
+  //                 userConfig,
+  //                 blockHash.hexa(),
+  //                 blockHeight.toInt(),
+  //                 keysManager!!.as_KeysInterface(),
+  //                 feeEstimator.feeEstimator,
+  //                 chainMonitor,
+  //                 networkGraph!!,
+  //                 broadcaster.broadcaster,
+  //                 logger.logger,
+  //             )
+  //         }
+  //     } catch (e: Exception) {
+  //         return handleReject(promise, LdkErrors.unknown_error, Error(e))
+  //     }
+
+  //     channelManager = channelManagerConstructor!!.channel_manager
+
+  //     //Scorer setup
+  //     val params = ProbabilisticScoringParameters.with_default()
+  //     val default_scorer = ProbabilisticScorer.of(params, networkGraph, logger.logger)
+  //     val score_res = ProbabilisticScorer.read(
+  //         default_scorer.write(), params, networkGraph,
+  //         logger.logger
+  //     )
+  //     if (!score_res.is_ok) {
+  //         return handleReject(promise, LdkErrors.init_scorer_failed)
+  //     }
+  //     val score = (score_res as Result_ProbabilisticScorerDecodeErrorZ_OK).res.as_Score()
+  //     val scorer = MultiThreadedLockableScore.of(score)
+
+  //     channelManagerConstructor!!.chain_sync_completed(channelManagerPersister, scorer)
+  //     peerManager = channelManagerConstructor!!.peer_manager
+
+  //     peerHandler = channelManagerConstructor!!.nio_peer_handler
+  //     invoicePayer = channelManagerConstructor!!.payer
+
+  //     handleResolve(promise, LdkCallbackResponses.channel_manager_init_success)
+  // }
 }
 
 new LDK(new electrum_client()).start();
