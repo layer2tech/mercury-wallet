@@ -6,12 +6,6 @@ import MercuryLogger from "./lib/MercuryLogger.js";
 import crypto from "crypto";
 import MercuryPersister from "./lib/MercuryPersistor.js";
 
-const wasm_file = fs.readFileSync(
-  "node_modules/lightningdevkit/liblightningjs.wasm"
-);
-
-await ldk.initializeWasmFromBinary(wasm_file);
-
 class LDK {
   electrum_client;
   fee_estimator;
@@ -134,7 +128,20 @@ class LDK {
     // Step 13: Optional: Bind a listening port
 
     // Step 14: Keep LDK Up-to-date with chain info
+
+    console.log(
+      "Local Node ID is " +
+        Buffer.from(channel_manager.get_our_node_id()).toString("hex")
+    );
+    //channel_manager.timer_tick_occurred();
+
+    setInterval(() => {
+      //peer_manager.timer_tick_occurred();
+      //peer_manager.process_events();
+      channel_manager.as_EventsProvider().process_pending_events(event_handler);
+      chain_monitor.as_EventsProvider().process_pending_events(event_handler);
+    }, 2000);
   }
 }
 
-new LDK().start();
+new LDK(new electrum_client()).start();

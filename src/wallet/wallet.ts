@@ -78,6 +78,7 @@ import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
+import { LightningClient } from "./lightning";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -100,7 +101,7 @@ log = new WrappedLogger();
 // Set Network Type Tor || I2P
 export enum NETWORK_TYPE {
   TOR = "Tor",
-  I2P = "I2P"
+  I2P = "I2P",
 }
 export const mutex = new Mutex();
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890";
@@ -160,6 +161,7 @@ export class Wallet {
     | ElectrsLocalClient
     | EPSClient
     | MockElectrumClient;
+  lightning_client: LightningClient;
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
@@ -184,7 +186,7 @@ export class Wallet {
     http_client: any = undefined,
     wasm: any = undefined,
     storage_type: string | undefined = undefined,
-    networkType: string | undefined = undefined,
+    networkType: string | undefined = undefined
   ) {
     this.wasm = null;
     this.name = name;
@@ -198,7 +200,7 @@ export class Wallet {
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
-    if (networkType === undefined){
+    if (networkType === undefined) {
       this.networkType = NETWORK_TYPE.TOR;
     } else {
       this.networkType = networkType;
@@ -215,10 +217,16 @@ export class Wallet {
 
     this.electrum_client = this.newElectrumClient();
 
+    this.lightning_client = new LightningClient(this.electrum_client);
+    this.lightning_client.start();
+
     this.block_height = 0;
     this.current_sce_addr = "";
 
-    this.warnings = [{ name: "swap_punishment", show: true }, { name: "switch_network", show: true }];
+    this.warnings = [
+      { name: "swap_punishment", show: true },
+      { name: "switch_network", show: true },
+    ];
 
     this.storage = new Storage(`wallets/${this.name}/config`, storage_type);
 
@@ -327,7 +335,6 @@ export class Wallet {
     await this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
   }
 
-
   async setHttpClient(networkType: string) {
     if (this.config.testing_mode !== true) {
       if (networkType === NETWORK_TYPE.I2P) {
@@ -339,7 +346,6 @@ export class Wallet {
     }
   }
 
-
   async setElectrsClient(networkType: string) {
     if (this.config.testing_mode !== true) {
       if (networkType === NETWORK_TYPE.I2P) {
@@ -350,7 +356,7 @@ export class Wallet {
       }
     }
   }
-  
+
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(
     name: string,
@@ -454,13 +460,16 @@ export class Wallet {
     storage_type: string | undefined = undefined
   ): Wallet {
     try {
-      let networkType = (json_wallet.networkType === undefined) ? DEFAULT_NETWORK_TYPE : json_wallet.networkType;
-      
-      if(isElectron()){
-        if(json_wallet.config.electrum_config.host.includes('testnet')){
-          json_wallet.config.network = bitcoin.networks.testnet
+      let networkType =
+        json_wallet.networkType === undefined
+          ? DEFAULT_NETWORK_TYPE
+          : json_wallet.networkType;
+
+      if (isElectron()) {
+        if (json_wallet.config.electrum_config.host.includes("testnet")) {
+          json_wallet.config.network = bitcoin.networks.testnet;
         } else {
-          json_wallet.config.network = bitcoin.networks.bitcoin
+          json_wallet.config.network = bitcoin.networks.bitcoin;
         }
       }
 
@@ -480,7 +489,7 @@ export class Wallet {
         undefined,
         undefined,
         storage_type,
-        json_wallet.networkType,
+        json_wallet.networkType
       );
 
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
@@ -2281,8 +2290,10 @@ export class Wallet {
           if (
             !(err_str != null && err_str.includes("Coin is not in a swap pool"))
           ) {
-            log.info(`Error in deRegisterSwaps: ${err_str}`)
-            throw Error('Error: Connection Error - check connection and try again');
+            log.info(`Error in deRegisterSwaps: ${err_str}`);
+            throw Error(
+              "Error: Connection Error - check connection and try again"
+            );
           }
         }
       }
