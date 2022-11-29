@@ -50,14 +50,12 @@ const SendLightning = () => {
             subTitle = "Y BTC available over Z channels" />
 
           <div className="withdraw content">
-              <div className="Body left ">
-                <ItemsContainer 
-                  channelListProps={{
-                    title: "Select channel to send"
-                  }}
-                  />
+              <ItemsContainer 
+                channelListProps={{
+                  title: "Select channel to send"
+                }}
+                />
 
-              </div>
               <div className="Body right">
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>

@@ -252,7 +252,6 @@ const WithdrawPage = () => {
             subText = {filterByMsg()} />
 
           <div className="withdraw content">
-              <div className="Body left ">
               <ItemsContainer
                 coinsListProps={{
                   title: "Select statecoins to withdraw",
@@ -264,7 +263,6 @@ const WithdrawPage = () => {
                 }}
               />
 
-              </div>
               <div className="Body right">
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>

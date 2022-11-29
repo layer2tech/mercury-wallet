@@ -49,13 +49,11 @@ const ReceiveLightning = () => {
             subTitle = "Y BTC available over Z channels" />
 
           <div className="withdraw content">
-              <div className="Body left ">
-                <ItemsContainer 
-                  channelListProps={{
-                    title: "Select channel to receive"
-                  }}
-                />
-              </div>
+              <ItemsContainer 
+                channelListProps={{
+                  title: "Select channel to receive"
+                }}
+              />
               <div className="Body right">
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>

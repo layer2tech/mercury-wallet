@@ -115,14 +115,12 @@ const WithdrawLightning = () => {
             subTitle = "Create new lightning channels" />
 
           <div className="withdraw content">
-              <div className="Body left ">
-                <ItemsContainer 
-                  channelListProps={{
-                    title: "Select channel to withdraw"
-                  }}
-                />
+              <ItemsContainer 
+                channelListProps={{
+                  title: "Select channel to withdraw"
+                }}
+              />
 
-              </div>
               <div className="Body right">
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>

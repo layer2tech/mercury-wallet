@@ -193,20 +193,18 @@ const SendStatecoinPage = () => {
         subText = "statecoins" />
 
       <div className="sendStatecoin content">
-        <div className="Body left ">
-          <ItemsContainer 
-            coinsListProps={{
-              title: "Select statecoin to send",
-              subtitle: "Click to select coins below",
-              selectedCoins: selectedCoins,
-              setSelectedCoin: addSelectedCoin,
-              setCoinDetails: setCoinDetails,
-              refresh: refreshCoins,
-              render: forceRender
-            }}
-          />
+        <ItemsContainer 
+          coinsListProps={{
+            title: "Select statecoin to send",
+            subtitle: "Click to select coins below",
+            selectedCoins: selectedCoins,
+            setSelectedCoin: addSelectedCoin,
+            setCoinDetails: setCoinDetails,
+            refresh: refreshCoins,
+            render: forceRender
+          }}
+        />
 
-        </div>
         <div className="Body right">
           <div className="header">
             <h3 className="subtitle">Transaction Details</h3>
