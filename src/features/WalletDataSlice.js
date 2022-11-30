@@ -421,6 +421,29 @@ export const callSumStatecoinValues = (shared_key_ids) => {
   }
 };
 
+export const callSaveChannels = async (channels) => {
+  if (isWalletLoaded()) {
+    await wallet.saveChannels(channels);
+  }
+}
+
+export const getChannels = () => {
+  if (isWalletLoaded()) {
+    return wallet.channels;
+  }
+}
+
+export const callSumChannelAmt = (selectedChannels) => {
+  let totalSum = 0;
+  selectedChannels.map((selectedChannel) => {
+    let channel_arr = wallet.channels.filter(
+      (channel) => channel.id === selectedChannel
+    );
+    totalSum += channel_arr[0].amt;
+  });
+  return totalSum;
+}
+
 export const callIsBatchMixedPrivacy = (shared_key_ids) => {
   if (isWalletLoaded()) {
     return wallet.isBatchMixedPrivacy(shared_key_ids);
@@ -819,6 +842,12 @@ export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) =>
   }
   if (!inputAddr) {
     dispatch(setError({ msg: "Please enter an address to withdraw to." }));
+    return true;
+  }
+
+  // if total sats sum in all selected channels less than 0.001BTC (100000 sats) then return error
+  if (callSumChannelAmt(selectedChannels) < 100000) {
+    dispatch(setError({ msg: "Mininum withdrawal size is 0.001 BTC (100000 sats)." }));
     return true;
   }
 

@@ -142,6 +142,11 @@ export interface Warning {
   show: boolean;
 }
 
+export interface Channel {
+  id: string;
+  amt: Number;
+}
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -152,6 +157,7 @@ export class Wallet {
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
+  channels: Channel[];
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
   electrum_client:
@@ -195,6 +201,7 @@ export class Wallet {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
+    this.channels = [];
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
@@ -615,6 +622,10 @@ export class Wallet {
     }
     await this.saveItem("statecoins");
     this.clearFundingOutpointMap();
+  }
+
+  async saveChannels(channels: Channel[]) {
+    this.channels = channels;
   }
 
   async saveActivityLog() {
