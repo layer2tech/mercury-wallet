@@ -4,18 +4,18 @@
 import { Transaction, Network } from "bitcoinjs-lib";
 import { Wallet } from './wallet';
 import { BACKUP_STATUS, StateCoin, WithdrawalTxBroadcastInfo } from './statecoin';
-import { WithdrawMsg2 } from './mercury/withdraw';
 import {
   getRecoveryRequest, RecoveryDataMsg, FeeInfo, getFeeInfo,
   getStateChain, getStateChainTransferFinalizeData, TransferFinalizeDataAPI
 } from './mercury/info_api';
+
 import { StateChainSig, encodeSCEAddress, getTxFee, pubKeyToScriptPubKey } from "./util";
 import { GET_ROUTE } from '.';
+
 import {
   transferReceiverFinalizeRecovery, TransferFinalizeDataForRecovery
 } from './mercury/transfer';
 import { setProgressComplete, setProgress } from "../features/WalletDataSlice";
-import { forEachChild } from "typescript";
 
 let bitcoin = require('bitcoinjs-lib');
 let cloneDeep = require('lodash.clonedeep');

@@ -13,6 +13,7 @@ import { OutPoint } from "./wallet/mercury/info_api";
 import { SWAP_STATUS } from "./wallet/swap/swap_utils";
 import WrappedLogger from "./wrapped_logger";
 let cloneDeep = require("lodash.clonedeep");
+import { Token } from "./wallet/statecoin";
 
 let isElectron = require("is-electron");
 export const TestingWithJest = () => {
@@ -444,6 +445,10 @@ export class Storage {
   deleteWalletStateCoin(wallet_name: string, shared_key_id: string) {
     this.store.delete(`${wallet_name}.statecoins_obj.${shared_key_id}`);
   }
+
+  storeToken(wallet_name: string, tokens: Token){
+    this.store.set(wallet_name+'.tokens', tokens)
+  };
 
   storeWalletKeys(wallet_name: string, account: any) {
     // remove root keys

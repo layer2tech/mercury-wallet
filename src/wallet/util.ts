@@ -17,9 +17,16 @@ let crypto = require('crypto');
 
 let EC = require('elliptic').ec
 let secp256k1 = new EC('secp256k1')
+// BTC value -> Satoshi value
+export const toSatoshi = (btc: number) => { return Math.floor(btc * 10e7) }
+// Satoshi value -> BTC value
+export const fromSatoshi = (sat: number) => { return sat / 10e7 }
 
 /// Temporary - fees should be calculated dynamically
 export const FEE = 141;
+// Dust Limit for Pay on Deposit
+export const DUST_LIMIT = 546;
+
 //FEE for backup transaction 2 outputs 1 input P2WPKH
 export const FEE_1I1O = 110
 // FEE for 1 input 1 output P2WPKH
@@ -29,6 +36,12 @@ export const VIRTUAL_TX_SIZE = 226;
 //VIRTUAL_TX: 2 outputs 1 input (max byte size P2PKH)
 export const INPUT_TX_SIZE = 148;
 //INPUT_TX: 1 input (max byte size P2PKH)
+
+export const BACKUP_SEQUENCE = 0xFFFFFFFE;
+// Locktime enabled - for backup transactions
+
+export const WITHDRAW_SEQUENCE = 0xFFFFFFFD;
+// For withdrawal transactions
 
 // Verify Spase Merkle Tree proof of inclusion
 export const verifySmtProof = async (wasm_client: any, root: Root, proof_key: string, proof: any) => {
@@ -56,11 +69,6 @@ export const hexToBytes = (hex: string) => {
     bytes.push(parseInt(hex.substr(c, 2), 16));
     return bytes;
 }
-
-// BTC value -> Satoshi value
-export const toSatoshi = (btc: number) => { return Math.floor(btc * 10e7) }
-// Satoshi value -> BTC value
-export const fromSatoshi = (sat: number) => { return sat / 10e7 }
 
 export class StateChainSig {
     purpose: string; // "TRANSFER", "TRANSFER-BATCH" or "WITHDRAW"
@@ -139,49 +147,12 @@ export const getSigHash = (tx: Transaction, index: number, pk: string, amount: n
   return tx.hashForWitnessV0(index, script, amount, Transaction.SIGHASH_ALL).toString("hex");
 }
 
-// Backup Tx builder
-export const txBackupBuild = (network: Network, funding_txid: string, funding_vout: number, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number): TransactionBuilder => {
-  if (FEE+withdraw_fee >= value) throw Error(`Not enough value to cover fee. FEE:${FEE}, withdraw_fee:${withdraw_fee}, value:${value}`);
-
-  let txb = new TransactionBuilder(network);
-  txb.setLockTime(init_locktime);
-  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFE);
-  txb.addOutput(backup_receive_addr, value - FEE - withdraw_fee);
-  txb.addOutput(fee_address, withdraw_fee);
-  return txb
-}
-
-// Withdraw tx builder spending funding tx to:
-//     - amount-fee to receive address, and
-//     - amount 'fee' to State Entity fee address
-export const txWithdrawBuild = (network: Network,funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_address: string, withdraw_fee: number, fee_per_byte: number): TransactionBuilder => {
-
-  let tx_fee = getTxFee(fee_per_byte, 1)
-
-  if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
-
+export const txInputs = (network: Network, sc_infos: Array<StateChainDataAPI>, nSequence: number, init_locktime?: number):  {txb: TransactionBuilder, value: number}  => {
   let txb = new TransactionBuilder(network);
 
-  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFD);
-  txb.addOutput(rec_address, value - tx_fee - withdraw_fee);
-  txb.addOutput(fee_address, withdraw_fee);
+  if(init_locktime) txb.setLockTime(init_locktime);
 
-  return txb
-}
-
-export const getTxFee = (fee_per_byte: number, n_inputs: number = 1): number => {
-  return Math.round(fee_per_byte * (VIRTUAL_TX_SIZE + (INPUT_TX_SIZE * (n_inputs - 1))) * 10e7) / 10e7
-}
-
-// Withdraw tx builder spending funding tx to:
-//     - amount-fee to receive address, and
-//     - amount 'fee' to State Entity fee address
-export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_address: string, fee_info: FeeInfo, fee_per_byte: number): TransactionBuilder => {
-  // let txin = []; - not being used
-  let value = 0;
-  console.log("tx builder")
-  let txb: TransactionBuilder = new TransactionBuilder(network);
-  let index = 0;
+  let value : number = 0;
 
   for(let info of sc_infos){
     let utxo: OutPoint = info.utxo;
@@ -189,23 +160,91 @@ export const txWithdrawBuildBatch = (network: Network, sc_infos: Array<StateChai
       value = value + info.amount;
       let txid: string = utxo.txid;
       let vout: number = utxo.vout;
-      txb.addInput(txid, vout, 0xFFFFFFFD);
+      txb.addInput(txid, vout, nSequence);
     };
-    index = index + 1;
   }
-    
+  return {txb: txb, value: value}
+}
+
+
+export const calculateFees = (fee_info: FeeInfo, value: number, input_number: number, fee_per_byte?: number): number[] => {
   let withdraw_fee = Math.round((value * fee_info.withdraw) / 10000)//(value * fee_info.withdraw) / 10000
 
-  let tx_fee = getTxFee(fee_per_byte, sc_infos.length)
-    
-  if (withdraw_fee + tx_fee >= value) throw Error("Not enough value to cover fee.");
-  
-  txb.addOutput(rec_address,value - tx_fee - withdraw_fee)
+  if( FEE + withdraw_fee >= value ) throw Error(`Not enough value to cover fee. FEE:${FEE}, withdraw_fee:${withdraw_fee}, value:${value}`);
 
-  txb.addOutput(fee_info.address, withdraw_fee);
+  let tx_fee;
+
+  if(fee_per_byte){
+    // could calculate withdraw fee from fee_info here
+
+    tx_fee = getTxFee(fee_per_byte, input_number);
+
+  } else {
+
+    tx_fee = FEE;
+
+  }
   
-  return txb
+  return [tx_fee, withdraw_fee]
 }
+
+
+export const txOutputs = (txb: TransactionBuilder, value: number, input_number: number,   fee_info: FeeInfo, rec_addr: string, fee_per_byte? : number): TransactionBuilder => {
+
+  let [tx_fee, withdraw_fee] = calculateFees(fee_info, value, input_number, fee_per_byte);
+
+  if(withdraw_fee && withdraw_fee > 0){
+    // Withdrawal fee added as output
+    
+    txb.addOutput(rec_addr, value - tx_fee - withdraw_fee);
+
+    txb.addOutput( fee_info.address, withdraw_fee );
+
+  } else {
+    // Pay On Deposit implementation
+
+    txb.addOutput(rec_addr, value - tx_fee )
+
+  }
+
+  return txb
+
+
+}
+
+/* Build a transaction for backup or withdrawal
+* - input for item of sc_infos array
+* - 1 or 2 outputs depending if fee_info.withdraw ( withdrawal fee ) is greater than 0
+* - If withdrawal fee then 1 output sent to statechain entity
+*/
+
+/*
+*  If backup transaction use nSequence: 0xFFFFFFFE - this sets locktime for tx
+*  If withdrawal transaction use nSequence: 0xFFFFFFFD 
+*/
+
+export const txBuilder = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_addr: string, fee_info: FeeInfo, nSequence: number, fee_per_byte?:number, init_locktime?: number): TransactionBuilder => {
+
+  const transaction = txInputs( network, sc_infos, nSequence, init_locktime);
+  // Build input based of sc_infos.
+  // Loops sc_infos builds an input for each item in list
+  
+  let value = transaction.value;
+  // Total sum of all inputs
+
+  let txb = transaction.txb;
+  // all inputs
+
+  txb = txOutputs( txb, value, sc_infos.length, fee_info, rec_addr, fee_per_byte);
+
+  return txb
+
+}
+
+export const getTxFee = (fee_per_byte: number, n_inputs: number = 1): number => {
+  return Math.round(fee_per_byte * (VIRTUAL_TX_SIZE + (INPUT_TX_SIZE * (n_inputs - 1))) * 10e7) / 10e7
+}
+
 
 // CPFP tx builder spending backup tx to user specified address
 export const txCPFPBuild = (network: Network, funding_txid: string, funding_vout: number, rec_address: string, value: number, fee_rate: number, p2wpkh: any): TransactionBuilder => {

@@ -1,0 +1,68 @@
+.address-container{
+    display:flex;
+    flex-direction: column;
+}
+
+.token-deposit .receiveStatecoin-scan{
+    align-items: center;
+}
+.token-deposit .receiveStatecoin-scan.bottom{
+    margin-top: 22px;
+}
+
+.token-deposit .Body-button.expired{
+    margin-top: 0px;
+}
+
+.token-deposit .token-amount{
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    margin-bottom: 0px;
+    background-color: var(--alt-selected);
+}
+
+.token-amount .amount{
+    margin-bottom: 0px;
+    color: var(--)
+}
+
+.coin-count-display{
+    text-align: initial;
+}
+
+.coin-count-display .coin-count{
+    margin-bottom: 1px;
+}
+
+.pay-select{
+    display: flex;
+    justify-content: space-around;
+}
+.Body-button.token{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 22px;
+    margin-bottom:22px;
+    width: 300px;
+    height:100px;
+}
+.Body-button.token:hover{
+    box-shadow: 0px 0px 0px 0px !important;
+}
+.Body-button.token p{
+    font-size: 3rem;
+}
+
+.back-select img{
+    transform: rotate(-135deg);
+}
+.back-select{
+    display: flex;
+    flex-direction: flex-start;
+}
+
+.back-select button:hover{
+    box-shadow: 0px 0px 0px 0px !important;
+}

@@ -24,7 +24,9 @@ export const GET_ROUTE = {
   TRANSFER_GET_MSG_ADDR: "transfer/get_msg_addr",
   TOR_CIRCUITS: "tor_circuit",
   NEW_TOR_ID: "newid",
-  NEW_TOR_CIRCUIT: "newid"
+  NEW_TOR_CIRCUIT: "newid",
+  TOKEN_INIT: "pod/token/init",
+  TOKEN_VERIFY: "pod/token/verify",
 };
 Object.freeze(GET_ROUTE);
 
@@ -37,6 +39,7 @@ export const POST_ROUTE = {
   SIGN_SECOND: "ecdsa/sign/second",
   SMT_PROOF: "info/proof",
   DEPOSIT_INIT: "deposit/init",
+  POD_DEPOSIT_INIT: "pod/deposit/init",
   DEPOSIT_CONFIRM: "deposit/confirm",
   WITHDRAW_INIT: "withdraw/init",
   WITHDRAW_CONFIRM: "withdraw/confirm",

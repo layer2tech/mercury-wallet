@@ -29,7 +29,7 @@ import {
   proofKeyFromXpub,
 } from "./util";
 import { MasterKey2 } from "./mercury/ecdsa";
-import { depositConfirm, depositInit } from "./mercury/deposit";
+import { depositConfirm, depositInit, tokenDepositInit, tokenInit, tokenVerify } from "./mercury/deposit";
 import {
   withdraw,
   withdraw_init,
@@ -78,6 +78,7 @@ import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
+import { TokenData } from "./statecoin";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -166,6 +167,7 @@ export class Wallet {
   tor_circuit: TorCircuit[];
   warnings: Warning[];
   statechain_id_set: Set<string>;
+  tokens: TokenData[];
   wasm: any;
   saveMutex: Mutex;
 
@@ -198,6 +200,7 @@ export class Wallet {
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
+
     if (networkType === undefined){
       this.networkType = NETWORK_TYPE.TOR;
     } else {
@@ -223,6 +226,8 @@ export class Wallet {
     this.storage = new Storage(`wallets/${this.name}/config`, storage_type);
 
     this.statechain_id_set = new Set();
+
+    this.tokens = []
 
     this.tor_circuit = [];
 
@@ -488,6 +493,7 @@ export class Wallet {
 
       new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
+      if(json_wallet.tokens) new_wallet.tokens = json_wallet.tokens
       if (json_wallet.warnings !== undefined)
         new_wallet.warnings = json_wallet.warnings;
       // Make sure properties added to the wallet are handled
@@ -729,6 +735,20 @@ export class Wallet {
     }
 
     return n_recovered;
+  }
+
+  newHttpClient(http_client: HttpClient | MockHttpClient){
+    if (http_client) {
+      return http_client;
+    }
+    if(this.config.testing_mode === true){
+      return new MockHttpClient()
+    }
+    else {
+      let http = new HttpClient('http://localhost:3001', true);
+      this.set_tor_endpoints();
+      return http
+    }
   }
 
   newElectrumClient() {
@@ -1542,6 +1562,57 @@ export class Wallet {
     return true;
   }
 
+  getToken(token_id: string){
+    let token = this.tokens.filter( item => item.token.id === token_id );
+    if(token[0]){
+      return token[0]
+    } else{
+      return null
+    }
+  }
+  
+  getTokens(){
+    return this.tokens
+  }
+
+  spendToken(token_id: string, amount: number){
+
+    let token = this.getToken(token_id);
+    if(token){
+      let values = Array.from(token.values)
+      let index = values.indexOf(amount);
+      values.splice(index,1);
+      this.deleteToken(token_id);
+      let updated_token = {
+        token: token.token,
+        values: values
+      }
+      this.addToken(updated_token);
+    }
+
+
+
+    this.save();
+  }
+
+  //Add token to wallet
+  addToken(token: TokenData){
+    this.tokens.push(token);
+    this.save();
+    return token;
+  }
+
+  deleteToken(token_id: string) {
+    this.tokens = this.tokens.filter(item => {
+      if (item.token.id !== token_id) {
+        return item;
+      }
+      return null;
+    });
+
+    this.save();
+  }
+
   // Add confirmed Statecoin to wallet
   async addStatecoin(
     statecoin: StateCoin,
@@ -1695,6 +1766,66 @@ export class Wallet {
     return this.getBIP32forBtcAddress(p2wpkh);
   }
 
+  // Initialise Token Deposit - Pay on Deposit
+  async tokenInit(token_amount: number) {
+
+    let token = await tokenInit(this.http_client, token_amount);
+    
+    return token;
+  }
+
+  async tokenVerify(token_id: string){
+
+    let verif = await tokenVerify(this.http_client,token_id);
+    // Checks verification of last token with ID: token_id
+    return verif
+  }
+
+  async tokenDepositInit (value: number, token_id: string){
+
+    log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
+
+    let proof_key_bip32 = await this.genProofKey(); // Generate new proof key
+
+    let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
+    let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
+
+    let statecoin = await tokenDepositInit(
+      
+      this.http_client, 
+      await this.getWasm(),
+      token_id,
+      proof_key_pub,
+      proof_key_priv!,
+      value
+    );
+
+    // add proof key bip32 derivation to statecoin
+    statecoin.proof_key = proof_key_pub;
+
+    statecoin.value = value;
+
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+
+    //Coin created and activity list updated
+    this.addStatecoin(statecoin, ACTION.INITIATE);
+
+    // Co-owned key address to send funds to (P_addr)
+    let p_addr = statecoin.getBtcAddress(this.config.network);
+
+    // Import the BTC address into the wallet if using the electum-personal-server
+    await this.importAddress(p_addr)
+
+    // Begin task waiting for tx in mempool and update StateCoin status upon success.
+    this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
+
+    log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
+    await this.saveStateCoinsList();
+    
+    return [statecoin.shared_key_id, p_addr]
+    
+  }
+
   // Initialise deposit
   async depositInit(value: number) {
     log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
@@ -1704,10 +1835,11 @@ export class Wallet {
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex");
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex");
 
+    let wasm_client = await this.getWasm();
     // Initisalise deposit - gen shared keys and create statecoin
     let statecoin = await depositInit(
       this.http_client,
-      await this.getWasm(),
+      wasm_client,
       proof_key_pub,
       proof_key_priv!
     );

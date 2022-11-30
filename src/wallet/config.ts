@@ -4,6 +4,7 @@
 import { Network } from "bitcoinjs-lib/types/networks";
 import WrappedLogger from "../wrapped_logger";
 import { ElectrumClientConfig } from "./electrum";
+
 const NETWORK_CONFIG = require("../network.json");
 const bitcoin = require("bitcoinjs-lib");
 import { callGetNetwork, getNetworkType } from "../features/WalletDataSlice";

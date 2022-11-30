@@ -176,11 +176,21 @@ describe("StateChain Entity", function () {
 
   describe("Withdraw", function () {
     let fee_per_byte = 1;
-    test("Expect complete", async function () {
-      http_mock.get = jest
-        .fn()
-        .mockReset()
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+
+    test('Expect complete', async function() {
+
+      let STATECHAIN_INFO = {
+        utxo: {
+          txid: statecoin.funding_txid,
+          vout: statecoin.funding_vout
+        },
+        amount: statecoin.value,
+        chain: MOCK_SERVER.STATECHAIN_INFO.chain,
+        locktime: 100
+      }
+
+      http_mock.get = jest.fn().mockReset()
+        .mockReturnValueOnce(cloneDeep(STATECHAIN_INFO))
         .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO));
       http_mock.post = jest.fn().mockReset().mockReturnValueOnce(true); //POST.WITHDRAW_INIT
       // Sign
