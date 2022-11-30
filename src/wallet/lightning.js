@@ -4,21 +4,10 @@ import MercuryFeeEstimator from "./lightning/MercuryFeeEstimator";
 import MercuryLogger from "./lightning/MercuryLogger";
 
 console.log("initialize the wasm from fetch...");
+console.log("ldk", ldk);
 
 // THIS BREAKS THE PROJECT but we need the ldk/wasm initialized  somehow
-fetch("../../static/liblightningjs.wasm")
-  .then((response) => {
-    return response.arrayBuffer();
-  })
-  .then((bytes) => {
-    console.log("THEN....", bytes);
-    ldk
-      .initializeWasmFromBinary(bytes)
-      .then(() => {
-        console.log(".then called after initializeWasmFromBinary");
-      })
-      .catch((err) => console.error(err));
-  });
+await ldk.initializeWasmWebFetch("liblightningjs.wasm");
 
 export class LightningClient {
   fee_estimator;
@@ -30,7 +19,6 @@ export class LightningClient {
   constructor(_electrumClient) {
     this.electrum_client = _electrumClient;
 
-    /*
     console.log(
       "Lightning received an electrum_client of which ->",
       this.electrum_client
@@ -58,12 +46,17 @@ export class LightningClient {
     var genesisBlock = ldk.BestBlock.constructor_from_genesis(network);
     var genesis_block_hash = genesisBlock.block_hash();
 
-    var networkGraph = ldk.NetworkGraph.of(genesis_block_hash);
+    var networkGraph = ldk.NetworkGraph.constructor_new(
+      genesis_block_hash,
+      this.logger
+    );
 
+    console.group("network graph");
     console.log("network:", network);
-    console.log("genesisBlock", genesisBlock);
-    console.log("genesis_block_hash", genesis_block_hash);
-    */
+    console.log("genesisBlock:", genesisBlock);
+    console.log("genesis_block_hash:", genesis_block_hash);
+    console.log("networkGraph:", networkGraph);
+    console.groupEnd();
   }
 
   // starts the lightning LDK
