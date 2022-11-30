@@ -1,0 +1,411 @@
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"debug","message":"TorClient.newSocksAuthentication()...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 2206","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"debug","message":"TorClient.newSocksAuthentication()...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 2280","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"debug","message":"TorClient.newSocksAuthentication()...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 2296","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"debug","message":"TorClient.newSocksAuthentication()...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 1272","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"debug","message":"TorClient.newSocksAuthentication()...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 3553","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"debug","message":"TorClient.newSocksAuthentication()...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 3903","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"debug","message":"TorClient.newSocksAuthentication()...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 4175","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"debug","message":"TorClient.newSocksAuthentication()...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 5334","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"state_entity_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"swap_conductor_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"state_entity_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"swap_conductor_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"state_entity_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"swap_conductor_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"state_entity_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"swap_conductor_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"get url http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion/swap/groupinfo...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/tx/d3ad39fa52a89997ac7381c95eeffeaf40b66af7a57e9eba144be0a175a12b11...","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion/info/fee...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"state_entity_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"swap_conductor_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"state_entity_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"swap_conductor_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"state_entity_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"swap_conductor_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"state_entity_endpoint\":\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion, http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"swap_conductor_endpoint\":[\"http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion\",\" http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/swap/groupinfo...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/tx/d3ad39fa52a89997ac7381c95eeffeaf40b66af7a57e9eba144be0a175a12b11...","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/info/fee...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://m3j6xt4llvo4xk7yp4qldq4vmpljgeuovzqh2ycdskivxsgjtf67frad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\",\"state_entity_endpoint\":\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion\",\" http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\"],\"swap_conductor_endpoint\":[\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion\",\" http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\",\"state_entity_endpoint\":\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion\",\" http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\"],\"swap_conductor_endpoint\":[\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion\",\" http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"setting endpoints: {\"swap_conductor_endpoint\":\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\",\"state_entity_endpoint\":\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\",\"electrum_endpoint\":\"https://blockstream.info/api\"}","service":"user-service"}
+{"level":"debug","message":"setting endpoints response: {\"state_entity_endpoint\":[\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion\",\" http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\"],\"swap_conductor_endpoint\":[\"http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion\",\" http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion\"],\"electrum_endpoint\":[\"https://blockstream.info/api\"]}","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/fee-estimates...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/fee-estimates...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/fee-estimates...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/hash...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/block/00000000000000000004fa22a28c7fde8fe8c05c4c008da5049e07cb43c7acef/header...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/block/00000000000000000004fa22a28c7fde8fe8c05c4c008da5049e07cb43c7acef...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url  http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion/ping...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"debug","message":"get url https://blockstream.info/api/blocks/tip/height...","service":"user-service"}
+{"level":"debug","message":"finished get.","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"debug","message":"TorClient.newSocksAuthentication()...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 7804","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"debug","message":"TorClient.newSocksAuthentication()...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 16790","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}

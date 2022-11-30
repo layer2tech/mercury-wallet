@@ -1,0 +1,80 @@
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"i2pd: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-i2pd-adapter listening at http://localhost:3002","service":"user-service"}
+{"level":"info","message":"i2pd data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/i2pd/i2p","service":"user-service"}
+{"level":"info","message":"i2pd Client.startNode - started i2pd node with pid 2205","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"i2pd: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-i2pd-adapter listening at http://localhost:3002","service":"user-service"}
+{"level":"info","message":"i2pd data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/i2pd/i2p","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"i2pd: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-i2pd-adapter listening at http://localhost:3002","service":"user-service"}
+{"level":"info","message":"i2pd data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/i2pd/i2p","service":"user-service"}
+{"level":"info","message":"i2pd Client.startNode - started i2pd node with pid 1273","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"i2pd: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-i2pd-adapter listening at http://localhost:3002","service":"user-service"}
+{"level":"info","message":"i2pd data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/i2pd/i2p","service":"user-service"}
+{"level":"info","message":"i2pd Client.startNode - started i2pd node with pid 3554","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"i2pd: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-i2pd-adapter listening at http://localhost:3002","service":"user-service"}
+{"level":"info","message":"i2pd data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/i2pd/i2p","service":"user-service"}
+{"level":"info","message":"i2pd Client.startNode - started i2pd node with pid 3904","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"i2pd: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-i2pd-adapter listening at http://localhost:3002","service":"user-service"}
+{"level":"info","message":"i2pd data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/i2pd/i2p","service":"user-service"}
+{"level":"info","message":"i2pd Client.startNode - started i2pd node with pid 4176","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"i2pd: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-i2pd-adapter listening at http://localhost:3002","service":"user-service"}
+{"level":"info","message":"i2pd data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/i2pd/i2p","service":"user-service"}
+{"level":"info","message":"i2pd Client.startNode - started i2pd node with pid 5335","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"i2pd: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-i2pd-adapter listening at http://localhost:3002","service":"user-service"}
+{"level":"info","message":"i2pd data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/i2pd/i2p","service":"user-service"}
+{"level":"info","message":"i2pd Client.startNode - started i2pd node with pid 7805","service":"user-service"}
+{"level":"info","message":"on_exit - stopping tor node...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"i2pd: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-i2pd-adapter listening at http://localhost:3002","service":"user-service"}
+{"level":"info","message":"i2pd data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/i2pd/i2p","service":"user-service"}
+{"level":"info","message":"i2pd Client.startNode - started i2pd node with pid 16791","service":"user-service"}
+{"level":"info","message":"on_exit - stopping tor node...","service":"user-service"}

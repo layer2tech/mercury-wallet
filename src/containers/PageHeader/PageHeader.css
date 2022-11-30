@@ -1,0 +1,32 @@
+.swap-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.Body .subtitle{
+    font-size: 20px;
+    line-height: 26px;
+    letter-spacing: 0.36px;
+    font-weight: normal;
+    margin: 0 0 0 44px;
+    text-align: left;
+}
+
+.swap-header h2 {
+    font-weight: 500;
+    font-size: 34px;
+    line-height: 36px;
+    letter-spacing: 0.255px;
+}
+.swap-header svg {
+    margin-right: 13px;
+}
+
+@media only screen and (max-width: 768px)  {
+
+    .swap-header {
+        flex-direction: column-reverse;
+    }
+
+}

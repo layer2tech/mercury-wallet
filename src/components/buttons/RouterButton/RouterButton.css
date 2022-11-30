@@ -1,0 +1,18 @@
+.router-button .tooltip{
+    background-color: var(--button-border);
+    color: var(--text-primary);
+    padding: 1px 4px 4px 5px;
+    border-radius: 5px;
+}
+
+.router-button:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+    transition: all .4s ease;
+    -webkit-transition: all .4s ease;
+    z-index: 1;
+}
+
+.ActionGroupRight .tooltip {
+    margin-left: 10px;
+}

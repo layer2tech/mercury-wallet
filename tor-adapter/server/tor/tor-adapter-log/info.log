@@ -1,0 +1,117 @@
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 2206","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 2280","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 2296","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 1272","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 3553","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 3903","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 4175","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 5334","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"get *","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 7804","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
+{"level":"info","message":"init Anon Net Client...","service":"user-service"}
+{"level":"info","message":"finished init Anon Net Client.","service":"user-service"}
+{"level":"info","message":"starting anon network node... ","service":"user-service"}
+{"level":"info","message":"tor: AnonClient.startNode...","service":"user-service"}
+{"level":"info","message":"finished starting anon network node.","service":"user-service"}
+{"level":"info","message":"mercury-wallet-tor-adapter listening at http://localhost:3001","service":"user-service"}
+{"level":"info","message":"tor data dir/Users/samgershuny/Documents/mercury-wallet/tor-adapter/server/tor/tor","service":"user-service"}
+{"level":"info","message":"tor Client.startNode - started tor node with pid 16790","service":"user-service"}
+{"level":"info","message":"SIGINT received...","service":"user-service"}
