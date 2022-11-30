@@ -1,8 +1,0 @@
-lastupdatetime=2022-Nov-30 02:36:20
-[participation]
-agreed=1
-declined=2
-nonreplied=1
-[usage]
-taken=4
-rejected=0
