@@ -39,6 +39,7 @@ import {
   BACKUP_TX_HEX,
   SHARED_KEY_ID,
   STATECHAIN_ID,
+  makeTesterStatecoin,
 } from "./test_data.js";
 import { Wallet } from "../";
 
@@ -84,7 +85,6 @@ describe('txBuilder - Back Up Transaction', function() {
     let fee_info = FEE_INFO;
     fee_info.withdraw = 100;
     let nSequence = BACKUP_SEQUENCE;
-
     let statecoin = makeTesterStatecoin();
     
     let sc_infos = [{

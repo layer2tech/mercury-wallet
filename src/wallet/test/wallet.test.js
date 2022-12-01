@@ -26,7 +26,7 @@ import {
   NETWORK_TYPE,
 } from "../wallet";
 import { Transaction, TransactionBuilder } from "bitcoinjs-lib";
-import { pubKeyTobtcAddr, txBuilder } from '../util';
+import { BACKUP_SEQUENCE, pubKeyTobtcAddr, txBuilder, WITHDRAW_SEQUENCE } from '../util';
 import { Storage } from "../../store";
 import { SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
 import { ActivityLog, ActivityLogItem } from "../activity_log";
@@ -37,6 +37,7 @@ import { getFeeInfo } from "../mercury/info_api";
 import { callSetStatecoinSpent, getNetworkType } from "../../features/WalletDataSlice";
 import { isExportDeclaration } from "typescript";
 import { assert } from "console";
+import { FEE_INFO } from "../mocks/mock_http_client";
 
 let log = require("electron-log");
 let cloneDeep = require("lodash.clonedeep");
@@ -1166,16 +1167,26 @@ describe('updateBackupTxStatus', function () {
 
   test("Swaplimit", async function () {
     // locktime = 1000, height = 100 SWAPLIMIT triggered
-    let tx_backup = txBackupBuild(
-      bitcoin.networks.bitcoin,
-      "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42",
+
+    let locktime = 1000;
+    let block_height = 100
+    
+    let sc_infos = [{
+      utxo: {txid: "86396620a21680f464142f9743caa14111dadfb512f0eb6b7c89be507b049f42", 
+        vout: 1},
+      amount: 10000,
+      chain: [],
+      locktime: locktime
+    }];
+
+    let tx_backup = txBuilder(bitcoin.networks.bitcoin, 
+      sc_infos, 
+      await wallet.genBtcAddress(),
+      FEE_INFO, 
+      nSequence,
       0,
-      await wallet.genBtcAddress(),
-      10000,
-      await wallet.genBtcAddress(),
-      10,
-      1000
-    );
+      1000);
+      
     wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 100;
     await wallet.updateBackupTxStatus(false);
@@ -2408,6 +2419,8 @@ describe("Storage 4", () => {
     delete wallet_10_mod.ping_conductor_ms;
     delete wallet_10_json_mod.ping_electrum_ms;
     delete wallet_10_mod.ping_electrum_ms;
+    delete wallet_10_json_mod.tokens;
+    delete wallet_10_mod.tokens;
     
 
     // active value is not saved to file

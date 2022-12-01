@@ -10,9 +10,7 @@ import {
   TransactionsBTC,
   StdButton,
   Steppers,
-  Tutorial,
-  Tutorial, 
-  TransactionsBTC
+  Tutorial
 } from "../../components";
 
 import {
@@ -28,7 +26,7 @@ import {
 } from "../../features/WalletDataSlice";
 
 import "./Deposit.css";
-import DepositToken from "../../components/DepositToken/DepositToken";
+
 import { DUST_LIMIT } from "../../wallet/util";
 import PayOnDeposit from "../../components/PayOnDeposit/PayOnDeposit";
 
@@ -299,6 +297,8 @@ const DepositPage = () => {
     console.warn("Can not get config", error);
   }
 
+  console.log('Fee Info: ',fee_info)
+
   return (
     <div
       className={`${
@@ -320,128 +320,126 @@ const DepositPage = () => {
             </div>
           </div>
           { fee_info.deposit > 0 ? (
-          
-          <h3 className="subtitle"> Create new statecoins. Deposit Fee: 
-            <b> {fee_info.deposit / 100}%</b>
-          </h3>):(
-            <h3 className="subtitle"> Create new statecoins. Withdrawal Fee: 
-              <b> {fee_info.withdraw / 100}%</b>
-            </h3>
-          )}
 
-        </div>
-        {fee_info.withdraw <= 0 ? (
-          <div className="wizard">
-            {/* Pay on Deposit */}
-              <Steppers steps={STEPS_POD} total={3} current={step} />
-              {step === 1 ? (
-                <CreateStatecoin
-                  selectedValues={selectedValues}
-                  addValueSelection={addValueSelection}
-                  addSelectionPanel={addSelectionPanel}
-                  settings={settings}
-                  handleChildErrors={handleChildErrors}
-                />
-                ):(null)}
-              { step === 2 ? (
-                < PayOnDeposit />
-              ):(null)}
-              {step === 3? (
-                <TransactionsBTC
-                  selectedValues={selectedValues}
-                  setValueSelectionInitialised={setValueSelectionInitialised}
-                  setValueSelectionAddr={setValueSelectionAddr}
-                />):(null)}
-              {step === 1 ? (
-                !childError && <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Continue</button>
-              ) : (
-                <div className="stepper-buttons">
-                  <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Go Back</button>
-                  {/* <button className={`primary-btn blue ${"step-" + step} continue`} onClick={(e) => onContinueClick(e)}>Continue</button> */}
-                </div>
-              )}
+        <h3 className="subtitle"> Create new statecoins. Deposit Fee: 
+          <b> {fee_info.deposit / 100}%</b>
+        </h3>):(
+          <h3 className="subtitle"> Create new statecoins. Withdrawal Fee: 
+            <b> {fee_info.withdraw / 100}%</b>
+          </h3>
+        )}
 
-          </div>
-            ):(
-              <div className = "wizard">
-                {/* Pay on Withdrawal */}
-                <Steppers steps={STEPS} total={2} current={step} />
-                {step === 1 ? (
-                  <CreateStatecoin
-                    selectedValues={selectedValues}
-                    addValueSelection={addValueSelection}
-                    addSelectionPanel={addSelectionPanel}
-                    settings={settings}
-                    handleChildErrors={handleChildErrors}
-                  />
-                ) : (
-                  <TransactionsBTC
-                    selectedValues={selectedValues}
-                    setValueSelectionInitialised={setValueSelectionInitialised}
-                    setValueSelectionAddr={setValueSelectionAddr}/>
-                )}
-                {step === 1 ? (
-                  !childError && <button className="primary-btn blue" onClick={() => setStep(2)}>Continue</button>
-                ) : (
-                  <button className="primary-btn blue" onClick={() => setStep(1)}>Go Back</button>
-                )}
-              </div>
-            )}
-
-        <Modal
-          show={show}
-          onHide={handleClose}
-          className="modal deposit-settings"
-        >
-          <Modal.Header>
-            <h6>Display Settings</h6>
-          </Modal.Header>
-          <Modal.Body>
-            <div className="selected-item">
-              <span>Sort By</span>
-              <select onChange={setSortbySetting} value={settings.sort_by}>
-                <option value="Liquidity">Highest Liquidity</option>
-                <option value="LowToHigh">Value Low to High</option>
-                <option value="HighToLow">Value High to Low</option>
-              </select>
-            </div>
-            <div className="selected-item">
-              <span>Smallest Value</span>
-              <select value={smallestOption} onChange={handleChangeSmallest}>
-                <option value="0.000001">0.000001 BTC</option>
-                <option value="0.00001">0.00001 BTC</option>
-                <option value="0.0001">0.0001 BTC</option>
-                <option value="0.001">0.001 BTC</option>
-                <option value="0.01">0.01 BTC</option>
-                <option value="other">Other</option>
-              </select>
-              {smallestOption === "other" && (
-                <input
-                  className="custom-smallest"
-                  type="text"
-                  value={settings.min_value}
-                  onChange={handleCustomSmallest}
-                />
-              )}
-            </div>
-            <div className="selected-item">
-              <span>Number of Picks</span>
-              <select value={settings.picks} onChange={setPicksSetting}>
-                <option value="4">4 options</option>
-                <option value="8">8 options</option>
-                <option value="12">12 options</option>
-              </select>
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button className="action-btn-normal" onClick={handleClose}>
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
+</div>
+{fee_info.withdraw <= 0 ? (
+<div className="wizard">
+  {/* Pay on Deposit */}
+    <Steppers steps={STEPS_POD} total={3} current={step} />
+    {step === 1 ? (
+      <CreateStatecoin
+        selectedValues={selectedValues}
+        addValueSelection={addValueSelection}
+        addSelectionPanel={addSelectionPanel}
+        settings={settings}
+        handleChildErrors={handleChildErrors}
+      />
+      ):(null)}
+    { step === 2 ? (
+      < PayOnDeposit />
+    ):(null)}
+    {step === 3? (
+      <TransactionsBTC
+        selectedValues={selectedValues}
+        setValueSelectionInitialised={setValueSelectionInitialised}
+        setValueSelectionAddr={setValueSelectionAddr}
+      />):(null)}
+    {step === 1 ? (
+      !childError && <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Continue</button>
+    ) : (
+      <div className="stepper-buttons">
+        <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Go Back</button>
+        {/* <button className={`primary-btn blue ${"step-" + step} continue`} onClick={(e) => onContinueClick(e)}>Continue</button> */}
       </div>
-      {current_config.tutorials && <Tutorial />}
+    )}
+
+</div>
+  ):(
+    <div className = "wizard">
+      {/* Pay on Withdrawal */}
+      <Steppers steps={STEPS} total={2} current={step} />
+      {step === 1 ? (
+        <CreateStatecoin
+          selectedValues={selectedValues}
+          addValueSelection={addValueSelection}
+          addSelectionPanel={addSelectionPanel}
+          settings={settings}
+          handleChildErrors={handleChildErrors}
+        />
+      ) : (
+        <TransactionsBTC
+          selectedValues={selectedValues}
+          setValueSelectionInitialised={setValueSelectionInitialised}
+          setValueSelectionAddr={setValueSelectionAddr}/>
+      )}
+      {step === 1 ? (
+        !childError && <button className="primary-btn blue" onClick={() => setStep(2)}>Continue</button>
+      ) : (
+        <button className="primary-btn blue" onClick={() => setStep(1)}>Go Back</button>
+      )}
     </div>
+  )}
+
+<Modal show={show} onHide={handleClose} className="modal deposit-settings">
+<Modal.Header>
+  <h6>Display Settings</h6>
+</Modal.Header>
+<Modal.Body>
+  <div className="selected-item">
+    <span>Sort By</span>
+    <select
+      onChange={setSortbySetting}
+      value={settings.sort_by}
+    >
+      <option value="Liquidity">Highest Liquidity</option>
+      <option value="LowToHigh">Value Low to High</option>
+      <option value="HighToLow">Value High to Low</option>
+    </select>
+  </div>
+  <div className="selected-item">
+    <span>Smallest Value</span>
+    <select value={smallestOption} onChange={handleChangeSmallest}>
+      <option value="0.000001">0.000001 BTC</option>
+      <option value="0.00001">0.00001 BTC</option>
+      <option value="0.0001">0.0001 BTC</option>
+      <option value="0.001">0.001 BTC</option>
+      <option value="0.01">0.01 BTC</option>
+      <option value="other">Other</option>
+    </select>
+    {smallestOption === 'other' && (
+      <input
+        className="custom-smallest"
+        type="text"
+        value={settings.min_value}
+        onChange={handleCustomSmallest} />
+    )}
+  </div>
+  <div className="selected-item">
+    <span>Number of Picks</span>
+    <select value={settings.picks} onChange={setPicksSetting}>
+      <option value="4">4 options</option>
+      <option value="8">8 options</option>
+      <option value="12">12 options</option>
+    </select>
+  </div>
+</Modal.Body>
+<Modal.Footer>
+  <Button className="action-btn-normal" onClick={handleClose}>
+    Close
+  </Button>
+</Modal.Footer>
+</Modal>
+</div>
+{current_config.tutorials && <Tutorial />}
+</div>
   );
 };
 

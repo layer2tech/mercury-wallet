@@ -178,7 +178,7 @@ describe("StateChain Entity", function () {
     let fee_per_byte = 1;
 
     test('Expect complete', async function() {
-
+      let statecoin = makeTesterStatecoin();
       let STATECHAIN_INFO = {
         utxo: {
           txid: statecoin.funding_txid,
@@ -202,7 +202,6 @@ describe("StateChain Entity", function () {
       wasm_mock.Sign.first_message = jest.fn(() => MOCK_CLIENT.SIGN_FIRST);
       wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
 
-      let statecoin = makeTesterStatecoin();
 
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(
         Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)
