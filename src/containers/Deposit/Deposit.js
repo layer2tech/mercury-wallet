@@ -297,8 +297,6 @@ const DepositPage = () => {
     console.warn("Can not get config", error);
   }
 
-  console.log('Fee Info: ',fee_info)
-
   return (
     <div
       className={`${
