@@ -222,7 +222,11 @@ describe("StateChain Entity", function () {
       expect(tx_withdraw.ins[0].hash.reverse().toString("hex")).toBe(
         statecoin.funding_txid
       );
-      expect(tx_withdraw.outs.length).toBe(2);
+      if(MOCK_SERVER.FEE_INFO.withdraw > 0){
+        expect(tx_withdraw.outs.length).toBe(2);
+      } else {
+        expect(tx_withdraw.outs.length).toBe(1);
+      }
       expect(tx_withdraw.outs[0].value).toBeLessThan(statecoin.value);
       expect(tx_withdraw.locktime).toBe(0);
     });
@@ -354,7 +358,11 @@ describe("StateChain Entity", function () {
       expect(tx_withdraw.ins[1].hash.reverse().toString("hex")).toBe(
         statecoins[1].funding_txid
       );
-      expect(tx_withdraw.outs.length).toBe(2);
+      if(MOCK_SERVER.FEE_INFO.withdraw > 0 ){
+        expect(tx_withdraw.outs.length).toBe(2);
+      } else{
+        expect(tx_withdraw.outs.length).toBe(1);
+      }
       expect(tx_withdraw.outs[0].value).toBeLessThan(
         statecoins[0].value + statecoins[1].value
       );
