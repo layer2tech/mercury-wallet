@@ -239,10 +239,7 @@ export class Storage {
   loadStatecoinsQuick(wallet: any, load_all: boolean = false) {
 
     //Move any existing coins from the arrays to the objects
-    if (wallet.statecoins.coins.length > 0 || wallet.statecoins.swapped_coins.length > 0) {
-      console.log('********* DONT RUN ************')
-      this.storeWalletStateCoinsArrayQuick(wallet);
-    }
+    this.storeWalletStateCoinsArrayQuick(wallet);
 
     //Keep statecoins.coins for backwards compatibility
     wallet.statecoins.swapped_coins = undefined;
@@ -373,8 +370,8 @@ export class Storage {
     this.storeWalletStateCoinsArray(wallet_name, statecoins.coins);
   }
 
-  storeWalletStateCoinsArrayQuick(wallet: any) {
-    const wallet_name = wallet.name;
+
+  mergeOldStatecoins(wallet: any){
     //Read the statecoin data saved in previous versions of the wallet
     const saved_coins: StateCoin[] | undefined = wallet.statecoins.coins;
     const saved_swapped_coins: StateCoin[] | undefined = wallet.statecoins.swapped_coins;
@@ -383,6 +380,14 @@ export class Storage {
     let coins_swapped: StateCoin[] =
       saved_swapped_coins === undefined ? [] : saved_swapped_coins;
     let coins_all = coins.concat(coins_swapped);
+
+    return coins_all
+  }
+
+
+  storeWalletStateCoinsArrayQuick(wallet: any) {
+    
+    let coins_all = this.mergeOldStatecoins(wallet)
     
     if(coins_all.length === 0 || coins_all === undefined) return;
 
