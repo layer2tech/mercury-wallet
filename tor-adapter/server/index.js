@@ -1,105 +1,105 @@
 "use strict";
-const handle_error = require("./error").handle_error;
-const winston = require("winston");
-var path = require("path");
-var fs = require("fs");
-const dataDir = process.argv[4];
-const torDataDir = path.join(dataDir, "tor");
-const logDir = path.join(dataDir, "tor-adapter-log");
-console.log(`logDir: ${logDir}`);
-if (!fs.existsSync(logDir.toString())) {
-  fs.mkdirSync(logDir.toString());
-}
-var cors = require("cors");
 
-const logger = winston.createLogger({
-  level: "debug",
-  format: winston.format.combine(
-    winston.format.json(),
-    winston.format.timestamp({
-      format: "YYYY-MM-DD HH:mm:ss",
-    })
-  ),
-  defaultMeta: { service: "user-service" },
-  transports: [
-    new winston.transports.File({
-      filename: path.join(logDir, "info.log"),
-      level: "info",
-    }),
-    new winston.transports.File({
-      filename: path.join(logDir, "error.log"),
-      level: "error",
-    }),
-    new winston.transports.File({
-      filename: path.join(logDir, "debug.log"),
-      level: "debug",
-    }),
-    new winston.transports.File({
-      filename: path.join(logDir, "combined.log"),
-    }),
-  ],
-});
+const isElectron = require("is-electron");
 
-const log = (level, message) => {
-  if (logger !== undefined) {
-    logger.log(level, message);
+if (!isElectron()) {
+  var network = process.argv[2];
+  var isWin = process.platform === "win32";
+  var isLinux = process.platform === "linux";
+  var isMac = process.platform === "darwin";
+
+  if (isWin) {
+    if (network === "tor") {
+      process.argv[2] = __dirname + "/resources/win/Tor/tor.exe";
+    } else {
+      process.argv[2] = __dirname + "/resources/win/i2pd.exe";
+    }
+  } else if (isLinux) {
+    process.argv[2] = __dirname + `/resources/linux/${network}`;
+  } else if (isMac) {
+    process.argv[2] = __dirname + `/resources/mac/${network}`;
   }
-};
 
-var ElectrumClient = require("./electrum");
-var EPSClient = require("./eps");
-var TorClient = require("./tor_client");
-var CNClient = require("./cn_client");
-var bodyParser = require("body-parser");
-var Config = new require("./config");
-const config = new Config();
-const tpc = config.tor_proxy;
+  process.argv[3] = __dirname + "/resources/etc/torrc";
+  process.argv[4] = __dirname + `/${network}`;
+  process.argv[5] = __dirname + "/resources/win/Data/Tor/geoip";
+  process.argv[6] = __dirname + "/resources/win/Data/Tor/geoip6";
+} else{
+  var network = process.argv[2].includes('tor') ? "tor" : "i2pd";
+}
 const express = require("express");
 var geoip = require("geoip-country");
 var countries = require("i18n-iso-countries");
 countries.registerLocale(require("i18n-iso-countries/langs/en.json"));
+var bodyParser = require("body-parser");
+var cors = require("cors");
+var path = require("path");
 
-const tor_cmd = process.argv[2];
+const handle_error = require("./error").handle_error;
+const { logger, log } = require("./logger");
+const { GET_ROUTE, POST_ROUTE } = require("./routes");
+
+var ElectrumClient = require("./electrum");
+var EPSClient = require("./eps");
+var AnonClient = require("./anon_client");
+var CNClient = require("./cn_client");
+
+/***
+ *
+ * Adapter starts Tor or I2P
+ * - depends on binary name passed
+ *
+ ***/
+
+const logDataDir = process.argv[4];
+const start_cmd = process.argv[2];
 const torrc = process.argv[3];
-
 let geoIpFile = undefined;
 let geoIpV6File = undefined;
+
+
 if (process.argv.length > 5) {
   geoIpFile = process.argv[5];
 }
+
 if (process.argv.length > 6) {
-  geoIpV6File = process.argv[6];
+  geoIpFile = process.argv[6];
 }
-console.log(`tor cmd: ${tor_cmd}`);
+if (process.argv.length > 7) {
+  geoIpV6File = process.argv[7];
+}
+
+
+/**
+ * • PORT 3001 for Tor
+ * • PORT 3002 for I2P
+ */
+
+const PORT = network === "tor" ? 3001 : 3002;
+
+
+console.log(`tor cmd: ${start_cmd}`);
 console.log(`torrc: ${torrc}`);
+
+const dataDir =
+  network === "tor"
+    ? path.join(logDataDir, "tor")
+    : path.join(logDataDir, "i2p");
+
+
+var Config = new require("./config");
+const config = new Config(network);
+const tpc = config.proxy;
+
 
 // Hidden service indices for hidden service switching
 let i_elect_hs = { i: 0 };
 let i_merc_hs = { i: 0 };
 let i_cond_hs = { i: 0 };
 
-const GET_ROUTE = {
-  PING: "/eps/ping",
-  //latestBlockHeader "/Electrs/block/:hash/header",
-  BLOCK: "/eps/block",
-  HEADER: "header",
-  //getTransaction /tx/:txid
-  TX: "/eps/tx",
-  //getScriptHashListUnspent /scripthash/:hash/utxo
-  SCRIPTHASH: "/eps/scripthash",
-  UTXO: "utxo",
-  //getFeeHistogram
-  FEE_ESTIMATES: "/eps/fee-estimates",
-};
-Object.freeze(GET_ROUTE);
-
-const POST_ROUTE = {
-  //broadcast transaction
-  TX: "/eps/tx",
-};
-Object.freeze(POST_ROUTE);
-
-const PORT = 3001;
+/**
+ * STARTING SERVER ON PORT
+ */
 
 const app = express();
 app.use(cors());
@@ -108,28 +108,34 @@ app.use(bodyParser.json());
 app.listen(PORT, () => {
   log(
     "info",
-    `mercury-wallet-tor-adapter listening at http://localhost:${PORT}`
+    `mercury-wallet-${network}-adapter listening at http://localhost:${PORT}`
   );
-  log("info", "tor data dir: " + torDataDir);
+  log("info", `${network} data dir` + dataDir);
 });
 
-let tor;
 
-if (config.tor_proxy.ip === "mock") {
-  tor = new CNClient();
+/**
+ * Initialising Tor or I2P
+ */
+
+let anon_client;
+
+if (config.proxy.ip === "mock") {
+  anon_client = new CNClient();
 } else {
-  log("info", `init TorClient...`);
-  tor = new TorClient(
+  log("info", `init Anon Net Client...`);
+  anon_client = new AnonClient(
+    network,
     tpc.ip,
     tpc.port,
     tpc.controlPassword,
     tpc.controlPort,
-    torDataDir,
+    dataDir,
     geoIpFile,
     geoIpV6File,
     logger
   );
-  log("info", `finished init TorClient.`);
+  log("info", `finished init Anon Net Client.`);
 }
 
 //Electrum personal server client
@@ -138,15 +144,17 @@ let epsClient = null;
 //Electrs tcp client
 let electrsLocalClient = null;
 
-log("info", "starting tor node...");
-tor.startTorNode(tor_cmd, torrc);
-log("info", "finished starting tor node.");
+log("info", "starting anon network node... ");
+
+anon_client.startNode(start_cmd, torrc, network);
+
+log("info", "finished starting anon network node.");
 
 async function get_endpoint(path, res, endpoint, i_hs) {
   if (endpoint === undefined) return;
 
   try {
-    let result = await tor.get(path, undefined, endpoint[i_hs.i]);
+    let result = await anon_client.get(path, undefined, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err) {
     i_hs["i"] = (i_hs.i + 1) % endpoint.length;
@@ -156,7 +164,7 @@ async function get_endpoint(path, res, endpoint, i_hs) {
 
 async function post_endpoint(path, body, res, endpoint, i_hs) {
   try {
-    let result = await tor.post(path, body, endpoint[i_hs.i]);
+    let result = await anon_client.post(path, body, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err) {
     i_hs["i"] = (i_hs.i + 1) % endpoint.length;
@@ -166,7 +174,7 @@ async function post_endpoint(path, body, res, endpoint, i_hs) {
 
 async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
   try {
-    let result = await tor.post_plain(path, data, endpoint[i_hs.i]);
+    let result = await anon_client.post_plain(path, data, endpoint[i_hs.i]);
     res.status(200).json(result);
   } catch (err) {
     i_hs["i"] = (i_hs.i + 1) % endpoint.length;
@@ -176,7 +184,7 @@ async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
 
 app.get("/newid", async function (req, res) {
   try {
-    tor.newSocksAuthentication();
+    if (network === "tor") anon_client.newSocksAuthentication();
     res.status(200).json({});
   } catch (err) {
     const err_msg = `Get new tor id error: ${err}`;
@@ -187,7 +195,8 @@ app.get("/newid", async function (req, res) {
 
 app.get("/newcircuit", async function (req, res) {
   try {
-    let response = await tor.confirmNewTorCircuit();
+    let response;
+    if (network === "tor") response = await anon_client.confirmNewTorCircuit();
     res.status(200).json(response);
   } catch (err) {
     const err_msg = `Get new tor id error: ${err}`;
@@ -208,14 +217,14 @@ app.post("/tor_settings", async function (req, res) {
     log("info", `tor _settings - config: ${JSON.stringify(config)}`);
 
     log("info", `stopping to node...`);
-    await tor.stopTorNode();
+    await anon_client.stopTorNode();
     log("info", `setting tor config...`);
-    tor.set(config.tor_proxy);
+    anon_client.set(config.proxy);
     log("info", `starting tor node...`);
-    await tor.startTorNode(tor_cmd, torrc);
+    await anon_client.startTorNode(start_cmd, torrc);
     log("info", `finished starting to node.`);
     let response = {
-      tor_proxy: config.tor_proxy,
+      tor_proxy: config.proxy,
       state_entity_endpoint: config.state_entity_endpoint,
       swap_conductor_endpoint: config.swap_conductor_endpoint,
       electrum_endpoint: config.electrum_endpoint,
@@ -231,7 +240,7 @@ app.post("/tor_settings", async function (req, res) {
 
 app.get("/tor_country/:id", function (req, res) {
   try {
-    tor.control.getInfo(
+    anon_client.control.getInfo(
       ["ip-to-country/" + req.params.id],
       function (err, status) {
         let circuit = status;
@@ -252,7 +261,7 @@ app.get("/tor_country/:id", function (req, res) {
 // TODO -  string data needs to be validated (yrArra)
 app.get("/tor_circuit/:id", (req, res) => {
   try {
-    tor.control.getInfo(["ns/id/" + req.params.id], (err, status) => {
+    anon_client.control.getInfo(["ns/id/" + req.params.id], (err, status) => {
       try {
         var rArray;
         var name;
@@ -315,7 +324,7 @@ app.get("/tor_circuit/:id", (req, res) => {
 // returns the ids of the current tor circuit
 app.get("/tor_circuit/", (req, res) => {
   try {
-    tor.control.getInfo(["circuit-status"], (err, status) => {
+    anon_client.control.getInfo(["circuit-status"], (err, status) => {
       // Get info like describe in chapter 3.9 in tor-control specs.
       try {
         if (!status && !status?.messages && err) {
@@ -410,7 +419,7 @@ app.get("/tor_circuit/", (req, res) => {
 
 app.get("/tor_settings", function (req, res) {
   let response = {
-    tor_proxy: config.tor_proxy,
+    tor_proxy: config.proxy,
     state_entity_endpoint: config.state_entity_endpoint,
     swap_conductor_endpoint: config.swap_conductor_endpoint,
     electrum_endpoint: config.electrum_endpoint,
@@ -461,14 +470,14 @@ process.once("SIGTERM", async function (code) {
 
 async function shutdown() {
   try {
-    await tor.stopTorNode();
+    await anon_client.stopTorNode();
   } catch (err) {
     const message = "error stopping tor node - sending the kill signal...";
     console.log(message);
     if (logger) {
       log("info", message);
     }
-    tor.kill_proc();
+    anon_client.kill_proc();
   }
   process.exit(0);
 }
@@ -820,7 +829,7 @@ async function on_exit() {
   if (logger) {
     log("info", `on_exit - stopping tor node...`);
   }
-  await tor.stopTorNode();
+  await anon_client.stopTorNode();
 }
 
 async function on_sig_int() {

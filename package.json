@@ -26,14 +26,15 @@
     }
   },
   "repository": "github:layer2tech/mercury-wallet",
-  "version": "v0.7.24",
+  "version": "v0.8.1",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "public/electron.js",
   "scripts": {
     "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
     "install-local": "yarn add file:./tor-adapter",
-    "start": "react-app-rewired start",
+    "start": "node ./setup && react-app-rewired start",
+    "adapters-browser": "concurrently \"node ./setup && react-app-rewired start\" \" npm run tor-adapter\" ",
     "prebuild": "DATE=`date` && YEAR=${DATE##* } && MERC_YEAR=`jq .build.copyright package.json | awk '{print $3}'` && if [ $YEAR -ne $MERC_YEAR ]; then echo 'package.json prebuild - expected .build.copyright year' $YEAR ', got' $MERC_YEAR '- please update year' && return 1; fi",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test --maxWorkers 2",
@@ -51,7 +52,8 @@
     "app-macos": "yarn install-local && npm install --force && yarn build && electron-builder -m -p always",
     "app-macos-local-test": "yarn install-local && npm install --force && yarn build && DEBUG=electron-builder electron-builder -m -p never",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
-    "cypress": "cypress open"
+    "cypress": "cypress open",
+    "tor-adapter": "cd tor-adapter && npm start"
   },
   "devDependencies": {
     "@testing-library/cypress": "^8.0.3",
@@ -59,7 +61,7 @@
     "@types/jest": "^29.0.0",
     "@types/uuid": "^8.3.0",
     "concurrently": "^5.3.0",
-    "cypress": "^10.10.0",
+    "cypress": "^11.0.0",
     "electron": "^17.1.2",
     "electron-build-env": "^0.2.0",
     "electron-builder": "^22.9.1",

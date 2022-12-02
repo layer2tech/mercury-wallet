@@ -9,6 +9,8 @@ import {
   callGetUnspentStatecoins,
   setWalletLoaded,
   initActivityLogItems,
+  walletLoadFromMem,
+  walletLoadConnection,
 } from "../../features/WalletDataSlice";
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
@@ -68,13 +70,18 @@ const LoadWalletPage = (props) => {
   // Attempt to load wallet. If fail display error.
   const onContinueClick = async (event) => {
     // check for password
-
     if (
       typeof selectedWallet === "string" ||
       selectedWallet instanceof String
     ) {
       try {
-        await walletLoad(selectedWallet, passwordEntered);
+        let wallet = await walletLoadFromMem(selectedWallet, passwordEntered);
+
+        history.push("/home")
+        dispatch(setWalletLoaded({ loaded: true }));
+        
+        await walletLoadConnection(wallet)
+
       } catch (e) {
         event.preventDefault();
         dispatch(setError({ msg: e.message }));
@@ -82,7 +89,12 @@ const LoadWalletPage = (props) => {
       }
     } else {
       try {
-        await walletLoad(selectedWallet.name, passwordEntered);
+        let wallet = await walletLoadFromMem(selectedWallet.name, passwordEntered);
+
+        history.push("/home")
+        dispatch(setWalletLoaded({ loaded: true }));
+        
+        await walletLoadConnection(wallet)
       } catch (e) {
         event.preventDefault();
         dispatch(setError({ msg: e.message }));
@@ -92,7 +104,6 @@ const LoadWalletPage = (props) => {
     checkForCoinsHealth();
     initActivityLogItems();
     dispatch(setWalletLoaded({ loaded: true }));
-    history.push("/home");
   };
 
   const enterContinue = (event) => {
@@ -119,6 +130,7 @@ const LoadWalletPage = (props) => {
             <p>Select a wallet to load and input its password </p>
 
             <select
+              data-cy="load-wallet-names"
               value={selectedWallet}
               onChange={onSelectedWalletChange}
               data-testid="select"

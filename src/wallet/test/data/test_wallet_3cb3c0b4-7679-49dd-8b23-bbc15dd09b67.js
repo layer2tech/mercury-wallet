@@ -7203,5 +7203,6 @@ export const WALLET = {
 			"_value": 0
 		}
 	},
-	"active": true
+	"active": true,
+	"networkType": "Tor",
 }

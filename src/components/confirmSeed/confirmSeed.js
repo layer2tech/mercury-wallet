@@ -125,6 +125,7 @@ const ConfirmSeed = (props) => {
     } catch (e) {
       event.preventDefault();
       dispatch(setError({ msg: e.message }));
+      return;
     }
     checkForCoinsHealth();
     dispatch(setWalletLoaded({ loaded: true }));
@@ -134,7 +135,7 @@ const ConfirmSeed = (props) => {
     <div className="wizard-form-confirm wizard-form inputs">
       <p>Click below or type in the missing words to confirm your seed key.</p>
 
-      <form>{inputs}</form>
+      <form data-cy="confirm-seed">{inputs}</form>
       <div className="footer-step-btns">
         <button onClick={props.onPrevStep} className="primary-btn-link back">
           Go back

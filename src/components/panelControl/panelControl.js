@@ -43,11 +43,12 @@ const PanelControl = () => {
         icon = {data.MainHeader.icon}/>
 
       <div className="ButtonsPanel">
-        <div className="ActionGroupLeft">
+        <div className="ActionGroupLeft" key="ActionGroupLeft">
           {
             data.ActionGroupLeft.map(item => {
               return(
                 <RouterButton 
+                  key = {item.label}
                   route = {item.route}
                   label = {item.label}
                   icon = {item.icon}
@@ -58,19 +59,19 @@ const PanelControl = () => {
           }
 
         </div>
-        <div className="ActionGroupRight">
+        <div className="ActionGroupRight" key="ActionGroupRight">
         {
             data.ActionGroupRight.map(item => {
               
               return(
-                <>
-                <RouterButton 
-                  route = {item.route}
-                  label = {item.label}
-                  icon = {item.icon}
-                  class = {item.class}
-                  tooltip = {item.tooltip}/>
-                </>
+                <div key = {item.label}>
+                  <RouterButton
+                    route = {item.route}
+                    label = {item.label}
+                    icon = {item.icon}
+                    class = {item.class}
+                    tooltip = {item.tooltip}/>
+                </div>
               )
             })
           }
