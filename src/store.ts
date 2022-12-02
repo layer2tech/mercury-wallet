@@ -169,6 +169,40 @@ export class Storage {
     this.store.set(wallet_name, { name: wallet_name });
   }
 
+  getWalletQuick(wallet_name: string, load_all: boolean = false) {
+    let wallet_json: any = this.store.get(wallet_name);
+    // console.log(wallet_json)
+    if (wallet_json.name === undefined)
+      throw Error("No wallet called " + wallet_name + " stored.");
+
+    // //Wallet is initally inactive
+    // wallet_json.active = false;
+
+    // let wallet_keys = [
+    //   "password",
+    //   "config",
+    //   "version",
+    //   "mnemonic",
+    //   "account",
+    //   "activity",
+    //   "http_client",
+    //   "block_height",
+    //   "current_sce_addr",
+    //   "saveMutex",
+    //   "networkType"
+    // ];
+
+    // wallet_keys.forEach((key: string) => {
+      // wallet_json[key] = this.store.get(`${wallet_name}.${key}`);
+    // });
+
+    this.loadStatecoinsQuick(wallet_json, load_all);
+
+    //Wallet is active on startup
+    wallet_json.active = true;
+    return wallet_json;
+  }
+
   getWallet(wallet_name: string, load_all: boolean = false) {
     let wallet_json: any = { name: this.store.get(`${wallet_name}.name`) };
     if (wallet_json.name === undefined)
@@ -200,6 +234,36 @@ export class Storage {
     //Wallet is active on startup
     wallet_json.active = true;
     return wallet_json;
+  }
+
+  loadStatecoinsQuick(wallet: any, load_all: boolean = false) {
+
+    //Move any existing coins from the arrays to the objects
+    if (wallet.statecoins.coins.length > 0 || wallet.statecoins.swapped_coins.length > 0) {
+      console.log('********* DONT RUN ************')
+      this.storeWalletStateCoinsArrayQuick(wallet);
+    }
+
+    //Keep statecoins.coins for backwards compatibility
+    wallet.statecoins.swapped_coins = undefined;
+
+    //Read the statecoin data stored in objects
+
+    if (load_all) {
+      if (wallet.swapped_statecoins_obj != null) {
+        coins = coins.concat(Object.values(wallet.swapped_statecoins_obj));
+      }
+    }
+
+    let coins_from_obj: StateCoin[] = [];
+    if (wallet.statecoins_obj != null) {
+      coins_from_obj = Object.values(wallet.statecoins_obj);
+    }
+    coins = coins_from_obj;
+
+    //Remove duplicates
+    coins = Array.from(new Set(coins));
+    wallet.statecoins = StateCoinList.fromCoinsArray(coins);
   }
 
   loadStatecoins(wallet: any, load_all: boolean = false) {
@@ -309,6 +373,88 @@ export class Storage {
     this.storeWalletStateCoinsArray(wallet_name, statecoins.coins);
   }
 
+  storeWalletStateCoinsArrayQuick(wallet: any) {
+    const wallet_name = wallet.name;
+    //Read the statecoin data saved in previous versions of the wallet
+    const saved_coins: StateCoin[] | undefined = wallet.statecoins.coins;
+    const saved_swapped_coins: StateCoin[] | undefined = wallet.statecoins.swapped_coins;
+
+    let coins: StateCoin[] = saved_coins === undefined ? [] : saved_coins;
+    let coins_swapped: StateCoin[] =
+      saved_swapped_coins === undefined ? [] : saved_swapped_coins;
+    let coins_all = coins.concat(coins_swapped);
+    
+    if(coins_all.length === 0 || coins_all === undefined) return;
+
+    let swapped_sc_map = new Map<string, StateCoin>();
+    let sc_map = new Map<string, StateCoin>();
+
+    wallet.coins.statecoins.forEach((coin: StateCoin) => {
+      if (coin.status === "SWAPPED") {
+        swapped_sc_map.set(coin.shared_key_id, coin);
+      } else {
+        sc_map.set(coin.shared_key_id, coin);
+      }
+    });
+
+    let stored_sc_obj = wallet.statecoins_obj;
+    if (stored_sc_obj == null) {
+      stored_sc_obj = {};
+    }
+
+    stored_sc_obj = JSON.parse(JSON.stringify(stored_sc_obj));
+    Object.assign(stored_sc_obj, Object.fromEntries(sc_map));
+
+    // const swapped_sc_dest = `${wallet_name}.swapped_statecoins_obj`;
+    let stored_swapped_sc_obj = wallet.swapped_statecoins_obj;
+    if (stored_swapped_sc_obj == null) {
+      stored_swapped_sc_obj = {};
+    }
+
+    const swapped_sc_obj = Object.fromEntries(swapped_sc_map);
+    stored_swapped_sc_obj = JSON.parse(JSON.stringify(stored_swapped_sc_obj));
+    Object.assign(stored_swapped_sc_obj, swapped_sc_obj);
+
+    // const swapped_ids_dest = `${wallet_name}.swapped_ids`;
+    let stored_swapped_ids = wallet.swapped_ids;
+    if (stored_swapped_ids == null) {
+      stored_swapped_ids = {};
+    }
+
+    Object.entries(swapped_sc_obj).forEach((key_value) => {
+      const sc = key_value[1];
+      const funding_outpoint = { txid: sc.funding_txid, vout: sc.funding_vout };
+      const funding_outpoint_str = `${funding_outpoint.txid}:${funding_outpoint.vout}`;
+      let swapped_ids = stored_swapped_ids[funding_outpoint_str];
+      //Remove duplicates
+      let swapped_ids_set;
+      if (swapped_ids == null) {
+        swapped_ids_set = new Set();
+      } else {
+        swapped_ids_set = new Set(swapped_ids);
+      }
+      swapped_ids_set.add(sc.shared_key_id);
+      swapped_ids = Array.from(swapped_ids_set);
+      stored_swapped_ids = JSON.parse(JSON.stringify(stored_swapped_ids));
+      stored_swapped_ids[funding_outpoint_str] = swapped_ids;
+      // Delete the coin from the statecoins map if it has been swapped.
+      delete stored_sc_obj[sc.shared_key_id];
+    });
+
+    //Store the update objects
+    if(isElectron()){
+      let getStoredWallet: any = wallet;
+      getStoredWallet.statecoins_obj = stored_sc_obj;
+      getStoredWallet.swapped_statecoins_obj = stored_swapped_sc_obj;
+      getStoredWallet.swapped_ids = stored_swapped_ids;
+      this.store.set(`${wallet.name}`, getStoredWallet);
+    }else{
+      this.store.set(sc_dest, stored_sc_obj);
+      this.store.set(swapped_sc_dest, stored_swapped_sc_obj);
+      this.store.set(swapped_ids_dest, stored_swapped_ids);
+    }
+
+  }
   storeWalletStateCoinsArray(wallet_name: string, statecoins: StateCoin[]) {
     let swapped_sc_map = new Map<string, StateCoin>();
     let sc_map = new Map<string, StateCoin>();

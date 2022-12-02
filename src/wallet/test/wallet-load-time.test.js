@@ -52,7 +52,7 @@ async function getWallet() {
   clearWallet(walletNameBackup);
   let walletJSON = LARGE_WALLET;
   expect(walletJSON.name).toEqual(walletName);
-  walletJSON.name = walletNameBackup;
+  // walletJSON.name = walletNameBackup;
   let walletSave = await Wallet.loadFromBackup(
     walletJSON,
     walletPassword,
@@ -72,9 +72,45 @@ describe("Wallet load time", function () {
 
   test("time to load wallet", async function () {
     const start_time = window.performance.now();
-    await getWallet();
+    let wallet = await getWallet();
     const load_time = window.performance.now() - start_time;
     console.log(`wallet load time: ${load_time}`);
     expect(load_time).toBeLessThanOrEqual(15000);
+    
+    await wallet.save();
+
+    // const start_time2 = window.performance.now();
+    // wallet.storage.getWallet("test_wallet_41df35e8-f0e4-47bc-8003-29d8019b4c75")
+    // const load_time2 = window.performance.now() - start_time2;
+
+    // console.log(`LONG _______ wallet load time: ${load_time2}`);
+
+    const start_time3 = window.performance.now();
+    wallet.storage.getWalletQuick("test_wallet_41df35e8-f0e4-47bc-8003-29d8019b4c75")
+    const load_time3 = window.performance.now() - start_time3;
+
+    console.log(`SHORT _______ wallet load time: ${load_time3}`);
+
   });
+
+  // test('getWallet Long load', async function(){
+  //   let wallet = await getWallet();
+  //   await wallet.save();
+  //   const start_time = window.performance.now();
+  //   wallet.storage.getWallet("test_wallet_41df35e8-f0e4-47bc-8003-29d8019b4c75")
+  //   const load_time = window.performance.now() - start_time;
+
+  //   console.log(`LONG _______ wallet load time: ${load_time}`);
+  // })
+  // test('getWallet Quick load', async function(){
+    
+  //   let wallet = await getWallet();
+  //   await wallet.save();
+  //   const start_time2 = window.performance.now();
+  //   wallet.storage.getWalletQuick("test_wallet_41df35e8-f0e4-47bc-8003-29d8019b4c75")
+  //   const load_time2 = window.performance.now() - start_time2;
+
+  //   console.log(`SHORT _______ wallet load time: ${load_time2}`);
+
+  // })
 });
