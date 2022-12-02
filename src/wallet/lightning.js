@@ -1,5 +1,4 @@
 import * as ldk from "lightningdevkit";
-import * as fs from "fs";
 import MercuryFeeEstimator from "./lightning/MercuryFeeEstimator";
 import MercuryLogger from "./lightning/MercuryLogger";
 import MercuryPersister from "./lightning/MercuryPersistor";
@@ -7,7 +6,6 @@ import MercuryPersister from "./lightning/MercuryPersistor";
 console.log("initialize the wasm from fetch...");
 console.log("ldk", ldk);
 
-// THIS BREAKS THE PROJECT but we need the ldk/wasm initialized  somehow
 await ldk.initializeWasmWebFetch("liblightningjs.wasm");
 
 export class LightningClient {
@@ -16,7 +14,18 @@ export class LightningClient {
   logger;
   tx_broadcasted;
   tx_broadcaster;
+  // step 4
+  network;
+  genesisBlock;
+  genesis_block_hash;
+  networkGraph;
+  // step 5
   persist;
+  // step 6
+  event_handler;
+  // step 8
+  chain_monitor;
+  chain_watch;
 
   constructor(_electrumClient) {
     this.electrum_client = _electrumClient;
@@ -44,27 +53,27 @@ export class LightningClient {
     });
 
     // Step 4: network graph
-    var network = ldk.Network.LDKNetwork_Testnet;
-    var genesisBlock = ldk.BestBlock.constructor_from_genesis(network);
-    var genesis_block_hash = genesisBlock.block_hash();
-
-    var networkGraph = ldk.NetworkGraph.constructor_new(
-      genesis_block_hash,
+    this.network = ldk.Network.LDKNetwork_Testnet;
+    this.genesisBlock = ldk.BestBlock.constructor_from_genesis(this.network);
+    this.genesis_block_hash = this.genesisBlock.block_hash();
+    this.networkGraph = ldk.NetworkGraph.constructor_new(
+      this.genesis_block_hash,
       this.logger
     );
 
     console.group("network graph");
-    console.log("network:", network);
-    console.log("genesisBlock:", genesisBlock);
-    console.log("genesis_block_hash:", genesis_block_hash);
-    console.log("networkGraph:", networkGraph);
+    console.log("network:", this.network);
+    console.log("genesisBlock:", this.genesisBlock);
+    console.log("genesis_block_hash:", this.genesis_block_hash);
+    console.log("networkGraph:", this.networkGraph);
     console.groupEnd();
 
     // Step 5: Persist
-    this.persist = ldk.Persist.new_impl(MercuryPersister());
+    this.persist = ldk.Persist.new_impl(new MercuryPersister());
 
+    /*
     // Step 6: Initialize the EventHandler
-    let event_handler = ldk.EventHandler.new_impl({
+    this.event_handler = ldk.EventHandler.new_impl({
       handle_event: function (e) {
         console.log(">>>>>>> Handling Event here <<<<<<<", e);
         if (e instanceof ldk.Event_FundingGenerationReady) {
@@ -94,14 +103,14 @@ export class LightningClient {
     // Step 7: Optional: Initialize the transaction filter
 
     // Step 8: Initialize the ChainMonitor
-    const chain_monitor = ldk.ChainMonitor.constructor_new(
+    this.chain_monitor = ldk.ChainMonitor.constructor_new(
       ldk.Option_FilterZ.constructor_none(),
-      tx_broadcaster,
-      logger,
-      fee_estimator,
-      persister
+      this.tx_broadcaster,
+      this.logger,
+      this.fee_estimator,
+      this.persister
     );
-    const chain_watch = chain_monitor.as_Watch();
+    this.chain_watch = this.chain_monitor.as_Watch();
 
     // Step 9: Initialize the KeysManager
     const ldk_data_dir = "./.ldk/";
@@ -118,12 +127,12 @@ export class LightningClient {
       seed = fs.readFileSync(keys_seed_path);
     }
 
-    const keys_manager = ldk.KeysManager.constructor_new(seed, BigInt(42), 42);
-    const keys_interface = keys_manager.as_KeysInterface();
-    const config = ldk.UserConfig.constructor_default();
-    const ChannelHandshakeConfig =
+    this.keys_manager = ldk.KeysManager.constructor_new(seed, BigInt(42), 42);
+    this.keys_interface = keys_manager.as_KeysInterface();
+    this.config = ldk.UserConfig.constructor_default();
+    this.ChannelHandshakeConfig =
       ldk.ChannelHandshakeConfig.constructor_default();
-    const params = ldk.ChainParameters.constructor_new(
+    this.params = ldk.ChainParameters.constructor_new(
       ldk.Network.LDKNetwork_Regtest,
       ldk.BestBlock.constructor_new(
         Buffer.from(
@@ -138,24 +147,30 @@ export class LightningClient {
     // const channel_monitor_list = persister.read_channel_monitors(keys_manager);
 
     // Step 11: Initialize the ChannelManager
-    const channel_manager = ldk.ChannelManager.constructor_new(
-      fee_estimator,
-      chain_watch,
-      tx_broadcaster,
-      logger,
+    this.channel_manager = ldk.ChannelManager.constructor_new(
+      this.fee_estimator,
+      this.chain_watch,
+      this.tx_broadcaster,
+      this.logger,
       keys_interface,
       config,
       params
     );
+    */
   }
 
   // starts the lightning LDK
   start() {
+    /*
     setInterval(() => {
       //peer_manager.timer_tick_occurred();
       //peer_manager.process_events();
-      channel_manager.as_EventsProvider().process_pending_events(event_handler);
-      chain_monitor.as_EventsProvider().process_pending_events(event_handler);
-    }, 2000);
+      this.channel_manager
+        .as_EventsProvider()
+        .process_pending_events(this.event_handler);
+      this.chain_monitor
+        .as_EventsProvider()
+        .process_pending_events(this.event_handler);
+    }, 2000);*/
   }
 }
