@@ -15,6 +15,7 @@ import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
 import PageHeader from '../PageHeader/PageHeader';
 import { useState } from "react";
 import ChannelList from "../../components/Channels/ChannelList";
+import Loading from '../../components/Loading/Loading';
 
 const SendLightning = () => {
 
