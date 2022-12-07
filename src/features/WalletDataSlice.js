@@ -236,7 +236,6 @@ export async function callGetLatestBlock(){
 
 export async function walletLoadConnection(wallet) {
   if (testing_mode) log.info("Testing mode set.");
-
   let networkType = wallet.networkType;
   if(!networkType) {
     networkType = NETWORK_TYPE.TOR
