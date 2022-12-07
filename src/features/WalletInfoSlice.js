@@ -14,10 +14,10 @@ export const WalletInfoSlice = createSlice({
       const { key, value } = action.payload;
 
       // debugging
-      console.group("save_wallet");
-      console.log("key---------->", key);
-      console.log("value--------->", value);
-      console.groupEnd();
+      // console.group("save_wallet");
+      // console.log("key---------->", key);
+      // console.log("value--------->", value);
+      // console.groupEnd();
 
       var keySplit = key.split(".");
       // assume key looks like this -> walletName.property -> v123.password
@@ -70,11 +70,11 @@ export const WalletInfoSlice = createSlice({
       var realKey = key.split(".")[0];
       var currentWallet = state.wallets[realKey];
 
-      console.group("save_statecoinObj");
-      console.log("key->", key);
-      console.log("value->", value);
-      console.log("key name->", value.shared_key_id);
-      console.groupEnd();
+      // console.group("save_statecoinObj");
+      // console.log("key->", key);
+      // console.log("value->", value);
+      // console.log("key name->", value.shared_key_id);
+      // console.groupEnd();
 
       // do nothing if shared_key_id is undefined.
       if (value.shared_key_id === undefined) {
@@ -127,11 +127,11 @@ export const WalletInfoSlice = createSlice({
 
       var currentWallet = state.wallets[walletName];
 
-      console.group("delete_statecoins");
-      console.log("delete key->", key);
-      console.log("delete value->", value);
-      console.log("current statecoin objects ->", currentWallet);
-      console.groupEnd();
+      // console.group("delete_statecoins");
+      // console.log("delete key->", key);
+      // console.log("delete value->", value);
+      // console.log("current statecoin objects ->", currentWallet);
+      // console.groupEnd();
 
       if (object_property === "statecoins") {
         if (object_id === "swapped_coins") {
