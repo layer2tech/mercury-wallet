@@ -303,17 +303,15 @@ export class Storage {
     getStoredWallet.swapped_statecoins_obj = stored_swapped_sc_obj;
     getStoredWallet.swapped_ids = stored_swapped_ids;
 
-    //      // encrypt mnemonic
-    // getStoredWallet.mnemonic = encryptAES(
-    // getStoredWallet.mnemonic,
-    // getStoredWallet.password
-    // );
-    // // remove password and root keys
-    // getStoredWallet.password = "";
-    // getStoredWallet.account = this.accountToAddrMap(getStoredWallet.account);
+    // encrypt mnemonic
+    getStoredWallet.mnemonic = encryptAES(
+    getStoredWallet.mnemonic,
+    getStoredWallet.password
+    );
+    // remove password and root keys
+    getStoredWallet.password = "";
+    getStoredWallet.account = this.accountToAddrMap(getStoredWallet.account);
 
-
-    // // getStoredWallet = this.prepareWalletForSave(getStoredWallet);
 
     this.store.set(`${wallet.name}`, getStoredWallet);
   }
@@ -472,8 +470,8 @@ export class Storage {
         // If quick method used: error thrown that walletInfo.wallets.[wallet name].account has been mutated
         var wallet_json_encrypted = this.getWallet(wallet_name, load_all);
       }
-      console.log('mnemonic: ', wallet_json_encrypted.mnemonic);
-      // wallet_json_encrypted.mnemonic = encryptAES(wallet_json_encrypted.mnemonic, wallet_json_encrypted.password)
+      // console.log('mnemonic: ', wallet_json_encrypted.mnemonic);
+      // // wallet_json_encrypted.mnemonic = encryptAES(wallet_json_encrypted.mnemonic, wallet_json_encrypted.password)
       let wallet_json_decrypted = wallet_json_encrypted;
   
       // Decrypt mnemonic
