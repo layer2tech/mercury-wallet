@@ -305,15 +305,17 @@ export class Storage {
 
     // encrypt mnemonic
     getStoredWallet.mnemonic = encryptAES(
-    getStoredWallet.mnemonic,
-    getStoredWallet.password
-    );
-    // remove password and root keys
-    getStoredWallet.password = "";
-    getStoredWallet.account = this.accountToAddrMap(getStoredWallet.account);
+      getStoredWallet.mnemonic,
+      getStoredWallet.password
+      );
 
 
     this.store.set(`${wallet.name}`, getStoredWallet);
+
+    getStoredWallet.mnemonic = decryptAES(
+      getStoredWallet.mnemonic,
+      getStoredWallet.password
+      );
   }
 
   sortSwappedCoinsAndSwappedIds(swapped_sc_obj: any, stored_swapped_ids: any, stored_sc_obj: any){
