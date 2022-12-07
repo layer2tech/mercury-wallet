@@ -302,7 +302,19 @@ export class Storage {
     getStoredWallet.statecoins_obj = stored_sc_obj;
     getStoredWallet.swapped_statecoins_obj = stored_swapped_sc_obj;
     getStoredWallet.swapped_ids = stored_swapped_ids;
-    getStoredWallet = this.prepareWalletForSave(getStoredWallet);
+
+    //      // encrypt mnemonic
+    // getStoredWallet.mnemonic = encryptAES(
+    // getStoredWallet.mnemonic,
+    // getStoredWallet.password
+    // );
+    // // remove password and root keys
+    // getStoredWallet.password = "";
+    // getStoredWallet.account = this.accountToAddrMap(getStoredWallet.account);
+
+
+    // // getStoredWallet = this.prepareWalletForSave(getStoredWallet);
+
     this.store.set(`${wallet.name}`, getStoredWallet);
   }
 
