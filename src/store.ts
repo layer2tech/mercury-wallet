@@ -297,25 +297,21 @@ export class Storage {
     }
     this.sortSwappedCoinsAndSwappedIds(swapped_sc_obj, stored_swapped_ids, stored_sc_obj)
 
-    //Store the update objects
     let getStoredWallet: any = wallet;
     getStoredWallet.statecoins_obj = stored_sc_obj;
     getStoredWallet.swapped_statecoins_obj = stored_swapped_sc_obj;
     getStoredWallet.swapped_ids = stored_swapped_ids;
-
+    
+    //Store the update objects
+    let walletSave: any = Object.assign({}, wallet);
     // encrypt mnemonic
-    getStoredWallet.mnemonic = encryptAES(
-      getStoredWallet.mnemonic,
-      getStoredWallet.password
+    walletSave.mnemonic = encryptAES(
+      walletSave.mnemonic,
+      walletSave.password
       );
 
 
     this.store.set(`${wallet.name}`, getStoredWallet);
-
-    getStoredWallet.mnemonic = decryptAES(
-      getStoredWallet.mnemonic,
-      getStoredWallet.password
-      );
   }
 
   sortSwappedCoinsAndSwappedIds(swapped_sc_obj: any, stored_swapped_ids: any, stored_sc_obj: any){
