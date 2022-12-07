@@ -36,6 +36,20 @@ jest.mock("../../application/webStore", () => jest.fn());
 let bip39 = require("bip39");
 
 jest.setTimeout(70000);
+let isElectron = require("is-electron");
+let Store
+
+export const TestingWithJest = () => {
+  return process.env.JEST_WORKER_ID !== undefined;
+};
+
+if (isElectron() || TestingWithJest()) {
+  try {
+    Store = window.require("electron-store");
+  } catch (e) {
+    Store = require("electron-store");
+  }
+}
 
 let clearWallet = (wallet_name) => {
   const name_store = new Storage(`wallets/wallet_names`);
@@ -58,7 +72,7 @@ async function getWallet() {
     walletPassword,
     true
   );
-  walletSave.storage.loadStatecoins(walletSave);
+  // walletSave.storage.loadStatecoins(walletSave);
   expect(walletSave.statecoins.coins.length).toEqual(9);
   return walletSave;
 }
@@ -79,38 +93,9 @@ describe("Wallet load time", function () {
     
     await wallet.save();
 
-    // const start_time2 = window.performance.now();
-    // wallet.storage.getWallet("test_wallet_41df35e8-f0e4-47bc-8003-29d8019b4c75")
-    // const load_time2 = window.performance.now() - start_time2;
+    console.log(wallet.storage)
 
-    // console.log(`LONG _______ wallet load time: ${load_time2}`);
-
-    const start_time3 = window.performance.now();
-    wallet.storage.getWalletQuick("test_wallet_41df35e8-f0e4-47bc-8003-29d8019b4c75")
-    const load_time3 = window.performance.now() - start_time3;
-
-    console.log(`SHORT _______ wallet load time: ${load_time3}`);
 
   });
 
-  // test('getWallet Long load', async function(){
-  //   let wallet = await getWallet();
-  //   await wallet.save();
-  //   const start_time = window.performance.now();
-  //   wallet.storage.getWallet("test_wallet_41df35e8-f0e4-47bc-8003-29d8019b4c75")
-  //   const load_time = window.performance.now() - start_time;
-
-  //   console.log(`LONG _______ wallet load time: ${load_time}`);
-  // })
-  // test('getWallet Quick load', async function(){
-    
-  //   let wallet = await getWallet();
-  //   await wallet.save();
-  //   const start_time2 = window.performance.now();
-  //   wallet.storage.getWalletQuick("test_wallet_41df35e8-f0e4-47bc-8003-29d8019b4c75")
-  //   const load_time2 = window.performance.now() - start_time2;
-
-  //   console.log(`SHORT _______ wallet load time: ${load_time2}`);
-
-  // })
 });

@@ -378,6 +378,15 @@ describe("Account Breaks - Storing and Loading wallets in Redux", () => {
       )[0]
     ).toBe(undefined);
   });
+
+  test('WebStore undefined in check for Electron store', async()=>{
+    const WALLET_NAME_4 = "mock_e4c93acf-2f49-414f-b124-65c882eea7e8632893";
+    wallet = await createWallet(WALLET_NAME_4);
+    expect(wallet.storage.store).toBeInstanceOf(WebStore);
+
+    expect(typeof(wallet.storage.store.path)).toBe("undefined")
+    
+  })
 });
 
 async function createWallet(name) {
