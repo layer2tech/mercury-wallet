@@ -91,8 +91,7 @@ export class Storage {
     ];
   }
 
-  // Wallet storage
-  storeWallet(wallet_json: any) {
+  prepareWalletForSave(wallet_json: any){
     if (wallet_json != null) {
       delete wallet_json.electrum_client;
       delete wallet_json.storage;
@@ -121,6 +120,18 @@ export class Storage {
           wallet_json.statecoins
         );
       }
+    
+    }
+    return wallet_json
+  }
+
+
+  // Wallet storage
+ storeWallet(wallet_json: any) {
+    
+    wallet_json = this.prepareWalletForSave(wallet_json)
+    
+    if (wallet_json != null) {
 
       Object.keys(wallet_json).forEach((key) => {
         //Functions cannot be stored.
@@ -285,6 +296,7 @@ export class Storage {
     getStoredWallet.statecoins_obj = stored_sc_obj;
     getStoredWallet.swapped_statecoins_obj = stored_swapped_sc_obj;
     getStoredWallet.swapped_ids = stored_swapped_ids;
+    getStoredWallet = this.prepareWalletForSave(getStoredWallet);
     this.store.set(`${wallet.name}`, getStoredWallet);
   }
 
@@ -442,7 +454,8 @@ export class Storage {
         // If quick method used: error thrown that walletInfo.wallets.[wallet name].account has been mutated
         var wallet_json_encrypted = this.getWallet(wallet_name, load_all);
       }
-
+      console.log('mnemonic: ', wallet_json_encrypted.mnemonic);
+      // wallet_json_encrypted.mnemonic = encryptAES(wallet_json_encrypted.mnemonic, wallet_json_encrypted.password)
       let wallet_json_decrypted = wallet_json_encrypted;
   
       // Decrypt mnemonic
