@@ -113,14 +113,6 @@ export class Storage {
       // remove active status flag
       delete wallet_json.active;
 
-      // Store statecoins individually by key
-      if (wallet_json.statecoins != null) {
-        this.storeWalletStateCoinsList(
-          wallet_json.name,
-          wallet_json.statecoins
-        );
-      }
-    
     }
     return wallet_json
   }
@@ -132,6 +124,20 @@ export class Storage {
     wallet_json = this.prepareWalletForSave(wallet_json)
     
     if (wallet_json != null) {
+
+            // remove testing_mode config
+            delete wallet_json.config.testing_mode;
+            delete wallet_json.config.jest_testing_mode;
+            // remove active status flag
+            delete wallet_json.active;
+      
+            // Store statecoins individually by key
+            if (wallet_json.statecoins != null) {
+              this.storeWalletStateCoinsList(
+                wallet_json.name,
+                wallet_json.statecoins
+              );
+            }
 
       Object.keys(wallet_json).forEach((key) => {
         //Functions cannot be stored.
