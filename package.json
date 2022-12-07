@@ -128,6 +128,7 @@
     "install": "^0.13.0",
     "is-electron": "^2.2.1",
     "levenary": "^1.1.1",
+    "lightningdevkit": "^0.0.11-2.0",
     "limiter": "^2.1.0",
     "lodash.clonedeep": "^4.5.0",
     "mercury-wallet-tor-adapter": "file:./tor-adapter",

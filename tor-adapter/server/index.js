@@ -182,7 +182,9 @@ async function post_plain_endpoint(path, data, res, endpoint, i_hs) {
   }
 }
 
+
 app.get("/newid", async function (req, res) {
+
   try {
     if (network === "tor") anon_client.newSocksAuthentication();
     res.status(200).json({});
@@ -481,6 +483,7 @@ async function shutdown() {
   }
   process.exit(0);
 }
+
 
 app.get("/electrs/*", function (req, res) {
   let path = req.path.replace("/electrs", "");

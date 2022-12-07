@@ -901,6 +901,10 @@ export class Wallet {
     return this.wasm;
   }
 
+  async importLDK(){
+    await import('lightningdevkit')
+  }
+
   async importWasm() {
     this.wasm = await import("client-wasm");
   }
