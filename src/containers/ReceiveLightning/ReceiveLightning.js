@@ -28,6 +28,10 @@ const ReceiveLightning = () => {
       return <Redirect to="/" />;
     }
 
+    const createInvoice = () => {
+      const encodedInvoice = createInvoice(10000, "coffee");
+      console.log(encodedInvoice)
+    };
 
   
     let current_config;
@@ -77,7 +81,7 @@ const ReceiveLightning = () => {
                   </div>
 
                   <div>
-                    <button type="button" className={`btn withdraw-button `} >
+                    <button type="button" className={`btn withdraw-button `} onClick={createInvoice}>
                         Create Invoice </button>
                   </div>
               </div>
