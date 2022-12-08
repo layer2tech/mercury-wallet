@@ -14,6 +14,7 @@ import { AddressInput, Tutorial } from "../../components";
 import PageHeader from '../PageHeader/PageHeader';
 import { useState } from "react";
 import ChannelList from "../../components/Channels/ChannelList";
+import createInvoice from "../../wallet/lightning/Invoice";
 
 const ReceiveLightning = () => {
     const [inputAddr, setInputAddr] = useState("");
@@ -28,9 +29,10 @@ const ReceiveLightning = () => {
       return <Redirect to="/" />;
     }
 
-    const createInvoice = () => {
-      const encodedInvoice = createInvoice(10000, "coffee");
-      console.log(encodedInvoice)
+    const createInvoiceAction = async () => {
+
+      // const encodedInvoice = await createInvoice(10000, "coffee");
+      // console.log(encodedInvoice)
     };
 
   
@@ -81,7 +83,7 @@ const ReceiveLightning = () => {
                   </div>
 
                   <div>
-                    <button type="button" className={`btn withdraw-button `} onClick={createInvoice}>
+                    <button type="button" className={`btn withdraw-button `} onClick={createInvoiceAction}>
                         Create Invoice </button>
                   </div>
               </div>

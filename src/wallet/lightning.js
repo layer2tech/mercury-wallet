@@ -7,6 +7,7 @@ console.log("initialize the wasm from fetch...");
 console.log("ldk", ldk);
 
 await ldk.initializeWasmWebFetch("liblightningjs.wasm");
+import { nanoid } from "nanoid";
 
 export class LightningClient {
   fee_estimator;
@@ -71,7 +72,6 @@ export class LightningClient {
     // Step 5: Persist
     this.persist = ldk.Persist.new_impl(new MercuryPersister());
 
-    /*
     // Step 6: Initialize the EventHandler
     this.event_handler = ldk.EventHandler.new_impl({
       handle_event: function (e) {
@@ -119,21 +119,23 @@ export class LightningClient {
 
     // Step 9: Initialize the KeysManager
     const ldk_data_dir = "./.ldk/";
-    if (!fs.existsSync(ldk_data_dir)) {
-      fs.mkdirSync(ldk_data_dir);
-    }
-    const keys_seed_path = ldk_data_dir + "keys_seed";
+    // if (!fs.existsSync(ldk_data_dir)) {
+    //   fs.mkdirSync(ldk_data_dir);
+    // }
+    // const keys_seed_path = ldk_data_dir + "keys_seed";
 
     var seed = null;
-    if (!fs.existsSync(keys_seed_path)) {
-      seed = crypto.randomBytes(32);
-      fs.writeFileSync(keys_seed_path, seed);
-    } else {
-      seed = fs.readFileSync(keys_seed_path);
-    }
+    // if (!fs.existsSync(keys_seed_path)) {
+    //   seed = crypto.randomBytes(32);
+    //   fs.writeFileSync(keys_seed_path, seed);
+    // } else {
+    //   seed = fs.readFileSync(keys_seed_path);
+    // }
+
+    seed = nanoid(32);
 
     this.keys_manager = ldk.KeysManager.constructor_new(seed, BigInt(42), 42);
-    this.keys_interface = keys_manager.as_KeysInterface();
+    this.keys_interface = this.keys_manager.as_KeysInterface();
     this.config = ldk.UserConfig.constructor_default();
     this.ChannelHandshakeConfig =
       ldk.ChannelHandshakeConfig.constructor_default();
@@ -149,7 +151,7 @@ export class LightningClient {
     );
 
     // Step 10: Read ChannelMonitor from disk
-    // const channel_monitor_list = persister.read_channel_monitors(keys_manager);
+    // const channel_monitor_list = persister.read_channel_monitors(this.keys_manager);
 
     // Step 11: Initialize the ChannelManager
     this.channel_manager = ldk.ChannelManager.constructor_new(
@@ -157,16 +159,14 @@ export class LightningClient {
       this.chain_watch,
       this.tx_broadcaster,
       this.logger,
-      keys_interface,
-      config,
-      params
+      this.keys_interface,
+      this.config,
+      this.params
     );
-    */
   }
 
   // starts the lightning LDK
   start() {
-    /*
     setInterval(() => {
       //peer_manager.timer_tick_occurred();
       //peer_manager.process_events();
@@ -176,6 +176,6 @@ export class LightningClient {
       this.chain_monitor
         .as_EventsProvider()
         .process_pending_events(this.event_handler);
-    }, 2000);*/
+    }, 2000);
   }
 }
