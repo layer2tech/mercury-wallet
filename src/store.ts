@@ -311,7 +311,7 @@ export class Storage {
       );
 
 
-    this.store.set(`${wallet.name}`, getStoredWallet);
+    this.store.set(`${wallet.name}`, walletSave);
   }
 
   sortSwappedCoinsAndSwappedIds(swapped_sc_obj: any, stored_swapped_ids: any, stored_sc_obj: any){
@@ -464,12 +464,10 @@ export class Storage {
   ) {
     if( isElectron() ){
       var wallet_json_encrypted = this.getWalletQuick(wallet_name, load_all);
-      } else{
-        // If quick method used: error thrown that walletInfo.wallets.[wallet name].account has been mutated
-        var wallet_json_encrypted = this.getWallet(wallet_name, load_all);
-      }
-      // console.log('mnemonic: ', wallet_json_encrypted.mnemonic);
-      // // wallet_json_encrypted.mnemonic = encryptAES(wallet_json_encrypted.mnemonic, wallet_json_encrypted.password)
+    } else{
+      // If quick method used: error thrown that walletInfo.wallets.[wallet name].account has been mutated
+      var wallet_json_encrypted = this.getWallet(wallet_name, load_all);
+    }
       let wallet_json_decrypted = wallet_json_encrypted;
   
       // Decrypt mnemonic
