@@ -105,3 +105,7 @@ li.go2067797667:last-child::before {
     text-align: left;
     word-break: break-word;
 }
+
+.restore-network {
+    text-align: left;
+}

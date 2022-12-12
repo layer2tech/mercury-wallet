@@ -34,6 +34,7 @@ const RestoreWalletPage = (props) => {
   const [state, setState] = useState({
     wallet_name: "",
     wallet_password: "",
+    wallet_network: "",
     mnemonic: "",
     gap_limit: "",
   });
@@ -41,6 +42,8 @@ const RestoreWalletPage = (props) => {
     setState({ ...state, wallet_name: event.target.value });
   const setStateWalletPassword = (event) =>
     setState({ ...state, wallet_password: event.target.value });
+  const setStateWalletNetwork = (networkType) =>
+    setState({...state, wallet_network: networkType});
   const setStateMnemonic = (event) =>
     setState({ ...state, mnemonic: event.target.value });
   const setStateGapLimit = (event) =>
@@ -201,6 +204,7 @@ const RestoreWalletPage = (props) => {
               onSubmit={onClickConf}
               setStateWalletName={setStateWalletName}
               setStateWalletPassword={setStateWalletPassword}
+              setStateWalletNetwork={setStateWalletNetwork}
               setStateMnemonic={setStateMnemonic}
               setStateGapLimit={setStateGapLimit}
               submitTitle="Confirm"
