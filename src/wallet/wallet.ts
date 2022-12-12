@@ -79,6 +79,7 @@ import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
 import { LightningClient } from "./lightning";
+import { Init, InitFeatures, NetAddress, Option_NetAddressZ } from "lightningdevkit";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -220,8 +221,42 @@ export class Wallet {
 
     // reference to lightning
     this.lightning_client = new LightningClient(this.electrum_client);
+
+    const lightningClient2 = new LightningClient(this.electrum_client);
+
+    lightningClient2.start();
+
     // start a lightning node here
     this.lightning_client.start();
+
+    const channelManagerA = this.lightning_client.channel_manager;
+    const channelManagerB = lightningClient2.channel_manager;
+
+    // All kinds of InitFeature options check set_*_ functions
+
+    const initFeatures = InitFeatures.constructor_empty() as InitFeatures;
+    initFeatures.set_data_loss_protect_required();
+    initFeatures.set_initial_routing_sync_optional();
+    initFeatures.set_upfront_shutdown_script_required();
+    initFeatures.set_gossip_queries_optional();
+
+    const byteArray = initFeatures.write();
+
+    
+    const netAddress = NetAddress.constructor_ipv6(new Uint8Array(Buffer.from("038863cf8ab91046230f561cd5b386cbff8309fa02e3f0c3ed161a3aeb64a643b9")), 9735);
+
+    const optionalAddress = Option_NetAddressZ.constructor_some(netAddress);
+
+
+    channelManagerA
+      .as_ChannelMessageHandler()
+      .peer_connected(
+        channelManagerB.get_our_node_id(),
+        Init.constructor_new(initFeatures, optionalAddress)
+      )
+
+
+    
 
     this.block_height = 0;
     this.current_sce_addr = "";
