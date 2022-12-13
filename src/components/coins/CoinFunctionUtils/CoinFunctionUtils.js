@@ -11,7 +11,7 @@ import anon_icon2_high from "../../../images/check-grey.png";
 const validExpiryTime = (expiry_data) => {
     let block_height = callGetBlockHeight()
 
-    if (block_height === 0 || expiry_data.block === 0 || !block_height) {
+    if (block_height === 0 || expiry_data.blocks === 0 || !block_height || expiry_data.blocks > block_height) {
       // set its actual block to 0 so next time we can return  '--' until an actual block is received
       expiry_data =  {...expiry_data, blocks: 0};
       return false;

@@ -11,7 +11,8 @@ import {
   setIntervalIfOnline,
   WALLET_MODE,
   UpdateSpeedInfo,
-  callGetLatestBlock
+  callGetLatestBlock,
+  setBlockHeightLoad
 } from "../../features/WalletDataSlice";
 
 import "./panelConnectivity.css";
@@ -30,7 +31,7 @@ log = new WrappedLogger();
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();
 
-  const { walletMode, fee_info, torInfo, ping_conductor_ms, ping_server_ms, ping_electrum_ms } = useSelector((state) => state.walletData)
+  const { walletMode, fee_info, torInfo, ping_conductor_ms, ping_server_ms, ping_electrum_ms, blockHeightLoad } = useSelector((state) => state.walletData)
 
   // Arrow down state and url hover state
   const [state, setState] = useState({
@@ -156,7 +157,13 @@ const PanelConnectivity = (props) => {
     } else{
       if( block_height === null || block_height === 0 ){
         // call to electrum server to set wallet var
-        setBlockHeight(await callGetLatestBlock()?.header)
+        let latestBlock = await callGetLatestBlock()?.header;
+
+        if(latestBlock !== 0 || latestBlock !== null ){
+          // triggers refresh when blockheight loaded to wallet object
+          dispatch(setBlockHeightLoad(!blockHeightLoad));
+        }
+        setBlockHeight(latestBlock);
       }
     }
     // set blockheight with wallet variable
