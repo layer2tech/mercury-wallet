@@ -14,7 +14,7 @@ import { CreateWizardForm } from "../../components";
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 import { Storage } from "../../store";
-import { parseBackupData } from "../../wallet/wallet";
+import { DEFAULT_NETWORK_TYPE, parseBackupData } from "../../wallet/wallet";
 
 import "./RestoreWallet.css";
 import isElectron from "is-electron";
@@ -34,8 +34,8 @@ const RestoreWalletPage = (props) => {
   const [state, setState] = useState({
     wallet_name: "",
     wallet_password: "",
-    wallet_network: "",
     mnemonic: "",
+    wallet_network: DEFAULT_NETWORK_TYPE,
     gap_limit: "",
   });
   const setStateWalletName = (event) =>
@@ -128,6 +128,7 @@ const RestoreWalletPage = (props) => {
       state.wallet_name,
       state.wallet_password,
       state.mnemonic,
+      state.wallet_network,
       props.history,
       true,
       gap_limit,

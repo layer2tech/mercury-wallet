@@ -1,5 +1,5 @@
 "use strict";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import eyeIcon from "../../images/eye-icon.svg";
@@ -65,6 +65,10 @@ const CreateWizardForm = (props) => {
       setRouteNetwork(NETWORK_TYPE.TOR);
     }
   }
+
+  useEffect(() => {
+    props.setStateWalletNetwork(NETWORK_TYPE.TOR);
+  }, []);
 
   return (
     <div className="wizard-form">
