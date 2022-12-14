@@ -208,7 +208,7 @@ export class Wallet {
       this.http_client = http_client;
     } else if (this.config.testing_mode != true) {
       this.http_client = new HttpClient(TOR_URL, true);
-      this.set_tor_endpoints();
+      this.set_adapter_endpoints();
     } else {
       this.http_client = new MockHttpClient();
     }
@@ -296,7 +296,7 @@ export class Wallet {
     }
   }
 
-  async set_tor_endpoints() {
+  async set_adapter_endpoints() {
     let electr_ep = this.config.electrum_config.host;
     let electr_ep_arr = electr_ep.split(",");
     let electr_port = this.config.electrum_config.port;
@@ -334,7 +334,7 @@ export class Wallet {
         this.http_client = new HttpClient(I2P_URL, false);
       } else {
         this.http_client = new HttpClient(TOR_URL, true);
-        await this.set_tor_endpoints();
+        await this.set_adapter_endpoints();
       }
     }
   }
@@ -346,7 +346,7 @@ export class Wallet {
         this.electrum_client = new ElectrsClient(I2P_URL, false);
       } else {
         this.electrum_client = new ElectrsClient(TOR_URL, true);
-        await this.set_tor_endpoints();
+        await this.set_adapter_endpoints();
       }
     }
   }

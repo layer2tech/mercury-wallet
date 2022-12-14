@@ -1001,7 +1001,7 @@ describe("Retry Recovery", function () {
   let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
 
   let resetSwapStates;
-  let set_tor_endpoints;
+  let set_adapter_endpoints;
   let initElectrumClient;
   let recoverCoinsMock;
   let WalletMock;
@@ -1029,8 +1029,8 @@ describe("Retry Recovery", function () {
     resetSwapStates = jest
       .spyOn(wallet, "resetSwapStates")
       .mockImplementation();
-    set_tor_endpoints = jest
-      .spyOn(wallet, "set_tor_endpoints")
+    set_adapter_endpoints = jest
+      .spyOn(wallet, "set_adapter_endpoints")
       .mockImplementation();
     initElectrumClient = jest
       .spyOn(wallet, "initElectrumClient")
@@ -1129,7 +1129,7 @@ describe.only('Recovery Account Reset', () => {
   let http_mock = jest.genMockFromModule("../mocks/mock_http_client");
 
   let resetSwapStates;
-  let set_tor_endpoints;
+  let set_adapter_endpoints;
   let initElectrumClient;
   let recoverCoinsMock;
   let WalletMock;
@@ -1158,8 +1158,8 @@ describe.only('Recovery Account Reset', () => {
     resetSwapStates = jest
       .spyOn(wallet, "resetSwapStates")
       .mockImplementation();
-    set_tor_endpoints = jest
-      .spyOn(wallet, "set_tor_endpoints")
+    set_adapter_endpoints = jest
+      .spyOn(wallet, "set_adapter_endpoints")
       .mockImplementation();
     initElectrumClient = jest
       .spyOn(wallet, "initElectrumClient")
