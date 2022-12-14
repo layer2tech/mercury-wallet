@@ -120,6 +120,14 @@ export const isWalletLoaded = () => {
   return wallet !== undefined && wallet.isActive();
 };
 
+export const callUnsubscribeAll = async () => {
+  if(isWalletLoaded()){
+
+    await wallet.unsubscribeAll();
+
+  }
+}
+
 export const isWalletActive = () => {
   return isWalletLoaded() && wallet.isActive();
 };

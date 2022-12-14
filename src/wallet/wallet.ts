@@ -532,6 +532,10 @@ export class Wallet {
     await this.electrum_client.unsubscribeAll();
   }
 
+  async unsubscribeAll(){
+    await this.electrum_client.unsubscribeAll();
+  }
+
   async start() {
     for (let i = 0; i < MAX_SWAP_SEMAPHORE_COUNT; i++) {
       swapSemaphore.release();
@@ -744,14 +748,21 @@ export class Wallet {
   }
 
   newElectrumClient() {
+    let ENDPOINT;
+    if(this.networkType === NETWORK_TYPE.I2P){
+      ENDPOINT = I2P_URL;
+    } else {
+      ENDPOINT = TOR_URL;
+    }
+
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if (this.config.testing_mode == true) return new MockElectrumClient();
     if (this.config.electrum_config.type == "eps")
-      return new EPSClient("http://localhost:3001");
+      return new EPSClient( ENDPOINT);
     if (this.config.electrum_config.type == "electrs_local")
-      return new ElectrsLocalClient("http://localhost:3001");
+      return new ElectrsLocalClient( ENDPOINT );
     if (this.config.electrum_config.protocol == "http")
-      return new ElectrsClient("http://localhost:3001");
+      return new ElectrsClient( ENDPOINT );
 
     return new ElectrumClient(this.config.electrum_config);
   }
