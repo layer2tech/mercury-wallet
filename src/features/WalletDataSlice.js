@@ -109,6 +109,7 @@ const initialState = {
   swapPendingCoins: [],
   inSwapValues: [],
   swapLoad: { join: false, swapCoin: "", leave: false },
+  blockHeightLoad: false,
   coinsAdded: 0,
   coinsRemoved: 0,
   torInfo: { online: true },
@@ -236,7 +237,6 @@ export async function callGetLatestBlock(){
 
 export async function walletLoadConnection(wallet) {
   if (testing_mode) log.info("Testing mode set.");
-
   let networkType = wallet.networkType;
   if(!networkType) {
     networkType = NETWORK_TYPE.TOR
@@ -1245,6 +1245,14 @@ const WalletSlice = createSlice({
         },
       };
     },
+    setBlockHeightLoad(state, action) {
+      // Toggle to refresh block height components
+      var update = action.payload;
+      return {
+        ...state,
+        blockHeightLoad: update,
+      };
+    },
     // Deposit
     dummyDeposit() {
       let proof_key =
@@ -1536,6 +1544,7 @@ export const {
   addInSwapValue,
   removeInSwapValue,
   setSwapLoad,
+  setBlockHeightLoad,
   updateTxFeeEstimate,
   addCoins,
   removeCoins,

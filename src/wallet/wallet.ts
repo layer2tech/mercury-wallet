@@ -483,7 +483,19 @@ export class Wallet {
         json_wallet.networkType,
       );
 
+      
+      // Deals with old wallet files, migrating statecoin data into the new format
+      new_wallet.storage.loadStatecoinsQuick(json_wallet);
+
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
+
+
+      if(typeof(new_wallet.storage.store.path) !== "undefined"){
+        // Delete swap coins from memory
+        deleteKeys(json_wallet, ["swapped_statecoins_obj", "swapped_ids", "statecoins_obj"]);
+      }
+
+
       new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity);
 
       new_wallet.current_sce_addr = json_wallet.current_sce_addr;
@@ -2853,10 +2865,10 @@ export const json_wallet_to_bip32_root_account = (json_wallet: any): object => {
   let internal = i.derive(1);
 
   // ensure account stores with different encoding/decoding are in same format
-  json_wallet.account = JSON.parse(JSON.stringify(json_wallet.account));
+  let wallet_account = JSON.parse(JSON.stringify(json_wallet.account));
 
   // Re-map Account JSON data to root chains
-  const chains = json_wallet.account.map(function (j: any) {
+  const chains = wallet_account.map(function (j: any) {
     let node;
     if (Object.keys(j.map).length) {
       // is internal node
@@ -2919,6 +2931,21 @@ export const getXpub = (mnemonic: string, network: Network) => {
 
   return node.neutered().toBase58();
 };
+
+function deleteKeys(obj: any, keys: Array<string>){
+  keys.map( key => {
+    deleteKey(obj, key);
+  })
+}
+
+function deleteKey(obj:any, key: keyof any) {
+  if (key in obj) {
+    delete obj[key];
+  }
+
+  return obj;
+}
+
 
 const dummy_master_key = {
   public: {

@@ -128,7 +128,11 @@ function createWindow() {
     mainWindow = new BrowserWindow(windowSpec);
   }
   
-  require("@electron/remote/main").enable(mainWindow.webContents)
+  require("@electron/remote/main").enable(mainWindow.webContents);
+
+  // Clears cookie storage
+  // Persisted web store must be wiped for electron in case redux store has changed
+  session.defaultSession.clearStorageData([], data => {})
 
   if (process.platform !== 'darwin') {
     mainWindow.setMenu(null);
@@ -199,9 +203,6 @@ app.on('ready', () => {
     alert('mercurywallet is already running. Not opening app.')
     app.quit()
   }
-  // Clears cookie storage
-  // Persisted web store must be wiped for electron in case redux store has changed
-  // session.defaultSession.clearStorageData([], data => {})
   
   terminate_tor_process();
   terminate_mercurywallet_process(null,"tor");
