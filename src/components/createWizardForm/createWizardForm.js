@@ -197,7 +197,7 @@ const CreateWizardForm = (props) => {
         <div className="inputs-item">
           <p>Select routing network type the wallet should be restored with (By default Tor):</p>
         </div>
-        <div className="network-switch-new-wallet restore-network">
+        <div className="inputs-item network-switch-new-wallet restore-network">
           <NetworkSwitch 
             newWallet={true}
             networkType={routeNetwork}

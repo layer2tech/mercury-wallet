@@ -100,7 +100,7 @@ p {
 }
 
 .network-switch-new-wallet {
-  padding-left: 10%;
-  padding-bottom: 30px;
-  padding-top: 20px;
+  justify-content: left !important;
+  padding-bottom: 10px;
+  padding-top: 10px;
 }
