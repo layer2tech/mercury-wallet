@@ -880,7 +880,9 @@ export const setNetworkType = async (networkType) => {
     wallet.config = new Config(wallet.config.network, networkType, testing_mode);
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
-    await wallet.set_tor_endpoints();
+    if (networkType === NETWORK_TYPE.TOR) {
+      await wallet.set_tor_endpoints();
+    }
     await wallet.save();
   }
 }

@@ -82,6 +82,10 @@ const App = () => {
     setNetworkType(getNetworkType());
   }
   
+  if (networkType !== getNetworkType()){
+    setNetworkType(getNetworkType);
+  }
+  
   return (
     <div className={`App ${dark_mode === "1" ? "dark-mode" : ""}`}>
       {walletLoaded ? (

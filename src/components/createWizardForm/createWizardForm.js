@@ -9,6 +9,7 @@ import TermsConditions from "../TermsConditions/TermsConditions";
 import "./createWizardForm.css";
 import { NetworkSwitch } from "../../components/header/TorInfo/TorCircuit";
 import { NETWORK_TYPE } from "../../wallet/wallet";
+import { setNetworkType } from "../../features/WalletDataSlice";
 
 const CreateWizardForm = (props) => {
   const { register, errors, watch, handleSubmit } = useForm({
@@ -57,13 +58,15 @@ const CreateWizardForm = (props) => {
   };
 
   const routeNetworkSwitch = () => {
+    let networkType = '';
     if (routeNetwork === NETWORK_TYPE.TOR) {
-      props.setStateWalletNetwork(NETWORK_TYPE.I2P);
-      setRouteNetwork(NETWORK_TYPE.I2P);
+      networkType = NETWORK_TYPE.I2P;
     } else {
-      props.setStateWalletNetwork(NETWORK_TYPE.TOR);
-      setRouteNetwork(NETWORK_TYPE.TOR);
+      networkType = NETWORK_TYPE.TOR;
     }
+    props.setStateWalletNetwork(networkType);
+    setRouteNetwork(networkType);
+    setNetworkType(networkType);
   }
 
   useEffect(() => {
