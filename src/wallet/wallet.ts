@@ -208,7 +208,7 @@ export class Wallet {
       this.http_client = http_client;
     } else if (this.config.testing_mode != true) {
       this.http_client = new HttpClient(TOR_URL, true);
-      this.set_tor_endpoints();
+      this.set_adapter_endpoints();
     } else {
       this.http_client = new MockHttpClient();
     }
@@ -296,7 +296,7 @@ export class Wallet {
     }
   }
 
-  async set_tor_endpoints() {
+  async set_adapter_endpoints() {
     let electr_ep = this.config.electrum_config.host;
     let electr_ep_arr = electr_ep.split(",");
     let electr_port = this.config.electrum_config.port;
@@ -334,7 +334,7 @@ export class Wallet {
         this.http_client = new HttpClient(I2P_URL, false);
       } else {
         this.http_client = new HttpClient(TOR_URL, true);
-        await this.set_tor_endpoints();
+        await this.set_adapter_endpoints();
       }
     }
   }
@@ -346,7 +346,7 @@ export class Wallet {
         this.electrum_client = new ElectrsClient(I2P_URL, false);
       } else {
         this.electrum_client = new ElectrsClient(TOR_URL, true);
-        await this.set_tor_endpoints();
+        await this.set_adapter_endpoints();
       }
     }
   }
@@ -532,6 +532,10 @@ export class Wallet {
       await updateSwapSemaphore.acquire();
       n_semaphores++;
     }
+    await this.electrum_client.unsubscribeAll();
+  }
+
+  async unsubscribeAll(){
     await this.electrum_client.unsubscribeAll();
   }
 
@@ -747,14 +751,21 @@ export class Wallet {
   }
 
   newElectrumClient() {
+    let ENDPOINT;
+    if(this.networkType === NETWORK_TYPE.I2P){
+      ENDPOINT = I2P_URL;
+    } else {
+      ENDPOINT = TOR_URL;
+    }
+
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if (this.config.testing_mode == true) return new MockElectrumClient();
     if (this.config.electrum_config.type == "eps")
-      return new EPSClient("http://localhost:3001");
+      return new EPSClient( ENDPOINT);
     if (this.config.electrum_config.type == "electrs_local")
-      return new ElectrsLocalClient("http://localhost:3001");
+      return new ElectrsLocalClient( ENDPOINT );
     if (this.config.electrum_config.protocol == "http")
-      return new ElectrsClient("http://localhost:3001");
+      return new ElectrsClient( ENDPOINT );
 
     return new ElectrumClient(this.config.electrum_config);
   }

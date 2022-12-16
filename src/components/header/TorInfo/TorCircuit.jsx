@@ -23,6 +23,7 @@ import {
   setWalletLoaded,
   stopWallet,
   unloadWallet,
+  callUnsubscribeAll,
 } from "../../../features/WalletDataSlice";
 import "./torCircuit.css";
 import "./networkSwitch.css";
@@ -105,15 +106,20 @@ const TorCircuit = (props) => {
     dispatch(setWalletLoaded({ loaded: false }));
   };
 
+  const networkSwitchAndLogOut = ( NETWORK_TYPE ) => {
+    // Unsubscribe Block Height before overwriting electrs client
+    callUnsubscribeAll();
+    setNetworkType(NETWORK_TYPE);
+    props.setNetworkType(NETWORK_TYPE);
+    handleLogout();
+  }
+  
+
   const setNetwork = () => {
     if (props.networkType === NETWORK_TYPE.TOR) {
-      setNetworkType(NETWORK_TYPE.I2P);
-      props.setNetworkType(NETWORK_TYPE.I2P);
-      handleLogout();
-    } else {  
-      setNetworkType(NETWORK_TYPE.TOR);
-      props.setNetworkType(NETWORK_TYPE.TOR);
-      handleLogout();
+      networkSwitchAndLogOut( NETWORK_TYPE.I2P )
+    } else {
+      networkSwitchAndLogOut( NETWORK_TYPE.TOR )
     }
   }
 
