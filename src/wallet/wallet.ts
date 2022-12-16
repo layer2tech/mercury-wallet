@@ -59,9 +59,6 @@ import {
   delay,
   FeeInfo,
   getFeeInfo,
-  pingServer,
-  pingConductor,
-  pingElectrum,
   OutPoint,
 } from "./mercury/info_api";
 import { EPSClient } from "./eps";
@@ -163,6 +160,7 @@ export class Wallet {
     | EPSClient
     | MockElectrumClient;
   lightning_client: LightningClient;
+  lightning_client_2: LightningClient | undefined;
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
