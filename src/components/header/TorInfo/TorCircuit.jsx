@@ -151,7 +151,8 @@ const TorCircuit = (props) => {
 
   return (
     <div className="dropdown tor">
-      <NetworkSwitch 
+      <NetworkSwitch
+        newWallet={false} 
         networkType={props.networkType}
         onClick={networkSwitch}
         />
@@ -206,7 +207,7 @@ const TorCircuit = (props) => {
 };
 
 export const NetworkSwitch = (props) => (
-  <div className="network-switch">
+  <div className={"network-switch " + (props.newWallet ? "white-bg" : "primary-bg")}>
     <button onClick={props.onClick}>
       <span className={"network-switch-btn " + (props.networkType === NETWORK_TYPE.TOR ? "white" : "grey")}>{"TOR"}</span>
       <span>{" / "}</span>

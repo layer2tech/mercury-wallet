@@ -299,6 +299,7 @@ export async function walletFromMnemonic(
   name,
   password,
   mnemonic,
+  route_network_type,
   router,
   try_restore,
   gap_limit = undefined,
@@ -310,7 +311,7 @@ export async function walletFromMnemonic(
   } else {
     network = bitcoin.networks["bitcoin"];
   }
-  wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
+  wallet = Wallet.fromMnemonic(name, password, mnemonic, route_network_type, network, testing_mode);
   wallet.resetSwapStates();
 
   const networkType = wallet.networkType;

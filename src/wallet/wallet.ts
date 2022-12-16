@@ -356,6 +356,7 @@ export class Wallet {
     name: string,
     password: string,
     mnemonic: string,
+    route_network_type: string | undefined = undefined,
     network: Network,
     testing_mode: boolean,
     http_client: any = undefined,
@@ -377,7 +378,8 @@ export class Wallet {
       new Config(network, DEFAULT_NETWORK_TYPE, testing_mode),
       http_client,
       wasm,
-      storage_type
+      storage_type,
+      route_network_type
     );
     wallet.setActive();
     return wallet;
@@ -386,7 +388,7 @@ export class Wallet {
   // Generate wallet with random mnemonic.
   static buildFresh(testing_mode: true, network: Network): Wallet {
     const mnemonic = bip39.generateMnemonic();
-    return Wallet.fromMnemonic("test", "", mnemonic, network, testing_mode);
+    return Wallet.fromMnemonic("test", "", mnemonic, DEFAULT_NETWORK_TYPE, network, testing_mode);
   }
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
@@ -404,6 +406,7 @@ export class Wallet {
       name,
       MOCK_WALLET_PASSWORD,
       mnemonic,
+      DEFAULT_NETWORK_TYPE,
       network,
       true,
       http_client,
