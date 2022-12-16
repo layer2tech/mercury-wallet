@@ -144,8 +144,11 @@ let epsClient = null;
 let electrsLocalClient = null;
 
 log("info", "starting anon network node... ");
-
-anon_client.startNode(start_cmd, torrc, network);
+try{
+  anon_client.startNode(start_cmd, torrc, network);
+} catch(e){
+  handle_error(null, e)
+}
 
 log("info", "finished starting anon network node.");
 
