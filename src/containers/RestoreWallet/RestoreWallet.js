@@ -14,7 +14,7 @@ import { CreateWizardForm } from "../../components";
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 import { Storage } from "../../store";
-import { parseBackupData } from "../../wallet/wallet";
+import { DEFAULT_NETWORK_TYPE, parseBackupData } from "../../wallet/wallet";
 
 import "./RestoreWallet.css";
 import isElectron from "is-electron";
@@ -35,12 +35,15 @@ const RestoreWalletPage = (props) => {
     wallet_name: "",
     wallet_password: "",
     mnemonic: "",
+    wallet_network: DEFAULT_NETWORK_TYPE,
     gap_limit: "",
   });
   const setStateWalletName = (event) =>
     setState({ ...state, wallet_name: event.target.value });
   const setStateWalletPassword = (event) =>
     setState({ ...state, wallet_password: event.target.value });
+  const setStateWalletNetwork = (networkType) =>
+    setState({...state, wallet_network: networkType});
   const setStateMnemonic = (event) =>
     setState({ ...state, mnemonic: event.target.value });
   const setStateGapLimit = (event) =>
@@ -125,6 +128,7 @@ const RestoreWalletPage = (props) => {
       state.wallet_name,
       state.wallet_password,
       state.mnemonic,
+      state.wallet_network,
       props.history,
       true,
       gap_limit,
@@ -201,6 +205,7 @@ const RestoreWalletPage = (props) => {
               onSubmit={onClickConf}
               setStateWalletName={setStateWalletName}
               setStateWalletPassword={setStateWalletPassword}
+              setStateWalletNetwork={setStateWalletNetwork}
               setStateMnemonic={setStateMnemonic}
               setStateGapLimit={setStateGapLimit}
               submitTitle="Confirm"

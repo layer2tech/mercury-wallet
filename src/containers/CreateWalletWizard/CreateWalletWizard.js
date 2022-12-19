@@ -46,6 +46,7 @@ const CreateWizardPage = (props) => {
     {
       wallet_name: "",
       wallet_password: "",
+      wallet_network: "",
       mnemonic: mnemonic,
     });
     
@@ -90,7 +91,7 @@ const CreateWizardPage = (props) => {
     
   const setStateWalletName = (event) => setWizardState({...wizardState, wallet_name: event.target.value});
   const setStateWalletPassword = (event) => setWizardState({...wizardState, wallet_password: event.target.value});
-
+  const setStateWalletNetwork = (networkType) => setWizardState({...wizardState, wallet_network: networkType});
 
   const handleSubmit = () => {
     setConfirmDetails(true)
@@ -106,6 +107,7 @@ const CreateWizardPage = (props) => {
             onSubmit={() => handleSubmit()}
             setStateWalletName={setStateWalletName}
             setStateWalletPassword={setStateWalletPassword}
+            setStateWalletNetwork={setStateWalletNetwork}
             submitTitle="Create"
           />
         )

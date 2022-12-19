@@ -570,7 +570,7 @@ describe('Quit Wallet Mid Swap', function () {
     wallet = await Wallet.buildMock(bitcoin.networks.testnet, http_mock);
 
     // Set Mocks for walletLoad call
-    torEndpointsMock = jest.spyOn(wallet, 'set_tor_endpoints').mockImplementation();
+    torEndpointsMock = jest.spyOn(wallet, 'set_adapter_endpoints').mockImplementation();
     electrumInitMock = jest.spyOn(wallet, 'initElectrumClient').mockImplementation();
     swapGroupMock = jest.spyOn(wallet, 'updateSwapGroupInfo').mockImplementation();
     // speedInfoMock = jest.spyOn(wallet, 'updateSpeedInfo').mockImplementation();
