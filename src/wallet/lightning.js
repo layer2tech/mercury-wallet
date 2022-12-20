@@ -8,6 +8,8 @@ console.log("ldk", ldk);
 
 await ldk.initializeWasmWebFetch("liblightningjs.wasm");
 import { nanoid } from "nanoid";
+import { SocketDescriptor } from "lightningdevkit";
+import MercurySocketDescriptor from "./lightning/MercurySocketDescriptor";
 
 export class LightningClient {
   fee_estimator;
@@ -27,6 +29,8 @@ export class LightningClient {
   // step 8
   chain_monitor;
   chain_watch;
+
+  sockerDescriptor
 
   constructor(_electrumClient) {
     this.electrum_client = _electrumClient;
@@ -54,7 +58,7 @@ export class LightningClient {
     });
 
     // Step 4: network graph
-    this.network = ldk.Network.LDKNetwork_Testnet;
+    this.network = ldk.Network.LDKNetwork_Regtest;
     this.genesisBlock = ldk.BestBlock.constructor_from_genesis(this.network);
     this.genesis_block_hash = this.genesisBlock.block_hash();
     this.networkGraph = ldk.NetworkGraph.constructor_new(
@@ -163,6 +167,14 @@ export class LightningClient {
       this.config,
       this.params
     );
+
+    let socket = new WebSocket("ws://127.0.0.1:8080/proxy");
+
+    const socketDescriptor = SocketDescriptor.new_impl(
+      new MercurySocketDescriptor(socket)
+    )
+
+    this.sockerDescriptor = socketDescriptor
   }
 
   // starts the lightning LDK

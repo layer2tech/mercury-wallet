@@ -231,27 +231,49 @@ export class Wallet {
     const channelManagerB = lightningClient2.channel_manager;
 
     // All kinds of InitFeature options check set_*_ functions
-
+    console.log('Channel Manager: ',channelManagerA.get_our_node_id());
+    
     const initFeatures = InitFeatures.constructor_empty() as InitFeatures;
     initFeatures.set_data_loss_protect_required();
     initFeatures.set_initial_routing_sync_optional();
     initFeatures.set_upfront_shutdown_script_required();
     initFeatures.set_gossip_queries_optional();
-
-    const byteArray = initFeatures.write();
-
     
-    const netAddress = NetAddress.constructor_ipv6(new Uint8Array(Buffer.from("038863cf8ab91046230f561cd5b386cbff8309fa02e3f0c3ed161a3aeb64a643b9")), 9735);
-
+    // const byteArray = initFeatures.write();
+    const hostname = Uint8Array.from([172, 19, 0 , 3]);
+    
+    const netAddress = NetAddress.constructor_ipv4(hostname, 9735);
+    console.log('NET ADDRESS: ',netAddress);
+    
     const optionalAddress = Option_NetAddressZ.constructor_some(netAddress);
 
+    
+    console.log('Optional Address: ', optionalAddress);
+
+
+    const regtestNodeID = Buffer.from("0231c73de91ea0851f506745e07c8e89e69ad6e0d2356a4fc8405d2dc16e0d7c19", 'hex')
 
     channelManagerA
       .as_ChannelMessageHandler()
       .peer_connected(
         channelManagerB.get_our_node_id(),
         Init.constructor_new(initFeatures, optionalAddress)
-      )
+      );
+
+    channelManagerB
+      .as_ChannelMessageHandler()
+      .peer_connected(
+        channelManagerA.get_our_node_id(),
+        Init.constructor_new(initFeatures, optionalAddress)
+      );
+
+    const channelError = channelManagerA.create_channel(
+      channelManagerB.get_our_node_id(),
+      BigInt(0),
+      BigInt(400),
+      BigInt(0),
+      lightningClient2.config
+    );
 
 
     
