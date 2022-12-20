@@ -13,6 +13,7 @@ import {
   unloadWallet,
   stopWallet,
   setWalletLoaded,
+  getNetworkType,
 } from "../../features/WalletDataSlice";
 import "./header.css";
 import TorCircuit from "./TorInfo/TorCircuit";
@@ -58,6 +59,7 @@ const Header = (props) => {
         localStorage.removeItem("dark_mode");
       }
     }
+    props.setNetworkType(getNetworkType());
   });
 
   let isDarkMode = localStorage.getItem("dark_mode");

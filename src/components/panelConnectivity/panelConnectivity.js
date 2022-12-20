@@ -12,7 +12,10 @@ import {
   WALLET_MODE,
   UpdateSpeedInfo,
   callGetLatestBlock,
-  setBlockHeightLoad
+  setBlockHeightLoad,
+  setError,
+  getNetworkType,
+  setNetworkType
 } from "../../features/WalletDataSlice";
 
 import "./panelConnectivity.css";
@@ -21,6 +24,7 @@ import RadioButton from "./RadioButton";
 import WrappedLogger from "../../wrapped_logger";
 import DropdownArrow from "../DropdownArrow/DropdownArrow";
 import { defaultWalletConfig } from "../../wallet/config";
+import { NETWORK_TYPE } from "../../wallet/wallet";
 
 
 // Logger import.
@@ -149,6 +153,22 @@ const PanelConnectivity = (props) => {
     ping_conductor_ms,
     ping_electrum_ms
   ]);
+
+  useEffect(() => {
+    const warningTimeout = setTimeout(() => getWarning(), 60000);
+    return () => clearTimeout(warningTimeout);
+  }, []);
+
+  const getWarning = () => {
+    let block_height = callGetBlockHeight();
+    if ((block_height === null || block_height === 0) && getNetworkType() === NETWORK_TYPE.I2P) {
+      dispatch(
+        setError({ msg: "Warning: I2PD failed to start. Reverting to Tor" })
+      );
+      setNetworkType(NETWORK_TYPE.TOR);
+    }
+  }
+
   const getBlockHeight = async () => {
     if (torInfo.online !== true) {
       // set blockheight to null if app offline
