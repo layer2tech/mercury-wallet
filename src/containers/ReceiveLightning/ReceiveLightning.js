@@ -5,7 +5,8 @@ import { withRouter, Redirect} from "react-router-dom";
 
 
 import {isWalletLoaded,
-  callGetConfig
+  callGetConfig,
+  createInvoice
 } from '../../features/WalletDataSlice';
 
 import { AddressInput, Tutorial } from "../../components";
@@ -14,7 +15,6 @@ import { AddressInput, Tutorial } from "../../components";
 import PageHeader from '../PageHeader/PageHeader';
 import { useState } from "react";
 import ChannelList from "../../components/Channels/ChannelList";
-import createInvoice from "../../wallet/lightning/Invoice";
 
 const ReceiveLightning = () => {
     const [inputAddr, setInputAddr] = useState("");

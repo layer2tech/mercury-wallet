@@ -8,8 +8,9 @@ console.log("ldk", ldk);
 
 await ldk.initializeWasmWebFetch("liblightningjs.wasm");
 import { nanoid } from "nanoid";
-import { SocketDescriptor } from "lightningdevkit";
+import { SocketDescriptor, Option_u64Z } from "lightningdevkit";
 import MercurySocketDescriptor from "./lightning/MercurySocketDescriptor";
+const lightningPayReq = require('bolt11')
 
 export class LightningClient {
   fee_estimator;
@@ -189,5 +190,36 @@ export class LightningClient {
         .as_EventsProvider()
         .process_pending_events(this.event_handler);
     }, 2000);
+  }
+
+  create_invoice(amtInMilliSats, invoiceExpirysecs) {
+    let mSats = Option_u64Z.constructor_some(BigInt(amtInMilliSats));
+    
+    let invoice = this.channel_manager.create_inbound_payment(
+      mSats,
+      invoiceExpirysecs,
+    );
+
+    let payment_hash = invoice.res.get_a();
+    let payment_secret = invoice.res.get_b();
+
+    let encodedInvoice = lightningPayReq.encode({
+      "satoshis": 2000,
+      "timestamp": Date.now(),
+      "tags": [
+        {
+          "tagName": "payment_hash",
+          "data": payment_hash
+        },
+        {
+          "tagName": "payment_secret",
+          "data": payment_secret
+        },
+      ]
+    });
+
+    let privateKeyHex = 'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734';
+    let signedInvoice = lightningPayReq.sign(encodedInvoice, privateKeyHex);
+    return signedInvoice;
   }
 }
