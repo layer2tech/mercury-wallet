@@ -32,6 +32,7 @@ import {
   setWalletLoaded,
   getNetworkType,
   callIsTestnet,
+  callGetNetwork,
 } from "../../features/WalletDataSlice";
 
 import Loading from "../../components/Loading/Loading";
@@ -47,7 +48,7 @@ export const defaultWalletConfig = async () => {
   
   let networkType = getNetworkType();
   networkType = (networkType === undefined) ? "tor" : networkType.toLowerCase();
-  if (callIsTestnet()) {
+  if (callGetNetwork() === bitcoin.networks.testnet) {
     console.log("use testnet network settings");
     return {
       network: bitcoin.networks.testnet,

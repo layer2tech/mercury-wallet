@@ -9,21 +9,33 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {isWalletLoaded,
   callGetFeeEstimation,
-  callGetConfig
+  callGetConfig,
+  setShowWithdrawPopup,
+  setWithdrawTxid,
+  checkChannelWithdrawal
 } from '../../features/WalletDataSlice';
 
-import { AddressInput, Tutorial } from "../../components";
-
+import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
 
 import './WithdrawLightning.css';
 import PageHeader from '../PageHeader/PageHeader';
 import ChannelList from '../../components/Channels/ChannelList';
+import Loading from '../../components/Loading/Loading';
 
 const WithdrawLightning = () => {
 
     const dispatch = useDispatch();
   
     const [inputAddr, setInputAddr] = useState("");
+
+    const [loading, setLoading] = useState(false);
+
+    const [forceRender, setRender]  =  useState({});
+    const [refreshChannels, setRefreshChannels] = useState(false);
+
+    const [selectedChannels, setSelectedChannels] = useState([]);
+
+    const [withdrawingWarning, setWithdrawingWarning] = useState(false);
   
     const [txFeePerB, setTxFeePerB] = useState(7); // chosen fee per kb value
   
@@ -34,6 +46,22 @@ const WithdrawLightning = () => {
     const onInputAddrChange = (event) => {
       setInputAddr(event.target.value);
     };
+
+    const addSelectedChannel = (channel_id) => {
+      if(loading) return
+      // Stop channels removing if clicked while pending transaction
+      
+      let newSelectedChannels = selectedChannels;
+      const isChannelId = (element) => element === channel_id;
+      let index = newSelectedChannels.findIndex(isChannelId);
+      if (index !== -1){
+        newSelectedChannels.splice(index,1);
+      } else {
+        newSelectedChannels.push(channel_id);
+      }
+      setSelectedChannels(newSelectedChannels);
+      setRender({});
+    }
 
     // Get Tx fee estimate
     useEffect(() => {
@@ -69,6 +97,14 @@ const WithdrawLightning = () => {
     // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
     if (!isWalletLoaded()) {
       return <Redirect to="/" />;
+    }
+
+    const withdrawButtonAction = async () => {
+      setLoading(true);
+      setRefreshChannels((prevState) => !prevState);
+      dispatch(setShowWithdrawPopup(true));
+      dispatch(setWithdrawTxid("wzxykmopq123456"));
+      // setLoading(false);
     }
 
   
@@ -119,7 +155,12 @@ const WithdrawLightning = () => {
                   <div>
                       <h3 className="subtitle">Select channel to withdraw</h3>
                   </div>
-                  <ChannelList />
+                  <ChannelList 
+                    selectedChannels={selectedChannels}
+                    setSelectedChannel = {addSelectedChannel}
+                    refresh = {refreshChannels}
+                    render = {forceRender}
+                  />
 
               </div>
               <div className="Body right">
@@ -168,9 +209,11 @@ const WithdrawLightning = () => {
                   </div>
 
                   <div>
-                    <button type="button" className={`btn withdraw-button `} >
-                        <img src={withdrowIcon} alt="withdrowIcon"/>
-                        Withdraw btc</button>
+                  <ConfirmPopup preCheck={checkChannelWithdrawal} argsCheck={[dispatch, selectedChannels, inputAddr]} onOk = {withdrawButtonAction} >
+                        <button type="button" className={`btn withdraw-button ${loading} ${withdrawingWarning ? ("withdrawing-warning") : (null)}`} >
+                            {loading?(null):(<img src={withdrowIcon} alt="withdrowIcon"/>)}
+                            {loading?(<Loading/>):("Withdraw btc")}</button>
+                      </ConfirmPopup>
                   </div>
               </div>
           </div>

@@ -3,7 +3,6 @@ import arrow from "../../images/arrow-up.png";
 import { withRouter, Redirect} from "react-router-dom";
 
 
-
 import {isWalletLoaded,
   callGetConfig,
   createInvoice
@@ -14,26 +13,65 @@ import { AddressInput, Tutorial } from "../../components";
 
 import PageHeader from '../PageHeader/PageHeader';
 import { useState } from "react";
-import ChannelList from "../../components/Channels/ChannelList";
+
+import "./ReceiveLightning.css";
+import Invoice from "../Invoice/Invoice";
 
 const ReceiveLightning = () => {
-    const [inputAddr, setInputAddr] = useState("");
 
-    const onInputAddrChange = (event) => {
-      
+    // Time for expiry of invoice in seconds
+    const TimeToExpire = 180;
+
+    const [inputAmt, setInputAmt] = useState("");
+
+    const [inputDes, setInputDes] = useState("");
+
+    const [invoice, setInvoice] = useState({});
+
+    const [countdown, setCountdown] = useState(TimeToExpire);
+    const [timer, setTimer] = useState(null);
+
+    const onInputAmtChange = (event) => {
+      setInputAmt(event.target.value);
     };
 
-  
+    const onInputDesChange = (event) => {
+      setInputDes(event.target.value);
+    };
+
+    const startTimer = () => {
+      setTimer(
+        setInterval(() => {
+          setCountdown((countdown) => {
+            if (countdown === 0) {
+              stopTimer();
+              setInvoice({});
+              return countdown;
+            }
+            return countdown - 1;
+          });
+        }, 1000)
+      );
+    };
+
+    const stopTimer = () => {
+        clearInterval(timer);
+    }
+
+    const createInvoiceAction = () => {
+      let newInvoice = createInvoice(inputAmt, 30000);
+      setInvoice(newInvoice);
+      setInputAmt("");
+      setInputDes("");
+      stopTimer();
+      setCountdown(TimeToExpire);
+      startTimer();
+    }
+
     // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
     if (!isWalletLoaded()) {
       return <Redirect to="/" />;
     }
-
-    const createInvoiceAction = async () => {
-
-      // const encodedInvoice = await createInvoice(10000, "coffee");
-      // console.log(encodedInvoice)
-    };
 
   
     let current_config;
@@ -53,31 +91,33 @@ const ReceiveLightning = () => {
             className = "receive-channel"
             icon = {arrow}
             subTitle = "Y BTC available over Z channels" />
+            {invoice && Object.keys(invoice).length ? 
+              <Invoice
+                amt={invoice.amt}
+                desc={invoice.desc}
+                addr={invoice.addr}
+                expTime={countdown}
+              /> : null
+            }
 
-          <div className="withdraw content">
-              <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select channel to receive</h3>
-                  </div>
-                  <ChannelList />
-              </div>
-              <div className="Body right">
+          <div className="withdraw content lightning">
+              <div className="Body right lightning">
                   <div className="header">
-                      <h3 className="subtitle">Transaction Details</h3>
+                      <h3 className="subtitle">Invoice Details</h3>
                   </div>
 
 
                   <div>
                       <AddressInput
-                        inputAddr={inputAddr}
-                        onChange={onInputAddrChange}
+                        inputAddr={inputAmt}
+                        onChange={onInputAmtChange}
                         placeholder='Enter amount'
                         smallTxtMsg='Amount Sats'/>
                   </div>
                   <div>
                       <AddressInput
-                        inputAddr={inputAddr}
-                        onChange={onInputAddrChange}
+                        inputAddr={inputDes}
+                        onChange={onInputDesChange}
                         placeholder='Description'
                         smallTxtMsg='Description'/>
                   </div>
