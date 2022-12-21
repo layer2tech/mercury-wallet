@@ -5,7 +5,8 @@ import { withRouter, Redirect} from "react-router-dom";
 
 
 import {isWalletLoaded,
-  callGetConfig
+  callGetConfig,
+  createInvoice
 } from '../../features/WalletDataSlice';
 
 import { AddressInput, Tutorial } from "../../components";

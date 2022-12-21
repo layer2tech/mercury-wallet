@@ -155,6 +155,12 @@ export const getWalletName = () => {
   }
 };
 
+export const createInvoice = (amtInMilliSats, invoiceExpirysecs) => {
+  if (isWalletLoaded()) {
+    return wallet.createInvoice(amtInMilliSats, invoiceExpirysecs);
+  }
+}
+
 //Restart the electrum server if ping fails
 async function pingElectrumRestart(force = false) {
   if (isWalletActive() === false) {
