@@ -1,15 +1,21 @@
 import * as ldk from "lightningdevkit";
 import MercuryFeeEstimator from "./lightning/MercuryFeeEstimator";
 import MercuryLogger from "./lightning/MercuryLogger";
-import MercuryPersister from "./lightning/MercuryPersistor";
+import MercuryPersister from "./lightning/MercuryPersister";
 
 console.log("initialize the wasm from fetch...");
 console.log("ldk", ldk);
 
 await ldk.initializeWasmWebFetch("liblightningjs.wasm");
 import { nanoid } from "nanoid";
-import { SocketDescriptor } from "lightningdevkit";
+import { ChannelMessageHandler, CustomMessageHandler, OnionMessageHandler, Option_u64Z, PeerManager, RoutingMessageHandler, SocketDescriptor, TwoTuple_PaymentHashPaymentSecretZ } from "lightningdevkit";
 import MercurySocketDescriptor from "./lightning/MercurySocketDescriptor";
+import MercuryChannelMessageHandler from "./lightning/MercuryChannelMessageHandler";
+import MercuryRoutingMessageHandler from "./lightning/MercuryRoutingMessageHandler";
+import MercuryOnionMessageHandler from "./lightning/MercuryOnionMessageHandler";
+import MercuryCustomMessageHandler from "./lightning/MercuryCustomMessageHandler";
+
+
 
 export class LightningClient {
   fee_estimator;
@@ -23,14 +29,16 @@ export class LightningClient {
   genesis_block_hash;
   networkGraph;
   // step 5
-  persist;
+  persister;
   // step 6
   event_handler;
   // step 8
   chain_monitor;
   chain_watch;
 
-  sockerDescriptor
+  socketDescriptor;
+  socket;
+  peerManager;
 
   constructor(_electrumClient) {
     this.electrum_client = _electrumClient;
@@ -42,7 +50,7 @@ export class LightningClient {
 
     // Step 1: fee estimator
     this.fee_estimator = ldk.FeeEstimator.new_impl(new MercuryFeeEstimator());
-
+    
     // Step 2: logger
     this.logger = ldk.Logger.new_impl(new MercuryLogger());
 
@@ -59,8 +67,11 @@ export class LightningClient {
 
     // Step 4: network graph
     this.network = ldk.Network.LDKNetwork_Regtest;
+
     this.genesisBlock = ldk.BestBlock.constructor_from_genesis(this.network);
+    
     this.genesis_block_hash = this.genesisBlock.block_hash();
+
     this.networkGraph = ldk.NetworkGraph.constructor_new(
       this.genesis_block_hash,
       this.logger
@@ -68,19 +79,20 @@ export class LightningClient {
 
     console.group("network graph");
     console.log("network:", this.network);
-    console.log("genesisBlock:", this.genesisBlock);
-    console.log("genesis_block_hash:", this.genesis_block_hash);
     console.log("networkGraph:", this.networkGraph);
     console.groupEnd();
 
     // Step 5: Persist
-    this.persist = ldk.Persist.new_impl(new MercuryPersister());
+    this.persister = ldk.Persist.new_impl(new MercuryPersister());
+
 
     // Step 6: Initialize the EventHandler
     this.event_handler = ldk.EventHandler.new_impl({
       handle_event: function (e) {
         console.log(">>>>>>> Handling Event here <<<<<<<", e);
         if (e instanceof ldk.Event_FundingGenerationReady) {
+
+          console.log('LDK FUNDING GENERATION READY BABY')
           //console.log(e)
           var final_tx = 0;
           console.log(e.temporary_channel_id, e.counterparty_node_id, final_tx);
@@ -109,6 +121,7 @@ export class LightningClient {
       },
     });
 
+
     // Step 7: Optional: Initialize the transaction filter
 
     // Step 8: Initialize the ChainMonitor
@@ -119,6 +132,8 @@ export class LightningClient {
       this.fee_estimator,
       this.persister
     );
+
+    
     this.chain_watch = this.chain_monitor.as_Watch();
 
     // Step 9: Initialize the KeysManager
@@ -140,9 +155,12 @@ export class LightningClient {
 
     this.keys_manager = ldk.KeysManager.constructor_new(seed, BigInt(42), 42);
     this.keys_interface = this.keys_manager.as_KeysInterface();
+
     this.config = ldk.UserConfig.constructor_default();
+
     this.ChannelHandshakeConfig =
       ldk.ChannelHandshakeConfig.constructor_default();
+
     this.params = ldk.ChainParameters.constructor_new(
       ldk.Network.LDKNetwork_Regtest,
       ldk.BestBlock.constructor_new(
@@ -154,8 +172,11 @@ export class LightningClient {
       )
     );
 
+
     // Step 10: Read ChannelMonitor from disk
-    // const channel_monitor_list = persister.read_channel_monitors(this.keys_manager);
+    // const channel_monitor_list = Persister.read_channel_monitors(this.keys_manager);
+
+          
 
     // Step 11: Initialize the ChannelManager
     this.channel_manager = ldk.ChannelManager.constructor_new(
@@ -167,14 +188,106 @@ export class LightningClient {
       this.config,
       this.params
     );
+    
+    
+    const channelMessageHandler = ChannelMessageHandler.new_impl(
+      new MercuryChannelMessageHandler()
+    );
 
-    let socket = new WebSocket("ws://127.0.0.1:8080/proxy");
+    const routingMessageHandler = RoutingMessageHandler.new_impl(
+      new MercuryRoutingMessageHandler()
+    );
+
+    const onionMessageHandler = OnionMessageHandler.new_impl(
+      new MercuryOnionMessageHandler()
+    );
+
+
+    const customMessageHandler = CustomMessageHandler.new_impl(
+      new MercuryCustomMessageHandler()
+    );
+
+    const nodeSecret = new Uint8Array(32);
+
+    const ephemeralRandomData = new Uint8Array(32);
+
+    this.peerManager = PeerManager.constructor_new(
+      channelMessageHandler,
+      routingMessageHandler,
+      onionMessageHandler,
+      nodeSecret.fill(4, 1, 3),
+      Date.now(),
+      ephemeralRandomData,
+      this.logger,
+      customMessageHandler
+      );
+    
+
+  }
+
+  create_socket(){
+
+    // this.socket = new URL('http://127.0.0.1:8080/proxy');
+    this.socket = new WebSocket('ws://127.0.0.1:8080');
+
+    console.log('This.Soket; ', this.socket)
+
+    this.socket.onopen = () => {
+      console.log('Connected to the server!');
+    };
+
+    this.socket.onerror = (error) => {
+      console.error(`Error: ${error.message}`);
+    };
 
     const socketDescriptor = SocketDescriptor.new_impl(
-      new MercurySocketDescriptor(socket)
+      new MercurySocketDescriptor(this.socket)
     )
 
-    this.sockerDescriptor = socketDescriptor
+    this.socketDescriptor = socketDescriptor;
+
+    // this.socket = new Socket.server({port: 8080});
+
+    // this.socket.on('connection', function(ws) {
+    //   console.log('Connected to the server!');
+
+    // });
+
+    // this.socket.on('error', function(err){
+    //   console.error(`Error: ${err.message}`);
+
+    // });
+
+    // this.socket.listen(8080, function(){
+    //   console.log('server listening')
+    // })
+
+    // const socketDescriptor = SocketDescriptor.new_impl(
+    //   new MercurySocketDescriptor(this.socket)
+    // )
+
+    // this.socketDescriptor = socketDescriptor;
+  }
+
+  create_invoice() {
+    const number = BigInt(2000);
+    let first = Option_u64Z.constructor_some(number);
+    
+    let invoice = this.channel_manager.create_inbound_payment(
+      first,
+      Date.now()
+    );
+
+    let payment_hash = invoice.res.get_a();
+    let payment_secret = invoice.res.get_b();
+
+    // If you need it in words
+    // let decode =  bech32.decode(sce_address)
+    // SCEAddress = Buffer.from(bech32.fromWords(decode.words)).toString('hex')
+
+
+    // let invoice = this.channel_manager.
+
   }
 
   // starts the lightning LDK
