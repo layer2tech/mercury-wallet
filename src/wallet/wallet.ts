@@ -358,8 +358,8 @@ export class Wallet {
     }
   }
 
-  async createInvoice(amtInMilliSats: number, invoiceExpirysecs: number) {
-    return this.lightning_client.create_invoice(amtInMilliSats, invoiceExpirysecs);
+  async createInvoice(amtInSats: number, invoiceExpirysecs: number, description: string) {
+    return this.lightning_client.create_invoice(amtInSats, invoiceExpirysecs, description);
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.

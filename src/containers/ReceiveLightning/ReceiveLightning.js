@@ -58,9 +58,14 @@ const ReceiveLightning = () => {
         clearInterval(timer);
     }
 
-    const createInvoice = () => {
-      let newInvoice = { amt: inputAmt, desc: inputDes, addr: "lnbc1p3c7e50pp5c2mz09dcevs88rvgd80rvy9vtuj27xnu0wv3eg8mczv6s4z9udvqdq5g9kxy7fqd9h8vmmfvdjscqzpgxqyz5vqsp59tpw68mrseaxc503nq0y44aqydl2xvcm5smmdwwkdvaf6jvqvvvq9qyyssqw73td8f5nz6j799y6vvne02yek8a3mt8kryheuwqc4y69t3yf9e478f5z4r0s3pswkkevdlcjfhrtrycpvlcaqzzrew7aqgq34lrk3qps6l35u" };
-      setInvoice(newInvoice);
+    const createInvoiceAction = async () => {
+      let newInvoice = await createInvoice(inputAmt, TimeToExpire, inputDes);
+      console.log(newInvoice)
+      setInvoice({
+        amt: inputAmt,
+        desc: inputDes,
+        addr: newInvoice.paymentRequest
+      });
       setInputAmt("");
       setInputDes("");
       stopTimer();
@@ -72,7 +77,6 @@ const ReceiveLightning = () => {
     if (!isWalletLoaded()) {
       return <Redirect to="/" />;
     }
-
 
   
     let current_config;
@@ -124,7 +128,7 @@ const ReceiveLightning = () => {
                   </div>
 
                   <div>
-                    <button type="button" className={`btn withdraw-button `} onClick={createInvoice}>
+                    <button type="button" className={`btn withdraw-button `} onClick={createInvoiceAction}>
                         Create Invoice </button>
                   </div>
               </div>

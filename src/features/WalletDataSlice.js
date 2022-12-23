@@ -167,9 +167,9 @@ export const getWalletName = () => {
   }
 };
 
-export const createInvoice = (amtInMilliSats, invoiceExpirysecs) => {
+export const createInvoice = (amtInSats, invoiceExpirysecs, description) => {
   if (isWalletLoaded()) {
-    return wallet.createInvoice(amtInMilliSats, invoiceExpirysecs);
+    return wallet.createInvoice(amtInSats, invoiceExpirysecs, description);
   }
 }
 
