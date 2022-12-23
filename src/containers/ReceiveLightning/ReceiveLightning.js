@@ -23,17 +23,44 @@ const ReceiveLightning = () => {
       
     };
 
-  
+    const startTimer = () => {
+      setTimer(
+        setInterval(() => {
+          setCountdown((countdown) => {
+            if (countdown === 0) {
+              stopTimer();
+              setInvoice({});
+              return countdown;
+            }
+            return countdown - 1;
+          });
+        }, 1000)
+      );
+    };
+
+    const stopTimer = () => {
+        clearInterval(timer);
+    }
+
+    const createInvoiceAction = async () => {
+      let newInvoice = await createInvoice(inputAmt, TimeToExpire, inputDes);
+      console.log(newInvoice)
+      setInvoice({
+        amt: inputAmt,
+        desc: inputDes,
+        addr: newInvoice.paymentRequest
+      });
+      setInputAmt("");
+      setInputDes("");
+      stopTimer();
+      setCountdown(TimeToExpire);
+      startTimer();
+    }
+
     // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
     if (!isWalletLoaded()) {
       return <Redirect to="/" />;
     }
-
-    const createInvoiceAction = async () => {
-
-      // const encodedInvoice = await createInvoice(10000, "coffee");
-      // console.log(encodedInvoice)
-    };
 
   
     let current_config;
