@@ -58,9 +58,14 @@ const ReceiveLightning = () => {
         clearInterval(timer);
     }
 
-    const createInvoiceAction = () => {
-      let newInvoice = createInvoice(inputAmt, 30000);
-      setInvoice(newInvoice);
+    const createInvoiceAction = async () => {
+      let newInvoice = await createInvoice(inputAmt, TimeToExpire, inputDes);
+      console.log(newInvoice)
+      setInvoice({
+        amt: inputAmt,
+        desc: inputDes,
+        addr: newInvoice.paymentRequest
+      });
       setInputAmt("");
       setInputDes("");
       stopTimer();

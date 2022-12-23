@@ -192,8 +192,8 @@ export class LightningClient {
     }, 2000);
   }
 
-  create_invoice(amtInMilliSats, invoiceExpirysecs) {
-    let mSats = Option_u64Z.constructor_some(BigInt(amtInMilliSats));
+  create_invoice(amtInSats, invoiceExpirysecs, description) {
+    let mSats = Option_u64Z.constructor_some(BigInt(amtInSats*1000));
     
     let invoice = this.channel_manager.create_inbound_payment(
       mSats,
@@ -204,7 +204,7 @@ export class LightningClient {
     let payment_secret = invoice.res.get_b();
 
     let encodedInvoice = lightningPayReq.encode({
-      "satoshis": 2000,
+      "satoshis": amtInSats,
       "timestamp": Date.now(),
       "tags": [
         {
@@ -215,6 +215,10 @@ export class LightningClient {
           "tagName": "payment_secret",
           "data": payment_secret
         },
+        {
+          "tagName": "description",
+          "data": description
+        }
       ]
     });
 
