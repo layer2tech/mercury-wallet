@@ -113,6 +113,8 @@ const initialState = {
   coinsAdded: 0,
   coinsRemoved: 0,
   torInfo: { online: true },
+  showWithdrawPopup: false,
+  withdraw_txid: "",
 };
 
 // Check if a wallet is loaded in memory
@@ -460,6 +462,29 @@ export const callSumStatecoinValues = (shared_key_ids) => {
     return wallet.sumStatecoinValues(shared_key_ids);
   }
 };
+
+export const callSaveChannels = async (channels) => {
+  if (isWalletLoaded()) {
+    await wallet.saveChannels(channels);
+  }
+}
+
+export const getChannels = () => {
+  if (isWalletLoaded()) {
+    return wallet.channels;
+  }
+}
+
+export const callSumChannelAmt = (selectedChannels) => {
+  let totalSum = 0;
+  selectedChannels.map((selectedChannel) => {
+    let channel_arr = wallet.channels.filter(
+      (channel) => channel.id === selectedChannel
+    );
+    totalSum += channel_arr[0].amt;
+  });
+  return totalSum;
+}
 
 export const callIsBatchMixedPrivacy = (shared_key_ids) => {
   if (isWalletLoaded()) {
@@ -848,6 +873,48 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
     );
   }
 };
+
+export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) => {
+  // Pre action confirmation checks for withdrawal - return true to prevent action
+
+  // check if channel is chosen
+  if (selectedChannels.length === 0) {
+    dispatch(setError({ msg: "Please choose a channel to withdraw." }));
+    return true;
+  }
+  if (!inputAddr) {
+    dispatch(setError({ msg: "Please enter an address to withdraw to." }));
+    return true;
+  }
+
+  // if total sats sum in all selected channels less than 0.001BTC (100000 sats) then return error
+  if (callSumChannelAmt(selectedChannels) < 100000) {
+    dispatch(setError({ msg: "Mininum withdrawal size is 0.001 BTC (100000 sats)." }));
+    return true;
+  }
+
+  try {
+    bitcoin.address.toOutputScript(inputAddr, wallet.config.network);
+  } catch (e) {
+    dispatch(setError({ msg: "Invalid Bitcoin address entered." }));
+    return true;
+  }
+};
+
+export const checkChannelSend = (dispatch, selectedChannels, inputAddr) => {
+  // Pre action confirmation checks for send sats - return true to prevent action
+
+  // check if channel is chosen
+  if (selectedChannels.length === 0) {
+    dispatch(setError({ msg: "Please choose a channel to send sats." }));
+    return true;
+  }
+  if (!inputAddr) {
+    dispatch(setError({ msg: "Please enter a lightning address to send sats." }));
+    return true;
+  }
+  // Check for valid lightning address needs to be included
+}
 
 export const checkSend = (dispatch, selectedCoins, inputAddr) => {
   // Pre action confirmation checks for send statecoin - return true to prevent action
@@ -1428,6 +1495,18 @@ const WalletSlice = createSlice({
         ...state,
         ping_electrum_ms: action.payload,
       };
+    },
+    setShowWithdrawPopup(state, action) {
+      return {
+        ...state,
+        showWithdrawPopup: action.payload,
+      };
+    },
+    setWithdrawTxid(state, action) {
+      return {
+        ...state,
+        withdraw_txid: action.payload,
+      };
     }
   },
   extraReducers: {
@@ -1579,7 +1658,9 @@ export const {
   setTorOnline,
   setPingServerMs,
   setPingConductorMs,
-  setPingElectrumMs
+  setPingElectrumMs,
+  setShowWithdrawPopup,
+  setWithdrawTxid
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 
