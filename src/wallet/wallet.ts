@@ -75,8 +75,6 @@ import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
-import { LightningClient } from "./lightning";
-import { Init, InitFeatures, NetAddress, Option_NetAddressZ, Result_CVec_u8ZPeerHandleErrorZ_OK, SocketDescriptor } from "lightningdevkit";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -159,7 +157,6 @@ export class Wallet {
     | ElectrsLocalClient
     | EPSClient
     | MockElectrumClient;
-  lightning_client: LightningClient;
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
@@ -167,7 +164,6 @@ export class Wallet {
   warnings: Warning[];
   statechain_id_set: Set<string>;
   wasm: any;
-  lightningWasm: any;
   saveMutex: Mutex;
 
   storage: Storage;
@@ -216,138 +212,6 @@ export class Wallet {
 
     this.electrum_client = this.newElectrumClient();
 
-    // reference to lightning
-    this.lightning_client = new LightningClient(this.electrum_client);
-
-
-
-    // start a lightning node here
-    this.lightning_client.start();
-
-
-    // this.lightning_client.create_invoice();
-
-    const channelManagerA = this.lightning_client.channel_manager;
-
-    console.log('Channel Manager A: ', channelManagerA);
-    // All kinds of InitFeature options check set_*_ functions
-    console.log('Channel Manager: ',channelManagerA.get_our_node_id());
-    
-    const initFeatures = InitFeatures.constructor_empty() as InitFeatures;
-    initFeatures.set_data_loss_protect_required();
-    initFeatures.set_initial_routing_sync_optional();
-    initFeatures.set_upfront_shutdown_script_required();
-    initFeatures.set_gossip_queries_optional();
-
-    console.log('Init Features: ', initFeatures);
-    
-    // const byteArray = initFeatures.write();
-    const hostname = Uint8Array.from([127, 0, 0 , 1]);
-
-    // const hostname = "0231c73de91ea0851f506745e07c8e89e69ad6e0d2356a4fc8405d2dc16e0d7c19@127.0.0.1"
-    
-    const netAddress = NetAddress.constructor_ipv4( hostname, 9836)
-    
-    const optionalAddress = Option_NetAddressZ.constructor_some(netAddress);
-
-
-    let nodeIDCalc: string | RegExpMatchArray | null = "0231c73de91ea0851f506745e07c8e89e69ad6e0d2356a4fc8405d2dc16e0d7c19"
-    nodeIDCalc = nodeIDCalc.match(/.{1,2}/g);
-    
-    let nodeID;
-
-    if(nodeIDCalc){
-      nodeID = new Uint8Array( nodeIDCalc.map((byte: string) => parseInt(byte, 16))) ;
-    }
-    
-    if(nodeID instanceof Uint8Array){
-      const resChanA = channelManagerA
-      .as_ChannelMessageHandler()
-      .peer_connected(
-        nodeID,
-        Init.constructor_new(initFeatures, optionalAddress)
-        );
-
-    }
-
-      
-    // channelManagerB
-    // .as_ChannelMessageHandler()
-    // .peer_connected(
-    //   channelManagerA.get_our_node_id(),
-    //   Init.constructor_new(initFeatures, optionalAddress)
-    //   );
-        
-    // const channelError = channelManagerA.create_channel(
-    //   channelManagerB.get_our_node_id(),
-    //   BigInt(0),
-    //   BigInt(400),
-    //   BigInt(0),
-    //   lightningClient2.config
-    //   );
-          
-    // this.lightning_client.create_socket();
-
-    // console.log('NODE ID: ', nodeID);
-
-    // if( nodeID ){
-    //   let initial_send = this.lightning_client.peerManager.new_outbound_connection(
-    //     nodeID,
-    //     this.lightning_client.socketDescriptor,
-    //     optionalAddress
-    //   )
-    //   console.log('Initial Send: ', initial_send);
-        
-    //   this.lightning_client.socket.onmessage = (event: any) => {
-    //     console.log("we got something back from the socket");
-    //     console.log(event.data);
-    //     event.data.arrayBuffer().then((buffer: any) => {
-    //       const result = new Uint8Array(buffer);
-    //       const event_result = this.lightning_client.peerManager.read_event(this.lightning_client.socketDescriptor, result);
-    //       console.log(
-    //         "Printing out the results from Result_boolPeerHandleErrorZ below:"
-    //       );
-    //       console.log(event_result);
-    //     });
-    //   }
-
-
-    //   if(initial_send instanceof Result_CVec_u8ZPeerHandleErrorZ_OK){
-    //     const response = this.lightning_client.socketDescriptor.send_data(initial_send.res)
-
-    //     console.log('Response socketDescriptor: ',response);
-
-    //   }
-      // *** HANDLING ERROR IN CHANNEL CREATION:::::
-
-      // if (chanCreateError.is_ok()) return false;
-      // if (!(chanCreateError instanceof Result__u832APIErrorZ_Err)) return false;
-      // if (!(chanCreateError instanceof APIError_APIMisuseError)) return false;
-      // if (
-      //   chanCreateError.err.err !=
-      //   "Channel value must be at least 1000 satoshis. It was 0"
-      // )
-      //   return false;
-
-    //   const channelCreateResponse = channelManagerA.create_channel(
-    //     nodeID,
-    //     BigInt(10000000),
-    //     BigInt(400),
-    //     BigInt(0),
-    //     this.lightning_client.config
-    //   )
-
-    //   console.log('Channel Create Response: ', channelCreateResponse);
-
-    //   // if (!chanCreateRes.is_ok()) return false;
-
-    //   const events = [];
-
-    //   channelManagerA.as_EventsProvider().process_pending_events(this.lightning_client.event_handler);
-
-
-    // }
-
     
 
     this.block_height = 0;
@@ -371,6 +235,8 @@ export class Wallet {
     this.active = false;
     this.start();
   }
+
+ 
 
   async updateConfig(config_changes: object) {
     let connectionChanged = this.config.update(config_changes);
@@ -1042,19 +908,6 @@ export class Wallet {
 
   async importWasm() {
     this.wasm = await import("client-wasm");
-  }
-
-  async importLightningWasm() {
-    this.lightningWasm = await import("lightningdevkit");
-  }
-
-  async getLightningWasm() {
-    if (this.lightningWasm == null) {
-      await this.importLightningWasm();
-    } else {
-      await this.lightningWasm.init();
-    }
-    return this.lightningWasm;
   }
 
   // Getters
