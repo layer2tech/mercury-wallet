@@ -17,6 +17,8 @@ import { useState } from "react";
 import "./ReceiveLightning.css";
 import Invoice from "../Invoice/Invoice";
 
+const TimeToExpire = 180;
+
 const ReceiveLightning = () => {
 
     // Time for expiry of invoice in seconds
