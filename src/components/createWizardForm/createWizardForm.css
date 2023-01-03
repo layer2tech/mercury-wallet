@@ -34,7 +34,6 @@
 
 .wizard-form .inputs-item p {
     text-align: left;
-    margin-top: 20px;
 }
 
 .wizard-form .inputs-item.checkbox {
@@ -104,4 +103,8 @@ li.go2067797667:last-child::before {
     color: red;
     text-align: left;
     word-break: break-word;
+}
+
+.restore-network {
+    text-align: left;
 }

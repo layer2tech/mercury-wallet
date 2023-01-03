@@ -1,0 +1,23 @@
+.long.lightning {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+    .long.lightning {
+        width: 200px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+    .long.lightning {
+        width: 300px;
+    }
+}
+
+@media (min-width: 1201px) {
+    .long.lightning {
+        width: 600px;
+    }
+}

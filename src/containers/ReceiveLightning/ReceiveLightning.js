@@ -3,7 +3,6 @@ import arrow from "../../images/arrow-up.png";
 import { withRouter, Redirect} from "react-router-dom";
 
 
-
 import {isWalletLoaded,
   callGetConfig,
   createInvoice
@@ -14,13 +13,25 @@ import { AddressInput, Tutorial } from "../../components";
 
 import PageHeader from '../PageHeader/PageHeader';
 import { useState } from "react";
-import ChannelList from "../../components/Channels/ChannelList";
+
+import "./ReceiveLightning.css";
+import Invoice from "../Invoice/Invoice";
 
 const TimeToExpire = 180;
 
 const ReceiveLightning = () => {
+
+    // Time for expiry of invoice in seconds
+    const TimeToExpire = 180;
+
     const [inputAmt, setInputAmt] = useState("");
+
     const [inputDes, setInputDes] = useState("");
+
+    const [invoice, setInvoice] = useState({});
+
+    const [countdown, setCountdown] = useState(TimeToExpire);
+    const [timer, setTimer] = useState(null);
 
     const onInputAmtChange = (event) => {
       setInputAmt(event.target.value);
@@ -51,7 +62,6 @@ const ReceiveLightning = () => {
 
     const createInvoiceAction = async () => {
       let newInvoice = await createInvoice(inputAmt, TimeToExpire, inputDes);
-      console.log(newInvoice)
       setInvoice({
         amt: inputAmt,
         desc: inputDes,
@@ -87,17 +97,19 @@ const ReceiveLightning = () => {
             className = "receive-channel"
             icon = {arrow}
             subTitle = "Y BTC available over Z channels" />
+            {invoice && Object.keys(invoice).length ? 
+              <Invoice
+                amt={invoice.amt}
+                desc={invoice.desc}
+                addr={invoice.addr}
+                expTime={countdown}
+              /> : null
+            }
 
-          <div className="withdraw content">
-              <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select channel to receive</h3>
-                  </div>
-                  <ChannelList />
-              </div>
-              <div className="Body right">
+          <div className="withdraw content lightning">
+              <div className="Body right lightning">
                   <div className="header">
-                      <h3 className="subtitle">Transaction Details</h3>
+                      <h3 className="subtitle">Invoice Details</h3>
                   </div>
 
 

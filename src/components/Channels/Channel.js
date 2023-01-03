@@ -1,3 +1,4 @@
+import React from "react";
 import { useSelector } from 'react-redux';
 import { ProgressBar } from "react-bootstrap";
 import lightningLogo from '../../images/lightning_logo.png';
@@ -6,10 +7,34 @@ import './Channel.css';
 
 const Channel = (props) => {
     useSelector
-    const { balance_info } = useSelector((state) => state.walletData)
+    const { balance_info } = useSelector((state) => state.walletData);
+
+    const selectChannel = (channel_id) => {
+        props.setSelectedChannel(channel_id);
+    }
+
+    const isSelected = (channel_id) => {
+        let selected = false;
+        if (props.selectedChannels === undefined) {
+          selected = props.selectedChannel === channel_id;
+        } else {
+          props.selectedChannels.forEach((selectedChannel) => {
+            if (selectedChannel === channel_id) {
+              selected = true;
+            }
+          });
+        }
+        return selected;
+      };
+
     return(
         <div>
-            <div className = "coin-item">
+            <div 
+                className={`coin-item ${isSelected(props.channel_data.id) ? "selected" : ""}`}
+                onClick={() => {
+                    selectChannel(props.channel_data.id);
+                }}
+                >
 
 
                 <div className = "CoinPanel">
@@ -18,7 +43,7 @@ const Channel = (props) => {
                     <div className="CoinAmount-block">
                         <img src={lightningLogo} alt="icon" className="privacy" />
                         <span className="sub">
-                                <b className = "CoinAmount" > 100000 Sats</b>
+                                <b className = "CoinAmount" > {props.channel_data.amt} Sats</b>
                                     <div className="scoreAmount">
                                         Node Alias
                                     </div>
@@ -41,7 +66,7 @@ const Channel = (props) => {
 
                     <b className="CoinFundingTxid">
                         <img src={lightningLogo} className="sc-address-icon" alt="icon" />
-                        abcdefghijklmno123456789
+                        {props.channel_data.id}
                     </b>
 
                 </div>
@@ -50,4 +75,17 @@ const Channel = (props) => {
     )
 }
 
-export default Channel;
+export default React.memo(Channel, (prevProps, nextProps) => {
+    if (
+      prevProps.channel_data !== nextProps.channel_data ||
+      prevProps.selectedChannel !== nextProps.selectedChannel ||
+      prevProps.selectedChannels !== nextProps.selectedChannels ||
+      prevProps.render !== nextProps.render
+    ) {
+      return false;
+      // will rerender if these props change
+    } else {
+      return true;
+      // will not rerender
+    }
+  });
