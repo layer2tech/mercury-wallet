@@ -16,11 +16,18 @@ import PageHeader from '../PageHeader/PageHeader';
 import { useState } from "react";
 import ChannelList from "../../components/Channels/ChannelList";
 
-const ReceiveLightning = () => {
-    const [inputAddr, setInputAddr] = useState("");
+const TimeToExpire = 180;
 
-    const onInputAddrChange = (event) => {
-      
+const ReceiveLightning = () => {
+    const [inputAmt, setInputAmt] = useState("");
+    const [inputDes, setInputDes] = useState("");
+
+    const onInputAmtChange = (event) => {
+      setInputAmt(event.target.value);
+    };
+
+    const onInputDesChange = (event) => {
+      setInputDes(event.target.value);
     };
 
     const startTimer = () => {
@@ -96,15 +103,15 @@ const ReceiveLightning = () => {
 
                   <div>
                       <AddressInput
-                        inputAddr={inputAddr}
-                        onChange={onInputAddrChange}
+                        inputAddr={inputAmt}
+                        onChange={onInputAmtChange}
                         placeholder='Enter amount'
                         smallTxtMsg='Amount Sats'/>
                   </div>
                   <div>
                       <AddressInput
-                        inputAddr={inputAddr}
-                        onChange={onInputAddrChange}
+                        inputAddr={inputDes}
+                        onChange={onInputDesChange}
                         placeholder='Description'
                         smallTxtMsg='Description'/>
                   </div>

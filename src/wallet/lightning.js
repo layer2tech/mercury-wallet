@@ -269,27 +269,6 @@ export class LightningClient {
     // this.socketDescriptor = socketDescriptor;
   }
 
-  create_invoice() {
-    const number = BigInt(2000);
-    let first = Option_u64Z.constructor_some(number);
-    
-    let invoice = this.channel_manager.create_inbound_payment(
-      first,
-      Date.now()
-    );
-
-    let payment_hash = invoice.res.get_a();
-    let payment_secret = invoice.res.get_b();
-
-    // If you need it in words
-    // let decode =  bech32.decode(sce_address)
-    // SCEAddress = Buffer.from(bech32.fromWords(decode.words)).toString('hex')
-
-
-    // let invoice = this.channel_manager.
-
-  }
-
   // starts the lightning LDK
   start() {
     setInterval(() => {

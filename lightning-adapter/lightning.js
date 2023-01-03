@@ -6,6 +6,7 @@ const fs = require('fs');
 
 // const { NodeLDKNet } = import("./lightning/NodeLDKNet.ts");
 
+const lightningPayReq = require('bolt11');
 
 
 class LightningClient {
@@ -494,25 +495,40 @@ class LightningClient {
 
   
 
-  create_invoice() {
-    const number = BigInt(2000);
-    let first = Option_u64Z.constructor_some(number);
+  create_invoice(amtInSats, invoiceExpirysecs, description) {
+    let mSats = this.LDK.Option_u64Z.constructor_some(BigInt(amtInSats*1000));
     
     let invoice = this.channel_manager.create_inbound_payment(
-      first,
-      Date.now()
+      mSats,
+      invoiceExpirysecs,
     );
 
     let payment_hash = invoice.res.get_a();
     let payment_secret = invoice.res.get_b();
 
-    // If you need it in words
-    // let decode =  bech32.decode(sce_address)
-    // SCEAddress = Buffer.from(bech32.fromWords(decode.words)).toString('hex')
+    let encodedInvoice = lightningPayReq.encode({
+      "satoshis": amtInSats,
+      "timestamp": Date.now(),
+      "tags": [
+        {
+          "tagName": "payment_hash",
+          "data": payment_hash
+        },
+        {
+          "tagName": "payment_secret",
+          "data": payment_secret
+        },
+        {
+          "tagName": "description",
+          "data": description
+        }
+      ]
+    });
 
-
-    // let invoice = this.channel_manager.
-
+    // Hardcoded for now, needs to be changed
+    let privateKeyHex = 'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734';
+    let signedInvoice = lightningPayReq.sign(encodedInvoice, privateKeyHex);
+    return signedInvoice;
   }
 
   // starts the lightning LDK
