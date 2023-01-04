@@ -1,7 +1,6 @@
 'use strict';
 import walletIcon from '../../images/walletIcon.png';
 import withdrowIcon from "../../images/withdrow-icon.png";
-import icon2 from "../../images/icon2.png";
 
 import {Link, withRouter, Redirect} from "react-router-dom";
 import React, {useState, useEffect} from 'react';
@@ -18,13 +17,14 @@ import {isWalletLoaded,
   callSumStatecoinValues, 
   callIsBatchMixedPrivacy, 
   callGetStateCoin,
-  checkWithdrawal
+  checkWithdrawal,
+  setShowWithdrawPopup,
+  setWithdrawTxid
 } from '../../features/WalletDataSlice';
 
 import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, ItemsContainer} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/MainHeader/MainHeader"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
-import {Modal, Spinner} from 'react-bootstrap';
 
 import Loading from '../../components/Loading/Loading';
 
@@ -43,9 +43,6 @@ const WithdrawPage = () => {
   const [inputAddr, setInputAddr] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [withdraw_txid,setWithdrawTxid] = useState("");
-
-  const [openModal,setOpenModal] = useState(false);
   
   const [forceRender, setRender]  =  useState({});
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
@@ -132,18 +129,19 @@ const WithdrawPage = () => {
   const withdrawButtonAction = async () => {
 
     setLoading(true)
-    setOpenModal(true)
+    dispatch(setShowWithdrawPopup(true))
     dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr, "fee_per_byte": txFeePerB})).then((res => {
       if (res.error === undefined) {
         setSelectedCoins([])
           setInputAddr("")  
           setRefreshCoins((prevState) => !prevState);
           console.log(res)
-          setWithdrawTxid(res.payload)
+          dispatch(setWithdrawTxid(res.payload))
           dispatch(setNotification({msg:"Withdraw to "+inputAddr+" - transaction broadcast complete."}))
         }
       if(res.error!== undefined){
-          setOpenModal(false)
+          dispatch(setShowWithdrawPopup(false))
+          dispatch(setWithdrawTxid(""))
       }
       setLoading(false)
     }))
@@ -190,14 +188,6 @@ const WithdrawPage = () => {
     }
   }
 
-  const handleClose = () => {
-    setOpenModal(!openModal)
-  }
-
-  const copyTxIDToClipboard = () => {
-    navigator.clipboard.writeText(withdraw_txid);
-  }
-
   let current_config;
   try {
     current_config = callGetConfig();
@@ -207,40 +197,6 @@ const WithdrawPage = () => {
 
   return (
     <div className={`${current_config?.tutorials ? 'container-with-tutorials' : ''}`}>
-
-      <Modal show ={openModal} onHide = {() => setOpenModal(!openModal)} className={"withdraw-modal"}>
-        <Modal.Body className={"modal-body"}>
-          
-          {withdraw_txid === "" ? (
-            <div className = "loading-container">
-              <div className = "loading-spinner"  ><Spinner animation="border" style = {{color: "var(--primary)"}} variant="primary" ></Spinner></div>
-              <div className = "loading-txt" >Loading Withdrawal Transaction ID...</div>
-            </div>  
-          ):(
-          <div>
-            <div className={"withdrawal-confirm"}>
-              <h3>Withdrawal confirmation.</h3>
-              <div className={"txid-container"}>
-                <span>TX ID: </span>
-                <CopiedButton handleCopy={() => copyTxIDToClipboard()}>
-                  <div className="copy-hex-wrap">
-                    <img type="button" src={icon2} alt="icon"/>
-                    <span>
-                      {withdraw_txid}
-                    </span>
-                  </div>
-                </CopiedButton>
-              </div>
-            </div>
-            <button onClick={() => handleClose()}
-              className={`confirm-btn`}
-            >
-              Continue
-            </button>
-          </div>)}
-          
-        </Modal.Body>
-      </Modal>
 
       <div className="container">
 

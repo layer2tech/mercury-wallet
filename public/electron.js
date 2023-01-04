@@ -124,15 +124,12 @@ function createWindow() {
     nativeTheme.themeSource = 'light'
   })
 
-  // Clears cookie storage
-  // Persisted web store must be wiped for electron in case redux store has changed
-  session.defaultSession.clearStorageData([], data => {})
-
   if (mainWindow == null) {
     mainWindow = new BrowserWindow(windowSpec);
   }
   
-  require("@electron/remote/main").enable(mainWindow.webContents)
+  require("@electron/remote/main").enable(mainWindow.webContents);
+
 
   if (process.platform !== 'darwin') {
     mainWindow.setMenu(null);
@@ -203,6 +200,11 @@ app.on('ready', () => {
     alert('mercurywallet is already running. Not opening app.')
     app.quit()
   }
+
+  // Clears cookie storage
+  // Persisted web store must be wiped for electron in case redux store has changed
+  session.defaultSession.clearStorageData([], data => {})
+  
   terminate_tor_process();
   terminate_mercurywallet_process(null,"tor");
   terminate_mercurywallet_process(init_adapter,"i2p");

@@ -23,15 +23,15 @@ import {
   setWalletLoaded,
   stopWallet,
   unloadWallet,
+  callUnsubscribeAll,
 } from "../../../features/WalletDataSlice";
 import "./torCircuit.css";
 import "./networkSwitch.css";
 import TorCircuitNode from "./TorCircuitNode";
 import { handleNetworkError } from "../../../error";
-import { defaultWalletConfig } from "../../../containers/Settings/Settings";
 import WrappedLogger from "../../../wrapped_logger";
 import { NETWORK_TYPE } from "../../../wallet/wallet";
-
+import { defaultWalletConfig } from "../../../wallet/config";
 // Logger import.
 // Node friendly importing required for Jest tests.
 let log;
@@ -68,24 +68,27 @@ const TorCircuit = (props) => {
 
   const getTorCircuitInfo = () => {
     if (props.online) {
-      let torcircuit_data = null;
-      try {
-        dispatch(callUpdateTorCircuitInfo());
-        torcircuit_data = callGetTorcircuitInfo();
-      } catch (err) {
-        handleNetworkError(err);
-      }
-      let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
-      const loaded = torcircuit_data != null && torcircuit_data.length > 0;
-      setTorLoaded(loaded);
       if( props.networkType === NETWORK_TYPE.I2P){
+
         // If I2P connection selected check for I2P connection
         // If callUpdateTorCircuitInfo doesn't throw error then there is connection
         dispatch(setTorOnline(true));
+        return
       } else{
+        let torcircuit_data = null;
+        try {
+          dispatch(callUpdateTorCircuitInfo());
+          torcircuit_data = callGetTorcircuitInfo();
+        } catch (err) {
+          handleNetworkError(err);
+        }
+        let torcircuit_array = torcircuit_data != null ? torcircuit_data : [];
+        const loaded = torcircuit_data != null && torcircuit_data.length > 0;
+        setTorLoaded(loaded);
         dispatch(setTorOnline(loaded));
+        
+        setTorcircuitData(torcircuit_array);
       }
-      setTorcircuitData(torcircuit_array);
     } else {
       dispatch(setTorOnline(false));
       setTorLoaded(false);
@@ -103,15 +106,20 @@ const TorCircuit = (props) => {
     dispatch(setWalletLoaded({ loaded: false }));
   };
 
+  const networkSwitchAndLogOut = ( NETWORK_TYPE ) => {
+    // Unsubscribe Block Height before overwriting electrs client
+    callUnsubscribeAll();
+    setNetworkType(NETWORK_TYPE);
+    props.setNetworkType(NETWORK_TYPE);
+    handleLogout();
+  }
+  
+
   const setNetwork = () => {
     if (props.networkType === NETWORK_TYPE.TOR) {
-      setNetworkType(NETWORK_TYPE.I2P);
-      props.setNetworkType(NETWORK_TYPE.I2P);
-      handleLogout();
-    } else {  
-      setNetworkType(NETWORK_TYPE.TOR);
-      props.setNetworkType(NETWORK_TYPE.TOR);
-      handleLogout();
+      networkSwitchAndLogOut( NETWORK_TYPE.I2P )
+    } else {
+      networkSwitchAndLogOut( NETWORK_TYPE.TOR )
     }
   }
 
@@ -143,7 +151,8 @@ const TorCircuit = (props) => {
 
   return (
     <div className="dropdown tor">
-      <NetworkSwitch 
+      <NetworkSwitch
+        newWallet={false} 
         networkType={props.networkType}
         onClick={networkSwitch}
         />
@@ -198,7 +207,7 @@ const TorCircuit = (props) => {
 };
 
 export const NetworkSwitch = (props) => (
-  <div className="network-switch">
+  <div className={"network-switch " + (props.newWallet ? "white-bg" : "primary-bg")}>
     <button onClick={props.onClick}>
       <span className={"network-switch-btn " + (props.networkType === NETWORK_TYPE.TOR ? "white" : "grey")}>{"TOR"}</span>
       <span>{" / "}</span>

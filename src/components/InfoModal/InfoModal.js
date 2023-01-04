@@ -33,8 +33,8 @@ import {
   setWarningSeen,
 } from "../../features/WalletDataSlice";
 import { useEffect, useState } from "react";
-import { defaultWalletConfig } from "../../containers/Settings/Settings";
 import isElectron from "is-electron";
+import { defaultWalletConfig } from "../../wallet/config";
 
 // style time left timer as red after this many days
 export const DAYS_WARNING = 5;

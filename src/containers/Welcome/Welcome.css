@@ -98,3 +98,9 @@ p {
   cursor: not-allowed;
   pointer-events: none;
 }
+
+.network-switch-new-wallet {
+  justify-content: left !important;
+  padding-bottom: 10px;
+  padding-top: 10px;
+}

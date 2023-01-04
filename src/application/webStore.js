@@ -26,9 +26,9 @@ export class WebStore {
     let walletInfo = store.getState().walletInfo;
     let wallets = walletInfo.wallets;
     let loginInfo = walletInfo.loginInfo;
-    console.log("WalletInfo ->", walletInfo);
-    console.log("LoginInfo ->", loginInfo);
-    console.log("Value ->", value);
+    // console.log("WalletInfo ->", walletInfo);
+    // console.log("LoginInfo ->", loginInfo);
+    // console.log("Value ->", value);
 
     if (value !== undefined && value.includes(".")) {
       walletVar = value.split("."); // array of for e.g. wallet.name into ["wallet", "name"]
@@ -38,8 +38,8 @@ export class WebStore {
 
       // get from login store
       if (value.includes("logins.")) {
-        console.log("Logins...");
-        console.log(walletAttribute)
+        // console.log("Logins...");
+        // console.log(walletAttribute)
         return loginInfo[walletAttribute];
       }
 

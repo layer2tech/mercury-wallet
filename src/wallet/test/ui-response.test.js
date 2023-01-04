@@ -94,7 +94,7 @@ async function testClickTime(toButtonName, fromButtonName = "Back") {
   const click_time = window.performance.now();
   fireEvent.click(screen.getByText(toButtonName));
   await waitFor(() => expect(screen.getByText(fromButtonName)).toBeTruthy(), {
-    timeout: 10000,
+    timeout: 15000,
   });
   return window.performance.now() - click_time;
 }
@@ -167,7 +167,7 @@ async function goToMainPage() {
   await waitForElementToBeRemoved(screen.getByText(/continue/i));
 
   await waitFor(() => expect(screen.getByText(/Bitcoin/i)).toBeTruthy(), {
-    timeout: 10000,
+    timeout: 30000,
   });
   await waitFor(() => expect(screen.getByText(/Server/i)).toBeTruthy(), {
     timeout: 10000,

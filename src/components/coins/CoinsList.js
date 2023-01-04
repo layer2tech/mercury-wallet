@@ -70,7 +70,7 @@ const CoinsList = (props) => {
   
   const { filterBy, swapPendingCoins, swapRecords, coinsAdded,
     coinsRemoved, torInfo, inSwapValues, balance_info, swapLoad,
-    showDetails, warning_dialogue } = useSelector(state => state.walletData);
+    showDetails, warning_dialogue, blockHeightLoad } = useSelector(state => state.walletData);
     
     
   const [swap, setSwapPage] = useState(location.pathname === "/swap_statecoin");
@@ -138,7 +138,9 @@ const CoinsList = (props) => {
     warning_dialogue,
     // When coin deleted: CoinsList rerenders
     // coin is removed from list immediately
-    swap
+    swap,
+    // Update blockheight quicker on wallet start
+    blockHeightLoad
   ]);
 
   // Re-fetch every 5 seconds and update state to refresh render
