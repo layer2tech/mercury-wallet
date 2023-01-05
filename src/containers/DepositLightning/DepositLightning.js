@@ -1,8 +1,6 @@
 import PageHeader from "../PageHeader/PageHeader";
 import { useState } from "react";
 
-import CoinDescription from "../../components/inputs/CoinDescription/CoinDescription";
-
 import plus from "../../images/plus-deposit.png";
 import btc_img from "../../images/icon1.png";
 import arrow_img from "../../images/scan-arrow.png";
@@ -23,19 +21,11 @@ const DepositLightning = (props) => {
 
     const [inputNodeId, setInputNodeId] = useState("");
 
+    const [inputHost, setInputHost] = useState("");
+
+    const [inputPort, setInputPort] = useState("");
+
     const [invoice, setInvoice] = useState({});
-
-    const onInputAmtChange = (event) => {
-        setInputAmt(event.target.value);
-    };
-  
-    const onInputDesChange = (event) => {
-        setInputDes(event.target.value);
-    };
-
-    const onInputNodeIdChange = (event) => {
-        setInputNodeId(event.target.value);
-    };
 
     const createChannel = () => {
         let newInvoice = { amt: inputAmt, desc: inputDes, addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs" };
@@ -43,6 +33,8 @@ const DepositLightning = (props) => {
         setInputAmt("");
         setInputDes("");
         setInputNodeId("");
+        setInputHost("");
+        setInputPort("");
       }
 
     return (
@@ -95,23 +87,39 @@ const DepositLightning = (props) => {
                   <div>
                       <AddressInput
                         inputAddr={inputAmt}
-                        onChange={onInputAmtChange}
+                        onChange={(e) => setInputAmt(e.target.value)}
                         placeholder='Enter amount'
                         smallTxtMsg='Amount in BTC'/>
                   </div>
                   <div>
                       <AddressInput
                         inputAddr={inputDes}
-                        onChange={onInputDesChange}
+                        onChange={(e) => setInputDes(e.target.value)}
                         placeholder='Description'
                         smallTxtMsg='Description'/>
                   </div>
                   <div>
                       <AddressInput
                         inputAddr={inputNodeId}
-                        onChange={onInputNodeIdChange}
+                        onChange={(e) => setInputNodeId(e.target.value)}
                         placeholder='Node ID'
                         smallTxtMsg='Node ID'/>
+                  </div>
+                  <div className="d-flex input-group">
+                    <div className="inputs-item type">
+                        <AddressInput
+                            inputAddr={inputHost}
+                            onChange={(e) => setInputHost(e.target.value)}
+                            placeholder='Host'
+                            smallTxtMsg='Host'/>
+                    </div>
+                    <div className="inputs-item type">
+                        <AddressInput
+                            inputAddr={inputPort}
+                            onChange={(e) => setInputPort(e.target.value)}
+                            placeholder='Port'
+                            smallTxtMsg='Port'/>
+                    </div>
                   </div>
 
                   <div>
