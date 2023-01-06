@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 let crypto = require('crypto');
+// const { EventHandler } = require('lightningdevkit');
 // const MercurySocketDescriptor = import("./lightning/MercurySocketDescriptor");
 
 // const { NodeLDKNet } = import("./lightning/NodeLDKNet.ts");
@@ -63,13 +64,14 @@ class LightningClient {
     const MercuryFeeEstimator = (await import("./lightning/MercuryFeeEstimator.mjs")).default;
     const MercuryLogger = (await import("./lightning/MercuryLogger.mjs")).default;
     const MercuryPersister = (await import("./lightning/MercuryPersister.mjs")).default;
+    const MercuryEventHandler = (await import("./lightning/MercuryEventHandler.mjs")).default;
     const MercuryChannelMessageHandler = (await import("./lightning/MercuryChannelMessageHandler.mjs")).default;
     const MercuryRoutingMessageHandler = (await import("./lightning/MercuryRoutingMessageHandler.mjs")).default;
     const MercuryOnionMessageHandler = (await import("./lightning/MercuryOnionMessageHandler.mjs")).default;
     const MercuryCustomMessageHandler = (await import("./lightning/MercuryCustomMessageHandler.mjs")).default;
     
     const { ChannelMessageHandler, CustomMessageHandler, OnionMessageHandler, PeerManager, RoutingMessageHandler } = this.LDK;
-    console.log('PEER MANAGER: ', PeerManager)
+    // console.log('PEER MANAGER: ', PeerManager)
 
     // Step 1
     this.fee_estimator = this.LDK.FeeEstimator.new_impl( new MercuryFeeEstimator());
@@ -103,50 +105,19 @@ class LightningClient {
       this.logger
     );
 
-    console.group("network graph");
-    console.log("network:", this.network);
-    console.log("networkGraph:", this.networkGraph);
-    console.groupEnd();
+    // console.group("network graph");
+    // console.log("network:", this.network);
+    // console.log("networkGraph:", this.networkGraph);
+    // console.groupEnd();
 
     // Step 5: Persist
     this.persister = this.LDK.Persist.new_impl(new MercuryPersister());
 
-    console.log('Persister: ',this.persister);
+    // console.log('Persister: ',this.persister);
 
 
     // Step 6: Initialize the EventHandler
-    this.event_handler = this.LDK.EventHandler.new_impl({
-      handle_event: function (e) {
-        console.log(">>>>>>> Handling Event here <<<<<<<", e);
-        if (e instanceof this.LDK.Event_FundingGenerationReady) {
-
-          //console.log(e)
-          var final_tx = 0;
-          console.log(e.temporary_channel_id, e.counterparty_node_id, final_tx);
-          //channel_manager.funding_transaction_generated(e.temporary_channel_id, e.counterparty_node_id, final_tx);
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_PaymentReceived) {
-          // Handle successful payment
-          const event = e;
-          assert(event.payment_preimage instanceof Option.payment_preimage);
-          const payment_preimage = event.payment_preimage;
-          assert(channel_manager.claim_funds(payment_preimage));
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_PaymentSent) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_PaymentPathFailed) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_PendingHTLCsForwardable) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_SpendableOutputs) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_PaymentForwarded) {
-          // <insert code to handle this event>
-        } else if (e instanceof Event.Event_ChannelClosed) {
-          // <insert code to handle this event>
-        }
-      },
-    });
+    this.event_handler = this.LDK.EventHandler.new_impl(new MercuryEventHandler());
 
 
     // Step 7: Optional: Initialize the transaction filter
@@ -204,9 +175,18 @@ class LightningClient {
     // const channel_monitor_list = Persister.read_channel_monitors(this.keys_manager);
 
           
-    console.log("FEE ESTIMATOR IN CHANNEL MANAGER: ", this.fee_estimator);
+    // console.log("FEE ESTIMATOR IN CHANNEL MANAGER: ", this.fee_estimator);
     // // Step 11: Initialize the ChannelManager
     this.channel_manager = this.LDK.ChannelManager.constructor_new(
+      this.fee_estimator,
+      this.chain_watch,
+      this.tx_broadcaster,
+      this.logger,
+      this.keys_interface,
+      this.config,
+      this.params
+    );
+    this.channel_manager2 = this.LDK.ChannelManager.constructor_new(
       this.fee_estimator,
       this.chain_watch,
       this.tx_broadcaster,
@@ -259,6 +239,17 @@ class LightningClient {
       customMessageHandler
       );
 
+    // this.peerManager = PeerManager.constructor_new(
+    //   channelMessageHandler,
+    //   routingMessageHandler,
+    //   onionMessageHandler,
+    //   nodeSecret.fill(4,1,3),
+    //   Date.now(),
+    //   ephemeralRandomData.fill(4,1,3),
+    //   this.logger,
+    //   customMessageHandler
+    //   );
+
     this.peerManager2 = PeerManager.constructor_new(
       channelMessageHandler,
       routingMessageHandler,
@@ -270,8 +261,8 @@ class LightningClient {
       customMessageHandler
       );
 
-      console.log('Peer Manager: ', this.peerManager);
-      console.log('Peer Manager: ', this.peerManager2);
+      // console.log('Peer Manager: ', this.peerManager);
+      // console.log('Peer Manager: ', this.peerManager2);
 
   }
 
@@ -287,10 +278,10 @@ class LightningClient {
     // this.this.create_invoice();
 
     const channelManagerA = this.channel_manager;
+    const channelManagerB = this.channel_manager2;
 
     // console.log('Channel Manager A: ', channelManagerA);
     // All kinds of InitFeature options check set_*_ functions
-    console.log('Channel Manager Node ID: ',channelManagerA.get_our_node_id());
     
     const initFeatures = InitFeatures.constructor_empty();
     initFeatures.set_data_loss_protect_required();
@@ -338,16 +329,33 @@ class LightningClient {
     await this.create_socket();
 
     let nodeID = this.list_peers()[0];
+    let nodeID2 = this.peerManager2.get_peer_node_ids()[0];
+
+    // console.log('Node ID 1 : ', nodeID);
+    // console.log('Node ID 2 : ', nodeID2);
 
     if(nodeID instanceof Uint8Array){
+      // connecting to peer2
       const resChanA = channelManagerA
       .as_ChannelMessageHandler()
       .peer_connected(
-        nodeID,
+        channelManagerB.get_our_node_id(),
         Init.constructor_new(initFeatures, this.optionAddress)
         );
       
-      console.log('Connect: ',resChanA)
+      console.log('Connect A: ',resChanA)
+    }
+
+    if(nodeID2 instanceof Uint8Array){
+      // connecting to peer
+      const resChanB = channelManagerB
+      .as_ChannelMessageHandler()
+      .peer_connected(
+        channelManagerA.get_our_node_id(),
+        Init.constructor_new(initFeatures, this.optionAddress)
+        );
+      
+      console.log('Connect B: ',resChanB)
     }
 
     // console.log('NODE ID: ', nodeID);
@@ -401,14 +409,14 @@ class LightningClient {
       // console.log('User Channel ID: ', userChannelId);
 
       // console.log('At BigInt 0: ', BigInt(0));
-      console.log(this.fee_estimator)
+      // console.log(this.fee_estimator)
 
 
       // console.log('Peer List: ',this.list_peers());
 
       console.log('Reached here ready to create channel...')
       const channelCreateResponse = channelManagerA.create_channel(
-        this.list_peers()[0],
+        channelManagerB.get_our_node_id(),
         channelValSatoshis,
         pushMsat,
         userChannelId,
@@ -422,6 +430,13 @@ class LightningClient {
       // const events = [];
 
       // channelManagerA.as_EventsProvider().process_pending_events(this.event_handler);
+
+      // console.log('Event Handler. events: ',this.event_handler);
+
+      console.log('Channel List A - Channel ID: ',channelManagerA.list_channels()[0].get_channel_id());
+      console.log('Channel List A - Funding TXO: ',channelManagerA.list_channels()[0].get_funding_txo().get_txid());
+      // console.log('Channel List B - Channel ID: ',channelManagerB.list_channels()[0].get_channel_id());
+      // console.log('Channel List B - Funding TXO: ',channelManagerB.list_channels()[0].get_funding_txo().get_txid());
 
 
     // }
@@ -456,7 +471,9 @@ class LightningClient {
       // Ensure we get an error if we try to bind the same port twice.
       await this.a_net_handler.bind_listener("127.0.0.1", port);
       console.assert(false);
-    } catch(_) {}
+    } catch(_) {
+      console.log('error called!')
+    }
 
 
   await new Promise(resolve => {
@@ -473,7 +490,11 @@ class LightningClient {
     }.bind(this), 500);
   });
 
-  this.optionAddress = NodeLDKNet.get_addr_from_socket(this.a_net_handler.servers[0])
+  console.log('B Net Serber:', this.a_net_handler.servers)
+
+  this.optionAddress = NodeLDKNet.get_addr_from_socket(this.a_net_handler.servers[0]);
+
+  // this.optionAddress2 = NodeLDKNet.get_addr_from_socket(this.b_net_handler.servers[0])
   // this.peerManager2.disconnect_by_node_id(node_a_pk, false);
   // await new Promise(resolve => {
   //   // Wait until A learns the connection is closed from the socket closure
@@ -522,6 +543,7 @@ class LightningClient {
     setInterval(() => {
       //peer_manager.timer_tick_occurred();
       //peer_manager.process_events();
+      console.log('Channel Manager Process event///')
       this.channel_manager
         .as_EventsProvider()
         .process_pending_events(this.event_handler);

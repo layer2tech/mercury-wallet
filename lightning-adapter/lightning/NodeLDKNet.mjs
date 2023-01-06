@@ -170,6 +170,10 @@ export class NodeLDKNet {
 	async connect_peer(host, port, peer_node_id) {
 		const this_handler = this;
 		const sock = new net.Socket();
+
+		//Adding this socket to servers
+		this.servers.push(sock)
+
 		const res = new Promise((resolve, reject) => {
 			sock.on("connect", function() { resolve(); });
 			sock.on("error", function() { reject(); });
@@ -180,6 +184,7 @@ export class NodeLDKNet {
 				.new_outbound_connection(peer_node_id, descriptor, NodeLDKNet.get_addr_from_socket(sock));
 			if (!res.is_ok()) descriptor.disconnect_socket();
 			else {
+				console.log('Socket Connection Successful!')
 				const bytes = res.res;
 				const send_res = descriptor.send_data(bytes, true);
 				console.assert(send_res == bytes.length);
