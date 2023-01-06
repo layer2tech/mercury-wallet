@@ -293,37 +293,9 @@ class LightningClient {
     const optionalAddress = Option_NetAddressZ.constructor_some(netAddress);
 
 
-    // let nodeIDCalc = "0231c73de91ea0851f506745e07c8e89e69ad6e0d2356a4fc8405d2dc16e0d7c19"
-    // nodeIDCalc = nodeIDCalc.match(/.{1,2}/g);
+
+
     
-    // let nodeID;
-
-    // if(nodeIDCalc){
-    //   nodeID = new Uint8Array( nodeIDCalc.map((byte) => parseInt(byte, 16))) ;
-    
-
-      
-    // channelManagerB
-    // .as_ChannelMessageHandler()
-    // .peer_connected(
-    //   channelManagerA.get_our_node_id(),
-    //   Init.constructor_new(initFeatures, optionalAddress)
-    //   );
-        
-    // const channelError = channelManagerA.create_channel(
-    //   channelManagerB.get_our_node_id(),
-    //   BigInt(0),
-    //   BigInt(400),
-    //   BigInt(0),
-    //   lightningClient2.config
-    //   );
-
-    function scriptToScriptHash(script) {
-      let script_hash = bitcoin.crypto.sha256(script).toString("hex"); // hash
-      return script_hash.match(/[a-fA-F0-9]{2}/g).reverse().join(''); // reverse  
-    }
-
-    console.log('ID: ',scriptToScriptHash(channelManagerA.get_our_node_id()));
     await this.create_socket();
 
     let nodeID = this.list_peers()[0];
@@ -373,18 +345,10 @@ class LightningClient {
 
       console.log('Channel Create Response: ', channelCreateResponse);
 
-      // if (!chanCreateRes.is_ok()) return false;
-
-      // const events = [];
-
-      // channelManagerA.as_EventsProvider().process_pending_events(this.event_handler);
-
-      // console.log('Event Handler. events: ',this.event_handler);
 
       console.log('Channel List A - Channel ID: ',channelManagerA.list_channels()[0].get_channel_id());
       console.log('Channel List A - Funding TXO: ',channelManagerA.list_channels()[0].get_funding_txo().get_txid());
-      // console.log('Channel List B - Channel ID: ',channelManagerB.list_channels()[0].get_channel_id());
-      // console.log('Channel List B - Funding TXO: ',channelManagerB.list_channels()[0].get_funding_txo().get_txid());
+
 
 
     // }
