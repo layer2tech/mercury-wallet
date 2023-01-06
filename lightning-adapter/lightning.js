@@ -359,7 +359,7 @@ class LightningClient {
 
       // console.log('Peer List: ',this.list_peers());
 
-      const pubkeyHex = "022d564e88a620bcce01b584cf14fb03c4bfaec946c3ca5a00ca0e4c8f356e29e0";
+      const pubkeyHex = "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
       const pubkey = new Uint8Array(pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
 
       console.log('Reached here ready to create channel...')
@@ -406,11 +406,11 @@ class LightningClient {
     for (; port < 11000; port++) {
       try {
         // Try ports until we find one we can bind to.
-
-        const pubkeyHex = "022d564e88a620bcce01b584cf14fb03c4bfaec946c3ca5a00ca0e4c8f356e29e0";
+        // 031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d@127.0.0.1:9735
+        const pubkeyHex = "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
         const pubkey = new Uint8Array(pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
 
-        await this.a_net_handler.connect_peer("127.0.0.1", 9836, pubkey);
+        await this.a_net_handler.connect_peer("127.0.0.1", 9735, pubkey);
 
         break;
       } catch(_) {}
