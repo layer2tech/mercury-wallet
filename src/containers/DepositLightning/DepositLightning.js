@@ -106,14 +106,14 @@ const DepositLightning = (props) => {
                         smallTxtMsg='Node ID'/>
                   </div>
                   <div className="d-flex input-group">
-                    <div className="inputs-item type">
+                    <div className="inputs-item small-input type">
                         <AddressInput
                             inputAddr={inputHost}
                             onChange={(e) => setInputHost(e.target.value)}
                             placeholder='Host'
                             smallTxtMsg='Host'/>
                     </div>
-                    <div className="inputs-item type">
+                    <div className="inputs-item small-input type">
                         <AddressInput
                             inputAddr={inputPort}
                             onChange={(e) => setInputPort(e.target.value)}
