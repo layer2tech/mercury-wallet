@@ -2,7 +2,7 @@
 // const nanoid = import("nanoid");
 
 const fs = require('fs');
-let crypto = require('crypto');
+let bitcoin = require('bitcoinjs-lib')
 // const { EventHandler } = require('lightningdevkit');
 // const MercurySocketDescriptor = import("./lightning/MercurySocketDescriptor");
 
@@ -44,9 +44,10 @@ class LightningClient {
     // );
 
     this.setupLDK().then(()=> {
-      console.log('Finished setup.')
 
-      console.log('Starting LDK...')
+      console.log('Finished setup.');
+      console.log('Starting LDK...');
+
       this.startLDK();
     });
 
@@ -142,14 +143,16 @@ class LightningClient {
     const keys_seed_path = ldk_data_dir + "keys_seed";
 
     var seed = null;
-    if (!fs.existsSync(keys_seed_path)) {
-      seed = crypto.randomBytes(32);
-      fs.writeFileSync(keys_seed_path, seed);
-    } else {
-      seed = fs.readFileSync(keys_seed_path);
-    }
+    // if (!fs.existsSync(keys_seed_path)) {
+    //   seed = crypto.randomBytes(32);
+    //   fs.writeFileSync(keys_seed_path, seed);
+    // } else {
+    //   seed = fs.readFileSync(keys_seed_path);
+    // }
 
     seed = nanoid.nanoid(32);
+
+    console.log('SEED: ',seed)
 
     this.keys_manager = this.LDK.KeysManager.constructor_new(seed, BigInt(42), 42);
     this.keys_interface = this.keys_manager.as_KeysInterface();
@@ -163,7 +166,7 @@ class LightningClient {
       this.LDK.Network.LDKNetwork_Regtest,
       this.LDK.BestBlock.constructor_new(
         Buffer.from(
-          "000000000000000000054099d5b8e51ab3604a70dfc0d48b23c8e391b076ef1b",
+          "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206",
           "hex"
         ),
         764157
@@ -222,8 +225,8 @@ class LightningClient {
     const nodeSecret = new Uint8Array(32);
     for (var i = 0; i < 32; i++) nodeSecret[i] = 42;
 
-    const nodeSecret2 = new Uint8Array(32);
-    for (var i = 0; i < 32; i++) nodeSecret2[i] = 43;
+    // const nodeSecret2 = new Uint8Array(32);
+    // for (var i = 0; i < 32; i++) nodeSecret2[i] = 43;
 
     const ephemeralRandomData = new Uint8Array(32);
 
@@ -239,27 +242,16 @@ class LightningClient {
       customMessageHandler
       );
 
-    // this.peerManager = PeerManager.constructor_new(
+    // this.peerManager2 = PeerManager.constructor_new(
     //   channelMessageHandler,
     //   routingMessageHandler,
     //   onionMessageHandler,
-    //   nodeSecret.fill(4,1,3),
+    //   nodeSecret2,
     //   Date.now(),
-    //   ephemeralRandomData.fill(4,1,3),
+    //   ephemeralRandomData,
     //   this.logger,
     //   customMessageHandler
     //   );
-
-    this.peerManager2 = PeerManager.constructor_new(
-      channelMessageHandler,
-      routingMessageHandler,
-      onionMessageHandler,
-      nodeSecret2,
-      Date.now(),
-      ephemeralRandomData,
-      this.logger,
-      customMessageHandler
-      );
 
       // console.log('Peer Manager: ', this.peerManager);
       // console.log('Peer Manager: ', this.peerManager2);
@@ -325,11 +317,17 @@ class LightningClient {
     //   BigInt(0),
     //   lightningClient2.config
     //   );
-          
+
+    function scriptToScriptHash(script) {
+      let script_hash = bitcoin.crypto.sha256(script).toString("hex"); // hash
+      return script_hash.match(/[a-fA-F0-9]{2}/g).reverse().join(''); // reverse  
+    }
+
+    console.log('ID: ',scriptToScriptHash(channelManagerA.get_our_node_id()));
     await this.create_socket();
 
     let nodeID = this.list_peers()[0];
-    let nodeID2 = this.peerManager2.get_peer_node_ids()[0];
+    // let nodeID2 = this.peerManager2.get_peer_node_ids()[0];
 
     // console.log('Node ID 1 : ', nodeID);
     // console.log('Node ID 2 : ', nodeID2);
@@ -339,65 +337,12 @@ class LightningClient {
       const resChanA = channelManagerA
       .as_ChannelMessageHandler()
       .peer_connected(
-        channelManagerB.get_our_node_id(),
+        nodeID,
         Init.constructor_new(initFeatures, this.optionAddress)
         );
       
       console.log('Connect A: ',resChanA)
     }
-
-    if(nodeID2 instanceof Uint8Array){
-      // connecting to peer
-      const resChanB = channelManagerB
-      .as_ChannelMessageHandler()
-      .peer_connected(
-        channelManagerA.get_our_node_id(),
-        Init.constructor_new(initFeatures, this.optionAddress)
-        );
-      
-      console.log('Connect B: ',resChanB)
-    }
-
-    // console.log('NODE ID: ', nodeID);
-
-    // if( nodeID ){
-    //   let initial_send = this.peerManager.new_outbound_connection(
-    //     nodeID,
-    //     this.socketDescriptor,
-    //     optionalAddress
-    //   )
-    //   console.log('Initial Send: ', initial_send);
-        
-      // this.socket.onmessage = (event: any) => {
-      //   console.log("we got something back from the socket");
-      //   console.log(event.data);
-      //   event.data.arrayBuffer().then((buffer: any) => {
-      //     const result = new Uint8Array(buffer);
-      //     const event_result = this.peerManager.read_event(this.socketDescriptor, result);
-      //     console.log(
-      //       "Printing out the results from Result_boolPeerHandleErrorZ below:"
-      //     );
-      //     console.log(event_result);
-      //   });
-      // }
-
-
-      // if(initial_send instanceof Result_CVec_u8ZPeerHandleErrorZ_OK){
-      //   const response = this.socketDescriptor.send_data(initial_send.res)
-
-      //   console.log('Response socketDescriptor: ',response);
-
-      // }
-      // *** HANDLING ERROR IN CHANNEL CREATION:::::
-
-      // if (chanCreateError.is_ok()) return false;
-      // if (!(chanCreateError instanceof Result__u832APIErrorZ_Err)) return false;
-      // if (!(chanCreateError instanceof APIError_APIMisuseError)) return false;
-      // if (
-      //   chanCreateError.err.err !=
-      //   "Channel value must be at least 1000 satoshis. It was 0"
-      // )
-      //   return false;
 
 
       let channelValSatoshis = BigInt(1000000);
@@ -414,9 +359,12 @@ class LightningClient {
 
       // console.log('Peer List: ',this.list_peers());
 
+      const pubkeyHex = "022d564e88a620bcce01b584cf14fb03c4bfaec946c3ca5a00ca0e4c8f356e29e0";
+      const pubkey = new Uint8Array(pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+
       console.log('Reached here ready to create channel...')
       const channelCreateResponse = channelManagerA.create_channel(
-        channelManagerB.get_our_node_id(),
+        pubkey,
         channelValSatoshis,
         pushMsat,
         userChannelId,
@@ -450,63 +398,43 @@ class LightningClient {
     const NodeLDKNet = (await import("./lightning/NodeLDKNet.mjs")).NodeLDKNet;
 
     // Node key corresponding to all 42
-    const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
+    // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
   
 
     this.a_net_handler = new NodeLDKNet(this.peerManager);
-    var port = 10000;
+    var port = 9732;
     for (; port < 11000; port++) {
       try {
         // Try ports until we find one we can bind to.
-        console.log(port)
-        this.a_net_handler.bind_listener("127.0.0.1", port)
+
+        const pubkeyHex = "022d564e88a620bcce01b584cf14fb03c4bfaec946c3ca5a00ca0e4c8f356e29e0";
+        const pubkey = new Uint8Array(pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+
+        await this.a_net_handler.connect_peer("127.0.0.1", 9836, pubkey);
+
         break;
       } catch(_) {}
     }
-    
-    this.b_net_handler = new NodeLDKNet(this.peerManager2);
-    await this.b_net_handler.connect_peer("127.0.0.1", port, node_a_pk);
-
-    try {
-      // Ensure we get an error if we try to bind the same port twice.
-      await this.a_net_handler.bind_listener("127.0.0.1", port);
-      console.assert(false);
-    } catch(_) {
-      console.log('error called!')
-    }
 
 
-  await new Promise(resolve => {
-    // Wait until the peers are connected and have exchanged the initial handshake
-    var timer
-    timer = setInterval(function() {
-      console.log()
-      console.log('Interval PeerManager',this.peerManager)
-      if (this.peerManager.get_peer_node_ids().length == 1 && this.peerManager2.get_peer_node_ids().length == 1) {
-        console.log('Length is Equal to 1');
-        resolve();
-        clearInterval(timer);
-      }
-    }.bind(this), 500);
-  });
+
+    await new Promise(resolve => {
+      // Wait until the peers are connected and have exchanged the initial handshake
+      var timer
+      timer = setInterval(function() {
+        console.log('Node IDs',this.peerManager.get_peer_node_ids());
+        if (this.peerManager.get_peer_node_ids().length == 1) { // && this.peerManager2.get_peer_node_ids().length == 1
+          
+          console.log('Length is Equal to 1');
+          resolve();
+          clearInterval(timer);
+        }
+      }.bind(this), 500);
+    });
 
   console.log('B Net Serber:', this.a_net_handler.servers)
 
   this.optionAddress = NodeLDKNet.get_addr_from_socket(this.a_net_handler.servers[0]);
-
-  // this.optionAddress2 = NodeLDKNet.get_addr_from_socket(this.b_net_handler.servers[0])
-  // this.peerManager2.disconnect_by_node_id(node_a_pk, false);
-  // await new Promise(resolve => {
-  //   // Wait until A learns the connection is closed from the socket closure
-  //   var timer;
-  //   timer = setInterval(function() {
-  //     if (this.peerManager.get_peer_node_ids().length == 0 && this.peerManager2.get_peer_node_ids().length == 0) {
-  //       console.log('Length is Equal to 0');
-  //       resolve();
-  //       clearInterval(timer);
-  //     }
-  //   }.bind(this), 500);
-  // });
 
   // a_net_handler.stop();
   // b_net_handler.stop();
@@ -556,3 +484,134 @@ class LightningClient {
 
 
 module.exports = LightningClient;
+
+
+// SETUP CODE MAYBE NEEDED LATER:
+
+
+// if(nodeID2 instanceof Uint8Array){
+//   // connecting to peer
+//   const resChanB = channelManagerB
+//   .as_ChannelMessageHandler()
+//   .peer_connected(
+//     channelManagerA.get_our_node_id(),
+//     Init.constructor_new(initFeatures, this.optionAddress)
+//     );
+
+//   console.log('Connect B: ',resChanB)
+// }
+
+// console.log('NODE ID: ', nodeID);
+
+// if( nodeID ){
+//   let initial_send = this.peerManager.new_outbound_connection(
+//     nodeID,
+//     this.socketDescriptor,
+//     optionalAddress
+//   )
+//   console.log('Initial Send: ', initial_send);
+  
+// this.socket.onmessage = (event: any) => {
+//   console.log("we got something back from the socket");
+//   console.log(event.data);
+//   event.data.arrayBuffer().then((buffer: any) => {
+//     const result = new Uint8Array(buffer);
+//     const event_result = this.peerManager.read_event(this.socketDescriptor, result);
+//     console.log(
+//       "Printing out the results from Result_boolPeerHandleErrorZ below:"
+//     );
+//     console.log(event_result);
+//   });
+// }
+
+
+// if(initial_send instanceof Result_CVec_u8ZPeerHandleErrorZ_OK){
+//   const response = this.socketDescriptor.send_data(initial_send.res)
+
+//   console.log('Response socketDescriptor: ',response);
+
+// }
+// *** HANDLING ERROR IN CHANNEL CREATION:::::
+
+// if (chanCreateError.is_ok()) return false;
+// if (!(chanCreateError instanceof Result__u832APIErrorZ_Err)) return false;
+// if (!(chanCreateError instanceof APIError_APIMisuseError)) return false;
+// if (
+//   chanCreateError.err.err !=
+//   "Channel value must be at least 1000 satoshis. It was 0"
+// )
+//   return false;
+
+
+
+
+// Create Socket:
+
+// async create_socket(){
+//   const NodeLDKNet = (await import("./lightning/NodeLDKNet.mjs")).NodeLDKNet;
+
+  // Node key corresponding to all 42
+  // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
+
+
+  // this.a_net_handler = new NodeLDKNet(this.peerManager);
+  // var port = 10000;
+  // for (; port < 11000; port++) {
+  //   try {
+  //     // Try ports until we find one we can bind to.
+  //     console.log(port)
+  //     this.a_net_handler.bind_listener("127.0.0.1", port)
+  //     break;
+  //   } catch(_) {}
+  // }
+  
+  // this.b_net_handler = new NodeLDKNet(this.peerManager2);
+  // await this.b_net_handler.connect_peer("127.0.0.1", port, node_a_pk);
+
+  // try {
+  //   // Ensure we get an error if we try to bind the same port twice.
+  //   await this.a_net_handler.bind_listener("127.0.0.1", port);
+  //   console.assert(false);
+  // } catch(_) {
+  //   console.log('error called!')
+  // }
+
+
+// await new Promise(resolve => {
+//   // Wait until the peers are connected and have exchanged the initial handshake
+//   var timer
+//   timer = setInterval(function() {
+//     console.log()
+//     console.log('Interval PeerManager',this.peerManager)
+//     if (this.peerManager.get_peer_node_ids().length == 1 && this.peerManager2.get_peer_node_ids().length == 1) {
+//       console.log('Length is Equal to 1');
+//       resolve();
+//       clearInterval(timer);
+//     }
+//   }.bind(this), 500);
+// });
+
+// console.log('B Net Serber:', this.a_net_handler.servers)
+
+// this.optionAddress = NodeLDKNet.get_addr_from_socket(this.a_net_handler.servers[0]);
+
+// this.optionAddress2 = NodeLDKNet.get_addr_from_socket(this.b_net_handler.servers[0])
+// this.peerManager2.disconnect_by_node_id(node_a_pk, false);
+// await new Promise(resolve => {
+//   // Wait until A learns the connection is closed from the socket closure
+//   var timer;
+//   timer = setInterval(function() {
+//     if (this.peerManager.get_peer_node_ids().length == 0 && this.peerManager2.get_peer_node_ids().length == 0) {
+//       console.log('Length is Equal to 0');
+//       resolve();
+//       clearInterval(timer);
+//     }
+//   }.bind(this), 500);
+// });
+
+// a_net_handler.stop();
+// b_net_handler.stop();
+
+
+
+// }
