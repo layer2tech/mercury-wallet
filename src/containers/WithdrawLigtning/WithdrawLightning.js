@@ -21,6 +21,8 @@ import './WithdrawLightning.css';
 import PageHeader from '../PageHeader/PageHeader';
 import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
+import Loading from "../../components/Loading/Loading";
+
 const WithdrawLightning = () => {
 
     const dispatch = useDispatch();
