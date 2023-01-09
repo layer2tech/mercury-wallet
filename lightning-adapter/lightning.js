@@ -218,7 +218,8 @@ class LightningClient {
     // );
 
     const routingMessageHandler = ldk.IgnoringMessageHandler.constructor_new().as_RoutingMessageHandler();
-    const channelMessageHandler = ldk.ErroringMessageHandler.constructor_new().as_ChannelMessageHandler();
+    // const channelMessageHandler = ldk.ErroringMessageHandler.constructor_new().as_ChannelMessageHandler();
+    const channelMessageHandler = this.channel_manager.as_ChannelMessageHandler();
     const customMessageHandler = ldk.IgnoringMessageHandler.constructor_new().as_CustomMessageHandler();
     const onionMessageHandler = ldk.IgnoringMessageHandler.constructor_new().as_OnionMessageHandler();
 
@@ -272,7 +273,7 @@ class LightningClient {
     const channelManagerA = this.channel_manager;
     const channelManagerB = this.channel_manager2;
 
-    // console.log('Channel Manager A: ', channelManagerA);
+    console.log('Channel Manager A: ', channelManagerA);
     // All kinds of InitFeature options check set_*_ functions
     
     const initFeatures = InitFeatures.constructor_empty();
@@ -295,7 +296,7 @@ class LightningClient {
 
 
 
-    
+    console.log("Connecting...");
     await this.create_socket();
 
     let nodeID = this.list_peers()[0];
@@ -307,11 +308,11 @@ class LightningClient {
     if(nodeID instanceof Uint8Array){
       // connecting to peer2
       const resChanA = channelManagerA
-      .as_ChannelMessageHandler()
-      .peer_connected(
-        nodeID,
-        Init.constructor_new(initFeatures, this.optionAddress)
-        );
+      // .as_ChannelMessageHandler()
+      // .peer_connected(
+      //   nodeID,
+      //   Init.constructor_new(initFeatures, this.optionAddress)
+      //   );
       
       console.log('Connect A: ',resChanA)
     }
@@ -375,6 +376,7 @@ class LightningClient {
         const pubkey = new Uint8Array(pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
 
         await this.a_net_handler.connect_peer("127.0.0.1", 9735, pubkey);
+        console.log("CONNECTED")
 
         break;
       } catch(_) {}
