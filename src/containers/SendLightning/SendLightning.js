@@ -14,8 +14,7 @@ import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
 
 import PageHeader from '../PageHeader/PageHeader';
 import { useState } from "react";
-import ChannelList from "../../components/Channels/ChannelList";
-import Loading from '../../components/Loading/Loading';
+import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
 const SendLightning = () => {
 
@@ -90,18 +89,16 @@ const SendLightning = () => {
             subTitle = "Y BTC available over Z channels" />
 
           <div className="withdraw content">
-              <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select channel to send</h3>
-                  </div>
-                  <ChannelList 
-                    selectedChannels={selectedChannels}
-                    setSelectedChannel = {addSelectedChannel}
-                    refresh = {refreshChannels}
-                    render = {forceRender}
-                    />
+              <ItemsContainer 
+                channelListProps={{
+                  title: "Select channel to send",
+                  selectedChannels: selectedChannels,
+                  addSelectedChannel: addSelectedChannel,
+                  refreshChannels: refreshChannels,
+                  forceRender: forceRender
+                }}
+                />
 
-              </div>
               <div className="Body right">
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>
