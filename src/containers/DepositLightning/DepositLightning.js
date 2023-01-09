@@ -17,24 +17,18 @@ const DepositLightning = (props) => {
 
     const [inputAmt, setInputAmt] = useState("");
 
-    const [inputDes, setInputDes] = useState("");
-
     const [inputNodeId, setInputNodeId] = useState("");
 
     const [inputHost, setInputHost] = useState("");
 
-    const [inputPort, setInputPort] = useState("");
-
     const [invoice, setInvoice] = useState({});
 
     const createChannel = () => {
-        let newInvoice = { amt: inputAmt, desc: inputDes, addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs" };
+        let newInvoice = { amt: inputAmt, addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs" };
         setInvoice(newInvoice);
         setInputAmt("");
-        setInputDes("");
         setInputNodeId("");
         setInputHost("");
-        setInputPort("");
       }
 
     return (
@@ -49,9 +43,6 @@ const DepositLightning = (props) => {
                     <div className="deposit-scan">
             
                     <div className="deposit-scan-content">
-                        <div className="deposit-scan-subtxt">
-                            <span>{invoice.desc}</span>
-                        </div>
             
                         <div className="deposit-scan-main">
                             <div className="deposit-scan-main-item">
@@ -93,33 +84,17 @@ const DepositLightning = (props) => {
                   </div>
                   <div>
                       <AddressInput
-                        inputAddr={inputDes}
-                        onChange={(e) => setInputDes(e.target.value)}
-                        placeholder='Description'
-                        smallTxtMsg='Description'/>
-                  </div>
-                  <div>
-                      <AddressInput
                         inputAddr={inputNodeId}
                         onChange={(e) => setInputNodeId(e.target.value)}
                         placeholder='Node ID'
                         smallTxtMsg='Node ID'/>
                   </div>
-                  <div className="d-flex input-group">
-                    <div className="inputs-item small-input type">
+                  <div>
                         <AddressInput
                             inputAddr={inputHost}
                             onChange={(e) => setInputHost(e.target.value)}
                             placeholder='Host'
                             smallTxtMsg='Host'/>
-                    </div>
-                    <div className="inputs-item small-input type">
-                        <AddressInput
-                            inputAddr={inputPort}
-                            onChange={(e) => setInputPort(e.target.value)}
-                            placeholder='Port'
-                            smallTxtMsg='Port'/>
-                    </div>
                   </div>
 
                   <div>
