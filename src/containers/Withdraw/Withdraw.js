@@ -22,7 +22,7 @@ import {isWalletLoaded,
   setWithdrawTxid
 } from '../../features/WalletDataSlice';
 
-import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, CoinsList} from "../../components";
+import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, ItemsContainer} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/MainHeader/MainHeader"
 import {fromSatoshi, toSatoshi} from '../../wallet/util';
 
@@ -208,20 +208,17 @@ const WithdrawPage = () => {
             subText = {filterByMsg()} />
 
           <div className="withdraw content">
-              <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select statecoins to withdraw</h3>
-                      <span className="sub">Click to select coins below</span>
-                      <CoinsList
-                        showCoinStatus={true}
-                        displayDetailsOnClick={false}
-                        selectedCoins={selectedCoins}
-                        setSelectedCoin = {addSelectedCoin}
-                        refresh = {refreshCoins}
-                        render = {forceRender}/>
-                  </div>
+              <ItemsContainer
+                coinsListProps={{
+                  title: "Select statecoins to withdraw",
+                  subtitle: "Click to select coins below",
+                  selectedCoins: selectedCoins,
+                  setSelectedCoin: addSelectedCoin,
+                  refresh: refreshCoins,
+                  render: forceRender
+                }}
+              />
 
-              </div>
               <div className="Body right">
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>

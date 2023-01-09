@@ -19,8 +19,9 @@ import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
 
 import './WithdrawLightning.css';
 import PageHeader from '../PageHeader/PageHeader';
-import ChannelList from '../../components/Channels/ChannelList';
-import Loading from '../../components/Loading/Loading';
+import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
+
+import Loading from "../../components/Loading/Loading";
 
 const WithdrawLightning = () => {
 
@@ -151,18 +152,16 @@ const WithdrawLightning = () => {
             subTitle = "Create new lightning channels" />
 
           <div className="withdraw content">
-              <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select channel to withdraw</h3>
-                  </div>
-                  <ChannelList 
-                    selectedChannels={selectedChannels}
-                    setSelectedChannel = {addSelectedChannel}
-                    refresh = {refreshChannels}
-                    render = {forceRender}
-                  />
+              <ItemsContainer 
+                channelListProps={{
+                  title: "Select channel to withdraw",
+                  selectedChannels: selectedChannels,
+                  addSelectedChannel: addSelectedChannel,
+                  refreshChannels: refreshChannels,
+                  forceRender: forceRender
+                }}
+              />
 
-              </div>
               <div className="Body right">
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>
