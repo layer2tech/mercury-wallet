@@ -35,3 +35,4 @@ export { default as Quantity } from "./quantity/quantity";
 
 export { default as CreateStatecoin } from "./createStatecoin/createStatecoin";
 export { default as TransactionsBTC } from "./transactionsBTC/transactionsBTC";
+export { default as ItemsContainer } from "./ItemsContainer/ItemsContainer";

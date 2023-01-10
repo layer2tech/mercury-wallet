@@ -120,6 +120,7 @@ const ConfirmSeed = (props) => {
         props.wizardState.wallet_name,
         props.wizardState.wallet_password,
         props.wizardState.mnemonic,
+        props.wizardState.wallet_network,
         props.history
       );
     } catch (e) {

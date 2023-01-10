@@ -15,7 +15,6 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import { NETWORK_TYPE } from "../wallet/wallet";
-import { defaultWalletConfig } from "../containers/Settings/Settings";
 // import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
@@ -59,7 +58,9 @@ export const callSetArgsHasTestnet = async (value) => {
 };
 
 export const callGetNetwork = () => {
-  return wallet.config.network;
+  if (isWalletLoaded()) {
+    return wallet.config.network;
+  }
 };
 
 let wallet;
@@ -108,15 +109,26 @@ const initialState = {
   swapPendingCoins: [],
   inSwapValues: [],
   swapLoad: { join: false, swapCoin: "", leave: false },
+  blockHeightLoad: false,
   coinsAdded: 0,
   coinsRemoved: 0,
   torInfo: { online: true },
+  showWithdrawPopup: false,
+  withdraw_txid: "",
 };
 
 // Check if a wallet is loaded in memory
 export const isWalletLoaded = () => {
   return wallet !== undefined && wallet.isActive();
 };
+
+export const callUnsubscribeAll = async () => {
+  if(isWalletLoaded()){
+
+    await wallet.unsubscribeAll();
+
+  }
+}
 
 export const isWalletActive = () => {
   return isWalletLoaded() && wallet.isActive();
@@ -174,6 +186,8 @@ async function pingElectrumRestart(force = false) {
     mutex.runExclusive(async () => {
       wallet.electrum_client = wallet.newElectrumClient();
       try {
+        //init Block height
+        await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
         wallet.initElectrumClient(setBlockHeightCallBack);
       } catch (err) {
         log.info(`Failed to initialize electrum client: ${err}`);
@@ -225,25 +239,51 @@ export async function walletLoad(name, password, router) {
   await walletLoadConnection(wallet);
 }
 
+export async function callGetLatestBlock(){
+  if(isWalletLoaded){
+    return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+  }
+}
+
+async function setNetworkEndpoints( wallet, networkType ){
+  await wallet.setHttpClient(networkType);
+  await wallet.setElectrsClient(networkType);
+  await wallet.set_adapter_endpoints();
+}
+
+async function initConnectionData( wallet ) {
+  await mutex.runExclusive(async () => {
+    //init Block height
+    await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+    
+    //subscribe to block height interval loop
+    await wallet.initElectrumClient(setBlockHeightCallBack);
+
+    wallet.updateSwapStatus();
+
+    // get swap group info
+    await wallet.updateSwapGroupInfo();
+    // await UpdateSpeedInfo(store.dispatch);
+  });
+}
+
 export async function walletLoadConnection(wallet) {
   if (testing_mode) log.info("Testing mode set.");
-
   let networkType = wallet.networkType;
   if(!networkType) {
     networkType = NETWORK_TYPE.TOR
     wallet.networkType = NETWORK_TYPE.TOR
   }
-  await wallet.setHttpClient(networkType);
-  await wallet.setElectrsClient(networkType);
+  
+  // set http & electrs client endpoints and adapter endpoints
+  await setNetworkEndpoints( wallet, networkType );
+
+  // de register coins from swaps
   await wallet.deRegisterSwaps(true);
 
-  await mutex.runExclusive(async () => {
-    await wallet.set_tor_endpoints()
-    wallet.initElectrumClient(setBlockHeightCallBack);
-    wallet.updateSwapStatus();
-    await wallet.updateSwapGroupInfo();
-    // await UpdateSpeedInfo(store.dispatch);
-  });
+  // get swap group info & block height & set to wallet object
+  await initConnectionData(wallet);
+
 }
 
 async function recoverCoins(wallet, gap_limit, gap_start, dispatch) {
@@ -261,6 +301,7 @@ export async function walletFromMnemonic(
   name,
   password,
   mnemonic,
+  route_network_type,
   router,
   try_restore,
   gap_limit = undefined,
@@ -272,7 +313,7 @@ export async function walletFromMnemonic(
   } else {
     network = bitcoin.networks["bitcoin"];
   }
-  wallet = Wallet.fromMnemonic(name, password, mnemonic, network, testing_mode);
+  wallet = Wallet.fromMnemonic(name, password, mnemonic, route_network_type, network, testing_mode);
   wallet.resetSwapStates();
 
   const networkType = wallet.networkType;
@@ -282,6 +323,8 @@ export async function walletFromMnemonic(
   await mutex.runExclusive(async () => {
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
+    //init Block height
+    await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
       let recoveryComplete = false;
@@ -338,6 +381,9 @@ export const walletFromJson = async (wallet_json, password) => {
       .runExclusive(async () => {
         await wallet.setHttpClient(networkType);
         await wallet.setElectrsClient(networkType);
+        //init Block height
+        await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+
         wallet.initElectrumClient(setBlockHeightCallBack);
         await callNewSeAddr();
         wallet.updateSwapStatus();
@@ -416,6 +462,29 @@ export const callSumStatecoinValues = (shared_key_ids) => {
     return wallet.sumStatecoinValues(shared_key_ids);
   }
 };
+
+export const callSaveChannels = async (channels) => {
+  if (isWalletLoaded()) {
+    await wallet.saveChannels(channels);
+  }
+}
+
+export const getChannels = () => {
+  if (isWalletLoaded()) {
+    return wallet.channels;
+  }
+}
+
+export const callSumChannelAmt = (selectedChannels) => {
+  let totalSum = 0;
+  selectedChannels.map((selectedChannel) => {
+    let channel_arr = wallet.channels.filter(
+      (channel) => channel.id === selectedChannel
+    );
+    totalSum += channel_arr[0].amt;
+  });
+  return totalSum;
+}
 
 export const callIsBatchMixedPrivacy = (shared_key_ids) => {
   if (isWalletLoaded()) {
@@ -805,9 +874,56 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
   }
 };
 
-export const checkSend = (dispatch, inputAddr) => {
+export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) => {
+  // Pre action confirmation checks for withdrawal - return true to prevent action
+
+  // check if channel is chosen
+  if (selectedChannels.length === 0) {
+    dispatch(setError({ msg: "Please choose a channel to withdraw." }));
+    return true;
+  }
+  if (!inputAddr) {
+    dispatch(setError({ msg: "Please enter an address to withdraw to." }));
+    return true;
+  }
+
+  // if total sats sum in all selected channels less than 0.001BTC (100000 sats) then return error
+  if (callSumChannelAmt(selectedChannels) < 100000) {
+    dispatch(setError({ msg: "Mininum withdrawal size is 0.001 BTC (100000 sats)." }));
+    return true;
+  }
+
+  try {
+    bitcoin.address.toOutputScript(inputAddr, wallet.config.network);
+  } catch (e) {
+    dispatch(setError({ msg: "Invalid Bitcoin address entered." }));
+    return true;
+  }
+};
+
+export const checkChannelSend = (dispatch, selectedChannels, inputAddr) => {
+  // Pre action confirmation checks for send sats - return true to prevent action
+
+  // check if channel is chosen
+  if (selectedChannels.length === 0) {
+    dispatch(setError({ msg: "Please choose a channel to send sats." }));
+    return true;
+  }
+  if (!inputAddr) {
+    dispatch(setError({ msg: "Please enter a lightning address to send sats." }));
+    return true;
+  }
+  // Check for valid lightning address needs to be included
+}
+
+export const checkSend = (dispatch, selectedCoins, inputAddr) => {
   // Pre action confirmation checks for send statecoin - return true to prevent action
 
+  // check statechain is chosen
+  if (selectedCoins.length === 0) {
+    dispatch(setError({ msg: "Please choose a StateCoin to send." }));
+    return true;
+  }
   var input_pubkey = "";
 
   try {
@@ -855,12 +971,11 @@ export const checkSend = (dispatch, inputAddr) => {
 export const setNetworkType = async (networkType) => {
   if (isWalletLoaded()) {
     wallet.networkType = networkType;
-    wallet.config = new Config(wallet.network, networkType, testing_mode);
+    wallet.config = new Config(wallet.config.network, networkType, testing_mode);
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
-    await wallet.set_tor_endpoints();
+    await wallet.set_adapter_endpoints();
     await wallet.save();
-    defaultWalletConfig();
   }
 }
 
@@ -1225,6 +1340,14 @@ const WalletSlice = createSlice({
         },
       };
     },
+    setBlockHeightLoad(state, action) {
+      // Toggle to refresh block height components
+      var update = action.payload;
+      return {
+        ...state,
+        blockHeightLoad: update,
+      };
+    },
     // Deposit
     dummyDeposit() {
       let proof_key =
@@ -1372,6 +1495,18 @@ const WalletSlice = createSlice({
         ...state,
         ping_electrum_ms: action.payload,
       };
+    },
+    setShowWithdrawPopup(state, action) {
+      return {
+        ...state,
+        showWithdrawPopup: action.payload,
+      };
+    },
+    setWithdrawTxid(state, action) {
+      return {
+        ...state,
+        withdraw_txid: action.payload,
+      };
     }
   },
   extraReducers: {
@@ -1516,13 +1651,16 @@ export const {
   addInSwapValue,
   removeInSwapValue,
   setSwapLoad,
+  setBlockHeightLoad,
   updateTxFeeEstimate,
   addCoins,
   removeCoins,
   setTorOnline,
   setPingServerMs,
   setPingConductorMs,
-  setPingElectrumMs
+  setPingElectrumMs,
+  setShowWithdrawPopup,
+  setWithdrawTxid
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 

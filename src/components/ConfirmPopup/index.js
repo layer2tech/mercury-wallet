@@ -12,6 +12,7 @@ const ConfirmPopup = ({
   onCancel,
   preCheck = null,
   argsCheck = null,
+  isLightning = false
 }) => {
   const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
@@ -55,7 +56,11 @@ const ConfirmPopup = ({
           `Send statecoin(s) to each of the first ${sendAddr} addresses`
         );
       } else {
-        setCloseText("Confirm send, statecoin ready to be sent immediately.");
+        if (isLightning) {
+          setCloseText("Confirm send, sats ready to be sent immediately through lightning.");
+        } else {
+          setCloseText("Confirm send, statecoin ready to be sent immediately.");
+        }
       }
     } else if (children.props.className.includes("withdraw-button")) {
       if (children.props.className.includes("withdrawing-warning")) {

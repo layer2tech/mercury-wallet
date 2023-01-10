@@ -35,7 +35,6 @@ var bodyParser = require("body-parser");
 var cors = require("cors");
 var path = require("path");
 
-const handle_error = require("./error").handle_error;
 const { logger, log } = require("./logger");
 const { GET_ROUTE, POST_ROUTE } = require("./routes");
 
@@ -47,7 +46,7 @@ var CNClient = require("./cn_client");
 /***
  *
  * Adapter starts Tor or I2P
- * - depends on binary name passed
+ * - depends on binary name passed as argument
  *
  ***/
 
@@ -139,10 +138,30 @@ let epsClient = null;
 let electrsLocalClient = null;
 
 log("info", "starting anon network node... ");
-
-anon_client.startNode(start_cmd, torrc, network);
+try{
+  anon_client.startNode(start_cmd, torrc, network);
+} catch(e){
+  handle_error(null, e)
+}
 
 log("info", "finished starting anon network node.");
+
+
+async function handle_error(res, err) {
+
+  if(typeof(err?.message) === 'string' && err.message.includes('connect ECONNREFUSED')){
+    try{
+      // restart network node if down 
+      await anon_client.startNode(start_cmd, torrc, network);
+    } catch(e){
+      res.json({error: e})
+    }
+  }
+
+  res.json({ error: err })
+}
+
+
 
 async function get_endpoint(path, res, endpoint, i_hs) {
   if (endpoint === undefined) return;

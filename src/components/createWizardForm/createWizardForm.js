@@ -1,5 +1,5 @@
 "use strict";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import eyeIcon from "../../images/eye-icon.svg";
@@ -7,6 +7,9 @@ import eyeIconOff from "../../images/eye-icon-off.svg";
 import CloseIcon from "../../images/close-icon.png";
 import TermsConditions from "../TermsConditions/TermsConditions";
 import "./createWizardForm.css";
+import { NetworkSwitch } from "../../components/header/TorInfo/TorCircuit";
+import { NETWORK_TYPE } from "../../wallet/wallet";
+import { setNetworkType } from "../../features/WalletDataSlice";
 
 const CreateWizardForm = (props) => {
   const { register, errors, watch, handleSubmit } = useForm({
@@ -16,6 +19,8 @@ const CreateWizardForm = (props) => {
   const [showPass, setShowPass] = useState(false);
   const [toggleTCs, setToggleTCs] = useState(false);
   const [walletNameError, setNameError] = useState(false);
+  const [routeNetwork, setRouteNetwork] = useState(NETWORK_TYPE.TOR);
+
   const password = useRef({});
   password.current = watch("password", "");
   const toggleShowPass = () => setShowPass(!showPass);
@@ -51,6 +56,22 @@ const CreateWizardForm = (props) => {
       setNameError(false);
     }
   };
+
+  const routeNetworkSwitch = () => {
+    let networkType = '';
+    if (routeNetwork === NETWORK_TYPE.TOR) {
+      networkType = NETWORK_TYPE.I2P;
+    } else {
+      networkType = NETWORK_TYPE.TOR;
+    }
+    props.setStateWalletNetwork(networkType);
+    setRouteNetwork(networkType);
+    setNetworkType(networkType);
+  }
+
+  useEffect(() => {
+    props.setStateWalletNetwork(NETWORK_TYPE.TOR);
+  }, []);
 
   return (
     <div className="wizard-form">
@@ -171,6 +192,17 @@ const CreateWizardForm = (props) => {
           {errors.password_repeat && (
             <p data-cy="recovery-error">{errors.password_repeat.message}</p>
           )}
+        </div>
+
+        <div className="inputs-item">
+          <p>Select routing network type the wallet should be restored with (By default Tor):</p>
+        </div>
+        <div className="inputs-item network-switch-new-wallet restore-network">
+          <NetworkSwitch 
+            newWallet={true}
+            networkType={routeNetwork}
+            onClick={routeNetworkSwitch}
+          />
         </div>
         <div className="inputs-item checkbox">
           <input

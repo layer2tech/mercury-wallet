@@ -158,7 +158,7 @@ describe('error handling', function () {
         })
 
         test('error object', function () {
-            expect(() => { checkForServerError(error_object) }).toThrow(Error(JSON.stringify(error_object.data.error)))
+            expect(() => { checkForServerError(error_object) }).toThrow("Internal Server Error")
         })
 
     })

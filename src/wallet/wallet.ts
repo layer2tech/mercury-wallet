@@ -51,7 +51,7 @@ import Swap from "./swap/swap";
 
 import { v4 as uuidv4 } from "uuid";
 import { Config } from "./config";
-import { Storage } from "../store";
+import { Storage, TestingWithJest } from "../store";
 import { groupInfo, swapDeregisterUtxo } from "./swap/info_api";
 import { addRestoredCoinDataToWallet, recoverCoins } from "./recovery";
 
@@ -139,6 +139,11 @@ export interface Warning {
   show: boolean;
 }
 
+export interface Channel {
+  id: string;
+  amt: Number;
+}
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -149,6 +154,7 @@ export class Wallet {
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
+  channels: Channel[];
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
   electrum_client:
@@ -192,6 +198,7 @@ export class Wallet {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
+    this.channels = [];
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
@@ -205,7 +212,7 @@ export class Wallet {
       this.http_client = http_client;
     } else if (this.config.testing_mode != true) {
       this.http_client = new HttpClient(TOR_URL, true);
-      this.set_tor_endpoints();
+      this.set_adapter_endpoints();
     } else {
       this.http_client = new MockHttpClient();
     }
@@ -300,7 +307,7 @@ export class Wallet {
     }
   }
 
-  async set_tor_endpoints() {
+  async set_adapter_endpoints() {
     let electr_ep = this.config.electrum_config.host;
     let electr_ep_arr = electr_ep.split(",");
     let electr_port = this.config.electrum_config.port;
@@ -332,23 +339,23 @@ export class Wallet {
   }
 
   async setHttpClient(networkType: string) {
-    if (this.config.testing_mode !== true) {
+    if (this.config.testing_mode !== true && !TestingWithJest()) {
       if (networkType === NETWORK_TYPE.I2P) {
         this.http_client = new HttpClient(I2P_URL, false);
       } else {
         this.http_client = new HttpClient(TOR_URL, true);
-        await this.set_tor_endpoints();
+        await this.set_adapter_endpoints();
       }
     }
   }
 
   async setElectrsClient(networkType: string) {
-    if (this.config.testing_mode !== true) {
+    if (this.config.testing_mode !== true && !TestingWithJest()) {
       if (networkType === NETWORK_TYPE.I2P) {
         this.electrum_client = new ElectrsClient(I2P_URL, false);
       } else {
         this.electrum_client = new ElectrsClient(TOR_URL, true);
-        await this.set_tor_endpoints();
+        await this.set_adapter_endpoints();
       }
     }
   }
@@ -358,6 +365,7 @@ export class Wallet {
     name: string,
     password: string,
     mnemonic: string,
+    route_network_type: string | undefined = undefined,
     network: Network,
     testing_mode: boolean,
     http_client: any = undefined,
@@ -379,7 +387,8 @@ export class Wallet {
       new Config(network, DEFAULT_NETWORK_TYPE, testing_mode),
       http_client,
       wasm,
-      storage_type
+      storage_type,
+      route_network_type
     );
     wallet.setActive();
     return wallet;
@@ -388,7 +397,7 @@ export class Wallet {
   // Generate wallet with random mnemonic.
   static buildFresh(testing_mode: true, network: Network): Wallet {
     const mnemonic = bip39.generateMnemonic();
-    return Wallet.fromMnemonic("test", "", mnemonic, network, testing_mode);
+    return Wallet.fromMnemonic("test", "", mnemonic, DEFAULT_NETWORK_TYPE, network, testing_mode);
   }
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
@@ -406,6 +415,7 @@ export class Wallet {
       name,
       MOCK_WALLET_PASSWORD,
       mnemonic,
+      DEFAULT_NETWORK_TYPE,
       network,
       true,
       http_client,
@@ -488,7 +498,19 @@ export class Wallet {
         json_wallet.networkType
       );
 
+      
+      // Deals with old wallet files, migrating statecoin data into the new format
+      new_wallet.storage.loadStatecoinsQuick(json_wallet);
+
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
+
+
+      if(typeof(new_wallet.storage.store.path) !== "undefined"){
+        // Delete swap coins from memory
+        deleteKeys(json_wallet, ["swapped_statecoins_obj", "swapped_ids", "statecoins_obj"]);
+      }
+
+
       new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity);
 
       new_wallet.current_sce_addr = json_wallet.current_sce_addr;
@@ -522,6 +544,10 @@ export class Wallet {
       await updateSwapSemaphore.acquire();
       n_semaphores++;
     }
+    await this.electrum_client.unsubscribeAll();
+  }
+
+  async unsubscribeAll(){
     await this.electrum_client.unsubscribeAll();
   }
 
@@ -620,6 +646,10 @@ export class Wallet {
     }
     await this.saveItem("statecoins");
     this.clearFundingOutpointMap();
+  }
+
+  async saveChannels(channels: Channel[]) {
+    this.channels = channels;
   }
 
   async saveActivityLog() {
@@ -737,14 +767,21 @@ export class Wallet {
   }
 
   newElectrumClient() {
+    let ENDPOINT;
+    if(this.networkType === NETWORK_TYPE.I2P){
+      ENDPOINT = I2P_URL;
+    } else {
+      ENDPOINT = TOR_URL;
+    }
+
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if (this.config.testing_mode == true) return new MockElectrumClient();
     if (this.config.electrum_config.type == "eps")
-      return new EPSClient("http://localhost:3001");
+      return new EPSClient( ENDPOINT);
     if (this.config.electrum_config.type == "electrs_local")
-      return new ElectrsLocalClient("http://localhost:3001");
+      return new ElectrsLocalClient( ENDPOINT );
     if (this.config.electrum_config.protocol == "http")
-      return new ElectrsClient("http://localhost:3001");
+      return new ElectrsClient( ENDPOINT );
 
     return new ElectrumClient(this.config.electrum_config);
   }
@@ -2860,10 +2897,10 @@ export const json_wallet_to_bip32_root_account = (json_wallet: any): object => {
   let internal = i.derive(1);
 
   // ensure account stores with different encoding/decoding are in same format
-  json_wallet.account = JSON.parse(JSON.stringify(json_wallet.account));
+  let wallet_account = JSON.parse(JSON.stringify(json_wallet.account));
 
   // Re-map Account JSON data to root chains
-  const chains = json_wallet.account.map(function (j: any) {
+  const chains = wallet_account.map(function (j: any) {
     let node;
     if (Object.keys(j.map).length) {
       // is internal node
@@ -2926,6 +2963,21 @@ export const getXpub = (mnemonic: string, network: Network) => {
 
   return node.neutered().toBase58();
 };
+
+function deleteKeys(obj: any, keys: Array<string>){
+  keys.map( key => {
+    deleteKey(obj, key);
+  })
+}
+
+function deleteKey(obj:any, key: keyof any) {
+  if (key in obj) {
+    delete obj[key];
+  }
+
+  return obj;
+}
+
 
 const dummy_master_key = {
   public: {
