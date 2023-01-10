@@ -8,10 +8,15 @@ import copy_img from "../../images/icon2.png";
 
 import { CopiedButton, AddressInput } from "../../components";
 import { fromSatoshi } from "../../wallet";
+import check from "../../images/icon-action-check_circle.png";
+import "../CreateWalletInfo/CreateWalletInfo.css";
 
 import './DepositLightning.css';
 
-
+export const CHANNEL_TYPE = {
+    PUBLIC: "Public",
+    PRIVATE: "Private"
+};
 
 const DepositLightning = (props) => {
 
@@ -23,13 +28,19 @@ const DepositLightning = (props) => {
 
     const [invoice, setInvoice] = useState({});
 
+    const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
+
+    const selectChannelType = (mode) => {
+        setChannelType(mode === 1 ? CHANNEL_TYPE.PRIVATE : CHANNEL_TYPE.PUBLIC);
+    }; 
+
     const createChannel = () => {
         let newInvoice = { amt: inputAmt, addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs" };
         setInvoice(newInvoice);
         setInputAmt("");
         setInputNodeId("");
         setInputHost("");
-      }
+    };
 
     return (
         <div className = "container deposit-ln">
@@ -96,6 +107,22 @@ const DepositLightning = (props) => {
                             placeholder='Host'
                             smallTxtMsg='Host'/>
                   </div>
+                    <div className="network-btns channel-type">
+                        <div
+                            onClick={() => selectChannelType(0)}
+                            className={`${channelType === CHANNEL_TYPE.PUBLIC ? "selected" : ""}`}
+                        >
+                            <span>Public</span>
+                            <img className="check-img" src={check} alt="plus" />
+                        </div>
+                        <div
+                            onClick={() => selectChannelType(1)}
+                            className={`${channelType === CHANNEL_TYPE.PRIVATE ? "selected" : ""}`}
+                        >
+                            <span>Private</span>
+                            <img className="check-img" src={check} alt="plus" />
+                        </div>
+                    </div>
 
                   <div>
                     <button type="button" className={`btn withdraw-button `} onClick={createChannel}>
