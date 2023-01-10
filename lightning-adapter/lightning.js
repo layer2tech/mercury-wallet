@@ -1,6 +1,7 @@
 // const nanoid = import("nanoid");
 
 const fs = require("fs");
+let crypto = require("crypto");
 // const MercurySocketDescriptor = import("./lightning/MercurySocketDescriptor");
 
 // const { NodeLDKNet } = import("./lightning/NodeLDKNet.ts");
@@ -32,17 +33,18 @@ class LightningClient {
 
   constructor() {
     // this.LDK = ldk
+    // this.electrum_client = _electrumClient;
+    // console.log(
+    //   "Lightning received an electrum_client of which ->",
+    //   this.electrum_client
+    // );
+
     this.setupLDK().then(() => {
       console.log("Finished setup.");
 
       console.log("Starting LDK...");
       this.startLDK();
     });
-    // this.electrum_client = _electrumClient;
-    // console.log(
-    //   "Lightning received an electrum_client of which ->",
-    //   this.electrum_client
-    // );
   }
 
   async setupLDK() {
@@ -89,6 +91,8 @@ class LightningClient {
       new MercuryFeeEstimator()
     );
 
+    // console.log('Fee Estimator: ',this.fee_estimator.get_sat_per_1000_weight(0));
+
     // Step 2: logger
     this.logger = this.LDK.Logger.new_impl(new MercuryLogger());
 
@@ -124,6 +128,8 @@ class LightningClient {
 
     // Step 5: Persist
     this.persister = this.LDK.Persist.new_impl(new MercuryPersister());
+
+    console.log("Persister: ", this.persister);
 
     // Step 6: Initialize the EventHandler
     this.event_handler = this.LDK.EventHandler.new_impl({
@@ -173,18 +179,18 @@ class LightningClient {
 
     // // Step 9: Initialize the KeysManager
     const ldk_data_dir = "./.ldk/";
-    // // if (!fs.existsSync(ldk_data_dir)) {
-    // //   fs.mkdirSync(ldk_data_dir);
-    // // }
+    if (!fs.existsSync(ldk_data_dir)) {
+      fs.mkdirSync(ldk_data_dir);
+    }
     const keys_seed_path = ldk_data_dir + "keys_seed";
 
     var seed = null;
-    // // if (!fs.existsSync(keys_seed_path)) {
-    // //   seed = crypto.randomBytes(32);
-    // //   fs.writeFileSync(keys_seed_path, seed);
-    // // } else {
-    // //   seed = fs.readFileSync(keys_seed_path);
-    // // }
+    if (!fs.existsSync(keys_seed_path)) {
+      seed = crypto.randomBytes(32);
+      fs.writeFileSync(keys_seed_path, seed);
+    } else {
+      seed = fs.readFileSync(keys_seed_path);
+    }
 
     seed = nanoid.nanoid(32);
 
@@ -214,6 +220,7 @@ class LightningClient {
     // // Step 10: Read ChannelMonitor from disk
     // const channel_monitor_list = Persister.read_channel_monitors(this.keys_manager);
 
+    console.log("FEE ESTIMATOR IN CHANNEL MANAGER: ", this.fee_estimator);
     // // Step 11: Initialize the ChannelManager
     this.channel_manager = this.LDK.ChannelManager.constructor_new(
       this.fee_estimator,
@@ -282,6 +289,9 @@ class LightningClient {
 
     console.log("Peer Manager: ", this.peerManager);
     console.log("Peer Manager: ", this.peerManager2);
+
+    console.log("Peer Manager: ", this.peerManager);
+    console.log("Peer Manager: ", this.peerManager2);
   }
 
   async startLDK() {
@@ -339,18 +349,18 @@ class LightningClient {
 
     await this.create_socket();
 
-    // let nodeID = this.list_peers()[0];
+    let nodeID = this.list_peers()[0];
 
-    // if(nodeID instanceof Uint8Array){
-    //   const resChanA = channelManagerA
-    //   .as_ChannelMessageHandler()
-    //   .peer_connected(
-    //     nodeID,
-    //     Init.constructor_new(initFeatures, this.optionAddress)
-    //     );
+    if (nodeID instanceof Uint8Array) {
+      const resChanA = channelManagerA
+        .as_ChannelMessageHandler()
+        .peer_connected(
+          nodeID,
+          Init.constructor_new(initFeatures, this.optionAddress)
+        );
 
-    //   console.log('Connect: ',resChanA)
-    // }
+      console.log("Connect: ", resChanA);
+    }
 
     // console.log('NODE ID: ', nodeID);
 
@@ -402,8 +412,14 @@ class LightningClient {
 
     // console.log('At BigInt 0: ', BigInt(0));
 
-    // console.log('Peer List: ',this.list_peers());
+    // console.log('At BigInt 0: ', BigInt(0));
+    console.log(this.fee_estimator);
 
+    console.log("Channel Create Response: ", channelCreateResponse);
+
+    // if (!chanCreateRes.is_ok()) return false;
+
+    console.log("Reached here ready to create channel...");
     const channelCreateResponse = channelManagerA.create_channel(
       this.list_peers()[0],
       channelValSatoshis,
@@ -480,8 +496,44 @@ class LightningClient {
       );
     });
 
-    console.log("Listing Peers: ", this.list_peers()[0]);
-    console.log("Servers from A Net Handler: ", this.a_net_handler.servers);
+    await new Promise((resolve) => {
+      // Wait until the peers are connected and have exchanged the initial handshake
+      var timer;
+      timer = setInterval(
+        function () {
+          console.log();
+          console.log("Interval PeerManager", this.peerManager);
+          if (
+            this.peerManager.get_peer_node_ids().length == 1 &&
+            this.peerManager2.get_peer_node_ids().length == 1
+          ) {
+            console.log("Length is Equal to 1");
+            resolve();
+            clearInterval(timer);
+          }
+        }.bind(this),
+        500
+      );
+    });
+
+    this.optionAddress = NodeLDKNet.get_addr_from_socket(
+      this.a_net_handler.servers[0]
+    );
+    // this.peerManager2.disconnect_by_node_id(node_a_pk, false);
+    // await new Promise(resolve => {
+    //   // Wait until A learns the connection is closed from the socket closure
+    //   var timer;
+    //   timer = setInterval(function() {
+    //     if (this.peerManager.get_peer_node_ids().length == 0 && this.peerManager2.get_peer_node_ids().length == 0) {
+    //       console.log('Length is Equal to 0');
+    //       resolve();
+    //       clearInterval(timer);
+    //     }
+    //   }.bind(this), 500);
+    // });
+
+    // a_net_handler.stop();
+    // b_net_handler.stop();
 
     this.optionAddress = NodeLDKNet.get_addr_from_socket(
       this.a_net_handler.servers[0]
