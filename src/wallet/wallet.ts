@@ -78,6 +78,7 @@ import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
+import { LDKClient, LIGHTNING_POST_ROUTE } from "./ldk_client";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -166,6 +167,7 @@ export class Wallet {
     | ElectrsLocalClient
     | EPSClient
     | MockElectrumClient;
+  lightning_client: LDKClient;
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
@@ -220,6 +222,7 @@ export class Wallet {
       this.http_client = new MockHttpClient();
     }
 
+    this.lightning_client = new LDKClient();
     this.electrum_client = this.newElectrumClient();
 
     this.block_height = 0;
@@ -357,7 +360,16 @@ export class Wallet {
       }
     }
   }
-  
+
+  async createInvoice(amtInSats: number, invoiceExpirysecs: number, description: string) {
+    let invoice_config = {
+      amt_in_sats: amtInSats,
+      invoice_expiry_secs: invoiceExpirysecs,
+      description: description,
+    };
+    return this.lightning_client.post(LIGHTNING_POST_ROUTE.GENERATE_INVOICE, invoice_config);
+  }
+
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(
     name: string,
