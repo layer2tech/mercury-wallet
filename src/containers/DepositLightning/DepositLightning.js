@@ -1,19 +1,46 @@
 import PageHeader from "../PageHeader/PageHeader";
-import CoinDescription from "../../components/inputs/CoinDescription/CoinDescription";
+import { useState } from "react";
 
 import plus from "../../images/plus-deposit.png";
 import btc_img from "../../images/icon1.png";
 import arrow_img from "../../images/scan-arrow.png";
 import copy_img from "../../images/icon2.png";
 
-import { CopiedButton } from "../../components";
+import { CopiedButton, AddressInput } from "../../components";
 import { fromSatoshi } from "../../wallet";
+import check from "../../images/icon-action-check_circle.png";
+import "../CreateWalletInfo/CreateWalletInfo.css";
 
 import './DepositLightning.css';
 
-
+export const CHANNEL_TYPE = {
+    PUBLIC: "Public",
+    PRIVATE: "Private"
+};
 
 const DepositLightning = (props) => {
+
+    const [inputAmt, setInputAmt] = useState("");
+
+    const [inputNodeId, setInputNodeId] = useState("");
+
+    const [inputHost, setInputHost] = useState("");
+
+    const [invoice, setInvoice] = useState({});
+
+    const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
+
+    const selectChannelType = (mode) => {
+        setChannelType(mode === 1 ? CHANNEL_TYPE.PRIVATE : CHANNEL_TYPE.PUBLIC);
+    }; 
+
+    const createChannel = () => {
+        let newInvoice = { amt: inputAmt, addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs" };
+        setInvoice(newInvoice);
+        setInputAmt("");
+        setInputNodeId("");
+        setInputHost("");
+    };
 
     return (
         <div className = "container deposit-ln">
@@ -22,42 +49,87 @@ const DepositLightning = (props) => {
                 className = "create-channel"
                 icon = {plus}
                 subTitle = "Deposit BTC in channel to a Bitcoin address" />
-
-            <div className="Body">
-                <div className="deposit-scan">
-        
-                <div className="deposit-scan-content">
-                    <div className="deposit-scan-subtxt">
-
-                        <CoinDescription
-                            dscrpnConfirm={() => {}}
-                            description={""}
-                            handleChange={() => {}}
-                            setDscrpnConfirm={() => {}} />
-
-                    </div>
-        
-                    <div className="deposit-scan-main">
+            {invoice && Object.keys(invoice).length ? 
+                <div className="Body">
+                    <div className="deposit-scan">
+            
+                    <div className="deposit-scan-content">
+            
+                        <div className="deposit-scan-main">
+                            <div className="deposit-scan-main-item">
+                                <img src={btc_img} alt="icon" />
+                                <span><b>{invoice.amt}</b> BTC</span>
+                            </div>
+                        <img src={arrow_img} alt="arrow" />
                         <div className="deposit-scan-main-item">
-                            <img src={btc_img} alt="icon" />
-                            <span><b>{fromSatoshi(5000000)}</b> BTC</span>
-                        </div>
-                    <img src={arrow_img} alt="arrow" />
-                    <div className="deposit-scan-main-item">
 
-                        <>
-                            <CopiedButton handleCopy={ () => {} }>
-                                <img type="button" src={copy_img} alt="icon" />
-                            </CopiedButton>
-                            <span className="long"><b>bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs</b></span>
-                        </>
+                            <>
+                                <CopiedButton handleCopy={ () => {} }>
+                                    <img type="button" src={copy_img} alt="icon" />
+                                </CopiedButton>
+                                <span className="long"><b>bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs</b></span>
+                            </>
+                        </div>
+                        </div>
+            
                     </div>
                     </div>
-        
+                    <span className="deposit-text">Create funding transaction by sending {invoice.amt} BTC to the above address in a SINGLE transaction</span>
                 </div>
-                </div>
-                <span className="deposit-text">Create statecoin by sending {fromSatoshi(5000000)} BTC to the above address in a SINGLE transaction</span>
-            </div>
+                : null
+            }
+
+            <div className="withdraw content lightning">
+              <div className="Body right lightning">
+                  <div className="header">
+                      <h3 className="subtitle">Payee Details</h3>
+                  </div>
+
+
+                  <div>
+                      <AddressInput
+                        inputAddr={inputAmt}
+                        onChange={(e) => setInputAmt(e.target.value)}
+                        placeholder='Enter amount'
+                        smallTxtMsg='Amount in BTC'/>
+                  </div>
+                  <div>
+                      <AddressInput
+                        inputAddr={inputNodeId}
+                        onChange={(e) => setInputNodeId(e.target.value)}
+                        placeholder='Node ID'
+                        smallTxtMsg='Node ID'/>
+                  </div>
+                  <div>
+                        <AddressInput
+                            inputAddr={inputHost}
+                            onChange={(e) => setInputHost(e.target.value)}
+                            placeholder='Host'
+                            smallTxtMsg='Host'/>
+                  </div>
+                    <div className="network-btns channel-type">
+                        <div
+                            onClick={() => selectChannelType(0)}
+                            className={`${channelType === CHANNEL_TYPE.PUBLIC ? "selected" : ""}`}
+                        >
+                            <span>Public</span>
+                            <img className="check-img" src={check} alt="plus" />
+                        </div>
+                        <div
+                            onClick={() => selectChannelType(1)}
+                            className={`${channelType === CHANNEL_TYPE.PRIVATE ? "selected" : ""}`}
+                        >
+                            <span>Private</span>
+                            <img className="check-img" src={check} alt="plus" />
+                        </div>
+                    </div>
+
+                  <div>
+                    <button type="button" className={`btn withdraw-button `} onClick={createChannel}>
+                        Create Channel </button>
+                  </div>
+              </div>
+          </div>
         </div>
     )
 }
