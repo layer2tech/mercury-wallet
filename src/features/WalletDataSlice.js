@@ -901,14 +901,8 @@ export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) =>
   }
 };
 
-export const checkChannelSend = (dispatch, selectedChannels, inputAddr) => {
+export const checkChannelSend = (dispatch, inputAddr) => {
   // Pre action confirmation checks for send sats - return true to prevent action
-
-  // check if channel is chosen
-  if (selectedChannels.length === 0) {
-    dispatch(setError({ msg: "Please choose a channel to send sats." }));
-    return true;
-  }
   if (!inputAddr) {
     dispatch(setError({ msg: "Please enter a lightning address to send sats." }));
     return true;
