@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bolt11": "^1.4.0",
     "@aguycalled/electrum-client-js": "^0.1.9",
     "async-mutex": "^0.3.2",
     "axios": "^0.21.1",

@@ -1,15 +1,13 @@
-
 // const nanoid = import("nanoid");
 
-const fs = require('fs');
-let bitcoin = require('bitcoinjs-lib')
+const fs = require("fs");
+let bitcoin = require("bitcoinjs-lib");
 // const { EventHandler } = require('lightningdevkit');
 // const MercurySocketDescriptor = import("./lightning/MercurySocketDescriptor");
 
 // const { NodeLDKNet } = import("./lightning/NodeLDKNet.ts");
 
-const lightningPayReq = require('bolt11');
-
+const lightningPayReq = require("bolt11");
 
 class LightningClient {
   fee_estimator;
@@ -44,45 +42,65 @@ class LightningClient {
     //   this.electrum_client
     // );
 
-    this.setupLDK().then(()=> {
-
-      console.log('Finished setup.');
-      console.log('Starting LDK...');
+    this.setupLDK().then(() => {
+      console.log("Finished setup.");
+      console.log("Starting LDK...");
 
       this.startLDK();
     });
-
-
   }
 
-  async setupLDK(){
+  async setupLDK() {
     const ldk = await import("lightningdevkit");
-    const wasm_file = fs.readFileSync("node_modules/lightningdevkit/liblightningjs.wasm")
+    const wasm_file = fs.readFileSync(
+      "node_modules/lightningdevkit/liblightningjs.wasm"
+    );
     await ldk.initializeWasmFromBinary(wasm_file);
 
-    this.LDK = ldk
+    this.LDK = ldk;
 
     const nanoid = await import("nanoid");
-    const MercuryFeeEstimator = (await import("./lightning/MercuryFeeEstimator.mjs")).default;
-    const MercuryLogger = (await import("./lightning/MercuryLogger.mjs")).default;
-    const MercuryPersister = (await import("./lightning/MercuryPersister.mjs")).default;
-    const MercuryEventHandler = (await import("./lightning/MercuryEventHandler.mjs")).default;
-    const MercuryChannelMessageHandler = (await import("./lightning/MercuryChannelMessageHandler.mjs")).default;
-    const MercuryRoutingMessageHandler = (await import("./lightning/MercuryRoutingMessageHandler.mjs")).default;
-    const MercuryOnionMessageHandler = (await import("./lightning/MercuryOnionMessageHandler.mjs")).default;
-    const MercuryCustomMessageHandler = (await import("./lightning/MercuryCustomMessageHandler.mjs")).default;
-    
-    const { ChannelMessageHandler, CustomMessageHandler, OnionMessageHandler, PeerManager, RoutingMessageHandler } = this.LDK;
+    const MercuryFeeEstimator = (
+      await import("./lightning/MercuryFeeEstimator.mjs")
+    ).default;
+    const MercuryLogger = (await import("./lightning/MercuryLogger.mjs"))
+      .default;
+    const MercuryPersister = (await import("./lightning/MercuryPersister.mjs"))
+      .default;
+    const MercuryEventHandler = (
+      await import("./lightning/MercuryEventHandler.mjs")
+    ).default;
+    const MercuryChannelMessageHandler = (
+      await import("./lightning/MercuryChannelMessageHandler.mjs")
+    ).default;
+    const MercuryRoutingMessageHandler = (
+      await import("./lightning/MercuryRoutingMessageHandler.mjs")
+    ).default;
+    const MercuryOnionMessageHandler = (
+      await import("./lightning/MercuryOnionMessageHandler.mjs")
+    ).default;
+    const MercuryCustomMessageHandler = (
+      await import("./lightning/MercuryCustomMessageHandler.mjs")
+    ).default;
+
+    const {
+      ChannelMessageHandler,
+      CustomMessageHandler,
+      OnionMessageHandler,
+      PeerManager,
+      RoutingMessageHandler,
+    } = this.LDK;
     // console.log('PEER MANAGER: ', PeerManager)
 
     // Step 1
-    this.fee_estimator = this.LDK.FeeEstimator.new_impl( new MercuryFeeEstimator());
+    this.fee_estimator = this.LDK.FeeEstimator.new_impl(
+      new MercuryFeeEstimator()
+    );
 
     // console.log('Fee Estimator: ',this.fee_estimator.get_sat_per_1000_weight(0));
 
     // Step 2: logger
     this.logger = this.LDK.Logger.new_impl(new MercuryLogger());
-    
 
     // Step 3: broadcast interface
     this.tx_broadcasted = new Promise((resolve, reject) => {
@@ -98,8 +116,10 @@ class LightningClient {
     // Step 4: network graph
     this.network = this.LDK.Network.LDKNetwork_Regtest;
 
-    this.genesisBlock = this.LDK.BestBlock.constructor_from_genesis(this.network);
-    
+    this.genesisBlock = this.LDK.BestBlock.constructor_from_genesis(
+      this.network
+    );
+
     this.genesis_block_hash = this.genesisBlock.block_hash();
 
     this.networkGraph = this.LDK.NetworkGraph.constructor_new(
@@ -117,10 +137,10 @@ class LightningClient {
 
     // console.log('Persister: ',this.persister);
 
-
     // Step 6: Initialize the EventHandler
-    this.event_handler = this.LDK.EventHandler.new_impl(new MercuryEventHandler());
-
+    this.event_handler = this.LDK.EventHandler.new_impl(
+      new MercuryEventHandler()
+    );
 
     // Step 7: Optional: Initialize the transaction filter
 
@@ -133,7 +153,6 @@ class LightningClient {
       this.persister
     );
 
-    
     this.chain_watch = this.chain_monitor.as_Watch();
 
     // // Step 9: Initialize the KeysManager
@@ -153,9 +172,13 @@ class LightningClient {
 
     seed = nanoid.nanoid(32);
 
-    console.log('SEED: ',seed)
+    console.log("SEED: ", seed);
 
-    this.keys_manager = this.LDK.KeysManager.constructor_new(seed, BigInt(42), 42);
+    this.keys_manager = this.LDK.KeysManager.constructor_new(
+      seed,
+      BigInt(42),
+      42
+    );
     this.keys_interface = this.keys_manager.as_KeysInterface();
 
     this.config = this.LDK.UserConfig.constructor_default();
@@ -174,11 +197,9 @@ class LightningClient {
       )
     );
 
-
     // // Step 10: Read ChannelMonitor from disk
     // const channel_monitor_list = Persister.read_channel_monitors(this.keys_manager);
 
-          
     // console.log("FEE ESTIMATOR IN CHANNEL MANAGER: ", this.fee_estimator);
     // // Step 11: Initialize the ChannelManager
     this.channel_manager = this.LDK.ChannelManager.constructor_new(
@@ -199,8 +220,7 @@ class LightningClient {
       this.config,
       this.params
     );
-    
-    
+
     // const channelMessageHandler = ChannelMessageHandler.new_impl(
     //   new MercuryChannelMessageHandler()
     // );
@@ -213,16 +233,19 @@ class LightningClient {
     //   new MercuryOnionMessageHandler()
     // );
 
-
     // const customMessageHandler = CustomMessageHandler.new_impl(
     //   new MercuryCustomMessageHandler()
     // );
 
-    const routingMessageHandler = ldk.IgnoringMessageHandler.constructor_new().as_RoutingMessageHandler();
+    const routingMessageHandler =
+      ldk.IgnoringMessageHandler.constructor_new().as_RoutingMessageHandler();
     // const channelMessageHandler = ldk.ErroringMessageHandler.constructor_new().as_ChannelMessageHandler();
-    const channelMessageHandler = this.channel_manager.as_ChannelMessageHandler();
-    const customMessageHandler = ldk.IgnoringMessageHandler.constructor_new().as_CustomMessageHandler();
-    const onionMessageHandler = ldk.IgnoringMessageHandler.constructor_new().as_OnionMessageHandler();
+    const channelMessageHandler =
+      this.channel_manager.as_ChannelMessageHandler();
+    const customMessageHandler =
+      ldk.IgnoringMessageHandler.constructor_new().as_CustomMessageHandler();
+    const onionMessageHandler =
+      ldk.IgnoringMessageHandler.constructor_new().as_OnionMessageHandler();
 
     const nodeSecret = new Uint8Array(32);
     for (var i = 0; i < 32; i++) nodeSecret[i] = 42;
@@ -231,7 +254,6 @@ class LightningClient {
     // for (var i = 0; i < 32; i++) nodeSecret2[i] = 43;
 
     const ephemeralRandomData = new Uint8Array(32);
-
 
     this.peerManager = PeerManager.constructor_new(
       channelMessageHandler,
@@ -242,7 +264,7 @@ class LightningClient {
       ephemeralRandomData,
       this.logger,
       customMessageHandler
-      );
+    );
 
     // this.peerManager2 = PeerManager.constructor_new(
     //   channelMessageHandler,
@@ -255,28 +277,24 @@ class LightningClient {
     //   customMessageHandler
     //   );
 
-      // console.log('Peer Manager: ', this.peerManager);
-      // console.log('Peer Manager: ', this.peerManager2);
-
+    // console.log('Peer Manager: ', this.peerManager);
+    // console.log('Peer Manager: ', this.peerManager2);
   }
 
-
-  async startLDK(){
-
-    const { InitFeatures, NetAddress, Option_NetAddressZ, Init } = this.LDK
+  async startLDK() {
+    const { InitFeatures, NetAddress, Option_NetAddressZ, Init } = this.LDK;
 
     // start a lightning node here
     this.start();
-
 
     // this.this.create_invoice();
 
     const channelManagerA = this.channel_manager;
     const channelManagerB = this.channel_manager2;
 
-    console.log('Channel Manager A: ', channelManagerA);
+    console.log("Channel Manager A: ", channelManagerA);
     // All kinds of InitFeature options check set_*_ functions
-    
+
     const initFeatures = InitFeatures.constructor_empty();
     initFeatures.set_data_loss_protect_required();
     initFeatures.set_initial_routing_sync_optional();
@@ -284,18 +302,14 @@ class LightningClient {
     initFeatures.set_gossip_queries_optional();
     initFeatures.set_static_remote_key_optional();
 
-    
     // const byteArray = initFeatures.write();
-    const hostname = Uint8Array.from([127, 0, 0 , 1]);
+    const hostname = Uint8Array.from([127, 0, 0, 1]);
 
     // const hostname = "0231c73de91ea0851f506745e07c8e89e69ad6e0d2356a4fc8405d2dc16e0d7c19@127.0.0.1"
-    
-    const netAddress = NetAddress.constructor_ipv4( hostname, 9836)
-    
+
+    const netAddress = NetAddress.constructor_ipv4(hostname, 9836);
+
     const optionalAddress = Option_NetAddressZ.constructor_some(netAddress);
-
-
-
 
     console.log("Connecting...");
     await this.create_socket();
@@ -306,66 +320,69 @@ class LightningClient {
     // console.log('Node ID 1 : ', nodeID);
     // console.log('Node ID 2 : ', nodeID2);
 
-    if(nodeID instanceof Uint8Array){
+    if (nodeID instanceof Uint8Array) {
       // connecting to peer2
-      const resChanA = channelManagerA
+      const resChanA = channelManagerA;
       // .as_ChannelMessageHandler()
       // .peer_connected(
       //   nodeID,
       //   Init.constructor_new(initFeatures, this.optionAddress)
       //   );
-      
-      console.log('Connect A: ',resChanA)
+
+      console.log("Connect A: ", resChanA);
     }
 
+    let channelValSatoshis = BigInt(1000000);
+    let pushMsat = BigInt(400);
+    let userChannelId = BigInt(1);
 
-      let channelValSatoshis = BigInt(1000000);
-      let pushMsat = BigInt(400);
-      let userChannelId = BigInt(1);
+    // console.log('Channel Value Satoshis: ', channelValSatoshis);
+    // console.log('Push Msat: ', pushMsat);
+    // console.log('User Channel ID: ', userChannelId);
 
-      // console.log('Channel Value Satoshis: ', channelValSatoshis);
-      // console.log('Push Msat: ', pushMsat);
-      // console.log('User Channel ID: ', userChannelId);
+    // console.log('At BigInt 0: ', BigInt(0));
+    // console.log(this.fee_estimator)
 
-      // console.log('At BigInt 0: ', BigInt(0));
-      // console.log(this.fee_estimator)
+    // console.log('Peer List: ',this.list_peers());
 
+    const pubkeyHex =
+      "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
+    const pubkey = new Uint8Array(
+      pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+    );
 
-      // console.log('Peer List: ',this.list_peers());
+    console.log("Reached here ready to create channel...");
+    const channelCreateResponse = channelManagerA.create_channel(
+      pubkey,
+      channelValSatoshis,
+      pushMsat,
+      userChannelId,
+      this.config
+    );
 
-      const pubkeyHex = "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
-      const pubkey = new Uint8Array(pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+    console.log("Channel Create Response: ", channelCreateResponse);
 
-      console.log('Reached here ready to create channel...')
-      const channelCreateResponse = channelManagerA.create_channel(
-        pubkey,
-        channelValSatoshis,
-        pushMsat,
-        userChannelId,
-        this.config
-      );
-
-      console.log('Channel Create Response: ', channelCreateResponse);
-
-
-      console.log('Channel List A - Channel ID: ',channelManagerA.list_channels()[0].get_channel_id());
-      console.log('Channel List A - Funding TXO: ',channelManagerA.list_channels()[0].get_funding_txo().get_txid());
-
-
+    console.log(
+      "Channel List A - Channel ID: ",
+      channelManagerA.list_channels()[0].get_channel_id()
+    );
+    console.log(
+      "Channel List A - Funding TXO: ",
+      channelManagerA.list_channels()[0].get_funding_txo().get_txid()
+    );
 
     // }
   }
 
-  list_peers(){
+  list_peers() {
     return this.peerManager.get_peer_node_ids();
   }
 
-  async create_socket(){
+  async create_socket() {
     const NodeLDKNet = (await import("./lightning/NodeLDKNet.mjs")).NodeLDKNet;
 
     // Node key corresponding to all 42
     // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
-  
 
     this.a_net_handler = new NodeLDKNet(this.peerManager);
     var port = 9732;
@@ -373,77 +390,80 @@ class LightningClient {
       try {
         // Try ports until we find one we can bind to.
         // 031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d@127.0.0.1:9735
-        const pubkeyHex = "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
-        const pubkey = new Uint8Array(pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+        const pubkeyHex =
+          "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
+        const pubkey = new Uint8Array(
+          pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+        );
 
         await this.a_net_handler.connect_peer("127.0.0.1", 9735, pubkey);
-        console.log("CONNECTED")
+        console.log("CONNECTED");
 
         break;
-      } catch(_) {}
+      } catch (_) {}
     }
 
-
-
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       // Wait until the peers are connected and have exchanged the initial handshake
-      var timer
-      timer = setInterval(function() {
-        console.log('Node IDs',this.peerManager.get_peer_node_ids());
-        if (this.peerManager.get_peer_node_ids().length == 1) { // && this.peerManager2.get_peer_node_ids().length == 1
-          
-          console.log('Length is Equal to 1');
-          resolve();
-          clearInterval(timer);
-        }
-      }.bind(this), 500);
+      var timer;
+      timer = setInterval(
+        function () {
+          console.log("Node IDs", this.peerManager.get_peer_node_ids());
+          if (this.peerManager.get_peer_node_ids().length == 1) {
+            // && this.peerManager2.get_peer_node_ids().length == 1
+
+            console.log("Length is Equal to 1");
+            resolve();
+            clearInterval(timer);
+          }
+        }.bind(this),
+        500
+      );
     });
 
-  console.log('B Net Serber:', this.a_net_handler.servers)
+    console.log("B Net Serber:", this.a_net_handler.servers);
 
-  this.optionAddress = NodeLDKNet.get_addr_from_socket(this.a_net_handler.servers[0]);
+    this.optionAddress = NodeLDKNet.get_addr_from_socket(
+      this.a_net_handler.servers[0]
+    );
 
-  // a_net_handler.stop();
-  // b_net_handler.stop();
-
-
-
+    // a_net_handler.stop();
+    // b_net_handler.stop();
   }
 
-  
-
   create_invoice(amtInSats, invoiceExpirysecs, description) {
-    let mSats = this.LDK.Option_u64Z.constructor_some(BigInt(amtInSats*1000));
-    
+    let mSats = this.LDK.Option_u64Z.constructor_some(BigInt(amtInSats * 1000));
+
     let invoice = this.channel_manager.create_inbound_payment(
       mSats,
-      invoiceExpirysecs,
+      invoiceExpirysecs
     );
 
     let payment_hash = invoice.res.get_a();
     let payment_secret = invoice.res.get_b();
 
     let encodedInvoice = lightningPayReq.encode({
-      "satoshis": amtInSats,
-      "timestamp": Date.now(),
-      "tags": [
+      satoshis: amtInSats,
+      timestamp: Date.now(),
+      tags: [
         {
-          "tagName": "payment_hash",
-          "data": payment_hash
+          tagName: "payment_hash",
+          data: payment_hash,
         },
         {
-          "tagName": "payment_secret",
-          "data": payment_secret
+          tagName: "payment_secret",
+          data: payment_secret,
         },
         {
-          "tagName": "description",
-          "data": description
-        }
-      ]
+          tagName: "description",
+          data: description,
+        },
+      ],
     });
 
     // Hardcoded for now, needs to be changed
-    let privateKeyHex = 'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734';
+    let privateKeyHex =
+      "e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734";
     let signedInvoice = lightningPayReq.sign(encodedInvoice, privateKeyHex);
     return signedInvoice;
   }
@@ -453,7 +473,7 @@ class LightningClient {
     setInterval(() => {
       //peer_manager.timer_tick_occurred();
       //peer_manager.process_events();
-      console.log('Channel Manager Process event///')
+      console.log("Channel Manager Process event///");
       this.channel_manager
         .as_EventsProvider()
         .process_pending_events(this.event_handler);
@@ -464,12 +484,9 @@ class LightningClient {
   }
 }
 
-
 module.exports = LightningClient;
 
-
 // SETUP CODE MAYBE NEEDED LATER:
-
 
 // if(nodeID2 instanceof Uint8Array){
 //   // connecting to peer
@@ -492,7 +509,7 @@ module.exports = LightningClient;
 //     optionalAddress
 //   )
 //   console.log('Initial Send: ', initial_send);
-  
+
 // this.socket.onmessage = (event: any) => {
 //   console.log("we got something back from the socket");
 //   console.log(event.data);
@@ -505,7 +522,6 @@ module.exports = LightningClient;
 //     console.log(event_result);
 //   });
 // }
-
 
 // if(initial_send instanceof Result_CVec_u8ZPeerHandleErrorZ_OK){
 //   const response = this.socketDescriptor.send_data(initial_send.res)
@@ -524,40 +540,35 @@ module.exports = LightningClient;
 // )
 //   return false;
 
-
-
-
 // Create Socket:
 
 // async create_socket(){
 //   const NodeLDKNet = (await import("./lightning/NodeLDKNet.mjs")).NodeLDKNet;
 
-  // Node key corresponding to all 42
-  // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
+// Node key corresponding to all 42
+// const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
 
+// this.a_net_handler = new NodeLDKNet(this.peerManager);
+// var port = 10000;
+// for (; port < 11000; port++) {
+//   try {
+//     // Try ports until we find one we can bind to.
+//     console.log(port)
+//     this.a_net_handler.bind_listener("127.0.0.1", port)
+//     break;
+//   } catch(_) {}
+// }
 
-  // this.a_net_handler = new NodeLDKNet(this.peerManager);
-  // var port = 10000;
-  // for (; port < 11000; port++) {
-  //   try {
-  //     // Try ports until we find one we can bind to.
-  //     console.log(port)
-  //     this.a_net_handler.bind_listener("127.0.0.1", port)
-  //     break;
-  //   } catch(_) {}
-  // }
-  
-  // this.b_net_handler = new NodeLDKNet(this.peerManager2);
-  // await this.b_net_handler.connect_peer("127.0.0.1", port, node_a_pk);
+// this.b_net_handler = new NodeLDKNet(this.peerManager2);
+// await this.b_net_handler.connect_peer("127.0.0.1", port, node_a_pk);
 
-  // try {
-  //   // Ensure we get an error if we try to bind the same port twice.
-  //   await this.a_net_handler.bind_listener("127.0.0.1", port);
-  //   console.assert(false);
-  // } catch(_) {
-  //   console.log('error called!')
-  // }
-
+// try {
+//   // Ensure we get an error if we try to bind the same port twice.
+//   await this.a_net_handler.bind_listener("127.0.0.1", port);
+//   console.assert(false);
+// } catch(_) {
+//   console.log('error called!')
+// }
 
 // await new Promise(resolve => {
 //   // Wait until the peers are connected and have exchanged the initial handshake
@@ -593,7 +604,5 @@ module.exports = LightningClient;
 
 // a_net_handler.stop();
 // b_net_handler.stop();
-
-
 
 // }
