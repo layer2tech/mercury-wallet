@@ -28,7 +28,7 @@ async function importLDK(){
   // const wasm_file = fs.readFileSync("node_modules/lightningdevkit/liblightningjs.wasm")
   // await ldk.initializeWasmFromBinary(wasm_file);
   // await ldk.initializeWasmWebFetch("liblightningjs.wasm");
-  var LightningClient = (await import('./lightning.js')).default
+  var LightningClient = (await import('./lightning.mjs')).default
   console.log('Lightning Client: ',LightningClient)
   const lightning_client = new LightningClient()
   return lightning_client

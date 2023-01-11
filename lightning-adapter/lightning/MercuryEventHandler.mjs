@@ -8,24 +8,29 @@ import { Event, EventHandler, EventsProvider,
   Event_PaymentForwarded,
   Event_ChannelClosed } from "lightningdevkit";
 
-class MercuryEventHandler extends EventHandler {
-  // constructor(events) {
-  //   // console.log('Constructor called!');
-  //   super(events);
-  // }
-  
+
+class MercuryEventHandler{
+  constructor(callbackFn){
+    // super(callbackFn);
+    this.callbackFn = callbackFn
+  }
 
   handle_event(e) {
-    // this.events.push(event);
-
+    
     console.log(">>>>>>> Handling Event here <<<<<<<", e);
     if (e instanceof Event_FundingGenerationReady) {
-      console.log('Event Funding Generation Ready!!')
+      this.callbackFn(e)
+      // console.log('Event Funding Generation Ready!!')
       //console.log(e)
-      var final_tx = 0;
-      console.log(e.temporary_channel_id, e.counterparty_node_id, final_tx);
-      //channel_manager.funding_transaction_generated(e.temporary_channel_id, e.counterparty_node_id, final_tx);
-      // <insert code to handle this event>
+      // var final_tx = generateFundingTransaction(e.output_script, e.channel_value_satoshis);
+      // // console.log(e.temporary_channel_id, e.counterparty_node_id, final_tx);
+
+      // // console.log( 'Funding Generation Event: ',e );
+      // // console.log('THIS: ', this);
+      
+      // this.channel_manager.funding_transaction_generated(e.temporary_channel_id, e.counterparty_node_id, final_tx);
+      // //channel_manager.funding_transaction_generated(e.temporary_channel_id, e.counterparty_node_id, final_tx);
+      // // <insert code to handle this event>
     } else if (e instanceof Event_PaymentReceived) {
       // Handle successful payment
       
