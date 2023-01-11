@@ -97,7 +97,7 @@ const MainHeader = ({mainUnit, icon})=> {
                         HIDDEN :
                         walletMode === WALLET_MODE.STATECHAIN ?
                         fromSatoshi(balance_info.total_balance) :
-                        (15000)} {mainUnit}
+                        (balance_info.channel_balance)} {mainUnit}
                         {/* LIGHTNING BALANCE JUST PLACEHOLDER ATM  */}
                     </h2>
                     <div className="sub-header">
