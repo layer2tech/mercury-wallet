@@ -1,4 +1,4 @@
-const LDK = require("./index.js");
+const LDKClient = require("./lightningClient.js");
 const express = require("express");
 const router = express.Router();
 

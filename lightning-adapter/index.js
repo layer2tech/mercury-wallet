@@ -1,48 +1,50 @@
 "use strict";
 
+const { importLDK, LDKClient } = require("./lightningClient");
 const express = require("express");
-var cors = require("cors");
-var path = require("path");
+const cors = require("cors");
+const path = require("path");
 const fs = require("fs");
-var bodyParser = require("body-parser");
+const bodyParser = require("body-parser");
 const LightningClient = require("./lightning.js");
 
-/**
- * STARTING SERVER ON PORT
- */
+// Constants
 const PORT = 3003;
+
+// Routers
 const getRoutes = require("./getRoutes");
 const postRoutes = require("./postRoutes");
+
+// Express app
 const app = express();
+
+// Middlewares
 app.use(cors());
 app.use(bodyParser.json());
 
-// get requests
+// Routes
 app.use("/", getRoutes);
-// post requests
 app.use("/", postRoutes);
 
-async function importLDK() {
-  var LightningClient = (await import("./lightning.js")).default;
-  console.log("Lightning Client: ", LightningClient);
-  const lightning_client = new LightningClient();
-  return lightning_client;
-}
-
-const LDK = importLDK();
-module.exports = LDK;
-
+// Starting the server
 app.listen(PORT, () => {
-  console.log(
-    `mercury-wallet-LDK-adapter listening at http://localhost:${PORT}`
-  );
+  console.log(`lightning-adapter listening at http://localhost:${PORT}`);
 });
 
-async function on_exit() {}
+// Import LDK
+importLDK();
 
-async function on_sig_int() {
+// Exit handlers
+const onExit = () => {
+  // code to be executed on exit, e.g. close connections, cleanup resources
+  console.log("Exiting the application");
+};
+
+const onSigInt = () => {
+  // code to be executed on sigint, e.g. close connections, cleanup resources
+  console.log("Application interrupted");
   process.exit();
-}
+};
 
-process.on("exit", on_exit);
-process.on("SIGINT", on_sig_int);
+process.on("exit", onExit);
+process.on("SIGINT", onSigInt);
