@@ -115,7 +115,7 @@ const MainHeader = ({mainUnit, icon})=> {
                             ("Open channels")}</span>
                     </div>
                 </div>
-                <div className='selection'>
+                {/* <div className='selection'>
                     < DropdownArrow 
                         isToggleOn = {isToggleOn}
                         toggleContent = {toggleContent} />
@@ -126,7 +126,7 @@ const MainHeader = ({mainUnit, icon})=> {
                         handleChange = {handleFilter}
                         options = {WALLET_OPTIONS}
                         title = {"Select Wallet"}/>
-                </div>
+                </div> */}
             </div>
                 <div className="ActionGroupLeft">
                     <CheckBox
