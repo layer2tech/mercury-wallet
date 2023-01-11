@@ -1,12 +1,13 @@
 'use strict';
 import arrow from "../../images/arrow-up.png"
 import { withRouter, Redirect} from "react-router-dom";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 
 import {isWalletLoaded,
   callGetConfig,
-  checkChannelSend
+  checkChannelSend,
+  getChannels
 } from '../../features/WalletDataSlice';
 
 import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
@@ -23,6 +24,10 @@ const SendLightning = () => {
     const [inputAddr, setInputAddr] = useState("");
 
     const [loading, setLoading] = useState(false);
+
+    const [channels, setChannels] = useState(getChannels());
+
+    const {balance_info} = useSelector((state) => state.walletData);
     
     const onInputAddrChange = (event) => {
       setInputAddr(event.target.value);
@@ -59,7 +64,7 @@ const SendLightning = () => {
             title = "Send lightning"
             className = "send-channel"
             icon = {arrow}
-            subTitle = "Y BTC available over Z channels" />
+            subTitle = {`${balance_info.channel_balance} BTC available over ${channels.length} channels`} />
 
           <div className="withdraw content">
               <ItemsContainer 

@@ -149,7 +149,7 @@ const WithdrawLightning = () => {
             title = "Close Channel BTC"
             className = "close-channel"
             icon = {walletIcon}
-            subTitle = "Create new lightning channels" />
+            subTitle = "Withdraw BTC and close the channel" />
 
           <div className="withdraw content">
               <ItemsContainer 

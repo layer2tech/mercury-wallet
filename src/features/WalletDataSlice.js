@@ -95,7 +95,7 @@ const initialState = {
   },
   showDetails: DEFAULT_STATE_COIN_DETAILS,
   progress: { active: false, msg: "" },
-  balance_info: { total_balance: null, num_coins: null, hidden: false },
+  balance_info: { total_balance: null, num_coins: null, hidden: false, channel_balance: 15000 },
   fee_info: { deposit: "NA", withdraw: "NA" },
   ping_server_ms: null,
   ping_conductor_ms: null,
