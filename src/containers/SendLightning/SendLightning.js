@@ -64,7 +64,7 @@ const SendLightning = () => {
             title = "Send lightning"
             className = "send-channel"
             icon = {arrow}
-            subTitle = {`${balance_info.channel_balance} BTC available over ${channels.length} channels`} />
+            subTitle = {`${balance_info.channel_balance} Sats available over ${channels.length} channels`} />
 
           <div className="withdraw content">
               <ItemsContainer 

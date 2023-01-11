@@ -1,7 +1,7 @@
 'use strict';
 import { useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { updateBalanceInfo, updateFilter, updateWalletMode, WALLET_MODE } from "../../features/WalletDataSlice"
+import { getChannels, updateBalanceInfo, updateFilter, updateWalletMode, WALLET_MODE } from "../../features/WalletDataSlice"
 import { fromSatoshi } from "../../wallet"
 import { HIDDEN, STATECOIN_STATUS } from "../../wallet/statecoin"
 import CheckBox from "../Checkbox"
@@ -48,7 +48,9 @@ const WALLET_OPTIONS = [
 
 const MainHeader = ({mainUnit, icon})=> {
     const dispatch = useDispatch();
-    const {filterBy, balance_info, walletMode} = useSelector((state) => state.walletData)
+    const {filterBy, balance_info, walletMode} = useSelector((state) => state.walletData);
+
+    const [channels, setChannels] = useState(getChannels());
 
     const [isToggleOn, setIsToggleOn] = useState(false);
     // const filterBy = useSelector((state) => state.walletData.filterBy);
@@ -105,7 +107,7 @@ const MainHeader = ({mainUnit, icon})=> {
                         HIDDEN : 
                         ( walletMode === WALLET_MODE.STATECHAIN ?
                             (`${balance_info.num_coins} `) :
-                            "2 " )}
+                            `${channels.length} ` )}
                             {/* Placeholder total channel number  */}
                         
                         {walletMode === WALLET_MODE.STATECHAIN ? 
@@ -113,7 +115,7 @@ const MainHeader = ({mainUnit, icon})=> {
                             ("Open channels")}</span>
                     </div>
                 </div>
-                {/* <div className='selection'>
+                <div className='selection'>
                     < DropdownArrow 
                         isToggleOn = {isToggleOn}
                         toggleContent = {toggleContent} />
@@ -124,7 +126,7 @@ const MainHeader = ({mainUnit, icon})=> {
                         handleChange = {handleFilter}
                         options = {WALLET_OPTIONS}
                         title = {"Select Wallet"}/>
-                </div> */}
+                </div>
             </div>
                 <div className="ActionGroupLeft">
                     <CheckBox
