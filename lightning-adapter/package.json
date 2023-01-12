@@ -13,7 +13,7 @@
   "dependencies": {
     "@aguycalled/electrum-client-js": "^0.1.9",
     "async-mutex": "^0.3.2",
-    "axios": "^0.21.1",
+    "axios": "^1.2.2",
     "body-parser": "^1.19.0",
     "bolt11": "^1.4.0",
     "cors": "^2.8.5",
