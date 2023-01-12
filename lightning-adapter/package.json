@@ -32,6 +32,7 @@
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "socks-proxy-agent": "^5.0.0",
+    "sqlite3": "^5.1.4",
     "tor-control": "0.0.3",
     "uuid": "^8.3.2",
     "websocket": "^1.0.34",
