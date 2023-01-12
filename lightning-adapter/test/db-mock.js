@@ -75,3 +75,5 @@ db.run(createChannelsTable, (err) => {
     ]);
   });
 });
+
+module.exports = db;
