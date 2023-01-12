@@ -42,7 +42,7 @@ import MercuryCustomMessageHandler from './lightning/MercuryCustomMessageHandler
 import * as lightningPayReq from 'bolt11';
 
 import { ECPairFactory } from 'ecpair';
-import { networks, Psbt,PsbtTxInput, script, crypto, Transaction } from 'bitcoinjs-lib';
+// import { networks, Psbt,PsbtTxInput, script, crypto, Transaction } from 'bitcoinjs-lib';
 
 import * as tinysecp from 'tiny-secp256k1';
 
