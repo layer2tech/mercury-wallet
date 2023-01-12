@@ -1,8 +1,8 @@
-const LDKClient = require("./lightningClient.js");
+const LDKClient = require("../lightningClient.js");
 const express = require("express");
 const router = express.Router();
 
-router.post("/lightning/generate_invoice", async function (req, res) {
+router.post("/generate_invoice", async function (req, res) {
   try {
     let invoice_config = {
       amt_in_sats: req.body.amt_in_sats,
@@ -25,6 +25,14 @@ router.post("/lightning/generate_invoice", async function (req, res) {
     // log("info", `info - ${err_msg}`);
     // handle_error(res, err);
   }
+});
+
+router.post("/sendPayment", async function (req, res) {
+  // send a payment with values posted into this route ->
+});
+
+router.post("/recvPayment", async function (req, res) {
+  // receive a payment
 });
 
 module.exports = router;

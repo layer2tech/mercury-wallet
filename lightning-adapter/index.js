@@ -12,8 +12,8 @@ const LightningClient = require("./lightning.js");
 const PORT = 3003;
 
 // Routers
-const getRoutes = require("./getRoutes");
-const postRoutes = require("./postRoutes");
+const getRoutes = require("./routes/getRoutes");
+const postRoutes = require("./routes/postRoutes");
 
 // Express app
 const app = express();

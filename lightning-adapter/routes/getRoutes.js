@@ -1,6 +1,7 @@
-const LDKClient = require("./lightningClient.js");
+const LDKClient = require("../lightningClient.js");
 const express = require("express");
 const router = express.Router();
+const db = require("../lightningDB.js");
 
 router.get("/peerlist", async function (req, res) {
   // sample public list
@@ -28,6 +29,15 @@ router.get("/peerlist", async function (req, res) {
     },
   ];
   res.status(200).json(data);
+});
+
+router.get("/activeChannels", async function (req, res) {
+  db.all("SELECT * FROM channels", (err, rows) => {
+    if (err) {
+      throw err;
+    }
+    res.json(rows);
+  });
 });
 
 module.exports = router;
