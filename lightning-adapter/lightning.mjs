@@ -41,7 +41,10 @@ import MercuryCustomMessageHandler from './lightning/MercuryCustomMessageHandler
 
 import * as lightningPayReq from 'bolt11';
 
-// import { networks, TransactionBuilder } from 'bitcoinjs-lib';
+import { ECPairFactory } from 'ecpair';
+import { networks, Psbt,PsbtTxInput, script, crypto, Transaction } from 'bitcoinjs-lib';
+
+import * as tinysecp from 'tiny-secp256k1';
 
 
 
@@ -98,13 +101,17 @@ class LightningClient {
 
     var final_tx = this.generateFundingTransaction(e.output_script, e.channel_value_satoshis);
 
-    console.log( 'Funding Generation Event: ', e );
-    console.log( 'Final Tx: ', final_tx );
-
     
-    const fundingTx = this.channel_manager.funding_transaction_generated(e.temporary_channel_id, e.counterparty_node_id, final_tx);
+    console.log('Length Channel ID: ', e.temporary_channel_id)
 
-    console.log('Funding Tx: ', fundingTx);
+    try{
+      const fundingTx = this.channel_manager.funding_transaction_generated(e.temporary_channel_id, e.counterparty_node_id, final_tx);
+      console.log('Funding Tx: ', fundingTx);
+
+    } catch (e){
+      console.log('error: ', e);
+    }
+
 
   }
 
@@ -505,47 +512,104 @@ class LightningClient {
 
   generateFundingTransaction( outputScript, channelValue ){
     // (very) manually create a funding transaction
-    const witness_pos = outputScript.length + 58;
-    const funding_tx = new Uint8Array(witness_pos + 7);
-    funding_tx[0] = 2; // 4-byte tx version 2
-    funding_tx[4] = 0;
-    funding_tx[5] = 1; // segwit magic bytes
-    funding_tx[6] = 1; // 1-byte input count 1
-    // 36 bytes previous outpoint all-0s
-    funding_tx[43] = 0; // 1-byte input script length 0
-    funding_tx[44] = 0xff;
-    funding_tx[45] = 0xff;
-    funding_tx[46] = 0xff;
-    funding_tx[47] = 0xff; // 4-byte nSequence
-    funding_tx[48] = 1; // one output
-    funding_tx[49] = parseInt(channelValue);
-    // assign_u64(funding_tx, 49, channelValue);
-    funding_tx[57] = outputScript.length; // 1-byte output script length
-    funding_tx.set(outputScript, 58);
-    funding_tx[witness_pos] = 1;
-    funding_tx[witness_pos + 1] = 1;
-    funding_tx[witness_pos + 2] = 0xff; // one witness element of size 1 with contents 0xff
-    funding_tx[witness_pos + 3] = 0;
-    funding_tx[witness_pos + 4] = 0;
-    funding_tx[witness_pos + 5] = 0;
-    funding_tx[witness_pos + 6] = 0; // lock time 0
+    // const witness_pos = outputScript.length + 58;
+    // const funding_tx = new Uint8Array(witness_pos + 7);
+    // funding_tx[0] = 2; // 4-byte tx version 2
+    // funding_tx[4] = 0;
+    // funding_tx[5] = 1; // segwit magic bytes
+    // funding_tx[6] = 1; // 1-byte input count 1
+    // // 36 bytes previous outpoint all-0s
+    // funding_tx[43] = 0; // 1-byte input script length 0
+    // funding_tx[44] = 0xff;
+    // funding_tx[45] = 0xff;
+    // funding_tx[46] = 0xff;
+    // funding_tx[47] = 0xff; // 4-byte nSequence
+    // funding_tx[48] = 1; // one output
+    // // funding_tx[49] = parseInt(channelValue;
+    // console.log('Channel Value: ', channelValue)
+    // let bigIntValue = BigInt(channelValue);
+    // let dataView = new DataView(new ArrayBuffer(8));
+    // dataView.setBigInt64(0,bigIntValue);
+    // let valueArray = new Uint8Array(dataView.buffer);
+    // funding_tx.set(valueArray, 49);
+    // // assign_u64(funding_tx, 49, channelValue);
+    // funding_tx[57] = outputScript.length; // 1-byte output script length
+    // console.log('Output Script Length: ',outputScript.length)
+    // funding_tx.set(outputScript, 58);
+    // funding_tx[witness_pos] = 1;
+    // funding_tx[witness_pos + 1] = 1;
+    // funding_tx[witness_pos + 2] = 0xff; // one witness element of size 1 with contents 0xff
+    // funding_tx[witness_pos + 3] = 0;
+    // funding_tx[witness_pos + 4] = 0;
+    // funding_tx[witness_pos + 5] = 0;
+    // funding_tx[witness_pos + 6] = 0; // lock time 0
 
-    // let txb = new TransactionBuilder(networks.regtest);
-    // txb.setLockTime(0);
-    // txb.addOutput(Buffer.from(outputScript), parseInt(channelValue));
+    // let txb = new Psbt(networks.regtest);
+    // // let tx = new Transaction();
+    // const ECPair = ECPairFactory(tinysecp);
     
+    // const keyPair = ECPair.makeRandom();
 
-    // console.log('Tx Builder Created: ', txb);
+    // const input = txb.addInput(new PsbtTxInput());
 
-    // let txHex = txb.toBuffer().toString('hex');
+    // txb.addOutput({
+    //   script: Buffer.from(outputScript), 
+    //   value: parseInt(channelValue)
+    // });
 
-    // console.log('Hex Tx: ', txHex);
+    // // const fee = txb.getFee();
 
-    // let funding_tx = new Uint8Array(Buffer.from(txHex, 'hex'));
+    // txb.addOutput({
+    //   address: keyPair.address,
+    //   value: parseInt(channelValue) - 253
+    // })
+
+    // txb.signInput(0, keyPair);
+
+    // txb.finalizeAllInputs();
+
+    // const tx = txb.extractTransaction();
+
+    // const tx = Transaction();
+
+    // tx.version = 2;
+
+    // tx.ins = [{
+    //   hash: Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex'),
+      // index: 0xffffffff,
+      // sequence: 0xffffffff,
+      // witness: [Buffer.from([1, 1, 0xff])]
+    // }]
+
+    // tx.addInput(Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex'), 0xffffffff, 0xffffffff, Buffer.from([1, 1, 0xff]));
+
+
+    // console.log('Is Segwit? : ', txb.isSegwit)
+
+    // tx.addOutput(Buffer.from(outputScript), parseInt(channelValue));;
+    // let funding_tx = new Uint8Array(tx.toBuffer());
+
+    // let scriptArray = tx.outs[0].script
+
+    // console.log('scriptArray: ', scriptArray);
+
+    // let funding_tx = new Uint8Array(scriptArray);
 
     // console.log('Funding Array: ', funding_tx);
 
-    return funding_tx;
+    // return funding_tx;
+
+    let regtest = networks.regtest;
+
+    let ECPair = ECPairFactory(tinysecp);
+    let keyPair = ECPair.makeRandom({
+      network: regtest
+    })
+
+    let privateKey = keyPair.toWIF();
+    let publicKey = keyPair.getPublicKey();
+
+
   }
 
 }
