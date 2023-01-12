@@ -31,7 +31,7 @@ router.post("/sendPayment", async function (req, res) {
   // send a payment with values posted into this route ->
 });
 
-router.post("/recvPayment", async function (req, res) {
+router.post("/receivePayment", async function (req, res) {
   // receive a payment
 });
 
