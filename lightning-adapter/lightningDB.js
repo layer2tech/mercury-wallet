@@ -27,9 +27,9 @@ const db = new sqlite3.Database("lightning.db", (err) => {
       if (row.count === 0) {
         console.log("Inserting sample data for table wallets ...");
         const sampleData = [
-          { name: "Main Wallet" },
-          { name: "Travel Wallet" },
-          { name: "Savings Wallet" },
+          { name: "Mainnet Wallet 1" },
+          { name: "Testnet Wallet 1" },
+          { name: "Testnet Wallet 2" },
         ];
         const insertData = `INSERT INTO wallets (name) VALUES (?)`;
         sampleData.forEach((data) => {
