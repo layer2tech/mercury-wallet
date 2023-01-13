@@ -1,13 +1,13 @@
-
 // const nanoid = import("nanoid");
 
-import ElectrumClient from './electrum.mjs';
-import * as ldk from 'lightningdevkit';
-import {ChannelMessageHandler, 
-  CustomMessageHandler, 
-  OnionMessageHandler, 
-  PeerManager, 
-  RoutingMessageHandler, 
+import ElectrumClient from "./electrum.mjs";
+import * as ldk from "lightningdevkit";
+import {
+  ChannelMessageHandler,
+  CustomMessageHandler,
+  OnionMessageHandler,
+  PeerManager,
+  RoutingMessageHandler,
   Event_FundingGenerationReady,
   FeeEstimator,
   Logger,
@@ -24,29 +24,28 @@ import {ChannelMessageHandler,
   ChannelHandshakeConfig,
   ChainParameters,
   ChannelManager,
-  IgnoringMessageHandler} from 'lightningdevkit'
+  IgnoringMessageHandler,
+} from "lightningdevkit";
 
-import fs from 'fs';
-import { nanoid } from 'nanoid';
+import fs from "fs";
+import { nanoid } from "nanoid";
 
 import MercuryFeeEstimator from "./lightning/MercuryFeeEstimator.mjs";
-import MercuryLogger from './lightning/MercuryLogger.mjs';
-import MercuryPersister from './lightning/MercuryPersister.mjs';
-import MercuryEventHandler from './lightning/MercuryEventHandler.mjs';
-import MercuryFilter from './lightning/MercuryFilter.mjs';
-import MercuryChannelMessageHandler from './lightning/MercuryChannelMessageHandler.mjs';
-import MercuryRoutingMessageHandler from './lightning/MercuryRoutingMessageHandler.mjs';
-import MercuryOnionMessageHandler from './lightning/MercuryOnionMessageHandler.mjs';
-import MercuryCustomMessageHandler from './lightning/MercuryCustomMessageHandler.mjs';
+import MercuryLogger from "./lightning/MercuryLogger.mjs";
+import MercuryPersister from "./lightning/MercuryPersister.mjs";
+import MercuryEventHandler from "./lightning/MercuryEventHandler.mjs";
+import MercuryFilter from "./lightning/MercuryFilter.mjs";
+import MercuryChannelMessageHandler from "./lightning/MercuryChannelMessageHandler.mjs";
+import MercuryRoutingMessageHandler from "./lightning/MercuryRoutingMessageHandler.mjs";
+import MercuryOnionMessageHandler from "./lightning/MercuryOnionMessageHandler.mjs";
+import MercuryCustomMessageHandler from "./lightning/MercuryCustomMessageHandler.mjs";
 
-import * as lightningPayReq from 'bolt11';
+import * as lightningPayReq from "bolt11";
 
-import { ECPairFactory } from 'ecpair';
+import { ECPairFactory } from "ecpair";
 // import { networks, Psbt,PsbtTxInput, script, crypto, Transaction } from 'bitcoinjs-lib';
 
-import * as tinysecp from 'tiny-secp256k1';
-
-
+import * as tinysecp from "tiny-secp256k1";
 
 class LightningClient {
   fee_estimator;
@@ -75,52 +74,49 @@ class LightningClient {
   LDK;
 
   constructor() {
-
     this.initElectrum();
-    
-    this.setupLDK().then(()=> {
 
-    //   console.log('Finished setup.');
-    //   console.log('Starting LDK...');
+    this.setupLDK().then(() => {
+      //   console.log('Finished setup.');
+      //   console.log('Starting LDK...');
 
       this.startLDK();
     });
-
   }
 
-  
-  async initElectrum(){
-    this.electrum_client = new ElectrumClient("")
-    
+  async initElectrum() {
+    this.electrum_client = new ElectrumClient("");
   }
-  
-  handleEventCallback(e){
+
+  handleEventCallback(e) {
     console.log(">>>>>>> Handling Event here <<<<<<<");
     // if (e instanceof this.LDK.Event.Event_FundingGenerationReady) {
-    console.log('Event Funding Generation Ready!!')
+    console.log("Event Funding Generation Ready!!");
 
-    var final_tx = this.generateFundingTransaction(e.output_script, e.channel_value_satoshis);
+    var final_tx = this.generateFundingTransaction(
+      e.output_script,
+      e.channel_value_satoshis
+    );
 
-    
-    console.log('Length Channel ID: ', e.temporary_channel_id)
+    console.log("Length Channel ID: ", e.temporary_channel_id);
 
-    try{
-      const fundingTx = this.channel_manager.funding_transaction_generated(e.temporary_channel_id, e.counterparty_node_id, final_tx);
-      console.log('Funding Tx: ', fundingTx);
-
-    } catch (e){
-      console.log('error: ', e);
+    try {
+      const fundingTx = this.channel_manager.funding_transaction_generated(
+        e.temporary_channel_id,
+        e.counterparty_node_id,
+        final_tx
+      );
+      console.log("Funding Tx: ", fundingTx);
+    } catch (e) {
+      console.log("error: ", e);
     }
-
-
   }
 
-  async setBlockHeight(){
+  async setBlockHeight() {
     this.block_height = await this.electrum_client.getBlockHeight();
   }
 
-
-  async setLatestBlockHeader(height){
+  async setLatestBlockHeader(height) {
     function hexToBytes(hex) {
       let bytes = [];
       for (let c = 0; c < hex.length; c += 2) {
@@ -128,35 +124,31 @@ class LightningClient {
       }
       return bytes;
     }
-    let latest_block_header = await this.electrum_client.getLatestBlockHeader(height);
-    this.latest_block_header = hexToBytes( latest_block_header );
-    console.log('latest block header: ', this.latest_block_header);
+    let latest_block_header = await this.electrum_client.getLatestBlockHeader(
+      height
+    );
+    this.latest_block_header = hexToBytes(latest_block_header);
+    console.log("latest block header: ", this.latest_block_header);
   }
 
-  async addTxData(txid){
-
+  async addTxData(txid) {
     let txData = await this.electrum_client.getTxIdData(txid);
 
-    this.txdata.push(txData)
-
+    this.txdata.push(txData);
   }
 
-
-  async setupLDK(){
-    
+  async setupLDK() {
     // const ldk = await import("lightningdevkit");
-    const wasm_file = fs.readFileSync("node_modules/lightningdevkit/liblightningjs.wasm")
+    const wasm_file = fs.readFileSync(
+      "node_modules/lightningdevkit/liblightningjs.wasm"
+    );
     await ldk.initializeWasmFromBinary(wasm_file);
 
-    
-    
-    // Step 1  
-    this.fee_estimator = FeeEstimator.new_impl( new MercuryFeeEstimator());
-  
+    // Step 1
+    this.fee_estimator = FeeEstimator.new_impl(new MercuryFeeEstimator());
 
     // Step 2: logger
     this.logger = Logger.new_impl(new MercuryLogger());
-    
 
     // Step 3: broadcast interface
     this.tx_broadcasted = new Promise((resolve, reject) => {
@@ -169,13 +161,12 @@ class LightningClient {
       });
     });
 
-    // Step 4: network graph 
+    // Step 4: network graph
     this.network = Network.LDKNetwork_Regtest;
-
 
     // Set genesis block as first block used when wallet created
     this.genesisBlock = BestBlock.constructor_from_genesis(this.network);
-    
+
     this.genesis_block_hash = this.genesisBlock.block_hash();
 
     this.networkGraph = NetworkGraph.constructor_new(
@@ -191,13 +182,14 @@ class LightningClient {
     // Step 5: Persist
     this.persister = Persist.new_impl(new MercuryPersister());
 
-
     // Step 6: Initialize the EventHandler
-    this.event_handler = EventHandler.new_impl(new MercuryEventHandler(((data) => {
-      this.handleEventCallback(data)
-    }).bind(this)));
-
-
+    this.event_handler = EventHandler.new_impl(
+      new MercuryEventHandler(
+        ((data) => {
+          this.handleEventCallback(data);
+        }).bind(this)
+      )
+    );
 
     // Step 7: Optional: Initialize the transaction filter
     // ------  tx filter: watches for tx on chain
@@ -214,7 +206,6 @@ class LightningClient {
       this.persister
     );
 
-    
     this.chain_watch = this.chain_monitor.as_Watch();
 
     // // Step 9: Initialize the KeysManager
@@ -234,7 +225,7 @@ class LightningClient {
 
     seed = nanoid(32);
 
-    console.log('SEED: ',seed)
+    console.log("SEED: ", seed);
 
     this.keys_manager = KeysManager.constructor_new(seed, BigInt(42), 42);
     this.keys_interface = this.keys_manager.as_KeysInterface();
@@ -242,7 +233,6 @@ class LightningClient {
     this.config = UserConfig.constructor_default();
 
     this.ChannelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
-
 
     this.params = ChainParameters.constructor_new(
       Network.LDKNetwork_Regtest,
@@ -255,11 +245,9 @@ class LightningClient {
       )
     );
 
-
     // // Step 10: Read ChannelMonitor from disk
     // const channel_monitor_list = Persister.read_channel_monitors(this.keys_manager);
 
-          
     // console.log("FEE ESTIMATOR IN CHANNEL MANAGER: ", this.fee_estimator);
     // // Step 11: Initialize the ChannelManager
     this.channel_manager = ChannelManager.constructor_new(
@@ -271,9 +259,7 @@ class LightningClient {
       this.config,
       this.params
     );
-    
-    
-    
+
     // const channelMessageHandler = ChannelMessageHandler.new_impl(
     //   new MercuryChannelMessageHandler()
     // );
@@ -286,17 +272,19 @@ class LightningClient {
     //   new MercuryOnionMessageHandler()
     // );
 
-
     // const customMessageHandler = CustomMessageHandler.new_impl(
     //   new MercuryCustomMessageHandler()
     // );
 
-
-    const routingMessageHandler = IgnoringMessageHandler.constructor_new().as_RoutingMessageHandler();
+    const routingMessageHandler =
+      IgnoringMessageHandler.constructor_new().as_RoutingMessageHandler();
     // const channelMessageHandler = ldk.ErroringMessageHandler.constructor_new().as_ChannelMessageHandler();
-    const channelMessageHandler = this.channel_manager.as_ChannelMessageHandler();
-    const customMessageHandler = IgnoringMessageHandler.constructor_new().as_CustomMessageHandler();
-    const onionMessageHandler = IgnoringMessageHandler.constructor_new().as_OnionMessageHandler();
+    const channelMessageHandler =
+      this.channel_manager.as_ChannelMessageHandler();
+    const customMessageHandler =
+      IgnoringMessageHandler.constructor_new().as_CustomMessageHandler();
+    const onionMessageHandler =
+      IgnoringMessageHandler.constructor_new().as_OnionMessageHandler();
 
     const nodeSecret = new Uint8Array(32);
     for (var i = 0; i < 32; i++) nodeSecret[i] = 42;
@@ -305,7 +293,6 @@ class LightningClient {
     // for (var i = 0; i < 32; i++) nodeSecret2[i] = 43;
 
     const ephemeralRandomData = new Uint8Array(32);
-
 
     this.peerManager = PeerManager.constructor_new(
       channelMessageHandler,
@@ -316,15 +303,11 @@ class LightningClient {
       ephemeralRandomData,
       this.logger,
       customMessageHandler
-      );
-
+    );
   }
 
-
-  async startLDK(){
-
+  async startLDK() {
     this.start();
-
 
     const channelManagerA = this.channel_manager;
     await this.setBlockHeight();
@@ -333,20 +316,21 @@ class LightningClient {
     console.log("Connecting...");
     await this.create_socket();
 
-
     let channelValSatoshis = BigInt(1000000);
     let pushMsat = BigInt(400);
     let userChannelId = BigInt(1);
 
-
     // PubKey of PolarLightning Regtest Node
-    const pubkeyHex = "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
-    const pubkey = new Uint8Array(pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+    const pubkeyHex =
+      "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
+    const pubkey = new Uint8Array(
+      pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+    );
 
     await this.setBlockHeight();
     await this.setLatestBlockHeader(this.block_height);
 
-    console.log('Reached here ready to create channel...');
+    console.log("Reached here ready to create channel...");
     const channelCreateResponse = channelManagerA.create_channel(
       pubkey,
       channelValSatoshis,
@@ -354,32 +338,36 @@ class LightningClient {
       userChannelId,
       this.config
     );
-    for(let i = 0; i++ ; i <= this.block_height ){
-      await this.setLatestBlockHeader( i+1 )
-      this.channel_manager.as_Listen().block_connected(this.latest_block_header, this.block_height);
+    for (let i = 0; i++; i <= this.block_height) {
+      await this.setLatestBlockHeader(i + 1);
+      this.channel_manager
+        .as_Listen()
+        .block_connected(this.latest_block_header, this.block_height);
     }
-    
+
     // this.chain_monitor.block_connected(this.latest_block_header, this.txdata, this.block_height);
 
-    console.log('Channel Create Response: ', channelCreateResponse);
+    console.log("Channel Create Response: ", channelCreateResponse);
 
-
-    console.log('Channel List A - Channel ID: ',channelManagerA.list_channels()[0].get_channel_id());
-    console.log('Channel List A - Funding TXO: ',channelManagerA.list_channels()[0].get_funding_txo().get_txid());
-
+    console.log(
+      "Channel List A - Channel ID: ",
+      channelManagerA.list_channels()[0].get_channel_id()
+    );
+    console.log(
+      "Channel List A - Funding TXO: ",
+      channelManagerA.list_channels()[0].get_funding_txo().get_txid()
+    );
   }
 
-
-  list_peers(){
+  list_peers() {
     return this.peerManager.get_peer_node_ids();
   }
 
-  async create_socket(){
+  async create_socket() {
     const NodeLDKNet = (await import("./lightning/NodeLDKNet.mjs")).NodeLDKNet;
 
     // Node key corresponding to all 42
     // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
-  
 
     this.a_net_handler = new NodeLDKNet(this.peerManager);
     var port = 9735;
@@ -388,77 +376,76 @@ class LightningClient {
         // Try ports until we find one we can bind to.
         // mainly for listening to incoming connections, not what's listed below
 
-
         // 031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d@127.0.0.1:9735
-        const pubkeyHex = "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
-        const pubkey = new Uint8Array(pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+        const pubkeyHex =
+          "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
+        const pubkey = new Uint8Array(
+          pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+        );
 
         // if port doesn't work, 9735 does work
         await this.a_net_handler.connect_peer("127.0.0.1", port, pubkey);
-        console.log("CONNECTED")
+        console.log("CONNECTED");
 
         break;
-      } catch(_) {}
+      } catch (_) {}
     }
 
-
-
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       // Wait until the peers are connected and have exchanged the initial handshake
-      var timer
-      timer = setInterval(function() {
-        console.log('Node IDs',this.peerManager.get_peer_node_ids());
-        if (this.peerManager.get_peer_node_ids().length == 1) { // && this.peerManager2.get_peer_node_ids().length == 1
-          
-          console.log('Length is Equal to 1');
-          resolve();
-          clearInterval(timer);
-        }
-      }.bind(this), 500);
+      var timer;
+      timer = setInterval(
+        function () {
+          console.log("Node IDs", this.peerManager.get_peer_node_ids());
+          if (this.peerManager.get_peer_node_ids().length == 1) {
+            // && this.peerManager2.get_peer_node_ids().length == 1
+
+            console.log("Length is Equal to 1");
+            resolve();
+            clearInterval(timer);
+          }
+        }.bind(this),
+        500
+      );
     });
 
-
-  // a_net_handler.stop();
-  // b_net_handler.stop();
-
-
-
+    // a_net_handler.stop();
+    // b_net_handler.stop();
   }
 
-  
-
   create_invoice(amtInSats, invoiceExpirysecs, description) {
-    let mSats = this.LDK.Option_u64Z.constructor_some(BigInt(amtInSats*1000));
-    
+    let mSats = this.LDK.Option_u64Z.constructor_some(BigInt(amtInSats * 1000));
+
     let invoice = this.channel_manager.create_inbound_payment(
       mSats,
-      invoiceExpirysecs,
+      invoiceExpirysecs
     );
 
     let payment_hash = invoice.res.get_a();
     let payment_secret = invoice.res.get_b();
 
     let encodedInvoice = lightningPayReq.encode({
-      "satoshis": amtInSats,
-      "timestamp": Date.now(),
-      "tags": [
+      satoshis: amtInSats,
+      timestamp: Date.now(),
+      tags: [
         {
-          "tagName": "payment_hash",
-          "data": payment_hash
+          tagName: "payment_hash",
+          data: payment_hash,
         },
         {
-          "tagName": "payment_secret",
-          "data": payment_secret
+          tagName: "payment_secret",
+          data: payment_secret,
         },
         {
-          "tagName": "description",
-          "data": description
-        }
-      ]
+          tagName: "description",
+          data: description,
+        },
+      ],
     });
 
     // Hardcoded for now, needs to be changed
-    let privateKeyHex = 'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734';
+    let privateKeyHex =
+      "e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734";
     let signedInvoice = lightningPayReq.sign(encodedInvoice, privateKeyHex);
     return signedInvoice;
   }
@@ -466,13 +453,12 @@ class LightningClient {
   // starts the lightning LDK
   async start() {
     setInterval(async () => {
-
       // processes events on ChannelManager and ChainMonitor
       await this.processPendingEvents();
 
       // await this.setBlockHeight();
       // await this.setLatestBlockHeader();
-      
+
       // this.channel_manager.as_Listen().block_disconnected(this.previous_block_header, this.block_height);
       // this.chain_monitor.block_disconnected(this.previous_block_header, this.block_height);
 
@@ -493,13 +479,10 @@ class LightningClient {
       // console.log('Latest Block Header: ',this.latest_block_header)
       // this.channel_manager.as_Listen().block_connected(this.latest_block_header, this.block_height);
       // this.chain_monitor.block_connected(this.latest_block_header, this.txdata, this.block_height);
-
-
     }, 2000);
   }
 
-  async processPendingEvents(){
-
+  async processPendingEvents() {
     this.channel_manager
       .as_EventsProvider()
       .process_pending_events(this.event_handler);
@@ -509,8 +492,7 @@ class LightningClient {
       .process_pending_events(this.event_handler);
   }
 
-
-  generateFundingTransaction( outputScript, channelValue ){
+  generateFundingTransaction(outputScript, channelValue) {
     // (very) manually create a funding transaction
     // const witness_pos = outputScript.length + 58;
     // const funding_tx = new Uint8Array(witness_pos + 7);
@@ -547,13 +529,13 @@ class LightningClient {
     // let txb = new Psbt(networks.regtest);
     // // let tx = new Transaction();
     // const ECPair = ECPairFactory(tinysecp);
-    
+
     // const keyPair = ECPair.makeRandom();
 
     // const input = txb.addInput(new PsbtTxInput());
 
     // txb.addOutput({
-    //   script: Buffer.from(outputScript), 
+    //   script: Buffer.from(outputScript),
     //   value: parseInt(channelValue)
     // });
 
@@ -576,13 +558,12 @@ class LightningClient {
 
     // tx.ins = [{
     //   hash: Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex'),
-      // index: 0xffffffff,
-      // sequence: 0xffffffff,
-      // witness: [Buffer.from([1, 1, 0xff])]
+    // index: 0xffffffff,
+    // sequence: 0xffffffff,
+    // witness: [Buffer.from([1, 1, 0xff])]
     // }]
 
     // tx.addInput(Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex'), 0xffffffff, 0xffffffff, Buffer.from([1, 1, 0xff]));
-
 
     // console.log('Is Segwit? : ', txb.isSegwit)
 
@@ -603,17 +584,12 @@ class LightningClient {
 
     let ECPair = ECPairFactory(tinysecp);
     let keyPair = ECPair.makeRandom({
-      network: regtest
-    })
+      network: regtest,
+    });
 
     let privateKey = keyPair.toWIF();
     let publicKey = keyPair.getPublicKey();
-
-
   }
-
 }
-
-
 
 export default LightningClient;
