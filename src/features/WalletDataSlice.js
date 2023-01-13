@@ -167,6 +167,12 @@ export const getWalletName = () => {
   }
 };
 
+export const createInvoice = (amtInSats, invoiceExpirysecs, description) => {
+  if (isWalletLoaded()) {
+    return wallet.createInvoice(amtInSats, invoiceExpirysecs, description);
+  }
+}
+
 //Restart the electrum server if ping fails
 async function pingElectrumRestart(force = false) {
   if (isWalletActive() === false) {
