@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { StdButton, AddressInput, SendModal, ConfirmPopup, Loading, CoinsList } from "../../components";
+import { StdButton, AddressInput, SendModal, ConfirmPopup, Loading, ItemsContainer } from "../../components";
 
 import { fromSatoshi } from '../../wallet/util';
 import { decodeSCEAddress,  encodeMessage } from '../../wallet/util';
@@ -193,21 +193,18 @@ const SendStatecoinPage = () => {
         subText = "statecoins" />
 
       <div className="sendStatecoin content">
-        <div className="Body left ">
-          <div>
-            <h3 className = "subtitle" > Select statecoin to send </h3>
-            <span className = "sub" > Click to select coins below </span>
-            <CoinsList
-              displayDetailsOnClick={false}
-              showCoinStatus={true}
-              selectedCoins={selectedCoins}
-              setSelectedCoin={addSelectedCoin}
-              setCoinDetails={setCoinDetails}
-              refresh={refreshCoins}
-              render = {forceRender} />
-          </div>
+        <ItemsContainer 
+          coinsListProps={{
+            title: "Select statecoin to send",
+            subtitle: "Click to select coins below",
+            selectedCoins: selectedCoins,
+            setSelectedCoin: addSelectedCoin,
+            setCoinDetails: setCoinDetails,
+            refresh: refreshCoins,
+            render: forceRender
+          }}
+        />
 
-        </div>
         <div className="Body right">
           <div className="header">
             <h3 className="subtitle">Transaction Details</h3>

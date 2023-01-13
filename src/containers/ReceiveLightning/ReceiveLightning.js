@@ -5,6 +5,7 @@ import { withRouter, Redirect} from "react-router-dom";
 
 import {isWalletLoaded,
   callGetConfig,
+  getChannels,
   createInvoice
 } from '../../features/WalletDataSlice';
 
@@ -16,6 +17,9 @@ import { useState } from "react";
 
 import "./ReceiveLightning.css";
 import Invoice from "../Invoice/Invoice";
+
+
+import { useSelector } from 'react-redux';
 
 const TimeToExpire = 180;
 
@@ -32,6 +36,10 @@ const ReceiveLightning = () => {
 
     const [countdown, setCountdown] = useState(TimeToExpire);
     const [timer, setTimer] = useState(null);
+
+    const [channels, setChannels] = useState(getChannels());
+
+    const {balance_info} = useSelector((state) => state.walletData);
 
     const onInputAmtChange = (event) => {
       setInputAmt(event.target.value);
@@ -97,7 +105,7 @@ const ReceiveLightning = () => {
             title = "Receive lightning"
             className = "receive-channel"
             icon = {arrow}
-            subTitle = "Y BTC available over Z channels" />
+            subTitle = {`${balance_info.channel_balance} Sats available over ${channels.length} channels`} />
             {invoice && Object.keys(invoice).length ? 
               <Invoice
                 amt={invoice.amt}

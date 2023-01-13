@@ -95,7 +95,7 @@ const initialState = {
   },
   showDetails: DEFAULT_STATE_COIN_DETAILS,
   progress: { active: false, msg: "" },
-  balance_info: { total_balance: null, num_coins: null, hidden: false },
+  balance_info: { total_balance: null, num_coins: null, hidden: false, channel_balance: 15000 },
   fee_info: { deposit: "NA", withdraw: "NA" },
   ping_server_ms: null,
   ping_conductor_ms: null,
@@ -907,14 +907,8 @@ export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) =>
   }
 };
 
-export const checkChannelSend = (dispatch, selectedChannels, inputAddr) => {
+export const checkChannelSend = (dispatch, inputAddr) => {
   // Pre action confirmation checks for send sats - return true to prevent action
-
-  // check if channel is chosen
-  if (selectedChannels.length === 0) {
-    dispatch(setError({ msg: "Please choose a channel to send sats." }));
-    return true;
-  }
   if (!inputAddr) {
     dispatch(setError({ msg: "Please enter a lightning address to send sats." }));
     return true;
