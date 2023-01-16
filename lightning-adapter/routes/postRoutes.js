@@ -27,6 +27,12 @@ router.post("/generate_invoice", async function (req, res) {
   }
 });
 
+router.post("/connectToPeer", (req, res) => {
+  const { pubkey, host, port } = req.body;
+  console.log(`pubkey: ${pubkey}, host: ${host}, port: ${port}`);
+  res.send({ status: "success" });
+});
+
 router.post("/sendPayment", async function (req, res) {
   // send a payment with values posted into this route ->
 });

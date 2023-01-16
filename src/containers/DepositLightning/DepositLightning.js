@@ -1,4 +1,5 @@
 import PageHeader from "../PageHeader/PageHeader";
+
 import { useState } from "react";
 
 import plus from "../../images/plus-deposit.png";
@@ -11,110 +12,139 @@ import { fromSatoshi } from "../../wallet";
 import check from "../../images/icon-action-check_circle.png";
 import "../CreateWalletInfo/CreateWalletInfo.css";
 
-import './DepositLightning.css';
+import "./DepositLightning.css";
+
+// move this to use the http client
+import axios from "axios";
 
 export const CHANNEL_TYPE = {
-    PUBLIC: "Public",
-    PRIVATE: "Private"
+  PUBLIC: "Public",
+  PRIVATE: "Private",
 };
 
 const DepositLightning = (props) => {
+  const [inputAmt, setInputAmt] = useState("");
 
-    const [inputAmt, setInputAmt] = useState("");
+  const [inputNodeId, setInputNodeId] = useState("");
 
-    const [inputNodeId, setInputNodeId] = useState("");
+  const [invoice, setInvoice] = useState({});
 
-    const [invoice, setInvoice] = useState({});
+  const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
 
-    const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
-
-    const createChannel = () => {
-        let newInvoice = { amt: inputAmt, addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs" };
-        setInvoice(newInvoice);
-        setInputAmt("");
-        setInputNodeId("");
+  const createChannel = () => {
+    let newInvoice = {
+      amt: inputAmt,
+      addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs",
     };
+    setInvoice(newInvoice);
+    setInputAmt("");
+    setInputNodeId("");
 
-    const toggleChannelType = () => {
-        setChannelType(channelType === CHANNEL_TYPE.PUBLIC ? CHANNEL_TYPE.PRIVATE : CHANNEL_TYPE.PUBLIC);
-    }
+    // fixed for now
+    const data = {
+      pubkey:
+        "0242a4ae0c5bef18048fbecf995094b74bfb0f7391418d71ed394784373f41e4f3",
+      host: "3.124.63.44",
+      port: 9735,
+    };
+    axios
+      .post("http://localhost:3003/connectToPeer", data)
+      .then((res) => console.log(res))
+      .catch((err) => console.log(err));
+  };
 
-    return (
-        <div className = "container deposit-ln">
-            <PageHeader 
-                title = "Create Channel"
-                className = "create-channel"
-                icon = {plus}
-                subTitle = "Deposit BTC in channel to a Bitcoin address" />
-            {invoice && Object.keys(invoice).length ? 
-                <div className="Body">
-                    <div className="deposit-scan">
-            
-                    <div className="deposit-scan-content">
-            
-                        <div className="deposit-scan-main">
-                            <div className="deposit-scan-main-item">
-                                <img src={btc_img} alt="icon" />
-                                <span><b>{invoice.amt}</b> BTC</span>
-                            </div>
-                        <img src={arrow_img} alt="arrow" />
-                        <div className="deposit-scan-main-item">
+  const toggleChannelType = () => {
+    setChannelType(
+      channelType === CHANNEL_TYPE.PUBLIC
+        ? CHANNEL_TYPE.PRIVATE
+        : CHANNEL_TYPE.PUBLIC
+    );
+  };
 
-                            <>
-                                <CopiedButton handleCopy={ () => {} }>
-                                    <img type="button" src={copy_img} alt="icon" />
-                                </CopiedButton>
-                                <span className="long"><b>bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs</b></span>
-                            </>
-                        </div>
-                        </div>
-            
-                    </div>
-                    </div>
-                    <span className="deposit-text">Create funding transaction by sending {invoice.amt} BTC to the above address in a SINGLE transaction</span>
+  return (
+    <div className="container deposit-ln">
+      <PageHeader
+        title="Create Channel"
+        className="create-channel"
+        icon={plus}
+        subTitle="Deposit BTC in channel to a Bitcoin address"
+      />
+      {invoice && Object.keys(invoice).length ? (
+        <div className="Body">
+          <div className="deposit-scan">
+            <div className="deposit-scan-content">
+              <div className="deposit-scan-main">
+                <div className="deposit-scan-main-item">
+                  <img src={btc_img} alt="icon" />
+                  <span>
+                    <b>{invoice.amt}</b> BTC
+                  </span>
                 </div>
-                : null
-            }
-
-            <div className="withdraw content lightning">
-              <div className="Body right lightning">
-                  <div className="header">
-                      <h3 className="subtitle">Payee Details</h3>
-                  </div>
-
-
-                  <div>
-                      <AddressInput
-                        inputAddr={inputAmt}
-                        onChange={(e) => setInputAmt(e.target.value)}
-                        placeholder='Enter amount'
-                        smallTxtMsg='Amount in BTC'/>
-                  </div>
-                  <div>
-                      <AddressInput
-                        inputAddr={inputNodeId}
-                        onChange={(e) => setInputNodeId(e.target.value)}
-                        placeholder='Node Key'
-                        smallTxtMsg='Node Key'/>
-                  </div>
-                  <div className="channel-type-toggle">
-                    <CheckBox
-                            description=""
-                            label={channelType === CHANNEL_TYPE.PUBLIC ? "Public" : "Private"}
-                            checked={channelType === CHANNEL_TYPE.PRIVATE}
-                            onChange={toggleChannelType}
-                        />
-                  </div>
-
-                  <div>
-                    <button type="button" className={`btn withdraw-button `} onClick={createChannel}>
-                        Create Channel </button>
-                  </div>
+                <img src={arrow_img} alt="arrow" />
+                <div className="deposit-scan-main-item">
+                  <>
+                    <CopiedButton handleCopy={() => {}}>
+                      <img type="button" src={copy_img} alt="icon" />
+                    </CopiedButton>
+                    <span className="long">
+                      <b>bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs</b>
+                    </span>
+                  </>
+                </div>
               </div>
+            </div>
+          </div>
+          <span className="deposit-text">
+            Create funding transaction by sending {invoice.amt} BTC to the above
+            address in a SINGLE transaction
+          </span>
+        </div>
+      ) : null}
+
+      <div className="withdraw content lightning">
+        <div className="Body right lightning">
+          <div className="header">
+            <h3 className="subtitle">Payee Details</h3>
+          </div>
+
+          <div>
+            <AddressInput
+              inputAddr={inputAmt}
+              onChange={(e) => setInputAmt(e.target.value)}
+              placeholder="Enter amount"
+              smallTxtMsg="Amount in SATS"
+            />
+          </div>
+          <div>
+            <AddressInput
+              inputAddr={inputNodeId}
+              onChange={(e) => setInputNodeId(e.target.value)}
+              placeholder="Node Key"
+              smallTxtMsg="Node Key"
+            />
+          </div>
+          <div className="channel-type-toggle">
+            <CheckBox
+              description=""
+              label={channelType === CHANNEL_TYPE.PUBLIC ? "Public" : "Private"}
+              checked={channelType === CHANNEL_TYPE.PRIVATE}
+              onChange={toggleChannelType}
+            />
+          </div>
+
+          <div>
+            <button
+              type="button"
+              className={`btn withdraw-button `}
+              onClick={createChannel}
+            >
+              Create Channel{" "}
+            </button>
           </div>
         </div>
-    )
-}
+      </div>
+    </div>
+  );
+};
 
 export default DepositLightning;
-  
