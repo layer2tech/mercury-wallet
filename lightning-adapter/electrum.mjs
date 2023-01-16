@@ -12,10 +12,15 @@ class ElectrumClient{
 
     async getBlockHeight(){
       console.log('Get Block Height...')
-        let res = (await ElectrumClient.get("http://127.0.0.1:18443/rest/chaininfo.json")).data
-        if(res){ 
-          return res.blocks
-        }
+      let res;
+      try{
+        res = (await ElectrumClient.get("http://127.0.0.1:18443/rest/chaininfo.json")).data
+      } catch(e){
+        console.log('Error Getting Block Height')
+      }
+      if(res){ 
+        return res.blocks
+      }
     }
 
     async getLatestBlockHeader(height){
