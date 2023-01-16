@@ -330,14 +330,23 @@ class LightningClient {
     await this.setBlockHeight();
     await this.setLatestBlockHeader(this.block_height);
 
+    let channelCreateResponse;
     console.log("Reached here ready to create channel...");
-    const channelCreateResponse = channelManagerA.create_channel(
-      pubkey,
-      channelValSatoshis,
-      pushMsat,
-      userChannelId,
-      this.config
-    );
+    try {
+      channelCreateResponse = channelManagerA.create_channel(
+        pubkey,
+        channelValSatoshis,
+        pushMsat,
+        userChannelId,
+        this.config
+      );
+    } catch(e) {
+      if (pubkey.length !== 33) {
+        console.log("Entered incorrect pubkey - ", e);
+      } else {
+        console.log(`Lightning node with pubkey ${pubkeyHex} unreachable - `, e);
+      }
+    }
     for (let i = 0; i++; i <= this.block_height) {
       await this.setLatestBlockHeader(i + 1);
       this.channel_manager
@@ -368,20 +377,20 @@ class LightningClient {
 
     // Node key corresponding to all 42
     // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
-
     this.a_net_handler = new NodeLDKNet(this.peerManager);
     var port = 9735;
+
+    // 031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d@127.0.0.1:9735
+    const pubkeyHex =
+      "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
+    const pubkey = new Uint8Array(
+      pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+    );
+
     for (; port < 11000; port++) {
       try {
         // Try ports until we find one we can bind to.
         // mainly for listening to incoming connections, not what's listed below
-
-        // 031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d@127.0.0.1:9735
-        const pubkeyHex =
-          "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
-        const pubkey = new Uint8Array(
-          pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-        );
 
         // if port doesn't work, 9735 does work
         await this.a_net_handler.connect_peer("127.0.0.1", port, pubkey);
