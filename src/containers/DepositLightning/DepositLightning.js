@@ -37,18 +37,19 @@ const DepositLightning = (props) => {
       addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs",
     };
     setInvoice(newInvoice);
-    setInputAmt("");
-    setInputNodeId("");
 
-    // fixed for now
-    const data = {
-      pubkey:
-        "0242a4ae0c5bef18048fbecf995094b74bfb0f7391418d71ed394784373f41e4f3",
-      host: "3.124.63.44",
-      port: 9735,
-    };
+    const [, pubkey, host, port] = inputNodeId.match(
+      /^([0-9a-f]+)@([^:]+):([0-9]+)$/i
+    );
+
     axios
-      .post("http://localhost:3003/connectToPeer", data)
+      .post("http://localhost:3003/connectToPeer", {
+        amount: inputAmt,
+        channelType,
+        pubkey,
+        host,
+        port,
+      })
       .then((res) => console.log(res))
       .catch((err) => console.log(err));
   };

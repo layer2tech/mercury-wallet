@@ -73,6 +73,9 @@ class LightningClient {
 
   LDK;
 
+  // array of current peer connections
+  currentConnections = [];
+
   constructor() {
     this.initElectrum();
 
@@ -304,6 +307,21 @@ class LightningClient {
       this.logger,
       customMessageHandler
     );
+  }
+
+  async connectToPeer(pubkey, host, port) {
+    console.log("found->", pubkey, host, port);
+
+    // store this connection into a dictionary/array of connections
+    const newConnection = {
+      pubkey,
+      host,
+      port,
+      id: currentConnections.length + 1,
+    };
+    currentConnections = [...currentConnections, newConnection];
+
+    // connect to the peer then let event handler handle with -> Event_OpenChannelRequest
   }
 
   async startLDK() {

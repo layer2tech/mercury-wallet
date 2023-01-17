@@ -28,8 +28,11 @@ router.post("/generate_invoice", async function (req, res) {
 });
 
 router.post("/connectToPeer", (req, res) => {
-  const { pubkey, host, port } = req.body;
-  console.log(`pubkey: ${pubkey}, host: ${host}, port: ${port}`);
+  const { amount, channelType, pubkey, host, port } = req.body;
+  console.log(amount, channelType, pubkey, host, port);
+
+  LDKClient.connectToPeer(pubkey, host, port);
+
   res.send({ status: "success" });
 });
 
