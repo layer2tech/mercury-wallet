@@ -12,7 +12,8 @@ import {isWalletLoaded,
   callGetConfig,
   setShowWithdrawPopup,
   setWithdrawTxid,
-  checkChannelWithdrawal
+  checkChannelWithdrawal,
+  setWarning
 } from '../../features/WalletDataSlice';
 
 import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
@@ -42,7 +43,13 @@ const WithdrawLightning = () => {
   
     const [txFees,setTxFees] = useState([{block: 6, fee: 7,id:1},{block: 3, fee:8,id:2},{block:1, fee:9,id:3}])
   
-    const [customFee,setCustomFee] = useState(false)
+    const [customFee,setCustomFee] = useState(false);
+
+    const [channelForceClose, setChannelForceClose] = useState(true);
+
+    const forceCloseChannel = () => {
+
+    }
     
     const onInputAddrChange = (event) => {
       setInputAddr(event.target.value);
@@ -103,9 +110,19 @@ const WithdrawLightning = () => {
     const withdrawButtonAction = async () => {
       setLoading(true);
       setRefreshChannels((prevState) => !prevState);
-      dispatch(setShowWithdrawPopup(true));
-      dispatch(setWithdrawTxid("wzxykmopq123456"));
-      // setLoading(false);
+      if (channelForceClose) {
+        dispatch(
+          setWarning({
+            title: "Peer is offline...",
+            msg: "Do you want to force close the channel ?",
+            onConfirm: forceCloseChannel,
+          })
+        );
+      } else {
+        dispatch(setShowWithdrawPopup(true));
+        dispatch(setWithdrawTxid("wzxykmopq123456"));
+      }
+      setLoading(false);
     }
 
   
@@ -149,7 +166,7 @@ const WithdrawLightning = () => {
             title = "Close Channel BTC"
             className = "close-channel"
             icon = {walletIcon}
-            subTitle = "Create new lightning channels" />
+            subTitle = "Withdraw BTC and close the channel" />
 
           <div className="withdraw content">
               <ItemsContainer 

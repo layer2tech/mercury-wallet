@@ -6,7 +6,7 @@ import btc_img from "../../images/icon1.png";
 import arrow_img from "../../images/scan-arrow.png";
 import copy_img from "../../images/icon2.png";
 
-import { CopiedButton, AddressInput } from "../../components";
+import { CopiedButton, AddressInput, CheckBox } from "../../components";
 import { fromSatoshi } from "../../wallet";
 import check from "../../images/icon-action-check_circle.png";
 import "../CreateWalletInfo/CreateWalletInfo.css";
@@ -24,23 +24,20 @@ const DepositLightning = (props) => {
 
     const [inputNodeId, setInputNodeId] = useState("");
 
-    const [inputHost, setInputHost] = useState("");
-
     const [invoice, setInvoice] = useState({});
 
     const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
-
-    const selectChannelType = (mode) => {
-        setChannelType(mode === 1 ? CHANNEL_TYPE.PRIVATE : CHANNEL_TYPE.PUBLIC);
-    }; 
 
     const createChannel = () => {
         let newInvoice = { amt: inputAmt, addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs" };
         setInvoice(newInvoice);
         setInputAmt("");
         setInputNodeId("");
-        setInputHost("");
     };
+
+    const toggleChannelType = () => {
+        setChannelType(channelType === CHANNEL_TYPE.PUBLIC ? CHANNEL_TYPE.PRIVATE : CHANNEL_TYPE.PUBLIC);
+    }
 
     return (
         <div className = "container deposit-ln">
@@ -97,32 +94,17 @@ const DepositLightning = (props) => {
                       <AddressInput
                         inputAddr={inputNodeId}
                         onChange={(e) => setInputNodeId(e.target.value)}
-                        placeholder='Node ID'
-                        smallTxtMsg='Node ID'/>
+                        placeholder='Node Key'
+                        smallTxtMsg='Node Key'/>
                   </div>
-                  <div>
-                        <AddressInput
-                            inputAddr={inputHost}
-                            onChange={(e) => setInputHost(e.target.value)}
-                            placeholder='Host'
-                            smallTxtMsg='Host'/>
+                  <div className="channel-type-toggle">
+                    <CheckBox
+                            description=""
+                            label={channelType === CHANNEL_TYPE.PUBLIC ? "Public" : "Private"}
+                            checked={channelType === CHANNEL_TYPE.PRIVATE}
+                            onChange={toggleChannelType}
+                        />
                   </div>
-                    <div className="network-btns channel-type">
-                        <div
-                            onClick={() => selectChannelType(0)}
-                            className={`${channelType === CHANNEL_TYPE.PUBLIC ? "selected" : ""}`}
-                        >
-                            <span>Public</span>
-                            <img className="check-img" src={check} alt="plus" />
-                        </div>
-                        <div
-                            onClick={() => selectChannelType(1)}
-                            className={`${channelType === CHANNEL_TYPE.PRIVATE ? "selected" : ""}`}
-                        >
-                            <span>Private</span>
-                            <img className="check-img" src={check} alt="plus" />
-                        </div>
-                    </div>
 
                   <div>
                     <button type="button" className={`btn withdraw-button `} onClick={createChannel}>

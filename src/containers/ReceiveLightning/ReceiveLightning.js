@@ -4,7 +4,9 @@ import { withRouter, Redirect} from "react-router-dom";
 
 
 import {isWalletLoaded,
-  callGetConfig
+  callGetConfig,
+  getChannels,
+  createInvoice
 } from '../../features/WalletDataSlice';
 
 import { AddressInput, Tutorial } from "../../components";
@@ -15,6 +17,11 @@ import { useState } from "react";
 
 import "./ReceiveLightning.css";
 import Invoice from "../Invoice/Invoice";
+
+
+import { useSelector } from 'react-redux';
+
+const TimeToExpire = 180;
 
 const ReceiveLightning = () => {
 
@@ -29,6 +36,10 @@ const ReceiveLightning = () => {
 
     const [countdown, setCountdown] = useState(TimeToExpire);
     const [timer, setTimer] = useState(null);
+
+    const [channels, setChannels] = useState(getChannels());
+
+    const {balance_info} = useSelector((state) => state.walletData);
 
     const onInputAmtChange = (event) => {
       setInputAmt(event.target.value);
@@ -57,9 +68,14 @@ const ReceiveLightning = () => {
         clearInterval(timer);
     }
 
-    const createInvoice = () => {
-      let newInvoice = { amt: inputAmt, desc: inputDes, addr: "lnbc1p3c7e50pp5c2mz09dcevs88rvgd80rvy9vtuj27xnu0wv3eg8mczv6s4z9udvqdq5g9kxy7fqd9h8vmmfvdjscqzpgxqyz5vqsp59tpw68mrseaxc503nq0y44aqydl2xvcm5smmdwwkdvaf6jvqvvvq9qyyssqw73td8f5nz6j799y6vvne02yek8a3mt8kryheuwqc4y69t3yf9e478f5z4r0s3pswkkevdlcjfhrtrycpvlcaqzzrew7aqgq34lrk3qps6l35u" };
-      setInvoice(newInvoice);
+    const createInvoiceAction = async () => {
+      let newInvoice = await createInvoice(inputAmt, TimeToExpire, inputDes);
+      console.log(newInvoice)
+      setInvoice({
+        amt: inputAmt,
+        desc: inputDes,
+        addr: newInvoice.paymentRequest
+      });
       setInputAmt("");
       setInputDes("");
       stopTimer();
@@ -71,7 +87,6 @@ const ReceiveLightning = () => {
     if (!isWalletLoaded()) {
       return <Redirect to="/" />;
     }
-
 
   
     let current_config;
@@ -90,7 +105,7 @@ const ReceiveLightning = () => {
             title = "Receive lightning"
             className = "receive-channel"
             icon = {arrow}
-            subTitle = "Y BTC available over Z channels" />
+            subTitle = {`${balance_info.channel_balance} Sats available over ${channels.length} channels`} />
             {invoice && Object.keys(invoice).length ? 
               <Invoice
                 amt={invoice.amt}
@@ -123,7 +138,7 @@ const ReceiveLightning = () => {
                   </div>
 
                   <div>
-                    <button type="button" className={`btn withdraw-button `} onClick={createInvoice}>
+                    <button type="button" className={`btn withdraw-button `} onClick={createInvoiceAction}>
                         Create Invoice </button>
                   </div>
               </div>
