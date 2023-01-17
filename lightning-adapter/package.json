@@ -2,10 +2,10 @@
   "name": "mercury-wallet-ldk-adapter",
   "version": "1.0.4",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index"
+    "start": "node server"
   },
   "keywords": [],
   "author": "",
