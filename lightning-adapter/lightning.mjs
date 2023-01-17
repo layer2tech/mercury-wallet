@@ -399,6 +399,9 @@ class LightningClient {
         break;
       } catch (_) {}
     }
+    if (port >= 11000) {
+      throw new Error("No port available for connection");
+    }
 
     await new Promise((resolve) => {
       // Wait until the peers are connected and have exchanged the initial handshake
