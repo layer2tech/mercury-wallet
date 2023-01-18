@@ -1,6 +1,6 @@
 // const nanoid = import("nanoid");
 
-import ElectrumClient from "./electrum.mjs";
+import TorClient from "./torClient.mjs";
 import * as ldk from "lightningdevkit";
 import {
   ChannelMessageHandler,
@@ -49,7 +49,7 @@ import * as tinysecp from "tiny-secp256k1";
 
 class LightningClient {
   fee_estimator;
-  electrum_client;
+  tor_client;
   logger;
   tx_broadcasted;
   tx_broadcaster;
@@ -77,7 +77,7 @@ class LightningClient {
   currentConnections = [];
 
   constructor() {
-    this.initElectrum();
+    this.initTorClient();
 
     this.setupLDK().then(() => {
       //   console.log('Finished setup.');
@@ -87,8 +87,8 @@ class LightningClient {
     });
   }
 
-  async initElectrum() {
-    this.electrum_client = new ElectrumClient("");
+  async initTorClient() {
+    this.tor_client = new TorClient("");
   }
 
   handleEventCallback(e) {
@@ -116,7 +116,7 @@ class LightningClient {
   }
 
   async setBlockHeight() {
-    this.block_height = await this.electrum_client.getBlockHeight();
+    this.block_height = await this.tor_client.getBlockHeight();
   }
 
   async setLatestBlockHeader(height) {
@@ -127,7 +127,7 @@ class LightningClient {
       }
       return bytes;
     }
-    let latest_block_header = await this.electrum_client.getLatestBlockHeader(
+    let latest_block_header = await this.tor_client.getLatestBlockHeader(
       height
     );
     this.latest_block_header = hexToBytes(latest_block_header);
@@ -135,7 +135,7 @@ class LightningClient {
   }
 
   async addTxData(txid) {
-    let txData = await this.electrum_client.getTxIdData(txid);
+    let txData = await this.tor_client.getTxIdData(txid);
 
     this.txdata.push(txData);
   }
