@@ -99,7 +99,7 @@ class TorClient {
     };
 
     axios
-      .post("http://polaruser:polarpass@127.0.0.1:18443/", options)
+      .post(endpoint, options)
       .then((response) => {
         console.log("RESPONSE: ", response.data);
         return response.data;
