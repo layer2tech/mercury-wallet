@@ -43,7 +43,7 @@ import MercuryCustomMessageHandler from "./lightning/MercuryCustomMessageHandler
 import * as lightningPayReq from "bolt11";
 
 import { ECPairFactory } from "ecpair";
-// import { networks, Psbt,PsbtTxInput, script, crypto, Transaction } from 'bitcoinjs-lib';
+import { networks, Psbt, payments, Transaction, script } from 'bitcoinjs-lib';
 
 import * as tinysecp from "tiny-secp256k1";
 
@@ -85,13 +85,15 @@ class LightningClient {
 
       this.startLDK();
     });
+
+    // this.generateFundingTransaction();
   }
 
   async initElectrum() {
     this.electrum_client = new ElectrumClient("");
   }
 
-  handleEventCallback(e) {
+  async handleEventCallback(e) {
     console.log(">>>>>>> Handling Event here <<<<<<<");
     // if (e instanceof this.LDK.Event.Event_FundingGenerationReady) {
     console.log("Event Funding Generation Ready!!");
@@ -110,6 +112,11 @@ class LightningClient {
         final_tx
       );
       console.log("Funding Tx: ", fundingTx);
+
+      // await this.addTxData(Buffer.from(final_tx).toString('hex'))
+      // console.log('txid data: ', this.txdata)
+
+      // this.chain_monitor.block_connected(this.latest_block_header, this.txdata, this.block_height);
     } catch (e) {
       console.log("error: ", e);
     }
@@ -241,10 +248,10 @@ class LightningClient {
       Network.LDKNetwork_Regtest,
       BestBlock.constructor_new(
         Buffer.from(
-          "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206",
+          "1ea4db8e157e1522405e5849bce768c5b971f3ff9781be6cd26f5a6f1fdf5253",
           "hex"
         ),
-        1
+        102
       )
     );
 
@@ -292,9 +299,6 @@ class LightningClient {
     const nodeSecret = new Uint8Array(32);
     for (var i = 0; i < 32; i++) nodeSecret[i] = 42;
 
-    // const nodeSecret2 = new Uint8Array(32);
-    // for (var i = 0; i < 32; i++) nodeSecret2[i] = 43;
-
     const ephemeralRandomData = new Uint8Array(32);
 
     this.peerManager = PeerManager.constructor_new(
@@ -340,7 +344,7 @@ class LightningClient {
 
     // PubKey of PolarLightning Regtest Node
     const pubkeyHex =
-      "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
+      "034866ff4ecbf2bbfad90415562e53ef7b73d3f619c0bb33adf0810f6986537a0b";
     const pubkey = new Uint8Array(
       pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
     );
@@ -384,6 +388,8 @@ class LightningClient {
       "Channel List A - Funding TXO: ",
       channelManagerA.list_channels()[0].get_funding_txo().get_txid()
     );
+
+    console.log('Complete channel list: ',this.channel_manager.list_channels().length);
   }
 
   list_peers() {
@@ -393,35 +399,44 @@ class LightningClient {
   async create_socket() {
     const NodeLDKNet = (await import("./lightning/NodeLDKNet.mjs")).NodeLDKNet;
 
-    // Node key corresponding to all 42
-    // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
+    
     this.a_net_handler = new NodeLDKNet(this.peerManager);
-    var port = 9735;
-
+    var port = 9937;
+    
     // 031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d@127.0.0.1:9735
     const pubkeyHex =
-      "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
+    "034866ff4ecbf2bbfad90415562e53ef7b73d3f619c0bb33adf0810f6986537a0b";
     const pubkey = new Uint8Array(
       pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-    );
+      );
+    await this.a_net_handler.connect_peer("127.0.0.1", port, pubkey);
+    
+    console.log("CONNECTED: ", `${pubkeyHex}@127.0.0.1:${port}`);
+      
+    // THIS SECTION FOR INBOUND CONNECTIONS:
 
-    for (; port < 11000; port++) {
-      try {
-        // Try ports until we find one we can bind to.
-        // mainly for listening to incoming connections, not what's listed below
+    // Node key corresponding to all 42
+    // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
+    // port = 9732
+    // for (; port < 11000; port++) {
+    //   try {
+    //     // Try ports until we find one we can bind to.
+    //     // mainly for listening to incoming connections, not what's listed below
 
-        // if port doesn't work, 9735 does work
-        await this.a_net_handler.connect_peer("127.0.0.1", port, pubkey);
-        console.log("CONNECTED");
+    //     // if port doesn't work, 9735 does work
+    //     await this.a_net_handler.bind_listener("127.0.0.1", port);
 
-        break;
-      } catch (_) {}
-    }
-    if (port >= 11000) {
-      throw new Error("No port available for connection");
-    }
+    //     break;
+    //   } catch (_) {}
+    // }
+    // if (port >= 11000) {
+    //   throw new Error("No port available for connection");
+    // }
+
+    // this.a_net_handler.stop();
 
     await new Promise((resolve) => {
+      // Would be good to add a timeout of 20 seconds or this is an infinite loop if connection unsuccessful
       // Wait until the peers are connected and have exchanged the initial handshake
       var timer;
       timer = setInterval(
@@ -438,8 +453,6 @@ class LightningClient {
         500
       );
     });
-
-    // a_net_handler.stop();
     // b_net_handler.stop();
   }
 
@@ -523,102 +536,134 @@ class LightningClient {
   }
 
   generateFundingTransaction(outputScript, channelValue) {
-    // (very) manually create a funding transaction
-    // const witness_pos = outputScript.length + 58;
-    // const funding_tx = new Uint8Array(witness_pos + 7);
-    // funding_tx[0] = 2; // 4-byte tx version 2
-    // funding_tx[4] = 0;
-    // funding_tx[5] = 1; // segwit magic bytes
-    // funding_tx[6] = 1; // 1-byte input count 1
-    // // 36 bytes previous outpoint all-0s
-    // funding_tx[43] = 0; // 1-byte input script length 0
-    // funding_tx[44] = 0xff;
-    // funding_tx[45] = 0xff;
-    // funding_tx[46] = 0xff;
-    // funding_tx[47] = 0xff; // 4-byte nSequence
-    // funding_tx[48] = 1; // one output
-    // // funding_tx[49] = parseInt(channelValue;
-    // console.log('Channel Value: ', channelValue)
-    // let bigIntValue = BigInt(channelValue);
-    // let dataView = new DataView(new ArrayBuffer(8));
-    // dataView.setBigInt64(0,bigIntValue);
-    // let valueArray = new Uint8Array(dataView.buffer);
-    // funding_tx.set(valueArray, 49);
-    // // assign_u64(funding_tx, 49, channelValue);
-    // funding_tx[57] = outputScript.length; // 1-byte output script length
-    // console.log('Output Script Length: ',outputScript.length)
-    // funding_tx.set(outputScript, 58);
-    // funding_tx[witness_pos] = 1;
-    // funding_tx[witness_pos + 1] = 1;
-    // funding_tx[witness_pos + 2] = 0xff; // one witness element of size 1 with contents 0xff
-    // funding_tx[witness_pos + 3] = 0;
-    // funding_tx[witness_pos + 4] = 0;
-    // funding_tx[witness_pos + 5] = 0;
-    // funding_tx[witness_pos + 6] = 0; // lock time 0
+  // generateFundingTransaction(){
+    // (very) manually create a funding transaction:
 
-    // let txb = new Psbt(networks.regtest);
-    // // let tx = new Transaction();
+    const witness_pos = outputScript.length + 58;
+    const funding_tx = new Uint8Array(witness_pos + 7);
+    funding_tx[0] = 2; // 4-byte tx version 2
+    funding_tx[4] = 0;
+    funding_tx[5] = 1; // segwit magic bytes
+    funding_tx[6] = 1; // 1-byte input count 1
+    // 36 bytes previous outpoint all-0s
+    funding_tx[43] = 0; // 1-byte input script length 0
+    funding_tx[44] = 0xff;
+    funding_tx[45] = 0xff;
+    funding_tx[46] = 0xff;
+    funding_tx[47] = 0xff; // 4-byte nSequence
+    funding_tx[48] = 1; // one output
+    // funding_tx[49] = parseInt(channelValue;
+    this.assign_u64(funding_tx, 49, channelValue)
+    // assign_u64(funding_tx, 49, channelValue);
+    funding_tx[57] = outputScript.length; // 1-byte output script length
+    console.log('Output Script Length: ',outputScript.length)
+    funding_tx.set(outputScript, 58);
+    funding_tx[witness_pos] = 1;
+    funding_tx[witness_pos + 1] = 1;
+    funding_tx[witness_pos + 2] = 0xff; // one witness element of size 1 with contents 0xff
+    funding_tx[witness_pos + 3] = 0;
+    funding_tx[witness_pos + 4] = 0;
+    funding_tx[witness_pos + 5] = 0;
+    funding_tx[witness_pos + 6] = 0; // lock time 0
+
+    // Very manually create transaction finished//
+    
+
+
+    // ***** Create transaction using bitcoin js lib *****
+
+
     // const ECPair = ECPairFactory(tinysecp);
 
-    // const keyPair = ECPair.makeRandom();
+    // // Private key hardcoded as all 42s
+    // // corresponding hex: 035be5e9478209674a96e60f1f037f6176540fd001fa1d64694770c56a7709c42c
 
-    // const input = txb.addInput(new PsbtTxInput());
+    // // create node secret
+    // // const nodeSecret = new Uint8Array(32);
+    // // for (var i = 0; i < 32; i++) nodeSecret[i] = 42;
 
-    // txb.addOutput({
-    //   script: Buffer.from(outputScript),
-    //   value: parseInt(channelValue)
+    // // // Public Key corresponding to priv key ^^
+    // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197,   106, 119, 9, 196, 44]);
+
+    // // Wallet with private key used to create PeerManager
+    
+    // const bjsWallet = ECPair.fromWIF(Buffer.from(bs58.encode(node_a_pk)).toString('hex'));
+    
+    // // for randomly creating keypair
+    // // let keyPair = ECPair.makeRandom(networks.regtest)
+
+    // // manual keypair creation
+    // const keyPair = {
+    //   publicKey: Buffer.from(node_a_pk),
+    //   privateKey: Buffer.from(nodeSecret)
+    // }
+    // console.log('Key Pair: ', keyPair);
+
+    // // init transaction builder
+    // const txb = new Psbt(networks.regtest);
+
+    // // SegWit input
+    // const input = {
+    //   hash: '0000000000000000000000000000000000000000000000000000000000000000',
+    //   index: 0,
+    //   witnessUtxo: {
+    //     script: Buffer.from(outputScript, 'hex'),
+    //     value: 0
+    //   }
+    // };
+
+    // // Add input
+    // txb.addInput(input);
+    // console.log('Added input: ', txb);
+
+
+    // const redeemScript = payments.p2sh({
+    //   redeem: {
+    //     output: keyPair.publicKey,
+    //     network: networks.regtest
+    //   }
+    // }).output;
+
+    // const p2sh = payments.p2sh({
+    //   redeem: {
+    //     network: networks.regtest,
+    //     output: redeemScript
+    //   }
     // });
 
-    // // const fee = txb.getFee();
+    // const output = {
+    //   script: p2sh.output,
+    //   value: channelValue - 7500
+    // };
 
-    // txb.addOutput({
-    //   address: keyPair.address,
-    //   value: parseInt(channelValue) - 253
-    // })
 
-    // txb.signInput(0, keyPair);
+    // txb.addOutput(output);
+    // console.log('Added Output: ', txb);
+
+    // txb.signInput(0, bjsWallet);
+    // txb.validateSignaturesOfInput(0);
+    // console.log('Input Signed!!');
 
     // txb.finalizeAllInputs();
+    
+    // txb.extractTransaction().toBuffer();
+    // console.log('Transaction Finalized: ', txb);
 
-    // const tx = txb.extractTransaction();
+    // return txb;
 
-    // const tx = Transaction();
+    return funding_tx
 
-    // tx.version = 2;
+  }
 
-    // tx.ins = [{
-    //   hash: Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex'),
-    // index: 0xffffffff,
-    // sequence: 0xffffffff,
-    // witness: [Buffer.from([1, 1, 0xff])]
-    // }]
-
-    // tx.addInput(Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex'), 0xffffffff, 0xffffffff, Buffer.from([1, 1, 0xff]));
-
-    // console.log('Is Segwit? : ', txb.isSegwit)
-
-    // tx.addOutput(Buffer.from(outputScript), parseInt(channelValue));;
-    // let funding_tx = new Uint8Array(tx.toBuffer());
-
-    // let scriptArray = tx.outs[0].script
-
-    // console.log('scriptArray: ', scriptArray);
-
-    // let funding_tx = new Uint8Array(scriptArray);
-
-    // console.log('Funding Array: ', funding_tx);
-
-    // return funding_tx;
-
-    let regtest = networks.regtest;
-
-    let ECPair = ECPairFactory(tinysecp);
-    let keyPair = ECPair.makeRandom({
-      network: regtest,
-    });
-
-    let privateKey = keyPair.toWIF();
-    let publicKey = keyPair.getPublicKey();
+  assign_u64(arr, offset, value) {
+    arr[offset + 0] = Number((value >> BigInt(8 * 0)) & BigInt(0xff));
+    arr[offset + 1] = Number((value >> BigInt(8 * 1)) & BigInt(0xff));
+    arr[offset + 2] = Number((value >> BigInt(8 * 2)) & BigInt(0xff));
+    arr[offset + 3] = Number((value >> BigInt(8 * 3)) & BigInt(0xff));
+    arr[offset + 4] = Number((value >> BigInt(8 * 4)) & BigInt(0xff));
+    arr[offset + 5] = Number((value >> BigInt(8 * 5)) & BigInt(0xff));
+    arr[offset + 6] = Number((value >> BigInt(8 * 6)) & BigInt(0xff));
+    arr[offset + 7] = Number((value >> BigInt(8 * 7)) & BigInt(0xff));
   }
 }
 
