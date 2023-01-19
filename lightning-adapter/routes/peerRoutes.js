@@ -16,7 +16,7 @@ router.post("/connectToPeer", (req, res) => {
 router.post("/newPeer", (req, res) => {
   const { host, port, pubkey } = req.body;
   db.get(
-    `SELECT * FROM peer WHERE host = ? AND port = ? AND pubkey = ?`,
+    `SELECT * FROM peers WHERE host = ? AND port = ? AND pubkey = ?`,
     [host, port, pubkey],
     (err, row) => {
       if (err) {
@@ -25,13 +25,13 @@ router.post("/newPeer", (req, res) => {
         res.status(409).json({ error: "Peer already exists in the database" });
       } else {
         db.run(
-          `INSERT INTO peer (host, port, pubkey) VALUES (?,?,?)`,
+          `INSERT INTO peers (host, port, pubkey) VALUES (?,?,?)`,
           [host, port, pubkey],
           (err) => {
             if (err) {
               res
                 .status(500)
-                .json({ error: "Failed to insert peer into database" });
+                .json({ error: "Failed to insert peers into database" });
             } else {
               res.status(201).json({ message: "Peer added to database" });
             }
@@ -69,6 +69,15 @@ router.get("/peerlist", async function (req, res) {
     },
   ];
   res.status(200).json(data);
+});
+
+router.get("/peers", async function (req, res) {
+  db.all("SELECT * FROM peers", (err, rows) => {
+    if (err) {
+      throw err;
+    }
+    res.json(rows);
+  });
 });
 
 module.exports = router;
