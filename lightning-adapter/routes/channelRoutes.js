@@ -1,7 +1,16 @@
 const LDKClient = require("../lightningClient.js");
 const express = require("express");
 const router = express.Router();
-const db = require("../lightningDB.js");
+const db = require("../database.js");
+
+router.get("/activeChannels", async function (req, res) {
+  db.all("SELECT * FROM channels", (err, rows) => {
+    if (err) {
+      throw err;
+    }
+    res.json(rows);
+  });
+});
 
 router.post("/createChannel", (req, res) => {
   // use LDK.createChannel and insert into db to persist it
