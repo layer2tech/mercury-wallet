@@ -121,6 +121,7 @@ class LightningClient {
 
   async setLatestBlockHeader(height) {
     function hexToBytes(hex) {
+      if (hex === undefined) return;
       let bytes = [];
       for (let c = 0; c < hex.length; c += 2) {
         bytes.push(parseInt(hex.substr(c, 2), 16));
@@ -358,11 +359,14 @@ class LightningClient {
         userChannelId,
         this.config
       );
-    } catch(e) {
+    } catch (e) {
       if (pubkey.length !== 33) {
         console.log("Entered incorrect pubkey - ", e);
       } else {
-        console.log(`Lightning node with pubkey ${pubkeyHex} unreachable - `, e);
+        console.log(
+          `Lightning node with pubkey ${pubkeyHex} unreachable - `,
+          e
+        );
       }
     }
     for (let i = 0; i++; i <= this.block_height) {
