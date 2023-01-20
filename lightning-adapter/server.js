@@ -1,6 +1,6 @@
 "use strict";
 
-const { importLDK, LDKClient } = require("./lightningClient");
+const { importLDK } = require("./lightningClient");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -14,6 +14,7 @@ const PORT = 3003;
 const getRoutes = require("./routes/getRoutes");
 const postRoutes = require("./routes/postRoutes");
 const channelRoutes = require("./routes/channelRoutes");
+const { closeConnections } = require("./lightningUtils");
 
 // Express app
 const app = express();
@@ -39,11 +40,13 @@ app.listen(PORT, () => {
 const onExit = () => {
   // code to be executed on exit, e.g. close connections, cleanup resources
   console.log("Exiting the application");
+  closeConnections();
 };
 
 const onSigInt = () => {
   // code to be executed on sigint, e.g. close connections, cleanup resources
   console.log("Application interrupted");
+  closeConnections();
   process.exit();
 };
 

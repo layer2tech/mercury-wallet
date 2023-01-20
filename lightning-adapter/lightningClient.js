@@ -5,4 +5,11 @@ importLDK = async () => {
   console.log("Lightning Client: ", LightningClient);
 };
 
-module.exports = { importLDK, LDKClient };
+const getLDKClient = () => {
+  if (!LDKClient) {
+    throw new Error("LDKClient is not instantiated.");
+  }
+  return LDKClient;
+}
+
+module.exports = { importLDK, getLDKClient };
