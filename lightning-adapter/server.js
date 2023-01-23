@@ -13,6 +13,7 @@ const PORT = 3003;
 // Routers
 const getRoutes = require("./routes/getRoutes");
 const postRoutes = require("./routes/postRoutes");
+const peerRoutes = require("./routes/peerRoutes");
 const channelRoutes = require("./routes/channelRoutes");
 const { closeConnections } = require("./lightningUtils");
 
@@ -26,6 +27,7 @@ app.use(bodyParser.json());
 // Routes
 app.use("/", getRoutes);
 app.use("/", postRoutes);
+app.use("/", peerRoutes);
 app.use("/channel", channelRoutes);
 
 // Start the LDK adapter - its globally accessible through LDKClient

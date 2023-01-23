@@ -310,44 +310,37 @@ class LightningClient {
     );
   }
 
-  async connectToPeer(pubkey, host, port) {
-    console.log("found->", pubkey, host, port);
+  async connectToPeer(pubkeyHex, host, port) {
+    console.log("found->", pubkeyHex, host, port);
 
+    const pubkey = new Uint8Array(
+      pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+    );
     // store this connection into a dictionary/array of connections
     const newConnection = {
       pubkey,
       host,
       port,
-      id: currentConnections.length + 1,
+      id: this.currentConnections.length + 1,
     };
-    currentConnections = [...currentConnections, newConnection];
+    this.currentConnections = [...this.currentConnections, newConnection];
 
-    // connect to the peer then let event handler handle with -> Event_OpenChannelRequest
+    // connect to the peer
+    console.log("Connecting...");
+    await this.create_socket(newConnection);
+
+    // let event handler handle with -> Event_OpenChannelRequest
   }
 
-  async startLDK() {
-    this.start();
+  async createChannel(pubkey, amount, push_msat, channelId) {
 
     const channelManagerA = this.channel_manager;
     await this.setBlockHeight();
     await this.setLatestBlockHeader(this.block_height);
 
-    console.log("Connecting...");
-    await this.create_socket();
-
-    let channelValSatoshis = BigInt(1000000);
-    let pushMsat = BigInt(400);
-    let userChannelId = BigInt(1);
-
-    // PubKey of PolarLightning Regtest Node
-    const pubkeyHex =
-      "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
-    const pubkey = new Uint8Array(
-      pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-    );
-
-    await this.setBlockHeight();
-    await this.setLatestBlockHeader(this.block_height);
+    let channelValSatoshis = BigInt(amount);
+    let pushMsat = BigInt(push_msat);
+    let userChannelId = BigInt(channelId);
 
     let channelCreateResponse;
     console.log("Reached here ready to create channel...");
@@ -390,24 +383,22 @@ class LightningClient {
     );
   }
 
+  async startLDK() {
+    this.start();
+
+  }
+
   list_peers() {
     return this.peerManager.get_peer_node_ids();
   }
 
-  async create_socket() {
+  async create_socket(newConnection) {
     const NodeLDKNet = (await import("./lightning/NodeLDKNet.mjs")).NodeLDKNet;
+    const { pubkey, host, port } = newConnection;
 
     // Node key corresponding to all 42
     // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
     this.a_net_handler = new NodeLDKNet(this.peerManager);
-    var port = 9735;
-
-    // 031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d@127.0.0.1:9735
-    const pubkeyHex =
-      "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
-    const pubkey = new Uint8Array(
-      pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-    );
 
     for (; port < 11000; port++) {
       try {
@@ -415,7 +406,7 @@ class LightningClient {
         // mainly for listening to incoming connections, not what's listed below
 
         // if port doesn't work, 9735 does work
-        await this.a_net_handler.connect_peer("127.0.0.1", port, pubkey);
+        await this.a_net_handler.connect_peer(host, port, pubkey);
         console.log("CONNECTED");
 
         break;

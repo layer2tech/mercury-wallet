@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../database.js");
+const { getLDKClient } = require("../lightningClient");
 
 router.post("/connectToPeer", (req, res) => {
   const { amount, channelType, pubkey, host, port } = req.body;
