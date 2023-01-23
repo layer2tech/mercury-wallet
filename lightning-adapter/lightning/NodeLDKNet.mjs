@@ -22,7 +22,8 @@ export class NodeLDKNet {
 	stop() {
 		clearInterval(this.ping_timer);
 		for (const server of this.servers) {
-			server.close();
+			// server.close();
+			server._events.close();
 		}
 		this.peer_manager.disconnect_all_peers();
 	}

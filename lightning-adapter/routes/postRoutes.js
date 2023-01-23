@@ -1,4 +1,3 @@
-const LDKClient = require("../lightningClient.js");
 const express = require("express");
 const router = express.Router();
 
@@ -9,7 +8,7 @@ router.post("/generate_invoice", async function (req, res) {
       invoice_expiry_secs: req.body.invoice_expiry_secs,
       description: req.body.description,
     };
-    let invoice = (await LDKClient).create_invoice(
+    let invoice = createInvoice(
       invoice_config.amt_in_sats,
       invoice_config.invoice_expiry_secs,
       invoice_config.description

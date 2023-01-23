@@ -1,14 +1,14 @@
 // handle all peer logic on server
-const LDKClient = require("../lightningClient.js");
 const express = require("express");
 const router = express.Router();
 const db = require("../database.js");
+const { getLDKClient } = require("../lightningClient");
 
 router.post("/connectToPeer", (req, res) => {
   const { amount, channelType, pubkey, host, port } = req.body;
   console.log(amount, channelType, pubkey, host, port);
 
-  LDKClient.connectToPeer(pubkey, host, port);
+  getLDKClient().connectToPeer(pubkey, host, port);
 
   res.send({ status: "success" });
 });

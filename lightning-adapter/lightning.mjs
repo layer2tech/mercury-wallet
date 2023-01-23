@@ -310,44 +310,37 @@ class LightningClient {
     );
   }
 
-  async connectToPeer(pubkey, host, port) {
-    console.log("found->", pubkey, host, port);
+  async connectToPeer(pubkeyHex, host, port) {
+    console.log("found->", pubkeyHex, host, port);
 
+    const pubkey = new Uint8Array(
+      pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+    );
     // store this connection into a dictionary/array of connections
     const newConnection = {
       pubkey,
       host,
       port,
-      id: currentConnections.length + 1,
+      id: this.currentConnections.length + 1,
     };
-    currentConnections = [...currentConnections, newConnection];
+    this.currentConnections = [...this.currentConnections, newConnection];
 
-    // connect to the peer then let event handler handle with -> Event_OpenChannelRequest
+    // connect to the peer
+    console.log("Connecting...");
+    await this.create_socket(newConnection);
+
+    // let event handler handle with -> Event_OpenChannelRequest
   }
 
-  async startLDK() {
-    this.start();
+  async createChannel(pubkey, amount, push_msat, channelId) {
 
     const channelManagerA = this.channel_manager;
     await this.setBlockHeight();
     await this.setLatestBlockHeader(this.block_height);
 
-    console.log("Connecting...");
-    await this.create_socket();
-
-    let channelValSatoshis = BigInt(1000000);
-    let pushMsat = BigInt(400);
-    let userChannelId = BigInt(1);
-
-    // PubKey of PolarLightning Regtest Node
-    const pubkeyHex =
-      "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
-    const pubkey = new Uint8Array(
-      pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-    );
-
-    await this.setBlockHeight();
-    await this.setLatestBlockHeader(this.block_height);
+    let channelValSatoshis = BigInt(amount);
+    let pushMsat = BigInt(push_msat);
+    let userChannelId = BigInt(channelId);
 
     let channelCreateResponse;
     console.log("Reached here ready to create channel...");
@@ -390,24 +383,22 @@ class LightningClient {
     );
   }
 
+  async startLDK() {
+    this.start();
+
+  }
+
   list_peers() {
     return this.peerManager.get_peer_node_ids();
   }
 
-  async create_socket() {
+  async create_socket(newConnection) {
     const NodeLDKNet = (await import("./lightning/NodeLDKNet.mjs")).NodeLDKNet;
+    const { pubkey, host, port } = newConnection;
 
     // Node key corresponding to all 42
     // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
     this.a_net_handler = new NodeLDKNet(this.peerManager);
-    var port = 9735;
-
-    // 031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d@127.0.0.1:9735
-    const pubkeyHex =
-      "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
-    const pubkey = new Uint8Array(
-      pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-    );
 
     for (; port < 11000; port++) {
       try {
@@ -415,7 +406,7 @@ class LightningClient {
         // mainly for listening to incoming connections, not what's listed below
 
         // if port doesn't work, 9735 does work
-        await this.a_net_handler.connect_peer("127.0.0.1", port, pubkey);
+        await this.a_net_handler.connect_peer(host, port, pubkey);
         console.log("CONNECTED");
 
         break;
@@ -447,42 +438,6 @@ class LightningClient {
     // b_net_handler.stop();
   }
 
-  create_invoice(amtInSats, invoiceExpirysecs, description) {
-    let mSats = this.LDK.Option_u64Z.constructor_some(BigInt(amtInSats * 1000));
-
-    let invoice = this.channel_manager.create_inbound_payment(
-      mSats,
-      invoiceExpirysecs
-    );
-
-    let payment_hash = invoice.res.get_a();
-    let payment_secret = invoice.res.get_b();
-
-    let encodedInvoice = lightningPayReq.encode({
-      satoshis: amtInSats,
-      timestamp: Date.now(),
-      tags: [
-        {
-          tagName: "payment_hash",
-          data: payment_hash,
-        },
-        {
-          tagName: "payment_secret",
-          data: payment_secret,
-        },
-        {
-          tagName: "description",
-          data: description,
-        },
-      ],
-    });
-
-    // Hardcoded for now, needs to be changed
-    let privateKeyHex =
-      "e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734";
-    let signedInvoice = lightningPayReq.sign(encodedInvoice, privateKeyHex);
-    return signedInvoice;
-  }
 
   // starts the lightning LDK
   async start() {
