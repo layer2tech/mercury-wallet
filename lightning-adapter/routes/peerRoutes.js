@@ -42,11 +42,29 @@ router.post("/newPeer", (req, res) => {
   );
 });
 
+// gives you peer details with the peer_id
+router.get("/getPeer/:peer_id", (req, res) => {
+  const peer_id = req.params.peer_id;
+  const selectData = "SELECT node, pubkey, host, port FROM peers WHERE id = ?";
+  db.get(selectData, [peer_id], (err, row) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (row) {
+      res.json(row);
+    } else {
+      res.status(404).json({ error: "Peer not found" });
+    }
+  });
+});
+
 // get the peerlist that's already stored in the database so client can quickly re pick them and so other routes can have access
 router.get("/peerlist", async function (req, res) {
   // sample public list
   let data = [
     {
+      id: 1,
       node: "WalletOfSatoshi.com",
       host: "170.75.163.209",
       port: "9735",
@@ -54,6 +72,7 @@ router.get("/peerlist", async function (req, res) {
         "035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226",
     },
     {
+      id: 2,
       node: "ACINQ",
       host: "3.33.236.230",
       port: "9735",
@@ -61,6 +80,7 @@ router.get("/peerlist", async function (req, res) {
         "03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f",
     },
     {
+      id: 3,
       node: "CoinGate",
       host: "3.124.63.44",
       port: "9735",
