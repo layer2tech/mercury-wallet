@@ -43,7 +43,7 @@ const Channel = (props) => {
                     <div className="CoinAmount-block">
                         <img src={lightningLogo} alt="icon" className="privacy" />
                         <span className="sub">
-                                <b className = "CoinAmount" > {props.channel_data.amt} Sats</b>
+                                <b className = "CoinAmount" > {props.channel_data.amount} Sats</b>
                                     <div className="scoreAmount">
                                         Node Alias
                                     </div>

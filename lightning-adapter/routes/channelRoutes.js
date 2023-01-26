@@ -12,6 +12,28 @@ router.get("/activeChannels", async function (req, res) {
   });
 });
 
+router.get("/channels/:wallet_name", (req, res) => {
+  let walletId;
+  const getWalletId = `SELECT id FROM wallets WHERE name=?`;
+  db.get(getWalletId, req.params.wallet_name, function (err, wallet_id) {
+    if (err) {
+      throw err;
+    }
+    if (wallet_id) {
+      walletId = wallet_id.id;
+      const getChannels = `SELECT * FROM channels WHERE wallet_id=?`;
+      db.all(getChannels, walletId, function (err, channels) {
+        if (err) {
+          throw err;
+        }
+        res.json(channels);
+      })
+    } else {
+      throw new Error(`Lightning wallet with name ${req.params.wallet_name} not found`)
+    }
+  });
+});
+
 router.post("/createChannel", (req, res) => {
   // use LDK.createChannel and insert into db to persist it
 

@@ -95,7 +95,7 @@ const initialState = {
   },
   showDetails: DEFAULT_STATE_COIN_DETAILS,
   progress: { active: false, msg: "" },
-  balance_info: { total_balance: null, num_coins: null, hidden: false, channel_balance: 15000 },
+  balance_info: { total_balance: null, num_coins: null, hidden: false, channel_balance: null },
   fee_info: { deposit: "NA", withdraw: "NA" },
   ping_server_ms: null,
   ping_conductor_ms: null,
@@ -170,6 +170,18 @@ export const getWalletName = () => {
 export const createInvoice = (amtInSats, invoiceExpirysecs, description) => {
   if (isWalletLoaded()) {
     return wallet.createInvoice(amtInSats, invoiceExpirysecs, description);
+  }
+}
+
+export const updateChannels = (channels) => {
+  if (isWalletLoaded()) {
+    return wallet.saveChannels(channels);
+  }
+}
+
+export const getTotalChannelBalance = () => {
+  if (isWalletLoaded()) {
+    return wallet.channels.reduce((sum, currentItem) => sum + currentItem.amount, 0);
   }
 }
 
@@ -469,12 +481,6 @@ export const callSumStatecoinValues = (shared_key_ids) => {
   }
 };
 
-export const callSaveChannels = async (channels) => {
-  if (isWalletLoaded()) {
-    await wallet.saveChannels(channels);
-  }
-}
-
 export const getChannels = () => {
   if (isWalletLoaded()) {
     return wallet.channels;
@@ -482,13 +488,8 @@ export const getChannels = () => {
 }
 
 export const callSumChannelAmt = (selectedChannels) => {
-  let totalSum = 0;
-  selectedChannels.map((selectedChannel) => {
-    let channel_arr = wallet.channels.filter(
-      (channel) => channel.id === selectedChannel
-    );
-    totalSum += channel_arr[0].amt;
-  });
+  const filteredChannels = wallet.channels.filter(channel => selectedChannels.includes(channel.id));
+  const totalSum = filteredChannels.reduce((sum, currentItem) => sum + currentItem.amount, 0);
   return totalSum;
 }
 

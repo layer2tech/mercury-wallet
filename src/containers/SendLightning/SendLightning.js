@@ -69,7 +69,8 @@ const SendLightning = () => {
           <div className="withdraw content">
               <ItemsContainer 
                 channelListProps={{
-                  title: "Channel balances"
+                  title: "Channel balances",
+                  channels: channels
                 }}
                 />
 

@@ -1,32 +1,23 @@
-import { useState } from "react";
-import { callSaveChannels, getChannels } from "../../features/WalletDataSlice";
+import { useEffect } from "react";
 import Channel from "./Channel";
+import {useSelector, useDispatch} from 'react-redux';
+import  { updateBalanceInfo, getTotalChannelBalance } from '../../features/WalletDataSlice';
 
 
 const ChannelList = (props) => {
-    // For testing
-    const mock_channels = [
-        {
-            id: "abcdefghijklmno123456789",
-            amt: 100000,
-        },
-        {
-            id: "kezklmntuwxzy123456789",
-            amt: 150000,
-        },
-        {
-            id: "lmnopqrstuvwx123456789",
-            amt: 50000,
-        },
-    ];
-    callSaveChannels(mock_channels);
-    //
+    const dispatch = useDispatch();
 
-    const [channels, setChannels] = useState(getChannels());
+    const { balance_info } = useSelector(
+        (state) => state.walletData
+    );
+
+    useEffect(() => {
+        dispatch(updateBalanceInfo({ ...balance_info, channel_balance: getTotalChannelBalance() }));
+    }, []);
 
     return(
         <div className = "main-coin-wrap">
-            {channels.map(item => {
+            {props.channels.map(item => {
                 return (
                     <Channel
                         key={item.id} 

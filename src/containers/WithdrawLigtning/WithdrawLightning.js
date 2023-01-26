@@ -13,7 +13,11 @@ import {isWalletLoaded,
   setShowWithdrawPopup,
   setWithdrawTxid,
   checkChannelWithdrawal,
-  setWarning
+  setWarning,
+  updateBalanceInfo,
+  getChannels,
+  updateChannels,
+  getTotalChannelBalance
 } from '../../features/WalletDataSlice';
 
 import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
@@ -23,11 +27,18 @@ import PageHeader from '../PageHeader/PageHeader';
 import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
 import Loading from "../../components/Loading/Loading";
+import { deleteChannel } from '../../wallet/wallet';
 
 const WithdrawLightning = () => {
 
     const dispatch = useDispatch();
+
+    const { balance_info } = useSelector(
+      (state) => state.walletData
+    );
   
+    const [channels, setChannels] = useState(getChannels());
+
     const [inputAddr, setInputAddr] = useState("");
 
     const [loading, setLoading] = useState(false);
@@ -48,7 +59,10 @@ const WithdrawLightning = () => {
     const [channelForceClose, setChannelForceClose] = useState(true);
 
     const forceCloseChannel = () => {
-
+      updateChannelsInfo();
+      selectedChannels.forEach(channelId => {
+        deleteChannel(channelId);
+      });
     }
     
     const onInputAddrChange = (event) => {
@@ -121,10 +135,17 @@ const WithdrawLightning = () => {
       } else {
         dispatch(setShowWithdrawPopup(true));
         dispatch(setWithdrawTxid("wzxykmopq123456"));
+        updateChannelsInfo();
       }
       setLoading(false);
     }
 
+    const updateChannelsInfo = () => {
+      const channelsLeft = channels.filter(channel => !selectedChannels.includes(channel.id));
+      updateChannels(channelsLeft);
+      setChannels(channelsLeft);
+      dispatch(updateBalanceInfo({ ...balance_info, channel_balance: getTotalChannelBalance() }));
+    }
   
     const handleFeeSelection = (event) => {
       if(event.target.value === "custom"){
@@ -171,6 +192,7 @@ const WithdrawLightning = () => {
           <div className="withdraw content">
               <ItemsContainer 
                 channelListProps={{
+                  channels: channels,
                   title: "Select channel to withdraw",
                   selectedChannels: selectedChannels,
                   addSelectedChannel: addSelectedChannel,
