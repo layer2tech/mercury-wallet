@@ -79,11 +79,11 @@ class MercuryEventHandler {
 
     // Create a new transaction
     const fundingTx = new bitcoin.Transaction();
-
     // Add input to the transaction
     fundingTx.addInput(
       new bitcoin.Transaction.Input({
-        prevTxId: funding,
+        prevTxId: fundingTx,
+        
         script: new bitcoin.Script(),
       })
     );
