@@ -15,7 +15,7 @@ import {
   Result_NoneAPIErrorZ_OK,
 } from "lightningdevkit";
 
-const bitcoin = require("bitcoinjs-lib");
+import bitcoin from "bitcoinjs-lib";
 
 class MercuryEventHandler {
   constructor(callbackFn) {
@@ -26,37 +26,36 @@ class MercuryEventHandler {
     console.debug(">>>>>>> Handling Event here <<<<<<<", e);
     switch (e.constructor.name) {
       case "Event_FundingGenerationReady":
-        handleFundingGenerationReadyEvent(e);
+        this.handleFundingGenerationReadyEvent(e);
         break;
       case "Event_PaymentReceived":
-        handlePaymentReceivedEvent(e);
+        this.handlePaymentReceivedEvent(e);
         break;
       case "Event_PaymentSent":
-        handlePaymentSentEvent(e);
+        this.handlePaymentSentEvent(e);
         break;
       case "Event_PaymentPathFailed":
-        handlePaymentPathFailedEvent(e);
+        this.handlePaymentPathFailedEvent(e);
         break;
       case "Event_PendingHTLCsForwardable":
-        handlePendingHTLCsForwardableEvent(e);
+        this.handlePendingHTLCsForwardableEvent(e);
         break;
       case "Event_SpendableOutputs":
-        handleSpendableOutputsEvent(e);
+        this.handleSpendableOutputsEvent(e);
         break;
       case "Event_PaymentForwarded":
-        handlePaymentForwardedEvent(e);
+        this.handlePaymentForwardedEvent(e);
         break;
       case "Event_OpenChannelRequest":
-        handleOpenChannelRequestEvent(e);
+        this.handleOpenChannelRequestEvent(e);
         break;
       case "Event_ChannelClosed":
-        handleChannelClosedEvent(e);
+        this.handleChannelClosedEvent(e);
         break;
       default:
         console.debug("Event not handled: ", e);
     }
   }
-
   handleFundingGenerationReadyEvent(event) {
     const fundingScriptPubkey = event.output_script;
     const outputValue = event.channel_value_satoshis;
@@ -72,9 +71,9 @@ class MercuryEventHandler {
     }*/
 
     console.assert(
-      funding_scriptpubkey.length == 34 &&
-        funding_scriptpubkey[0] == 0 &&
-        funding_scriptpubkey[1] == 32,
+      fundingScriptPubkey.length == 34 &&
+        fundingScriptPubkey[0] == 0 &&
+        fundingScriptPubkey[1] == 32,
       "Check that the output is a P2WSH"
     );
 
@@ -115,6 +114,7 @@ class MercuryEventHandler {
       "funding_transaction_generated did not meet the required format or the counterparty already closed the channel"
     );
   }
+
 
   handlePaymentReceivedEvent(e) {
     console.log(`Payment of ${e.amt} SAT received.`);

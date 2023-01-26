@@ -31,7 +31,7 @@ app.use("/", peerRoutes);
 app.use("/channel", channelRoutes);
 
 // Start the LDK adapter - its globally accessible through LDKClient
-//importLDK();
+importLDK();
 
 // Starting the express server
 app.listen(PORT, () => {

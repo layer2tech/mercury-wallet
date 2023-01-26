@@ -40,6 +40,8 @@ import MercuryRoutingMessageHandler from "./lightning/MercuryRoutingMessageHandl
 import MercuryOnionMessageHandler from "./lightning/MercuryOnionMessageHandler.mjs";
 import MercuryCustomMessageHandler from "./lightning/MercuryCustomMessageHandler.mjs";
 
+import ElectrumClient from './electrum.mjs';
+
 import * as lightningPayReq from "bolt11";
 
 import { ECPairFactory } from "ecpair";
@@ -77,7 +79,7 @@ class LightningClient {
   currentConnections = [];
 
   constructor() {
-    this.initTorClient();
+    this.initElectrumClient();
 
     this.setupLDK().then(() => {
       //   console.log('Finished setup.');
@@ -89,6 +91,10 @@ class LightningClient {
 
   async initTorClient() {
     this.tor_client = new TorClient("");
+  }
+  async initElectrumClient(){
+    // EDIT HERE: Make sure electrum client regtest set up at http://127.0.0.1:18443 or edit accordingly
+    this.tor_client = new ElectrumClient("");
   }
 
   handleEventCallback(e) {
@@ -238,14 +244,15 @@ class LightningClient {
 
     this.ChannelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
 
+    // EDIT HERE: Put your own regtest genesis hash block. Can be current block and then the height as second arg
     this.params = ChainParameters.constructor_new(
       Network.LDKNetwork_Regtest,
       BestBlock.constructor_new(
         Buffer.from(
-          "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206",
+          "566f57a747bca2e61dcb2f0ade6951016fb36663eda8d7839ae1ccd80252dafe",
           "hex"
         ),
-        1
+        111
       )
     );
 
@@ -332,7 +339,7 @@ class LightningClient {
     // let event handler handle with -> Event_OpenChannelRequest
   }
 
-  async createChannel(pubkey, amount, push_msat, channelId) {
+  async createChannel(pubkeyHex, amount, push_msat, channelId) {
 
     const channelManagerA = this.channel_manager;
     await this.setBlockHeight();
@@ -341,6 +348,12 @@ class LightningClient {
     let channelValSatoshis = BigInt(amount);
     let pushMsat = BigInt(push_msat);
     let userChannelId = BigInt(channelId);
+
+    // IF PUB KEY IS A HEX
+
+    const pubkey = new Uint8Array(
+      pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+    );
 
     let channelCreateResponse;
     console.log("Reached here ready to create channel...");
@@ -357,7 +370,7 @@ class LightningClient {
         console.log("Entered incorrect pubkey - ", e);
       } else {
         console.log(
-          `Lightning node with pubkey ${pubkeyHex} unreachable - `,
+          `Lightning node with pubkey ${pubkey} unreachable - `,
           e
         );
       }
@@ -373,18 +386,22 @@ class LightningClient {
 
     console.log("Channel Create Response: ", channelCreateResponse);
 
-    console.log(
-      "Channel List A - Channel ID: ",
-      channelManagerA.list_channels()[0].get_channel_id()
-    );
-    console.log(
-      "Channel List A - Funding TXO: ",
-      channelManagerA.list_channels()[0].get_funding_txo().get_txid()
-    );
+    // console.log(
+    //   "Channel List A - Channel ID: ",
+    //   channelManagerA.list_channels()[0].get_channel_id()
+    // );
+    // console.log(
+    //   "Channel List A - Funding TXO: ",
+    //   channelManagerA.list_channels()[0].get_funding_txo().get_txid()
+    // );
   }
 
   async startLDK() {
     this.start();
+    // EDIT HERE: Put details to regtest lightning node
+    await this.connectToPeer('034866ff4ecbf2bbfad90415562e53ef7b73d3f619c0bb33adf0810f6986537a0b', '127.0.0.1', 9937);
+    await this.createChannel('034866ff4ecbf2bbfad90415562e53ef7b73d3f619c0bb33adf0810f6986537a0b', 1000000, 0, 4);
+    //pubkey, amount, push_msat, channelId
 
   }
 
