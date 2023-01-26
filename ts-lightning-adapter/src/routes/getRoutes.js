@@ -1,7 +1,6 @@
-const LDKClient = require("../lightningClient.js");
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const db = require("../lightningDB.js");
+const db = require("../db/lightningDB");
 
 router.get("/peerlist", async function (req, res) {
   // sample public list

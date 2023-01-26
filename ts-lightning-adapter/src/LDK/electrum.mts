@@ -5,7 +5,7 @@ const TIMEOUT = 20000;
 
 class ElectrumClient {
   endpoint;
-  constructor(endpoint) {
+  constructor(endpoint: string) {
     this.endpoint = endpoint;
   }
 
@@ -24,7 +24,7 @@ class ElectrumClient {
     }
   }
 
-  async getLatestBlockHeader(height) {
+  async getLatestBlockHeader(height: number) {
     let currentBlockHash;
     try {
       console.log("HEIGHT: ", height);
@@ -58,7 +58,7 @@ class ElectrumClient {
     }
   }
 
-  async getTxIdData(txid) {
+  async getTxIdData(txid: string) {
     let res = (
       await ElectrumClient.get(`http://127.0.0.1:18443/rest/tx/${txid}.json`)
     ).data;
@@ -66,7 +66,7 @@ class ElectrumClient {
     return [res.blockheight, res.hex];
   }
 
-  static async get(endpoint, timeout_ms = TIMEOUT) {
+  static async get(endpoint: string, timeout_ms = TIMEOUT) {
     const axios = (await import("axios")).default;
 
     const url = endpoint;
@@ -80,7 +80,7 @@ class ElectrumClient {
     return await axios(config);
   }
 
-  static async post(endpoint, timeout_ms = TIMEOUT) {
+  static async post(endpoint: string, timeout_ms = TIMEOUT) {
     const axios = (await import("axios")).default;
     const options = {
       headers: {

@@ -25,6 +25,7 @@ import {
   ChainParameters,
   ChannelManager,
   IgnoringMessageHandler,
+  Persister,
 } from "lightningdevkit";
 
 import fs from "fs";

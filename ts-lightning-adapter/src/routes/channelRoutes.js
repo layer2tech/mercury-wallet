@@ -1,7 +1,7 @@
-const LDKClient = require("../lightningClient.js");
+const LDKClient = require("../../../lightningClient.js");
 const express = require("express");
 const router = express.Router();
-const db = require("../lightningDB.js");
+const db = require("../db/lightningDB.js");
 
 router.post("/createChannel", (req, res) => {
   // use LDK.createChannel and insert into db to persist it
