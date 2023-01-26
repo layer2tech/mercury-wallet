@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Channel from "./Channel";
 import {useSelector, useDispatch} from 'react-redux';
 import  { updateBalanceInfo, getTotalChannelBalance } from '../../features/WalletDataSlice';
+import EmptyChannelDisplay from './EmptyChannelDisplay/EmptyChannelDisplay';
 
 
 const ChannelList = (props) => {
@@ -14,6 +15,13 @@ const ChannelList = (props) => {
     useEffect(() => {
         dispatch(updateBalanceInfo({ ...balance_info, channel_balance: getTotalChannelBalance() }));
     }, []);
+
+    if (!props.channels.length) {
+        const displayMessage = "Your wallet is empty";
+        return (
+            <EmptyChannelDisplay message={displayMessage} />
+        );
+    }
 
     return(
         <div className = "main-coin-wrap">
