@@ -153,9 +153,28 @@ class MercuryEventHandler {
     }
   }
 
-  handlePaymentForwardedEvent(e) {}
+  handlePaymentForwardedEvent(event) {
+    const {
+      prev_channel_id, //: Uint8Array;
+      next_channel_id, //: Uint8Array;
+      fee_earned_msat, //: Option_u64Z;
+      claim_from_onchain_tx, //: boolean;
+    } = event;
 
-  handleOpenChannelRequestEvent(e) {}
+    console.log("Received payment forwarded event", event);
+  }
+
+  handleOpenChannelRequestEvent(event) {
+    const {
+      temporary_channel_id, // Uint8Array
+      counterparty_node_id, // Uint8Array
+      funding_satoshis, // bigint
+      push_msat, // bigint
+      channel_type, // ChannelTypeFeatures
+    } = event;
+
+    console.log("Received open channel request:", event);
+  }
 }
 
 export default MercuryEventHandler;
