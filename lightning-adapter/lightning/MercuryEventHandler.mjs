@@ -111,7 +111,7 @@ class MercuryEventHandler {
     // closed the channel on us):
 
     console.assert(
-      funding_res instanceof Result_NoneAPIErrorZ.Result_NoneAPIErrorZ_OK,
+      funding_res instanceof Result_NoneAPIErrorZ_OK,
       "funding_transaction_generated did not meet the required format or the counterparty already closed the channel"
     );
   }
