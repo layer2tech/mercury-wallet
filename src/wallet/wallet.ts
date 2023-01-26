@@ -2982,7 +2982,7 @@ export const getXpub = (mnemonic: string, network: Network) => {
 
 export const fetchChannels = (wallet_name: string) => {
   let channels: Channel[] = [];
-  axios.get(`http://localhost:3003/channel/channels/${wallet_name}`)
+  axios.get(`http://localhost:3003/channel/loadChannels/${wallet_name}`)
     .then(res => {
       res.data.map((row: any) => {
         channels.push({
