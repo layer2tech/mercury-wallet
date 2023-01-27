@@ -705,7 +705,7 @@ export class Wallet {
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
-    let channels = fetchChannels(wallet.name);
+    let channels = await fetchChannels(wallet.name);
     wallet.saveChannels(channels);
     wallet.setActive();
     return wallet;
@@ -726,7 +726,7 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
-    let channels = fetchChannels(wallet.name);
+    let channels = await fetchChannels(wallet.name);
     wallet.saveChannels(channels);
     await wallet.save();
     wallet.setActive();
@@ -2980,27 +2980,22 @@ export const getXpub = (mnemonic: string, network: Network) => {
   return node.neutered().toBase58();
 };
 
-export const fetchChannels = (wallet_name: string) => {
+export const fetchChannels = async (wallet_name: string) => {
   let channels: Channel[] = [];
-  axios.get(`http://localhost:3003/channel/loadChannels/walletName/${wallet_name}`)
-    .then(res => {
-      res.data.map((row: any) => {
-        channels.push({
-          id: row.id,
-          name: row.name,
-          amount: row.amount,
-          push_msat: row.push_msat,
-          user_id: row.user_id,
-          config_id: row.config_id,
-          wallet_id: row.wallet_id,
-          peer_id: row.peer_id
-        })
+  let res = await axios.get(`http://localhost:3003/channel/loadChannels/walletName/${wallet_name}`)
+    res.data.map((row: any) => {
+      channels.push({
+        id: row.id,
+        name: row.name,
+        amount: row.amount,
+        push_msat: row.push_msat,
+        user_id: row.user_id,
+        config_id: row.config_id,
+        wallet_id: row.wallet_id,
+        peer_id: row.peer_id
       })
     })
-    .catch(err => {
-      console.log(err);
-    });
-  return channels;
+    return channels;
 }
 
 export const deleteChannel = (channel_id: Number) => {

@@ -6,8 +6,6 @@ import '../coins/coins.css';
 import './Channel.css';
 
 const Channel = (props) => {
-    useSelector
-    const { balance_info } = useSelector((state) => state.walletData);
 
     const selectChannel = (channel_id) => {
         props.setSelectedChannel(channel_id);
