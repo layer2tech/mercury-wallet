@@ -24,6 +24,9 @@ import {
   Transaction,
 } from "bitcoinjs-lib";
 
+const bitcoin = require("bitcoinjs-lib");
+const regtest = bitcoin.networks.testnet;
+
 class MercuryEventHandler {
   constructor(callbackFn) {
     this.callbackFn = callbackFn;
@@ -65,42 +68,15 @@ class MercuryEventHandler {
   }
 
   handleFundingGenerationReadyEvent(event) {
-    const {
-      temporary_channel_id, //: Uint8Array;
-      counterparty_node_id, //: Uint8Array;
-      channel_value_satoshis, //: bigint;
-      output_script, //: Uint8Array;
-      user_channel_id, //: bigint;
-    } = event;
-
-    // The output is always a P2WSH:
-    // console.assert(output_script.length === 34 && output_script[0] === 0 && output_script[1] === 32);
-
-    // Generate the funding transaction for the channel based on the channel amount
-    const bitcoin = require("bitcoinjs-lib");
-
-    const network = bitcoin.networks.regtest; // change this
-
-    let fundingTx = new TransactionBuilder(network);
-    fundingTx.addInput(funding, 0);
-    // Note that all inputs in the funding transaction MUST spend SegWit outputs
-    // (and have witnesses)
-    fundingTx.inputs[0].witness = script.compile([
-      bitcoin.opcodes.OP_0,
-      new Buffer.from([0x1]),
-    ]);
-    fundingTx.addOutput(script.compile(output_script), channel_value_satoshis);
-
-    // Give the funding transaction back to the ChannelManager.
-    let fundingRes = this.channel_manager.funding_transaction_generated(
-      temporary_channel_id,
-      fundingTx.build().toHex()
+    const fundingTx = new bitcoin.TransactionBuilder(regtest);
+    fundingTx.addInput(new bitcoin.Transaction(), 0);
+    fundingTx.inputs[0].witness.push(Buffer.from([0x1]));
+    fundingTx.addOutput(event.output_script, event.channel_value_satoshis);
+    const funding = fundingTx.build();
+    this.channelManager.funding_transaction_generated(
+      event.temporary_channel_id,
+      funding.toHex()
     );
-
-    // funding_transaction_generated should only generate an error if the
-    // transaction didn't meet the required format (or the counterparty already
-    // closed the channel on us):
-    // console.assert(fundingRes instanceof Result_NoneAPIErrorZ_OK);
   }
 
   /*
