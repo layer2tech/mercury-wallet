@@ -15,6 +15,15 @@ import {
   Result_NoneAPIErrorZ_OK,
 } from "lightningdevkit";
 
+import {
+  BIP32Interface,
+  Network,
+  TransactionBuilder,
+  crypto as crypto_btc,
+  script,
+  Transaction,
+} from "bitcoinjs-lib";
+
 class MercuryEventHandler {
   constructor(callbackFn) {
     this.callbackFn = callbackFn;
@@ -72,18 +81,15 @@ class MercuryEventHandler {
 
     const network = bitcoin.networks.regtest; // change this
 
-    let fundingTx = new bitcoin.TransactionBuilder(network);
+    let fundingTx = new TransactionBuilder(network);
     fundingTx.addInput(funding, 0);
     // Note that all inputs in the funding transaction MUST spend SegWit outputs
     // (and have witnesses)
-    fundingTx.inputs[0].witness = bitcoin.script.compile([
+    fundingTx.inputs[0].witness = script.compile([
       bitcoin.opcodes.OP_0,
       new Buffer.from([0x1]),
     ]);
-    fundingTx.addOutput(
-      bitcoin.script.compile(output_script),
-      channel_value_satoshis
-    );
+    fundingTx.addOutput(script.compile(output_script), channel_value_satoshis);
 
     // Give the funding transaction back to the ChannelManager.
     let fundingRes = this.channel_manager.funding_transaction_generated(
