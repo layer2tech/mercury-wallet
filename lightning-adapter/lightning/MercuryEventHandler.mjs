@@ -15,8 +15,6 @@ import {
   Result_NoneAPIErrorZ_OK,
 } from "lightningdevkit";
 
-const bitcoin = require("bitcoinjs-lib");
-
 class MercuryEventHandler {
   constructor(callbackFn) {
     this.callbackFn = callbackFn;
@@ -58,18 +56,61 @@ class MercuryEventHandler {
   }
 
   handleFundingGenerationReadyEvent(event) {
+    const {
+      temporary_channel_id, //: Uint8Array;
+      counterparty_node_id, //: Uint8Array;
+      channel_value_satoshis, //: bigint;
+      output_script, //: Uint8Array;
+      user_channel_id, //: bigint;
+    } = event;
+
+    // The output is always a P2WSH:
+    // console.assert(output_script.length === 34 && output_script[0] === 0 && output_script[1] === 32);
+
+    // Generate the funding transaction for the channel based on the channel amount
+    const bitcoin = require("bitcoinjs-lib");
+
+    const network = bitcoin.networks.regtest; // change this
+
+    let fundingTx = new bitcoin.TransactionBuilder(network);
+    fundingTx.addInput(funding, 0);
+    // Note that all inputs in the funding transaction MUST spend SegWit outputs
+    // (and have witnesses)
+    fundingTx.inputs[0].witness = bitcoin.script.compile([
+      bitcoin.opcodes.OP_0,
+      new Buffer.from([0x1]),
+    ]);
+    fundingTx.addOutput(
+      bitcoin.script.compile(output_script),
+      channel_value_satoshis
+    );
+
+    // Give the funding transaction back to the ChannelManager.
+    let fundingRes = this.channel_manager.funding_transaction_generated(
+      temporary_channel_id,
+      fundingTx.build().toHex()
+    );
+
+    // funding_transaction_generated should only generate an error if the
+    // transaction didn't meet the required format (or the counterparty already
+    // closed the channel on us):
+    // console.assert(fundingRes instanceof Result_NoneAPIErrorZ_OK);
+  }
+
+  /*
+  handleFundingGenerationReadyEvent(event) {
     const fundingScriptPubkey = event.output_script;
     const outputValue = event.channel_value_satoshis;
 
     // Check that the output is a P2WSH
-    /*
+    
     if (
       fundingScriptPubkey.length !== 34 &&
       fundingScriptPubkey[0] !== 0 &&
       fundingScriptPubkey[1] !== 32
     ) {
       return;
-    }*/
+    }
 
     console.assert(
       funding_scriptpubkey.length == 34 &&
@@ -114,7 +155,7 @@ class MercuryEventHandler {
       funding_res instanceof Result_NoneAPIErrorZ_OK,
       "funding_transaction_generated did not meet the required format or the counterparty already closed the channel"
     );
-  }
+  }*/
 
   handlePaymentReceivedEvent(e) {
     console.log(`Payment of ${e.amt} SAT received.`);
