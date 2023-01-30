@@ -16,8 +16,9 @@ const ChannelList = (props) => {
     );
 
     useEffect(() => {
+        dispatch(updateBalanceInfo({ ...balance_info, channel_balance: getTotalChannelBalance() }));
         let isMounted = true;
-        let interval = setIntervalIfOnline(updateChannelsInfo, true, 10000, isMounted)
+        let interval = setIntervalIfOnline(updateChannelsInfo, true, 10000, isMounted);
     
         return () => {
           isMounted = false;
