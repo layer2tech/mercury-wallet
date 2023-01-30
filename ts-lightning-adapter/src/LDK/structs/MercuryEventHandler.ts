@@ -14,15 +14,15 @@ import {
     Event_ChannelClosed,
     Event_OpenChannelRequest,
   } from "lightningdevkit";
-import LightningClient from "../lightning.mjs";
+import LightningClient from "../lightning.js";
 
 class MercuryEventHandler implements EventHandlerInterface{
 
-    lightningClient: LightningClient;
+    // lightningClient: LightningClient;
 
-    constructor(lightningClientFunction: Function){
-        this.lightningClient = lightningClientFunction();
-    }
+    // constructor(lightningClientFunction: Function){
+    //     this.lightningClient = lightningClientFunction();
+    // }
 
     handle_event(e: Event): void {
         console.log(">>>>>>> Handling Event here <<<<<<<", e);

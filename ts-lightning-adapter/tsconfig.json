@@ -1,21 +1,39 @@
 {
+    // This is an alias to @tsconfig/node16: https://github.com/tsconfig/bases
+    "extends": "ts-node/node16/tsconfig.json",
+  
+    // Most ts-node options can be specified here using their programmatic names.
+    "ts-node": {
+      // It is faster to skip typechecking.
+      // Remove if you want ts-node to do typechecking.
+      "transpileOnly": true,
+      "esm": true,
+      "files": true,
+  
+      "compilerOptions": {
+        // compilerOptions specified here will override those declared below,
+        // but *only* in ts-node.  Useful if you want ts-node and tsc to use
+        // different options with a single tsconfig.json.
+      }
+    },
     "compilerOptions": {
+      // typescript options here
       "target": "ESNext",
-      "module": "Node16",
+      "module": "ES2020",
       "lib": ["ES2020", "ES2021"],
-      "moduleSuffixes": [".ts", ".mts" , ""],
+      // "moduleSuffixes": [".ts", ".mts" , ""],
       "removeComments": true,
       "strict": true,
       "allowJs": true,
       "skipLibCheck": true,
       "allowSyntheticDefaultImports": true,
       "forceConsistentCasingInFileNames": true,
-      "moduleResolution": "Node16",
+      "moduleResolution": "node16",
       "esModuleInterop": true,
       "noEmit": true,
       "noFallthroughCasesInSwitch": true,
           /* Experimental Options */
-      "experimentalDecorators": true,
+      "experimentalDecorators": true,      
       "emitDecoratorMetadata": true,
       "sourceMap": true,
       "stripInternal": true,
@@ -36,12 +54,6 @@
       "noImplicitOverride": true,
       "noPropertyAccessFromIndexSignature": true,
       "allowUnusedLabels": false,
-      "allowUnreachableCode": false
-    },
-    "paths": {
-      "lightningdevkit": ["./node_modules/lightningdevkit"]
-    },
-    "exclude": ["node_modules"],
-    "include": ["src/LDK/lightning.mts"]
+      "allowUnreachableCode": false,
+    }
   }
-  

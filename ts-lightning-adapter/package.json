@@ -1,12 +1,24 @@
 {
   "name": "ts-lightning-adapter",
   "version": "1.0.0",
-  "module": "esnext",
   "description": "",
   "main": "server.js",
+  "type": "module",
+  "ava": {
+    "extensions": {
+      "ts": "module"
+    },
+    "nonSemVerExperiments": {
+      "configurableModuleFormat": true
+    },
+    "nodeArguments": [
+      "--loader=ts-node/esm"
+    ]
+  },
   "scripts": {
-    "dev": "ts-node-dev --respawn --pretty --transpile-only src/server.ts",
-    "start": "ts-node src/runLDK",
+    "dev": "ts-node-dev --respawn --pretty --transpile-only src/server.mts",
+    "start": "ts-node --project tsconfig.json src/server.mts",
+    "esm": "node --loader ts-node/esm ./src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "moduleFileExtensions": [
@@ -24,9 +36,11 @@
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.16",
     "express": "^4.18.2",
+    "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^4.9.4"
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   },
   "dependencies": {
     "@types/express": "^4.17.6",
@@ -44,6 +58,7 @@
     "esm": "^3.2.25",
     "express": "^4.17.3",
     "fs": "0.0.1-security",
+    "ldk-wrapper": "file:./ldk-wrapper",
     "lightningdevkit": "^0.0.11-2.0",
     "nanoid": "^4.0.0",
     "netcat": "^1.5.0",

@@ -1,20 +1,14 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const bodyParser = require('body-parser');
-const wasmFn = require('./LDK/initialiseWasm');
-const initLDK = require('./LDK/initLDKClient');
-// import express = require('express');
-// import cors = require('cors');
-// import path = require('path');
-// import bodyParser = require('body-parser');
-// import express from 'express';
-// import cors from 'cors';
-// import path from 'path';
-// import bodyParser from 'body-parser';
-// import initialiseWasm from './LDK/initialiseWasm.mjs';
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import bodyParser from 'body-parser';
+import fs from 'fs';
 
-// import LightningClient from "./LDK/lightning.mjs";
+
+import * as ldk from 'lightningdevkit';
+import LightningClient from './LDK/lightning.js';
+import initLDK from './LDK/init/initLDK.js';
+import initialiseWasm from './LDK/init/initialiseWasm.js';
 
 // Constants
 const PORT = 3003;
@@ -37,24 +31,14 @@ app.use(bodyParser.json());
 
 // Starting the express server
 app.listen(PORT, async () => {
-  const { initialiseWasm } = wasmFn
-  console.log('Initialise Wasm: ', initialiseWasm);
-  await initialiseWasm();
-
-  const {importLDK, LDKClient} = initLDK;
-  console.log('initLDK: ',importLDK);
-
-  await importLDK();
-
-  // const {importLDK, LDKClient} = initClient
-
-  // await importLDK();
-  // console.log('Lightning CLient: ',LightningClient);
-  // await initialiseWasm();
-  // await initLDKClient();
 
   console.log(`lightning-adapter listening at http://localhost:${PORT}`);
+
+  await initialiseWasm();
   
+  const LightningClient = initLDK();
+  await LightningClient.setBlockHeight();
+
 });
 
 // Exit handlers
