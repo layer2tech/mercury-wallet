@@ -69,8 +69,10 @@ class MercuryEventHandler {
 
   handleFundingGenerationReadyEvent(event) {
     const fundingTx = new bitcoin.TransactionBuilder(regtest);
-    fundingTx.addInput(new bitcoin.Transaction(), 0);
-    fundingTx.inputs[0].witness.push(Buffer.from([0x1]));
+    let transaction = new bitcoin.Transaction();
+    transaction.setWitness(0, Buffer.from([0x1]));
+    fundingTx.addInput(transaction, 0);
+    //fundingTx.inputs[0].witness.push(Buffer.from([0x1])); // this doesn't work inputs doesn't exist on this version of bitcoinjs-lib
     fundingTx.addOutput(event.output_script, event.channel_value_satoshis);
     const funding = fundingTx.build();
     this.channelManager.funding_transaction_generated(
