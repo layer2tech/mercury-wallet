@@ -26,7 +26,7 @@ router.get("/loadChannels/:wallet_id", (req, res) => {
 });
 
 // load channels by wallet name - does 2 things
-router.get("/loadChannels/:name", (req, res) => {
+router.get("/loadChannels/walletName/:name", (req, res) => {
   const name = req.params.name;
   const selectId = "SELECT id FROM wallets WHERE name = ?";
   db.get(selectId, [name], (err, row) => {

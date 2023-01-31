@@ -6,8 +6,6 @@ import '../coins/coins.css';
 import './Channel.css';
 
 const Channel = (props) => {
-    useSelector
-    const { balance_info } = useSelector((state) => state.walletData);
 
     const selectChannel = (channel_id) => {
         props.setSelectedChannel(channel_id);
@@ -43,7 +41,7 @@ const Channel = (props) => {
                     <div className="CoinAmount-block">
                         <img src={lightningLogo} alt="icon" className="privacy" />
                         <span className="sub">
-                                <b className = "CoinAmount" > {props.channel_data.amt} Sats</b>
+                                <b className = "CoinAmount" > {props.channel_data.amount} Sats</b>
                                     <div className="scoreAmount">
                                         Node Alias
                                     </div>

@@ -7,7 +7,7 @@ import { Activity, CoinsList } from "..";
 
 import './panelCoinsActivity.css';
 import '../index.css';
-import { WALLET_MODE } from '../../features/WalletDataSlice';
+import { getChannels, WALLET_MODE } from '../../features/WalletDataSlice';
 import EmptyCoinDisplay from '../coins/EmptyCoinDisplay/EmptyCoinDisplay';
 import ChannelList from '../Channels/ChannelList';
 
@@ -98,7 +98,9 @@ const PanelCoinsActivity = (props) => {
             <>
                 <Tabs defaultActiveKey={defaultTabTitle}>
                     <Tab eventKey={defaultTabTitle} title={defaultTabTitle}>
-                        <ChannelList />
+                        <ChannelList 
+                            channels={getChannels()}
+                            />
                     </Tab>
                     <Tab eventKey={"ACTIVITY"} title={"ACTIVITY"}>
                         {/* <EmptyCoinDisplay /> */}

@@ -1,28 +1,46 @@
-import { useState } from "react";
-import { callSaveChannels, getChannels } from "../../features/WalletDataSlice";
+import { useEffect, useState } from "react";
 import Channel from "./Channel";
+import {useSelector, useDispatch} from 'react-redux';
+import  { updateBalanceInfo, getTotalChannelBalance, updateChannels, setIntervalIfOnline, getWalletName } from '../../features/WalletDataSlice';
+import EmptyChannelDisplay from './EmptyChannelDisplay/EmptyChannelDisplay';
+import { fetchChannels } from "../../wallet/wallet";
 
 
 const ChannelList = (props) => {
-    // For testing
-    const mock_channels = [
-        {
-            id: "abcdefghijklmno123456789",
-            amt: 100000,
-        },
-        {
-            id: "kezklmntuwxzy123456789",
-            amt: 150000,
-        },
-        {
-            id: "lmnopqrstuvwx123456789",
-            amt: 50000,
-        },
-    ];
-    callSaveChannels(mock_channels);
-    //
+    const dispatch = useDispatch();
 
-    const [channels, setChannels] = useState(getChannels());
+    const [channels, setChannels] = useState(props.channels);
+
+    const { balance_info } = useSelector(
+        (state) => state.walletData
+    );
+
+    useEffect(() => {
+        dispatch(updateBalanceInfo({ ...balance_info, channel_balance: getTotalChannelBalance() }));
+        let isMounted = true;
+        let interval = setIntervalIfOnline(updateChannelsInfo, true, 10000, isMounted);
+    
+        return () => {
+          isMounted = false;
+          clearInterval(interval)};  
+      }, [balance_info, dispatch, channels]);
+
+    const updateChannelsInfo = async () => {
+        let channelsLoaded;
+        channelsLoaded = await fetchChannels(getWalletName());
+        if (JSON.stringify(channelsLoaded) !== JSON.stringify(channels)) {
+            updateChannels(channelsLoaded);
+            setChannels(channelsLoaded);
+            dispatch(updateBalanceInfo({ ...balance_info, channel_balance: getTotalChannelBalance() }));
+        }
+    };
+
+    if (!props.channels.length) {
+        const displayMessage = "Your wallet is empty";
+        return (
+            <EmptyChannelDisplay message={displayMessage} />
+        );
+    }
 
     return(
         <div className = "main-coin-wrap">

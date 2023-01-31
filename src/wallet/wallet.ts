@@ -54,6 +54,7 @@ import { Config } from "./config";
 import { Storage, TestingWithJest } from "../store";
 import { groupInfo, swapDeregisterUtxo } from "./swap/info_api";
 import { addRestoredCoinDataToWallet, recoverCoins } from "./recovery";
+import axios from 'axios';
 
 import {
   delay,
@@ -145,7 +146,13 @@ export interface Warning {
 
 export interface Channel {
   id: string;
-  amt: Number;
+  name: string;
+  amount: Number;
+  push_msat: Number;
+  user_id: string;
+  config_id: string;
+  wallet_id: string;
+  peer_id: string;
 }
 
 // Wallet holds BIP32 key root and derivation progress information.
@@ -698,6 +705,8 @@ export class Wallet {
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    let channels = await fetchChannels(wallet.name);
+    wallet.saveChannels(channels);
     wallet.setActive();
     return wallet;
   }
@@ -717,6 +726,8 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+    let channels = await fetchChannels(wallet.name);
+    wallet.saveChannels(channels);
     await wallet.save();
     wallet.setActive();
     return wallet;
@@ -2968,6 +2979,34 @@ export const getXpub = (mnemonic: string, network: Network) => {
 
   return node.neutered().toBase58();
 };
+
+export const fetchChannels = async (wallet_name: string) => {
+  let channels: Channel[] = [];
+  let res = await axios.get(`http://localhost:3003/channel/loadChannels/walletName/${wallet_name}`)
+    res.data.map((row: any) => {
+      channels.push({
+        id: row.id,
+        name: row.name,
+        amount: row.amount,
+        push_msat: row.push_msat,
+        user_id: row.user_id,
+        config_id: row.config_id,
+        wallet_id: row.wallet_id,
+        peer_id: row.peer_id
+      })
+    })
+    return channels;
+}
+
+export const deleteChannel = (channel_id: Number) => {
+  axios.delete(`http://localhost:3003/channel/deleteChannel/${channel_id}`)
+    .then(res => {
+      console.log(res);
+    })
+    .catch(err => {
+      console.log(err);
+    });
+} 
 
 function deleteKeys(obj: any, keys: Array<string>){
   keys.map( key => {
