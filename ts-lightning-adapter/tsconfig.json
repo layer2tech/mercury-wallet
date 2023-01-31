@@ -1,0 +1,59 @@
+{
+    // This is an alias to @tsconfig/node16: https://github.com/tsconfig/bases
+    "extends": "ts-node/node16/tsconfig.json",
+  
+    // Most ts-node options can be specified here using their programmatic names.
+    "ts-node": {
+      // It is faster to skip typechecking.
+      // Remove if you want ts-node to do typechecking.
+      "transpileOnly": true,
+      "esm": true,
+      "files": true,
+  
+      "compilerOptions": {
+        // compilerOptions specified here will override those declared below,
+        // but *only* in ts-node.  Useful if you want ts-node and tsc to use
+        // different options with a single tsconfig.json.
+      }
+    },
+    "compilerOptions": {
+      // typescript options here
+      "target": "ESNext",
+      "module": "ES2020",
+      "lib": ["ES2020", "ES2021"],
+      // "moduleSuffixes": [".ts", ".mts" , ""],
+      "removeComments": true,
+      "strict": true,
+      "allowJs": true,
+      "skipLibCheck": true,
+      "allowSyntheticDefaultImports": true,
+      "forceConsistentCasingInFileNames": true,
+      "moduleResolution": "node16",
+      "esModuleInterop": true,
+      "noEmit": true,
+      "noFallthroughCasesInSwitch": true,
+          /* Experimental Options */
+      "experimentalDecorators": true,      
+      "emitDecoratorMetadata": true,
+      "sourceMap": true,
+      "stripInternal": true,
+      "declaration": true,
+      "noImplicitAny": true,
+      "strictNullChecks": true,
+      "strictFunctionTypes": true,
+      "strictBindCallApply": true,
+      "strictPropertyInitialization": true,
+      "noImplicitThis": true,
+      "useUnknownInCatchVariables": true,
+      "alwaysStrict": true,
+      "noUnusedLocals": false,
+      "noUnusedParameters": false,
+      "exactOptionalPropertyTypes": true,
+      "noImplicitReturns": true,
+      "noUncheckedIndexedAccess": true,
+      "noImplicitOverride": true,
+      "noPropertyAccessFromIndexSignature": true,
+      "allowUnusedLabels": false,
+      "allowUnreachableCode": false,
+    }
+  }
