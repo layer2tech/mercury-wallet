@@ -46,6 +46,7 @@ import { ECPairFactory } from "ecpair";
 // import { networks, Psbt,PsbtTxInput, script, crypto, Transaction } from 'bitcoinjs-lib';
 
 import * as tinysecp from "tiny-secp256k1";
+import ElectrumClient from "./electrum.mjs";
 
 class LightningClient {
   fee_estimator;
@@ -88,31 +89,7 @@ class LightningClient {
   }
 
   async initTorClient() {
-    this.tor_client = new TorClient("");
-  }
-
-  handleEventCallback(e) {
-    console.log(">>>>>>> Handling Event here <<<<<<<");
-    // if (e instanceof this.LDK.Event.Event_FundingGenerationReady) {
-    console.log("Event Funding Generation Ready!!");
-
-    var final_tx = this.generateFundingTransaction(
-      e.output_script,
-      e.channel_value_satoshis
-    );
-
-    console.log("Length Channel ID: ", e.temporary_channel_id);
-
-    try {
-      const fundingTx = this.channel_manager.funding_transaction_generated(
-        e.temporary_channel_id,
-        e.counterparty_node_id,
-        final_tx
-      );
-      console.log("Funding Tx: ", fundingTx);
-    } catch (e) {
-      console.log("error: ", e);
-    }
+    this.tor_client = new ElectrumClient("");
   }
 
   async setBlockHeight() {
@@ -188,11 +165,7 @@ class LightningClient {
 
     // Step 6: Initialize the EventHandler
     this.event_handler = EventHandler.new_impl(
-      new MercuryEventHandler(
-        ((data) => {
-          this.handleEventCallback(data);
-        }).bind(this)
-      )
+      new MercuryEventHandler(((data) => {}).bind(this))
     );
 
     // Step 7: Optional: Initialize the transaction filter
@@ -238,11 +211,12 @@ class LightningClient {
 
     this.ChannelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
 
+    // Edit chain manager
     this.params = ChainParameters.constructor_new(
       Network.LDKNetwork_Regtest,
       BestBlock.constructor_new(
         Buffer.from(
-          "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206",
+          "1f4993fe944979da3fe499e2a95e3fb9ec921f61cfa496be36273f5ca84ea244",
           "hex"
         ),
         1
@@ -310,6 +284,24 @@ class LightningClient {
     );
   }
 
+  async createPeerAndChannel(amount, channelType, pubkey, host, port) {
+    // TODO: pass channelType to createChannel config object
+
+    // peer
+    let peer = await this.connectToPeer(pubkey, host, port);
+
+    console.log("Peer created, connected to", peer);
+    // channel
+    let channel = await this.createChannel(
+      pubkey,
+      amount,
+      0,
+      this.currentConnections.length
+    );
+
+    console.log("Channel Created, connected to", channel);
+  }
+
   async connectToPeer(pubkeyHex, host, port) {
     console.log("found->", pubkeyHex, host, port);
 
@@ -327,13 +319,20 @@ class LightningClient {
 
     // connect to the peer
     console.log("Connecting...");
-    await this.create_socket(newConnection);
 
-    // let event handler handle with -> Event_OpenChannelRequest
+    return await this.create_socket(newConnection);
+  }
+
+  hexToUint8Array(hex) {
+    let matchHex = hex.match(/.{1,2}/g);
+    if (matchHex) {
+      return matchHex.map((byte) => parseInt(byte, 16));
+    } else {
+      return;
+    }
   }
 
   async createChannel(pubkey, amount, push_msat, channelId) {
-
     const channelManagerA = this.channel_manager;
     await this.setBlockHeight();
     await this.setLatestBlockHeader(this.block_height);
@@ -342,8 +341,13 @@ class LightningClient {
     let pushMsat = BigInt(push_msat);
     let userChannelId = BigInt(channelId);
 
+    // 022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493@127.0.0.1:9936
+
     let channelCreateResponse;
     console.log("Reached here ready to create channel...");
+
+    pubkey = pubkey.match(/.{1,2}/g).map((byte) => parseInt(byte, 16));
+
     try {
       channelCreateResponse = channelManagerA.create_channel(
         pubkey,
@@ -356,10 +360,7 @@ class LightningClient {
       if (pubkey.length !== 33) {
         console.log("Entered incorrect pubkey - ", e);
       } else {
-        console.log(
-          `Lightning node with pubkey ${pubkeyHex} unreachable - `,
-          e
-        );
+        console.log(`Lightning node with pubkey ${pubkey} unreachable - `, e);
       }
     }
     for (let i = 0; i++; i <= this.block_height) {
@@ -371,8 +372,9 @@ class LightningClient {
 
     // this.chain_monitor.block_connected(this.latest_block_header, this.txdata, this.block_height);
 
-    console.log("Channel Create Response: ", channelCreateResponse);
+    //onsole.log("Channel Create Response: ", channelCreateResponse);
 
+    /*
     console.log(
       "Channel List A - Channel ID: ",
       channelManagerA.list_channels()[0].get_channel_id()
@@ -380,12 +382,13 @@ class LightningClient {
     console.log(
       "Channel List A - Funding TXO: ",
       channelManagerA.list_channels()[0].get_funding_txo().get_txid()
-    );
+    );*/
+
+    return channelCreateResponse;
   }
 
   async startLDK() {
     this.start();
-
   }
 
   list_peers() {
@@ -436,8 +439,8 @@ class LightningClient {
 
     // a_net_handler.stop();
     // b_net_handler.stop();
+    return this.a_net_handler;
   }
-
 
   // starts the lightning LDK
   async start() {
