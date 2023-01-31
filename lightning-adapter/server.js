@@ -1,6 +1,6 @@
 "use strict";
 
-const { importLDK } = require("./lightningClient");
+const { startLDK } = require("./lightningClient");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -31,7 +31,9 @@ app.use("/", peerRoutes);
 app.use("/channel", channelRoutes);
 
 // Start the LDK adapter - its globally accessible through LDKClient
-//importLDK();
+startLDK();
+
+// 0242a4ae0c5bef18048fbecf995094b74bfb0f7391418d71ed394784373f41e4f3@3.124.63.44:9735
 
 // Starting the express server
 app.listen(PORT, () => {

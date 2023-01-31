@@ -8,7 +8,8 @@ router.post("/connectToPeer", (req, res) => {
   const { amount, channelType, pubkey, host, port } = req.body;
   console.log(amount, channelType, pubkey, host, port);
 
-  getLDKClient().connectToPeer(pubkey, host, port);
+  getLDKClient().createPeerAndChannel(amount, channelType, pubkey, host, port);
+  //getLDKClient().connectToPeer(pubkey, host, port);
 
   res.send({ status: "success" });
 });
