@@ -39,6 +39,7 @@
     "uuid": "^8.3.2",
     "websocket": "^1.0.34",
     "winston": "^3.3.3",
-    "bitcoinjs-lib": "^6.1.0"
+    "bitcoinjs-lib": "^6.1.0",
+    "bech32": "^1.1.4"
   }
 }

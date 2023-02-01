@@ -163,10 +163,10 @@ class LightningClient {
     // Step 5: Persist
     this.persister = Persist.new_impl(new MercuryPersister());
 
+    this.mercuryEventHandler = new MercuryEventHandler();
+
     // Step 6: Initialize the EventHandler
-    this.event_handler = EventHandler.new_impl(
-      new MercuryEventHandler(((data) => {}).bind(this))
-    );
+    this.event_handler = EventHandler.new_impl(this.mercuryEventHandler);
 
     // Step 7: Optional: Initialize the transaction filter
     // ------  tx filter: watches for tx on chain
@@ -238,6 +238,8 @@ class LightningClient {
       this.params
     );
 
+    this.mercuryEventHandler.setChannelManager(this.channel_manager);
+
     // const channelMessageHandler = ChannelMessageHandler.new_impl(
     //   new MercuryChannelMessageHandler()
     // );
@@ -295,7 +297,7 @@ class LightningClient {
     let channel = await this.createChannel(
       pubkey,
       amount,
-      0,
+      400,
       this.currentConnections.length
     );
 
