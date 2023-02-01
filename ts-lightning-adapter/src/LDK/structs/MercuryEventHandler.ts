@@ -101,6 +101,38 @@ class MercuryEventHandler implements EventHandlerInterface {
     funding_tx[witness_pos + 5] = 0;
     funding_tx[witness_pos + 6] = 0; // lock time 0
 
+    // const witness_pos = output_script.length + 58;
+    // const funding_tx = new Uint8Array(witness_pos + 7);
+    // funding_tx[0] = 2; // 4-byte tx version 2
+    // funding_tx[4] = 0;
+    // funding_tx[5] = 1; // segwit magic bytes
+    // funding_tx[6] = 1; // 1-byte input count 1
+    // // 36 bytes previous outpoint all-0s
+    // funding_tx[43] = 0; // 1-byte input script length 0
+    // funding_tx[44] = 0xff;
+    // funding_tx[45] = 0xff;
+    // funding_tx[46] = 0xff;
+    // funding_tx[47] = 0xff; // 4-byte nSequence
+    // funding_tx[48] = 1; // one output
+    // // funding_tx[49] = parseInt(channelValue;
+    // console.log("Channel Value: ", channel_value_satoshis);
+    // let bigIntValue = channel_value_satoshis;
+    // let dataView = new DataView(new ArrayBuffer(8));
+    // dataView.setBigInt64(0, bigIntValue);
+    // let valueArray = new Uint8Array(dataView.buffer);
+    // funding_tx.set(valueArray, 49);
+    // // assign_u64(funding_tx, 49, channelValue);
+    // funding_tx[57] = output_script.length; // 1-byte output script length
+    // console.log("Output Script Length: ", output_script.length);
+    // funding_tx.set(output_script, 58);
+    // funding_tx[witness_pos] = 1;
+    // funding_tx[witness_pos + 1] = 1;
+    // funding_tx[witness_pos + 2] = 0xff; // one witness element of size 1 with contents 0xff
+    // funding_tx[witness_pos + 3] = 0;
+    // funding_tx[witness_pos + 4] = 0;
+    // funding_tx[witness_pos + 5] = 0;
+    // funding_tx[witness_pos + 6] = 0; // lock time 0
+
     console.log("funding_tx", funding_tx);
 
     let fund = this.channelManager.funding_transaction_generated(
@@ -108,6 +140,8 @@ class MercuryEventHandler implements EventHandlerInterface {
       counterparty_node_id,
       funding_tx
     );
+
+    console.log('Funding Transaction Generated Result: ',fund)
   }
 
   handlePaymentReceivedEvent(e: Event_PaymentReceived) {
