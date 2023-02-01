@@ -22,7 +22,7 @@ import { uint8ArrayToHexString } from "../utils/utils.js";
 
 const regtest = bitcoin.networks.testnet;
 
-class MercuryEventHandler implements EventHandlerInterface{
+class MercuryEventHandler implements EventHandlerInterface {
   channelManager: any;
 
   handle_event(e: any) {
@@ -32,7 +32,7 @@ class MercuryEventHandler implements EventHandlerInterface{
       case e instanceof Event_FundingGenerationReady:
         this.handleFundingGenerationReadyEvent(e);
         break;
-      case e instanceof  Event_PaymentReceived:
+      case e instanceof Event_PaymentReceived:
         this.handlePaymentReceivedEvent(e);
         break;
       case e instanceof Event_PaymentSent:
@@ -61,8 +61,53 @@ class MercuryEventHandler implements EventHandlerInterface{
     }
   }
 
+  setChannelManager(channelManager: ChannelManager) {
+    this.channelManager = channelManager;
+  }
+
   handleFundingGenerationReadyEvent(event: Event_FundingGenerationReady) {
-    // REDO with psbt
+    const {
+      temporary_channel_id,
+      counterparty_node_id,
+      channel_value_satoshis,
+      output_script,
+    } = event;
+
+    // create funding transaction
+    const witness_pos = output_script.length + 58;
+    const funding_tx = new Uint8Array(witness_pos + 7);
+    funding_tx[0] = 2; // 4-byte tx version 2
+    funding_tx[4] = 0;
+    funding_tx[5] = 1; // segwit magic bytes
+    funding_tx[6] = 1; // 1-byte input count 1
+    // 36 bytes previous outpoint all-0s
+    funding_tx[43] = 0; // 1-byte input script length 0
+    funding_tx[44] = 0xff;
+    funding_tx[45] = 0xff;
+    funding_tx[46] = 0xff;
+    funding_tx[47] = 0xff; // 4-byte nSequence
+    funding_tx[48] = 1; // one output
+    const channelValueBuffer = Buffer.alloc(8);
+    const channelValueNumber = parseInt(channel_value_satoshis.toString(), 10);
+    channelValueBuffer.writeUInt32LE(channelValueNumber, 0);
+    funding_tx.set(channelValueBuffer, 49);
+    funding_tx[57] = output_script.length; // 1-byte output script length
+    funding_tx.set(output_script, 58);
+    funding_tx[witness_pos] = 1;
+    funding_tx[witness_pos + 1] = 1;
+    funding_tx[witness_pos + 2] = 0xff; // one witness element of size 1 with contents 0xff
+    funding_tx[witness_pos + 3] = 0;
+    funding_tx[witness_pos + 4] = 0;
+    funding_tx[witness_pos + 5] = 0;
+    funding_tx[witness_pos + 6] = 0; // lock time 0
+
+    console.log("funding_tx", funding_tx);
+
+    let fund = this.channelManager.funding_transaction_generated(
+      temporary_channel_id,
+      counterparty_node_id,
+      funding_tx
+    );
   }
 
   handlePaymentReceivedEvent(e: Event_PaymentReceived) {
@@ -71,15 +116,18 @@ class MercuryEventHandler implements EventHandlerInterface{
   }
 
   handlePaymentSentEvent(e: Event_PaymentSent) {
-    
     console.log(
-      `Payment with preimage '${uint8ArrayToHexString(e.payment_preimage)}' sent.`
+      `Payment with preimage '${uint8ArrayToHexString(
+        e.payment_preimage
+      )}' sent.`
     );
   }
 
   handlePaymentPathFailedEvent(e: Event_PaymentPathFailed) {
     console.log(
-      `Payment with payment hash '${uint8ArrayToHexString(e.payment_hash)}' failed.`
+      `Payment with payment hash '${uint8ArrayToHexString(
+        e.payment_hash
+      )}' failed.`
     );
   }
 
@@ -125,8 +173,7 @@ class MercuryEventHandler implements EventHandlerInterface{
   }
 
   handleChannelClosedEvent(event: Event_ChannelClosed) {
-
-    console.log("Event Channel Closed!")
+    console.log("Event Channel Closed!");
   }
 }
 

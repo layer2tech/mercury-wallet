@@ -40,19 +40,15 @@ import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
 import LightningClient from "../lightning.js";
 import TorClient from "../bitcoin_clients/TorClient.mjs";
 
-export default function initLDK(electrum: string = "prod"){
-  
+export default function initLDK(electrum: string = "prod") {
   const initLDK = setUpLDK(electrum);
 
-  return new LightningClient(initLDK)
-
+  return new LightningClient(initLDK);
 }
 
-function setUpLDK(electrum: string = "prod"){
-
+function setUpLDK(electrum: string = "prod") {
   // Step 1
   const feeEstimator = FeeEstimator.new_impl(new MercuryFeeEstimator());
-
 
   // Step 2: logger
   const logger = Logger.new_impl(new MercuryLogger());
@@ -61,18 +57,16 @@ function setUpLDK(electrum: string = "prod"){
     // Need to call the sendrawtransaction call for the RPC service, loggin this for now to determined when to implement
     broadcast_transaction(tx) {
       console.log("Tx Broadcast: " + tx);
-
     },
-  })
-
+  });
 
   // Step 3: broadcast interface
   const txBroadcasted = new Promise((resolve, reject) => {
     txBroadcaster.broadcast_transaction = (tx) => {
       // Need to call the sendrawtransaction call for the RPC service, loggin this for now to determined when to implement
       console.log("Tx Broadcast: " + tx);
-      resolve(tx)
-    }
+      resolve(tx);
+    };
   });
 
   // Step 4: network graph
@@ -83,10 +77,7 @@ function setUpLDK(electrum: string = "prod"){
 
   const genesisBlockHash = genesisBlock.block_hash();
 
-  const networkGraph = NetworkGraph.constructor_new(
-    genesisBlockHash,
-    logger
-  );
+  const networkGraph = NetworkGraph.constructor_new(genesisBlockHash, logger);
 
   // Step 5: Persist
   const persist = Persist.new_impl(new MercuryPersister());
@@ -100,9 +91,8 @@ function setUpLDK(electrum: string = "prod"){
   //   )
   // );
 
-  const eventHandler = EventHandler.new_impl(
-    new MercuryEventHandler()
-  );
+  let mercuryHandler = new MercuryEventHandler();
+  const eventHandler = EventHandler.new_impl(mercuryHandler);
 
   // Step 7: Optional: Initialize the transaction filter
   // ------  tx filter: watches for tx on chain
@@ -137,7 +127,7 @@ function setUpLDK(electrum: string = "prod"){
   }
 
   // seed = nanoid(32);
-  
+
   console.log("SEED: ", seed);
 
   const keysManager = KeysManager.constructor_new(seed, BigInt(42), 42);
@@ -151,10 +141,10 @@ function setUpLDK(electrum: string = "prod"){
     Network.LDKNetwork_Regtest,
     BestBlock.constructor_new(
       Buffer.from(
-        "1ea4db8e157e1522405e5849bce768c5b971f3ff9781be6cd26f5a6f1fdf5253",
+        "38fdeec39de57b66ea5fc8754798fc6f237d50f40941af07ab048b0ec3e0c035",
         "hex"
       ),
-      102
+      159
     )
   );
 
@@ -172,6 +162,8 @@ function setUpLDK(electrum: string = "prod"){
     config,
     params
   );
+
+  mercuryHandler.setChannelManager(channelManager);
 
   // const channelMessageHandler = ChannelMessageHandler.new_impl(
   //   new MercuryChannelMessageHandler()
@@ -192,8 +184,7 @@ function setUpLDK(electrum: string = "prod"){
   const routingMessageHandler =
     IgnoringMessageHandler.constructor_new().as_RoutingMessageHandler();
   // const channelMessageHandler = ldk.ErroringMessageHandler.constructor_new().as_ChannelMessageHandler();
-  const channelMessageHandler =
-    channelManager.as_ChannelMessageHandler();
+  const channelMessageHandler = channelManager.as_ChannelMessageHandler();
   const customMessageHandler =
     IgnoringMessageHandler.constructor_new().as_CustomMessageHandler();
   const onionMessageHandler =
@@ -215,16 +206,16 @@ function setUpLDK(electrum: string = "prod"){
     customMessageHandler
   );
 
-  let electrumClient
-  console.log('INIT CLIENT: ', electrum)
-  if(electrum === "prod"){
-    console.log('Init TorClient')
-    electrumClient = new TorClient('');
+  let electrumClient;
+  console.log("INIT CLIENT: ", electrum);
+  if (electrum === "prod") {
+    console.log("Init TorClient");
+    electrumClient = new TorClient("");
   } else {
-    console.log('Init ElectrumClient')
-    electrumClient = new ElectrumClient('');
+    console.log("Init ElectrumClient");
+    electrumClient = new ElectrumClient("");
   }
-  
+
   const LDKInit: LightningClientInterface = {
     feeEstimator: feeEstimator,
     electrumClient: electrumClient, // Add this
@@ -247,12 +238,12 @@ function setUpLDK(electrum: string = "prod"){
     params: params,
     channelManager: channelManager,
     peerManager: peerManager,
-    txdata: [], 
+    txdata: [],
     currentConnections: [],
     blockHeight: undefined,
     latestBlockHeader: undefined,
-    netHandler: undefined
-  }
+    netHandler: undefined,
+  };
 
-  return LDKInit
+  return LDKInit;
 }
