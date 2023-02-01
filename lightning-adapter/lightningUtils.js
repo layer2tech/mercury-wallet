@@ -1,4 +1,5 @@
 const { getLDKClient } = require("./lightningClient");
+const db = require("./database.js");
 
 closeConnections = () => {
     console.log("Closing all the connections")
@@ -40,6 +41,71 @@ createInvoice = (amtInSats, invoiceExpirysecs, description) => {
       "e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734";
     let signedInvoice = lightningPayReq.sign(encodedInvoice, privateKeyHex);
     return signedInvoice;
+}
+
+createNewPeer = (host, port, pubkey) => {
+  return new Promise((resolve, reject) => {
+    let peer_id;
+    db.get(
+      `SELECT id FROM peers WHERE host = ? AND port = ? AND pubkey = ?`,
+      [host, port, pubkey],
+      (err, row) => {
+        if (err) {
+          reject({ status: 500, error: "Failed to query database" });
+        } else if (row) {
+          resolve({ status: 409, message: "Peer already exists in the database", peer_id: row.id });
+        } else {
+          db.run(
+            `INSERT INTO peers (host, port, pubkey) VALUES (?,?,?)`,
+            [host, port, pubkey],
+            (err) => {
+              if (err) {
+                reject({
+                  status: 500,
+                  error: "Failed to insert peers into database",
+                });
+              } else {
+                peer_id = this.lastID;
+                getLDKClient().connectToPeer(pubkey, host, port)
+                resolve({ status: 201, message: "Peer added to database", peer_id: peer_id });
+              }
+            }
+          );
+        }
+      }
+    );
+  });
+}
+
+createNewChannel = (pubkey, name, amount, push_msat, config_id, wallet_name, peer_id) => {
+  return new Promise((resolve, reject) => {
+    let channelId;
+
+    const selectData = "SELECT id FROM wallets WHERE name = ?";
+    db.get(selectData, [wallet_name], (err, row) => {
+      if (err) {
+        reject({ status: 500, error: err.message });
+      } else if (row) {
+        let wallet_id = row.id;
+        const insertData = `INSERT INTO channels (name, amount, push_msat, config_id, wallet_id, peer_id) VALUES (?,?,?,?,?,?)`;
+        db.run(
+          insertData,
+          [name, amount, push_msat, config_id, wallet_id, peer_id],
+          function (err) {
+            if (err) {
+              reject({ status: 500, error: "Failed to query database" });
+            } else {
+              channelId = this.lastID;
+              getLDKClient().createChannel(pubkey, amount, push_msat, channelId);
+              resolve({ status: 201, message: "Channel saved and created successfully", channel_id: channelId });
+            }
+          }
+        );
+      } else {
+        resolve({ status: 404, error: "Wallet not found" });
+      }
+    });
+  });
 }
 
 module.exports = { closeConnections, createInvoice };

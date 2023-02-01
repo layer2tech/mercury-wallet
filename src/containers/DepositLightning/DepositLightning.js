@@ -16,6 +16,7 @@ import "./DepositLightning.css";
 
 // move this to use the http client
 import axios from "axios";
+import { getWalletName } from "../../features/WalletDataSlice";
 
 export const CHANNEL_TYPE = {
   PUBLIC: "Public",
@@ -45,10 +46,13 @@ const DepositLightning = (props) => {
     axios
       .post("http://localhost:3003/connectToPeer", {
         amount: inputAmt,
-        channelType,
         pubkey,
         host,
         port,
+        channel_name: "",
+        push_msat: 0,
+        wallet_name: getWalletName(),
+        config_id: (channelType === CHANNEL_TYPE.PUBLIC) ? 0 : 1
       })
       .then((res) => console.log(res))
       .catch((err) => console.log(err));

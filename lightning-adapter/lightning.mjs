@@ -284,22 +284,28 @@ class LightningClient {
     );
   }
 
-  async createPeerAndChannel(amount, channelType, pubkey, host, port) {
+  async createPeerAndChannel(amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id) {
     // TODO: pass channelType to createChannel config object
+    let peer_id;
+    try {
+      const result = await createNewPeer(host, port, pubkey);
+      peer_id = result.peer_id;
+    } catch(err) {
+      console.log(err);
+    }
 
-    // peer
-    let peer = await this.connectToPeer(pubkey, host, port);
-
-    console.log("Peer created, connected to", peer);
+    console.log("Peer created, connected to", peer_id);
     // channel
-    let channel = await this.createChannel(
-      pubkey,
-      amount,
-      0,
-      this.currentConnections.length
-    );
+    let channel_id;
+    try {
+      const result = await createNewChannel(pubkey, channel_name, amount, push_msat, config_id, wallet_name, peer_id);
+      console.log(result)
+      channel_id = result.channel_id;
+    } catch(err) {
+      console.log(err);
+    }
 
-    console.log("Channel Created, connected to", channel);
+    console.log("Channel Created, connected to", channel_id);
   }
 
   async connectToPeer(pubkeyHex, host, port) {
@@ -397,7 +403,7 @@ class LightningClient {
 
   async create_socket(newConnection) {
     const NodeLDKNet = (await import("./lightning/NodeLDKNet.mjs")).NodeLDKNet;
-    const { pubkey, host, port } = newConnection;
+    let { pubkey, host, port } = newConnection;
 
     // Node key corresponding to all 42
     // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);

@@ -3,44 +3,26 @@ const express = require("express");
 const router = express.Router();
 const db = require("../database.js");
 const { getLDKClient } = require("../lightningClient");
+const { createNewPeer } = require("../lightningUtils");
 
 router.post("/connectToPeer", (req, res) => {
-  const { amount, channelType, pubkey, host, port } = req.body;
-  console.log(amount, channelType, pubkey, host, port);
+  const { amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id } = req.body;
+  console.log(amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id);
 
-  getLDKClient().createPeerAndChannel(amount, channelType, pubkey, host, port);
+  getLDKClient().createPeerAndChannel(amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id);
   //getLDKClient().connectToPeer(pubkey, host, port);
 
   res.send({ status: "success" });
 });
 
-router.post("/newPeer", (req, res) => {
+router.post("/newPeer", async (req, res) => {
   const { host, port, pubkey } = req.body;
-  db.get(
-    `SELECT * FROM peers WHERE host = ? AND port = ? AND pubkey = ?`,
-    [host, port, pubkey],
-    (err, row) => {
-      if (err) {
-        res.status(500).json({ error: "Failed to query database" });
-      } else if (row) {
-        res.status(409).json({ error: "Peer already exists in the database" });
-      } else {
-        db.run(
-          `INSERT INTO peers (host, port, pubkey) VALUES (?,?,?)`,
-          [host, port, pubkey],
-          (err) => {
-            if (err) {
-              res
-                .status(500)
-                .json({ error: "Failed to insert peers into database" });
-            } else {
-              res.status(201).json({ message: "Peer added to database" });
-            }
-          }
-        );
-      }
-    }
-  );
+  try {
+    const result = await createNewPeer(host, port, pubkey);
+    res.status(result.status).json(result);
+  } catch (error) {
+    res.status(error.status).json(error);
+  }
 });
 
 // gives you peer details with the peer_id
