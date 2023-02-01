@@ -1,6 +1,6 @@
 // database mock
-
-const sqlite3 = require("sqlite3").verbose();
+import sql from 'sqlite3';
+const sqlite3 = sql.verbose() 
 const db = new sqlite3.Database(":memory:");
 
 // Create the 'wallets' table if it doesn't exist

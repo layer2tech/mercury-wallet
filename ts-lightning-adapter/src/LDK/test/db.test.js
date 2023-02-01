@@ -1,4 +1,4 @@
-const db = require("./db-mock.js");
+import db from './db-mock.js';
 
 test("Check that sample data is in the wallets table", (done) => {
   db.all("SELECT * FROM wallets", (err, rows) => {
