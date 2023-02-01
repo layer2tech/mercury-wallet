@@ -17,8 +17,7 @@
   },
   "scripts": {
     "dev": "ts-node-dev --respawn --pretty --transpile-only src/server.mts",
-    "start": "ts-node --project tsconfig.json src/server.mts",
-    "esm": "node --loader ts-node/esm ./src/server.ts",
+    "start": "node --loader ts-node/esm ./src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "moduleFileExtensions": [

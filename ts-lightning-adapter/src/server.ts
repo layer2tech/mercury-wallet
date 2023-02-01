@@ -11,6 +11,7 @@ import peerRoutes from './LDK/routes/peerRoutes.js';
 import initialiseWasm from './LDK/init/initialiseWasm.js';
 import { getLDKClient, importLDK } from './LDK/init/importLDK.js';
 import { closeConnections } from './LDK/utils/ldk-utils.js';
+import { hexToUint8Array } from './LDK/utils/utils.js';
 
 // Constants
 const PORT = 3003;
@@ -44,7 +45,21 @@ app.listen(PORT, async () => {
 
   const LightningClient = getLDKClient();
 
-  await LightningClient.connectToPeer('039927ed52e4cdcd215e1a806b3eb00af3c3ba6c89543bba508a85b326efe125db', '127.0.0.1', 9735);
+  await LightningClient.start();
+
+  let pubkeyHex = '039927ed52e4cdcd215e1a806b3eb00af3c3ba6c89543bba508a85b326efe125db';
+  let hostname = '127.0.0.1';
+  let port = 9735;
+
+  await LightningClient.connectToPeer(pubkeyHex, hostname, port);
+
+  let pubkey = hexToUint8Array(pubkeyHex);
+
+  if(pubkey){
+    await LightningClient.createChannel(pubkey, 1000000, 0, 1);
+  }
+
+
 
 });
 

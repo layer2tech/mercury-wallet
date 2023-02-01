@@ -1,5 +1,5 @@
 export default interface PeerDetails {
-    pubkey: number[],
+    pubkey: Uint8Array,
     host: string,
     port: number,
     id: number

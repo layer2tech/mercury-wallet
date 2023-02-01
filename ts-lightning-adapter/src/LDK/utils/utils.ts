@@ -12,7 +12,7 @@ export function hexToBytes(hex: String) {
 export function hexToUint8Array<Uint8Array>(hex: string){
   let matchHex = hex.match(/.{1,2}/g);
   if(matchHex){
-    return matchHex.map((byte) => parseInt(byte, 16))
+    return new Uint8Array(matchHex.map((byte) => parseInt(byte, 16)))
   }
   else{
     return

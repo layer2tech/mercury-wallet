@@ -42,7 +42,7 @@ import TorClient from "../bitcoin_clients/TorClient.mjs";
 
 export default function initLDK(electrum: string = "prod"){
   
-  const initLDK = setUpLDK();
+  const initLDK = setUpLDK(electrum);
 
   return new LightningClient(initLDK)
 
@@ -216,9 +216,12 @@ function setUpLDK(electrum: string = "prod"){
   );
 
   let electrumClient
+  console.log('INIT CLIENT: ', electrum)
   if(electrum === "prod"){
+    console.log('Init TorClient')
     electrumClient = new TorClient('');
   } else {
+    console.log('Init ElectrumClient')
     electrumClient = new ElectrumClient('');
   }
   
