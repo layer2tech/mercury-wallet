@@ -3,7 +3,7 @@ jest.mock("sqlite3", () => {
     run: jest.fn((query, values, cb) => {
       if (
         query ===
-          "INSERT INTO channels (name, amount, push_msat, user_id, config_id, wallet_id) VALUES (?,?,?,?,?,?)" &&
+          "INSERT INTO channels (name, amount, push_msat, config_id, wallet_id) VALUES (?,?,?,?,?)" &&
         values.toString() === ["channel1", 100, 1000, 1, 1, 1].toString()
       ) {
         cb(null);
@@ -26,7 +26,6 @@ describe("POST /createChannel", () => {
       name: "channel1",
       amount: 100,
       push_msat: 1000,
-      user_id: 1,
       config_id: 1,
       wallet_id: 1,
     });
@@ -34,8 +33,8 @@ describe("POST /createChannel", () => {
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({ message: "Channel saved successfully" });
     expect(db.run).toHaveBeenCalledWith(
-      "INSERT INTO channels (name, amount, push_msat, user_id, config_id, wallet_id) VALUES (?,?,?,?,?,?)",
-      ["channel1", 100, 1000, 1, 1, 1],
+      "INSERT INTO channels (name, amount, push_msat, config_id, wallet_id) VALUES (?,?,?,?,?)",
+      ["channel1", 100, 1000, 1, 1],
       expect.any(Function)
     );
   });
@@ -48,7 +47,6 @@ describe("POST /createChannel", () => {
       name: "channel1",
       amount: 100,
       push_msat: 1000,
-      user_id: 1,
       config_id: 1,
       wallet_id: 1,
     });
@@ -56,8 +54,8 @@ describe("POST /createChannel", () => {
     expect(response.statusCode).toBe(500);
     expect(response.body).toEqual({ error: "Query failed" });
     expect(db.run).toHaveBeenCalledWith(
-      "INSERT INTO channels (name, amount, push_msat, user_id, config_id, wallet_id) VALUES (?,?,?,?,?,?)",
-      ["channel1", 100, 1000, 1, 1, 1],
+      "INSERT INTO channels (name, amount, push_msat, config_id, wallet_id) VALUES (?,?,?,?,?)",
+      ["channel1", 100, 1000, 1, 1],
       expect.any(Function)
     );
   });

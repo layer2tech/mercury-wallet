@@ -59,13 +59,13 @@ router.post("/createChannel", (req, res) => {
     pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
   );
 
-  const { name, amount, push_msat, user_id, config_id, wallet_id, peer_id } =
+  const { name, amount, push_msat, config_id, wallet_id, peer_id } =
     req.body;
-  const insertData = `INSERT INTO channels (name, amount, push_msat, user_id, config_id, wallet_id, peer_id) VALUES (?,?,?,?,?,?,?)`;
+  const insertData = `INSERT INTO channels (name, amount, push_msat, config_id, wallet_id, peer_id) VALUES (?,?,?,?,?,?)`;
   let channelId;
   db.run(
     insertData,
-    [name, amount, push_msat, user_id, config_id, wallet_id, peer_id],
+    [name, amount, push_msat, config_id, wallet_id, peer_id],
     function (err) {
       if (err) {
         res.status(500).json({ error: err.message });
@@ -80,11 +80,11 @@ router.post("/createChannel", (req, res) => {
 
 router.put("/updateChannel/:id", (req, res) => {
   // update a channel by id
-  const { name, amount, push_msat, user_id, config_id, wallet_id } = req.body;
-  const updateData = `UPDATE channels SET name=?, amount=?, push_msat=?, user_id=?, config_id=?, wallet_id=? WHERE id=?`;
+  const { name, amount, push_msat, config_id, wallet_id } = req.body;
+  const updateData = `UPDATE channels SET name=?, amount=?, push_msat=?, config_id=?, wallet_id=? WHERE id=?`;
   db.run(
     updateData,
-    [name, amount, push_msat, user_id, config_id, wallet_id, req.params.id],
+    [name, amount, push_msat, config_id, wallet_id, req.params.id],
     function (err) {
       if (err) {
         res.status(500).json({ error: err.message });
