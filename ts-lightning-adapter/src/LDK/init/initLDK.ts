@@ -141,10 +141,10 @@ function setUpLDK(electrum: string = "prod") {
     Network.LDKNetwork_Regtest,
     BestBlock.constructor_new(
       Buffer.from(
-        "38fdeec39de57b66ea5fc8754798fc6f237d50f40941af07ab048b0ec3e0c035",
+        "27a9423b2cff1fdec3d60c058bec1fe78fb695a7c4aa108412fd109e2f215ba8",
         "hex"
       ),
-      159
+      181
     )
   );
 
