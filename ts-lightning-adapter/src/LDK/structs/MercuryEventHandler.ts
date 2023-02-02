@@ -20,7 +20,14 @@ import * as bitcoin from "bitcoinjs-lib";
 import LightningClient from "../lightning.js";
 import { uint8ArrayToHexString } from "../utils/utils.js";
 
-const regtest = bitcoin.networks.testnet;
+//const bitcoin = require("bitcoinjs-lib");
+import bchaddr from "bchaddrjs";
+import {
+  PsbtInputExtended,
+  PsbtOutputExtended,
+} from "bip174/src/lib/interfaces.js";
+
+const network: any = bitcoin.networks.testnet;
 
 class MercuryEventHandler implements EventHandlerInterface {
   channelManager: any;
@@ -65,6 +72,122 @@ class MercuryEventHandler implements EventHandlerInterface {
     this.channelManager = channelManager;
   }
 
+  handleFundingGenerationReadyEvent_2(event: Event_FundingGenerationReady) {
+    const {
+      temporary_channel_id,
+      counterparty_node_id,
+      channel_value_satoshis,
+      output_script,
+    } = event;
+
+    const channelValueBuffer = Buffer.alloc(8);
+    channelValueBuffer.writeUInt32LE(Number(channel_value_satoshis), 0);
+
+    const witness_pos = output_script.length + 58;
+    const funding_tx = new Uint8Array(witness_pos + 7);
+    funding_tx.set([2, 0, 1, 1], 0);
+    funding_tx.fill(0, 43, 43 + 36);
+    funding_tx.set([0, 0xff, 0xff, 0xff, 0xff, 1], 43);
+    funding_tx.set(channelValueBuffer, 49);
+    funding_tx[57] = output_script.length;
+    funding_tx.set(output_script, 58);
+    funding_tx.set([1, 1, 0xff, 0, 0, 0, 0], witness_pos);
+
+    console.log("funding_tx", funding_tx);
+
+    let fund = this.channelManager.funding_transaction_generated(
+      temporary_channel_id,
+      counterparty_node_id,
+      funding_tx
+    );
+  }
+
+  handleFundingGenerationReadyEventPSBTDebug(
+    event: Event_FundingGenerationReady
+  ) {
+    const {
+      temporary_channel_id,
+      counterparty_node_id,
+      channel_value_satoshis,
+      output_script,
+    } = event;
+
+    if (
+      output_script.length !== 34 ||
+      output_script[0] !== 0 ||
+      output_script[1] !== 32
+    ) {
+      throw new Error("Invalid funding script pubkey");
+    }
+
+    let psbt = new bitcoin.Psbt();
+
+    let inputs: any = {
+      hash: "",
+      index: 0,
+      witnessStack: [Buffer.from([0x1]), Buffer.alloc(0)],
+      witnessUtxo: {
+        script: Buffer.alloc(0),
+        value: 0,
+      },
+    };
+
+    psbt.addInput(inputs);
+
+    let outputs: any = {
+      address: output_script,
+      value: parseInt(channel_value_satoshis.toString(), 10),
+    };
+
+    psbt.addOutput(outputs);
+
+    const funding_res = this.channelManager.funding_transaction_generated(
+      temporary_channel_id,
+      counterparty_node_id,
+      psbt.extractTransaction().toHex()
+    );
+  }
+
+  handleFundingGenerationReadyEventPSBT(event: Event_FundingGenerationReady) {
+    const {
+      temporary_channel_id,
+      counterparty_node_id,
+      channel_value_satoshis,
+      output_script,
+    } = event;
+
+    console.log("handing PSBT event:", event);
+
+    const address = bitcoin.address.fromOutputScript(
+      Buffer.from(output_script),
+      network
+    );
+
+    console.log("Bitcoin address is:", address);
+
+    const psbt = new bitcoin.Psbt({
+      network,
+    });
+    psbt.addOutput({
+      address: address,
+      value: Number(channel_value_satoshis),
+    });
+
+    console.log("psbt to hex: ", psbt.toHex());
+
+    if (
+      this.channelManager.funding_transaction_generated(
+        temporary_channel_id,
+        counterparty_node_id,
+        psbt.toHex()
+      ) instanceof Error
+    ) {
+      console.error(
+        "ERROR: Channel went away before we could fund it. The peer disconnected or refused the channel."
+      );
+    }
+  }
+
   handleFundingGenerationReadyEvent(event: Event_FundingGenerationReady) {
     const {
       temporary_channel_id,
@@ -101,38 +224,6 @@ class MercuryEventHandler implements EventHandlerInterface {
     funding_tx[witness_pos + 5] = 0;
     funding_tx[witness_pos + 6] = 0; // lock time 0
 
-    // const witness_pos = output_script.length + 58;
-    // const funding_tx = new Uint8Array(witness_pos + 7);
-    // funding_tx[0] = 2; // 4-byte tx version 2
-    // funding_tx[4] = 0;
-    // funding_tx[5] = 1; // segwit magic bytes
-    // funding_tx[6] = 1; // 1-byte input count 1
-    // // 36 bytes previous outpoint all-0s
-    // funding_tx[43] = 0; // 1-byte input script length 0
-    // funding_tx[44] = 0xff;
-    // funding_tx[45] = 0xff;
-    // funding_tx[46] = 0xff;
-    // funding_tx[47] = 0xff; // 4-byte nSequence
-    // funding_tx[48] = 1; // one output
-    // // funding_tx[49] = parseInt(channelValue;
-    // console.log("Channel Value: ", channel_value_satoshis);
-    // let bigIntValue = channel_value_satoshis;
-    // let dataView = new DataView(new ArrayBuffer(8));
-    // dataView.setBigInt64(0, bigIntValue);
-    // let valueArray = new Uint8Array(dataView.buffer);
-    // funding_tx.set(valueArray, 49);
-    // // assign_u64(funding_tx, 49, channelValue);
-    // funding_tx[57] = output_script.length; // 1-byte output script length
-    // console.log("Output Script Length: ", output_script.length);
-    // funding_tx.set(output_script, 58);
-    // funding_tx[witness_pos] = 1;
-    // funding_tx[witness_pos + 1] = 1;
-    // funding_tx[witness_pos + 2] = 0xff; // one witness element of size 1 with contents 0xff
-    // funding_tx[witness_pos + 3] = 0;
-    // funding_tx[witness_pos + 4] = 0;
-    // funding_tx[witness_pos + 5] = 0;
-    // funding_tx[witness_pos + 6] = 0; // lock time 0
-
     console.log("funding_tx", funding_tx);
 
     let fund = this.channelManager.funding_transaction_generated(
@@ -140,8 +231,6 @@ class MercuryEventHandler implements EventHandlerInterface {
       counterparty_node_id,
       funding_tx
     );
-
-    console.log('Funding Transaction Generated Result: ',fund)
   }
 
   handlePaymentReceivedEvent(e: Event_PaymentReceived) {
