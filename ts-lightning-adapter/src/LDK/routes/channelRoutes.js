@@ -1,9 +1,13 @@
-import express from 'express';
-import db from '../../db/database.js';
-import { getLDKClient } from '../init/importLDK.js';
+import express from "express";
+import db from "../../db/database.js";
+import { getLDKClient } from "../init/importLDK.js";
 
 const router = express.Router();
 
+router.get("/LDKChannels", async function (req, res) {
+  const channels = getLDKClient().getChannels();
+  res.json(JSON.stringify(channels));
+});
 
 router.get("/activeChannels", async function (req, res) {
   db.all("SELECT * FROM channels", (err, rows) => {
@@ -109,4 +113,4 @@ router.delete("/deleteChannel/:id", (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;

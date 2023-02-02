@@ -7,6 +7,7 @@ import fs from "fs";
 import getRoutes from "./LDK/routes/getRoutes.js";
 import postRoutes from "./LDK/routes/postRoutes.js";
 import peerRoutes from "./LDK/routes/peerRoutes.js";
+import channelRoutes from "./LDK/routes/channelRoutes.js";
 
 import initialiseWasm from "./LDK/init/initialiseWasm.js";
 import { getLDKClient, importLDK } from "./LDK/init/importLDK.js";
@@ -30,7 +31,7 @@ app.use(bodyParser.json());
 app.use("/", getRoutes);
 app.use("/", postRoutes);
 app.use("/", peerRoutes);
-// app.use("/channel", channelRoutes);
+app.use("/channel", channelRoutes);
 
 // Starting the express server
 app.listen(PORT, async () => {
@@ -38,20 +39,21 @@ app.listen(PORT, async () => {
 
   await initialiseWasm();
 
-  console.log('import LDK')
-  
+  console.log("import LDK");
+
   await importLDK("dev");
-  console.log('finisehd import LDK')
+  console.log("finisehd import LDK");
 
   const LightningClient = getLDKClient();
 
   await LightningClient.start();
   //025817585dc79c2fff719e764e30fdc28a5bda9d03e11a56b155bc4a243264d7cb@127.0.0.1:9937
   let pubkeyHex =
-    "025817585dc79c2fff719e764e30fdc28a5bda9d03e11a56b155bc4a243264d7cb";
+    "022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493";
   let hostname = "127.0.0.1";
-  let port = 9937;
+  let port = 9936;
 
+  //022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493@127.0.0.1:9936
   // 022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493@127.0.0.1:9936
 
   //@127.0.0.1:9737
