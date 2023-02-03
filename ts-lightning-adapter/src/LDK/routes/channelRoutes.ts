@@ -2,15 +2,25 @@ import express from "express";
 import db from "../../db/database.js";
 import { getLDKClient } from "../init/importLDK.js";
 
+import * as bitcoin from "bitcoinjs-lib";
+
 const router = express.Router();
 
 router.get("/LDKChannels", async function (req, res) {
   const channels = getLDKClient().getChannels();
 
-  console.log(channels);
+  let activeChannels = getLDKClient().getActiveChannels();
+  console.log("active channels:", activeChannels);
 
-  if (channels.length > 0) {
-    console.log(channels[0].get_channel_id());
+  console.log("channels: ", channels);
+
+  if (channels[0]) {
+    console.log("ChannelID:", channels[0].get_channel_id());
+
+    console.log(
+      "bitcoin.script",
+      bitcoin.script.compile(Buffer.from(channels[0].get_channel_id()))
+    );
 
     res.json({
       channelId: channels[0].get_channel_id().toString(),
@@ -130,10 +140,13 @@ router.post("/createChannel", (req, res) => {
 
   const pubkeyHex =
     "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
+
+  /*  
   const pubkey = new Uint8Array(
     pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-  );
+  );*/
 
+  /*
   const { name, amount, push_msat, user_id, config_id, wallet_id, peer_id } =
     req.body;
   const insertData = `INSERT INTO channels (name, amount, push_msat, user_id, config_id, wallet_id, peer_id) VALUES (?,?,?,?,?,?,?)`;
@@ -150,7 +163,7 @@ router.post("/createChannel", (req, res) => {
       getLDKClient().createChannel(pubkey, amount, push_msat, channelId);
       res.json({ message: "Channel saved successfully", id: channelId });
     }
-  );
+  );*/
 });
 
 router.put("/updateChannel/:id", (req, res) => {

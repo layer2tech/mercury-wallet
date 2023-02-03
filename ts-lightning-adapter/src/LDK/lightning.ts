@@ -184,6 +184,10 @@ Electrum Client Functions
     return this.channelManager.list_channels();
   }
 
+  getActiveChannels() {
+    return this.channelManager.list_usable_channels();
+  }
+
   async createChannel(
     pubkey: Uint8Array,
     amount: number,
