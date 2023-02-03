@@ -66,9 +66,15 @@ export const createNewPeer = (host: string, port: number, pubkey: string): Promi
                     error: "Failed to insert peers into database",
                   });
                 } else {
-                  peer_id = result.lastID;
-                  getLDKClient().connectToPeer(pubkey, host, port)
-                  resolve({ status: 201, message: "Peer added to database", peer_id: peer_id });
+                  db.get(`SELECT last_insert_rowid() as peer_id`, (err: any, row: any) => {
+                    if (err) {
+                      reject({ status: 500, error: "Failed to get last inserted channel ID" });
+                    } else {
+                      peer_id = row.peer_id;
+                      getLDKClient().connectToPeer(pubkey, host, port)
+                      resolve({ status: 201, message: "Peer added to database", peer_id: peer_id });
+                    }
+                  });
                 }
               }
             );
@@ -103,13 +109,19 @@ export const createNewPeer = (host: string, port: number, pubkey: string): Promi
             [name, amount, push_msat, config_id, wallet_id, peer_id],
             function (err: any, result: any) {
               if (err) {
-                reject({ status: 500, error: "Failed to query database" });
+                reject({ status: 500, error: "Failed to insert channel into database" });
               } else {
-                channelId = result.lastID;
-                if (pubkey) {
-                    getLDKClient().createChannel(pubkey, amount, push_msat, channelId);
-                }
-                resolve({ status: 201, message: "Channel saved and created successfully", channel_id: channelId });
+                db.get(`SELECT last_insert_rowid() as channel_id`, (err: any, row: any) => {
+                  if (err) {
+                    reject({ status: 500, error: "Failed to get last inserted channel ID" });
+                  } else {
+                    channelId = row.channel_id;
+                    if (pubkey) {
+                        getLDKClient().createChannel(pubkey, amount, push_msat, channelId);
+                    }
+                    resolve({ status: 201, message: "Channel saved and created successfully", channel_id: channelId });
+                  }
+                });
               }
             }
           );

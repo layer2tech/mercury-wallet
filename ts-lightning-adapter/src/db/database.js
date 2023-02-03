@@ -162,7 +162,7 @@ const db = new sqlite3.Database("lightning.db", (err) => {
             peer_id: 3,
           },
         ];
-        const insertData = `INSERT INTO channels (name, amount, push_msat, config_id, wallet_id, peer_id) VALUES (?,?,?,?,?,?,?)`;
+        const insertData = `INSERT INTO channels (name, amount, push_msat, config_id, wallet_id, peer_id) VALUES (?,?,?,?,?,?)`;
         sampleData.forEach((data) => {
           db.run(insertData, [
             data.name,

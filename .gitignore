@@ -19,3 +19,4 @@ tor/tor/keys/
 tor-adapter-log/
 i2p/
 
+lightning.db
