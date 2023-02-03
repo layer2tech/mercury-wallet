@@ -225,6 +225,10 @@ Electrum Client Functions
     // b_net_handler.stop();
   }
 
+  getChannels() {
+    return this.channelManager.list_channels();
+  }
+
   async createChannel(
     pubkey: Uint8Array,
     amount: number,
@@ -322,5 +326,4 @@ Electrum Client Functions
       .as_EventsProvider()
       .process_pending_events(this.eventHandler);
   }
-
 }

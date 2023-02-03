@@ -2,7 +2,7 @@ import {
   Event,
   EventsProvider,
   Event_FundingGenerationReady,
-  Event_PaymentReceived,
+  // Event_PaymentReceived,
   Event_PaymentSent,
   Event_PaymentPathFailed,
   Event_PendingHTLCsForwardable,
@@ -32,9 +32,9 @@ class MercuryEventHandler implements EventHandlerInterface {
       case e instanceof Event_FundingGenerationReady:
         this.handleFundingGenerationReadyEvent(e);
         break;
-      case e instanceof Event_PaymentReceived:
-        this.handlePaymentReceivedEvent(e);
-        break;
+      // case e instanceof Event_PaymentReceived:
+      //   this.handlePaymentReceivedEvent(e);
+      //   break;
       case e instanceof Event_PaymentSent:
         this.handlePaymentSentEvent(e);
         break;
@@ -144,10 +144,10 @@ class MercuryEventHandler implements EventHandlerInterface {
     console.log('Funding Transaction Generated Result: ',fund)
   }
 
-  handlePaymentReceivedEvent(e: Event_PaymentReceived) {
-    console.log(`Payment of ${e.amount_msat} SAT received.`);
-    this.channelManager.claim_funds(e.payment_hash);
-  }
+  // handlePaymentReceivedEvent(e: Event_PaymentReceived) {
+  //   console.log(`Payment of ${e.amount_msat} SAT received.`);
+  //   this.channelManager.claim_funds(e.payment_hash);
+  // }
 
   handlePaymentSentEvent(e: Event_PaymentSent) {
     console.log(

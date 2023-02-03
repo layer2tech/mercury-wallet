@@ -21,6 +21,7 @@ import {
   ChainParameters,
   ChannelManager,
   IgnoringMessageHandler,
+  Option_FilterZ,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -42,8 +43,10 @@ import TorClient from "../bitcoin_clients/TorClient.mjs";
 
 export default function initLDK(electrum: string = "prod") {
   const initLDK = setUpLDK(electrum);
+  if(initLDK){
 
-  return new LightningClient(initLDK);
+    return new LightningClient(initLDK);
+  }
 }
 
 function setUpLDK(electrum: string = "prod") {
@@ -99,17 +102,25 @@ function setUpLDK(electrum: string = "prod") {
   // ------  tx filter: watches for if output spent on-chain
 
   const filter = Filter.new_impl(new MercuryFilter());
+  // const filter = Option_FilterZ.constructor_some();
 
-  // Step 8: Initialize the ChainMonitor
-  const chainMonitor = ChainMonitor.constructor_new(
-    filter,
-    txBroadcaster,
-    logger,
-    feeEstimator,
-    persist
-  );
+  let chainMonitor;
+  let chainWatch;
+  try{
+    // Step 8: Initialize the ChainMonitor
+    chainMonitor = ChainMonitor.constructor_new(
+      Option_FilterZ.constructor_some(filter),
+      txBroadcaster,
+      logger,
+      feeEstimator,
+      persist
+    );
+    chainWatch = chainMonitor.as_Watch();
 
-  const chainWatch = chainMonitor.as_Watch();
+  } catch(e){
+    console.log('Error:::::::',e)
+  }
+
 
   // // Step 9: Initialize the KeysManager
   const ldk_data_dir = "./.ldk/";
@@ -153,17 +164,23 @@ function setUpLDK(electrum: string = "prod") {
 
   // console.log("FEE ESTIMATOR IN CHANNEL MANAGER: ", fee_estimator);
   // // Step 11: Initialize the ChannelManager
-  const channelManager = ChannelManager.constructor_new(
-    feeEstimator,
-    chainWatch,
-    txBroadcaster,
-    logger,
-    keysInterface,
-    config,
-    params
-  );
+  let channelManager;
+  if(chainWatch){
+    channelManager = ChannelManager.constructor_new(
+      feeEstimator,
+      chainWatch,
+      txBroadcaster,
+      logger,
+      keysInterface,
+      config,
+      params
+    );
 
-  mercuryHandler.setChannelManager(channelManager);
+  }
+  if(channelManager){
+    mercuryHandler.setChannelManager(channelManager);
+
+  }
 
   // const channelMessageHandler = ChannelMessageHandler.new_impl(
   //   new MercuryChannelMessageHandler()
@@ -184,7 +201,11 @@ function setUpLDK(electrum: string = "prod") {
   const routingMessageHandler =
     IgnoringMessageHandler.constructor_new().as_RoutingMessageHandler();
   // const channelMessageHandler = ldk.ErroringMessageHandler.constructor_new().as_ChannelMessageHandler();
-  const channelMessageHandler = channelManager.as_ChannelMessageHandler();
+  let channelMessageHandler
+  if(channelManager){
+
+    channelMessageHandler = channelManager.as_ChannelMessageHandler();
+  }
   const customMessageHandler =
     IgnoringMessageHandler.constructor_new().as_CustomMessageHandler();
   const onionMessageHandler =
@@ -195,7 +216,7 @@ function setUpLDK(electrum: string = "prod") {
 
   const ephemeralRandomData = new Uint8Array(32);
 
-  const peerManager = PeerManager.constructor_new(
+  const peerManager = channelMessageHandler && PeerManager.constructor_new(
     channelMessageHandler,
     routingMessageHandler,
     onionMessageHandler,
@@ -215,35 +236,37 @@ function setUpLDK(electrum: string = "prod") {
     console.log("Init ElectrumClient");
     electrumClient = new ElectrumClient("");
   }
+  if(chainMonitor && channelManager && peerManager){
 
-  const LDKInit: LightningClientInterface = {
-    feeEstimator: feeEstimator,
-    electrumClient: electrumClient, // Add this
-    logger: logger,
-    txBroadcasted: txBroadcasted,
-    txBroadcaster: txBroadcaster,
-    network: network,
-    genesisBlock: genesisBlock,
-    genesisBlockHash: genesisBlockHash,
-    networkGraph: networkGraph,
-    filter: filter,
-    persist: persist,
-    eventHandler: eventHandler,
-    chainMonitor: chainMonitor,
-    chainWatch: chainWatch,
-    keysManager: keysManager,
-    keysInterface: keysInterface,
-    config: config,
-    channelHandshakeConfig: channelHandshakeConfig,
-    params: params,
-    channelManager: channelManager,
-    peerManager: peerManager,
-    txdata: [],
-    currentConnections: [],
-    blockHeight: undefined,
-    latestBlockHeader: undefined,
-    netHandler: undefined,
-  };
+    const LDKInit: LightningClientInterface = {
+      feeEstimator: feeEstimator,
+      electrumClient: electrumClient, // Add this
+      logger: logger,
+      txBroadcasted: txBroadcasted,
+      txBroadcaster: txBroadcaster,
+      network: network,
+      genesisBlock: genesisBlock,
+      genesisBlockHash: genesisBlockHash,
+      networkGraph: networkGraph,
+      filter: filter,
+      persist: persist,
+      eventHandler: eventHandler,
+      chainMonitor: chainMonitor,
+      chainWatch: chainWatch,
+      keysManager: keysManager,
+      keysInterface: keysInterface,
+      config: config,
+      channelHandshakeConfig: channelHandshakeConfig,
+      params: params,
+      channelManager: channelManager,
+      peerManager: peerManager,
+      txdata: [],
+      currentConnections: [],
+      blockHeight: undefined,
+      latestBlockHeader: undefined,
+      netHandler: undefined,
+    };
+    return LDKInit;
+  }
 
-  return LDKInit;
 }
