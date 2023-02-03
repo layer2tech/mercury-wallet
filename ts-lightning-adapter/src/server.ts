@@ -7,6 +7,7 @@ import fs from "fs";
 import getRoutes from "./LDK/routes/getRoutes.js";
 import postRoutes from "./LDK/routes/postRoutes.js";
 import peerRoutes from "./LDK/routes/peerRoutes.js";
+import channelRoutes from "./LDK/routes/channelRoutes.js";
 
 import initialiseWasm from "./LDK/init/initialiseWasm.js";
 import { getLDKClient, importLDK } from "./LDK/init/importLDK.js";
@@ -30,7 +31,7 @@ app.use(bodyParser.json());
 app.use("/", getRoutes);
 app.use("/", postRoutes);
 app.use("/", peerRoutes);
-// app.use("/channel", channelRoutes);
+app.use("/channel", channelRoutes);
 
 // Starting the express server
 app.listen(PORT, async () => {

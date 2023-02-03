@@ -38,6 +38,10 @@ import {
   hexToUint8Array,
   uint8ArrayToHexString,
 } from "./utils/utils.js";
+import {
+  createNewPeer,
+  createNewChannel
+} from "./utils/ldk-utils.js";
 
 import * as bitcoin from "bitcoinjs-lib";
 
@@ -125,6 +129,47 @@ Electrum Client Functions
    * @param host
    * @param port
    */
+
+  async createPeerAndChannel(
+    amount: number,
+    pubkey: string,
+    host: string,
+    port: number,
+    channel_name: string,
+    push_msat: number,
+    wallet_name: string,
+    config_id: number
+  ) {
+    let peer_id: number | undefined;
+
+    try {
+      const result = await createNewPeer(host, port, pubkey);
+      peer_id = result.peer_id;
+    } catch (err) {
+      console.log(err);
+    }
+
+    console.log("Peer created, connected to", peer_id);
+
+    let channel_id: number | undefined;
+    try {
+      const result = await createNewChannel(
+        pubkey,
+        channel_name,
+        amount,
+        push_msat,
+        config_id,
+        wallet_name,
+        peer_id!
+      );
+      console.log(result);
+      channel_id = result.channel_id;
+    } catch (err) {
+      console.log(err);
+    }
+
+    console.log("Channel Created, connected to", channel_id);
+  }
 
   async connectToPeer(pubkeyHex: string, host: string, port: number) {
     console.log("Host: ", pubkeyHex, "@", host, ":", port);

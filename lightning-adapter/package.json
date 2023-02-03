@@ -14,6 +14,7 @@
     "@aguycalled/electrum-client-js": "^0.1.9",
     "async-mutex": "^0.3.2",
     "axios": "^1.2.2",
+    "bitcoinjs-lib": "^6.1.0",
     "body-parser": "^1.19.0",
     "bolt11": "^1.4.0",
     "cors": "^2.8.5",
@@ -38,7 +39,6 @@
     "tor-control": "0.0.3",
     "uuid": "^8.3.2",
     "websocket": "^1.0.34",
-    "winston": "^3.3.3",
-    "bitcoinjs-lib": "^6.1.0"
+    "winston": "^3.3.3"
   }
 }

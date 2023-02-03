@@ -1,4 +1,4 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
 
 router.post("/generate_invoice", async function (req, res) {
@@ -34,4 +34,4 @@ router.post("/receivePayment", async function (req, res) {
   // receive a payment
 });
 
-export default router
+export default router;

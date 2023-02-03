@@ -1,8 +1,6 @@
-import express from 'express'
-import db from '../../db/database.js';
-import { closeConnections } from '../utils/ldk-utils.js';
-
+import express from "express";
 const router = express.Router();
+import db from "../../db/database.js";
 
 router.get("/closeConnections", async function (req, res) {
   // Closing all connections
