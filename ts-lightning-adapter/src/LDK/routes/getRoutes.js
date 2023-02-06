@@ -17,7 +17,7 @@ router.get("/getWalletId/:name", (req, res) => {
       return;
     }
     if (row) {
-      res.json({ wallet_id: row.id });
+      res.status(200).json({ wallet_id: row.id });
     } else {
       res.status(404).json({ error: "Wallet not found" });
     }

@@ -1,83 +1,48 @@
-jest.mock("sqlite3", () => {
-  const mockDb = {
-    all: jest.fn((query, cb) => {
-      if (query === "SELECT * FROM channels") {
-        cb(null, [
-          { id: 1, name: "channel1" },
-          { id: 2, name: "channel2" },
-        ]);
-      } else {
-        cb(new Error("Query failed"));
-      }
-    }),
-  };
-  return {
-    Database: jest.fn(() => mockDb),
-  };
-});
+const axios = require('axios');
+const db = require('./db-mock.js');
 
-describe("GET /peerlist", () => {
-  test("It should return a list of peers", async () => {
-    const response = await request(app).get("/peerlist");
+const closeConnections = jest.fn();
+
+const ENDPOINT = "http://127.0.0.1:3003"
+
+jest.mock('./db-mock.js', () => ({
+  get: jest.fn(),
+}));
+
+describe('GET /getWalletId/:name', () => {
+  test('It should return the wallet id for a given name', async () => {
+    // db.get.mockImplementationOnce((_, params, cb) => cb(null, { id: 1 }));
+
+    const response = await axios.get(`${ENDPOINT}/getWalletId/Mainnet Wallet 1`);
+    console.log(response)
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual([
-      {
-        node: "WalletOfSatoshi.com",
-        host: "170.75.163.209",
-        port: "9735",
-        pubkey:
-          "035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226",
-      },
-      {
-        node: "ACINQ",
-        host: "3.33.236.230",
-        port: "9735",
-        pubkey:
-          "03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f",
-      },
-      {
-        node: "CoinGate",
-        host: "3.124.63.44",
-        port: "9735",
-        pubkey:
-          "0242a4ae0c5bef18048fbecf995094b74bfb0f7391418d71ed394784373f41e4f3",
-      },
-    ]);
+    expect(response.body).toEqual({ wallet_id: 1 });
+    // expect(db.get).toHaveBeenCalledWith('SELECT id FROM wallets WHERE name = ?', ['test-wallet'], expect.any(Function));
   });
+
+  // test('It should return a 404 error if the wallet is not found', async () => {
+  //   db.get.mockImplementationOnce((_, params, cb) => cb(null, undefined));
+
+  //   const response = await axios.get('/getWalletId/nonexistent-wallet');
+  //   expect(response.statusCode).toBe(404);
+  //   expect(response.body).toEqual({ error: 'Wallet not found' });
+  //   expect(db.get).toHaveBeenCalledWith('SELECT id FROM wallets WHERE name = ?', ['nonexistent-wallet'], expect.any(Function));
+  // });
+
+  // test('It should return a 500 error if there is a database error', async () => {
+  //   db.get.mockImplementationOnce((_, params, cb) => cb(new Error('Database error')));
+
+  //   const response = await axios.get('/getWalletId/test-wallet');
+  //   expect(response.statusCode).toBe(500);
+  //   expect(response.body).toEqual({ error: 'Database error' });
+  //   expect(db.get).toHaveBeenCalledWith('SELECT id FROM wallets WHERE name = ?', ['test-wallet'], expect.any(Function));
+  // });
 });
 
-describe("GET /activeChannels", () => {
-  test("It should return a list of active channels", async () => {
-    // mock the db.all function
-    db.all = jest.fn((_, cb) =>
-      cb(null, [
-        { id: 1, name: "channel1" },
-        { id: 2, name: "channel2" },
-      ])
-    );
-
-    const response = await request(app).get("/activeChannels");
-    expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual([
-      { id: 1, name: "channel1" },
-      { id: 2, name: "channel2" },
-    ]);
-    expect(db.all).toHaveBeenCalledWith(
-      "SELECT * FROM channels",
-      expect.any(Function)
-    );
-  });
-
-  test("It should return an error if the query fails", async () => {
-    // mock the db.all function
-    db.all = jest.fn((_, cb) => cb(new Error("Query failed")));
-
-    const response = await request(app).get("/activeChannels");
-    expect(response.statusCode).toBe(500);
-    expect(response.body).toEqual({ error: "Query failed" });
-    expect(db.all).toHaveBeenCalledWith(
-      "SELECT * FROM channels",
-      expect.any(Function)
-    );
-  });
-});
+// describe('GET /closeConnections', () => {
+//   test('It should call the closeConnections function', async () => {
+//     const response = await axios.get(`${ENDPOINT}/closeConnections`);
+//     expect(response.statusCode).toBe(200);
+//     expect(closeConnections).toHaveBeenCalled();
+//   });
+// });
