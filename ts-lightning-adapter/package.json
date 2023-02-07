@@ -16,7 +16,6 @@
     ]
   },
   "scripts": {
-    "dev": "ts-node-dev --respawn --pretty --transpile-only src/server.mts",
     "start": "node --loader ts-node/esm ./src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -57,7 +56,6 @@
     "esm": "^3.2.25",
     "express": "^4.17.3",
     "fs": "0.0.1-security",
-    "ldk-wrapper": "file:./ldk-wrapper",
     "lightningdevkit": "^0.0.11-2.0",
     "nanoid": "^4.0.0",
     "netcat": "^1.5.0",
