@@ -1,10 +1,8 @@
 // handle all peer logic on server
-import db from '../../db/database.js';
-import express from 'express';
-import { getLDKClient } from "../init/importLDK.js";
+import db from "../db/database.js";
+import express from "express";
+import { getLDKClient } from "../LDK/init/importLDK.js";
 const router = express.Router();
-
-
 
 router.post("/connectToPeer", (req, res) => {
   const { amount, channelType, pubkey, host, port } = req.body;
@@ -102,4 +100,4 @@ router.get("/peers", async function (req, res) {
   });
 });
 
-export default router
+export default router;
