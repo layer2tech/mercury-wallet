@@ -241,7 +241,8 @@ Electrum Client Functions
     pubkey: Uint8Array,
     amount: number,
     push_msat: number,
-    channelId: number
+    channelId: number,
+    override_config: UserConfig
   ) {
     await this.setBlockHeight();
     await this.setLatestBlockHeader(this.blockHeight);
@@ -258,7 +259,7 @@ Electrum Client Functions
         channelValSatoshis,
         pushMsat,
         userChannelId,
-        this.config
+        override_config
       );
     } catch (e) {
       if (pubkey.length !== 33) {
