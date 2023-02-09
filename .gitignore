@@ -20,3 +20,4 @@ tor-adapter-log/
 i2p/
 
 lightning.db
+lightning-mock.db

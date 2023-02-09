@@ -10,10 +10,6 @@ const router = express.Router();
 router.get("/LDKChannels", async function (req, res) {
   const channels: any = getLDKClient().getChannels();
 
-<<<<<<< HEAD:ts-lightning-adapter/src/LDK/routes/channelRoutes.ts
-  if (channels && channels.length > 0) {
-    console.log(channels[0].get_channel_id());
-=======
   let activeChannels = getLDKClient().getActiveChannels();
   console.log("active channels:", activeChannels);
 
@@ -26,7 +22,6 @@ router.get("/LDKChannels", async function (req, res) {
       "bitcoin.script",
       bitcoin.script.compile(Buffer.from(channels[0].get_channel_id()))
     );
->>>>>>> 11afebffbc501d64f1e05bad931abd69fc103895:ts-lightning-adapter/src/LDK/routes/channelRoutes.js
 
     res.json({
       channelId: channels[0].get_channel_id().toString(),
@@ -148,7 +143,6 @@ router.get("/loadChannels/walletName/:name", (req, res) => {
 router.post("/createChannel", async (req, res) => {
   // use LDK.createChannel and insert into db to persist it
 
-<<<<<<< HEAD:ts-lightning-adapter/src/LDK/routes/channelRoutes.ts
   const { pubkey, name, amount, push_msat, config_id, wallet_name, peer_id } =
     req.body;
   try {
@@ -157,34 +151,6 @@ router.post("/createChannel", async (req, res) => {
   } catch (error: any) {
     res.status(error.status).json(error);
   }
-=======
-  const pubkeyHex =
-    "031b9eeb5f23939ed0565f49a1343b26a948a3486ae48e7db5c97ebb2b93fc8c1d";
-
-  /*  
-  const pubkey = new Uint8Array(
-    pubkeyHex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-  );*/
-
-  /*
-  const { name, amount, push_msat, user_id, config_id, wallet_id, peer_id } =
-    req.body;
-  const insertData = `INSERT INTO channels (name, amount, push_msat, user_id, config_id, wallet_id, peer_id) VALUES (?,?,?,?,?,?,?)`;
-  let channelId;
-  db.run(
-    insertData,
-    [name, amount, push_msat, user_id, config_id, wallet_id, peer_id],
-    function (err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      channelId = this.lastID;
-      getLDKClient().createChannel(pubkey, amount, push_msat, channelId);
-      res.json({ message: "Channel saved successfully", id: channelId });
-    }
-  );*/
->>>>>>> 11afebffbc501d64f1e05bad931abd69fc103895:ts-lightning-adapter/src/LDK/routes/channelRoutes.js
 });
 
 router.put("/updateChannel/:id", (req, res) => {

@@ -13,6 +13,9 @@ jest.mock('../../LDK/init/importLDK', () => {
             get_channel_type: jest.fn(() => 'public'),          
           }];
         }),
+        getActiveChannels: jest.fn(() => {
+          return [];
+        })
       };
     }),
   };
