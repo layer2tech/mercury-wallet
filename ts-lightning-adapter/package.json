@@ -56,7 +56,7 @@
     "esm": "^3.2.25",
     "express": "^4.17.3",
     "fs": "0.0.1-security",
-    "lightningdevkit": "^0.0.11-2.0",
+    "lightningdevkit": "^0.0.11-3.0",
     "nanoid": "^4.0.0",
     "netcat": "^1.5.0",
     "node-fetch": "^3.3.0",
