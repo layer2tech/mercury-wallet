@@ -16,6 +16,8 @@ import "./DepositLightning.css";
 
 // move this to use the http client
 import axios from "axios";
+import { callCreateChannel, callGetNextBtcAddress, setError } from "../../features/WalletDataSlice";
+import { useDispatch } from "react-redux";
 
 export const CHANNEL_TYPE = {
   PUBLIC: "Public",
@@ -23,6 +25,7 @@ export const CHANNEL_TYPE = {
 };
 
 const DepositLightning = (props) => {
+  const dispatch = useDispatch();
   const [inputAmt, setInputAmt] = useState("");
 
   const [inputNodeId, setInputNodeId] = useState("");
@@ -31,28 +34,48 @@ const DepositLightning = (props) => {
 
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
 
-  const createChannel = () => {
+  const createChannel = async () => {
+    if( inputAmt < 1){
+      dispatch(setError({ msg: "The amount you have selected is below the minimum limit ( 1mBTC ). Please increase the amount to proceed with the transaction." }))
+      return
+    }
+
+    // const [, pubkey, host, port] = inputNodeId.match(
+    //   /^([0-9a-f]+)@([^:]+):([0-9]+)$/i
+    //   );
+    // console.log('PubKey: ', pubkey);
+    // console.log('Host: ', host);
+    // console.log('Port: ', port);
+
+    // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
+
+    let nextAddress = await callCreateChannel(inputAmt);
+    
     let newInvoice = {
-      amt: inputAmt,
-      addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs",
+      amt: mBTCtoBTC(inputAmt),
+      addr: nextAddress,
     };
     setInvoice(newInvoice);
-
-    const [, pubkey, host, port] = inputNodeId.match(
-      /^([0-9a-f]+)@([^:]+):([0-9]+)$/i
-    );
-
-    axios
-      .post("http://localhost:3003/connectToPeer", {
-        amount: inputAmt,
-        channelType,
-        pubkey,
-        host,
-        port,
-      })
-      .then((res) => console.log(res))
-      .catch((err) => console.log(err));
+    
   };
+
+  const mBTCtoBTC = (mBTC) => {
+    return mBTC * ( 10**-3 )
+  }
+  
+  // const [, pubkey, host, port] = inputNodeId.match(
+  //   /^([0-9a-f]+)@([^:]+):([0-9]+)$/i
+  // );
+  //    axios
+  // .post("http://localhost:3003/connectToPeer", {
+  //   amount: inputAmt,
+  //   channelType,
+  //   pubkey,
+  //   host,
+  //   port,
+  // })
+  // .then((res) => console.log(res))
+  // .catch((err) => console.log(err));
 
   const toggleChannelType = () => {
     setChannelType(
@@ -88,7 +111,7 @@ const DepositLightning = (props) => {
                       <img type="button" src={copy_img} alt="icon" />
                     </CopiedButton>
                     <span className="long">
-                      <b>bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs</b>
+                      <b>{invoice.addr}</b>
                     </span>
                   </>
                 </div>
@@ -113,7 +136,7 @@ const DepositLightning = (props) => {
               inputAddr={inputAmt}
               onChange={(e) => setInputAmt(e.target.value)}
               placeholder="Enter amount"
-              smallTxtMsg="Amount in SATS"
+              smallTxtMsg="Amount in mBTC"
             />
           </div>
           <div>
