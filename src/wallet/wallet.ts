@@ -80,6 +80,7 @@ import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
 import { LDKClient, LIGHTNING_POST_ROUTE } from "./ldk_client";
+import { Channel, ChannelInfo, ChannelList } from "./channel";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -144,17 +145,6 @@ export interface Warning {
   show: boolean;
 }
 
-export interface Channel {
-  id: string;
-  name: string;
-  amount: Number;
-  push_msat: Number;
-  user_id: string;
-  config_id: string;
-  wallet_id: string;
-  peer_id: string;
-}
-
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -165,7 +155,7 @@ export class Wallet {
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
-  channels: Channel[];
+  channels: ChannelList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
   electrum_client:
@@ -210,7 +200,7 @@ export class Wallet {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
-    this.channels = [];
+    this.channels = new ChannelList();
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
@@ -374,7 +364,7 @@ export class Wallet {
       invoice_expiry_secs: invoiceExpirysecs,
       description: description,
     };
-    return this.lightning_client.post(LIGHTNING_POST_ROUTE.GENERATE_INVOICE, invoice_config);
+    return LDKClient.post(LIGHTNING_POST_ROUTE.GENERATE_INVOICE, invoice_config);
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -662,8 +652,105 @@ export class Wallet {
     this.clearFundingOutpointMap();
   }
 
-  async saveChannels(channels: Channel[]) {
-    this.channels = channels;
+  saveChannels(channels: ChannelInfo[]) {
+    // TO DO:
+    // Need to map channelInfo from API to correct channel saved in wallet
+    // Need an ID saved that matches to ChannelInfo to ChannelFunding
+    
+    channels.map( ( channel ) => {
+
+    })
+  }
+
+  async createChannel(amount: number ){
+
+    let addr = this.account.nextChainAddress(1);
+    log.debug("Gen BTC address: " + addr);
+    await this.saveKeys();
+
+    let proof_key = this.getBIP32forBtcAddress(addr);
+
+    this.channels.addChannel(proof_key.publicKey.toString("hex") ,addr, amount, this.version);
+
+    
+    // TO DO: save channels data to file
+
+    // this.electrum_client
+    //   .getScriptHashListUnspent(addr) // check script type correct
+    //   .then(async (funding_tx_data: Array<any>) => {
+    //   for (let i = 0; i < funding_tx_data.length; i++) {
+    //     // Verify amount of tx. Ignore if mock electrum
+    //     if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
+    //       log.error(
+    //         "Funding tx for p_addr " +
+    //           addr +
+    //           " has value " +
+    //           funding_tx_data[i].value +
+    //           " expected " +
+    //           value +
+    //           "."
+    //       );
+    //       log.error(
+    //         "Setting value of statecoin to " + funding_tx_data[i].value
+    //       );
+    //       let statecoin = this.statecoins.getCoin(shared_key_id);
+    //       statecoin!.value = funding_tx_data[i].value;
+    //     }
+    //     // check if coin txid has changed (due to RBF)
+    //     let coin = this.statecoins.getCoin(shared_key_id);
+    //     if (coin!.backup_confirm) {
+    //       if (coin) {
+    //         if (
+    //           coin.funding_txid != funding_tx_data[i].tx_hash &&
+    //           coin.value == funding_tx_data[i].value
+    //         ) {
+    //           coin.tx_backup = null;
+    //           coin.backup_confirm = false;
+    //         }
+    //       }
+    //     }
+    //     if (!funding_tx_data[i].height) {
+    //       if (
+    //         this.statecoins.setCoinInMempool(
+    //           shared_key_id,
+    //           funding_tx_data[i]
+    //         ) === true
+    //       ) {
+    //         log.info(
+    //           "Found funding tx for p_addr " +
+    //             p_addr +
+    //             " in mempool. txid: " +
+    //             funding_tx_data[i].tx_hash
+    //         );
+    //         if (coin != null) {
+    //           await this.saveStateCoin(coin);
+    //         }
+    //       }
+    //     } else {
+    //       log.info(
+    //         "Funding tx for p_addr " +
+    //           p_addr +
+    //           " mined. Height: " +
+    //           funding_tx_data[i].height
+    //       );
+    //       // Set coin UNCONFIRMED.
+    //       this.statecoins.setCoinUnconfirmed(
+    //         shared_key_id,
+    //         funding_tx_data[i]
+    //       );
+    //       if (coin != null) {
+    //         await this.saveStateCoin(coin);
+    //       }
+    //       // No longer need subscription
+    //       this.electrum_client.scriptHashUnsubscribe(p_addr_script);
+    //     }
+    //   }
+    // });
+
+
+    console.log('Check Channel Create Correctly: ', this.channels);
+
+    return addr;
   }
 
   async saveActivityLog() {
@@ -705,8 +792,8 @@ export class Wallet {
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
-    let channels = await fetchChannels(wallet.name);
-    wallet.saveChannels(channels);
+    let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
+    wallet.saveChannels(channelsInfo);
     wallet.setActive();
     return wallet;
   }
@@ -726,7 +813,7 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
-    let channels = await fetchChannels(wallet.name);
+    let channels = await wallet.lightning_client.getChannels(wallet.name);
     wallet.saveChannels(channels);
     await wallet.save();
     wallet.setActive();
@@ -2979,24 +3066,6 @@ export const getXpub = (mnemonic: string, network: Network) => {
 
   return node.neutered().toBase58();
 };
-
-export const fetchChannels = async (wallet_name: string) => {
-  let channels: Channel[] = [];
-  let res = await axios.get(`http://localhost:3003/channel/loadChannels/walletName/${wallet_name}`)
-    res.data.map((row: any) => {
-      channels.push({
-        id: row.id,
-        name: row.name,
-        amount: row.amount,
-        push_msat: row.push_msat,
-        user_id: row.user_id,
-        config_id: row.config_id,
-        wallet_id: row.wallet_id,
-        peer_id: row.peer_id
-      })
-    })
-    return channels;
-}
 
 export const deleteChannel = (channel_id: Number) => {
   axios.delete(`http://localhost:3003/channel/deleteChannel/${channel_id}`)

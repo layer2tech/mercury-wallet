@@ -179,9 +179,16 @@ export const updateChannels = (channels) => {
   }
 }
 
+export const callGetChannels = async (wallet_name) => {
+  if(isWalletLoaded()){
+    return await wallet.lightning_client.getChannels(wallet_name);
+  }
+}
+
 export const getTotalChannelBalance = () => {
   if (isWalletLoaded()) {
-    return wallet.channels.reduce((sum, currentItem) => sum + currentItem.amount, 0);
+
+    return wallet.channels.getTotalChannelBalance();
   }
 }
 
@@ -483,7 +490,7 @@ export const callSumStatecoinValues = (shared_key_ids) => {
 
 export const getChannels = () => {
   if (isWalletLoaded()) {
-    return wallet.channels;
+    return wallet.channels.channels;
   }
 }
 
@@ -598,6 +605,13 @@ export const callGetCoinBackupTxData = (shared_key_id) => {
     return wallet.getCoinBackupTxData(shared_key_id);
   }
 };
+export const callGetNextBtcAddress = async () => {
+  if (isWalletLoaded()) {
+    return await wallet.genBtcAddress();
+  }
+}
+
+
 export const callGetSeAddr = (addr_index) => {
   if (isWalletLoaded() && addr_index >= 0) {
     return wallet.getSEAddress(addr_index);
@@ -880,6 +894,13 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
     );
   }
 };
+
+export const callCreateChannel = async (amount) => {
+  // Creates channel object in wallet.channels and returns address for funding
+  if(isWalletLoaded()){
+    return await wallet.createChannel(amount)
+  }
+}
 
 export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) => {
   // Pre action confirmation checks for withdrawal - return true to prevent action

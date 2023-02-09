@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import Channel from "./Channel";
 import {useSelector, useDispatch} from 'react-redux';
-import  { updateBalanceInfo, getTotalChannelBalance, updateChannels, setIntervalIfOnline, getWalletName } from '../../features/WalletDataSlice';
+import  { updateBalanceInfo, getTotalChannelBalance, updateChannels, setIntervalIfOnline, getWalletName, callGetChannels } from '../../features/WalletDataSlice';
 import EmptyChannelDisplay from './EmptyChannelDisplay/EmptyChannelDisplay';
-import { fetchChannels } from "../../wallet/wallet";
+
+
 
 
 const ChannelList = (props) => {
@@ -27,7 +28,7 @@ const ChannelList = (props) => {
 
     const updateChannelsInfo = async () => {
         let channelsLoaded;
-        channelsLoaded = await fetchChannels(getWalletName());
+        channelsLoaded = await callGetChannels(getWalletName());
         if (JSON.stringify(channelsLoaded) !== JSON.stringify(channels)) {
             updateChannels(channelsLoaded);
             setChannels(channelsLoaded);
