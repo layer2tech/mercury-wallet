@@ -46,6 +46,7 @@ app.listen(PORT, async () => {
 
   // const LightningClient = getLDKClient();
 
+<<<<<<< HEAD
   // await LightningClient.start();
   // //025817585dc79c2fff719e764e30fdc28a5bda9d03e11a56b155bc4a243264d7cb@127.0.0.1:9937
   // let pubkeyHex =
@@ -55,6 +56,17 @@ app.listen(PORT, async () => {
 
   // //022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493@127.0.0.1:9936
   // // 022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493@127.0.0.1:9936
+=======
+  await LightningClient.start();
+  //025817585dc79c2fff719e764e30fdc28a5bda9d03e11a56b155bc4a243264d7cb@127.0.0.1:9937
+  let pubkeyHex =
+    "039927ed52e4cdcd215e1a806b3eb00af3c3ba6c89543bba508a85b326efe125db";
+  let hostname = "127.0.0.1";
+  let port = 9735;
+
+  //022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493@127.0.0.1:9936
+  // 039927ed52e4cdcd215e1a806b3eb00af3c3ba6c89543bba508a85b326efe125db@127.0.0.1:9735
+>>>>>>> 11afebffbc501d64f1e05bad931abd69fc103895
 
   // //@127.0.0.1:9737
   // //02bba84e9fb2a28a7763ccd1865a09e09606cd2a1f23669a9ff764237a2e25afa1@127.0.0.1:9735

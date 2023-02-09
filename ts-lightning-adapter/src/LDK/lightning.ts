@@ -229,6 +229,14 @@ Electrum Client Functions
     return this.channelManager.list_channels();
   }
 
+  getActiveChannels() {
+    return this.channelManager.list_usable_channels();
+  }
+
+  getTxBroadCaster() {
+    return this.txBroadcasted;
+  }
+
   async createChannel(
     pubkey: Uint8Array,
     amount: number,
