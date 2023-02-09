@@ -1,6 +1,6 @@
-import { getLDKClient } from "../init/importLDK.js";
-import db from "../../db/database.js";
-import { hexToUint8Array } from "./utils.js";
+import { getLDKClient } from "../init/importLDK";
+import db from "../../db/db";
+import { hexToUint8Array } from "./utils";
 
 export const closeConnections = () => {
     console.log("Closing all the connections")

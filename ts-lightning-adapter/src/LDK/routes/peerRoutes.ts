@@ -1,9 +1,9 @@
 // handle all peer logic on server
 import express from "express";
 const router = express.Router();
-import db from "../../db/database.js";
-import { getLDKClient } from "../../LDK/init/importLDK.ts";
-import { createNewPeer } from "../../LDK/utils//ldk-utils.ts";
+import db from "../../db/db";
+import { getLDKClient } from "../../LDK/init/importLDK";
+import { createNewPeer } from "../../LDK/utils/ldk-utils";
 
 router.post("/connectToPeer", (req, res) => {
   const { amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id } = req.body;
@@ -12,7 +12,7 @@ router.post("/connectToPeer", (req, res) => {
   getLDKClient().createPeerAndChannel(amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id);
   //getLDKClient().connectToPeer(pubkey, host, port);
 
-  res.send({ status: "success" });
+  res.status(200).json({ message: "Connected to peer, Channel created" });
 });
 
 router.post("/newPeer", async (req, res) => {
@@ -20,7 +20,7 @@ router.post("/newPeer", async (req, res) => {
   try {
     const result = await createNewPeer(host, port, pubkey);
     res.status(result.status).json(result);
-  } catch (error) {
+  } catch (error: any) {
     res.status(error.status).json(error);
   }
 });
@@ -29,7 +29,7 @@ router.post("/newPeer", async (req, res) => {
 router.get("/getPeer/:peer_id", (req, res) => {
   const peer_id = req.params.peer_id;
   const selectData = "SELECT node, pubkey, host, port FROM peers WHERE id = ?";
-  db.get(selectData, [peer_id], (err, row) => {
+  db.get(selectData, [peer_id], (err: any, row: any) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -75,7 +75,7 @@ router.get("/peerlist", async function (req, res) {
 });
 
 router.get("/peers", async function (req, res) {
-  db.all("SELECT * FROM peers", (err, rows) => {
+  db.all("SELECT * FROM peers", (err: any, rows: any) => {
     if (err) {
       throw err;
     }

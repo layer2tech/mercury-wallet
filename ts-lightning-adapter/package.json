@@ -38,8 +38,8 @@
   },
   "scripts": {
     "dev": "ts-node-dev --respawn --pretty --transpile-only src/server.mts",
-    "start": "node --loader ts-node/esm ./src/server.ts",
-    "test": "jest"
+    "start": "node --loader ts-node/esm --experimental-specifier-resolution=node ./src/server.ts",
+    "test": "node --loader ts-node/esm --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "moduleFileExtensions": [
     "js",
@@ -55,7 +55,10 @@
   "devDependencies": {
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.16",
+    "@types/node": "^18.13.0",
+    "@types/supertest": "^2.0.12",
     "express": "^4.18.2",
+    "ts-jest": "^29.0.5",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
@@ -64,10 +67,8 @@
   },
   "dependencies": {
     "@types/express": "^4.17.6",
-    "@types/node": "^14.14.18",
     "async-mutex": "^0.3.2",
     "axios": "^1.2.2",
-    "body-parser": "^1.19.0",
     "bolt11": "^1.4.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -89,6 +90,7 @@
     "request-promise": "^4.2.6",
     "socks-proxy-agent": "^5.0.0",
     "sqlite3": "^5.1.4",
+    "supertest": "^6.3.3",
     "tiny-secp256k1": "^2.2.1",
     "tor-control": "0.0.3",
     "ts-node": "^10.1.0",

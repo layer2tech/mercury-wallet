@@ -1,16 +1,14 @@
 import express from "express";
-import db from "../../db/database.js";
-import { getLDKClient } from "../init/importLDK.js";
-import { createNewChannel } from "../../LDK/utils//ldk-utils.ts";
+import db from "../../db/db";
+import { getLDKClient } from "../init/importLDK";
+import { createNewChannel } from "../../LDK/utils/ldk-utils";
 
 const router = express.Router();
 
 router.get("/LDKChannels", async function (req, res) {
-  const channels = getLDKClient().getChannels();
+  const channels: any = getLDKClient().getChannels();
 
-  console.log(channels);
-
-  if (channels.length > 0) {
+  if (channels && channels.length > 0) {
     console.log(channels[0].get_channel_id());
 
     res.json({
@@ -80,7 +78,7 @@ router.get("/LDKChannels", async function (req, res) {
 */
 
 router.get("/activeChannels", async function (req, res) {
-  db.all("SELECT * FROM channels", (err, rows) => {
+  db.all("SELECT * FROM channels", (err: any, rows: any) => {
     if (err) {
       throw err;
     }
@@ -92,12 +90,16 @@ router.get("/activeChannels", async function (req, res) {
 router.get("/loadChannels/:wallet_id", (req, res) => {
   const wallet_id = req.params.wallet_id;
   const selectData = "SELECT * FROM channels WHERE wallet_id = ?";
-  db.all(selectData, [wallet_id], (err, rows) => {
+  db.all(selectData, [wallet_id], (err: any, rows: any) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(rows);
+    if (rows && rows.length > 0) {
+      res.json(rows);
+    } else {
+      res.status(404).json({ error: "Channel not found" });
+    }
   });
 });
 
@@ -105,7 +107,7 @@ router.get("/loadChannels/:wallet_id", (req, res) => {
 router.get("/loadChannels/walletName/:name", (req, res) => {
   const name = req.params.name;
   const selectId = "SELECT id FROM wallets WHERE name = ?";
-  db.get(selectId, [name], (err, row) => {
+  db.get(selectId, [name], (err: any, row: any) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -113,7 +115,7 @@ router.get("/loadChannels/walletName/:name", (req, res) => {
     if (row) {
       const wallet_id = row.id;
       const selectChannels = "SELECT * FROM channels WHERE wallet_id = ?";
-      db.all(selectChannels, [wallet_id], (err, rows) => {
+      db.all(selectChannels, [wallet_id], (err: any, rows: any) => {
         if (err) {
           res.status(500).json({ error: err.message });
           return;
@@ -134,7 +136,7 @@ router.post("/createChannel", async (req, res) => {
   try {
     const result = await createNewChannel(pubkey, name, amount, push_msat, config_id, wallet_name, peer_id);
     res.status(result.status).json(result);
-  } catch (error) {
+  } catch (error: any) {
     res.status(error.status).json(error);
   }
 });
@@ -146,7 +148,7 @@ router.put("/updateChannel/:id", (req, res) => {
   db.run(
     updateData,
     [name, amount, push_msat, config_id, wallet_id, req.params.id],
-    function (err) {
+    function (err: any) {
       if (err) {
         res.status(500).json({ error: err.message });
         return;
@@ -159,7 +161,7 @@ router.put("/updateChannel/:id", (req, res) => {
 router.delete("/deleteChannel/:id", (req, res) => {
   // delete channel by id
   const deleteData = `DELETE FROM channels WHERE id=?`;
-  db.run(deleteData, [req.params.id], function (err) {
+  db.run(deleteData, [req.params.id], function (err: any) {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
