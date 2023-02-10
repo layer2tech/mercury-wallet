@@ -918,8 +918,6 @@ export const checkChannelCreation = (dispatch, amount, nodekey) => {
     return true;
   }
   if (!isValidNodeKeyAddress(nodekey)){
-    console.log(!isValidNodeKeyAddress(nodekey))
-    console.log(nodekey)
     dispatch(setError({ msg: "Please enter a valid nodekey address " }));
     return true;
   }
