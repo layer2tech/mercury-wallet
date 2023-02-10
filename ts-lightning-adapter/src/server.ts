@@ -33,8 +33,42 @@ app.use("/channel", channelRoutes);
 app.listen(PORT, async () => {
   console.log(`lightning-adapter listening at http://localhost:${PORT}`);
 
-  // moved to debug_lightning.ts file
-  debug_lightning();
+  await initialiseWasm();
+
+  console.log("import LDK");
+
+  await importLDK("dev");
+  console.log("finisehd import LDK");
+
+  const LightningClient = getLDKClient();
+
+  await LightningClient.start();
+  //025817585dc79c2fff719e764e30fdc28a5bda9d03e11a56b155bc4a243264d7cb@127.0.0.1:9937
+  let pubkeyHex =
+    "022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493";
+  let hostname = "127.0.0.1";
+  let port = 9936;
+
+  // 022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493@127.0.0.1:9936
+
+  // 0230a618e3676637655be3e99d963a4a7ca933e145283c28e76f2714520e11af53@127.0.0.1:9737
+  // 02bba84e9fb2a28a7763ccd1865a09e09606cd2a1f23669a9ff764237a2e25afa1@127.0.0.1:9735
+
+  //022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493@127.0.0.1:9936
+  // 022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493@127.0.0.1:9936
+
+  //@127.0.0.1:9737
+  //02bba84e9fb2a28a7763ccd1865a09e09606cd2a1f23669a9ff764237a2e25afa1@127.0.0.1:9735
+
+  console.log("Connect to Peer");
+  await LightningClient.connectToPeer(pubkeyHex, hostname, port);
+
+  let pubkey = hexToUint8Array(pubkeyHex);
+
+  console.log("Connect to channel");
+  if (pubkey) {
+    await LightningClient.createChannel(pubkey, 100000, 0, 1);
+  }
 });
 
 // Exit handlers
