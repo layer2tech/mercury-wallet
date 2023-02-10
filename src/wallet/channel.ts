@@ -15,18 +15,31 @@ export class ChannelList {
             funding_vout: null,
             addr: funding_addr,
             block: null,
-            withdrawalTx: null
+            withdrawalTx: null,
+            value: null
         }
 
         let newChannel: Channel = {
             wallet_version: wallet_version,
             info: null,
             funding: newChannelFunding,
+            amount: amount,
             status: CHANNEL_STATUS.INITIALISED
         }
         
         this.channels.push(newChannel);
 
+    }
+
+    addChannelFunding(txid: string, vout: number, addr: string, block: number, value: number){
+        let channelFund = this.channels.filter((channel) => channel.funding?.addr === addr);
+        
+        if(channelFund[0].funding){
+            channelFund[0].funding.funding_txid = txid;
+            channelFund[0].funding.funding_vout = vout;
+            channelFund[0].funding.block = block;
+            channelFund[0].funding.value = value
+        }
     }
 
     getTotalChannelBalance(){
@@ -51,6 +64,7 @@ export interface Channel {
     info: ChannelInfo | null;
     funding: ChannelFunding | null;
     status: CHANNEL_STATUS;
+    amount: number| null;
 }
 
 
@@ -72,6 +86,7 @@ export interface ChannelFunding {
     addr: string; // addr user sends funding to
     block: number | null;
     withdrawalTx: any | null; // add this type later - Information about if this tx is withdrawn i.e. unable to open channel
+    value: number | null;
 }
 
 // STATUS represent each stage in the lifecycle of a channel.

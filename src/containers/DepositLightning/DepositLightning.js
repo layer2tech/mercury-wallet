@@ -60,7 +60,7 @@ const DepositLightning = (props) => {
   };
 
   const mBTCtoBTC = (mBTC) => {
-    return mBTC * ( 10**-3 )
+    return mBTC * ( 10**-3 );
   }
   
   // const [, pubkey, host, port] = inputNodeId.match(
@@ -85,6 +85,11 @@ const DepositLightning = (props) => {
     );
   };
 
+  const copyAddressToClipboard = (event, address) => {
+    event.stopPropagation()
+    navigator.clipboard.writeText(address);
+  }
+
   return (
     <div className="container deposit-ln">
       <PageHeader
@@ -107,7 +112,7 @@ const DepositLightning = (props) => {
                 <img src={arrow_img} alt="arrow" />
                 <div className="deposit-scan-main-item">
                   <>
-                    <CopiedButton handleCopy={() => {}}>
+                    <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, invoice.addr)} >
                       <img type="button" src={copy_img} alt="icon" />
                     </CopiedButton>
                     <span className="long">
