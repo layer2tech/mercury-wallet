@@ -672,24 +672,74 @@ export class Wallet {
 
     this.channels.addChannel(proof_key.publicKey.toString("hex") ,addr, amount, this.version);
 
-    
+    let addr_script = bitcoin.address.toOutputScript(
+      addr,
+      this.config.network
+    );
+
+
+    log.info("Subscribed to script hash for p_addr: ", addr);
+
+    // then subscribe to electrum client to listen for TX - questioning whether this can be done using fork
+    this.electrum_client.scriptHashSubscribe(
+      addr_script,
+      async (_status: any) => {
+        log.info("Script hash status change for p_addr: ", addr);
+        console.log('BTC Received..');
+        console.log('Attempting to change the channel information...');
+
+        // Get p_addr list_unspent and verify tx
+        // await this.checkFundingTxListUnspent(
+        //   shared_key_id,
+        //   p_addr,
+        //   p_addr_script,
+        //   value
+        // );
+        console.log('Check Script hash unspent: ')
+        await this.electrum_client
+          .getScriptHashListUnspent(addr_script)
+          .then(async (funding_tx_data: Array<any>) => {
+            
+            // Need to save TX data - it had block, txid?, vout and value
+            console.log('Funding Tx Data: ',funding_tx_data);
+            let tx_data = funding_tx_data[0]
+            
+            let txid = tx_data.txid;
+            let vout = tx_data.vout;
+            let block = tx_data.block ? (tx_data.block ) : (null);
+            let value = tx_data.value;
+            
+            this.channels.addChannelFunding(txid, vout, addr, block, value)
+            
+            let bip32 = this.getBIP32forBtcAddress(addr);
+
+            // Need to unsubscribe onec work done
+            let prv_ikey = bip32.privateKey;
+
+          })
+
+
+      }
+    );
+
+
     // TO DO: save channels data to file
 
     // this.electrum_client
     //   .getScriptHashListUnspent(addr) // check script type correct
     //   .then(async (funding_tx_data: Array<any>) => {
     //   for (let i = 0; i < funding_tx_data.length; i++) {
-    //     // Verify amount of tx. Ignore if mock electrum
-    //     if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
-    //       log.error(
-    //         "Funding tx for p_addr " +
-    //           addr +
-    //           " has value " +
-    //           funding_tx_data[i].value +
-    //           " expected " +
-    //           value +
-    //           "."
-    //       );
+        // Verify amount of tx. Ignore if mock electrum
+        // if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
+        //   log.error(
+        //     "Funding tx for p_addr " +
+        //       addr +
+        //       " has value " +
+        //       funding_tx_data[i].value +
+        //       " expected " +
+        //       value +
+        //       "."
+        //   );
     //       log.error(
     //         "Setting value of statecoin to " + funding_tx_data[i].value
     //       );
@@ -710,12 +760,12 @@ export class Wallet {
     //       }
     //     }
     //     if (!funding_tx_data[i].height) {
-    //       if (
-    //         this.statecoins.setCoinInMempool(
-    //           shared_key_id,
-    //           funding_tx_data[i]
-    //         ) === true
-    //       ) {
+          // if (
+          //   this.statecoins.setCoinInMempool(
+          //     shared_key_id,
+          //     funding_tx_data[i]
+          //   ) === true
+          // ) {
     //         log.info(
     //           "Found funding tx for p_addr " +
     //             p_addr +
