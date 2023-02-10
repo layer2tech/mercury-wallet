@@ -7,12 +7,15 @@ import btc_img from "../../images/icon1.png";
 import arrow_img from "../../images/scan-arrow.png";
 import copy_img from "../../images/icon2.png";
 
-import { CopiedButton, AddressInput, CheckBox } from "../../components";
+import { CopiedButton, AddressInput, CheckBox, ConfirmPopup } from "../../components";
 import { fromSatoshi } from "../../wallet";
 import check from "../../images/icon-action-check_circle.png";
 import "../CreateWalletInfo/CreateWalletInfo.css";
 
 import "./DepositLightning.css";
+
+import { checkChannelCreation } from '../../features/WalletDataSlice';
+import { useDispatch } from 'react-redux';
 
 // move this to use the http client
 import axios from "axios";
@@ -23,6 +26,9 @@ export const CHANNEL_TYPE = {
 };
 
 const DepositLightning = (props) => {
+
+  const dispatch = useDispatch();
+
   const [inputAmt, setInputAmt] = useState("");
 
   const [inputNodeId, setInputNodeId] = useState("");
@@ -30,6 +36,8 @@ const DepositLightning = (props) => {
   const [invoice, setInvoice] = useState({});
 
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
+
+  const [loading, setLoading] = useState(false);
 
   const createChannel = () => {
     let newInvoice = {
@@ -134,13 +142,14 @@ const DepositLightning = (props) => {
           </div>
 
           <div>
+          <ConfirmPopup preCheck={checkChannelCreation} argsCheck={[dispatch, inputAmt, inputNodeId]} onOk = {createChannel} >
             <button
-              type="button"
-              className={`btn withdraw-button `}
-              onClick={createChannel}
-            >
-              Create Channel{" "}
+                type="button"
+                className={`btn deposit-button `}
+              >
+                {loading?(<Loading/>):("Create Channel")} 
             </button>
+          </ConfirmPopup>
           </div>
         </div>
       </div>

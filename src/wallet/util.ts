@@ -436,3 +436,8 @@ export const decryptAES = (encryption: EncryptionAES, password: string) => {
 
   return decrypted
 }
+
+export const isValidNodeKeyAddress = (nodeKeyAddress: string) => {
+  const regex = /^[0-9a-f]{66}@\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:(0|[1-9]\d{0,4}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$/;
+  return regex.test(nodeKeyAddress);
+}

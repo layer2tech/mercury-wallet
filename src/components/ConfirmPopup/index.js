@@ -72,6 +72,8 @@ const ConfirmPopup = ({
           "Confirm withdrawal. Withdrawal fee: " + withdraw_fee / 100 + "%"
         );
       }
+    } else if  (children.props.className.includes("deposit-button")) {
+      setCloseText("Are you sure, You want to create this channel?");
     } else if (swapRecords.length > 0) {
       setCloseText("Your swaps will be cancelled, are you sure?");
     } else {
