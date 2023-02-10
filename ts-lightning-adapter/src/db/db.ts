@@ -1,4 +1,4 @@
-import dbmock from './test/db-mock';
+import dbmock from '../../test/db-mock';
 import database from './database';
 
 let db: any;

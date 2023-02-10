@@ -1,7 +1,7 @@
 import express from "express";
-import db from "../../db/db";
-import { getLDKClient } from "../init/importLDK";
-import { createNewChannel } from "../../LDK/utils/ldk-utils";
+import db from "../db/db";
+import { getLDKClient } from "../LDK/init/importLDK";
+import { createNewChannel } from "../LDK/utils/ldk-utils";
 
 import * as bitcoin from "bitcoinjs-lib";
 

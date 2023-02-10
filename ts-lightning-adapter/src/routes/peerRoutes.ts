@@ -1,9 +1,9 @@
 // handle all peer logic on server
 import express from "express";
 const router = express.Router();
-import db from "../../db/db";
-import { getLDKClient } from "../../LDK/init/importLDK";
-import { createNewPeer } from "../../LDK/utils/ldk-utils";
+import db from "../db/db";
+import { getLDKClient } from "../LDK/init/importLDK";
+import { createNewPeer } from "../LDK/utils/ldk-utils";
 
 router.post("/connectToPeer", (req, res) => {
   const { amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id } = req.body;

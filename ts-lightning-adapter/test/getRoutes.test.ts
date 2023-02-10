@@ -1,8 +1,8 @@
 import request from 'supertest';
 import express from 'express';
-import router from '../../LDK/routes/getRoutes';
+import router from '../src/routes/getRoutes';
 
-jest.mock('../../LDK/utils/ldk-utils.ts', () => ({
+jest.mock('../src/LDK/utils/ldk-utils.ts', () => ({
   closeConnections: jest.fn(),
 }));
 

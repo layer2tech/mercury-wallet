@@ -1,8 +1,8 @@
 import request from 'supertest';
 import express from 'express';
-import router from '../../LDK/routes/channelRoutes';
+import router from '../src/routes/channelRoutes';
 
-jest.mock('../../LDK/init/importLDK', () => {
+jest.mock('../src/LDK/init/importLDK', () => {
   return {
     getLDKClient: jest.fn(() => {
       return {
@@ -21,7 +21,7 @@ jest.mock('../../LDK/init/importLDK', () => {
   };
 });
 
-jest.mock('../../LDK/utils/ldk-utils', () => {
+jest.mock('../src/LDK/utils/ldk-utils', () => {
   return {
     createNewChannel : jest.fn(() => {
       return Promise.resolve({ status: 201, message: 'Channel saved and created successfully' });
