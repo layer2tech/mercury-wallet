@@ -567,6 +567,7 @@ export const decryptAES = (encryption: EncryptionAES, password: string) => {
 };
 
 export const isValidNodeKeyAddress = (nodeKeyAddress: string) => {
-  const regex = /^[0-9a-f]{66}@\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:(0|[1-9]\d{0,4}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$/;
-  return regex.test(nodeKeyAddress);
+  const regexIPv4 = /^[0-9a-fA-F]{66}@\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:(0|[1-9]\d{0,4}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$/;
+  const regexIPv6 = /^([0-9a-fA-F]{66})@((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|([0-9a-fA-F]{66})@(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$/;
+  return regexIPv4.test(nodeKeyAddress) || regexIPv6.test(nodeKeyAddress);
 }

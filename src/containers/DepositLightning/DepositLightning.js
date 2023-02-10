@@ -128,7 +128,7 @@ const DepositLightning = (props) => {
             <AddressInput
               inputAddr={inputNodeId}
               onChange={(e) => setInputNodeId(e.target.value)}
-              placeholder="Node Key"
+              placeholder="pubkey@host:port"
               smallTxtMsg="Node Key"
             />
           </div>
