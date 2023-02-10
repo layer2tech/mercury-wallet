@@ -133,6 +133,7 @@
     "lodash.clonedeep": "^4.5.0",
     "mercury-wallet-tor-adapter": "file:./tor-adapter",
     "mercury-wallet-lightning-adapter": "file:./lightning-adapter",
+    "mercury-wallet-ts-lightning-adapter": "file:./ts-lightning-adapter",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
     "mutex-promise": "^0.1.0",

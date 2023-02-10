@@ -1,6 +1,6 @@
-import express from 'express'
-import db from '../../db/database.js';
-import { closeConnections } from '../utils/ldk-utils.js';
+import express from "express";
+import db from "../db/database.js";
+import { closeConnections } from "../LDK/utils/ldk-utils.js";
 
 const router = express.Router();
 

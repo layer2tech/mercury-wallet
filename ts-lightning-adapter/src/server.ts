@@ -1,18 +1,14 @@
 import express from "express";
 import cors from "cors";
-import path from "path";
 import bodyParser from "body-parser";
-import fs from "fs";
 
-import getRoutes from "./LDK/routes/getRoutes.js";
-import postRoutes from "./LDK/routes/postRoutes.js";
-import peerRoutes from "./LDK/routes/peerRoutes.js";
-import channelRoutes from "./LDK/routes/channelRoutes.js";
+import getRoutes from "./routes/getRoutes.js";
+import postRoutes from "./routes/postRoutes.js";
+import peerRoutes from "./routes/peerRoutes.js";
+import channelRoutes from "./routes/channelRoutes.js";
 
-import initialiseWasm from "./LDK/init/initialiseWasm.js";
-import { getLDKClient, importLDK } from "./LDK/init/importLDK.js";
 import { closeConnections } from "./LDK/utils/ldk-utils.js";
-import { hexToUint8Array } from "./LDK/utils/utils.js";
+import { debug_lightning } from "./debug_lightning.js";
 
 // Constants
 const PORT = 3003;

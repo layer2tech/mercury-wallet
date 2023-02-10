@@ -1,6 +1,6 @@
 import express from "express";
-import db from "../../db/database.js";
-import { getLDKClient } from "../init/importLDK.js";
+import db from "../db/database.js";
+import { getLDKClient } from "../LDK/init/importLDK.js";
 
 import * as bitcoin from "bitcoinjs-lib";
 

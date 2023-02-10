@@ -38,8 +38,9 @@ function getPlatform() {
 
 const isDev = (process.env.NODE_ENV == 'development');
 
-let ta_process = undefined
-let i2p_process = undefined
+let ta_process = undefined;
+let la_process = undefined;
+let i2p_process = undefined;
 let resourcesPath = undefined;
 let iconPath = undefined;
 let execPath = undefined;
@@ -62,7 +63,7 @@ if (isPackaged === true) {
   }
   torrc = joinPath(execPath, '..', 'etc', 'torrc');
   anon_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
-  lightning_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-lightning-adapter", "index.js");
+  lightning_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-ts-lightning-adapter","src", "server.ts");
   
 } else {
   resourcesPath = joinPath(rootPath, 'resources');
@@ -70,7 +71,7 @@ if (isPackaged === true) {
   iconPath = joinPath(rootPath, 'build', 'icons', 'mercury-symbol-tri-color.png');
   torrc = joinPath(resourcesPath, 'etc', 'torrc');
   anon_adapter_path = joinPath(rootPath, 'node_modules', 'mercury-wallet-tor-adapter','server', 'index.js');
-  lightning_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-lightning-adapter", "index.js");
+  lightning_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-ts-lightning-adapter", "src", "server.ts");
 }
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;
@@ -282,7 +283,7 @@ async function init_adapter() {
 
   let adapter_args = [ torrc, user_data_path ];
 
-  let tor_adapter_args = adapter_args
+  let tor_adapter_args = adapter_args;
   
   if (getPlatform() === 'win' ) {
     tor_adapter_args.push(`${joinPath(execPath, 'Data', 'Tor', 'geoip')}`);
@@ -300,7 +301,7 @@ async function init_adapter() {
       };
     }
   );
-  
+
   i2p_process = fork(`${anon_adapter_path}`, [i2p_cmd,...adapter_args],
     {
       detached: false,
@@ -316,16 +317,30 @@ async function init_adapter() {
 
 async function init_lightning_adapter() {
 
-  la_process = fork(lightning_adapter_path, ['start'],
-    {
-      detached: false,
-      stdio: 'ignore',
-    },
-    (error, stdout, _stderr) => {
-      if (error) {
-        app.exit(error);
-      };
-    }
+  // la_process = fork(lightning_adapter_path, ['start'],
+  //   {
+  //     detached: false,
+  //     stdio: 'ignore',
+  //   },
+  //   (error, stdout, _stderr) => {
+  //     if (error) {
+  //       app.exit(error);
+  //     };
+  //   }
+  // );
+  la_process = fork(lightning_adapter_path,
+  {
+    execArgv: ["--loader", "ts-node/esm"],
+    cwd: lightning_adapter_path.replace('/src/server.ts', "")
+  },
+  (error, stdout, _stderr) => {
+      err = error;
+      stdout1 = stdout; 
+      console.log('stdout: ', stdout);
+    if (error) {
+      
+    };
+  }
   );
 }
 
