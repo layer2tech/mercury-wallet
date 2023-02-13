@@ -18,6 +18,7 @@ import "./DepositLightning.css";
 import axios from "axios";
 import { callCreateChannel, callGetNextBtcAddress, setError } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
+import closeIcon from "../../images/close-icon.png";
 
 export const CHANNEL_TYPE = {
   PUBLIC: "Public",
@@ -85,6 +86,10 @@ const DepositLightning = (props) => {
     );
   };
 
+  const closeInvoice = () => {
+    setInvoice({});
+  }
+
   const copyAddressToClipboard = (event, address) => {
     event.stopPropagation()
     navigator.clipboard.writeText(address);
@@ -120,6 +125,12 @@ const DepositLightning = (props) => {
                     </span>
                   </>
                 </div>
+                <button
+                  className="primary-btm ghost"
+                  onClick={closeInvoice}
+                >
+                  <img src={closeIcon} alt="close-button" />
+                </button>
               </div>
             </div>
           </div>

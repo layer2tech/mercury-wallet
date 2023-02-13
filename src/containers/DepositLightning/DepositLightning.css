@@ -382,6 +382,12 @@ ol.go2441762052 {
     margin-top: 30px;
 }
 
+.primary-btm.ghost {
+    background-color: var(--container);
+    color: var(--button-main);
+    border: 1px solid rgba(0, 0, 0, 0.121569);
+}
+
 .go2067797667:before {
     color: var(--container) !important;
     height: 20px;
