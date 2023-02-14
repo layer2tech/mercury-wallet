@@ -1,3 +1,4 @@
+import { withRouter, Redirect} from "react-router-dom";
 import PageHeader from "../PageHeader/PageHeader";
 
 import { useState } from "react";
@@ -16,7 +17,12 @@ import "./DepositLightning.css";
 
 // move this to use the http client
 import axios from "axios";
-import { callCreateChannel, setError, getChannels, callDeleteChannel } from "../../features/WalletDataSlice";
+import { isWalletLoaded, 
+  callCreateChannel, 
+  setError, 
+  getChannels, 
+  callDeleteChannel 
+} from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
 import closeIcon from "../../images/close-icon.png";
 
@@ -111,6 +117,10 @@ const DepositLightning = (props) => {
     navigator.clipboard.writeText(address);
   }
 
+  if (!isWalletLoaded()) {
+    return <Redirect to="/" />;
+  }
+
   return (
     <div className="container deposit-ln">
       <PageHeader
@@ -203,4 +213,4 @@ const DepositLightning = (props) => {
   );
 };
 
-export default DepositLightning;
+export default withRouter(DepositLightning);
