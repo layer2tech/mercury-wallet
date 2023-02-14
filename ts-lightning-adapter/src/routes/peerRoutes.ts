@@ -42,8 +42,7 @@ router.get("/getPeer/:peer_id", (req, res) => {
   });
 });
 
-// get the peerlist that's already stored in the database so client can quickly re pick them and so other routes can have access
-router.get("/peerlist", async function (req, res) {
+router.get("/default_peerlist", async function (req, res) {
   // sample public list
   let data = [
     {
@@ -74,6 +73,7 @@ router.get("/peerlist", async function (req, res) {
   res.status(200).json(data);
 });
 
+// get the peerlist that's stored in the database
 router.get("/peers", async function (req, res) {
   db.all("SELECT * FROM peers", (err: any, rows: any) => {
     if (err) {

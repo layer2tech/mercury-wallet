@@ -14,9 +14,9 @@ router.post("/generate_invoice", async function (req, res) {
     //   invoice_config.description
     // );
     // log("info", `Generating Invoice`);
-    let response = invoice;
-    console.log(response);
-    res.status(200).json(response);
+    //let response = invoice;
+    //console.log(response);
+    //res.status(200).json(response);
   } catch (err) {
     const err_msg = `Bad request: ${err}`;
     console.log(err_msg);
