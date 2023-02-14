@@ -149,7 +149,6 @@ export interface Channel {
   name: string;
   amount: Number;
   push_msat: Number;
-  user_id: string;
   config_id: string;
   wallet_id: string;
   peer_id: string;
@@ -2989,7 +2988,6 @@ export const fetchChannels = async (wallet_name: string) => {
         name: row.name,
         amount: row.amount,
         push_msat: row.push_msat,
-        user_id: row.user_id,
         config_id: row.config_id,
         wallet_id: row.wallet_id,
         peer_id: row.peer_id

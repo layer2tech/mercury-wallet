@@ -47,6 +47,7 @@ export default function initLDK(electrum: string = "prod") {
 
     return new LightningClient(initLDK);
   }
+  return
 }
 
 function setUpLDK(electrum: string = "prod") {
@@ -268,5 +269,5 @@ function setUpLDK(electrum: string = "prod") {
     };
     return LDKInit;
   }
-
+  return
 }

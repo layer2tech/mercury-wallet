@@ -1,52 +1,35 @@
 // handle all peer logic on server
-import db from "../db/database.js";
 import express from "express";
-import { getLDKClient } from "../LDK/init/importLDK.js";
 const router = express.Router();
+import db from "../db/db";
+import { getLDKClient } from "../LDK/init/importLDK";
+import { createNewPeer } from "../LDK/utils/ldk-utils";
 
 router.post("/connectToPeer", (req, res) => {
-  const { amount, channelType, pubkey, host, port } = req.body;
-  console.log(amount, channelType, pubkey, host, port);
+  const { amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id } = req.body;
+  console.log(amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id);
 
-  getLDKClient().connectToPeer(pubkey, host, port);
+  getLDKClient().createPeerAndChannel(amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id);
+  //getLDKClient().connectToPeer(pubkey, host, port);
 
-  res.send({ status: "success" });
+  res.status(200).json({ message: "Connected to peer, Channel created" });
 });
 
-router.post("/newPeer", (req, res) => {
+router.post("/newPeer", async (req, res) => {
   const { host, port, pubkey } = req.body;
-  db.get(
-    `SELECT * FROM peers WHERE host = ? AND port = ? AND pubkey = ?`,
-    [host, port, pubkey],
-    (err, row) => {
-      if (err) {
-        res.status(500).json({ error: "Failed to query database" });
-      } else if (row) {
-        res.status(409).json({ error: "Peer already exists in the database" });
-      } else {
-        db.run(
-          `INSERT INTO peers (host, port, pubkey) VALUES (?,?,?)`,
-          [host, port, pubkey],
-          (err) => {
-            if (err) {
-              res
-                .status(500)
-                .json({ error: "Failed to insert peers into database" });
-            } else {
-              res.status(201).json({ message: "Peer added to database" });
-            }
-          }
-        );
-      }
-    }
-  );
+  try {
+    const result = await createNewPeer(host, port, pubkey);
+    res.status(result.status).json(result);
+  } catch (error: any) {
+    res.status(error.status).json(error);
+  }
 });
 
 // gives you peer details with the peer_id
 router.get("/getPeer/:peer_id", (req, res) => {
   const peer_id = req.params.peer_id;
   const selectData = "SELECT node, pubkey, host, port FROM peers WHERE id = ?";
-  db.get(selectData, [peer_id], (err, row) => {
+  db.get(selectData, [peer_id], (err: any, row: any) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -92,7 +75,7 @@ router.get("/default_peerlist", async function (req, res) {
 
 // get the peerlist that's stored in the database
 router.get("/peers", async function (req, res) {
-  db.all("SELECT * FROM peers", (err, rows) => {
+  db.all("SELECT * FROM peers", (err: any, rows: any) => {
     if (err) {
       throw err;
     }

@@ -1,5 +1,26 @@
 {
   "name": "ts-lightning-adapter",
+  "jest": {
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ],
+    "modulePaths": [
+      "src",
+      "node_modules"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "ts",
+      "d.ts",
+      "wasm"
+    ],
+    "modulePathIgnorePatterns": [],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    }
+  },
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -16,8 +37,9 @@
     ]
   },
   "scripts": {
-    "start": "node --loader ts-node/esm ./src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "ts-node-dev --respawn --pretty --transpile-only src/server.mts",
+    "start": "node --loader ts-node/esm --experimental-specifier-resolution=node ./src/server.ts",
+    "test": "node --loader ts-node/esm --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "moduleFileExtensions": [
     "js",
@@ -34,8 +56,11 @@
     "@electron/rebuild": "^3.2.10",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.16",
+    "@types/node": "^18.13.0",
+    "@types/supertest": "^2.0.12",
     "@types/request-promise-native": "^1.0.18",
     "express": "^4.18.2",
+    "ts-jest": "^29.0.5",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
@@ -45,7 +70,6 @@
   "dependencies": {
     "@psf/bip32-utils": "^1.0.4",
     "@types/express": "^4.17.6",
-    "@types/node": "^14.14.18",
     "async-mutex": "^0.3.2",
     "axios": "^1.2.2",
     "bech32": "^1.1.4",
@@ -60,6 +84,8 @@
     "esm": "^3.2.25",
     "express": "^4.17.3",
     "fs": "0.0.1-security",
+    "jest": "^29.4.1",
+    "ldk-wrapper": "file:./ldk-wrapper",
     "lightningdevkit": "^0.0.11-3.0",
     "nanoid": "^4.0.0",
     "netcat": "^1.5.0",
@@ -70,6 +96,7 @@
     "request-promise-native": "^1.0.9",
     "socks-proxy-agent": "^5.0.0",
     "sqlite3": "^5.1.4",
+    "supertest": "^6.3.3",
     "tiny-secp256k1": "^2.2.1",
     "tor-control": "0.0.3",
     "ts-node": "^10.1.0",
