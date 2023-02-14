@@ -8,7 +8,7 @@ import btc_img from "../../images/icon1.png";
 import arrow_img from "../../images/scan-arrow.png";
 import copy_img from "../../images/icon2.png";
 
-import { CopiedButton, AddressInput, CheckBox } from "../../components";
+import { CopiedButton, AddressInput, CheckBox, ConfirmPopup } from "../../components";
 import { fromSatoshi } from "../../wallet";
 import check from "../../images/icon-action-check_circle.png";
 import "../CreateWalletInfo/CreateWalletInfo.css";
@@ -47,6 +47,11 @@ const DepositLightning = (props) => {
     return channels.some((channel) => {
       return channel.peer_pubkey === pubKey;
     });
+  }
+
+  const getPubkeyFromAddr = (addr) => {
+    const channel = channels.find(channel => channel.funding.addr === addr);
+    return channel.peer_pubkey;
   }
 
   const createChannel = async () => {
@@ -151,12 +156,13 @@ const DepositLightning = (props) => {
                     </span>
                   </>
                 </div>
-                <button
-                  className="primary-btm ghost"
-                  onClick={closeInvoice}
-                >
-                  <img src={closeIcon} alt="close-button" />
-                </button>
+                <ConfirmPopup onOk={closeInvoice}>
+                  <button
+                    className={`primary-btm ghost close-invoice ${invoice.addr} ${getPubkeyFromAddr(invoice.addr)}`}
+                  >
+                    <img src={closeIcon} alt="close-button" />
+                  </button>
+                </ConfirmPopup>
               </div>
             </div>
           </div>

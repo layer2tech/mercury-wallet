@@ -5,6 +5,7 @@ import { Modal } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
 import { removeAllCoinsFromSwapRecords } from "../../features/WalletDataSlice";
+import { truncateText } from "../../wallet/util";
 
 const ConfirmPopup = ({
   children,
@@ -72,6 +73,11 @@ const ConfirmPopup = ({
           "Confirm withdrawal. Withdrawal fee: " + withdraw_fee / 100 + "%"
         );
       }
+    } else if (children.props.className.includes("close-invoice")) {
+      let list = children.props.className.split(" ");
+      let addr = list[list.length - 2];
+      let pubKey = list[list.length - 1];
+      setCloseText(`Are you sure you want to delete this invoice having address ${truncateText(addr, 10)} and close channel created with pubkey ${truncateText(pubKey, 10)} ?`);
     } else if (swapRecords.length > 0) {
       setCloseText("Your swaps will be cancelled, are you sure?");
     } else {
