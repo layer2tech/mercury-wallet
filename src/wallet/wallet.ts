@@ -733,6 +733,10 @@ export class Wallet {
     return addr;
   }
 
+  async deleteChannel(addr: string){
+    this.channels.deleteChannel(addr);
+  }
+
   async saveActivityLog() {
     const release = await this.saveMutex.acquire();
     try {

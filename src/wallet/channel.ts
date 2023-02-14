@@ -39,6 +39,10 @@ export class ChannelList {
             channelFund[0].funding.value = value
         }
     }
+    deleteChannel(addr: string){
+        let channelsLeft = this.channels.filter( chan => chan.funding?.addr !== addr);
+        this.channels = channelsLeft;
+    }
     getTotalChannelBalance(){
         let channelsInfo: ChannelInfo[] = []
         // Get list of channel Infos if any

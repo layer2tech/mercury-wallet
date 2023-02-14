@@ -902,6 +902,12 @@ export const callCreateChannel = async (amount, peer_node) => {
   }
 }
 
+export const callDeleteChannel = async (addr) => {
+  if(isWalletLoaded()){
+    return await wallet.deleteChannel(addr);
+  }
+}
+
 export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) => {
   // Pre action confirmation checks for withdrawal - return true to prevent action
 

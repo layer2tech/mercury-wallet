@@ -16,7 +16,7 @@ import "./DepositLightning.css";
 
 // move this to use the http client
 import axios from "axios";
-import { callCreateChannel, setError, getChannels } from "../../features/WalletDataSlice";
+import { callCreateChannel, setError, getChannels, callDeleteChannel } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
 import closeIcon from "../../images/close-icon.png";
 
@@ -71,7 +71,7 @@ const DepositLightning = (props) => {
       addr: nextAddress,
     };
     setInvoice(newInvoice);
-    
+    setChannels(getChannels());
   };
 
   const mBTCtoBTC = (mBTC) => {
@@ -101,7 +101,9 @@ const DepositLightning = (props) => {
   };
 
   const closeInvoice = () => {
+    callDeleteChannel(invoice.addr);
     setInvoice({});
+    setChannels(getChannels());
   }
 
   const copyAddressToClipboard = (event, address) => {
