@@ -68,6 +68,7 @@
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "request-promise-native": "^1.0.9",
+    "secp256k1": "^5.0.0",
     "socks-proxy-agent": "^5.0.0",
     "sqlite3": "^5.1.4",
     "tiny-secp256k1": "^2.2.1",

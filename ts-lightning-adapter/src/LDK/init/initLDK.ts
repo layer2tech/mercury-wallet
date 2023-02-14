@@ -230,11 +230,15 @@ function setUpLDK(electrum: string = "prod") {
   let electrumClient;
   console.log("INIT CLIENT: ", electrum);
   if (electrum === "prod") {
+
     console.log("Init TorClient");
     electrumClient = new TorClient("");
+
   } else {
+
     console.log("Init ElectrumClient");
     electrumClient = new ElectrumClient("");
+
   }
   if(chainMonitor && channelManager && peerManager){
 

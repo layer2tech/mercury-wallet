@@ -40,6 +40,7 @@ import {
 } from "./utils/utils.js";
 
 import * as bitcoin from "bitcoinjs-lib";
+import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 
 export default class LightningClient implements LightningClientInterface {
   feeEstimator: FeeEstimator;
@@ -119,6 +120,13 @@ Electrum Client Functions
     this.txdata.push(txData);
   }
 
+  setInputTx(privateKey: string, txid: string, vout: number){
+
+    let mercuryHandler = new MercuryEventHandler(this.channelManager);
+    mercuryHandler.setInputTx(privateKey, txid, vout)
+    const eventHandler = EventHandler.new_impl(mercuryHandler);
+  }
+
   /**
    * Connects to Peer for outbound channel
    * @param pubkeyHex
@@ -158,8 +166,15 @@ Electrum Client Functions
     // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
     this.netHandler = new NodeLDKNet(this.peerManager);
 
-    await this.netHandler.connect_peer(host, port, pubkey);
-    console.log("CONNECTED");
+    try{
+      console.log('Peer Details: ', peerDetails)
+      
+      await this.netHandler.connect_peer(host, port, pubkey);
+      console.log("CONNECTED");
+    } catch(e){
+      console.log('Error: ', e)
+      throw new Error('Err')
+    }
 
     await new Promise<void>((resolve) => {
       // Wait until the peers are connected and have exchanged the initial handshake

@@ -1,3 +1,4 @@
+import * as secp256k1 from 'secp256k1';
 export function hexToBytes(hex: String) {
     if (hex === undefined) return;
     let bytes = [];
@@ -22,3 +23,15 @@ export function hexToUint8Array<Uint8Array>(hex: string){
 export function uint8ArrayToHexString(arr: Uint8Array) {
   return Buffer.from(arr.buffer).toString('hex');
 }
+
+export const validateSigFunction = (publicKey: Buffer, signature: Buffer, data: Buffer): boolean => {
+  // Extract the public key in compressed form
+  const publicKeyBuffer = publicKey.slice(1);
+
+  // Verify the signature against the public key and data
+  const verified = secp256k1.ecdsaVerify(data, signature, publicKeyBuffer);
+
+
+  // Return the result of the verification
+  return verified;
+};

@@ -212,7 +212,8 @@ app.on('ready', () => {
   terminate_tor_process();
   terminate_mercurywallet_process(null,"tor");
   terminate_mercurywallet_process(init_adapter,"i2p");
-  terminate_mercurywallet_process(init_lightning_adapter, null);
+  // TO DO: Uncomment line below
+  // terminate_mercurywallet_process(init_lightning_adapter, null);
   createWindow()
 }
 );

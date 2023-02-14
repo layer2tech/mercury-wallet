@@ -2,15 +2,61 @@
 import db from "../db/database.js";
 import express from "express";
 import { getLDKClient } from "../LDK/init/importLDK.js";
+import { hexToUint8Array } from "../LDK/utils/utils.js";
 const router = express.Router();
 
-router.post("/connectToPeer", (req, res) => {
-  const { amount, channelType, pubkey, host, port } = req.body;
-  console.log(amount, channelType, pubkey, host, port);
+router.post("/open-channel", async (req, res) => {
+  // Connects to peer and opens channel
+  console.log('Req Body: ', req.body)
+  const { amount, 
+    channelType, 
+    pubkey, 
+    host, port, 
+    privkey, 
+    txid, 
+    vout } = req.body;
+  console.log("****====== RECEIVED DATA ======***")
+  console.log("amount: ", amount,
+  "\n ChannelType: ", channelType,
+  "\nPubKey: ", pubkey,
+  "\n Host: ", host, 
+  "\n Port:  ", port,
+  "\n PrivKey: ", privkey,
+  "\n TxID: ", txid,
+  "\n Vout: ", vout);
 
-  getLDKClient().connectToPeer(pubkey, host, port);
+  console.log("****====== RECEIVED DATA END ======***")
 
-  res.send({ status: "success" });
+  // OPEN CHANNEL FROM BELOW
+  const LightningClient = getLDKClient();
+  console.log('Input Tx .');
+  LightningClient.setInputTx(privkey, txid, vout);
+  console.log('Input Tx √');
+
+  //pubkey must be hex string
+  try{
+    console.log("Connect to Peer .");
+    await LightningClient.connectToPeer(pubkey, host, port);
+    console.log("Connect to Peer √");
+  } catch(e){
+    console.log('Error: ', e)
+    throw 'err at Peer';
+  }
+
+  let pubkeyArray = hexToUint8Array(pubkey);
+
+  console.log("Connect to channel .");
+  if (pubkey) {
+    try{
+      await LightningClient.createChannel(pubkeyArray, amount, 0, 1);
+      console.log("Connect to channel √");
+    } catch(e){
+      console.log('Error: ', e)
+      throw 'err at Channel';
+    }
+  }
+
+  // res.send({ status: "success" });
 });
 
 router.post("/newPeer", (req, res) => {

@@ -47,6 +47,14 @@ export class LDKClient {
 
     }
 
+    async openChannel(body: any){
+      try{
+        let res = await LDKClient.post("/open-channel", body)
+      } catch(e:any){
+        throw new Error('Error in channel creation')
+      }
+    }
+
     static async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
         const url = LIGHTNING_URL + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
 

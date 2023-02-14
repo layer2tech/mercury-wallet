@@ -7,7 +7,7 @@ export class ChannelList {
         this.channels = []
     }
 
-    addChannel(proof_key:string, funding_addr: string, amount: number, wallet_version: string){
+    addChannel(proof_key:string, funding_addr: string, amount: number, wallet_version: string, peer_pubkey: string, host: string, port: number){
 
         let newChannelFunding: ChannelFunding = {
             proof_key: proof_key,
@@ -24,11 +24,20 @@ export class ChannelList {
             info: null,
             funding: newChannelFunding,
             amount: amount,
-            status: CHANNEL_STATUS.INITIALISED
+            status: CHANNEL_STATUS.INITIALISED,
+            peer_pubkey: peer_pubkey,
+            host: host,
+            port: port
         }
         
         this.channels.push(newChannel);
 
+    }
+
+    getChannel(proof_key: string){
+
+        let channel = this.channels.filter( chan => chan.funding?.proof_key === proof_key);
+        return channel;
     }
 
     addChannelFunding(txid: string, vout: number, addr: string, block: number, value: number){
@@ -64,14 +73,17 @@ export interface Channel {
     info: ChannelInfo | null;
     funding: ChannelFunding | null;
     status: CHANNEL_STATUS;
-    amount: number| null;
+    amount: number| null; // in satoshis
+    peer_pubkey: string;
+    host: string;
+    port: number;
 }
 
 
 export interface ChannelInfo {
     id: string;
     name: string;
-    amount: number;
+    amount: number; // in satoshis
     push_msat: number;
     user_id: string;
     config_id: string;

@@ -40,16 +40,13 @@ const DepositLightning = (props) => {
       return
     }
 
-    // const [, pubkey, host, port] = inputNodeId.match(
-    //   /^([0-9a-f]+)@([^:]+):([0-9]+)$/i
-    //   );
     // console.log('PubKey: ', pubkey);
     // console.log('Host: ', host);
     // console.log('Port: ', port);
 
     // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
 
-    let nextAddress = await callCreateChannel(inputAmt);
+    let nextAddress = await callCreateChannel(inputAmt, inputNodeId);
     
     let newInvoice = {
       amt: mBTCtoBTC(inputAmt),
