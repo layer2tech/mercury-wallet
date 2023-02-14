@@ -16,7 +16,7 @@ import "./DepositLightning.css";
 
 // move this to use the http client
 import axios from "axios";
-import { callCreateChannel, callGetNextBtcAddress, setError } from "../../features/WalletDataSlice";
+import { callCreateChannel, setError, getChannels } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
 import closeIcon from "../../images/close-icon.png";
 
@@ -35,7 +35,21 @@ const DepositLightning = (props) => {
 
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
 
+  const [channels, setChannels] = useState(getChannels());
+
+  const IsChannelAlreadyExist = (pubKey) => {
+    return channels.some((channel) => {
+      return channel.peer_pubkey === pubKey;
+    });
+  }
+
   const createChannel = async () => {
+    const pubKey = inputNodeId.split('@')[0];
+
+    if (IsChannelAlreadyExist(pubKey)){
+      dispatch(setError({ msg: "Channel already exist with given proof key. " }))
+      return
+    }
     if( inputAmt < 1){
       dispatch(setError({ msg: "The amount you have selected is below the minimum limit ( 1mBTC ). Please increase the amount to proceed with the transaction." }))
       return
@@ -50,7 +64,7 @@ const DepositLightning = (props) => {
 
     // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
 
-    let nextAddress = await callCreateChannel(inputAmt);
+    let nextAddress = await callCreateChannel(inputAmt, inputNodeId);
     
     let newInvoice = {
       amt: mBTCtoBTC(inputAmt),

@@ -662,144 +662,74 @@ export class Wallet {
     })
   }
 
-  async createChannel(amount: number ){
-
+  async createChannel(amount: number, peer_node: string ){
+    let peerNode = peer_node.match(
+      /^([0-9a-f]+)@([^:]+):([0-9]+)$/i
+    );
+    let pubkey: string;
+    let port: any;
+    let host: any;
+    if(!(peerNode?.length === 4)) throw new Error("Peer Node ID incorrect format");
+    [,pubkey, port, host] = peerNode;
+    if(!pubkey || !host || !port) throw new Error("Unable to find pubkey, host or port from Peer Node ID ");
     let addr = this.account.nextChainAddress(1);
     log.debug("Gen BTC address: " + addr);
     await this.saveKeys();
-
     let proof_key = this.getBIP32forBtcAddress(addr);
-
-    this.channels.addChannel(proof_key.publicKey.toString("hex") ,addr, amount, this.version);
-
+    //convert mBTC to satoshi
+    amount = amount * 100000
+    this.channels.addChannel(proof_key.publicKey.toString("hex") ,addr, amount, this.version, pubkey, host, port);
+    console.log("Amount should be in satoshis: ", amount)
     let addr_script = bitcoin.address.toOutputScript(
       addr,
       this.config.network
     );
-
-
     log.info("Subscribed to script hash for p_addr: ", addr);
-
     // then subscribe to electrum client to listen for TX - questioning whether this can be done using fork
-    this.electrum_client.scriptHashSubscribe(
-      addr_script,
-      async (_status: any) => {
-        log.info("Script hash status change for p_addr: ", addr);
-        console.log('BTC Received..');
-        console.log('Attempting to change the channel information...');
-
-        // Get p_addr list_unspent and verify tx
-        // await this.checkFundingTxListUnspent(
-        //   shared_key_id,
-        //   p_addr,
-        //   p_addr_script,
-        //   value
-        // );
-        console.log('Check Script hash unspent: ')
-        await this.electrum_client
-          .getScriptHashListUnspent(addr_script)
-          .then(async (funding_tx_data: Array<any>) => {
-            
-            // Need to save TX data - it had block, txid?, vout and value
-            console.log('Funding Tx Data: ',funding_tx_data);
-            let tx_data = funding_tx_data[0]
-            
-            let txid = tx_data.txid;
-            let vout = tx_data.vout;
-            let block = tx_data.block ? (tx_data.block ) : (null);
-            let value = tx_data.value;
-            
-            this.channels.addChannelFunding(txid, vout, addr, block, value)
-            
-            let bip32 = this.getBIP32forBtcAddress(addr);
-
-            // Need to unsubscribe onec work done
-            let prv_ikey = bip32.privateKey;
-
-          })
-
-
-      }
-    );
-
-
-    // TO DO: save channels data to file
-
-    // this.electrum_client
-    //   .getScriptHashListUnspent(addr) // check script type correct
-    //   .then(async (funding_tx_data: Array<any>) => {
-    //   for (let i = 0; i < funding_tx_data.length; i++) {
-        // Verify amount of tx. Ignore if mock electrum
-        // if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
-        //   log.error(
-        //     "Funding tx for p_addr " +
-        //       addr +
-        //       " has value " +
-        //       funding_tx_data[i].value +
-        //       " expected " +
-        //       value +
-        //       "."
-        //   );
-    //       log.error(
-    //         "Setting value of statecoin to " + funding_tx_data[i].value
-    //       );
-    //       let statecoin = this.statecoins.getCoin(shared_key_id);
-    //       statecoin!.value = funding_tx_data[i].value;
-    //     }
-    //     // check if coin txid has changed (due to RBF)
-    //     let coin = this.statecoins.getCoin(shared_key_id);
-    //     if (coin!.backup_confirm) {
-    //       if (coin) {
-    //         if (
-    //           coin.funding_txid != funding_tx_data[i].tx_hash &&
-    //           coin.value == funding_tx_data[i].value
-    //         ) {
-    //           coin.tx_backup = null;
-    //           coin.backup_confirm = false;
+    // this.electrum_client.scriptHashSubscribe(
+    //   addr_script,
+    //   async (_status: any) => {
+    //     log.info("Script hash status change for p_addr: ", addr);
+    //     console.log("BTC Received..");
+    //     console.log("Attempting to change the channel information...");
+    //     // Get p_addr list_unspent and verify tx
+    //     // await this.checkFundingTxListUnspent(
+    //     //   shared_key_id,
+    //     //   p_addr,
+    //     //   p_addr_script,
+    //     //   value
+    //     // );
+    //     console.log("Check Script hash unspent: ")
+    //     await this.electrum_client
+    //       .getScriptHashListUnspent(addr_script)
+    //       .then(async (funding_tx_data: Array<any>) => {
+    //         // Need to save TX data - it had block, txid?, vout and value
+    //         console.log("Funding Tx Data: ",funding_tx_data);
+    //         let tx_data = funding_tx_data[0]
+    //         if(tx_data){
+    //           let txid = tx_data.tx_hash;
+    //           let vout = tx_data.tx_pos;
+    //           let block = tx_data.height ? (tx_data.height ) : (null);
+    //           let value = tx_data.value;
+    //           this.channels.addChannelFunding(txid, vout, addr, block, value)
+    //           let bip32 = this.getBIP32forBtcAddress(addr);
+    //           // Need to unsubscribe once work done
+    //           let privkey = bip32.privateKey;
+    //           this.lightning_client.openChannel({ amount: tx_data.value,
+    //             channelType: "Public",
+    //             pubkey: proof_key.publicKey.toString("hex"),
+    //             host,
+    //             port,
+    //             privkey,
+    //             txid,
+    //             vout
+    //           })
     //         }
-    //       }
-    //     }
-    //     if (!funding_tx_data[i].height) {
-          // if (
-          //   this.statecoins.setCoinInMempool(
-          //     shared_key_id,
-          //     funding_tx_data[i]
-          //   ) === true
-          // ) {
-    //         log.info(
-    //           "Found funding tx for p_addr " +
-    //             p_addr +
-    //             " in mempool. txid: " +
-    //             funding_tx_data[i].tx_hash
-    //         );
-    //         if (coin != null) {
-    //           await this.saveStateCoin(coin);
-    //         }
-    //       }
-    //     } else {
-    //       log.info(
-    //         "Funding tx for p_addr " +
-    //           p_addr +
-    //           " mined. Height: " +
-    //           funding_tx_data[i].height
-    //       );
-    //       // Set coin UNCONFIRMED.
-    //       this.statecoins.setCoinUnconfirmed(
-    //         shared_key_id,
-    //         funding_tx_data[i]
-    //       );
-    //       if (coin != null) {
-    //         await this.saveStateCoin(coin);
-    //       }
-    //       // No longer need subscription
-    //       this.electrum_client.scriptHashUnsubscribe(p_addr_script);
-    //     }
+    //       })
     //   }
-    // });
-
-
-    console.log('Check Channel Create Correctly: ', this.channels);
-
+    // );
+    // TO DO: save channels data to file
+    console.log("Check Channel Create Correctly: ", this.channels);
     return addr;
   }
 

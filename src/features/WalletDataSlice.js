@@ -895,10 +895,10 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
   }
 };
 
-export const callCreateChannel = async (amount) => {
+export const callCreateChannel = async (amount, peer_node) => {
   // Creates channel object in wallet.channels and returns address for funding
   if(isWalletLoaded()){
-    return await wallet.createChannel(amount)
+    return await wallet.createChannel(amount, peer_node)
   }
 }
 
