@@ -18,7 +18,7 @@ import {
 
 import * as bitcoin from "bitcoinjs-lib";
 import { uint8ArrayToHexString, hexToUint8Array } from "../utils/utils.js";
-import { ECPairFactory } from "ecpair";
+import { ECPairFactory, ECPairInterface } from "ecpair";
 import * as ecc from "tiny-secp256k1";
 import MercuryInputManager from "./MercuryInputManager.js";
 
@@ -129,7 +129,7 @@ class MercuryEventHandler implements EventHandlerInterface {
     } = event;
 
     const testnet = bitcoin.networks.testnet;
-    const electrum_wallet = ECPair.makeRandom();
+    const electrum_wallet: ECPairInterface = ECPair.makeRandom();
 
     if (
       output_script.length !== 34 &&
