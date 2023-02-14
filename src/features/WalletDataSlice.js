@@ -5,7 +5,7 @@ import { Wallet, ACTION, STATECOIN_STATUS, Config } from "../wallet";
 import { getFeeInfo, getCoinsInfo, pingElectrum } from "../wallet/mercury/info_api";
 import { pingServer as pingConductor } from "../wallet/swap/info_api";
 import { pingServer } from "../wallet/mercury/info_api";
-import { decodeMessage, decodeSCEAddress } from "../wallet/util";
+import { decodeMessage, decodeSCEAddress, isValidNodeKeyAddress } from "../wallet/util";
 import { resetIndex } from "../containers/Receive/Receive";
 
 import { v4 as uuidv4 } from "uuid";
@@ -907,6 +907,21 @@ export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) =>
     return true;
   }
 };
+
+export const checkChannelCreation = (dispatch, amount, nodekey) => {
+  if (amount === ""){
+    dispatch(setError({ msg: "Please set the amount of the funding tx." }));
+    return true;
+  }
+  if (nodekey === ""){
+    dispatch(setError({ msg: "Please set the nodekey to open channel with peer " }));
+    return true;
+  }
+  if (!isValidNodeKeyAddress(nodekey)){
+    dispatch(setError({ msg: "Please enter a valid nodekey address " }));
+    return true;
+  }
+}
 
 export const checkChannelSend = (dispatch, inputAddr) => {
   // Pre action confirmation checks for send sats - return true to prevent action
