@@ -121,6 +121,7 @@ class MercuryEventHandler implements EventHandlerInterface {
   async handleFundingGenerationReadyEvent_Auto(
     event: Event_FundingGenerationReady
   ) {
+    /*
     const {
       temporary_channel_id,
       counterparty_node_id,
@@ -190,6 +191,7 @@ class MercuryEventHandler implements EventHandlerInterface {
     );
 
     console.log("fund->", fund);
+    */
   }
 
   handlePaymentSentEvent(e: Event_PaymentSent) {
