@@ -44,6 +44,7 @@ import {
 } from "./utils/ldk-utils.js";
 
 import * as bitcoin from "bitcoinjs-lib";
+import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 
 export default class LightningClient implements LightningClientInterface {
   feeEstimator: FeeEstimator;
@@ -123,6 +124,13 @@ Electrum Client Functions
     this.txdata.push(txData);
   }
 
+  setInputTx(privateKey: string, txid: string, vout: number){
+
+    let mercuryHandler = new MercuryEventHandler(this.channelManager);
+    mercuryHandler.setInputTx(privateKey, txid, vout)
+    const eventHandler = EventHandler.new_impl(mercuryHandler);
+  }
+
   /**
    * Connects to Peer for outbound channel
    * @param pubkeyHex
@@ -141,6 +149,8 @@ Electrum Client Functions
     config_id: number
   ) {
     let peer_id: number | undefined;
+
+
 
     try {
       const result = await createNewPeer(host, port, pubkey);
@@ -171,6 +181,49 @@ Electrum Client Functions
     console.log("Channel Created, connected to", channel_id);
   }
 
+  async connectToPeerAndCreateChannel(
+    privkey: string, // Private key from txid address
+    txid: string, // txid of input for channel
+    vout: number, // index of input
+    pubkeyHex: string,
+    host: string,
+    port: number,
+    amount: number,
+    // push_msat: number,
+    // channelType: string,
+    // channelId: number,
+    // override_config: UserConfig
+    
+  ){
+    try{
+      console.log('Input Tx .');
+      this.setInputTx(privkey, txid, vout);
+      console.log('Input Tx √');
+    } catch(e){
+      throw new Error(`Input Tx Error: ${e}`)
+    }
+    try{
+      console.log("Connect to Peer .");
+      await this.connectToPeer(pubkeyHex, host, port);
+      console.log("Connect to Peer √");
+    } catch(e){
+      throw new Error(`Connect Peer Error: ${e}`)
+    }
+
+    let pubkeyArray = hexToUint8Array(pubkeyHex);
+    
+    try{
+      console.log("Connect to channel .");
+      // TODO: Add function to change this.config for public/private at top of this fn
+      await this.createChannel(pubkeyArray, amount, 0, 1, this.config);
+      console.log("Connect to channel √");
+    } catch(e){
+      console.log('Error: ', e);
+      throw new Error(`Connect Channel Error: ${e}`)
+    }
+  }
+
+
   async connectToPeer(pubkeyHex: string, host: string, port: number) {
     console.log("Host: ", pubkeyHex, "@", host, ":", port);
 
@@ -189,6 +242,7 @@ Electrum Client Functions
     }
   }
 
+
   /**
    * Create Socket for Outbound channel creation
    * @param peerDetails
@@ -203,8 +257,15 @@ Electrum Client Functions
     // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
     this.netHandler = new NodeLDKNet(this.peerManager);
 
-    await this.netHandler.connect_peer(host, port, pubkey);
-    console.log("CONNECTED");
+    try{
+      console.log('Peer Details: ', peerDetails);
+
+      await this.netHandler.connect_peer(host, port, pubkey);
+      console.log("CONNECTED");
+    } catch(e){
+      console.log('Error: ', e);
+      throw new Error(`PEER CONNECT ERR: ${e}`);
+    }
 
     await new Promise<void>((resolve) => {
       // Wait until the peers are connected and have exchanged the initial handshake

@@ -17,18 +17,24 @@ import {
 } from "lightningdevkit";
 
 import * as bitcoin from "bitcoinjs-lib";
-import { uint8ArrayToHexString, hexToUint8Array } from "../utils/utils.js";
-import { ECPairFactory, ECPairInterface } from "ecpair";
+import { uint8ArrayToHexString, hexToUint8Array, validateSigFunction } from "../utils/utils.js";
+import { ECPairFactory } from "ecpair";
 import * as ecc from "tiny-secp256k1";
-import MercuryInputManager from "./MercuryInputManager.js";
 
 const ECPair = ECPairFactory(ecc);
 
 class MercuryEventHandler implements EventHandlerInterface {
   channelManager: ChannelManager;
+  privateKey: string | null;
+  txid: string | null;
+  vout: number | null;
+
 
   constructor(_channelManager: ChannelManager) {
     this.channelManager = _channelManager;
+    this.privateKey = null;
+    this.txid = null;
+    this.vout = null;
   }
 
   handle_event(e: any) {
@@ -69,6 +75,17 @@ class MercuryEventHandler implements EventHandlerInterface {
 
   setChannelManager(channelManager: ChannelManager) {
     this.channelManager = channelManager;
+  }
+
+  setInputTx( privateKey: string, txid: string, vout: number ){
+    this.privateKey = privateKey;
+    this.vout = vout;
+    this.txid = txid
+  }
+  resetInputTx(){
+    this.privateKey = null;
+    this.vout = null;
+    this.txid = null;
   }
 
   handleFundingGenerationReadyEvent_Manual(
@@ -121,7 +138,6 @@ class MercuryEventHandler implements EventHandlerInterface {
   async handleFundingGenerationReadyEvent_Auto(
     event: Event_FundingGenerationReady
   ) {
-    /*
     const {
       temporary_channel_id,
       counterparty_node_id,
@@ -130,7 +146,23 @@ class MercuryEventHandler implements EventHandlerInterface {
     } = event;
 
     const testnet = bitcoin.networks.testnet;
-    const electrum_wallet: ECPairInterface = ECPair.makeRandom();
+
+
+    let privateKeyArray;
+    let privateKey;
+    if(this.privateKey) privateKeyArray = hexToUint8Array(this.privateKey);
+    if(privateKeyArray){
+      privateKey = Buffer.from(privateKeyArray)
+    }
+
+    let electrum_wallet
+    if(privateKey){
+      electrum_wallet = ECPair.fromPrivateKey(privateKey)
+    }
+
+    if(!electrum_wallet){
+      return
+    }
 
     if (
       output_script.length !== 34 &&
@@ -139,15 +171,14 @@ class MercuryEventHandler implements EventHandlerInterface {
     ) {
       return;
     }
-
     const psbt = new bitcoin.Psbt({ network: testnet });
     psbt.setVersion(2);
     psbt.setLocktime(0);
+
     const p2wpkh = bitcoin.payments.p2wpkh({
       pubkey: electrum_wallet.publicKey,
       network: testnet,
     });
-
     const { name, m, n, address } = p2wpkh;
     console.log("address found:", address);
     console.log("name found:", name);
@@ -156,11 +187,13 @@ class MercuryEventHandler implements EventHandlerInterface {
     console.log("electrum_wallet.publicKey", electrum_wallet.publicKey);
 
     if (p2wpkh.output === undefined) return;
+    if(!this.vout) return;
+    if(!this.txid) return;
 
     psbt.addInput({
       // if hash is string, txid, if hash is Buffer, is reversed compared to txid
-      hash: "05e6744f3599c7b28eea5585c4791d4909314629101d15b93a83d00f49421b81",
-      index: 0,
+      hash: this.txid,
+      index: this.vout,
       sequence: 0xffffffff,
       witnessUtxo: {
         script: p2wpkh.output,
@@ -172,17 +205,15 @@ class MercuryEventHandler implements EventHandlerInterface {
       value: parseInt(channel_value_satoshis.toString(), 10),
     });
 
-    psbt.signInput(0, electrum_wallet);
-    psbt.validateSignaturesOfInput(0, electrum_wallet.publicKey);
+
+    psbt.signInput(this.vout, electrum_wallet);
+    psbt.validateSignaturesOfInput(this.vout, validateSigFunction);
     psbt.finalizeAllInputs();
 
     console.log("psbt->", psbt.extractTransaction().toHex());
     console.log("base...", console.log(psbt));
-
     let funding_tx: any = hexToUint8Array(psbt.extractTransaction().toHex());
-
     console.log("funding_tx->", funding_tx);
-
     // Uint8Array
     let fund: any = this.channelManager.funding_transaction_generated(
       temporary_channel_id,
@@ -191,7 +222,12 @@ class MercuryEventHandler implements EventHandlerInterface {
     );
 
     console.log("fund->", fund);
-    */
+
+    // Reset Tx Input
+    this.resetInputTx();
+
+
+
   }
 
   handlePaymentSentEvent(e: Event_PaymentSent) {
