@@ -1,3 +1,4 @@
+import { withRouter, Redirect} from "react-router-dom";
 import PageHeader from "../PageHeader/PageHeader";
 
 import { useState } from "react";
@@ -18,9 +19,18 @@ import { checkChannelCreation } from '../../features/WalletDataSlice';
 
 // move this to use the http client
 import axios from "axios";
-import { callCreateChannel, callGetNextBtcAddress, setError } from "../../features/WalletDataSlice";
+
+import { isWalletLoaded, 
+  getWalletName,
+  callCreateChannel, 
+  setError, 
+  getChannels, 
+  callDeleteChannel,
+  callGetNextBtcAddress
+} from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
-import { getWalletName } from "../../features/WalletDataSlice";
+import closeIcon from "../../images/close-icon.png";
+
 
 export const CHANNEL_TYPE = {
   PUBLIC: "Public",
@@ -28,19 +38,40 @@ export const CHANNEL_TYPE = {
 };
 
 const DepositLightning = (props) => {
-  const dispatch = useDispatch();
 
+  const dispatch = useDispatch();
+  
   const [inputAmt, setInputAmt] = useState("");
 
   const [inputNodeId, setInputNodeId] = useState("");
 
   const [invoice, setInvoice] = useState({});
+  
+  const [loading, setLoading] = useState(false);
 
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
 
-  const [loading, setLoading] = useState(false);
+  const [channels, setChannels] = useState(getChannels());
+
+  const IsChannelAlreadyExist = (pubKey) => {
+    return channels.some((channel) => {
+      return channel.peer_pubkey === pubKey;
+    });
+  }
+
+  const getPubkeyFromAddr = (addr) => {
+    const channel = channels.find(channel => channel.funding.addr === addr);
+    return channel.peer_pubkey;
+  }
 
   const createChannel = async () => {
+    const pubKey = inputNodeId.split('@')[0];
+
+    if (IsChannelAlreadyExist(pubKey)){
+      dispatch(setError({ msg: "Channel already exist with given proof key. " }))
+      return
+    }
+
     if( inputAmt < 1){
       dispatch(setError({ msg: "The amount you have selected is below the minimum limit ( 1mBTC ). Please increase the amount to proceed with the transaction." }))
       return
@@ -60,12 +91,16 @@ const DepositLightning = (props) => {
     };
 
     setInvoice(newInvoice);
+    setChannels(getChannels());
+
+    setInvoice(newInvoice);
 
   };
 
   const mBTCtoBTC = (mBTC) => {
     return mBTC * ( 10**-3 );
   }
+
 
   const copyAddressToClipboard = (event, address) => {
     event.stopPropagation()
@@ -80,6 +115,21 @@ const DepositLightning = (props) => {
         : CHANNEL_TYPE.PUBLIC
     );
   };
+
+  const closeInvoice = () => {
+    callDeleteChannel(invoice.addr);
+    setInvoice({});
+    setChannels(getChannels());
+  }
+
+  const copyAddressToClipboard = (event, address) => {
+    event.stopPropagation()
+    navigator.clipboard.writeText(address);
+  }
+
+  if (!isWalletLoaded()) {
+    return <Redirect to="/" />;
+  }
 
   return (
     <div className="container deposit-ln">
@@ -111,6 +161,13 @@ const DepositLightning = (props) => {
                     </span>
                   </>
                 </div>
+                <ConfirmPopup onOk={closeInvoice}>
+                  <button
+                    className={`primary-btm ghost close-invoice ${invoice.addr} ${getPubkeyFromAddr(invoice.addr)}`}
+                  >
+                    <img src={closeIcon} alt="close-button" />
+                  </button>
+                </ConfirmPopup>
               </div>
             </div>
           </div>
@@ -168,4 +225,4 @@ const DepositLightning = (props) => {
   );
 };
 
-export default DepositLightning;
+export default withRouter(DepositLightning);

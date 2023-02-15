@@ -547,24 +547,22 @@ export const encryptAES = (data: string, password: string): EncryptionAES => {
 
 // AES decrypt with password
 export const decryptAES = (encryption: EncryptionAES, password: string) => {
-  const key = crypto.pbkdf2Sync(
-    password,
-    "salt",
-    PBKDF2_NUM_ITERATIONS,
-    24,
-    PBKDF2_HASH_ALGORITHM
-  );
-  const decipher = crypto.createDecipheriv(
-    AES_ALGORITHM,
-    key,
-    Buffer.from(encryption.iv, "hex")
-  );
+  const key = crypto.pbkdf2Sync(password, 'salt', PBKDF2_NUM_ITERATIONS, 24, PBKDF2_HASH_ALGORITHM);
+  const decipher = crypto.createDecipheriv(AES_ALGORITHM, key, Buffer.from(encryption.iv, "hex"));
 
-  let decrypted = decipher.update(encryption.encryption, "hex", "utf8");
-  decrypted += decipher.final("utf8");
+  let decrypted = decipher.update(encryption.encryption, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
 
-  return decrypted;
-};
+  return decrypted
+}
+
+export const truncateText = (str: string, maxLength: number) => {
+  if (str.length > maxLength) {
+    return `${str.slice(0, maxLength)}...`;
+  } else {
+    return str;
+  }
+}
 
 export const isValidNodeKeyAddress = (nodeKeyAddress: string) => {
   const regexIPv4 = /^[0-9a-fA-F]{66}@\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:(0|[1-9]\d{0,4}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$/;

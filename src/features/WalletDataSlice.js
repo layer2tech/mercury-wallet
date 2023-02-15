@@ -179,8 +179,15 @@ export const updateChannels = (channels) => {
   }
 }
 
+export const callGetChannels = async (wallet_name) => {
+  if(isWalletLoaded()){
+    return await wallet.lightning_client.getChannels(wallet_name);
+  }
+}
+
 export const getTotalChannelBalance = () => {
   if (isWalletLoaded()) {
+
     return wallet.channels.getTotalChannelBalance();
   }
 }
@@ -900,6 +907,12 @@ export const callCreateChannel = async (amount, peer_node) => {
   // Creates channel object in wallet.channels and returns address for funding
   if(isWalletLoaded()){
     return await wallet.createChannel(amount, peer_node)
+  }
+}
+
+export const callDeleteChannel = async (addr) => {
+  if(isWalletLoaded()){
+    return await wallet.deleteChannel(addr);
   }
 }
 
