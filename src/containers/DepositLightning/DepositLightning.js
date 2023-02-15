@@ -19,6 +19,8 @@ import { useDispatch } from 'react-redux';
 
 // move this to use the http client
 import axios from "axios";
+import { callCreateChannel, callGetNextBtcAddress, setError } from "../../features/WalletDataSlice";
+import { useDispatch } from "react-redux";
 import { getWalletName } from "../../features/WalletDataSlice";
 
 export const CHANNEL_TYPE = {
@@ -27,7 +29,6 @@ export const CHANNEL_TYPE = {
 };
 
 const DepositLightning = (props) => {
-
   const dispatch = useDispatch();
 
   const [inputAmt, setInputAmt] = useState("");
@@ -40,31 +41,38 @@ const DepositLightning = (props) => {
 
   const [loading, setLoading] = useState(false);
 
-  const createChannel = () => {
+  const createChannel = async () => {
+    if( inputAmt < 1){
+      dispatch(setError({ msg: "The amount you have selected is below the minimum limit ( 1mBTC ). Please increase the amount to proceed with the transaction." }))
+      return
+    }
+
+    // console.log('PubKey: ', pubkey);
+    // console.log('Host: ', host);
+    // console.log('Port: ', port);
+
+    // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
+
+    let nextAddress = await callCreateChannel(inputAmt, inputNodeId);
+
     let newInvoice = {
-      amt: inputAmt,
-      addr: "bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs",
+      amt: mBTCtoBTC(inputAmt),
+      addr: nextAddress,
     };
+
     setInvoice(newInvoice);
 
-    const [, pubkey, host, port] = inputNodeId.match(
-      /^([0-9a-f]+)@([^:]+):([0-9]+)$/i
-    );
-
-    axios
-      .post("http://localhost:3003/connectToPeer", {
-        amount: inputAmt,
-        pubkey,
-        host,
-        port,
-        channel_name: "",
-        push_msat: 0,
-        wallet_name: getWalletName(),
-        config_id: (channelType === CHANNEL_TYPE.PUBLIC) ? 0 : 1
-      })
-      .then((res) => console.log(res))
-      .catch((err) => console.log(err));
   };
+
+  const mBTCtoBTC = (mBTC) => {
+    return mBTC * ( 10**-3 );
+  }
+
+  const copyAddressToClipboard = (event, address) => {
+    event.stopPropagation()
+    navigator.clipboard.writeText(address);
+  }
+
 
   const toggleChannelType = () => {
     setChannelType(
@@ -96,11 +104,11 @@ const DepositLightning = (props) => {
                 <img src={arrow_img} alt="arrow" />
                 <div className="deposit-scan-main-item">
                   <>
-                    <CopiedButton handleCopy={() => {}}>
+                    <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, invoice.addr)} >
                       <img type="button" src={copy_img} alt="icon" />
                     </CopiedButton>
                     <span className="long">
-                      <b>bc1qjfyxceatrh04me73f67sj7eerzx4qqq4mewscs</b>
+                      <b>{invoice.addr}</b>
                     </span>
                   </>
                 </div>
@@ -125,7 +133,7 @@ const DepositLightning = (props) => {
               inputAddr={inputAmt}
               onChange={(e) => setInputAmt(e.target.value)}
               placeholder="Enter amount"
-              smallTxtMsg="Amount in SATS"
+              smallTxtMsg="Amount in mBTC"
             />
           </div>
           <div>
