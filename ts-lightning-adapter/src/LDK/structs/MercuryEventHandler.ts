@@ -17,20 +17,32 @@ import {
 } from "lightningdevkit";
 
 import * as bitcoin from "bitcoinjs-lib";
-import LightningClient from "../lightning.js";
-import { uint8ArrayToHexString } from "../utils/utils.js";
+import { uint8ArrayToHexString, hexToUint8Array, validateSigFunction } from "../utils/utils.js";
+import { ECPairFactory } from "ecpair";
+import * as ecc from "tiny-secp256k1";
 
-const regtest = bitcoin.networks.testnet;
+const ECPair = ECPairFactory(ecc);
 
 class MercuryEventHandler implements EventHandlerInterface {
-  channelManager: any;
+  channelManager: ChannelManager;
+  privateKey: string | null;
+  txid: string | null;
+  vout: number | null;
+
+
+  constructor(_channelManager: ChannelManager) {
+    this.channelManager = _channelManager;
+    this.privateKey = null;
+    this.txid = null;
+    this.vout = null;
+  }
 
   handle_event(e: any) {
     console.log(">>>>>>> Handling Event here <<<<<<<", e);
 
     switch (true) {
       case e instanceof Event_FundingGenerationReady:
-        this.handleFundingGenerationReadyEvent(e);
+        this.handleFundingGenerationReadyEvent_Auto(e);
         break;
       // case e instanceof Event_PaymentReceived:
       //   this.handlePaymentReceivedEvent(e);
@@ -65,7 +77,20 @@ class MercuryEventHandler implements EventHandlerInterface {
     this.channelManager = channelManager;
   }
 
-  handleFundingGenerationReadyEvent(event: Event_FundingGenerationReady) {
+  setInputTx( privateKey: string, txid: string, vout: number ){
+    this.privateKey = privateKey;
+    this.vout = vout;
+    this.txid = txid
+  }
+  resetInputTx(){
+    this.privateKey = null;
+    this.vout = null;
+    this.txid = null;
+  }
+
+  handleFundingGenerationReadyEvent_Manual(
+    event: Event_FundingGenerationReady
+  ) {
     const {
       temporary_channel_id,
       counterparty_node_id,
@@ -101,53 +126,109 @@ class MercuryEventHandler implements EventHandlerInterface {
     funding_tx[witness_pos + 5] = 0;
     funding_tx[witness_pos + 6] = 0; // lock time 0
 
-    // const witness_pos = output_script.length + 58;
-    // const funding_tx = new Uint8Array(witness_pos + 7);
-    // funding_tx[0] = 2; // 4-byte tx version 2
-    // funding_tx[4] = 0;
-    // funding_tx[5] = 1; // segwit magic bytes
-    // funding_tx[6] = 1; // 1-byte input count 1
-    // // 36 bytes previous outpoint all-0s
-    // funding_tx[43] = 0; // 1-byte input script length 0
-    // funding_tx[44] = 0xff;
-    // funding_tx[45] = 0xff;
-    // funding_tx[46] = 0xff;
-    // funding_tx[47] = 0xff; // 4-byte nSequence
-    // funding_tx[48] = 1; // one output
-    // // funding_tx[49] = parseInt(channelValue;
-    // console.log("Channel Value: ", channel_value_satoshis);
-    // let bigIntValue = channel_value_satoshis;
-    // let dataView = new DataView(new ArrayBuffer(8));
-    // dataView.setBigInt64(0, bigIntValue);
-    // let valueArray = new Uint8Array(dataView.buffer);
-    // funding_tx.set(valueArray, 49);
-    // // assign_u64(funding_tx, 49, channelValue);
-    // funding_tx[57] = output_script.length; // 1-byte output script length
-    // console.log("Output Script Length: ", output_script.length);
-    // funding_tx.set(output_script, 58);
-    // funding_tx[witness_pos] = 1;
-    // funding_tx[witness_pos + 1] = 1;
-    // funding_tx[witness_pos + 2] = 0xff; // one witness element of size 1 with contents 0xff
-    // funding_tx[witness_pos + 3] = 0;
-    // funding_tx[witness_pos + 4] = 0;
-    // funding_tx[witness_pos + 5] = 0;
-    // funding_tx[witness_pos + 6] = 0; // lock time 0
-
-    console.log("funding_tx", funding_tx);
+    console.log("funding_tx->", uint8ArrayToHexString(funding_tx));
 
     let fund = this.channelManager.funding_transaction_generated(
       temporary_channel_id,
       counterparty_node_id,
       funding_tx
     );
-
-    console.log('Funding Transaction Generated Result: ',fund)
   }
 
-  // handlePaymentReceivedEvent(e: Event_PaymentReceived) {
-  //   console.log(`Payment of ${e.amount_msat} SAT received.`);
-  //   this.channelManager.claim_funds(e.payment_hash);
-  // }
+  async handleFundingGenerationReadyEvent_Auto(
+    event: Event_FundingGenerationReady
+  ) {
+    const {
+      temporary_channel_id,
+      counterparty_node_id,
+      channel_value_satoshis,
+      output_script,
+    } = event;
+
+    const testnet = bitcoin.networks.testnet;
+
+
+    let privateKeyArray;
+    let privateKey;
+    if(this.privateKey) privateKeyArray = hexToUint8Array(this.privateKey);
+    if(privateKeyArray){
+      privateKey = Buffer.from(privateKeyArray)
+    }
+
+    let electrum_wallet
+    if(privateKey){
+      electrum_wallet = ECPair.fromPrivateKey(privateKey)
+    }
+
+    if(!electrum_wallet){
+      return
+    }
+
+    if (
+      output_script.length !== 34 &&
+      output_script[0] !== 0 &&
+      output_script[1] !== 32
+    ) {
+      return;
+    }
+    const psbt = new bitcoin.Psbt({ network: testnet });
+    psbt.setVersion(2);
+    psbt.setLocktime(0);
+
+    const p2wpkh = bitcoin.payments.p2wpkh({
+      pubkey: electrum_wallet.publicKey,
+      network: testnet,
+    });
+    const { name, m, n, address } = p2wpkh;
+    console.log("address found:", address);
+    console.log("name found:", name);
+    console.log("m found:", m);
+    console.log("n found:", n);
+    console.log("electrum_wallet.publicKey", electrum_wallet.publicKey);
+
+    if (p2wpkh.output === undefined) return;
+    if(!this.vout) return;
+    if(!this.txid) return;
+
+    psbt.addInput({
+      // if hash is string, txid, if hash is Buffer, is reversed compared to txid
+      hash: this.txid,
+      index: this.vout,
+      sequence: 0xffffffff,
+      witnessUtxo: {
+        script: p2wpkh.output,
+        value: 100000,
+      },
+    });
+    psbt.addOutput({
+      script: Buffer.from(output_script),
+      value: parseInt(channel_value_satoshis.toString(), 10),
+    });
+
+
+    psbt.signInput(this.vout, electrum_wallet);
+    psbt.validateSignaturesOfInput(this.vout, validateSigFunction);
+    psbt.finalizeAllInputs();
+
+    console.log("psbt->", psbt.extractTransaction().toHex());
+    console.log("base...", console.log(psbt));
+    let funding_tx: any = hexToUint8Array(psbt.extractTransaction().toHex());
+    console.log("funding_tx->", funding_tx);
+    // Uint8Array
+    let fund: any = this.channelManager.funding_transaction_generated(
+      temporary_channel_id,
+      counterparty_node_id,
+      funding_tx
+    );
+
+    console.log("fund->", fund);
+
+    // Reset Tx Input
+    this.resetInputTx();
+
+
+
+  }
 
   handlePaymentSentEvent(e: Event_PaymentSent) {
     console.log(

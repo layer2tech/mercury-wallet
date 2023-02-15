@@ -5,8 +5,6 @@ import  { updateBalanceInfo, getTotalChannelBalance, updateChannels, setInterval
 import EmptyChannelDisplay from './EmptyChannelDisplay/EmptyChannelDisplay';
 
 
-
-
 const ChannelList = (props) => {
     const dispatch = useDispatch();
 

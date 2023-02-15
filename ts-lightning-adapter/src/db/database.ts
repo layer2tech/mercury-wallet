@@ -117,7 +117,6 @@ const db = new sqlite3.Database("lightning.db", (err) => {
         name TEXT NOT NULL,
         amount REAL NOT NULL,
         push_msat INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
         config_id INTEGER NOT NULL,
         wallet_id INTEGER NOT NULL,
         peer_id INTEGER NOT NULL,
@@ -142,7 +141,6 @@ const db = new sqlite3.Database("lightning.db", (err) => {
             name: "channel1",
             amount: 100000,
             push_msat: 444,
-            user_id: 1,
             config_id: 1,
             wallet_id: 1,
             peer_id: 1,
@@ -151,7 +149,6 @@ const db = new sqlite3.Database("lightning.db", (err) => {
             name: "testChannel",
             amount: 100000,
             push_msat: 444,
-            user_id: 1,
             config_id: 1,
             wallet_id: 1,
             peer_id: 2,
@@ -160,19 +157,17 @@ const db = new sqlite3.Database("lightning.db", (err) => {
             name: "p2p",
             amount: 100000,
             push_msat: 444,
-            user_id: 1,
             config_id: 1,
             wallet_id: 1,
             peer_id: 3,
           },
         ];
-        const insertData = `INSERT INTO channels (name, amount, push_msat, user_id, config_id, wallet_id, peer_id) VALUES (?,?,?,?,?,?,?)`;
+        const insertData = `INSERT INTO channels (name, amount, push_msat, config_id, wallet_id, peer_id) VALUES (?,?,?,?,?,?)`;
         sampleData.forEach((data) => {
           db.run(insertData, [
             data.name,
             data.amount,
             data.push_msat,
-            data.user_id,
             data.config_id,
             data.wallet_id,
             data.peer_id,

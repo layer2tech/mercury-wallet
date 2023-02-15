@@ -656,82 +656,114 @@ export class Wallet {
     // TO DO:
     // Need to map channelInfo from API to correct channel saved in wallet
     // Need an ID saved that matches to ChannelInfo to ChannelFunding
-    
     channels.map( ( channel ) => {
 
     })
   }
 
   async createChannel(amount: number, peer_node: string ){
+
+
     let peerNode = peer_node.match(
       /^([0-9a-f]+)@([^:]+):([0-9]+)$/i
     );
+
     let pubkey: string;
     let port: any;
     let host: any;
+
     if(!(peerNode?.length === 4)) throw new Error("Peer Node ID incorrect format");
-    [,pubkey, port, host] = peerNode;
+
+
+    [,pubkey, host, port] = peerNode;
+
+
     if(!pubkey || !host || !port) throw new Error("Unable to find pubkey, host or port from Peer Node ID ");
+
+    // convert to int for saving to channel obj and calling api
+    port = parseInt(port);
+
     let addr = this.account.nextChainAddress(1);
     log.debug("Gen BTC address: " + addr);
     await this.saveKeys();
+
     let proof_key = this.getBIP32forBtcAddress(addr);
+
     //convert mBTC to satoshi
     amount = amount * 100000
+
     this.channels.addChannel(proof_key.publicKey.toString("hex") ,addr, amount, this.version, pubkey, host, port);
+
     console.log("Amount should be in satoshis: ", amount)
+
     let addr_script = bitcoin.address.toOutputScript(
       addr,
       this.config.network
     );
+
+
     log.info("Subscribed to script hash for p_addr: ", addr);
+
     // then subscribe to electrum client to listen for TX - questioning whether this can be done using fork
-    // this.electrum_client.scriptHashSubscribe(
-    //   addr_script,
-    //   async (_status: any) => {
-    //     log.info("Script hash status change for p_addr: ", addr);
-    //     console.log("BTC Received..");
-    //     console.log("Attempting to change the channel information...");
-    //     // Get p_addr list_unspent and verify tx
-    //     // await this.checkFundingTxListUnspent(
-    //     //   shared_key_id,
-    //     //   p_addr,
-    //     //   p_addr_script,
-    //     //   value
-    //     // );
-    //     console.log("Check Script hash unspent: ")
-    //     await this.electrum_client
-    //       .getScriptHashListUnspent(addr_script)
-    //       .then(async (funding_tx_data: Array<any>) => {
-    //         // Need to save TX data - it had block, txid?, vout and value
-    //         console.log("Funding Tx Data: ",funding_tx_data);
-    //         let tx_data = funding_tx_data[0]
-    //         if(tx_data){
-    //           let txid = tx_data.tx_hash;
-    //           let vout = tx_data.tx_pos;
-    //           let block = tx_data.height ? (tx_data.height ) : (null);
-    //           let value = tx_data.value;
-    //           this.channels.addChannelFunding(txid, vout, addr, block, value)
-    //           let bip32 = this.getBIP32forBtcAddress(addr);
-    //           // Need to unsubscribe once work done
-    //           let privkey = bip32.privateKey;
-    //           this.lightning_client.openChannel({ amount: tx_data.value,
-    //             channelType: "Public",
-    //             pubkey: proof_key.publicKey.toString("hex"),
-    //             host,
-    //             port,
-    //             privkey,
-    //             txid,
-    //             vout
-    //           })
-    //         }
-    //       })
-    //   }
-    // );
+    this.electrum_client.scriptHashSubscribe(
+      addr_script,
+      async (_status: any) => {
+        log.info("Script hash status change for p_addr: ", addr);
+        console.log('BTC Received..');
+        console.log('Attempting to change the channel information...');
+
+        // Get p_addr list_unspent and verify tx
+        // await this.checkFundingTxListUnspent(
+        //   shared_key_id,
+        //   p_addr,
+        //   p_addr_script,
+        //   value
+        // );
+        console.log('Check Script hash unspent: ')
+        await this.electrum_client
+          .getScriptHashListUnspent(addr_script)
+          .then(async (funding_tx_data: Array<any>) => {
+
+            // Need to save TX data - it had block, txid?, vout and value
+            console.log('Funding Tx Data: ',funding_tx_data);
+            let tx_data = funding_tx_data[0]
+            if(tx_data){
+              let txid = tx_data.tx_hash;
+              let vout = tx_data.tx_pos;
+              let block = tx_data.height ? (tx_data.height ) : (null);
+              let value = tx_data.value;
+
+              this.channels.addChannelFunding(txid, vout, addr, block, value)
+
+              let bip32 = this.getBIP32forBtcAddress(addr);
+
+              // Need to unsubscribe once work done
+              let privkey = bip32.privateKey;
+
+              this.lightning_client.openChannel({ amount: tx_data.value, 
+                channelType: "Public", 
+                pubkey: proof_key.publicKey.toString("hex"), 
+                host,
+                port,
+                privkey,
+                txid,
+                vout
+              })
+            }
+          })
+
+
+      }
+    );
+
+
     // TO DO: save channels data to file
-    console.log("Check Channel Create Correctly: ", this.channels);
+
+
+    console.log('Check Channel Create Correctly: ', this.channels);
+
     return addr;
-  }
+}
 
   async deleteChannel(addr: string){
     this.channels.deleteChannel(addr);
@@ -797,8 +829,10 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
-    let channels = await wallet.lightning_client.getChannels(wallet.name);
-    wallet.saveChannels(channels);
+
+    let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
+    wallet.saveChannels(channelsInfo);
+
     await wallet.save();
     wallet.setActive();
     return wallet;

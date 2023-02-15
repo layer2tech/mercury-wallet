@@ -1,10 +1,15 @@
 "use strict";
+
+
 export class ChannelList {
     channels: Channel[]
+
     constructor(){
         this.channels = []
     }
+
     addChannel(proof_key:string, funding_addr: string, amount: number, wallet_version: string, peer_pubkey: string, host: string, port: number){
+
         let newChannelFunding: ChannelFunding = {
             proof_key: proof_key,
             funding_txid: null,
@@ -14,6 +19,7 @@ export class ChannelList {
             withdrawalTx: null,
             value: null
         }
+
         let newChannel: Channel = {
             wallet_version: wallet_version,
             info: null,
@@ -24,14 +30,20 @@ export class ChannelList {
             host: host,
             port: port
         }
+
         this.channels.push(newChannel);
+
     }
+
     getChannel(proof_key: string){
+
         let channel = this.channels.filter( chan => chan.funding?.proof_key === proof_key);
         return channel;
     }
+
     addChannelFunding(txid: string, vout: number, addr: string, block: number, value: number){
         let channelFund = this.channels.filter((channel) => channel.funding?.addr === addr);
+
         if(channelFund[0].funding){
             channelFund[0].funding.funding_txid = txid;
             channelFund[0].funding.funding_vout = vout;
@@ -39,23 +51,28 @@ export class ChannelList {
             channelFund[0].funding.value = value
         }
     }
+
     deleteChannel(addr: string){
         let channelsLeft = this.channels.filter( chan => chan.funding?.addr !== addr);
         this.channels = channelsLeft;
     }
     getTotalChannelBalance(){
         let channelsInfo: ChannelInfo[] = []
+
         // Get list of channel Infos if any
         this.channels.map(channel => {
           if(channel.info){
             channelsInfo.push(channel.info)
           }
         });
+
         // Get total channel amount
         let total = channelsInfo.reduce((sum, currentItem) => sum + currentItem.amount, 0);
         return total
     }
+
 }
+
 export interface Channel {
     wallet_version: string;
     info: ChannelInfo | null;
@@ -66,6 +83,7 @@ export interface Channel {
     host: string;
     port: number;
 }
+
 export interface ChannelInfo {
     id: string;
     name: string;
@@ -76,6 +94,7 @@ export interface ChannelInfo {
     wallet_id: string;
     peer_id: string;
 }
+
 export interface ChannelFunding {
     proof_key: string | null;
     funding_txid: string | null;
@@ -85,6 +104,7 @@ export interface ChannelFunding {
     withdrawalTx: any | null; // add this type later - Information about if this tx is withdrawn i.e. unable to open channel
     value: number | null;
 }
+
 // STATUS represent each stage in the lifecycle of a channel.
 export enum CHANNEL_STATUS {
     // INITIALISED channels are awaiting their funding transaction to appear in the mempool
@@ -94,16 +114,16 @@ export enum CHANNEL_STATUS {
     // UNCONFIRMED coins are awaiting more confirmations on their funding transaction
     UNCONFIRMED = "UNCONFIRMED",
     // Coins are fully owned by wallet and unspent
-    // AVAILABLE = “AVAILABLE”,
+    // AVAILABLE = "AVAILABLE",
     // A withdrawal transaction has been broadcast but has not yet been confirmed
-    // WITHDRAWING = “WITHDRAWING”,
+    // WITHDRAWING = "WITHDRAWING",
     // Coin used to belonged to wallet but has been withdraw
-    // WITHDRAWN = “WITHDRAWN”,
-    // Coin has reached it’s backup timelock and has been spent
-    // EXPIRED = “EXPIRED”,
+    // WITHDRAWN = "WITHDRAWN",
+    // Coin has reached it's backup timelock and has been spent
+    // EXPIRED = "EXPIRED",
     // Coin has been deleted
-    // DELETED = “DELETED”,
+    // DELETED = "DELETED",
     // Duplicate deposit to single shared key
-    // DUPLICATE = “DUPLICATE”,
+    // DUPLICATE = "DUPLICATE",
   }
   Object.freeze(CHANNEL_STATUS);

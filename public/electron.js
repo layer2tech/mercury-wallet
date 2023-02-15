@@ -212,7 +212,8 @@ app.on('ready', () => {
   terminate_tor_process();
   terminate_mercurywallet_process(null,"tor");
   terminate_mercurywallet_process(init_adapter,"i2p");
-  terminate_mercurywallet_process(init_lightning_adapter, null);
+  // TO DO: Uncomment line below
+  // terminate_mercurywallet_process(init_lightning_adapter, null);
   createWindow()
 }
 );
@@ -220,7 +221,8 @@ app.on('ready', () => {
 app.on('window-all-closed', async () => {
   terminate_tor_process(); // ensure the tor processes are closed after s
   terminate_mercurywallet_process(null,"i2p");
-  terminate_mercurywallet_process(init_lightning_adapter, null);
+  // TO DO: Uncomment line below
+  // terminate_mercurywallet_process(init_lightning_adapter, null);
   app.quit();
 });
 
@@ -266,7 +268,8 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 app.on('before-quit', async function () {
   terminate_mercurywallet_process(null,"i2p");
   terminate_mercurywallet_process(null,"tor");
-  terminate_mercurywallet_process(init_lightning_adapter, null);
+  // TO DO: Uncomment line below
+  // terminate_mercurywallet_process(init_lightning_adapter, null);
 });
 
 app.allowRendererProcessReuse = false;
