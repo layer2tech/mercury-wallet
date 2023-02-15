@@ -15,7 +15,6 @@ import "../CreateWalletInfo/CreateWalletInfo.css";
 import "./DepositLightning.css";
 
 import { checkChannelCreation } from '../../features/WalletDataSlice';
-import { useDispatch } from 'react-redux';
 
 // move this to use the http client
 import axios from "axios";
