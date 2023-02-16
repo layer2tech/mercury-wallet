@@ -15,7 +15,7 @@ import "../CreateWalletInfo/CreateWalletInfo.css";
 
 import "./DepositLightning.css";
 
-import { checkChannelCreation } from '../../features/WalletDataSlice';
+import { callGetRecentInvoice, callSetRecentInvoice, checkChannelCreation } from '../../features/WalletDataSlice';
 
 // move this to use the http client
 import axios from "axios";
@@ -45,7 +45,7 @@ const DepositLightning = (props) => {
 
   const [inputNodeId, setInputNodeId] = useState("");
 
-  const [invoice, setInvoice] = useState({});
+  const [invoice, setInvoice] = useState(callGetRecentInvoice());
   
   const [loading, setLoading] = useState(false);
 
@@ -95,6 +95,7 @@ const DepositLightning = (props) => {
 
     setInvoice(newInvoice);
 
+    callSetRecentInvoice(newInvoice);
   };
 
   const mBTCtoBTC = (mBTC) => {
@@ -120,11 +121,7 @@ const DepositLightning = (props) => {
     callDeleteChannel(invoice.addr);
     setInvoice({});
     setChannels(getChannels());
-  }
-
-  const copyAddressToClipboard = (event, address) => {
-    event.stopPropagation()
-    navigator.clipboard.writeText(address);
+    callSetRecentInvoice(undefined);
   }
 
   if (!isWalletLoaded()) {

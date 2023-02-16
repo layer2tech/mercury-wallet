@@ -192,13 +192,6 @@ export const getTotalChannelBalance = () => {
   }
 }
 
-export const callGetChannels = async (wallet_name) => {
-  if(isWalletLoaded()){
-    return await wallet.lightning_client.getChannels(wallet_name);
-  }
-}
-
-
 //Restart the electrum server if ping fails
 async function pingElectrumRestart(force = false) {
   if (isWalletActive() === false) {
@@ -913,6 +906,18 @@ export const callCreateChannel = async (amount, peer_node) => {
 export const callDeleteChannel = async (addr) => {
   if(isWalletLoaded()){
     return await wallet.deleteChannel(addr);
+  }
+}
+
+export const callSetRecentInvoice = async (invoice) => {
+  if(isWalletLoaded()){
+    return await wallet.setInvoice(invoice);
+  }
+}
+
+export const callGetRecentInvoice = () => {
+  if(isWalletLoaded()){
+    return wallet.getInvoice();
   }
 }
 

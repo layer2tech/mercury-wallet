@@ -80,7 +80,7 @@ import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
 import { LDKClient, LIGHTNING_POST_ROUTE } from "./ldk_client";
-import { Channel, ChannelInfo, ChannelList } from "./channel";
+import { Channel, ChannelInfo, ChannelList, Invoice } from "./channel";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -767,6 +767,14 @@ export class Wallet {
 
   async deleteChannel(addr: string){
     this.channels.deleteChannel(addr);
+  }
+
+  async setInvoice(invoice: Invoice){
+    this.channels.setInvoice(invoice);
+  }
+
+  getInvoice(){
+    return this.channels.getInvoice();
   }
 
   async saveActivityLog() {

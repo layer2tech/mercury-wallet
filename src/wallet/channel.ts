@@ -3,6 +3,7 @@
 
 export class ChannelList {
     channels: Channel[]
+    invoice: Invoice | undefined
 
     constructor(){
         this.channels = []
@@ -71,6 +72,13 @@ export class ChannelList {
         return total
     }
 
+    setInvoice(invoice: Invoice){
+        this.invoice = invoice;
+    }
+
+    getInvoice(){
+        return this.invoice;
+    }
 }
 
 export interface Channel {
@@ -82,6 +90,11 @@ export interface Channel {
     peer_pubkey: string;
     host: string;
     port: number;
+}
+
+export interface Invoice {
+    amt: Number;
+    addr: string;
 }
 
 export interface ChannelInfo {
