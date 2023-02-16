@@ -4,6 +4,8 @@ import { ProgressBar } from "react-bootstrap";
 import lightningLogo from '../../images/lightning_logo.png';
 import '../coins/coins.css';
 import './Channel.css';
+import { CopiedButton } from '../';
+import copy_img from "../../images/icon2.png";
 
 const Channel = (props) => {
 
@@ -24,6 +26,11 @@ const Channel = (props) => {
         }
         return selected;
       };
+    
+    const copyAddressToClipboard = (event, address) => {
+      event.stopPropagation()
+      navigator.clipboard.writeText(address);
+    }
 
     return(
         <div>
@@ -50,6 +57,16 @@ const Channel = (props) => {
 
 
                     <div className="progress_bar" >
+                        <div className="deposit-scan-main-item">
+                          <>
+                            <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, props.channel_data.peer_pubkey)} >
+                              <img type="button" src={copy_img} alt="icon" />
+                            </CopiedButton>
+                            <span className="long">
+                              <b>{props.channel_data.peer_pubkey}</b>
+                            </span>
+                          </>
+                        </div>
                         <div className="sub">
                             <ProgressBar>                     
                             <ProgressBar 
