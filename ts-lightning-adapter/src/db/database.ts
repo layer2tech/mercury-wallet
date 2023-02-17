@@ -1,7 +1,11 @@
-// to persist channels
-import sqlite from 'sqlite3';
+import sqlite from "sqlite3";
 const sqlite3 = sqlite.verbose();
 
+let isDev = false;
+
+if (isDev) {
+  console.log("isDev set to true, will insert sample data");
+}
 
 // Connect/create the SQLite database
 const db = new sqlite3.Database("lightning.db", (err) => {
@@ -28,16 +32,18 @@ const db = new sqlite3.Database("lightning.db", (err) => {
         console.error(err.message);
       }
       if (row.count === 0) {
-        console.log("Inserting sample data for table wallets ...");
-        const sampleData = [
-          { name: "Mainnet Wallet 1" },
-          { name: "Testnet Wallet 1" },
-          { name: "Testnet Wallet 2" },
-        ];
-        const insertData = `INSERT INTO wallets (name) VALUES (?)`;
-        sampleData.forEach((data) => {
-          db.run(insertData, [data.name]);
-        });
+        if (isDev) {
+          console.log("Inserting sample data for table wallets ...");
+          const sampleData = [
+            { name: "Mainnet Wallet 1" },
+            { name: "Testnet Wallet 1" },
+            { name: "Testnet Wallet 2" },
+          ];
+          const insertData = `INSERT INTO wallets (name) VALUES (?)`;
+          sampleData.forEach((data) => {
+            db.run(insertData, [data.name]);
+          });
+        }
       } else {
         console.log(
           "Table 'wallets' already contains data, skipping the sample data insertion."
@@ -96,15 +102,17 @@ const db = new sqlite3.Database("lightning.db", (err) => {
             console.error(err.message);
           }
           if (!row) {
-            db.run(
-              `INSERT INTO peers (node, host, port, pubkey) VALUES (?,?,?,?)`,
-              [data.node, data.host, data.port, data.pubkey],
-              (err) => {
-                if (err) {
-                  console.error(err.message);
+            if (isDev) {
+              db.run(
+                `INSERT INTO peers (node, host, port, pubkey) VALUES (?,?,?,?)`,
+                [data.node, data.host, data.port, data.pubkey],
+                (err) => {
+                  if (err) {
+                    console.error(err.message);
+                  }
                 }
-              }
-            );
+              );
+            }
           }
         }
       );
@@ -163,16 +171,19 @@ const db = new sqlite3.Database("lightning.db", (err) => {
           },
         ];
         const insertData = `INSERT INTO channels (name, amount, push_msat, config_id, wallet_id, peer_id) VALUES (?,?,?,?,?,?)`;
-        sampleData.forEach((data) => {
-          db.run(insertData, [
-            data.name,
-            data.amount,
-            data.push_msat,
-            data.config_id,
-            data.wallet_id,
-            data.peer_id,
-          ]);
-        });
+
+        if (isDev) {
+          sampleData.forEach((data) => {
+            db.run(insertData, [
+              data.name,
+              data.amount,
+              data.push_msat,
+              data.config_id,
+              data.wallet_id,
+              data.peer_id,
+            ]);
+          });
+        }
       } else {
         console.log(
           "Table 'channel' already contains data, skipping the sample data insertion."

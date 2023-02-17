@@ -27,6 +27,8 @@ router.get("/LDKChannels", async function (req, res) {
       channelId: channels[0].get_channel_id().toString(),
       fundingTxo: channels[0].get_funding_txo().toString(),
       channelType: channels[0].get_channel_type().toString(),
+      channelReady: channels[0].get_is_channel_ready().toString(),
+      channel_user_id: channels[0].get_user_channel_id().toString(),
     });
   }
 });
@@ -146,7 +148,15 @@ router.post("/createChannel", async (req, res) => {
   const { pubkey, name, amount, push_msat, config_id, wallet_name, peer_id } =
     req.body;
   try {
-    const result = await createNewChannel(pubkey, name, amount, push_msat, config_id, wallet_name, peer_id);
+    const result = await createNewChannel(
+      pubkey,
+      name,
+      amount,
+      push_msat,
+      config_id,
+      wallet_name,
+      peer_id
+    );
     res.status(result.status).json(result);
   } catch (error: any) {
     res.status(error.status).json(error);
