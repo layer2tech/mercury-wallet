@@ -742,7 +742,7 @@ export class Wallet {
 
               this.lightning_client.openChannel({ amount: tx_data.value, 
                 channelType: "Public", 
-                pubkey: proof_key.publicKey.toString("hex"), 
+                pubkey: pubkey, 
                 host,
                 port,
                 privkey,

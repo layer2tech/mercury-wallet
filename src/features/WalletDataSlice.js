@@ -192,6 +192,7 @@ export const getTotalChannelBalance = () => {
   }
 }
 
+
 //Restart the electrum server if ping fails
 async function pingElectrumRestart(force = false) {
   if (isWalletActive() === false) {
