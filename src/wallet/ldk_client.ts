@@ -23,6 +23,7 @@ export class LDKClient {
 
 
 
+
   async getChannels(wallet_name: string): Promise <ChannelInfo[]> {
     let channels: ChannelInfo[] = [];
     try{

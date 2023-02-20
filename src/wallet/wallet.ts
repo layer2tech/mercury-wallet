@@ -656,13 +656,13 @@ export class Wallet {
     // TO DO:
     // Need to map channelInfo from API to correct channel saved in wallet
     // Need an ID saved that matches to ChannelInfo to ChannelFunding
-
     channels.map( ( channel ) => {
 
     })
   }
 
   async createChannel(amount: number, peer_node: string ){
+
 
     let peerNode = peer_node.match(
       /^([0-9a-f]+)@([^:]+):([0-9]+)$/i
@@ -763,6 +763,10 @@ export class Wallet {
     console.log('Check Channel Create Correctly: ', this.channels);
 
     return addr;
+}
+
+  async deleteChannel(addr: string){
+    this.channels.deleteChannel(addr);
   }
 
   async saveActivityLog() {
@@ -825,8 +829,10 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+
     let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
     wallet.saveChannels(channelsInfo);
+
     await wallet.save();
     wallet.setActive();
     return wallet;

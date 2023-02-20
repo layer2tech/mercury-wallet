@@ -1,5 +1,6 @@
 "use strict";
 
+
 export class ChannelList {
     channels: Channel[]
 
@@ -51,6 +52,10 @@ export class ChannelList {
         }
     }
 
+    deleteChannel(addr: string){
+        let channelsLeft = this.channels.filter( chan => chan.funding?.addr !== addr);
+        this.channels = channelsLeft;
+    }
     getTotalChannelBalance(){
         let channelsInfo: ChannelInfo[] = []
 
@@ -79,7 +84,6 @@ export interface Channel {
     port: number;
 }
 
-
 export interface ChannelInfo {
     id: string;
     name: string;
@@ -88,7 +92,7 @@ export interface ChannelInfo {
     user_id: string;
     config_id: string;
     wallet_id: string;
-    peer_id: string;    
+    peer_id: string;
 }
 
 export interface ChannelFunding {
