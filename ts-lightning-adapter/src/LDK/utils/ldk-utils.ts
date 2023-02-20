@@ -1,48 +1,50 @@
-import { getLDKClient } from "../init/importLDK";
-import db from "../../db/db";
-import { hexToUint8Array } from "./utils";
+import { getLDKClient } from "../init/importLDK.js";
+import db from "../../db/db.js";
+import { hexToUint8Array } from "./utils.js";
+import * as lightningPayReq from "bolt11";
+import * as ldk from "lightningdevkit";
 
 export const closeConnections = () => {
     console.log("Closing all the connections")
     getLDKClient().netHandler.stop();
 }
 
-// export const createInvoice = (amtInSats: number, invoiceExpirySecs: number, description: string) => {
-//     let mSats = getLDKClient().LDK.Option_u64Z.constructor_some(BigInt(amtInSats * 1000));
+export const createInvoice = (amtInSats: number, invoiceExpirySecs: number, description: string) => {
+    let mSats = ldk.Option_u64Z.constructor_some(BigInt(amtInSats * 1000));
 
-//     let invoice = getLDKClient().channel_manager.create_inbound_payment(
-//       mSats,
-//       invoiceExpirysecs
-//     );
+    let invoice = getLDKClient().channelManager.create_inbound_payment(
+      mSats,
+      invoiceExpirySecs
+    );
 
-//     let payment_hash = invoice.res.get_a();
-//     let payment_secret = invoice.res.get_b();
+    let payment_hash = invoice.res.get_a();
+    let payment_secret = invoice.res.get_b();
 
-//     let encodedInvoice = lightningPayReq.encode({
-//       satoshis: amtInSats,
-//       timestamp: Date.now(),
-//       tags: [
-//         {
-//           tagName: "payment_hash",
-//           data: payment_hash,
-//         },
-//         {
-//           tagName: "payment_secret",
-//           data: payment_secret,
-//         },
-//         {
-//           tagName: "description",
-//           data: description,
-//         },
-//       ],
-//     });
+    let encodedInvoice = lightningPayReq.encode({
+      satoshis: amtInSats,
+      timestamp: Date.now(),
+      tags: [
+        {
+          tagName: "payment_hash",
+          data: payment_hash,
+        },
+        {
+          tagName: "payment_secret",
+          data: payment_secret,
+        },
+        {
+          tagName: "description",
+          data: description,
+        },
+      ],
+    });
 
-//     // Hardcoded for now, needs to be changed
-//     let privateKeyHex =
-//       "e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734";
-//     let signedInvoice = lightningPayReq.sign(encodedInvoice, privateKeyHex);
-//     return signedInvoice;
-// }
+    // Hardcoded for now, needs to be changed
+    let privateKeyHex =
+      "e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734";
+    let signedInvoice = lightningPayReq.sign(encodedInvoice, privateKeyHex);
+    return signedInvoice;
+}
 
 export const createNewPeer = (host: string, port: number, pubkey: string): Promise<{ status: number, message?: string, error?: string, peer_id?: number }> => {
     return new Promise((resolve, reject) => {

@@ -1,4 +1,5 @@
 import express from "express";
+import { createInvoice } from "../LDK/utils/ldk-utils.js";
 const router = express.Router();
 
 router.post("/generate_invoice", async function (req, res) {
@@ -8,15 +9,15 @@ router.post("/generate_invoice", async function (req, res) {
       invoice_expiry_secs: req.body.invoice_expiry_secs,
       description: req.body.description,
     };
-    // let invoice = createInvoice(
-    //   invoice_config.amt_in_sats,
-    //   invoice_config.invoice_expiry_secs,
-    //   invoice_config.description
-    // );
+    let invoice = createInvoice(
+      invoice_config.amt_in_sats,
+      invoice_config.invoice_expiry_secs,
+      invoice_config.description
+    );
     // log("info", `Generating Invoice`);
-    //let response = invoice;
-    //console.log(response);
-    //res.status(200).json(response);
+    let response = invoice;
+    console.log(response);
+    res.status(200).json(response);
   } catch (err) {
     const err_msg = `Bad request: ${err}`;
     console.log(err_msg);
