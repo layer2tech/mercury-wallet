@@ -122,10 +122,6 @@ const DepositLightning = (props) => {
     setChannels(getChannels());
   }
 
-  const copyAddressToClipboard = (event, address) => {
-    event.stopPropagation()
-    navigator.clipboard.writeText(address);
-  }
 
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
