@@ -104,9 +104,9 @@ export default class LightningClient implements LightningClientInterface {
     this.txdata.push(txData);
   }
 
-  setInputTx(privateKey: string, txid: string, vout: number, value: number) {
+  setInputTx(privateKey: string, txid: string, vout: number) {
     let mercuryHandler = new MercuryEventHandler(this.channelManager);
-    mercuryHandler.setInputTx(privateKey, txid, vout, value);
+    mercuryHandler.setInputTx(privateKey, txid, vout);
     const eventHandler = EventHandler.new_impl(mercuryHandler);
   }
 
@@ -128,10 +128,10 @@ export default class LightningClient implements LightningClientInterface {
         privkey,
         txid,
         vout,
-        amount +
+        amount /*+
           this.feeEstimator.get_est_sat_per_1000_weight(
             ConfirmationTarget.LDKConfirmationTarget_Normal
-          )
+          )*/
       ); // TODO : needs to be properly referenced and set with UI with mercury fee estimator
       console.log("Input Tx √");
     } catch (e) {
@@ -175,6 +175,8 @@ export default class LightningClient implements LightningClientInterface {
         port,
         id: this.currentConnections.length + 1,
       };
+
+      this.currentConnections.push(peerDetails);
 
       console.log("Connecting...");
       await this.create_socket(peerDetails);
@@ -262,7 +264,7 @@ export default class LightningClient implements LightningClientInterface {
     let pushMsat = BigInt(push_msat);
     //let userChannelId = BigInt(channelId);
 
-    let lastChannelId = BigInt(this.currentConnections.length);
+    let lastChannelId = BigInt(1); //BigInt(this.currentConnections.length);
 
     let channelCreateResponse;
     console.log("Reached here ready to create channel...");

@@ -32,14 +32,12 @@ class MercuryEventHandler implements EventHandlerInterface {
   privateKey: string | null;
   txid: string | null;
   vout: number | null;
-  value: number | null;
 
   constructor(_channelManager: ChannelManager) {
     this.channelManager = _channelManager;
     this.privateKey = null;
     this.txid = null;
     this.vout = null;
-    this.value = null;
   }
 
   handle_event(e: any) {
@@ -47,7 +45,7 @@ class MercuryEventHandler implements EventHandlerInterface {
 
     switch (true) {
       case e instanceof Event_FundingGenerationReady:
-        this.handleFundingGenerationReadyEvent_Auto(e);
+        this.handleFundingGenerationReadyEvent_Manual(e);
         break;
       // case e instanceof Event_PaymentReceived:
       //   this.handlePaymentReceivedEvent(e);
@@ -82,11 +80,10 @@ class MercuryEventHandler implements EventHandlerInterface {
     this.channelManager = channelManager;
   }
 
-  setInputTx(privateKey: string, txid: string, vout: number, value: number) {
+  setInputTx(privateKey: string, txid: string, vout: number) {
     this.privateKey = privateKey;
     this.vout = vout;
     this.txid = txid;
-    this.value = value;
   }
   resetInputTx() {
     this.privateKey = null;
@@ -203,7 +200,7 @@ class MercuryEventHandler implements EventHandlerInterface {
       sequence: 0xffffffff,
       witnessUtxo: {
         script: p2wpkh.output,
-        value: Number(this.value),
+        value: parseInt(channel_value_satoshis.toString(), 10) + 253,
       },
     });
     psbt.addOutput({
