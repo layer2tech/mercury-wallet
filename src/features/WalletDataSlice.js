@@ -981,6 +981,7 @@ export const callTokenInit = createAsyncThunk(
 export const callTokenVerify = createAsyncThunk(
   'tokenVerify',
   async (action, thunkAPI) => {
+    console.log(action.token_id);
     return wallet.tokenVerify(action.token_id)
   }
 )

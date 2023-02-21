@@ -26,7 +26,6 @@
     }
   },
   "repository": "github:layer2tech/mercury-wallet",
-
   "version": "v0.8.0",
   "license": "MIT/Apache-2.0",
   "homepage": "./",

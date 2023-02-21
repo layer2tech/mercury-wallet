@@ -89,7 +89,10 @@ export class HttpClient {
   };
 
   async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
+    console.log(params);
+    console.log(Object.entries(params).length);
     const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
+    console.log(url);
     const config: AxiosRequestConfig = {
       method: 'get',
       url: url,

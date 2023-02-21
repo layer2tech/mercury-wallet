@@ -105,7 +105,9 @@ const DepositPage = () => {
 
     if(token.token.id !== "" && step === 2 ){
 
-      dispatch(callTokenVerify({token_id: token.id}))
+
+      console.log(token);
+      dispatch(callTokenVerify({token_id: token.token.id}))
     }
 
   },[token, dispatch])

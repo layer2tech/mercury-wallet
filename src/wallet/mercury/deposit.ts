@@ -28,12 +28,15 @@ export const tokenInit = async (
 
   // May need to add proof of work here
 
-  let res = await http_client.get(GET_ROUTE.TOKEN_INIT, token_amount);
+  let token_amount_str = token_amount.toString();
+  let res = await http_client.get(GET_ROUTE.TOKEN_INIT, token_amount_str);
   
+  console.log(res);
+
   let token = {
     id: res.token_id,
     btc: res.btc_payment_address,
-    ln: res.lightning_invoice
+    ln: res.lightning_invoice.bolt11
   }
   
   return token
@@ -44,7 +47,11 @@ export const tokenVerify = async (
   token_id: string
 ) => {
 
+  console.log(token_id);
+
   let verify = await http_client.get(GET_ROUTE.TOKEN_VERIFY, token_id)
+
+  console.log(verify);
 
   return verify
 
