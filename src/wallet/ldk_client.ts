@@ -27,22 +27,22 @@ export class LDKClient {
   async getChannels(wallet_name: string): Promise <ChannelInfo[]> {
     let channels: ChannelInfo[] = [];
     try{
-      let res = await LDKClient.get(LIGHTNING_GET_ROUTE.CHANNEL_LIST, wallet_name);
-
-      res.map((row: any) => {
-        channels.push({
-          id: row.id,
-          name: row.name,
-          amount: row.amount,
-          push_msat: row.push_msat,
-          user_id: row.user_id,
-          config_id: row.config_id,
-          wallet_id: row.wallet_id,
-          peer_id: row.peer_id
-        })
-      })
-
-      return channels;
+      // let res = await LDKClient.get(LIGHTNING_GET_ROUTE.CHANNEL_LIST, wallet_name);
+      // res.map((row: any) => {
+      //   channels.push({
+        //     id: row.id,
+        //     name: row.name,
+        //     amount: row.amount,
+        //     push_msat: row.push_msat,
+        //     user_id: row.user_id,
+        //     config_id: row.config_id,
+        //     wallet_id: row.wallet_id,
+        //     peer_id: row.peer_id
+        //   })
+        // })
+        
+        // return channels;
+      return []
 
     } catch(e: any){
       throw new Error('GET - Channel List Error: ', e);

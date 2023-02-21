@@ -192,12 +192,6 @@ export const getTotalChannelBalance = () => {
   }
 }
 
-export const callGetChannels = async (wallet_name) => {
-  if(isWalletLoaded()){
-    return await wallet.lightning_client.getChannels(wallet_name);
-  }
-}
-
 
 //Restart the electrum server if ping fails
 async function pingElectrumRestart(force = false) {
