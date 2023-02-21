@@ -1,5 +1,5 @@
-import LightningClient from "../lightning";
-import initLDK from "./initLDK";
+import LightningClient from "../lightning.js";
+import initLDK from "./initLDK.js";
 
 let LDKClient: LightningClient | undefined;
 

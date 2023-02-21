@@ -3,44 +3,78 @@ import express from "express";
 const router = express.Router();
 import db from "../db/db.js";
 import { getLDKClient } from "../LDK/init/importLDK.js";
-import { createNewPeer } from "../LDK/utils/ldk-utils.js";
+import { createNewChannel, createNewPeer } from "../LDK/utils/ldk-utils.js";
 
-router.post("/open-channel", async (req,res) => {
-  const { amount, channelType, pubkey, host, port, privkey, txid, vout } = req.body;
-  console.log('Req Body: ', req.body)
+router.post("/open-channel", async (req, res) => {
+  const {
+    amount,
+    channelType,
+    pubkey,
+    host,
+    port,
+    privkey,
+    txid,
+    vout,
+    push_msat,
+    override_config,
+  } = req.body;
+  console.log("Req Body: ", req.body);
 
+  console.log("****====== RECEIVED DATA ======***");
+  console.log(
+    "amount: ",
+    amount,
+    "\n ChannelType: ",
+    channelType,
+    "\nPubKey: ",
+    pubkey,
+    "\n Host: ",
+    host,
+    "\n Port:  ",
+    port,
+    "\n PrivKey: ",
+    privkey,
+    "\n TxID: ",
+    txid,
+    "\n Vout: ",
+    vout
+  );
 
-    console.log("****====== RECEIVED DATA ======***")
-  console.log("amount: ", amount,
-  "\n ChannelType: ", channelType,
-  "\nPubKey: ", pubkey,
-  "\n Host: ", host, 
-  "\n Port:  ", port,
-  "\n PrivKey: ", privkey,
-  "\n TxID: ", txid,
-  "\n Vout: ", vout);
+  try {
+    getLDKClient().connectToPeerAndCreateChannel(
+      privkey,
+      txid,
+      vout,
+      pubkey,
+      host,
+      port,
+      amount,
+      push_msat,
+      override_config
+    );
 
-  const LDK = getLDKClient();
+    // saves into db - FIX THIS
+    /*
+    const result = await createNewPeer(host, port, pubkey);
+    const result2 = await createNewChannel(
+      pubkey,
+      name,
+      amount,
+      push_msat,
+      config_id,
+      wallet_name,
+      peer_id
+    );*/
 
-  try{
-    LDK.connectToPeerAndCreateChannel(privkey, txid, vout, pubkey, host, port, amount)
-    res.status(200).json({ message: "Connected to peer, Channel created" });
-  } catch(e){
-    console.log(e)
+    res.status(200).json({
+      message: "Connected to peer, Channel created",
+      //result: result.status,
+    });
+
+    // Save to database...
+  } catch (e) {
+    console.log(e);
   }
-  //getLDKClient().connectToPeer(pubkey, host, port);
-
-
-})
-
-router.post("/connectToPeer", (req, res) => {
-  const { amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id } = req.body;
-  console.log(amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id);
-
-  getLDKClient().createPeerAndChannel(amount, pubkey, host, port, channel_name, push_msat, wallet_name, config_id);
-  //getLDKClient().connectToPeer(pubkey, host, port);
-
-  res.status(200).json({ message: "Connected to peer, Channel created" });
 });
 
 router.post("/newPeer", async (req, res) => {

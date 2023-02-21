@@ -1,20 +1,8 @@
-// import fs from 'fs';
-// import ElectrumClient from "./electrum.mjs";
-// const ldk = import('lightningdevkit');
-
-// import SetUpLDK from "./main-operations/SetUpLDK.mjs";
 import {
-  ChannelMessageHandler,
-  CustomMessageHandler,
-  OnionMessageHandler,
   PeerManager,
-  RoutingMessageHandler,
-  Event_FundingGenerationReady,
   FeeEstimator,
   Logger,
   BroadcasterInterface,
-  Network,
-  BestBlock,
   NetworkGraph,
   Persist,
   EventHandler,
@@ -26,10 +14,8 @@ import {
   ChannelHandshakeConfig,
   ChainParameters,
   ChannelManager,
-  IgnoringMessageHandler,
-  Event,
+  ConfirmationTarget,
 } from "lightningdevkit";
-import MercuryFeeEstimator from "./structs/MercuryFeeEstimator.mjs";
 import { NodeLDKNet } from "./structs/NodeLDKNet.mjs";
 import LightningClientInterface from "./types/LightningClientInterface.js";
 import PeerDetails from "./types/PeerDetails.js";
@@ -38,9 +24,6 @@ import {
   hexToUint8Array,
   uint8ArrayToHexString,
 } from "./utils/utils.js";
-import { createNewPeer, createNewChannel } from "./utils/ldk-utils.js";
-
-import * as bitcoin from "bitcoinjs-lib";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 
 export default class LightningClient implements LightningClientInterface {
@@ -96,8 +79,8 @@ export default class LightningClient implements LightningClientInterface {
   }
 
   /*
-Electrum Client Functions
-*/
+    Electrum Client Functions
+  */
 
   async setBlockHeight() {
     // Gets the block height from client and assigns to class paramater
@@ -121,58 +104,10 @@ Electrum Client Functions
     this.txdata.push(txData);
   }
 
-  setInputTx(privateKey: string, txid: string, vout: number) {
+  setInputTx(privateKey: string, txid: string, vout: number, value: number) {
     let mercuryHandler = new MercuryEventHandler(this.channelManager);
-    mercuryHandler.setInputTx(privateKey, txid, vout);
+    mercuryHandler.setInputTx(privateKey, txid, vout, value);
     const eventHandler = EventHandler.new_impl(mercuryHandler);
-  }
-
-  /**
-   * Connects to Peer for outbound channel
-   * @param pubkeyHex
-   * @param host
-   * @param port
-   */
-
-  async createPeerAndChannel(
-    amount: number,
-    pubkey: string,
-    host: string,
-    port: number,
-    channel_name: string,
-    push_msat: number,
-    wallet_name: string,
-    config_id: number
-  ) {
-    let peer_id: number | undefined;
-
-    try {
-      const result = await createNewPeer(host, port, pubkey);
-      peer_id = result.peer_id;
-    } catch (err) {
-      console.log(err);
-    }
-
-    console.log("Peer created, connected to", peer_id);
-
-    let channel_id: number | undefined;
-    try {
-      const result = await createNewChannel(
-        pubkey,
-        channel_name,
-        amount,
-        push_msat,
-        config_id,
-        wallet_name,
-        peer_id!
-      );
-      console.log(result);
-      channel_id = result.channel_id;
-    } catch (err) {
-      console.log(err);
-    }
-
-    console.log("Channel Created, connected to", channel_id);
   }
 
   async connectToPeerAndCreateChannel(
@@ -182,15 +117,22 @@ Electrum Client Functions
     pubkeyHex: string,
     host: string,
     port: number,
-    amount: number
-    // push_msat: number,
-    // channelType: string,
-    // channelId: number,
-    // override_config: UserConfig
+    amount: number,
+    push_msat: number,
+    override_config: UserConfig
   ) {
     try {
       console.log("Input Tx .");
-      this.setInputTx(privkey, txid, vout);
+
+      this.setInputTx(
+        privkey,
+        txid,
+        vout,
+        amount +
+          this.feeEstimator.get_est_sat_per_1000_weight(
+            ConfirmationTarget.LDKConfirmationTarget_Normal
+          )
+      ); // TODO : needs to be properly referenced and set with UI with mercury fee estimator
       console.log("Input Tx √");
     } catch (e) {
       throw new Error(`Input Tx Error: ${e}`);
@@ -208,7 +150,7 @@ Electrum Client Functions
     try {
       console.log("Connect to channel .");
       // TODO: Add function to change this.config for public/private at top of this fn
-      await this.createChannel(pubkeyArray, amount, 0, 1, this.config);
+      await this.createChannel(pubkeyArray, amount, push_msat, override_config);
       console.log("Connect to channel √");
     } catch (e) {
       console.log("Error: ", e);
@@ -305,7 +247,6 @@ Electrum Client Functions
     pubkey: Uint8Array,
     amount: number,
     push_msat: number,
-    channelId: number,
     override_config: UserConfig
   ) {
     await this.setBlockHeight();
@@ -313,7 +254,9 @@ Electrum Client Functions
 
     let channelValSatoshis = BigInt(amount);
     let pushMsat = BigInt(push_msat);
-    let userChannelId = BigInt(channelId);
+    //let userChannelId = BigInt(channelId);
+
+    let lastChannelId = BigInt(this.currentConnections.length);
 
     let channelCreateResponse;
     console.log("Reached here ready to create channel...");
@@ -322,7 +265,7 @@ Electrum Client Functions
         pubkey,
         channelValSatoshis,
         pushMsat,
-        userChannelId,
+        lastChannelId,
         override_config
       );
     } catch (e) {
