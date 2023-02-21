@@ -94,8 +94,6 @@ function setUpLDK(electrum: string = "prod") {
   //   )
   // );
 
-  let mercuryHandler = new MercuryEventHandler();
-  const eventHandler = EventHandler.new_impl(mercuryHandler);
 
   // Step 7: Optional: Initialize the transaction filter
   // ------  tx filter: watches for tx on chain
@@ -174,8 +172,11 @@ function setUpLDK(electrum: string = "prod") {
       params
     );
   }
-  if (channelManager) {
-    mercuryHandler.setChannelManager(channelManager);
+  
+  let eventHandler
+  if(channelManager){
+    let mercuryHandler = new MercuryEventHandler(channelManager);
+    eventHandler = EventHandler.new_impl(mercuryHandler);
   }
 
   // const channelMessageHandler = ChannelMessageHandler.new_impl(
@@ -233,7 +234,8 @@ function setUpLDK(electrum: string = "prod") {
     console.log("Init ElectrumClient");
     electrumClient = new ElectrumClient("");
   }
-  if (chainMonitor && channelManager && peerManager) {
+  
+  if(chainMonitor && channelManager && peerManager && eventHandler){
     const LDKInit: LightningClientInterface = {
       feeEstimator: feeEstimator,
       electrumClient: electrumClient, // Add this

@@ -123,7 +123,7 @@ Electrum Client Functions
 
   setInputTx(privateKey: string, txid: string, vout: number) {
     let mercuryHandler = new MercuryEventHandler(this.channelManager);
-    mercuryHandler.setInputTx(privateKey, txid, vout);
+    mercuryHandler.setInputTx(privateKey, txid, vout)
     this.eventHandler = EventHandler.new_impl(mercuryHandler);
   }
 
