@@ -196,6 +196,7 @@ export const getTotalChannelBalance = () => {
   }
 };
 
+
 export const callGetChannels = async (wallet_name) => {
   if (isWalletLoaded()) {
     return await wallet.lightning_client.getChannels(wallet_name);
