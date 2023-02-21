@@ -661,7 +661,7 @@ export class Wallet {
     })
   }
 
-  async createChannel(amount: number, peer_node: string ){
+  async createChannel(amount: number, peer_node: string, txFeePerB: number ){
 
 
     let peerNode = peer_node.match(
@@ -747,7 +747,8 @@ export class Wallet {
                 port,
                 privkey,
                 txid,
-                vout
+                vout,
+                txFeePerB
               })
             }
           })

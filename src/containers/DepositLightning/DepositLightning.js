@@ -30,6 +30,7 @@ import { isWalletLoaded,
 } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
 import closeIcon from "../../images/close-icon.png";
+import TransactionFee from "../../components/TransactionFee/TransactionFee";
 
 
 export const CHANNEL_TYPE = {
@@ -52,6 +53,8 @@ const DepositLightning = (props) => {
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
 
   const [channels, setChannels] = useState(getChannels());
+
+  const [ txFeePerB, setTxFeePerB ] = useState(7);
 
   const IsChannelAlreadyExist = (pubKey) => {
     return channels.some((channel) => {
@@ -77,13 +80,7 @@ const DepositLightning = (props) => {
       return
     }
 
-    // console.log('PubKey: ', pubkey);
-    // console.log('Host: ', host);
-    // console.log('Port: ', port);
-
-    // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
-
-    let nextAddress = await callCreateChannel(inputAmt, inputNodeId);
+    let nextAddress = await callCreateChannel(inputAmt, inputNodeId, txFeePerB);
 
     let newInvoice = {
       amt: mBTCtoBTC(inputAmt),
@@ -178,6 +175,7 @@ const DepositLightning = (props) => {
         <div className="Body right lightning">
           <div className="header">
             <h3 className="subtitle">Payee Details</h3>
+            <TransactionFee  txFeePerB={txFeePerB} setTxFeePerB={setTxFeePerB} />
           </div>
 
           <div>

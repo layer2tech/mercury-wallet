@@ -32,6 +32,7 @@ import './Withdraw.css';
 
 import { STATECOIN_STATUS } from '../../wallet';
 import PageHeader from '../PageHeader/PageHeader';
+import TransactionFee from '../../components/TransactionFee/TransactionFee';
 const WithdrawPage = () => {
   const dispatch = useDispatch();
 
@@ -48,10 +49,6 @@ const WithdrawPage = () => {
   const [refreshCoins, setRefreshCoins] = useState(false); // Update Coins model to force re-render
 
   const [txFeePerB, setTxFeePerB] = useState(7); // chosen fee per kb value
-
-  const [txFees,setTxFees] = useState([{block: 6, fee: 7,id:1},{block: 3, fee:8,id:2},{block:1, fee:9,id:3}])
-
-  const [customFee,setCustomFee] = useState(false)
   
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -89,37 +86,6 @@ const WithdrawPage = () => {
     setRender({});
   }
 
-  // Get Tx fee estimate
-  useEffect(() => {
-    let isMounted = true
-    let blocks = txFees.map(item => item.block)
-    // list of # of blocks untill confirmation
-
-    let txFeeEstimations = []
-
-    blocks.map(block => {
-      dispatch(callGetFeeEstimation(parseInt(block))).then(tx_fee_estimate => {
-        if ( isMounted === true ) {
-          if (tx_fee_estimate.payload > 0) {
-            // Add fee to list
-            let feeEst = tx_fee_estimate.payload
-          
-            txFeeEstimations = [...txFeeEstimations,
-            { block: block, fee: feeEst, id: (txFeeEstimations.length + 1) }]
-
-            if (parseInt(block) === 6) setTxFeePerB(Math.ceil(feeEst))
-          }
-
-          if (txFeeEstimations.length === 3) {
-            //Initial Tx Fee estimations set
-            setTxFees(txFeeEstimations)
-          }
-        }
-      })
-    })
-    return () => {isMounted = false}
-  }, [dispatch]);
-
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
@@ -130,6 +96,7 @@ const WithdrawPage = () => {
 
     setLoading(true)
     dispatch(setShowWithdrawPopup(true))
+
     dispatch(callWithdraw({"shared_key_ids": selectedCoins, "rec_addr": inputAddr, "fee_per_byte": txFeePerB})).then((res => {
       if (res.error === undefined) {
         setSelectedCoins([])
@@ -162,29 +129,6 @@ const WithdrawPage = () => {
         return return_str+ " in transfer process";
       default:
         return;
-    }
-  }
-
-  const handleFeeSelection = (event) => {
-    if(event.target.value === "custom"){
-      setCustomFee(true)
-    }
-    
-    else setTxFeePerB(parseInt(event.target.value))
-  }
-
-  const handleKeyPress = (e) => {
-    if( e.key.charCodeAt(0) === 69 ){
-      // Add value to txFee list
-      // set Tx fee per B
-      // reset customFee
-      setTxFees([...txFees,
-        {block: "custom", fee : txFeePerB,id: (txFees.length+1)}])
-      setCustomFee(false)
-      return
-    }
-    if( e.key.charCodeAt(0) < 48 || e.key.charCodeAt(0) > 57  ){
-      e.preventDefault();
     }
   }
 
@@ -222,7 +166,7 @@ const WithdrawPage = () => {
               <div className="Body right">
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>
-                      <div>
+                      {/* <div>
                         {
                           !customFee ? (
                           <select
@@ -253,7 +197,8 @@ const WithdrawPage = () => {
                         }
 
                           <span className="small">Transaction Fee</span>
-                      </div>
+                      </div> */}
+                      <TransactionFee txFeePerB={txFeePerB} setTxFeePerB={setTxFeePerB}/>
                   </div>
 
                   <div>
