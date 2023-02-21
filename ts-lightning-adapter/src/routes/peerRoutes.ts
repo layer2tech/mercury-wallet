@@ -16,7 +16,6 @@ router.post("/open-channel", async (req, res) => {
     txid,
     vout,
     push_msat,
-    override_config,
   } = req.body;
   console.log("Req Body: ", req.body);
 
@@ -49,11 +48,11 @@ router.post("/open-channel", async (req, res) => {
       host,
       port,
       amount,
-      push_msat,
-      override_config
+      push_msat, //default to 0
+      channelType
     );
 
-    // saves into db - FIX THIS
+    // saves into db - FIX THIS BROKEN AGAIN
     /*
     const result = await createNewPeer(host, port, pubkey);
     const result2 = await createNewChannel(

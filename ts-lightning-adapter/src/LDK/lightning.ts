@@ -119,7 +119,7 @@ export default class LightningClient implements LightningClientInterface {
     port: number,
     amount: number,
     push_msat: number,
-    override_config: UserConfig
+    channelType: boolean
   ) {
     try {
       console.log("Input Tx .");
@@ -149,6 +149,12 @@ export default class LightningClient implements LightningClientInterface {
 
     try {
       console.log("Connect to channel .");
+
+      let override_config: UserConfig = UserConfig.constructor_default();
+      override_config
+        .get_channel_handshake_config()
+        .set_announced_channel(channelType); // public channel
+
       // TODO: Add function to change this.config for public/private at top of this fn
       await this.createChannel(pubkeyArray, amount, push_msat, override_config);
       console.log("Connect to channel √");

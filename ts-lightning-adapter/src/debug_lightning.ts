@@ -16,9 +16,11 @@ export async function debug_lightning() {
   await LightningClient.start();
   //025817585dc79c2fff719e764e30fdc28a5bda9d03e11a56b155bc4a243264d7cb@127.0.0.1:9937
   let pubkeyHex =
-    "022bd8cece1f8bee57833662c461ca86484fbede65e71a7e54723610608739a493";
+    "0215ba9d8131ab1b5f13a23a5cb6872887fae4226a7507af4754e7b65cf2db92fe";
   let hostname = "127.0.0.1";
-  let port = 9936;
+  let port = 9738;
+
+  // 0215ba9d8131ab1b5f13a23a5cb6872887fae4226a7507af4754e7b65cf2db92fe@127.0.0.1:9738
 
   console.log("Connect to Peer");
   await LightningClient.connectToPeer(pubkeyHex, hostname, port);
@@ -31,6 +33,6 @@ export async function debug_lightning() {
 
   console.log("Connect to channel");
   if (pubkey) {
-    await LightningClient.createChannel(pubkey, 100000, 0, 1, override_config);
+    await LightningClient.createChannel(pubkey, 100000, 0, override_config);
   }
 }
