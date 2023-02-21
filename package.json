@@ -131,8 +131,8 @@
     "levenary": "^1.1.1",
     "limiter": "^2.1.0",
     "lodash.clonedeep": "^4.5.0",
-    "mercury-wallet-tor-adapter": "file:./tor-adapter",
     "mercury-wallet-lightning-adapter": "file:./lightning-adapter",
+    "mercury-wallet-tor-adapter": "file:./tor-adapter",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
     "mutex-promise": "^0.1.0",
@@ -197,7 +197,7 @@
     "asar": false,
     "appId": "com.mercurywallet.wallet",
     "productName": "mercurywallet",
-    "copyright": "Copyright © 2022 ${author}",
+    "copyright": "Copyright © 2023 ${author}",
     "afterSign": "./afterSignHook.js",
     "mac": {
       "category": "public.app-category.utilities",
