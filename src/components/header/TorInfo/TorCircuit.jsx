@@ -24,6 +24,7 @@ import {
   stopWallet,
   unloadWallet,
   callUnsubscribeAll,
+  callResetConnectionData,
 } from "../../../features/WalletDataSlice";
 import "./torCircuit.css";
 import "./networkSwitch.css";
@@ -100,18 +101,18 @@ const TorCircuit = (props) => {
       getTorCircuitInfo();
     });
   };
-  const handleLogout = async () => {
-    await stopWallet();
-    unloadWallet();
-    dispatch(setWalletLoaded({ loaded: false }));
-  };
 
-  const networkSwitchAndLogOut = ( NETWORK_TYPE ) => {
+  const resetConnectivityData = () => {
+    callResetConnectionData(dispatch);
+  }
+
+  const networkSwitchAndLogOut = async ( NETWORK_TYPE ) => {
+
     // Unsubscribe Block Height before overwriting electrs client
-    callUnsubscribeAll();
-    setNetworkType(NETWORK_TYPE);
+    await callUnsubscribeAll();
+    await setNetworkType(NETWORK_TYPE);
     props.setNetworkType(NETWORK_TYPE);
-    handleLogout();
+    resetConnectivityData();
   }
   
 
@@ -124,9 +125,16 @@ const TorCircuit = (props) => {
   }
 
   const networkSwitch = () => {
+    let networkChange;
+    if (props.networkType === NETWORK_TYPE.TOR) {
+      networkChange = NETWORK_TYPE.I2P;
+    } else {
+      networkChange = NETWORK_TYPE.TOR;
+    }
+
     dispatch(setWarning({
-      title: "Log Out Required",
-      msg: "Log out required on network change.",
+      title: "Network Switch",
+      msg: `Confirm network change ${props.networkType} -> ${networkChange}.`,
       onConfirm: setNetwork,
     }));
   };
