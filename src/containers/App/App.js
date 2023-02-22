@@ -123,7 +123,7 @@ const App = () => {
           <Route
             path="/home"
             exact
-            component={() => <HomePage online={online}/>}
+            component={() => <HomePage online={online} networkType = {networkType}/>}
           />
           <Route path="/settings" exact component={() => <SettingsPage />} />
           <Route path="/help" exact component={() => <HelpPage />} />

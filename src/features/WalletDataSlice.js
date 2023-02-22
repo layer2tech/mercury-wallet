@@ -452,6 +452,14 @@ export const callGetBlockHeight = () => {
     return wallet.getBlockHeight();
   }
 };
+
+export const resetBlockHeight = () => {
+  if (isWalletLoaded()) {
+    
+    return wallet.resetBlockHeight();
+  }  
+}
+
 export const callGetUnspentStatecoins = () => {
   if (isWalletLoaded()) {
     return wallet.getUnspentStatecoins();
@@ -509,6 +517,14 @@ export const callGetSwapGroupInfo = () => {
     return wallet.getSwapGroupInfo();
   }
 };
+
+export const resetSwapGroupInfo = () => {
+  if (isWalletLoaded()) {
+    return wallet.resetSwapGroupInfo();
+  }
+};
+
+
 
 export const showWarning = (key) => {
   if (wallet) {
@@ -1027,6 +1043,16 @@ export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, 
     }
   }
 };
+
+export const callResetConnectionData = (dispatch) => {
+  resetSwapGroupInfo();
+  resetBlockHeight();
+  dispatch(setPingConductorMs(null));
+  dispatch(setPingElectrumMs(null));
+  dispatch(setPingServerMs(null));
+  dispatch(setBlockHeightLoad(false));
+  dispatch(updateFeeInfo({deposit: "NA", withdraw: "NA"}));
+}
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.

@@ -962,6 +962,10 @@ export class Wallet {
     return this.block_height;
   }
 
+  resetBlockHeight(){
+    this.block_height = 0;
+  }
+
   getSEAddress(addr_index: number): Object {
     if (addr_index >= this.account.chains[0].addresses.length) {
       return this.current_sce_addr;
@@ -2257,6 +2261,10 @@ export class Wallet {
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo> {
     return this.swap_group_info;
+  }
+
+  resetSwapGroupInfo(){
+    this.swap_group_info = new Map<SwapGroup, GroupInfo>();
   }
 
   getTorcircuitInfo(): TorCircuit[] {
