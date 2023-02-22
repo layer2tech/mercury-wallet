@@ -6,6 +6,7 @@ import '../coins/coins.css';
 import './Channel.css';
 import { CopiedButton } from '../';
 import copy_img from "../../images/icon2.png";
+import { CHANNEL_STATUS } from "../../wallet/channel";
 
 const Channel = (props) => {
 
@@ -55,27 +56,28 @@ const Channel = (props) => {
                         </span>
                     </div>
 
-
-                    <div className="progress_bar" >
-                        <div className="deposit-scan-main-item">
-                          <>
-                            <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, props.channel_data.peer_pubkey)} >
-                              <img type="button" src={copy_img} alt="icon" />
-                            </CopiedButton>
-                            <span className="long">
-                              <b>{props.channel_data.peer_pubkey}</b>
-                            </span>
-                          </>
-                        </div>
-                        <div className="sub">
-                            <ProgressBar>                     
-                            <ProgressBar 
-                                striped variant={ 'success' }
-                                now={50}
-                                key={1} />
-                            </ProgressBar>
-                        </div>
-                    </div>
+                    {(props.channel_data.status === CHANNEL_STATUS.INITIALISED) ?
+                      <div className="progress_bar" >
+                          <div className="deposit-scan-main-item">
+                            <>
+                              <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, props.channel_data.funding.addr)} >
+                                <img type="button" src={copy_img} alt="icon" />
+                              </CopiedButton>
+                              <span className="long">
+                                <b>{props.channel_data.peer_pubkey}</b>
+                              </span>
+                            </>
+                          </div>
+                          <div className="sub">
+                              <ProgressBar>                     
+                              <ProgressBar 
+                                  striped variant={ 'success' }
+                                  now={50}
+                                  key={1} />
+                              </ProgressBar>
+                          </div>
+                      </div>
+                    : <></>}
 
 
 
