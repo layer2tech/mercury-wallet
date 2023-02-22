@@ -15,7 +15,7 @@ import "../CreateWalletInfo/CreateWalletInfo.css";
 
 import "./DepositLightning.css";
 
-import { callGetRecentInvoice, callSetRecentInvoice, checkChannelCreation } from '../../features/WalletDataSlice';
+import { checkChannelCreation } from '../../features/WalletDataSlice';
 
 // move this to use the http client
 import axios from "axios";
@@ -30,6 +30,7 @@ import { isWalletLoaded,
 } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
 import closeIcon from "../../images/close-icon.png";
+import { CHANNEL_STATUS } from "../../wallet/channel";
 
 
 export const CHANNEL_TYPE = {
@@ -40,18 +41,38 @@ export const CHANNEL_TYPE = {
 const DepositLightning = (props) => {
 
   const dispatch = useDispatch();
+
+  const [channels, setChannels] = useState(getChannels());
   
   const [inputAmt, setInputAmt] = useState("");
 
   const [inputNodeId, setInputNodeId] = useState("");
-
-  const [invoice, setInvoice] = useState(callGetRecentInvoice());
   
   const [loading, setLoading] = useState(false);
 
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
 
-  const [channels, setChannels] = useState(getChannels());
+  const mBTCtoBTC = (mBTC) => {
+    return mBTC * ( 10**-3 );
+  }
+
+  const satsToBTC = (sats) => {
+    return sats * ( 10**-8 );
+  }
+
+  const getRecentInvoice = () => {
+    const channel = channels.find(channel => channel.status === CHANNEL_STATUS.INITIALISED);
+    let recentInvoice = {};
+    if (channel) {
+      recentInvoice = {
+        amt: satsToBTC(channel.amount),
+        addr: channel.funding.addr,
+      };
+    }
+    return recentInvoice;
+  }
+
+  const [invoice, setInvoice] = useState(getRecentInvoice());
 
   const IsChannelAlreadyExist = (pubKey) => {
     return channels.some((channel) => {
@@ -95,13 +116,7 @@ const DepositLightning = (props) => {
 
     setInvoice(newInvoice);
 
-    callSetRecentInvoice(newInvoice);
   };
-
-  const mBTCtoBTC = (mBTC) => {
-    return mBTC * ( 10**-3 );
-  }
-
 
   const copyAddressToClipboard = (event, address) => {
     event.stopPropagation()
@@ -121,7 +136,6 @@ const DepositLightning = (props) => {
     callDeleteChannel(invoice.addr);
     setInvoice({});
     setChannels(getChannels());
-    callSetRecentInvoice(undefined);
   }
 
   if (!isWalletLoaded()) {

@@ -910,18 +910,6 @@ export const callDeleteChannel = async (addr) => {
   }
 }
 
-export const callSetRecentInvoice = async (invoice) => {
-  if(isWalletLoaded()){
-    return await wallet.setInvoice(invoice);
-  }
-}
-
-export const callGetRecentInvoice = () => {
-  if(isWalletLoaded()){
-    return wallet.getInvoice();
-  }
-}
-
 export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) => {
   // Pre action confirmation checks for withdrawal - return true to prevent action
 

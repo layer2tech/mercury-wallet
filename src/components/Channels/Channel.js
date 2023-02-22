@@ -64,7 +64,7 @@ const Channel = (props) => {
                                 <img type="button" src={copy_img} alt="icon" />
                               </CopiedButton>
                               <span className="long">
-                                <b>{props.channel_data.peer_pubkey}</b>
+                                <b>{props.channel_data.funding.addr}</b>
                               </span>
                             </>
                           </div>
