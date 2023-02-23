@@ -1,6 +1,6 @@
-import { getLDKClient } from "../init/importLDK";
-import db from "../../db/db";
-import { hexToUint8Array } from "./utils";
+import { getLDKClient } from "../init/importLDK.js";
+import db from "../../db/db.js";
+import { hexToUint8Array } from "./utils.js";
 
 export const closeConnections = () => {
   console.log("Closing all the connections");
@@ -160,11 +160,12 @@ export const createNewChannel = (
               } else {
                 channelId = row.channel_id;
                 if (pubkey) {
-                  getLDKClient().createChannel(
+                  getLDKClient().connectToChannel(
                     pubkey,
                     amount,
                     push_msat,
-                    channelId
+                    channelId,
+                    channelType
                   );
                 }
                 resolve({
