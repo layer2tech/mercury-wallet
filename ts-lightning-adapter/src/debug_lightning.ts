@@ -25,12 +25,8 @@ export async function debug_lightning() {
 
   let pubkey = hexToUint8Array(pubkeyHex);
 
-  // set the override config so that the channel is public
-  let override_config: UserConfig = UserConfig.constructor_default();
-  override_config.get_channel_handshake_config().set_announced_channel(true); // public channel
-
   console.log("Connect to channel");
   if (pubkey) {
-    await LightningClient.createChannel(pubkey, 100000, 0, 1, override_config);
+    await LightningClient.connectToChannel(pubkey, 100000, 0, 1, true);
   }
 }

@@ -1,20 +1,8 @@
-// import fs from 'fs';
-// import ElectrumClient from "./electrum.mjs";
-// const ldk = import('lightningdevkit');
-
-// import SetUpLDK from "./main-operations/SetUpLDK.mjs";
 import {
-  ChannelMessageHandler,
-  CustomMessageHandler,
-  OnionMessageHandler,
   PeerManager,
-  RoutingMessageHandler,
-  Event_FundingGenerationReady,
   FeeEstimator,
   Logger,
   BroadcasterInterface,
-  Network,
-  BestBlock,
   NetworkGraph,
   Persist,
   EventHandler,
@@ -26,10 +14,7 @@ import {
   ChannelHandshakeConfig,
   ChainParameters,
   ChannelManager,
-  IgnoringMessageHandler,
-  Event,
 } from "lightningdevkit";
-import MercuryFeeEstimator from "./structs/MercuryFeeEstimator.mjs";
 import { NodeLDKNet } from "./structs/NodeLDKNet.mjs";
 import LightningClientInterface from "./types/LightningClientInterface.js";
 import PeerDetails from "./types/PeerDetails.js";
@@ -39,8 +24,6 @@ import {
   uint8ArrayToHexString,
 } from "./utils/utils.js";
 import { createNewPeer, createNewChannel } from "./utils/ldk-utils.js";
-
-import * as bitcoin from "bitcoinjs-lib";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 
 export default class LightningClient implements LightningClientInterface {
@@ -96,8 +79,8 @@ export default class LightningClient implements LightningClientInterface {
   }
 
   /*
-Electrum Client Functions
-*/
+    Electrum Client Functions
+  */
 
   async setBlockHeight() {
     // Gets the block height from client and assigns to class paramater
@@ -123,7 +106,7 @@ Electrum Client Functions
 
   setInputTx(privateKey: string, txid: string, vout: number) {
     let mercuryHandler = new MercuryEventHandler(this.channelManager);
-    mercuryHandler.setInputTx(privateKey, txid, vout)
+    mercuryHandler.setInputTx(privateKey, txid, vout);
     this.eventHandler = EventHandler.new_impl(mercuryHandler);
   }
 
@@ -134,6 +117,7 @@ Electrum Client Functions
    * @param port
    */
 
+  // This function is called from peerRoutes.ts /open-channel request
   async createPeerAndChannel(
     amount: number,
     pubkey: string,
@@ -154,6 +138,7 @@ Electrum Client Functions
       throw new Error(`Input Tx Error: ${e}`);
     }
 
+    // Connect to the peer
     try {
       const result = await createNewPeer(host, port, pubkey);
       var peer_id = result.peer_id;
@@ -165,6 +150,7 @@ Electrum Client Functions
 
     console.log("Peer created, connected to", peer_id);
 
+    // Create the channel
     try {
       const result = await createNewChannel(
         pubkey,
@@ -188,48 +174,7 @@ Electrum Client Functions
     console.log("Channel Created, connected to", channel_id);
   }
 
-  async connectToPeerAndCreateChannel(
-    privkey: string, // Private key from txid address
-    txid: string, // txid of input for channel
-    vout: number, // index of input
-    pubkeyHex: string,
-    host: string,
-    port: number,
-    amount: number
-    // push_msat: number,
-    // channelType: string,
-    // channelId: number,
-    // override_config: UserConfig
-  ) {
-    try {
-      console.log("Input Tx .");
-      this.setInputTx(privkey, txid, vout);
-      console.log("Input Tx √");
-    } catch (e) {
-      throw new Error(`Input Tx Error: ${e}`);
-    }
-
-    try {
-      console.log("Connect to Peer .");
-      await this.connectToPeer(pubkeyHex, host, port);
-      console.log("Connect to Peer √");
-    } catch (e) {
-      throw new Error(`Connect Peer Error: ${e}`);
-    }
-
-    let pubkeyArray = hexToUint8Array(pubkeyHex);
-
-    try {
-      console.log("Connect to channel .");
-      // TODO: Add function to change this.config for public/private at top of this fn
-      await this.createChannel(pubkeyArray, amount, 0, 1, this.config);
-      console.log("Connect to channel √");
-    } catch (e) {
-      console.log("Error: ", e);
-      throw new Error(`Connect Channel Error: ${e}`);
-    }
-  }
-
+  // This function runs after createNewPeer->connectToPeer
   async connectToPeer(pubkeyHex: string, host: string, port: number) {
     console.log("Host: ", pubkeyHex, "@", host, ":", port);
 
@@ -246,6 +191,63 @@ Electrum Client Functions
       await this.create_socket(peerDetails);
       // let event handler handle with -> Event_OpenChannelRequest
     }
+  }
+
+  // This function runs after createNewChannel->connectToChannel
+  async connectToChannel(
+    pubkey: Uint8Array,
+    amount: number,
+    push_msat: number,
+    channelId: number,
+    channelType: boolean
+  ) {
+    await this.setBlockHeight();
+    await this.setLatestBlockHeader(this.blockHeight);
+
+    let channelValSatoshis = BigInt(amount);
+    let pushMsat = BigInt(push_msat);
+    let userChannelId = BigInt(channelId);
+
+    // create the override_config
+    let override_config: UserConfig = UserConfig.constructor_default();
+    override_config
+      .get_channel_handshake_config()
+      .set_announced_channel(channelType);
+
+    let channelCreateResponse;
+    console.log("Reached here ready to create channel...");
+    try {
+      channelCreateResponse = this.channelManager.create_channel(
+        pubkey,
+        channelValSatoshis,
+        pushMsat,
+        userChannelId,
+        override_config
+      );
+    } catch (e) {
+      if (pubkey.length !== 33) {
+        console.log("Entered incorrect pubkey - ", e);
+      } else {
+        var pubkeyHex = uint8ArrayToHexString(pubkey);
+        console.log(
+          `Lightning node with pubkey ${pubkeyHex} unreachable - `,
+          e
+        );
+      }
+    }
+    if (this.blockHeight && this.latestBlockHeader) {
+      for (let i = 0; i++; i <= this.blockHeight) {
+        await this.setLatestBlockHeader(i + 1);
+        this.channelManager
+          .as_Listen()
+          .block_connected(this.latestBlockHeader, this.blockHeight);
+      }
+      // this.chain_monitor.block_connected(this.latest_block_header, this.txdata, this.block_height);
+    }
+
+    console.log("Channel Create Response: ", channelCreateResponse);
+
+    // Should return Ok response to display to user
   }
 
   /**
@@ -301,56 +303,6 @@ Electrum Client Functions
 
   getTxBroadCaster() {
     return this.txBroadcasted;
-  }
-
-  async createChannel(
-    pubkey: Uint8Array,
-    amount: number,
-    push_msat: number,
-    channelId: number,
-    override_config: UserConfig
-  ) {
-    await this.setBlockHeight();
-    await this.setLatestBlockHeader(this.blockHeight);
-
-    let channelValSatoshis = BigInt(amount);
-    let pushMsat = BigInt(push_msat);
-    let userChannelId = BigInt(channelId);
-
-    let channelCreateResponse;
-    console.log("Reached here ready to create channel...");
-    try {
-      channelCreateResponse = this.channelManager.create_channel(
-        pubkey,
-        channelValSatoshis,
-        pushMsat,
-        userChannelId,
-        override_config
-      );
-    } catch (e) {
-      if (pubkey.length !== 33) {
-        console.log("Entered incorrect pubkey - ", e);
-      } else {
-        var pubkeyHex = uint8ArrayToHexString(pubkey);
-        console.log(
-          `Lightning node with pubkey ${pubkeyHex} unreachable - `,
-          e
-        );
-      }
-    }
-    if (this.blockHeight && this.latestBlockHeader) {
-      for (let i = 0; i++; i <= this.blockHeight) {
-        await this.setLatestBlockHeader(i + 1);
-        this.channelManager
-          .as_Listen()
-          .block_connected(this.latestBlockHeader, this.blockHeight);
-      }
-      // this.chain_monitor.block_connected(this.latest_block_header, this.txdata, this.block_height);
-    }
-
-    console.log("Channel Create Response: ", channelCreateResponse);
-
-    // Should return Ok response to display to user
   }
 
   /**
