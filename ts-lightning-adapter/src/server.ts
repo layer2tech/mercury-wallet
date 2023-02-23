@@ -37,7 +37,7 @@ app.listen(PORT, async () => {
   console.log(`lightning-adapter listening at http://localhost:${PORT}`);
   await initialiseWasm();
   console.log("import LDK");
-  await importLDK("dev"); // prod or dev
+  await importLDK("prod"); // prod or dev
   console.log("finisehd import LDK");
   const LightningClient = getLDKClient();
   await LightningClient.start();
