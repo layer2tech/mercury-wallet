@@ -247,7 +247,14 @@ export async function walletLoad(name, password, router) {
 
 export async function callGetLatestBlock(){
   if(isWalletLoaded){
-    return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+    try{
+      return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+    } catch(e){
+      if(e.message.includes('Tor circuit')){
+        await wallet.electrum_client.new_tor_id();
+        return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+      }
+    }
   }
 }
 
@@ -988,6 +995,7 @@ export const setNetworkType = async (networkType) => {
   if (isWalletLoaded()) {
     wallet.networkType = networkType;
     wallet.config = new Config(wallet.config.network, networkType, testing_mode);
+    setBlockHeightCallBack([{height: 0}]);
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
     await wallet.set_adapter_endpoints();
