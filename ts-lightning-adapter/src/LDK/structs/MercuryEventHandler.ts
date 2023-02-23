@@ -17,7 +17,11 @@ import {
 } from "lightningdevkit";
 
 import * as bitcoin from "bitcoinjs-lib";
-import { uint8ArrayToHexString, hexToUint8Array, validateSigFunction } from "../utils/utils.js";
+import {
+  uint8ArrayToHexString,
+  hexToUint8Array,
+  validateSigFunction,
+} from "../utils/utils.js";
 import { ECPairFactory } from "ecpair";
 import * as ecc from "tiny-secp256k1";
 
@@ -28,7 +32,6 @@ class MercuryEventHandler implements EventHandlerInterface {
   privateKey: string | null;
   txid: string | null;
   vout: number | null;
-
 
   constructor(_channelManager: ChannelManager) {
     this.channelManager = _channelManager;
@@ -77,12 +80,12 @@ class MercuryEventHandler implements EventHandlerInterface {
     this.channelManager = channelManager;
   }
 
-  setInputTx( privateKey: string, txid: string, vout: number ){
+  setInputTx(privateKey: string, txid: string, vout: number) {
     this.privateKey = privateKey;
     this.vout = vout;
-    this.txid = txid
+    this.txid = txid;
   }
-  resetInputTx(){
+  resetInputTx() {
     this.privateKey = null;
     this.vout = null;
     this.txid = null;
@@ -147,21 +150,20 @@ class MercuryEventHandler implements EventHandlerInterface {
 
     const testnet = bitcoin.networks.testnet;
 
-
     let privateKeyArray;
     let privateKey;
-    if(this.privateKey) privateKeyArray = hexToUint8Array(this.privateKey);
-    if(privateKeyArray){
-      privateKey = Buffer.from(privateKeyArray)
+    if (this.privateKey) privateKeyArray = hexToUint8Array(this.privateKey);
+    if (privateKeyArray) {
+      privateKey = Buffer.from(privateKeyArray);
     }
 
-    let electrum_wallet
-    if(privateKey){
-      electrum_wallet = ECPair.fromPrivateKey(privateKey)
+    let electrum_wallet;
+    if (privateKey) {
+      electrum_wallet = ECPair.fromPrivateKey(privateKey);
     }
 
-    if(!electrum_wallet){
-      return
+    if (!electrum_wallet) {
+      return;
     }
 
     if (
@@ -187,8 +189,8 @@ class MercuryEventHandler implements EventHandlerInterface {
     console.log("electrum_wallet.publicKey", electrum_wallet.publicKey);
 
     if (p2wpkh.output === undefined) return;
-    if(!this.vout) return;
-    if(!this.txid) return;
+    if (!this.vout) return;
+    if (!this.txid) return;
 
     psbt.addInput({
       // if hash is string, txid, if hash is Buffer, is reversed compared to txid
@@ -197,14 +199,13 @@ class MercuryEventHandler implements EventHandlerInterface {
       sequence: 0xffffffff,
       witnessUtxo: {
         script: p2wpkh.output,
-        value: 100000,
+        value: parseInt(channel_value_satoshis.toString(), 10),
       },
     });
     psbt.addOutput({
       script: Buffer.from(output_script),
       value: parseInt(channel_value_satoshis.toString(), 10),
     });
-
 
     psbt.signInput(this.vout, electrum_wallet);
     psbt.validateSignaturesOfInput(this.vout, validateSigFunction);
@@ -225,9 +226,6 @@ class MercuryEventHandler implements EventHandlerInterface {
 
     // Reset Tx Input
     this.resetInputTx();
-
-
-
   }
 
   handlePaymentSentEvent(e: Event_PaymentSent) {
