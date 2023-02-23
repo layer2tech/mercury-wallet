@@ -19,10 +19,6 @@ import {
   setIntervalIfOnline,
   setWarning,
   setNetworkType,
-  saveWallet,
-  setWalletLoaded,
-  stopWallet,
-  unloadWallet,
   callUnsubscribeAll,
   callResetConnectionData,
 } from "../../../features/WalletDataSlice";
@@ -40,6 +36,8 @@ log = new WrappedLogger();
 
 const TorCircuit = (props) => {
   const dispatch = useDispatch();
+
+  const { ping_electrum_ms, blockHeightLoad } = useSelector((state) => state.walletData);
 
   const [torcircuitData, setTorcircuitData] = useState([]);
   const [torLoaded, setTorLoaded] = useState(false);
@@ -66,6 +64,10 @@ const TorCircuit = (props) => {
       clearInterval(interval);
     };
   }, [dispatch, props.online]);
+
+  useEffect(()=> {
+    getTorCircuitInfo()
+  }, [props.online, ping_electrum_ms, blockHeightLoad])
 
   const getTorCircuitInfo = () => {
     if (props.online) {
@@ -133,8 +135,8 @@ const TorCircuit = (props) => {
     }
 
     dispatch(setWarning({
-      title: "Network Switch",
-      msg: `Confirm network change ${props.networkType} -> ${networkChange}.`,
+      title: `Network Switch: ${props.networkType} -> ${networkChange}`,
+      msg: `Before switching networks, please make sure that you do not have any active swaps. Would you like to switch networks now?`,
       onConfirm: setNetwork,
     }));
   };
