@@ -95,7 +95,7 @@ const initialState = {
   },
   showDetails: DEFAULT_STATE_COIN_DETAILS,
   progress: { active: false, msg: "" },
-  balance_info: { total_balance: null, num_coins: null, hidden: false },
+  balance_info: { total_balance: null, num_coins: null, hidden: false, channel_balance: 15000 },
   fee_info: { deposit: "NA", withdraw: "NA" },
   ping_server_ms: null,
   ping_conductor_ms: null,
@@ -113,6 +113,8 @@ const initialState = {
   coinsAdded: 0,
   coinsRemoved: 0,
   torInfo: { online: true },
+  showWithdrawPopup: false,
+  withdraw_txid: "",
 };
 
 // Check if a wallet is loaded in memory
@@ -164,6 +166,12 @@ export const getWalletName = () => {
     return wallet.name;
   }
 };
+
+export const createInvoice = (amtInSats, invoiceExpirysecs, description) => {
+  if (isWalletLoaded()) {
+    return wallet.createInvoice(amtInSats, invoiceExpirysecs, description);
+  }
+}
 
 //Restart the electrum server if ping fails
 async function pingElectrumRestart(force = false) {
@@ -239,7 +247,14 @@ export async function walletLoad(name, password, router) {
 
 export async function callGetLatestBlock(){
   if(isWalletLoaded){
-    return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+    try{
+      return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+    } catch(e){
+      if(e.message.includes('Tor circuit')){
+        await wallet.electrum_client.new_tor_id();
+        return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+      }
+    }
   }
 }
 
@@ -444,6 +459,14 @@ export const callGetBlockHeight = () => {
     return wallet.getBlockHeight();
   }
 };
+
+export const resetBlockHeight = () => {
+  if (isWalletLoaded()) {
+    
+    return wallet.resetBlockHeight();
+  }  
+}
+
 export const callGetUnspentStatecoins = () => {
   if (isWalletLoaded()) {
     return wallet.getUnspentStatecoins();
@@ -460,6 +483,29 @@ export const callSumStatecoinValues = (shared_key_ids) => {
     return wallet.sumStatecoinValues(shared_key_ids);
   }
 };
+
+export const callSaveChannels = async (channels) => {
+  if (isWalletLoaded()) {
+    await wallet.saveChannels(channels);
+  }
+}
+
+export const getChannels = () => {
+  if (isWalletLoaded()) {
+    return wallet.channels;
+  }
+}
+
+export const callSumChannelAmt = (selectedChannels) => {
+  let totalSum = 0;
+  selectedChannels.map((selectedChannel) => {
+    let channel_arr = wallet.channels.filter(
+      (channel) => channel.id === selectedChannel
+    );
+    totalSum += channel_arr[0].amt;
+  });
+  return totalSum;
+}
 
 export const callIsBatchMixedPrivacy = (shared_key_ids) => {
   if (isWalletLoaded()) {
@@ -478,6 +524,14 @@ export const callGetSwapGroupInfo = () => {
     return wallet.getSwapGroupInfo();
   }
 };
+
+export const resetSwapGroupInfo = () => {
+  if (isWalletLoaded()) {
+    return wallet.resetSwapGroupInfo();
+  }
+};
+
+
 
 export const showWarning = (key) => {
   if (wallet) {
@@ -849,6 +903,42 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
   }
 };
 
+export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) => {
+  // Pre action confirmation checks for withdrawal - return true to prevent action
+
+  // check if channel is chosen
+  if (selectedChannels.length === 0) {
+    dispatch(setError({ msg: "Please choose a channel to withdraw." }));
+    return true;
+  }
+  if (!inputAddr) {
+    dispatch(setError({ msg: "Please enter an address to withdraw to." }));
+    return true;
+  }
+
+  // if total sats sum in all selected channels less than 0.001BTC (100000 sats) then return error
+  if (callSumChannelAmt(selectedChannels) < 100000) {
+    dispatch(setError({ msg: "Mininum withdrawal size is 0.001 BTC (100000 sats)." }));
+    return true;
+  }
+
+  try {
+    bitcoin.address.toOutputScript(inputAddr, wallet.config.network);
+  } catch (e) {
+    dispatch(setError({ msg: "Invalid Bitcoin address entered." }));
+    return true;
+  }
+};
+
+export const checkChannelSend = (dispatch, inputAddr) => {
+  // Pre action confirmation checks for send sats - return true to prevent action
+  if (!inputAddr) {
+    dispatch(setError({ msg: "Please enter a lightning address to send sats." }));
+    return true;
+  }
+  // Check for valid lightning address needs to be included
+}
+
 export const checkSend = (dispatch, selectedCoins, inputAddr) => {
   // Pre action confirmation checks for send statecoin - return true to prevent action
 
@@ -905,6 +995,7 @@ export const setNetworkType = async (networkType) => {
   if (isWalletLoaded()) {
     wallet.networkType = networkType;
     wallet.config = new Config(wallet.config.network, networkType, testing_mode);
+    setBlockHeightCallBack([{height: 0}]);
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
     await wallet.set_adapter_endpoints();
@@ -960,6 +1051,16 @@ export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, 
     }
   }
 };
+
+export const callResetConnectionData = (dispatch) => {
+  resetSwapGroupInfo();
+  resetBlockHeight();
+  dispatch(setPingConductorMs(null));
+  dispatch(setPingElectrumMs(null));
+  dispatch(setPingServerMs(null));
+  dispatch(setBlockHeightLoad(false));
+  dispatch(updateFeeInfo({deposit: "NA", withdraw: "NA"}));
+}
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
@@ -1428,6 +1529,18 @@ const WalletSlice = createSlice({
         ...state,
         ping_electrum_ms: action.payload,
       };
+    },
+    setShowWithdrawPopup(state, action) {
+      return {
+        ...state,
+        showWithdrawPopup: action.payload,
+      };
+    },
+    setWithdrawTxid(state, action) {
+      return {
+        ...state,
+        withdraw_txid: action.payload,
+      };
     }
   },
   extraReducers: {
@@ -1579,7 +1692,9 @@ export const {
   setTorOnline,
   setPingServerMs,
   setPingConductorMs,
-  setPingElectrumMs
+  setPingElectrumMs,
+  setShowWithdrawPopup,
+  setWithdrawTxid
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 

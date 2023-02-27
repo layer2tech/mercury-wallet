@@ -65,7 +65,7 @@ const HomePage = (props) => {
   return (
     <div className="container home-page">
       <PanelControl />
-      <PanelConnectivity online={props.online} />
+      <PanelConnectivity online={props.online} networkType = {props.networkType} />
       <PanelCoinsActivity />
       {current_config?.tutorials && <Tutorial />}
     </div>

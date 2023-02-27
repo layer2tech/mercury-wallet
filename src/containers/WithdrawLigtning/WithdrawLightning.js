@@ -9,31 +9,67 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {isWalletLoaded,
   callGetFeeEstimation,
-  callGetConfig
+  callGetConfig,
+  setShowWithdrawPopup,
+  setWithdrawTxid,
+  checkChannelWithdrawal,
+  setWarning
 } from '../../features/WalletDataSlice';
 
-import { AddressInput, Tutorial } from "../../components";
-
+import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
 
 import './WithdrawLightning.css';
 import PageHeader from '../PageHeader/PageHeader';
-import ChannelList from '../../components/Channels/ChannelList';
+import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
+
+import Loading from "../../components/Loading/Loading";
 
 const WithdrawLightning = () => {
 
     const dispatch = useDispatch();
   
     const [inputAddr, setInputAddr] = useState("");
+
+    const [loading, setLoading] = useState(false);
+
+    const [forceRender, setRender]  =  useState({});
+    const [refreshChannels, setRefreshChannels] = useState(false);
+
+    const [selectedChannels, setSelectedChannels] = useState([]);
+
+    const [withdrawingWarning, setWithdrawingWarning] = useState(false);
   
     const [txFeePerB, setTxFeePerB] = useState(7); // chosen fee per kb value
   
     const [txFees,setTxFees] = useState([{block: 6, fee: 7,id:1},{block: 3, fee:8,id:2},{block:1, fee:9,id:3}])
   
-    const [customFee,setCustomFee] = useState(false)
+    const [customFee,setCustomFee] = useState(false);
+
+    const [channelForceClose, setChannelForceClose] = useState(true);
+
+    const forceCloseChannel = () => {
+
+    }
     
     const onInputAddrChange = (event) => {
       setInputAddr(event.target.value);
     };
+
+    const addSelectedChannel = (channel_id) => {
+      if(loading) return
+      // Stop channels removing if clicked while pending transaction
+      
+      let newSelectedChannels = selectedChannels;
+      const isChannelId = (element) => element === channel_id;
+      let index = newSelectedChannels.findIndex(isChannelId);
+      if (index !== -1){
+        newSelectedChannels.splice(index,1);
+      } else {
+        newSelectedChannels.push(channel_id);
+      }
+      setSelectedChannels(newSelectedChannels);
+      setRender({});
+    }
 
     // Get Tx fee estimate
     useEffect(() => {
@@ -69,6 +105,24 @@ const WithdrawLightning = () => {
     // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
     if (!isWalletLoaded()) {
       return <Redirect to="/" />;
+    }
+
+    const withdrawButtonAction = async () => {
+      setLoading(true);
+      setRefreshChannels((prevState) => !prevState);
+      if (channelForceClose) {
+        dispatch(
+          setWarning({
+            title: "Peer is offline...",
+            msg: "Do you want to force close the channel ?",
+            onConfirm: forceCloseChannel,
+          })
+        );
+      } else {
+        dispatch(setShowWithdrawPopup(true));
+        dispatch(setWithdrawTxid("wzxykmopq123456"));
+      }
+      setLoading(false);
     }
 
   
@@ -112,16 +166,19 @@ const WithdrawLightning = () => {
             title = "Close Channel BTC"
             className = "close-channel"
             icon = {walletIcon}
-            subTitle = "Create new lightning channels" />
+            subTitle = "Withdraw BTC and close the channel" />
 
           <div className="withdraw content">
-              <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select channel to withdraw</h3>
-                  </div>
-                  <ChannelList />
+              <ItemsContainer 
+                channelListProps={{
+                  title: "Select channel to withdraw",
+                  selectedChannels: selectedChannels,
+                  addSelectedChannel: addSelectedChannel,
+                  refreshChannels: refreshChannels,
+                  forceRender: forceRender
+                }}
+              />
 
-              </div>
               <div className="Body right">
                   <div className="header">
                       <h3 className="subtitle">Transaction Details</h3>
@@ -168,9 +225,11 @@ const WithdrawLightning = () => {
                   </div>
 
                   <div>
-                    <button type="button" className={`btn withdraw-button `} >
-                        <img src={withdrowIcon} alt="withdrowIcon"/>
-                        Withdraw btc</button>
+                  <ConfirmPopup preCheck={checkChannelWithdrawal} argsCheck={[dispatch, selectedChannels, inputAddr]} onOk = {withdrawButtonAction} >
+                        <button type="button" className={`btn withdraw-button ${loading} ${withdrawingWarning ? ("withdrawing-warning") : (null)}`} >
+                            {loading?(null):(<img src={withdrowIcon} alt="withdrowIcon"/>)}
+                            {loading?(<Loading/>):("Withdraw btc")}</button>
+                      </ConfirmPopup>
                   </div>
               </div>
           </div>

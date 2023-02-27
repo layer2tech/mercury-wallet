@@ -12,7 +12,10 @@ import {
   WALLET_MODE,
   UpdateSpeedInfo,
   callGetLatestBlock,
-  setBlockHeightLoad
+  setBlockHeightLoad,
+  setError,
+  getNetworkType,
+  setNetworkType
 } from "../../features/WalletDataSlice";
 
 import "./panelConnectivity.css";
@@ -21,6 +24,7 @@ import RadioButton from "./RadioButton";
 import WrappedLogger from "../../wrapped_logger";
 import DropdownArrow from "../DropdownArrow/DropdownArrow";
 import { defaultWalletConfig } from "../../wallet/config";
+import { NETWORK_TYPE } from "../../wallet/wallet";
 
 
 // Logger import.
@@ -47,6 +51,7 @@ const PanelConnectivity = (props) => {
   const [conductor_connected, setConductorConnected] = useState(ping_conductor_ms ? true : false);
   const [electrum_connected, setElectrumConnected] = useState((ping_electrum_ms && block_height) ? true : false);
 
+  console.log('ElectruM: ',block_height );
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data
     ? Array.from(swap_groups_data.entries())
@@ -70,6 +75,16 @@ const PanelConnectivity = (props) => {
       config = result;
     });
   }
+
+
+  useEffect(() => {
+    if( walletMode === WALLET_MODE.STATECHAIN){
+      setServerConnected(false);
+      setConductorConnected(false);
+      setElectrumConnected(false);
+      // setBlockHeight(null);
+    }
+  }, [props.networkType]);
 
   const updateSpeedInfo = async (isMounted) => {
     if (isMounted !== true) {
@@ -129,11 +144,13 @@ const PanelConnectivity = (props) => {
 
       if (fee_info?.deposit != "NA") {
         setServerConnected(true);
+      } else {
+        setServerConnected(false)
       }
   
       //Add spinner for loading connection to Swaps
 
-      if (swap_groups_array?.length != null) {
+      if (swap_groups_array?.length != null && swap_groups_array?.length != 0) {
         setConductorConnected(true);
       }
       //Add spinner for loading connection to Electrum server
@@ -149,6 +166,23 @@ const PanelConnectivity = (props) => {
     ping_conductor_ms,
     ping_electrum_ms
   ]);
+
+
+  useEffect(() => {
+    const warningTimeout = setTimeout(() => getWarning(), 60000);
+    return () => clearTimeout(warningTimeout);
+  }, []);
+
+  const getWarning = () => {
+    let block_height = callGetBlockHeight();
+    if ((block_height === null || block_height === 0) && getNetworkType() === NETWORK_TYPE.I2P) {
+      dispatch(
+        setError({ msg: "Warning: I2PD failed to start. Reverting to Tor" })
+      );
+      setNetworkType(NETWORK_TYPE.TOR);
+    }
+  }
+
   const getBlockHeight = async () => {
     if (torInfo.online !== true) {
       // set blockheight to null if app offline
@@ -157,7 +191,7 @@ const PanelConnectivity = (props) => {
     } else{
       if( block_height === null || block_height === 0 ){
         // call to electrum server to set wallet var
-        let latestBlock = await callGetLatestBlock()?.header;
+        let latestBlock = await callGetLatestBlock();
 
         if(latestBlock !== 0 || latestBlock !== null ){
           // triggers refresh when blockheight loaded to wallet object

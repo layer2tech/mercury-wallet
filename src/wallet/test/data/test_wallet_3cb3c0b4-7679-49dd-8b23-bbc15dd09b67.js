@@ -50,6 +50,7 @@ export const WALLET = {
 		"iv": "b3bca7fd6f3f039c8365a558d4a8920e",
 		"encryption": "e6347798f866dfa61750b2386edda368a477eceb32d6d437c42ab711fc6e7c9f2aa117658b3108e8f5467537e63c6a8c24089c5885ab058e86d07000c54f4382e82c15a9917ff8bdc700bc8c8cff70fc"
 	},
+	"channels": [],
 	"account": [
 		{
 			"k": 23,
@@ -7179,6 +7180,7 @@ export const WALLET = {
 		"endpoint": "http://localhost:3001",
 		"is_tor": true
 	},
+	"lightning_client": {},
 	"block_height": 0,
 	"current_sce_addr": "tc1qtzxva5uvsklcwazvp8dkvr2dx3cwn40jw6fq9ypu4psxdtjte7m587cz2w",
 	"swap_group_info": {},

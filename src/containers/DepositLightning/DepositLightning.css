@@ -378,6 +378,10 @@ ol.go2441762052 {
     height: 24px;
 }
 
+.channel-type-toggle {
+    margin-top: 30px;
+}
+
 .go2067797667:before {
     color: var(--container) !important;
     height: 20px;

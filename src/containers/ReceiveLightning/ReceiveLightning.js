@@ -3,9 +3,10 @@ import arrow from "../../images/arrow-up.png";
 import { withRouter, Redirect} from "react-router-dom";
 
 
-
 import {isWalletLoaded,
-  callGetConfig
+  callGetConfig,
+  getChannels,
+  createInvoice
 } from '../../features/WalletDataSlice';
 
 import { AddressInput, Tutorial } from "../../components";
@@ -13,21 +14,79 @@ import { AddressInput, Tutorial } from "../../components";
 
 import PageHeader from '../PageHeader/PageHeader';
 import { useState } from "react";
-import ChannelList from "../../components/Channels/ChannelList";
+
+import "./ReceiveLightning.css";
+import Invoice from "../Invoice/Invoice";
+
+
+import { useSelector } from 'react-redux';
+
+const TimeToExpire = 180;
 
 const ReceiveLightning = () => {
-    const [inputAddr, setInputAddr] = useState("");
 
-    const onInputAddrChange = (event) => {
-      
+    // Time for expiry of invoice in seconds
+    const TimeToExpire = 180;
+
+    const [inputAmt, setInputAmt] = useState("");
+
+    const [inputDes, setInputDes] = useState("");
+
+    const [invoice, setInvoice] = useState({});
+
+    const [countdown, setCountdown] = useState(TimeToExpire);
+    const [timer, setTimer] = useState(null);
+
+    const [channels, setChannels] = useState(getChannels());
+
+    const {balance_info} = useSelector((state) => state.walletData);
+
+    const onInputAmtChange = (event) => {
+      setInputAmt(event.target.value);
     };
 
-  
+    const onInputDesChange = (event) => {
+      setInputDes(event.target.value);
+    };
+
+    const startTimer = () => {
+      setTimer(
+        setInterval(() => {
+          setCountdown((countdown) => {
+            if (countdown === 0) {
+              stopTimer();
+              setInvoice({});
+              return countdown;
+            }
+            return countdown - 1;
+          });
+        }, 1000)
+      );
+    };
+
+    const stopTimer = () => {
+        clearInterval(timer);
+    }
+
+    const createInvoiceAction = async () => {
+      let newInvoice = await createInvoice(inputAmt, TimeToExpire, inputDes);
+      console.log(newInvoice)
+      setInvoice({
+        amt: inputAmt,
+        desc: inputDes,
+        addr: newInvoice.paymentRequest
+      });
+      setInputAmt("");
+      setInputDes("");
+      stopTimer();
+      setCountdown(TimeToExpire);
+      startTimer();
+    }
+
     // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
     if (!isWalletLoaded()) {
       return <Redirect to="/" />;
     }
-
 
   
     let current_config;
@@ -46,38 +105,40 @@ const ReceiveLightning = () => {
             title = "Receive lightning"
             className = "receive-channel"
             icon = {arrow}
-            subTitle = "Y BTC available over Z channels" />
+            subTitle = {`${balance_info.channel_balance} Sats available over ${channels.length} channels`} />
+            {invoice && Object.keys(invoice).length ? 
+              <Invoice
+                amt={invoice.amt}
+                desc={invoice.desc}
+                addr={invoice.addr}
+                expTime={countdown}
+              /> : null
+            }
 
-          <div className="withdraw content">
-              <div className="Body left ">
-                  <div>
-                      <h3 className="subtitle">Select channel to receive</h3>
-                  </div>
-                  <ChannelList />
-              </div>
-              <div className="Body right">
+          <div className="withdraw content lightning">
+              <div className="Body right lightning">
                   <div className="header">
-                      <h3 className="subtitle">Transaction Details</h3>
+                      <h3 className="subtitle">Invoice Details</h3>
                   </div>
 
 
                   <div>
                       <AddressInput
-                        inputAddr={inputAddr}
-                        onChange={onInputAddrChange}
+                        inputAddr={inputAmt}
+                        onChange={onInputAmtChange}
                         placeholder='Enter amount'
                         smallTxtMsg='Amount Sats'/>
                   </div>
                   <div>
                       <AddressInput
-                        inputAddr={inputAddr}
-                        onChange={onInputAddrChange}
+                        inputAddr={inputDes}
+                        onChange={onInputDesChange}
                         placeholder='Description'
                         smallTxtMsg='Description'/>
                   </div>
 
                   <div>
-                    <button type="button" className={`btn withdraw-button `} >
+                    <button type="button" className={`btn withdraw-button `} onClick={createInvoiceAction}>
                         Create Invoice </button>
                   </div>
               </div>

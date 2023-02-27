@@ -155,8 +155,15 @@ export class StateCoinList {
         }
         item.tx_cpfp = tx_cpfp;
       }
+
+      // reset backup_confirm on restart
+      if (item.tx_backup == null && item.backup_confirm) {
+        item.backup_confirm = false
+      }
+
       if (!replca) statecoinsList.coins.push(Object.assign(coin, item));
     });
+
     return statecoinsList;
   }
 

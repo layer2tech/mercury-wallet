@@ -78,6 +78,7 @@ import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
+import { LDKClient, LIGHTNING_POST_ROUTE } from "./ldk_client";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -142,6 +143,11 @@ export interface Warning {
   show: boolean;
 }
 
+export interface Channel {
+  id: string;
+  amt: Number;
+}
+
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -152,6 +158,7 @@ export class Wallet {
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
+  channels: Channel[];
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
   electrum_client:
@@ -160,6 +167,7 @@ export class Wallet {
     | ElectrsLocalClient
     | EPSClient
     | MockElectrumClient;
+  lightning_client: LDKClient;
   block_height: number;
   current_sce_addr: string;
   swap_group_info: Map<SwapGroup, GroupInfo>;
@@ -195,6 +203,7 @@ export class Wallet {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
+    this.channels = [];
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
@@ -213,6 +222,7 @@ export class Wallet {
       this.http_client = new MockHttpClient();
     }
 
+    this.lightning_client = new LDKClient();
     this.electrum_client = this.newElectrumClient();
 
     this.block_height = 0;
@@ -350,7 +360,16 @@ export class Wallet {
       }
     }
   }
-  
+
+  async createInvoice(amtInSats: number, invoiceExpirysecs: number, description: string) {
+    let invoice_config = {
+      amt_in_sats: amtInSats,
+      invoice_expiry_secs: invoiceExpirysecs,
+      description: description,
+    };
+    return this.lightning_client.post(LIGHTNING_POST_ROUTE.GENERATE_INVOICE, invoice_config);
+  }
+
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
   static fromMnemonic(
     name: string,
@@ -634,6 +653,10 @@ export class Wallet {
     }
     await this.saveItem("statecoins");
     this.clearFundingOutpointMap();
+  }
+
+  async saveChannels(channels: Channel[]) {
+    this.channels = channels;
   }
 
   async saveActivityLog() {
@@ -937,6 +960,10 @@ export class Wallet {
   }
   getBlockHeight(): number {
     return this.block_height;
+  }
+
+  resetBlockHeight(){
+    this.block_height = 0;
   }
 
   getSEAddress(addr_index: number): Object {
@@ -2234,6 +2261,10 @@ export class Wallet {
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo> {
     return this.swap_group_info;
+  }
+
+  resetSwapGroupInfo(){
+    this.swap_group_info = new Map<SwapGroup, GroupInfo>();
   }
 
   getTorcircuitInfo(): TorCircuit[] {
