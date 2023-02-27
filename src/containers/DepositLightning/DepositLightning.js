@@ -1,4 +1,4 @@
-import { withRouter, Redirect} from "react-router-dom";
+import { withRouter, Redirect } from "react-router-dom";
 import PageHeader from "../PageHeader/PageHeader";
 
 import { useState } from "react";
@@ -8,30 +8,35 @@ import btc_img from "../../images/icon1.png";
 import arrow_img from "../../images/scan-arrow.png";
 import copy_img from "../../images/icon2.png";
 
-import { CopiedButton, AddressInput, CheckBox, ConfirmPopup } from "../../components";
+import {
+  CopiedButton,
+  AddressInput,
+  CheckBox,
+  ConfirmPopup,
+} from "../../components";
 import { fromSatoshi } from "../../wallet";
 import check from "../../images/icon-action-check_circle.png";
 import "../CreateWalletInfo/CreateWalletInfo.css";
 
 import "./DepositLightning.css";
 
-import { checkChannelCreation } from '../../features/WalletDataSlice';
+import { checkChannelCreation } from "../../features/WalletDataSlice";
 
 // move this to use the http client
 import axios from "axios";
 
-import { isWalletLoaded, 
+import {
+  isWalletLoaded,
   getWalletName,
-  callCreateChannel, 
-  setError, 
-  getChannels, 
+  callCreateChannel,
+  setError,
+  getChannels,
   callDeleteChannel,
-  callGetNextBtcAddress
+  callGetNextBtcAddress,
 } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
 import closeIcon from "../../images/close-icon.png";
 import { CHANNEL_STATUS } from "../../wallet/channel";
-
 
 export const CHANNEL_TYPE = {
   PUBLIC: "Public",
@@ -39,7 +44,6 @@ export const CHANNEL_TYPE = {
 };
 
 const DepositLightning = (props) => {
-
   const dispatch = useDispatch();
 
   const [channels, setChannels] = useState(getChannels());
@@ -78,24 +82,29 @@ const DepositLightning = (props) => {
     return channels.some((channel) => {
       return channel.peer_pubkey === pubKey;
     });
-  }
+  };
 
   const getPubkeyFromAddr = (addr) => {
-    const channel = channels.find(channel => channel.funding.addr === addr);
+    const channel = channels.find((channel) => channel.funding.addr === addr);
     return channel.peer_pubkey;
-  }
+  };
 
   const createChannel = async () => {
-    const pubKey = inputNodeId.split('@')[0];
+    const pubKey = inputNodeId.split("@")[0];
 
+    /*
     if (IsChannelAlreadyExist(pubKey)){
       dispatch(setError({ msg: "Channel already exist with given proof key. " }))
       return
-    }
+    }*/
 
-    if( inputAmt < 1){
-      dispatch(setError({ msg: "The amount you have selected is below the minimum limit ( 1mBTC ). Please increase the amount to proceed with the transaction." }))
-      return
+    if (inputAmt < 1) {
+      dispatch(
+        setError({
+          msg: "The amount you have selected is below the minimum limit ( 1mBTC ). Please increase the amount to proceed with the transaction.",
+        })
+      );
+      return;
     }
 
     // console.log('PubKey: ', pubkey);
@@ -115,14 +124,12 @@ const DepositLightning = (props) => {
     setChannels(getChannels());
 
     setInvoice(newInvoice);
-
   };
 
   const copyAddressToClipboard = (event, address) => {
-    event.stopPropagation()
+    event.stopPropagation();
     navigator.clipboard.writeText(address);
-  }
-
+  };
 
   const toggleChannelType = () => {
     setChannelType(
@@ -136,7 +143,7 @@ const DepositLightning = (props) => {
     callDeleteChannel(invoice.addr);
     setInvoice({});
     setChannels(getChannels());
-  }
+  };
 
   if (!isWalletLoaded()) {
     return <Redirect to="/" />;
@@ -164,7 +171,11 @@ const DepositLightning = (props) => {
                 <img src={arrow_img} alt="arrow" />
                 <div className="deposit-scan-main-item">
                   <>
-                    <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, invoice.addr)} >
+                    <CopiedButton
+                      handleCopy={(event) =>
+                        copyAddressToClipboard(event, invoice.addr)
+                      }
+                    >
                       <img type="button" src={copy_img} alt="icon" />
                     </CopiedButton>
                     <span className="long">
@@ -174,7 +185,9 @@ const DepositLightning = (props) => {
                 </div>
                 <ConfirmPopup onOk={closeInvoice}>
                   <button
-                    className={`primary-btm ghost close-invoice ${invoice.addr} ${getPubkeyFromAddr(invoice.addr)}`}
+                    className={`primary-btm ghost close-invoice ${
+                      invoice.addr
+                    } ${getPubkeyFromAddr(invoice.addr)}`}
                   >
                     <img src={closeIcon} alt="close-button" />
                   </button>
@@ -221,14 +234,15 @@ const DepositLightning = (props) => {
           </div>
 
           <div>
-          <ConfirmPopup preCheck={checkChannelCreation} argsCheck={[dispatch, inputAmt, inputNodeId]} onOk = {createChannel} >
-            <button
-                type="button"
-                className={`btn deposit-button `}
-              >
-                {loading?(<Loading/>):("Create Channel")} 
-            </button>
-          </ConfirmPopup>
+            <ConfirmPopup
+              preCheck={checkChannelCreation}
+              argsCheck={[dispatch, inputAmt, inputNodeId]}
+              onOk={createChannel}
+            >
+              <button type="button" className={`btn deposit-button `}>
+                {loading ? <Loading /> : "Create Channel"}
+              </button>
+            </ConfirmPopup>
           </div>
         </div>
       </div>

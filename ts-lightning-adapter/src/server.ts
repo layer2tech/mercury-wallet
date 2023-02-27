@@ -12,6 +12,7 @@ import { debug_lightning } from "./debug_lightning.js";
 
 import initialiseWasm from "./LDK/init/initialiseWasm.js";
 import { getLDKClient, importLDK } from "./LDK/init/importLDK.js";
+import LightningClient from "./LDK/lightning.js";
 
 // Constants
 const PORT = 3003;
@@ -38,9 +39,10 @@ app.listen(PORT, async () => {
   await initialiseWasm();
   console.log("import LDK");
   await importLDK("prod"); // prod or dev
-  console.log("finisehd import LDK");
-  const LightningClient = getLDKClient();
+  console.log("finished import LDK");
+  const LightningClient: LightningClient = getLDKClient();
   await LightningClient.start();
+  console.log("Started LDK Client");
   // debug_lightning();
 });
 

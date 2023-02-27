@@ -43,11 +43,10 @@ import TorClient from "../bitcoin_clients/TorClient.mjs";
 
 export default function initLDK(electrum: string = "prod") {
   const initLDK = setUpLDK(electrum);
-  if(initLDK){
-
+  if (initLDK) {
     return new LightningClient(initLDK);
   }
-  return
+  return;
 }
 
 function setUpLDK(electrum: string = "prod") {
@@ -105,7 +104,7 @@ function setUpLDK(electrum: string = "prod") {
 
   let chainMonitor;
   let chainWatch;
-  try{
+  try {
     // Step 8: Initialize the ChainMonitor
     chainMonitor = ChainMonitor.constructor_new(
       Option_FilterZ.constructor_some(filter),
@@ -115,11 +114,9 @@ function setUpLDK(electrum: string = "prod") {
       persist
     );
     chainWatch = chainMonitor.as_Watch();
-
-  } catch(e){
-    console.log('Error:::::::',e)
+  } catch (e) {
+    console.log("Error:::::::", e);
   }
-
 
   // // Step 9: Initialize the KeysManager
   const ldk_data_dir = "./.ldk/";
@@ -151,10 +148,10 @@ function setUpLDK(electrum: string = "prod") {
     Network.LDKNetwork_Regtest,
     BestBlock.constructor_new(
       Buffer.from(
-        "27a9423b2cff1fdec3d60c058bec1fe78fb695a7c4aa108412fd109e2f215ba8",
+        "2d0283ee3b182e42653566427c9140562fe1358801f33ed4a17ebbb3c925418c",
         "hex"
       ),
-      181
+      187
     )
   );
 
@@ -164,7 +161,7 @@ function setUpLDK(electrum: string = "prod") {
   // console.log("FEE ESTIMATOR IN CHANNEL MANAGER: ", fee_estimator);
   // // Step 11: Initialize the ChannelManager
   let channelManager;
-  if(chainWatch){
+  if (chainWatch) {
     channelManager = ChannelManager.constructor_new(
       feeEstimator,
       chainWatch,
@@ -174,8 +171,8 @@ function setUpLDK(electrum: string = "prod") {
       config,
       params
     );
-
   }
+  
   let eventHandler
   if(channelManager){
     let mercuryHandler = new MercuryEventHandler(channelManager);
@@ -201,9 +198,8 @@ function setUpLDK(electrum: string = "prod") {
   const routingMessageHandler =
     IgnoringMessageHandler.constructor_new().as_RoutingMessageHandler();
   // const channelMessageHandler = ldk.ErroringMessageHandler.constructor_new().as_ChannelMessageHandler();
-  let channelMessageHandler
-  if(channelManager){
-
+  let channelMessageHandler;
+  if (channelManager) {
     channelMessageHandler = channelManager.as_ChannelMessageHandler();
   }
   const customMessageHandler =
@@ -216,16 +212,18 @@ function setUpLDK(electrum: string = "prod") {
 
   const ephemeralRandomData = new Uint8Array(32);
 
-  const peerManager = channelMessageHandler && PeerManager.constructor_new(
-    channelMessageHandler,
-    routingMessageHandler,
-    onionMessageHandler,
-    nodeSecret,
-    Date.now(),
-    ephemeralRandomData,
-    logger,
-    customMessageHandler
-  );
+  const peerManager =
+    channelMessageHandler &&
+    PeerManager.constructor_new(
+      channelMessageHandler,
+      routingMessageHandler,
+      onionMessageHandler,
+      nodeSecret,
+      Date.now(),
+      ephemeralRandomData,
+      logger,
+      customMessageHandler
+    );
 
   let electrumClient;
   console.log("INIT CLIENT: ", electrum);
@@ -236,8 +234,8 @@ function setUpLDK(electrum: string = "prod") {
     console.log("Init ElectrumClient");
     electrumClient = new ElectrumClient("");
   }
+  
   if(chainMonitor && channelManager && peerManager && eventHandler){
-
     const LDKInit: LightningClientInterface = {
       feeEstimator: feeEstimator,
       electrumClient: electrumClient, // Add this
@@ -268,5 +266,5 @@ function setUpLDK(electrum: string = "prod") {
     };
     return LDKInit;
   }
-  return
+  return;
 }
