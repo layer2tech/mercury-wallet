@@ -1,20 +1,8 @@
-// import fs from 'fs';
-// import ElectrumClient from "./electrum.mjs";
-// const ldk = import('lightningdevkit');
-
-// import SetUpLDK from "./main-operations/SetUpLDK.mjs";
 import {
-  ChannelMessageHandler,
-  CustomMessageHandler,
-  OnionMessageHandler,
   PeerManager,
-  RoutingMessageHandler,
-  Event_FundingGenerationReady,
   FeeEstimator,
   Logger,
   BroadcasterInterface,
-  Network,
-  BestBlock,
   NetworkGraph,
   Persist,
   EventHandler,
@@ -26,10 +14,7 @@ import {
   ChannelHandshakeConfig,
   ChainParameters,
   ChannelManager,
-  IgnoringMessageHandler,
-  Event,
 } from "lightningdevkit";
-import MercuryFeeEstimator from "./structs/MercuryFeeEstimator.mjs";
 import { NodeLDKNet } from "./structs/NodeLDKNet.mjs";
 import LightningClientInterface from "./types/LightningClientInterface.js";
 import PeerDetails from "./types/PeerDetails.js";
@@ -38,12 +23,7 @@ import {
   hexToUint8Array,
   uint8ArrayToHexString,
 } from "./utils/utils.js";
-import {
-  createNewPeer,
-  createNewChannel
-} from "./utils/ldk-utils.js";
-
-import * as bitcoin from "bitcoinjs-lib";
+import { createNewPeer, createNewChannel } from "./utils/ldk-utils.js";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 
 export default class LightningClient implements LightningClientInterface {
@@ -99,8 +79,8 @@ export default class LightningClient implements LightningClientInterface {
   }
 
   /*
-Electrum Client Functions
-*/
+    Electrum Client Functions
+  */
 
   async setBlockHeight() {
     // Gets the block height from client and assigns to class paramater
@@ -124,11 +104,10 @@ Electrum Client Functions
     this.txdata.push(txData);
   }
 
-  setInputTx(privateKey: string, txid: string, vout: number){
-
+  setInputTx(privateKey: string, txid: string, vout: number) {
     let mercuryHandler = new MercuryEventHandler(this.channelManager);
-    mercuryHandler.setInputTx(privateKey, txid, vout)
-    const eventHandler = EventHandler.new_impl(mercuryHandler);
+    mercuryHandler.setInputTx(privateKey, txid, vout);
+    this.eventHandler = EventHandler.new_impl(mercuryHandler);
   }
 
   /**
@@ -138,92 +117,64 @@ Electrum Client Functions
    * @param port
    */
 
+  // This function is called from peerRoutes.ts /open-channel request
   async createPeerAndChannel(
     amount: number,
     pubkey: string,
     host: string,
     port: number,
     channel_name: string,
-    push_msat: number,
     wallet_name: string,
-    config_id: number
+    channelType: boolean,
+    privkey: string, // Private key from txid address
+    txid: string, // txid of input for channel
+    vout: number // index of input
   ) {
-    let peer_id: number | undefined;
+    try {
+      console.log("Input Tx .");
+      this.setInputTx(privkey, txid, vout);
+      console.log("Input Tx √");
+    } catch (e) {
+      throw new Error(`Input Tx Error: ${e}`);
+    }
 
-
-
+    // Connect to the peer
     try {
       const result = await createNewPeer(host, port, pubkey);
-      peer_id = result.peer_id;
+      var peer_id = result.peer_id;
+      if (!peer_id) throw "PEER_ID undefined";
     } catch (err) {
       console.log(err);
+      throw err;
     }
 
     console.log("Peer created, connected to", peer_id);
 
-    let channel_id: number | undefined;
+    // Create the channel
     try {
       const result = await createNewChannel(
         pubkey,
         channel_name,
         amount,
-        push_msat,
-        config_id,
+        0,
+        channelType,
         wallet_name,
-        peer_id!
+        peer_id,
+        privkey,
+        txid,
+        vout
       );
       console.log(result);
-      channel_id = result.channel_id;
+      var channel_id = result.channel_id;
     } catch (err) {
       console.log(err);
+      throw err;
     }
 
     console.log("Channel Created, connected to", channel_id);
   }
 
-  async connectToPeerAndCreateChannel(
-    privkey: string, // Private key from txid address
-    txid: string, // txid of input for channel
-    vout: number, // index of input
-    pubkeyHex: string,
-    host: string,
-    port: number,
-    amount: number,
-    // push_msat: number,
-    // channelType: string,
-    // channelId: number,
-    // override_config: UserConfig
-    
-  ){
-    try{
-      console.log('Input Tx .');
-      this.setInputTx(privkey, txid, vout);
-      console.log('Input Tx √');
-    } catch(e){
-      throw new Error(`Input Tx Error: ${e}`)
-    }
-    try{
-      console.log("Connect to Peer .");
-      await this.connectToPeer(pubkeyHex, host, port);
-      console.log("Connect to Peer √");
-    } catch(e){
-      throw new Error(`Connect Peer Error: ${e}`)
-    }
-
-    let pubkeyArray = hexToUint8Array(pubkeyHex);
-    
-    try{
-      console.log("Connect to channel .");
-      // TODO: Add function to change this.config for public/private at top of this fn
-      await this.createChannel(pubkeyArray, amount, 0, 1, this.config);
-      console.log("Connect to channel √");
-    } catch(e){
-      console.log('Error: ', e);
-      throw new Error(`Connect Channel Error: ${e}`)
-    }
-  }
-
-
+  // This function runs after createNewPeer->connectToPeer
   async connectToPeer(pubkeyHex: string, host: string, port: number) {
     console.log("Host: ", pubkeyHex, "@", host, ":", port);
 
@@ -242,68 +193,13 @@ Electrum Client Functions
     }
   }
 
-
-  /**
-   * Create Socket for Outbound channel creation
-   * @param peerDetails
-   */
-
-  async create_socket(peerDetails: PeerDetails) {
-    // Create Socket for outbound connection: check NodeNet LDK docs for inbound
-
-    const { pubkey, host, port } = peerDetails;
-
-    // Node key corresponding to all 42
-    // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
-    this.netHandler = new NodeLDKNet(this.peerManager);
-
-    try{
-      console.log('Peer Details: ', peerDetails);
-
-      await this.netHandler.connect_peer(host, port, pubkey);
-      console.log("CONNECTED");
-    } catch(e){
-      console.log('Error: ', e);
-      throw new Error(`PEER CONNECT ERR: ${e}`);
-    }
-
-    await new Promise<void>((resolve) => {
-      // Wait until the peers are connected and have exchanged the initial handshake
-      var timer: any;
-      timer = setInterval(() => {
-        console.log("Node IDs", this.peerManager.get_peer_node_ids());
-        if (this.peerManager.get_peer_node_ids().length == 1) {
-          // && this.peerManager2.get_peer_node_ids().length == 1
-
-          console.log("Length is Equal to 1");
-          resolve();
-          clearInterval(timer);
-        }
-      }, 500);
-    });
-
-    // a_net_handler.stop();
-    // b_net_handler.stop();
-  }
-
-  getChannels() {
-    return this.channelManager.list_channels();
-  }
-
-  getActiveChannels() {
-    return this.channelManager.list_usable_channels();
-  }
-
-  getTxBroadCaster() {
-    return this.txBroadcasted;
-  }
-
-  async createChannel(
+  // This function runs after createNewChannel->connectToChannel
+  async connectToChannel(
     pubkey: Uint8Array,
     amount: number,
     push_msat: number,
     channelId: number,
-    override_config: UserConfig
+    channelType: boolean
   ) {
     await this.setBlockHeight();
     await this.setLatestBlockHeader(this.blockHeight);
@@ -311,6 +207,12 @@ Electrum Client Functions
     let channelValSatoshis = BigInt(amount);
     let pushMsat = BigInt(push_msat);
     let userChannelId = BigInt(channelId);
+
+    // create the override_config
+    let override_config: UserConfig = UserConfig.constructor_default();
+    override_config
+      .get_channel_handshake_config()
+      .set_announced_channel(channelType);
 
     let channelCreateResponse;
     console.log("Reached here ready to create channel...");
@@ -346,6 +248,61 @@ Electrum Client Functions
     console.log("Channel Create Response: ", channelCreateResponse);
 
     // Should return Ok response to display to user
+  }
+
+  /**
+   * Create Socket for Outbound channel creation
+   * @param peerDetails
+   */
+
+  async create_socket(peerDetails: PeerDetails) {
+    // Create Socket for outbound connection: check NodeNet LDK docs for inbound
+
+    const { pubkey, host, port } = peerDetails;
+
+    // Node key corresponding to all 42
+    // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
+    this.netHandler = new NodeLDKNet(this.peerManager);
+
+    try {
+      console.log("Peer Details: ", peerDetails);
+
+      await this.netHandler.connect_peer(host, port, pubkey);
+      console.log("CONNECTED");
+    } catch (e) {
+      console.log("Error: ", e);
+      throw new Error(`PEER CONNECT ERR: ${e}`);
+    }
+
+    await new Promise<void>((resolve) => {
+      // Wait until the peers are connected and have exchanged the initial handshake
+      var timer: any;
+      timer = setInterval(() => {
+        console.log("Node IDs", this.peerManager.get_peer_node_ids());
+        if (this.peerManager.get_peer_node_ids().length == 1) {
+          // && this.peerManager2.get_peer_node_ids().length == 1
+
+          console.log("Length is Equal to 1");
+          resolve();
+          clearInterval(timer);
+        }
+      }, 500);
+    });
+
+    // a_net_handler.stop();
+    // b_net_handler.stop();
+  }
+
+  getChannels() {
+    return this.channelManager.list_channels();
+  }
+
+  getActiveChannels() {
+    return this.channelManager.list_usable_channels();
+  }
+
+  getTxBroadCaster() {
+    return this.txBroadcasted;
   }
 
   /**
