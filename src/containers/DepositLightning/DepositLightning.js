@@ -141,7 +141,7 @@ const DepositLightning = (props) => {
         subTitle="Deposit BTC in channel to a Bitcoin address"
       />
       {invoice && Object.keys(invoice).length ? (
-        <div className="Body">
+        <div className="Body" data-cy="invoice">
           <div className="deposit-scan">
             <div className="deposit-scan-content">
               <div className="deposit-scan-main">
@@ -191,7 +191,7 @@ const DepositLightning = (props) => {
             <h3 className="subtitle">Payee Details</h3>
           </div>
 
-          <div>
+          <div data-cy="amt-input">
             <AddressInput
               inputAddr={inputAmt}
               onChange={(e) => setInputAmt(e.target.value)}
@@ -199,7 +199,7 @@ const DepositLightning = (props) => {
               smallTxtMsg="Amount in mBTC"
             />
           </div>
-          <div>
+          <div data-cy="nodeid-input">
             <AddressInput
               inputAddr={inputNodeId}
               onChange={(e) => setInputNodeId(e.target.value)}
@@ -216,7 +216,7 @@ const DepositLightning = (props) => {
             />
           </div>
 
-          <div>
+          <div data-cy="create-channel">
             <ConfirmPopup
               preCheck={checkChannelCreation}
               argsCheck={[dispatch, inputAmt, inputNodeId]}
