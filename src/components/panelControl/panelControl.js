@@ -133,13 +133,13 @@ const PANEL_CONTROL_LN = {
   ActionGroupLeft: [
     {
       route: "/deposit_ln",
-      label: "Deposit",
+      label: "Open Channel",
       icon: pluseIcon,
       class: "Body-button blue",
       tooltip: "Open channel"
     },{
       route: "/withdraw_ln",
-      label: "Withdraw",
+      label: "Close Channel",
       icon: minusIcon,
       class: "Body-button blue",
       tooltip: "Close channel"

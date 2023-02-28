@@ -3,15 +3,24 @@ import plus from "../../images/plus-black.png";
 import restore from "../../images/restore-img.png";
 import check from "../../images/icon-action-check_circle.png";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, withRouter } from "react-router-dom";
 
 import "./Welcome.css";
+import { useDispatch } from "react-redux";
+import { setWalletLoaded } from "../../features/WalletDataSlice";
 
 const Welcome = () => {
+  const dispatch = useDispatch();
   const state = useState(0);
   const checked = state[0];
   const changeCheckbox = state[1];
+
+
+  useEffect(()=>{
+    dispatch(setWalletLoaded({ loaded: false }))
+
+  },[])
 
   return (
     <div className="welcome-first">

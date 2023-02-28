@@ -124,78 +124,80 @@ class AnonClient {
     }
 
     let netConfigArgs;
-
-    execFile(
-      start_cmd,
-      terminalPasswordArg.concat(geo_args),
-      (_error, stdout, _stderr) => {
-        if (stdout.includes("[warn]")) {
-          stdout = stdout.replace("\r", "");
-          stdout = stdout.split("\n")[1];
-        }
-
-        let hashedPassword = stdout.replace(/\n*$/, "");
-
-        // Sets config when launching network
-        if (network === "tor") {
-          netConfigArgs = [
-            "-f",
-            `${torrc}`,
-            "SOCKSPort",
-            `${this.config.port}`,
-            ,
-            "HashedControlPassword",
-            `${hashedPassword}`,
-            "ControlPort",
-            `${this.config.controlPort}`,
-            "DataDir",
-            `"${this.dataPath}"`,
-          ];
-        } else {
-          netConfigArgs = [
-            `--socksproxy.port=${this.config.port}`,
-            "--http.enabled=false",
-            "--i2pcontrol.enabled=true",
-            `--i2pcontrol.password=${this.config.controlPassword}`,
-            `--i2pcontrol.port=${this.config.controlPort}`,
-            `--datadir=${this.dataPath}`,
-          ];
-        }
-
-        /* *
-         * ToDo: Check Hash password is in proper use for Tor
-         *  - the hash in netConfigArgs has been removed
-         * */
-
-        this.process = execFile(
-          start_cmd,
-          netConfigArgs,
-          {
-            detached: false,
-            shell: defaultShell,
-            stdio: "ignore",
-          },
-          (error) => {
-            if (error) {
-              throw error;
-            }
+    try {
+      execFile(
+        start_cmd,
+        terminalPasswordArg.concat(geo_args),
+        (_error, stdout, _stderr) => {
+          if (stdout.includes("[warn]")) {
+            stdout = stdout.replace("\r", "");
+            stdout = stdout.split("\n")[1];
           }
-        );
-        this.process.stdout.on("data", function (data) {
-          const message = `${network} stdout: ` + data.toString();
-          console.log(message);
-        });
-
-        this.process.stderr.on("data", function (data) {
-          const message = `${network} stderr: ` + data.toString();
-          console.error(message);
-        });
-        this.log(
-          "info",
-          `${network} Client.startNode - started ${network} node with pid ${this.process.pid}`
-        );
-      }
-    );
+          let hashedPassword = stdout.replace(/\n*$/, "");
+  
+          // Sets config when launching network
+          if (network === "tor") {
+            netConfigArgs = [
+              "-f",
+              `${torrc}`,
+              "SOCKSPort",
+              `${this.config.port}`,
+              ,
+              "HashedControlPassword",
+              `${hashedPassword}`,
+              "ControlPort",
+              `${this.config.controlPort}`,
+              "DataDir",
+              `"${this.dataPath}"`,
+            ];
+          } else {
+            netConfigArgs = [
+              `--socksproxy.port=${this.config.port}`,
+              "--http.enabled=false",
+              "--i2pcontrol.enabled=true",
+              `--i2pcontrol.password=${this.config.controlPassword}`,
+              `--i2pcontrol.port=${this.config.controlPort}`,
+              `--datadir=${this.dataPath}`,
+            ];
+          }
+  
+          /* *
+           * ToDo: Check Hash password is in proper use for Tor
+           *  - the hash in netConfigArgs has been removed
+           * */
+          this.process = execFile(
+            start_cmd,
+            netConfigArgs,
+            {
+              detached: false,
+              shell: defaultShell,
+              stdio: "ignore",
+            },
+            (error) => {
+              if (error) {
+                // throw error;
+              }
+            }
+          );
+          this.process.stdout.on("data", function (data) {
+            const message = `${network} stdout: ` + data.toString();
+            console.log(message);
+          });
+  
+          this.process.stderr.on("data", function (data) {
+            const message = `${network} stderr: ` + data.toString();
+            console.error(message);
+          });
+          this.log(
+            "info",
+            `${network} Client.startNode - started ${network} node with pid ${this.process.pid}`
+          );
+        }
+      );
+    }
+    catch (e) {
+      throw e;
+    }
   }
 
   async stopTorNode() {

@@ -19,10 +19,8 @@ import {
   setIntervalIfOnline,
   setWarning,
   setNetworkType,
-  saveWallet,
-  setWalletLoaded,
-  stopWallet,
-  unloadWallet,
+  callUnsubscribeAll,
+  callResetConnectionData,
 } from "../../../features/WalletDataSlice";
 import "./torCircuit.css";
 import "./networkSwitch.css";
@@ -38,6 +36,8 @@ log = new WrappedLogger();
 
 const TorCircuit = (props) => {
   const dispatch = useDispatch();
+
+  const { ping_electrum_ms, blockHeightLoad } = useSelector((state) => state.walletData);
 
   const [torcircuitData, setTorcircuitData] = useState([]);
   const [torLoaded, setTorLoaded] = useState(false);
@@ -64,6 +64,10 @@ const TorCircuit = (props) => {
       clearInterval(interval);
     };
   }, [dispatch, props.online]);
+
+  useEffect(()=> {
+    getTorCircuitInfo()
+  }, [props.online, ping_electrum_ms, blockHeightLoad])
 
   const getTorCircuitInfo = () => {
     if (props.online) {
@@ -99,28 +103,40 @@ const TorCircuit = (props) => {
       getTorCircuitInfo();
     });
   };
-  const handleLogout = async () => {
-    await stopWallet();
-    unloadWallet();
-    dispatch(setWalletLoaded({ loaded: false }));
-  };
+
+  const resetConnectivityData = () => {
+    callResetConnectionData(dispatch);
+  }
+
+  const networkSwitchAndLogOut = async ( NETWORK_TYPE ) => {
+
+    // Unsubscribe Block Height before overwriting electrs client
+    await callUnsubscribeAll();
+    await setNetworkType(NETWORK_TYPE);
+    props.setNetworkType(NETWORK_TYPE);
+    resetConnectivityData();
+  }
+  
 
   const setNetwork = () => {
     if (props.networkType === NETWORK_TYPE.TOR) {
-      setNetworkType(NETWORK_TYPE.I2P);
-      props.setNetworkType(NETWORK_TYPE.I2P);
-      handleLogout();
-    } else {  
-      setNetworkType(NETWORK_TYPE.TOR);
-      props.setNetworkType(NETWORK_TYPE.TOR);
-      handleLogout();
+      networkSwitchAndLogOut( NETWORK_TYPE.I2P )
+    } else {
+      networkSwitchAndLogOut( NETWORK_TYPE.TOR )
     }
   }
 
   const networkSwitch = () => {
+    let networkChange;
+    if (props.networkType === NETWORK_TYPE.TOR) {
+      networkChange = NETWORK_TYPE.I2P;
+    } else {
+      networkChange = NETWORK_TYPE.TOR;
+    }
+
     dispatch(setWarning({
-      title: "Log Out Required",
-      msg: "Log out required on network change.",
+      title: `Network Switch: ${props.networkType} -> ${networkChange}`,
+      msg: `Before switching networks, please make sure that you do not have any active swaps. Would you like to switch networks now?`,
       onConfirm: setNetwork,
     }));
   };
@@ -145,7 +161,8 @@ const TorCircuit = (props) => {
 
   return (
     <div className="dropdown tor">
-      <NetworkSwitch 
+      <NetworkSwitch
+        newWallet={false} 
         networkType={props.networkType}
         onClick={networkSwitch}
         />
@@ -200,7 +217,7 @@ const TorCircuit = (props) => {
 };
 
 export const NetworkSwitch = (props) => (
-  <div className="network-switch">
+  <div className={"network-switch " + (props.newWallet ? "white-bg" : "primary-bg")}>
     <button onClick={props.onClick}>
       <span className={"network-switch-btn " + (props.networkType === NETWORK_TYPE.TOR ? "white" : "grey")}>{"TOR"}</span>
       <span>{" / "}</span>

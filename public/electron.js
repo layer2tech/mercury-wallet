@@ -45,6 +45,7 @@ let iconPath = undefined;
 let execPath = undefined;
 let torrc = undefined;
 let anon_adapter_path = undefined;
+// let lightning_adapter_path = undefined;
 
 if (isPackaged === true) {
   if (getPlatform() == 'linux') {
@@ -61,13 +62,15 @@ if (isPackaged === true) {
   }
   torrc = joinPath(execPath, '..', 'etc', 'torrc');
   anon_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-tor-adapter", "server", "index.js");
+  // lightning_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-lightning-adapter", "index.js");
   
 } else {
   resourcesPath = joinPath(rootPath, 'resources');
   execPath = joinPath(resourcesPath, getPlatform());
   iconPath = joinPath(rootPath, 'build', 'icons', 'mercury-symbol-tri-color.png');
   torrc = joinPath(resourcesPath, 'etc', 'torrc');
-  anon_adapter_path = joinPath(rootPath, 'node_modules', 'mercury-wallet-tor-adapter','server', 'index.js')
+  anon_adapter_path = joinPath(rootPath, 'node_modules', 'mercury-wallet-tor-adapter','server', 'index.js');
+  // lightning_adapter_path = joinPath(__dirname, "..", "node_modules", "mercury-wallet-lightning-adapter", "index.js");
 }
 
 const tor_cmd = (getPlatform() === 'win') ? `${joinPath(execPath, 'Tor', 'tor')}` : `${joinPath(execPath, 'tor')}`;
@@ -128,7 +131,8 @@ function createWindow() {
     mainWindow = new BrowserWindow(windowSpec);
   }
   
-  require("@electron/remote/main").enable(mainWindow.webContents)
+  require("@electron/remote/main").enable(mainWindow.webContents);
+
 
   if (process.platform !== 'darwin') {
     mainWindow.setMenu(null);
@@ -199,6 +203,7 @@ app.on('ready', () => {
     alert('mercurywallet is already running. Not opening app.')
     app.quit()
   }
+
   // Clears cookie storage
   // Persisted web store must be wiped for electron in case redux store has changed
    session.defaultSession.clearStorageData([], data => {})
@@ -206,6 +211,8 @@ app.on('ready', () => {
   terminate_tor_process();
   terminate_mercurywallet_process(null,"tor");
   terminate_mercurywallet_process(init_adapter,"i2p");
+  // TODO: Uncomment
+  // terminate_mercurywallet_process(init_lightning_adapter, null);
   createWindow()
 }
 );
@@ -213,6 +220,8 @@ app.on('ready', () => {
 app.on('window-all-closed', async () => {
   terminate_tor_process(); // ensure the tor processes are closed after s
   terminate_mercurywallet_process(null,"i2p");
+  //TODO: Uncomment
+  // terminate_mercurywallet_process(init_lightning_adapter, null);
   app.quit();
 });
 
@@ -258,6 +267,8 @@ ipcMain.on('select-backup-file', async (event, arg) => {
 app.on('before-quit', async function () {
   terminate_mercurywallet_process(null,"i2p");
   terminate_mercurywallet_process(null,"tor");
+  //TODO: Uncomment
+  // terminate_mercurywallet_process(init_lightning_adapter, null);
 });
 
 app.allowRendererProcessReuse = false;
@@ -306,6 +317,20 @@ async function init_adapter() {
   );
 }
 
+async function init_lightning_adapter() {
+
+  la_process = fork(lightning_adapter_path, ['start'],
+    {
+      detached: false,
+      stdio: 'ignore',
+    },
+    (error, stdout, _stderr) => {
+      if (error) {
+        app.exit(error);
+      };
+    }
+  );
+}
 
 const terminate_tor_process = () => {
   // remove tor from windows processes and mercury wallet if it exists.

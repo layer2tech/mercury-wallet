@@ -2485,29 +2485,25 @@ describe("Storage 4", () => {
     let swapped_coins = loaded_wallet.storage.getSwappedCoins(
       loaded_wallet.name
     );
-    expect(swapped_coins.length).toEqual(2);
+    expect(swapped_coins.length).toEqual(0);
 
-    //Check that a single swapped coin can be retrieved
-    let swapped_coin = loaded_wallet.storage.getSwappedCoin(
-      WALLET_NAME_6_BACKUP,
-      swapped_coins[0].shared_key_id
-    );
-    expect(swapped_coin).toEqual(swapped_coins[0]);
+    /* WE HAVE REMOVED SWAP DATA SO THESE TESTS NO LONGER REQUIRED
+      THEY ARE STILL HERE IN CASE WE NEED TO REVERT THE FEATURE */
 
-    const outPoint = {
-      txid: swapped_coins[0].funding_txid,
-      vout: swapped_coins[0].funding_vout,
-    };
-    //Check that swapped statecoin shared key ids can be retrieved from outpoints
-    let shared_key_ids = loaded_wallet.storage.getSwappedIds(
-      loaded_wallet.name,
-      outPoint
-    );
-    expect(shared_key_ids).toEqual(["89ee7160-0c27-4d0a-b10c-c7c3d7637d15"]);
-    //Check that swapped statecoins can be retrieved from outpoints
-    let swapped_coins_by_output =
-      loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint, 1);
-    expect(swapped_coins_by_output).toEqual([swapped_coins[0]]);
+    // const outPoint = {
+    //   txid: swapped_coins[0].funding_txid,
+    //   vout: swapped_coins[0].funding_vout,
+    // };
+    // //Check that swapped statecoin shared key ids can be retrieved from outpoints
+    // let shared_key_ids = loaded_wallet.storage.getSwappedIds(
+    //   loaded_wallet.name,
+    //   outPoint
+    // );
+    // expect(shared_key_ids).toEqual(["89ee7160-0c27-4d0a-b10c-c7c3d7637d15"]);
+    // //Check that swapped statecoins can be retrieved from outpoints
+    // let swapped_coins_by_output =
+    //   loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint, 1);
+    // expect(swapped_coins_by_output).toEqual([swapped_coins[0]]);
 
     //Check that trying to retrieve a non existent coin throws an error
     expect(() => {
@@ -2518,6 +2514,8 @@ describe("Storage 4", () => {
 
     // Remove statecoin and confirm that statecoin is removed from file
     await loaded_wallet.removeStatecoin(s1[0].shared_key_id);
+
+    await loaded_wallet.save();
     loaded_wallet = await Wallet.load(
       WALLET_NAME_6_BACKUP,
       WALLET_PASSWORD_6,
@@ -2652,42 +2650,45 @@ describe("Storage 5", () => {
     let swapped_coins = loaded_wallet.storage.getSwappedCoins(
       loaded_wallet.name
     );
-    expect(swapped_coins.length).toEqual(2);
+    expect(swapped_coins.length).toEqual(0);
+
+    /* WE HAVE REMOVED SWAP DATA SO THESE TESTS NO LONGER REQUIRED
+    THEY ARE STILL HERE IN CASE WE NEED TO REVERT THE FEATURE */
 
     expect(JSON.stringify(swapped_coins.map(item => item.shared_key_id))).toEqual(
       JSON.stringify(SWAPPED_COINS_EXPECTED.map(item => item.shared_key_id))
     );
 
-    //Check that a single swapped coin can be retrieved
-    let swapped_coin = loaded_wallet.storage.getSwappedCoin(
-      WALLET_NAME_7_BACKUP,
-      swapped_coins[0].shared_key_id
-    );
-    expect(swapped_coin).toEqual(swapped_coins[0]);
+    // //Check that a single swapped coin can be retrieved
+    // let swapped_coin = loaded_wallet.storage.getSwappedCoin(
+    //   WALLET_NAME_7_BACKUP,
+    //   swapped_coins[0].shared_key_id
+    // );
+    // expect(swapped_coin).toEqual(swapped_coins[0]);
 
-    //Check that wallet.getStatecoin also retrieves swapped coins
-    let swapped_coin_2 = loaded_wallet.getStatecoin(
-      swapped_coins[0].shared_key_id
-    );
-    expect(swapped_coin_2).toEqual(swapped_coin);
+    // //Check that wallet.getStatecoin also retrieves swapped coins
+    // let swapped_coin_2 = loaded_wallet.getStatecoin(
+    //   swapped_coins[0].shared_key_id
+    // );
+    // expect(swapped_coin_2).toEqual(swapped_coin);
 
-    //Check that wallet.getStatecoin returns undefined for unknown statecoin
-    expect(loaded_wallet.getStatecoin("unknown_id")).toEqual(undefined);
+    // //Check that wallet.getStatecoin returns undefined for unknown statecoin
+    // expect(loaded_wallet.getStatecoin("unknown_id")).toEqual(undefined);
 
-    const outPoint = {
-      txid: swapped_coins[0].funding_txid,
-      vout: swapped_coins[0].funding_vout,
-    };
-    //Check that swapped statecoin shared key ids can be retrieved from outpoints
-    let shared_key_ids = loaded_wallet.storage.getSwappedIds(
-      loaded_wallet.name,
-      outPoint
-    );
-    expect(shared_key_ids).toEqual(["e515da8d-9c4f-47c4-a8c0-8c6d00ef860c"]);
-    //Check that swapped statecoins can be retrieved from outpoints
-    let swapped_coins_by_output =
-      loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint);
-    expect(swapped_coins_by_output).toEqual([swapped_coins[0]]);
+    // const outPoint = {
+    //   txid: swapped_coins[0].funding_txid,
+    //   vout: swapped_coins[0].funding_vout,
+    // };
+    // //Check that swapped statecoin shared key ids can be retrieved from outpoints
+    // let shared_key_ids = loaded_wallet.storage.getSwappedIds(
+    //   loaded_wallet.name,
+    //   outPoint
+    // );
+    // expect(shared_key_ids).toEqual(["e515da8d-9c4f-47c4-a8c0-8c6d00ef860c"]);
+    // //Check that swapped statecoins can be retrieved from outpoints
+    // let swapped_coins_by_output =
+    //   loaded_wallet.getSwappedStatecoinsByFundingOutPoint(outPoint);
+    // expect(swapped_coins_by_output).toEqual([swapped_coins[0]]);
 
     //Check that trying to retrieve a non existent coin throws an error
     expect(() => {
@@ -2738,27 +2739,27 @@ describe("Storage 5", () => {
     });
 
     expect(loaded_wallet.statecoins.coins.length).toEqual(6);
-    expect(tableData.length).toEqual(2);
-    expect(tableData[1].shared_key_id).toEqual(
-      "6880cb2c-5d65-4100-99d3-db9dd15c2810"
-    );
-    expect(tableData[0].shared_key_id).toEqual(
-      "e515da8d-9c4f-47c4-a8c0-8c6d00ef860c"
-    );
+    expect(tableData.length).toEqual(0);
+    // expect(tableData[1].shared_key_id).toEqual(
+    //   "6880cb2c-5d65-4100-99d3-db9dd15c2810"
+    // );
+    // expect(tableData[0].shared_key_id).toEqual(
+    //   "e515da8d-9c4f-47c4-a8c0-8c6d00ef860c"
+    // );
 
-    // Version 10 wallets did not store the swap_transfer_finalized_data for swapped coins.
-    const finalUtxosExpected = [
-      {
-        txid: undefined,
-        vout: undefined,
-      },
-      {
-        txid: undefined,
-        vout: undefined,
-      },
-    ];
+    // // Version 10 wallets did not store the swap_transfer_finalized_data for swapped coins.
+    // const finalUtxosExpected = [
+    //   {
+    //     txid: undefined,
+    //     vout: undefined,
+    //   },
+    //   {
+    //     txid: undefined,
+    //     vout: undefined,
+    //   },
+    // ];
 
-    expect(finalUtxos).toEqual(finalUtxosExpected);
+    // expect(finalUtxos).toEqual(finalUtxosExpected);
 
     //Remove all coins, save and reload wallet
     let all_coins = cloneDeep(loaded_wallet.statecoins.coins);

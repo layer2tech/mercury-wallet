@@ -7,6 +7,7 @@ import {
   updateFeeInfo,
   callGetFeeInfo,
   callGetConfig,
+  setWalletLoaded,
 } from "../../features/WalletDataSlice";
 import {
   PanelControl,
@@ -16,6 +17,7 @@ import {
 } from "../../components";
 import { handleErrors } from "../../error";
 import WrappedLogger from "../../wrapped_logger";
+import { useEffect } from "react";
 
 // Logger import.
 // Node friendly importing required for Jest tests.
@@ -27,6 +29,10 @@ log = new WrappedLogger();
 const HomePage = (props) => {
   const dispatch = useDispatch();
   let fee_info = useSelector((state) => state.walletData).fee_info;
+  
+  useEffect(()=>{
+    dispatch(setWalletLoaded({ loaded: true }))
+  },[])
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -59,7 +65,7 @@ const HomePage = (props) => {
   return (
     <div className="container home-page">
       <PanelControl />
-      <PanelConnectivity online={props.online} />
+      <PanelConnectivity online={props.online} networkType = {props.networkType} />
       <PanelCoinsActivity />
       {current_config?.tutorials && <Tutorial />}
     </div>

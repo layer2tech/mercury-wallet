@@ -92,8 +92,7 @@ export class Storage {
     ];
   }
 
-  // Wallet storage
-  storeWallet(wallet_json: any) {
+  prepareWalletForSave(wallet_json: any){
     if (wallet_json != null) {
       delete wallet_json.electrum_client;
       delete wallet_json.storage;
@@ -115,13 +114,31 @@ export class Storage {
       // remove active status flag
       delete wallet_json.active;
 
-      // Store statecoins individually by key
-      if (wallet_json.statecoins != null) {
-        this.storeWalletStateCoinsList(
-          wallet_json.name,
-          wallet_json.statecoins
-        );
-      }
+    }
+    return wallet_json
+  }
+
+
+  // Wallet storage
+ storeWallet(wallet_json: any) {
+    
+    wallet_json = this.prepareWalletForSave(wallet_json)
+    
+    if (wallet_json != null) {
+
+            // remove testing_mode config
+            delete wallet_json.config.testing_mode;
+            delete wallet_json.config.jest_testing_mode;
+            // remove active status flag
+            delete wallet_json.active;
+      
+            // Store statecoins individually by key
+            if (wallet_json.statecoins != null) {
+              this.storeWalletStateCoinsList(
+                wallet_json.name,
+                wallet_json.statecoins
+              );
+            }
 
       Object.keys(wallet_json).forEach((key) => {
         //Functions cannot be stored.
@@ -169,13 +186,170 @@ export class Storage {
     this.store.set(wallet_name, { name: wallet_name });
   }
 
+  getWalletQuick(wallet_name: string, load_all: boolean = false) {
+
+    let wallet_json: any = this.store.get(wallet_name);
+
+    if (wallet_json.name === undefined)
+      throw Error("No wallet called " + wallet_name + " stored.");
+
+      let wallet = Object.assign({}, wallet_json);
+      //Wallet is active on startup
+      wallet.active = true;
+      return wallet;
+  }
+
+  loadStatecoinsQuick(wallet: any, load_all: boolean = false) {
+
+    //Move any existing coins from the arrays to the objects
+    this.storeWalletStateCoinsArrayQuick(wallet);
+
+    //Keep statecoins.coins for backwards compatibility
+    delete wallet.statecoins.swapped_coins;
+
+    let coins_from_obj: StateCoin[] = [];
+    if (wallet.statecoins_obj != null) {
+      coins_from_obj = Object.values(wallet.statecoins_obj);
+    }
+    let coins = coins_from_obj;
+
+    //Read the statecoin data stored in objects
+    if (load_all) {
+      if (wallet.swapped_statecoins_obj != null) {
+        coins = coins.concat(Object.values(wallet.swapped_statecoins_obj));
+      }
+    }
+
+    //Remove duplicates
+    coins = Array.from(new Set(coins));
+
+    wallet.statecoins.coins = Array.from(StateCoinList.fromCoinsArray(coins).coins);
+
+  }
+
+
+  mergeStatecoinsCoinsAndSwappedCoins(wallet: any) {
+    //Read the statecoin data saved in previous versions of the wallet
+    const saved_coins: StateCoin[] | undefined = wallet.statecoins.coins;
+    const saved_swapped_coins: StateCoin[] | undefined =
+      wallet.statecoins.swapped_coins;
+
+    let coins: StateCoin[] = saved_coins === undefined ? [] : saved_coins;
+    let coins_swapped: StateCoin[] =
+      saved_swapped_coins === undefined ? [] : saved_swapped_coins;
+
+    let coins_all = coins.concat(coins_swapped);
+
+    return coins_all;
+  }
+
+  // splits coins into two dictionaries
+  splitCoins(wallet: any) {
+    let sc_map = new Map<string, StateCoin>();
+    let swapped_sc_map = new Map<string, StateCoin>();
+
+
+    wallet.statecoins.coins.map( ( coin :any) => {
+      if (coin.status === "SWAPPED") {
+        swapped_sc_map.set(coin.shared_key_id, coin);
+      } else {
+        sc_map.set(coin.shared_key_id, coin);
+      }
+    })
+
+    return [ sc_map, swapped_sc_map ];
+  }
+
+  storeWalletStateCoinsArrayQuick(wallet: any) {
+    // convert all statecoins/swappedcoins to coins array
+    let coins_all = this.mergeStatecoinsCoinsAndSwappedCoins(wallet);
+
+
+    if (coins_all.length === 0 || coins_all === undefined) return;
+
+    // move swapped coins into its own dictionary object
+    let [sc_map, swapped_sc_map] = this.splitCoins(wallet);
+    // let swapped_sc_map = this.splitCoins(wallet, "SWAPPED");
+
+    // continue as normal
+    let stored_sc_obj = wallet.statecoins_obj;
+    if (stored_sc_obj == null) {
+      stored_sc_obj = {};
+    }
+
+    stored_sc_obj = JSON.parse(JSON.stringify(stored_sc_obj));
+    Object.assign(stored_sc_obj, Object.fromEntries(sc_map));
+
+    // const swapped_sc_dest = `${wallet_name}.swapped_statecoins_obj`;
+    let stored_swapped_sc_obj = wallet.swapped_statecoins_obj;
+    if (stored_swapped_sc_obj == null) {
+      stored_swapped_sc_obj = {};
+    }
+
+    const swapped_sc_obj = Object.fromEntries(swapped_sc_map);
+
+    stored_swapped_sc_obj = JSON.parse(JSON.stringify(stored_swapped_sc_obj));
+    Object.assign(stored_swapped_sc_obj, swapped_sc_obj);
+
+    // const swapped_ids_dest = `${wallet_name}.swapped_ids`;
+    let stored_swapped_ids = wallet.swapped_ids;
+    if (stored_swapped_ids == null) {
+      stored_swapped_ids = {};
+    }
+    this.sortSwappedCoinsAndSwappedIds(swapped_sc_obj, stored_swapped_ids, stored_sc_obj)
+
+    let getStoredWallet: any = wallet;
+    getStoredWallet.statecoins_obj = stored_sc_obj;
+    getStoredWallet.swapped_statecoins_obj = stored_swapped_sc_obj;
+    getStoredWallet.swapped_ids = stored_swapped_ids;
+    
+    //Store the update objects
+    let walletSave: any = Object.assign({}, wallet);
+    // encrypt mnemonic
+    walletSave.mnemonic = encryptAES(
+      walletSave.mnemonic,
+      walletSave.password
+      );
+
+
+    this.store.set(`${wallet.name}`, walletSave);
+  }
+
+  sortSwappedCoinsAndSwappedIds(swapped_sc_obj: any, stored_swapped_ids: any, stored_sc_obj: any){
+
+    Object.entries(swapped_sc_obj).forEach((key_value) => {
+      const sc: any = key_value[1];
+      const funding_outpoint = { txid: sc.funding_txid, vout: sc.funding_vout };
+
+      const funding_outpoint_str = `${funding_outpoint.txid}:${funding_outpoint.vout}`;
+      let swapped_ids = stored_swapped_ids[funding_outpoint_str];
+      //Remove duplicates
+      let swapped_ids_set;
+      if (swapped_ids == null) {
+        swapped_ids_set = new Set();
+      } else {
+        swapped_ids_set = new Set(swapped_ids);
+      }
+      swapped_ids_set.add(sc.shared_key_id);
+      swapped_ids = Array.from(swapped_ids_set);
+      stored_swapped_ids = JSON.parse(JSON.stringify(stored_swapped_ids));
+      stored_swapped_ids[funding_outpoint_str] = swapped_ids;
+      // Delete the coin from the statecoins map if it has been swapped.
+      delete stored_sc_obj[sc.shared_key_id];
+    });
+  }
+
   getWallet(wallet_name: string, load_all: boolean = false) {
     let wallet_json: any = { name: this.store.get(`${wallet_name}.name`) };
     if (wallet_json.name === undefined)
       throw Error("No wallet called " + wallet_name + " stored.");
 
-    //Wallet is initally inactive
-    wallet_json.active = false;
+
+    // Create a new object and copy the properties of the wallet_json object
+    let wallet = Object.assign({}, wallet_json);
+
+    //Wallet is initially inactive on startup
+    wallet.active = false;
 
     let wallet_keys = [
       "password",
@@ -192,14 +366,12 @@ export class Storage {
     ];
 
     wallet_keys.forEach((key: string) => {
-      wallet_json[key] = this.store.get(`${wallet_name}.${key}`);
+      wallet[key] = this.store.get(`${wallet_name}.${key}`);
     });
 
-    this.loadStatecoins(wallet_json, load_all);
-
-    //Wallet is active on startup
-    wallet_json.active = true;
-    return wallet_json;
+    this.loadStatecoins(wallet, load_all);
+    wallet.active = true;
+    return wallet;
   }
 
   loadStatecoins(wallet: any, load_all: boolean = false) {
@@ -291,9 +463,15 @@ export class Storage {
     password: string,
     load_all: boolean = false
   ) {
-    let wallet_json_encrypted = this.getWallet(wallet_name, load_all);
-    let wallet_json_decrypted = wallet_json_encrypted;
-    // Decrypt mnemonic
+    if( isElectron() ){
+      var wallet_json_encrypted = this.getWalletQuick(wallet_name, load_all);
+    } else{
+      // If quick method used: error thrown that walletInfo.wallets.[wallet name].account has been mutated
+      var wallet_json_encrypted = this.getWallet(wallet_name, load_all);
+    }
+      let wallet_json_decrypted = wallet_json_encrypted;
+  
+      // Decrypt mnemonic
     try {
       wallet_json_decrypted.mnemonic = decryptAES(
         wallet_json_decrypted.mnemonic,

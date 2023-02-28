@@ -30,6 +30,14 @@ p {
   border-radius: 4px;
 }
 
+.network-btns.channel-type div {
+  margin-top: 30px;
+  padding: 15px 20px;
+  font-size: 18px;
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 0px;
+  border: 2px solid #ADB5BD;
+}
+
 .network-btns div.selected .check-img {
   display: block;
 }
@@ -97,4 +105,10 @@ p {
   color: var(--container);
   cursor: not-allowed;
   pointer-events: none;
+}
+
+.network-switch-new-wallet {
+  justify-content: left !important;
+  padding-bottom: 10px;
+  padding-top: 10px;
 }
