@@ -9,6 +9,7 @@ import { Channel, ChannelInfo } from './channel';
 export const LIGHTNING_GET_ROUTE = {
     PEER_LIST: "/lightning/peers",
     CHANNEL_LIST: "/channel/loadChannels",
+    DEAULT_PEER_LIST: "/default_peerlist"
 };
 Object.freeze(LIGHTNING_GET_ROUTE);
 
@@ -59,7 +60,7 @@ export class LDKClient {
   }
 
 
-  static async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
+  async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
     const url = LIGHTNING_URL + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
     const config: AxiosRequestConfig = {
       method: 'get',

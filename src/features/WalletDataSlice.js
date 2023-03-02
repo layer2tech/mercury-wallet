@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 import { Wallet, ACTION, STATECOIN_STATUS, Config } from "../wallet";
-import { getFeeInfo, getCoinsInfo, pingElectrum } from "../wallet/mercury/info_api";
+import { getFeeInfo, getCoinsInfo, pingElectrum, pingLightning } from "../wallet/mercury/info_api";
 import { pingServer as pingConductor } from "../wallet/swap/info_api";
 import { pingServer } from "../wallet/mercury/info_api";
 import { decodeMessage, decodeSCEAddress, isValidNodeKeyAddress } from "../wallet/util";
@@ -100,6 +100,7 @@ const initialState = {
   ping_server_ms: null,
   ping_conductor_ms: null,
   ping_electrum_ms: null,
+  ping_lightning_ms: null,
   ping_swap: null,
   ping_server: null,
   filterBy: "default",
@@ -1073,6 +1074,19 @@ export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, 
   }
 };
 
+export const UpdateLightningServerInfo = async(dispatch, ping_lightning_ms, setLightningConnected) => {
+  let lightning_ping_ms_new = null;
+  try {
+    lightning_ping_ms_new = await pingLightning(wallet.lightning_client);
+    if(lightning_ping_ms_new !== ping_lightning_ms){
+      dispatch(setPingLightningMs(lightning_ping_ms_new));
+      setLightningConnected(lightning_ping_ms_new != null);
+    }
+  } catch (err) {
+    lightning_ping_ms_new = null;
+  }
+}
+
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
 
@@ -1541,6 +1555,12 @@ const WalletSlice = createSlice({
         ping_electrum_ms: action.payload,
       };
     },
+    setPingLightningMs(state, action) {
+      return {
+        ...state,
+        ping_lightning_ms: action.payload,
+      };
+    },
     setShowWithdrawPopup(state, action) {
       return {
         ...state,
@@ -1704,6 +1724,7 @@ export const {
   setPingServerMs,
   setPingConductorMs,
   setPingElectrumMs,
+  setPingLightningMs,
   setShowWithdrawPopup,
   setWithdrawTxid
 } = WalletSlice.actions;
