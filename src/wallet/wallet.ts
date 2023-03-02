@@ -788,7 +788,7 @@ export class Wallet {
     }
     else {
       let http = new HttpClient('http://localhost:3001', true);
-      this.set_tor_endpoints();
+      this.set_adapter_endpoints();
       return http
     }
   }
