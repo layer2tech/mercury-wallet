@@ -36,6 +36,7 @@ import {
 } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
 import closeIcon from "../../images/close-icon.png";
+import InvoiceOptions from "../../components/InvoiceOptions/InvoiceOptions";
 
 export const CHANNEL_TYPE = {
   PUBLIC: "Public",
@@ -142,6 +143,9 @@ const DepositLightning = (props) => {
       />
       {invoice && Object.keys(invoice).length ? (
         <div className="Body">
+          <div className="main-coin-wrap">
+                  <InvoiceOptions />
+                </div>
           <div className="deposit-scan">
             <div className="deposit-scan-content">
               <div className="deposit-scan-main">

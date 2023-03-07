@@ -115,6 +115,7 @@ const initialState = {
   torInfo: { online: true },
   showWithdrawPopup: false,
   withdraw_txid: "",
+  showInvoicePopup: false
 };
 
 // Check if a wallet is loaded in memory
@@ -1552,7 +1553,13 @@ const WalletSlice = createSlice({
         ...state,
         withdraw_txid: action.payload,
       };
-    }
+    },
+    setShowInvoicePopup(state, action) {
+      return {
+        ...state,
+        showInvoicePopup: action.payload,
+      };
+    },
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -1705,7 +1712,8 @@ export const {
   setPingConductorMs,
   setPingElectrumMs,
   setShowWithdrawPopup,
-  setWithdrawTxid
+  setWithdrawTxid,
+  setShowInvoicePopup
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 
