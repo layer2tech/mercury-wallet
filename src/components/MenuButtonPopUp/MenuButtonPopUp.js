@@ -13,7 +13,7 @@ const MenuButtonPopUp = ({openMenu, setOpenMenu,
                 <div className="filter-head">{title}</div>
                   {options.map((item) => (
                       <button 
-                        className="Body-button transparent"
+                        className="Body-button menu-button"
                         onClick={item.action}
                         key={item.id}
                       >
