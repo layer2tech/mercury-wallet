@@ -107,6 +107,7 @@ export const createNewPeer = (
   });
 };
 
+// TODO: BAD Practise, this function is doing too much, it must be broken down to do one thing. Here it inserts into a database and then calls to conenct to the channel.
 export const createNewChannel = (
   pubkeyHex: string,
   name: string,
@@ -117,7 +118,9 @@ export const createNewChannel = (
   peer_id: number,
   privkey: string, // Private key from txid address
   txid: string, // txid of input for channel
-  vout: number // index of input
+  vout: number, // index of input
+  paid: boolean,
+  payment_address: string
 ): Promise<{
   status: number;
   message?: string;
@@ -128,7 +131,7 @@ export const createNewChannel = (
     let channelId: number;
     let pubkey = hexToUint8Array(pubkeyHex);
 
-    const insertData = `INSERT INTO channels (name, amount, push_msat, public, wallet_name, peer_id, privkey, txid, vout) VALUES (?,?,?,?,?,?,?,?,?)`;
+    const insertData = `INSERT INTO channels (name, amount, push_msat, public, wallet_name, peer_id, privkey, txid, vout, paid, payment_address) VALUES (?,?,?,?,?,?,?,?,?,?,?)`;
     db.run(
       insertData,
       [
@@ -141,6 +144,8 @@ export const createNewChannel = (
         privkey,
         txid,
         vout,
+        paid,
+        payment_address,
       ],
       function (err: any, result: any) {
         if (err) {

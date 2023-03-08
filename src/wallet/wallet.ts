@@ -754,7 +754,7 @@ export class Wallet {
               let bip32 = this.getBIP32forBtcAddress(addr);
 
               // Need to unsubscribe once work done
-              let privkey = bip32.privateKey;
+              let privkey = bip32.toWIF();
 
               this.lightning_client.openChannel({
                 amount: tx_data.value,
@@ -767,6 +767,8 @@ export class Wallet {
                 privkey,
                 txid,
                 vout,
+                paid: true,
+                payment_address: addr,
               });
             }
           });

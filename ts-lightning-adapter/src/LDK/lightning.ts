@@ -128,7 +128,9 @@ export default class LightningClient implements LightningClientInterface {
     channelType: boolean,
     privkey: string, // Private key from txid address
     txid: string, // txid of input for channel
-    vout: number // index of input
+    vout: number,
+    paid: boolean,
+    payment_address: string // index of input
   ) {
     try {
       console.log("Input Tx .");
@@ -162,7 +164,9 @@ export default class LightningClient implements LightningClientInterface {
         peer_id,
         privkey,
         txid,
-        vout
+        vout,
+        paid,
+        payment_address
       );
       console.log(result);
       var channel_id = result.channel_id;

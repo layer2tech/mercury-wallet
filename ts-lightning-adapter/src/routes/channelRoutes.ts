@@ -174,7 +174,9 @@ router.post("/createChannel", async (req, res) => {
       peer_id,
       privkey, // Private key from txid address
       txid, // txid of input for channel
-      vout // index of input
+      vout, // index of input,
+      false, // has it been paid? assume its false to begin with
+      "" // assume no payment address yet - it needs to be updated after its created
     );
     res.status(result.status).json(result);
   } catch (error: any) {

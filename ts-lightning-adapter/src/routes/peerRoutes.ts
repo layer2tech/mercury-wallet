@@ -36,6 +36,8 @@ router.post("/open-channel", async (req, res) => {
     privkey,
     txid,
     vout,
+    paid,
+    payment_address,
   } = req.body;
 
   channelType === "Public" ? true : false;
@@ -50,7 +52,9 @@ router.post("/open-channel", async (req, res) => {
     channelType,
     privkey,
     txid,
-    vout
+    vout,
+    paid,
+    payment_address
   );
 
   await getLDKClient().createPeerAndChannel(
@@ -63,7 +67,9 @@ router.post("/open-channel", async (req, res) => {
     channelType,
     privkey,
     txid,
-    vout
+    vout,
+    paid,
+    payment_address
   );
   res.status(200).json({ message: "Connected to peer, Channel created" });
 });
