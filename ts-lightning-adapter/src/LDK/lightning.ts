@@ -128,7 +128,9 @@ export default class LightningClient implements LightningClientInterface {
     channelType: boolean,
     privkey: string, // Private key from txid address
     txid: string, // txid of input for channel
-    vout: number // index of input
+    vout: number,
+    paid: boolean,
+    payment_address: string // index of input
   ) {
     try {
       console.log("Input Tx .");
@@ -162,7 +164,9 @@ export default class LightningClient implements LightningClientInterface {
         peer_id,
         privkey,
         txid,
-        vout
+        vout,
+        paid,
+        payment_address
       );
       console.log(result);
       var channel_id = result.channel_id;
@@ -176,8 +180,6 @@ export default class LightningClient implements LightningClientInterface {
 
   // This function runs after createNewPeer->connectToPeer
   async connectToPeer(pubkeyHex: string, host: string, port: number) {
-    console.log("Host: ", pubkeyHex, "@", host, ":", port);
-
     let pubkey = hexToUint8Array(pubkeyHex);
     if (pubkey) {
       const peerDetails: PeerDetails = {
@@ -186,10 +188,13 @@ export default class LightningClient implements LightningClientInterface {
         port,
         id: this.currentConnections.length + 1,
       };
-
-      console.log("Connecting...");
-      await this.create_socket(peerDetails);
-      // let event handler handle with -> Event_OpenChannelRequest
+      try {
+        await this.create_socket(peerDetails);
+        return true; // return true if the connection is successful
+      } catch (e) {
+        console.error("error on create_socket", e);
+        throw e; // re-throw the error to the parent function
+      }
     }
   }
 
@@ -259,19 +264,15 @@ export default class LightningClient implements LightningClientInterface {
     // Create Socket for outbound connection: check NodeNet LDK docs for inbound
 
     const { pubkey, host, port } = peerDetails;
-
-    // Node key corresponding to all 42
-    // const node_a_pk = new Uint8Array([3, 91, 229, 233, 71, 130, 9, 103, 74, 150, 230, 15, 31, 3, 127, 97, 118, 84, 15, 208, 1, 250, 29, 100, 105, 71, 112, 197, 106, 119, 9, 196, 44]);
     this.netHandler = new NodeLDKNet(this.peerManager);
 
     try {
       console.log("Peer Details: ", peerDetails);
-
       await this.netHandler.connect_peer(host, port, pubkey);
-      console.log("CONNECTED");
     } catch (e) {
-      console.log("Error: ", e);
-      throw new Error(`PEER CONNECT ERR: ${e}`);
+      console.log("Error connecting to peer: ", e);
+      console.log("Peer connection failed");
+      throw e; // or handle the error in a different way
     }
 
     await new Promise<void>((resolve) => {
@@ -288,9 +289,6 @@ export default class LightningClient implements LightningClientInterface {
         }
       }, 500);
     });
-
-    // a_net_handler.stop();
-    // b_net_handler.stop();
   }
 
   getChannels() {

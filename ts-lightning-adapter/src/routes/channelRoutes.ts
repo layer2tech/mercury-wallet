@@ -4,8 +4,16 @@ import { getLDKClient } from "../LDK/init/importLDK.js";
 import { createNewChannel } from "../LDK/utils/ldk-utils.js";
 
 import * as bitcoin from "bitcoinjs-lib";
+import { uint8ArrayToHexString } from "../LDK/utils/utils.js";
 
 const router = express.Router();
+
+router.get("/nodeID", async function (req, res) {
+  const nodeId = getLDKClient().channelManager.get_our_node_id();
+
+  const hexNodeId = uint8ArrayToHexString(nodeId);
+  res.json({ nodeID: hexNodeId });
+});
 
 router.get("/LDKChannels", async function (req, res) {
   const channels: any = getLDKClient().getChannels();
@@ -143,10 +151,35 @@ router.get("/loadChannels/walletName/:name", (req, res) => {
 router.post("/createChannel", async (req, res) => {
   // use LDK.createChannel and insert into db to persist it
 
-  const { pubkey, name, amount, push_msat, config_id, wallet_name, peer_id } =
-    req.body;
+  const {
+    pubkey,
+    name,
+    amount,
+    push_msat,
+    config_id,
+    wallet_name,
+    peer_id,
+    privkey,
+    txid,
+    vout,
+    paid,
+    payment_address,
+  } = req.body;
   try {
-    const result = await createNewChannel(pubkey, name, amount, push_msat, config_id, wallet_name, peer_id);
+    const result = await createNewChannel(
+      pubkey,
+      name,
+      amount,
+      push_msat,
+      config_id,
+      wallet_name,
+      peer_id,
+      privkey, // Private key from txid address
+      txid, // txid of input for channel
+      vout, // index of input,
+      paid, // has it been paid?
+      payment_address // the payment address to fund channel
+    );
     res.status(result.status).json(result);
   } catch (error: any) {
     res.status(error.status).json(error);
