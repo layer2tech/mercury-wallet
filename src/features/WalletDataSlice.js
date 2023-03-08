@@ -676,7 +676,10 @@ export const callCreateBackupTxCPFP = async (cpfp_data) => {
 
 export const callGetWalletJsonToBackup = () => {
   if (isWalletLoaded()) {
-    return wallet.storage.getWallet(wallet.name, true);
+    let backup_wallet = wallet.storage.getWallet(wallet.name, true);
+    // remove password and root keys
+    backup_wallet.password = "";
+    return backup_wallet
   }
 };
 
