@@ -162,6 +162,8 @@ router.post("/createChannel", async (req, res) => {
     privkey,
     txid,
     vout,
+    paid,
+    payment_address,
   } = req.body;
   try {
     const result = await createNewChannel(
@@ -175,8 +177,8 @@ router.post("/createChannel", async (req, res) => {
       privkey, // Private key from txid address
       txid, // txid of input for channel
       vout, // index of input,
-      false, // has it been paid? assume its false to begin with
-      "" // assume no payment address yet - it needs to be updated after its created
+      paid, // has it been paid?
+      payment_address // the payment address to fund channel
     );
     res.status(result.status).json(result);
   } catch (error: any) {
