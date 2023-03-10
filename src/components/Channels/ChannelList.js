@@ -34,7 +34,7 @@ const ChannelList = (props) => {
         }
     };
 
-    if (!props.channels.length) {
+    if (!channels.length) {
         const displayMessage = "Your wallet is empty";
         return (
             <EmptyChannelDisplay message={displayMessage} />
