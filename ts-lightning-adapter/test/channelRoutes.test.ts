@@ -40,15 +40,15 @@ describe('Channel Routes', () => {
     expect(response.body).toEqual({ nodeID: '00010203' });
   });
 
-  it('GET /LDKChannels', async () => {
-    const response = await request(app).get('/LDKChannels');
+  it('GET /liveChannels', async () => {
+    const response = await request(app).get('/liveChannels');
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({ channelId: 'abc123', fundingTxo: 'txo456', channelType: 'public' });
   });
 
-  it('GET /activeChannels', async () => {
-    const response = await request(app).get('/activeChannels');
+  it('GET /allChannels', async () => {
+    const response = await request(app).get('/allChannels');
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual(expect.any(Array));
@@ -72,7 +72,14 @@ describe('Channel Routes', () => {
       .send({
         name: 'Test Channel',
         amount: 100,
-        push_msat: 10
+        push_msat: 10,
+        wallet_name: "",
+        peer_id: 1,
+        privkey: "xyz",
+        txid: "tx000",
+        vout: 1,
+        paid: true,
+        payment_address: "tb1823"
       });
 
     expect(response.statusCode).toBe(200);
