@@ -20,9 +20,7 @@ export const LIGHTNING_URL = "http://localhost:3003";
 
 export class LDKClient {
   async getChannels(wallet_name: string): Promise<ChannelInfo[]> {
-    return [];
 
-    /*
     let channels: ChannelInfo[] = [];
     try {
       channels = await LDKClient.get(
@@ -32,14 +30,22 @@ export class LDKClient {
     } catch (e: any) {
       throw new Error("GET - Channel List Error: ", e);
     }
-    return channels;*/
+    return channels;
+  }
+
+  async createChannel(body: any) {
+    try {
+      let res = await LDKClient.post("/create-channel", body);
+    } catch (e: any) {
+      throw new Error("Error in channel creation");
+    }
   }
 
   async openChannel(body: any) {
     try {
       let res = await LDKClient.post("/open-channel", body);
     } catch (e: any) {
-      throw new Error("Error in channel creation");
+      throw new Error("Error in opening channel");
     }
   }
 

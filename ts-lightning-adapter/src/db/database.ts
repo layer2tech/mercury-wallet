@@ -88,8 +88,8 @@ const db = new sqlite3.Database("lightning.db", (err) => {
     wallet_name TEXT,
     peer_id INTEGER NOT NULL,
     privkey TEXT NOT NULL,
-    txid TEXT NOT NULL,
-    vout INTEGER NOT NULL,
+    txid TEXT,
+    vout INTEGER,
     paid BOOL NOT NULL,
     payment_address TEXT,
     FOREIGN KEY (peer_id) REFERENCES peer(id)

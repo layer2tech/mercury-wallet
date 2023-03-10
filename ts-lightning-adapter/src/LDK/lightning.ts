@@ -23,8 +23,9 @@ import {
   hexToUint8Array,
   uint8ArrayToHexString,
 } from "./utils/utils.js";
-import { createNewPeer, createNewChannel } from "./utils/ldk-utils.js";
+import { createNewPeer, createNewChannel, insertTxData } from "./utils/ldk-utils.js";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
+import { getLDKClient } from "./init/importLDK.js";
 
 export default class LightningClient implements LightningClientInterface {
   feeEstimator: FeeEstimator;
@@ -117,7 +118,7 @@ export default class LightningClient implements LightningClientInterface {
    * @param port
    */
 
-  // This function is called from peerRoutes.ts /open-channel request
+  // This function is called from peerRoutes.ts /create-channel request
   async createPeerAndChannel(
     amount: number,
     pubkey: string,
@@ -127,18 +128,9 @@ export default class LightningClient implements LightningClientInterface {
     wallet_name: string,
     channelType: boolean,
     privkey: string, // Private key from txid address
-    txid: string, // txid of input for channel
-    vout: number,
     paid: boolean,
     payment_address: string // index of input
   ) {
-    try {
-      console.log("Input Tx .");
-      this.setInputTx(privkey, txid, vout);
-      console.log("Input Tx √");
-    } catch (e) {
-      throw new Error(`Input Tx Error: ${e}`);
-    }
 
     // Connect to the peer
     try {
@@ -163,8 +155,6 @@ export default class LightningClient implements LightningClientInterface {
         wallet_name,
         peer_id,
         privkey,
-        txid,
-        vout,
         paid,
         payment_address
       );
@@ -176,6 +166,35 @@ export default class LightningClient implements LightningClientInterface {
     }
 
     console.log("Channel Created, connected to", channel_id);
+  }
+
+  async openChannel(
+    amount: number,
+    paid: boolean,
+    txid: string,
+    vout: number,
+    addr: string,
+    pubkeyHex: string
+  ) {
+    try {
+      const result = await insertTxData(amount, paid, txid, vout, addr);
+      console.log("Input Tx .");
+      this.setInputTx(result.priv_key, txid, vout);
+      console.log("Input Tx √");
+
+      let pubkey = hexToUint8Array(pubkeyHex);
+
+      getLDKClient().connectToChannel(
+        pubkey,
+        amount,
+        result.push_msat,
+        result.channel_id,
+        result.channel_type
+      );
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
   }
 
   // This function runs after createNewPeer->connectToPeer

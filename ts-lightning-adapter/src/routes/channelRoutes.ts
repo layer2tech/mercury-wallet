@@ -106,48 +106,25 @@ router.get("/activeChannels", async function (req, res) {
   });
 });
 
-// load channels by wallet id - single responsibility
-router.get("/loadChannels/:wallet_id", (req, res) => {
-  const wallet_id = req.params.wallet_id;
-  const selectData = "SELECT * FROM channels WHERE wallet_id = ?";
-  db.all(selectData, [wallet_id], (err: any, rows: any) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    if (rows && rows.length > 0) {
-      res.json(rows);
-    } else {
-      res.status(404).json({ error: "Channel not found" });
-    }
-  });
-});
-
 // load channels by wallet name - does 2 things
-router.get("/loadChannels/walletName/:name", (req, res) => {
+router.get("/loadChannels/:name", (req, res) => {
   const name = req.params.name;
-  const selectId = "SELECT id FROM wallets WHERE name = ?";
-  db.get(selectId, [name], (err: any, row: any) => {
+  const selectChannels = "SELECT * FROM channels WHERE wallet_name = ?";
+  db.all(selectChannels, [name], (err: any, rows: any) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    if (row) {
-      const wallet_id = row.id;
-      const selectChannels = "SELECT * FROM channels WHERE wallet_id = ?";
-      db.all(selectChannels, [wallet_id], (err: any, rows: any) => {
-        if (err) {
-          res.status(500).json({ error: err.message });
-          return;
-        }
-        res.json(rows);
-      });
+    if (rows) {
+      res.status(200).json(rows);
     } else {
       res.status(404).json({ error: "Wallet not found" });
     }
   });
+  
 });
 
+// Not needed can be removed
 router.post("/createChannel", async (req, res) => {
   // use LDK.createChannel and insert into db to persist it
 
