@@ -9,18 +9,18 @@ router.post("/connectToPeer", async (req, res) => {
   const { pubkey, host, port } = req.body;
   if (pubkey === undefined || host === undefined || port === undefined) {
     res.status(500).send("Missing required parameters");
-  }
+  } else  {
   // try and connect to a peer, return success if it can, fail if it can't
-  try {
-    const connection = await getLDKClient().connectToPeer(pubkey, host, port);
-    if (connection) {
-      res.status(200).send("Connected to peer");
-    } else {
-      res.status(500).send("Failed to connect to peer");
+    try {
+      const connection = await getLDKClient().connectToPeer(pubkey, host, port);
+      if (connection) {
+        res.status(200).send("Connected to peer");
+      } else {
+        res.status(500).send("Failed to connect to peer");
+      }
+    } catch (e) {
+      res.status(500).send("Error connecting to peer");
     }
-  } catch (e) {
-    console.error("error connecting to peer", e);
-    res.status(500).send("Error connecting to peer");
   }
 });
 

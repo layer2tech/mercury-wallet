@@ -109,13 +109,15 @@ router.get("/activeChannels", async function (req, res) {
 // load channels by wallet name - does 2 things
 router.get("/loadChannels/:name", (req, res) => {
   const name = req.params.name;
+  console.log(name)
   const selectChannels = "SELECT * FROM channels WHERE wallet_name = ?";
   db.all(selectChannels, [name], (err: any, rows: any) => {
     if (err) {
+      console.log(err.message);
       res.status(500).json({ error: err.message });
       return;
     }
-    if (rows) {
+    if (rows && rows.length > 0) {
       res.status(200).json(rows);
     } else {
       res.status(404).json({ error: "Wallet not found" });
@@ -125,51 +127,51 @@ router.get("/loadChannels/:name", (req, res) => {
 });
 
 // Not needed can be removed
-router.post("/createChannel", async (req, res) => {
-  // use LDK.createChannel and insert into db to persist it
+// router.post("/createChannel", async (req, res) => {
+//   // use LDK.createChannel and insert into db to persist it
 
-  const {
-    pubkey,
-    name,
-    amount,
-    push_msat,
-    config_id,
-    wallet_name,
-    peer_id,
-    privkey,
-    txid,
-    vout,
-    paid,
-    payment_address,
-  } = req.body;
-  try {
-    const result = await createNewChannel(
-      pubkey,
-      name,
-      amount,
-      push_msat,
-      config_id,
-      wallet_name,
-      peer_id,
-      privkey, // Private key from txid address
-      txid, // txid of input for channel
-      vout, // index of input,
-      paid, // has it been paid?
-      payment_address // the payment address to fund channel
-    );
-    res.status(result.status).json(result);
-  } catch (error: any) {
-    res.status(error.status).json(error);
-  }
-});
+//   const {
+//     pubkey,
+//     name,
+//     amount,
+//     push_msat,
+//     config_id,
+//     wallet_name,
+//     peer_id,
+//     privkey,
+//     txid,
+//     vout,
+//     paid,
+//     payment_address,
+//   } = req.body;
+//   try {
+//     const result = await createNewChannel(
+//       pubkey,
+//       name,
+//       amount,
+//       push_msat,
+//       config_id,
+//       wallet_name,
+//       peer_id,
+//       privkey, // Private key from txid address
+//       txid, // txid of input for channel
+//       vout, // index of input,
+//       paid, // has it been paid?
+//       payment_address // the payment address to fund channel
+//     );
+//     res.status(result.status).json(result);
+//   } catch (error: any) {
+//     res.status(error.status).json(error);
+//   }
+// });
 
 router.put("/updateChannel/:id", (req, res) => {
   // update a channel by id
-  const { name, amount, push_msat, config_id, wallet_id } = req.body;
-  const updateData = `UPDATE channels SET name=?, amount=?, push_msat=?, config_id=?, wallet_id=? WHERE id=?`;
+  const { name, amount, push_msat } = req.body;
+  const updateData = `UPDATE channels SET name=?, amount=?, push_msat=? WHERE id=?`;
   db.run(
     updateData,
-    [name, amount, push_msat, config_id, wallet_id, req.params.id],
+    [name, amount, push_msat, req.params.id],
     function (err: any) {
       if (err) {
         res.status(500).json({ error: err.message });
