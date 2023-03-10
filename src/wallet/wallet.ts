@@ -180,6 +180,8 @@ export class Wallet {
   swappedStatecoinsFundingOutpointMap: Map<string, StateCoin[]>;
   networkType: string;
 
+  nodeId: string | undefined;
+
   constructor(
     name: string,
     password: string,
@@ -220,6 +222,7 @@ export class Wallet {
     }
 
     this.lightning_client = new LDKClient();
+
     this.electrum_client = this.newElectrumClient();
 
     this.block_height = 0;
@@ -773,7 +776,7 @@ export class Wallet {
                 txid,
                 vout,
                 addr,
-                pubkey
+                pubkey,
               });
 
               // Need to unsubscribe once work done
@@ -835,6 +838,9 @@ export class Wallet {
     let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
     wallet.saveChannels(channelsInfo);
     wallet.setActive();
+
+    wallet.nodeId = await wallet.lightning_client.getNodeId();
+
     return wallet;
   }
 
