@@ -180,6 +180,8 @@ export class Wallet {
   swappedStatecoinsFundingOutpointMap: Map<string, StateCoin[]>;
   networkType: string;
 
+  nodeId: string | undefined;
+
   constructor(
     name: string,
     password: string,
@@ -220,6 +222,7 @@ export class Wallet {
     }
 
     this.lightning_client = new LDKClient();
+
     this.electrum_client = this.newElectrumClient();
 
     this.block_height = 0;
@@ -715,6 +718,22 @@ export class Wallet {
       port
     );
 
+    let bip32 = this.getBIP32forBtcAddress(addr);
+    let privkey = bip32.toWIF();
+
+    this.lightning_client.createChannel({
+      amount: amount,
+      pubkey: pubkey,
+      host,
+      port,
+      channel_name: "",
+      channelType: "Public",
+      wallet_name: this.name,
+      privkey,
+      paid: false,
+      payment_address: addr,
+    });
+
     console.log("Amount should be in satoshis: ", amount);
 
     let addr_script = bitcoin.address.toOutputScript(addr, this.config.network);
@@ -751,23 +770,16 @@ export class Wallet {
 
               this.channels.addChannelFunding(txid, vout, addr, block, value);
 
-              let bip32 = this.getBIP32forBtcAddress(addr);
-
-              // Need to unsubscribe once work done
-              let privkey = bip32.privateKey;
-
               this.lightning_client.openChannel({
                 amount: tx_data.value,
-                pubkey: pubkey,
-                host,
-                port,
-                channel_name: "",
-                channelType: "Public",
-                wallet_name: this.name,
-                privkey,
+                paid: true,
                 txid,
                 vout,
+                addr,
+                pubkey,
               });
+
+              // Need to unsubscribe once work done
             }
           });
       }
@@ -826,6 +838,9 @@ export class Wallet {
     let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
     wallet.saveChannels(channelsInfo);
     wallet.setActive();
+
+    wallet.nodeId = await wallet.lightning_client.getNodeId();
+
     return wallet;
   }
 
