@@ -3,6 +3,7 @@ import express from 'express';
 import router from '../src/routes/channelRoutes';
 
 jest.mock('../src/LDK/init/importLDK', () => {
+  const nodeIdMock = new Uint8Array([0x00, 0x01, 0x02, 0x03]);
   return {
     getLDKClient: jest.fn(() => {
       return {
@@ -15,19 +16,15 @@ jest.mock('../src/LDK/init/importLDK', () => {
         }),
         getActiveChannels: jest.fn(() => {
           return [];
-        })
+        }),
+        channelManager: {
+          get_our_node_id: jest.fn(() => nodeIdMock)
+        }
       };
     }),
   };
 });
 
-jest.mock('../src/LDK/utils/ldk-utils', () => {
-  return {
-    createNewChannel : jest.fn(() => {
-      return Promise.resolve({ status: 201, message: 'Channel saved and created successfully' });
-    })
-  }
-});
 
 describe('Channel Routes', () => {
   let app: any;
@@ -35,6 +32,12 @@ describe('Channel Routes', () => {
     app = express();
     app.use(express.json());
     app.use(router);
+  });
+
+  it('GET /nodeID', async () => {
+    const response = await request(app).get('/nodeID');
+
+    expect(response.body).toEqual({ nodeID: '00010203' });
   });
 
   it('GET /LDKChannels', async () => {
@@ -51,44 +54,16 @@ describe('Channel Routes', () => {
     expect(response.body).toEqual(expect.any(Array));
   });
 
-  it("GET /loadChannels should return channels for the given wallet_id", async () => {
-    const response = await request(app).get('/loadChannels/1');
+  it('GET /loadChannels should return 200 and the list of channels for a given wallet name', async () => {
+    const response = await request(app).get('/loadChannels/ldk1');
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual(expect.any(Array));
   });
 
-  it("GET /loadChannels should return 404 with no chanel found", async () => {
-    const response = await request(app).get('/loadChannels/invalid');
-    expect(response.statusCode).toBe(404);
-    expect(response.body).toEqual({ error: "Channel not found" });
-  });
-
-  it('GET /loadChannels/walletName should return 200 and the list of channels for a given wallet name', async () => {
-    const response = await request(app).get('/loadChannels/walletName/Mainnet Wallet 1');
-    expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(expect.any(Array));
-  });
-
-  it('GET /loadChannels/walletName should return 404 if the wallet with the given name does not exist', async () => {
-    const response = await request(app).get('/loadChannels/walletName/nonexistentWallet')
+  it('GET /loadChannels should return 404 if the wallet with the given name does not exist', async () => {
+    const response = await request(app).get('/loadChannels/nonexistentWallet')
     expect(response.statusCode).toBe(404);
     expect(response.body).toEqual({ error: 'Wallet not found' });
-  });
-
-  it('POST /createChannel should return 200 and the created channel details on success', async () => {
-    const response = await request(app)
-      .post('/createChannel')
-      .send({
-        pubkey: 'abc123',
-        name: 'Test Channel',
-        amount: '100000',
-        push_msat: '1000',
-        config_id: '1',
-        wallet_name: 'Mainnet Wallet 1',
-        peer_id: '2'
-      })
-    expect(response.statusCode).toBe(201);
-    expect(response.body).toBeTruthy();
   });
 
   it('PUT /updateChannel should update a channel by id', async () => {
@@ -97,9 +72,7 @@ describe('Channel Routes', () => {
       .send({
         name: 'Test Channel',
         amount: 100,
-        push_msat: 10,
-        config_id: 1,
-        wallet_id: 1
+        push_msat: 10
       });
 
     expect(response.statusCode).toBe(200);
