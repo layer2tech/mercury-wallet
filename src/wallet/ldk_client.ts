@@ -60,7 +60,7 @@ export class LDKClient {
   }
 
 
-  async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
+  static async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
     const url = LIGHTNING_URL + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
     const config: AxiosRequestConfig = {
       method: 'get',

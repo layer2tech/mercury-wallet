@@ -123,11 +123,9 @@ export const pingElectrum = async (
   return endTime - startTime;
 };
 
-export const pingLightning = async (
-  lightning_client: LDKClient
-) => {
+export const pingLightning = async () => {
   var startTime = performance.now();
-  await lightning_client.get(LIGHTNING_GET_ROUTE.DEAULT_PEER_LIST, {});
+  await LDKClient.get(LIGHTNING_GET_ROUTE.DEAULT_PEER_LIST, {});
   var endTime = performance.now();
   return endTime - startTime;
 };

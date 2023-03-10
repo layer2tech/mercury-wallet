@@ -1077,7 +1077,7 @@ export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, 
 export const UpdateLightningServerInfo = async(dispatch, ping_lightning_ms, setLightningConnected) => {
   let lightning_ping_ms_new = null;
   try {
-    lightning_ping_ms_new = await pingLightning(wallet.lightning_client);
+    lightning_ping_ms_new = await pingLightning();
     if(lightning_ping_ms_new !== ping_lightning_ms){
       dispatch(setPingLightningMs(lightning_ping_ms_new));
       setLightningConnected(lightning_ping_ms_new != null);
