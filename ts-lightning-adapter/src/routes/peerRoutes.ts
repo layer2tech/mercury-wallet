@@ -24,7 +24,7 @@ router.post("/connectToPeer", async (req, res) => {
   }
 });
 
-router.post("/open-channel", async (req, res) => {
+router.post("/create-channel", async (req, res) => {
   const {
     amount,
     pubkey,
@@ -34,8 +34,6 @@ router.post("/open-channel", async (req, res) => {
     wallet_name,
     channelType,
     privkey,
-    txid,
-    vout,
     paid,
     payment_address,
   } = req.body;
@@ -51,8 +49,6 @@ router.post("/open-channel", async (req, res) => {
     wallet_name,
     channelType,
     privkey,
-    txid,
-    vout,
     paid,
     payment_address
   );
@@ -66,12 +62,40 @@ router.post("/open-channel", async (req, res) => {
     wallet_name,
     channelType,
     privkey,
-    txid,
-    vout,
     paid,
     payment_address
   );
   res.status(200).json({ message: "Connected to peer, Channel created" });
+});
+
+router.post("/open-channel", async (req, res) => {
+  const {
+    amount,
+    paid,
+    txid,
+    vout,
+    addr,
+    pubkey
+  } = req.body;
+
+  console.log(
+    amount,
+    paid,
+    txid,
+    vout,
+    addr,
+    pubkey
+  );
+
+  await getLDKClient().openChannel(
+    amount,
+    paid,
+    txid,
+    vout,
+    addr,
+    pubkey
+  );
+  res.status(200).json({ message: "Channel opened" });
 });
 
 router.post("/newPeer", async (req, res) => {

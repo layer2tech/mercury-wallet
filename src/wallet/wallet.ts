@@ -715,6 +715,22 @@ export class Wallet {
       port
     );
 
+    let bip32 = this.getBIP32forBtcAddress(addr);
+    let privkey = bip32.toWIF();
+
+    this.lightning_client.createChannel({
+      amount: amount,
+      pubkey: pubkey,
+      host,
+      port,
+      channel_name: "",
+      channelType: "Public",
+      wallet_name: this.name,
+      privkey,
+      paid: false,
+      payment_address: addr,
+    });
+
     console.log("Amount should be in satoshis: ", amount);
 
     let addr_script = bitcoin.address.toOutputScript(addr, this.config.network);
@@ -751,25 +767,16 @@ export class Wallet {
 
               this.channels.addChannelFunding(txid, vout, addr, block, value);
 
-              let bip32 = this.getBIP32forBtcAddress(addr);
-
-              // Need to unsubscribe once work done
-              let privkey = bip32.toWIF();
-
               this.lightning_client.openChannel({
                 amount: tx_data.value,
-                pubkey: pubkey,
-                host,
-                port,
-                channel_name: "",
-                channelType: "Public",
-                wallet_name: this.name,
-                privkey,
+                paid: true,
                 txid,
                 vout,
-                paid: true,
-                payment_address: addr,
+                addr,
+                pubkey
               });
+
+              // Need to unsubscribe once work done
             }
           });
       }
