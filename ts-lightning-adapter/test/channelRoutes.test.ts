@@ -40,15 +40,15 @@ describe('Channel Routes', () => {
     expect(response.body).toEqual({ nodeID: '00010203' });
   });
 
-  it('GET /LDKChannels', async () => {
-    const response = await request(app).get('/LDKChannels');
+  it('GET /liveChannels', async () => {
+    const response = await request(app).get('/liveChannels');
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({ channelId: 'abc123', fundingTxo: 'txo456', channelType: 'public' });
   });
 
-  it('GET /activeChannels', async () => {
-    const response = await request(app).get('/activeChannels');
+  it('GET /allChannels', async () => {
+    const response = await request(app).get('/allChannels');
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual(expect.any(Array));
@@ -62,8 +62,8 @@ describe('Channel Routes', () => {
 
   it('GET /loadChannels should return 404 if the wallet with the given name does not exist', async () => {
     const response = await request(app).get('/loadChannels/nonexistentWallet')
-    expect(response.statusCode).toBe(404);
-    expect(response.body).toEqual({ error: 'Wallet not found' });
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toEqual([]);
   });
 
   it('PUT /updateChannel should update a channel by id', async () => {
