@@ -94,7 +94,6 @@ function setUpLDK(electrum: string = "prod") {
   //   )
   // );
 
-
   // Step 7: Optional: Initialize the transaction filter
   // ------  tx filter: watches for tx on chain
   // ------  tx filter: watches for if output spent on-chain
@@ -172,9 +171,9 @@ function setUpLDK(electrum: string = "prod") {
       params
     );
   }
-  
-  let eventHandler
-  if(channelManager){
+
+  let eventHandler;
+  if (channelManager) {
     let mercuryHandler = new MercuryEventHandler(channelManager);
     eventHandler = EventHandler.new_impl(mercuryHandler);
   }
@@ -234,8 +233,8 @@ function setUpLDK(electrum: string = "prod") {
     console.log("Init ElectrumClient");
     electrumClient = new ElectrumClient("");
   }
-  
-  if(chainMonitor && channelManager && peerManager && eventHandler){
+
+  if (chainMonitor && channelManager && peerManager && eventHandler) {
     const LDKInit: LightningClientInterface = {
       feeEstimator: feeEstimator,
       electrumClient: electrumClient, // Add this
@@ -264,7 +263,11 @@ function setUpLDK(electrum: string = "prod") {
       latestBlockHeader: undefined,
       netHandler: undefined,
     };
+
+    console.log("peerManager:", LDKInit.peerManager.get_peer_node_ids());
+
     return LDKInit;
   }
+
   return;
 }
