@@ -74,7 +74,7 @@ router.get("/loadChannels/:wallet_name", (req, res) => {
     if (rows && rows.length > 0) {
       res.json(rows);
     } else {
-      res.status(404).json({ error: "Channel not found" });
+      res.json([]); // empty channels
     }
   });
 });
