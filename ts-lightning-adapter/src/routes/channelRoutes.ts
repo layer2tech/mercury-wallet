@@ -1,8 +1,10 @@
 import express from "express";
 import db from "../db/db.js";
+
+import * as bitcoin from "bitcoinjs-lib";
+
 import { getLDKClient } from "../LDK/init/importLDK.js";
 import { createNewChannel } from "../LDK/utils/ldk-utils.js";
-import * as bitcoin from "bitcoinjs-lib";
 import { uint8ArrayToHexString } from "../LDK/utils/utils.js";
 
 const router = express.Router();
@@ -65,7 +67,12 @@ router.get("/allChannels", async function (req, res) {
 // load channels by wallet name e.g. -> localhost:3003/channel/loadChannels/vLDK
 router.get("/loadChannels/:wallet_name", (req, res) => {
   const wallet_id = req.params.wallet_name;
-  const selectData = "SELECT * FROM channels WHERE wallet_name = ?";
+  const selectData = `
+    SELECT channels.*, peers.node, peers.pubkey, peers.host, peers.port
+    FROM channels
+    INNER JOIN peers ON channels.peer_id = peers.id
+    WHERE channels.wallet_name = ?
+  `;
   db.all(selectData, [wallet_id], (err: any, rows: any) => {
     if (err) {
       res.status(500).json({ error: err.message });
