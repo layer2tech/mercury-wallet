@@ -11,44 +11,6 @@ const db = new sqlite3.Database("lightning.db", (err) => {
   }
   console.log("Connected to/Created the SQLite database.");
 
-  /*
-  // Create the 'wallets' table if it doesn't exist
-  const createWalletsTable = `CREATE TABLE IF NOT EXISTS wallets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL
-    )`;
-
-  db.run(createWalletsTable, (err) => {
-    if (err) {
-      console.error(err.message);
-    }
-    console.log("Table 'wallets' created or already exist");
-
-    // Insert some sample data into the 'wallets' table if there's no data
-    db.get("SELECT count(*) as count FROM wallets", (err, row) => {
-      if (err) {
-        console.error(err.message);
-      }
-      if (row.count === 0) {
-        console.log("Inserting sample data for table wallets ...");
-        const sampleData = [
-          { name: "Mainnet Wallet 1" },
-          { name: "Testnet Wallet 1" },
-          { name: "Testnet Wallet 2" },
-        ];
-        const insertData = `INSERT INTO wallets (name) VALUES (?)`;
-        sampleData.forEach((data) => {
-          db.run(insertData, [data.name]);
-        });
-      } else {
-        console.log(
-          "Table 'wallets' already contains data, skipping the sample data insertion."
-        );
-      }
-    });
-  });
-  */
-
   ////////////////////////////////////////////////////////////
   //////// peerlist table ////////////////////////////////////
   ////////////////////////////////////////////////////////////
@@ -126,8 +88,10 @@ const db = new sqlite3.Database("lightning.db", (err) => {
     wallet_name TEXT,
     peer_id INTEGER NOT NULL,
     privkey TEXT NOT NULL,
-    txid TEXT NOT NULL,
-    vout INTEGER NOT NULL,
+    txid TEXT,
+    vout INTEGER,
+    paid BOOL NOT NULL,
+    payment_address TEXT,
     FOREIGN KEY (peer_id) REFERENCES peer(id)
   )`;
 
@@ -156,6 +120,8 @@ const db = new sqlite3.Database("lightning.db", (err) => {
               privkey: "testprivkey1",
               txid: "testtxid1",
               vout: 0,
+              paid: true,
+              payment_address: "tb324524asda23asdsad234esdaxdasd12312311",
             },
             {
               name: "testChannel",
@@ -167,6 +133,8 @@ const db = new sqlite3.Database("lightning.db", (err) => {
               privkey: "testprivkey2",
               txid: "testtxid2",
               vout: 1,
+              paid: false,
+              payment_address: "tbdsfsdrererd12fdgdfg3123145asdsa23a1",
             },
             {
               name: "p2p",
@@ -178,9 +146,11 @@ const db = new sqlite3.Database("lightning.db", (err) => {
               privkey: "testprivkey3",
               txid: "testtxid3",
               vout: 2,
+              paid: true,
+              payment_address: "tb3245242sadsadwe3242sadasghgvh1",
             },
           ];
-          const insertData = `INSERT INTO channels (name, amount, push_msat, public, wallet_name, peer_id, privkey, txid, vout) VALUES (?,?,?,?,?,?,?,?,?)`;
+          const insertData = `INSERT INTO channels (name, amount, push_msat, public, wallet_name, peer_id, privkey, txid, vout, paid, payment_address) VALUES (?,?,?,?,?,?,?,?,?,?,?)`;
           sampleData.forEach((data) => {
             db.run(insertData, [
               data.name,
@@ -192,6 +162,8 @@ const db = new sqlite3.Database("lightning.db", (err) => {
               data.privkey,
               data.txid,
               data.vout,
+              data.paid,
+              data.payment_address,
             ]);
           });
         } else {
