@@ -29,7 +29,7 @@ app.use(bodyParser.json());
 // Routes
 
 app.use("/", getRoutes);
-app.use("/lightning", postRoutes);
+app.use("/", postRoutes);
 app.use("/", peerRoutes);
 app.use("/channel", channelRoutes);
 
