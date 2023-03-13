@@ -124,7 +124,7 @@ function setUpLDK(electrum: string = "prod") {
 
   // Step 8: Poll for the best chain tip, which may be used by the channel manager & spv client
 
-  // Step 9: Initialize routing ProbabilisticScorer
+  // Step 9: Initialize Network Graph, routing ProbabilisticScorer
   const genesisBlock = BestBlock.constructor_from_genesis(network);
   const genesisBlockHash = genesisBlock.block_hash();
   const networkGraph = NetworkGraph.constructor_new(genesisBlockHash, logger);
