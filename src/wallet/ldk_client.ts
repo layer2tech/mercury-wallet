@@ -8,6 +8,7 @@ import { Channel, ChannelInfo } from "./channel";
 export const LIGHTNING_GET_ROUTE = {
   PEER_LIST: "/lightning/peers",
   CHANNEL_LIST: "/channel/loadChannels",
+  DEAULT_PEER_LIST: "/default_peerlist",
   NODE_ID: "channel/nodeId",
 };
 Object.freeze(LIGHTNING_GET_ROUTE);
