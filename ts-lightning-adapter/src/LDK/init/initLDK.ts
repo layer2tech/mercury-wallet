@@ -1,10 +1,5 @@
 import {
-  ChannelMessageHandler,
-  CustomMessageHandler,
-  OnionMessageHandler,
   PeerManager,
-  RoutingMessageHandler,
-  Event_FundingGenerationReady,
   FeeEstimator,
   Logger,
   BroadcasterInterface,
@@ -33,9 +28,6 @@ import MercuryPersister from "../structs/MercuryPersist.js";
 // @ts-ignore
 import MercuryEventHandler from "../structs/MercuryEventHandler.js";
 import MercuryFilter from "../structs/MercuryFilter.js";
-import MercuryRoutingMessageHandler from "../structs/MercuryRoutingMessageHandler.js";
-import MercuryOnionMessageHandler from "../structs/MercuryOnionMessageHandler.js";
-import MercuryCustomMessageHandler from "../structs/MercuryCustomMessageHandler.js";
 import LightningClientInterface from "../types/LightningClientInterface.js";
 import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
 import LightningClient from "../lightning.js";
@@ -250,10 +242,10 @@ function setUpLDK(electrum: string = "prod") {
       latestBlockHeader: undefined,
       netHandler: undefined,
     };
-
-    console.log("peerManager:", LDKInit.peerManager.get_peer_node_ids());
     return LDKInit;
   }
 
-  return null;
+  throw new Error(
+    `Unable to initialize the LDK, check values-> chainMonitor:${chainMonitor}, channelManager:${channelManager}, peerManager:${peerManager}, eventHandler:${eventHandler}`
+  );
 }
