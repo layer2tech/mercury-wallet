@@ -17,6 +17,8 @@ import {
   ChannelManager,
   IgnoringMessageHandler,
   Option_FilterZ,
+  ProbabilisticScorer,
+  ProbabilisticScoringParameters,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -58,6 +60,9 @@ function setUpLDK(electrum: string = "prod") {
     console.log("Init ElectrumClient");
     electrumClient = new ElectrumClient("");
   }
+
+  // Check that the bitcoind we've connected to is running the network we expect
+  const network = Network.LDKNetwork_Regtest;
 
   // ## Setup
   // Step 1: Initialize the FeeEstimator
@@ -119,7 +124,21 @@ function setUpLDK(electrum: string = "prod") {
 
   // Step 8: Poll for the best chain tip, which may be used by the channel manager & spv client
 
-  // Step 9: Initialize routing ProbabilisticScorer
+  // Step 9: Initialize Network Graph, routing ProbabilisticScorer
+  const genesisBlock = BestBlock.constructor_from_genesis(network);
+  const genesisBlockHash = genesisBlock.block_hash();
+  const networkGraph = NetworkGraph.constructor_new(genesisBlockHash, logger);
+
+  const ldk_scorer_dir = "./.scorer/";
+  if (!fs.existsSync(ldk_scorer_dir)) {
+    fs.mkdirSync(ldk_scorer_dir);
+  }
+  let scorer_params = ProbabilisticScoringParameters.constructor_default();
+  let scorer = ProbabilisticScorer.constructor_new(
+    scorer_params,
+    networkGraph,
+    logger
+  );
 
   // Step 10: Create Router
 
@@ -184,10 +203,6 @@ function setUpLDK(electrum: string = "prod") {
 
   // ## Running LDK
   // Step 16: Initialize networking
-  const network = Network.LDKNetwork_Regtest;
-  const genesisBlock = BestBlock.constructor_from_genesis(network);
-  const genesisBlockHash = genesisBlock.block_hash();
-  const networkGraph = NetworkGraph.constructor_new(genesisBlockHash, logger);
 
   // Step 17: Connect and Disconnect Blocks
 
