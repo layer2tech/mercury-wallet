@@ -1,13 +1,10 @@
 import { withRouter, Redirect } from "react-router-dom";
 import PageHeader from "../PageHeader/PageHeader";
-
 import { useState } from "react";
-
 import plus from "../../images/plus-deposit.png";
 import btc_img from "../../images/icon1.png";
 import arrow_img from "../../images/scan-arrow.png";
 import copy_img from "../../images/icon2.png";
-
 import {
   CopiedButton,
   AddressInput,
@@ -17,14 +14,10 @@ import {
 import { fromSatoshi } from "../../wallet";
 import check from "../../images/icon-action-check_circle.png";
 import "../CreateWalletInfo/CreateWalletInfo.css";
-
 import "./DepositLightning.css";
 
 import { checkChannelCreation } from "../../features/WalletDataSlice";
-
-// move this to use the http client
-import axios from "axios";
-
+import axios from "axios"; // move this to use the http client
 import {
   isWalletLoaded,
   getWalletName,
@@ -37,6 +30,7 @@ import {
 import { useDispatch } from "react-redux";
 import closeIcon from "../../images/close-icon.png";
 import { CHANNEL_STATUS } from "../../wallet/channel";
+import InvoiceOptions from "../../components/InvoiceOptions/InvoiceOptions";
 
 export const CHANNEL_TYPE = {
   PUBLIC: "Public",
@@ -47,15 +41,12 @@ const DepositLightning = (props) => {
   const dispatch = useDispatch();
 
   const [channels, setChannels] = useState(getChannels());
-  
   const [inputAmt, setInputAmt] = useState("");
-
   const [inputNodeId, setInputNodeId] = useState("");
-  
+  const [invoice, setInvoice] = useState({});
   const [loading, setLoading] = useState(false);
-
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
-
+  
   const mBTCtoBTC = (mBTC) => {
     return mBTC * ( 10**-3 );
   }
@@ -77,6 +68,7 @@ const DepositLightning = (props) => {
   }
 
   const [invoice, setInvoice] = useState(getRecentInvoice());
+  const [channels, setChannels] = useState(getChannels());
 
   const IsChannelAlreadyExist = (pubKey) => {
     return channels.some((channel) => {
@@ -90,13 +82,9 @@ const DepositLightning = (props) => {
   };
 
   const createChannel = async () => {
-    const pubKey = inputNodeId.split("@")[0];
-
-    /*
-    if (IsChannelAlreadyExist(pubKey)){
-      dispatch(setError({ msg: "Channel already exist with given proof key. " }))
-      return
-    }*/
+    const pubkey = inputNodeId.split("@")[0];
+    const host = inputNodeId.split("@")[1].split(":")[0];
+    const port = inputNodeId.split("@")[1].split(":")[1];
 
     if (inputAmt < 1) {
       dispatch(
@@ -107,25 +95,42 @@ const DepositLightning = (props) => {
       return;
     }
 
-    // console.log('PubKey: ', pubkey);
-    // console.log('Host: ', host);
-    // console.log('Port: ', port);
+    console.log("checking connection with peer first...");
+    // check connection with peer first.
+    try {
+      const response = await axios.post("http://localhost:3003/connectToPeer", {
+        pubkey,
+        host,
+        port,
+      });
 
-    // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
+      if (response.status === 200) {
+        console.log("Successfully connected to peer");
 
-    let nextAddress = await callCreateChannel(inputAmt, inputNodeId);
-
-    let newInvoice = {
-      amt: mBTCtoBTC(inputAmt),
-      addr: nextAddress,
-    };
-
-    setInvoice(newInvoice);
-    setChannels(getChannels());
-
-    setInvoice(newInvoice);
+        // if a successful connection can be met then create the channel.
+        // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
+        let nextAddress = await callCreateChannel(inputAmt, inputNodeId);
+        let newInvoice = {
+          amt: mBTCtoBTC(inputAmt),
+          addr: nextAddress,
+        };
+        setInvoice(newInvoice);
+        setChannels(getChannels());
+        setInvoice(newInvoice);
+      } else {
+        console.log("Failed to connect to peer");
+      }
+    } catch (error) {
+      console.error("Error connecting to peer:", error);
+      //throw new Error("Error in channel creation");
+      dispatch(setError({ msg: "Error connecting to peer" }));
+    }
   };
 
+  const mBTCtoBTC = (mBTC) => {
+    return mBTC * 10 ** -3; // TODO: Change back to btc
+  };
+  
   const copyAddressToClipboard = (event, address) => {
     event.stopPropagation();
     navigator.clipboard.writeText(address);
@@ -159,6 +164,9 @@ const DepositLightning = (props) => {
       />
       {invoice && Object.keys(invoice).length ? (
         <div className="Body">
+          <div className="main-coin-wrap">
+                  <InvoiceOptions />
+                </div>
           <div className="deposit-scan">
             <div className="deposit-scan-content">
               <div className="deposit-scan-main">
@@ -213,7 +221,7 @@ const DepositLightning = (props) => {
               inputAddr={inputAmt}
               onChange={(e) => setInputAmt(e.target.value)}
               placeholder="Enter amount"
-              smallTxtMsg="Amount in mBTC"
+              smallTxtMsg="Amount in BTC"
             />
           </div>
           <div>

@@ -107,6 +107,7 @@ export const createNewPeer = (
   });
 };
 
+// TODO: BAD Practise, this function is doing too much, it must be broken down to do one thing. Here it inserts into a database and then calls to conenct to the channel.
 export const createNewChannel = (
   pubkeyHex: string,
   name: string,
@@ -116,8 +117,8 @@ export const createNewChannel = (
   wallet_name: string,
   peer_id: number,
   privkey: string, // Private key from txid address
-  txid: string, // txid of input for channel
-  vout: number // index of input
+  paid: boolean,
+  payment_address: string
 ): Promise<{
   status: number;
   message?: string;
@@ -126,9 +127,8 @@ export const createNewChannel = (
 }> => {
   return new Promise((resolve, reject) => {
     let channelId: number;
-    let pubkey = hexToUint8Array(pubkeyHex);
 
-    const insertData = `INSERT INTO channels (name, amount, push_msat, public, wallet_name, peer_id, privkey, txid, vout) VALUES (?,?,?,?,?,?,?,?,?)`;
+    const insertData = `INSERT INTO channels (name, amount, push_msat, public, wallet_name, peer_id, privkey, paid, payment_address) VALUES (?,?,?,?,?,?,?,?,?)`;
     db.run(
       insertData,
       [
@@ -139,8 +139,8 @@ export const createNewChannel = (
         wallet_name,
         peer_id,
         privkey,
-        txid,
-        vout,
+        paid,
+        payment_address,
       ],
       function (err: any, result: any) {
         if (err) {
@@ -159,18 +159,9 @@ export const createNewChannel = (
                 });
               } else {
                 channelId = row.channel_id;
-                if (pubkey) {
-                  getLDKClient().connectToChannel(
-                    pubkey,
-                    amount,
-                    push_msat,
-                    channelId,
-                    channelType
-                  );
-                }
                 resolve({
                   status: 201,
-                  message: "Channel saved and created successfully",
+                  message: "Channel saved successfully",
                   channel_id: channelId,
                 });
               }
@@ -181,3 +172,65 @@ export const createNewChannel = (
     );
   });
 };
+
+export const insertTxData = (
+  amount: number,
+  paid: boolean,
+  txid: string,
+  vout: number,
+  addr: string
+): Promise<{
+  status: number;
+  message?: string;
+  error?: string;
+  channel_id: number;
+  channel_type: boolean;
+  push_msat: number;
+  priv_key: string;
+}> => {
+  return new Promise((resolve, reject) => {
+    const updateData = "UPDATE channels SET amount=?, paid=?, txid=?, vout=? WHERE payment_address=?";
+    db.run(
+      updateData,
+      [
+        amount,
+        paid,
+        txid,
+        vout,
+        addr
+      ],
+      function (err: any, result: any) {
+        if (err) {
+          reject({
+            status: 500,
+            error: "Failed to insert tx data into database " + err,
+          });
+        } 
+      }
+    );
+
+    console.log("Tx data inserted");
+    const getData = `SELECT id, public, push_msat, privkey FROM channels WHERE payment_address=?`;
+      db.get(
+        getData,
+        [addr],
+        (err: any, row: any) => {
+          if (err) {
+            reject({
+              status: 500,
+              error: "Failed to get channel data " + err,
+            });
+          } else {
+            resolve({
+              status: 201,
+              message: "Channel saved and created successfully",
+              channel_id: row.id,
+              channel_type: row.public,
+              push_msat: row.push_msat,
+              priv_key: row.privkey,
+            });
+          }
+        }
+      );
+  });
+}
