@@ -6,7 +6,11 @@ jest.mock('../src/LDK/init/importLDK', () => {
   return {
     getLDKClient: jest.fn().mockImplementation(() => {
       return {
-        createPeerAndChannel: jest.fn().mockImplementation(() => {})
+        createPeerAndChannel: jest.fn().mockImplementation(() => {}),
+        connectToPeer : jest.fn(() => {
+          return true;
+        }),
+        openChannel: jest.fn().mockImplementation(() => {})
       };
     })
   };
@@ -20,6 +24,7 @@ jest.mock('../src/LDK/utils/ldk-utils', () => {
   }
 });
 
+
 describe('Peer Routes', () => {
 
   let app: any;
@@ -29,21 +34,59 @@ describe('Peer Routes', () => {
     app.use(router);
   });
 
-  it('POST /connectToPeer', async () => {
+  it('POST /connectToPeer with valid parameters', async () => {
     const res = await request(app)
       .post('/connectToPeer')
       .send({
-        amount: '100000',
         pubkey: '028a822f5b0e4400d4a230dc619d13cc10f75ec6c277b495124d5bcb3ccbdaac54',
         host: '127.0.0.1',
         port: '9735',
-        channel_name: 'test_channel',
-        push_msat: '10',
-        wallet_name: 'Mainnet Wallet 1',
-        config_id: '1'
       });
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ message: "Connected to peer, Channel created" });
+    expect(res.text).toBe("Connected to peer");
+  });
+
+  it('POST /connectToPeer with missing parameters', async () => {
+    const res = await request(app)
+      .post('/connectToPeer')
+      .send({});
+    expect(res.statusCode).toBe(500);
+    expect(res.text).toBe("Missing required parameters");
+  });
+
+  it("POST /create-channel", async () => {
+    const res = await request(app)
+      .post("/create-channel")
+      .send({
+        amount: 10000,
+        pubkey: "abc",
+        host: "127.0.0.1",
+        port: 9735,
+        channel_name: "test_channel",
+        wallet_name: "test_wallet",
+        channelType: "Public",
+        privkey: "xyz",
+        paid: true,
+        payment_address: "payment_address",
+      });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe("Connected to peer, Channel created");
+  });
+
+  it("POST /open-channel", async () => {
+    const response = await request(app)
+      .post("/open-channel")
+      .send({
+        amount: 10000,
+        paid: true,
+        txid: "txid",
+        vout: 0,
+        addr: "address",
+        pubkey: "pubkey",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ message: "Channel opened" });
   });
 
   it('POST /newPeer', async () => {

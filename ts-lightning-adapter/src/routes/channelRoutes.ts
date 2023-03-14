@@ -1,8 +1,10 @@
 import express from "express";
 import db from "../db/db.js";
+
+import * as bitcoin from "bitcoinjs-lib";
+
 import { getLDKClient } from "../LDK/init/importLDK.js";
 import { createNewChannel } from "../LDK/utils/ldk-utils.js";
-import * as bitcoin from "bitcoinjs-lib";
 import { uint8ArrayToHexString } from "../LDK/utils/utils.js";
 
 const router = express.Router();
@@ -62,60 +64,68 @@ router.get("/allChannels", async function (req, res) {
   });
 });
 
+
 // load channels by wallet name e.g. -> localhost:3003/channel/loadChannels/vLDK
 router.get("/loadChannels/:wallet_name", (req, res) => {
   const wallet_id = req.params.wallet_name;
-  const selectData = "SELECT * FROM channels WHERE wallet_name = ?";
+  const selectData = `
+    SELECT channels.*, peers.node, peers.pubkey, peers.host, peers.port
+    FROM channels
+    INNER JOIN peers ON channels.peer_id = peers.id
+    WHERE channels.wallet_name = ?
+  `;
   db.all(selectData, [wallet_id], (err: any, rows: any) => {
     if (err) {
+      console.log(err.message);
       res.status(500).json({ error: err.message });
       return;
     }
     if (rows && rows.length > 0) {
-      res.json(rows);
+      res.status(200).json(rows);
     } else {
       res.json([]); // empty channels
     }
   });
 });
 
-// This creates a new channel on the database side and then the LDK adapter
-router.post("/createChannel", async (req, res) => {
-  // use LDK.createChannel and insert into db to persist it
-  const {
-    pubkey,
-    name,
-    amount,
-    push_msat,
-    config_id,
-    wallet_name,
-    peer_id,
-    privkey,
-    txid,
-    vout,
-    paid,
-    payment_address,
-  } = req.body;
-  try {
-    const result = await createNewChannel(
-      pubkey,
-      name,
-      amount,
-      push_msat,
-      config_id,
-      wallet_name,
-      peer_id,
-      privkey, // Private key from txid address
-      txid, // txid of input for channel
-      vout, // index of input,
-      paid, // has it been paid?
-      payment_address // the payment address to fund channel
-    );
-    res.status(result.status).json(result);
-  } catch (error: any) {
-    res.status(error.status).json(error);
-  }
-});
+// Not needed can be removed
+// router.post("/createChannel", async (req, res) => {
+//   // use LDK.createChannel and insert into db to persist it
+
+//   const {
+//     pubkey,
+//     name,
+//     amount,
+//     push_msat,
+//     config_id,
+//     wallet_name,
+//     peer_id,
+//     privkey,
+//     txid,
+//     vout,
+//     paid,
+//     payment_address,
+//   } = req.body;
+//   try {
+//     const result = await createNewChannel(
+//       pubkey,
+//       name,
+//       amount,
+//       push_msat,
+//       config_id,
+//       wallet_name,
+//       peer_id,
+//       privkey, // Private key from txid address
+//       txid, // txid of input for channel
+//       vout, // index of input,
+//       paid, // has it been paid?
+//       payment_address // the payment address to fund channel
+//     );
+//     res.status(result.status).json(result);
+//   } catch (error: any) {
+//     res.status(error.status).json(error);
+//   }
+// });
 
 // This updates the name of a channel by id
 router.put("/updateChannelName/:id", (req, res) => {

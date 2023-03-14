@@ -8,6 +8,7 @@ import { Channel, ChannelInfo } from "./channel";
 export const LIGHTNING_GET_ROUTE = {
   PEER_LIST: "/lightning/peers",
   CHANNEL_LIST: "/channel/loadChannels",
+  NODE_ID: "channel/nodeId",
 };
 Object.freeze(LIGHTNING_GET_ROUTE);
 
@@ -20,7 +21,6 @@ export const LIGHTNING_URL = "http://localhost:3003";
 
 export class LDKClient {
   async getChannels(wallet_name: string): Promise<ChannelInfo[]> {
-
     let channels: ChannelInfo[] = [];
     try {
       channels = await LDKClient.get(
@@ -31,6 +31,19 @@ export class LDKClient {
       throw new Error("GET - Channel List Error: ", e);
     }
     return channels;
+  }
+
+  async getNodeId(): Promise<any> {
+    let nodeId = 0;
+    try {
+      nodeId = await LDKClient.get(LIGHTNING_GET_ROUTE.NODE_ID, {});
+
+      console.log("Node is found was:", nodeId);
+    } catch (e: any) {
+      console.log("Error:", e);
+      throw new Error("GET - NodeId Error", e);
+    }
+    return nodeId;
   }
 
   async createChannel(body: any) {
