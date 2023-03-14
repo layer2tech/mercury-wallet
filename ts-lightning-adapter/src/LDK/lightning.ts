@@ -23,7 +23,11 @@ import {
   hexToUint8Array,
   uint8ArrayToHexString,
 } from "./utils/utils.js";
-import { createNewPeer, createNewChannel, insertTxData } from "./utils/ldk-utils.js";
+import {
+  createNewPeer,
+  createNewChannel,
+  insertTxData,
+} from "./utils/ldk-utils.js";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 import { getLDKClient } from "./init/importLDK.js";
 
@@ -53,7 +57,8 @@ export default class LightningClient implements LightningClientInterface {
   currentConnections: any[] = [];
   blockHeight: number | undefined;
   latestBlockHeader: Uint8Array | undefined;
-  netHandler: any;
+  netHandler: any[] = [];
+  savedPeerDetails: any[] = [];
 
   constructor(props: LightningClientInterface) {
     this.feeEstimator = props.feeEstimator;
@@ -131,7 +136,6 @@ export default class LightningClient implements LightningClientInterface {
     paid: boolean,
     payment_address: string // index of input
   ) {
-
     // Connect to the peer
     try {
       const result = await createNewPeer(host, port, pubkey);
@@ -281,33 +285,62 @@ export default class LightningClient implements LightningClientInterface {
 
   async create_socket(peerDetails: PeerDetails) {
     // Create Socket for outbound connection: check NodeNet LDK docs for inbound
-
     const { pubkey, host, port } = peerDetails;
-    this.netHandler = new NodeLDKNet(this.peerManager);
-
-    try {
-      console.log("Peer Details: ", peerDetails);
-      await this.netHandler.connect_peer(host, port, pubkey);
-    } catch (e) {
-      console.log("Error connecting to peer: ", e);
-      console.log("Peer connection failed");
-      throw e; // or handle the error in a different way
+    console.log("savedPeerDetails:", this.savedPeerDetails);
+    // First check if it exists in savedPeerDetails, if it does don't connect through here.
+    let isPeerDetailsSaved = false;
+    for (let i = 0; i < this.savedPeerDetails.length; i++) {
+      if (
+        this.savedPeerDetails[i].pubkey === uint8ArrayToHexString(pubkey) &&
+        this.savedPeerDetails[i].host === host &&
+        this.savedPeerDetails[i].port === port
+      ) {
+        isPeerDetailsSaved = true;
+        break;
+      }
     }
+    if (!isPeerDetailsSaved) {
+      this.savedPeerDetails.push({
+        pubkey: uint8ArrayToHexString(pubkey),
+        host,
+        port,
+      });
 
-    await new Promise<void>((resolve) => {
-      // Wait until the peers are connected and have exchanged the initial handshake
-      var timer: any;
-      timer = setInterval(() => {
-        console.log("Node IDs", this.peerManager.get_peer_node_ids());
-        if (this.peerManager.get_peer_node_ids().length == 1) {
-          // && this.peerManager2.get_peer_node_ids().length == 1
+      this.netHandler[this.netHandler.length] = new NodeLDKNet(
+        this.peerManager
+      );
+      console.log("net handler looks like this:", this.netHandler);
 
-          console.log("Length is Equal to 1");
-          resolve();
-          clearInterval(timer);
-        }
-      }, 500);
-    });
+      try {
+        console.log("Peer Details: ", peerDetails);
+        await this.netHandler[this.netHandler.length - 1].connect_peer(
+          host,
+          port,
+          pubkey
+        );
+      } catch (e) {
+        console.log("Error connecting to peer: ", e);
+        console.log("Peer connection failed");
+        throw e; // or handle the error in a different way
+      }
+
+      await new Promise<void>((resolve) => {
+        // Wait until the peers are connected and have exchanged the initial handshake
+        var timer: any;
+        timer = setInterval(() => {
+          console.log("Node IDs", this.peerManager.get_peer_node_ids());
+          if (this.peerManager.get_peer_node_ids().length == 1) {
+            // && this.peerManager2.get_peer_node_ids().length == 1
+
+            console.log("Length is Equal to 1");
+            resolve();
+            clearInterval(timer);
+          }
+        }, 500);
+      });
+    } else {
+      throw new Error("We've already tried to connect to this peer");
+    }
   }
 
   getChannels() {
