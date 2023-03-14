@@ -9,8 +9,8 @@ router.post("/connectToPeer", async (req, res) => {
   const { pubkey, host, port } = req.body;
   if (pubkey === undefined || host === undefined || port === undefined) {
     res.status(500).send("Missing required parameters");
-  } else  {
-  // try and connect to a peer, return success if it can, fail if it can't
+  } else {
+    // try and connect to a peer, return success if it can, fail if it can't
     try {
       const connection = await getLDKClient().connectToPeer(pubkey, host, port);
       if (connection) {
@@ -19,7 +19,21 @@ router.post("/connectToPeer", async (req, res) => {
         res.status(500).send("Failed to connect to peer");
       }
     } catch (e) {
-      res.status(500).send("Error connecting to peer");
+      if (
+        e instanceof Error &&
+        e.message.includes("already tried to connect to this peer")
+      ) {
+        console.log(
+          "HANDLE HERE<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+        );
+        // Handle the error
+        res.status(500).send("You're already connected to this peer!");
+      } else {
+        console.log(
+          "NOT HANDLE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+        );
+        res.status(500).send("Error connecting to peer");
+      }
     }
   }
 });
@@ -69,32 +83,11 @@ router.post("/create-channel", async (req, res) => {
 });
 
 router.post("/open-channel", async (req, res) => {
-  const {
-    amount,
-    paid,
-    txid,
-    vout,
-    addr,
-    pubkey
-  } = req.body;
+  const { amount, paid, txid, vout, addr, pubkey } = req.body;
 
-  console.log(
-    amount,
-    paid,
-    txid,
-    vout,
-    addr,
-    pubkey
-  );
+  console.log(amount, paid, txid, vout, addr, pubkey);
 
-  await getLDKClient().openChannel(
-    amount,
-    paid,
-    txid,
-    vout,
-    addr,
-    pubkey
-  );
+  await getLDKClient().openChannel(amount, paid, txid, vout, addr, pubkey);
   res.status(200).json({ message: "Channel opened" });
 });
 

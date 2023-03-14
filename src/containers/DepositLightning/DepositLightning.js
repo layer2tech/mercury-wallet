@@ -82,7 +82,6 @@ const DepositLightning = (props) => {
 
       if (response.status === 200) {
         console.log("Successfully connected to peer");
-
         // if a successful connection can be met then create the channel.
         // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
         let nextAddress = await callCreateChannel(inputAmt, inputNodeId);
@@ -94,12 +93,10 @@ const DepositLightning = (props) => {
         setChannels(getChannels());
         setInvoice(newInvoice);
       } else {
-        console.log("Failed to connect to peer");
+        dispatch(setError({ msg: "Failed to connect to peer" }));
       }
     } catch (error) {
-      console.error("Error connecting to peer:", error);
-      //throw new Error("Error in channel creation");
-      dispatch(setError({ msg: "Error connecting to peer" }));
+      dispatch(setError({ msg: "Error: " + error.response.data }));
     }
   };
 
@@ -141,8 +138,8 @@ const DepositLightning = (props) => {
       {invoice && Object.keys(invoice).length ? (
         <div className="Body">
           <div className="main-coin-wrap">
-                  <InvoiceOptions />
-                </div>
+            <InvoiceOptions />
+          </div>
           <div className="deposit-scan">
             <div className="deposit-scan-content">
               <div className="deposit-scan-main">
