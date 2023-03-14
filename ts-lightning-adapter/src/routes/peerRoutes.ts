@@ -23,15 +23,8 @@ router.post("/connectToPeer", async (req, res) => {
         e instanceof Error &&
         e.message.includes("already tried to connect to this peer")
       ) {
-        console.log(
-          "HANDLE HERE<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-        );
-        // Handle the error
         res.status(500).send("You're already connected to this peer!");
       } else {
-        console.log(
-          "NOT HANDLE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-        );
         res.status(500).send("Error connecting to peer");
       }
     }
