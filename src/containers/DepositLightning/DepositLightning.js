@@ -24,7 +24,7 @@ import {
   callCreateChannel,
   setError,
   getChannels,
-  callDeleteChannel,
+  callDeleteChannelByAddr,
   callGetNextBtcAddress,
 } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
@@ -118,7 +118,7 @@ const DepositLightning = (props) => {
   };
 
   const closeInvoice = () => {
-    callDeleteChannel(invoice.addr);
+    callDeleteChannelByAddr(invoice.addr);
     setInvoice({});
     setChannels(getChannels());
   };

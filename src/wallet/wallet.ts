@@ -798,10 +798,6 @@ export class Wallet {
     return addr;
   }
 
-  async deleteChannel(addr: string) {
-    this.channels.deleteChannel(addr);
-  }
-
   async saveActivityLog() {
     const release = await this.saveMutex.acquire();
     try {
@@ -3123,11 +3119,23 @@ export const getXpub = (mnemonic: string, network: Network) => {
   return node.neutered().toBase58();
 };
 
-export const deleteChannel = (channel_id: Number) => {
+export const deleteChannelById = (channel_id: Number) => {
   axios
     .delete(`http://localhost:3003/channel/deleteChannel/${channel_id}`)
     .then((res) => {
       console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+export const deleteChannelByAddr = (addr: string) => {
+  axios
+    .delete(`http://localhost:3003/channel/deleteChannelByAddr/${addr}`)
+    .then((res) => {
+      console.log(res);
+      return res;
     })
     .catch((err) => {
       console.log(err);

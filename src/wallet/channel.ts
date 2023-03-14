@@ -52,7 +52,7 @@ export class ChannelList {
         }
     }
 
-    deleteChannel(addr: string){
+    deleteChannelByAddr(addr: string){
         let channelsLeft = this.channels.filter( chan => chan.funding?.addr !== addr);
         this.channels = channelsLeft;
     }
