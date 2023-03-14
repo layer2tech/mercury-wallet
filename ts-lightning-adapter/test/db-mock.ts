@@ -86,7 +86,7 @@ const db = new sqlite3.Database("lightning-mock.db", (err) => {
     push_msat INTEGER NOT NULL,
     public BOOL NOT NULL,
     wallet_name TEXT,
-    peer_id INTEGER NOT NULL,
+    peer_id INTEGER UNIQUE,
     privkey TEXT NOT NULL,
     txid TEXT,
     vout INTEGER,
