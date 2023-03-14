@@ -3,6 +3,8 @@ import Channel from "./Channel";
 import {useSelector, useDispatch} from 'react-redux';
 import  { updateBalanceInfo, getTotalChannelBalance, updateChannels, setIntervalIfOnline, getWalletName, callGetChannels } from '../../features/WalletDataSlice';
 import EmptyChannelDisplay from './EmptyChannelDisplay/EmptyChannelDisplay';
+import { setPingLightningMs } from "../../features/WalletDataSlice";
+import { pingLightning } from "../../wallet/mercury/info_api";
 
 
 const ChannelList = (props) => {
@@ -26,6 +28,8 @@ const ChannelList = (props) => {
 
     const updateChannelsInfo = async () => {
         let channelsLoaded;
+        let lightning_ping_ms_new = await pingLightning();
+        dispatch(setPingLightningMs(lightning_ping_ms_new));
         channelsLoaded = await callGetChannels(getWalletName());
         if (JSON.stringify(channelsLoaded) !== JSON.stringify(channels)) {
             updateChannels(channelsLoaded);

@@ -1134,19 +1134,6 @@ export const UpdateSpeedInfo = async (
   }
 };
 
-export const UpdateLightningServerInfo = async(dispatch, ping_lightning_ms, setLightningConnected) => {
-  let lightning_ping_ms_new = null;
-  try {
-    lightning_ping_ms_new = await pingLightning();
-    if(lightning_ping_ms_new !== ping_lightning_ms){
-      dispatch(setPingLightningMs(lightning_ping_ms_new));
-      setLightningConnected(lightning_ping_ms_new != null);
-    }
-  } catch (err) {
-    lightning_ping_ms_new = null;
-  }
-}
-
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
 

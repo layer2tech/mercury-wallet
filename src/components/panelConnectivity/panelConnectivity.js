@@ -15,8 +15,7 @@ import {
   setBlockHeightLoad,
   setError,
   getNetworkType,
-  setNetworkType,
-  UpdateLightningServerInfo
+  setNetworkType
 } from "../../features/WalletDataSlice";
 
 import "./panelConnectivity.css";
@@ -85,26 +84,9 @@ const PanelConnectivity = (props) => {
       ,setServerConnected, setConductorConnected, setElectrumConnected, block_height);
   };
 
-  const updateLightningServerInfo = async (isMounted) => {
-    if (isMounted !== true) {
-      return;
-    }
-    await UpdateLightningServerInfo(dispatch, ping_lightning_ms, setLightningConnected);
-  }
-
   useEffect(() => {
     updateSpeedInfo(true)
-    updateLightningServerInfo(true)
   }, [])
-
-  useEffect(() => {
-    let isMounted = true;
-    let interval = setIntervalIfOnline(updateLightningServerInfo, true, 30000, isMounted);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval)};  
-  }, []);
 
   // every 30s check speed
   useEffect(() => {
@@ -165,13 +147,19 @@ const PanelConnectivity = (props) => {
         setElectrumConnected(true);
       }
     }
+    if (ping_lightning_ms === null) {
+      setLightningConnected(false);
+    } else {
+      setLightningConnected(true);
+    }
   }, [
     fee_info.deposit,
     swap_groups_array.length,
     block_height,
     ping_server_ms,
     ping_conductor_ms,
-    ping_electrum_ms
+    ping_electrum_ms,
+    ping_lightning_ms
   ]);
 
   useEffect(() => {
