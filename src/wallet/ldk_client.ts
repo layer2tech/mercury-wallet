@@ -36,6 +36,7 @@ export class LDKClient {
   async createChannel(body: any) {
     try {
       let res = await LDKClient.post("/create-channel", body);
+      return res;
     } catch (e: any) {
       throw new Error("Error in channel creation");
     }
@@ -44,6 +45,7 @@ export class LDKClient {
   async openChannel(body: any) {
     try {
       let res = await LDKClient.post("/open-channel", body);
+      return res;
     } catch (e: any) {
       throw new Error("Error in opening channel");
     }

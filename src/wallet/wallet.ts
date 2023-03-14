@@ -705,15 +705,6 @@ export class Wallet {
     //convert mBTC to satoshi
     amount = amount * 100000;
 
-    this.channels.addChannel(
-      proof_key.publicKey.toString("hex"),
-      addr,
-      amount,
-      this.version,
-      pubkey,
-      host,
-      port
-    );
 
     let bip32 = this.getBIP32forBtcAddress(addr);
     let privkey = bip32.toWIF();
@@ -729,6 +720,18 @@ export class Wallet {
       privkey,
       paid: false,
       payment_address: addr,
+    }).then((res) => {
+      if (res.status === 200) {
+        this.channels.addChannel(
+          proof_key.publicKey.toString("hex"),
+          addr,
+          amount,
+          this.version,
+          pubkey,
+          host,
+          port
+        );
+      }
     });
 
     console.log("Amount should be in satoshis: ", amount);
@@ -765,7 +768,6 @@ export class Wallet {
               let block = tx_data.height ? tx_data.height : null;
               let value = tx_data.value;
 
-              this.channels.addChannelFunding(txid, vout, addr, block, value);
 
               this.lightning_client.openChannel({
                 amount: tx_data.value,
@@ -774,6 +776,10 @@ export class Wallet {
                 vout,
                 addr,
                 pubkey
+              }).then((res) => {
+                if (res.status === 200){
+                  this.channels.addChannelFunding(txid, vout, addr, block, value);
+                }
               });
 
               // Need to unsubscribe once work done
