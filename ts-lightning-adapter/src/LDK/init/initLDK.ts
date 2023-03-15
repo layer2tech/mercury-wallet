@@ -161,12 +161,14 @@ function setUpLDK(electrum: string = "prod") {
   });
 
   // Step 10: Create Router
-  let router = DefaultRouter.constructor_new(
+  let default_router = DefaultRouter.constructor_new(
     networkGraph,
     logger,
     seed,
     locked_score
   );
+
+  let router = default_router.as_Router();
 
   // Step 11: Initialize the ChannelManager
   const config = UserConfig.constructor_default();
