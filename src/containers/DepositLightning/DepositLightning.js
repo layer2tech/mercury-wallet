@@ -74,11 +74,14 @@ const DepositLightning = (props) => {
     console.log("checking connection with peer first...");
     // check connection with peer first.
     try {
-      const response = await axios.post("http://localhost:3003/connectToPeer", {
-        pubkey,
-        host,
-        port,
-      });
+      const response = await axios.post(
+        "http://localhost:3003/peer/connectToPeer",
+        {
+          pubkey,
+          host,
+          port,
+        }
+      );
 
       if (response.status === 200) {
         console.log("Successfully connected to peer");

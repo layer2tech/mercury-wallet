@@ -824,6 +824,8 @@ export class Wallet {
     this.active = state;
   }
 
+  connectToPeer = async (pubkey: string, host: string, port: number) => {};
+
   // Load wallet JSON from store
   static async load(
     wallet_name: string,
@@ -835,7 +837,47 @@ export class Wallet {
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+
     let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
+    let peerInfo = await wallet.lightning_client.getPeers();
+
+    let mergedInfo = channelsInfo.map((channel) => {
+      let peer = peerInfo.find((peer: any) => peer.id === channel.peer_id);
+      return {
+        ...channel,
+        host: peer.host,
+        port: peer.port,
+        pubkey: peer.pubkey,
+      };
+    });
+
+    // for every channel reconnect to its peer
+    for (var i = 0; i < mergedInfo.length; i++) {
+      let pubkey = mergedInfo[i].pubkey;
+      let host = mergedInfo[i].host;
+      let port = mergedInfo[i].port;
+      try {
+        const response = await axios.post(
+          "http://localhost:3003/peer/connectToPeer",
+          {
+            pubkey,
+            host,
+            port,
+          }
+        );
+        if (response.status === 200) {
+          console.log(response.data); // "Connected to peer"
+        } else {
+          console.log(response.data); // "Failed to connect to peer"
+        }
+      } catch (error: any) {
+        console.log(error.response.data); // "Error connecting to peer"
+      }
+    }
+
+    // tell LDK-adapter to reload those channels as well by reconnecting to them
+    console.log("CHANNEL INFO:", channelsInfo);
+
     wallet.saveChannels(channelsInfo);
     wallet.setActive();
 
