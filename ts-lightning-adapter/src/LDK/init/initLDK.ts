@@ -20,6 +20,7 @@ import {
   ProbabilisticScorer,
   ProbabilisticScoringParameters,
   Router,
+  ChannelMonitor,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -126,6 +127,10 @@ function setUpLDK(electrum: string = "prod") {
   let signer_provider = keysManager.as_SignerProvider();
 
   // Step 7: Read ChannelMonitor state from disk
+  //let mut channelmonitors =
+  // persister
+  //  .read_channelmonitors(keys_manager.clone(), keys_manager.clone())
+  //  .unwrap();
 
   // Step 8: Poll for the best chain tip, which may be used by the channel manager & spv client
 
