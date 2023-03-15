@@ -6,7 +6,7 @@ import {
   OutPoint,
   PersistInterface,
 } from "lightningdevkit";
-const fs = import("fs");
+import fs from "fs";
 
 class MercuryPersist implements PersistInterface {
   update_persisted_channel(
