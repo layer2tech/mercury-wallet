@@ -21,6 +21,8 @@ import {
   ProbabilisticScoringParameters,
   Router,
   ChannelMonitor,
+  DefaultRouter,
+  LockableScore,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -131,6 +133,8 @@ function setUpLDK(electrum: string = "prod") {
   // persister
   //  .read_channelmonitors(keys_manager.clone(), keys_manager.clone())
   //  .unwrap();
+  // ChannelMonitor
+  // ChainMonitor
 
   // Step 8: Poll for the best chain tip, which may be used by the channel manager & spv client
 
@@ -150,10 +154,21 @@ function setUpLDK(electrum: string = "prod") {
     logger
   );
 
-  keysManager;
+  let locked_score = LockableScore.new_impl({
+    lock() {
+      return scorer.as_Score();
+    },
+  });
 
   // Step 10: Create Router
-  let router = Router.new_impl(new MercuryRouter());
+  let default_router = DefaultRouter.constructor_new(
+    networkGraph,
+    logger,
+    seed,
+    locked_score
+  );
+
+  let router = default_router.as_Router();
 
   // Step 11: Initialize the ChannelManager
   const config = UserConfig.constructor_default();
@@ -186,8 +201,11 @@ function setUpLDK(electrum: string = "prod") {
   const channelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
 
   // Step 12: Sync ChannelMonitors and ChannelManager to chain tip
+  // needs to check on an interval
 
   // Step 13: Give ChannelMonitors to ChainMonitor
+  //ChannelMonitor
+  //ChainMonitor
 
   // Step 14: Optional: Initialize the P2PGossipSync
 
@@ -223,6 +241,7 @@ function setUpLDK(electrum: string = "prod") {
   // Step 16: Initialize networking
 
   // Step 17: Connect and Disconnect Blocks
+  // check on interval
 
   // Step 18: Handle LDK Events
   let eventHandler;
@@ -232,16 +251,19 @@ function setUpLDK(electrum: string = "prod") {
   }
 
   // Step 19: Persist ChannelManager and NetworkGraph
+  // channelManager.write()
 
   // ************************************************************************************************
   // Step 20: Background Processing
 
   // Regularly reconnect to channel peers.
+  // peerManager?.timer_tick_occurred() - use this, checks for disconnected peers
 
   // Regularly broadcast our node_announcement. This is only required (or possible) if we have
   // some public channels, and is only useful if we have public listen address(es) to announce.
   // In a production environment, this should occur only after the announcement of new channels
   // to avoid churn in the global network graph.
+  // peerManager?.broadcast_node_announcement()
 
   // ************************************************************************************************
 
