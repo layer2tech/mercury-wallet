@@ -6,6 +6,7 @@ import {
   OutPoint,
   PersistInterface,
 } from "lightningdevkit";
+const fs = require("fs");
 
 class MercuryPersist implements PersistInterface {
   update_persisted_channel(
@@ -14,26 +15,45 @@ class MercuryPersist implements PersistInterface {
     data: ChannelMonitor,
     update_id: MonitorUpdateId
   ): ChannelMonitorUpdateStatus {
-    console.log(
-      "************************************************************ update_persisted_channel called: *********************************************************************"
-    );
+    let channel_monitor_bytes = data.write();
+    let updated_channel = {
+      channel_id: channel_id.to_channel_id().toString(),
+      data: channel_monitor_bytes,
+    };
 
-    throw "test";
+    try {
+      let file_contents = fs.readFileSync("channel_monitor.json", "utf8");
+      let channels = JSON.parse(file_contents);
 
-    return ChannelMonitorUpdateStatus.LDKChannelMonitorUpdateStatus_Completed;
+      channels[channel_id.to_channel_id().toString()] = updated_channel;
+      fs.writeFileSync("channel_monitor.json", JSON.stringify(channels));
+
+      return ChannelMonitorUpdateStatus.LDKChannelMonitorUpdateStatus_Completed;
+    } catch (error) {
+      console.error(error);
+      return ChannelMonitorUpdateStatus.LDKChannelMonitorUpdateStatus_PermanentFailure;
+    }
   }
   persist_new_channel(
     channel_id: OutPoint,
     data: ChannelMonitor,
     update_id: MonitorUpdateId
   ): ChannelMonitorUpdateStatus {
-    console.log(
-      "************************************************************ persist_new_channel called: *********************************************************************"
-    );
+    let channel_monitor_bytes = data.write();
+    let new_channel = { channel_id, data: channel_monitor_bytes };
 
-    throw "test";
+    try {
+      let file_contents = fs.readFileSync("channel_monitor.json", "utf8");
+      let channels = JSON.parse(file_contents);
 
-    return ChannelMonitorUpdateStatus.LDKChannelMonitorUpdateStatus_Completed;
+      channels[channel_id.to_channel_id().toString()] = new_channel;
+      fs.writeFileSync("channel_monitor.json", JSON.stringify(channels));
+
+      return ChannelMonitorUpdateStatus.LDKChannelMonitorUpdateStatus_Completed;
+    } catch (error) {
+      console.error(error);
+      return ChannelMonitorUpdateStatus.LDKChannelMonitorUpdateStatus_PermanentFailure;
+    }
   }
 }
 
