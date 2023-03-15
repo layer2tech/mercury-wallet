@@ -225,6 +225,8 @@ export default class LightningClient implements LightningClientInterface {
     channelId: number,
     channelType: boolean
   ) {
+    console.log("pubkey found:", pubkey);
+
     await this.setBlockHeight();
     await this.setLatestBlockHeader(this.blockHeight);
 
@@ -270,8 +272,8 @@ export default class LightningClient implements LightningClientInterface {
     }
 
     console.log("Channel Create Response: ", channelCreateResponse);
-
     // Should return Ok response to display to user
+    return true;
   }
 
   /**
@@ -367,6 +369,8 @@ export default class LightningClient implements LightningClientInterface {
   }
 
   async processPendingEvents() {
+    this.channelManager.timer_tick_occurred();
+
     this.channelManager
       .as_EventsProvider()
       .process_pending_events(this.eventHandler);
