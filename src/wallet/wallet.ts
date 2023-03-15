@@ -867,6 +867,24 @@ export class Wallet {
         );
         if (response.status === 200) {
           console.log(response.data); // "Connected to peer"
+
+          let amount = mergedInfo[i].amount;
+          let push_msat = mergedInfo[i].push_msat;
+          let channelId = mergedInfo[i].id;
+          let channelType = mergedInfo[i].public;
+
+          try {
+            // now connect to its channel
+            const response2 = await axios.post(
+              "http://localhost:3003/peer/connectToChannel",
+              { pubkey, amount, push_msat, channelId, channelType }
+            );
+            if (response2.status === 200) {
+              console.log("response2 success", response2.data);
+            }
+          } catch (e) {
+            console.log("failed loading channels");
+          }
         } else {
           console.log(response.data); // "Failed to connect to peer"
         }
