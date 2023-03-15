@@ -14,7 +14,11 @@ class MercuryPersist implements PersistInterface {
     data: ChannelMonitor,
     update_id: MonitorUpdateId
   ): ChannelMonitorUpdateStatus {
-    console.log("update_persisted_channel called:");
+    console.log(
+      "************************************************************ update_persisted_channel called: *********************************************************************"
+    );
+
+    throw "test";
 
     return ChannelMonitorUpdateStatus.LDKChannelMonitorUpdateStatus_Completed;
   }
@@ -23,7 +27,11 @@ class MercuryPersist implements PersistInterface {
     data: ChannelMonitor,
     update_id: MonitorUpdateId
   ): ChannelMonitorUpdateStatus {
-    console.log("persist_new_channel called");
+    console.log(
+      "************************************************************ persist_new_channel called: *********************************************************************"
+    );
+
+    throw "test";
 
     return ChannelMonitorUpdateStatus.LDKChannelMonitorUpdateStatus_Completed;
   }
