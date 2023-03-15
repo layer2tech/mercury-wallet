@@ -19,7 +19,6 @@ import {
   Option_FilterZ,
   ProbabilisticScorer,
   ProbabilisticScoringParameters,
-  NodeSigner,
   Router,
 } from "lightningdevkit";
 
@@ -121,7 +120,6 @@ function setUpLDK(electrum: string = "prod") {
     seed = fs.readFileSync(keys_seed_path);
   }
   const keysManager = KeysManager.constructor_new(seed, BigInt(42), 42);
-  //const keysInterface = keysManager.as_KeysInterface();
 
   let entropy_source = keysManager.as_EntropySource();
   let node_signer = keysManager.as_NodeSigner();
@@ -213,7 +211,7 @@ function setUpLDK(electrum: string = "prod") {
       ephemeralRandomData,
       logger,
       customMessageHandler,
-      node_signer // todo
+      node_signer
     );
 
   // ## Running LDK
@@ -246,7 +244,7 @@ function setUpLDK(electrum: string = "prod") {
   if (chainMonitor && channelManager && peerManager && eventHandler) {
     const LDKInit: LightningClientInterface = {
       feeEstimator: feeEstimator,
-      electrumClient: electrumClient, // Add this
+      electrumClient: electrumClient,
       logger: logger,
       txBroadcasted: txBroadcasted,
       txBroadcaster: txBroadcaster,
