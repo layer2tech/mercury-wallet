@@ -9,7 +9,6 @@ import {
   Filter,
   ChainMonitor,
   KeysManager,
-  KeysInterface,
   UserConfig,
   ChannelHandshakeConfig,
   ChainParameters,
@@ -47,7 +46,6 @@ export default class LightningClient implements LightningClientInterface {
   chainMonitor: ChainMonitor;
   chainWatch: any;
   keysManager: KeysManager;
-  keysInterface: KeysInterface;
   config: UserConfig;
   channelHandshakeConfig: ChannelHandshakeConfig;
   params: ChainParameters;
@@ -57,8 +55,7 @@ export default class LightningClient implements LightningClientInterface {
   currentConnections: any[] = [];
   blockHeight: number | undefined;
   latestBlockHeader: Uint8Array | undefined;
-  netHandler: any[] = [];
-  savedPeerDetails: any[] = [];
+  netHandler: NodeLDKNet[] = [];
 
   constructor(props: LightningClientInterface) {
     this.feeEstimator = props.feeEstimator;
@@ -76,7 +73,6 @@ export default class LightningClient implements LightningClientInterface {
     this.chainMonitor = props.chainMonitor;
     this.chainWatch = props.chainWatch;
     this.keysManager = props.keysManager;
-    this.keysInterface = props.keysInterface;
     this.config = props.config;
     this.channelHandshakeConfig = props.channelHandshakeConfig;
     this.params = props.params;
@@ -286,61 +282,37 @@ export default class LightningClient implements LightningClientInterface {
   async create_socket(peerDetails: PeerDetails) {
     // Create Socket for outbound connection: check NodeNet LDK docs for inbound
     const { pubkey, host, port } = peerDetails;
-    console.log("savedPeerDetails:", this.savedPeerDetails);
-    // First check if it exists in savedPeerDetails, if it does don't connect through here.
-    let isPeerDetailsSaved = false;
-    for (let i = 0; i < this.savedPeerDetails.length; i++) {
-      if (
-        this.savedPeerDetails[i].pubkey === uint8ArrayToHexString(pubkey) &&
-        this.savedPeerDetails[i].host === host &&
-        this.savedPeerDetails[i].port === port
-      ) {
-        isPeerDetailsSaved = true;
-        break;
-      }
-    }
-    if (!isPeerDetailsSaved) {
-      this.savedPeerDetails.push({
-        pubkey: uint8ArrayToHexString(pubkey),
+    this.netHandler[this.netHandler.length] = new NodeLDKNet(this.peerManager);
+
+    console.log("net handler looks like this:", this.netHandler);
+
+    try {
+      console.log("Peer Details: ", peerDetails);
+      await this.netHandler[this.netHandler.length - 1]?.connect_peer(
         host,
         port,
-      });
-
-      this.netHandler[this.netHandler.length] = new NodeLDKNet(
-        this.peerManager
+        pubkey
       );
-      console.log("net handler looks like this:", this.netHandler);
-
-      try {
-        console.log("Peer Details: ", peerDetails);
-        await this.netHandler[this.netHandler.length - 1].connect_peer(
-          host,
-          port,
-          pubkey
-        );
-      } catch (e) {
-        console.log("Error connecting to peer: ", e);
-        console.log("Peer connection failed");
-        throw e; // or handle the error in a different way
-      }
-
-      await new Promise<void>((resolve) => {
-        // Wait until the peers are connected and have exchanged the initial handshake
-        var timer: any;
-        timer = setInterval(() => {
-          console.log("Node IDs", this.peerManager.get_peer_node_ids());
-          if (this.peerManager.get_peer_node_ids().length == 1) {
-            // && this.peerManager2.get_peer_node_ids().length == 1
-
-            console.log("Length is Equal to 1");
-            resolve();
-            clearInterval(timer);
-          }
-        }, 500);
-      });
-    } else {
-      throw new Error("We've already tried to connect to this peer");
+    } catch (e) {
+      console.log("Error connecting to peer: ", e);
+      console.log("Peer connection failed");
+      throw e; // or handle the error in a different way
     }
+
+    await new Promise<void>((resolve) => {
+      // Wait until the peers are connected and have exchanged the initial handshake
+      var timer: any;
+      timer = setInterval(() => {
+        console.log("Node IDs", this.peerManager.get_peer_node_ids());
+        if (this.peerManager.get_peer_node_ids().length == 1) {
+          // && this.peerManager2.get_peer_node_ids().length == 1
+
+          console.log("Length is Equal to 1");
+          resolve();
+          clearInterval(timer);
+        }
+      }, 500);
+    });
   }
 
   getChannels() {

@@ -19,6 +19,8 @@ import {
   Option_FilterZ,
   ProbabilisticScorer,
   ProbabilisticScoringParameters,
+  NodeSigner,
+  Router,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -34,13 +36,14 @@ import LightningClientInterface from "../types/LightningClientInterface.js";
 import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
 import LightningClient from "../lightning.js";
 import TorClient from "../bitcoin_clients/TorClient.mjs";
+import MercuryRouter from "../structs/MercuryRouter.js";
 
 export default function initLDK(electrum: string = "prod") {
   const initLDK = setUpLDK(electrum);
   if (initLDK) {
     return new LightningClient(initLDK);
   }
-  return;
+  throw Error("Couldn't initialize LDK");
 }
 
 function setUpLDK(electrum: string = "prod") {
@@ -118,16 +121,20 @@ function setUpLDK(electrum: string = "prod") {
     seed = fs.readFileSync(keys_seed_path);
   }
   const keysManager = KeysManager.constructor_new(seed, BigInt(42), 42);
-  const keysInterface = keysManager.as_KeysInterface();
+  //const keysInterface = keysManager.as_KeysInterface();
+
+  let entropy_source = keysManager.as_EntropySource();
+  let node_signer = keysManager.as_NodeSigner();
+  let signer_provider = keysManager.as_SignerProvider();
 
   // Step 7: Read ChannelMonitor state from disk
 
   // Step 8: Poll for the best chain tip, which may be used by the channel manager & spv client
 
   // Step 9: Initialize Network Graph, routing ProbabilisticScorer
-  const genesisBlock = BestBlock.constructor_from_genesis(network);
+  const genesisBlock = BestBlock.constructor_from_network(network);
   const genesisBlockHash = genesisBlock.block_hash();
-  const networkGraph = NetworkGraph.constructor_new(genesisBlockHash, logger);
+  const networkGraph = NetworkGraph.constructor_new(network, logger);
 
   const ldk_scorer_dir = "./.scorer/";
   if (!fs.existsSync(ldk_scorer_dir)) {
@@ -140,7 +147,10 @@ function setUpLDK(electrum: string = "prod") {
     logger
   );
 
+  keysManager;
+
   // Step 10: Create Router
+  let router = Router.new_impl(new MercuryRouter());
 
   // Step 11: Initialize the ChannelManager
   const config = UserConfig.constructor_default();
@@ -160,12 +170,16 @@ function setUpLDK(electrum: string = "prod") {
       feeEstimator,
       chainWatch,
       txBroadcaster,
+      router,
       logger,
-      keysInterface,
+      entropy_source,
+      node_signer,
+      signer_provider,
       config,
       params
     );
   }
+
   const channelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
 
   // Step 12: Sync ChannelMonitors and ChannelManager to chain tip
@@ -188,17 +202,18 @@ function setUpLDK(electrum: string = "prod") {
   const nodeSecret = new Uint8Array(32);
   for (var i = 0; i < 32; i++) nodeSecret[i] = 42;
   const ephemeralRandomData = new Uint8Array(32);
+
   const peerManager =
     channelMessageHandler &&
     PeerManager.constructor_new(
       channelMessageHandler,
       routingMessageHandler,
       onionMessageHandler,
-      nodeSecret,
       Date.now(),
       ephemeralRandomData,
       logger,
-      customMessageHandler
+      customMessageHandler,
+      node_signer // todo
     );
 
   // ## Running LDK
@@ -245,7 +260,6 @@ function setUpLDK(electrum: string = "prod") {
       chainMonitor: chainMonitor,
       chainWatch: chainWatch,
       keysManager: keysManager,
-      keysInterface: keysInterface,
       config: config,
       channelHandshakeConfig: channelHandshakeConfig,
       params: params,

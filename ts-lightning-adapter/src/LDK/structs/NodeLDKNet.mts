@@ -174,46 +174,31 @@ export class NodeLDKNet {
    * Note that the peer will not appear in the PeerManager peers list until the socket has
    * connected and the initial handshake completes.
    */
-  public async connect_peer(
-    host: string,
-    port: number,
-    peer_node_id: Uint8Array
-  ) {
+  async connect_peer(host: string, port: number, peer_node_id: Uint8Array) {
     const this_handler = this;
     const sock = new net.Socket();
     const res = new Promise<void>((resolve, reject) => {
       sock.on("connect", function () {
         resolve();
       });
-      sock.on("error", function (error) {
-        reject(error);
+      sock.on("error", function () {
+        reject();
       });
     });
-
-    try {
-      await sock.connect(port, host);
-    } catch (error) {
-      reject(error);
-    }
-
-    const descriptor = this_handler.get_descriptor(sock);
-    const new_outbound_connection_result =
-      this_handler.peer_manager.new_outbound_connection(
+    sock.connect(port, host, function () {
+      const descriptor = this_handler.get_descriptor(sock);
+      const res = this_handler.peer_manager.new_outbound_connection(
         peer_node_id,
         descriptor,
         NodeLDKNet.get_addr_from_socket(sock)
       );
-
-    if (!new_outbound_connection_result.is_ok()) {
-      descriptor.disconnect_socket();
-    } else {
-      const bytes = (
-        new_outbound_connection_result as ldk.Result_CVec_u8ZPeerHandleErrorZ_OK
-      ).res;
-      const send_res = descriptor.send_data(bytes, true);
-      console.assert(send_res == bytes.length);
-    }
-
+      if (!res.is_ok()) descriptor.disconnect_socket();
+      else {
+        const bytes = (res as ldk.Result_CVec_u8ZPeerHandleErrorZ_OK).res;
+        const send_res = descriptor.send_data(bytes, true);
+        console.assert(send_res == bytes.length);
+      }
+    });
     return res;
   }
 }
