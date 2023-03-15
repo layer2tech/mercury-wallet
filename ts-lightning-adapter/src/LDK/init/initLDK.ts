@@ -263,6 +263,7 @@ function setUpLDK(electrum: string = "prod") {
       params: params,
       channelManager: channelManager,
       peerManager: peerManager,
+      router: router,
       txdata: [],
       currentConnections: [],
       blockHeight: undefined,

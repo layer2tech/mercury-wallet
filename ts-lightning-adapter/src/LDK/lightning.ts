@@ -13,6 +13,7 @@ import {
   ChannelHandshakeConfig,
   ChainParameters,
   ChannelManager,
+  Router
 } from "lightningdevkit";
 import { NodeLDKNet } from "./structs/NodeLDKNet.mjs";
 import LightningClientInterface from "./types/LightningClientInterface.js";
@@ -51,6 +52,7 @@ export default class LightningClient implements LightningClientInterface {
   params: ChainParameters;
   channelManager: ChannelManager;
   peerManager: PeerManager;
+  router: Router;
   txdata: any; // TODO: Specify this type
   currentConnections: any[] = [];
   blockHeight: number | undefined;
@@ -78,6 +80,7 @@ export default class LightningClient implements LightningClientInterface {
     this.params = props.params;
     this.channelManager = props.channelManager;
     this.peerManager = props.peerManager;
+    this.router = props.router;
   }
 
   /*
