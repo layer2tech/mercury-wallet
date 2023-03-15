@@ -1,10 +1,8 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import { ProgressBar } from "react-bootstrap";
 import lightningLogo from "../../images/lightning_logo.png";
 import "../coins/coins.css";
 import "./Channel.css";
-import { Link } from "react-router-dom";
 
 const Channel = (props) => {
   const selectChannel = (channel_id) => {
@@ -32,34 +30,32 @@ const Channel = (props) => {
           isSelected(props.channel_data.id) ? "selected" : ""
         }`}
         onClick={() => {
-          console.log("clicked on a channel..", props.channel_data.id);
+          console.log("clicked on a channel..", props.channel_data);
           selectChannel(props.channel_data.id);
         }}
       >
-        <Link to="/deposit_ln">
-          <div className="CoinPanel">
-            <div className="CoinAmount-block">
-              <img src={lightningLogo} alt="icon" className="privacy" />
-              <span className="sub">
-                <b className="CoinAmount"> {props.channel_data.amount} Sats</b>
-                <div className="scoreAmount">Node Alias</div>
-              </span>
-            </div>
-
-            <div className="progress_bar">
-              <div className="sub">
-                <ProgressBar>
-                  <ProgressBar striped variant={"success"} now={50} key={1} />
-                </ProgressBar>
-              </div>
-            </div>
-
-            <b className="CoinFundingTxid">
-              <img src={lightningLogo} className="sc-address-icon" alt="icon" />
-              {props.channel_data.id}
-            </b>
+        <div className="CoinPanel">
+          <div className="CoinAmount-block">
+            <img src={lightningLogo} alt="icon" className="privacy" />
+            <span className="sub">
+              <b className="CoinAmount"> {props.channel_data.amount} Sats</b>
+              <div className="scoreAmount">Node Alias</div>
+            </span>
           </div>
-        </Link>
+
+          <div className="progress_bar">
+            <div className="sub">
+              <ProgressBar>
+                <ProgressBar striped variant={"success"} now={50} key={1} />
+              </ProgressBar>
+            </div>
+          </div>
+
+          <b className="CoinFundingTxid">
+            <img src={lightningLogo} className="sc-address-icon" alt="icon" />
+            {props.channel_data.id}
+          </b>
+        </div>
       </div>
     </div>
   );
