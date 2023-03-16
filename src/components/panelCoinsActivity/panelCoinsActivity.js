@@ -109,6 +109,7 @@ const PanelCoinsActivity = (props) => {
           <Tabs defaultActiveKey={defaultTabTitle}>
             <Tab eventKey={defaultTabTitle} title={defaultTabTitle}>
               <ChannelList
+                isMainPage={true}
                 channels={getChannels()}
                 setSelectedChannels={setSelectedChannels}
                 setSelectedChannel={setSelectedChannel}

@@ -10,6 +10,7 @@ import {
   callGetChannels,
 } from "../../features/WalletDataSlice";
 import EmptyChannelDisplay from "./EmptyChannelDisplay/EmptyChannelDisplay";
+import { Link } from "react-router-dom";
 
 const ChannelList = (props) => {
   const dispatch = useDispatch();
@@ -69,7 +70,22 @@ const ChannelList = (props) => {
   return (
     <div className="main-coin-wrap">
       {channels.map((item) => {
-        return (
+        return props.isMainPage ? (
+          <Link
+            to={{ pathname: "/channel_details", state: { item } }}
+            key={item.id}
+          >
+            <Channel
+              isMainPage={true}
+              key={item.id}
+              channel_data={item}
+              selectedChannel={props.selectedChannel}
+              selectedChannels={props.selectedChannels}
+              setSelectedChannel={props.setSelectedChannel}
+              render={props.render ? props.render : null}
+            />
+          </Link>
+        ) : (
           <Channel
             key={item.id}
             channel_data={item}

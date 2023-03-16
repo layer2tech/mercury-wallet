@@ -3,8 +3,11 @@ import { ProgressBar } from "react-bootstrap";
 import lightningLogo from "../../images/lightning_logo.png";
 import "../coins/coins.css";
 import "./Channel.css";
+import { Link, useHistory } from "react-router-dom";
 
 const Channel = (props) => {
+  const history = useHistory();
+
   const selectChannel = (channel_id) => {
     props.setSelectedChannel(channel_id);
   };
@@ -32,6 +35,15 @@ const Channel = (props) => {
         onClick={() => {
           console.log("clicked on a channel..", props.channel_data);
           selectChannel(props.channel_data.id);
+
+          console.log("Is main page?");
+          if (props.isMainPage) {
+            console.log("It is a main page...");
+            history.push({
+              pathname: "/channel_details",
+              state: { props },
+            });
+          }
         }}
       >
         <div className="CoinPanel">
