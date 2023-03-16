@@ -8,9 +8,11 @@ import {
   setIntervalIfOnline,
   getWalletName,
   callGetChannels,
+  setPingLightningMs
 } from "../../features/WalletDataSlice";
 import EmptyChannelDisplay from "./EmptyChannelDisplay/EmptyChannelDisplay";
 import { Link } from "react-router-dom";
+import { pingLightning } from "../../wallet/mercury/info_api";
 
 const ChannelList = (props) => {
   const dispatch = useDispatch();
@@ -50,7 +52,8 @@ const ChannelList = (props) => {
 
   const updateChannelsInfo = async () => {
     let channelsLoaded;
-    channelsLoaded = await callGetChannels(getWalletName());
+    let lightning_ping_ms_new = await pingLightning();
+    dispatch(setPingLightningMs(lightning_ping_ms_new));
     if (JSON.stringify(channelsLoaded) !== JSON.stringify(channels)) {
       setChannels(channelsLoaded);
       dispatch(

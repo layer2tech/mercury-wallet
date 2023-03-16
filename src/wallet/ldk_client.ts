@@ -9,7 +9,7 @@ export const LIGHTNING_GET_ROUTE = {
   PEER_LIST: "peer/peers",
   CHANNEL_LIST: "channel/loadChannels",
   NODE_ID: "channel/nodeId",
-  DEAULT_PEER_LIST: "default_peerlist",
+  DEAULT_PEER_LIST: "peer/default_peerlist",
 };
 Object.freeze(LIGHTNING_GET_ROUTE);
 
