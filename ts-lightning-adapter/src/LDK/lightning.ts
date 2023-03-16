@@ -57,7 +57,7 @@ export default class LightningClient implements LightningClientInterface {
   currentConnections: any[] = [];
   blockHeight: number | undefined;
   latestBlockHeader: Uint8Array | undefined;
-  netHandler: NodeLDKNet[] = [];
+  netHandler: NodeLDKNet;
 
   constructor(props: LightningClientInterface) {
     this.feeEstimator = props.feeEstimator;
@@ -81,6 +81,7 @@ export default class LightningClient implements LightningClientInterface {
     this.channelManager = props.channelManager;
     this.peerManager = props.peerManager;
     this.router = props.router;
+    this.netHandler = new NodeLDKNet(this.peerManager);
   }
 
   /*
@@ -287,17 +288,12 @@ export default class LightningClient implements LightningClientInterface {
   async create_socket(peerDetails: PeerDetails) {
     // Create Socket for outbound connection: check NodeNet LDK docs for inbound
     const { pubkey, host, port } = peerDetails;
-    this.netHandler[this.netHandler.length] = new NodeLDKNet(this.peerManager);
 
     console.log("net handler looks like this:", this.netHandler);
 
     try {
       console.log("Peer Details: ", peerDetails);
-      await this.netHandler[this.netHandler.length - 1]?.connect_peer(
-        host,
-        port,
-        pubkey
-      );
+      await this.netHandler.connect_peer(host, port, pubkey);
     } catch (e) {
       console.log("Error connecting to peer: ", e);
       console.log("Peer connection failed");
@@ -308,7 +304,7 @@ export default class LightningClient implements LightningClientInterface {
       // Wait until the peers are connected and have exchanged the initial handshake
       var timer: any;
       timer = setInterval(() => {
-        console.log("Node IDs", this.peerManager.get_peer_node_ids());
+        //console.log("Node IDs", this.peerManager.get_peer_node_ids());
         if (this.peerManager.get_peer_node_ids().length == 1) {
           // && this.peerManager2.get_peer_node_ids().length == 1
 
@@ -318,6 +314,10 @@ export default class LightningClient implements LightningClientInterface {
         }
       }, 500);
     });
+  }
+
+  getPeerManager(): PeerManager {
+    return this.peerManager;
   }
 
   getChannels() {

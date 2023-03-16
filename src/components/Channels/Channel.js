@@ -3,8 +3,14 @@ import { ProgressBar } from "react-bootstrap";
 import lightningLogo from "../../images/lightning_logo.png";
 import "../coins/coins.css";
 import "./Channel.css";
+import { Link, useHistory } from "react-router-dom";
+import { CopiedButton } from '../';
+import copy_img from "../../images/icon2.png";
+import { CHANNEL_STATUS } from "../../wallet/channel";
 
 const Channel = (props) => {
+  const history = useHistory();
+
   const selectChannel = (channel_id) => {
     props.setSelectedChannel(channel_id);
   };
@@ -22,6 +28,11 @@ const Channel = (props) => {
     }
     return selected;
   };
+    
+    const copyAddressToClipboard = (event, address) => {
+      event.stopPropagation()
+      navigator.clipboard.writeText(address);
+    }
 
   return (
     <div>
@@ -32,6 +43,15 @@ const Channel = (props) => {
         onClick={() => {
           console.log("clicked on a channel..", props.channel_data);
           selectChannel(props.channel_data.id);
+
+          console.log("Is main page?");
+          if (props.isMainPage) {
+            console.log("It is a main page...");
+            history.push({
+              pathname: "/channel_details",
+              state: { props },
+            });
+          }
         }}
       >
         <div className="CoinPanel">
@@ -43,21 +63,31 @@ const Channel = (props) => {
             </span>
           </div>
 
-          <div className="progress_bar">
-            <div className="sub">
-              <ProgressBar>
-                <ProgressBar striped variant={"success"} now={50} key={1} />
-              </ProgressBar>
+                    {(props.channel_data.status === CHANNEL_STATUS.INITIALISED) ?
+                      <div className="progress_bar" >
+                          <div className="deposit-scan-main-item">
+                            <>
+                              <CopiedButton handleCopy={(event) => copyAddressToClipboard(event, props.channel_data.funding.addr)} >
+                                <img type="button" src={copy_img} alt="icon" />
+                              </CopiedButton>
+                              <span className="long">
+                                <b>{props.channel_data.funding.addr}</b>
+                              </span>
+                            </>
+                          </div>
+                          <div className="sub">
+                              <ProgressBar>                     
+                              <ProgressBar 
+                                  striped variant={ 'success' }
+                                  now={50}
+                                  key={1} />
+                              </ProgressBar>
+                          </div>
+                      </div>
+                    : <></>}
+                </div>
             </div>
-          </div>
-
-          <b className="CoinFundingTxid">
-            <img src={lightningLogo} className="sc-address-icon" alt="icon" />
-            {props.channel_data.id}
-          </b>
         </div>
-      </div>
-    </div>
   );
 };
 
