@@ -8,7 +8,7 @@ import {
   setIntervalIfOnline,
   getWalletName,
   callGetChannels,
-  setPingLightningMs
+  setPingLightningMs,
 } from "../../features/WalletDataSlice";
 import EmptyChannelDisplay from "./EmptyChannelDisplay/EmptyChannelDisplay";
 import { Link } from "react-router-dom";
@@ -65,21 +65,32 @@ const ChannelList = (props) => {
     }
   };
 
-  if (!channels.length) {
+  if (channels && !channels.length) {
     const displayMessage = "Your wallet is empty";
     return <EmptyChannelDisplay message={displayMessage} />;
   }
 
   return (
     <div className="main-coin-wrap">
-      {channels.map((item) => {
-        return props.isMainPage ? (
-          <Link
-            to={{ pathname: "/channel_details", state: { item } }}
-            key={item.id}
-          >
+      {channels &&
+        channels.map((item) => {
+          return props.isMainPage ? (
+            <Link
+              to={{ pathname: "/channel_details", state: { item } }}
+              key={item.id}
+            >
+              <Channel
+                isMainPage={true}
+                key={item.id}
+                channel_data={item}
+                selectedChannel={props.selectedChannel}
+                selectedChannels={props.selectedChannels}
+                setSelectedChannel={props.setSelectedChannel}
+                render={props.render ? props.render : null}
+              />
+            </Link>
+          ) : (
             <Channel
-              isMainPage={true}
               key={item.id}
               channel_data={item}
               selectedChannel={props.selectedChannel}
@@ -87,18 +98,8 @@ const ChannelList = (props) => {
               setSelectedChannel={props.setSelectedChannel}
               render={props.render ? props.render : null}
             />
-          </Link>
-        ) : (
-          <Channel
-            key={item.id}
-            channel_data={item}
-            selectedChannel={props.selectedChannel}
-            selectedChannels={props.selectedChannels}
-            setSelectedChannel={props.setSelectedChannel}
-            render={props.render ? props.render : null}
-          />
-        );
-      })}
+          );
+        })}
     </div>
   );
 };
