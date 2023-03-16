@@ -69,7 +69,7 @@ class MercuryEventHandler implements EventHandlerInterface {
         this.handleOpenChannelRequestEvent(e);
         break;
       case e instanceof Event_ChannelClosed:
-        // this.handleChannelClosedEvent(e);
+        this.handleChannelClosedEvent(e);
         break;
       default:
         console.debug("Event not handled: ", e);
@@ -286,7 +286,7 @@ class MercuryEventHandler implements EventHandlerInterface {
   }
 
   handleChannelClosedEvent(event: Event_ChannelClosed) {
-    console.log("Event Channel Closed!");
+    console.log("Event Channel Closed!", event);
   }
 }
 

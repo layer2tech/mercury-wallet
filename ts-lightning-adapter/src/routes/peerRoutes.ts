@@ -4,8 +4,69 @@ const router = express.Router();
 import db from "../db/db.js";
 import { getLDKClient } from "../LDK/init/importLDK.js";
 import { createNewPeer } from "../LDK/utils/ldk-utils.js";
+import { hexToUint8Array } from "../LDK/utils/utils.js";
 
-router.post("/open-channel", async (req, res) => {
+router.post("/connectToPeer", async (req, res) => {
+  const { pubkey, host, port } = req.body;
+  if (pubkey === undefined || host === undefined || port === undefined) {
+    res.status(500).send("Missing required parameters");
+  } else {
+    // try and connect to a peer, return success if it can, fail if it can't
+    try {
+      const connection = await getLDKClient().connectToPeer(pubkey, host, port);
+      if (connection) {
+        res.status(200).send("Connected to peer");
+      } else {
+        res.status(500).send("Failed to connect to peer");
+      }
+    } catch (e) {
+      if (
+        e instanceof Error &&
+        e.message.includes("already tried to connect to this peer")
+      ) {
+        res.status(500).send("You're already connected to this peer!");
+      } else {
+        res.status(500).send("Error connecting to peer");
+      }
+    }
+  }
+});
+
+router.post("/connectToChannel", async (req, res) => {
+  // connect to a channel without db changes
+  const { pubkey, amount, push_msat, channelId, channelType } = req.body;
+  if (
+    pubkey === undefined ||
+    amount === undefined ||
+    push_msat === undefined ||
+    channelId === undefined ||
+    channelType === undefined
+  ) {
+    res.status(500).send("Missing required parameters");
+  } else {
+    channelType === "Public" ? true : false;
+    try {
+      if (pubkey.length !== 33) {
+        const connection = await getLDKClient().connectToChannel(
+          hexToUint8Array(pubkey),
+          amount,
+          push_msat,
+          channelId,
+          channelType
+        );
+        if (connection) {
+          res.status(200).send("Connected to Channel");
+        } else {
+          res.status(500).send("Failed to connect to Channel");
+        }
+      }
+    } catch (e) {
+      res.status(500).send("Error connecting to channel");
+    }
+  }
+});
+
+router.post("/create-channel", async (req, res) => {
   const {
     amount,
     pubkey,
@@ -15,8 +76,8 @@ router.post("/open-channel", async (req, res) => {
     wallet_name,
     channelType,
     privkey,
-    txid,
-    vout,
+    paid,
+    payment_address,
   } = req.body;
 
   channelType === "Public" ? true : false;
@@ -30,8 +91,8 @@ router.post("/open-channel", async (req, res) => {
     wallet_name,
     channelType,
     privkey,
-    txid,
-    vout
+    paid,
+    payment_address
   );
 
   await getLDKClient().createPeerAndChannel(
@@ -43,10 +104,19 @@ router.post("/open-channel", async (req, res) => {
     wallet_name,
     channelType,
     privkey,
-    txid,
-    vout
+    paid,
+    payment_address
   );
   res.status(200).json({ message: "Connected to peer, Channel created" });
+});
+
+router.post("/open-channel", async (req, res) => {
+  const { amount, paid, txid, vout, addr, pubkey } = req.body;
+
+  console.log(amount, paid, txid, vout, addr, pubkey);
+
+  await getLDKClient().openChannel(amount, paid, txid, vout, addr, pubkey);
+  res.status(200).json({ message: "Channel opened" });
 });
 
 router.post("/newPeer", async (req, res) => {

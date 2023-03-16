@@ -1,5 +1,4 @@
 import React from "react";
-import { useSelector } from 'react-redux';
 import { ProgressBar } from "react-bootstrap";
 import lightningLogo from '../../images/lightning_logo.png';
 import '../coins/coins.css';
@@ -9,24 +8,23 @@ import copy_img from "../../images/icon2.png";
 import { CHANNEL_STATUS } from "../../wallet/channel";
 
 const Channel = (props) => {
+  const selectChannel = (channel_id) => {
+    props.setSelectedChannel(channel_id);
+  };
 
-    const selectChannel = (channel_id) => {
-        props.setSelectedChannel(channel_id);
-    }
-
-    const isSelected = (channel_id) => {
-        let selected = false;
-        if (props.selectedChannels === undefined) {
-          selected = props.selectedChannel === channel_id;
-        } else {
-          props.selectedChannels.forEach((selectedChannel) => {
-            if (selectedChannel === channel_id) {
-              selected = true;
-            }
-          });
+  const isSelected = (channel_id) => {
+    let selected = false;
+    if (props.selectedChannels === undefined) {
+      selected = props.selectedChannel === channel_id;
+    } else {
+      props.selectedChannels.forEach((selectedChannel) => {
+        if (selectedChannel === channel_id) {
+          selected = true;
         }
-        return selected;
-      };
+      });
+    }
+    return selected;
+  };
     
     const copyAddressToClipboard = (event, address) => {
       event.stopPropagation()
@@ -78,31 +76,23 @@ const Channel = (props) => {
                           </div>
                       </div>
                     : <></>}
-
-
-
-                    <b className="CoinFundingTxid">
-                        <img src={lightningLogo} className="sc-address-icon" alt="icon" />
-                        {props.channel_data.id}
-                    </b>
-
                 </div>
             </div>
         </div>
-    )
-}
+  );
+};
 
 export default React.memo(Channel, (prevProps, nextProps) => {
-    if (
-      prevProps.channel_data !== nextProps.channel_data ||
-      prevProps.selectedChannel !== nextProps.selectedChannel ||
-      prevProps.selectedChannels !== nextProps.selectedChannels ||
-      prevProps.render !== nextProps.render
-    ) {
-      return false;
-      // will rerender if these props change
-    } else {
-      return true;
-      // will not rerender
-    }
-  });
+  if (
+    prevProps.channel_data !== nextProps.channel_data ||
+    prevProps.selectedChannel !== nextProps.selectedChannel ||
+    prevProps.selectedChannels !== nextProps.selectedChannels ||
+    prevProps.render !== nextProps.render
+  ) {
+    return false;
+    // will rerender if these props change
+  } else {
+    return true;
+    // will not rerender
+  }
+});
