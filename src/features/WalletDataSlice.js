@@ -2,7 +2,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 import { Wallet, ACTION, STATECOIN_STATUS, Config } from "../wallet";
-import { getFeeInfo, getCoinsInfo, pingElectrum, pingLightning } from "../wallet/mercury/info_api";
+import {
+  getFeeInfo,
+  getCoinsInfo,
+  pingElectrum,
+  pingLightning,
+} from "../wallet/mercury/info_api";
 import { pingServer as pingConductor } from "../wallet/swap/info_api";
 import { pingServer } from "../wallet/mercury/info_api";
 import {
@@ -957,28 +962,32 @@ export const checkChannelWithdrawal = (
 
   // check if channel is chosen
   if (selectedChannels.length === 0) {
-    dispatch(setError({ msg: "Please choose a channel to withdraw." }));
-    return true;
-  }
-  if (!inputAddr) {
-    dispatch(setError({ msg: "Please enter an address to withdraw to." }));
+    dispatch(setError({ msg: "Please choose a channel to close." }));
     return true;
   }
 
+  /*
+  if (!inputAddr) {
+    dispatch(setError({ msg: "Please enter an address to withdraw to." }));
+    return true;
+  }*/
+
   // if total sats sum in all selected channels less than 0.001BTC (100000 sats) then return error
+  /*
   if (callSumChannelAmt(selectedChannels) < 100000) {
     dispatch(
       setError({ msg: "Mininum withdrawal size is 0.001 BTC (100000 sats)." })
     );
     return true;
-  }
+  }*/
 
+  /*
   try {
     bitcoin.address.toOutputScript(inputAddr, wallet.config.network);
   } catch (e) {
     dispatch(setError({ msg: "Invalid Bitcoin address entered." }));
     return true;
-  }
+  }*/
 };
 
 export const checkChannelCreation = (dispatch, amount, nodekey) => {
