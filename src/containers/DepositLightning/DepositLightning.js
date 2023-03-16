@@ -58,6 +58,8 @@ const DepositLightning = (props) => {
   };
 
   const createChannel = async () => {
+    console.log("Create a channel");
+
     const pubkey = inputNodeId.split("@")[0];
     const host = inputNodeId.split("@")[1].split(":")[0];
     const port = inputNodeId.split("@")[1].split(":")[1];
@@ -149,7 +151,7 @@ const DepositLightning = (props) => {
                 <div className="deposit-scan-main-item">
                   <img src={btc_img} alt="icon" />
                   <span>
-                    <b>{fromSatoshi(invoice.amt)}</b> BTC
+                    <b>{invoice.amt}</b> BTC
                   </span>
                 </div>
                 <img src={arrow_img} alt="arrow" />
@@ -197,7 +199,7 @@ const DepositLightning = (props) => {
               inputAddr={inputAmt}
               onChange={(e) => setInputAmt(e.target.value)}
               placeholder="Enter amount"
-              smallTxtMsg="Amount in BTC"
+              smallTxtMsg="Amount in mBTC"
             />
           </div>
           <div>

@@ -301,7 +301,7 @@ export default class LightningClient implements LightningClientInterface {
       // Wait until the peers are connected and have exchanged the initial handshake
       var timer: any;
       timer = setInterval(() => {
-        console.log("Node IDs", this.peerManager.get_peer_node_ids());
+        //console.log("Node IDs", this.peerManager.get_peer_node_ids());
         if (this.peerManager.get_peer_node_ids().length == 1) {
           // && this.peerManager2.get_peer_node_ids().length == 1
 
