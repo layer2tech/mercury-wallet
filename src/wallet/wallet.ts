@@ -678,7 +678,7 @@ export class Wallet {
     // TO DO:
     // Need to map channelInfo from API to correct channel saved in wallet
     // Need an ID saved that matches to ChannelInfo to ChannelFunding
-    channels.map((channel) => {});
+    // channels.map((channel) => {});
   }
 
   async createChannel(amount: number, peer_node: string) {
