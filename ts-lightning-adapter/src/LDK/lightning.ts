@@ -9,7 +9,6 @@ import {
   Filter,
   ChainMonitor,
   KeysManager,
-  KeysInterface,
   UserConfig,
   ChannelHandshakeConfig,
   ChainParameters,
@@ -47,7 +46,6 @@ export default class LightningClient implements LightningClientInterface {
   chainMonitor: ChainMonitor;
   chainWatch: any;
   keysManager: KeysManager;
-  keysInterface: KeysInterface;
   config: UserConfig;
   channelHandshakeConfig: ChannelHandshakeConfig;
   params: ChainParameters;
@@ -57,8 +55,7 @@ export default class LightningClient implements LightningClientInterface {
   currentConnections: any[] = [];
   blockHeight: number | undefined;
   latestBlockHeader: Uint8Array | undefined;
-  netHandler: any[] = [];
-  savedPeerDetails: any[] = [];
+  netHandler: NodeLDKNet;
 
   constructor(props: LightningClientInterface) {
     this.feeEstimator = props.feeEstimator;
@@ -76,12 +73,12 @@ export default class LightningClient implements LightningClientInterface {
     this.chainMonitor = props.chainMonitor;
     this.chainWatch = props.chainWatch;
     this.keysManager = props.keysManager;
-    this.keysInterface = props.keysInterface;
     this.config = props.config;
     this.channelHandshakeConfig = props.channelHandshakeConfig;
     this.params = props.params;
     this.channelManager = props.channelManager;
     this.peerManager = props.peerManager;
+    this.netHandler = new NodeLDKNet(this.peerManager);
   }
 
   /*
@@ -229,6 +226,8 @@ export default class LightningClient implements LightningClientInterface {
     channelId: number,
     channelType: boolean
   ) {
+    console.log("pubkey found:", pubkey);
+
     await this.setBlockHeight();
     await this.setLatestBlockHeader(this.blockHeight);
 
@@ -274,8 +273,8 @@ export default class LightningClient implements LightningClientInterface {
     }
 
     console.log("Channel Create Response: ", channelCreateResponse);
-
     // Should return Ok response to display to user
+    return true;
   }
 
   /**
@@ -286,61 +285,36 @@ export default class LightningClient implements LightningClientInterface {
   async create_socket(peerDetails: PeerDetails) {
     // Create Socket for outbound connection: check NodeNet LDK docs for inbound
     const { pubkey, host, port } = peerDetails;
-    console.log("savedPeerDetails:", this.savedPeerDetails);
-    // First check if it exists in savedPeerDetails, if it does don't connect through here.
-    let isPeerDetailsSaved = false;
-    for (let i = 0; i < this.savedPeerDetails.length; i++) {
-      if (
-        this.savedPeerDetails[i].pubkey === uint8ArrayToHexString(pubkey) &&
-        this.savedPeerDetails[i].host === host &&
-        this.savedPeerDetails[i].port === port
-      ) {
-        isPeerDetailsSaved = true;
-        break;
-      }
+
+    console.log("net handler looks like this:", this.netHandler);
+
+    try {
+      console.log("Peer Details: ", peerDetails);
+      await this.netHandler.connect_peer(host, port, pubkey);
+    } catch (e) {
+      console.log("Error connecting to peer: ", e);
+      console.log("Peer connection failed");
+      throw e; // or handle the error in a different way
     }
-    if (!isPeerDetailsSaved) {
-      this.savedPeerDetails.push({
-        pubkey: uint8ArrayToHexString(pubkey),
-        host,
-        port,
-      });
 
-      this.netHandler[this.netHandler.length] = new NodeLDKNet(
-        this.peerManager
-      );
-      console.log("net handler looks like this:", this.netHandler);
+    await new Promise<void>((resolve) => {
+      // Wait until the peers are connected and have exchanged the initial handshake
+      var timer: any;
+      timer = setInterval(() => {
+        //console.log("Node IDs", this.peerManager.get_peer_node_ids());
+        if (this.peerManager.get_peer_node_ids().length == 1) {
+          // && this.peerManager2.get_peer_node_ids().length == 1
 
-      try {
-        console.log("Peer Details: ", peerDetails);
-        await this.netHandler[this.netHandler.length - 1].connect_peer(
-          host,
-          port,
-          pubkey
-        );
-      } catch (e) {
-        console.log("Error connecting to peer: ", e);
-        console.log("Peer connection failed");
-        throw e; // or handle the error in a different way
-      }
+          console.log("Length is Equal to 1");
+          resolve();
+          clearInterval(timer);
+        }
+      }, 500);
+    });
+  }
 
-      await new Promise<void>((resolve) => {
-        // Wait until the peers are connected and have exchanged the initial handshake
-        var timer: any;
-        timer = setInterval(() => {
-          console.log("Node IDs", this.peerManager.get_peer_node_ids());
-          if (this.peerManager.get_peer_node_ids().length == 1) {
-            // && this.peerManager2.get_peer_node_ids().length == 1
-
-            console.log("Length is Equal to 1");
-            resolve();
-            clearInterval(timer);
-          }
-        }, 500);
-      });
-    } else {
-      throw new Error("We've already tried to connect to this peer");
-    }
+  getPeerManager(): PeerManager {
+    return this.peerManager;
   }
 
   getChannels() {
@@ -395,6 +369,8 @@ export default class LightningClient implements LightningClientInterface {
   }
 
   async processPendingEvents() {
+    this.channelManager.timer_tick_occurred();
+
     this.channelManager
       .as_EventsProvider()
       .process_pending_events(this.eventHandler);

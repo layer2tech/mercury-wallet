@@ -51,6 +51,8 @@ router.get("/liveChannels", async function (req, res) {
       fundingTxo: channels[0].get_funding_txo().toString(),
       channelType: channels[0].get_channel_type().toString(),
     });
+  } else {
+    res.json([]);
   }
 });
 
@@ -63,7 +65,6 @@ router.get("/allChannels", async function (req, res) {
     res.json(rows);
   });
 });
-
 
 // load channels by wallet name e.g. -> localhost:3003/channel/loadChannels/vLDK
 router.get("/loadChannels/:wallet_name", (req, res) => {
@@ -87,45 +88,6 @@ router.get("/loadChannels/:wallet_name", (req, res) => {
     }
   });
 });
-
-// Not needed can be removed
-// router.post("/createChannel", async (req, res) => {
-//   // use LDK.createChannel and insert into db to persist it
-
-//   const {
-//     pubkey,
-//     name,
-//     amount,
-//     push_msat,
-//     config_id,
-//     wallet_name,
-//     peer_id,
-//     privkey,
-//     txid,
-//     vout,
-//     paid,
-//     payment_address,
-//   } = req.body;
-//   try {
-//     const result = await createNewChannel(
-//       pubkey,
-//       name,
-//       amount,
-//       push_msat,
-//       config_id,
-//       wallet_name,
-//       peer_id,
-//       privkey, // Private key from txid address
-//       txid, // txid of input for channel
-//       vout, // index of input,
-//       paid, // has it been paid?
-//       payment_address // the payment address to fund channel
-//     );
-//     res.status(result.status).json(result);
-//   } catch (error: any) {
-//     res.status(error.status).json(error);
-//   }
-// });
 
 // This updates the name of a channel by id
 router.put("/updateChannelName/:id", (req, res) => {
