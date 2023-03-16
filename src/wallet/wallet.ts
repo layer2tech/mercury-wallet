@@ -20,7 +20,7 @@ import {
 } from "./";
 import { ElectrsClient } from "./electrs";
 import { ElectrsLocalClient } from "./electrs_local";
-
+const crypto = require("crypto");
 import {
   txCPFPBuild,
   FEE,
@@ -719,7 +719,15 @@ export class Wallet {
     );
 
     let bip32 = this.getBIP32forBtcAddress(addr);
-    let privkey = bip32.toWIF();
+    const privkey = bip32.toWIF();
+
+    console.log(
+      "*********************** Private key creation *****************************"
+    );
+    console.log(privkey);
+    console.log(
+      "**************************************************************************"
+    );
 
     this.lightning_client.createChannel({
       amount: amount,
