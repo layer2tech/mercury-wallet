@@ -52,26 +52,40 @@ const ChannelDetails = (props) => {
         icon={lightningLogo}
       ></PageHeader>
 
-      <div className="Body small">
-        <div className="Collapse">
-          <RadioButton connection="Peer" checked={true} condition={condition} />
-          {peers.find((peer) => peer.id === channel.peer_id)
-            ? "pubkey:" +
-              peers.find((peer) => peer.id === channel.peer_id).pubkey
-            : null}
+      <div className="Body">
+        <div className="PeerDetailsContainer">
+          <div className="RadioButtonContainer">
+            <RadioButton
+              connection="Peer"
+              checked={true}
+              condition={condition}
+            />
+          </div>
 
-          {peers.find((peer) => peer.id === channel.peer_id) ? (
-            <CopiedButton
-              handleCopy={(event) =>
-                copyAddressToClipboard(
-                  event,
-                  peers.find((peer) => peer.id === channel.peer_id).pubkey
-                )
-              }
-            >
-              <img type="button" src={copy_img} alt="icon" />
-            </CopiedButton>
-          ) : null}
+          <div className="PeerContainer">
+            <div className="PeerContainerLeft">
+              <span className="long">
+                {peers.find((peer) => peer.id === channel.peer_id)
+                  ? "pubkey: " +
+                    peers.find((peer) => peer.id === channel.peer_id).pubkey
+                  : null}
+              </span>
+            </div>
+            <div className="PeerContainerRight">
+              {peers.find((peer) => peer.id === channel.peer_id) ? (
+                <CopiedButton
+                  handleCopy={(event) =>
+                    copyAddressToClipboard(
+                      event,
+                      peers.find((peer) => peer.id === channel.peer_id).pubkey
+                    )
+                  }
+                >
+                  <img type="button" src={copy_img} alt="icon" />
+                </CopiedButton>
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
 
