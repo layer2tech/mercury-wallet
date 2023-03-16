@@ -59,6 +59,19 @@ const ChannelDetails = (props) => {
             ? "pubkey:" +
               peers.find((peer) => peer.id === channel.peer_id).pubkey
             : null}
+
+          {peers.find((peer) => peer.id === channel.peer_id) ? (
+            <CopiedButton
+              handleCopy={(event) =>
+                copyAddressToClipboard(
+                  event,
+                  peers.find((peer) => peer.id === channel.peer_id).pubkey
+                )
+              }
+            >
+              <img type="button" src={copy_img} alt="icon" />
+            </CopiedButton>
+          ) : null}
         </div>
       </div>
 
