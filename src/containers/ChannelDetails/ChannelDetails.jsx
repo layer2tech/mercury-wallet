@@ -146,8 +146,8 @@ const ChannelDetails = (props) => {
             </div>
           </div>
           <span className="deposit-text">
-            Create funding transaction by sending {channel.amount} BTC to the
-            above address in a SINGLE transaction
+            Create funding transaction by sending {fromSatoshi(channel.amount)}{" "}
+            BTC to the above address in a SINGLE transaction
           </span>
         </div>
       )}
