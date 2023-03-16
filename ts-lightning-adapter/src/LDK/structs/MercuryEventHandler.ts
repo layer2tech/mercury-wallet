@@ -24,18 +24,19 @@ import {
 } from "../utils/utils.js";
 import { ECPairFactory } from "ecpair";
 import * as ecc from "tiny-secp256k1";
+import crypto from "crypto";
 
 const ECPair = ECPairFactory(ecc);
 
 class MercuryEventHandler implements EventHandlerInterface {
   channelManager: ChannelManager;
-  privateKey: string | null;
+  privateKey: Buffer;
   txid: string | null;
   vout: number | null;
 
   constructor(_channelManager: ChannelManager) {
     this.channelManager = _channelManager;
-    this.privateKey = null;
+    this.privateKey = crypto.randomBytes(32);
     this.txid = null;
     this.vout = null;
   }
@@ -80,13 +81,13 @@ class MercuryEventHandler implements EventHandlerInterface {
     this.channelManager = channelManager;
   }
 
-  setInputTx(privateKey: string, txid: string, vout: number) {
+  setInputTx(privateKey: Buffer, txid: string, vout: number) {
     this.privateKey = privateKey;
     this.vout = vout;
     this.txid = txid;
   }
   resetInputTx() {
-    this.privateKey = null;
+    //this.privateKey = null;
     this.vout = null;
     this.txid = null;
   }
@@ -150,16 +151,19 @@ class MercuryEventHandler implements EventHandlerInterface {
 
     const testnet = bitcoin.networks.testnet;
 
+    /*
     let privateKeyArray;
     let privateKey;
     if (this.privateKey) privateKeyArray = hexToUint8Array(this.privateKey);
     if (privateKeyArray) {
       privateKey = Buffer.from(privateKeyArray);
-    }
+    }*/
 
     let electrum_wallet;
-    if (privateKey) {
-      electrum_wallet = ECPair.fromPrivateKey(privateKey);
+    if (this.privateKey) {
+      console.log("Private key found ----->", this.privateKey);
+
+      electrum_wallet = ECPair.fromPrivateKey(this.privateKey);
     }
 
     if (!electrum_wallet) {

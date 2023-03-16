@@ -107,7 +107,7 @@ export default class LightningClient implements LightningClientInterface {
     this.txdata.push(txData);
   }
 
-  setInputTx(privateKey: string, txid: string, vout: number) {
+  setInputTx(privateKey: Buffer, txid: string, vout: number) {
     let mercuryHandler = new MercuryEventHandler(this.channelManager);
     mercuryHandler.setInputTx(privateKey, txid, vout);
     this.eventHandler = EventHandler.new_impl(mercuryHandler);
@@ -180,7 +180,7 @@ export default class LightningClient implements LightningClientInterface {
     try {
       const result = await insertTxData(amount, paid, txid, vout, addr);
       console.log("Input Tx .");
-      this.setInputTx(result.priv_key, txid, vout);
+      this.setInputTx(hexToUint8Array(result.priv_key), txid, vout);
       console.log("Input Tx √");
 
       let pubkey = hexToUint8Array(pubkeyHex);
