@@ -1,13 +1,59 @@
 // handle all peer logic on server
 import express from "express";
+import {
+  PeerManager,
+  TwoTuple_PublicKeyCOption_NetAddressZZ,
+} from "lightningdevkit";
 const router = express.Router();
 import db from "../db/db.js";
 import { getLDKClient } from "../LDK/init/importLDK.js";
 import { createNewPeer } from "../LDK/utils/ldk-utils.js";
-import { hexToUint8Array } from "../LDK/utils/utils.js";
+import { hexToUint8Array, uint8ArrayToHexString } from "../LDK/utils/utils.js";
 
+router.get("/livePeers", async (req, res) => {
+  let peerManager: PeerManager = await getLDKClient().getPeerManager();
+  if (peerManager) {
+    console.log("************************************");
+    console.log("************************************");
+    console.log("************************************");
+    let peer_node_ids: TwoTuple_PublicKeyCOption_NetAddressZZ[] =
+      peerManager.get_peer_node_ids();
+
+    let peer_ids = [];
+
+    console.log(peer_node_ids.length);
+
+    for (var i = 0; i < peer_node_ids.length; i++) {
+      console.log("get a ->", uint8ArrayToHexString(peer_node_ids[i]?.get_a()));
+      peer_ids.push({
+        id: i + 1,
+        pubkey: uint8ArrayToHexString(peer_node_ids[i]?.get_a()),
+      });
+    }
+    console.log("************************************");
+    console.log("************************************");
+    console.log("************************************");
+
+    res.status(200).json(peer_ids);
+  } else {
+    res.status(500).json("Failed to get peermanager");
+  }
+});
+
+let count = 1;
 router.post("/connectToPeer", async (req, res) => {
   const { pubkey, host, port } = req.body;
+
+  console.log("//////////////////////////////////////////////////////");
+  console.log("//////////////////////////////////////////////////////");
+  console.log("//////////////////////////////////////////////////////");
+  console.log("an attempt to connect to peer has been made", count);
+  count++;
+  console.log("values found:", pubkey);
+  console.log("//////////////////////////////////////////////////////");
+  console.log("//////////////////////////////////////////////////////");
+  console.log("//////////////////////////////////////////////////////");
+
   if (pubkey === undefined || host === undefined || port === undefined) {
     res.status(500).send("Missing required parameters");
   } else {

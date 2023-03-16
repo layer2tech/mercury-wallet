@@ -1,13 +1,16 @@
 import React from "react";
 import { ProgressBar } from "react-bootstrap";
-import lightningLogo from '../../images/lightning_logo.png';
-import '../coins/coins.css';
-import './Channel.css';
+import lightningLogo from "../../images/lightning_logo.png";
+import "../coins/coins.css";
+import "./Channel.css";
+import { Link, useHistory } from "react-router-dom";
 import { CopiedButton } from '../';
 import copy_img from "../../images/icon2.png";
 import { CHANNEL_STATUS } from "../../wallet/channel";
 
 const Channel = (props) => {
+  const history = useHistory();
+
   const selectChannel = (channel_id) => {
     props.setSelectedChannel(channel_id);
   };
@@ -31,28 +34,34 @@ const Channel = (props) => {
       navigator.clipboard.writeText(address);
     }
 
-    return(
-        <div>
-            <div 
-                className={`coin-item ${isSelected(props.channel_data.id) ? "selected" : ""}`}
-                onClick={() => {
-                    selectChannel(props.channel_data.id);
-                }}
-                >
+  return (
+    <div>
+      <div
+        className={`coin-item ${
+          isSelected(props.channel_data.id) ? "selected" : ""
+        }`}
+        onClick={() => {
+          console.log("clicked on a channel..", props.channel_data);
+          selectChannel(props.channel_data.id);
 
-
-                <div className = "CoinPanel">
-
-
-                    <div className="CoinAmount-block">
-                        <img src={lightningLogo} alt="icon" className="privacy" />
-                        <span className="sub">
-                                <b className = "CoinAmount" > {props.channel_data.amount} Sats</b>
-                                    <div className="scoreAmount">
-                                        Node Alias
-                                    </div>
-                        </span>
-                    </div>
+          console.log("Is main page?");
+          if (props.isMainPage) {
+            console.log("It is a main page...");
+            history.push({
+              pathname: "/channel_details",
+              state: { props },
+            });
+          }
+        }}
+      >
+        <div className="CoinPanel">
+          <div className="CoinAmount-block">
+            <img src={lightningLogo} alt="icon" className="privacy" />
+            <span className="sub">
+              <b className="CoinAmount"> {props.channel_data.amount} Sats</b>
+              <div className="scoreAmount">Node Alias</div>
+            </span>
+          </div>
 
                     {(props.channel_data.status === CHANNEL_STATUS.INITIALISED) ?
                       <div className="progress_bar" >

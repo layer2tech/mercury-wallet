@@ -23,6 +23,7 @@ import {
   ChannelMonitor,
   DefaultRouter,
   LockableScore,
+  TwoTuple_TxidBlockHashZ,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -201,6 +202,16 @@ function setUpLDK(electrum: string = "prod") {
   const channelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
 
   // Step 12: Sync ChannelMonitors and ChannelManager to chain tip
+  let relevent_txids_1 = channelManager?.as_Confirm().get_relevant_txids();
+  let relevent_txids_2 = chainMonitor?.as_Confirm().get_relevant_txids();
+  let merged_txids: TwoTuple_TxidBlockHashZ[] = [];
+  if (relevent_txids_1 && Symbol.iterator in Object(relevent_txids_1)) {
+    merged_txids.push(...relevent_txids_1);
+  }
+  if (relevent_txids_2 && Symbol.iterator in Object(relevent_txids_2)) {
+    merged_txids.push(...relevent_txids_2);
+  }
+
   // needs to check on an interval
 
   // Step 13: Give ChannelMonitors to ChainMonitor

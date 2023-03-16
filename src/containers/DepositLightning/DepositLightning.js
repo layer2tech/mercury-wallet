@@ -168,7 +168,7 @@ const DepositLightning = (props) => {
                 <div className="deposit-scan-main-item">
                   <img src={btc_img} alt="icon" />
                   <span>
-                    <b>{invoice.amt}</b> BTC
+                    <b>{fromSatoshi(invoice.amt)}</b> BTC
                   </span>
                 </div>
                 <img src={arrow_img} alt="arrow" />

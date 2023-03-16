@@ -17,12 +17,13 @@ class TorClient {
     console.log("Get Block Height...");
     let res;
     try {
-      res = await TorClient.get(`${TOR_ENDPOINT}${GET_ROUTE.BLOCKS_TIP_HEIGHT}`)
-      
-      res = res && res.data
-      
-    } catch(e){
-      console.log('Error Getting Block Height')
+      res = await TorClient.get(
+        `${TOR_ENDPOINT}${GET_ROUTE.BLOCKS_TIP_HEIGHT}`
+      );
+
+      res = res && res.data;
+    } catch (e) {
+      console.log("Error Getting Block Height");
     }
     if (res) {
       return res;
@@ -32,15 +33,14 @@ class TorClient {
   async getLatestBlockHeader(height: number) {
     let currentBlockHash;
     try {
+      console.log("Get latest block header...............");
       console.log("HEIGHT: ", height);
-      let res = (
-        await TorClient.get(
-          `${TOR_ENDPOINT}${GET_ROUTE.BLOCKS_TIP_HASH}`
-        )
+      console.log(`${TOR_ENDPOINT}${GET_ROUTE.BLOCKS_TIP_HASH}`);
+      let res = await TorClient.get(
+        `${TOR_ENDPOINT}${GET_ROUTE.BLOCKS_TIP_HASH}`
       );
 
       currentBlockHash = res && res.data;
-
     } catch (e) {
       console.log("Error Getting Current Block Hash");
     }
@@ -49,13 +49,11 @@ class TorClient {
     console.log("Get Latest Block Header...");
     let res;
     try {
-      res = (
-        await TorClient.get(
-          `${TOR_ENDPOINT}/electrs/block/${currentBlockHash}/header`
-        )
+      res = await TorClient.get(
+        `${TOR_ENDPOINT}/electrs/block/${currentBlockHash}/header`
       );
 
-      res = res && res.data
+      res = res && res.data;
     } catch (e) {
       console.log("Error in getting header: ", e);
     }
@@ -69,23 +67,17 @@ class TorClient {
   }
 
   async getTxIdData(txid: string) {
-    let res
-    try{
-        res = (
-          await TorClient.get(`${TOR_ENDPOINT}/tx/${txid}`)
-        );
-        if (res && (res.data as { blockheight: number; hex: string })) {
-
-            const result = res.data;
-            return [result.blockheight, result.hex];
-
-        }
-    } catch (e: any){
-        throw new Error(e)
+    let res;
+    try {
+      res = await TorClient.get(`${TOR_ENDPOINT}/tx/${txid}`);
+      if (res && (res.data as { blockheight: number; hex: string })) {
+        const result = res.data;
+        return [result.blockheight, result.hex];
+      }
+    } catch (e: any) {
+      throw new Error(e);
     }
   }
-
-
 
   static async get(endpoint: string, timeout_ms = TIMEOUT) {
     const axios = (await import("axios")).default;
@@ -98,10 +90,9 @@ class TorClient {
       timeout: timeout_ms,
     };
 
-    return await axios(config)
-      .catch((error) => {
-        console.log("ERROR: ", error);
-      });
+    return await axios(config).catch((error) => {
+      console.log("ERROR: ", error);
+    });
   }
 
   static async post(endpoint: string, timeout_ms = TIMEOUT) {
