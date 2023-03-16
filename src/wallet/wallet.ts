@@ -824,6 +824,8 @@ export class Wallet {
     this.active = state;
   }
 
+  connectToPeer = async (pubkey: string, host: string, port: number) => {};
+
   // Load wallet JSON from store
   static async load(
     wallet_name: string,
@@ -835,10 +837,80 @@ export class Wallet {
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+
     let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
+    let peerInfo = await wallet.lightning_client.getPeers();
+
+    let mergedInfo = channelsInfo.map((channel) => {
+      let peer = peerInfo.find((peer: any) => peer.id === channel.peer_id);
+      return {
+        ...channel,
+        host: peer.host,
+        port: peer.port,
+        pubkey: peer.pubkey,
+      };
+    });
+
+    async function connectToPeers() {
+      // Connect to peer on an interval loop
+      console.log("reconnecting to peer...");
+      console.log("mergedInfo.length:", mergedInfo.length);
+      // for every channel reconnect to its peer
+      for (var i = 0; i < mergedInfo.length; i++) {
+        let pubkey = mergedInfo[i].pubkey;
+        let host = mergedInfo[i].host;
+        let port = mergedInfo[i].port;
+
+        console.log("try to connect to pubkey->", pubkey);
+
+        try {
+          const response = await axios.post(
+            "http://localhost:3003/peer/connectToPeer",
+            {
+              pubkey,
+              host,
+              port,
+            }
+          );
+        } catch (error: any) {
+          console.log(error.response.data); // "Error connecting to peer"
+        }
+      }
+    }
+
+    // Call the function once immediately
+    connectToPeers();
+
+    // Regularly reconnect to peers every 60 seconds
+    setInterval(connectToPeers, 60000);
+
+    /* -- this is incorrect, channels need to be reloaded with chainmonitor stage
+      if (response.status === 200) {
+        console.log(response.data); // "Connected to peer"
+
+        let amount = mergedInfo[i].amount;
+        let push_msat = mergedInfo[i].push_msat;
+        let channelId = mergedInfo[i].id;
+        let channelType = mergedInfo[i].public;
+
+        try {
+          // now connect to its channel
+          const response2 = await axios.post(
+            "http://localhost:3003/peer/connectToChannel",
+            { pubkey, amount, push_msat, channelId, channelType }
+          );
+          if (response2.status === 200) {
+            console.log("response2 success", response2.data);
+          }
+        } catch (e) {
+          console.log("failed loading channels");
+        }
+      } else {
+        console.log(response.data); // "Failed to connect to peer"
+    }*/
+
     wallet.saveChannels(channelsInfo);
     wallet.setActive();
-
     wallet.nodeId = await wallet.lightning_client.getNodeId();
 
     return wallet;
