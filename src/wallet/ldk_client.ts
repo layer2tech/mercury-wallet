@@ -72,6 +72,14 @@ export class LDKClient {
     }
   }
 
+  async sendPayment(body: any) {
+    try {
+      let res = await LDKClient.post("/send-payment", body);
+    } catch (e: any) {
+      throw new Error("Error in sending payment");
+    }
+  }
+
   static async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
     const url =
       LIGHTNING_URL +
