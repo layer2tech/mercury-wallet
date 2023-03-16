@@ -50,10 +50,10 @@ const ChannelList = (props) => {
     };
   }, []);
 
-  const updateChannelsInfo = async () => {
-    let channelsLoaded;
+  const updateChannelsInfo = async () => {    
     let lightning_ping_ms_new = await pingLightning();
     dispatch(setPingLightningMs(lightning_ping_ms_new));
+    let channelsLoaded = await callGetChannels(getWalletName());
     if (JSON.stringify(channelsLoaded) !== JSON.stringify(channels)) {
       setChannels(channelsLoaded);
       dispatch(
