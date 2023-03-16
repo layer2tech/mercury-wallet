@@ -6,8 +6,8 @@ import { handleErrors } from "../error";
 import { Channel, ChannelInfo } from "./channel";
 
 export const LIGHTNING_GET_ROUTE = {
-  PEER_LIST: "/lightning/peers",
-  CHANNEL_LIST: "/channel/loadChannels",
+  PEER_LIST: "peer/peers",
+  CHANNEL_LIST: "channel/loadChannels",
   NODE_ID: "channel/nodeId",
 };
 Object.freeze(LIGHTNING_GET_ROUTE);
@@ -33,6 +33,16 @@ export class LDKClient {
     return channels;
   }
 
+  async getPeers(): Promise<any> {
+    let peerInfo: any;
+    try {
+      peerInfo = await LDKClient.get(LIGHTNING_GET_ROUTE.PEER_LIST, {});
+    } catch (e: any) {
+      throw new Error("GET - Peers Error: ", e);
+    }
+    return peerInfo;
+  }
+
   async getNodeId(): Promise<any> {
     let nodeId = 0;
     try {
@@ -48,7 +58,7 @@ export class LDKClient {
 
   async createChannel(body: any) {
     try {
-      let res = await LDKClient.post("/create-channel", body);
+      let res = await LDKClient.post("peer/create-channel", body);
       return res;
     } catch (e: any) {
       throw new Error("Error in channel creation");
@@ -57,7 +67,7 @@ export class LDKClient {
 
   async openChannel(body: any) {
     try {
-      let res = await LDKClient.post("/open-channel", body);
+      let res = await LDKClient.post("peer/open-channel", body);
       return res;
     } catch (e: any) {
       throw new Error("Error in opening channel");

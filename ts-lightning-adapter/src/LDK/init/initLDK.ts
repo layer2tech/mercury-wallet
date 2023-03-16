@@ -19,6 +19,11 @@ import {
   Option_FilterZ,
   ProbabilisticScorer,
   ProbabilisticScoringParameters,
+  Router,
+  ChannelMonitor,
+  DefaultRouter,
+  LockableScore,
+  TwoTuple_TxidBlockHashZ,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -34,13 +39,14 @@ import LightningClientInterface from "../types/LightningClientInterface.js";
 import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
 import LightningClient from "../lightning.js";
 import TorClient from "../bitcoin_clients/TorClient.mjs";
+import MercuryRouter from "../structs/MercuryRouter.js";
 
 export default function initLDK(electrum: string = "prod") {
   const initLDK = setUpLDK(electrum);
   if (initLDK) {
     return new LightningClient(initLDK);
   }
-  return;
+  throw Error("Couldn't initialize LDK");
 }
 
 function setUpLDK(electrum: string = "prod") {
@@ -118,16 +124,25 @@ function setUpLDK(electrum: string = "prod") {
     seed = fs.readFileSync(keys_seed_path);
   }
   const keysManager = KeysManager.constructor_new(seed, BigInt(42), 42);
-  const keysInterface = keysManager.as_KeysInterface();
+
+  let entropy_source = keysManager.as_EntropySource();
+  let node_signer = keysManager.as_NodeSigner();
+  let signer_provider = keysManager.as_SignerProvider();
 
   // Step 7: Read ChannelMonitor state from disk
+  //let mut channelmonitors =
+  // persister
+  //  .read_channelmonitors(keys_manager.clone(), keys_manager.clone())
+  //  .unwrap();
+  // ChannelMonitor
+  // ChainMonitor
 
   // Step 8: Poll for the best chain tip, which may be used by the channel manager & spv client
 
   // Step 9: Initialize Network Graph, routing ProbabilisticScorer
-  const genesisBlock = BestBlock.constructor_from_genesis(network);
+  const genesisBlock = BestBlock.constructor_from_network(network);
   const genesisBlockHash = genesisBlock.block_hash();
-  const networkGraph = NetworkGraph.constructor_new(genesisBlockHash, logger);
+  const networkGraph = NetworkGraph.constructor_new(network, logger);
 
   const ldk_scorer_dir = "./.scorer/";
   if (!fs.existsSync(ldk_scorer_dir)) {
@@ -140,7 +155,21 @@ function setUpLDK(electrum: string = "prod") {
     logger
   );
 
+  let locked_score = LockableScore.new_impl({
+    lock() {
+      return scorer.as_Score();
+    },
+  });
+
   // Step 10: Create Router
+  let default_router = DefaultRouter.constructor_new(
+    networkGraph,
+    logger,
+    seed,
+    locked_score
+  );
+
+  let router = default_router.as_Router();
 
   // Step 11: Initialize the ChannelManager
   const config = UserConfig.constructor_default();
@@ -160,17 +189,34 @@ function setUpLDK(electrum: string = "prod") {
       feeEstimator,
       chainWatch,
       txBroadcaster,
+      router,
       logger,
-      keysInterface,
+      entropy_source,
+      node_signer,
+      signer_provider,
       config,
       params
     );
   }
+
   const channelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
 
   // Step 12: Sync ChannelMonitors and ChannelManager to chain tip
+  let relevent_txids_1 = channelManager?.as_Confirm().get_relevant_txids();
+  let relevent_txids_2 = chainMonitor?.as_Confirm().get_relevant_txids();
+  let merged_txids: TwoTuple_TxidBlockHashZ[] = [];
+  if (relevent_txids_1 && Symbol.iterator in Object(relevent_txids_1)) {
+    merged_txids.push(...relevent_txids_1);
+  }
+  if (relevent_txids_2 && Symbol.iterator in Object(relevent_txids_2)) {
+    merged_txids.push(...relevent_txids_2);
+  }
+
+  // needs to check on an interval
 
   // Step 13: Give ChannelMonitors to ChainMonitor
+  //ChannelMonitor
+  //ChainMonitor
 
   // Step 14: Optional: Initialize the P2PGossipSync
 
@@ -188,23 +234,25 @@ function setUpLDK(electrum: string = "prod") {
   const nodeSecret = new Uint8Array(32);
   for (var i = 0; i < 32; i++) nodeSecret[i] = 42;
   const ephemeralRandomData = new Uint8Array(32);
+
   const peerManager =
     channelMessageHandler &&
     PeerManager.constructor_new(
       channelMessageHandler,
       routingMessageHandler,
       onionMessageHandler,
-      nodeSecret,
       Date.now(),
       ephemeralRandomData,
       logger,
-      customMessageHandler
+      customMessageHandler,
+      node_signer
     );
 
   // ## Running LDK
   // Step 16: Initialize networking
 
   // Step 17: Connect and Disconnect Blocks
+  // check on interval
 
   // Step 18: Handle LDK Events
   let eventHandler;
@@ -214,16 +262,19 @@ function setUpLDK(electrum: string = "prod") {
   }
 
   // Step 19: Persist ChannelManager and NetworkGraph
+  // channelManager.write()
 
   // ************************************************************************************************
   // Step 20: Background Processing
 
   // Regularly reconnect to channel peers.
+  // peerManager?.timer_tick_occurred() - use this, checks for disconnected peers
 
   // Regularly broadcast our node_announcement. This is only required (or possible) if we have
   // some public channels, and is only useful if we have public listen address(es) to announce.
   // In a production environment, this should occur only after the announcement of new channels
   // to avoid churn in the global network graph.
+  // peerManager?.broadcast_node_announcement()
 
   // ************************************************************************************************
 
@@ -231,7 +282,7 @@ function setUpLDK(electrum: string = "prod") {
   if (chainMonitor && channelManager && peerManager && eventHandler) {
     const LDKInit: LightningClientInterface = {
       feeEstimator: feeEstimator,
-      electrumClient: electrumClient, // Add this
+      electrumClient: electrumClient,
       logger: logger,
       txBroadcasted: txBroadcasted,
       txBroadcaster: txBroadcaster,
@@ -245,7 +296,6 @@ function setUpLDK(electrum: string = "prod") {
       chainMonitor: chainMonitor,
       chainWatch: chainWatch,
       keysManager: keysManager,
-      keysInterface: keysInterface,
       config: config,
       channelHandshakeConfig: channelHandshakeConfig,
       params: params,

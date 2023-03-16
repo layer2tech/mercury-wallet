@@ -29,6 +29,7 @@ import {
 } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
 import closeIcon from "../../images/close-icon.png";
+import { CHANNEL_STATUS } from "../../wallet/channel";
 import InvoiceOptions from "../../components/InvoiceOptions/InvoiceOptions";
 
 export const CHANNEL_TYPE = {
@@ -39,13 +40,34 @@ export const CHANNEL_TYPE = {
 const DepositLightning = (props) => {
   const dispatch = useDispatch();
 
+  const [channels, setChannels] = useState(getChannels());
   const [inputAmt, setInputAmt] = useState("");
   const [inputNodeId, setInputNodeId] = useState("");
-  const [invoice, setInvoice] = useState({});
+  
   const [loading, setLoading] = useState(false);
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
-  const [channels, setChannels] = useState(getChannels());
-  const [pubkey, setPubkey] = useState('');
+
+  const mBTCtoBTC = (mBTC) => {
+    return mBTC * ( 10**-3 );
+  }
+
+  const satsToBTC = (sats) => {
+    return sats * ( 10**-8 );
+  }
+
+  const getRecentInvoice = () => {
+    const channel = channels.find(channel => channel.status === CHANNEL_STATUS.INITIALISED);
+    let recentInvoice = {};
+    if (channel) {
+      recentInvoice = {
+        amt: satsToBTC(channel.amount),
+        addr: channel.funding.addr,
+      };
+    }
+    return recentInvoice;
+  }
+
+  const [invoice, setInvoice] = useState(getRecentInvoice());
 
   const IsChannelAlreadyExist = (pubKey) => {
     return channels.some((channel) => {
@@ -54,6 +76,8 @@ const DepositLightning = (props) => {
   };
 
   const createChannel = async () => {
+    console.log("Create a channel");
+
     const pubkey = inputNodeId.split("@")[0];
     const host = inputNodeId.split("@")[1].split(":")[0];
     const port = inputNodeId.split("@")[1].split(":")[1];
@@ -70,11 +94,14 @@ const DepositLightning = (props) => {
     console.log("checking connection with peer first...");
     // check connection with peer first.
     try {
-      const response = await axios.post("http://localhost:3003/connectToPeer", {
-        pubkey,
-        host,
-        port,
-      });
+      const response = await axios.post(
+        "http://localhost:3003/peer/connectToPeer",
+        {
+          pubkey,
+          host,
+          port,
+        }
+      );
 
       if (response.status === 200) {
         console.log("Successfully connected to peer");
@@ -95,10 +122,6 @@ const DepositLightning = (props) => {
     } catch (error) {
       dispatch(setError({ msg: "Error: " + error.response.data }));
     }
-  };
-
-  const mBTCtoBTC = (mBTC) => {
-    return mBTC * 10 ** -3; // TODO: Change back to btc
   };
 
   const copyAddressToClipboard = (event, address) => {
@@ -191,7 +214,7 @@ const DepositLightning = (props) => {
               inputAddr={inputAmt}
               onChange={(e) => setInputAmt(e.target.value)}
               placeholder="Enter amount"
-              smallTxtMsg="Amount in BTC"
+              smallTxtMsg="Amount in mBTC"
             />
           </div>
           <div>

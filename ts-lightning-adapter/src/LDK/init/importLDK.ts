@@ -1,11 +1,16 @@
 import LightningClient from "../lightning.js";
 import initLDK from "./initLDK.js";
 
-let LDKClient: LightningClient | undefined;
+let LDKClient: LightningClient;
 
 export async function importLDK(electrum: string = "prod") {
   console.log("Electrum: ", electrum);
-  LDKClient = initLDK(electrum);
+
+  try {
+    LDKClient = initLDK(electrum);
+  } catch (e) {
+    console.log(e);
+  }
 }
 
 export function getLDKClient() {

@@ -2,8 +2,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 
-import getRoutes from "./routes/getRoutes.js";
-import postRoutes from "./routes/postRoutes.js";
+import serverRoutes from "./routes/serverRoutes.js";
 import peerRoutes from "./routes/peerRoutes.js";
 import channelRoutes from "./routes/channelRoutes.js";
 
@@ -28,9 +27,8 @@ app.use(bodyParser.json());
 
 // Routes
 
-app.use("/", getRoutes);
-app.use("/", postRoutes);
-app.use("/", peerRoutes);
+app.use("/", serverRoutes);
+app.use("/peer", peerRoutes);
 app.use("/channel", channelRoutes);
 
 // Starting the express server
