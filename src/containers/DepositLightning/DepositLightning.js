@@ -41,7 +41,6 @@ const DepositLightning = (props) => {
   const dispatch = useDispatch();
 
   const [channels, setChannels] = useState(getChannels());
-  
   const [inputAmt, setInputAmt] = useState("");
   const [inputNodeId, setInputNodeId] = useState("");
   
