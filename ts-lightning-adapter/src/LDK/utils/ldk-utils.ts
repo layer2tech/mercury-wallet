@@ -6,15 +6,20 @@ import * as ldk from "lightningdevkit";
 
 export const closeConnections = () => {
   console.log("Closing all the connections");
-  getLDKClient().netHandler.stop();
+
+  let LDK = getLDKClient();
+  LDK.netHandler.stop();
 };
 
 export const createInvoice = (amtInSats: number, invoiceExpirySecs: number, description: string) => {
     let mSats = ldk.Option_u64Z.constructor_some(BigInt(amtInSats * 1000));
 
+    let min_final_cltv_expiry_delta = 36;
+
     let invoice = getLDKClient().channelManager.create_inbound_payment(
       mSats,
-      invoiceExpirySecs
+      invoiceExpirySecs,
+      ldk.Option_u16Z.constructor_some(min_final_cltv_expiry_delta),
     );
 
     let payment_hash = invoice.res.get_a();
@@ -191,48 +196,39 @@ export const insertTxData = (
   priv_key: string;
 }> => {
   return new Promise((resolve, reject) => {
-    const updateData = "UPDATE channels SET amount=?, paid=?, txid=?, vout=? WHERE payment_address=?";
+    const updateData =
+      "UPDATE channels SET amount=?, paid=?, txid=?, vout=? WHERE payment_address=?";
     db.run(
       updateData,
-      [
-        amount,
-        paid,
-        txid,
-        vout,
-        addr
-      ],
+      [amount, paid, txid, vout, addr],
       function (err: any, result: any) {
         if (err) {
           reject({
             status: 500,
             error: "Failed to insert tx data into database " + err,
           });
-        } 
+        }
       }
     );
 
     console.log("Tx data inserted");
     const getData = `SELECT id, public, push_msat, privkey FROM channels WHERE payment_address=?`;
-      db.get(
-        getData,
-        [addr],
-        (err: any, row: any) => {
-          if (err) {
-            reject({
-              status: 500,
-              error: "Failed to get channel data " + err,
-            });
-          } else {
-            resolve({
-              status: 201,
-              message: "Channel saved and created successfully",
-              channel_id: row.id,
-              channel_type: row.public,
-              push_msat: row.push_msat,
-              priv_key: row.privkey,
-            });
-          }
-        }
-      );
+    db.get(getData, [addr], (err: any, row: any) => {
+      if (err) {
+        reject({
+          status: 500,
+          error: "Failed to get channel data " + err,
+        });
+      } else {
+        resolve({
+          status: 201,
+          message: "Channel saved and created successfully",
+          channel_id: row.id,
+          channel_type: row.public,
+          push_msat: row.push_msat,
+          priv_key: row.privkey,
+        });
+      }
+    });
   });
-}
+};

@@ -9,7 +9,6 @@ import {
   Filter,
   ChainMonitor,
   KeysManager,
-  KeysInterface,
   UserConfig,
   ChannelHandshakeConfig,
   ChainParameters,
@@ -23,7 +22,11 @@ import {
   hexToUint8Array,
   uint8ArrayToHexString,
 } from "./utils/utils.js";
-import { createNewPeer, createNewChannel, insertTxData } from "./utils/ldk-utils.js";
+import {
+  createNewPeer,
+  createNewChannel,
+  insertTxData,
+} from "./utils/ldk-utils.js";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 import { getLDKClient } from "./init/importLDK.js";
 
@@ -43,7 +46,6 @@ export default class LightningClient implements LightningClientInterface {
   chainMonitor: ChainMonitor;
   chainWatch: any;
   keysManager: KeysManager;
-  keysInterface: KeysInterface;
   config: UserConfig;
   channelHandshakeConfig: ChannelHandshakeConfig;
   params: ChainParameters;
@@ -53,7 +55,7 @@ export default class LightningClient implements LightningClientInterface {
   currentConnections: any[] = [];
   blockHeight: number | undefined;
   latestBlockHeader: Uint8Array | undefined;
-  netHandler: any;
+  netHandler: NodeLDKNet;
 
   constructor(props: LightningClientInterface) {
     this.feeEstimator = props.feeEstimator;
@@ -71,12 +73,12 @@ export default class LightningClient implements LightningClientInterface {
     this.chainMonitor = props.chainMonitor;
     this.chainWatch = props.chainWatch;
     this.keysManager = props.keysManager;
-    this.keysInterface = props.keysInterface;
     this.config = props.config;
     this.channelHandshakeConfig = props.channelHandshakeConfig;
     this.params = props.params;
     this.channelManager = props.channelManager;
     this.peerManager = props.peerManager;
+    this.netHandler = new NodeLDKNet(this.peerManager);
   }
 
   /*
@@ -131,7 +133,6 @@ export default class LightningClient implements LightningClientInterface {
     paid: boolean,
     payment_address: string // index of input
   ) {
-
     // Connect to the peer
     try {
       const result = await createNewPeer(host, port, pubkey);
@@ -225,6 +226,8 @@ export default class LightningClient implements LightningClientInterface {
     channelId: number,
     channelType: boolean
   ) {
+    console.log("pubkey found:", pubkey);
+
     await this.setBlockHeight();
     await this.setLatestBlockHeader(this.blockHeight);
 
@@ -270,8 +273,8 @@ export default class LightningClient implements LightningClientInterface {
     }
 
     console.log("Channel Create Response: ", channelCreateResponse);
-
     // Should return Ok response to display to user
+    return true;
   }
 
   /**
@@ -281,9 +284,9 @@ export default class LightningClient implements LightningClientInterface {
 
   async create_socket(peerDetails: PeerDetails) {
     // Create Socket for outbound connection: check NodeNet LDK docs for inbound
-
     const { pubkey, host, port } = peerDetails;
-    this.netHandler = new NodeLDKNet(this.peerManager);
+
+    console.log("net handler looks like this:", this.netHandler);
 
     try {
       console.log("Peer Details: ", peerDetails);
@@ -298,7 +301,7 @@ export default class LightningClient implements LightningClientInterface {
       // Wait until the peers are connected and have exchanged the initial handshake
       var timer: any;
       timer = setInterval(() => {
-        console.log("Node IDs", this.peerManager.get_peer_node_ids());
+        //console.log("Node IDs", this.peerManager.get_peer_node_ids());
         if (this.peerManager.get_peer_node_ids().length == 1) {
           // && this.peerManager2.get_peer_node_ids().length == 1
 
@@ -308,6 +311,10 @@ export default class LightningClient implements LightningClientInterface {
         }
       }, 500);
     });
+  }
+
+  getPeerManager(): PeerManager {
+    return this.peerManager;
   }
 
   getChannels() {
@@ -362,6 +369,8 @@ export default class LightningClient implements LightningClientInterface {
   }
 
   async processPendingEvents() {
+    this.channelManager.timer_tick_occurred();
+
     this.channelManager
       .as_EventsProvider()
       .process_pending_events(this.eventHandler);
