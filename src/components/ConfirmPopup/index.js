@@ -13,7 +13,7 @@ const ConfirmPopup = ({
   onCancel,
   preCheck = null,
   argsCheck = null,
-  isLightning = false
+  isLightning = false,
 }) => {
   const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
@@ -58,7 +58,9 @@ const ConfirmPopup = ({
         );
       } else {
         if (isLightning) {
-          setCloseText("Confirm send, sats ready to be sent immediately through lightning.");
+          setCloseText(
+            "Confirm send, sats ready to be sent immediately through lightning."
+          );
         } else {
           setCloseText("Confirm send, statecoin ready to be sent immediately.");
         }
@@ -73,12 +75,19 @@ const ConfirmPopup = ({
           "Confirm withdrawal. Withdrawal fee: " + withdraw_fee / 100 + "%"
         );
       }
+    } else if (children.props.className.includes("closing-button")) {
+      setCloseText("Are you sure you wish to close the channel?");
     } else if (children.props.className.includes("close-invoice")) {
       let list = children.props.className.split(" ");
       let addr = list[list.length - 2];
       let pubKey = list[list.length - 1];
-      setCloseText(`Are you sure you want to delete this invoice having address ${truncateText(addr, 10)} and close channel created with pubkey ${truncateText(pubKey, 10)} ?`);
-    } else if  (children.props.className.includes("deposit-button")) {
+      setCloseText(
+        `Are you sure you want to delete this invoice having address ${truncateText(
+          addr,
+          10
+        )} and close channel created with pubkey ${truncateText(pubKey, 10)} ?`
+      );
+    } else if (children.props.className.includes("deposit-button")) {
       setCloseText("Are you sure, You want to create this channel?");
     } else if (swapRecords.length > 0) {
       setCloseText("Your swaps will be cancelled, are you sure?");
