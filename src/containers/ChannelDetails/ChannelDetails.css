@@ -1,0 +1,16 @@
+.PeerDetailsContainer {
+  justify-content: center;
+}
+
+.RadioButtonContainer {
+  justify-content: center;
+}
+.PeerContainer {
+  display: flex;
+}
+
+.PeerContainerLeft {
+}
+
+.PeerContainerRight {
+}

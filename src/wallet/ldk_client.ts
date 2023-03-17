@@ -9,6 +9,7 @@ export const LIGHTNING_GET_ROUTE = {
   PEER_LIST: "peer/peers",
   CHANNEL_LIST: "channel/loadChannels",
   NODE_ID: "channel/nodeId",
+  DEAULT_PEER_LIST: "peer/default_peerlist",
 };
 Object.freeze(LIGHTNING_GET_ROUTE);
 
@@ -28,7 +29,8 @@ export class LDKClient {
         wallet_name
       );
     } catch (e: any) {
-      throw new Error("GET - Channel List Error: ", e);
+      //throw new Error("GET - Channel List Error: ", e);
+      console.error("GET - Channel List Error: ");
     }
     return channels;
   }
@@ -38,7 +40,8 @@ export class LDKClient {
     try {
       peerInfo = await LDKClient.get(LIGHTNING_GET_ROUTE.PEER_LIST, {});
     } catch (e: any) {
-      throw new Error("GET - Peers Error: ", e);
+      //throw new Error("GET - Peers Error: ", e);
+      console.error("GET - Channel List Error: ");
     }
     return peerInfo;
   }
@@ -51,7 +54,8 @@ export class LDKClient {
       console.log("Node is found was:", nodeId);
     } catch (e: any) {
       console.log("Error:", e);
-      throw new Error("GET - NodeId Error", e);
+      //throw new Error("GET - NodeId Error", e);
+      console.error("GET - NodeId Error: ");
     }
     return nodeId;
   }

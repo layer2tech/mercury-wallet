@@ -20,7 +20,7 @@ import {
 } from "./";
 import { ElectrsClient } from "./electrs";
 import { ElectrsLocalClient } from "./electrs_local";
-
+const crypto = require("crypto");
 import {
   txCPFPBuild,
   FEE,
@@ -678,7 +678,7 @@ export class Wallet {
     // TO DO:
     // Need to map channelInfo from API to correct channel saved in wallet
     // Need an ID saved that matches to ChannelInfo to ChannelFunding
-    channels.map((channel) => {});
+    // channels.map((channel) => {});
   }
 
   async createChannel(amount: number, peer_node: string) {
@@ -710,7 +710,15 @@ export class Wallet {
 
 
     let bip32 = this.getBIP32forBtcAddress(addr);
-    let privkey = bip32.toWIF();
+    const privkey = bip32.toWIF();
+
+    console.log(
+      "*********************** Private key creation *****************************"
+    );
+    console.log(privkey);
+    console.log(
+      "**************************************************************************"
+    );
 
     this.lightning_client.createChannel({
       amount: amount,
