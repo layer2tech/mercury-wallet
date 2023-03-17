@@ -164,6 +164,15 @@ export const createNewChannel = (
                 });
               } else {
                 channelId = row.channel_id;
+                let pubkey = hexToUint8Array(pubkeyHex);
+
+                getLDKClient().connectToChannel(
+                  pubkey,
+                  amount,
+                  push_msat,
+                  channelId,
+                  channelType
+                );
                 resolve({
                   status: 201,
                   message: "Channel saved successfully",

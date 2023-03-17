@@ -212,4 +212,16 @@ router.delete("/deleteChannel/:id", (req, res) => {
   });
 });
 
+router.delete("/deleteChannelByAddr/:addr", (req, res) => {
+  // delete channel by id
+  const deleteData = `DELETE FROM channels WHERE payment_address=?`;
+  db.run(deleteData, [req.params.addr], function (err: any) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: "Data deleted successfully" });
+  });
+});
+
 export default router;

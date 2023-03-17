@@ -708,15 +708,6 @@ export class Wallet {
     //convert mBTC to satoshi
     amount = amount * 100000;
 
-    this.channels.addChannel(
-      proof_key.publicKey.toString("hex"),
-      addr,
-      amount,
-      this.version,
-      pubkey,
-      host,
-      port
-    );
 
     let bip32 = this.getBIP32forBtcAddress(addr);
     const privkey = bip32.toWIF();
@@ -740,6 +731,18 @@ export class Wallet {
       privkey,
       paid: false,
       payment_address: addr,
+    }).then((res) => {
+      if (res.status === 200) {
+        this.channels.addChannel(
+          proof_key.publicKey.toString("hex"),
+          addr,
+          amount,
+          this.version,
+          pubkey,
+          host,
+          port
+        );
+      }
     });
 
     console.log("Amount should be in satoshis: ", amount);
@@ -776,15 +779,17 @@ export class Wallet {
               let block = tx_data.height ? tx_data.height : null;
               let value = tx_data.value;
 
-              this.channels.addChannelFunding(txid, vout, addr, block, value);
 
               this.lightning_client.openChannel({
                 amount: tx_data.value,
                 paid: true,
                 txid,
                 vout,
-                addr,
-                pubkey,
+                addr
+              }).then((res) => {
+                if (res.status === 200){
+                  this.channels.addChannelFunding(txid, vout, addr, block, value);
+                }
               });
 
               // Need to unsubscribe once work done
@@ -798,10 +803,6 @@ export class Wallet {
     console.log("Check Channel Create Correctly: ", this.channels);
 
     return addr;
-  }
-
-  async deleteChannel(addr: string) {
-    this.channels.deleteChannel(addr);
   }
 
   async saveActivityLog() {
@@ -3197,11 +3198,23 @@ export const getXpub = (mnemonic: string, network: Network) => {
   return node.neutered().toBase58();
 };
 
-export const deleteChannel = (channel_id: Number) => {
+export const deleteChannelById = (channel_id: Number) => {
   axios
     .delete(`http://localhost:3003/channel/deleteChannel/${channel_id}`)
     .then((res) => {
       console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+export const deleteChannelByAddr = (addr: string) => {
+  axios
+    .delete(`http://localhost:3003/channel/deleteChannelByAddr/${addr}`)
+    .then((res) => {
+      console.log(res);
+      return res;
     })
     .catch((err) => {
       console.log(err);

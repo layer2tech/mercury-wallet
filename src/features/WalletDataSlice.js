@@ -23,7 +23,7 @@ import { mutex } from "../wallet/electrum";
 import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
-import { NETWORK_TYPE } from "../wallet/wallet";
+import { NETWORK_TYPE, deleteChannelByAddr } from "../wallet/wallet";
 // import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
@@ -947,9 +947,14 @@ export const callCreateChannel = async (amount, peer_node) => {
   }
 };
 
-export const callDeleteChannel = async (addr) => {
+export const callDeleteChannelByAddr = async (addr) => {
   if (isWalletLoaded()) {
-    return await wallet.deleteChannel(addr);
+    deleteChannelByAddr(addr)
+      .then((res) => {
+        if (res.status === 200) {
+          wallet.channels.deleteChannelByAddr(addr);
+        }
+      })
   }
 };
 

@@ -26,7 +26,7 @@ import PageHeader from "../PageHeader/PageHeader";
 import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
 import Loading from "../../components/Loading/Loading";
-import { deleteChannel } from "../../wallet/wallet";
+import { deleteChannelById } from "../../wallet/wallet";
 
 const WithdrawLightning = () => {
   const dispatch = useDispatch();
@@ -61,7 +61,7 @@ const WithdrawLightning = () => {
   const forceCloseChannel = () => {
     updateChannelsInfo();
     selectedChannels.forEach((channelId) => {
-      deleteChannel(channelId);
+      deleteChannelById(channelId);
     });
   };
 

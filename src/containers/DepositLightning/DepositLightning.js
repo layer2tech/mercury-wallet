@@ -1,6 +1,6 @@
 import { withRouter, Redirect } from "react-router-dom";
 import PageHeader from "../PageHeader/PageHeader";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import plus from "../../images/plus-deposit.png";
 import btc_img from "../../images/icon1.png";
 import arrow_img from "../../images/scan-arrow.png";
@@ -24,7 +24,7 @@ import {
   callCreateChannel,
   setError,
   getChannels,
-  callDeleteChannel,
+  callDeleteChannelByAddr,
   callGetNextBtcAddress,
 } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
@@ -75,11 +75,6 @@ const DepositLightning = (props) => {
     });
   };
 
-  const getPubkeyFromAddr = (addr) => {
-    const channel = channels.find((channel) => channel.funding.addr === addr);
-    return channel.peer_pubkey;
-  };
-
   const createChannel = async () => {
     console.log("Create a channel");
 
@@ -120,6 +115,7 @@ const DepositLightning = (props) => {
         setInvoice(newInvoice);
         setChannels(getChannels());
         setInvoice(newInvoice);
+        setPubkey(pubkey);
       } else {
         dispatch(setError({ msg: "Failed to connect to peer" }));
       }
@@ -142,7 +138,7 @@ const DepositLightning = (props) => {
   };
 
   const closeInvoice = () => {
-    callDeleteChannel(invoice.addr);
+    callDeleteChannelByAddr(invoice.addr);
     setInvoice({});
     setChannels(getChannels());
   };
@@ -192,7 +188,7 @@ const DepositLightning = (props) => {
                   <button
                     className={`primary-btm ghost close-invoice ${
                       invoice.addr
-                    } ${getPubkeyFromAddr(invoice.addr)}`}
+                    } ${pubkey}`}
                   >
                     <img src={closeIcon} alt="close-button" />
                   </button>
