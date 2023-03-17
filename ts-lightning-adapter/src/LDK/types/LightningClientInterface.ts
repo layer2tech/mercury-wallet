@@ -21,6 +21,7 @@ import {
   ChainParameters,
   ChannelManager,
   IgnoringMessageHandler,
+  Persister,
 } from "lightningdevkit";
 import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
 import TorClient from "../bitcoin_clients/TorClient.mjs";
@@ -37,6 +38,7 @@ export default interface LightningClientInterface {
   networkGraph: NetworkGraph;
   filter: Filter;
   persist: Persist;
+  persister: Persister;
   eventHandler: EventHandler;
   chainMonitor: ChainMonitor;
   chainWatch: any;
