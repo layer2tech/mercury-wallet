@@ -174,24 +174,13 @@ export default class LightningClient implements LightningClientInterface {
     paid: boolean,
     txid: string,
     vout: number,
-    addr: string,
-    pubkeyHex: string
+    addr: string
   ) {
     try {
       const result = await insertTxData(amount, paid, txid, vout, addr);
       console.log("Input Tx .");
       this.setInputTx(hexToUint8Array(result.priv_key), txid, vout);
       console.log("Input Tx √");
-
-      let pubkey = hexToUint8Array(pubkeyHex);
-
-      getLDKClient().connectToChannel(
-        pubkey,
-        amount,
-        result.push_msat,
-        result.channel_id,
-        result.channel_type
-      );
     } catch (err) {
       console.log(err);
       throw err;

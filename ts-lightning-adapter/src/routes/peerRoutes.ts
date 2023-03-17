@@ -157,11 +157,11 @@ router.post("/create-channel", async (req, res) => {
 });
 
 router.post("/open-channel", async (req, res) => {
-  const { amount, paid, txid, vout, addr, pubkey } = req.body;
+  const { amount, paid, txid, vout, addr } = req.body;
 
-  console.log(amount, paid, txid, vout, addr, pubkey);
+  console.log(amount, paid, txid, vout, addr);
 
-  await getLDKClient().openChannel(amount, paid, txid, vout, addr, pubkey);
+  await getLDKClient().openChannel(amount, paid, txid, vout, addr);
   res.status(200).json({ message: "Channel opened" });
 });
 

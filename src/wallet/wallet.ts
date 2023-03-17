@@ -785,8 +785,7 @@ export class Wallet {
                 paid: true,
                 txid,
                 vout,
-                addr,
-                pubkey
+                addr
               }).then((res) => {
                 if (res.status === 200){
                   this.channels.addChannelFunding(txid, vout, addr, block, value);
