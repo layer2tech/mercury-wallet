@@ -9,6 +9,7 @@ import {Storage} from '../../store';
 import './CreateWalletWizard.css'
 
 let bip39 = require('bip39');
+let mnemonic = bip39.generateMnemonic();
 
 const CreateWizardStep = {
   FORM: 1,
