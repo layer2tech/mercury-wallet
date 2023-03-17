@@ -13,6 +13,7 @@ import {
   ChannelHandshakeConfig,
   ChainParameters,
   ChannelManager,
+  Persister,
 } from "lightningdevkit";
 import { NodeLDKNet } from "./structs/NodeLDKNet.mjs";
 import LightningClientInterface from "./types/LightningClientInterface.js";
@@ -42,6 +43,7 @@ export default class LightningClient implements LightningClientInterface {
   networkGraph: NetworkGraph;
   filter: Filter;
   persist: Persist;
+  persister: Persister;
   eventHandler: EventHandler;
   chainMonitor: ChainMonitor;
   chainWatch: any;
@@ -68,7 +70,8 @@ export default class LightningClient implements LightningClientInterface {
     this.genesisBlockHash = props.genesisBlockHash;
     this.networkGraph = props.networkGraph;
     this.filter = props.filter;
-    this.persist = props.persist; // Maybe should be persisterpersist
+    this.persist = props.persist;
+    this.persister = props.persister;
     this.eventHandler = props.eventHandler;
     this.chainMonitor = props.chainMonitor;
     this.chainWatch = props.chainWatch;
@@ -285,15 +288,10 @@ export default class LightningClient implements LightningClientInterface {
   async create_socket(peerDetails: PeerDetails) {
     // Create Socket for outbound connection: check NodeNet LDK docs for inbound
     const { pubkey, host, port } = peerDetails;
-
-    console.log("net handler looks like this:", this.netHandler);
-
     try {
-      console.log("Peer Details: ", peerDetails);
       await this.netHandler.connect_peer(host, port, pubkey);
     } catch (e) {
       console.log("Error connecting to peer: ", e);
-      console.log("Peer connection failed");
       throw e; // or handle the error in a different way
     }
 
@@ -301,15 +299,11 @@ export default class LightningClient implements LightningClientInterface {
       // Wait until the peers are connected and have exchanged the initial handshake
       var timer: any;
       timer = setInterval(() => {
-        //console.log("Node IDs", this.peerManager.get_peer_node_ids());
         if (this.peerManager.get_peer_node_ids().length == 1) {
-          // && this.peerManager2.get_peer_node_ids().length == 1
-
-          console.log("Length is Equal to 1");
           resolve();
           clearInterval(timer);
         }
-      }, 500);
+      }, 1000);
     });
   }
 
@@ -338,39 +332,16 @@ export default class LightningClient implements LightningClientInterface {
 
   // starts the lightning LDK
   async start() {
+    console.log("Calling ChannelManager's timer_tick_occurred on startup");
+    this.channelManager.timer_tick_occurred();
+
     setInterval(async () => {
       // processes events on ChannelManager and ChainMonitor
       await this.processPendingEvents();
-
-      // await this.setBlockHeight();
-      // await this.setLatestBlockHeader();
-
-      // this.channel_manager.as_Listen().block_disconnected(this.previous_block_header, this.block_height);
-      // this.chain_monitor.block_disconnected(this.previous_block_header, this.block_height);
-
-      // For each connected and disconnected block, and in chain-order, call these
-      // methods.
-      // If you're using BIP 157/158, then `txdata` below should always include any
-      // transactions and/our outputs spends registered through the `Filter` interface,
-      // Transactions and outputs are registered both on startup and as new relevant
-      // transactions/outputs are created.
-
-      // header is a []byte type, height is `int`, txdata is a
-      // TwoTuple_usizeTransactionZ[], where the 0th element is the transaction's
-      // position in the block (with the coinbase transaction considered position 0)
-      // and the 1st element is the transaction bytes
-
-      // Get the Header, TxData and Height
-      // TwoTuple_usizeTransactionZ
-      // console.log('Latest Block Header: ',this.latest_block_header)
-      // this.channel_manager.as_Listen().block_connected(this.latest_block_header, this.block_height);
-      // this.chain_monitor.block_connected(this.latest_block_header, this.txdata, this.block_height);
     }, 2000);
   }
 
   async processPendingEvents() {
-    this.channelManager.timer_tick_occurred();
-
     this.channelManager
       .as_EventsProvider()
       .process_pending_events(this.eventHandler);
@@ -378,5 +349,11 @@ export default class LightningClient implements LightningClientInterface {
     this.chainMonitor
       .as_EventsProvider()
       .process_pending_events(this.eventHandler);
+
+    this.peerManager.process_events();
+
+    // every 100 milli seconds persist channel manager to disk
+
+    // 60 seconds after start prune
   }
 }

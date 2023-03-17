@@ -24,6 +24,7 @@ import {
   DefaultRouter,
   LockableScore,
   TwoTuple_TxidBlockHashZ,
+  Persister,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -31,7 +32,6 @@ import crypto from "crypto";
 
 import MercuryFeeEstimator from "../structs/MercuryFeeEstimator.mjs";
 import MercuryLogger from "../structs/MercuryLogger.js";
-import MercuryPersister from "../structs/MercuryPersist.js";
 // @ts-ignore
 import MercuryEventHandler from "../structs/MercuryEventHandler.js";
 import MercuryFilter from "../structs/MercuryFilter.js";
@@ -39,7 +39,8 @@ import LightningClientInterface from "../types/LightningClientInterface.js";
 import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
 import LightningClient from "../lightning.js";
 import TorClient from "../bitcoin_clients/TorClient.mjs";
-import MercuryRouter from "../structs/MercuryRouter.js";
+import MercuryPersist from "../structs/MercuryPersist.js";
+import MercuryPersister from "../structs/MercuryPersister.js";
 
 export default function initLDK(electrum: string = "prod") {
   const initLDK = setUpLDK(electrum);
@@ -95,24 +96,19 @@ function setUpLDK(electrum: string = "prod") {
   });
 
   // Step 4: Initialize Persist
-  const persist = Persist.new_impl(new MercuryPersister());
+  const persist = Persist.new_impl(new MercuryPersist());
+  const persister = Persister.new_impl(new MercuryPersister());
 
   // Step 5: Initialize the ChainMonitor
   const filter = Filter.new_impl(new MercuryFilter());
-  let chainMonitor;
-  let chainWatch;
-  try {
-    chainMonitor = ChainMonitor.constructor_new(
-      Option_FilterZ.constructor_some(filter),
-      txBroadcaster,
-      logger,
-      feeEstimator,
-      persist
-    );
-    chainWatch = chainMonitor.as_Watch();
-  } catch (e) {
-    console.log("Error:::::::", e);
-  }
+  const chainMonitor = ChainMonitor.constructor_new(
+    Option_FilterZ.constructor_some(filter),
+    txBroadcaster,
+    logger,
+    feeEstimator,
+    persist
+  );
+  const chainWatch = chainMonitor.as_Watch();
 
   // Step 6: Initialize the KeysManager
   const keys_seed_path = ldk_data_dir + "keys_seed";
@@ -183,34 +179,34 @@ function setUpLDK(electrum: string = "prod") {
       187
     )
   );
-  let channelManager;
-  if (chainWatch) {
-    channelManager = ChannelManager.constructor_new(
-      feeEstimator,
-      chainWatch,
-      txBroadcaster,
-      router,
-      logger,
-      entropy_source,
-      node_signer,
-      signer_provider,
-      config,
-      params
-    );
-  }
+
+  const channelManager = ChannelManager.constructor_new(
+    feeEstimator,
+    chainWatch,
+    txBroadcaster,
+    router,
+    logger,
+    entropy_source,
+    node_signer,
+    signer_provider,
+    config,
+    params
+  );
 
   const channelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
 
   // Step 12: Sync ChannelMonitors and ChannelManager to chain tip
   let relevent_txids_1 = channelManager?.as_Confirm().get_relevant_txids();
   let relevent_txids_2 = chainMonitor?.as_Confirm().get_relevant_txids();
-  let merged_txids: TwoTuple_TxidBlockHashZ[] = [];
+  let relevant_txids: TwoTuple_TxidBlockHashZ[] = [];
   if (relevent_txids_1 && Symbol.iterator in Object(relevent_txids_1)) {
-    merged_txids.push(...relevent_txids_1);
+    relevant_txids.push(...relevent_txids_1);
   }
   if (relevent_txids_2 && Symbol.iterator in Object(relevent_txids_2)) {
-    merged_txids.push(...relevent_txids_2);
+    relevant_txids.push(...relevent_txids_2);
   }
+
+  console.log("relevent_txids:", relevant_txids);
 
   // needs to check on an interval
 
@@ -252,6 +248,24 @@ function setUpLDK(electrum: string = "prod") {
   // Step 16: Initialize networking
 
   // Step 17: Connect and Disconnect Blocks
+  let channel_manager_listener = channelManager;
+  let chain_monitor_listener = chainMonitor;
+  let bitcoind_block_source = electrumClient;
+
+  /*
+  const chain_poller = new ChainPoller(bitcoind_block_source, network);
+  const chain_listener = [chain_monitor_listener, channel_manager_listener];
+  const spv_client = new SpvClient(
+    chain_tip,
+    chain_poller,
+    cache,
+    chain_listener
+  );
+
+  setInterval(async () => {
+    await spv_client.poll_best_tip();
+  }, 1000);*/
+
   // check on interval
 
   // Step 18: Handle LDK Events
@@ -262,7 +276,8 @@ function setUpLDK(electrum: string = "prod") {
   }
 
   // Step 19: Persist ChannelManager and NetworkGraph
-  // channelManager.write()
+  //persister.persist_manager(channelManager);
+  //persister.persist_graph(networkGraph);
 
   // ************************************************************************************************
   // Step 20: Background Processing
@@ -292,6 +307,7 @@ function setUpLDK(electrum: string = "prod") {
       networkGraph: networkGraph,
       filter: filter,
       persist: persist,
+      persister: persister,
       eventHandler: eventHandler,
       chainMonitor: chainMonitor,
       chainWatch: chainWatch,
