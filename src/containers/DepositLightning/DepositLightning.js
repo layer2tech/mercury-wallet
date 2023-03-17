@@ -43,20 +43,23 @@ const DepositLightning = (props) => {
   const [channels, setChannels] = useState(getChannels());
   const [inputAmt, setInputAmt] = useState("");
   const [inputNodeId, setInputNodeId] = useState("");
-  
+  const [pubkey, setPubkey] = useState();
+
   const [loading, setLoading] = useState(false);
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
 
   const mBTCtoBTC = (mBTC) => {
-    return mBTC * ( 10**-3 );
-  }
+    return mBTC * 10 ** -3;
+  };
 
   const satsToBTC = (sats) => {
-    return sats * ( 10**-8 );
-  }
+    return sats * 10 ** -8;
+  };
 
   const getRecentInvoice = () => {
-    const channel = channels.find(channel => channel.status === CHANNEL_STATUS.INITIALISED);
+    const channel = channels.find(
+      (channel) => channel.status === CHANNEL_STATUS.INITIALISED
+    );
     let recentInvoice = {};
     if (channel) {
       recentInvoice = {
@@ -65,7 +68,7 @@ const DepositLightning = (props) => {
       };
     }
     return recentInvoice;
-  }
+  };
 
   const [invoice, setInvoice] = useState(getRecentInvoice());
 
@@ -186,9 +189,7 @@ const DepositLightning = (props) => {
                 </div>
                 <ConfirmPopup onOk={closeInvoice}>
                   <button
-                    className={`primary-btm ghost close-invoice ${
-                      invoice.addr
-                    } ${pubkey}`}
+                    className={`primary-btm ghost close-invoice ${invoice.addr} ${pubkey}`}
                   >
                     <img src={closeIcon} alt="close-button" />
                   </button>
