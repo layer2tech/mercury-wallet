@@ -42,7 +42,7 @@ function render(mockStore, ui) {
 }
 
 let walletName = `${MOCK_WALLET_NAME}_ui_tests`;
-const mnemonic = bip39.generateMnemonic();
+let mnemonic = bip39.generateMnemonic();
 
 async function getWallet() {
   let wallet = await Wallet.buildMock(
