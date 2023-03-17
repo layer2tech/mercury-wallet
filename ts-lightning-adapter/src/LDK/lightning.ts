@@ -14,6 +14,7 @@ import {
   ChainParameters,
   ChannelManager,
   Persister,
+  ChannelManagerReadArgs,
 } from "lightningdevkit";
 import { NodeLDKNet } from "./structs/NodeLDKNet.mjs";
 import LightningClientInterface from "./types/LightningClientInterface.js";
@@ -342,7 +343,9 @@ export default class LightningClient implements LightningClientInterface {
     this.peerManager.process_events();
 
     // every 100 milli seconds persist channel manager to disk
-
+    setInterval(async () => {
+      this.persister.persist_manager(this.channelManager);
+    }, 100);
     // 60 seconds after start prune
   }
 }
