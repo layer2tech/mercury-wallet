@@ -51,7 +51,6 @@ const PanelConnectivity = (props) => {
   const [conductor_connected, setConductorConnected] = useState(ping_conductor_ms ? true : false);
   const [electrum_connected, setElectrumConnected] = useState((ping_electrum_ms && block_height) ? true : false);
 
-  console.log('ElectruM: ',block_height );
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data
     ? Array.from(swap_groups_data.entries())

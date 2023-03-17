@@ -9,7 +9,6 @@ import {Storage} from '../../store';
 import './CreateWalletWizard.css'
 
 let bip39 = require('bip39');
-const mnemonic = bip39.generateMnemonic();
 
 const CreateWizardStep = {
   FORM: 1,
@@ -35,6 +34,7 @@ const STEPS = [
 
 // MultiStep wizard for wallet setup
 const CreateWizardPage = (props) => {
+  const mnemonic = bip39.generateMnemonic();
   const dispatch = useDispatch();
   const [walletNames,setWalletNames] = useState()
   const [confirmDetails,setConfirmDetails] = useState(false)
