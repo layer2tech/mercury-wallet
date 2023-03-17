@@ -141,7 +141,7 @@ router.post("/create-channel", async (req, res) => {
     payment_address
   );
 
-  await getLDKClient().createPeerAndChannel(
+  const result = await getLDKClient().createPeerAndChannel(
     amount,
     pubkey,
     host,
@@ -153,7 +153,11 @@ router.post("/create-channel", async (req, res) => {
     paid,
     payment_address
   );
-  res.status(200).json({ message: "Connected to peer, Channel created" });
+  if (result && result.status === 409) {
+    res.status(result.status).json({ message: result.message });
+  } else {
+    res.status(200).json({ message: "Connected to peer, Channel created" });
+  }
 });
 
 router.post("/open-channel", async (req, res) => {

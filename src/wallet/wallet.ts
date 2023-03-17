@@ -742,6 +742,8 @@ export class Wallet {
           host,
           port
         );
+      } else if (res.status === 409) {
+        return res;
       }
     });
 

@@ -162,14 +162,18 @@ export default class LightningClient implements LightningClientInterface {
         paid,
         payment_address
       );
-      console.log(result);
-      var channel_id = result.channel_id;
+      if (result && result.status === 409) {
+        return result;
+      } else {
+        var channel_id = result.channel_id;
+      }
     } catch (err) {
       console.log(err);
       throw err;
     }
 
     console.log("Channel Created, connected to", channel_id);
+    return;
   }
 
   async openChannel(

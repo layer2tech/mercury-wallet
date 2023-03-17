@@ -61,11 +61,15 @@ export class LDKClient {
   }
 
   async createChannel(body: any) {
+    let res;
     try {
-      let res = await LDKClient.post("peer/create-channel", body);
+      res = await LDKClient.post("peer/create-channel", body);
       return res;
-    } catch (e: any) {
-      throw new Error("Error in channel creation");
+    } catch (err: any) {
+      if (err.response && err.response.status === 409) {
+        return err.response;
+      }
+      throw new Error("Error in channel creation", err);
     }
   }
 
