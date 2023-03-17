@@ -25,6 +25,7 @@ import {
   LockableScore,
   TwoTuple_TxidBlockHashZ,
   Persister,
+  ChannelManagerReadArgs,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -180,7 +181,54 @@ function setUpLDK(electrum: string = "prod") {
     )
   );
 
-  const channelManager = ChannelManager.constructor_new(
+  /*
+  let channelManager;
+  if (fs.existsSync("channel_manager.bin")) {
+    console.log("Load the channel manager from disk...");
+    const f = fs.readFileSync(`channel_manager.bin`);
+
+    let channel_monitor_mut_references: ChannelMonitor[] = []; // todo
+
+    let read_args = ChannelManagerReadArgs.constructor_new(
+      keysManager.as_EntropySource(),
+      keysManager.as_NodeSigner(),
+      keysManager.as_SignerProvider(),
+      feeEstimator,
+      chainMonitor.as_Watch(),
+      txBroadcaster,
+      router,
+      logger,
+      config,
+      channel_monitor_mut_references
+    );
+
+    try {
+      // TODO: do something with f and create ChannelManager
+      let readManager =
+        BlockHashChannelManagerZ_read(
+          f,
+          entropy_source,
+          node_signer,
+          signer_provider,
+          feeEstimator,
+          chainMonitor.as_Watch(),
+          txBroadcaster,
+          router,
+          logger,
+          config,
+          channel_monitor_mut_references
+        );
+
+      console.log("readmanager:", readManager.is_ok());
+
+      //channelManager = readManager.get_b();
+    } catch (e) {
+      console.log("error:", e);
+    }
+  } else {
+  }*/
+  // fresh manager
+  let channelManager = ChannelManager.constructor_new(
     feeEstimator,
     chainWatch,
     txBroadcaster,
@@ -276,8 +324,8 @@ function setUpLDK(electrum: string = "prod") {
   }
 
   // Step 19: Persist ChannelManager and NetworkGraph
-  //persister.persist_manager(channelManager);
-  //persister.persist_graph(networkGraph);
+  persister.persist_manager(channelManager);
+  persister.persist_graph(networkGraph);
 
   // ************************************************************************************************
   // Step 20: Background Processing
