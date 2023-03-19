@@ -19,7 +19,7 @@ export const checkForServerError = (response: any) => {
     if (error != null) {
         if(error.statusCode === 403){
             // Forbidden request try new tor circuit
-            throw Error("We're sorry, the Tor circuit is not functioning properly. A new circuit will be automatically generated to continue your connection.")
+            throw Error("Tor circuit not functioning. A new circuit will be automatically generated.")
         }
         if(error?.message == 'Error: Socks5 proxy rejected connection - HostUnreachable'){
             throw Error("I2P takes ~1min to initialise. Please wait...")

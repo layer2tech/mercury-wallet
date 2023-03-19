@@ -250,7 +250,7 @@ export async function callGetLatestBlock(){
     try{
       return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
     } catch(e){
-      if(e.message.includes('Tor circuit')){
+      if(e.message.includes('circuit')){
         await wallet.electrum_client.new_tor_id();
         return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
       }
@@ -676,7 +676,10 @@ export const callCreateBackupTxCPFP = async (cpfp_data) => {
 
 export const callGetWalletJsonToBackup = () => {
   if (isWalletLoaded()) {
-    return wallet.storage.getWallet(wallet.name, true);
+    let backup_wallet = wallet.storage.getWallet(wallet.name, true);
+    // remove password and root keys
+    backup_wallet.password = "";
+    return backup_wallet
   }
 };
 
@@ -995,7 +998,6 @@ export const setNetworkType = async (networkType) => {
   if (isWalletLoaded()) {
     wallet.networkType = networkType;
     wallet.config = new Config(wallet.config.network, networkType, testing_mode);
-    setBlockHeightCallBack([{height: 0}]);
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
     await wallet.set_adapter_endpoints();
