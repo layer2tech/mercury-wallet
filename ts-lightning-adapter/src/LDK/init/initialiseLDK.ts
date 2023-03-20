@@ -61,14 +61,14 @@ function setUpLDK(electrum: string = "prod") {
   }
 
   // Initialize our bitcoind client.
-  let electrumClient;
+  let bitcointd_client;
   console.log("INIT CLIENT: ", electrum);
   if (electrum === "prod") {
     console.log("Init TorClient");
-    electrumClient = new TorClient("");
+    bitcointd_client = new TorClient("");
   } else {
     console.log("Init ElectrumClient");
-    electrumClient = new ElectrumClient("");
+    bitcointd_client = new ElectrumClient("");
   }
 
   // Check that the bitcoind we've connected to is running the network we expect
@@ -303,7 +303,7 @@ function setUpLDK(electrum: string = "prod") {
   // Step 17: Connect and Disconnect Blocks
   let channel_manager_listener = channelManager;
   let chain_monitor_listener = chainMonitor;
-  let bitcoind_block_source = electrumClient;
+  let bitcoind_block_source = bitcointd_client;
 
   /*
   const chain_poller = new ChainPoller(bitcoind_block_source, network);
@@ -350,7 +350,7 @@ function setUpLDK(electrum: string = "prod") {
   if (chainMonitor && channelManager && peerManager && eventHandler) {
     const LDKInit: LightningClientInterface = {
       feeEstimator: feeEstimator,
-      electrumClient: electrumClient,
+      bitcointd_client: bitcointd_client,
       logger: logger,
       txBroadcasted: txBroadcasted,
       txBroadcaster: txBroadcaster,
