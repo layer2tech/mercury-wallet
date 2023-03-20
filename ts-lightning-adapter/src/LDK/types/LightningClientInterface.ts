@@ -28,7 +28,7 @@ import TorClient from "../bitcoin_clients/TorClient.mjs";
 
 export default interface LightningClientInterface {
   feeEstimator: FeeEstimator;
-  electrumClient: TorClient | ElectrumClient; // Electrum for dev, Tor for prod
+  bitcointd_client: TorClient | ElectrumClient; // Electrum for dev, Tor for prod
   logger: Logger;
   txBroadcasted: any;
   txBroadcaster: BroadcasterInterface;
