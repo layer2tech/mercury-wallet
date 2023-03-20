@@ -72,9 +72,11 @@ const MainHeader = ({ mainUnit, icon }) => {
 
   const handleFilter = (walletMode) => {
     dispatch(updateWalletMode(walletMode));
-    if (walletMode === "LIGHTNING"){
+    if (walletMode === "LIGHTNING") {
       dispatch(
-        setError({ msg: "Lightning integration is in alpha stage, Do not use it for transferring real funds!" })
+        setError({
+          msg: "------ Lightning integration is in alpha stage ----- DO NOT USE REAL BTC!",
+        })
       );
     }
   };

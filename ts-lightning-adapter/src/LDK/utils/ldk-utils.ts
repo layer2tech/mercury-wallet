@@ -1,4 +1,4 @@
-import { getLDKClient } from "../init/importLDK.js";
+import { getLDKClient } from "../init/getLDK.js";
 import db from "../../db/db.js";
 import { hexToUint8Array } from "./utils.js";
 

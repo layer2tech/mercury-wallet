@@ -25,6 +25,9 @@ import {
   LockableScore,
   TwoTuple_TxidBlockHashZ,
   Persister,
+  ChannelManagerReadArgs,
+  UtilMethods,
+  TwoTuple_BlockHashChannelManagerZ,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -37,7 +40,7 @@ import MercuryEventHandler from "../structs/MercuryEventHandler.js";
 import MercuryFilter from "../structs/MercuryFilter.js";
 import LightningClientInterface from "../types/LightningClientInterface.js";
 import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
-import LightningClient from "../lightning.js";
+import LightningClient from "../LightningClient.js";
 import TorClient from "../bitcoin_clients/TorClient.mjs";
 import MercuryPersist from "../structs/MercuryPersist.js";
 import MercuryPersister from "../structs/MercuryPersister.js";
@@ -180,18 +183,68 @@ function setUpLDK(electrum: string = "prod") {
     )
   );
 
-  const channelManager = ChannelManager.constructor_new(
-    feeEstimator,
-    chainWatch,
-    txBroadcaster,
-    router,
-    logger,
-    entropy_source,
-    node_signer,
-    signer_provider,
-    config,
-    params
-  );
+  let channelManager: any;
+  if (fs.existsSync("channel_manager_data.bin")) {
+    console.log("Load the channel manager from disk...");
+    const f = fs.readFileSync(`channel_manager_data.bin`);
+
+    let channel_monitor_mut_references: ChannelMonitor[] = []; // todo, read from disk
+
+    let read_args = ChannelManagerReadArgs.constructor_new(
+      keysManager.as_EntropySource(),
+      keysManager.as_NodeSigner(),
+      keysManager.as_SignerProvider(),
+      feeEstimator,
+      chainMonitor.as_Watch(),
+      txBroadcaster,
+      router,
+      logger,
+      config,
+      channel_monitor_mut_references
+    );
+
+    try {
+      // read manager
+      let readManager: any =
+        UtilMethods.constructor_C2Tuple_BlockHashChannelManagerZ_read(
+          f,
+          entropy_source,
+          node_signer,
+          signer_provider,
+          feeEstimator,
+          chainMonitor.as_Watch(),
+          txBroadcaster,
+          router,
+          logger,
+          config,
+          channel_monitor_mut_references
+        );
+
+      if (readManager.is_ok()) {
+        console.log("readManager.res ->", readManager.res);
+        let read_channelManager: TwoTuple_BlockHashChannelManagerZ =
+          readManager.res;
+        console.log("read_channelManager.b() ->", read_channelManager.get_b());
+        channelManager = read_channelManager.get_b();
+      }
+    } catch (e) {
+      console.log("error:", e);
+    }
+  } else {
+    // fresh manager
+    channelManager = ChannelManager.constructor_new(
+      feeEstimator,
+      chainWatch,
+      txBroadcaster,
+      router,
+      logger,
+      entropy_source,
+      node_signer,
+      signer_provider,
+      config,
+      params
+    );
+  }
 
   const channelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
 
@@ -276,8 +329,8 @@ function setUpLDK(electrum: string = "prod") {
   }
 
   // Step 19: Persist ChannelManager and NetworkGraph
-  //persister.persist_manager(channelManager);
-  //persister.persist_graph(networkGraph);
+  persister.persist_manager(channelManager);
+  persister.persist_graph(networkGraph);
 
   // ************************************************************************************************
   // Step 20: Background Processing

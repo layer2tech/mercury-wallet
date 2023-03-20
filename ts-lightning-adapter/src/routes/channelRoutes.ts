@@ -3,7 +3,7 @@ import db from "../db/db.js";
 
 import * as bitcoin from "bitcoinjs-lib";
 
-import { getLDKClient } from "../LDK/init/importLDK.js";
+import { getLDKClient } from "../LDK/init/getLDK.js";
 import { createNewChannel } from "../LDK/utils/ldk-utils.js";
 import { uint8ArrayToHexString } from "../LDK/utils/utils.js";
 import { ChannelDetails } from "lightningdevkit";
