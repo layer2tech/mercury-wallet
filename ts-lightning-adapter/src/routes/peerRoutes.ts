@@ -6,7 +6,7 @@ import {
 } from "lightningdevkit";
 const router = express.Router();
 import db from "../db/db.js";
-import { getLDKClient } from "../LDK/init/createLDK.js";
+import { getLDKClient } from "../LDK/init/getLDK.js";
 import { createNewPeer } from "../LDK/utils/ldk-utils.js";
 import { hexToUint8Array, uint8ArrayToHexString } from "../LDK/utils/utils.js";
 

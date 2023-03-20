@@ -30,7 +30,7 @@ import {
   insertTxData,
 } from "./utils/ldk-utils.js";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
-import { getLDKClient } from "./init/createLDK.js";
+import { getLDKClient } from "./init/getLDK.js";
 
 export default class LightningClient implements LightningClientInterface {
   feeEstimator: FeeEstimator;
@@ -346,6 +346,7 @@ export default class LightningClient implements LightningClientInterface {
     setInterval(async () => {
       this.persister.persist_manager(this.channelManager);
     }, 100);
+
     // 60 seconds after start prune
   }
 }
