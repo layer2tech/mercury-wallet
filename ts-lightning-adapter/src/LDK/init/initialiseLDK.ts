@@ -104,8 +104,9 @@ function setUpLDK(electrum: string = "prod") {
 
   // Step 5: Initialize the ChainMonitor
   const filter = Filter.new_impl(new MercuryFilter());
+
   const chainMonitor = ChainMonitor.constructor_new(
-    Option_FilterZ.constructor_some(filter),
+    Option_FilterZ.constructor_none(),
     txBroadcaster,
     logger,
     feeEstimator,
