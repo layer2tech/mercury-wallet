@@ -682,129 +682,145 @@ export class Wallet {
   }
 
   async createChannel(amount: number, peer_node: string) {
-    let peerNode = peer_node.match(/^([0-9a-f]+)@([^:]+):([0-9]+)$/i);
-
-    let pubkey: string;
-    let port: any;
-    let host: any;
-
-    if (!(peerNode?.length === 4))
-      throw new Error("Peer Node ID incorrect format");
-
-    [, pubkey, host, port] = peerNode;
-
-    if (!pubkey || !host || !port)
-      throw new Error("Unable to find pubkey, host or port from Peer Node ID ");
-
-    // convert to int for saving to channel obj and calling api
-    port = parseInt(port);
-
-    let addr = this.account.nextChainAddress(1);
-    log.debug("Gen BTC address: " + addr);
-    await this.saveKeys();
-
-    let proof_key = this.getBIP32forBtcAddress(addr);
-
-    //convert mBTC to satoshi
-    amount = amount * 100000;
-
-
-    let bip32 = this.getBIP32forBtcAddress(addr);
-    const privkey = bip32.toWIF();
-
-    console.log(
-      "*********************** Private key creation *****************************"
-    );
-    console.log(privkey);
-    console.log(
-      "**************************************************************************"
-    );
-
-    this.lightning_client.createChannel({
-      amount: amount,
-      pubkey: pubkey,
-      host,
-      port,
-      channel_name: "",
-      channelType: "Public",
-      wallet_name: this.name,
-      privkey,
-      paid: false,
-      payment_address: addr,
-    }).then((res) => {
-      if (res.status === 200) {
-        this.channels.addChannel(
-          proof_key.publicKey.toString("hex"),
-          addr,
-          amount,
-          this.version,
-          pubkey,
-          host,
-          port
+    return new Promise(async (resolve, reject) => {
+      try {
+        let peerNode = peer_node.match(/^([0-9a-f]+)@([^:]+):([0-9]+)$/i);
+  
+        let pubkey;
+        let port;
+        let host;
+  
+        if (!(peerNode?.length === 4))
+          throw new Error("Peer Node ID incorrect format");
+  
+        [, pubkey, host, port] = peerNode;
+  
+        if (!pubkey || !host || !port)
+          throw new Error("Unable to find pubkey, host or port from Peer Node ID ");
+  
+        // convert to int for saving to channel obj and calling api
+        port = parseInt(port);
+  
+        let addr = this.account.nextChainAddress(1);
+        log.debug("Gen BTC address: " + addr);
+        await this.saveKeys();
+  
+        let proof_key = this.getBIP32forBtcAddress(addr);
+  
+        //convert mBTC to satoshi
+        amount = amount * 100000;
+  
+        let bip32 = this.getBIP32forBtcAddress(addr);
+        const privkey = bip32.toWIF();
+  
+        console.log(
+          "*********************** Private key creation *****************************"
         );
-      } else if (res.status === 409) {
-        return res;
+        console.log(privkey);
+        console.log(
+          "**************************************************************************"
+        );
+  
+        const res = await this.lightning_client.createChannel({
+          amount: amount,
+          pubkey: pubkey,
+          host,
+          port,
+          channel_name: "",
+          channelType: "Public",
+          wallet_name: this.name,
+          privkey,
+          paid: false,
+          payment_address: addr,
+        });
+  
+        if (res.status === 200) {
+          this.channels.addChannel(
+            proof_key.publicKey.toString("hex"),
+            addr,
+            amount,
+            this.version,
+            pubkey,
+            host,
+            port
+          );
+          console.log("Amount should be in satoshis: ", amount);
+          this.openChannel(addr);
+  
+          resolve({
+            addr: addr,
+            status: 200
+          });
+        } else if (res.status === 409) {
+          reject({
+            addr: "",
+            status: 409,
+            error: res.data.message
+          });
+        } else {
+          throw new Error("Unexpected response status: " + res.status);
+        }
+      } catch (error) {
+        reject(error);
       }
     });
+  }
 
-    console.log("Amount should be in satoshis: ", amount);
-
+  openChannel(addr: string) {
     let addr_script = bitcoin.address.toOutputScript(addr, this.config.network);
 
-    log.info("Subscribed to script hash for p_addr: ", addr);
+        log.info("Subscribed to script hash for p_addr: ", addr);
 
-    // then subscribe to electrum client to listen for TX - questioning whether this can be done using fork
-    this.electrum_client.scriptHashSubscribe(
-      addr_script,
-      async (_status: any) => {
-        log.info("Script hash status change for p_addr: ", addr);
-        console.log("BTC Received..");
-        console.log("Attempting to change the channel information...");
+        // then subscribe to electrum client to listen for TX - questioning whether this can be done using fork
+        this.electrum_client.scriptHashSubscribe(
+          addr_script,
+          async (_status: any) => {
+            log.info("Script hash status change for p_addr: ", addr);
+            console.log("BTC Received..");
+            console.log("Attempting to change the channel information...");
 
-        // Get p_addr list_unspent and verify tx
-        // await this.checkFundingTxListUnspent(
-        //   shared_key_id,
-        //   p_addr,
-        //   p_addr_script,
-        //   value
-        // );
-        console.log("Check Script hash unspent: ");
-        await this.electrum_client
-          .getScriptHashListUnspent(addr_script)
-          .then(async (funding_tx_data: Array<any>) => {
-            // Need to save TX data - it had block, txid?, vout and value
-            console.log("Funding Tx Data: ", funding_tx_data);
-            let tx_data = funding_tx_data[0];
-            if (tx_data) {
-              let txid = tx_data.tx_hash;
-              let vout = tx_data.tx_pos;
-              let block = tx_data.height ? tx_data.height : null;
-              let value = tx_data.value;
+            // Get p_addr list_unspent and verify tx
+            // await this.checkFundingTxListUnspent(
+            //   shared_key_id,
+            //   p_addr,
+            //   p_addr_script,
+            //   value
+            // );
+            console.log("Check Script hash unspent: ");
+            await this.electrum_client
+              .getScriptHashListUnspent(addr_script)
+              .then(async (funding_tx_data: Array<any>) => {
+                // Need to save TX data - it had block, txid?, vout and value
+                console.log("Funding Tx Data: ", funding_tx_data);
+                let tx_data = funding_tx_data[0];
+                if (tx_data) {
+                  let txid = tx_data.tx_hash;
+                  let vout = tx_data.tx_pos;
+                  let block = tx_data.height ? tx_data.height : null;
+                  let value = tx_data.value;
 
 
-              this.lightning_client.openChannel({
-                amount: tx_data.value,
-                paid: true,
-                txid,
-                vout,
-                addr
-              }).then((res) => {
-                if (res.status === 200){
-                  this.channels.addChannelFunding(txid, vout, addr, block, value);
+                  this.lightning_client.openChannel({
+                    amount: tx_data.value,
+                    paid: true,
+                    txid,
+                    vout,
+                    addr
+                  }).then((res) => {
+                    if (res.status === 200){
+                      this.channels.addChannelFunding(txid, vout, addr, block, value);
+                    }
+                  });
+
+                  // Need to unsubscribe once work done
                 }
               });
+          }
+        );
 
-              // Need to unsubscribe once work done
-            }
-          });
-      }
-    );
+        // TO DO: save channels data to file
 
-    // TO DO: save channels data to file
-
-    console.log("Check Channel Create Correctly: ", this.channels);
-
-    return addr;
+        console.log("Check Channel Create Correctly: ", this.channels);
   }
 
   async saveActivityLog() {

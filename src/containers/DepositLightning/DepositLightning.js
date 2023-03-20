@@ -111,24 +111,21 @@ const DepositLightning = (props) => {
         // if a successful connection can be met then create the channel.
         // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
         let res = await callCreateChannel(inputAmt, inputNodeId);
-        if (res instanceof error) {
-          dispatch(setError({ msg: "Error: " + res }));
-        } else {
-          let nextAddress = addr;
+        let nextAddress = addr;
 
-          let newInvoice = {
-            amt: mBTCtoBTC(inputAmt),
-            addr: nextAddress,
-          };
-          setInvoice(newInvoice);
-          setChannels(getChannels());
-          setInvoice(newInvoice);
-          setPubkey(pubkey);
-        }
+        let newInvoice = {
+          amt: mBTCtoBTC(inputAmt),
+          addr: nextAddress,
+        };
+        setInvoice(newInvoice);
+        setChannels(getChannels());
+        setInvoice(newInvoice);
+        setPubkey(pubkey);
       } else {
         dispatch(setError({ msg: "Failed to connect to peer" }));
       }
     } catch (error) {
+      console.log(error)
       dispatch(setError({ msg: "Error: " + error.response.data }));
     }
   };
