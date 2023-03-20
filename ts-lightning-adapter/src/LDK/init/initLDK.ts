@@ -26,6 +26,8 @@ import {
   TwoTuple_TxidBlockHashZ,
   Persister,
   ChannelManagerReadArgs,
+  UtilMethods,
+  TwoTuple_BlockHashChannelManagerZ,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -181,13 +183,12 @@ function setUpLDK(electrum: string = "prod") {
     )
   );
 
-  /*
   let channelManager;
-  if (fs.existsSync("channel_manager.bin")) {
+  if (fs.existsSync("channel_manager_data.bin")) {
     console.log("Load the channel manager from disk...");
-    const f = fs.readFileSync(`channel_manager.bin`);
+    const f = fs.readFileSync(`channel_manager_data.bin`);
 
-    let channel_monitor_mut_references: ChannelMonitor[] = []; // todo
+    let channel_monitor_mut_references: ChannelMonitor[] = []; // todo, read from disk
 
     let read_args = ChannelManagerReadArgs.constructor_new(
       keysManager.as_EntropySource(),
@@ -203,9 +204,9 @@ function setUpLDK(electrum: string = "prod") {
     );
 
     try {
-      // TODO: do something with f and create ChannelManager
-      let readManager =
-        BlockHashChannelManagerZ_read(
+      // read manager
+      let readManager: any =
+        UtilMethods.constructor_C2Tuple_BlockHashChannelManagerZ_read(
           f,
           entropy_source,
           node_signer,
@@ -219,27 +220,31 @@ function setUpLDK(electrum: string = "prod") {
           channel_monitor_mut_references
         );
 
-      console.log("readmanager:", readManager.is_ok());
-
-      //channelManager = readManager.get_b();
+      if (readManager.is_ok()) {
+        console.log("readManager.res ->", readManager.res);
+        let read_channelManager: TwoTuple_BlockHashChannelManagerZ =
+          readManager.res;
+        console.log("read_channelManager.b() ->", read_channelManager.get_b());
+        channelManager = read_channelManager.get_b();
+      }
     } catch (e) {
       console.log("error:", e);
     }
   } else {
-  }*/
-  // fresh manager
-  let channelManager = ChannelManager.constructor_new(
-    feeEstimator,
-    chainWatch,
-    txBroadcaster,
-    router,
-    logger,
-    entropy_source,
-    node_signer,
-    signer_provider,
-    config,
-    params
-  );
+    // fresh manager
+    channelManager = ChannelManager.constructor_new(
+      feeEstimator,
+      chainWatch,
+      txBroadcaster,
+      router,
+      logger,
+      entropy_source,
+      node_signer,
+      signer_provider,
+      config,
+      params
+    );
+  }
 
   const channelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
 
