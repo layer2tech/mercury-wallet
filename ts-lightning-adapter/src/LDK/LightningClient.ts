@@ -297,6 +297,10 @@ export default class LightningClient implements LightningClientInterface {
     });
   }
 
+  getChainMonitor(): ChainMonitor {
+    return this.chainMonitor;
+  }
+
   getPeerManager(): PeerManager {
     return this.peerManager;
   }

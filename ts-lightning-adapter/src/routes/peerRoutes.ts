@@ -1,6 +1,7 @@
 // handle all peer logic on server
 import express from "express";
 import {
+  ChainMonitor,
   PeerManager,
   TwoTuple_PublicKeyCOption_NetAddressZZ,
 } from "lightningdevkit";
@@ -9,6 +10,15 @@ import db from "../db/db.js";
 import { getLDKClient } from "../LDK/init/getLDK.js";
 import { createNewPeer } from "../LDK/utils/ldk-utils.js";
 import { hexToUint8Array, uint8ArrayToHexString } from "../LDK/utils/utils.js";
+
+router.get("/liveChainMonitors", async (req, res) => {
+  let chainMonitor: ChainMonitor = await getLDKClient().getChainMonitor();
+  if (chainMonitor) {
+    res.status(200).json({ chainMonitors: chainMonitor.list_monitors() });
+  } else {
+    res.status(500).json("Failed to get chain monitor");
+  }
+});
 
 router.get("/livePeers", async (req, res) => {
   let peerManager: PeerManager = await getLDKClient().getPeerManager();
