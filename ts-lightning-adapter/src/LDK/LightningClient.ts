@@ -30,7 +30,7 @@ import {
   insertTxData,
 } from "./utils/ldk-utils.js";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
-import { getLDKClient } from "./init/importLDK.js";
+import { getLDKClient } from "./init/createLDK.js";
 
 export default class LightningClient implements LightningClientInterface {
   feeEstimator: FeeEstimator;

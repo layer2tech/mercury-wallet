@@ -1,5 +1,5 @@
 import initialiseWasm from "./LDK/init/initialiseWasm.js";
-import { getLDKClient, importLDK } from "./LDK/init/importLDK.js";
+import { getLDKClient, importLDK } from "./LDK/init/createLDK.js";
 import { hexToUint8Array } from "./LDK/utils/utils.js";
 import { UserConfig } from "lightningdevkit";
 

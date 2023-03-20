@@ -40,7 +40,7 @@ import MercuryEventHandler from "../structs/MercuryEventHandler.js";
 import MercuryFilter from "../structs/MercuryFilter.js";
 import LightningClientInterface from "../types/LightningClientInterface.js";
 import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
-import LightningClient from "../lightning.js";
+import LightningClient from "../LightningClient.js";
 import TorClient from "../bitcoin_clients/TorClient.mjs";
 import MercuryPersist from "../structs/MercuryPersist.js";
 import MercuryPersister from "../structs/MercuryPersister.js";
@@ -183,7 +183,7 @@ function setUpLDK(electrum: string = "prod") {
     )
   );
 
-  let channelManager;
+  let channelManager: any;
   if (fs.existsSync("channel_manager_data.bin")) {
     console.log("Load the channel manager from disk...");
     const f = fs.readFileSync(`channel_manager_data.bin`);

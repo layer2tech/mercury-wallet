@@ -1,22 +1,16 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-
 import serverRoutes from "./routes/serverRoutes.js";
 import peerRoutes from "./routes/peerRoutes.js";
 import channelRoutes from "./routes/channelRoutes.js";
-
 import { closeConnections } from "./LDK/utils/ldk-utils.js";
-import { debug_lightning } from "./debug_lightning.js";
-
 import initialiseWasm from "./LDK/init/initialiseWasm.js";
-import { getLDKClient, importLDK } from "./LDK/init/importLDK.js";
-import LightningClient from "./LDK/lightning.js";
+import { getLDKClient, createLDK } from "./LDK/init/createLDK.js";
+import LightningClient from "./LDK/LightningClient.js";
 
 // Constants
 const PORT = 3003;
-
-// Routers
 
 // Express app
 const app = express();
@@ -26,7 +20,6 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Routes
-
 app.use("/", serverRoutes);
 app.use("/peer", peerRoutes);
 app.use("/channel", channelRoutes);
@@ -36,12 +29,11 @@ app.listen(PORT, async () => {
   console.log(`lightning-adapter listening at http://localhost:${PORT}`);
   await initialiseWasm();
   console.log("import LDK");
-  await importLDK("prod"); // prod or dev
+  await createLDK("prod"); // prod or dev
   console.log("finished import LDK");
   const LightningClient: LightningClient = getLDKClient();
   await LightningClient.start();
   console.log("Started LDK Client");
-  // debug_lightning();
 });
 
 // Exit handlers
