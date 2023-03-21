@@ -34,7 +34,7 @@ import { getLDKClient } from "./init/getLDK.js";
 
 export default class LightningClient implements LightningClientInterface {
   feeEstimator: FeeEstimator;
-  electrumClient: any;
+  bitcointd_client: any;
   logger: Logger;
   txBroadcasted: any;
   txBroadcaster: BroadcasterInterface;
@@ -62,7 +62,7 @@ export default class LightningClient implements LightningClientInterface {
 
   constructor(props: LightningClientInterface) {
     this.feeEstimator = props.feeEstimator;
-    this.electrumClient = props.electrumClient;
+    this.bitcointd_client = props.bitcointd_client;
     this.logger = props.logger;
     this.txBroadcasted = props.txBroadcasted;
     this.txBroadcaster = props.txBroadcaster;
@@ -91,12 +91,12 @@ export default class LightningClient implements LightningClientInterface {
 
   async setBlockHeight() {
     // Gets the block height from client and assigns to class paramater
-    this.blockHeight = await this.electrumClient.getBlockHeight();
+    this.blockHeight = await this.bitcointd_client.getBlockHeight();
   }
 
   async setLatestBlockHeader(height: number | undefined) {
     if (height) {
-      let latestBlockHeader = await this.electrumClient.getLatestBlockHeader(
+      let latestBlockHeader = await this.bitcointd_client.getLatestBlockHeader(
         height
       );
 
@@ -107,7 +107,7 @@ export default class LightningClient implements LightningClientInterface {
   }
 
   async addTxData(txid: any) {
-    let txData = await this.electrumClient.getTxIdData(txid);
+    let txData = await this.bitcointd_client.getTxIdData(txid);
     this.txdata.push(txData);
   }
 
@@ -301,6 +301,10 @@ export default class LightningClient implements LightningClientInterface {
     });
   }
 
+  getChainMonitor(): ChainMonitor {
+    return this.chainMonitor;
+  }
+
   getPeerManager(): PeerManager {
     return this.peerManager;
   }
@@ -350,6 +354,10 @@ export default class LightningClient implements LightningClientInterface {
     setInterval(async () => {
       this.persister.persist_manager(this.channelManager);
     }, 100);
+
+    setInterval(async () => {
+      this.peerManager.timer_tick_occurred();
+    }, 10000);
 
     // 60 seconds after start prune
   }

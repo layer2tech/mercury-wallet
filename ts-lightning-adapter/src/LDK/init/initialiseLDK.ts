@@ -61,14 +61,14 @@ function setUpLDK(electrum: string = "prod") {
   }
 
   // Initialize our bitcoind client.
-  let electrumClient;
+  let bitcointd_client;
   console.log("INIT CLIENT: ", electrum);
   if (electrum === "prod") {
     console.log("Init TorClient");
-    electrumClient = new TorClient("");
+    bitcointd_client = new TorClient("");
   } else {
     console.log("Init ElectrumClient");
-    electrumClient = new ElectrumClient("");
+    bitcointd_client = new ElectrumClient("");
   }
 
   // Check that the bitcoind we've connected to is running the network we expect
@@ -104,8 +104,9 @@ function setUpLDK(electrum: string = "prod") {
 
   // Step 5: Initialize the ChainMonitor
   const filter = Filter.new_impl(new MercuryFilter());
+
   const chainMonitor = ChainMonitor.constructor_new(
-    Option_FilterZ.constructor_some(filter),
+    Option_FilterZ.constructor_none(),
     txBroadcaster,
     logger,
     feeEstimator,
@@ -122,7 +123,13 @@ function setUpLDK(electrum: string = "prod") {
   } else {
     seed = fs.readFileSync(keys_seed_path);
   }
-  const keysManager = KeysManager.constructor_new(seed, BigInt(42), 42);
+
+  const current_time = Date.now();
+  const keysManager = KeysManager.constructor_new(
+    seed,
+    BigInt(Math.floor(Date.now() / 1000)),
+    current_time.valueOf()
+  );
 
   let entropy_source = keysManager.as_EntropySource();
   let node_signer = keysManager.as_NodeSigner();
@@ -176,10 +183,10 @@ function setUpLDK(electrum: string = "prod") {
     Network.LDKNetwork_Regtest,
     BestBlock.constructor_new(
       Buffer.from(
-        "2d0283ee3b182e42653566427c9140562fe1358801f33ed4a17ebbb3c925418c",
+        "5f6b6876870a23a2379d2514e616cf6210b0178257608e36bd9135961e442e11",
         "hex"
       ),
-      187
+      196
     )
   );
 
@@ -204,7 +211,6 @@ function setUpLDK(electrum: string = "prod") {
     );
 
     try {
-      // read manager
       let readManager: any =
         UtilMethods.constructor_C2Tuple_BlockHashChannelManagerZ_read(
           f,
@@ -224,8 +230,11 @@ function setUpLDK(electrum: string = "prod") {
         console.log("readManager.res ->", readManager.res);
         let read_channelManager: TwoTuple_BlockHashChannelManagerZ =
           readManager.res;
-        console.log("read_channelManager.b() ->", read_channelManager.get_b());
         channelManager = read_channelManager.get_b();
+
+        console.log("Read channel manager as ->", channelManager);
+      } else {
+        throw Error("Couldn't recreate channel manager from disk");
       }
     } catch (e) {
       console.log("error:", e);
@@ -303,7 +312,7 @@ function setUpLDK(electrum: string = "prod") {
   // Step 17: Connect and Disconnect Blocks
   let channel_manager_listener = channelManager;
   let chain_monitor_listener = chainMonitor;
-  let bitcoind_block_source = electrumClient;
+  let bitcoind_block_source = bitcointd_client;
 
   /*
   const chain_poller = new ChainPoller(bitcoind_block_source, network);
@@ -350,7 +359,7 @@ function setUpLDK(electrum: string = "prod") {
   if (chainMonitor && channelManager && peerManager && eventHandler) {
     const LDKInit: LightningClientInterface = {
       feeEstimator: feeEstimator,
-      electrumClient: electrumClient,
+      bitcointd_client: bitcointd_client,
       logger: logger,
       txBroadcasted: txBroadcasted,
       txBroadcaster: txBroadcaster,
