@@ -109,7 +109,7 @@ const DepositLightning = (props) => {
         // if a successful connection can be met then create the channel.
         // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
         let res = await callCreateChannel(inputAmt, inputNodeId);
-        let nextAddress = addr;
+        let nextAddress = res.addr;
 
         let newInvoice = {
           amt: mBTCtoBTC(inputAmt),
