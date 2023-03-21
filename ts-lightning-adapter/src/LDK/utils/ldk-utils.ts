@@ -1,4 +1,4 @@
-import { getLDKClient } from "../init/importLDK.js";
+import { getLDKClient } from "../init/getLDK.js";
 import db from "../../db/db.js";
 import { hexToUint8Array } from "./utils.js";
 
@@ -164,6 +164,15 @@ export const createNewChannel = (
                 });
               } else {
                 channelId = row.channel_id;
+                let pubkey = hexToUint8Array(pubkeyHex);
+
+                getLDKClient().connectToChannel(
+                  pubkey,
+                  amount,
+                  push_msat,
+                  channelId,
+                  channelType
+                );
                 resolve({
                   status: 201,
                   message: "Channel saved successfully",

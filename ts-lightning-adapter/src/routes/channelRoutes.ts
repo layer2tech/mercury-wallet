@@ -3,9 +3,10 @@ import db from "../db/db.js";
 
 import * as bitcoin from "bitcoinjs-lib";
 
-import { getLDKClient } from "../LDK/init/importLDK.js";
+import { getLDKClient } from "../LDK/init/getLDK.js";
 import { createNewChannel } from "../LDK/utils/ldk-utils.js";
 import { uint8ArrayToHexString } from "../LDK/utils/utils.js";
+import { ChannelDetails } from "lightningdevkit";
 
 const router = express.Router();
 
@@ -36,21 +37,22 @@ router.get("/nodeID", async function (req, res) {
 
 // This is live channels that the LDK adapter has open - different to channels persisted in database.
 router.get("/liveChannels", async function (req, res) {
-  const channels: any = getLDKClient().getChannels();
+  const channels: ChannelDetails[] = getLDKClient().getChannels();
   let activeChannels = getLDKClient().getActiveChannels();
   console.log("active channels:", activeChannels);
   console.log("channels: ", channels);
-  if (channels[0]) {
-    console.log("ChannelID:", channels[0].get_channel_id());
-    console.log(
-      "bitcoin.script",
-      bitcoin.script.compile(Buffer.from(channels[0].get_channel_id()))
-    );
-    res.json({
-      channelId: channels[0].get_channel_id().toString(),
-      fundingTxo: channels[0].get_funding_txo().toString(),
-      channelType: channels[0].get_channel_type().toString(),
-    });
+
+  let jsonChannels = [];
+  if (channels && channels.length > 0) {
+    for (const channel of channels) {
+      jsonChannels.push({
+        channelId: channel.get_channel_id().toString(),
+        fundingTXO: channel.get_funding_txo().get_index().toString(),
+        channelAmount: channel.get_channel_value_satoshis().toString(),
+        channelType: channel.get_is_public(),
+      });
+    }
+    res.json(jsonChannels);
   } else {
     res.json([]);
   }
@@ -204,6 +206,18 @@ router.delete("/deleteChannel/:id", (req, res) => {
   // delete channel by id
   const deleteData = `DELETE FROM channels WHERE id=?`;
   db.run(deleteData, [req.params.id], function (err: any) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: "Data deleted successfully" });
+  });
+});
+
+router.delete("/deleteChannelByAddr/:addr", (req, res) => {
+  // delete channel by id
+  const deleteData = `DELETE FROM channels WHERE payment_address=?`;
+  db.run(deleteData, [req.params.addr], function (err: any) {
     if (err) {
       res.status(500).json({ error: err.message });
       return;

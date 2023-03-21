@@ -26,7 +26,7 @@ import PageHeader from "../PageHeader/PageHeader";
 import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
 import Loading from "../../components/Loading/Loading";
-import { deleteChannel } from "../../wallet/wallet";
+import { deleteChannelById } from "../../wallet/wallet";
 
 const WithdrawLightning = () => {
   const dispatch = useDispatch();
@@ -61,7 +61,7 @@ const WithdrawLightning = () => {
   const forceCloseChannel = () => {
     updateChannelsInfo();
     selectedChannels.forEach((channelId) => {
-      deleteChannel(channelId);
+      deleteChannelById(channelId);
     });
   };
 
@@ -128,6 +128,9 @@ const WithdrawLightning = () => {
   }
 
   const withdrawButtonAction = async () => {
+    console.log("Withdraw Button action true");
+
+    /*
     setLoading(true);
     setRefreshChannels((prevState) => !prevState);
     if (channelForceClose) {
@@ -143,7 +146,7 @@ const WithdrawLightning = () => {
       dispatch(setWithdrawTxid("wzxykmopq123456"));
       updateChannelsInfo();
     }
-    setLoading(false);
+    setLoading(false);*/
   };
 
   const updateChannelsInfo = () => {
@@ -198,17 +201,17 @@ const WithdrawLightning = () => {
     >
       <div className="container">
         <PageHeader
-          title="Close Channel BTC"
+          title="Close Channel"
           className="close-channel"
           icon={walletIcon}
-          subTitle="Withdraw BTC and close the channel"
+          subTitle="Closing channels"
         />
 
         <div className="withdraw content">
           <ItemsContainer
             channelListProps={{
               channels: channels,
-              title: "Select channel to withdraw",
+              title: "Select channel to close",
               selectedChannels: selectedChannels,
               addSelectedChannel: addSelectedChannel,
               refreshChannels: refreshChannels,
@@ -219,7 +222,9 @@ const WithdrawLightning = () => {
           <div className="Body right">
             <div className="header">
               <h3 className="subtitle">Transaction Details</h3>
-              <div>
+
+              {/*
+                <div>
                 {!customFee ? (
                   <select onChange={handleFeeSelection} value={txFeePerB}>
                     {txFees.map((feeObj) => {
@@ -250,17 +255,20 @@ const WithdrawLightning = () => {
                 )}
 
                 <span className="small">Transaction Fee</span>
-              </div>
+                </div>
+              */}
             </div>
 
-            <div>
-              <AddressInput
-                inputAddr={inputAddr}
-                onChange={onInputAddrChange}
-                placeholder="Destination Address for withdrawal"
-                smallTxtMsg="Your Bitcoin Address"
-              />
-            </div>
+            {/*
+               <div>
+                  <AddressInput
+                    inputAddr={inputAddr}
+                    onChange={onInputAddrChange}
+                    placeholder="Destination Address for withdrawal"
+                    smallTxtMsg="Your Bitcoin Address"
+                  />
+                </div>
+              */}
 
             <div>
               <ConfirmPopup
@@ -270,14 +278,11 @@ const WithdrawLightning = () => {
               >
                 <button
                   type="button"
-                  className={`btn withdraw-button ${loading} ${
-                    withdrawingWarning ? "withdrawing-warning" : null
+                  className={`btn closing-button ${loading} ${
+                    withdrawingWarning ? "closing-warning" : null
                   }`}
                 >
-                  {loading ? null : (
-                    <img src={withdrowIcon} alt="withdrowIcon" />
-                  )}
-                  {loading ? <Loading /> : "Withdraw btc"}
+                  {loading ? <Loading /> : "Close Channel"}
                 </button>
               </ConfirmPopup>
             </div>

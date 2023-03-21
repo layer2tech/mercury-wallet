@@ -1,7 +1,4 @@
 "use strict";
-import { isNonNullChain } from "typescript";
-
-import { log } from "./swap/swap_utils";
 
 // Check if returned value from server is an error. Throw if so.
 export const checkForServerError = (response: any) => {
@@ -25,13 +22,19 @@ export const checkForServerError = (response: any) => {
   }
   const error = return_val?.error;
   if (error != null) {
+    if (error.statusCode === 403) {
+      // Forbidden request try new tor circuit
+      throw Error(
+        "Tor circuit not functioning. A new circuit will be automatically generated."
+      );
+    }
     if (
       error?.message ==
       "Error: Socks5 proxy rejected connection - HostUnreachable"
     ) {
       throw Error("I2P takes ~1min to initialise. Please wait...");
     }
-    throw Error("Internal Server Error" + error.message);
+    throw Error("Internal Server Error");
   }
 };
 

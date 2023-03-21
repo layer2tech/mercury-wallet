@@ -35,7 +35,7 @@ log = new WrappedLogger();
 const PanelConnectivity = (props) => {
   const dispatch = useDispatch();
 
-  const { walletMode, fee_info, torInfo, ping_conductor_ms, ping_server_ms, ping_electrum_ms, blockHeightLoad } = useSelector((state) => state.walletData)
+  const { walletMode, fee_info, torInfo, ping_conductor_ms, ping_server_ms, ping_electrum_ms, ping_lightning_ms, blockHeightLoad } = useSelector((state) => state.walletData)
 
   // Arrow down state and url hover state
   const [state, setState] = useState({
@@ -50,6 +50,7 @@ const PanelConnectivity = (props) => {
   const [server_connected, setServerConnected] = useState(ping_server_ms ? true : false);
   const [conductor_connected, setConductorConnected] = useState(ping_conductor_ms ? true : false);
   const [electrum_connected, setElectrumConnected] = useState((ping_electrum_ms && block_height) ? true : false);
+  const [lightning_connected, setLightningConnected] = useState(ping_lightning_ms ? true : false);
 
   const swap_groups_data = callGetSwapGroupInfo();
   let swap_groups_array = swap_groups_data
@@ -86,6 +87,7 @@ const PanelConnectivity = (props) => {
   useEffect(() => {
     updateSpeedInfo(true)
   }, [])
+
   // every 30s check speed
   useEffect(() => {
     let isMounted = true;
@@ -145,13 +147,19 @@ const PanelConnectivity = (props) => {
         setElectrumConnected(true);
       }
     }
+    if (ping_lightning_ms === null) {
+      setLightningConnected(false);
+    } else {
+      setLightningConnected(true);
+    }
   }, [
     fee_info.deposit,
     swap_groups_array.length,
     block_height,
     ping_server_ms,
     ping_conductor_ms,
-    ping_electrum_ms
+    ping_electrum_ms,
+    ping_lightning_ms
   ]);
 
   useEffect(() => {
@@ -259,14 +267,14 @@ const PanelConnectivity = (props) => {
             <div className="Collapse">
               <RadioButton
                 connection="Lightning server"
-                checked={true}
-                condition={true}
+                checked={lightning_connected}
+                condition={lightning_connected && ( ping_lightning_ms === "NA" || ping_lightning_ms < 10000 )}
               />
 
               <RadioButton
                 connection="Bitcoin"
-                checked={true}
-                condition={true}
+                checked={electrum_connected}
+                condition={electrum_connected && ( ping_electrum_ms === "NA" || ping_electrum_ms < 10000 )}
               />
 
               <DropdownArrow 

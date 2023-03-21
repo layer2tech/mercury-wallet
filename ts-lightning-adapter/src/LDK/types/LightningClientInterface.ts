@@ -21,14 +21,15 @@ import {
   ChainParameters,
   ChannelManager,
   IgnoringMessageHandler,
-  Router
+  Router,
+  Persister,
 } from "lightningdevkit";
 import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
 import TorClient from "../bitcoin_clients/TorClient.mjs";
 
 export default interface LightningClientInterface {
   feeEstimator: FeeEstimator;
-  electrumClient: TorClient | ElectrumClient; // Electrum for dev, Tor for prod
+  bitcointd_client: TorClient | ElectrumClient; // Electrum for dev, Tor for prod
   logger: Logger;
   txBroadcasted: any;
   txBroadcaster: BroadcasterInterface;
@@ -38,6 +39,7 @@ export default interface LightningClientInterface {
   networkGraph: NetworkGraph;
   filter: Filter;
   persist: Persist;
+  persister: Persister;
   eventHandler: EventHandler;
   chainMonitor: ChainMonitor;
   chainWatch: any;

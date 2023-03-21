@@ -1,14 +1,24 @@
 // handle all peer logic on server
 import express from "express";
 import {
+  ChainMonitor,
   PeerManager,
   TwoTuple_PublicKeyCOption_NetAddressZZ,
 } from "lightningdevkit";
 const router = express.Router();
 import db from "../db/db.js";
-import { getLDKClient } from "../LDK/init/importLDK.js";
+import { getLDKClient } from "../LDK/init/getLDK.js";
 import { createNewPeer } from "../LDK/utils/ldk-utils.js";
 import { hexToUint8Array, uint8ArrayToHexString } from "../LDK/utils/utils.js";
+
+router.get("/liveChainMonitors", async (req, res) => {
+  let chainMonitor: ChainMonitor = await getLDKClient().getChainMonitor();
+  if (chainMonitor) {
+    res.status(200).json({ chainMonitors: chainMonitor.list_monitors() });
+  } else {
+    res.status(500).json("Failed to get chain monitor");
+  }
+});
 
 router.get("/livePeers", async (req, res) => {
   let peerManager: PeerManager = await getLDKClient().getPeerManager();
@@ -157,11 +167,11 @@ router.post("/create-channel", async (req, res) => {
 });
 
 router.post("/open-channel", async (req, res) => {
-  const { amount, paid, txid, vout, addr, pubkey } = req.body;
+  const { amount, paid, txid, vout, addr } = req.body;
 
-  console.log(amount, paid, txid, vout, addr, pubkey);
+  console.log(amount, paid, txid, vout, addr);
 
-  await getLDKClient().openChannel(amount, paid, txid, vout, addr, pubkey);
+  await getLDKClient().openChannel(amount, paid, txid, vout, addr);
   res.status(200).json({ message: "Channel opened" });
 });
 

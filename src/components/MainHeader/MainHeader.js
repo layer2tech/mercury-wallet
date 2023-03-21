@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  callGetChannels,
   getChannels,
+  setError,
   updateBalanceInfo,
   updateFilter,
   updateWalletMode,
@@ -70,6 +72,13 @@ const MainHeader = ({ mainUnit, icon }) => {
 
   const handleFilter = (walletMode) => {
     dispatch(updateWalletMode(walletMode));
+    if (walletMode === "LIGHTNING") {
+      dispatch(
+        setError({
+          msg: "------ Lightning integration is in alpha stage ----- DO NOT USE REAL BTC!",
+        })
+      );
+    }
   };
 
   const toggleContent = (e) => {

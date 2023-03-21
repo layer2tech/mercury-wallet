@@ -13,7 +13,9 @@ import {
   ChannelHandshakeConfig,
   ChainParameters,
   ChannelManager,
-  Router
+  Router,
+  Persister,
+  ChannelManagerReadArgs,
 } from "lightningdevkit";
 import { NodeLDKNet } from "./structs/NodeLDKNet.mjs";
 import LightningClientInterface from "./types/LightningClientInterface.js";
@@ -29,11 +31,11 @@ import {
   insertTxData,
 } from "./utils/ldk-utils.js";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
-import { getLDKClient } from "./init/importLDK.js";
+import { getLDKClient } from "./init/getLDK.js";
 
 export default class LightningClient implements LightningClientInterface {
   feeEstimator: FeeEstimator;
-  electrumClient: any;
+  bitcointd_client: any;
   logger: Logger;
   txBroadcasted: any;
   txBroadcaster: BroadcasterInterface;
@@ -43,6 +45,7 @@ export default class LightningClient implements LightningClientInterface {
   networkGraph: NetworkGraph;
   filter: Filter;
   persist: Persist;
+  persister: Persister;
   eventHandler: EventHandler;
   chainMonitor: ChainMonitor;
   chainWatch: any;
@@ -61,7 +64,7 @@ export default class LightningClient implements LightningClientInterface {
 
   constructor(props: LightningClientInterface) {
     this.feeEstimator = props.feeEstimator;
-    this.electrumClient = props.electrumClient;
+    this.bitcointd_client = props.bitcointd_client;
     this.logger = props.logger;
     this.txBroadcasted = props.txBroadcasted;
     this.txBroadcaster = props.txBroadcaster;
@@ -70,7 +73,8 @@ export default class LightningClient implements LightningClientInterface {
     this.genesisBlockHash = props.genesisBlockHash;
     this.networkGraph = props.networkGraph;
     this.filter = props.filter;
-    this.persist = props.persist; // Maybe should be persisterpersist
+    this.persist = props.persist;
+    this.persister = props.persister;
     this.eventHandler = props.eventHandler;
     this.chainMonitor = props.chainMonitor;
     this.chainWatch = props.chainWatch;
@@ -90,12 +94,12 @@ export default class LightningClient implements LightningClientInterface {
 
   async setBlockHeight() {
     // Gets the block height from client and assigns to class paramater
-    this.blockHeight = await this.electrumClient.getBlockHeight();
+    this.blockHeight = await this.bitcointd_client.getBlockHeight();
   }
 
   async setLatestBlockHeader(height: number | undefined) {
     if (height) {
-      let latestBlockHeader = await this.electrumClient.getLatestBlockHeader(
+      let latestBlockHeader = await this.bitcointd_client.getLatestBlockHeader(
         height
       );
 
@@ -106,11 +110,11 @@ export default class LightningClient implements LightningClientInterface {
   }
 
   async addTxData(txid: any) {
-    let txData = await this.electrumClient.getTxIdData(txid);
+    let txData = await this.bitcointd_client.getTxIdData(txid);
     this.txdata.push(txData);
   }
 
-  setInputTx(privateKey: string, txid: string, vout: number) {
+  setInputTx(privateKey: Buffer, txid: string, vout: number) {
     let mercuryHandler = new MercuryEventHandler(this.channelManager);
     mercuryHandler.setInputTx(privateKey, txid, vout);
     this.eventHandler = EventHandler.new_impl(mercuryHandler);
@@ -177,24 +181,13 @@ export default class LightningClient implements LightningClientInterface {
     paid: boolean,
     txid: string,
     vout: number,
-    addr: string,
-    pubkeyHex: string
+    addr: string
   ) {
     try {
       const result = await insertTxData(amount, paid, txid, vout, addr);
       console.log("Input Tx .");
-      this.setInputTx(result.priv_key, txid, vout);
+      this.setInputTx(hexToUint8Array(result.priv_key), txid, vout);
       console.log("Input Tx √");
-
-      let pubkey = hexToUint8Array(pubkeyHex);
-
-      getLDKClient().connectToChannel(
-        pubkey,
-        amount,
-        result.push_msat,
-        result.channel_id,
-        result.channel_type
-      );
     } catch (err) {
       console.log(err);
       throw err;
@@ -288,15 +281,10 @@ export default class LightningClient implements LightningClientInterface {
   async create_socket(peerDetails: PeerDetails) {
     // Create Socket for outbound connection: check NodeNet LDK docs for inbound
     const { pubkey, host, port } = peerDetails;
-
-    console.log("net handler looks like this:", this.netHandler);
-
     try {
-      console.log("Peer Details: ", peerDetails);
       await this.netHandler.connect_peer(host, port, pubkey);
     } catch (e) {
       console.log("Error connecting to peer: ", e);
-      console.log("Peer connection failed");
       throw e; // or handle the error in a different way
     }
 
@@ -304,16 +292,16 @@ export default class LightningClient implements LightningClientInterface {
       // Wait until the peers are connected and have exchanged the initial handshake
       var timer: any;
       timer = setInterval(() => {
-        //console.log("Node IDs", this.peerManager.get_peer_node_ids());
         if (this.peerManager.get_peer_node_ids().length == 1) {
-          // && this.peerManager2.get_peer_node_ids().length == 1
-
-          console.log("Length is Equal to 1");
           resolve();
           clearInterval(timer);
         }
-      }, 500);
+      }, 1000);
     });
+  }
+
+  getChainMonitor(): ChainMonitor {
+    return this.chainMonitor;
   }
 
   getPeerManager(): PeerManager {
@@ -341,39 +329,16 @@ export default class LightningClient implements LightningClientInterface {
 
   // starts the lightning LDK
   async start() {
+    console.log("Calling ChannelManager's timer_tick_occurred on startup");
+    this.channelManager.timer_tick_occurred();
+
     setInterval(async () => {
       // processes events on ChannelManager and ChainMonitor
       await this.processPendingEvents();
-
-      // await this.setBlockHeight();
-      // await this.setLatestBlockHeader();
-
-      // this.channel_manager.as_Listen().block_disconnected(this.previous_block_header, this.block_height);
-      // this.chain_monitor.block_disconnected(this.previous_block_header, this.block_height);
-
-      // For each connected and disconnected block, and in chain-order, call these
-      // methods.
-      // If you're using BIP 157/158, then `txdata` below should always include any
-      // transactions and/our outputs spends registered through the `Filter` interface,
-      // Transactions and outputs are registered both on startup and as new relevant
-      // transactions/outputs are created.
-
-      // header is a []byte type, height is `int`, txdata is a
-      // TwoTuple_usizeTransactionZ[], where the 0th element is the transaction's
-      // position in the block (with the coinbase transaction considered position 0)
-      // and the 1st element is the transaction bytes
-
-      // Get the Header, TxData and Height
-      // TwoTuple_usizeTransactionZ
-      // console.log('Latest Block Header: ',this.latest_block_header)
-      // this.channel_manager.as_Listen().block_connected(this.latest_block_header, this.block_height);
-      // this.chain_monitor.block_connected(this.latest_block_header, this.txdata, this.block_height);
     }, 2000);
   }
 
   async processPendingEvents() {
-    this.channelManager.timer_tick_occurred();
-
     this.channelManager
       .as_EventsProvider()
       .process_pending_events(this.eventHandler);
@@ -381,5 +346,18 @@ export default class LightningClient implements LightningClientInterface {
     this.chainMonitor
       .as_EventsProvider()
       .process_pending_events(this.eventHandler);
+
+    this.peerManager.process_events();
+
+    // every 100 milli seconds persist channel manager to disk
+    setInterval(async () => {
+      this.persister.persist_manager(this.channelManager);
+    }, 100);
+
+    setInterval(async () => {
+      this.peerManager.timer_tick_occurred();
+    }, 10000);
+
+    // 60 seconds after start prune
   }
 }

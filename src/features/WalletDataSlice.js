@@ -6,6 +6,7 @@ import {
   getFeeInfo,
   getCoinsInfo,
   pingElectrum,
+  pingLightning,
 } from "../wallet/mercury/info_api";
 import { pingServer as pingConductor } from "../wallet/swap/info_api";
 import { pingServer } from "../wallet/mercury/info_api";
@@ -22,7 +23,7 @@ import { mutex } from "../wallet/electrum";
 import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
-import { NETWORK_TYPE } from "../wallet/wallet";
+import { NETWORK_TYPE, deleteChannelByAddr } from "../wallet/wallet";
 // import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
@@ -113,6 +114,7 @@ const initialState = {
   ping_server_ms: null,
   ping_conductor_ms: null,
   ping_electrum_ms: null,
+  ping_lightning_ms: null,
   ping_swap: null,
   ping_server: null,
   filterBy: "default",
@@ -951,9 +953,14 @@ export const callCreateChannel = async (amount, peer_node) => {
   }
 };
 
-export const callDeleteChannel = async (addr) => {
+export const callDeleteChannelByAddr = async (addr) => {
   if (isWalletLoaded()) {
-    return await wallet.deleteChannel(addr);
+    deleteChannelByAddr(addr)
+      .then((res) => {
+        if (res.status === 200) {
+          wallet.channels.deleteChannelByAddr(addr);
+        }
+      })
   }
 };
 
@@ -966,28 +973,32 @@ export const checkChannelWithdrawal = (
 
   // check if channel is chosen
   if (selectedChannels.length === 0) {
-    dispatch(setError({ msg: "Please choose a channel to withdraw." }));
-    return true;
-  }
-  if (!inputAddr) {
-    dispatch(setError({ msg: "Please enter an address to withdraw to." }));
+    dispatch(setError({ msg: "Please choose a channel to close." }));
     return true;
   }
 
+  /*
+  if (!inputAddr) {
+    dispatch(setError({ msg: "Please enter an address to withdraw to." }));
+    return true;
+  }*/
+
   // if total sats sum in all selected channels less than 0.001BTC (100000 sats) then return error
+  /*
   if (callSumChannelAmt(selectedChannels) < 100000) {
     dispatch(
       setError({ msg: "Mininum withdrawal size is 0.001 BTC (100000 sats)." })
     );
     return true;
-  }
+  }*/
 
+  /*
   try {
     bitcoin.address.toOutputScript(inputAddr, wallet.config.network);
   } catch (e) {
     dispatch(setError({ msg: "Invalid Bitcoin address entered." }));
     return true;
-  }
+  }*/
 };
 
 export const checkChannelCreation = (dispatch, amount, nodekey) => {
@@ -1611,6 +1622,12 @@ const WalletSlice = createSlice({
         ping_electrum_ms: action.payload,
       };
     },
+    setPingLightningMs(state, action) {
+      return {
+        ...state,
+        ping_lightning_ms: action.payload,
+      };
+    },
     setShowWithdrawPopup(state, action) {
       return {
         ...state,
@@ -1780,6 +1797,7 @@ export const {
   setPingServerMs,
   setPingConductorMs,
   setPingElectrumMs,
+  setPingLightningMs,
   setShowWithdrawPopup,
   setWithdrawTxid,
   setShowInvoicePopup,

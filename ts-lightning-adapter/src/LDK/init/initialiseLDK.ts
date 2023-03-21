@@ -24,6 +24,10 @@ import {
   DefaultRouter,
   LockableScore,
   TwoTuple_TxidBlockHashZ,
+  Persister,
+  ChannelManagerReadArgs,
+  UtilMethods,
+  TwoTuple_BlockHashChannelManagerZ,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -31,15 +35,15 @@ import crypto from "crypto";
 
 import MercuryFeeEstimator from "../structs/MercuryFeeEstimator.mjs";
 import MercuryLogger from "../structs/MercuryLogger.js";
-import MercuryPersister from "../structs/MercuryPersist.js";
 // @ts-ignore
 import MercuryEventHandler from "../structs/MercuryEventHandler.js";
 import MercuryFilter from "../structs/MercuryFilter.js";
 import LightningClientInterface from "../types/LightningClientInterface.js";
 import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
-import LightningClient from "../lightning.js";
+import LightningClient from "../LightningClient.js";
 import TorClient from "../bitcoin_clients/TorClient.mjs";
-import MercuryRouter from "../structs/MercuryRouter.js";
+import MercuryPersist from "../structs/MercuryPersist.js";
+import MercuryPersister from "../structs/MercuryPersister.js";
 
 export default function initLDK(electrum: string = "prod") {
   const initLDK = setUpLDK(electrum);
@@ -57,14 +61,14 @@ function setUpLDK(electrum: string = "prod") {
   }
 
   // Initialize our bitcoind client.
-  let electrumClient;
+  let bitcointd_client;
   console.log("INIT CLIENT: ", electrum);
   if (electrum === "prod") {
     console.log("Init TorClient");
-    electrumClient = new TorClient("");
+    bitcointd_client = new TorClient("");
   } else {
     console.log("Init ElectrumClient");
-    electrumClient = new ElectrumClient("");
+    bitcointd_client = new ElectrumClient("");
   }
 
   // Check that the bitcoind we've connected to is running the network we expect
@@ -95,24 +99,20 @@ function setUpLDK(electrum: string = "prod") {
   });
 
   // Step 4: Initialize Persist
-  const persist = Persist.new_impl(new MercuryPersister());
+  const persist = Persist.new_impl(new MercuryPersist());
+  const persister = Persister.new_impl(new MercuryPersister());
 
   // Step 5: Initialize the ChainMonitor
   const filter = Filter.new_impl(new MercuryFilter());
-  let chainMonitor;
-  let chainWatch;
-  try {
-    chainMonitor = ChainMonitor.constructor_new(
-      Option_FilterZ.constructor_some(filter),
-      txBroadcaster,
-      logger,
-      feeEstimator,
-      persist
-    );
-    chainWatch = chainMonitor.as_Watch();
-  } catch (e) {
-    console.log("Error:::::::", e);
-  }
+
+  const chainMonitor = ChainMonitor.constructor_new(
+    Option_FilterZ.constructor_none(),
+    txBroadcaster,
+    logger,
+    feeEstimator,
+    persist
+  );
+  const chainWatch = chainMonitor.as_Watch();
 
   // Step 6: Initialize the KeysManager
   const keys_seed_path = ldk_data_dir + "keys_seed";
@@ -123,7 +123,13 @@ function setUpLDK(electrum: string = "prod") {
   } else {
     seed = fs.readFileSync(keys_seed_path);
   }
-  const keysManager = KeysManager.constructor_new(seed, BigInt(42), 42);
+
+  const current_time = Date.now();
+  const keysManager = KeysManager.constructor_new(
+    seed,
+    BigInt(Math.floor(Date.now() / 1000)),
+    current_time.valueOf()
+  );
 
   let entropy_source = keysManager.as_EntropySource();
   let node_signer = keysManager.as_NodeSigner();
@@ -177,14 +183,64 @@ function setUpLDK(electrum: string = "prod") {
     Network.LDKNetwork_Regtest,
     BestBlock.constructor_new(
       Buffer.from(
-        "2d0283ee3b182e42653566427c9140562fe1358801f33ed4a17ebbb3c925418c",
+        "5f6b6876870a23a2379d2514e616cf6210b0178257608e36bd9135961e442e11",
         "hex"
       ),
-      187
+      196
     )
   );
-  let channelManager;
-  if (chainWatch) {
+
+  let channelManager: any;
+  if (fs.existsSync("channel_manager_data.bin")) {
+    console.log("Load the channel manager from disk...");
+    const f = fs.readFileSync(`channel_manager_data.bin`);
+
+    let channel_monitor_mut_references: ChannelMonitor[] = []; // todo, read from disk
+
+    let read_args = ChannelManagerReadArgs.constructor_new(
+      keysManager.as_EntropySource(),
+      keysManager.as_NodeSigner(),
+      keysManager.as_SignerProvider(),
+      feeEstimator,
+      chainMonitor.as_Watch(),
+      txBroadcaster,
+      router,
+      logger,
+      config,
+      channel_monitor_mut_references
+    );
+
+    try {
+      let readManager: any =
+        UtilMethods.constructor_C2Tuple_BlockHashChannelManagerZ_read(
+          f,
+          entropy_source,
+          node_signer,
+          signer_provider,
+          feeEstimator,
+          chainMonitor.as_Watch(),
+          txBroadcaster,
+          router,
+          logger,
+          config,
+          channel_monitor_mut_references
+        );
+
+      if (readManager.is_ok()) {
+        console.log("readManager.res ->", readManager.res);
+        let read_channelManager: TwoTuple_BlockHashChannelManagerZ =
+          readManager.res;
+        channelManager = read_channelManager.get_b();
+
+        console.log("Read channel manager as ->", channelManager);
+      } else {
+        throw Error("Couldn't recreate channel manager from disk");
+      }
+    } catch (e) {
+      console.log("error:", e);
+    }
+  } else {
+    // fresh manager
     channelManager = ChannelManager.constructor_new(
       feeEstimator,
       chainWatch,
@@ -204,13 +260,15 @@ function setUpLDK(electrum: string = "prod") {
   // Step 12: Sync ChannelMonitors and ChannelManager to chain tip
   let relevent_txids_1 = channelManager?.as_Confirm().get_relevant_txids();
   let relevent_txids_2 = chainMonitor?.as_Confirm().get_relevant_txids();
-  let merged_txids: TwoTuple_TxidBlockHashZ[] = [];
+  let relevant_txids: TwoTuple_TxidBlockHashZ[] = [];
   if (relevent_txids_1 && Symbol.iterator in Object(relevent_txids_1)) {
-    merged_txids.push(...relevent_txids_1);
+    relevant_txids.push(...relevent_txids_1);
   }
   if (relevent_txids_2 && Symbol.iterator in Object(relevent_txids_2)) {
-    merged_txids.push(...relevent_txids_2);
+    relevant_txids.push(...relevent_txids_2);
   }
+
+  console.log("relevent_txids:", relevant_txids);
 
   // needs to check on an interval
 
@@ -252,6 +310,24 @@ function setUpLDK(electrum: string = "prod") {
   // Step 16: Initialize networking
 
   // Step 17: Connect and Disconnect Blocks
+  let channel_manager_listener = channelManager;
+  let chain_monitor_listener = chainMonitor;
+  let bitcoind_block_source = bitcointd_client;
+
+  /*
+  const chain_poller = new ChainPoller(bitcoind_block_source, network);
+  const chain_listener = [chain_monitor_listener, channel_manager_listener];
+  const spv_client = new SpvClient(
+    chain_tip,
+    chain_poller,
+    cache,
+    chain_listener
+  );
+
+  setInterval(async () => {
+    await spv_client.poll_best_tip();
+  }, 1000);*/
+
   // check on interval
 
   // Step 18: Handle LDK Events
@@ -262,7 +338,8 @@ function setUpLDK(electrum: string = "prod") {
   }
 
   // Step 19: Persist ChannelManager and NetworkGraph
-  // channelManager.write()
+  persister.persist_manager(channelManager);
+  persister.persist_graph(networkGraph);
 
   // ************************************************************************************************
   // Step 20: Background Processing
@@ -282,7 +359,7 @@ function setUpLDK(electrum: string = "prod") {
   if (chainMonitor && channelManager && peerManager && eventHandler) {
     const LDKInit: LightningClientInterface = {
       feeEstimator: feeEstimator,
-      electrumClient: electrumClient,
+      bitcointd_client: bitcointd_client,
       logger: logger,
       txBroadcasted: txBroadcasted,
       txBroadcaster: txBroadcaster,
@@ -292,6 +369,7 @@ function setUpLDK(electrum: string = "prod") {
       networkGraph: networkGraph,
       filter: filter,
       persist: persist,
+      persister: persister,
       eventHandler: eventHandler,
       chainMonitor: chainMonitor,
       chainWatch: chainWatch,

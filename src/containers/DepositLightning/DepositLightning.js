@@ -1,6 +1,6 @@
 import { withRouter, Redirect } from "react-router-dom";
 import PageHeader from "../PageHeader/PageHeader";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import plus from "../../images/plus-deposit.png";
 import btc_img from "../../images/icon1.png";
 import arrow_img from "../../images/scan-arrow.png";
@@ -24,7 +24,7 @@ import {
   callCreateChannel,
   setError,
   getChannels,
-  callDeleteChannel,
+  callDeleteChannelByAddr,
   callGetNextBtcAddress,
 } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
@@ -43,20 +43,23 @@ const DepositLightning = (props) => {
   const [channels, setChannels] = useState(getChannels());
   const [inputAmt, setInputAmt] = useState("");
   const [inputNodeId, setInputNodeId] = useState("");
-  
+  const [pubkey, setPubkey] = useState();
+
   const [loading, setLoading] = useState(false);
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
 
   const mBTCtoBTC = (mBTC) => {
-    return mBTC * ( 10**-3 );
-  }
+    return mBTC * 10 ** -3;
+  };
 
   const satsToBTC = (sats) => {
-    return sats * ( 10**-8 );
-  }
+    return sats * 10 ** -8;
+  };
 
   const getRecentInvoice = () => {
-    const channel = channels.find(channel => channel.status === CHANNEL_STATUS.INITIALISED);
+    const channel = channels.find(
+      (channel) => channel.status === CHANNEL_STATUS.INITIALISED
+    );
     let recentInvoice = {};
     if (channel) {
       recentInvoice = {
@@ -65,7 +68,7 @@ const DepositLightning = (props) => {
       };
     }
     return recentInvoice;
-  }
+  };
 
   const [invoice, setInvoice] = useState(getRecentInvoice());
 
@@ -73,11 +76,6 @@ const DepositLightning = (props) => {
     return channels.some((channel) => {
       return channel.peer_pubkey === pubKey;
     });
-  };
-
-  const getPubkeyFromAddr = (addr) => {
-    const channel = channels.find((channel) => channel.funding.addr === addr);
-    return channel.peer_pubkey;
   };
 
   const createChannel = async () => {
@@ -120,6 +118,7 @@ const DepositLightning = (props) => {
         setInvoice(newInvoice);
         setChannels(getChannels());
         setInvoice(newInvoice);
+        setPubkey(pubkey);
       } else {
         dispatch(setError({ msg: "Failed to connect to peer" }));
       }
@@ -142,7 +141,7 @@ const DepositLightning = (props) => {
   };
 
   const closeInvoice = () => {
-    callDeleteChannel(invoice.addr);
+    callDeleteChannelByAddr(invoice.addr);
     setInvoice({});
     setChannels(getChannels());
   };
@@ -157,7 +156,7 @@ const DepositLightning = (props) => {
         title="Create Channel"
         className="create-channel"
         icon={plus}
-        subTitle="Deposit BTC in channel to a Bitcoin address"
+        subTitle="Deposit TESTNET BTC in channel"
       />
       {invoice && Object.keys(invoice).length ? (
         <div className="Body">
@@ -170,7 +169,7 @@ const DepositLightning = (props) => {
                 <div className="deposit-scan-main-item">
                   <img src={btc_img} alt="icon" />
                   <span>
-                    <b>{invoice.amt}</b> BTC
+                    <b>{invoice.amt}</b> TESTNET BTC
                   </span>
                 </div>
                 <img src={arrow_img} alt="arrow" />
@@ -190,9 +189,7 @@ const DepositLightning = (props) => {
                 </div>
                 <ConfirmPopup onOk={closeInvoice}>
                   <button
-                    className={`primary-btm ghost close-invoice ${
-                      invoice.addr
-                    } ${getPubkeyFromAddr(invoice.addr)}`}
+                    className={`primary-btm ghost close-invoice ${invoice.addr} ${pubkey}`}
                   >
                     <img src={closeIcon} alt="close-button" />
                   </button>
@@ -201,8 +198,8 @@ const DepositLightning = (props) => {
             </div>
           </div>
           <span className="deposit-text">
-            Create funding transaction by sending {invoice.amt} BTC to the above
-            address in a SINGLE transaction
+            Create funding transaction by sending {invoice.amt} TESTNET BTC to
+            the above address in a SINGLE transaction
           </span>
         </div>
       ) : null}
@@ -210,14 +207,14 @@ const DepositLightning = (props) => {
       <div className="withdraw content lightning">
         <div className="Body right lightning">
           <div className="header">
-            <h3 className="subtitle">Payee Details</h3>
+            <h3 className="subtitle">Payee Details - TESTNET</h3>
           </div>
 
           <div>
             <AddressInput
               inputAddr={inputAmt}
               onChange={(e) => setInputAmt(e.target.value)}
-              placeholder="Enter amount"
+              placeholder="Enter amount (1=0.001BTC)"
               smallTxtMsg="Amount in mBTC"
             />
           </div>
