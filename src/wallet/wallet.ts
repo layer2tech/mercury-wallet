@@ -752,11 +752,7 @@ export class Wallet {
             status: 200
           });
         } else if (res.status === 409) {
-          reject({
-            addr: "",
-            status: 409,
-            error: res.data.message
-          });
+          reject(res);
         } else {
           throw new Error("Unexpected response status: " + res.status);
         }

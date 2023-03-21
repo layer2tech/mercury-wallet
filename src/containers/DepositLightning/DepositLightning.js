@@ -79,8 +79,6 @@ const DepositLightning = (props) => {
   };
 
   const createChannel = async () => {
-    console.log("Create a channel");
-
     const pubkey = inputNodeId.split("@")[0];
     const host = inputNodeId.split("@")[1].split(":")[0];
     const port = inputNodeId.split("@")[1].split(":")[1];
@@ -126,7 +124,7 @@ const DepositLightning = (props) => {
       }
     } catch (error) {
       console.log(error)
-      dispatch(setError({ msg: "Error: " + error.response.data }));
+      dispatch(setError({ msg: "Error: " + error.data.message }));
     }
   };
 
