@@ -80,7 +80,7 @@ router.post("/connectToPeer", async (req, res) => {
         e instanceof Error &&
         e.message.includes("already tried to connect to this peer")
       ) {
-        res.status(500).send("You're already connected to this peer!");
+        res.status(403).send("You're already connected to this peer!");
       } else {
         res.status(500).send("Error connecting to peer");
       }
