@@ -123,50 +123,50 @@ router.post("/connectToChannel", async (req, res) => {
 });
 
 router.post("/create-channel", async (req, res) => {
-  const {
-    amount,
-    pubkey,
-    host,
-    port,
-    channel_name,
-    wallet_name,
-    channelType,
-    privkey,
-    paid,
-    payment_address,
-  } = req.body;
+  try {
+    let {
+      amount,
+      pubkey,
+      host,
+      port,
+      channel_name,
+      wallet_name,
+      channelType,
+      privkey,
+      paid,
+      payment_address,
+    } = req.body;
 
-  channelType === "Public" ? true : false;
+    channelType = channelType === "Public" ? true : false;
 
-  console.log(
-    amount,
-    pubkey,
-    host,
-    port,
-    channel_name,
-    wallet_name,
-    channelType,
-    privkey,
-    paid,
-    payment_address
-  );
+    console.log(
+      amount,
+      pubkey,
+      host,
+      port,
+      channel_name,
+      wallet_name,
+      channelType,
+      privkey,
+      paid,
+      payment_address
+    );
 
-  const result = await getLDKClient().createPeerAndChannel(
-    amount,
-    pubkey,
-    host,
-    port,
-    channel_name,
-    wallet_name,
-    channelType,
-    privkey,
-    paid,
-    payment_address
-  );
-  if (result && result.status === 409) {
+    const result = await getLDKClient().createPeerAndChannel(
+      amount,
+      pubkey,
+      host,
+      port,
+      channel_name,
+      wallet_name,
+      channelType,
+      privkey,
+      paid,
+      payment_address
+    );
     res.status(result.status).json({ message: result.message });
-  } else {
-    res.status(200).json({ message: "Connected to peer, Channel created" });
+  } catch (error: any) {
+    res.status(error.status).json(error);
   }
 });
 

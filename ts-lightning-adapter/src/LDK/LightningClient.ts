@@ -149,9 +149,10 @@ export default class LightningClient implements LightningClientInterface {
 
     console.log("Peer created, connected to", peer_id);
 
+    let result;
     // Create the channel
     try {
-      const result = await createNewChannel(
+      result = await createNewChannel(
         pubkey,
         channel_name,
         amount,
@@ -174,7 +175,7 @@ export default class LightningClient implements LightningClientInterface {
     }
 
     console.log("Channel Created, connected to", channel_id);
-    return;
+    return result;
   }
 
   async openChannel(

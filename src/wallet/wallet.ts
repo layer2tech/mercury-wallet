@@ -734,7 +734,7 @@ export class Wallet {
           payment_address: addr,
         });
   
-        if (res.status === 200) {
+        if (res.status === 201) {
           this.channels.addChannel(
             proof_key.publicKey.toString("hex"),
             addr,
@@ -749,7 +749,7 @@ export class Wallet {
   
           resolve({
             addr: addr,
-            status: 200
+            status: 201
           });
         } else if (res.status === 409) {
           reject(res);

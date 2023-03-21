@@ -127,7 +127,7 @@ export class LDKClient {
       })
       .then((res: any) => {
         checkForServerError(res);
-        return res?.data;
+        return res;
       });
   }
 }
