@@ -82,11 +82,9 @@ const TorCircuit = (props) => {
         setTorLoaded(loaded);
         dispatch(setTorOnline(loaded));
 
-        //if(torcircuitData != torcircuit_array)
         console.log('settingTorCircuitData->', torcircuit_array);
         console.log('before it was equal to:', torcircuitData);
         setTorcircuitData(torcircuit_array);
-        //setLoading(false);
       }
     } else {
       dispatch(setTorOnline(false));
