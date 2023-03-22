@@ -112,7 +112,7 @@ const initialState = {
   blockHeightLoad: false,
   coinsAdded: 0,
   coinsRemoved: 0,
-  torInfo: { online: true },
+  torInfo: { online: true, torcircuitData: [], torLoaded: false},
   showWithdrawPopup: false,
   withdraw_txid: "",
 };
@@ -1152,13 +1152,12 @@ export const callGetNewTorId = createAsyncThunk(
 export const callGetNewTorCircuit = createAsyncThunk(
   "GetNewTorCircuit",
   async (action, thunkAPI) => {
-    wallet.updateTorCircuit();
+    wallet.getTorCircuit();
   }
 );
 
 export const callUpdateTorCircuitInfo = createAsyncThunk(
   "UpdateTorCircuitInfo",
-
   async (action, thunkAPI) => {
     try {
       wallet.updateTorcircuitInfo();

@@ -24,7 +24,7 @@ export const checkForServerError = (response: any) => {
         if(error?.message == 'Error: Socks5 proxy rejected connection - HostUnreachable'){
             throw Error("I2P takes ~1min to initialise. Please wait...")
         }
-        throw Error("Internal Server Error")
+        throw Error("Internal Server Error:" + error?.message);
     }
 }
 

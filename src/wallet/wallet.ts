@@ -258,7 +258,7 @@ export class Wallet {
     }
   }
 
-  async updateTorCircuit() {
+  async getTorCircuit() {
     try {
       await getNewTorCircuit(this.http_client);
     } catch (err: any) {
@@ -271,7 +271,6 @@ export class Wallet {
     try {
       let torcircuit_ids: any[] = await getTorCircuitIds(this.http_client);
       let torcircuit = [];
-
       //Only get tor circuit info if not already obtained
       let torcircuit_ids_req = [];
       let torcircuit_ids_existing = [];
@@ -286,7 +285,6 @@ export class Wallet {
           torcircuit_ids_existing.push(this.tor_circuit[i].id);
         }
       }
-
       for (var i = 0; i < torcircuit_ids.length; i++) {
         //Unknown tor circuit - request data
         if (torcircuit_ids_existing.indexOf(torcircuit_ids[i]) < 0) {
@@ -299,7 +297,6 @@ export class Wallet {
           await getTorCircuit(this.http_client, torcircuit_ids_req[i])
         );
       }
-
       this.tor_circuit = torcircuit;
     } catch (err: any) {
       throw err;

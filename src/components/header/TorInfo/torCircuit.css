@@ -9,7 +9,8 @@
   display: inline-block;
   top:1px;
   right:0;
-  margin-right:14px
+  margin-right:14px;
+
 }
 
 .tor .dropdown-content {
@@ -18,7 +19,7 @@
   top:-20;
   right:0;
   min-width: 260px;
-  min-height:250px;
+  min-height:310px;
   padding: 12px 16px;
   z-index: 1;
   background-color: var(--container);
