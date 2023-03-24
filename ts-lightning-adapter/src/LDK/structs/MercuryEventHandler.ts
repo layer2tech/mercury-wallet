@@ -192,9 +192,22 @@ class MercuryEventHandler implements EventHandlerInterface {
     console.log("n found:", n);
     console.log("electrum_wallet.publicKey", electrum_wallet.publicKey);
 
-    if (p2wpkh.output === undefined) return;
-    if (!this.vout) return;
-    if (!this.txid) return;
+    if (p2wpkh.output === undefined) {
+      console.log("p2wpkh.output is undefined");
+      return;
+    }
+
+    console.log("this.vout:", this.vout);
+    console.log("this.txid:", this.txid);
+
+    if (this.vout === null || this.vout === undefined) {
+      console.log("this.vout === undefined or null");
+      return;
+    }
+    if (this.txid === null || this.txid === undefined) {
+      console.log("this.txid === undefined or null");
+      return;
+    }
 
     psbt.addInput({
       // if hash is string, txid, if hash is Buffer, is reversed compared to txid

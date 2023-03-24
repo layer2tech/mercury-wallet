@@ -4,12 +4,8 @@ import { hexToUint8Array } from "./utils.js";
 
 export const closeConnections = () => {
   console.log("Closing all the connections");
-
   let LDK = getLDKClient();
-  const netSize = LDK.netHandler.length;
-  for (var i = 0; i < netSize; i++) {
-    LDK.netHandler[i]?.stop();
-  }
+  LDK.netHandler?.stop();
 };
 
 // export const createInvoice = (amtInSats: number, invoiceExpirySecs: number, description: string) => {
@@ -49,7 +45,7 @@ export const closeConnections = () => {
 //     return signedInvoice;
 // }
 
-export const createNewPeer = (
+export const saveNewPeerToDatabase = (
   host: string,
   port: number,
   pubkey: string
@@ -84,6 +80,13 @@ export const createNewPeer = (
                   error: "Failed to insert peers into database",
                 });
               } else {
+                resolve({
+                  status: 201,
+                  message: "Peer added to database",
+                  peer_id: peer_id,
+                });
+                // DO not connec to peer
+                /*
                 db.get(
                   `SELECT last_insert_rowid() as peer_id`,
                   (err: any, row: any) => {
@@ -103,6 +106,7 @@ export const createNewPeer = (
                     }
                   }
                 );
+                */
               }
             }
           );
@@ -112,8 +116,7 @@ export const createNewPeer = (
   });
 };
 
-// TODO: BAD Practise, this function is doing too much, it must be broken down to do one thing. Here it inserts into a database and then calls to conenct to the channel.
-export const createNewChannel = (
+export const saveNewChannelToDB = (
   pubkeyHex: string,
   name: string,
   amount: number,
@@ -164,15 +167,15 @@ export const createNewChannel = (
                 });
               } else {
                 channelId = row.channel_id;
+                /*
                 let pubkey = hexToUint8Array(pubkeyHex);
-
                 getLDKClient().connectToChannel(
                   pubkey,
                   amount,
                   push_msat,
                   channelId,
                   channelType
-                );
+                );*/
                 resolve({
                   status: 201,
                   message: "Channel saved successfully",
@@ -229,7 +232,7 @@ export const insertTxData = (
       } else {
         resolve({
           status: 201,
-          message: "Channel saved and created successfully",
+          message: "Channel saved and updated successfully",
           channel_id: row.id,
           channel_type: row.public,
           push_msat: row.push_msat,

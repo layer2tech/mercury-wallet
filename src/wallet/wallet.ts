@@ -681,128 +681,146 @@ export class Wallet {
     // channels.map((channel) => {});
   }
 
-  async createChannel(amount: number, peer_node: string) {
-    let peerNode = peer_node.match(/^([0-9a-f]+)@([^:]+):([0-9]+)$/i);
+  async validatePeerNode(peerNode: string): Promise<any> {
+    const peerNodeRegex = /^([0-9a-f]+)@([^:]+):([0-9]+)$/i;
+    const match = peerNode.match(peerNodeRegex);
+    if (!match) {
+      throw new Error("Peer node ID is in an incorrect format");
+    }
+    const [, pubkey, host, port] = match;
+    if (!pubkey || !host || !port) {
+      throw new Error("Unable to find pubkey, host or port from Peer Node ID");
+    }
+    const parsedPort = parseInt(port, 10);
+    if (isNaN(parsedPort)) {
+      throw new Error("Invalid port number");
+    }
+    return { pubkey, host, port: parsedPort };
+  }
 
-    let pubkey: string;
-    let port: any;
-    let host: any;
+  convertToSatoshi(amount: number) {
+    return amount * 10000;
+  }
 
-    if (!(peerNode?.length === 4))
-      throw new Error("Peer Node ID incorrect format");
+  async createChannel(amount: number, peerNode: string) {
+    // Validation ////////////////////////////////////////////////////////
+    const { pubkey, host, port } = await this.validatePeerNode(peerNode);
 
-    [, pubkey, host, port] = peerNode;
-
-    if (!pubkey || !host || !port)
-      throw new Error("Unable to find pubkey, host or port from Peer Node ID ");
-
-    // convert to int for saving to channel obj and calling api
-    port = parseInt(port);
-
-    let addr = this.account.nextChainAddress(1);
-    log.debug("Gen BTC address: " + addr);
+    // Generate deposit address details //////////////////////////////////
+    const address = this.account.nextChainAddress(1);
     await this.saveKeys();
-
-    let proof_key = this.getBIP32forBtcAddress(addr);
-
-    //convert mBTC to satoshi
-    amount = amount * 100000;
-
-
-    let bip32 = this.getBIP32forBtcAddress(addr);
-    const privkey = bip32.toWIF();
-
-    console.log(
-      "*********************** Private key creation *****************************"
+    const proofKey = this.getBIP32forBtcAddress(address);
+    const addressScript = bitcoin.address.toOutputScript(
+      address,
+      this.config.network
     );
-    console.log(privkey);
-    console.log(
-      "**************************************************************************"
-    );
+    const privkey = proofKey.toWIF();
+    console.log("Generated testnet address:", address);
+    console.log("Amount value passed for channel create:", amount);
+    console.log("Private key for channel create:", privkey);
 
-    this.lightning_client.createChannel({
-      amount: amount,
-      pubkey: pubkey,
-      host,
-      port,
-      channel_name: "",
-      channelType: "Public",
-      wallet_name: this.name,
-      privkey,
-      paid: false,
-      payment_address: addr,
-    }).then((res) => {
-      if (res.status === 200) {
-        this.channels.addChannel(
-          proof_key.publicKey.toString("hex"),
-          addr,
-          amount,
-          this.version,
-          pubkey,
-          host,
-          port
-        );
-      }
-    });
+    // Save channel details to sqlite3 ////////////////////////////////////
+    this.lightning_client
+      .savePeerAndChannelToDb({
+        amount: amount,
+        pubkey: pubkey,
+        host,
+        port,
+        channel_name: "",
+        channelType: "Public",
+        wallet_name: this.name,
+        privkey,
+        paid: false,
+        payment_address: address,
+      })
+      .then((res) => {
+        // Only subscribe and look for a payment if its been saved into the database.
+        if (res.status === 200) {
+          const channelId = res.channel_id;
 
-    console.log("Amount should be in satoshis: ", amount);
+          // Save channel details to memory ////////////////////////////////////
+          this.channels.addChannel(
+            proofKey.publicKey.toString("hex"),
+            address,
+            this.convertToSatoshi(amount),
+            this.version,
+            pubkey,
+            host,
+            port
+          );
 
-    let addr_script = bitcoin.address.toOutputScript(addr, this.config.network);
+          console.log("Subscribed to script hash for p_addr:", address);
+          this.electrum_client.scriptHashSubscribe(
+            addressScript,
+            async (_status: any) => {
+              console.log("Script hash status change for p_addr:", address);
+              console.log("BTC received.");
+              console.log("Attempting to change the channel information.");
+              console.log("Check script hash unspent:");
 
-    log.info("Subscribed to script hash for p_addr: ", addr);
+              const fundingTxData =
+                await this.electrum_client.getScriptHashListUnspent(
+                  addressScript
+                );
+              const txData = fundingTxData[0];
 
-    // then subscribe to electrum client to listen for TX - questioning whether this can be done using fork
-    this.electrum_client.scriptHashSubscribe(
-      addr_script,
-      async (_status: any) => {
-        log.info("Script hash status change for p_addr: ", addr);
-        console.log("BTC Received..");
-        console.log("Attempting to change the channel information...");
+              if (txData) {
+                const txid = txData.tx_hash;
+                const vout = txData.tx_pos;
+                const block = txData.height ?? null;
+                const value = txData.value;
 
-        // Get p_addr list_unspent and verify tx
-        // await this.checkFundingTxListUnspent(
-        //   shared_key_id,
-        //   p_addr,
-        //   p_addr_script,
-        //   value
-        // );
-        console.log("Check Script hash unspent: ");
-        await this.electrum_client
-          .getScriptHashListUnspent(addr_script)
-          .then(async (funding_tx_data: Array<any>) => {
-            // Need to save TX data - it had block, txid?, vout and value
-            console.log("Funding Tx Data: ", funding_tx_data);
-            let tx_data = funding_tx_data[0];
-            if (tx_data) {
-              let txid = tx_data.tx_hash;
-              let vout = tx_data.tx_pos;
-              let block = tx_data.height ? tx_data.height : null;
-              let value = tx_data.value;
+                // Save details of channel funding by address in memory
+                this.channels.addChannelFunding(
+                  txid,
+                  vout,
+                  address,
+                  block,
+                  value
+                );
 
-
-              this.lightning_client.openChannel({
-                amount: tx_data.value,
-                paid: true,
-                txid,
-                vout,
-                addr
-              }).then((res) => {
-                if (res.status === 200){
-                  this.channels.addChannelFunding(txid, vout, addr, block, value);
-                }
-              });
-
-              // Need to unsubscribe once work done
+                // Save details of channel funding by address in sqlite3 database
+                this.lightning_client
+                  .saveChannelPaymentInfoToDb({
+                    amount: value,
+                    paid: true,
+                    txid,
+                    vout,
+                    address,
+                  })
+                  .then((res) => {
+                    // Now create the actual channel with the funding details passed
+                    if (res.status === 200) {
+                      this.lightning_client
+                        .connectToPeer({ pubkey, host, port })
+                        .then((res) => {
+                          // connected to peer
+                          if (res.status === 200) {
+                            // now connect to channel
+                            this.lightning_client
+                              .connectToChannel({
+                                pubkey,
+                                amount,
+                                push_msat: 0,
+                                channelId,
+                                channelType: "Public",
+                              })
+                              .then((res) => {
+                                console.log(
+                                  "Final connect to channel successful."
+                                );
+                              });
+                          }
+                        });
+                    }
+                  });
+              }
             }
-          });
-      }
-    );
+          );
+        }
+      });
 
-    // TO DO: save channels data to file
-
-    console.log("Check Channel Create Correctly: ", this.channels);
-
-    return addr;
+    return address;
   }
 
   async saveActivityLog() {

@@ -60,21 +60,39 @@ export class LDKClient {
     return nodeId;
   }
 
-  async createChannel(body: any) {
+  async savePeerAndChannelToDb(body: any): Promise<any> {
     try {
-      let res = await LDKClient.post("peer/create-channel", body);
+      let res = await LDKClient.post("peer/savePeerAndChannelToDb", body);
       return res;
     } catch (e: any) {
       throw new Error("Error in channel creation");
     }
   }
 
-  async openChannel(body: any) {
+  async saveChannelPaymentInfoToDb(body: any): Promise<any> {
     try {
-      let res = await LDKClient.post("peer/open-channel", body);
+      let res = await LDKClient.post("peer/saveChannelPaymentInfoToDb", body);
       return res;
     } catch (e: any) {
       throw new Error("Error in opening channel");
+    }
+  }
+
+  async connectToPeer(body: any): Promise<any> {
+    try {
+      let res = await LDKClient.post("peer/connectToPeer", body);
+      return res;
+    } catch (e: any) {
+      throw new Error("Couldn't connect to peer");
+    }
+  }
+
+  async connectToChannel(body: any): Promise<any> {
+    try {
+      let res = await LDKClient.post("channel/connectToChannel", body);
+      return res;
+    } catch (e: any) {
+      throw new Error("Couldn't connect to channel");
     }
   }
 

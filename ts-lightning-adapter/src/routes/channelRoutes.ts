@@ -5,7 +5,7 @@ import * as bitcoin from "bitcoinjs-lib";
 
 import { getLDKClient } from "../LDK/init/getLDK.js";
 import { createNewChannel } from "../LDK/utils/ldk-utils.js";
-import { uint8ArrayToHexString } from "../LDK/utils/utils.js";
+import { hexToUint8Array, uint8ArrayToHexString } from "../LDK/utils/utils.js";
 import { ChannelDetails } from "lightningdevkit";
 
 const router = express.Router();
@@ -55,6 +55,40 @@ router.get("/liveChannels", async function (req, res) {
     res.json(jsonChannels);
   } else {
     res.json([]);
+  }
+});
+
+router.post("/connectToChannel", async (req, res) => {
+  // connect to a channel without db changes
+  const { pubkey, amount, push_msat, channelId, channelType } = req.body;
+  if (
+    pubkey === undefined ||
+    amount === undefined ||
+    push_msat === undefined ||
+    channelId === undefined ||
+    channelType === undefined
+  ) {
+    res.status(500).send("Missing required parameters");
+  } else {
+    channelType === "Public" ? true : false;
+    try {
+      if (pubkey.length !== 33) {
+        const connection = await getLDKClient().connectToChannel(
+          hexToUint8Array(pubkey),
+          amount,
+          push_msat,
+          channelId,
+          channelType
+        );
+        if (connection) {
+          res.status(200).send("Connected to Channel");
+        } else {
+          res.status(500).send("Failed to connect to Channel");
+        }
+      }
+    } catch (e) {
+      res.status(500).send("Error connecting to channel");
+    }
   }
 });
 

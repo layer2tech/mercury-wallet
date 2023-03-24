@@ -25,9 +25,9 @@ import {
   uint8ArrayToHexString,
 } from "./utils/utils.js";
 import {
-  createNewPeer,
-  createNewChannel,
   insertTxData,
+  saveNewPeerToDatabase,
+  saveNewChannelToDB,
 } from "./utils/ldk-utils.js";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 import { getLDKClient } from "./init/getLDK.js";
@@ -90,7 +90,7 @@ export default class LightningClient implements LightningClientInterface {
   */
 
   async setBlockHeight() {
-    // Gets the block height from client and assigns to class paramater
+    // Sets the block height from client and assigns to class paramater
     this.blockHeight = await this.bitcointd_client.getBlockHeight();
   }
 
@@ -125,7 +125,7 @@ export default class LightningClient implements LightningClientInterface {
    */
 
   // This function is called from peerRoutes.ts /create-channel request
-  async createPeerAndChannel(
+  async savePeerAndChannelToDatabase(
     amount: number,
     pubkey: string,
     host: string,
@@ -137,9 +137,9 @@ export default class LightningClient implements LightningClientInterface {
     paid: boolean,
     payment_address: string // index of input
   ) {
-    // Connect to the peer
+    // Save the peer
     try {
-      const result = await createNewPeer(host, port, pubkey);
+      const result = await saveNewPeerToDatabase(host, port, pubkey);
       var peer_id = result.peer_id;
       if (!peer_id) throw "PEER_ID undefined";
     } catch (err) {
@@ -147,11 +147,11 @@ export default class LightningClient implements LightningClientInterface {
       throw err;
     }
 
-    console.log("Peer created, connected to", peer_id);
+    console.log("Peer created, saveds its id: ", peer_id);
 
-    // Create the channel
+    // Save the channel
     try {
-      const result = await createNewChannel(
+      const result = await saveNewChannelToDB(
         pubkey,
         channel_name,
         amount,
@@ -170,10 +170,11 @@ export default class LightningClient implements LightningClientInterface {
       throw err;
     }
 
-    console.log("Channel Created, connected to", channel_id);
+    console.log("Channel Created, saved its id: ", channel_id);
+    return channel_id;
   }
 
-  async openChannel(
+  async saveChannelFundingToDatabase(
     amount: number,
     paid: boolean,
     txid: string,
@@ -350,7 +351,7 @@ export default class LightningClient implements LightningClientInterface {
     setInterval(async () => {
       this.persister.persist_manager(this.channelManager);
     }, 100);
-    
+
     // 60 seconds after start prune
   }
 }
