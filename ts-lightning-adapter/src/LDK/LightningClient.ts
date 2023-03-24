@@ -353,11 +353,7 @@ export default class LightningClient implements LightningClientInterface {
     setInterval(async () => {
       this.persister.persist_manager(this.channelManager);
     }, 100);
-
-    setInterval(async () => {
-      this.peerManager.timer_tick_occurred();
-    }, 10000);
-
+    
     // 60 seconds after start prune
   }
 }
