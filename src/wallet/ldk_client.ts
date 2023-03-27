@@ -61,6 +61,7 @@ export class LDKClient {
   }
 
   async savePeerAndChannelToDb(body: any): Promise<any> {
+    console.log("[ldk_client.ts]->savePeerAndChannelToDb");
     try {
       let res = await LDKClient.post("peer/savePeerAndChannelToDb", body);
       return res;

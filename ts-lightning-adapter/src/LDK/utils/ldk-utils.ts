@@ -200,6 +200,9 @@ export const saveTxDataToDB = (
   priv_key: string;
 }> => {
   console.log("[ldk-utils.ts] - insertTxDataToDB");
+  console.log(
+    `[ldk-utils.ts] - values: amount:${amount}, paid:${paid}, txid:${txid}, vout:${vout}, addr:${addr}`
+  );
   return new Promise((resolve, reject) => {
     const updateData =
       "UPDATE channels SET amount=?, paid=?, txid=?, vout=? WHERE payment_address=?";
@@ -223,6 +226,11 @@ export const saveTxDataToDB = (
         reject({
           status: 500,
           error: "Failed to get channel data " + err,
+        });
+      } else if (!row) {
+        reject({
+          status: 404,
+          error: "No channel found for payment address " + addr,
         });
       } else {
         resolve({

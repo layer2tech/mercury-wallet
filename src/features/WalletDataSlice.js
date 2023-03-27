@@ -941,6 +941,7 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
 };
 
 export const callCreateChannel = async (amount, peer_node) => {
+  console.log("[WalletDataSlice.js]->callCreateChannel");
   // Creates channel object in wallet.channels and returns address for funding
   if (isWalletLoaded()) {
     return await wallet.createChannel(amount, peer_node);
@@ -949,12 +950,11 @@ export const callCreateChannel = async (amount, peer_node) => {
 
 export const callDeleteChannelByAddr = async (addr) => {
   if (isWalletLoaded()) {
-    deleteChannelByAddr(addr)
-      .then((res) => {
-        if (res.status === 200) {
-          wallet.channels.deleteChannelByAddr(addr);
-        }
-      })
+    deleteChannelByAddr(addr).then((res) => {
+      if (res.status === 200) {
+        wallet.channels.deleteChannelByAddr(addr);
+      }
+    });
   }
 };
 

@@ -724,6 +724,9 @@ export class Wallet {
     console.log("Private key for channel create:", privkey);
 
     // Save channel details to sqlite3 ////////////////////////////////////
+    console.log(
+      "[wallet.ts]->createChannel->  this.lightning_client.savePeerAndChannelToDb"
+    );
     this.lightning_client
       .savePeerAndChannelToDb({
         amount: amount,
