@@ -1,6 +1,5 @@
 import { getLDKClient } from "../init/getLDK.js";
 import db from "../../db/db.js";
-import { hexToUint8Array } from "./utils.js";
 
 export const closeConnections = () => {
   console.log("Closing all the connections");
@@ -45,7 +44,7 @@ export const closeConnections = () => {
 //     return signedInvoice;
 // }
 
-export const saveNewPeerToDatabase = (
+export const saveNewPeerToDB = (
   host: string,
   port: number,
   pubkey: string
@@ -55,15 +54,21 @@ export const saveNewPeerToDatabase = (
   error?: string;
   peer_id?: number;
 }> => {
+  console.log("[ldk-utils.ts] - saveNewPeerToDB");
   return new Promise((resolve, reject) => {
-    let peer_id: number;
     db.get(
       `SELECT id FROM peers WHERE host = ? AND port = ? AND pubkey = ?`,
       [host, port, pubkey],
       (err: any, row: any) => {
         if (err) {
+          console.log(
+            `[ldk-utils.ts->saveNewPeerToDB] - Error occurred during select: ${err}`
+          );
           reject({ status: 500, error: "Failed to query database" });
         } else if (row) {
+          console.log(
+            `[ldk-utils.ts->saveNewPeerToDB] - Error occurred peer exists in database: ${row}`
+          );
           resolve({
             status: 409,
             message: "Peer already exists in the database",
@@ -73,40 +78,38 @@ export const saveNewPeerToDatabase = (
           db.run(
             `INSERT INTO peers (host, port, pubkey) VALUES (?,?,?)`,
             [host, port, pubkey],
-            (err: any, result: any) => {
+            function (err: any) {
+              console.log(
+                `[ldk-utils.ts->saveNewPeerToDB] - inserting into peers: host:${host}, port:${port}, pubkey:${pubkey}`
+              );
               if (err) {
+                console.log(
+                  `[ldk-utils.ts] - Error occurred during insert: ${err}`
+                );
                 reject({
                   status: 500,
                   error: "Failed to insert peers into database",
                 });
               } else {
-                resolve({
-                  status: 201,
-                  message: "Peer added to database",
-                  peer_id: peer_id,
-                });
-                // DO not connec to peer
-                /*
-                db.get(
-                  `SELECT last_insert_rowid() as peer_id`,
-                  (err: any, row: any) => {
-                    if (err) {
-                      reject({
-                        status: 500,
-                        error: "Failed to get last inserted channel ID",
-                      });
-                    } else {
-                      peer_id = row.peer_id;
-                      getLDKClient().connectToPeer(pubkey, host, port);
-                      resolve({
-                        status: 201,
-                        message: "Peer added to database",
-                        peer_id: peer_id,
-                      });
-                    }
-                  }
+                console.log(
+                  `[ldk-utils.ts->saveNewPeerToDB] - Successful insert`
                 );
-                */
+                const lastID = this.lastID;
+                console.log(
+                  `[ldk-utils.ts->saveNewPeerToDB] - result:${lastID}`
+                );
+                if (lastID !== undefined) {
+                  resolve({
+                    status: 201,
+                    message: "Peer added to database",
+                    peer_id: lastID,
+                  });
+                } else {
+                  reject({
+                    status: 500,
+                    error: "Failed to retrieve peer ID",
+                  });
+                }
               }
             }
           );
@@ -117,7 +120,6 @@ export const saveNewPeerToDatabase = (
 };
 
 export const saveNewChannelToDB = (
-  pubkeyHex: string,
   name: string,
   amount: number,
   push_msat: number,
@@ -133,6 +135,7 @@ export const saveNewChannelToDB = (
   error?: string;
   channel_id?: number;
 }> => {
+  console.log("[ldk-utils.ts] - saveNewChannelToDB");
   return new Promise((resolve, reject) => {
     let channelId: number;
 
@@ -167,15 +170,6 @@ export const saveNewChannelToDB = (
                 });
               } else {
                 channelId = row.channel_id;
-                /*
-                let pubkey = hexToUint8Array(pubkeyHex);
-                getLDKClient().connectToChannel(
-                  pubkey,
-                  amount,
-                  push_msat,
-                  channelId,
-                  channelType
-                );*/
                 resolve({
                   status: 201,
                   message: "Channel saved successfully",
@@ -190,7 +184,7 @@ export const saveNewChannelToDB = (
   });
 };
 
-export const insertTxData = (
+export const saveTxDataToDB = (
   amount: number,
   paid: boolean,
   txid: string,
@@ -205,6 +199,7 @@ export const insertTxData = (
   push_msat: number;
   priv_key: string;
 }> => {
+  console.log("[ldk-utils.ts] - insertTxDataToDB");
   return new Promise((resolve, reject) => {
     const updateData =
       "UPDATE channels SET amount=?, paid=?, txid=?, vout=? WHERE payment_address=?";

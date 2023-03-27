@@ -65,7 +65,7 @@ export class LDKClient {
       let res = await LDKClient.post("peer/savePeerAndChannelToDb", body);
       return res;
     } catch (e: any) {
-      throw new Error("Error in channel creation");
+      throw new Error("Error in channel creation" + e?.message);
     }
   }
 
@@ -74,7 +74,7 @@ export class LDKClient {
       let res = await LDKClient.post("peer/saveChannelPaymentInfoToDb", body);
       return res;
     } catch (e: any) {
-      throw new Error("Error in opening channel");
+      throw new Error("Error in opening channel " + e?.message);
     }
   }
 
@@ -83,7 +83,7 @@ export class LDKClient {
       let res = await LDKClient.post("peer/connectToPeer", body);
       return res;
     } catch (e: any) {
-      throw new Error("Couldn't connect to peer");
+      throw new Error("Couldn't connect to peer " + e?.message);
     }
   }
 
@@ -92,7 +92,7 @@ export class LDKClient {
       let res = await LDKClient.post("channel/connectToChannel", body);
       return res;
     } catch (e: any) {
-      throw new Error("Couldn't connect to channel");
+      throw new Error("Couldn't connect to channel" + e?.message);
     }
   }
 

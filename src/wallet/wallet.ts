@@ -703,6 +703,10 @@ export class Wallet {
   }
 
   async createChannel(amount: number, peerNode: string) {
+    console.log("[wallet.ts] - createChannel");
+    console.log(
+      `[wallet.ts] - values: amount:${amount}, peerNode: ${peerNode}`
+    );
     // Validation ////////////////////////////////////////////////////////
     const { pubkey, host, port } = await this.validatePeerNode(peerNode);
 
@@ -770,15 +774,6 @@ export class Wallet {
                 const block = txData.height ?? null;
                 const value = txData.value;
 
-                // Save details of channel funding by address in memory
-                this.channels.addChannelFunding(
-                  txid,
-                  vout,
-                  address,
-                  block,
-                  value
-                );
-
                 // Save details of channel funding by address in sqlite3 database
                 this.lightning_client
                   .saveChannelPaymentInfoToDb({
@@ -791,6 +786,15 @@ export class Wallet {
                   .then((res) => {
                     // Now create the actual channel with the funding details passed
                     if (res.status === 200) {
+                      // Save details of channel funding by address in memory
+                      this.channels.addChannelFunding(
+                        txid,
+                        vout,
+                        address,
+                        block,
+                        value
+                      );
+
                       this.lightning_client
                         .connectToPeer({ pubkey, host, port })
                         .then((res) => {
