@@ -11,7 +11,7 @@ import {
   Result_RouteLightningErrorZ_OK,
   InFlightHtlcs,
 } from "lightningdevkit";
-import { getLDKClient } from "../LDK/init/importLDK.js";
+import { getLDKClient } from "../LDK/init/getLDK.js";
 
 router.get("/closeConnections", async function (req, res) {
   // Closing all connections
