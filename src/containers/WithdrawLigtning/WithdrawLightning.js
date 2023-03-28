@@ -130,7 +130,6 @@ const WithdrawLightning = () => {
   const withdrawButtonAction = async () => {
     console.log("Withdraw Button action true");
 
-    /*
     setLoading(true);
     setRefreshChannels((prevState) => !prevState);
     if (channelForceClose) {
@@ -146,7 +145,7 @@ const WithdrawLightning = () => {
       dispatch(setWithdrawTxid("wzxykmopq123456"));
       updateChannelsInfo();
     }
-    setLoading(false);*/
+    setLoading(false);
   };
 
   const updateChannelsInfo = () => {
@@ -259,7 +258,7 @@ const WithdrawLightning = () => {
               */}
             </div>
 
-            {/*
+            
                <div>
                   <AddressInput
                     inputAddr={inputAddr}
@@ -268,7 +267,7 @@ const WithdrawLightning = () => {
                     smallTxtMsg="Your Bitcoin Address"
                   />
                 </div>
-              */}
+             
 
             <div>
               <ConfirmPopup
