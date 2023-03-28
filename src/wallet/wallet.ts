@@ -227,6 +227,7 @@ export class Wallet {
 
     this.block_height = 0;
     this.current_sce_addr = "";
+    this.nodeId = "";
 
     this.warnings = [
       { name: "swap_punishment", show: true },
