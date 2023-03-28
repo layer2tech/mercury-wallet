@@ -84,6 +84,8 @@ const ConfirmSeed = (props) => {
 
   // Confirm words are correct
   const onConfirmClick = async (event) => {
+    console.log("onConfirmClick was pressed:");
+
     // Verify mnemonic confirmation
     for (let i = 0; i < missingwords.length; i++) {
       if (missingwords[i].word !== words[missingwords[i].pos]) {

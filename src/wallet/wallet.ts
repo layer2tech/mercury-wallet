@@ -193,6 +193,7 @@ export class Wallet {
     storage_type: string | undefined = undefined,
     networkType: string | undefined = undefined
   ) {
+    this.nodeId = "";
     this.wasm = null;
     this.name = name;
     this.password = password;
