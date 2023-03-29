@@ -106,8 +106,8 @@ const MainHeader = ({ mainUnit, icon }) => {
 
   return (
     <div>
-      <div className="home-header">
-        <div className="title">
+      <div className="home-header" data-cy="home-header">
+        <div className="title" data-cy="wallet-balance">
           <h2 className="main-header">
             <img src={icon} alt="walletIcon" />
             {balance_info.hidden
@@ -121,7 +121,7 @@ const MainHeader = ({ mainUnit, icon }) => {
           <div className="sub-header">
             <span>
               {balance_info.hidden
-                ? HIDDEN
+                ? `${HIDDEN} `
                 : walletMode === WALLET_MODE.STATECHAIN
                 ? `${balance_info.num_coins} `
                 : `${channels.length} `}
@@ -150,7 +150,9 @@ const MainHeader = ({ mainUnit, icon }) => {
           </div>
         }
       </div>
-      <div className="ActionGroupLeft">
+      <div className="ActionGroupLeft"
+          data-cy="balance-visibility"
+          >
         <CheckBox
           description=""
           label={balance_info.hidden ? "Show balance" : "Hide balance"}
