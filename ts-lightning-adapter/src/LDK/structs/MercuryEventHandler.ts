@@ -86,6 +86,7 @@ class MercuryEventHandler implements EventHandlerInterface {
     this.vout = vout;
     this.txid = txid;
   }
+
   resetInputTx() {
     //this.privateKey = null;
     this.vout = null;
@@ -149,15 +150,7 @@ class MercuryEventHandler implements EventHandlerInterface {
       output_script,
     } = event;
 
-    const testnet = bitcoin.networks.testnet;
-
-    /*
-    let privateKeyArray;
-    let privateKey;
-    if (this.privateKey) privateKeyArray = hexToUint8Array(this.privateKey);
-    if (privateKeyArray) {
-      privateKey = Buffer.from(privateKeyArray);
-    }*/
+    const testnet = bitcoin.networks.regtest;
 
     let electrum_wallet;
     if (this.privateKey) {

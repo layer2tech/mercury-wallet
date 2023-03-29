@@ -45,7 +45,7 @@ export default class LightningClient implements LightningClientInterface {
   filter: Filter;
   persist: Persist;
   persister: Persister;
-  eventHandler: EventHandler;
+  eventHandler: MercuryEventHandler;
   chainMonitor: ChainMonitor;
   chainWatch: any;
   keysManager: KeysManager;
@@ -109,12 +109,6 @@ export default class LightningClient implements LightningClientInterface {
   async addTxData(txid: any) {
     let txData = await this.bitcointd_client.getTxIdData(txid);
     this.txdata.push(txData);
-  }
-
-  setInputTx(privateKey: Buffer, txid: string, vout: number) {
-    let mercuryHandler = new MercuryEventHandler(this.channelManager);
-    mercuryHandler.setInputTx(privateKey, txid, vout);
-    this.eventHandler = EventHandler.new_impl(mercuryHandler);
   }
 
   /**
@@ -193,7 +187,12 @@ export default class LightningClient implements LightningClientInterface {
     try {
       const result = await saveTxDataToDB(amount, paid, txid, vout, addr);
       console.log("Input Tx .");
-      this.setInputTx(hexToUint8Array(result.priv_key), txid, vout);
+
+      if (result?.priv_key) {
+        this.eventHandler.setInputTx(result.priv_key, txid, vout);
+      } else {
+        throw Error("No private key was returned from the database.");
+      }
       console.log("Input Tx √");
     } catch (err) {
       console.log(err);
