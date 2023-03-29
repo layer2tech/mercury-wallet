@@ -34,7 +34,12 @@ export const checkForServerError = (response: any) => {
     ) {
       throw Error("I2P takes ~1min to initialise. Please wait...");
     }
-    throw Error("Internal Server Error");
+
+    if (error?.message) {
+      throw Error(error.message);
+    } else {
+      throw Error("Internal Server Error");
+    }
   }
 };
 

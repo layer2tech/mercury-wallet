@@ -20,6 +20,8 @@ export const handleNetworkError = (error: any) => {
   }
   const err_str = error?.message;
   const err_code = error?.code;
+  const err_stack = error?.stack;
+
   if (
     (err_str != null &&
       (err_str.includes("Network Error") ||
@@ -29,7 +31,13 @@ export const handleNetworkError = (error: any) => {
   ) {
     log.warn(error);
   } else {
-    throw error;
+    if (err_stack.includes("ElectrsClient")) {
+      throw Error(
+        "Check access to localhost:3001/electrs/block/height and localhost:3002/electrs/block/height"
+      );
+    } else {
+      throw error;
+    }
   }
 };
 
@@ -52,5 +60,12 @@ export const handleServerError = (error: any) => {
       return;
     }
   }
-  throw error;
+  const err_stack = error?.stack;
+  if (err_stack.includes("ElectrsClient")) {
+    throw Error(
+      "Check access to localhost:3001/electrs/block/height and localhost:3002/electrs/block/height"
+    );
+  } else {
+    throw error;
+  }
 };
