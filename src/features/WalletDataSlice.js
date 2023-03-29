@@ -24,7 +24,7 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import { NETWORK_TYPE, deleteChannelByAddr } from "../wallet/wallet";
-// import { store } from "../application/reduxStore";
+import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
 
@@ -92,6 +92,7 @@ const DEFAULT_STATE_COIN_DETAILS = {
 };
 
 const initialState = {
+  network: 0, // default to testnet
   walletMode: WALLET_MODE.STATECHAIN,
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
@@ -353,12 +354,18 @@ export async function walletFromMnemonic(
   gap_limit = undefined,
   gap_start = undefined
 ) {
-  let network;
-  if ((await callGetArgsHasTestnet()) === true) {
+  let network = store.getState().walletData.network;
+
+  console.log("network in redux found was: ", network);
+
+  if (network === 0) {
     network = bitcoin.networks["testnet"];
-  } else {
+  } else if (network === 1) {
     network = bitcoin.networks["bitcoin"];
+  } else if (network === 2) {
+    network = bitcoin.networks["regtest"];
   }
+
   wallet = Wallet.fromMnemonic(
     name,
     password,
@@ -941,6 +948,7 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
 };
 
 export const callCreateChannel = async (amount, peer_node) => {
+  console.log("[WalletDataSlice.js]->callCreateChannel");
   // Creates channel object in wallet.channels and returns address for funding
   if (isWalletLoaded()) {
     return await wallet.createChannel(amount, peer_node);
@@ -949,12 +957,11 @@ export const callCreateChannel = async (amount, peer_node) => {
 
 export const callDeleteChannelByAddr = async (addr) => {
   if (isWalletLoaded()) {
-    deleteChannelByAddr(addr)
-      .then((res) => {
-        if (res.status === 200) {
-          wallet.channels.deleteChannelByAddr(addr);
-        }
-      })
+    deleteChannelByAddr(addr).then((res) => {
+      if (res.status === 200) {
+        wallet.channels.deleteChannelByAddr(addr);
+      }
+    });
   }
 };
 
@@ -1311,6 +1318,12 @@ const WalletSlice = createSlice({
   name: "walletData",
   initialState,
   reducers: {
+    setNetwork: (state, action) => {
+      return {
+        ...state,
+        network: action.payload,
+      };
+    },
     setTorOnline(state, action) {
       return {
         ...state,
@@ -1787,6 +1800,7 @@ export const {
   updateTxFeeEstimate,
   addCoins,
   removeCoins,
+  setNetwork,
   setTorOnline,
   setPingServerMs,
   setPingConductorMs,

@@ -8,7 +8,6 @@ import {
 const router = express.Router();
 import db from "../db/db.js";
 import { getLDKClient } from "../LDK/init/getLDK.js";
-import { createNewPeer } from "../LDK/utils/ldk-utils.js";
 import { hexToUint8Array, uint8ArrayToHexString } from "../LDK/utils/utils.js";
 
 router.get("/liveChainMonitors", async (req, res) => {
@@ -88,41 +87,10 @@ router.post("/connectToPeer", async (req, res) => {
   }
 });
 
-router.post("/connectToChannel", async (req, res) => {
-  // connect to a channel without db changes
-  const { pubkey, amount, push_msat, channelId, channelType } = req.body;
-  if (
-    pubkey === undefined ||
-    amount === undefined ||
-    push_msat === undefined ||
-    channelId === undefined ||
-    channelType === undefined
-  ) {
-    res.status(500).send("Missing required parameters");
-  } else {
-    channelType === "Public" ? true : false;
-    try {
-      if (pubkey.length !== 33) {
-        const connection = await getLDKClient().connectToChannel(
-          hexToUint8Array(pubkey),
-          amount,
-          push_msat,
-          channelId,
-          channelType
-        );
-        if (connection) {
-          res.status(200).send("Connected to Channel");
-        } else {
-          res.status(500).send("Failed to connect to Channel");
-        }
-      }
-    } catch (e) {
-      res.status(500).send("Error connecting to channel");
-    }
-  }
-});
+// Saves the channel to the database.
+router.post("/savePeerAndChannelToDb", async (req, res) => {
+  console.log("[peerRoutes.ts]->router.post/savePeerAndChannelToDb");
 
-router.post("/create-channel", async (req, res) => {
   const {
     amount,
     pubkey,
@@ -136,52 +104,94 @@ router.post("/create-channel", async (req, res) => {
     payment_address,
   } = req.body;
 
-  channelType === "Public" ? true : false;
+  console.log(
+    "[peerRoutes.ts]->router.post/savePeerAndChannelToDb->values" + amount,
+    pubkey,
+    host,
+    port,
+    channel_name,
+    wallet_name,
+    channelType,
+    privkey,
+    paid,
+    payment_address
+  );
 
   console.log(
-    amount,
-    pubkey,
-    host,
-    port,
-    channel_name,
-    wallet_name,
-    channelType,
-    privkey,
-    paid,
-    payment_address
+    "[peerRoutes.ts]->router.post/savePeerAndChannelToDb-> Set channelType"
   );
+  channelType === "Public" ? true : false;
 
-  await getLDKClient().createPeerAndChannel(
-    amount,
-    pubkey,
-    host,
-    port,
-    channel_name,
-    wallet_name,
-    channelType,
-    privkey,
-    paid,
-    payment_address
-  );
-  res.status(200).json({ message: "Connected to peer, Channel created" });
-});
-
-router.post("/open-channel", async (req, res) => {
-  const { amount, paid, txid, vout, addr } = req.body;
-
-  console.log(amount, paid, txid, vout, addr);
-
-  await getLDKClient().openChannel(amount, paid, txid, vout, addr);
-  res.status(200).json({ message: "Channel opened" });
-});
-
-router.post("/newPeer", async (req, res) => {
-  const { host, port, pubkey } = req.body;
   try {
-    const result = await createNewPeer(host, port, pubkey);
-    res.status(result.status).json(result);
-  } catch (error: any) {
-    res.status(error.status).json(error);
+    let channel_id = await getLDKClient().savePeerAndChannelToDatabase(
+      amount,
+      pubkey,
+      host,
+      port,
+      channel_name,
+      wallet_name,
+      channelType,
+      privkey,
+      paid,
+      payment_address
+    );
+
+    if (channel_id) {
+      res.status(200).json({
+        status: 200,
+        message: "Saved peer and channel to database.",
+        channel_id: channel_id,
+      });
+    } else {
+      res.status(500).json({
+        status: 500,
+        message: "Error: Failed to save peer and channel to database.",
+      });
+    }
+  } catch (e: any) {
+    res
+      .status(500)
+      .json({ status: 500, message: "Couldn't insert into DB: " + e?.message });
+  }
+});
+
+router.post("/saveChannelPaymentInfoToDb", async (req, res) => {
+  const { amount, paid, txid, vout, address } = req.body;
+
+  console.log(
+    "[peerRoutes.ts]->saveChannelPaymentInfoToDb " + amount,
+    paid,
+    txid,
+    vout,
+    address
+  );
+
+  if (address === undefined) {
+    console.log(
+      "[peerRoutes.ts]->saveChannelPaymentInfoToDb-> No address specified"
+    );
+    res.status(500).json({
+      status: 500,
+      message: "No address was posted to peer/saveChannelPaymentInfoToDb",
+    });
+  } else {
+    try {
+      await getLDKClient().saveChannelFundingToDatabase(
+        amount,
+        paid,
+        txid,
+        vout,
+        address
+      );
+      res
+        .status(200)
+        .json({ status: 200, message: "Channel funding saved to DB" });
+    } catch (e: any) {
+      res.status(500).json({
+        status: 500,
+        message: "Couldn't save channel payment info" + e?.message,
+      });
+    }
   }
 });
 

@@ -27,7 +27,7 @@ class ElectrumClient {
   async getLatestBlockHeader(height: number) {
     let currentBlockHash;
     try {
-      console.log("HEIGHT: ", height);
+      console.log("ElectrumClient->HEIGHT: ", height);
       currentBlockHash = (
         await ElectrumClient.get(
           `http://127.0.0.1:18443/rest/blockhashbyheight/${height}.json`

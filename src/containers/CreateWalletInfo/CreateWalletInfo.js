@@ -8,28 +8,30 @@ import { Link, withRouter } from "react-router-dom";
 import "./CreateWalletInfo.css";
 import check from "../../images/icon-action-check_circle.png";
 import {
-  callGetArgsHasTestnet,
   callSetArgsHasTestnet,
+  setNetwork,
 } from "../../features/WalletDataSlice";
+import { useDispatch } from "react-redux";
 
 const CreateWalletInfoPage = () => {
+  const dispatch = useDispatch();
+
+  // check box values
   const state = useState(false);
   const checked = state[0];
   const changeCheckbox = state[1];
-  const [testnet, setTestnet] = useState(false);
 
-  const networkState = useState(1);
-  const networkChecked = networkState[0];
-  const changeNetwork = networkState[1];
+  // network values
+  const [networkChecked, setNetworkChecked] = useState(0);
 
   useEffect(() => {
     callSetArgsHasTestnet(false);
   }, []);
 
   const selectNetwork = (mode) => {
-    changeNetwork(mode);
-    setTestnet(mode === 1 ? false : true);
-    callSetArgsHasTestnet(mode === 1 ? false : true);
+    setNetworkChecked(mode);
+    dispatch(setNetwork(mode)); // save to redux state
+    console.log("changing to network:", networkChecked);
   };
 
   // Change handlers
@@ -54,9 +56,17 @@ const CreateWalletInfoPage = () => {
           <span>Mainnet</span>
           <img className="check-img" src={check} alt="plus" />
         </div>
+        <div
+          data-cy="network-btn-regtest"
+          onClick={() => selectNetwork(2)}
+          className={`${networkChecked === 2 ? "selected" : ""}`}
+        >
+          <span>Regtest</span>
+          <img className="check-img" src={check} alt="plus" />
+        </div>
       </div>
 
-      {testnet === true && (
+      {networkChecked === 0 && (
         <b>
           <p data-cy="create-new-wallet-important" className="red">
             IMPORTANT: Wallet was opened in testnet, therefore new wallets will

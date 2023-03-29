@@ -25,9 +25,9 @@ import {
   uint8ArrayToHexString,
 } from "./utils/utils.js";
 import {
-  createNewPeer,
-  createNewChannel,
-  insertTxData,
+  saveNewPeerToDB,
+  saveNewChannelToDB,
+  saveTxDataToDB,
 } from "./utils/ldk-utils.js";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 import { getLDKClient } from "./init/getLDK.js";
@@ -45,7 +45,7 @@ export default class LightningClient implements LightningClientInterface {
   filter: Filter;
   persist: Persist;
   persister: Persister;
-  eventHandler: EventHandler;
+  eventHandler: MercuryEventHandler;
   chainMonitor: ChainMonitor;
   chainWatch: any;
   keysManager: KeysManager;
@@ -90,7 +90,7 @@ export default class LightningClient implements LightningClientInterface {
   */
 
   async setBlockHeight() {
-    // Gets the block height from client and assigns to class paramater
+    // Sets the block height from client and assigns to class paramater
     this.blockHeight = await this.bitcointd_client.getBlockHeight();
   }
 
@@ -111,12 +111,6 @@ export default class LightningClient implements LightningClientInterface {
     this.txdata.push(txData);
   }
 
-  setInputTx(privateKey: Buffer, txid: string, vout: number) {
-    let mercuryHandler = new MercuryEventHandler(this.channelManager);
-    mercuryHandler.setInputTx(privateKey, txid, vout);
-    this.eventHandler = EventHandler.new_impl(mercuryHandler);
-  }
-
   /**
    * Connects to Peer for outbound channel
    * @param pubkeyHex
@@ -125,7 +119,7 @@ export default class LightningClient implements LightningClientInterface {
    */
 
   // This function is called from peerRoutes.ts /create-channel request
-  async createPeerAndChannel(
+  async savePeerAndChannelToDatabase(
     amount: number,
     pubkey: string,
     host: string,
@@ -137,22 +131,30 @@ export default class LightningClient implements LightningClientInterface {
     paid: boolean,
     payment_address: string // index of input
   ) {
-    // Connect to the peer
+    console.log("[LightningClient.ts] - savePeerAndChannelToDatabase");
+    console.log(
+      `[LightningClient.ts] - values: amount:${amount}, 
+      pubkey:${pubkey}, host:${host}, port:${port}, channel_name:${channel_name}, 
+      wallet_name:${wallet_name}, channelType:${channelType}, 
+      privkey:${privkey}, paid:${paid}, payment_address:${payment_address}`
+    );
+
+    // Save the peer
     try {
-      const result = await createNewPeer(host, port, pubkey);
+      const result = await saveNewPeerToDB(host, port, pubkey);
+      console.log(`[LightningClient.ts] - result: ${JSON.stringify(result)}`);
       var peer_id = result.peer_id;
-      if (!peer_id) throw "PEER_ID undefined";
+      if (!peer_id) throw "[LightningClient.ts] Error: PEER_ID undefined";
     } catch (err) {
       console.log(err);
       throw err;
     }
+    console.log("Peer created, saveds its id: ", peer_id);
 
-    console.log("Peer created, connected to", peer_id);
-
-    // Create the channel
+    let channel_id = null;
+    // Save the channel
     try {
-      const result = await createNewChannel(
-        pubkey,
+      const result = await saveNewChannelToDB(
         channel_name,
         amount,
         0,
@@ -164,26 +166,33 @@ export default class LightningClient implements LightningClientInterface {
         payment_address
       );
       console.log(result);
-      var channel_id = result.channel_id;
+      channel_id = result.channel_id;
     } catch (err) {
       console.log(err);
       throw err;
     }
+    console.log("Channel Created, saved its id: ", channel_id);
 
-    console.log("Channel Created, connected to", channel_id);
+    return channel_id;
   }
 
-  async openChannel(
+  async saveChannelFundingToDatabase(
     amount: number,
     paid: boolean,
     txid: string,
     vout: number,
     addr: string
   ) {
+    console.log("[LightningClient.ts] - saveChannelFundingToDatabase");
     try {
-      const result = await insertTxData(amount, paid, txid, vout, addr);
+      const result = await saveTxDataToDB(amount, paid, txid, vout, addr);
       console.log("Input Tx .");
-      this.setInputTx(hexToUint8Array(result.priv_key), txid, vout);
+
+      if (result?.priv_key) {
+        this.eventHandler.setInputTx(result.priv_key, txid, vout);
+      } else {
+        throw Error("No private key was returned from the database.");
+      }
       console.log("Input Tx √");
     } catch (err) {
       console.log(err);
@@ -202,7 +211,7 @@ export default class LightningClient implements LightningClientInterface {
         id: this.currentConnections.length + 1,
       };
       try {
-        await this.create_socket(peerDetails);
+        let socket = await this.create_socket(peerDetails);
         return true; // return true if the connection is successful
       } catch (e) {
         console.error("error on create_socket", e);
@@ -350,7 +359,7 @@ export default class LightningClient implements LightningClientInterface {
     setInterval(async () => {
       this.persister.persist_manager(this.channelManager);
     }, 100);
-    
+
     // 60 seconds after start prune
   }
 }

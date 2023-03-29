@@ -1,15 +1,10 @@
 import { getLDKClient } from "../init/getLDK.js";
 import db from "../../db/db.js";
-import { hexToUint8Array } from "./utils.js";
 
 export const closeConnections = () => {
   console.log("Closing all the connections");
-
   let LDK = getLDKClient();
-  const netSize = LDK.netHandler.length;
-  for (var i = 0; i < netSize; i++) {
-    LDK.netHandler[i]?.stop();
-  }
+  LDK.netHandler?.stop();
 };
 
 // export const createInvoice = (amtInSats: number, invoiceExpirySecs: number, description: string) => {
@@ -49,7 +44,7 @@ export const closeConnections = () => {
 //     return signedInvoice;
 // }
 
-export const createNewPeer = (
+export const saveNewPeerToDB = (
   host: string,
   port: number,
   pubkey: string
@@ -59,15 +54,21 @@ export const createNewPeer = (
   error?: string;
   peer_id?: number;
 }> => {
+  console.log("[ldk-utils.ts] - saveNewPeerToDB");
   return new Promise((resolve, reject) => {
-    let peer_id: number;
     db.get(
       `SELECT id FROM peers WHERE host = ? AND port = ? AND pubkey = ?`,
       [host, port, pubkey],
       (err: any, row: any) => {
         if (err) {
+          console.log(
+            `[ldk-utils.ts->saveNewPeerToDB] - Error occurred during select: ${err}`
+          );
           reject({ status: 500, error: "Failed to query database" });
         } else if (row) {
+          console.log(
+            `[ldk-utils.ts->saveNewPeerToDB] - Error occurred peer exists in database: ${row}`
+          );
           resolve({
             status: 409,
             message: "Peer already exists in the database",
@@ -77,32 +78,38 @@ export const createNewPeer = (
           db.run(
             `INSERT INTO peers (host, port, pubkey) VALUES (?,?,?)`,
             [host, port, pubkey],
-            (err: any, result: any) => {
+            function (err: any) {
+              console.log(
+                `[ldk-utils.ts->saveNewPeerToDB] - inserting into peers: host:${host}, port:${port}, pubkey:${pubkey}`
+              );
               if (err) {
+                console.log(
+                  `[ldk-utils.ts] - Error occurred during insert: ${err}`
+                );
                 reject({
                   status: 500,
                   error: "Failed to insert peers into database",
                 });
               } else {
-                db.get(
-                  `SELECT last_insert_rowid() as peer_id`,
-                  (err: any, row: any) => {
-                    if (err) {
-                      reject({
-                        status: 500,
-                        error: "Failed to get last inserted channel ID",
-                      });
-                    } else {
-                      peer_id = row.peer_id;
-                      getLDKClient().connectToPeer(pubkey, host, port);
-                      resolve({
-                        status: 201,
-                        message: "Peer added to database",
-                        peer_id: peer_id,
-                      });
-                    }
-                  }
+                console.log(
+                  `[ldk-utils.ts->saveNewPeerToDB] - Successful insert`
                 );
+                const lastID = this.lastID;
+                console.log(
+                  `[ldk-utils.ts->saveNewPeerToDB] - result:${lastID}`
+                );
+                if (lastID !== undefined) {
+                  resolve({
+                    status: 201,
+                    message: "Peer added to database",
+                    peer_id: lastID,
+                  });
+                } else {
+                  reject({
+                    status: 500,
+                    error: "Failed to retrieve peer ID",
+                  });
+                }
               }
             }
           );
@@ -112,9 +119,7 @@ export const createNewPeer = (
   });
 };
 
-// TODO: BAD Practise, this function is doing too much, it must be broken down to do one thing. Here it inserts into a database and then calls to conenct to the channel.
-export const createNewChannel = (
-  pubkeyHex: string,
+export const saveNewChannelToDB = (
   name: string,
   amount: number,
   push_msat: number,
@@ -130,6 +135,7 @@ export const createNewChannel = (
   error?: string;
   channel_id?: number;
 }> => {
+  console.log("[ldk-utils.ts] - saveNewChannelToDB");
   return new Promise((resolve, reject) => {
     let channelId: number;
 
@@ -164,15 +170,6 @@ export const createNewChannel = (
                 });
               } else {
                 channelId = row.channel_id;
-                let pubkey = hexToUint8Array(pubkeyHex);
-
-                getLDKClient().connectToChannel(
-                  pubkey,
-                  amount,
-                  push_msat,
-                  channelId,
-                  channelType
-                );
                 resolve({
                   status: 201,
                   message: "Channel saved successfully",
@@ -187,7 +184,7 @@ export const createNewChannel = (
   });
 };
 
-export const insertTxData = (
+export const saveTxDataToDB = (
   amount: number,
   paid: boolean,
   txid: string,
@@ -202,6 +199,10 @@ export const insertTxData = (
   push_msat: number;
   priv_key: string;
 }> => {
+  console.log("[ldk-utils.ts] - insertTxDataToDB");
+  console.log(
+    `[ldk-utils.ts] - values: amount:${amount}, paid:${paid}, txid:${txid}, vout:${vout}, addr:${addr}`
+  );
   return new Promise((resolve, reject) => {
     const updateData =
       "UPDATE channels SET amount=?, paid=?, txid=?, vout=? WHERE payment_address=?";
@@ -226,10 +227,15 @@ export const insertTxData = (
           status: 500,
           error: "Failed to get channel data " + err,
         });
+      } else if (!row) {
+        reject({
+          status: 404,
+          error: "No channel found for payment address " + addr,
+        });
       } else {
         resolve({
           status: 201,
-          message: "Channel saved and created successfully",
+          message: "Channel saved and updated successfully",
           channel_id: row.id,
           channel_type: row.public,
           push_msat: row.push_msat,

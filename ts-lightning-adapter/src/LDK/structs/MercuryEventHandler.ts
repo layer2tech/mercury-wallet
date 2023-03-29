@@ -86,6 +86,7 @@ class MercuryEventHandler implements EventHandlerInterface {
     this.vout = vout;
     this.txid = txid;
   }
+
   resetInputTx() {
     //this.privateKey = null;
     this.vout = null;
@@ -149,15 +150,7 @@ class MercuryEventHandler implements EventHandlerInterface {
       output_script,
     } = event;
 
-    const testnet = bitcoin.networks.testnet;
-
-    /*
-    let privateKeyArray;
-    let privateKey;
-    if (this.privateKey) privateKeyArray = hexToUint8Array(this.privateKey);
-    if (privateKeyArray) {
-      privateKey = Buffer.from(privateKeyArray);
-    }*/
+    const testnet = bitcoin.networks.regtest;
 
     let electrum_wallet;
     if (this.privateKey) {
@@ -192,9 +185,22 @@ class MercuryEventHandler implements EventHandlerInterface {
     console.log("n found:", n);
     console.log("electrum_wallet.publicKey", electrum_wallet.publicKey);
 
-    if (p2wpkh.output === undefined) return;
-    if (!this.vout) return;
-    if (!this.txid) return;
+    if (p2wpkh.output === undefined) {
+      console.log("p2wpkh.output is undefined");
+      return;
+    }
+
+    console.log("this.vout:", this.vout);
+    console.log("this.txid:", this.txid);
+
+    if (this.vout === null || this.vout === undefined) {
+      console.log("this.vout === undefined or null");
+      return;
+    }
+    if (this.txid === null || this.txid === undefined) {
+      console.log("this.txid === undefined or null");
+      return;
+    }
 
     psbt.addInput({
       // if hash is string, txid, if hash is Buffer, is reversed compared to txid

@@ -25,6 +25,7 @@ import {
 } from "lightningdevkit";
 import ElectrumClient from "../bitcoin_clients/ElectrumClient.mjs";
 import TorClient from "../bitcoin_clients/TorClient.mjs";
+import MercuryEventHandler from "../structs/MercuryEventHandler.js";
 
 export default interface LightningClientInterface {
   feeEstimator: FeeEstimator;
@@ -39,7 +40,7 @@ export default interface LightningClientInterface {
   filter: Filter;
   persist: Persist;
   persister: Persister;
-  eventHandler: EventHandler;
+  eventHandler: MercuryEventHandler;
   chainMonitor: ChainMonitor;
   chainWatch: any;
   keysManager: KeysManager;

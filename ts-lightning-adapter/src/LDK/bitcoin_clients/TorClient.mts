@@ -34,7 +34,7 @@ class TorClient {
     let currentBlockHash;
     try {
       console.log("Get latest block header...............");
-      console.log("HEIGHT: ", height);
+      console.log("TorClient->getLatestBlockHeader->HEIGHT: ", height);
       console.log(`${TOR_ENDPOINT}${GET_ROUTE.BLOCKS_TIP_HASH}`);
       let res = await TorClient.get(
         `${TOR_ENDPOINT}${GET_ROUTE.BLOCKS_TIP_HASH}`
