@@ -123,7 +123,7 @@ router.post("/savePeerAndChannelToDb", async (req, res) => {
   channelType === "Public" ? true : false;
 
   try {
-    let channel_id = await getLDKClient().savePeerAndChannelToDatabase(
+    const result = await getLDKClient().savePeerAndChannelToDatabase(
       amount,
       pubkey,
       host,
@@ -136,11 +136,16 @@ router.post("/savePeerAndChannelToDb", async (req, res) => {
       payment_address
     );
 
-    if (channel_id) {
+    if (result && result.status === 409) {
+      res.status(409).json({
+        status: 409,
+        message: result.message,
+      });
+    } else if (result && result.channel_id) {
       res.status(200).json({
         status: 200,
         message: "Saved peer and channel to database.",
-        channel_id: channel_id,
+        channel_id: result.channel_id,
       });
     } else {
       res.status(500).json({

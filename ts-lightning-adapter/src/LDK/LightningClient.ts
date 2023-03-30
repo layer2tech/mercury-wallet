@@ -152,9 +152,10 @@ export default class LightningClient implements LightningClientInterface {
     console.log("Peer created, saveds its id: ", peer_id);
 
     let channel_id = null;
+    let result;
     // Save the channel
     try {
-      const result = await saveNewChannelToDB(
+      result = await saveNewChannelToDB(
         channel_name,
         amount,
         0,
@@ -165,15 +166,17 @@ export default class LightningClient implements LightningClientInterface {
         paid,
         payment_address
       );
-      console.log(result);
-      channel_id = result.channel_id;
+      if (result && result.channel_id) {
+        console.log(result);
+        channel_id = result.channel_id;
+        console.log("Channel Created, saved its id: ", channel_id);
+      }
     } catch (err) {
       console.log(err);
       throw err;
     }
-    console.log("Channel Created, saved its id: ", channel_id);
 
-    return channel_id;
+    return result;
   }
 
   async saveChannelFundingToDatabase(
