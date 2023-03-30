@@ -124,22 +124,18 @@ const MainHeader = ({ mainUnit, icon }) => {
             </span>
           </div>
         </div>
-        {
-          <div className="selection">
-            <DropdownArrow
-              isToggleOn={isToggleOn}
-              toggleContent={toggleContent}
-            />
-            <MenuPopUp
-              openMenu={isToggleOn}
-              setOpenMenu={toggleContent}
-              selected={walletMode}
-              handleChange={handleFilter}
-              options={WALLET_OPTIONS}
-              title={"Select Wallet"}
-            />
-          </div>
-        }
+        {/* <div className='selection'>
+                    < DropdownArrow 
+                        isToggleOn = {isToggleOn}
+                        toggleContent = {toggleContent} />
+                    <MenuPopUp
+                        openMenu = {isToggleOn} 
+                        setOpenMenu = {toggleContent}
+                        selected = {walletMode}
+                        handleChange = {handleFilter}
+                        options = {WALLET_OPTIONS}
+                        title = {"Select Wallet"}/>
+                </div> */}
       </div>
       <div className="ActionGroupLeft">
         <CheckBox
