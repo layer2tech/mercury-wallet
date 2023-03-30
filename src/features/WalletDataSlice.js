@@ -383,11 +383,6 @@ export async function walletFromMnemonic(
   await mutex.runExclusive(async () => {
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
-    //init Block height
-    await wallet.electrum_client.getLatestBlock(
-      setBlockHeightCallBack,
-      wallet.electrum_client.endpoint
-    );
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
       let recoveryComplete = false;
