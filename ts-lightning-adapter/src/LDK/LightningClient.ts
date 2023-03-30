@@ -176,6 +176,11 @@ export default class LightningClient implements LightningClientInterface {
     return channel_id;
   }
 
+  async setInputTx(txid: string, vout: number) {
+    console.log("this.eventHandler ->", this.eventHandler);
+    this.eventHandler.setInputTx(txid, vout);
+  }
+
   async saveChannelFundingToDatabase(
     amount: number,
     paid: boolean,
@@ -189,7 +194,7 @@ export default class LightningClient implements LightningClientInterface {
       console.log("Input Tx .");
 
       if (result?.priv_key) {
-        this.eventHandler.setInputTx(result.priv_key, txid, vout);
+        this.eventHandler.setInputTx(txid, vout);
       } else {
         throw Error("No private key was returned from the database.");
       }

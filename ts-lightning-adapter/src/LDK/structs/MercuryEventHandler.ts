@@ -81,8 +81,8 @@ class MercuryEventHandler implements EventHandlerInterface {
     this.channelManager = channelManager;
   }
 
-  setInputTx(privateKey: Buffer, txid: string, vout: number) {
-    this.privateKey = privateKey;
+  setInputTx(txid: string, vout: number) {
+    //this.privateKey = privateKey;
     this.vout = vout;
     this.txid = txid;
   }
@@ -143,6 +143,11 @@ class MercuryEventHandler implements EventHandlerInterface {
   async handleFundingGenerationReadyEvent_Auto(
     event: Event_FundingGenerationReady
   ) {
+    this.txid =
+      "ab0916b951ee9e56e7d16710e5ac5f8b25d7cc2117e5cdddca7e6554373caa40";
+
+    this.vout = 1;
+
     const {
       temporary_channel_id,
       counterparty_node_id,

@@ -8,6 +8,7 @@ import { closeConnections } from "./LDK/utils/ldk-utils.js";
 import initialiseWasm from "./LDK/init/initialiseWasm.js";
 import { getLDKClient, createLDK } from "./LDK/init/getLDK.js";
 import LightningClient from "./LDK/LightningClient.js";
+import { debug_lightning } from "./debug_lightning.js";
 
 // Constants
 const PORT = 3003;
@@ -26,6 +27,7 @@ app.use("/channel", channelRoutes);
 
 // Starting the express server
 app.listen(PORT, async () => {
+  /*
   console.log(`lightning-adapter listening at http://localhost:${PORT}`);
   await initialiseWasm();
   console.log("import LDK");
@@ -33,7 +35,9 @@ app.listen(PORT, async () => {
   console.log("finished import LDK");
   const LightningClient: LightningClient = getLDKClient();
   await LightningClient.start();
-  console.log("Started LDK Client");
+  console.log("Started LDK Client");*/
+
+  debug_lightning();
 });
 
 // Exit handlers
