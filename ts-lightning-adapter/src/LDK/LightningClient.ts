@@ -54,7 +54,7 @@ export default class LightningClient implements LightningClientInterface {
   params: ChainParameters;
   channelManager: ChannelManager;
   peerManager: PeerManager;
-  txdata: any; // TODO: Specify this type
+  txDatas: any; // TODO: Specify this type
   currentConnections: any[] = [];
   blockHeight: number | undefined;
   latestBlockHeader: Uint8Array | undefined;
@@ -108,7 +108,7 @@ export default class LightningClient implements LightningClientInterface {
 
   async addTxData(txid: any) {
     let txData = await this.bitcointd_client.getTxIdData(txid);
-    this.txdata.push(txData);
+    //this.txDatas.push(txData);
   }
 
   /**

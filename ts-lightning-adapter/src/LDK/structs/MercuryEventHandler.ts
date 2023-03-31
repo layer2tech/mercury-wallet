@@ -42,8 +42,6 @@ class MercuryEventHandler implements EventHandlerInterface {
   }
 
   handle_event(e: any) {
-    console.log(">>>>>>> Handling Event here <<<<<<<", e);
-
     switch (true) {
       case e instanceof Event_FundingGenerationReady:
         this.handleFundingGenerationReadyEvent_Auto(e);
@@ -150,19 +148,7 @@ class MercuryEventHandler implements EventHandlerInterface {
       output_script,
     } = event;
 
-    const testnet = bitcoin.networks.regtest;
-
-    let electrum_wallet;
-    if (this.privateKey) {
-      console.log("Private key found ----->", this.privateKey);
-
-      electrum_wallet = ECPair.fromPrivateKey(this.privateKey);
-    }
-
-    if (!electrum_wallet) {
-      return;
-    }
-
+    // validate event
     if (
       output_script.length !== 34 &&
       output_script[0] !== 0 &&
@@ -170,43 +156,40 @@ class MercuryEventHandler implements EventHandlerInterface {
     ) {
       return;
     }
-    const psbt = new bitcoin.Psbt({ network: testnet });
+
+    const network = bitcoin.networks.regtest;
+
+    if (this.privateKey === undefined) throw Error("private key is undefined");
+    let electrum_wallet = ECPair.fromPrivateKey(this.privateKey, {
+      network: network,
+    });
+    if (electrum_wallet === undefined)
+      throw Error("electrum wallet is undefined");
+
+    console.log("[MercuryEventHandler.ts]: ECPair.fromPrivateKey:", ECPair.fromPrivateKey(this.privateKey, {network: network}));
+
+    // Create the psbt transaction
+    const psbt = new bitcoin.Psbt({ network: network });
     psbt.setVersion(2);
     psbt.setLocktime(0);
-
     const p2wpkh = bitcoin.payments.p2wpkh({
       pubkey: electrum_wallet.publicKey,
-      network: testnet,
+      network: network,
     });
-    const { name, m, n, address } = p2wpkh;
-    console.log("address found:", address);
-    console.log("name found:", name);
-    console.log("m found:", m);
-    console.log("n found:", n);
-    console.log("electrum_wallet.publicKey", electrum_wallet.publicKey);
+    if (p2wpkh.output === undefined) throw Error("p2wpkh output is undefined");
 
-    if (p2wpkh.output === undefined) {
-      console.log("p2wpkh.output is undefined");
-      return;
-    }
-
-    console.log("this.vout:", this.vout);
-    console.log("this.txid:", this.txid);
-
-    if (this.vout === null || this.vout === undefined) {
-      console.log("this.vout === undefined or null");
-      return;
-    }
-    if (this.txid === null || this.txid === undefined) {
-      console.log("this.txid === undefined or null");
-      return;
-    }
+    // Hard coded values for now
+    let hash =
+      "ab0916b951ee9e56e7d16710e5ac5f8b25d7cc2117e5cdddca7e6554373caa40";
+    let vout = 1;
+    let sequence = 4294967294;
+    let witnessUtxoScript = "0014400115aeada96c6a9c953b584280ab0784bb233c";
 
     psbt.addInput({
       // if hash is string, txid, if hash is Buffer, is reversed compared to txid
-      hash: this.txid,
-      index: this.vout,
-      sequence: 0xffffffff,
+      hash: hash,
+      index: vout,
+      sequence: sequence,
       witnessUtxo: {
         script: p2wpkh.output,
         value: parseInt(channel_value_satoshis.toString(), 10),
@@ -216,26 +199,24 @@ class MercuryEventHandler implements EventHandlerInterface {
       script: Buffer.from(output_script),
       value: parseInt(channel_value_satoshis.toString(), 10),
     });
-
-    psbt.signInput(this.vout, electrum_wallet);
-    psbt.validateSignaturesOfInput(this.vout, validateSigFunction);
+    psbt.signAllInputs(electrum_wallet);
     psbt.finalizeAllInputs();
+    let funding_tx: any = psbt.extractTransaction().toBuffer();
 
-    console.log("psbt->", psbt.extractTransaction().toHex());
-    console.log("base...", console.log(psbt));
-    let funding_tx: any = hexToUint8Array(psbt.extractTransaction().toHex());
-    console.log("funding_tx->", funding_tx);
-    // Uint8Array
-    let fund: any = this.channelManager.funding_transaction_generated(
-      temporary_channel_id,
-      counterparty_node_id,
-      funding_tx
-    );
 
-    console.log("fund->", fund);
+    console.log('[MercuryEventHandler.ts]: privateKey ->', this.privateKey);
+    console.log('[MercuryEventHandler.ts]: funding_tx ->', funding_tx);
 
-    // Reset Tx Input
-    this.resetInputTx();
+    try{
+      // Send the funding transaction to the channel manager
+      this.channelManager.funding_transaction_generated(
+        temporary_channel_id,
+        counterparty_node_id,
+        funding_tx
+      );
+    }catch(e){
+      console.log('error occured in funding transaction generated method..');
+    }
   }
 
   handlePaymentSentEvent(e: Event_PaymentSent) {
