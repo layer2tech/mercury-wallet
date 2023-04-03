@@ -245,3 +245,59 @@ export const saveTxDataToDB = (
     });
   });
 };
+
+export const deleteChannelById = (
+  channelId: number
+): Promise<{
+  status: number;
+  message?: string;
+  error?: string;
+}> => {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `DELETE FROM channels WHERE id = ?`,
+      [channelId],
+      function (err: any) {
+        if (err) {
+          reject({
+            status: 500,
+            error: "Failed to delete channel from database",
+          });
+        } else {
+          resolve({
+            status: 200,
+            message: "Channel deleted successfully",
+          });
+        }
+      }
+    );
+  });
+}
+
+export const deleteChannelByAddr = (
+  addr: string
+): Promise<{
+  status: number;
+  message?: string;
+  error?: string;
+}> => {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `DELETE FROM channels WHERE payment_address = ?`,
+      [addr],
+      function (err: any) {
+        if (err) {
+          reject({
+            status: 500,
+            error: "Failed to delete channel from database",
+          });
+        } else {
+          resolve({
+            status: 200,
+            message: "Channel deleted successfully",
+          });
+        }
+      }
+    );
+  });
+}

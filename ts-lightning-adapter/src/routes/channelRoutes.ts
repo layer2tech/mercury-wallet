@@ -4,7 +4,7 @@ import db from "../db/db.js";
 import * as bitcoin from "bitcoinjs-lib";
 
 import { getLDKClient } from "../LDK/init/getLDK.js";
-import { createNewChannel } from "../LDK/utils/ldk-utils.js";
+import { deleteChannelById } from "../LDK/utils/ldk-utils.js";
 import { hexToUint8Array, uint8ArrayToHexString } from "../LDK/utils/utils.js";
 import { ChannelDetails } from "lightningdevkit";
 
@@ -236,15 +236,26 @@ router.get("/removeDuplicateChannels", (req, res) => {
   });
 });
 
-router.delete("/deleteChannel/:id", (req, res) => {
-  // delete channel by id
-  const deleteData = `DELETE FROM channels WHERE id=?`;
-  db.run(deleteData, [req.params.id], function (err: any) {
+router.delete("/forceCloseChannel/:id", async (req, res) => {
+  const channel_id = Number(req.params.id);
+  console.log("channel_id", channel_id)
+  const selectData = `SELECT peers.pubkey FROM channels INNER JOIN peers ON channels.peer_id = peers.id WHERE channels.id = ?`;
+  db.get(selectData, [channel_id], async function (err: any, row: any) {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
+    } else if (row) {
+      const pubkey = row.pubkey;
+      const success = getLDKClient().channelManager.force_close_broadcasting_latest_txn(new Uint8Array(channel_id), pubkey);
+      if (success) {
+        const result = await deleteChannelById(channel_id); 
+        res.status(result.status).json({ message: result.message });
+      } else {
+        res.status(500).json({ error: "Failed to force close channel" });
+      }
+    } else {
+      res.status(500).json({ error: "Failed to force close channel" });
     }
-    res.json({ message: "Data deleted successfully" });
   });
 });
 

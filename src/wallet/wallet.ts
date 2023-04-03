@@ -3225,9 +3225,9 @@ export const getXpub = (mnemonic: string, network: Network) => {
   return node.neutered().toBase58();
 };
 
-export const deleteChannelById = (channel_id: Number) => {
+export const forceCloseChannel = (channel_id: Number) => {
   axios
-    .delete(`http://localhost:3003/channel/deleteChannel/${channel_id}`)
+    .delete(`http://localhost:3003/channel/forceCloseChannel/${channel_id}`)
     .then((res) => {
       console.log(res);
     })
