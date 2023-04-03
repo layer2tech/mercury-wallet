@@ -186,14 +186,7 @@ export default class LightningClient implements LightningClientInterface {
     console.log("[LightningClient.ts] - saveChannelFundingToDatabase");
     try {
       const result = await saveTxDataToDB(amount, paid, txid, vout, addr);
-      console.log("Input Tx .");
-
-      if (result?.priv_key) {
-        this.eventHandler.setInputTx(result.priv_key, txid, vout);
-      } else {
-        throw Error("No private key was returned from the database.");
-      }
-      console.log("Input Tx √");
+      return result;
     } catch (err) {
       console.log(err);
       throw err;
