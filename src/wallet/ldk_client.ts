@@ -21,6 +21,16 @@ Object.freeze(LIGHTNING_POST_ROUTE);
 export const LIGHTNING_URL = "http://localhost:3003";
 
 export class LDKClient {
+  async setTxData(body: any): Promise<any> {
+    console.log("[ldk_client.ts]->setTxData");
+    try {
+      let res = await LDKClient.post("peer/setTxData", body);
+      return res;
+    } catch (e: any) {
+      throw new Error("Error in setting txData" + e?.message);
+    }
+  }
+
   async getChannels(wallet_name: string): Promise<ChannelInfo[]> {
     let channels: ChannelInfo[] = [];
     try {
