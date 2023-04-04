@@ -9,7 +9,7 @@ class ElectrumClient {
     this.endpoint = endpoint;
   }
 
-  async getBlockHeight() {
+  async getBestBlockHash() {
     console.log("Get Block Height...");
     let res;
     try {
@@ -20,7 +20,20 @@ class ElectrumClient {
       console.log('Error Getting Block Height')
     }
     if (res) {
+      return res.bestblockhash;
+    }
+  }
+
+  async getBlockHeight() {
+    console.log("Get Block Height...");
+    let res;
+    try {
+      res = (
+        await ElectrumClient.get("http://127.0.0.1:18443/rest/chaininfo.json")
+      ).data;
       return res.blocks;
+    } catch (e) {
+      console.log('Error Getting Block Height')
     }
   }
 

@@ -45,15 +45,15 @@ import TorClient from "../bitcoin_clients/TorClient.mjs";
 import MercuryPersist from "../structs/MercuryPersist.js";
 import MercuryPersister from "../structs/MercuryPersister.js";
 
-export default function initLDK(electrum: string = "prod") {
-  const initLDK = setUpLDK(electrum);
+export default async function initLDK(electrum: string = "prod") {
+  const initLDK = await setUpLDK(electrum);
   if (initLDK) {
     return new LightningClient(initLDK);
   }
   throw Error("Couldn't initialize LDK");
 }
 
-function setUpLDK(electrum: string = "prod") {
+async function setUpLDK(electrum: string = "prod") {
   // Initialize the LDK data directory if necessary.
   const ldk_data_dir = "./.ldk/";
   if (!fs.existsSync(ldk_data_dir)) {
@@ -179,14 +179,18 @@ function setUpLDK(electrum: string = "prod") {
 
   // Step 11: Initialize the ChannelManager
   const config = UserConfig.constructor_default();
+
+  let block_height: number = await bitcointd_client.getBlockHeight();
+  let block_hash: string = await bitcointd_client.getBestBlockHash();
+
   const params = ChainParameters.constructor_new(
     Network.LDKNetwork_Regtest,
     BestBlock.constructor_new(
       Buffer.from(
-        "39228e8174f5084136ee2717f5a7aea80708e7196edc2760f111daaecdcaa5e0",
+        block_hash,
         "hex"
       ),
-      215
+      block_height
     )
   );
 
