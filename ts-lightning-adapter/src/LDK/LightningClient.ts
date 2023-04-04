@@ -5,7 +5,6 @@ import {
   BroadcasterInterface,
   NetworkGraph,
   Persist,
-  EventHandler,
   Filter,
   ChainMonitor,
   KeysManager,
@@ -13,8 +12,7 @@ import {
   ChannelHandshakeConfig,
   ChainParameters,
   ChannelManager,
-  Persister,
-  ChannelManagerReadArgs,
+  Persister
 } from "lightningdevkit";
 import { NodeLDKNet } from "./structs/NodeLDKNet.mjs";
 import LightningClientInterface from "./types/LightningClientInterface.js";
@@ -116,8 +114,8 @@ export default class LightningClient implements LightningClientInterface {
   }
 
   async setEventTXData(txid: any) {
-    let txData = await this.getTxData(txid);
-    this.eventHandler.setInputTx(txData);
+    this.txdata = await this.getTxData(txid);
+    MercuryEventHandler.setInputTx(this.txdata);
   }
 
   async getTxData(txid: any) {
