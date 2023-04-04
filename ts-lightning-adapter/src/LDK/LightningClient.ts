@@ -33,6 +33,7 @@ import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 import { getLDKClient } from "./init/getLDK.js";
 
 export default class LightningClient implements LightningClientInterface {
+
   feeEstimator: FeeEstimator;
   bitcointd_client: any;
   logger: Logger;
@@ -106,9 +107,15 @@ export default class LightningClient implements LightningClientInterface {
     }
   }
 
-  async addTxData(txid: any) {
+  async setEventTXData(txid: any) {
+    let txData = await this.getTxData(txid);
+    this.eventHandler.setInputTx(txData);
+  }
+
+  async getTxData(txid: any) {
     let txData = await this.bitcointd_client.getTxIdData(txid);
-    //this.txDatas.push(txData);
+    console.log('txData');
+    return txData;
   }
 
   /**
@@ -186,14 +193,7 @@ export default class LightningClient implements LightningClientInterface {
     console.log("[LightningClient.ts] - saveChannelFundingToDatabase");
     try {
       const result = await saveTxDataToDB(amount, paid, txid, vout, addr);
-      console.log("Input Tx .");
-
-      if (result?.priv_key) {
-        this.eventHandler.setInputTx(result.priv_key, txid, vout);
-      } else {
-        throw Error("No private key was returned from the database.");
-      }
-      console.log("Input Tx √");
+      return result;
     } catch (err) {
       console.log(err);
       throw err;

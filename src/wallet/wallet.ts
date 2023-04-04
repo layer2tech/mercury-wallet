@@ -394,10 +394,10 @@ export class Wallet {
   ): Wallet {
     log.debug(
       "New wallet named " +
-        name +
-        " created. Testing mode: " +
-        testing_mode +
-        "."
+      name +
+      " created. Testing mode: " +
+      testing_mode +
+      "."
     );
     let wallet = new Wallet(
       name,
@@ -800,6 +800,9 @@ export class Wallet {
                         value
                       );
 
+                      // Save funding details to event manager
+                      this.lightning_client.setTxData(txid);
+
                       this.lightning_client
                         .connectToPeer({ pubkey, host, port })
                         .then((res) => {
@@ -860,7 +863,7 @@ export class Wallet {
     this.active = state;
   }
 
-  connectToPeer = async (pubkey: string, host: string, port: number) => {};
+  connectToPeer = async (pubkey: string, host: string, port: number) => { };
 
   // Load wallet JSON from store
   static async load(
@@ -1370,7 +1373,7 @@ export class Wallet {
       if (
         statecoin.status === STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >=
-          this.config.required_confirmations
+        this.config.required_confirmations
       ) {
         if (statecoin.tx_backup === null) {
           this.depositConfirm(statecoin.shared_key_id);
@@ -1987,9 +1990,9 @@ export class Wallet {
     let proof_key = this.getBIP32forBtcAddress(addr);
     log.debug(
       "Gen proof key. Address: " +
-        addr +
-        ". Proof key: " +
-        proof_key.publicKey.toString("hex")
+      addr +
+      ". Proof key: " +
+      proof_key.publicKey.toString("hex")
     );
     return proof_key;
   }
@@ -2077,12 +2080,12 @@ export class Wallet {
           if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
             log.error(
               "Funding tx for p_addr " +
-                p_addr +
-                " has value " +
-                funding_tx_data[i].value +
-                " expected " +
-                value +
-                "."
+              p_addr +
+              " has value " +
+              funding_tx_data[i].value +
+              " expected " +
+              value +
+              "."
             );
             log.error(
               "Setting value of statecoin to " + funding_tx_data[i].value
@@ -2112,9 +2115,9 @@ export class Wallet {
             ) {
               log.info(
                 "Found funding tx for p_addr " +
-                  p_addr +
-                  " in mempool. txid: " +
-                  funding_tx_data[i].tx_hash
+                p_addr +
+                " in mempool. txid: " +
+                funding_tx_data[i].tx_hash
               );
               if (coin != null) {
                 await this.saveStateCoin(coin);
@@ -2123,9 +2126,9 @@ export class Wallet {
           } else {
             log.info(
               "Funding tx for p_addr " +
-                p_addr +
-                " mined. Height: " +
-                funding_tx_data[i].height
+              p_addr +
+              " mined. Height: " +
+              funding_tx_data[i].height
             );
             // Set coin UNCONFIRMED.
             this.statecoins.setCoinUnconfirmed(
@@ -2178,7 +2181,7 @@ export class Wallet {
       for (let j = 0; j < funding_tx_data.length; j++) {
         if (
           funding_tx_data[j].tx_hash ===
-            this.statecoins.coins[i].funding_txid &&
+          this.statecoins.coins[i].funding_txid &&
           funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout
         ) {
           continue;
@@ -2188,9 +2191,9 @@ export class Wallet {
           for (let k = 0; k < this.statecoins.coins.length; k++) {
             if (
               this.statecoins.coins[k].funding_txid ===
-                funding_tx_data[j].tx_hash &&
+              funding_tx_data[j].tx_hash &&
               this.statecoins.coins[k].funding_vout ===
-                funding_tx_data[j].tx_pos
+              funding_tx_data[j].tx_pos
             ) {
               existing_output = true;
               break;
@@ -2287,8 +2290,8 @@ export class Wallet {
     if (statecoin.status === STATECOIN_STATUS.INITIALISED)
       throw Error(
         "Awaiting funding transaction for StateCoin " +
-          statecoin.getTXIdAndOut() +
-          "."
+        statecoin.getTXIdAndOut() +
+        "."
       );
 
     await this.initCoinLocktime(statecoin);
@@ -2375,7 +2378,7 @@ export class Wallet {
       if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
         if (
           this.statecoins.coins[i].shared_key_id.slice(0, -4) ===
-            statecoin.shared_key_id &&
+          statecoin.shared_key_id &&
           this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE
         ) {
           throw Error(
@@ -2645,14 +2648,14 @@ export class Wallet {
         if (statecoin.status === STATECOIN_STATUS.IN_SWAP)
           throw Error(
             "Coin " +
-              statecoin.getTXIdAndOut() +
-              " currenlty involved in swap protocol."
+            statecoin.getTXIdAndOut() +
+            " currenlty involved in swap protocol."
           );
         if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP)
           throw Error(
             "Coin " +
-              statecoin.getTXIdAndOut() +
-              " waiting in swap pool. Remove from pool to transfer."
+            statecoin.getTXIdAndOut() +
+            " waiting in swap pool. Remove from pool to transfer."
           );
         if (statecoin.status !== STATECOIN_STATUS.AVAILABLE)
           throw Error(
@@ -2668,7 +2671,7 @@ export class Wallet {
           if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
             if (
               this.statecoins.coins[i].shared_key_id.slice(0, -4) ===
-                statecoin.shared_key_id &&
+              statecoin.shared_key_id &&
               this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE
             ) {
               throw Error(
@@ -2899,14 +2902,14 @@ export class Wallet {
       if (statecoin.status === STATECOIN_STATUS.IN_SWAP)
         throw Error(
           "Coin " +
-            statecoin.getTXIdAndOut() +
-            " currenlty involved in swap protocol."
+          statecoin.getTXIdAndOut() +
+          " currenlty involved in swap protocol."
         );
       if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP)
         throw Error(
           "Coin " +
-            statecoin.getTXIdAndOut() +
-            " waiting in  swap pool. Remove from pool to withdraw."
+          statecoin.getTXIdAndOut() +
+          " waiting in  swap pool. Remove from pool to withdraw."
         );
       if (
         statecoin.status !== STATECOIN_STATUS.AVAILABLE &&
