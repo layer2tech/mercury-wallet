@@ -800,30 +800,34 @@ export class Wallet {
                         value
                       );
 
-                      // Save funding details to event manager
-                      this.lightning_client.setTxData(txid);
-
-                      this.lightning_client
-                        .connectToPeer({ pubkey, host, port })
-                        .then((res) => {
-                          // connected to peer
-                          if (res.status === 200) {
-                            // now connect to channel
-                            this.lightning_client
-                              .connectToChannel({
-                                pubkey,
-                                amount,
-                                push_msat: 0,
-                                channelId,
-                                channelType: "Public",
-                              })
-                              .then((res) => {
-                                console.log(
-                                  "Final connect to channel successful."
-                                );
-                              });
-                          }
-                        });
+                      // Save funding details to event manager, only when event manager has valid txid details can we open a channel
+                      this.lightning_client.setTxData(txid).then((res) => {
+                        if (res.status === 200) {
+                          this.lightning_client
+                            .connectToPeer({ pubkey, host, port })
+                            .then((res) => {
+                              // connected to peer
+                              if (res.status === 200) {
+                                // now connect to channel
+                                this.lightning_client
+                                  .connectToChannel({
+                                    pubkey,
+                                    amount,
+                                    push_msat: 0,
+                                    channelId,
+                                    channelType: "Public",
+                                  })
+                                  .then((res) => {
+                                    console.log(
+                                      "Final connect to channel successful."
+                                    );
+                                  });
+                              }
+                            });
+                        } else {
+                          console.log('Still waiting for TX data');
+                        }
+                      });
                     }
                   });
               }
