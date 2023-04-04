@@ -30,6 +30,23 @@ class TorClient {
     }
   }
 
+  async getBestBlockHash() {
+    console.log("Get Block Height...");
+    let res;
+    try {
+      res = await TorClient.get(
+        `${TOR_ENDPOINT}${GET_ROUTE.BLOCKS_TIP_HASH}`
+      );
+
+      res = res && res.data;
+    } catch (e) {
+      console.log("Error Getting Block Height");
+    }
+    if (res) {
+      return res;
+    }
+  }
+
   async getLatestBlockHeader(height: number) {
     let currentBlockHash;
     try {

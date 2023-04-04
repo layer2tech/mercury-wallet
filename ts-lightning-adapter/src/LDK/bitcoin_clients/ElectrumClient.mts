@@ -9,6 +9,21 @@ class ElectrumClient {
     this.endpoint = endpoint;
   }
 
+  async getBestBlockHash() {
+    console.log("Get Block Height...");
+    let res;
+    try {
+      res = (
+        await ElectrumClient.get("http://127.0.0.1:18443/rest/chaininfo.json")
+      ).data;
+    } catch (e) {
+      console.log('Error Getting Block Height')
+    }
+    if (res) {
+      return res.bestblockhash;
+    }
+  }
+
   async getBlockHeight() {
     console.log("Get Block Height...");
     let res;
@@ -16,11 +31,9 @@ class ElectrumClient {
       res = (
         await ElectrumClient.get("http://127.0.0.1:18443/rest/chaininfo.json")
       ).data;
-    } catch(e){
-      console.log('Error Getting Block Height')
-    }
-    if (res) {
       return res.blocks;
+    } catch (e) {
+      console.log('Error Getting Block Height')
     }
   }
 
@@ -59,11 +72,12 @@ class ElectrumClient {
   }
 
   async getTxIdData(txid: string) {
+
     let res = (
       await ElectrumClient.get(`http://127.0.0.1:18443/rest/tx/${txid}.json`)
     ).data;
 
-    return [res.blockheight, res.hex];
+    return { txid: res.txid, vout: res.vin[0].vout, sequence: res.vin[0].sequence };
   }
 
   static async get(endpoint: string, timeout_ms = TIMEOUT) {
