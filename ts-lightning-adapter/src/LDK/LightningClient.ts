@@ -86,6 +86,8 @@ export default class LightningClient implements LightningClientInterface {
     this.netHandler = new NodeLDKNet(this.peerManager);
   }
 
+  txdata: any;
+
   /*
     Electrum Client Functions
   */
