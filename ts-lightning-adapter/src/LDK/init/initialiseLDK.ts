@@ -341,11 +341,7 @@ async function setUpLDK(electrum: string = "prod") {
   // check on interval
 
   // Step 18: Handle LDK Events
-  let eventHandler;
-  if (channelManager) {
-    let mercuryHandler = new MercuryEventHandler(channelManager);
-    eventHandler = EventHandler.new_impl(mercuryHandler);
-  }
+  let eventHandler = new MercuryEventHandler(channelManager);
 
   // Step 19: Persist ChannelManager and NetworkGraph
   persister.persist_manager(channelManager);
