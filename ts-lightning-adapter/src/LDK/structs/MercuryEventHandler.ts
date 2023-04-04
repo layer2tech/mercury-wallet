@@ -33,12 +33,14 @@ class MercuryEventHandler implements EventHandlerInterface {
   privateKey: Buffer;
   txid: string | null;
   vout: number | null;
+  sequence: number | null;
 
   constructor(_channelManager: ChannelManager) {
     this.channelManager = _channelManager;
     this.privateKey = crypto.randomBytes(32);
     this.txid = null;
     this.vout = null;
+    this.sequence = null;
   }
 
   handle_event(e: any) {
@@ -79,16 +81,16 @@ class MercuryEventHandler implements EventHandlerInterface {
     this.channelManager = channelManager;
   }
 
-  setInputTx(privateKey: Buffer, txid: string, vout: number) {
-    this.privateKey = privateKey;
-    this.vout = vout;
-    this.txid = txid;
+  setInputTx(txData: any) {
+    this.vout = txData.vout;
+    this.txid = txData.txid;
+    this.sequence = txData.sequence;
   }
 
   resetInputTx() {
-    //this.privateKey = null;
     this.vout = null;
     this.txid = null;
+    this.sequence = null;
   }
 
   handleFundingGenerationReadyEvent_Manual(
@@ -166,7 +168,7 @@ class MercuryEventHandler implements EventHandlerInterface {
     if (electrum_wallet === undefined)
       throw Error("electrum wallet is undefined");
 
-    console.log("[MercuryEventHandler.ts]: ECPair.fromPrivateKey:", ECPair.fromPrivateKey(this.privateKey, {network: network}));
+    console.log("[MercuryEventHandler.ts]: ECPair.fromPrivateKey:", ECPair.fromPrivateKey(this.privateKey, { network: network }));
 
     // Create the psbt transaction
     const psbt = new bitcoin.Psbt({ network: network });
@@ -179,17 +181,28 @@ class MercuryEventHandler implements EventHandlerInterface {
     if (p2wpkh.output === undefined) throw Error("p2wpkh output is undefined");
 
     // Hard coded values for now
+    /*
     let hash =
       "ab0916b951ee9e56e7d16710e5ac5f8b25d7cc2117e5cdddca7e6554373caa40";
     let vout = 1;
     let sequence = 4294967294;
-    let witnessUtxoScript = "0014400115aeada96c6a9c953b584280ab0784bb233c";
+    let witnessUtxoScript = "0014400115aeada96c6a9c953b584280ab0784bb233c";*/
+
+    if (this.txid === null) {
+      throw Error("No TXID was set");
+    }
+    if (this.vout === null) {
+      throw Error("No VOUT was set");
+    }
+    if (this.sequence === null) {
+      throw Error("No sequence was set");
+    }
 
     psbt.addInput({
       // if hash is string, txid, if hash is Buffer, is reversed compared to txid
-      hash: hash,
-      index: vout,
-      sequence: sequence,
+      hash: this.txid,
+      index: this.vout,
+      sequence: this.sequence,
       witnessUtxo: {
         script: p2wpkh.output,
         value: parseInt(channel_value_satoshis.toString(), 10),
@@ -207,14 +220,14 @@ class MercuryEventHandler implements EventHandlerInterface {
     console.log('[MercuryEventHandler.ts]: privateKey ->', this.privateKey);
     console.log('[MercuryEventHandler.ts]: funding_tx ->', funding_tx);
 
-    try{
+    try {
       // Send the funding transaction to the channel manager
       this.channelManager.funding_transaction_generated(
         temporary_channel_id,
         counterparty_node_id,
         funding_tx
       );
-    }catch(e){
+    } catch (e) {
       console.log('error occured in funding transaction generated method..');
     }
   }

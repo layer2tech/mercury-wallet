@@ -33,6 +33,7 @@ import MercuryEventHandler from "./structs/MercuryEventHandler.js";
 import { getLDKClient } from "./init/getLDK.js";
 
 export default class LightningClient implements LightningClientInterface {
+
   feeEstimator: FeeEstimator;
   bitcointd_client: any;
   logger: Logger;
@@ -106,9 +107,15 @@ export default class LightningClient implements LightningClientInterface {
     }
   }
 
-  async addTxData(txid: any) {
+  async setEventTXData(txid: any) {
+    let txData = await this.getTxData(txid);
+    this.eventHandler.setInputTx(txData);
+  }
+
+  async getTxData(txid: any) {
     let txData = await this.bitcointd_client.getTxIdData(txid);
-    //this.txDatas.push(txData);
+    console.log('txData');
+    return txData;
   }
 
   /**

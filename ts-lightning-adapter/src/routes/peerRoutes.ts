@@ -155,6 +155,34 @@ router.post("/savePeerAndChannelToDb", async (req, res) => {
   }
 });
 
+router.post('/setTxData', async (req, res) => {
+  const { txid } = req.body;
+
+  console.log('[peerRoutes.ts]->setTxData' + txid);
+
+  if (txid === undefined) {
+    console.log('No TXID was found.');
+    res.status(500).json({
+      status: 500,
+      message: "No txid specified"
+    })
+  } else {
+    try {
+      await getLDKClient().setEventTXData(txid);
+      res.status(200).json({
+        status: 200,
+        message: "Txid was set correctly."
+      })
+    } catch (e) {
+      res.status(500).json({
+        status: 500,
+        message: "Error occured during setting the txid"
+      })
+    }
+
+  }
+})
+
 router.post("/saveChannelPaymentInfoToDb", async (req, res) => {
   const { amount, paid, txid, vout, address } = req.body;
 
