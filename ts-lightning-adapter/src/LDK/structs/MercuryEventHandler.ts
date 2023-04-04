@@ -31,16 +31,14 @@ const ECPair = ECPairFactory(ecc);
 class MercuryEventHandler implements EventHandlerInterface {
   channelManager: ChannelManager;
   privateKey: Buffer;
-  txid: string | null;
-  vout: number | null;
-  sequence: number | null;
+
+  static vout: any;
+  static txid: any;
+  static sequence: any;
 
   constructor(_channelManager: ChannelManager) {
     this.channelManager = _channelManager;
     this.privateKey = crypto.randomBytes(32);
-    this.txid = null;
-    this.vout = null;
-    this.sequence = null;
   }
 
   handle_event(e: any) {
@@ -81,16 +79,16 @@ class MercuryEventHandler implements EventHandlerInterface {
     this.channelManager = channelManager;
   }
 
-  setInputTx(txData: any) {
+  static setInputTx(txData: any) {
     this.vout = txData.vout;
     this.txid = txData.txid;
     this.sequence = txData.sequence;
   }
 
   resetInputTx() {
-    this.vout = null;
-    this.txid = null;
-    this.sequence = null;
+    MercuryEventHandler.vout = null;
+    MercuryEventHandler.txid = null;
+    MercuryEventHandler.sequence = null;
   }
 
   handleFundingGenerationReadyEvent_Manual(
@@ -188,21 +186,21 @@ class MercuryEventHandler implements EventHandlerInterface {
     let sequence = 4294967294;
     let witnessUtxoScript = "0014400115aeada96c6a9c953b584280ab0784bb233c";*/
 
-    if (this.txid === null) {
+    if (MercuryEventHandler.txid === null) {
       throw Error("No TXID was set");
     }
-    if (this.vout === null) {
+    if (MercuryEventHandler.vout === null) {
       throw Error("No VOUT was set");
     }
-    if (this.sequence === null) {
+    if (MercuryEventHandler.sequence === null) {
       throw Error("No sequence was set");
     }
 
     psbt.addInput({
       // if hash is string, txid, if hash is Buffer, is reversed compared to txid
-      hash: this.txid,
-      index: this.vout,
-      sequence: this.sequence,
+      hash: MercuryEventHandler.txid,
+      index: MercuryEventHandler.vout,
+      sequence: MercuryEventHandler.sequence,
       witnessUtxo: {
         script: p2wpkh.output,
         value: parseInt(channel_value_satoshis.toString(), 10),

@@ -5,7 +5,6 @@ import {
   BroadcasterInterface,
   NetworkGraph,
   Persist,
-  EventHandler,
   Filter,
   ChainMonitor,
   KeysManager,
@@ -13,8 +12,7 @@ import {
   ChannelHandshakeConfig,
   ChainParameters,
   ChannelManager,
-  Persister,
-  ChannelManagerReadArgs,
+  Persister
 } from "lightningdevkit";
 import { NodeLDKNet } from "./structs/NodeLDKNet.mjs";
 import LightningClientInterface from "./types/LightningClientInterface.js";
@@ -30,7 +28,6 @@ import {
   saveTxDataToDB,
 } from "./utils/ldk-utils.js";
 import MercuryEventHandler from "./structs/MercuryEventHandler.js";
-import { getLDKClient } from "./init/getLDK.js";
 
 export default class LightningClient implements LightningClientInterface {
 
@@ -60,6 +57,7 @@ export default class LightningClient implements LightningClientInterface {
   blockHeight: number | undefined;
   latestBlockHeader: Uint8Array | undefined;
   netHandler: NodeLDKNet;
+  bestBlockHash: any;
 
   constructor(props: LightningClientInterface) {
     this.feeEstimator = props.feeEstimator;
@@ -86,16 +84,23 @@ export default class LightningClient implements LightningClientInterface {
     this.netHandler = new NodeLDKNet(this.peerManager);
   }
 
+  txdata: any;
+
   /*
     Electrum Client Functions
   */
 
-  async setBlockHeight() {
-    // Sets the block height from client and assigns to class paramater
+  async getBlockHeight() {
     this.blockHeight = await this.bitcointd_client.getBlockHeight();
+    return this.blockHeight;
   }
 
-  async setLatestBlockHeader(height: number | undefined) {
+  async getBestBlockHash() {
+    this.bestBlockHash = await this.bitcointd_client.getBestBlockHash();
+    return this.bestBlockHash;
+  }
+
+  async getLatestBlockHeader(height: number | undefined) {
     if (height) {
       let latestBlockHeader = await this.bitcointd_client.getLatestBlockHeader(
         height
@@ -105,16 +110,17 @@ export default class LightningClient implements LightningClientInterface {
     } else {
       throw Error("Block Height undefined");
     }
+    return this.latestBlockHeader;
   }
 
   async setEventTXData(txid: any) {
-    let txData = await this.getTxData(txid);
-    this.eventHandler.setInputTx(txData);
+    this.txdata = await this.getTxData(txid);
+    MercuryEventHandler.setInputTx(this.txdata);
   }
 
   async getTxData(txid: any) {
     let txData = await this.bitcointd_client.getTxIdData(txid);
-    console.log('txData');
+    console.log('[LightningClient.ts]-> getTxData ->', txData);
     return txData;
   }
 
@@ -230,8 +236,8 @@ export default class LightningClient implements LightningClientInterface {
   ) {
     console.log("pubkey found:", pubkey);
 
-    await this.setBlockHeight();
-    await this.setLatestBlockHeader(this.blockHeight);
+    await this.getBlockHeight();
+    await this.getLatestBlockHeader(this.blockHeight);
 
     let channelValSatoshis = BigInt(amount);
     let pushMsat = BigInt(push_msat);
@@ -266,7 +272,7 @@ export default class LightningClient implements LightningClientInterface {
     }
     if (this.blockHeight && this.latestBlockHeader) {
       for (let i = 0; i++; i <= this.blockHeight) {
-        await this.setLatestBlockHeader(i + 1);
+        await this.getLatestBlockHeader(i + 1);
         this.channelManager
           .as_Listen()
           .block_connected(this.latestBlockHeader, this.blockHeight);
