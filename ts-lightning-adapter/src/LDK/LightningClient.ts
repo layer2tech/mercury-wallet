@@ -120,11 +120,6 @@ export default class LightningClient implements LightningClientInterface {
     this.eventHandler.setInputTx(txData);
   }
 
-  async setEventTXData(txid: any) {
-    let txData = await this.getTxData(txid);
-    this.eventHandler.setInputTx(txData);
-  }
-
   async getTxData(txid: any) {
     let txData = await this.bitcointd_client.getTxIdData(txid);
     console.log('[LightningClient.ts]-> getTxData ->', txData);
