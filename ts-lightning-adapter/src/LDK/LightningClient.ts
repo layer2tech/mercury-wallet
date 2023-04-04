@@ -116,7 +116,7 @@ export default class LightningClient implements LightningClientInterface {
 
   async getTxData(txid: any) {
     let txData = await this.bitcointd_client.getTxIdData(txid);
-    console.log('txData');
+    console.log('[LightningClient.ts]-> getTxData ->', txData);
     return txData;
   }
 
