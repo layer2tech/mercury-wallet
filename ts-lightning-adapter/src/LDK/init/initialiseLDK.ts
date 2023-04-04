@@ -45,6 +45,8 @@ import TorClient from "../bitcoin_clients/TorClient.mjs";
 import MercuryPersist from "../structs/MercuryPersist.js";
 import MercuryPersister from "../structs/MercuryPersister.js";
 
+import JSONbig from "json-bigint";
+
 export default async function initLDK(electrum: string = "prod") {
   const initLDK = await setUpLDK(electrum);
   if (initLDK) {
@@ -136,12 +138,16 @@ async function setUpLDK(electrum: string = "prod") {
   let signer_provider = keysManager.as_SignerProvider();
 
   // Step 7: Read ChannelMonitor state from disk
-  //let mut channelmonitors =
-  // persister
-  //  .read_channelmonitors(keys_manager.clone(), keys_manager.clone())
-  //  .unwrap();
-  // ChannelMonitor
-  // ChainMonitor
+  /*
+  let channelmonitors = {};
+  try {
+    const fileContents = fs.readFileSync('channel_monitor.json', 'utf8');
+    channelmonitors = JSONbig.parse(fileContents);
+  } catch (err) {
+    console.error(err);
+  }
+
+  console.log('channelmonitors:', channelmonitors);*/
 
   // Step 8: Poll for the best chain tip, which may be used by the channel manager & spv client
 
