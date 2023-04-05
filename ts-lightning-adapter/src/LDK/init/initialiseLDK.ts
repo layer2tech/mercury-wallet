@@ -28,6 +28,10 @@ import {
   ChannelManagerReadArgs,
   UtilMethods,
   TwoTuple_BlockHashChannelManagerZ,
+  TwoTuple_BlockHashChannelMonitorZ,
+  OutPoint,
+  Result_OutPointDecodeErrorZ_OK,
+  Result_OutPointDecodeErrorZ,
 } from "lightningdevkit";
 
 import fs from "fs";
@@ -53,6 +57,31 @@ export default async function initLDK(electrum: string = "prod") {
     return new LightningClient(initLDK);
   }
   throw Error("Couldn't initialize LDK");
+}
+
+function readChannelsFromDictionary(file: string): [Uint8Array, Uint8Array][] {
+  let channels: [Uint8Array, Uint8Array][] = [];
+  console.log('created channels variable');
+  try {
+    console.log('trying to read file...');
+    if (!fs.existsSync(file)) {
+      throw new Error('File not found');
+    }
+    const dict = JSON.parse(fs.readFileSync(file, 'utf-8'));
+    console.log('looping through dictionary');
+    for (const id in dict) {
+      const fileName = dict[id];
+      console.log('trying to read file name...');
+      if (!fs.existsSync('channels/' + fileName)) {
+        throw new Error('File not found');
+      }
+      const channelBytes = fs.readFileSync('channels/' + fileName);
+      channels.push([new Uint8Array(Buffer.from(id)), new Uint8Array(channelBytes)]);
+    }
+  } catch (e) {
+    throw e;
+  }
+  return channels;
 }
 
 async function setUpLDK(electrum: string = "prod") {
@@ -138,16 +167,11 @@ async function setUpLDK(electrum: string = "prod") {
   let signer_provider = keysManager.as_SignerProvider();
 
   // Step 7: Read ChannelMonitor state from disk
-  /*
-  let channelmonitors = {};
-  try {
-    const fileContents = fs.readFileSync('channel_monitor.json', 'utf8');
-    channelmonitors = JSONbig.parse(fileContents);
-  } catch (err) {
-    console.error(err);
-  }
+  console.log('reading channel monitor data...');
+  let channel_monitor_data = readChannelsFromDictionary("channels/channels.json");
+  console.log('------------------->', channel_monitor_data);
 
-  console.log('channelmonitors:', channelmonitors);*/
+  //console.log('channels loaded is:', channel_monitors);
 
   // Step 8: Poll for the best chain tip, which may be used by the channel manager & spv client
 
@@ -200,27 +224,32 @@ async function setUpLDK(electrum: string = "prod") {
     )
   );
 
+  const channel_monitor_mut_references: ChannelMonitor[] = [];
   let channelManager: any;
   if (fs.existsSync("channel_manager_data.bin")) {
     console.log("Load the channel manager from disk...");
     const f = fs.readFileSync(`channel_manager_data.bin`);
 
-    let channel_monitor_mut_references: ChannelMonitor[] = []; // todo, read from disk
+    console.log('create channel_monitor_references')
 
-    let read_args = ChannelManagerReadArgs.constructor_new(
-      keysManager.as_EntropySource(),
-      keysManager.as_NodeSigner(),
-      keysManager.as_SignerProvider(),
-      feeEstimator,
-      chainMonitor.as_Watch(),
-      txBroadcaster,
-      router,
-      logger,
-      config,
-      channel_monitor_mut_references
-    );
+
+    const secondArrayElements = channel_monitor_data.map((tuple) => tuple[1]);
+    secondArrayElements.forEach((array) => {
+      let val: any = UtilMethods.constructor_C2Tuple_BlockHashChannelMonitorZ_read(array, entropy_source, signer_provider);
+      if (val.is_ok()) {
+        console.log('val.res', val.res);
+
+        let read_channelMonitor: TwoTuple_BlockHashChannelMonitorZ = val.res;
+        let channel_monitor = read_channelMonitor.get_b();
+        channel_monitor_mut_references.push(channel_monitor);
+        console.log('channel monitor recreated ->', channel_monitor);
+      }
+    });
+
+    console.log('length of monitors:', channel_monitor_mut_references.length);
 
     try {
+      console.log('try and read the channel manager');
       let readManager: any =
         UtilMethods.constructor_C2Tuple_BlockHashChannelManagerZ_read(
           f,
@@ -283,8 +312,29 @@ async function setUpLDK(electrum: string = "prod") {
   // needs to check on an interval
 
   // Step 13: Give ChannelMonitors to ChainMonitor
-  //ChannelMonitor
-  //ChainMonitor
+  if (channel_monitor_mut_references.length > 0) {
+    let outpoints_mut: OutPoint[] = [];
+
+    for (const tuple of channel_monitor_data) {
+      // Rebuild OutPoint from the first Uint8Array in the tuple
+      const outpointResult: Result_OutPointDecodeErrorZ = OutPoint.constructor_read(tuple[0]);
+      if (outpointResult.is_ok()) {
+        const outpoint: OutPoint = (<Result_OutPointDecodeErrorZ_OK>outpointResult).res;
+        outpoints_mut.push(outpoint);
+      }
+    }
+
+    // give chainWatch the output and serialized form of channel to watch
+    for (let i = 0; i < outpoints_mut.length && i < channel_monitor_mut_references.length; i++) {
+      const outpoint = outpoints_mut[i];
+      const serializedByte = channel_monitor_mut_references[i];
+
+      if (outpoint && serializedByte) {
+        chainWatch.watch_channel(outpoint, serializedByte);
+      }
+    }
+  }
+
 
   // Step 14: Optional: Initialize the P2PGossipSync
 
@@ -341,7 +391,12 @@ async function setUpLDK(electrum: string = "prod") {
   // check on interval
 
   // Step 18: Handle LDK Events
-  let eventHandler = new MercuryEventHandler(channelManager);
+  let eventHandler;
+
+  if (channelManager) {
+    let mercuryEventHandler = new MercuryEventHandler(channelManager);
+    eventHandler = EventHandler.new_impl(mercuryEventHandler);
+  }
 
   // Step 19: Persist ChannelManager and NetworkGraph
   persister.persist_manager(channelManager);
