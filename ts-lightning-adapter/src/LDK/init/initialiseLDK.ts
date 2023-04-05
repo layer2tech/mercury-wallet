@@ -50,6 +50,7 @@ import MercuryPersist from "../structs/MercuryPersist.js";
 import MercuryPersister from "../structs/MercuryPersister.js";
 
 import JSONbig from "json-bigint";
+import { uint8ArrayToHexString } from "../utils/utils.js";
 
 export default async function initLDK(electrum: string = "prod") {
   const initLDK = await setUpLDK(electrum);
@@ -59,8 +60,8 @@ export default async function initLDK(electrum: string = "prod") {
   throw Error("Couldn't initialize LDK");
 }
 
-function readChannelsFromDictionary(file: string): [Uint8Array, Uint8Array][] {
-  let channels: [Uint8Array, Uint8Array][] = [];
+function readChannelsFromDictionary(file: string): ChannelMonitorRead[] {
+  let channels: ChannelMonitorRead[] = [];
   try {
     if (!fs.existsSync(file)) {
       throw Error('File not found');
@@ -72,12 +73,27 @@ function readChannelsFromDictionary(file: string): [Uint8Array, Uint8Array][] {
         throw new Error('File not found');
       }
       const channelBytes = fs.readFileSync('channels/' + fileName);
-      channels.push([new Uint8Array(Buffer.from(id)), new Uint8Array(channelBytes)]);
+
+      let outpoint_read = new Uint8Array(Buffer.from(id));
+      let channelmonitorbytes_read = new Uint8Array(channelBytes);
+
+      let channelmonitor_object: ChannelMonitorRead = new ChannelMonitorRead(outpoint_read, channelmonitorbytes_read);
+      channels.push(channelmonitor_object);
     }
   } catch (e) {
     throw e;
   }
   return channels;
+}
+
+class ChannelMonitorRead {
+  outpoint: Uint8Array;
+  bytes: Uint8Array;
+
+  constructor(outpoint: Uint8Array, bytes: Uint8Array) {
+    this.outpoint = outpoint;
+    this.bytes = bytes;
+  }
 }
 
 async function setUpLDK(electrum: string = "prod") {
@@ -164,7 +180,7 @@ async function setUpLDK(electrum: string = "prod") {
 
   // Step 7: Read ChannelMonitor state from disk
   console.log('reading channel monitor data...');
-  let channel_monitor_data: [Uint8Array, Uint8Array][] = [];
+  let channel_monitor_data: ChannelMonitorRead[] = [];
   if (fs.existsSync("channels/channels.json")) {
     channel_monitor_data = readChannelsFromDictionary("channels/channels.json");
   }
@@ -227,9 +243,9 @@ async function setUpLDK(electrum: string = "prod") {
     const f = fs.readFileSync(`channel_manager_data.bin`);
 
     console.log('create channel_monitor_references')
-    const secondArrayElements = channel_monitor_data.map((tuple) => tuple[1]);
-    secondArrayElements.forEach((array) => {
-      let val: any = UtilMethods.constructor_C2Tuple_BlockHashChannelMonitorZ_read(array, entropy_source, signer_provider);
+
+    channel_monitor_data.forEach((channel_monitor: ChannelMonitorRead) => {
+      let val: any = UtilMethods.constructor_C2Tuple_BlockHashChannelMonitorZ_read(channel_monitor.bytes, entropy_source, signer_provider);
       if (val.is_ok()) {
         let read_channelMonitor: TwoTuple_BlockHashChannelMonitorZ = val.res;
         let channel_monitor = read_channelMonitor.get_b();
@@ -282,7 +298,8 @@ async function setUpLDK(electrum: string = "prod") {
 
   const channelHandshakeConfig = ChannelHandshakeConfig.constructor_default();
 
-  // Step 12: Sync ChannelMonitors and ChannelManager to chain tip
+  // Step 12: Sync ChannelMonitors and ChannelManager to chain tip - TODO
+  /*
   let relevent_txids_1 = channelManager?.as_Confirm().get_relevant_txids();
   let relevent_txids_2 = chainMonitor?.as_Confirm().get_relevant_txids();
   let relevant_txids: TwoTuple_TxidBlockHashZ[] = [];
@@ -291,26 +308,30 @@ async function setUpLDK(electrum: string = "prod") {
   }
   if (relevent_txids_2 && Symbol.iterator in Object(relevent_txids_2)) {
     relevant_txids.push(...relevent_txids_2);
-  }
+  }*/
 
   // Step 13: Give ChannelMonitors to ChainMonitor
   if (channel_monitor_mut_references.length > 0) {
     let outpoints_mut: OutPoint[] = [];
 
-    for (const tuple of channel_monitor_data) {
+    channel_monitor_data.forEach((channel_monitor: ChannelMonitorRead) => {
       // Rebuild OutPoint from the first Uint8Array in the tuple
-      const outpointResult: Result_OutPointDecodeErrorZ = OutPoint.constructor_read(tuple[0]);
+      const outpointResult: Result_OutPointDecodeErrorZ = OutPoint.constructor_read(channel_monitor.outpoint);
       if (outpointResult.is_ok()) {
         const outpoint: OutPoint = (<Result_OutPointDecodeErrorZ_OK>outpointResult).res;
         outpoints_mut.push(outpoint);
       }
+    })
+
+    // ensure outpoints_mut and channel_monitor_mut are the same length
+    if (outpoints_mut.length !== channel_monitor_mut_references.length) {
+      throw Error("No equal amounts of outpoints to channel monitor.");
     }
 
     // give chainWatch the output and serialized form of channel to watch
-    for (let i = 0; i < outpoints_mut.length && i < channel_monitor_mut_references.length; i++) {
+    for (let i = 0; i < outpoints_mut.length; i++) {
       const outpoint = outpoints_mut[i];
       const serializedByte = channel_monitor_mut_references[i];
-
       if (outpoint && serializedByte) {
         chainWatch.watch_channel(outpoint, serializedByte);
       }
@@ -365,7 +386,7 @@ async function setUpLDK(electrum: string = "prod") {
     cache,
     chain_listener
   );
-
+  
   setInterval(async () => {
     await spv_client.poll_best_tip();
   }, 1000);*/

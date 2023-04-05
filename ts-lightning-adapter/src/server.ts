@@ -27,6 +27,7 @@ app.use("/channel", channelRoutes);
 
 // Starting the express server
 app.listen(PORT, async () => {
+  /* PRODUCTION CODE
   console.log(`lightning-adapter listening at http://localhost:${PORT}`);
   await initialiseWasm();
   console.log("import LDK");
@@ -34,7 +35,10 @@ app.listen(PORT, async () => {
   console.log("finished import LDK");
   const LightningClient: LightningClient = getLDKClient();
   await LightningClient.start();
-  console.log("Started LDK Client");
+  console.log("Started LDK Client");*/
+
+  // DEBUGGING CODE TO RUN IN REGTEST (POLAR LIGHTNING NODE SEE ELECTRUMCLIENT.MTS)
+  debug_lightning();
 });
 
 // Exit handlers
