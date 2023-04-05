@@ -65,7 +65,7 @@ function readChannelsFromDictionary(file: string): [Uint8Array, Uint8Array][] {
   try {
     console.log('trying to read file...');
     if (!fs.existsSync(file)) {
-      throw new Error('File not found');
+      throw Error('File not found');
     }
     const dict = JSON.parse(fs.readFileSync(file, 'utf-8'));
     console.log('looping through dictionary');
@@ -168,8 +168,13 @@ async function setUpLDK(electrum: string = "prod") {
 
   // Step 7: Read ChannelMonitor state from disk
   console.log('reading channel monitor data...');
-  let channel_monitor_data = readChannelsFromDictionary("channels/channels.json");
-  console.log('------------------->', channel_monitor_data);
+  let channel_monitor_data: [Uint8Array, Uint8Array][] = [];
+  if (fs.existsSync("channels/channels.json")) {
+    channel_monitor_data = readChannelsFromDictionary("channels/channels.json");
+    console.log('------------------->', channel_monitor_data);
+  }
+
+
 
   //console.log('channels loaded is:', channel_monitors);
 
@@ -225,7 +230,7 @@ async function setUpLDK(electrum: string = "prod") {
   );
 
   const channel_monitor_mut_references: ChannelMonitor[] = [];
-  let channelManager: any;
+  let channelManager: ChannelManager;
   if (fs.existsSync("channel_manager_data.bin")) {
     console.log("Load the channel manager from disk...");
     const f = fs.readFileSync(`channel_manager_data.bin`);
@@ -272,6 +277,7 @@ async function setUpLDK(electrum: string = "prod") {
         channelManager = read_channelManager.get_b();
 
         console.log("Read channel manager as ->", channelManager);
+        console.log('channel details ->', channelManager.list_channels());
       } else {
         throw Error("Couldn't recreate channel manager from disk");
       }
