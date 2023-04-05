@@ -61,17 +61,13 @@ export default async function initLDK(electrum: string = "prod") {
 
 function readChannelsFromDictionary(file: string): [Uint8Array, Uint8Array][] {
   let channels: [Uint8Array, Uint8Array][] = [];
-  console.log('created channels variable');
   try {
-    console.log('trying to read file...');
     if (!fs.existsSync(file)) {
       throw Error('File not found');
     }
     const dict = JSON.parse(fs.readFileSync(file, 'utf-8'));
-    console.log('looping through dictionary');
     for (const id in dict) {
       const fileName = dict[id];
-      console.log('trying to read file name...');
       if (!fs.existsSync('channels/' + fileName)) {
         throw new Error('File not found');
       }
@@ -171,12 +167,7 @@ async function setUpLDK(electrum: string = "prod") {
   let channel_monitor_data: [Uint8Array, Uint8Array][] = [];
   if (fs.existsSync("channels/channels.json")) {
     channel_monitor_data = readChannelsFromDictionary("channels/channels.json");
-    console.log('------------------->', channel_monitor_data);
   }
-
-
-
-  //console.log('channels loaded is:', channel_monitors);
 
   // Step 8: Poll for the best chain tip, which may be used by the channel manager & spv client
 
@@ -232,26 +223,19 @@ async function setUpLDK(electrum: string = "prod") {
   const channel_monitor_mut_references: ChannelMonitor[] = [];
   let channelManager: ChannelManager;
   if (fs.existsSync("channel_manager_data.bin")) {
-    console.log("Load the channel manager from disk...");
+    console.log("Loading the channel manager from disk...");
     const f = fs.readFileSync(`channel_manager_data.bin`);
 
     console.log('create channel_monitor_references')
-
-
     const secondArrayElements = channel_monitor_data.map((tuple) => tuple[1]);
     secondArrayElements.forEach((array) => {
       let val: any = UtilMethods.constructor_C2Tuple_BlockHashChannelMonitorZ_read(array, entropy_source, signer_provider);
       if (val.is_ok()) {
-        console.log('val.res', val.res);
-
         let read_channelMonitor: TwoTuple_BlockHashChannelMonitorZ = val.res;
         let channel_monitor = read_channelMonitor.get_b();
         channel_monitor_mut_references.push(channel_monitor);
-        console.log('channel monitor recreated ->', channel_monitor);
       }
     });
-
-    console.log('length of monitors:', channel_monitor_mut_references.length);
 
     try {
       console.log('try and read the channel manager');
@@ -271,13 +255,9 @@ async function setUpLDK(electrum: string = "prod") {
         );
 
       if (readManager.is_ok()) {
-        console.log("readManager.res ->", readManager.res);
         let read_channelManager: TwoTuple_BlockHashChannelManagerZ =
           readManager.res;
         channelManager = read_channelManager.get_b();
-
-        console.log("Read channel manager as ->", channelManager);
-        console.log('channel details ->', channelManager.list_channels());
       } else {
         throw Error("Couldn't recreate channel manager from disk");
       }
@@ -312,10 +292,6 @@ async function setUpLDK(electrum: string = "prod") {
   if (relevent_txids_2 && Symbol.iterator in Object(relevent_txids_2)) {
     relevant_txids.push(...relevent_txids_2);
   }
-
-  console.log("relevent_txids:", relevant_txids);
-
-  // needs to check on an interval
 
   // Step 13: Give ChannelMonitors to ChainMonitor
   if (channel_monitor_mut_references.length > 0) {
