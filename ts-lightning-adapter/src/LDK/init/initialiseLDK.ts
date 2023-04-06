@@ -67,17 +67,28 @@ function readChannelsFromDictionary(file: string): ChannelMonitorRead[] {
       throw Error('File not found');
     }
     const dict = JSON.parse(fs.readFileSync(file, 'utf-8'));
-    for (const id in dict) {
-      const fileName = dict[id];
-      if (!fs.existsSync('channels/' + fileName)) {
-        throw new Error('File not found');
+
+    if (!Array.isArray(dict)) {
+      throw Error('Invalid dictionary format');
+    }
+
+    for (const obj of dict) {
+      if (!obj.monitor_file_name || !obj.id_file_name) {
+        throw Error('Invalid object in dictionary');
       }
-      const channelBytes = fs.readFileSync('channels/' + fileName);
 
-      let outpoint_read = new Uint8Array(Buffer.from(id));
-      let channelmonitorbytes_read = new Uint8Array(channelBytes);
+      if (!fs.existsSync(obj.monitor_file_name)) {
+        throw Error('File not found: ' + obj.monitor_file_name);
+      }
 
-      let channelmonitor_object: ChannelMonitorRead = new ChannelMonitorRead(outpoint_read, channelmonitorbytes_read);
+      if (!fs.existsSync(obj.id_file_name)) {
+        throw Error('File not found: ' + obj.id_file_name);
+      }
+
+      const channelmonitorbytes_read = fs.readFileSync(obj.monitor_file_name);
+      const outpointbytes_read = fs.readFileSync(obj.id_file_name);
+
+      const channelmonitor_object: ChannelMonitorRead = new ChannelMonitorRead(outpointbytes_read, channelmonitorbytes_read);
       channels.push(channelmonitor_object);
     }
   } catch (e) {
@@ -181,8 +192,12 @@ async function setUpLDK(electrum: string = "prod") {
   // Step 7: Read ChannelMonitor state from disk
   console.log('reading channel monitor data...');
   let channel_monitor_data: ChannelMonitorRead[] = [];
-  if (fs.existsSync("channels/channels.json")) {
-    channel_monitor_data = readChannelsFromDictionary("channels/channels.json");
+  if (fs.existsSync("channels/channel_lookup.json")) {
+    try {
+      channel_monitor_data = readChannelsFromDictionary("channels/channel_lookup.json");
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   // Step 8: Poll for the best chain tip, which may be used by the channel manager & spv client
