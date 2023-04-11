@@ -801,7 +801,7 @@ export class Wallet {
                       );
 
                       // Save funding details to event manager, only when event manager has valid txid details can we open a channel
-                      this.lightning_client.setTxData(txid).then((res) => {
+                      this.lightning_client.setTxData({txid}).then((res) => {
                         if (res.status === 200) {
                           this.lightning_client
                             .connectToPeer({ pubkey, host, port })
@@ -812,7 +812,7 @@ export class Wallet {
                                 this.lightning_client
                                   .connectToChannel({
                                     pubkey,
-                                    amount,
+                                    value,
                                     push_msat: 0,
                                     channelId,
                                     channelType: "Public",

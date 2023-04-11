@@ -239,7 +239,7 @@ export default class LightningClient implements LightningClientInterface {
     await this.getBlockHeight();
     await this.getLatestBlockHeader(this.blockHeight);
 
-    let channelValSatoshis = BigInt(amount);
+    let channelValSatoshis = BigInt(amount*100000);
     let pushMsat = BigInt(push_msat);
     let userChannelId = BigInt(channelId);
 

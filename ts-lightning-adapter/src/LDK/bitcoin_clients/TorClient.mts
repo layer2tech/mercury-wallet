@@ -91,6 +91,13 @@ class TorClient {
         const result = res.data;
         return [result.blockheight, result.hex];
       }
+
+      // For using blockstream api
+      // res = await TorClient.get(`https://blockstream.info/testnet/api/tx/${txid}`);
+      // if (res && res.data) {
+      //   const result = res.data;
+      //   return [result.status.block_height, result.status.block_hash];
+      // }
     } catch (e: any) {
       throw new Error(e);
     }
