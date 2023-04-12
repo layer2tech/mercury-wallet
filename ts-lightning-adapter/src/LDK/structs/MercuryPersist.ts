@@ -28,7 +28,13 @@ class MercuryPersist implements PersistInterface {
       const dictString = fs.readFileSync(dictPath, 'utf8');
       this.channelsDict = JSON.parse(dictString);
     } catch (err) {
-      console.warn(`Failed to load channels dictionary: ${err}`);
+      if (!fs.existsSync(dictPath)) {
+        fs.writeFileSync(dictPath, '[]'); // Create an empty file if it doesn't exist
+        console.log(`Created channels dictionary file: ${dictPath}`);
+        this.channelsDict = {};
+      } else {
+        console.warn(`Failed to load channels dictionary: ${err}`);
+      }
     }
   }
 
