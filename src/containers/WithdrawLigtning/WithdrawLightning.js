@@ -26,7 +26,7 @@ import PageHeader from "../PageHeader/PageHeader";
 import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
 import Loading from "../../components/Loading/Loading";
-import { deleteChannelById } from "../../wallet/wallet";
+import { forceCloseChannel } from "../../wallet/wallet";
 
 const WithdrawLightning = () => {
   const dispatch = useDispatch();
@@ -58,11 +58,12 @@ const WithdrawLightning = () => {
 
   const [channelForceClose, setChannelForceClose] = useState(true);
 
-  const forceCloseChannel = () => {
-    updateChannelsInfo();
+  const forceCloseChannelAction = () => {
+    console.log(selectedChannels)
     selectedChannels.forEach((channelId) => {
-      deleteChannelById(channelId);
+      forceCloseChannel(channelId);
     });
+    updateChannelsInfo();
   };
 
   const onInputAddrChange = (event) => {
@@ -130,7 +131,6 @@ const WithdrawLightning = () => {
   const withdrawButtonAction = async () => {
     console.log("Withdraw Button action true");
 
-    /*
     setLoading(true);
     setRefreshChannels((prevState) => !prevState);
     if (channelForceClose) {
@@ -138,7 +138,7 @@ const WithdrawLightning = () => {
         setWarning({
           title: "Peer is offline...",
           msg: "Do you want to force close the channel ?",
-          onConfirm: forceCloseChannel,
+          onConfirm: forceCloseChannelAction,
         })
       );
     } else {
@@ -146,7 +146,7 @@ const WithdrawLightning = () => {
       dispatch(setWithdrawTxid("wzxykmopq123456"));
       updateChannelsInfo();
     }
-    setLoading(false);*/
+    setLoading(false);
   };
 
   const updateChannelsInfo = () => {
