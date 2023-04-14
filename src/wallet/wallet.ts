@@ -701,7 +701,8 @@ export class Wallet {
   }
 
   convertToSatoshi(amount: number) {
-    return amount * 10000;
+    // convert mBTC to satoshi
+    return amount * 100000;
   }
 
   async createChannel(amount: number, peerNode: string) {
