@@ -1,6 +1,13 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+* @param {string} root
+* @param {string} proof_key
+* @param {string} proof
+* @returns {any}
+*/
+export function verify_statechain_smt(root: string, proof_key: string, proof: string): any;
+/**
 * @param {string} challenge
 * @returns {any}
 */
@@ -22,13 +29,6 @@ export function convert_bigint_to_client_curv_version(json_str: string, field_na
 /**
 */
 export function init(): void;
-/**
-* @param {string} root
-* @param {string} proof_key
-* @param {string} proof
-* @returns {any}
-*/
-export function verify_statechain_smt(root: string, proof_key: string, proof: string): any;
 /**
 * Provides wrappers for Swap methods
 */

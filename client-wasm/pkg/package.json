@@ -11,5 +11,8 @@
   ],
   "module": "client_wasm.js",
   "types": "client_wasm.d.ts",
-  "sideEffects": false
+  "sideEffects": [
+    "./client_wasm.js",
+    "./snippets/*"
+  ]
 }
