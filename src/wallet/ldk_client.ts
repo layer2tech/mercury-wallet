@@ -14,7 +14,7 @@ export const LIGHTNING_GET_ROUTE = {
 Object.freeze(LIGHTNING_GET_ROUTE);
 
 export const LIGHTNING_POST_ROUTE = {
-  GENERATE_INVOICE: "/lightning/generate_invoice",
+  GENERATE_INVOICE: "/generate_invoice",
 };
 Object.freeze(LIGHTNING_POST_ROUTE);
 
