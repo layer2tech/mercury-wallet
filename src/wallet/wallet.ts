@@ -369,10 +369,18 @@ export class Wallet {
     invoiceExpirysecs: number,
     description: string
   ) {
+    const address = this.account.nextChainAddress(1);
+    await this.saveKeys();
+    const proofKey = this.getBIP32forBtcAddress(address);
+    let privkeyHex = "";
+    if (proofKey && proofKey.privateKey) {
+      privkeyHex = proofKey.privateKey.toString("hex");
+    }
     let invoice_config = {
       amt_in_sats: amtInSats,
       invoice_expiry_secs: invoiceExpirysecs,
       description: description,
+      privkey_hex: privkeyHex
     };
     return LDKClient.post(
       LIGHTNING_POST_ROUTE.GENERATE_INVOICE,
