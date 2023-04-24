@@ -813,7 +813,7 @@ export class Wallet {
                                 this.lightning_client
                                   .connectToChannel({
                                     pubkey,
-                                    value,
+                                    amount: value,
                                     push_msat: 0,
                                     channelId,
                                     channelType: "Public",
