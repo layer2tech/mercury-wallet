@@ -3237,9 +3237,24 @@ export const forceCloseChannel = (channel_id: Number) => {
     .delete(`http://localhost:3003/channel/forceCloseChannel/${channel_id}`)
     .then((res) => {
       console.log(res);
+      return res;
     })
     .catch((err) => {
       console.log(err);
+      throw err;
+    });
+};
+
+export const mutualCloseChannel = (channel_id: Number) => {
+  axios
+    .delete(`http://localhost:3003/channel/mutualCloseChannel/${channel_id}`)
+    .then((res) => {
+      console.log(res);
+      return res;
+    })
+    .catch((err) => {
+      console.log(err);
+      throw err;
     });
 };
 

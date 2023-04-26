@@ -26,7 +26,7 @@ import PageHeader from "../PageHeader/PageHeader";
 import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
 import Loading from "../../components/Loading/Loading";
-import { forceCloseChannel } from "../../wallet/wallet";
+import { forceCloseChannel, mutualCloseChannel } from "../../wallet/wallet";
 
 const WithdrawLightning = () => {
   const dispatch = useDispatch();
@@ -42,7 +42,7 @@ const WithdrawLightning = () => {
   const [forceRender, setRender] = useState({});
   const [refreshChannels, setRefreshChannels] = useState(false);
 
-  const [selectedChannels, setSelectedChannels] = useState([]);
+  const [selectedChannel, setSelectedChannel] = useState([]);
 
   const [withdrawingWarning, setWithdrawingWarning] = useState(false);
 
@@ -56,15 +56,22 @@ const WithdrawLightning = () => {
 
   const [customFee, setCustomFee] = useState(false);
 
-  const [channelForceClose, setChannelForceClose] = useState(true);
+  const [channelForceClose, setChannelForceClose] = useState(false);
 
-  const forceCloseChannelAction = () => {
-    console.log(selectedChannels)
-    selectedChannels.forEach((channelId) => {
-      forceCloseChannel(channelId);
-    });
+  const forceCloseChannelAction = async () => {
+    await forceCloseChannel(selectedChannel[0]);
     updateChannelsInfo();
   };
+
+  const mutualCloseChannelAction = async () => {
+    try {
+      const res = await mutualCloseChannel(selectedChannel[0]);
+      setChannelForceClose(true);
+      updateChannelsInfo();
+    } catch (err) {
+      setChannelForceClose(true);
+    }
+  }
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -74,15 +81,7 @@ const WithdrawLightning = () => {
     if (loading) return;
     // Stop channels removing if clicked while pending transaction
 
-    let newSelectedChannels = selectedChannels;
-    const isChannelId = (element) => element === channel_id;
-    let index = newSelectedChannels.findIndex(isChannelId);
-    if (index !== -1) {
-      newSelectedChannels.splice(index, 1);
-    } else {
-      newSelectedChannels.push(channel_id);
-    }
-    setSelectedChannels(newSelectedChannels);
+    setSelectedChannel([channel_id]);
     setRender({});
   };
 
@@ -130,7 +129,7 @@ const WithdrawLightning = () => {
 
   const withdrawButtonAction = async () => {
     console.log("Withdraw Button action true");
-
+    mutualCloseChannelAction();
     setLoading(true);
     setRefreshChannels((prevState) => !prevState);
     if (channelForceClose) {
@@ -212,7 +211,7 @@ const WithdrawLightning = () => {
             channelListProps={{
               channels: channels,
               title: "Select channel to close",
-              selectedChannels: selectedChannels,
+              selectedChannels: selectedChannel,
               addSelectedChannel: addSelectedChannel,
               refreshChannels: refreshChannels,
               forceRender: forceRender,
@@ -273,7 +272,7 @@ const WithdrawLightning = () => {
             <div>
               <ConfirmPopup
                 preCheck={checkChannelWithdrawal}
-                argsCheck={[dispatch, selectedChannels, inputAddr]}
+                argsCheck={[dispatch, selectedChannel, inputAddr]}
                 onOk={withdrawButtonAction}
               >
                 <button
