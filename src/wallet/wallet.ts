@@ -810,7 +810,7 @@ export class Wallet {
                               if (res.status === 200) {
                                 // now connect to channel
                                 this.lightning_client
-                                  .connectToChannel({
+                                  .createChannel({
                                     pubkey,
                                     amount,
                                     push_msat: 0,
@@ -822,6 +822,7 @@ export class Wallet {
                                       "Final connect to channel successful."
                                     );
                                   });
+                                this.electrum_client.scriptHashUnsubscribe(addressScript);
                               }
                             });
                         } else {
