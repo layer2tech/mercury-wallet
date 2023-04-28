@@ -622,6 +622,8 @@ export class Wallet {
     const release = await this.saveMutex.acquire();
     try {
       this.storage.storeWalletStateCoin(this.name, statecoin);
+    } catch (err: any) {
+      throw Error(err.message);
     } finally {
       release();
     }
