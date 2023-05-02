@@ -38,11 +38,11 @@ const Channel = (props) => {
     <div>
       <div
         className={`coin-item ${
-          isSelected(props.channel_data.id) ? "selected" : ""
+          isSelected(props.channel_data.channel_id) ? "selected" : ""
         }`}
         onClick={() => {
           console.log("clicked on a channel..", props.channel_data);
-          selectChannel(props.channel_data.id);
+          selectChannel(props.channel_data.channel_id);
 
           console.log("Is main page?");
           if (props.isMainPage) {
