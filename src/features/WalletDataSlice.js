@@ -132,6 +132,7 @@ const initialState = {
   showWithdrawPopup: false,
   withdraw_txid: "",
   showInvoicePopup: false,
+  showChannelClosePopup: false,
 };
 
 // Check if a wallet is loaded in memory
@@ -1648,6 +1649,12 @@ const WalletSlice = createSlice({
         showInvoicePopup: action.payload,
       };
     },
+    setChannelClosePopup(state, action) {
+      return {
+        ...state,
+        showChannelClosePopup: action.payload,
+      };
+    }
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -1804,6 +1811,7 @@ export const {
   setShowWithdrawPopup,
   setWithdrawTxid,
   setShowInvoicePopup,
+  setChannelClosePopup
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 

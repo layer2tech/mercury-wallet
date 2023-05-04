@@ -3234,11 +3234,10 @@ export const getXpub = (mnemonic: string, network: Network) => {
 };
 
 export const forceCloseChannel = (channel_id: Number) => {
-  axios
+  return axios
     .delete(`http://localhost:3003/channel/forceCloseChannel/${channel_id}`)
     .then((res) => {
       console.log(res);
-      return res;
     })
     .catch((err) => {
       console.log(err);
@@ -3247,11 +3246,10 @@ export const forceCloseChannel = (channel_id: Number) => {
 };
 
 export const mutualCloseChannel = (channel_id: Number) => {
-  axios
+  return axios
     .delete(`http://localhost:3003/channel/mutualCloseChannel/${channel_id}`)
     .then((res) => {
       console.log(res);
-      return res;
     })
     .catch((err) => {
       console.log(err);

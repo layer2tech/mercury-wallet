@@ -17,6 +17,7 @@ import {
   getChannels,
   updateChannels,
   getTotalChannelBalance,
+  setChannelClosePopup,
 } from "../../features/WalletDataSlice";
 
 import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
@@ -59,16 +60,22 @@ const WithdrawLightning = () => {
   const [channelForceClose, setChannelForceClose] = useState(false);
 
   const forceCloseChannelAction = async () => {
-    await forceCloseChannel(selectedChannel[0]);
-    updateChannelsInfo();
+    try {
+      await forceCloseChannel(selectedChannel[0]);
+      dispatch(setChannelClosePopup(true));
+      updateChannelsInfo();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const mutualCloseChannelAction = async () => {
     try {
       const res = await mutualCloseChannel(selectedChannel[0]);
-      setChannelForceClose(true);
+      dispatch(setChannelClosePopup(true));
       updateChannelsInfo();
     } catch (err) {
+      console.log(err)
       setChannelForceClose(true);
     }
   }
@@ -140,10 +147,6 @@ const WithdrawLightning = () => {
           onConfirm: forceCloseChannelAction,
         })
       );
-    } else {
-      dispatch(setShowWithdrawPopup(true));
-      dispatch(setWithdrawTxid("wzxykmopq123456"));
-      updateChannelsInfo();
     }
     setLoading(false);
   };
