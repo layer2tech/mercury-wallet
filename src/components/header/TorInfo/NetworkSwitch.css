@@ -1,0 +1,22 @@
+.network-switch.primary-bg button {
+    background-color: var(--button-main);
+    color: var(--button-main-text);
+    border: 1px solid var(--button-border);
+}
+
+.network-switch.white-bg button {
+    background-color: var(--container);
+    color: var(--text-primary);
+    border: 0px solid var(--button-border);
+    padding: 20px;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+    border-radius: 4px;
+}
+
+span.network-switch-btn.white {
+    font-weight: bolder;
+}
+  
+span.network-switch-btn.grey {
+    font-weight: lighter;
+}

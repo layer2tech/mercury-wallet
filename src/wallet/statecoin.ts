@@ -134,25 +134,56 @@ export class StateCoinList {
         let tx_cpfp = new Transaction();
         tx_cpfp.version = tx_cpfp_any.version;
         tx_cpfp.locktime = tx_cpfp_any.locktime;
+
         if (tx_cpfp_any.ins.length > 0) {
-          tx_cpfp.addInput(
-            Buffer.from(tx_cpfp_any.ins[0].hash),
-            tx_cpfp_any.ins[0].index,
-            tx_cpfp_any.ins[0].sequence
-          );
-          if (tx_cpfp_any.ins[0].witness.length > 0) {
-            tx_cpfp.ins[0].witness = [
-              Buffer.from(tx_cpfp_any.ins[0].witness[0]),
-              Buffer.from(tx_cpfp_any.ins[0].witness[1]),
-            ];
+
+          if (Array.isArray(tx_cpfp_any.ins[0].hash.data)) {
+            tx_cpfp.addInput(
+              Buffer.from(tx_cpfp_any.ins[0].hash),
+              tx_cpfp_any.ins[0].index,
+              tx_cpfp_any.ins[0].sequence
+            );
+            if (tx_cpfp_any.ins[0].witness.length > 0) {
+              tx_cpfp.ins[0].witness = [
+                Buffer.from(tx_cpfp_any.ins[0].witness[0]),
+                Buffer.from(tx_cpfp_any.ins[0].witness[1]),
+              ];
+            }
+          } else {
+            tx_cpfp.addInput(
+              Buffer.from(Object.values(tx_cpfp_any.ins[0].hash as object)),
+              tx_cpfp_any.ins[0].index,
+              tx_cpfp_any.ins[0].sequence
+            );
+            if (tx_cpfp_any.ins[0].witness.length > 0) {
+              tx_cpfp.ins[0].witness = [
+                Buffer.from(
+                  Object.values(tx_cpfp_any.ins[0].witness[0] as object)
+                ),
+                Buffer.from(
+                  Object.values(tx_cpfp_any.ins[0].witness[1] as object)
+                ),
+              ];
+            }
           }
         }
+
         if (tx_cpfp_any.outs.length > 0) {
-          tx_cpfp.addOutput(
-            Buffer.from(tx_cpfp_any.outs[0].script),
-            tx_cpfp_any.outs[0].value
-          );
+          if (Array.isArray(tx_cpfp_any.outs[0].script.data)) {
+            tx_cpfp.addOutput(
+              Buffer.from(tx_cpfp_any.outs[0].script),
+              tx_cpfp_any.outs[0].value
+            );
+          } else {
+            tx_cpfp.addOutput(
+              Buffer.from(
+                Object.values(tx_cpfp_any.outs[0].script as object)
+              ),
+              tx_cpfp_any.outs[0].value
+            );
+          }
         }
+        console.log(tx_cpfp);
         item.tx_cpfp = tx_cpfp;
       }
 

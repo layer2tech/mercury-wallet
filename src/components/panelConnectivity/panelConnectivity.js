@@ -96,13 +96,14 @@ const PanelConnectivity = (props) => {
   useEffect(() => {
     updateSpeedInfo(true)
   }, [])
-  // every 30s check speed
+  
+  // every 10s check speed
   useEffect(() => {
     let isMounted = true;
     let interval = setIntervalIfOnline(
       updateSpeedInfo,
       torInfo.online,
-      30000,
+      10000,
       isMounted
     );
 

@@ -112,7 +112,7 @@ const initialState = {
   blockHeightLoad: false,
   coinsAdded: 0,
   coinsRemoved: 0,
-  torInfo: { online: true },
+  torInfo: { online: true, torcircuitData: [], torLoaded: false},
   showWithdrawPopup: false,
   withdraw_txid: "",
 };
@@ -336,8 +336,6 @@ export async function walletFromMnemonic(
   await mutex.runExclusive(async () => {
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
-    //init Block height
-    await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
       let recoveryComplete = false;
@@ -394,8 +392,6 @@ export const walletFromJson = async (wallet_json, password) => {
       .runExclusive(async () => {
         await wallet.setHttpClient(networkType);
         await wallet.setElectrsClient(networkType);
-        //init Block height
-        await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
 
         wallet.initElectrumClient(setBlockHeightCallBack);
         await callNewSeAddr();
@@ -1152,13 +1148,12 @@ export const callGetNewTorId = createAsyncThunk(
 export const callGetNewTorCircuit = createAsyncThunk(
   "GetNewTorCircuit",
   async (action, thunkAPI) => {
-    wallet.updateTorCircuit();
+    wallet.getTorCircuit();
   }
 );
 
 export const callUpdateTorCircuitInfo = createAsyncThunk(
   "UpdateTorCircuitInfo",
-
   async (action, thunkAPI) => {
     try {
       wallet.updateTorcircuitInfo();
