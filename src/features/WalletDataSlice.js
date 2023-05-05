@@ -1008,6 +1008,12 @@ export const checkChannelCreation = (dispatch, amount, nodekey) => {
     );
     return true;
   }
+  if (nodekey.includes(".onion")) {
+    dispatch(
+      setError({ msg: "Connecting to Tor onion address is currently not supported, please enter nodekey having IPv4 or IPv6 address. " })
+    );
+    return true;
+  }
   if (!isValidNodeKeyAddress(nodekey)) {
     dispatch(setError({ msg: "Please enter a valid nodekey address " }));
     return true;
