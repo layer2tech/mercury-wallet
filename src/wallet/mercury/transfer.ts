@@ -144,6 +144,9 @@ export const transferSender = async (
   new_tx_backup.outs[0].script = pubKeyToScriptPubKey(receiver_addr, network);
   new_tx_backup.locktime = statecoin_data.locktime - fee_info.interval;
 
+  // update to current network fee
+  new_tx_backup.outs[0].amount = statecoin_data.amount - new_tx_backup.outs[1].amount - FEE*fee_info.backup_fee_rate;
+
   let pk = statecoin.getSharedPubKey();
   let signatureHash = getSigHash(
     new_tx_backup,
@@ -287,9 +290,12 @@ export const getTransferMsg4 = async (
     );
   }
   // 1. Verify backup transaction amount
+
+  // Get state entity fee info
+  let fee_info: FeeInfo = await getFeeInfo(http_client);
   let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
   const backup_tx_amount =
-    tx_backup.outs[0].value + tx_backup.outs[1].value + FEE;
+    tx_backup.outs[0].value + tx_backup.outs[1].value + FEE*fee_info.backup_fee_rate;
   if (value !== null && value !== undefined) {
     if (backup_tx_amount !== value)
       throw new Error(
@@ -352,8 +358,7 @@ export const getTransferMsg4 = async (
 
   // 5. Check coin unspent and correct value
   let addr = pubKeyTobtcAddr(pk, network);
-  // Get state entity fee info
-  let fee_info: FeeInfo = await getFeeInfo(http_client);
+
   if (typeof block_height === "number") {
     await electrum_client.importAddresses(
       [addr],
