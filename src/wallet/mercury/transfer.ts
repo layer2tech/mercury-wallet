@@ -145,7 +145,7 @@ export const transferSender = async (
   new_tx_backup.locktime = statecoin_data.locktime - fee_info.interval;
 
   // update to current network fee
-  new_tx_backup.outs[0].amount = statecoin_data.amount - new_tx_backup.outs[1].value - FEE*fee_info.backup_fee_rate;
+  new_tx_backup.outs[0].amount = statecoin_data.amount - statecoin.tx_backup.outs[1].value - FEE*fee_info.backup_fee_rate;
 
   let pk = statecoin.getSharedPubKey();
   let signatureHash = getSigHash(
