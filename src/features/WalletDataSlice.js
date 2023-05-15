@@ -200,6 +200,12 @@ export const callGetChannels = async (wallet_name) => {
   }
 };
 
+export const callSendPayment = async (invoice_string) => {
+  if (isWalletLoaded()) {
+    return await wallet.lightning_client.sendPayment({invoice: invoice_string});
+  }
+}
+
 export const getTotalChannelBalance = () => {
   if (isWalletLoaded()) {
     return wallet.channels.getTotalChannelBalance();
