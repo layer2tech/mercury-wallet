@@ -376,6 +376,7 @@ export const getTransferMsg4 = async (
   );
   if (funding_tx_data === null) throw new Error("Unspent UTXO not found.");
   if (funding_tx_data.length === 0) throw new Error("Unspent UTXO not found.");
+
   for (let i = 0; i < funding_tx_data.length; i++) {
     if (
       funding_tx_data[i].tx_hash ===
@@ -384,7 +385,7 @@ export const getTransferMsg4 = async (
     ) {
       if (
         funding_tx_data[i].value ===
-        tx_backup.outs[0].value + tx_backup.outs[1].value + FEE
+        tx_backup.outs[0].value + tx_backup.outs[1].value + FEE*fee_info.backup_fee_rate
       ) {
         match = true;
         break;
