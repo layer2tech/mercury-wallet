@@ -76,6 +76,9 @@ export class LDKClient {
       let res = await LDKClient.post("peer/savePeerAndChannelToDb", body);
       return res;
     } catch (e: any) {
+      if (e.response && e.response.status === 409) {
+        return e.response;
+      }
       throw new Error("Error in channel creation" + e?.message);
     }
   }
