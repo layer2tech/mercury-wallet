@@ -951,6 +951,18 @@ export const callCreateChannel = async (amount, peer_node) => {
   }
 };
 
+export const callSendPayment = async (invoiceStr, dispatch) => {
+  console.log("[WalletDataSlice.js]->callSendPayment");
+  
+  if (isWalletLoaded()) {
+    try {
+      await wallet.sendPayment(invoiceStr);
+    } catch (e) {
+      dispatch(setError({ msg: "Error sending payment." }));
+    }
+  }
+};
+
 export const callDeleteChannelByAddr = async (addr) => {
   if (isWalletLoaded()) {
     deleteChannelByAddr(addr).then((res) => {

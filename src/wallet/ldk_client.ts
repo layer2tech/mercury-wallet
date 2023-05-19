@@ -107,6 +107,15 @@ export class LDKClient {
     }
   }
 
+  async sendPayment(body: any): Promise<any> {
+    try {
+      let res = await LDKClient.post("/sendPayment", body);
+      return res;
+    } catch (e: any) {
+      throw new Error("Couldn't send payment to given invoice" + e?.message);
+    }
+  }
+
   static async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
     const url =
       LIGHTNING_URL +

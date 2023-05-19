@@ -10,6 +10,7 @@ import {
   checkChannelSend,
   getChannels,
   getNodeId,
+  callSendPayment,
 } from "../../features/WalletDataSlice";
 
 import { AddressInput, Tutorial, ConfirmPopup, NodeId } from "../../components";
@@ -48,7 +49,7 @@ const SendLightning = () => {
       );
       return;
     }
-    // Action for sending sats need to be added here.
+    callSendPayment(inputAddr, dispatch);
   };
 
   let current_config;
