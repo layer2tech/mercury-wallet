@@ -146,9 +146,9 @@ export const transferSender = async (
 
   // update to current network fee
   if(statecoin.tx_backup.outs[1]) {
-    new_tx_backup.outs[0].amount = statecoin_data.amount - statecoin.tx_backup.outs[1].value - FEE*fee_info.backup_fee_rate;
+    new_tx_backup.outs[0].value = statecoin_data.amount - statecoin.tx_backup.outs[1].value - FEE*fee_info.backup_fee_rate;
   } else {
-    new_tx_backup.outs[0].amount = statecoin_data.amount - FEE*fee_info.backup_fee_rate;
+    new_tx_backup.outs[0].value = statecoin_data.amount - FEE*fee_info.backup_fee_rate;
   }
 
   let pk = statecoin.getSharedPubKey();
