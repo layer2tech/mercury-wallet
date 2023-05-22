@@ -265,6 +265,7 @@ async function setNetworkEndpoints( wallet, networkType ){
 }
 
 async function initConnectionData( wallet ) {
+  console.log("init connectoin data");
   await mutex.runExclusive(async () => {
     //init Block height
     await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
@@ -326,6 +327,7 @@ export async function walletFromMnemonic(
   } else {
     network = bitcoin.networks["bitcoin"];
   }
+  dispatch(setProgressComplete({ msg: "" }));
   wallet = Wallet.fromMnemonic(name, password, mnemonic, route_network_type, network, testing_mode);
   wallet.resetSwapStates();
 

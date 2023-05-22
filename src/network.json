@@ -13,7 +13,7 @@
         "testnet_swap_conductor_endpoint": "http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion",
         "testnet_block_explorer_endpoint": "https://mempool.space/testnet/tx/",
         "testnet_electrum_config": {
-        "host": "https://blockstream.info/testnet/api",
+        "host": "http://ybicgbsolp4dhmfhl7rei2zr3qoc3xq3g2nz3fndb5oldszw22rqpiqd.onion/testnet/api",
             "port": null,
             "protocol": "http",
             "type": "electrs"
