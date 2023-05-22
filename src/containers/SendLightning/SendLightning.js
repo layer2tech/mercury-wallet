@@ -41,8 +41,8 @@ const SendLightning = () => {
     return <Redirect to="/" />;
   }
 
-  const SendLightningAction = async () => {
-    callSendPayment(inputAddr);
+  const sendLightningAction = async () => {
+    callSendPayment(inputAddr, dispatch);
   };
 
   let current_config;
@@ -91,7 +91,7 @@ const SendLightning = () => {
             <div />
 
             <ConfirmPopup
-              onOk={SendLightningAction}
+              onOk={sendLightningAction}
               preCheck={checkChannelSend}
               argsCheck={[dispatch, inputAddr]}
               isLightning={true}

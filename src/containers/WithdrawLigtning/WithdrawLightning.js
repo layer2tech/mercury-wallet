@@ -17,6 +17,7 @@ import {
   getChannels,
   updateChannels,
   getTotalChannelBalance,
+  setChannelClosePopup,
 } from "../../features/WalletDataSlice";
 
 import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
@@ -26,7 +27,7 @@ import PageHeader from "../PageHeader/PageHeader";
 import ItemsContainer from "../../components/ItemsContainer/ItemsContainer";
 
 import Loading from "../../components/Loading/Loading";
-import { deleteChannelById } from "../../wallet/wallet";
+import { forceCloseChannel, mutualCloseChannel } from "../../wallet/wallet";
 
 const WithdrawLightning = () => {
   const dispatch = useDispatch();
@@ -42,7 +43,7 @@ const WithdrawLightning = () => {
   const [forceRender, setRender] = useState({});
   const [refreshChannels, setRefreshChannels] = useState(false);
 
-  const [selectedChannels, setSelectedChannels] = useState([]);
+  const [selectedChannel, setSelectedChannel] = useState([]);
 
   const [withdrawingWarning, setWithdrawingWarning] = useState(false);
 
@@ -56,14 +57,28 @@ const WithdrawLightning = () => {
 
   const [customFee, setCustomFee] = useState(false);
 
-  const [channelForceClose, setChannelForceClose] = useState(true);
+  const [channelForceClose, setChannelForceClose] = useState(false);
 
-  const forceCloseChannel = () => {
-    updateChannelsInfo();
-    selectedChannels.forEach((channelId) => {
-      deleteChannelById(channelId);
-    });
+  const forceCloseChannelAction = async () => {
+    try {
+      await forceCloseChannel(selectedChannel[0]);
+      dispatch(setChannelClosePopup(true));
+      updateChannelsInfo();
+    } catch (err) {
+      console.log(err);
+    }
   };
+
+  const mutualCloseChannelAction = async () => {
+    try {
+      const res = await mutualCloseChannel(selectedChannel[0]);
+      dispatch(setChannelClosePopup(true));
+      updateChannelsInfo();
+    } catch (err) {
+      console.log(err)
+      setChannelForceClose(true);
+    }
+  }
 
   const onInputAddrChange = (event) => {
     setInputAddr(event.target.value);
@@ -73,15 +88,7 @@ const WithdrawLightning = () => {
     if (loading) return;
     // Stop channels removing if clicked while pending transaction
 
-    let newSelectedChannels = selectedChannels;
-    const isChannelId = (element) => element === channel_id;
-    let index = newSelectedChannels.findIndex(isChannelId);
-    if (index !== -1) {
-      newSelectedChannels.splice(index, 1);
-    } else {
-      newSelectedChannels.push(channel_id);
-    }
-    setSelectedChannels(newSelectedChannels);
+    setSelectedChannel([channel_id]);
     setRender({});
   };
 
@@ -129,8 +136,7 @@ const WithdrawLightning = () => {
 
   const withdrawButtonAction = async () => {
     console.log("Withdraw Button action true");
-
-    /*
+    mutualCloseChannelAction();
     setLoading(true);
     setRefreshChannels((prevState) => !prevState);
     if (channelForceClose) {
@@ -138,15 +144,11 @@ const WithdrawLightning = () => {
         setWarning({
           title: "Peer is offline...",
           msg: "Do you want to force close the channel ?",
-          onConfirm: forceCloseChannel,
+          onConfirm: forceCloseChannelAction,
         })
       );
-    } else {
-      dispatch(setShowWithdrawPopup(true));
-      dispatch(setWithdrawTxid("wzxykmopq123456"));
-      updateChannelsInfo();
     }
-    setLoading(false);*/
+    setLoading(false);
   };
 
   const updateChannelsInfo = () => {
@@ -212,7 +214,7 @@ const WithdrawLightning = () => {
             channelListProps={{
               channels: channels,
               title: "Select channel to close",
-              selectedChannels: selectedChannels,
+              selectedChannels: selectedChannel,
               addSelectedChannel: addSelectedChannel,
               refreshChannels: refreshChannels,
               forceRender: forceRender,
@@ -273,7 +275,7 @@ const WithdrawLightning = () => {
             <div>
               <ConfirmPopup
                 preCheck={checkChannelWithdrawal}
-                argsCheck={[dispatch, selectedChannels, inputAddr]}
+                argsCheck={[dispatch, selectedChannel, inputAddr]}
                 onOk={withdrawButtonAction}
               >
                 <button

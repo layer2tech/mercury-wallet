@@ -132,6 +132,7 @@ const initialState = {
   showWithdrawPopup: false,
   withdraw_txid: "",
   showInvoicePopup: false,
+  showChannelClosePopup: false,
 };
 
 // Check if a wallet is loaded in memory
@@ -199,12 +200,6 @@ export const callGetChannels = async (wallet_name) => {
     return await wallet.lightning_client.getChannels(wallet_name);
   }
 };
-
-export const callSendPayment = async (invoice_string) => {
-  if (isWalletLoaded()) {
-    return await wallet.lightning_client.sendPayment({invoice: invoice_string});
-  }
-}
 
 export const getTotalChannelBalance = () => {
   if (isWalletLoaded()) {
@@ -956,6 +951,18 @@ export const callCreateChannel = async (amount, peer_node) => {
   }
 };
 
+export const callSendPayment = async (invoiceStr, dispatch) => {
+  console.log("[WalletDataSlice.js]->callSendPayment");
+  
+  if (isWalletLoaded()) {
+    try {
+      await wallet.sendPayment(invoiceStr);
+    } catch (e) {
+      dispatch(setError({ msg: "Error sending payment." }));
+    }
+  }
+};
+
 export const callDeleteChannelByAddr = async (addr) => {
   if (isWalletLoaded()) {
     deleteChannelByAddr(addr).then((res) => {
@@ -1660,6 +1667,12 @@ const WalletSlice = createSlice({
         showInvoicePopup: action.payload,
       };
     },
+    setChannelClosePopup(state, action) {
+      return {
+        ...state,
+        showChannelClosePopup: action.payload,
+      };
+    }
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -1816,6 +1829,7 @@ export const {
   setShowWithdrawPopup,
   setWithdrawTxid,
   setShowInvoicePopup,
+  setChannelClosePopup
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 

@@ -101,20 +101,21 @@ export class LDKClient {
     }
   }
 
-  async connectToChannel(body: any): Promise<any> {
+  async createChannel(body: any): Promise<any> {
     try {
-      let res = await LDKClient.post("channel/connectToChannel", body);
+      let res = await LDKClient.post("channel/createChannel", body);
       return res;
     } catch (e: any) {
       throw new Error("Couldn't connect to channel" + e?.message);
     }
   }
 
-  async sendPayment(body: any) {
+  async sendPayment(body: any): Promise<any> {
     try {
-      let res = await LDKClient.post("/send-payment", body);
+      let res = await LDKClient.post("/sendPayment", body);
+      return res;
     } catch (e: any) {
-      throw new Error("Error in sending payment");
+      throw new Error("Couldn't send payment to given invoice" + e?.message);
     }
   }
 
