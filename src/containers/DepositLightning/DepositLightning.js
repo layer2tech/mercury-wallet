@@ -81,9 +81,10 @@ const DepositLightning = (props) => {
   const createChannel = async () => {
     console.log("Create a channel");
 
-    const pubkey = inputNodeId.split("@")[0];
-    const host = inputNodeId.split("@")[1].split(":")[0];
-    const port = inputNodeId.split("@")[1].split(":")[1];
+    const pubkey = inputNodeId.substring(0, inputNodeId.indexOf('@'));
+    let host = inputNodeId.substring(inputNodeId.indexOf('@') + 1, inputNodeId.lastIndexOf(':'));
+    host = host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host;
+    const port = inputNodeId.slice(inputNodeId.lastIndexOf(':') + 1);
 
     if (inputAmt < 1) {
       dispatch(
@@ -110,7 +111,8 @@ const DepositLightning = (props) => {
         console.log("Successfully connected to peer");
         // if a successful connection can be met then create the channel.
         // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
-        let nextAddress = await callCreateChannel(inputAmt, inputNodeId);
+        let res = await callCreateChannel(inputAmt, inputNodeId);
+        let nextAddress = res.addr;
         let newInvoice = {
           amt: mBTCtoBTC(inputAmt),
           addr: nextAddress,
@@ -123,7 +125,7 @@ const DepositLightning = (props) => {
         dispatch(setError({ msg: "Failed to connect to peer" }));
       }
     } catch (error) {
-      dispatch(setError({ msg: "Error: " + error.response.data }));
+      dispatch(setError({ msg: "Error: " + error.data }));
     }
   };
 

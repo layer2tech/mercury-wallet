@@ -10,7 +10,7 @@ import {
   checkChannelSend,
   getChannels,
   getNodeId,
-  callSendPayment,
+  callSendPayment
 } from "../../features/WalletDataSlice";
 
 import { AddressInput, Tutorial, ConfirmPopup, NodeId } from "../../components";
@@ -41,14 +41,7 @@ const SendLightning = () => {
     return <Redirect to="/" />;
   }
 
-  const sendButtonCheck = async () => {
-    // check if channel is chosen
-    if (!inputAddr) {
-      dispatch(
-        setError({ msg: "Please enter a lightning address to send sats." })
-      );
-      return;
-    }
+  const sendLightningAction = async () => {
     callSendPayment(inputAddr, dispatch);
   };
 
@@ -98,7 +91,7 @@ const SendLightning = () => {
             <div />
 
             <ConfirmPopup
-              onOk={sendButtonCheck}
+              onOk={sendLightningAction}
               preCheck={checkChannelSend}
               argsCheck={[dispatch, inputAddr]}
               isLightning={true}
