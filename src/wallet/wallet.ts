@@ -831,6 +831,7 @@ export class Wallet {
           // );
         }
       });
+    return address;
   }
 
   async sendPayment(invoiceString: string) {
