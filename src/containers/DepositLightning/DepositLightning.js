@@ -124,7 +124,7 @@ const DepositLightning = (props) => {
         dispatch(setError({ msg: "Failed to connect to peer" }));
       }
     } catch (error) {
-      dispatch(setError({ msg: "Error: " + error.data }));
+      dispatch(setError({ msg: "Error: " + error.response.data.message }));
     }
   };
 
