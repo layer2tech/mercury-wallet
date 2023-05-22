@@ -1,30 +1,28 @@
 import { Modal } from 'react-bootstrap';
 import {useSelector, useDispatch} from 'react-redux';
 import {
-  setChannelClosePopup,
+  setSuccessMessageSeen,
 } from "../../features/WalletDataSlice";
 
 
-const ChannelClosePopup = () => {
+const SuccessMessagePopup = () => {
 
   const dispatch = useDispatch();
 
-  const showChannelClosePopup = useSelector((state) => state.walletData).showChannelClosePopup;
+  const success_dialogue = useSelector((state) => state.walletData).success_dialogue;
   
   const handleClose = () => {
-    dispatch(setChannelClosePopup(!showChannelClosePopup));
+    dispatch(setSuccessMessageSeen());
   }
 
     return (
-        <Modal show ={showChannelClosePopup} 
-          onHide = {() => {
-            dispatch(setShowWithdrawPopup(!showChannelClosePopup));
-          }}
+        <Modal show ={ success_dialogue.msg !== "" } 
+          onHide = {handleClose}
           className={"withdraw-modal"}>
         <Modal.Body className={"modal-body"}>
           <div>
             <div className={"withdrawal-confirm"}>
-              <h4>Channel closed successfully !</h4>
+              <h4>{ success_dialogue.msg }</h4>
             </div>
             <button onClick={() => handleClose()}
               className={`confirm-btn`}
@@ -37,4 +35,4 @@ const ChannelClosePopup = () => {
     );
 };
 
-export default ChannelClosePopup;
+export default SuccessMessagePopup;

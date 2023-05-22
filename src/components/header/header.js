@@ -23,7 +23,7 @@ import InfoModal from "../InfoModal/InfoModal";
 import isElectron from "is-electron";
 import WithdrawModal from "../WithdrawModal/WithdrawModal";
 import InvoiceModal from "../InvoiceModal/InvoiceModal";
-import ChannelClosePopup from "../ChannelClosePopup/ChannelClosePopup";
+import SuccessMessagePopup from "../SuccessMessagePopup/SuccessMessagePopup";
 
 const Header = (props) => {
   const dispatch = useDispatch();
@@ -166,7 +166,7 @@ const Header = (props) => {
       <InfoModal />
       <WithdrawModal />
       <InvoiceModal />
-      <ChannelClosePopup />
+      <SuccessMessagePopup />
     </div>
   );
 };
