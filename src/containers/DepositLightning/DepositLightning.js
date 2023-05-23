@@ -220,7 +220,7 @@ const DepositLightning = (props) => {
             <AddressInput
               inputAddr={inputAmt}
               onChange={(e) => setInputAmt(e.target.value)}
-              placeholder="Enter amount (1=0.001BTC)"
+              placeholder="Enter amount (100000=0.001BTC)"
               smallTxtMsg="Amount in SATS"
             />
           </div>
