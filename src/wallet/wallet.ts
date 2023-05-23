@@ -377,7 +377,7 @@ export class Wallet {
       privkeyHex = proofKey.privateKey.toString("hex");
     }
     let invoice_config = {
-      amt_in_sats: amtInSats,
+      amount_in_sats: amtInSats,
       invoice_expiry_secs: invoiceExpirysecs,
       description: description,
       privkey_hex: privkeyHex
