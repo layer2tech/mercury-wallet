@@ -569,6 +569,8 @@ export const BACKUP_STATUS = {
   SPENT: "Spent",
   // MISSING correct backup tx not recovered
   MISSING: "Missing",
+  // BELOW_MIN_FEE
+  BELOW_MIN_FEE: "Minimum fee not met"
 };
 Object.freeze(BACKUP_STATUS);
 
@@ -776,6 +778,9 @@ export class StateCoin {
   setBackupSpent() {
     this.backup_status = BACKUP_STATUS.SPENT;
   }
+  setBackupBelowMinFee() {
+    this.backup_status = BACKUP_STATUS.BELOW_MIN_FEE;
+  }  
 
   getWithdrawalBroadcastTxInfo(id: string): WithdrawalTxBroadcastInfo {
     let found = this.tx_withdraw_broadcast.filter(
