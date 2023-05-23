@@ -31,7 +31,7 @@ const CreateWalletInfoPage = () => {
   const selectNetwork = (mode) => {
     setNetworkChecked(mode);
     dispatch(setNetwork(mode)); // save to redux state
-    console.log("changing to network:", networkChecked);
+    console.log("changing to network:", mode);
   };
 
   // Change handlers

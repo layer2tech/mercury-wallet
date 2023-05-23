@@ -79,22 +79,27 @@ const DepositLightning = (props) => {
   };
 
   const createChannel = async () => {
-    console.log("Create a channel");
+    console.log("[DepositLightning.js]: Create a channel");
 
-    const pubkey = inputNodeId.substring(0, inputNodeId.indexOf('@'));
-    let host = inputNodeId.substring(inputNodeId.indexOf('@') + 1, inputNodeId.lastIndexOf(':'));
-    host = host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host;
-    const port = inputNodeId.slice(inputNodeId.lastIndexOf(':') + 1);
+    const pubkey = inputNodeId.substring(0, inputNodeId.indexOf("@"));
+    let host = inputNodeId.substring(
+      inputNodeId.indexOf("@") + 1,
+      inputNodeId.lastIndexOf(":")
+    );
+    host =
+      host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host;
+    const port = inputNodeId.slice(inputNodeId.lastIndexOf(":") + 1);
 
     if (inputAmt < 1) {
       dispatch(
         setError({
-          msg: "The amount you have selected is below the minimum limit ( 1mBTC ). Please increase the amount to proceed with the transaction.",
+          msg: "The amount you have selected is below the minimum limit 1 SAT. Please increase the amount to proceed with the transaction.",
         })
       );
       return;
     }
 
+    /*
     console.log("checking connection with peer first...");
     // check connection with peer first.
     try {
@@ -125,7 +130,7 @@ const DepositLightning = (props) => {
       }
     } catch (error) {
       dispatch(setError({ msg: "Error: " + error.data }));
-    }
+    }*/
   };
 
   const copyAddressToClipboard = (event, address) => {
@@ -157,7 +162,7 @@ const DepositLightning = (props) => {
         title="Create Channel"
         className="create-channel"
         icon={plus}
-        subTitle="Deposit TESTNET BTC in channel"
+        subTitle="Deposit SATS in channel"
       />
       {invoice && Object.keys(invoice).length ? (
         <div className="Body" data-cy="invoice">
@@ -170,7 +175,7 @@ const DepositLightning = (props) => {
                 <div className="deposit-scan-main-item">
                   <img src={btc_img} alt="icon" />
                   <span>
-                    <b>{invoice.amt}</b> TESTNET BTC
+                    <b>{invoice.amt}</b> SATS
                   </span>
                 </div>
                 <img src={arrow_img} alt="arrow" />
@@ -199,8 +204,8 @@ const DepositLightning = (props) => {
             </div>
           </div>
           <span className="deposit-text">
-            Create funding transaction by sending {invoice.amt} TESTNET BTC to
-            the above address in a SINGLE transaction
+            Create funding transaction by sending {invoice.amt} BTC to the above
+            address in a SINGLE transaction
           </span>
         </div>
       ) : null}
@@ -208,7 +213,7 @@ const DepositLightning = (props) => {
       <div className="withdraw content lightning">
         <div className="Body right lightning">
           <div className="header">
-            <h3 className="subtitle">Payee Details - TESTNET</h3>
+            <h3 className="subtitle">Payee Details</h3>
           </div>
 
           <div data-cy="amt-input">
@@ -216,7 +221,7 @@ const DepositLightning = (props) => {
               inputAddr={inputAmt}
               onChange={(e) => setInputAmt(e.target.value)}
               placeholder="Enter amount (1=0.001BTC)"
-              smallTxtMsg="Amount in mBTC"
+              smallTxtMsg="Amount in SATS"
             />
           </div>
           <div data-cy="nodeid-input">
@@ -225,14 +230,6 @@ const DepositLightning = (props) => {
               onChange={(e) => setInputNodeId(e.target.value)}
               placeholder="pubkey@host:port"
               smallTxtMsg="Node Key"
-            />
-          </div>
-          <div className="channel-type-toggle">
-            <CheckBox
-              description=""
-              label={channelType === CHANNEL_TYPE.PUBLIC ? "Public" : "Private"}
-              checked={channelType === CHANNEL_TYPE.PRIVATE}
-              onChange={toggleChannelType}
             />
           </div>
 
