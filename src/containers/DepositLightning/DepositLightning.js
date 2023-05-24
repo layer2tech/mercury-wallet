@@ -48,29 +48,11 @@ const DepositLightning = (props) => {
   const [loading, setLoading] = useState(false);
   const [channelType, setChannelType] = useState(CHANNEL_TYPE.PUBLIC);
 
-  const mBTCtoBTC = (mBTC) => {
-    return mBTC * 10 ** -3;
-  };
-
   const satsToBTC = (sats) => {
     return sats * 10 ** -8;
   };
 
-  const getRecentInvoice = () => {
-    const channel = channels.find(
-      (channel) => channel.status === CHANNEL_STATUS.INITIALISED
-    );
-    let recentInvoice = {};
-    if (channel) {
-      recentInvoice = {
-        amt: satsToBTC(channel.amount),
-        addr: channel.funding.addr,
-      };
-    }
-    return recentInvoice;
-  };
-
-  const [invoice, setInvoice] = useState(getRecentInvoice());
+  const [invoice, setInvoice] = useState({});
 
   const IsChannelAlreadyExist = (pubKey) => {
     return channels.some((channel) => {
@@ -100,10 +82,14 @@ const DepositLightning = (props) => {
     }
 
     let nextAddress = await callCreateChannel(inputAmt, inputNodeId);
+
+    console.log("input amount was set as", inputAmt);
+
     let newInvoice = {
       amt: satsToBTC(inputAmt),
       addr: nextAddress,
     };
+
     setInvoice(newInvoice);
     setChannels(getChannels());
     setInvoice(newInvoice);
