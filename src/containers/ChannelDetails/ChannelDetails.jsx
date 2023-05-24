@@ -90,11 +90,6 @@ const ChannelDetails = (props) => {
       </div>
 
       <EmptyPanel
-        text={"Channel Type"}
-        textData={channel.public}
-        hasCopyBtn={false}
-      />
-      <EmptyPanel
         text={"Channel amount"}
         textData={
           channel.amount +
