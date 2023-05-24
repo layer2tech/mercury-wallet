@@ -1359,6 +1359,10 @@ export class Wallet {
         undefined,
         false
       );
+    } else if (
+      bresponse.includes("insufficient fee")
+    ) {
+      statecoin.setBackupBelowMinFee();
     }
   }
 
@@ -1395,6 +1399,10 @@ export class Wallet {
         undefined,
         false
       );
+    } else if (
+      err.includes("insufficient fee")
+    ) {
+      statecoin.setBackupBelowMinFee();
     }
   }
 
