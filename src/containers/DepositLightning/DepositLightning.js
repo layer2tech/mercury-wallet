@@ -98,39 +98,6 @@ const DepositLightning = (props) => {
       );
       return;
     }
-
-    /*
-    console.log("checking connection with peer first...");
-    // check connection with peer first.
-    try {
-      const response = await axios.post(
-        "http://localhost:3003/peer/connectToPeer",
-        {
-          pubkey,
-          host,
-          port,
-        }
-      );
-
-      if (response.status === 200) {
-        console.log("Successfully connected to peer");
-        // if a successful connection can be met then create the channel.
-        // TO DO: PUBLIC KEY AND NODE KEY IN CORRECT FORMAT
-        let nextAddress = await callCreateChannel(inputAmt, inputNodeId);;
-        let newInvoice = {
-          amt: mBTCtoBTC(inputAmt),
-          addr: nextAddress,
-        };
-        setInvoice(newInvoice);
-        setChannels(getChannels());
-        setInvoice(newInvoice);
-        setPubkey(pubkey);
-      } else {
-        dispatch(setError({ msg: "Failed to connect to peer" }));
-      }
-    } catch (error) {
-      dispatch(setError({ msg: "Error: " + error.data }));
-    }*/
   };
 
   const copyAddressToClipboard = (event, address) => {
