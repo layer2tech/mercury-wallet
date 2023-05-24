@@ -17,7 +17,7 @@ import {
   getChannels,
   updateChannels,
   getTotalChannelBalance,
-  setChannelClosePopup,
+  setSuccessMessage
 } from "../../features/WalletDataSlice";
 
 import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
@@ -62,7 +62,7 @@ const WithdrawLightning = () => {
   const forceCloseChannelAction = async () => {
     try {
       await forceCloseChannel(selectedChannel[0]);
-      dispatch(setChannelClosePopup(true));
+      dispatch(setSuccessMessage({ msg: "Channel closed successfully" }));
       updateChannelsInfo();
     } catch (err) {
       console.log(err);
@@ -72,7 +72,7 @@ const WithdrawLightning = () => {
   const mutualCloseChannelAction = async () => {
     try {
       const res = await mutualCloseChannel(selectedChannel[0]);
-      dispatch(setChannelClosePopup(true));
+      dispatch(setSuccessMessage({ msg: "Channel closed successfully" }));
       updateChannelsInfo();
     } catch (err) {
       console.log(err)

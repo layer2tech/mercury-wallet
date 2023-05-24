@@ -98,6 +98,7 @@ const DepositLightning = (props) => {
       );
       return;
     }
+<<<<<<< HEAD
 
     let nextAddress = await callCreateChannel(inputAmt, inputNodeId);
     let newInvoice = {
@@ -108,6 +109,8 @@ const DepositLightning = (props) => {
     setChannels(getChannels());
     setInvoice(newInvoice);
     setPubkey(pubkey);
+=======
+>>>>>>> f490442366ecc585a6b2141a7135dc8ccef72632
   };
 
   const copyAddressToClipboard = (event, address) => {

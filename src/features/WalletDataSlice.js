@@ -132,7 +132,9 @@ const initialState = {
   showWithdrawPopup: false,
   withdraw_txid: "",
   showInvoicePopup: false,
-  showChannelClosePopup: false,
+  success_dialogue: {
+    msg: "",
+  }
 };
 
 // Check if a wallet is loaded in memory
@@ -957,6 +959,7 @@ export const callSendPayment = async (invoiceStr, dispatch) => {
   if (isWalletLoaded()) {
     try {
       await wallet.sendPayment(invoiceStr);
+      dispatch(setSuccessMessage({ msg: "Payment sent successfully" }));
     } catch (e) {
       dispatch(setError({ msg: "Error sending payment." }));
     }
@@ -1667,10 +1670,21 @@ const WalletSlice = createSlice({
         showInvoicePopup: action.payload,
       };
     },
-    setChannelClosePopup(state, action) {
+    setSuccessMessage(state, action) {
       return {
         ...state,
-        showChannelClosePopup: action.payload,
+        success_dialogue: {
+          ...state.success_dialogue,
+          msg: action.payload.msg,
+        },
+      };
+    },
+    setSuccessMessageSeen(state, action) {
+      return {
+        ...state,
+        success_dialogue: {
+          msg: "",
+        },
       };
     }
   },
@@ -1829,7 +1843,8 @@ export const {
   setShowWithdrawPopup,
   setWithdrawTxid,
   setShowInvoicePopup,
-  setChannelClosePopup
+  setSuccessMessage,
+  setSuccessMessageSeen
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 
