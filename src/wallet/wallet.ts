@@ -380,7 +380,7 @@ export class Wallet {
       amt_in_sats: amtInSats,
       invoice_expiry_secs: invoiceExpirysecs,
       description: description,
-      privkey_hex: privkeyHex
+      privkey_hex: privkeyHex,
     };
     return LDKClient.post(
       LIGHTNING_POST_ROUTE.GENERATE_INVOICE,
@@ -402,10 +402,10 @@ export class Wallet {
   ): Wallet {
     log.debug(
       "New wallet named " +
-      name +
-      " created. Testing mode: " +
-      testing_mode +
-      "."
+        name +
+        " created. Testing mode: " +
+        testing_mode +
+        "."
     );
     let wallet = new Wallet(
       name,
@@ -755,9 +755,7 @@ export class Wallet {
         console.log("Check script hash unspent:");
 
         const fundingTxData =
-          await this.electrum_client.getScriptHashListUnspent(
-            addressScript
-          );
+          await this.electrum_client.getScriptHashListUnspent(addressScript);
         const txData = fundingTxData[0];
 
         if (txData) {
@@ -765,72 +763,49 @@ export class Wallet {
           const vout = txData.tx_pos;
           const block = txData.height ?? null;
           const value = txData.value;
-          
-          // Save details of channel funding by address in sqlite3 database
-          // this.lightning_client
-          //   .saveChannelPaymentInfoToDb({
-          //     amount: value,
-          //     paid: true,
-          //     txid,
-          //     vout,
-          //     address,
-          //   })
-          //   .then((res) => {
-          //     // Now create the actual channel with the funding details passed
-          //     if (res.status === 200) {
-          //       // Save details of channel funding by address in memory
-          //       this.channels.addChannelFunding(
-          //         txid,
-          //         vout,
-          //         address,
-          //         block,
-          //         value
-          //       );
 
-                // Save funding details to event manager, only when event manager has valid txid details can we open a channel
-                this.lightning_client.setTxData({
-                  txid, 
-                  payment_address: address
-                }).then((res) => {
+          // Save funding details to event manager, only when event manager has valid txid details can we open a channel
+          this.lightning_client
+            .setTxData({
+              txid,
+              payment_address: address,
+            })
+            .then((res) => {
+              if (res.status === 200) {
+                this.lightning_client
+                  .connectToPeer({ pubkey, host, port })
+                  .then((res) => {
+                    // connected to peer
                     if (res.status === 200) {
+                      // now connect to channel
                       this.lightning_client
-                        .connectToPeer({ pubkey, host, port })
+                        .createChannel({
+                          pubkey,
+                          amount: amount, // keep amounts in sats when giving to lightning_client
+                          push_msat: 0,
+                          channelType: "Public",
+                          host,
+                          port,
+                          channel_name: "",
+                          wallet_name: this.name,
+                          privkey,
+                          paid: true,
+                          payment_address: address,
+                          funding_txid: txid,
+                        })
                         .then((res) => {
-                          // connected to peer
-                          if (res.status === 200) {
-                            // now connect to channel
-                            this.lightning_client
-                              .createChannel({
-                                pubkey,
-                                amount: this.convertToSatoshi(amount),
-                                push_msat: 0,
-                                channelType: "Public",
-                                host,
-                                port,
-                                channel_name: "",
-                                wallet_name: this.name,
-                                privkey,
-                                paid: true,
-                                payment_address: address,
-                                funding_txid: txid,
-                              })
-                              .then((res) => {
-                                console.log(
-                                  "Final connect to channel successful."
-                                );
-                              });
-                            this.electrum_client.scriptHashUnsubscribe(addressScript);
-                          }
+                          console.log("Final connect to channel successful.");
                         });
-                    } else {
-                      console.log('Still waiting for TX data');
+                      this.electrum_client.scriptHashUnsubscribe(addressScript);
                     }
-                });
-              // }
-            // }
-          // );
+                  });
+              } else {
+                console.log("Still waiting for TX data");
+              }
+            });
         }
-      });
+      }
+    );
     return address;
   }
 
@@ -866,7 +841,7 @@ export class Wallet {
     this.active = state;
   }
 
-  connectToPeer = async (pubkey: string, host: string, port: number) => { };
+  connectToPeer = async (pubkey: string, host: string, port: number) => {};
 
   // Load wallet JSON from store
   static async load(
@@ -1376,7 +1351,7 @@ export class Wallet {
       if (
         statecoin.status === STATECOIN_STATUS.UNCONFIRMED &&
         statecoin.getConfirmations(this.block_height) >=
-        this.config.required_confirmations
+          this.config.required_confirmations
       ) {
         if (statecoin.tx_backup === null) {
           this.depositConfirm(statecoin.shared_key_id);
@@ -1993,9 +1968,9 @@ export class Wallet {
     let proof_key = this.getBIP32forBtcAddress(addr);
     log.debug(
       "Gen proof key. Address: " +
-      addr +
-      ". Proof key: " +
-      proof_key.publicKey.toString("hex")
+        addr +
+        ". Proof key: " +
+        proof_key.publicKey.toString("hex")
     );
     return proof_key;
   }
@@ -2083,12 +2058,12 @@ export class Wallet {
           if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
             log.error(
               "Funding tx for p_addr " +
-              p_addr +
-              " has value " +
-              funding_tx_data[i].value +
-              " expected " +
-              value +
-              "."
+                p_addr +
+                " has value " +
+                funding_tx_data[i].value +
+                " expected " +
+                value +
+                "."
             );
             log.error(
               "Setting value of statecoin to " + funding_tx_data[i].value
@@ -2118,9 +2093,9 @@ export class Wallet {
             ) {
               log.info(
                 "Found funding tx for p_addr " +
-                p_addr +
-                " in mempool. txid: " +
-                funding_tx_data[i].tx_hash
+                  p_addr +
+                  " in mempool. txid: " +
+                  funding_tx_data[i].tx_hash
               );
               if (coin != null) {
                 await this.saveStateCoin(coin);
@@ -2129,9 +2104,9 @@ export class Wallet {
           } else {
             log.info(
               "Funding tx for p_addr " +
-              p_addr +
-              " mined. Height: " +
-              funding_tx_data[i].height
+                p_addr +
+                " mined. Height: " +
+                funding_tx_data[i].height
             );
             // Set coin UNCONFIRMED.
             this.statecoins.setCoinUnconfirmed(
@@ -2184,7 +2159,7 @@ export class Wallet {
       for (let j = 0; j < funding_tx_data.length; j++) {
         if (
           funding_tx_data[j].tx_hash ===
-          this.statecoins.coins[i].funding_txid &&
+            this.statecoins.coins[i].funding_txid &&
           funding_tx_data[j].tx_pos === this.statecoins.coins[i].funding_vout
         ) {
           continue;
@@ -2194,9 +2169,9 @@ export class Wallet {
           for (let k = 0; k < this.statecoins.coins.length; k++) {
             if (
               this.statecoins.coins[k].funding_txid ===
-              funding_tx_data[j].tx_hash &&
+                funding_tx_data[j].tx_hash &&
               this.statecoins.coins[k].funding_vout ===
-              funding_tx_data[j].tx_pos
+                funding_tx_data[j].tx_pos
             ) {
               existing_output = true;
               break;
@@ -2293,8 +2268,8 @@ export class Wallet {
     if (statecoin.status === STATECOIN_STATUS.INITIALISED)
       throw Error(
         "Awaiting funding transaction for StateCoin " +
-        statecoin.getTXIdAndOut() +
-        "."
+          statecoin.getTXIdAndOut() +
+          "."
       );
 
     await this.initCoinLocktime(statecoin);
@@ -2381,7 +2356,7 @@ export class Wallet {
       if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
         if (
           this.statecoins.coins[i].shared_key_id.slice(0, -4) ===
-          statecoin.shared_key_id &&
+            statecoin.shared_key_id &&
           this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE
         ) {
           throw Error(
@@ -2651,14 +2626,14 @@ export class Wallet {
         if (statecoin.status === STATECOIN_STATUS.IN_SWAP)
           throw Error(
             "Coin " +
-            statecoin.getTXIdAndOut() +
-            " currenlty involved in swap protocol."
+              statecoin.getTXIdAndOut() +
+              " currenlty involved in swap protocol."
           );
         if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP)
           throw Error(
             "Coin " +
-            statecoin.getTXIdAndOut() +
-            " waiting in swap pool. Remove from pool to transfer."
+              statecoin.getTXIdAndOut() +
+              " waiting in swap pool. Remove from pool to transfer."
           );
         if (statecoin.status !== STATECOIN_STATUS.AVAILABLE)
           throw Error(
@@ -2674,7 +2649,7 @@ export class Wallet {
           if (this.statecoins.coins[i].shared_key_id.slice(-2) === "-R") {
             if (
               this.statecoins.coins[i].shared_key_id.slice(0, -4) ===
-              statecoin.shared_key_id &&
+                statecoin.shared_key_id &&
               this.statecoins.coins[i].status === STATECOIN_STATUS.DUPLICATE
             ) {
               throw Error(
@@ -2905,14 +2880,14 @@ export class Wallet {
       if (statecoin.status === STATECOIN_STATUS.IN_SWAP)
         throw Error(
           "Coin " +
-          statecoin.getTXIdAndOut() +
-          " currenlty involved in swap protocol."
+            statecoin.getTXIdAndOut() +
+            " currenlty involved in swap protocol."
         );
       if (statecoin.status === STATECOIN_STATUS.AWAITING_SWAP)
         throw Error(
           "Coin " +
-          statecoin.getTXIdAndOut() +
-          " waiting in  swap pool. Remove from pool to withdraw."
+            statecoin.getTXIdAndOut() +
+            " waiting in  swap pool. Remove from pool to withdraw."
         );
       if (
         statecoin.status !== STATECOIN_STATUS.AVAILABLE &&
