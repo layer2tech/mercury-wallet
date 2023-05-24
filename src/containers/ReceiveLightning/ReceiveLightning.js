@@ -74,7 +74,7 @@ const ReceiveLightning = () => {
     setInvoice({
       amt: inputAmt,
       desc: inputDes,
-      addr: newInvoice.paymentRequest,
+      addr: newInvoice.invoice,
     });
     setInputAmt("");
     setInputDes("");
