@@ -39,6 +39,19 @@ export const defaultWalletConfig = async () => {
       tor_proxy:  NETWORK_CONFIG[networkType].proxy,
       min_anon_set: "",
     };
+  } else if (callGetNetwork() === bitcoin.networks.regtest) {
+    console.log("use regtest network settings");
+    return {
+      network: bitcoin.networks.regtest,
+      notifications: false,
+      singleSwapMode: false,
+      tutorials: false,
+      electrum_config: process.env.REGTEST_ELECTRUM_CONFIG
+      ? process.env.REGTEST_ELECTRUM_CONFIG
+      :NETWORK_CONFIG[networkType].regtest_electrum_config,
+      tor_proxy:  NETWORK_CONFIG[networkType].proxy,
+      min_anon_set: "",
+    };
   } else {
     console.log("use mainnet network settings");
     return {

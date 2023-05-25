@@ -18,6 +18,12 @@
             "protocol": "http",
             "type": "electrs"
         },
+        "regtest_electrum_config": {
+            "host": "http://136.244.108.27",
+            "port": 3002,
+            "protocol": "http",
+            "type": "electrs"
+        },
         "proxy": {
             "ip": "localhost",
             "port": 9060,
@@ -41,6 +47,12 @@
         "testnet_electrum_config": {
         "host": "http://tp4v7sh7sa7licvw7r5padrh725oz4vcoy6l7vfxt463ae47dtda.b32.i2p:80/testnet/api",
             "port": null,
+            "protocol": "http",
+            "type": "electrs"
+        },
+        "regtest_electrum_config": {
+            "host": "http://136.244.108.27",
+            "port": 3002,
             "protocol": "http",
             "type": "electrs"
         },
