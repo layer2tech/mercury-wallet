@@ -104,7 +104,7 @@ const ConfirmPopup = ({
       // ensure to delete all recorded swapped coins then close wallet
       dispatch(removeAllCoinsFromSwapRecords());
     }
-    onOk && onOk();
+    onOk && onOk(event);
     handleClose();
   };
 
