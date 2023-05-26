@@ -1,15 +1,16 @@
-'use strict';
+"use strict";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import "../coins/FilterBy/FilterBy.css";
 import MenuButtonPopUp from "../MenuButtonPopUp/MenuButtonPopUp";
 import { setShowInvoicePopup } from "../../features/WalletDataSlice";
 
-
-const InvoiceOptions = (props) => {
+const InvoiceOptions = () => {
   const dispatch = useDispatch();
 
-  const showInvoicePopup = useSelector((state) => state.walletData).showInvoicePopup;
+  const showInvoicePopup = useSelector(
+    (state) => state.walletData
+  ).showInvoicePopup;
 
   const [openInvoiceMenu, setOpenInvoiceMenu] = useState(false);
 
@@ -22,7 +23,7 @@ const InvoiceOptions = (props) => {
       id: 1,
       value: "default",
       text: "Show Private Key",
-      action: showPrivateKeyOption
+      action: showPrivateKeyOption,
     },
   ];
 
@@ -48,10 +49,11 @@ const InvoiceOptions = (props) => {
         </svg>
       </div>
       <MenuButtonPopUp
-        openMenu = {openInvoiceMenu} 
-        setOpenMenu = {setOpenInvoiceMenu}
-        options = {FILTER_BY_OPTION}
-        title = {"Invoice Options"}/>
+        openMenu={openInvoiceMenu}
+        setOpenMenu={setOpenInvoiceMenu}
+        options={FILTER_BY_OPTION}
+        title={"Invoice Options"}
+      />
     </div>
   );
 };

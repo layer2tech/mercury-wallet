@@ -783,7 +783,7 @@ export class Wallet {
                           pubkey,
                           amount: amount, // keep amounts in sats when giving to lightning_client
                           push_msat: 0,
-                          channelType: "Public",
+                          channelType: "Private",
                           host,
                           port,
                           channel_name: "",
