@@ -15,6 +15,11 @@ const Invoice = (props) => {
         let sec = Math.floor(seconds % 60);
         return `${min}:${sec < 10 ? "0" : ""}${sec}`;
     }
+
+    const copyAddressToClipboard = (event, address) => {
+        event.stopPropagation()
+        navigator.clipboard.writeText(address);
+    }    
     
     return (
         <div className="Body">
@@ -42,7 +47,7 @@ const Invoice = (props) => {
                 <div className="deposit-scan-main-item">
 
                     <>
-                        <CopiedButton handleCopy={ () => {} }>
+                        <CopiedButton handleCopy={ (event) => copyAddressToClipboard(event, props.addr) }>
                             <img type="button" src={copy_img} alt="icon" />
                         </CopiedButton>
                         <span className="long lightning"><b>{props.addr}</b></span>
