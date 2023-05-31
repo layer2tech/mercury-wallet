@@ -14,6 +14,7 @@ import {
   decodeMessage,
   decodeSCEAddress,
   isValidNodeKeyAddress,
+  isValidLnInvoice
 } from "../wallet/util";
 import { resetIndex } from "../containers/Receive/Receive";
 
@@ -1044,7 +1045,11 @@ export const checkChannelSend = (dispatch, inputAddr) => {
     );
     return true;
   }
-  // Check for valid lightning address needs to be included
+  // Check for valid lightning address
+  if (!isValidLnInvoice(inputAddr)) {
+    dispatch(setError({ msg: "Please enter a valid lightning address." }));
+    return true;
+  }
 };
 
 export const checkSend = (dispatch, selectedCoins, inputAddr) => {
