@@ -14,7 +14,7 @@ import {
   decodeMessage,
   decodeSCEAddress,
   isValidNodeKeyAddress,
-  isValidLnInvoice
+  isValidLnInvoice,
 } from "../wallet/util";
 import { resetIndex } from "../containers/Receive/Receive";
 
@@ -25,8 +25,6 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import { NETWORK_TYPE, deleteChannelByAddr } from "../wallet/wallet";
-import { store } from "../application/reduxStore";
-
 const isEqual = require("lodash").isEqual;
 
 // eslint-disable-next-line
@@ -129,13 +127,13 @@ const initialState = {
   blockHeightLoad: false,
   coinsAdded: 0,
   coinsRemoved: 0,
-  torInfo: { online: true, torcircuitData: [], torLoaded: false},
+  torInfo: { online: true, torcircuitData: [], torLoaded: false },
   showWithdrawPopup: false,
   withdraw_txid: "",
   showInvoicePopup: false,
   success_dialogue: {
     msg: "",
-  }
+  },
 };
 
 // Check if a wallet is loaded in memory
@@ -285,14 +283,20 @@ export async function walletLoad(name, password, router) {
   await walletLoadConnection(wallet);
 }
 
-export async function callGetLatestBlock(){
-  if(isWalletLoaded){
-    try{
-      return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
-    } catch(e){
-      if(e.message.includes('circuit')){
+export async function callGetLatestBlock() {
+  if (isWalletLoaded) {
+    try {
+      return await wallet.electrum_client.getLatestBlock(
+        setBlockHeightCallBack,
+        wallet.electrum_client.endpoint
+      );
+    } catch (e) {
+      if (e.message.includes("circuit")) {
         await wallet.electrum_client.new_tor_id();
-        return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+        return await wallet.electrum_client.getLatestBlock(
+          setBlockHeightCallBack,
+          wallet.electrum_client.endpoint
+        );
       }
     }
   }
@@ -304,7 +308,7 @@ async function setNetworkEndpoints(wallet, networkType) {
   await wallet.set_adapter_endpoints();
 }
 
-async function initConnectionData( wallet ) {
+async function initConnectionData(wallet) {
   console.log("init connectoin data");
   await mutex.runExclusive(async () => {
     //init Block height
@@ -376,7 +380,14 @@ export async function walletFromMnemonic(
   }
 
   dispatch(setProgressComplete({ msg: "" }));
-  wallet = Wallet.fromMnemonic(name, password, mnemonic, route_network_type, network, testing_mode);
+  wallet = Wallet.fromMnemonic(
+    name,
+    password,
+    mnemonic,
+    route_network_type,
+    network,
+    testing_mode
+  );
   wallet.resetSwapStates();
 
   const networkType = wallet.networkType;
@@ -460,7 +471,7 @@ export const walletFromJson = async (wallet_json, password) => {
       });
   });
 };
-  
+
 export const callGetAccount = () => {
   if (isWalletLoaded()) {
     return wallet.account;
@@ -514,10 +525,9 @@ export const callGetBlockHeight = () => {
 
 export const resetBlockHeight = () => {
   if (isWalletLoaded()) {
-    
     return wallet.resetBlockHeight();
-  }  
-}
+  }
+};
 
 export const callGetUnspentStatecoins = () => {
   if (isWalletLoaded()) {
@@ -582,8 +592,6 @@ export const resetSwapGroupInfo = () => {
     return wallet.resetSwapGroupInfo();
   }
 };
-
-
 
 export const showWarning = (key) => {
   if (wallet) {
@@ -738,7 +746,7 @@ export const callGetWalletJsonToBackup = () => {
     let backup_wallet = wallet.storage.getWallet(wallet.name, true);
     // remove password and root keys
     backup_wallet.password = "";
-    return backup_wallet
+    return backup_wallet;
   }
 };
 
@@ -975,7 +983,7 @@ export const callCreateChannel = async (amount, peer_node) => {
 
 export const callSendPayment = async (invoiceStr, dispatch) => {
   console.log("[WalletDataSlice.js]->callSendPayment");
-  
+
   if (isWalletLoaded()) {
     try {
       await wallet.sendPayment(invoiceStr);
@@ -1046,7 +1054,9 @@ export const checkChannelCreation = (dispatch, amount, nodekey) => {
   }
   if (nodekey.includes(".onion")) {
     dispatch(
-      setError({ msg: "Connecting to Tor onion address is currently not supported, please enter nodekey having IPv4 or IPv6 address. " })
+      setError({
+        msg: "Connecting to Tor onion address is currently not supported, please enter nodekey having IPv4 or IPv6 address. ",
+      })
     );
     return true;
   }
@@ -1203,8 +1213,8 @@ export const callResetConnectionData = (dispatch) => {
   dispatch(setPingElectrumMs(null));
   dispatch(setPingServerMs(null));
   dispatch(setBlockHeightLoad(false));
-  dispatch(updateFeeInfo({deposit: "NA", withdraw: "NA"}));
-}
+  dispatch(updateFeeInfo({ deposit: "NA", withdraw: "NA" }));
+};
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
@@ -1719,7 +1729,7 @@ const WalletSlice = createSlice({
           msg: "",
         },
       };
-    }
+    },
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -1877,7 +1887,7 @@ export const {
   setWithdrawTxid,
   setShowInvoicePopup,
   setSuccessMessage,
-  setSuccessMessageSeen
+  setSuccessMessageSeen,
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 
