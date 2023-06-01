@@ -589,6 +589,7 @@ describe("Wallet", function () {
       );
       wallet.nodeId = "";
       await wallet.save();
+      wallet.nodeId = "";
       return wallet;
     });
 
@@ -596,6 +597,7 @@ describe("Wallet", function () {
       try {
         clearWallet(WALLET_NAME_1);
         clearWallet(WALLET_NAME_1_BACKUP);
+        wallet.nodeId = "";
       } catch (err) {
         console.log(`${err}`);
       }
@@ -621,6 +623,7 @@ describe("Wallet", function () {
         MOCK_WALLET_PASSWORD,
         true
       );
+      loaded_wallet.nodeId = "";
       delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet.statecoins)).toEqual(
         JSON.stringify(loaded_wallet.statecoins)
