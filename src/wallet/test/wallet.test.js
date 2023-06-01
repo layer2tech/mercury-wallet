@@ -584,6 +584,7 @@ describe("Wallet", function () {
         undefined,
         WALLET_NAME_1
       );
+      wallet.nodeId = "";
       await wallet.save();
       return wallet;
     });
