@@ -584,8 +584,8 @@ describe("Wallet", function () {
         undefined,
         WALLET_NAME_1
       );
-      wallet.nodeId = "";
       await wallet.save();
+      wallet.nodeId = "";
       return wallet;
     });
 
@@ -593,6 +593,7 @@ describe("Wallet", function () {
       try {
         clearWallet(WALLET_NAME_1);
         clearWallet(WALLET_NAME_1_BACKUP);
+        wallet.nodeId = "";
       } catch (err) {
         console.log(`${err}`);
       }
@@ -618,6 +619,7 @@ describe("Wallet", function () {
         MOCK_WALLET_PASSWORD,
         true
       );
+      loaded_wallet.nodeId = "";
       delete loaded_wallet.backupTxUpdateLimiter;
       expect(JSON.stringify(wallet.statecoins)).toEqual(
         JSON.stringify(loaded_wallet.statecoins)
@@ -2433,6 +2435,8 @@ describe("Storage 4", () => {
     delete wallet_10_mod.ping_conductor_ms;
     delete wallet_10_json_mod.ping_electrum_ms;
     delete wallet_10_mod.ping_electrum_ms;
+    delete wallet_10.nodeId;
+    delete wallet_10.connectToPeer;
     
 
     // active value is not saved to file
