@@ -25,7 +25,8 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import { NETWORK_TYPE, deleteChannelByAddr } from "../wallet/wallet";
-import { store } from "../application/reduxStore";
+import { useSelector } from "react-redux";
+// import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
 
@@ -369,7 +370,7 @@ export async function walletFromMnemonic(
   gap_limit = undefined,
   gap_start = undefined
 ) {
-  let network = store.getState().walletData.network;
+  let network = useSelector((state) => state.walletData.network);
 
   console.log("network in redux found was: ", network);
 
