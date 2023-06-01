@@ -368,18 +368,17 @@ export async function walletFromMnemonic(
   router,
   try_restore,
   gap_limit = undefined,
-  gap_start = undefined
+  gap_start = undefined,
+  network = undefined
 ) {
-  let network = useSelector((state) => state.walletData.network);
-
-  console.log("network in redux found was: ", network);
-
   if (network === 0) {
     network = bitcoin.networks["testnet"];
   } else if (network === 1) {
     network = bitcoin.networks["bitcoin"];
   } else if (network === 2) {
     network = bitcoin.networks["regtest"];
+  } else {
+    network = bitcoin.networks["bitcoin"];
   }
 
   dispatch(setProgressComplete({ msg: "" }));
