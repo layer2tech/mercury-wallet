@@ -3,8 +3,10 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   dark_mode:
-    localStorage ?? localStorage.getItem("dark_mode") != null
-      ? localStorage.getItem("dark_mode")
+    localStorage !== undefined
+      ? localStorage.getItem("dark_mode") !== null
+        ? localStorage.getItem("dark_mode")
+        : null
       : null,
 };
 
