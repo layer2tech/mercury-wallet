@@ -263,7 +263,7 @@ export class Wallet {
     }
   }
 
-  async updateTorCircuit() {
+  async getTorCircuit() {
     try {
       await getNewTorCircuit(this.http_client);
     } catch (err: any) {
@@ -276,7 +276,6 @@ export class Wallet {
     try {
       let torcircuit_ids: any[] = await getTorCircuitIds(this.http_client);
       let torcircuit = [];
-
       //Only get tor circuit info if not already obtained
       let torcircuit_ids_req = [];
       let torcircuit_ids_existing = [];
@@ -291,7 +290,6 @@ export class Wallet {
           torcircuit_ids_existing.push(this.tor_circuit[i].id);
         }
       }
-
       for (var i = 0; i < torcircuit_ids.length; i++) {
         //Unknown tor circuit - request data
         if (torcircuit_ids_existing.indexOf(torcircuit_ids[i]) < 0) {
@@ -304,7 +302,6 @@ export class Wallet {
           await getTorCircuit(this.http_client, torcircuit_ids_req[i])
         );
       }
-
       this.tor_circuit = torcircuit;
     } catch (err: any) {
       throw err;
@@ -654,6 +651,8 @@ export class Wallet {
     const release = await this.saveMutex.acquire();
     try {
       this.storage.storeWalletStateCoin(this.name, statecoin);
+    } catch (err: any) {
+      throw Error(err.message);
     } finally {
       release();
     }
@@ -1071,12 +1070,14 @@ export class Wallet {
       };
     }
     this.electrum_client.connect(config).then(async () => {
+      console.log(this.checkElectrumNetwork());
       if (!this.checkElectrumNetwork()) return;
 
       this.electrum_client.blockHeightSubscribe(blockHeightCallBack);
 
       let fee_info: FeeInfo;
 
+      console.log("getfee");
       getFeeInfo(this.http_client)
         .then(async (res) => {
           fee_info = res;
@@ -1195,6 +1196,10 @@ export class Wallet {
   }
   getBlockHeight(): number {
     return this.block_height;
+  }
+
+  resetBlockHeight(){
+    this.block_height = 0;
   }
 
   getSEAddress(addr_index: number): Object {
@@ -1361,6 +1366,29 @@ export class Wallet {
         }
         // update in wallet
         this.statecoins.setCoinFinalized(statecoin);
+      }
+      // check if in mempool and confirmed
+      if (statecoin.status === STATECOIN_STATUS.IN_MEMPOOL) {
+        let txid = statecoin.funding_txid;
+          if (txid != null) {
+            const tx_data: any = this.electrum_client.getTransaction(txid);
+              if (
+                tx_data?.confirmations != null &&
+                tx_data.confirmations >= 0
+              ) { 
+                this.statecoins.setCoinUnconfirmed(
+                  statecoin.shared_key_id,
+                  tx_data
+                );
+            }
+              if (
+                tx_data?.confirmations != null &&
+                tx_data.confirmations >= this.config.required_confirmations
+              ) { 
+                  statecoin.setConfirmed();
+                  this.saveStateCoin(statecoin);
+            }
+          }
       }
     });
   }
@@ -1566,6 +1594,10 @@ export class Wallet {
         undefined,
         false
       );
+    } else if (
+      bresponse.includes("insufficient fee")
+    ) {
+      statecoin.setBackupBelowMinFee();
     }
   }
 
@@ -1602,6 +1634,10 @@ export class Wallet {
         undefined,
         false
       );
+    } else if (
+      err.includes("insufficient fee")
+    ) {
+      statecoin.setBackupBelowMinFee();
     }
   }
 
@@ -2054,6 +2090,7 @@ export class Wallet {
       .getScriptHashListUnspent(p_addr_script)
       .then(async (funding_tx_data: Array<any>) => {
         for (let i = 0; i < funding_tx_data.length; i++) {
+          console.log(funding_tx_data);
           // Verify amount of tx. Ignore if mock electrum
           if (!this.config.testing_mode && funding_tx_data[i].value !== value) {
             log.error(
@@ -2492,6 +2529,10 @@ export class Wallet {
 
   getSwapGroupInfo(): Map<SwapGroup, GroupInfo> {
     return this.swap_group_info;
+  }
+
+  resetSwapGroupInfo(){
+    this.swap_group_info = new Map<SwapGroup, GroupInfo>();
   }
 
   getTorcircuitInfo(): TorCircuit[] {

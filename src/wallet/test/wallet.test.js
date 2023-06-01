@@ -1172,7 +1172,8 @@ describe("updateBackupTxStatus", function () {
       10000,
       await wallet.genBtcAddress(),
       10,
-      1000
+      1000,
+      1
     );
     wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 100;
@@ -1190,7 +1191,8 @@ describe("updateBackupTxStatus", function () {
       10000,
       await wallet.genBtcAddress(),
       10,
-      1000
+      1000,
+      1
     );
     wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 1000;
@@ -1212,7 +1214,8 @@ describe("updateBackupTxStatus", function () {
       10000,
       await wallet.genBtcAddress(),
       10,
-      1000
+      1000,
+      1
     );
     wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 1003;
@@ -1239,7 +1242,8 @@ describe("updateBackupTxStatus", function () {
       10000,
       await wallet.genBtcAddress(),
       10,
-      1000
+      1000,
+      1
     );
     wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
     wallet.block_height = 1003;

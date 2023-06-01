@@ -82,6 +82,7 @@ describe("txBackupBuild", function () {
   let backup_receive_addr = BTC_ADDR;
   let value = 10000;
   let locktime = 100;
+  let backup_fee_rate = 1;
 
   test("txBackupBuild throw on value < fee", async function () {
     expect(() => {
@@ -94,7 +95,8 @@ describe("txBackupBuild", function () {
         100,
         backup_receive_addr,
         100,
-        locktime
+        locktime,
+        backup_fee_rate
       );
     }).toThrowError("Not enough value to cover fee.");
   });
@@ -108,7 +110,8 @@ describe("txBackupBuild", function () {
       value,
       backup_receive_addr,
       100,
-      locktime
+      locktime,
+      backup_fee_rate
     ).buildIncomplete();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);

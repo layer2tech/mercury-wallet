@@ -65,6 +65,7 @@ export interface FeeInfo {
   initlock: number;
   wallet_version: string;
   wallet_warning: string;
+  backup_fee_rate: number;
 }
 
 export interface RecoveryRequest {

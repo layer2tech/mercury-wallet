@@ -129,7 +129,7 @@ const initialState = {
   blockHeightLoad: false,
   coinsAdded: 0,
   coinsRemoved: 0,
-  torInfo: { online: true },
+  torInfo: { online: true, torcircuitData: [], torLoaded: false},
   showWithdrawPopup: false,
   withdraw_txid: "",
   showInvoicePopup: false,
@@ -285,12 +285,16 @@ export async function walletLoad(name, password, router) {
   await walletLoadConnection(wallet);
 }
 
-export async function callGetLatestBlock() {
-  if (isWalletLoaded) {
-    return await wallet.electrum_client.getLatestBlock(
-      setBlockHeightCallBack,
-      wallet.electrum_client.endpoint
-    );
+export async function callGetLatestBlock(){
+  if(isWalletLoaded){
+    try{
+      return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+    } catch(e){
+      if(e.message.includes('circuit')){
+        await wallet.electrum_client.new_tor_id();
+        return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+      }
+    }
   }
 }
 
@@ -300,7 +304,8 @@ async function setNetworkEndpoints(wallet, networkType) {
   await wallet.set_adapter_endpoints();
 }
 
-async function initConnectionData(wallet) {
+async function initConnectionData( wallet ) {
+  console.log("init connectoin data");
   await mutex.runExclusive(async () => {
     //init Block height
     await wallet.electrum_client.getLatestBlock(
@@ -370,14 +375,8 @@ export async function walletFromMnemonic(
     network = bitcoin.networks["regtest"];
   }
 
-  wallet = Wallet.fromMnemonic(
-    name,
-    password,
-    mnemonic,
-    route_network_type,
-    network,
-    testing_mode
-  );
+  dispatch(setProgressComplete({ msg: "" }));
+  wallet = Wallet.fromMnemonic(name, password, mnemonic, route_network_type, network, testing_mode);
   wallet.resetSwapStates();
 
   const networkType = wallet.networkType;
@@ -461,6 +460,7 @@ export const walletFromJson = async (wallet_json, password) => {
       });
   });
 };
+  
 export const callGetAccount = () => {
   if (isWalletLoaded()) {
     return wallet.account;
@@ -511,6 +511,14 @@ export const callGetBlockHeight = () => {
     return wallet.getBlockHeight();
   }
 };
+
+export const resetBlockHeight = () => {
+  if (isWalletLoaded()) {
+    
+    return wallet.resetBlockHeight();
+  }  
+}
+
 export const callGetUnspentStatecoins = () => {
   if (isWalletLoaded()) {
     return wallet.getUnspentStatecoins();
@@ -568,6 +576,14 @@ export const callGetSwapGroupInfo = () => {
     return wallet.getSwapGroupInfo();
   }
 };
+
+export const resetSwapGroupInfo = () => {
+  if (isWalletLoaded()) {
+    return wallet.resetSwapGroupInfo();
+  }
+};
+
+
 
 export const showWarning = (key) => {
   if (wallet) {
@@ -719,7 +735,10 @@ export const callCreateBackupTxCPFP = async (cpfp_data) => {
 
 export const callGetWalletJsonToBackup = () => {
   if (isWalletLoaded()) {
-    return wallet.storage.getWallet(wallet.name, true);
+    let backup_wallet = wallet.storage.getWallet(wallet.name, true);
+    // remove password and root keys
+    backup_wallet.password = "";
+    return backup_wallet
   }
 };
 
@@ -1177,6 +1196,16 @@ export const UpdateSpeedInfo = async (
   }
 };
 
+export const callResetConnectionData = (dispatch) => {
+  resetSwapGroupInfo();
+  resetBlockHeight();
+  dispatch(setPingConductorMs(null));
+  dispatch(setPingElectrumMs(null));
+  dispatch(setPingServerMs(null));
+  dispatch(setBlockHeightLoad(false));
+  dispatch(updateFeeInfo({deposit: "NA", withdraw: "NA"}));
+}
+
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
 
@@ -1265,13 +1294,12 @@ export const callGetNewTorId = createAsyncThunk(
 export const callGetNewTorCircuit = createAsyncThunk(
   "GetNewTorCircuit",
   async (action, thunkAPI) => {
-    wallet.updateTorCircuit();
+    wallet.getTorCircuit();
   }
 );
 
 export const callUpdateTorCircuitInfo = createAsyncThunk(
   "UpdateTorCircuitInfo",
-
   async (action, thunkAPI) => {
     try {
       wallet.updateTorcircuitInfo();

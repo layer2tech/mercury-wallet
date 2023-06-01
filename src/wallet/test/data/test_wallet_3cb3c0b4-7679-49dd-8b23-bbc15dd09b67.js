@@ -7180,6 +7180,7 @@ export const WALLET = {
 		"endpoint": "http://localhost:3001",
 		"is_tor": true
 	},
+	"lightning_client": {},
 	"block_height": 0,
 	"current_sce_addr": "tc1qtzxva5uvsklcwazvp8dkvr2dx3cwn40jw6fq9ypu4psxdtjte7m587cz2w",
 	"swap_group_info": {},

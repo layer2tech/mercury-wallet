@@ -103,7 +103,7 @@ const MainHeader = ({ mainUnit, icon }) => {
         return return_str;
     }
   };
-
+  
   return (
     <div>
       <div className="home-header" data-cy="home-header">
@@ -126,7 +126,6 @@ const MainHeader = ({ mainUnit, icon }) => {
                 ? `${balance_info.num_coins} `
                 : `${channels.length} `}
               {/* Placeholder total channel number  */}
-
               {walletMode === WALLET_MODE.STATECHAIN
                 ? filterByMsg()
                 : "Open channels"}
@@ -150,9 +149,7 @@ const MainHeader = ({ mainUnit, icon }) => {
           </div>
         }
       </div>
-      <div className="ActionGroupLeft"
-          data-cy="balance-visibility"
-          >
+      <div className="ActionGroupLeft" data-cy="balance-visibility">
         <CheckBox
           description=""
           label={balance_info.hidden ? "Show balance" : "Hide balance"}

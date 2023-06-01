@@ -76,6 +76,16 @@ const PanelConnectivity = (props) => {
     });
   }
 
+
+  useEffect(() => {
+    if( walletMode === WALLET_MODE.STATECHAIN){
+      setServerConnected(false);
+      setConductorConnected(false);
+      setElectrumConnected(false);
+      // setBlockHeight(null);
+    }
+  }, [props.networkType]);
+
   const updateSpeedInfo = async (isMounted) => {
     if (isMounted !== true) {
       return;
@@ -87,14 +97,14 @@ const PanelConnectivity = (props) => {
   useEffect(() => {
     updateSpeedInfo(true)
   }, [])
-
-  // every 30s check speed
+  
+  
   useEffect(() => {
     let isMounted = true;
     let interval = setIntervalIfOnline(
       updateSpeedInfo,
       torInfo.online,
-      30000,
+      10000,
       isMounted
     );
 
@@ -135,11 +145,13 @@ const PanelConnectivity = (props) => {
 
       if (fee_info?.deposit != "NA") {
         setServerConnected(true);
+      } else {
+        setServerConnected(false)
       }
   
       //Add spinner for loading connection to Swaps
 
-      if (swap_groups_array?.length != null) {
+      if (swap_groups_array?.length != null && swap_groups_array?.length != 0) {
         setConductorConnected(true);
       }
       //Add spinner for loading connection to Electrum server
@@ -161,6 +173,7 @@ const PanelConnectivity = (props) => {
     ping_electrum_ms,
     ping_lightning_ms
   ]);
+
 
   useEffect(() => {
     const warningTimeout = setTimeout(() => getWarning(), 60000);
@@ -185,7 +198,7 @@ const PanelConnectivity = (props) => {
     } else{
       if( block_height === null || block_height === 0 ){
         // call to electrum server to set wallet var
-        let latestBlock = await callGetLatestBlock()?.header;
+        let latestBlock = await callGetLatestBlock();
 
         if(latestBlock !== 0 || latestBlock !== null ){
           // triggers refresh when blockheight loaded to wallet object

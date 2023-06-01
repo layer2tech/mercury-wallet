@@ -134,29 +134,67 @@ export class StateCoinList {
         let tx_cpfp = new Transaction();
         tx_cpfp.version = tx_cpfp_any.version;
         tx_cpfp.locktime = tx_cpfp_any.locktime;
+
         if (tx_cpfp_any.ins.length > 0) {
-          tx_cpfp.addInput(
-            Buffer.from(tx_cpfp_any.ins[0].hash),
-            tx_cpfp_any.ins[0].index,
-            tx_cpfp_any.ins[0].sequence
-          );
-          if (tx_cpfp_any.ins[0].witness.length > 0) {
-            tx_cpfp.ins[0].witness = [
-              Buffer.from(tx_cpfp_any.ins[0].witness[0]),
-              Buffer.from(tx_cpfp_any.ins[0].witness[1]),
-            ];
+
+          if (Array.isArray(tx_cpfp_any.ins[0].hash.data)) {
+            tx_cpfp.addInput(
+              Buffer.from(tx_cpfp_any.ins[0].hash),
+              tx_cpfp_any.ins[0].index,
+              tx_cpfp_any.ins[0].sequence
+            );
+            if (tx_cpfp_any.ins[0].witness.length > 0) {
+              tx_cpfp.ins[0].witness = [
+                Buffer.from(tx_cpfp_any.ins[0].witness[0]),
+                Buffer.from(tx_cpfp_any.ins[0].witness[1]),
+              ];
+            }
+          } else {
+            tx_cpfp.addInput(
+              Buffer.from(Object.values(tx_cpfp_any.ins[0].hash as object)),
+              tx_cpfp_any.ins[0].index,
+              tx_cpfp_any.ins[0].sequence
+            );
+            if (tx_cpfp_any.ins[0].witness.length > 0) {
+              tx_cpfp.ins[0].witness = [
+                Buffer.from(
+                  Object.values(tx_cpfp_any.ins[0].witness[0] as object)
+                ),
+                Buffer.from(
+                  Object.values(tx_cpfp_any.ins[0].witness[1] as object)
+                ),
+              ];
+            }
           }
         }
+
         if (tx_cpfp_any.outs.length > 0) {
-          tx_cpfp.addOutput(
-            Buffer.from(tx_cpfp_any.outs[0].script),
-            tx_cpfp_any.outs[0].value
-          );
+          if (Array.isArray(tx_cpfp_any.outs[0].script.data)) {
+            tx_cpfp.addOutput(
+              Buffer.from(tx_cpfp_any.outs[0].script),
+              tx_cpfp_any.outs[0].value
+            );
+          } else {
+            tx_cpfp.addOutput(
+              Buffer.from(
+                Object.values(tx_cpfp_any.outs[0].script as object)
+              ),
+              tx_cpfp_any.outs[0].value
+            );
+          }
         }
+        console.log(tx_cpfp);
         item.tx_cpfp = tx_cpfp;
       }
+
+      // reset backup_confirm on restart
+      if (item.tx_backup == null && item.backup_confirm) {
+        item.backup_confirm = false
+      }
+
       if (!replca) statecoinsList.coins.push(Object.assign(coin, item));
     });
+
     return statecoinsList;
   }
 
@@ -531,6 +569,8 @@ export const BACKUP_STATUS = {
   SPENT: "Spent",
   // MISSING correct backup tx not recovered
   MISSING: "Missing",
+  // BELOW_MIN_FEE
+  BELOW_MIN_FEE: "Minimum fee not met"
 };
 Object.freeze(BACKUP_STATUS);
 
@@ -738,6 +778,9 @@ export class StateCoin {
   setBackupSpent() {
     this.backup_status = BACKUP_STATUS.SPENT;
   }
+  setBackupBelowMinFee() {
+    this.backup_status = BACKUP_STATUS.BELOW_MIN_FEE;
+  }  
 
   getWithdrawalBroadcastTxInfo(id: string): WithdrawalTxBroadcastInfo {
     let found = this.tx_withdraw_broadcast.filter(

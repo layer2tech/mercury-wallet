@@ -176,28 +176,16 @@ export const getSigHash = (
 };
 
 // Backup Tx builder
-export const txBackupBuild = (
-  network: Network,
-  funding_txid: string,
-  funding_vout: number,
-  backup_receive_addr: string,
-  value: number,
-  fee_address: string,
-  withdraw_fee: number,
-  init_locktime: number
-): TransactionBuilder => {
-  if (FEE + withdraw_fee >= value)
-    throw Error(
-      `Not enough value to cover fee. FEE:${FEE}, withdraw_fee:${withdraw_fee}, value:${value}`
-    );
+export const txBackupBuild = (network: Network, funding_txid: string, funding_vout: number, backup_receive_addr: string, value: number, fee_address: string, withdraw_fee: number, init_locktime: number, fee_rate: number): TransactionBuilder => {
+  if (FEE*fee_rate+withdraw_fee >= value) throw Error(`Not enough value to cover fee. FEE:${FEE}, withdraw_fee:${withdraw_fee}, value:${value}`);
 
   let txb = new TransactionBuilder(network);
   txb.setLockTime(init_locktime);
-  txb.addInput(funding_txid, funding_vout, 0xfffffffe);
-  txb.addOutput(backup_receive_addr, value - FEE - withdraw_fee);
+  txb.addInput(funding_txid, funding_vout, 0xFFFFFFFE);
+  txb.addOutput(backup_receive_addr, value - FEE*fee_rate - withdraw_fee);
   txb.addOutput(fee_address, withdraw_fee);
-  return txb;
-};
+  return txb
+}
 
 // Withdraw tx builder spending funding tx to:
 //     - amount-fee to receive address, and
