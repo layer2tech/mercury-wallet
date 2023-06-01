@@ -18,6 +18,9 @@
             "protocol": "http",
             "type": "electrs"
         },
+        "regtest_state_entity_endpoint": "http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion",
+        "regtest_swap_conductor_endpoint": "http://u3fi7yqrkv7jp5vwoui3e5rlgasnokbzg5uc42eltmsqbdqcxudsqjad.onion, http://lmfcwtytaxvfy6t6e7eumka3cvg3p7mhuybdj7iiaasndcqpskp5iwad.onion",
+        "regtest_block_explorer_endpoint": "https://mempool.space/regtest/tx/",
         "regtest_electrum_config": {
             "host": "http://136.244.108.27",
             "port": 3002,
@@ -50,6 +53,9 @@
             "protocol": "http",
             "type": "electrs"
         },
+        "regtest_state_entity_endpoint": "http://j4rfuwvuk3jhffdohmmmot3lb5bc6jzhc7wrox5fmvsz5me455xa.b32.i2p:32452, http://n3degk6ywbs7urq57zopjbfewijlkb4rqqmolh7ycvmnzaeajv6a.b32.i2p:32452",
+        "regtest_swap_conductor_endpoint": "http://j4rfuwvuk3jhffdohmmmot3lb5bc6jzhc7wrox5fmvsz5me455xa.b32.i2p:32452, http://n3degk6ywbs7urq57zopjbfewijlkb4rqqmolh7ycvmnzaeajv6a.b32.i2p:32452",
+        "regtest_block_explorer_endpoint": "https://mempool.space/regtest/tx/",
         "regtest_electrum_config": {
             "host": "http://136.244.108.27",
             "port": 3002,

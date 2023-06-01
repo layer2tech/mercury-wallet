@@ -506,6 +506,10 @@ export class Wallet {
       if (isElectron()) {
         if (json_wallet.config.electrum_config.host.includes("testnet")) {
           json_wallet.config.network = bitcoin.networks.testnet;
+        } else if (
+          json_wallet.config.electrum_config.host.includes("regtest")
+        ) {
+          json_wallet.config.network = bitcoin.networks.regtest;
         } else {
           json_wallet.config.network = bitcoin.networks.bitcoin;
         }
