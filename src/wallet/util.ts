@@ -14,6 +14,7 @@ import { TransferMsg3, PrepareSignTxMsg } from "./mercury/transfer";
 import { callGetConfig } from "../features/WalletDataSlice";
 import { encrypt, decrypt } from "eciesjs12b";
 import { segwitAddr } from "./wallet";
+import { ChannelEvents } from "./channel";
 
 const bip32 = require("bip32");
 let bech32 = require("bech32");
@@ -567,4 +568,15 @@ export const isValidLnInvoice = (invoice: string) => {
   } catch (error) {
     return false;
   }
+}
+
+export const getPaymentEvent = (events: ChannelEvents[]) => {
+  const paymentEventTypes = [
+    'Event_PaymentPathSuccessful',
+    'Event_PaymentSent',
+    'Event_PaymentFailed',
+    'Event_PaymentPathFailed'
+  ];  
+  const paymentEvent = events.find(event => paymentEventTypes.includes(event.event_type));
+  return paymentEvent;
 }

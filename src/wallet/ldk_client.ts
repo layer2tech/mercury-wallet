@@ -3,11 +3,12 @@ import { checkForServerError, handlePromiseRejection } from "./error";
 import { semaphore, TIMEOUT } from "./http_client";
 import axios, { AxiosRequestConfig } from "axios";
 import { handleErrors } from "../error";
-import { Channel, ChannelInfo } from "./channel";
+import { Channel, ChannelInfo, ChannelEvents } from "./channel";
 
 export const LIGHTNING_GET_ROUTE = {
   PEER_LIST: "peer/peers",
   CHANNEL_LIST: "channel/loadChannels",
+  CHANNEL_EVENTS: "channel/loadEvents",
   NODE_ID: "channel/nodeId",
   DEAULT_PEER_LIST: "peer/default_peerlist",
 };
@@ -36,6 +37,20 @@ export class LDKClient {
     try {
       channels = await LDKClient.get(
         LIGHTNING_GET_ROUTE.CHANNEL_LIST,
+        wallet_name
+      );
+    } catch (e: any) {
+      //throw new Error("GET - Channel List Error: ", e);
+      console.error("GET - Channel List Error: ");
+    }
+    return channels;
+  }
+
+  async getChannelEvents(wallet_name: string): Promise<ChannelEvents[]> {
+    let channels: ChannelEvents[] = [];
+    try {
+      channels = await LDKClient.get(
+        LIGHTNING_GET_ROUTE.CHANNEL_EVENTS,
         wallet_name
       );
     } catch (e: any) {
