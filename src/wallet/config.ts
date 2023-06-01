@@ -46,6 +46,9 @@ export const defaultWalletConfig = async () => {
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
+      state_entity_endpoint: NETWORK_CONFIG[networkType].regtest_state_entity_endpoint,
+      swap_conductor_endpoint: NETWORK_CONFIG[networkType].regtest_swap_conductor_endpoint,
+      block_explorer_endpoint: NETWORK_CONFIG[networkType].regtest_block_explorer_endpoint,
       electrum_config: process.env.REGTEST_ELECTRUM_CONFIG
       ? process.env.REGTEST_ELECTRUM_CONFIG
       :NETWORK_CONFIG[networkType].regtest_electrum_config,
@@ -120,6 +123,13 @@ export class Config {
       this.electrum_config = NETWORK_CONFIG[networkTypeLcase].mainnet_electrum_config;
       this.block_explorer_endpoint =
         NETWORK_CONFIG[networkTypeLcase].mainnet_block_explorer_endpoint;
+    } else if (this.network === bitcoin.networks.regtest) {
+      this.state_entity_endpoint = NETWORK_CONFIG[networkTypeLcase].regtest_state_entity_endpoint;
+      this.swap_conductor_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].regtest_swap_conductor_endpoint;
+      this.electrum_config = NETWORK_CONFIG[networkTypeLcase].regtest_electrum_config;
+      this.block_explorer_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].regtest_block_explorer_endpoint;
     } else {
       this.state_entity_endpoint = NETWORK_CONFIG[networkTypeLcase].testnet_state_entity_endpoint;
       this.swap_conductor_endpoint =
