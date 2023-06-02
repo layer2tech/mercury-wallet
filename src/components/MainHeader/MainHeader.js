@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  callGetChannels,
   getChannels,
+  setError,
   updateBalanceInfo,
   updateFilter,
   updateWalletMode,
@@ -70,6 +72,13 @@ const MainHeader = ({ mainUnit, icon }) => {
 
   const handleFilter = (walletMode) => {
     dispatch(updateWalletMode(walletMode));
+    if (walletMode === "LIGHTNING") {
+      dispatch(
+        setError({
+          msg: "------ Lightning integration is in alpha stage ----- DO NOT USE REAL BTC!",
+        })
+      );
+    }
   };
 
   const toggleContent = (e) => {
@@ -94,11 +103,11 @@ const MainHeader = ({ mainUnit, icon }) => {
         return return_str;
     }
   };
-
+  
   return (
     <div>
-      <div className="home-header">
-        <div className="title">
+      <div className="home-header" data-cy="home-header">
+        <div className="title" data-cy="wallet-balance">
           <h2 className="main-header">
             <img src={icon} alt="walletIcon" />
             {balance_info.hidden
@@ -112,32 +121,35 @@ const MainHeader = ({ mainUnit, icon }) => {
           <div className="sub-header">
             <span>
               {balance_info.hidden
-                ? HIDDEN
+                ? `${HIDDEN} `
                 : walletMode === WALLET_MODE.STATECHAIN
                 ? `${balance_info.num_coins} `
                 : `${channels.length} `}
               {/* Placeholder total channel number  */}
-
               {walletMode === WALLET_MODE.STATECHAIN
                 ? filterByMsg()
                 : "Open channels"}
             </span>
           </div>
         </div>
-        {/* <div className='selection'>
-                    < DropdownArrow 
-                        isToggleOn = {isToggleOn}
-                        toggleContent = {toggleContent} />
-                    <MenuPopUp
-                        openMenu = {isToggleOn} 
-                        setOpenMenu = {toggleContent}
-                        selected = {walletMode}
-                        handleChange = {handleFilter}
-                        options = {WALLET_OPTIONS}
-                        title = {"Select Wallet"}/>
-                </div> */}
+        {
+          <div className="selection">
+            <DropdownArrow
+              isToggleOn={isToggleOn}
+              toggleContent={toggleContent}
+            />
+            <MenuPopUp
+              openMenu={isToggleOn}
+              setOpenMenu={toggleContent}
+              selected={walletMode}
+              handleChange={handleFilter}
+              options={WALLET_OPTIONS}
+              title={"Select Wallet"}
+            />
+          </div>
+        }
       </div>
-      <div className="ActionGroupLeft">
+      <div className="ActionGroupLeft" data-cy="balance-visibility">
         <CheckBox
           description=""
           label={balance_info.hidden ? "Show balance" : "Hide balance"}

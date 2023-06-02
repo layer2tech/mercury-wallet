@@ -9,6 +9,7 @@ import {
   GET_ROUTE,
   POST_ROUTE,
 } from "..";
+import { LDKClient, LIGHTNING_GET_ROUTE } from "../ldk_client";
 
 const Promise = require("bluebird");
 
@@ -118,6 +119,18 @@ export const pingElectrum = async (
   let result = await electrum_client.ping();
   if (result !== true) {
     throw Error("failed to ping electrum server");
+  }
+  var endTime = performance.now();
+  return endTime - startTime;
+};
+
+export const pingLightning = async () => {
+  var startTime = performance.now();
+  try {
+    await LDKClient.get(LIGHTNING_GET_ROUTE.DEAULT_PEER_LIST, {});
+  } catch(e) {
+    console.log("Error", e);
+    return null;
   }
   var endTime = performance.now();
   return endTime - startTime;

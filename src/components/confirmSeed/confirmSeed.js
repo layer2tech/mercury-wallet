@@ -1,7 +1,7 @@
 "use strict";
 import React, { useState } from "react";
 import { withRouter } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   setError,
   walletFromMnemonic,
@@ -84,6 +84,8 @@ const ConfirmSeed = (props) => {
 
   // Confirm words are correct
   const onConfirmClick = async (event) => {
+    console.log("onConfirmClick was pressed:");
+
     // Verify mnemonic confirmation
     for (let i = 0; i < missingwords.length; i++) {
       if (missingwords[i].word !== words[missingwords[i].pos]) {
@@ -115,13 +117,19 @@ const ConfirmSeed = (props) => {
 
     // Create wallet and load into Redux state
     try {
+      let network = useSelector((state) => state.walletData.network);
+
       await walletFromMnemonic(
         dispatch,
         props.wizardState.wallet_name,
         props.wizardState.wallet_password,
         props.wizardState.mnemonic,
         props.wizardState.wallet_network,
-        props.history
+        props.history,
+        undefined,
+        undefined,
+        undefined,
+        network
       );
     } catch (e) {
       event.preventDefault();

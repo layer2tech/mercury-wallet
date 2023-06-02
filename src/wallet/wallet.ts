@@ -20,7 +20,7 @@ import {
 } from "./";
 import { ElectrsClient } from "./electrs";
 import { ElectrsLocalClient } from "./electrs_local";
-
+const crypto = require("crypto");
 import {
   txCPFPBuild,
   FEE,
@@ -54,6 +54,7 @@ import { Config } from "./config";
 import { Storage, TestingWithJest } from "../store";
 import { groupInfo, swapDeregisterUtxo } from "./swap/info_api";
 import { addRestoredCoinDataToWallet, recoverCoins } from "./recovery";
+import axios from "axios";
 
 import {
   delay,
@@ -79,6 +80,7 @@ import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
 import { LDKClient, LIGHTNING_POST_ROUTE } from "./ldk_client";
+import { Channel, ChannelInfo, ChannelList } from "./channel";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -101,7 +103,7 @@ log = new WrappedLogger();
 // Set Network Type Tor || I2P
 export enum NETWORK_TYPE {
   TOR = "Tor",
-  I2P = "I2P"
+  I2P = "I2P",
 }
 export const mutex = new Mutex();
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890";
@@ -143,11 +145,6 @@ export interface Warning {
   show: boolean;
 }
 
-export interface Channel {
-  id: string;
-  amt: Number;
-}
-
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -158,7 +155,7 @@ export class Wallet {
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
-  channels: Channel[];
+  channels: ChannelList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
   electrum_client:
@@ -183,6 +180,8 @@ export class Wallet {
   swappedStatecoinsFundingOutpointMap: Map<string, StateCoin[]>;
   networkType: string;
 
+  nodeId: string | undefined;
+
   constructor(
     name: string,
     password: string,
@@ -192,8 +191,9 @@ export class Wallet {
     http_client: any = undefined,
     wasm: any = undefined,
     storage_type: string | undefined = undefined,
-    networkType: string | undefined = undefined,
+    networkType: string | undefined = undefined
   ) {
+    this.nodeId = "";
     this.wasm = null;
     this.name = name;
     this.password = password;
@@ -203,11 +203,11 @@ export class Wallet {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
-    this.channels = [];
+    this.channels = new ChannelList();
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
-    if (networkType === undefined){
+    if (networkType === undefined) {
       this.networkType = NETWORK_TYPE.TOR;
     } else {
       this.networkType = networkType;
@@ -223,12 +223,17 @@ export class Wallet {
     }
 
     this.lightning_client = new LDKClient();
+
     this.electrum_client = this.newElectrumClient();
 
     this.block_height = 0;
     this.current_sce_addr = "";
+    this.nodeId = "";
 
-    this.warnings = [{ name: "swap_punishment", show: true }, { name: "switch_network", show: true }];
+    this.warnings = [
+      { name: "swap_punishment", show: true },
+      { name: "switch_network", show: true },
+    ];
 
     this.storage = new Storage(`wallets/${this.name}/config`, storage_type);
 
@@ -334,7 +339,6 @@ export class Wallet {
     await this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
   }
 
-
   async setHttpClient(networkType: string) {
     if (this.config.testing_mode !== true && !TestingWithJest()) {
       if (networkType === NETWORK_TYPE.I2P) {
@@ -345,7 +349,6 @@ export class Wallet {
       }
     }
   }
-
 
   async setElectrsClient(networkType: string) {
     if (this.config.testing_mode !== true && !TestingWithJest()) {
@@ -358,13 +361,28 @@ export class Wallet {
     }
   }
 
-  async createInvoice(amtInSats: number, invoiceExpirysecs: number, description: string) {
+  async createInvoice(
+    amtInSats: number,
+    invoiceExpirysecs: number,
+    description: string
+  ) {
+    const address = this.account.nextChainAddress(1);
+    await this.saveKeys();
+    const proofKey = this.getBIP32forBtcAddress(address);
+    let privkeyHex = "";
+    if (proofKey && proofKey.privateKey) {
+      privkeyHex = proofKey.privateKey.toString("hex");
+    }
     let invoice_config = {
-      amt_in_sats: amtInSats,
+      amount_in_sats: amtInSats,
       invoice_expiry_secs: invoiceExpirysecs,
       description: description,
+      privkey_hex: privkeyHex,
     };
-    return this.lightning_client.post(LIGHTNING_POST_ROUTE.GENERATE_INVOICE, invoice_config);
+    return LDKClient.post(
+      LIGHTNING_POST_ROUTE.GENERATE_INVOICE,
+      invoice_config
+    );
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -404,7 +422,14 @@ export class Wallet {
   // Generate wallet with random mnemonic.
   static buildFresh(testing_mode: true, network: Network): Wallet {
     const mnemonic = bip39.generateMnemonic();
-    return Wallet.fromMnemonic("test", "", mnemonic, DEFAULT_NETWORK_TYPE, network, testing_mode);
+    return Wallet.fromMnemonic(
+      "test",
+      "",
+      mnemonic,
+      DEFAULT_NETWORK_TYPE,
+      network,
+      testing_mode
+    );
   }
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
@@ -473,13 +498,20 @@ export class Wallet {
     storage_type: string | undefined = undefined
   ): Wallet {
     try {
-      let networkType = (json_wallet.networkType === undefined) ? DEFAULT_NETWORK_TYPE : json_wallet.networkType;
-      
-      if(isElectron()){
-        if(json_wallet.config.electrum_config.host.includes('testnet')){
-          json_wallet.config.network = bitcoin.networks.testnet
+      let networkType =
+        json_wallet.networkType === undefined
+          ? DEFAULT_NETWORK_TYPE
+          : json_wallet.networkType;
+
+      if (isElectron()) {
+        if (json_wallet.config.electrum_config.host.includes("testnet")) {
+          json_wallet.config.network = bitcoin.networks.testnet;
+        } else if (
+          json_wallet.config.electrum_config.host.includes("regtest")
+        ) {
+          json_wallet.config.network = bitcoin.networks.regtest;
         } else {
-          json_wallet.config.network = bitcoin.networks.bitcoin
+          json_wallet.config.network = bitcoin.networks.bitcoin;
         }
       }
 
@@ -499,21 +531,22 @@ export class Wallet {
         undefined,
         undefined,
         storage_type,
-        json_wallet.networkType,
+        json_wallet.networkType
       );
 
-      
       // Deals with old wallet files, migrating statecoin data into the new format
       new_wallet.storage.loadStatecoinsQuick(json_wallet);
 
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
 
-
-      if(typeof(new_wallet.storage.store.path) !== "undefined"){
+      if (typeof new_wallet.storage.store.path !== "undefined") {
         // Delete swap coins from memory
-        deleteKeys(json_wallet, ["swapped_statecoins_obj", "swapped_ids", "statecoins_obj"]);
+        deleteKeys(json_wallet, [
+          "swapped_statecoins_obj",
+          "swapped_ids",
+          "statecoins_obj",
+        ]);
       }
-
 
       new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity);
 
@@ -551,7 +584,7 @@ export class Wallet {
     await this.electrum_client.unsubscribeAll();
   }
 
-  async unsubscribeAll(){
+  async unsubscribeAll() {
     await this.electrum_client.unsubscribeAll();
   }
 
@@ -654,8 +687,133 @@ export class Wallet {
     this.clearFundingOutpointMap();
   }
 
-  async saveChannels(channels: Channel[]) {
-    this.channels = channels;
+  saveChannels(channels: ChannelInfo[]) {
+    // TO DO:
+    // Need to map channelInfo from API to correct channel saved in wallet
+    // Need an ID saved that matches to ChannelInfo to ChannelFunding
+    // channels.map((channel) => {});
+  }
+
+  async validatePeerNode(peerNode: string): Promise<any> {
+    const peerNodeRegex = /^([0-9a-f]+)@([^:]+):([0-9]+)$/i;
+    const match = peerNode.match(peerNodeRegex);
+    if (!match) {
+      throw new Error("Peer node ID is in an incorrect format");
+    }
+    const [, pubkey, host, port] = match;
+    if (!pubkey || !host || !port) {
+      throw new Error("Unable to find pubkey, host or port from Peer Node ID");
+    }
+    const parsedPort = parseInt(port, 10);
+    if (isNaN(parsedPort)) {
+      throw new Error("Invalid port number");
+    }
+    return { pubkey, host, port: parsedPort };
+  }
+
+  convertToSatoshi(amount: number) {
+    // convert mBTC to satoshi
+    return amount * 100000;
+  }
+
+  async createChannel(amount: number, peerNode: string) {
+    console.log("[wallet.ts] - createChannel");
+    console.log(
+      `[wallet.ts] - values: amount:${amount}, peerNode: ${peerNode}`
+    );
+    // Validation ////////////////////////////////////////////////////////
+    const { pubkey, host, port } = await this.validatePeerNode(peerNode);
+
+    // Generate deposit address details //////////////////////////////////
+    const address = this.account.nextChainAddress(1);
+    await this.saveKeys();
+    const proofKey = this.getBIP32forBtcAddress(address);
+    const addressScript = bitcoin.address.toOutputScript(
+      address,
+      this.config.network
+    );
+    const privkey = proofKey.toWIF();
+    console.log("Generated testnet address:", address);
+    console.log("Amount value passed for channel create:", amount);
+    console.log("Private key for channel create:", privkey);
+
+    // Save channel details to memory ////////////////////////////////////
+    this.channels.addChannel(
+      proofKey.publicKey.toString("hex"),
+      address,
+      this.convertToSatoshi(amount),
+      this.version,
+      pubkey,
+      host,
+      port
+    );
+
+    console.log("Subscribed to script hash for p_addr:", address);
+    this.electrum_client.scriptHashSubscribe(
+      addressScript,
+      async (_status: any) => {
+        console.log("Script hash status change for p_addr:", address);
+        console.log("BTC received.");
+        console.log("Attempting to change the channel information.");
+        console.log("Check script hash unspent:");
+
+        const fundingTxData =
+          await this.electrum_client.getScriptHashListUnspent(addressScript);
+        const txData = fundingTxData[0];
+
+        if (txData) {
+          const txid = txData.tx_hash;
+          const vout = txData.tx_pos;
+          const block = txData.height ?? null;
+          const value = txData.value;
+
+          // Save funding details to event manager, only when event manager has valid txid details can we open a channel
+          this.lightning_client
+            .setTxData({
+              txid,
+              payment_address: address,
+            })
+            .then((res) => {
+              if (res.status === 200) {
+                this.lightning_client
+                  .connectToPeer({ pubkey, host, port })
+                  .then((res) => {
+                    // connected to peer
+                    if (res.status === 200) {
+                      // now connect to channel
+                      this.lightning_client
+                        .createChannel({
+                          pubkey,
+                          amount: amount, // keep amounts in sats when giving to lightning_client
+                          push_msat: 0,
+                          channelType: "Private",
+                          host,
+                          port,
+                          channel_name: "",
+                          wallet_name: this.name,
+                          privkey,
+                          paid: true,
+                          payment_address: address,
+                          funding_txid: txid,
+                        })
+                        .then((res) => {
+                          console.log("Final connect to channel successful.");
+                        });
+                      this.electrum_client.scriptHashUnsubscribe(addressScript);
+                    }
+                  });
+              } else {
+                console.log("Still waiting for TX data");
+              }
+            });
+        }
+      }
+    );
+    return address;
+  }
+
+  async sendPayment(invoiceString: string) {
+    return this.lightning_client.sendPayment({ invoice: invoiceString });
   }
 
   async saveActivityLog() {
@@ -686,6 +844,8 @@ export class Wallet {
     this.active = state;
   }
 
+  connectToPeer = async (pubkey: string, host: string, port: number) => {};
+
   // Load wallet JSON from store
   static async load(
     wallet_name: string,
@@ -697,7 +857,82 @@ export class Wallet {
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+
+    let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
+    let peerInfo = await wallet.lightning_client.getPeers();
+
+    let mergedInfo = channelsInfo.map((channel) => {
+      let peer = peerInfo.find((peer: any) => peer.id === channel.peer_id);
+      return {
+        ...channel,
+        host: peer.host,
+        port: peer.port,
+        pubkey: peer.pubkey,
+      };
+    });
+
+    async function connectToPeers() {
+      // Connect to peer on an interval loop
+      console.log("reconnecting to peer...");
+      console.log("mergedInfo.length:", mergedInfo.length);
+      // for every channel reconnect to its peer
+      for (var i = 0; i < mergedInfo.length; i++) {
+        let pubkey = mergedInfo[i].pubkey;
+        let host = mergedInfo[i].host;
+        let port = mergedInfo[i].port;
+
+        console.log("try to connect to pubkey->", pubkey);
+
+        try {
+          const response = await axios.post(
+            "http://localhost:3003/peer/connectToPeer",
+            {
+              pubkey,
+              host,
+              port,
+            }
+          );
+        } catch (error: any) {
+          console.log(error.response.data); // "Error connecting to peer"
+        }
+      }
+    }
+
+    // Call the function once immediately
+    connectToPeers();
+
+    // Regularly reconnect to peers every 60 seconds
+    setInterval(connectToPeers, 60000);
+
+    /* -- this is incorrect, channels need to be reloaded with chainmonitor stage
+      if (response.status === 200) {
+        console.log(response.data); // "Connected to peer"
+
+        let amount = mergedInfo[i].amount;
+        let push_msat = mergedInfo[i].push_msat;
+        let channelId = mergedInfo[i].id;
+        let channelType = mergedInfo[i].public;
+
+        try {
+          // now connect to its channel
+          const response2 = await axios.post(
+            "http://localhost:3003/peer/connectToChannel",
+            { pubkey, amount, push_msat, channelId, channelType }
+          );
+          if (response2.status === 200) {
+            console.log("response2 success", response2.data);
+          }
+        } catch (e) {
+          console.log("failed loading channels");
+        }
+      } else {
+        console.log(response.data); // "Failed to connect to peer"
+    }*/
+
+    wallet.saveChannels(channelsInfo);
     wallet.setActive();
+    wallet.nodeId = await wallet.lightning_client.getNodeId();
+
     return wallet;
   }
 
@@ -716,6 +951,10 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+
+    let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
+    wallet.saveChannels(channelsInfo);
+
     await wallet.save();
     wallet.setActive();
     return wallet;
@@ -774,7 +1013,7 @@ export class Wallet {
 
   newElectrumClient() {
     let ENDPOINT;
-    if(this.networkType === NETWORK_TYPE.I2P){
+    if (this.networkType === NETWORK_TYPE.I2P) {
       ENDPOINT = I2P_URL;
     } else {
       ENDPOINT = TOR_URL;
@@ -783,11 +1022,11 @@ export class Wallet {
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if (this.config.testing_mode == true) return new MockElectrumClient();
     if (this.config.electrum_config.type == "eps")
-      return new EPSClient( ENDPOINT);
+      return new EPSClient(ENDPOINT);
     if (this.config.electrum_config.type == "electrs_local")
-      return new ElectrsLocalClient( ENDPOINT );
+      return new ElectrsLocalClient(ENDPOINT);
     if (this.config.electrum_config.protocol == "http")
-      return new ElectrsClient( ENDPOINT );
+      return new ElectrsClient(ENDPOINT);
 
     return new ElectrumClient(this.config.electrum_config);
   }
@@ -2371,8 +2610,10 @@ export class Wallet {
           if (
             !(err_str != null && err_str.includes("Coin is not in a swap pool"))
           ) {
-            log.info(`Error in deRegisterSwaps: ${err_str}`)
-            throw Error('Error: Connection Error - check connection and try again');
+            log.info(`Error in deRegisterSwaps: ${err_str}`);
+            throw Error(
+              "Error: Connection Error - check connection and try again"
+            );
           }
         }
       }
@@ -3010,20 +3251,55 @@ export const getXpub = (mnemonic: string, network: Network) => {
   return node.neutered().toBase58();
 };
 
-function deleteKeys(obj: any, keys: Array<string>){
-  keys.map( key => {
+export const forceCloseChannel = (channel_id: Number) => {
+  return axios
+    .delete(`http://localhost:3003/channel/forceCloseChannel/${channel_id}`)
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+      throw err;
+    });
+};
+
+export const mutualCloseChannel = (channel_id: Number) => {
+  return axios
+    .delete(`http://localhost:3003/channel/mutualCloseChannel/${channel_id}`)
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+      throw err;
+    });
+};
+
+export const deleteChannelByAddr = (addr: string) => {
+  axios
+    .delete(`http://localhost:3003/channel/deleteChannelByAddr/${addr}`)
+    .then((res) => {
+      console.log(res);
+      return res;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+function deleteKeys(obj: any, keys: Array<string>) {
+  keys.map((key) => {
     deleteKey(obj, key);
-  })
+  });
 }
 
-function deleteKey(obj:any, key: keyof any) {
+function deleteKey(obj: any, key: keyof any) {
   if (key in obj) {
     delete obj[key];
   }
 
   return obj;
 }
-
 
 const dummy_master_key = {
   public: {
