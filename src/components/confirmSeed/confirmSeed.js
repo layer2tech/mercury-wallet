@@ -15,6 +15,7 @@ const TESTING_MODE = require("../../settings.json").testing_mode;
 
 const ConfirmSeed = (props) => {
   const dispatch = useDispatch();
+  const network = useSelector((state) => state.walletData.network);
 
   const generateUniqueSeedArr = () => {
     var arr = [];
@@ -117,8 +118,6 @@ const ConfirmSeed = (props) => {
 
     // Create wallet and load into Redux state
     try {
-      let network = useSelector((state) => state.walletData.network);
-
       await walletFromMnemonic(
         dispatch,
         props.wizardState.wallet_name,
