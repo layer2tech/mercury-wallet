@@ -8,6 +8,7 @@ import {
   getChannels,
   createInvoice,
   getNodeId,
+  setError
 } from "../../features/WalletDataSlice";
 
 import { AddressInput, NodeId, Tutorial } from "../../components";
@@ -18,13 +19,15 @@ import { useState } from "react";
 import "./ReceiveLightning.css";
 import Invoice from "../Invoice/Invoice";
 
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 const TimeToExpire = 180;
 
 const ReceiveLightning = () => {
   // Time for expiry of invoice in seconds
   const TimeToExpire = 180;
+
+  const dispatch = useDispatch();
 
   const [inputAmt, setInputAmt] = useState("");
 
@@ -40,6 +43,8 @@ const ReceiveLightning = () => {
   const { balance_info } = useSelector((state) => state.walletData);
 
   const [nodeID, setNodeID] = useState(getNodeId());
+
+  const { ping_lightning_ms } = useSelector((state) => state.walletData);
 
   const onInputAmtChange = (event) => {
     setInputAmt(event.target.value);
@@ -69,6 +74,10 @@ const ReceiveLightning = () => {
   };
 
   const createInvoiceAction = async () => {
+    if (ping_lightning_ms === null) {
+      dispatch(setError({ msg: "Lightning server not connected. Please try again later." }));
+      return;
+    }
     let newInvoice = await createInvoice(inputAmt, TimeToExpire, inputDes);
     console.log(newInvoice);
     setInvoice({

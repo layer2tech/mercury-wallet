@@ -1006,13 +1006,18 @@ export const callDeleteChannelByAddr = async (addr) => {
   }
 };
 
-export const checkChannelWithdrawal = (
+export const checkChannelWithdrawal = async (
   dispatch,
   selectedChannels,
   inputAddr
 ) => {
   // Pre action confirmation checks for withdrawal - return true to prevent action
-
+  let ping_lightning_ms_new = await pingLightning();
+  dispatch(setPingLightningMs(ping_lightning_ms_new));
+  if (ping_lightning_ms_new === null) {
+    dispatch(setError({ msg: "Lightning server not connected. Please try again later." }));
+    return true;
+  }
   // check if channel is chosen
   if (selectedChannels.length === 0) {
     dispatch(setError({ msg: "Please choose a channel to close." }));
@@ -1043,7 +1048,13 @@ export const checkChannelWithdrawal = (
   }*/
 };
 
-export const checkChannelCreation = (dispatch, amount, nodekey) => {
+export const checkChannelCreation = async (dispatch, amount, nodekey) => {
+  let ping_lightning_ms_new = await pingLightning();
+  dispatch(setPingLightningMs(ping_lightning_ms_new));
+  if (ping_lightning_ms_new === null) {
+    dispatch(setError({ msg: "Lightning server not connected. Please try again later." }));
+    return true;
+  }
   if (amount === "") {
     dispatch(setError({ msg: "Please set the amount of the funding tx." }));
     return true;
@@ -1068,8 +1079,14 @@ export const checkChannelCreation = (dispatch, amount, nodekey) => {
   }
 };
 
-export const checkChannelSend = (dispatch, inputAddr) => {
+export const checkChannelSend = async (dispatch, inputAddr) => {
   // Pre action confirmation checks for send sats - return true to prevent action
+  let ping_lightning_ms_new = await pingLightning();
+  dispatch(setPingLightningMs(ping_lightning_ms_new));
+  if (ping_lightning_ms_new === null) {
+    dispatch(setError({ msg: "Lightning server not connected. Please try again later." }));
+    return true;
+  }
   if (!inputAddr) {
     dispatch(
       setError({ msg: "Please enter a lightning address to send sats." })
