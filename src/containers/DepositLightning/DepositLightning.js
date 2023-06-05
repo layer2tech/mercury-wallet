@@ -31,6 +31,7 @@ const DepositLightning = (props) => {
   const [pubkey, setPubkey] = useState();
   const [loading, setLoading] = useState(false);
   const invoices = useSelector((state) => state.lightning).invoices;
+  const { ping_lightning_ms } = useSelector((state) => state.walletData);
 
   const satsToBTC = (sats) => {
     return sats / (1e8).toFixed(2);
@@ -49,6 +50,16 @@ const DepositLightning = (props) => {
       host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host;
     const port = inputNodeId.slice(inputNodeId.lastIndexOf(":") + 1);
 
+    // check if invoice with same pubkey already exists
+    const invoiceExists = invoices.find((invoice) => invoice.node_pubkey === pubkey);
+    if (invoiceExists) {
+      dispatch(
+        setError({
+          msg: "You already have an invoice with this node for opening channel. Please enter a different node key id.",
+        })
+      );
+      return;
+    }
     // validation on amount
     if (inputAmt < 1001) {
       dispatch(
@@ -73,6 +84,7 @@ const DepositLightning = (props) => {
         amt: satsToBTC(inputAmt),
         addr: nextAddress,
         privatekey: new_private_key,
+        node_pubkey: pubkey,
       };
       dispatch(addInvoice(newInvoice));
       setPubkey(pubkey);
@@ -175,7 +187,7 @@ const DepositLightning = (props) => {
           <div data-cy="create-channel">
             <ConfirmPopup
               preCheck={checkChannelCreation}
-              argsCheck={[dispatch, inputAmt, inputNodeId]}
+              argsCheck={[dispatch, inputAmt, inputNodeId, ping_lightning_ms]}
               onOk={createChannel}
             >
               <button type="button" className={`btn deposit-button `}>

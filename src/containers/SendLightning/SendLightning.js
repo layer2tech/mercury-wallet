@@ -28,7 +28,7 @@ const SendLightning = () => {
 
   const [channels, setChannels] = useState(getChannels());
 
-  const { balance_info } = useSelector((state) => state.walletData);
+  const { balance_info, ping_lightning_ms } = useSelector((state) => state.walletData);
 
   const [nodeID, setNodeID] = useState(getNodeId());
 
@@ -93,7 +93,7 @@ const SendLightning = () => {
             <ConfirmPopup
               onOk={sendLightningAction}
               preCheck={checkChannelSend}
-              argsCheck={[dispatch, inputAddr]}
+              argsCheck={[dispatch, inputAddr, ping_lightning_ms]}
               isLightning={true}
             >
               <button

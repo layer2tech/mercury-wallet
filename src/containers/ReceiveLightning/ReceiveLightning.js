@@ -40,11 +40,9 @@ const ReceiveLightning = () => {
 
   const [channels, setChannels] = useState(getChannels());
 
-  const { balance_info } = useSelector((state) => state.walletData);
+  const { balance_info, ping_lightning_ms } = useSelector((state) => state.walletData);
 
   const [nodeID, setNodeID] = useState(getNodeId());
-
-  const { ping_lightning_ms } = useSelector((state) => state.walletData);
 
   const onInputAmtChange = (event) => {
     setInputAmt(event.target.value);

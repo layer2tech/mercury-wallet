@@ -32,7 +32,7 @@ import { forceCloseChannel, mutualCloseChannel } from "../../wallet/wallet";
 const WithdrawLightning = () => {
   const dispatch = useDispatch();
 
-  const { balance_info } = useSelector((state) => state.walletData);
+  const { balance_info, ping_lightning_ms } = useSelector((state) => state.walletData);
 
   const [channels, setChannels] = useState(getChannels());
 
@@ -275,7 +275,7 @@ const WithdrawLightning = () => {
             <div>
               <ConfirmPopup
                 preCheck={checkChannelWithdrawal}
-                argsCheck={[dispatch, selectedChannel, inputAddr]}
+                argsCheck={[dispatch, selectedChannel, inputAddr, ping_lightning_ms]}
                 onOk={withdrawButtonAction}
               >
                 <button
