@@ -53,7 +53,8 @@
     "app-macos-local-test": "yarn install-local && npm install --force && yarn build && DEBUG=electron-builder electron-builder -m -p never",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
     "cypress": "cypress open",
-    "tor-adapter": "cd tor-adapter && npm start"
+    "tor-adapter": "cd tor-adapter && npm start",
+    "lightning-adapter": "cd lightning-adapter && npm start"
   },
   "devDependencies": {
     "@testing-library/cypress": "^8.0.3",
@@ -132,6 +133,7 @@
     "limiter": "^2.1.0",
     "lodash.clonedeep": "^4.5.0",
     "mercury-wallet-tor-adapter": "file:./tor-adapter",
+    "mercury-wallet-lightning-adapter": "file:./lightning-adapter",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
     "mutex-promise": "^0.1.0",
