@@ -5,7 +5,7 @@ import { setSuccessMessageSeen } from "../../features/WalletDataSlice";
 const SuccessMessagePopup = () => {
   const dispatch = useDispatch();
 
-  const success_dialogue = useSelector((state) => state.walletData);
+  const { success_dialogue } = useSelector((state) => state.walletData);
   const { msg } = success_dialogue;
 
   const handleClose = () => {

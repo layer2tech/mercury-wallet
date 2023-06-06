@@ -576,7 +576,8 @@ export const getPaymentEvent = (events: ChannelEvents[]) => {
     'Event_PaymentSent',
     'Event_PaymentFailed',
     'Event_PaymentPathFailed'
-  ];  
-  const paymentEvent = events.find(event => paymentEventTypes.includes(event.event_type));
+  ];
+  const reversedEvents = events.reverse();  
+  const paymentEvent = reversedEvents.find(event => paymentEventTypes.includes(event.event_type));
   return paymentEvent;
 }
