@@ -137,6 +137,7 @@ const initialState = {
   success_dialogue: {
     msg: "",
   },
+  channel_events: [],
 };
 
 // Check if a wallet is loaded in memory
@@ -202,6 +203,12 @@ export const updateChannels = (channels) => {
 export const callGetChannels = async (wallet_name) => {
   if (isWalletLoaded()) {
     return await wallet.lightning_client.getChannels(wallet_name);
+  }
+};
+
+export const callGetChannelEvents = async (wallet_name) => {
+  if (isWalletLoaded()) {
+    return await wallet.lightning_client.getChannelEvents(wallet_name);
   }
 };
 
@@ -1487,6 +1494,12 @@ const WalletSlice = createSlice({
         walletMode: action.payload,
       };
     },
+    updateChannelEvents(state, action) {
+      return {
+        ...state,
+        channelEvents: action.payload,
+      }
+    },
     updateSwapPendingCoins(state, action) {
       return {
         ...state,
@@ -1883,6 +1896,7 @@ export const {
   callClearSave,
   updateFilter,
   updateWalletMode,
+  updateChannelEvents,
   updateSwapPendingCoins,
   addSwapPendingCoin,
   removeSwapPendingCoin,

@@ -117,6 +117,13 @@ export interface ChannelInfo {
   payment_address: string;
 }
 
+export interface ChannelEvents {
+  id: string;
+  event_type: string;
+  event_data: string;
+  channel_id_hex: string;
+}
+
 export interface ChannelFunding {
   proof_key: string | null;
   funding_txid: string | null;
