@@ -28,11 +28,11 @@ const ConfirmPopup = ({
     }
   }, [children.props.className, showModal]);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (preCheck) {
       var stopCall;
 
-      stopCall = preCheck(...argsCheck);
+      stopCall = await preCheck(...argsCheck);
       // Cancel open pop up?
 
       if (stopCall) {
