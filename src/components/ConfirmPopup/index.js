@@ -32,9 +32,7 @@ const ConfirmPopup = ({
     if (preCheck) {
       var stopCall;
 
-      console.log("Called")
       stopCall = await preCheck(...argsCheck);
-      console.log(stopCall)
       // Cancel open pop up?
 
       if (stopCall) {
