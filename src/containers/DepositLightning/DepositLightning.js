@@ -31,7 +31,6 @@ const DepositLightning = (props) => {
   const [pubkey, setPubkey] = useState();
   const [loading, setLoading] = useState(false);
   const invoices = useSelector((state) => state.lightning).invoices;
-  const { ping_lightning_ms } = useSelector((state) => state.walletData);
 
   const satsToBTC = (sats) => {
     return sats / (1e8).toFixed(2);
@@ -187,7 +186,7 @@ const DepositLightning = (props) => {
           <div data-cy="create-channel">
             <ConfirmPopup
               preCheck={checkChannelCreation}
-              argsCheck={[dispatch, inputAmt, inputNodeId, ping_lightning_ms]}
+              argsCheck={[dispatch, inputAmt, inputNodeId]}
               onOk={createChannel}
             >
               <button type="button" className={`btn deposit-button `}>
