@@ -9,6 +9,8 @@ export const LIGHTNING_GET_ROUTE = {
   PEER_LIST: "peer/peers",
   CHANNEL_LIST: "channel/loadChannels",
   CHANNEL_EVENTS: "channel/loadEvents",
+  CHANNEL_EVENTS_UNNOTIFIED: "channel/loadUnnotifiedEvents",
+  CHANNEL_EVENTS_SET_NOTIFICATION_SEEN: "channel/setEventNotificationSeen",
   NODE_ID: "channel/nodeId",
   DEAULT_PEER_LIST: "peer/default_peerlist",
 };
@@ -50,7 +52,7 @@ export class LDKClient {
     let channels: ChannelEvents[] = [];
     try {
       channels = await LDKClient.get(
-        LIGHTNING_GET_ROUTE.CHANNEL_EVENTS,
+        LIGHTNING_GET_ROUTE.CHANNEL_EVENTS_UNNOTIFIED,
         wallet_name
       );
     } catch (e: any) {
@@ -58,6 +60,15 @@ export class LDKClient {
       console.error("GET - Channel List Error: ");
     }
     return channels;
+  }
+
+  async setNotificationSeen(body: any): Promise<any> {
+    try {
+      let res = await LDKClient.post(LIGHTNING_GET_ROUTE.CHANNEL_EVENTS_SET_NOTIFICATION_SEEN, body);
+      return res;
+    } catch (e: any) {
+      throw new Error("Error in setting event notification status " + e?.message);
+    }
   }
 
   async getPeers(): Promise<any> {

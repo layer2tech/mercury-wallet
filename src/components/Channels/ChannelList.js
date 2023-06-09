@@ -12,19 +12,20 @@ import {
   callGetChannelEvents,
   updateChannelEvents,
   setError,
-  setSuccessMessage
+  setSuccessMessage,
+  callSetNotificationSeen
 } from "../../features/WalletDataSlice";
 import EmptyChannelDisplay from "./EmptyChannelDisplay/EmptyChannelDisplay";
 import { Link } from "react-router-dom";
 import { pingLightning } from "../../wallet/mercury/info_api";
-import { getPaymentEvent } from "../../wallet/util";
 
 const ChannelList = (props) => {
+
+  let channelEvents = [];
+  
   const dispatch = useDispatch();
 
   const [channels, setChannels] = useState([]);
-
-  const [channelEvents, setChannelEvents] = useState([]);
 
   const { balance_info } = useSelector((state) => state.walletData);
 
@@ -90,17 +91,18 @@ const ChannelList = (props) => {
   const updateChannelEventsInfo = async () => {
     const channelEventsLoaded = await callGetChannelEvents(getWalletName());
     if (JSON.stringify(channelEventsLoaded) !== JSON.stringify(channelEvents)) {
-      setChannelEvents(channelEventsLoaded);
-      dispatch(updateChannelEvents(channelEventsLoaded));
       let newEvents = channelEventsLoaded.filter(event => !channelEvents.includes(event));
-      const paymentEvent = getPaymentEvent(newEvents);
-      if (paymentEvent) {
-        if (paymentEvent.event_type.includes("Failed")) {
-          dispatch(setError({ msg: "Payment failed to receive" }));
-        } else {
-          dispatch(setSuccessMessage({ msg: "Payment received successfully" }));
+      newEvents.map((event) => {
+        if (event.event_type === "Event_ChannelReady") {
+          dispatch(setSuccessMessage({ msg: "Channel ready to send sats" }));
+          callSetNotificationSeen(event.id);
+        } else if (event.event_type === "Event_PaymentClaimable") {
+          dispatch(setSuccessMessage({ msg: "Payment Received successfully" }));
+          callSetNotificationSeen(event.id);
         }
-      }
+      });
+      channelEvents = channelEventsLoaded;
+      dispatch(updateChannelEvents(channelEventsLoaded));
     }
   };
 
