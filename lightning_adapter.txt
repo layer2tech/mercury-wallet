@@ -1,3 +1,0 @@
-lightning_adapater_path: D:\GITHUB\mercury-wallet-1\node_modules\mercury-wallet-lightning-adapter\src\server.js
-lightning_adapater_path: D:\GITHUB\mercury-wallet-1\node_modules\mercury-wallet-lightning-adapter\src\server.js
-lightning_adapater_path: D:\GITHUB\mercury-wallet-1\node_modules\mercury-wallet-lightning-adapter\src\server.js
