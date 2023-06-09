@@ -16,5 +16,5 @@
     "jsx": "react-jsx",
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "expressproject/src"]
+  "include": ["src", "tor-adapter/src", "lightning-adapter/src"]
 }

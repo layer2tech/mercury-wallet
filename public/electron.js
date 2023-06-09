@@ -30,8 +30,7 @@ require("ts-node/register"); // Register ts-node for dynamic TypeScript executio
 function startExpressServer() {
   lightning_adapter_path = joinPath(
     rootPath,
-    "node_modules",
-    "mercury-wallet-lightning-adapter",
+    "lightning-adapter",
     "src",
     "server.js"
   );
@@ -48,8 +47,9 @@ function startExpressServer() {
     stdio: "ignore",
   });
 
-  expressProcess.on("error", (code) => {
-    console.log(`Express server error ${code}`);
+  expressProcess.on("error", (err) => {
+    console.log(`Express server error: ${err}`);
+    throw err;
   });
 
   expressProcess.on("close", (code) => {
