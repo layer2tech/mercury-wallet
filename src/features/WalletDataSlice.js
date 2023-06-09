@@ -212,6 +212,12 @@ export const callGetChannelEvents = async (wallet_name) => {
   }
 };
 
+export const callSetNotificationSeen = async (id) => {
+  if (isWalletLoaded()) {
+    return await wallet.lightning_client.setNotificationSeen({ id });
+  }
+};
+
 export const getTotalChannelBalance = () => {
   if (isWalletLoaded()) {
     return wallet.channels.getTotalChannelBalance();
