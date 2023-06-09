@@ -88,6 +88,9 @@ export default class LightningClient implements LightningClientInterface {
   syncClient: EsploraSyncClient;
   txdata: any;
   payment_address: any;
+  // keep track of intervals to stop later
+  eventInterval: any;
+  syncInterval: any;
 
   constructor(props: LightningClientInterface) {
     this.feeEstimator = props.feeEstimator;
@@ -568,15 +571,21 @@ export default class LightningClient implements LightningClientInterface {
     this.channelManager.timer_tick_occurred();
 
     DEBUG.log("Listening for events");
-    setInterval(async () => {
+    this.eventInterval = setInterval(async () => {
       // processes events on ChannelManager and ChainMonitor
       await this.processPendingEvents();
     }, 2000);
 
     // sync up LDK with chain every 10seconds
-    setInterval(async () => {
+    this.syncInterval = setInterval(async () => {
       await this.sync();
     }, 10000);
+  }
+
+  async stop() {
+    // Clear the intervals that are used to listen for events and sync up the LDK with the chain.
+    clearInterval(this.eventInterval);
+    clearInterval(this.syncInterval);
   }
 
   async processPendingEvents() {

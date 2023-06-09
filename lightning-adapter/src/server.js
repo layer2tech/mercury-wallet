@@ -7,6 +7,7 @@ import channelRoutes from "./routes/channelRoutes";
 import { closeConnections } from "./LDK/utils/ldk-utils";
 import initialiseWasm from "./LDK/init/initializeWasm";
 import LDKClientFactory from "./LDK/init/LDKClientFactory";
+await initialiseWasm();
 
 // Constants
 const PORT = 3003;
@@ -29,19 +30,6 @@ app.listen(PORT, async () => {
   console.log(
     `[Server.ts]: lightning-adapter listening at http://localhost:${PORT}`
   );
-
-  try {
-    await initialiseWasm();
-    console.log("[Server.ts]: Finished initialiseWasm");
-    await LDKClientFactory.createLDKClient("dev"); // prod or dev
-    console.log("[Server.ts]: Finished create LDK");
-    const LightningClient = LDKClientFactory.getLDKClient();
-    console.log("[Server.ts]: Starting LDK Client");
-    await LightningClient.start();
-    console.log("[Server.ts]: LDK Client started");
-  } catch (e) {
-    console.error(`Error occured setting up LDK \n ${e} \n`);
-  }
 });
 
 // Exit handlers

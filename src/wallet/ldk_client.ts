@@ -15,6 +15,7 @@ Object.freeze(LIGHTNING_GET_ROUTE);
 
 export const LIGHTNING_POST_ROUTE = {
   GENERATE_INVOICE: "/generateInvoice",
+  CREATE_LDK: "/createLDK",
 };
 Object.freeze(LIGHTNING_POST_ROUTE);
 

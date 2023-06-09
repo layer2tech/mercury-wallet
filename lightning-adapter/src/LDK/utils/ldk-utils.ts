@@ -2,6 +2,7 @@ import LDKClientFactory from "../init/LDKClientFactory";
 import db from "../../db/db";
 import fs from "fs";
 import { uint8ArrayToHexString, stringifyEvent } from "./utils";
+import { ChannelDetails, Option_u64Z_Some } from "lightningdevkit";
 
 export const closeConnections = () => {
   console.log("[ldk-utils.ts]: Closing all the connections");
@@ -373,19 +374,40 @@ export const saveEventDataToDb = (
   console.log("[ldk-utils.ts] - saveEventDataToDB");
   const event_type = Object.getPrototypeOf(event).constructor.name;
   const event_data = stringifyEvent(event);
-  const channel_id_hex = uint8ArrayToHexString(event.channel_id ? event.channel_id : event.temporary_channel_id);
-
-  const insertEventData = `INSERT INTO events (event_type, event_data, channel_id_hex) VALUES (?, ?, ?)`;
-  db.run(
-    insertEventData, 
-    [event_type, event_data, channel_id_hex], 
-    function(err: any) {
-      if (err) {
-        console.log("Error in saving event to db: " + err);
+  let channel_id_hex;
+  if (event && (event.channel_id || event.temporary_channel_id || event.via_channel_id)) {
+    const channel_id = event.channel_id || event.temporary_channel_id || event.via_channel_id;
+    channel_id_hex = uint8ArrayToHexString(channel_id);
+  } else {
+    if (event.path) {
+      const hops = event.path.get_hops();
+      const short_channel_id = hops[0].get_short_channel_id();
+      if (short_channel_id) {
+        const channels: ChannelDetails[] = LDKClientFactory.getLDKClient().getChannels();
+        console.log("SHORT CHANNEL ID", short_channel_id)
+        channels.forEach((channel) => {
+          if ((channel.get_outbound_payment_scid() as Option_u64Z_Some).some === short_channel_id) {
+            channel_id_hex = uint8ArrayToHexString(channel.get_channel_id());
+          }
+        });
       }
-      console.log('Data inserted successfully.');
     }
-  );
+  }
+
+  console.log("CHANNEL_ID_HEX", channel_id_hex)
+  if (channel_id_hex) {
+    const insertEventData = `INSERT INTO events (event_type, event_data, channel_id_hex) VALUES (?, ?, ?)`;
+    db.run(
+      insertEventData, 
+      [event_type, event_data, channel_id_hex], 
+      function(err: any) {
+        if (err) {
+          console.log("Error in saving event to db: " + err);
+        }
+        console.log('Data inserted successfully.');
+      }
+    );
+  }
 }
 
 export const replaceTempChannelIdInDb = (

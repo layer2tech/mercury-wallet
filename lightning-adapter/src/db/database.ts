@@ -183,7 +183,8 @@ const db = new sqlite3.Database("lightning.db", (err) => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_type TEXT NOT NULL,
     event_data TEXT NOT NULL,
-    channel_id_hex INTEGER NOT NULL
+    channel_id_hex INTEGER NOT NULL,
+    notification_seen BOOL NOT NULL DEFAULT 0
   )`;
   db.run(createEventsTable, (err) => {
     if (err) {

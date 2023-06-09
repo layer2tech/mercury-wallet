@@ -4,16 +4,48 @@ import { closeConnections, validateInvoiceBody } from "../LDK/utils/ldk-utils";
 import LDKClientFactory from "../LDK/init/LDKClientFactory";
 import { convertToMillisats } from "../LDK/utils/utils";
 
-router.get("/closeConnections", async function (req, res) {
+router.post("/startLDK", async function (req, res) {
+  // initialize an LDK with the network set
+  const { network } = req.body;
+
+  // validate network values
+  if (network !== "dev" || network !== "prod" || network !== "test") {
+    res.status(500).json("Invalid network given for initLDK");
+  }
+
+  try {
+    console.log("[Server.ts]: Finished initialiseWasm");
+    await LDKClientFactory.createLDKClient(network); // prod/test/dev
+    console.log("[Server.ts]: Finished create LDK");
+    const LightningClient = LDKClientFactory.getLDKClient();
+    console.log("[Server.ts]: Starting LDK Client");
+    await LightningClient.start();
+    console.log("[Server.ts]: LDK Client started");
+  } catch (e) {
+    console.error(`Error occured setting up LDK \n ${e} \n`);
+  }
+  res.status(200);
+});
+
+router.get("/closeLDK", async function (req, res) {
   // Closing all connections
   closeConnections();
+
+  try {
+    // Close all intervals
+    const LightningClient = LDKClientFactory.getLDKClient();
+    LightningClient.stop();
+  } catch (e) {
+    console.error("Error occured stopping LDK");
+  }
+
   res.status(200).json({ message: "Connections closed" });
 });
 
 router.post("/generateInvoice", async function (req, res) {
   try {
     let { amount_in_sats, invoice_expiry_secs, description } = req.body;
-    amount_in_sats = Number(amount_in_sats)
+    amount_in_sats = Number(amount_in_sats);
     // make sure we have valid object
     validateInvoiceBody(amount_in_sats, invoice_expiry_secs, description);
 

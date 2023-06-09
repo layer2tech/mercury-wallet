@@ -57,7 +57,7 @@ import { uint8ArrayToHexString } from "../utils/utils.js";
 import { ChalkColor, Logger as UtilLogger } from "../../LDK/utils/Logger.js";
 const DEBUG = new UtilLogger(ChalkColor.Blue, "initializeLDK.ts");
 
-export async function initializeLDK(electrum: string = "prod") {
+export async function initializeLDK(electrum: string = "dev") {
   try {
     DEBUG.log("started initializeLDK");
 
@@ -79,7 +79,14 @@ export async function initializeLDK(electrum: string = "prod") {
     }
 
     // Check that the bitcoind we've connected to is running the network we expect
-    const network = Network.LDKNetwork_Regtest;
+    let network;
+    if (electrum === "prod") {
+      network = Network.LDKNetwork_Bitcoin;
+    } else if (electrum === "test") {
+      network = Network.LDKNetwork_Testnet;
+    } else {
+      network = Network.LDKNetwork_Regtest;
+    }
 
     // ## Setup
     // Step 1: Initialize the FeeEstimator
@@ -209,7 +216,7 @@ export async function initializeLDK(electrum: string = "prod") {
 
     DEBUG.log("intiialize chain parameters");
     const params = ChainParameters.constructor_new(
-      Network.LDKNetwork_Regtest,
+      network,
       BestBlock.constructor_new(Buffer.from(block_hash, "hex"), block_height)
     );
 
@@ -399,7 +406,10 @@ export async function initializeLDK(electrum: string = "prod") {
     let eventHandler;
 
     if (channelManager) {
-      let mercuryEventHandler = new MercuryEventHandler(channelManager);
+      let mercuryEventHandler = new MercuryEventHandler(
+        channelManager,
+        electrum
+      );
       eventHandler = EventHandler.new_impl(mercuryEventHandler);
     }
 

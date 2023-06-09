@@ -185,6 +185,73 @@ router.get("/allEvents", async function (req, res) {
   });
 });
 
+router.get("/loadEvents/:wallet_name", async function (req, res) {
+  const wallet_id = req.params.wallet_name;
+  const selectData = `
+    SELECT *
+    FROM events
+    WHERE channel_id_hex = (
+        SELECT channel_id
+        FROM channels
+        WHERE wallet_name = ?
+    );
+  `;
+  db.all(selectData, [wallet_id], (err: any, rows: any) => {
+    if (err) {
+      console.log(err.message);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (rows && rows.length > 0) {
+      res.status(200).json(rows);
+    } else {
+      res.json([]); // empty channels
+    }
+  });
+});
+
+router.get("/loadUnnotifiedEvents/:wallet_name", async function (req, res) {
+  const wallet_id = req.params.wallet_name;
+  const selectData = `
+    SELECT id, channel_id_hex, event_type, event_data
+    FROM events
+    WHERE channel_id_hex = (
+        SELECT channel_id
+        FROM channels
+        WHERE wallet_name = ?
+    ) AND notification_seen = 0;
+  `;
+  db.all(selectData, [wallet_id], (err: any, rows: any) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (rows && rows.length > 0) {
+      res.status(200).json(rows);
+    } else {
+      res.json([]); // empty channels
+    }
+  });
+});
+
+router.post("/setEventNotificationSeen", (req, res) => {
+  const { id } = req.body;
+  
+  if (!Number.isInteger(parseInt(id))) {
+    res.status(400).json({ error: "Invalid channel ID" });
+    return;
+  }
+
+  const updateData = `UPDATE events SET notification_seen = 1 WHERE id=?`;
+  db.run(updateData, [id], function (err: any) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: "Event notification status updated successfully" });
+  });
+});
+
 // load channels by wallet name e.g. -> localhost:3003/channel/loadChannels/vLDK
 router.get("/loadChannels/:wallet_name", (req, res) => {
   const wallet_id = req.params.wallet_name;

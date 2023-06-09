@@ -26,7 +26,7 @@ class LDKClientFactory {
     );
 
     if (!this.client) {
-      if (bitcoind_client === "test") {
+      if (bitcoind_client === "mock") {
         this.client = new MockLightningClient();
         return;
       }

@@ -22,12 +22,14 @@ export const MOCK_DATA = {
   VOUT: 1,
   PAYMENT_ADDRESS: "tb1q60myaz6078nfggywsjlv6pphpjj2d9x7nas29c",
   INVOICE_EXPIRY_SECS: 3600,
-  FUNDING_TXID: "1ec1ab323d1acad8bea1e24b4a9dbf5f82963838d255b8473255c07aa2b78892"
+  FUNDING_TXID:
+    "1ec1ab323d1acad8bea1e24b4a9dbf5f82963838d255b8473255c07aa2b78892",
 };
 
 export class MockLightningClient {
   netHandler: any;
   start() {}
+  stop() {}
   updateBestBlockHeight() {
     return 1;
   }

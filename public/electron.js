@@ -22,6 +22,36 @@ const process = require("process");
 const fork = require("child_process").fork;
 const exec = require("child_process").exec;
 
+const { spawn } = require("child_process");
+const electronReload = require("electron-reload");
+const path = require("path");
+require("ts-node/register"); // Register ts-node for dynamic TypeScript execution
+
+function startExpressServer() {
+  const command = "node";
+  const args = [
+    "--loader",
+    "ts-node/esm",
+    "--experimental-specifier-resolution=node",
+    "D:/GITHUB/mercury-wallet-1/lightning-adapter/src/server.js",
+  ];
+
+  const expressProcess = spawn(command, args, {
+    shell: true,
+    stdio: "ignore",
+  });
+
+  expressProcess.on("error", (code) => {
+    console.log(`Express server error ${code}`);
+  });
+
+  expressProcess.on("close", (code) => {
+    console.log(`Express server process exited with code ${code}`);
+  });
+}
+
+startExpressServer();
+
 // set to testnet mode for testing
 if (
   isPackaged ||
@@ -141,6 +171,8 @@ for (let i = 0; i < process.argv.length; i++) {
 let mainWindow = null;
 
 function createWindow() {
+  console.log("createWindow");
+
   let windowSpec = {
     width: 1200,
     height: 800,
@@ -239,6 +271,8 @@ function createWindow() {
         console.log("An error occurred: ", err);
       });
   }
+
+  //startExpressServer();
 }
 
 async function getTorAdapter(path) {
@@ -447,10 +481,10 @@ function terminate_mercurywallet_process(init_new, network) {
   if (getPlatform() === "win") {
     if (isDev) {
       command =
-        "wmic process where name='electron.exe' get ParentProcessId,ProcessId";
+        'wmic process where name="electron.exe" get ParentProcessId,ProcessId';
     } else {
       command =
-        "wmic process where name='mercurywallet.exe' get ParentProcessId,ProcessId";
+        'wmic process where name="mercurywallet.exe" get ParentProcessId,ProcessId';
     }
   } else {
     if (network === "tor") {
@@ -464,20 +498,23 @@ function terminate_mercurywallet_process(init_new, network) {
 
   exec(command, (error, stdout, stderr) => {
     if (error) {
-      console.error(`terminate_mercurywallet_process- exec error: ${error}`);
-      console.log(`terminate_mercurywallet_process- exec error: ${error}`);
+      const errorMessage = `terminate_mercurywallet_process - exec error: ${error}`;
+      fs.appendFileSync("debug.log", errorMessage + "\n");
+      console.error(errorMessage);
       return;
     }
     if (stderr) {
-      console.log(`terminate_mercurywallet_process- error: ${stderr}`);
+      const stderrMessage = `terminate_mercurywallet_process - error: ${stderr}`;
+      fs.appendFileSync("debug.log", stderrMessage + "\n");
+      console.log(stderrMessage);
       return;
     }
 
     let pid = null;
 
-    //Split by new line
+    // Split by new line
     const pid_arr = stdout.split(/\r\n|\n\r|\n|\r/);
-    //If windows check this is not the current process or one of its child processes
+    // If Windows, check this is not the current process or one of its child processes
     if (getPlatform() === "win") {
       for (i = 1; i < pid_arr.length; i++) {
         const tmp_arr = pid_arr[i].trim().replace(/\s+/g, " ").split(" ");
@@ -497,12 +534,17 @@ function terminate_mercurywallet_process(init_new, network) {
     }
 
     if (pid) {
-      console.log(`terminating existing mercurywallet process: ${pid}`);
+      const terminationMessage = `Terminating existing mercurywallet process: ${pid}`;
+      fs.appendFileSync("debug.log", terminationMessage + "\n");
+      console.log(terminationMessage);
       kill_process(pid, init_new);
       return;
     }
 
     if (init_new) {
+      // Write to file to indicate reaching init_new()
+      const initNewMessage = "Reached init_new() function. -> " + init_new;
+      fs.appendFileSync("debug.log", initNewMessage + "\n");
       init_new();
     }
     return;

@@ -1,7 +1,7 @@
 "use strict";
 import React, { useState } from "react";
 import { Link, useHistory } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Storage } from "../../store";
 import {
   walletLoad,
@@ -16,6 +16,7 @@ import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
 import "./LoadWallet.css";
 import { STATECOIN_STATUS } from "../../wallet";
+import { LDKClient, LIGHTNING_POST_ROUTE } from "../../wallet/ldk_client";
 
 const LoadWalletPage = (props) => {
   const [showPass, setShowPass] = useState(false);
@@ -69,19 +70,19 @@ const LoadWalletPage = (props) => {
 
   // Attempt to load wallet. If fail display error.
   const onContinueClick = async (event) => {
+    let wallet;
     // check for password
     if (
       typeof selectedWallet === "string" ||
       selectedWallet instanceof String
     ) {
       try {
-        let wallet = await walletLoadFromMem(selectedWallet, passwordEntered);
+        wallet = await walletLoadFromMem(selectedWallet, passwordEntered);
 
-        history.push("/home")
+        history.push("/home");
         dispatch(setWalletLoaded({ loaded: true }));
-        
-        await walletLoadConnection(wallet)
 
+        await walletLoadConnection(wallet);
       } catch (e) {
         event.preventDefault();
         dispatch(setError({ msg: e.message }));
@@ -89,18 +90,35 @@ const LoadWalletPage = (props) => {
       }
     } else {
       try {
-        let wallet = await walletLoadFromMem(selectedWallet.name, passwordEntered);
+        wallet = await walletLoadFromMem(selectedWallet.name, passwordEntered);
 
-        history.push("/home")
+        history.push("/home");
         dispatch(setWalletLoaded({ loaded: true }));
-        
-        await walletLoadConnection(wallet)
+
+        await walletLoadConnection(wallet);
       } catch (e) {
         event.preventDefault();
         dispatch(setError({ msg: e.message }));
         return;
       }
     }
+
+    let network = wallet.config.network;
+    let postArg = ["prod", "test", "dev"];
+    let selectedArg;
+
+    if (network.bech32 === "bc") {
+      selectedArg = postArg[0];
+    } else if (network.bech32 === "tb") {
+      selectedArg = postArg[1];
+    } else {
+      selectedArg = postArg[2];
+    }
+    console.log("network loaded was:", network);
+    await LDKClient.post(LIGHTNING_POST_ROUTE.CREATE_LDK, {
+      network: selectedArg,
+    });
+
     checkForCoinsHealth();
     initActivityLogItems();
     dispatch(setWalletLoaded({ loaded: true }));

@@ -1,5 +1,5 @@
 {
-  "name": "mercury-wallet-lightning-adapter",
+  "name": "mercury-node",
   "jest": {
     "moduleDirectories": [
       "node_modules",

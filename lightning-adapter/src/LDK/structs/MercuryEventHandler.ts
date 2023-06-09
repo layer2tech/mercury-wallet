@@ -41,7 +41,6 @@ import crypto from "crypto";
 import chalk from "chalk";
 import { Transaction } from "bitcoinjs-lib";
 import fs from "fs";
-import { regtest } from "bitcoinjs-lib/src/networks.js";
 import {
   saveChannelIdToDb,
   saveEventDataToDb,
@@ -74,6 +73,7 @@ interface PaymentInfo {
 
 class MercuryEventHandler implements EventHandlerInterface {
   channelManager: ChannelManager;
+  network: any;
 
   static vout: any;
   static txid: any;
@@ -83,22 +83,28 @@ class MercuryEventHandler implements EventHandlerInterface {
   static value: number;
   static privateKey: Buffer;
 
-  constructor(_channelManager: ChannelManager) {
+  constructor(_channelManager: ChannelManager, electrum: string) {
     DEBUG.log("Constructor of MercuryEventHandler", "constructor");
     this.channelManager = _channelManager;
+    if (electrum === "prod") {
+      this.network = bitcoin.networks.bitcoin;
+    } else if (electrum === "testnet") {
+      this.network = bitcoin.networks.testnet;
+    } else {
+      this.network = bitcoin.networks.regtest;
+    }
 
     try {
-      const network = bitcoin.networks.regtest;
       let electrum_wallet = ECPair.fromPrivateKey(
         MercuryEventHandler.privateKey,
         {
-          network: network,
+          network: this.network,
         }
       );
 
       const p2wpkh = bitcoin.payments.p2wpkh({
         pubkey: electrum_wallet.publicKey,
-        network: network,
+        network: this.network,
       });
       DEBUG.log("Pay to this address: " + p2wpkh.address);
     } catch (e) {
@@ -363,27 +369,25 @@ class MercuryEventHandler implements EventHandlerInterface {
       output_script,
     } = event;
 
-    const network = bitcoin.networks.regtest;
-
     if (MercuryEventHandler.privateKey === undefined)
       throw Error("[MercuryEventHandler.ts]: private key is undefined");
 
     let electrum_wallet = ECPair.fromPrivateKey(
       MercuryEventHandler.privateKey,
       {
-        network: network,
+        network: this.network,
       }
     );
     if (electrum_wallet === undefined)
       throw Error("[MercuryEventHandler.ts]: electrum wallet is undefined");
 
     // Create the psbt transaction
-    const psbt = new bitcoin.Psbt({ network: network });
+    const psbt = new bitcoin.Psbt({ network: this.network });
     psbt.setVersion(2);
     psbt.setLocktime(0);
     const p2wpkh = bitcoin.payments.p2wpkh({
       pubkey: electrum_wallet.publicKey,
-      network: network,
+      network: this.network,
     });
     let address = p2wpkh.address;
     if (address === undefined) throw Error("No address found.");
@@ -415,7 +419,7 @@ class MercuryEventHandler implements EventHandlerInterface {
       hash: MercuryEventHandler.txid,
       index: MercuryEventHandler.vout,
       witnessUtxo: {
-        script: bitcoin.address.toOutputScript(address, regtest),
+        script: bitcoin.address.toOutputScript(address, this.network),
         value: MercuryEventHandler.value,
       },
     });
