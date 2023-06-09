@@ -932,7 +932,7 @@ export class Wallet {
 
     wallet.saveChannels(channelsInfo);
     wallet.setActive();
-    wallet.nodeId = await wallet.lightning_client.getNodeId();
+    wallet.nodeId = "0"; //await wallet.lightning_client.getNodeId(); // this causes lag on loadWallet
 
     return wallet;
   }

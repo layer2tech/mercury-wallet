@@ -116,10 +116,10 @@ const LoadWalletPage = (props) => {
     }
 
     console.log("network loaded was:", network);
-    /*
+
     await LDKClient.post(LIGHTNING_POST_ROUTE.START_LDK, {
       network: selectedArg,
-    });*/
+    });
 
     checkForCoinsHealth();
     initActivityLogItems();
