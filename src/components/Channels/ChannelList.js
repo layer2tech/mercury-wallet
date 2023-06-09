@@ -97,7 +97,12 @@ const ChannelList = (props) => {
           dispatch(setSuccessMessage({ msg: "Channel ready to send sats" }));
           callSetNotificationSeen(event.id);
         } else if (event.event_type === "Event_PaymentClaimable") {
-          dispatch(setSuccessMessage({ msg: "Payment Received successfully" }));
+          const amount_msat = parseInt(event.event_data.match(/amount_msat:\s*(\d+)/)?.[1], 10) || null;
+          if (amount_msat) {
+            dispatch(setSuccessMessage({ msg: `Payment Received successfully of ${amount_msat/1000} sats.` }));
+          } else {
+            dispatch(setSuccessMessage({ msg: "Payment Received successfully" }));
+          }
           callSetNotificationSeen(event.id);
         }
       });
