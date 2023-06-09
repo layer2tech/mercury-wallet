@@ -28,12 +28,19 @@ const path = require("path");
 require("ts-node/register"); // Register ts-node for dynamic TypeScript execution
 
 function startExpressServer() {
+  lightning_adapter_path = joinPath(
+    rootPath,
+    "node_modules",
+    "mercury-wallet-lightning-adapter",
+    "src",
+    "server.js"
+  );
   const command = "node";
   const args = [
     "--loader",
     "ts-node/esm",
     "--experimental-specifier-resolution=node",
-    "D:/GITHUB/mercury-wallet-1/lightning-adapter/src/server.js",
+    lightning_adapter_path,
   ];
 
   const expressProcess = spawn(command, args, {
@@ -499,13 +506,11 @@ function terminate_mercurywallet_process(init_new, network) {
   exec(command, (error, stdout, stderr) => {
     if (error) {
       const errorMessage = `terminate_mercurywallet_process - exec error: ${error}`;
-      fs.appendFileSync("debug.log", errorMessage + "\n");
       console.error(errorMessage);
       return;
     }
     if (stderr) {
       const stderrMessage = `terminate_mercurywallet_process - error: ${stderr}`;
-      fs.appendFileSync("debug.log", stderrMessage + "\n");
       console.log(stderrMessage);
       return;
     }
@@ -535,7 +540,6 @@ function terminate_mercurywallet_process(init_new, network) {
 
     if (pid) {
       const terminationMessage = `Terminating existing mercurywallet process: ${pid}`;
-      fs.appendFileSync("debug.log", terminationMessage + "\n");
       console.log(terminationMessage);
       kill_process(pid, init_new);
       return;
@@ -544,7 +548,6 @@ function terminate_mercurywallet_process(init_new, network) {
     if (init_new) {
       // Write to file to indicate reaching init_new()
       const initNewMessage = "Reached init_new() function. -> " + init_new;
-      fs.appendFileSync("debug.log", initNewMessage + "\n");
       init_new();
     }
     return;
