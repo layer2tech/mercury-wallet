@@ -2,10 +2,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 import { Wallet, ACTION, STATECOIN_STATUS, Config } from "../wallet";
-import { getFeeInfo, getCoinsInfo, pingElectrum } from "../wallet/mercury/info_api";
+import {
+  getFeeInfo,
+  getCoinsInfo,
+  pingElectrum,
+  pingLightning,
+} from "../wallet/mercury/info_api";
 import { pingServer as pingConductor } from "../wallet/swap/info_api";
 import { pingServer } from "../wallet/mercury/info_api";
-import { decodeMessage, decodeSCEAddress } from "../wallet/util";
+import {
+  decodeMessage,
+  decodeSCEAddress,
+  isValidNodeKeyAddress,
+  isValidLnInvoice,
+} from "../wallet/util";
 import { resetIndex } from "../containers/Receive/Receive";
 
 import { v4 as uuidv4 } from "uuid";
@@ -14,7 +24,8 @@ import { mutex } from "../wallet/electrum";
 import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
-import { NETWORK_TYPE } from "../wallet/wallet";
+import { NETWORK_TYPE, deleteChannelByAddr } from "../wallet/wallet";
+import { useSelector } from "react-redux";
 // import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
@@ -30,10 +41,10 @@ log = new WrappedLogger();
 let isTestnet = false;
 
 export const callIsTestnet = () => {
-  if(isWalletLoaded()){
-    return wallet.config.electrum_config.host.includes('testnet')
+  if (isWalletLoaded()) {
+    return wallet.config.electrum_config.host.includes("testnet");
   }
-}
+};
 
 export const callGetArgsHasTestnet = async () => {
   // override existing value - SHOULD really be calling set whenever true
@@ -83,6 +94,7 @@ const DEFAULT_STATE_COIN_DETAILS = {
 };
 
 const initialState = {
+  network: 0, // default to testnet
   walletMode: WALLET_MODE.STATECHAIN,
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
@@ -95,7 +107,12 @@ const initialState = {
   },
   showDetails: DEFAULT_STATE_COIN_DETAILS,
   progress: { active: false, msg: "" },
-  balance_info: { total_balance: null, num_coins: null, hidden: false, channel_balance: 15000 },
+  balance_info: {
+    total_balance: null,
+    num_coins: null,
+    hidden: false,
+    channel_balance: null,
+  },
   fee_info: { deposit: "NA", withdraw: "NA" },
   ping_server_ms: null,
   ping_conductor_ms: null,
@@ -103,6 +120,7 @@ const initialState = {
   token_init_status: "idle",
   token: {token: { id: "", btc: "", ln: "" }, values: []},
   token_verify: {spent: true, confirmed: false, status: "idle"},
+  ping_lightning_ms: null,
   ping_swap: null,
   ping_server: null,
   filterBy: "default",
@@ -115,9 +133,14 @@ const initialState = {
   blockHeightLoad: false,
   coinsAdded: 0,
   coinsRemoved: 0,
-  torInfo: { online: true },
+  torInfo: { online: true, torcircuitData: [], torLoaded: false },
   showWithdrawPopup: false,
   withdraw_txid: "",
+  showInvoicePopup: false,
+  success_dialogue: {
+    msg: "",
+  },
+  channel_events: [],
 };
 
 // Check if a wallet is loaded in memory
@@ -126,12 +149,10 @@ export const isWalletLoaded = () => {
 };
 
 export const callUnsubscribeAll = async () => {
-  if(isWalletLoaded()){
-
+  if (isWalletLoaded()) {
     await wallet.unsubscribeAll();
-
   }
-}
+};
 
 export const isWalletActive = () => {
   return isWalletLoaded() && wallet.isActive();
@@ -174,7 +195,37 @@ export const createInvoice = (amtInSats, invoiceExpirysecs, description) => {
   if (isWalletLoaded()) {
     return wallet.createInvoice(amtInSats, invoiceExpirysecs, description);
   }
-}
+};
+
+export const updateChannels = (channels) => {
+  if (isWalletLoaded()) {
+    return wallet.saveChannels(channels);
+  }
+};
+
+export const callGetChannels = async (wallet_name) => {
+  if (isWalletLoaded()) {
+    return await wallet.lightning_client.getChannels(wallet_name);
+  }
+};
+
+export const callGetChannelEvents = async (wallet_name) => {
+  if (isWalletLoaded()) {
+    return await wallet.lightning_client.getChannelEvents(wallet_name);
+  }
+};
+
+export const callSetNotificationSeen = async (id) => {
+  if (isWalletLoaded()) {
+    return await wallet.lightning_client.setNotificationSeen({ id });
+  }
+};
+
+export const getTotalChannelBalance = () => {
+  if (isWalletLoaded()) {
+    return wallet.channels.getTotalChannelBalance();
+  }
+};
 
 //Restart the electrum server if ping fails
 async function pingElectrumRestart(force = false) {
@@ -196,7 +247,10 @@ async function pingElectrumRestart(force = false) {
       wallet.electrum_client = wallet.newElectrumClient();
       try {
         //init Block height
-        await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+        await wallet.electrum_client.getLatestBlock(
+          setBlockHeightCallBack,
+          wallet.electrum_client.endpoint
+        );
         wallet.initElectrumClient(setBlockHeightCallBack);
       } catch (err) {
         log.info(`Failed to initialize electrum client: ${err}`);
@@ -236,7 +290,7 @@ export async function walletLoadFromMem(name, password) {
   wallet.disableAutoSwaps();
 
   log.info("Wallet " + name + " loaded from memory. ");
-  return wallet
+  return wallet;
 }
 
 // Load wallet from store
@@ -248,30 +302,40 @@ export async function walletLoad(name, password, router) {
   await walletLoadConnection(wallet);
 }
 
-export async function callGetLatestBlock(){
-  if(isWalletLoaded){
-    try{
-      return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
-    } catch(e){
-      if(e.message.includes('Tor circuit')){
+export async function callGetLatestBlock() {
+  if (isWalletLoaded) {
+    try {
+      return await wallet.electrum_client.getLatestBlock(
+        setBlockHeightCallBack,
+        wallet.electrum_client.endpoint
+      );
+    } catch (e) {
+      if (e.message.includes("circuit")) {
         await wallet.electrum_client.new_tor_id();
-        return await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+        return await wallet.electrum_client.getLatestBlock(
+          setBlockHeightCallBack,
+          wallet.electrum_client.endpoint
+        );
       }
     }
   }
 }
 
-async function setNetworkEndpoints( wallet, networkType ){
+async function setNetworkEndpoints(wallet, networkType) {
   await wallet.setHttpClient(networkType);
   await wallet.setElectrsClient(networkType);
   await wallet.set_adapter_endpoints();
 }
 
-async function initConnectionData( wallet ) {
+async function initConnectionData(wallet) {
+  console.log("init connectoin data");
   await mutex.runExclusive(async () => {
     //init Block height
-    await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
-    
+    await wallet.electrum_client.getLatestBlock(
+      setBlockHeightCallBack,
+      wallet.electrum_client.endpoint
+    );
+
     //subscribe to block height interval loop
     await wallet.initElectrumClient(setBlockHeightCallBack);
 
@@ -286,20 +350,19 @@ async function initConnectionData( wallet ) {
 export async function walletLoadConnection(wallet) {
   if (testing_mode) log.info("Testing mode set.");
   let networkType = wallet.networkType;
-  if(!networkType) {
-    networkType = NETWORK_TYPE.TOR
-    wallet.networkType = NETWORK_TYPE.TOR
+  if (!networkType) {
+    networkType = NETWORK_TYPE.TOR;
+    wallet.networkType = NETWORK_TYPE.TOR;
   }
-  
+
   // set http & electrs client endpoints and adapter endpoints
-  await setNetworkEndpoints( wallet, networkType );
+  await setNetworkEndpoints(wallet, networkType);
 
   // de register coins from swaps
   await wallet.deRegisterSwaps(true);
 
   // get swap group info & block height & set to wallet object
   await initConnectionData(wallet);
-
 }
 
 async function recoverCoins(wallet, gap_limit, gap_start, dispatch) {
@@ -321,15 +384,28 @@ export async function walletFromMnemonic(
   router,
   try_restore,
   gap_limit = undefined,
-  gap_start = undefined
+  gap_start = undefined,
+  network = undefined
 ) {
-  let network;
-  if ((await callGetArgsHasTestnet()) === true) {
+  if (network === 0) {
     network = bitcoin.networks["testnet"];
+  } else if (network === 1) {
+    network = bitcoin.networks["bitcoin"];
+  } else if (network === 2) {
+    network = bitcoin.networks["regtest"];
   } else {
     network = bitcoin.networks["bitcoin"];
   }
-  wallet = Wallet.fromMnemonic(name, password, mnemonic, route_network_type, network, testing_mode);
+
+  dispatch(setProgressComplete({ msg: "" }));
+  wallet = Wallet.fromMnemonic(
+    name,
+    password,
+    mnemonic,
+    route_network_type,
+    network,
+    testing_mode
+  );
   wallet.resetSwapStates();
 
   const networkType = wallet.networkType;
@@ -339,8 +415,6 @@ export async function walletFromMnemonic(
   await mutex.runExclusive(async () => {
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
-    //init Block height
-    await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
     wallet.initElectrumClient(setBlockHeightCallBack);
     if (try_restore) {
       let recoveryComplete = false;
@@ -398,7 +472,10 @@ export const walletFromJson = async (wallet_json, password) => {
         await wallet.setHttpClient(networkType);
         await wallet.setElectrsClient(networkType);
         //init Block height
-        await wallet.electrum_client.getLatestBlock(setBlockHeightCallBack, wallet.electrum_client.endpoint)
+        await wallet.electrum_client.getLatestBlock(
+          setBlockHeightCallBack,
+          wallet.electrum_client.endpoint
+        );
 
         wallet.initElectrumClient(setBlockHeightCallBack);
         await callNewSeAddr();
@@ -412,6 +489,7 @@ export const walletFromJson = async (wallet_json, password) => {
       });
   });
 };
+
 export const callGetAccount = () => {
   if (isWalletLoaded()) {
     return wallet.account;
@@ -495,10 +573,9 @@ export const callSpendToken = (token_id, amount) => {
 
 export const resetBlockHeight = () => {
   if (isWalletLoaded()) {
-    
     return wallet.resetBlockHeight();
-  }  
-}
+  }
+};
 
 export const callGetUnspentStatecoins = () => {
   if (isWalletLoaded()) {
@@ -517,28 +594,28 @@ export const callSumStatecoinValues = (shared_key_ids) => {
   }
 };
 
-export const callSaveChannels = async (channels) => {
-  if (isWalletLoaded()) {
-    await wallet.saveChannels(channels);
-  }
-}
-
 export const getChannels = () => {
   if (isWalletLoaded()) {
-    return wallet.channels;
+    return wallet.channels.channels;
   }
-}
+};
+
+export const getNodeId = () => {
+  if (isWalletLoaded()) {
+    return wallet.nodeId;
+  }
+};
 
 export const callSumChannelAmt = (selectedChannels) => {
-  let totalSum = 0;
-  selectedChannels.map((selectedChannel) => {
-    let channel_arr = wallet.channels.filter(
-      (channel) => channel.id === selectedChannel
-    );
-    totalSum += channel_arr[0].amt;
-  });
+  const filteredChannels = wallet.channels.filter((channel) =>
+    selectedChannels.includes(channel.id)
+  );
+  const totalSum = filteredChannels.reduce(
+    (sum, currentItem) => sum + currentItem.amount,
+    0
+  );
   return totalSum;
-}
+};
 
 export const callIsBatchMixedPrivacy = (shared_key_ids) => {
   if (isWalletLoaded()) {
@@ -563,8 +640,6 @@ export const resetSwapGroupInfo = () => {
     return wallet.resetSwapGroupInfo();
   }
 };
-
-
 
 export const showWarning = (key) => {
   if (wallet) {
@@ -653,6 +728,13 @@ export const callGetCoinBackupTxData = (shared_key_id) => {
     return wallet.getCoinBackupTxData(shared_key_id);
   }
 };
+
+export const callGetNextBtcAddress = async () => {
+  if (isWalletLoaded()) {
+    return await wallet.genBtcAddress();
+  }
+};
+
 export const callGetSeAddr = (addr_index) => {
   if (isWalletLoaded() && addr_index >= 0) {
     return wallet.getSEAddress(addr_index);
@@ -709,7 +791,10 @@ export const callCreateBackupTxCPFP = async (cpfp_data) => {
 
 export const callGetWalletJsonToBackup = () => {
   if (isWalletLoaded()) {
-    return wallet.storage.getWallet(wallet.name, true);
+    let backup_wallet = wallet.storage.getWallet(wallet.name, true);
+    // remove password and root keys
+    backup_wallet.password = "";
+    return backup_wallet;
   }
 };
 
@@ -936,41 +1021,130 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
   }
 };
 
-export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) => {
-  // Pre action confirmation checks for withdrawal - return true to prevent action
+export const callCreateChannel = async (amount, peer_node) => {
+  console.log("[WalletDataSlice.js]->callCreateChannel");
+  // Creates channel object in wallet.channels and returns address for funding
+  if (isWalletLoaded()) {
+    return await wallet.createChannel(amount, peer_node);
+  }
+};
 
-  // check if channel is chosen
-  if (selectedChannels.length === 0) {
-    dispatch(setError({ msg: "Please choose a channel to withdraw." }));
+export const callSendPayment = async (invoiceStr, dispatch) => {
+  console.log("[WalletDataSlice.js]->callSendPayment");
+
+  if (isWalletLoaded()) {
+    try {
+      await wallet.sendPayment(invoiceStr);
+      dispatch(setSuccessMessage({ msg: "Payment sent successfully" }));
+    } catch (e) {
+      dispatch(setError({ msg: "Error sending payment." }));
+    }
+  }
+};
+
+export const callDeleteChannelByAddr = async (addr) => {
+  if (isWalletLoaded()) {
+    deleteChannelByAddr(addr).then((res) => {
+      if (res.status === 200) {
+        wallet.channels.deleteChannelByAddr(addr);
+      }
+    });
+  }
+};
+
+export const checkChannelWithdrawal = async (
+  dispatch,
+  selectedChannels,
+  inputAddr
+) => {
+  // Pre action confirmation checks for withdrawal - return true to prevent action
+  const ping_lightning_ms_new = await pingLightning();
+  dispatch(setPingLightningMs(ping_lightning_ms_new));
+  if (ping_lightning_ms_new === null) {
+    dispatch(setError({ msg: "Lightning server not connected. Please try again later." }));
     return true;
   }
+  // check if channel is chosen
+  if (selectedChannels.length === 0) {
+    dispatch(setError({ msg: "Please choose a channel to close." }));
+    return true;
+  }
+
+  /*
   if (!inputAddr) {
     dispatch(setError({ msg: "Please enter an address to withdraw to." }));
     return true;
-  }
+  }*/
 
   // if total sats sum in all selected channels less than 0.001BTC (100000 sats) then return error
+  /*
   if (callSumChannelAmt(selectedChannels) < 100000) {
-    dispatch(setError({ msg: "Mininum withdrawal size is 0.001 BTC (100000 sats)." }));
+    dispatch(
+      setError({ msg: "Mininum withdrawal size is 0.001 BTC (100000 sats)." })
+    );
     return true;
-  }
+  }*/
 
+  /*
   try {
     bitcoin.address.toOutputScript(inputAddr, wallet.config.network);
   } catch (e) {
     dispatch(setError({ msg: "Invalid Bitcoin address entered." }));
     return true;
+  }*/
+};
+
+export const checkChannelCreation = async (dispatch, amount, nodekey) => {
+  const ping_lightning_ms_new = await pingLightning();
+  dispatch(setPingLightningMs(ping_lightning_ms_new));
+  if (ping_lightning_ms_new === null) {
+    dispatch(setError({ msg: "Lightning server not connected. Please try again later." }));
+    return true;
+  }
+  if (amount === "") {
+    dispatch(setError({ msg: "Please set the amount of the funding tx." }));
+    return true;
+  }
+  if (nodekey === "") {
+    dispatch(
+      setError({ msg: "Please set the nodekey to open channel with peer " })
+    );
+    return true;
+  }
+  if (nodekey.includes(".onion")) {
+    dispatch(
+      setError({
+        msg: "Connecting to Tor onion address is currently not supported, please enter nodekey having IPv4 or IPv6 address. ",
+      })
+    );
+    return true;
+  }
+  if (!isValidNodeKeyAddress(nodekey)) {
+    dispatch(setError({ msg: "Please enter a valid nodekey address " }));
+    return true;
   }
 };
 
-export const checkChannelSend = (dispatch, inputAddr) => {
+export const checkChannelSend = async (dispatch, inputAddr) => {
   // Pre action confirmation checks for send sats - return true to prevent action
-  if (!inputAddr) {
-    dispatch(setError({ msg: "Please enter a lightning address to send sats." }));
+  const ping_lightning_ms_new = await pingLightning();
+  dispatch(setPingLightningMs(ping_lightning_ms_new));
+  if (ping_lightning_ms_new === null) {
+    dispatch(setError({ msg: "Lightning server not connected. Please try again later." }));
     return true;
   }
-  // Check for valid lightning address needs to be included
-}
+  if (!inputAddr) {
+    dispatch(
+      setError({ msg: "Please enter a lightning address to send sats." })
+    );
+    return true;
+  }
+  // Check for valid lightning address
+  if (!isValidLnInvoice(inputAddr)) {
+    dispatch(setError({ msg: "Please enter a valid lightning address." }));
+    return true;
+  }
+};
 
 export const checkSend = (dispatch, selectedCoins, inputAddr) => {
   // Pre action confirmation checks for send statecoin - return true to prevent action
@@ -1027,22 +1201,34 @@ export const checkSend = (dispatch, selectedCoins, inputAddr) => {
 export const setNetworkType = async (networkType) => {
   if (isWalletLoaded()) {
     wallet.networkType = networkType;
-    wallet.config = new Config(wallet.config.network, networkType, testing_mode);
-    setBlockHeightCallBack([{height: 0}]);
+    wallet.config = new Config(
+      wallet.config.network,
+      networkType,
+      testing_mode
+    );
     await wallet.setHttpClient(networkType);
     await wallet.setElectrsClient(networkType);
     await wallet.set_adapter_endpoints();
     await wallet.save();
   }
-}
+};
 
 export const getNetworkType = () => {
   if (isWalletLoaded()) {
     return wallet.networkType;
   }
-}
-export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, ping_electrum_ms, ping_conductor_ms
-  ,setServerConnected, setConductorConnected, setElectrumConnected, block_height) => {
+};
+export const UpdateSpeedInfo = async (
+  dispatch,
+  torOnline = true,
+  ping_server_ms,
+  ping_electrum_ms,
+  ping_conductor_ms,
+  setServerConnected,
+  setConductorConnected,
+  setElectrumConnected,
+  block_height
+) => {
   let server_ping_ms_new;
   let conductor_ping_ms_new;
   let electrum_ping_ms_new;
@@ -1055,8 +1241,8 @@ export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, 
     wallet.electrum_client.enableBlockHeightSubscribe();
     try {
       server_ping_ms_new = await pingServer(wallet.http_client);
-      if(server_ping_ms_new !== ping_server_ms){
-        dispatch(setPingServerMs( server_ping_ms_new ));
+      if (server_ping_ms_new !== ping_server_ms) {
+        dispatch(setPingServerMs(server_ping_ms_new));
         setServerConnected(server_ping_ms_new != null);
       }
     } catch (err) {
@@ -1064,7 +1250,7 @@ export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, 
     }
     try {
       conductor_ping_ms_new = await pingConductor(wallet.http_client);
-      if(conductor_ping_ms_new !== ping_conductor_ms){
+      if (conductor_ping_ms_new !== ping_conductor_ms) {
         dispatch(setPingConductorMs(conductor_ping_ms_new));
         setConductorConnected(conductor_ping_ms_new != null);
       }
@@ -1073,9 +1259,9 @@ export const UpdateSpeedInfo = async(dispatch, torOnline = true,ping_server_ms, 
     }
     try {
       electrum_ping_ms_new = await pingElectrum(wallet.electrum_client);
-      if(electrum_ping_ms_new !== ping_electrum_ms){
+      if (electrum_ping_ms_new !== ping_electrum_ms) {
         dispatch(setPingElectrumMs(electrum_ping_ms_new));
-        if(block_height && (block_height !== 0)){
+        if (block_height && block_height !== 0) {
           setElectrumConnected(electrum_ping_ms_new != null);
         }
       }
@@ -1092,8 +1278,8 @@ export const callResetConnectionData = (dispatch) => {
   dispatch(setPingElectrumMs(null));
   dispatch(setPingServerMs(null));
   dispatch(setBlockHeightLoad(false));
-  dispatch(updateFeeInfo({deposit: "NA", withdraw: "NA"}));
-}
+  dispatch(updateFeeInfo({ deposit: "NA", withdraw: "NA" }));
+};
 
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
@@ -1208,13 +1394,12 @@ export const callGetNewTorId = createAsyncThunk(
 export const callGetNewTorCircuit = createAsyncThunk(
   "GetNewTorCircuit",
   async (action, thunkAPI) => {
-    wallet.updateTorCircuit();
+    wallet.getTorCircuit();
   }
 );
 
 export const callUpdateTorCircuitInfo = createAsyncThunk(
   "UpdateTorCircuitInfo",
-
   async (action, thunkAPI) => {
     try {
       wallet.updateTorcircuitInfo();
@@ -1283,6 +1468,12 @@ const WalletSlice = createSlice({
   name: "walletData",
   initialState,
   reducers: {
+    setNetwork: (state, action) => {
+      return {
+        ...state,
+        network: action.payload,
+      };
+    },
     setTorOnline(state, action) {
       return {
         ...state,
@@ -1385,6 +1576,12 @@ const WalletSlice = createSlice({
         ...state,
         walletMode: action.payload,
       };
+    },
+    updateChannelEvents(state, action) {
+      return {
+        ...state,
+        channelEvents: action.payload,
+      }
     },
     updateSwapPendingCoins(state, action) {
       return {
@@ -1607,6 +1804,12 @@ const WalletSlice = createSlice({
         ping_electrum_ms: action.payload,
       };
     },
+    setPingLightningMs(state, action) {
+      return {
+        ...state,
+        ping_lightning_ms: action.payload,
+      };
+    },
     setShowWithdrawPopup(state, action) {
       return {
         ...state,
@@ -1618,7 +1821,30 @@ const WalletSlice = createSlice({
         ...state,
         withdraw_txid: action.payload,
       };
-    }
+    },
+    setShowInvoicePopup(state, action) {
+      return {
+        ...state,
+        showInvoicePopup: action.payload,
+      };
+    },
+    setSuccessMessage(state, action) {
+      return {
+        ...state,
+        success_dialogue: {
+          ...state.success_dialogue,
+          msg: action.payload.msg,
+        },
+      };
+    },
+    setSuccessMessageSeen(state, action) {
+      return {
+        ...state,
+        success_dialogue: {
+          msg: "",
+        },
+      };
+    },
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -1794,6 +2020,7 @@ export const {
   setTokenVerifyIdle,
   updateFilter,
   updateWalletMode,
+  updateChannelEvents,
   updateSwapPendingCoins,
   addSwapPendingCoin,
   removeSwapPendingCoin,
@@ -1807,12 +2034,17 @@ export const {
   updateTxFeeEstimate,
   addCoins,
   removeCoins,
+  setNetwork,
   setTorOnline,
   setPingServerMs,
   setPingConductorMs,
   setPingElectrumMs,
+  setPingLightningMs,
   setShowWithdrawPopup,
-  setWithdrawTxid
+  setWithdrawTxid,
+  setShowInvoicePopup,
+  setSuccessMessage,
+  setSuccessMessageSeen,
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 

@@ -22,6 +22,8 @@ import WarningPopup from "../WarningPopUp/WarningPopUp";
 import InfoModal from "../InfoModal/InfoModal";
 import isElectron from "is-electron";
 import WithdrawModal from "../WithdrawModal/WithdrawModal";
+import InvoiceModal from "../InvoiceModal/InvoiceModal";
+import SuccessMessagePopup from "../SuccessMessagePopup/SuccessMessagePopup";
 
 const Header = (props) => {
   const dispatch = useDispatch();
@@ -163,6 +165,8 @@ const Header = (props) => {
       <WarningPopup />
       <InfoModal />
       <WithdrawModal />
+      <InvoiceModal />
+      <SuccessMessagePopup />
     </div>
   );
 };

@@ -101,12 +101,43 @@ describe('txBuilder - Back Up Transaction', function() {
     }).toThrowError('Not enough value to cover fee.');
   });
 
-  test('Check built tx correct 1', async function() {
-    // Set withdrawal statecoin to 10000
-    sc_infos[0].amount = 10000;
+describe("txBackupBuild", function () {
+  let funding_txid = FUNDING_TXID;
+  let funding_vout = FUNDING_VOUT;
+  let backup_receive_addr = BTC_ADDR;
+  let value = 10000;
+  let locktime = 100;
+  let backup_fee_rate = 1;
 
-    let tx_backup = txBuilder(network, sc_infos, backup_receive_addr, FEE_INFO, nSequence, undefined, locktime).buildIncomplete();
+  test("txBackupBuild throw on value < fee", async function () {
+    expect(() => {
+      // not enough value
+      txBackupBuild(
+        network,
+        funding_txid,
+        funding_vout,
+        backup_receive_addr,
+        100,
+        backup_receive_addr,
+        100,
+        locktime,
+        backup_fee_rate
+      );
+    }).toThrowError("Not enough value to cover fee.");
+  });
 
+  test("Check built tx correct 1", async function () {
+    let tx_backup = txBackupBuild(
+      network,
+      funding_txid,
+      funding_vout,
+      backup_receive_addr,
+      value,
+      backup_receive_addr,
+      100,
+      locktime,
+      backup_fee_rate
+    ).buildIncomplete();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(sc_infos[0].utxo.txid);
     expect(tx_backup.outs.length).toBe(2);
