@@ -21,6 +21,7 @@ module.exports = function override(config, env) {
     path: require.resolve("path-browserify"),
     constants: require.resolve("constants-browserify"),
     tls: require.resolve("tls"),
+    querystring: false,
     fs: false,
   };
 
