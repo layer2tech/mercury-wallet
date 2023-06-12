@@ -73,8 +73,7 @@ export const FeeInfo = typeforce.compile({
   interval: UInt32,
   initlock: UInt32,
   wallet_version: String,
-  wallet_message: String,
-  backup_fee_rate: UInt32,
+  wallet_message: String
 })
 
 export const CoinsInfo = typeforce.compile({

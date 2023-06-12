@@ -257,7 +257,7 @@ const Coin = (props) => {
           ) {
             dispatch(
               setError({
-                msg: "Expired coins are unavailable for transfer or swap",
+                msg: "Expired coins are unavailable for transfer, swap or withdrawal",
               })
             );
             return false;
@@ -265,12 +265,11 @@ const Coin = (props) => {
           if (
             props.coin_data.status === STATECOIN_STATUS.EXPIRED &&
             withdrawPage &&
-            props.coin_data.BACKUP_STATUS !== BACKUP_STATUS.MISSING &&
-            props.coin_data.BACKUP_STATUS !== BACKUP_STATUS.BELOW_MIN_FEE
+            props.coin_data.BACKUP_STATUS !== BACKUP_STATUS.MISSING
           ) {
             dispatch(
               setError({
-                msg: "Expired coins withdrawn from backup transaction",
+                msg: "Expired coins are unavailable for transfer, swap or withdrawal",
               })
             );
             return false;

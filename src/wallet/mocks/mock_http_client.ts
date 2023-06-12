@@ -112,8 +112,7 @@ export const FEE_INFO = {
   interval: 100,
   initlock: 10000,
   wallet_version: "0.4.66",
-  wallet_message: "",
-  backup_fee_rate: 1
+  wallet_message: ""
 }
 
 export const BACKUP_SEQUENCE = 0xFFFFFFFE;

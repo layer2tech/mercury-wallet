@@ -54,7 +54,3 @@
   left: 16px;
   border-color: var(--text-primary);
 }
-
-.Body-button.menu-button {
-  color: var(--text-primary);
-}

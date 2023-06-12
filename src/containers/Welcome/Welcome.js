@@ -8,7 +8,7 @@ import { Link, withRouter } from "react-router-dom";
 
 import "./Welcome.css";
 import { useDispatch } from "react-redux";
-import { setWalletLoaded, setProgressComplete } from "../../features/WalletDataSlice";
+import { setWalletLoaded } from "../../features/WalletDataSlice";
 
 const Welcome = () => {
   const dispatch = useDispatch();
@@ -16,7 +16,6 @@ const Welcome = () => {
   const checked = state[0];
   const changeCheckbox = state[1];
 
-  dispatch(setProgressComplete({ msg: "" }));
 
   useEffect(()=>{
     dispatch(setWalletLoaded({ loaded: false }))

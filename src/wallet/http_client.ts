@@ -4,7 +4,7 @@ import { checkForServerError, handlePromiseRejection } from "./error";
 import axios, { AxiosRequestConfig } from 'axios'
 import Semaphore from 'semaphore-async-await';
 
-export const TIMEOUT = 10000
+export const TIMEOUT = 6000
 // Maximum number of concurrent API calls
 export const MAX_SEMAPHORE_COUNT = 5;
 export const semaphore = new Semaphore(MAX_SEMAPHORE_COUNT);

@@ -636,11 +636,7 @@ export default class Swap {
   makeSwapCommitment = async (): Promise<SwapStepResult> => {
     this.statecoin.swap_batch_data = await this.make_swap_commitment();
     this.statecoin.swap_status = SWAP_STATUS.Phase4;
-    try {
-      await this.wallet.saveStateCoin(this.statecoin);
-    } catch (err: any) {
-      return SwapStepResult.Retry(`Save error: ${err.message}`);
-    }
+    await this.wallet.saveStateCoin(this.statecoin);
     return SwapStepResult.Ok("made swap commitment");
   };
 
@@ -711,11 +707,7 @@ export default class Swap {
     }
     if (result.length === 1) {
       this.statecoin.swap_transfer_msg_3_receiver = result[0];
-      try {
-        await this.wallet.saveStateCoin(this.statecoin);
-      } catch (err: any) {
-        return SwapStepResult.Retry(`Save error: ${err.message}`);
-      }
+      await this.wallet.saveStateCoin(this.statecoin);
       return SwapStepResult.Ok("retrieved transfer_msg_3_receiver");
     }
     if (this.statecoin.swap_status === SWAP_STATUS.Phase4) {
@@ -881,12 +873,7 @@ export default class Swap {
     if (data === null || data === undefined) {
       data = await this.do_transfer_receiver();
       this.statecoin.swap_transfer_finalized_data = data;
-      try {
-        await this.wallet.saveStateCoin(this.statecoin);
-      }
-      catch (err: any) {
-        throw Error(err.message);
-      }
+      await this.wallet.saveStateCoin(this.statecoin);
     }
     return data;
   }
@@ -897,11 +884,7 @@ export default class Swap {
     if (data === null || data === undefined) {
       data = await this.do_get_transfer_msg_4();
       this.statecoin.swap_transfer_msg_4 = data;
-      try {
-        await this.wallet.saveStateCoin(this.statecoin);
-      } catch (err: any) {
-        throw Error(err.message);
-      }
+      await this.wallet.saveStateCoin(this.statecoin);
     }
     return data;
   }

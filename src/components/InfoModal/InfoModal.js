@@ -198,17 +198,15 @@ const InfoModal = () => {
                 <div className="block">
                   <span>UTXO ID</span>
                   <span>
-                    <div className="txhex-container">
-                      <CopiedButton handleCopy={(e) => copyToClipboard(e)}>
-                        <div className="copy-hex-wrap coin-modal-hex">
-                          <img type="button" src={icon2} alt="icon" />
-                          <span>
-                            {showDetails.coin.funding_txid}:
-                            {showDetails.coin.funding_vout}
-                          </span>
-                        </div>
-                      </CopiedButton>
-                    </div>
+                    <button
+                      className="coinURLButton"
+                      onClick={() => onClickTXID(showDetails.coin.funding_txid)}
+                    >
+                      <div className="coinURLText">
+                        {showDetails.coin.funding_txid}:
+                        {showDetails.coin.funding_vout}
+                      </div>
+                    </button>
                   </span>
                 </div>
               </div>

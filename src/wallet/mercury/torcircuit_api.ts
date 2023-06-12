@@ -47,7 +47,6 @@ export const getNewTorCircuit = async (http_client: HttpClient | MockHttpClient)
 export const getTorCircuitIds = async (
   http_client: HttpClient | MockHttpClient
 ) => {
-  console.log('call to get TorCircuitIds')
   let tor_circuit_ids;
   try {
     const timeout_ms = 10000;
@@ -68,7 +67,6 @@ export const getTorCircuit = async (
   http_client: HttpClient | MockHttpClient,
   circuit_id: string
 ) => {
-  console.log('call to getTorCircuit')
   let circuit;
   try {
     const timeout_ms = 10000;

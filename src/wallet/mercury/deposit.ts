@@ -153,7 +153,8 @@ export const depositConfirm = async (
 
   // Build unsigned backup tx
   let backup_receive_addr = pubKeyTobtcAddr(statecoin.proof_key, network);
-  let tx_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, statecoin.funding_vout, backup_receive_addr, statecoin.value, fee_info.address, withdraw_fee, init_locktime, fee_info.backup_fee_rate).buildIncomplete();
+
+  let tx_backup_unsigned = txBuilder(network, sc_infos, backup_receive_addr, fee_info, nSequence, undefined, init_locktime).buildIncomplete();
 
   //co sign funding tx input signatureHash
   let pk = statecoin.getSharedPubKey();

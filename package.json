@@ -26,7 +26,7 @@
     }
   },
   "repository": "github:layer2tech/mercury-wallet",
-  "version": "v0.8.14",
+  "version": "v0.8.9",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "public/electron.js",
@@ -98,7 +98,7 @@
     "bech32": "^1.1.4",
     "bigint-mod-arith": "^2.0.8",
     "bip32": "^2.0.6",
-    "bip39": "3.0.3",
+    "bip39": "^3.0.3",
     "bitcoinjs-lib": "^5.2.0",
     "bn": "^1.0.5",
     "body-parser": "^1.19.0",

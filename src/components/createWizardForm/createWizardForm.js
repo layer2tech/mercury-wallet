@@ -7,9 +7,9 @@ import eyeIconOff from "../../images/eye-icon-off.svg";
 import CloseIcon from "../../images/close-icon.png";
 import TermsConditions from "../TermsConditions/TermsConditions";
 import "./createWizardForm.css";
+import { NetworkSwitch } from "../../components/header/TorInfo/TorCircuit";
 import { NETWORK_TYPE } from "../../wallet/wallet";
 import { setNetworkType } from "../../features/WalletDataSlice";
-import { NetworkSwitch } from "../header/TorInfo/NetworkSwitch";
 
 const CreateWizardForm = (props) => {
   const { register, errors, watch, handleSubmit } = useForm({
