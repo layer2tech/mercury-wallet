@@ -554,8 +554,13 @@ export const getChannels = () => {
   }
 };
 
-export const getNodeId = () => {
+export const getNodeId = async () => {
   if (isWalletLoaded()) {
+    if (wallet.nodeId === "" || wallet.nodeId === 0) {
+      let returnedID = await wallet.lightning_client.getNodeId();
+      console.log("network value returned was:", returnedID);
+      wallet.nodeId = returnedID.nodeID;
+    }
     return wallet.nodeId;
   }
 };

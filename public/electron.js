@@ -34,6 +34,9 @@ function startExpressServer() {
     "src",
     "server.js"
   );
+
+  let lightning_adapter_directory = joinPath(rootPath, "lightning-adapter");
+
   const command = "node";
   const args = [
     "--loader",
@@ -43,6 +46,7 @@ function startExpressServer() {
   ];
 
   const expressProcess = spawn(command, args, {
+    cwd: lightning_adapter_directory,
     shell: true,
     stdio: "ignore",
   });
