@@ -18,6 +18,7 @@ Object.freeze(LIGHTNING_GET_ROUTE);
 
 export const LIGHTNING_POST_ROUTE = {
   GENERATE_INVOICE: "/generateInvoice",
+  START_LDK: "/startLDK",
 };
 Object.freeze(LIGHTNING_POST_ROUTE);
 
@@ -64,10 +65,15 @@ export class LDKClient {
 
   async setNotificationSeen(body: any): Promise<any> {
     try {
-      let res = await LDKClient.post(LIGHTNING_GET_ROUTE.CHANNEL_EVENTS_SET_NOTIFICATION_SEEN, body);
+      let res = await LDKClient.post(
+        LIGHTNING_GET_ROUTE.CHANNEL_EVENTS_SET_NOTIFICATION_SEEN,
+        body
+      );
       return res;
     } catch (e: any) {
-      throw new Error("Error in setting event notification status " + e?.message);
+      throw new Error(
+        "Error in setting event notification status " + e?.message
+      );
     }
   }
 
