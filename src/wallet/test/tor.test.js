@@ -5,8 +5,13 @@ const handle_error = require("../../../tor-adapter/server/error").handle_error;
 const { join, dirname } = require("path");
 const joinPath = join;
 
-const app = require("electron").app;
-const rootPath = app.getAppPath() || process.cwd();
+const { app } = require("electron");
+let rootPath = "";
+if (app) {
+  rootPath = app.getAppPath() || process.cwd();
+} else {
+  rootPath = process.cwd();
+}
 
 const fork = require("child_process").fork;
 const exec = require("child_process").exec;
