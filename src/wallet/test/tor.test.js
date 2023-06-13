@@ -5,7 +5,9 @@ const handle_error = require("../../../tor-adapter/server/error").handle_error;
 const { join, dirname } = require("path");
 const joinPath = join;
 
-const { app } = require("electron");
+import electron from "electron";
+const app = electron.app;
+
 let rootPath = "";
 if (app) {
   rootPath = app.getAppPath() || process.cwd();
