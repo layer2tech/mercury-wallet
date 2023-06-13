@@ -260,7 +260,7 @@ function createWindow() {
   }
 
   mainWindow.on("close", async () => {
-    mainWindow.removeAllEventListeners();
+    //mainWindow.removeAllEventListeners(); - removed in electron 1.8.0
   });
 
   mainWindow.on("closed", async () => {

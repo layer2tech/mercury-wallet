@@ -25,7 +25,11 @@ import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import { NETWORK_TYPE, deleteChannelByAddr } from "../wallet/wallet";
-import { useSelector } from "react-redux";
+import {
+  LDKClient,
+  LIGHTNING_GET_ROUTE,
+  LIGHTNING_POST_ROUTE,
+} from "../wallet/ldk_client";
 // import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
@@ -281,8 +285,30 @@ export function initActivityLogItems() {
   wallet.initActivityLogItems(10);
 }
 
-export async function walletLoadFromMem(name, password) {
+export async function loadWalletFromMemory(name, password) {
   wallet = await Wallet.load(name, password, testing_mode);
+
+  // Lightning - loading
+  let network = wallet.config.network;
+  console.log("network loaded from memory was:", network);
+  let networkPostValue = "";
+  if (network.bech32 === "bc") {
+    networkPostValue = "prod";
+  } else if (network.bech32 === "tb") {
+    networkPostValue = "test";
+  } else {
+    networkPostValue = "dev";
+  }
+  console.log("networkPostValue is:", networkPostValue);
+  LDKClient.get(LIGHTNING_GET_ROUTE.PEER_LIST).then((res) => {
+    console.log("result returned was:", res);
+    res.status === 200
+      ? LDKClient.post(LIGHTNING_POST_ROUTE.START_LDK, {
+          network: networkPostValue,
+        })
+      : null;
+  });
+
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
@@ -292,7 +318,7 @@ export async function walletLoadFromMem(name, password) {
 
 // Load wallet from store
 export async function walletLoad(name, password, router) {
-  wallet = await walletLoadFromMem(name, password);
+  wallet = await loadWalletFromMemory(name, password);
 
   router.push("/home");
 
@@ -1028,7 +1054,11 @@ export const checkChannelWithdrawal = async (
   const ping_lightning_ms_new = await pingLightning();
   dispatch(setPingLightningMs(ping_lightning_ms_new));
   if (ping_lightning_ms_new === null) {
-    dispatch(setError({ msg: "Lightning server not connected. Please try again later." }));
+    dispatch(
+      setError({
+        msg: "Lightning server not connected. Please try again later.",
+      })
+    );
     return true;
   }
   // check if channel is chosen
@@ -1065,7 +1095,11 @@ export const checkChannelCreation = async (dispatch, amount, nodekey) => {
   const ping_lightning_ms_new = await pingLightning();
   dispatch(setPingLightningMs(ping_lightning_ms_new));
   if (ping_lightning_ms_new === null) {
-    dispatch(setError({ msg: "Lightning server not connected. Please try again later." }));
+    dispatch(
+      setError({
+        msg: "Lightning server not connected. Please try again later.",
+      })
+    );
     return true;
   }
   if (amount === "") {
@@ -1097,7 +1131,11 @@ export const checkChannelSend = async (dispatch, inputAddr) => {
   const ping_lightning_ms_new = await pingLightning();
   dispatch(setPingLightningMs(ping_lightning_ms_new));
   if (ping_lightning_ms_new === null) {
-    dispatch(setError({ msg: "Lightning server not connected. Please try again later." }));
+    dispatch(
+      setError({
+        msg: "Lightning server not connected. Please try again later.",
+      })
+    );
     return true;
   }
   if (!inputAddr) {
@@ -1504,7 +1542,7 @@ const WalletSlice = createSlice({
       return {
         ...state,
         channelEvents: action.payload,
-      }
+      };
     },
     updateSwapPendingCoins(state, action) {
       return {
