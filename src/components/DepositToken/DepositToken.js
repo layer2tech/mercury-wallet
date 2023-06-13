@@ -17,8 +17,7 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
     const dispatch = useDispatch();
     const { fee_info, token_verify } = useSelector((state) => state.walletData);
 
-    const [showAddress, setShowAddress] = useState(false);
-    const [address, setAddress] = useState({addr: "", type: ""})
+    const [address, setAddress] = useState({addr: token.token.ln, type: "ln"})
     const [tokenFee, setTokenFee] = useState("") // sum of values multiplied by fee_info.deposit
     const [refresh, setRefresh] = useState();
 
@@ -46,18 +45,6 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
 
     const copyAddressToClipboard = (e) => {
         navigator.clipboard.writeText(address.addr);
-    }
-
-    const onHandleClick = (e) => {
-
-        if(e.target.innerHTML.includes("BTC")){
-            setAddress({addr: token.token.btc, type: "btc"})
-            setShowAddress(true)
-        }
-        if(e.target.innerHTML.includes("LN")){
-            setAddress({addr: token.token.ln, type: "ln"})
-            setShowAddress(true)
-        }
     }
 
     const handleConfirm = () => {
@@ -91,25 +78,10 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
                 })}
             </div>
 
-            {showAddress? 
-            (
-            <div className='back-select'>
-                <button
-                    type="button"
-                    className="Body-button transparent left"
-                    onClick={() => setShowAddress(false)}>
-                    <img src={arrow} alt="arrow" />
-                </button>
-            </div>):(null)}
-
-            {showAddress? (
             <div className="receiveStatecoin-scan">
                 <div className="receive-qr-code">
                     
-                {address.type === "btc" ? 
-                (<QRCodeGenerator address={address.addr} amount={tokenFee}/>)
-                :
-                (<QRCode value={(address.addr).toUpperCase()} />)}
+                <QRCode value={(address.addr).toUpperCase()} />
                 </div>
                 <div className="receiveStatecoin-scan-content">
                     <div className="receiveStatecoin-scan-txid">
@@ -146,18 +118,7 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
                         </CopiedButton>
                     </div>
                 </div>
-            </div>):(
-                <div className='pay-select'>
-                    { tokenFee > DUST_LIMIT ? (
-                    <button className='Body-button token' onClick={(e) => onHandleClick(e)}>
-                        <p>BTC</p>
-                    </button>
-                    ): (null)}
-                    <button className='Body-button token' onClick={(e) => onHandleClick(e)}>
-                        <p>LN</p>
-                    </button>
-                </div>
-            )}
+            </div>
             <div>
                 <button className = 'Body-button verify-token' onClick = {handleConfirm}>
                     Confirm Token
