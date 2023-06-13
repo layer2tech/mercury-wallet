@@ -289,6 +289,7 @@ export async function loadWalletFromMemory(name, password) {
   wallet = await Wallet.load(name, password, testing_mode);
 
   // Lightning - loading
+  /*
   let network = wallet.config.network;
   console.log("network loaded from memory was:", network);
   let networkPostValue = "";
@@ -307,7 +308,7 @@ export async function loadWalletFromMemory(name, password) {
           network: networkPostValue,
         })
       : null;
-  });
+  });*/
 
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
