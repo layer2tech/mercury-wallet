@@ -4,8 +4,10 @@ import { assert } from "console";
 const handle_error = require("../../../tor-adapter/server/error").handle_error;
 const { join, dirname } = require("path");
 const joinPath = join;
-const app2 = require("electron").app;
-const rootPath = app2.getAppPath();
+
+const app = require("electron").app;
+const rootPath = app.getAppPath() || process.cwd();
+
 const fork = require("child_process").fork;
 const exec = require("child_process").exec;
 const execSync = require("child_process").execSync;
