@@ -16,12 +16,14 @@ const url = require("url");
 const fs = require("fs");
 const fixPath = require("fix-path");
 const alert = require("alert");
-const rootPath = require("electron-root-path").rootPath;
 const axios = require("axios").default;
 const process = require("process");
 const fork = require("child_process").fork;
 const exec = require("child_process").exec;
 const { spawn } = require("child_process");
+
+const app2 = require("electron").app;
+const rootPath = app2.getAppPath();
 
 // set to testnet mode for testing
 if (
