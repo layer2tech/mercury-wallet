@@ -43,7 +43,7 @@ const RestoreWalletPage = (props) => {
   const setStateWalletPassword = (event) =>
     setState({ ...state, wallet_password: event.target.value });
   const setStateWalletNetwork = (networkType) =>
-    setState({...state, wallet_network: networkType});
+    setState({ ...state, wallet_network: networkType });
   const setStateMnemonic = (event) =>
     setState({ ...state, mnemonic: event.target.value });
   const setStateGapLimit = (event) =>
@@ -51,6 +51,7 @@ const RestoreWalletPage = (props) => {
 
   // Confirm mnemonic is valid
   const onClickConf = async () => {
+    console.log("[RestoreWallet.js] - clicked on confirm...");
     let store = new Storage("wallets/wallet_names");
     let wallet_names = store.getWalletNames();
 

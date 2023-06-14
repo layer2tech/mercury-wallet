@@ -106,7 +106,6 @@ describe('txBuilder - Back Up Transaction', function() {
     sc_infos[0].amount = 10000;
 
     let tx_backup = txBuilder(network, sc_infos, backup_receive_addr, FEE_INFO, nSequence, undefined, locktime).buildIncomplete();
-
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(sc_infos[0].utxo.txid);
     expect(tx_backup.outs.length).toBe(2);

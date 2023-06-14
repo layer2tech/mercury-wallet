@@ -3,7 +3,7 @@
  */
 import { SWAP_SECOND_SCE_ADDRESS } from "../mocks/mock_http_client";
 import { GET_ROUTE, POST_ROUTE } from "../http_client";
-import { makeTesterStatecoin, SWAP_TRANSFER_MSG } from "./test_data.js";
+import { makeTesterStatecoin, SWAP_TRANSFER_MSG, SWAP_TRANSFER_MSG2 } from "./test_data.js";
 import { SWAP_STATUS, UI_SWAP_STATUS } from "../swap/swap_utils";
 import { STATECOIN_STATUS } from "../statecoin";
 import { Wallet, MOCK_WALLET_NAME } from "../wallet";
@@ -596,7 +596,7 @@ describe("swapPhase3", () => {
     );
 
     let statecoin_expected = cloneDeep(INIT_STATECOIN);
-    statecoin_expected.swap_transfer_msg = SWAP_TRANSFER_MSG;
+    statecoin_expected.swap_transfer_msg = SWAP_TRANSFER_MSG2;
     statecoin_expected.ui_swap_status = UI_SWAP_STATUS.Phase6;
 
     expect(statecoin.swap_transfer_msg.t1.secret_bytes).not.toEqual(
