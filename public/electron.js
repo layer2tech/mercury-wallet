@@ -89,7 +89,7 @@ if (isPackaged === true) {
     __dirname,
     "..",
     "node_modules",
-    "mercury-wallet-tor-adapter",
+    "mercury-node",
     "server",
     "index.js"
   );
@@ -98,7 +98,7 @@ if (isPackaged === true) {
     __dirname,
     "..",
     "node_modules",
-    "mercury-wallet-lightning-adapter",
+    "mercury-node",
     "src",
     "server.js"
   );
@@ -124,7 +124,7 @@ if (isPackaged === true) {
     __dirname,
     "..",
     "node_modules",
-    "mercury-wallet-lightning-adapter",
+    "mercury-node",
     "src",
     "server.js"
   );
@@ -155,13 +155,13 @@ function startExpressServer() {
       __dirname,
       "..",
       "node_modules",
-      "mercury-wallet-lightning-adapter"
+      "mercury-node"
     );
   } else {
     lightning_adapter_directory = joinPath(
       rootPath,
       "node_modules",
-      "mercury-wallet-lightning-adapter"
+      "mercury-node"
     );
   }
 
@@ -176,7 +176,7 @@ function startExpressServer() {
   const expressProcess = spawn(command, args, {
     cwd: lightning_adapter_directory,
     shell: true,
-    stdio: "ignore",
+    stdio: "inherit",
   });
 
   expressProcess.on("error", (err) => {
