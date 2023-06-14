@@ -14,7 +14,13 @@ import { mutex } from "../wallet/electrum";
 import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
 import WrappedLogger from "../wrapped_logger";
-import { NETWORK_TYPE } from "../wallet/wallet";
+import { NETWORK_TYPE, deleteChannelByAddr } from "../wallet/wallet";
+import {
+  LDKClient,
+  LIGHTNING_GET_ROUTE,
+  LIGHTNING_POST_ROUTE,
+} from "../wallet/ldk_client";
+
 // import { store } from "../application/reduxStore";
 
 const isEqual = require("lodash").isEqual;
@@ -230,8 +236,31 @@ export function initActivityLogItems() {
   wallet.initActivityLogItems(10);
 }
 
-export async function walletLoadFromMem(name, password) {
+export async function loadWalletFromMemory(name, password) {
   wallet = await Wallet.load(name, password, testing_mode);
+
+  // Lightning - loading
+  /*
+  let network = wallet.config.network;
+  console.log("network loaded from memory was:", network);
+  let networkPostValue = "";
+  if (network.bech32 === "bc") {
+    networkPostValue = "prod";
+  } else if (network.bech32 === "tb") {
+    networkPostValue = "test";
+  } else {
+    networkPostValue = "dev";
+  }
+  console.log("networkPostValue is:", networkPostValue);
+  LDKClient.get(LIGHTNING_GET_ROUTE.PEER_LIST).then((res) => {
+    console.log("result returned was:", res);
+    res.status === 200
+      ? LDKClient.post(LIGHTNING_POST_ROUTE.START_LDK, {
+          network: networkPostValue,
+        })
+      : null;
+  });*/
+
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
 
@@ -241,7 +270,7 @@ export async function walletLoadFromMem(name, password) {
 
 // Load wallet from store
 export async function walletLoad(name, password, router) {
-  wallet = await walletLoadFromMem(name, password);
+  wallet = await loadWalletFromMemory(name, password);
 
   router.push("/home");
 
@@ -938,7 +967,16 @@ export const checkWithdrawal = (dispatch, selectedCoins, inputAddr) => {
 
 export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) => {
   // Pre action confirmation checks for withdrawal - return true to prevent action
-
+  const ping_lightning_ms_new = await pingLightning();
+  dispatch(setPingLightningMs(ping_lightning_ms_new));
+  if (ping_lightning_ms_new === null) {
+    dispatch(
+      setError({
+        msg: "Lightning server not connected. Please try again later.",
+      })
+    );
+    return true;
+  }
   // check if channel is chosen
   if (selectedChannels.length === 0) {
     dispatch(setError({ msg: "Please choose a channel to withdraw." }));
@@ -960,11 +998,56 @@ export const checkChannelWithdrawal = (dispatch, selectedChannels, inputAddr) =>
   } catch (e) {
     dispatch(setError({ msg: "Invalid Bitcoin address entered." }));
     return true;
+  }*/
+};
+
+export const checkChannelCreation = async (dispatch, amount, nodekey) => {
+  const ping_lightning_ms_new = await pingLightning();
+  dispatch(setPingLightningMs(ping_lightning_ms_new));
+  if (ping_lightning_ms_new === null) {
+    dispatch(
+      setError({
+        msg: "Lightning server not connected. Please try again later.",
+      })
+    );
+    return true;
+  }
+  if (amount === "") {
+    dispatch(setError({ msg: "Please set the amount of the funding tx." }));
+    return true;
+  }
+  if (nodekey === "") {
+    dispatch(
+      setError({ msg: "Please set the nodekey to open channel with peer " })
+    );
+    return true;
+  }
+  if (nodekey.includes(".onion")) {
+    dispatch(
+      setError({
+        msg: "Connecting to Tor onion address is currently not supported, please enter nodekey having IPv4 or IPv6 address. ",
+      })
+    );
+    return true;
+  }
+  if (!isValidNodeKeyAddress(nodekey)) {
+    dispatch(setError({ msg: "Please enter a valid nodekey address " }));
+    return true;
   }
 };
 
 export const checkChannelSend = (dispatch, inputAddr) => {
   // Pre action confirmation checks for send sats - return true to prevent action
+  const ping_lightning_ms_new = await pingLightning();
+  dispatch(setPingLightningMs(ping_lightning_ms_new));
+  if (ping_lightning_ms_new === null) {
+    dispatch(
+      setError({
+        msg: "Lightning server not connected. Please try again later.",
+      })
+    );
+    return true;
+  }
   if (!inputAddr) {
     dispatch(setError({ msg: "Please enter a lightning address to send sats." }));
     return true;
@@ -1384,6 +1467,12 @@ const WalletSlice = createSlice({
       return {
         ...state,
         walletMode: action.payload,
+      };
+    },
+    updateChannelEvents(state, action) {
+      return {
+        ...state,
+        channelEvents: action.payload,
       };
     },
     updateSwapPendingCoins(state, action) {
