@@ -176,7 +176,7 @@ function startExpressServer() {
   const expressProcess = spawn(command, args, {
     cwd: lightning_adapter_directory,
     shell: true,
-    stdio: "inherit",
+    stdio: "ignore", // tip: use inherit here to debug the express server with debugger
   });
 
   expressProcess.on("error", (err) => {
