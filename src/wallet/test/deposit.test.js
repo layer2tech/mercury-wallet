@@ -17,7 +17,7 @@ describe('Deposit', function(){
 
 
         expect(token.btc).toBe(TOKEN_INIT.btc_payment_address);
-        expect(token.ln).toBe(TOKEN_INIT.lightning_invoice);
+        expect(token.ln).toBe(TOKEN_INIT.lightning_invoice.bolt11);
         expect(token.id).toBe(TOKEN_INIT.token_id)
         
     })
