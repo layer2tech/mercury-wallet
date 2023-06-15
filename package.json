@@ -32,8 +32,7 @@
   "main": "public/electron.js",
   "scripts": {
     "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
-    "install-ldk": "npm install lightningdevkit --prefix node_modules/mercury-node/node_modules",
-    "install-local": "yarn add file:./tor-adapter && npm run install-ldk",
+    "install-local": "yarn add file:./tor-adapter",
     "start": "node ./setup && react-app-rewired start --trace-deprecation",
     "adapters-browser": "concurrently \"node ./setup && react-app-rewired start\" \" npm run tor-adapter\" ",
     "prebuild": "DATE=`date` && YEAR=${DATE##* } && MERC_YEAR=`jq .build.copyright package.json | awk '{print $3}'` && if [ $YEAR -ne $MERC_YEAR ]; then echo 'package.json prebuild - expected .build.copyright year' $YEAR ', got' $MERC_YEAR '- please update year' && return 1; fi",
