@@ -6,9 +6,10 @@ import arrow from "../../images/arrow-up.png";
 import { useDispatch, useSelector } from 'react-redux';
 import { fromSatoshi } from '../../wallet';
 import QRCodeGenerator from '../QRCodeGenerator/QRCodeGenerator';
-import { setToken } from '../../features/WalletDataSlice';
+import { callTokenDepositInit, setToken } from '../../features/WalletDataSlice';
 import close_img from "../../images/close-icon.png";
 import { DUST_LIMIT } from '../../wallet/util';
+import AddressInput from '../inputs/addressInput';
 
 
 // Add Animation for when button clicked
@@ -19,6 +20,7 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
 
     const [address, setAddress] = useState({addr: token.token.ln, type: "ln"})
     const [tokenFee, setTokenFee] = useState("") // sum of values multiplied by fee_info.deposit
+    const [tokenId, setTokenId] = useState("");
     const [refresh, setRefresh] = useState();
 
     useEffect(()=> {
@@ -51,6 +53,10 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
 
         if(token_verify.status === "idle"){
             dispatch(setToken(token))
+        }
+
+        if (tokenId !== "") {
+            dispatch(callTokenDepositInit({value: tokenFee, token: tokenId}))
         }
     }
 
@@ -118,6 +124,13 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
                         </CopiedButton>
                     </div>
                 </div>
+            </div>
+            <div>
+                <AddressInput
+                    inputAddr={tokenId}
+                    onChange={(e) => setTokenId(e.target.value)}
+                    placeholder='Token ID'
+                    smallTxtMsg='Token ID'/>
             </div>
             <div>
                 <button className = 'Body-button verify-token' onClick = {handleConfirm}>
