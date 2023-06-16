@@ -17,6 +17,11 @@ jobs:
         with:
           node-version: "16.16"
 
+      - name: Set permissions for files and directories
+        run: |
+          sudo chown -R $USER:$USER .
+          sudo chmod -R 777 .
+
       - name: build
         env:
           CI: false
