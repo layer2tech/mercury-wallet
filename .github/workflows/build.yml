@@ -24,9 +24,11 @@ jobs:
         run: |
           pwd
           id
+          echo "starting linux build"
           yarn app-linux
           echo "finished linux"
           chown -R root:root /github/home
+          echo "starting windows build"
           yarn app-windows
           echo "finished windows"
           ls -la dist
