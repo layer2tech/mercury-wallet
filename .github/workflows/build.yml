@@ -19,8 +19,8 @@ jobs:
 
       - name: Set permissions for files and directories
         run: |
-          sudo chown -R $USER:$USER .
-          sudo chmod -R 777 .
+          chown -R $USER:$USER .
+          chmod -R 777 .
 
       - name: build
         env:
